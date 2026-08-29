@@ -79,31 +79,16 @@ public:
     // process; two SERVER PROCESSES sharing a port is the failure mode that once faked data loss,
     // so a boot must still verify nothing else holds the port.
     bool init(Server* srv, ThreadCtx* self, const char* addr, uint16_t port,
-              int unix_listen_fd = -1, const TlsContext* tls_context = nullptr) {
+              int unix_listen_fd = -1, const TlsContext* tls_context = nullptr,
+              bool dormant = false) {
         srv_ = srv; self_ = self;
-        self_->set_wb_engine(&wb_);
-        if (port) {
-            listen_fd_ = make_reuseport_listener(addr, port, srv_->cfg().tcp_backlog);
-            if (listen_fd_ < 0) return false;
-        }
+        (void)addr;
+        configured_port_ = port;
         tls_context_ = tls_context;
-        if (tls_context_) {
-            tls_listen_fd_ = make_reuseport_listener(addr, srv_->cfg().tls_port,
-                                                      srv_->cfg().tcp_backlog, true);
-            if (tls_listen_fd_ < 0) return false;
-        }
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
         if (!ring_.init(4096)) return false;
-        self_->set_ring(&ring_);
         if (epoll_ && !init_epoll()) return false;
-        if (srv_->aof().configured()) {
-            std::string error;
-            if (!srv_->aof().bind_writer(*self_, ring_, error)) {
-                std::fprintf(stderr, "AOF writer init failed: %s\n", error.c_str());
-                return false;
-            }
-        }
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
         }, this, [](void* ctx, Client& client, Op& op) {
@@ -132,7 +117,8 @@ public:
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
         }, &cached_now_s_, &self_->sig());
-        return true;
+        initialized_ = true;
+        return dormant || activate();
     }
 
     ~IoLoop() {
@@ -184,6 +170,80 @@ public:
 
     Ring& ring() { return ring_; }
 
+    bool activate() {
+        if (!initialized_) return false;
+        if (active_role_) {
+            self_->set_ring(&ring_);
+            self_->set_wb_engine(&wb_);
+            return true;
+        }
+        if (!prepare_activation()) return false;
+        accept_quiescing_ = false;
+        accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
+        self_->set_ring(&ring_);
+        self_->set_wb_engine(&wb_);
+        active_role_ = true;
+        return true;
+    }
+
+    // Prepare every fallible role-tenure resource while the thread is still an EX owner and no
+    // connection or bucket ownership edge has occurred. ExLoop invokes this through ThreadCtx's
+    // type-erased role hook on the physical thread that owns this IoLoop.
+    bool prepare_activation() {
+        if (!initialized_) return false;
+        if (prepared_role_) return true;
+        auto fail = [&]() {
+            if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
+            if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
+            prepared_role_ = false;
+            return false;
+        };
+        accept_generation_++;
+        if (configured_port_ && listen_fd_ < 0) {
+            listen_fd_ = make_reuseport_listener(
+                srv_->cfg().bind_addr, configured_port_, srv_->cfg().tcp_backlog);
+            if (listen_fd_ < 0) return fail();
+        }
+        if (tls_context_ && tls_listen_fd_ < 0) {
+            tls_listen_fd_ = make_reuseport_listener(
+                srv_->cfg().bind_addr, srv_->cfg().tls_port, srv_->cfg().tcp_backlog, true);
+            if (tls_listen_fd_ < 0) return fail();
+        }
+        if (epoll_ && !register_epoll_listeners()) return fail();
+        if (srv_->aof().configured() && !aof_bound_) {
+            std::string error;
+            if (!srv_->aof().bind_writer(*self_, ring_, error)) {
+                std::fprintf(stderr, "AOF writer init failed: %s\n", error.c_str());
+                return fail();
+            }
+            aof_bound_ = true;
+        }
+        prepared_role_ = true;
+        return true;
+    }
+
+    void cancel_prepared_activation() {
+        if (active_role_ || !prepared_role_) return;
+        if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
+        if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
+        accept_generation_++;
+        prepared_role_ = false;
+    }
+
+    void deactivate() {
+        if (!active_role_) return;
+        if (!self_->clients().empty() || !client_migrations_.empty()) std::abort();
+        // The UNIX listener is pinned to its boot IO and that thread is never a conversion
+        // candidate. TCP/TLS SO_REUSEPORT listeners are per-role-tenure resources.
+        if (unix_listen_fd_ >= 0) std::abort();
+        if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
+        if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
+        accept_generation_++; // makes any late multishot CQE recognisably stale
+        accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
+        active_role_ = false;
+        prepared_role_ = false;
+    }
+
     // Called only on this loop's physical thread by the migration control lane. The public split
     // keeps preflight (no state change) distinct from request (source remains owner until an async
     // recv cancellation has acknowledged that the old ring released Client*).
@@ -225,11 +285,38 @@ public:
     }
 
     bool request_client_transfer(Client* client, uint32_t destination, std::string& error) {
-        return epoll_ ? request_client_transfer_impl<true>(client, destination, error)
-                      : request_client_transfer_impl<false>(client, destination, error);
+        return epoll_ ? request_client_transfer_impl<true>(client, destination, false, error)
+                      : request_client_transfer_impl<false>(client, destination, false, error);
+    }
+
+    bool prepare_client_transfer(Client* client, uint32_t destination, std::string& error) {
+        return epoll_ ? request_client_transfer_impl<true>(client, destination, true, error)
+                      : request_client_transfer_impl<false>(client, destination, true, error);
+    }
+
+    bool reserve_client_transfer_state(uint32_t count) {
+        try {
+            client_migrations_.reserve(client_migrations_.size() + count);
+            return true;
+        } catch (...) {
+            return false;
+        }
     }
 
     bool client_transfers_idle() const { return client_migrations_.empty(); }
+    bool client_transfers_prepared() const {
+        for (const auto& migration : client_migrations_)
+            if (!migration.prepared) return false;
+        return true;
+    }
+    void commit_prepared_client_transfers() {
+        if (epoll_) commit_prepared_client_transfers_impl<true>();
+        else        commit_prepared_client_transfers_impl<false>();
+    }
+    void cancel_prepared_client_transfers() {
+        if (epoll_) cancel_prepared_client_transfers_impl<true>();
+        else        cancel_prepared_client_transfers_impl<false>();
+    }
     uint64_t client_transfer_failures() const { return client_transfer_failures_; }
 
     // ---- epoll engine: registration -----------------------------------------------------------
@@ -240,6 +327,13 @@ public:
     // see net/epoll.h. The doorbell eventfd is level-triggered and drained explicitly.
     bool init_epoll() {
         if (!ep_.init()) return false;
+        // The cross-thread doorbell exists for the lifetime of the physical thread. Role-tenure
+        // listeners are added by activate() and removed by close() in deactivate().
+        if (ring_.wake_fd() < 0) return false;
+        return ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr));
+    }
+
+    bool register_epoll_listeners() {
         auto add_listener = [&](int fd, UrKind kind) {
             if (fd < 0) return true;
             if (!set_nonblocking(fd)) return false;
@@ -248,10 +342,7 @@ public:
         if (!add_listener(listen_fd_, UrKind::Accept)) return false;
         if (!add_listener(tls_listen_fd_, UrKind::TlsAccept)) return false;
         if (!add_listener(unix_listen_fd_, UrKind::UnixAccept)) return false;
-        // The cross-thread doorbell. Without this in the set, an executor that completes work while
-        // this thread is parked in epoll_wait cannot reach it, and the reply waits out the timeout.
-        if (ring_.wake_fd() < 0) return false;
-        return ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr));
+        return true;
     }
 
     // THE ENGINE DECISION, MADE ONCE, HERE. It joins the two shape decisions this loop already
@@ -290,6 +381,9 @@ private:
         Client* client = nullptr;
         uint32_t destination = 0;
         bool cancel_submitted = false;
+        bool hold_for_commit = false;
+        bool prepared = false;
+        void* catalog = nullptr;
     };
 
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
@@ -315,7 +409,8 @@ private:
             if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         LoopSignals& sig = self_->sig();
-        while (!self_->stop_flag().load(std::memory_order_relaxed)) {
+        while (!self_->stop_flag().load(std::memory_order_relaxed) &&
+               self_->role() == Role::Ifid) {
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -328,8 +423,12 @@ private:
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 if (cached_now_ms_ >= climon_pause_deadline_ms_) climon_release_pause();
             }
-            const bool client_cron_armed = srv_->client_cron_armed();
-            const bool save_cron_armed = srv_->save_cron_writer(self_->id());
+            const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
+                                           srv_->client_cron_armed();
+            // Placement's dense role vectors are mutated only under FLIP's global dispatch
+            // barrier. Do not consult them from an IO pass while that cold transaction is live.
+            const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
+                                         srv_->save_cron_writer(self_->id());
             if (__builtin_expect(client_cron_armed || save_cron_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
@@ -381,6 +480,7 @@ private:
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix, kEp>();
                 did += flush_ready<HasTls, kEp>();
+                did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
@@ -441,6 +541,7 @@ private:
 
     // ---- submission -----------------------------------------------------------------------------
     void arm_accept(UrKind kind) {
+        if (self_->role() != Role::Ifid || accept_quiescing_) return;
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         io_uring_sqe* s = ring_.sqe();
@@ -457,8 +558,10 @@ private:
         const int listener = unix_socket ? unix_listen_fd_ :
                              tls_socket ? tls_listen_fd_ : listen_fd_;
         io_uring_prep_multishot_accept(s, listener, nullptr, nullptr, 0);
-        s->user_data = ur_tag(kind, nullptr);
+        s->user_data = ur_tag(
+            kind, reinterpret_cast<void*>(static_cast<uintptr_t>(accept_generation_)));
         ring_.note_pending();
+        accept_armed_ref(kind) = true;
         if (unix_socket) unix_accept_pending_ = false;
         else if (tls_socket) tls_accept_pending_ = false;
         else accept_pending_ = false;
@@ -749,18 +852,80 @@ private:
 
     void rearm_accept(io_uring_cqe* cqe, UrKind kind) {
         if (!(cqe->flags & IORING_CQE_F_MORE)) {
+            accept_armed_ref(kind) = false;
             self_->sig().accept_rearm++;
             arm_accept(kind);
         }
     }
 
+    bool& accept_armed_ref(UrKind kind) {
+        if (kind == UrKind::UnixAccept) return unix_accept_armed_;
+        if (kind == UrKind::TlsAccept) return tls_accept_armed_;
+        return accept_armed_;
+    }
+
+    bool accepts_quiesced() const {
+        return epoll_ || (!accept_armed_ && !tls_accept_armed_ && !unix_accept_armed_);
+    }
+
+    void quiesce_accepts_for_conversion() {
+        // UNIX owns a unique pathname and its boot owner is never selected for conversion.
+        if (unix_listen_fd_ >= 0) std::abort();
+        if (!accept_quiescing_) {
+            accept_quiescing_ = true;
+            accept_cancel_generation_ = accept_generation_;
+            accept_generation_++; // every completion from the old tenure is now recognisably stale
+            accept_pending_ = tls_accept_pending_ = false;
+        }
+        if (epoll_) return; // registration stays armed and is immediately reusable on rollback
+        auto cancel = [&](UrKind kind, bool armed, bool& submitted) {
+            if (!armed || submitted) return;
+            io_uring_sqe* sqe = ring_.sqe();
+            if (!sqe) { self_->sig().sqe_starved++; return; }
+            io_uring_prep_cancel64(
+                sqe, ur_tag(kind, reinterpret_cast<void*>(
+                                      static_cast<uintptr_t>(accept_cancel_generation_))), 0);
+            sqe->user_data = ur_tag(UrKind::MigrateCancel, nullptr);
+            ring_.note_pending();
+            submitted = true;
+        };
+        cancel(UrKind::Accept, accept_armed_, accept_cancel_submitted_);
+        cancel(UrKind::TlsAccept, tls_accept_armed_, tls_accept_cancel_submitted_);
+    }
+
+    bool restore_accepts_after_rollback() {
+        if (accept_quiescing_) {
+            if (!accepts_quiesced()) return false;
+            accept_quiescing_ = false;
+            accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
+        }
+        if (epoll_) return true; // tenure registrations were deliberately left installed
+        if (listen_fd_ >= 0 && !accept_armed_) arm_accept(UrKind::Accept);
+        if (tls_listen_fd_ >= 0 && !tls_accept_armed_) arm_accept(UrKind::TlsAccept);
+        // Do not publish the old shape as restored while SQ starvation still leaves one of its
+        // listeners unarmed. arm_accept records a pending retry, so the next pass makes progress.
+        return (listen_fd_ < 0 || accept_armed_) &&
+               (tls_listen_fd_ < 0 || tls_accept_armed_);
+    }
+
     template <bool kEp>
     void on_accept(io_uring_cqe* cqe, UrKind kind) {
+        const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
+        if (generation != accept_generation_ || self_->role() != Role::Ifid) {
+            if (cqe->res >= 0) ::close(cqe->res);
+            if (!(cqe->flags & IORING_CQE_F_MORE)) accept_armed_ref(kind) = false;
+            return;
+        }
         if (cqe->res < 0) {
             // Do not swallow this silently: a failing accept with no trace is indistinguishable from
             // a hung server, which is exactly how the 1024-connection failure presented.
             self_->sig().accept_err++;
-            arm_accept(kind);
+            rearm_accept(cqe, kind);
+            return;
+        }
+        if (srv_->flip_dispatch_paused()) {
+            ::close(cqe->res);
+            rearm_accept(cqe, kind);
             return;
         }
         admit_fd<kEp>(cqe->res, kind);
@@ -772,6 +937,7 @@ private:
     // EAGAIN here keeps one epoll_wait per burst instead of one per connection.
     template <bool kEp>
     uint32_t epoll_accept(UrKind kind) {
+        if (srv_->flip_dispatch_paused()) return 0;
         const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
                              kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
         if (listener < 0) return 0;
@@ -793,6 +959,7 @@ private:
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
     template <bool kEp>
     void admit_fd(int fd, UrKind kind) {
+        if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         self_->sig().accepts++;
@@ -946,6 +1113,12 @@ private:
 
     template <bool kEp>
     void cancel_client_transfer(Client* client) {
+        ClientMigration* migration = find_client_migration(client);
+        if (!migration) std::abort();
+        if (migration->catalog) {
+            if (!command_client_migration_install(migration->catalog)) std::abort();
+            migration->catalog = nullptr;
+        }
         if constexpr (kEp) {
             if (!ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
                          ur_tag(UrKind::Recv, client))) std::abort();
@@ -958,7 +1131,7 @@ private:
 
     template <bool kEp>
     bool request_client_transfer_impl(Client* client, uint32_t destination,
-                                      std::string& error) {
+                                      bool hold_for_commit, std::string& error) {
         if (!client_transfer_ready(client, destination, error)) return false;
         if (srv_->thread(destination).role() != Role::Ifid) {
             error = "destination thread is not a live IO owner";
@@ -973,7 +1146,8 @@ private:
             return false;
         }
         try {
-            client_migrations_.push_back(ClientMigration{client, destination, false});
+            client_migrations_.push_back(
+                ClientMigration{client, destination, false, hold_for_commit, false, nullptr});
         } catch (const std::bad_alloc&) {
             error = "could not allocate connection-transfer state";
             return false;
@@ -1002,6 +1176,7 @@ private:
     bool finish_client_transfer(Client* client) {
         ClientMigration* migration = find_client_migration(client);
         if (!migration || client->recv_armed()) return false;
+        if (migration->prepared) return true;
         const uint32_t destination = migration->destination;
         ThreadCtx& target = srv_->thread(destination);
         if (!target.client_transfer_free_slots(self_->id())) return false;
@@ -1011,11 +1186,27 @@ private:
             cancel_client_transfer<kEp>(client);
             return false;
         }
-        void* catalog = command_client_migration_extract(client);
-        if (!catalog) {
+        migration->catalog = command_client_migration_extract(client);
+        if (!migration->catalog) {
             cancel_client_transfer<kEp>(client);
             return false;
         }
+        if (migration->hold_for_commit) {
+            migration->prepared = true;
+            return true;
+        }
+
+        return commit_client_transfer<kEp>(client);
+    }
+
+    template <bool kEp>
+    bool commit_client_transfer(Client* client) {
+        ClientMigration* migration = find_client_migration(client);
+        if (!migration || !migration->catalog || client->recv_armed()) return false;
+        const uint32_t destination = migration->destination;
+        ThreadCtx& target = srv_->thread(destination);
+        if (!target.client_transfer_free_slots(self_->id())) std::abort();
+        void* const catalog = migration->catalog;
 
         // Everything below was reserved or validated above. The owner store is deliberately last
         // among source touches. A failed transport push after the capacity check is an invariant
@@ -1035,6 +1226,20 @@ private:
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
         erase_client_migration(client);       // pointer comparison only; source never dereferences
         return true;
+    }
+
+    template <bool kEp>
+    void commit_prepared_client_transfers_impl() {
+        while (!client_migrations_.empty()) {
+            ClientMigration& migration = client_migrations_.back();
+            if (!migration.prepared || !commit_client_transfer<kEp>(migration.client)) std::abort();
+        }
+    }
+
+    template <bool kEp>
+    void cancel_prepared_client_transfers_impl() {
+        while (!client_migrations_.empty())
+            cancel_client_transfer<kEp>(client_migrations_.back().client);
     }
 
     template <bool kEp>
@@ -1088,6 +1293,273 @@ private:
         };
         return unmasked ? self_->drain_client_transfers_unmasked(take)
                         : self_->drain_client_transfers(take);
+    }
+
+    bool flip_io_drained() const {
+        if (!pending_serve_.empty() || !pending_releases_.empty() ||
+            !pending_handoffs_.empty() || !deferred_waits_.empty() ||
+            !client_migrations_.empty() || !epoll_closes_.empty() ||
+            !dead_next_.empty() || !dead_ready_.empty() ||
+            !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
+            !pubsub_notification_chains_.empty() || !self_->io_inbound_quiesced() ||
+            srv_->pubsub_inflight() != 0 || srv_->pubsub_pending() != 0)
+            return false;
+        for (Client* client : self_->clients()) {
+            const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
+                client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
+            if (coordinator_op) {
+                if (client->rob().in_flight() != 1 || client->send_inflight() ||
+                    client->serve_pending() || !client->nothing_to_write() ||
+                    !wb_.migration_ready(*client)) return false;
+            } else if (!client->flip_drain_idle() || !wb_.migration_ready(*client)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool flip_candidate_clients_ready(std::string& error) const {
+        uint32_t ordinal = 0;
+        for (Client* client : self_->clients()) {
+            const uint32_t destination = srv_->flip_client_destination(self_->id(), ordinal++);
+            if (!client_transfer_ready(client, destination, error)) return false;
+        }
+        return true;
+    }
+
+    void flip_wake_all() {
+        for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+            if (tid == self_->id()) continue;
+            Ring* target = srv_->thread(tid).ring();
+            if (!target) continue;
+            if (ring_.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) self_->sig().wakes_sent++;
+            else self_->sig().sqe_starved++;
+        }
+    }
+
+    void flip_publish_stage(FlipStage stage) {
+        srv_->flip_set_stage(stage);
+        flip_wake_all();
+    }
+
+    void finish_flip_command(const char* error = nullptr) {
+        if (!flip_client_ || flip_epoch_local_ != srv_->flip_epoch()) std::abort();
+        Op& op = flip_client_->rob().at(flip_op_id_);
+        if (error) reply_err(op.sink(), error);
+        else       reply_ok(op.sink());
+        op.state.store(OpState::Done, std::memory_order_release);
+        enqueue_serve(flip_client_);
+        mark_active(flip_client_);
+        flip_client_ = nullptr;
+        flip_op_id_ = 0;
+    }
+
+    void flip_enter_rollback(const std::string& error) {
+        srv_->flip_note_failure(error);
+        if (srv_->flip_stage() != FlipStage::Rollback)
+            flip_publish_stage(FlipStage::Rollback);
+    }
+
+    void flip_commit_roles_and_evacuate_shards() {
+        // EX -> IO: the old executor remains the owner while every whole physical shard is handed
+        // to an executor which will survive the role edge.
+        uint32_t final_ex[kMaxThreads] = {};
+        uint32_t final_ex_count = 0;
+        for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+            const Role target = srv_->flip_candidate_target(tid);
+            const Role final_role = target == Role::Idle ? srv_->thread(tid).role() : target;
+            if (final_role == Role::Ex) final_ex[final_ex_count++] = tid;
+        }
+        if (!final_ex_count) std::abort();
+        uint32_t rr = 0;
+        for (uint32_t source = 0; source < srv_->nthreads(); source++) {
+            if (srv_->flip_candidate_target(source) != Role::Ifid) continue;
+            while (!srv_->thread(source).shards().empty()) {
+                Shard* shard = srv_->thread(source).shards().back();
+                const uint32_t destination = final_ex[rr++ % final_ex_count];
+                if (!srv_->transfer_shard_quiesced(shard->id(), source, destination)) std::abort();
+            }
+        }
+
+        for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+            const Role target = srv_->flip_candidate_target(tid);
+            if (target == Role::Idle) continue;
+            srv_->flip_change_role(tid, target); // direct old->new store; no Idle ownership hole
+            if (Ring* peer = srv_->thread(tid).ring())
+                (void)ring_.msg_to(*peer, ur_tag(UrKind::Wake, nullptr));
+        }
+        flip_publish_stage(FlipStage::RoleReady);
+    }
+
+    void flip_rebalance_new_executors() {
+        const auto& executors = srv_->placement().ex_threads();
+        if (executors.empty()) std::abort();
+        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+            const uint32_t destination = executors[sid % executors.size()];
+            const uint32_t source = srv_->worker_of_shard(static_cast<int32_t>(sid));
+            if (source == destination) continue;
+            if (!srv_->transfer_shard_quiesced(static_cast<int32_t>(sid), source, destination))
+                std::abort();
+        }
+    }
+
+    template <bool kEp>
+    uint32_t flip_control_pass() {
+        const FlipStage stage = srv_->flip_stage();
+        if (stage == FlipStage::Idle) return 0;
+
+        if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage) &&
+            flip_io_drained()) {
+            if (srv_->flip_candidate_target(self_->id()) == Role::Ex) {
+                std::string error;
+                if (!flip_candidate_clients_ready(error)) {
+                    srv_->flip_note_failure("ERR FLIP cannot quiesce a connection: " + error);
+                } else if (!srv_->flip_publish_client_plan(
+                               self_->id(), static_cast<uint32_t>(self_->clients().size()), error)) {
+                    srv_->flip_note_failure(error);
+                }
+            }
+            srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::IoPrepare &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
+                srv_->flip_note_failure("ERR FLIP could not reserve destination connection state");
+            srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::ClientPrepare &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            const bool converting_to_ex =
+                srv_->flip_candidate_target(self_->id()) == Role::Ex;
+            if (converting_to_ex) quiesce_accepts_for_conversion();
+            if (converting_to_ex &&
+                flip_prepare_epoch_ != srv_->flip_epoch()) {
+                flip_prepare_epoch_ = srv_->flip_epoch();
+                const uint32_t count = static_cast<uint32_t>(self_->clients().size());
+                if (!reserve_client_transfer_state(count)) {
+                    srv_->flip_note_failure("ERR FLIP could not reserve source connection state");
+                } else {
+                    for (uint32_t i = 0; i < count; i++) {
+                        Client* client = self_->clients()[i];
+                        std::string error;
+                        if (!prepare_client_transfer(
+                                client, srv_->flip_client_destination(self_->id(), i), error)) {
+                            srv_->flip_note_failure("ERR FLIP could not detach a connection: " + error);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!converting_to_ex ||
+                (client_transfers_prepared() && accepts_quiesced()))
+                srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::ClientCommit &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            if (srv_->flip_candidate_target(self_->id()) == Role::Ex)
+                commit_prepared_client_transfers_impl<kEp>();
+            srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::ClientInstall &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            const bool converting_to_ex =
+                srv_->flip_candidate_target(self_->id()) == Role::Ex;
+            // EX is frozen now, so this second full IO drain is the transit barrier for notify,
+            // pub/sub, tracking, and client-scatter messages which were posted just after a peer's
+            // earlier IoDrain acknowledgement. The global event count prevents every consumer
+            // from acknowledging while a payload is still between queues. Only a converting IO
+            // closes its listener; surviving IO rings deliberately retain their armed accepts.
+            if (flip_io_drained() && self_->client_transfers_quiesced() &&
+                (!converting_to_ex || accepts_quiesced()))
+                srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::Rollback &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            const bool converting_to_ex =
+                srv_->flip_candidate_target(self_->id()) == Role::Ex;
+            if (converting_to_ex && accept_quiescing_ && !accepts_quiesced())
+                quiesce_accepts_for_conversion();
+            if (client_transfers_prepared() &&
+                (!converting_to_ex || !accept_quiescing_ || accepts_quiesced())) {
+                cancel_prepared_client_transfers_impl<kEp>();
+                if (converting_to_ex && !restore_accepts_after_rollback()) return 1;
+                srv_->flip_ack(self_->id(), stage);
+            }
+        }
+
+        if (self_->id() != srv_->flip_coordinator()) return 1;
+
+        std::string failure;
+        if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
+            srv_->flip_timed_out())
+            srv_->flip_note_failure("ERR FLIP timed out before the ownership commit");
+        const bool failed = srv_->flip_failed(failure);
+        if (failed && stage < FlipStage::ClientCommit && stage != FlipStage::Rollback) {
+            flip_enter_rollback(failure);
+            return 1;
+        }
+
+        switch (stage) {
+            case FlipStage::IoDrain:
+                if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
+                    flip_publish_stage(FlipStage::IoPrepare);
+                }
+                break;
+            case FlipStage::IoPrepare: {
+                bool ex_io_prepared = true;
+                for (uint32_t tid = 0; tid < srv_->nthreads(); tid++)
+                    if (srv_->flip_candidate_target(tid) == Role::Ifid &&
+                        !srv_->flip_acked(tid, stage)) ex_io_prepared = false;
+                if (srv_->flip_all_role_acked(Role::Ifid, stage) && ex_io_prepared)
+                    flip_publish_stage(FlipStage::ExDrain);
+                break;
+            }
+            case FlipStage::ExDrain:
+                if (srv_->flip_all_role_acked(Role::Ex, stage)) {
+                    if (!srv_->flip_reserve_shard_plan(failure))
+                        flip_enter_rollback(failure);
+                    else
+                        flip_publish_stage(FlipStage::ClientPrepare);
+                }
+                break;
+            case FlipStage::ClientPrepare:
+                if (srv_->flip_all_role_acked(Role::Ifid, stage))
+                    flip_publish_stage(FlipStage::ClientCommit);
+                break;
+            case FlipStage::ClientCommit:
+                if (srv_->flip_all_role_acked(Role::Ifid, stage))
+                    flip_publish_stage(FlipStage::ClientInstall);
+                break;
+            case FlipStage::ClientInstall:
+                if (srv_->flip_all_role_acked(Role::Ifid, stage))
+                    flip_commit_roles_and_evacuate_shards();
+                break;
+            case FlipStage::RoleReady: {
+                bool ready = true;
+                for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
+                    const Role target = srv_->flip_candidate_target(tid);
+                    if (target != Role::Idle && srv_->thread(tid).ready_role() != target)
+                        ready = false;
+                }
+                if (ready) {
+                    flip_publish_stage(FlipStage::ShardCommit);
+                    flip_rebalance_new_executors();
+                    flip_publish_stage(FlipStage::ExInstall);
+                }
+                break;
+            }
+            case FlipStage::ExInstall:
+                if (srv_->flip_all_role_acked(Role::Ex, stage)) {
+                    srv_->flip_complete_active();
+                    finish_flip_command();
+                }
+                break;
+            case FlipStage::Rollback:
+                if (srv_->flip_all_role_acked(Role::Ifid, stage) &&
+                    srv_->flip_all_role_acked(Role::Ex, stage)) {
+                    srv_->flip_refuse_active();
+                    finish_flip_command(failure.empty() ? "ERR FLIP refused" : failure.c_str());
+                }
+                break;
+            default: break;
+        }
+        flip_wake_all();
+        return 1;
     }
 
     template <bool kEp>
@@ -1364,6 +1836,10 @@ private:
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
 
         for (;;) {
+            // The coordinator's own connection already holds the unfinished FLIP head. Do not
+            // parse behind it. Other connections may still parse the FLIP report/control command
+            // below so live-vs-target remains observable while the dispatch barrier is active.
+            if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->atomic_backpressure()) break;
             Op* op = rob.acquire(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
@@ -1481,6 +1957,16 @@ private:
             }
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
+            if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
+                !(spec->flags & CmdFlags::FlipAsync)) {
+                // No ordinary request may create IO-local fanout or executor work after the first
+                // drain acknowledgement. Parsing it only to return BUSY keeps the control plane
+                // reachable without weakening the dispatch barrier.
+                conn.advance_parse(consumed);
+                self_->note_command(spec->id);
+                finish_locally(c, *op, "BUSY FLIP is in progress");
+                continue;
+            }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
                 if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
@@ -1558,6 +2044,46 @@ subscriber_checks_done:
                 // retries from scratch before any lane hook fires.
                 if (__builtin_expect((spec->flags & CmdFlags::OrderedLocal) != 0, false) &&
                     rob.in_flight() != 0) break;
+                if (__builtin_expect((spec->flags & CmdFlags::FlipAsync) != 0, false) &&
+                    op->argc() == 3) {
+                    auto parse_count = [](Slice input, uint32_t& value) {
+                        if (!input.n) return false;
+                        uint64_t parsed = 0;
+                        for (uint32_t i = 0; i < input.n; i++) {
+                            if (input.p[i] < '0' || input.p[i] > '9') return false;
+                            parsed = parsed * 10 + static_cast<uint32_t>(input.p[i] - '0');
+                            if (parsed > UINT32_MAX) return false;
+                        }
+                        value = static_cast<uint32_t>(parsed);
+                        return true;
+                    };
+                    uint32_t target_io = 0, target_ex = 0;
+                    std::string error;
+                    bool started = parse_count(op->arg(1), target_io) &&
+                                   parse_count(op->arg(2), target_ex);
+                    if (!started) {
+                        error = "ERR FLIP io and ex must be unsigned integers";
+                        srv_->flip_note_refused();
+                    } else
+                        started = srv_->flip_begin(target_io, target_ex, self_->id(), error);
+                    conn.advance_parse(consumed);
+                    self_->note_command(spec->id);
+                    if (!started || srv_->flip_stage() == FlipStage::Idle) {
+                        if (started) reply_ok(op->sink());
+                        else reply_err(op->sink(), error.c_str());
+                        op->state.store(OpState::Done, std::memory_order_release);
+                        rob.publish();
+                        enqueue_serve(c);
+                        mark_active(c);
+                        continue;
+                    }
+                    flip_client_ = c;
+                    flip_op_id_ = rob.dispatch_id();
+                    flip_epoch_local_ = srv_->flip_epoch();
+                    rob.publish();              // sole unfinished op on the coordinator connection
+                    mark_active(c);
+                    break;
+                }
                 // An unsatisfied WAIT has no shard work, but Redis keeps the connection parked
                 // until its deadline (zero means forever). Publish an unfinished ROB slot and let
                 // this connection's IO owner complete it. MULTI does not enter this branch: its
@@ -2589,6 +3115,10 @@ nonblocking_dispatch:
     std::deque<Client*> pending_handoffs_;
     std::vector<ClientMigration> client_migrations_; // source-owned until old-ring fence completes
     uint64_t client_transfer_failures_ = 0;
+    Client*   flip_client_ = nullptr;       // coordinator's sole unfinished FLIP ROB slot
+    uint64_t  flip_op_id_ = 0;
+    uint64_t  flip_epoch_local_ = 0;
+    uint64_t  flip_prepare_epoch_ = 0;
     struct DeferredWait {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -2619,6 +3149,13 @@ nonblocking_dispatch:
     int        listen_fd_ = -1;
     int        tls_listen_fd_ = -1;
     int        unix_listen_fd_ = -1;
+    uint16_t   configured_port_ = 0;
+    uint64_t   accept_generation_ = 0;
+    uint64_t   accept_cancel_generation_ = 0;
+    bool       initialized_ = false;
+    bool       active_role_ = false;
+    bool       prepared_role_ = false;
+    bool       aof_bound_ = false;
     Ring       ring_;
     // The second engine's state. `epoll_` is boot-latched and read only by run() (to pick the
     // instantiation) and by the two cold non-templated members that cannot carry it in their type
@@ -2631,6 +3168,12 @@ nonblocking_dispatch:
     bool       accept_pending_ = false;
     bool       tls_accept_pending_ = false;
     bool       unix_accept_pending_ = false;
+    bool       accept_armed_ = false;
+    bool       tls_accept_armed_ = false;
+    bool       unix_accept_armed_ = false;
+    bool       accept_quiescing_ = false;
+    bool       accept_cancel_submitted_ = false;
+    bool       tls_accept_cancel_submitted_ = false;
     uint64_t   unix_rr_ = 0;
     uint64_t   random_state_ = 0x9e3779b97f4a7c15ULL;
     uint64_t   aof_gate_target_ = 0;

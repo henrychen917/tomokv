@@ -22,9 +22,9 @@
 // MPSC inbox per consumer, costing an atomic RMW per push from every producer; the fork measured
 // this handoff as instruction volume rather than stalls, so removing the RMW is the direct lever.
 //
-//   TODO(flip): converting Ex -> Io must first drain every inbox and hand its shards to another
-//   worker; converting Io -> Ex must first migrate its connections and reach rob.quiesced() on each.
-//   A conversion that loses or duplicates a thread breaks pool accounting — a real P0 in the fork.
+// Runtime FLIP enforces the conversion preconditions here: Ex -> Io drains every inbox and hands
+// off every shard first; Io -> Ex migrates every connection only after rob.quiesced(). Each role
+// changes by one direct old-to-new store, never an Idle transit which could repeat the fork's P0.
 #pragma once
 #include <algorithm>
 #include <atomic>
@@ -93,6 +93,8 @@ using TransferChan = Channel<ClientTransfer, kInboxSlots>;
 
 class ThreadCtx {
 public:
+    using RolePrepareFn = bool (*)(void*);
+    using RoleCancelFn = void (*)(void*);
     ThreadCtx() = default;
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
@@ -117,6 +119,24 @@ public:
 
     uint32_t id()   const { return id_; }
     Role     role() const { return role_.load(std::memory_order_acquire); }
+    void set_role(Role role) { role_.store(role, std::memory_order_release); }
+    Role ready_role() const { return ready_role_.load(std::memory_order_acquire); }
+    void publish_ready_role(Role role) { ready_role_.store(role, std::memory_order_release); }
+
+    // A dormant opposite-role loop belongs to this same physical thread.  FLIP asks that thread
+    // to prepare/cancel IO-tenure resources through these type-erased hooks, avoiding cross-thread
+    // mutation of IoLoop and avoiding an include cycle between the two loop classes.
+    void bind_io_role_hooks(void* context, RolePrepareFn prepare, RoleCancelFn cancel) {
+        io_role_context_ = context;
+        io_role_prepare_ = prepare;
+        io_role_cancel_ = cancel;
+    }
+    bool prepare_io_role() {
+        return io_role_prepare_ && io_role_prepare_(io_role_context_);
+    }
+    void cancel_prepared_io_role() {
+        if (io_role_cancel_) io_role_cancel_(io_role_context_);
+    }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
     // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
@@ -304,7 +324,8 @@ public:
         return n;
     }
 
-    // The ring peers poke to wake this thread. Published once at startup, read by producers.
+    // The current role-tenure ring peers poke to wake this physical thread. A role edge publishes
+    // its already-provisioned opposite ring before that new loop acknowledges ready.
     void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
 
@@ -316,7 +337,7 @@ public:
     // fork was comparing two quantities that were not the same kind of thing.
     LoopSignals& sig() { return sig_; }
 
-    // IO-only INFO surface. Published once when the owning IoLoop binds its send engine; INFO then
+    // IO-only INFO surface. Published for each IO tenure when IoLoop binds its send engine; INFO then
     // sums the engine's single-writer counters with the same exceptional cross-thread read shape
     // used for sig(). Executor threads leave this null because their WbEngine never sends.
     void set_wb_engine(WbEngine* engine) {
@@ -460,14 +481,34 @@ public:
             if (task_in_[i].depth() || release_in_[i].depth()) return true;
         return false;
     }
+    bool ex_inbound_quiesced() const {
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (!task_in_[i].quiesced() || !release_in_[i].quiesced()) return false;
+        return true;
+    }
+    bool client_transfers_quiesced() const {
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (!transfer_in_[i].quiesced()) return false;
+        return true;
+    }
+    bool io_inbound_quiesced() const {
+        if (ready_.any()) return false;
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (!client_in_[i].quiesced() || !transfer_in_[i].quiesced()) return false;
+        return true;
+    }
 
     std::atomic<bool>& stop_flag() { return stop_; }
 
 private:
     uint32_t          id_ = 0;
     std::atomic<Role> role_{Role::Idle};
+    std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
     std::atomic<Ring*> ring_{nullptr};
+    void* io_role_context_ = nullptr;
+    RolePrepareFn io_role_prepare_ = nullptr;
+    RoleCancelFn io_role_cancel_ = nullptr;
 
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;

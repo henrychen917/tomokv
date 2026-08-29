@@ -186,12 +186,25 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
                                                      const char* target_filename) {
-    Phase expected = Phase::Idle;
-    if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
-                                        std::memory_order_acq_rel)) {
-        error = "Background save already in progress";
-        return StartResult::Busy;
+    {
+        // Pair this admission edge with Server::flip_begin(). Without the short mutex, two IO
+        // owners could both observe the other's atomic state as idle and publish Preparing and
+        // Planning concurrently.
+        std::lock_guard<std::mutex> transition_lock(server.shape_transition_mutex());
+        if (server.flip_dispatch_paused()) {
+            error = "FLIP is in progress";
+            return StartResult::Busy;
+        }
+        Phase expected = Phase::Idle;
+        if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
+                                            std::memory_order_acq_rel)) {
+            error = "Background save already in progress";
+            return StartResult::Busy;
+        }
     }
+    // FLIP and snapshot start are mutually exclusive. Latch this epoch's live executor count,
+    // rather than the boot split, before broadcasting its owner barrier.
+    executor_count_ = static_cast<uint32_t>(server.placement().ex_threads().size());
     // EVERY snapshot path arms the barrier, not just the AOF-rewrite one. The cut is taken per
     // owner between Freeze and Mark; a cross-shard atomic group whose records are installed on some
     // owners and still queued on others straddles it and lands in the file half applied. Arming

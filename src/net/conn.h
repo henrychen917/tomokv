@@ -658,6 +658,15 @@ public:
                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
                !subscriber_mode_ && multi_session_ == nullptr && nothing_to_write();
     }
+    bool flip_drain_idle() const {
+        // Global dispatch is paused, but connections which remain on this IO may retain durable
+        // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work
+        // which can still touch an executor, ROB pointer, output borrow, or barrier must drain.
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+               !retire_queued_.load(std::memory_order_acquire) &&
+               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
+               nothing_to_write();
+    }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
     // that IO thread when it picks the client up. Without it, a pipelined burst of N completions

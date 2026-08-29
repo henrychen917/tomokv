@@ -84,14 +84,15 @@ descriptor `(begin, end, source, destination, phase)`.
    descriptor still returns `source` while every `owner_[bucket]` entry is
    written to `destination`.  Readers therefore cannot observe a half-written
    range.
-5. **COMMITTED / DESTINATION OWNS** — a single release-store of the descriptor
+5. **INSTALL BOOKKEEPING** — while `PREPARING` still resolves the range to source,
+   move the physical `Shard*` bookkeeping from the source vector to the already
+   reserved destination vector.  The vector is bookkeeping, not authority: source
+   remains sole owner throughout this step.  The objects and all keys/MVCC versions
+   stay put.
+6. **COMMITTED / DESTINATION OWNS** — a single release-store of the descriptor
    phase is the ownership handoff.  Before it, only source may touch the shards;
    after it, only destination may touch them.  Routing through the descriptor now
    returns `destination` even if a caller raced with publication.
-6. **INSTALL** — move the physical `Shard*` bookkeeping from the source vector to
-   the destination vector.  The objects and all keys/MVCC versions stay where
-   they are.  This is bookkeeping after ownership, so source must not dereference
-   them.
 7. **STABLE** — after all pre-commit source work has either completed or passed
    the receiver's ownership check, clear the descriptor.  The already-written
    owner array now supplies the same destination result.
@@ -100,8 +101,9 @@ The forwarding rule is deliberately chosen over per-request routing epochs: an
 IO thread can route using a pre-flip owner read and enqueue after the handoff.
 Every EX task and borrow release checks current ownership before its first shard
 access.  The old owner forwards a stale item to the current owner.  Converted IO
-threads also drain and forward their old EX inbox until the handoff grace point,
-so a late producer cannot strand work in a dormant inbox.
+roles are stricter: the global producer barrier and an unmasked drain prove every
+EX inbox quiescent before the direct EX -> IO role edge, so no late producer can
+strand work in a dormant inbox.
 
 ### In-flight cases
 
@@ -140,17 +142,18 @@ buffer is drained rather than moved while it contains work.
    active OOB drain for this client.  Empty segments plus no send CQE implies no
    outstanding zero-copy value borrow.  Refusal/timeout here leaves source owner
    and resumes it unchanged.
-4. **DETACH ENGINE** — still under source ownership:
+4. **PREPARE DESTINATION** — reserve destination client/WB/catalog and enqueue
+   capacity before detaching anything.  Connections with owner-local state that
+   cannot be transferred are refused during preflight.
+5. **DETACH ENGINE (REVERSIBLE)** — still under source ownership:
    * io_uring cancels the fd's receive/poll request and waits for the original CQE
      to acknowledge cancellation.  A cancellation CQE never transfers ownership.
    * epoll performs `EPOLL_CTL_DEL` at an event-loop boundary, after the current
      returned event batch is consumed.  Thus no source stack frame retains the
      `Client*`.
-5. **PREPARE DESTINATION** — reserve destination client/WB capacity and enqueue
-   capacity before changing ownership.  Connections with owner-local state that
-   cannot be transferred (TLS state, WAIT/blocking state, pubsub/subscriber state,
-   MONITOR/CLIENT TRACKING state, MULTI/WATCH state) are refused during FLIP
-   preflight, not here.
+   The source also extracts, but retains, the allocation-owning CLIENT catalog
+   node.  A pre-commit refusal re-adds epoll/recv and reinstalls that exact node;
+   no connection authority changed.
 6. **HANDOFF** — remove source-local membership and release-store
    `ifid_thread = destination`.  This one store is the connection ownership edge.
    The target is the sole owner immediately, even while the fd is temporarily
@@ -212,47 +215,56 @@ admin-command convention and does not invent a new configuration knob or gate.
 
 ### State machine
 
-1. **IDLE** — `target == live`, no dispatch gate.  Report requests are served
-   synchronously.
-2. **VALIDATE** — under the flip mutex, validate grammar, positive counts, exact
-   conservation, no other FLIP, no loading/reload, no snapshot, and enough
-   convertible threads.  Select candidates and destinations while excluding the
-   requester/coordinator, AOF writer, and UNIX-listener owner.  Inspect every
-   affected bucket/client for all refusal conditions above.  Preallocate dormant
-   loop resources, queue capacity, and vector capacity on the future owner
-   threads.  Any failure increments `flip_refused` and leaves the old shape live.
-3. **QUIESCE** — publish a global dispatch pause.  IO threads stop parsing after
-   their current parser pass but keep retiring, sending, cancelling, and handling
-   control messages.  EX threads drain tasks, releases, retries, and groups.  Each
-   thread acknowledges only at a loop safe point.  Wait for zero scatter groups,
-   zero atomic groups/apply tickets, no snapshot/pinned operation, drained
-   migrating ROBs/OOB/borrows, and detached engine registrations.  Timeout or
-   inability to quiesce clears the gate, restores normal admission, increments
-   `flip_refused`, resets target to live, and returns an error.  Ownership is
-   still entirely the old shape.
-4. **COMMIT PLAN** — verify conservation immediately before mutation.  From this
-   point every resource and queue needed by the plan is reserved and no expected
-   operational condition may fail.  An internal failure is an invariant failure,
-   not a recoverable partial shape.
-5. **EX TO IO** — for each selected EX, transfer all of its complete shard ranges
-   to surviving EX threads using the bucket state machine, drain/forward its last
-   EX messages, atomically change its role, and activate its prepared IO loop.
-   Buckets leave before the role changes.
-6. **IO TO EX** — for each selected IO, transfer all its clients to surviving IO
-   threads using the client state machine, atomically change its role, activate
-   its prepared EX loop, and only then rebalance/take complete shard ranges.
-   Connections leave before the role changes; buckets arrive afterward.
-7. **AWAIT LIVE** — every converted physical thread publishes target-role ready;
-   all transferred objects are installed; forwarding inboxes are empty.  Count
-   ready IO and EX threads, assert both their sum and the physical-thread count
-   equal the provisioned total, and increment the conservation-check counter.
-8. **COMPLETED** — set live and target to the verified split, increment
-   `flip_completed`, clear the dispatch gate, then complete the request's ROB
-   operation with `+OK`.  This ordering makes the reply proof that the shape is
-   live.
+1. **IDLE** — no dispatch gate; report requests are synchronous.  After a
+   refusal, target deliberately remains the refused request, so `target` can
+   differ from `live` while `moving` is false.
+2. **PLANNING / IO DRAIN** — claim the one FLIP slot; publish target; validate
+   grammar, positive counts, exact conservation, loading/snapshot exclusion, and
+   movable candidates (the requester, AOF writer, and UNIX owner are pinned).
+   Publish the dispatch pause.  Ordinary requests parsed during the pause receive
+   `BUSY` locally and create no executor work; FLIP report/control requests remain
+   available so live-vs-target is observable in flight.  Each IO drains ROBs, replies, OOB, zero-copy
+   borrows, completion/transfer channels, and retry state.  Candidate sources
+   preflight every client and publish their own capacity plan before acknowledging.
+3. **IO PREPARE** — future/current IO owners reserve Client, WB, catalog, and
+   transfer-inbox storage.  A future IO creates its fallible TCP/TLS listener on
+   its own physical thread but does not publish that loop as the role endpoint.
+4. **EX DRAIN** — every EX drains tasks, releases, retries, notify/AOF output,
+   scatter/atomic witnesses, then acknowledges a hard safe point.  Once
+   acknowledged it performs no expiry, cleanup, waiter, or shard walk until EX
+   INSTALL.  Mask-independent inbox drains prevent a missing hint from faking
+   quiescence.
+5. **CLIENT PREPARE** — selected IO sources detach epoll or cancel io_uring recv
+   and wait for the original CQE, but retain connection ownership.  An IO -> EX
+   source also stops accepting: epoll keeps its tenure registration dormant,
+   while io_uring cancels each multishot accept without closing the listener and
+   waits for the original terminal CQE.  This is the last reversible stage.
+6. **ROLLBACK (pre-commit only)** — on refusal/timeout, reinstall each exact
+   source catalog/registration, re-arm the retained old-role listeners, and close
+   prepared future listeners.  Clear the gate and increment `flip_refused`;
+   retain the refused target beside the old live shape.  No resource or role
+   owner changed.
+7. **CLIENT COMMIT / INSTALL** — release-store each connection owner and install
+   it at the target.  With EX producers frozen, run a second full IO drain and
+   require the global pub/sub event count to reach zero; this catches messages
+   which were in transit when an IO published its first drain acknowledgement.
+   From the first owner store onward, all allocations and operational refusals are
+   already resolved; an unexpected failure aborts as an invariant violation
+   rather than exposing a partial healthy server.
+8. **ROLE COMMIT** — EX -> IO candidates first hand off every complete physical
+   shard.  IO -> EX candidates already handed off every connection and also
+   completed their reversible accept cancellation; their old listeners close as
+   the IO tenure ends.  Each role then changes by one direct old-to-new atomic
+   store—never through Idle.
+9. **ROLE READY / SHARD COMMIT / EX INSTALL** — converted loops publish the new
+   ready role.  New EX owners then take/rebalance complete shards.  Every live EX
+   binds owner-local notification state and acknowledges installation.
+10. **COMPLETED** — count ready IO/EX, assert conservation, increment
+   `flip_completed`, clear the gate, then complete the request's ROB op with
+   `+OK`.  The reply therefore proves the requested shape is fully live.
 
 FLIP is a single transaction at the control-plane level.  Every recoverable
-refusal point is in VALIDATE or QUIESCE, before ownership mutation.  The
+refusal point is before CLIENT COMMIT, before ownership mutation.  The
 implementation must not attempt a best-effort rollback after the commit plan;
 such a rollback would itself create ambiguous ownership.  Unexpected failures
 after that edge terminate via an invariant assertion instead of publishing a
@@ -268,10 +280,15 @@ partial, apparently healthy split.
 | Epoch-pinned read/snapshot control | Completes before commit; FLIP is refused while snapshot/load/reload is active. |
 | Completion/borrow release headed to a converting thread | Old-role inbox is drained and stale messages are ownership-forwarded during the grace phase. |
 | FLIP request's own ROB slot | It is held by the surviving coordinator IO and completed only in COMPLETED/refused state.  That client is never selected for transfer. |
-| New socket request during pause | Bytes may be received/buffered, but no new command is dispatched until the gate clears. |
+| FLIP report/control request on another connection | It is the only command admitted through the dispatch pause and executes IO-locally; ordinary commands receive `BUSY` and cannot repopulate an EX inbox. |
+| Existing socket sends during pause | Bytes may be received/buffered, but no new command is dispatched until the gate clears. |
+| New accept during pause | io_uring accepts and immediately closes it; epoll leaves the listener backlog unread. It never becomes an owned `Client`. |
+| Multishot accept on an IO -> EX candidate | Before CLIENT COMMIT, cancel it without closing the listener and wait for its original terminal CQE; late accepted fds are closed on the old ring.  Rollback can re-arm the same fd without allocation. |
 | Client reply, OOB, recv/send CQE, or zero-copy borrow | Resolved by the client-transfer drain rules before commit. |
 | Late route using a pre-transfer bucket owner | Resolved by EX forwarding; no per-request epoch is required. |
-| Loading or async reload | Refused, inheriting the fork's `NO_ASYNC_LOADING` safety rule. |
+| Loading or async reload races admission | Runtime load, snapshot, and FLIP publication share a short transition mutex.  If loading publishes first FLIP refuses; if FLIP publishes first the load refuses, inheriting the fork's `NO_ASYNC_LOADING` safety rule without a check-then-publish race. |
+| Snapshot/AOF rewrite races FLIP admission | A short shared transition mutex makes the snapshot `Preparing` and FLIP `Planning` publication edges mutually exclusive; whichever publishes second refuses. |
+| Notify/pubsub message was in transit at the first IO drain | After EX freezes, CLIENT INSTALL performs a second drain and waits for the global event lifetime count to reach zero before role/vector mutation. |
 
 ### Observability and tests
 

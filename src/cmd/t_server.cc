@@ -1398,6 +1398,29 @@ bool info_section(Op& op, const char* wanted) {
            eq_icase(op.arg(1), "EVERYTHING") || eq_icase(op.arg(1), wanted);
 }
 
+void cmd_flip(Shard&, Op& op) {
+    if (!g_server) { reply_err(op.sink(), "ERR server is not initialized"); return; }
+    if (op.argc() != 1) {
+        // The three-argument mutation form is intercepted by IoLoop and completed asynchronously.
+        // Reaching the ordinary local handler means the grammar was neither report nor mutation.
+        reply_err(op.sink(), "ERR wrong number of arguments for 'flip' command");
+        return;
+    }
+    const FlipReport report = g_server->flip_report();
+    auto sink = op.sink();
+    reply_map_header(sink, 5, op.resp3());
+    reply_bulk(sink, Slice("live_io", 7));
+    reply_int(sink, report.live_io);
+    reply_bulk(sink, Slice("live_ex", 7));
+    reply_int(sink, report.live_ex);
+    reply_bulk(sink, Slice("target_io", 9));
+    reply_int(sink, report.target_io);
+    reply_bulk(sink, Slice("target_ex", 9));
+    reply_int(sink, report.target_ex);
+    reply_bulk(sink, Slice("moving", 6));
+    reply_bool(sink, report.moving, op.resp3());
+}
+
 void cmd_info(Shard&, Op& op) {
     std::string body;
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
@@ -1526,18 +1549,23 @@ void cmd_info(Shard&, Op& op) {
 
     if (info_section(op, "SERVER")) {
         const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
+        const FlipReport flip = g_server ? g_server->flip_report() : FlipReport{};
         // process_id and tcp_port are plain facts about this process, not telemetry that could be
         // stale -- and tooling depends on them. The NIC bench harness identifies the server it just
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
         // opaque "boot/cell FAIL" long before any measurement was taken.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
-                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
+                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
+                      "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
+                      "flip_target_ex:%u\r\nflip_in_progress:%u\r\n",
                 kVersion, kVersion, sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
-                static_cast<unsigned long long>(uptime / 86400));
+                static_cast<unsigned long long>(uptime / 86400),
+                flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
+                flip.moving ? 1u : 0u);
     }
     if (info_section(op, "CLIENTS")) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
@@ -1853,6 +1881,15 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        appendf(body,
+                "flip_completed:%llu\r\nflip_refused:%llu\r\n"
+                "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
+                static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_conservation_checks() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_conservation_violations() : 0));
     }
     if (info_section(op, "COMMANDSTATS")) {
         body += "# Commandstats\r\n";
@@ -2020,6 +2057,9 @@ static const CommandSpec kTable[] = {
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
     {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
+    {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
+                          CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
+                          CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
     {"INFO",       1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
         {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},

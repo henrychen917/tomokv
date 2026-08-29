@@ -178,6 +178,7 @@ int main(int argc, char** argv) {
     Server srv;
     const AofReplayPlan* active_aof_plan = aof_plans.empty() ? nullptr : aof_plans.back().get();
     if (!srv.init(cfg, active_aof_plan)) { std::fprintf(stderr, "server init failed\n"); return 1; }
+    srv.set_loading(true);
     g_srv = &srv;
     command_bind_server(&srv);
     {
@@ -280,6 +281,17 @@ int main(int argc, char** argv) {
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
+            // Provision the opposite loop before runtime mutation is possible. Dormant IO creates
+            // its ring/epoll/WB state but no listener and does not bind AOF, so boot loading still
+            // happens before any connection can arrive and before the initial AOF writer exists.
+            if (ok)
+                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
+                                   tls_context.get(), true);
+            if (ok)
+                self.bind_io_role_hooks(
+                    &ios[tid],
+                    [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
+                    [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
@@ -291,7 +303,24 @@ int main(int argc, char** argv) {
             }
             load_cv.notify_one();
             if (!ok) return;
-            exs[tid].run();
+            for (;;) {
+                if (self.stop_flag().load(std::memory_order_relaxed)) break;
+                const Role role = self.role();
+                if (role == Role::Ex) {
+                    exs[tid].activate();
+                    self.publish_ready_role(Role::Ex);
+                    exs[tid].run();
+                    self.publish_ready_role(Role::Idle);
+                } else if (role == Role::Ifid) {
+                    if (!ios[tid].activate()) std::abort();
+                    self.publish_ready_role(Role::Ifid);
+                    ios[tid].run();
+                    self.publish_ready_role(Role::Idle);
+                    if (!self.stop_flag().load(std::memory_order_relaxed)) ios[tid].deactivate();
+                } else {
+                    std::this_thread::yield();
+                }
+            }
         });
 
     // Main performed every read(2); the real owning executor threads now deserialize their own
@@ -308,6 +337,7 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
         return 1;
     }
+    srv.set_loading(false);
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
     if (cfg.port) {
@@ -340,9 +370,33 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             const int unix_fd = tid == unix_owner ? unix_listener : -1;
+            // Provision dormant EX first; active IO then republishes its own ring as the current
+            // role endpoint. No runtime conversion can fail later for lack of a ring.
+            if (!exs[tid].init(&srv, &self, true)) return;
             if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
                                tls_context.get())) return;
-            ios[tid].run();
+            self.bind_io_role_hooks(
+                &ios[tid],
+                [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
+                [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
+            for (;;) {
+                if (self.stop_flag().load(std::memory_order_relaxed)) break;
+                const Role role = self.role();
+                if (role == Role::Ifid) {
+                    if (!ios[tid].activate()) std::abort();
+                    self.publish_ready_role(Role::Ifid);
+                    ios[tid].run();
+                    self.publish_ready_role(Role::Idle);
+                    if (!self.stop_flag().load(std::memory_order_relaxed)) ios[tid].deactivate();
+                } else if (role == Role::Ex) {
+                    exs[tid].activate();
+                    self.publish_ready_role(Role::Ex);
+                    exs[tid].run();
+                    self.publish_ready_role(Role::Idle);
+                } else {
+                    std::this_thread::yield();
+                }
+            }
         });
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);

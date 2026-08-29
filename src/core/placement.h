@@ -5,6 +5,7 @@
 // cross-CCX layouts and deliberately asymmetric experiments all fit the same representation.
 
 #pragma once
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
@@ -196,6 +197,31 @@ public:
     const std::vector<ThreadPlacement>& threads() const { return threads_; }
     const std::vector<uint32_t>& ifid_threads() const { return ifid_; }
     const std::vector<uint32_t>& ex_threads()   const { return ex_; }
+
+    bool reserve_runtime_roles(uint32_t total) {
+        try {
+            ifid_.reserve(total);
+            ex_.reserve(total);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    // Invoked only under FLIP's global quiescence barrier. Hot fan-out readers are paused while
+    // these dense vectors change, so runtime role publication does not put a mutex on their paths.
+    void set_runtime_role(uint32_t tid, Role role) {
+        if (tid >= threads_.size() || (role != Role::Ifid && role != Role::Ex)) std::abort();
+        auto erase_tid = [&](std::vector<uint32_t>& ids) {
+            ids.erase(std::remove(ids.begin(), ids.end(), tid), ids.end());
+        };
+        erase_tid(ifid_);
+        erase_tid(ex_);
+        (role == Role::Ifid ? ifid_ : ex_).push_back(tid);
+        std::sort(ifid_.begin(), ifid_.end());
+        std::sort(ex_.begin(), ex_.end());
+        threads_[tid].role = role;
+    }
 
     Role role_of(uint32_t tid) const { return threads_[tid].role; }
     int cpu_of_thread(uint32_t tid) const { return threads_[tid].cpu; }

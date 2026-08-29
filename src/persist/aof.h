@@ -196,6 +196,7 @@ public:
     bool configured() const { return configured_; }
     bool recording() const { return recording_.load(std::memory_order_acquire); }
     bool writer_is(uint32_t tid) const { return configured_ && tid == writer_tid_; }
+    uint32_t writer_tid() const { return configured_ ? writer_tid_ : UINT32_MAX; }
     AppendFsyncPolicy fsync_policy() const {
         return fsync_policy_.load(std::memory_order_acquire);
     }

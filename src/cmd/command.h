@@ -83,6 +83,14 @@ struct CmdFlags {
     // slot unfinished and completes it from a cold deadline list.  Commands without this bit do
     // not enter that machinery; the test lives inside the already-cold ConnLocal branch.
     static constexpr uint32_t DeferredLocal = 1u << 21;
+    // Administrative execution constraints inherited from the shipped fork's FLIP row. They are
+    // named flags (rather than command-name checks) so scripts/MULTI/loading keep one policy gate.
+    static constexpr uint32_t NoScript = 1u << 22;
+    static constexpr uint32_t NoMulti = 1u << 23;
+    static constexpr uint32_t NoAsyncLoading = 1u << 24;
+    // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
+    // coordinator. No other command enters that control path.
+    static constexpr uint32_t FlipAsync = 1u << 25;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

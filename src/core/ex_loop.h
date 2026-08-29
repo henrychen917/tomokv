@@ -46,17 +46,24 @@ inline constexpr uint32_t kActiveExpireChecks = 20;
 class ExLoop {
 public:
     WbEngine& engine() { return wb_; }
-    bool init(Server* srv, ThreadCtx* self) {
+    bool init(Server* srv, ThreadCtx* self, bool dormant = false) {
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
         if (!ring_.init(1024)) return false;
-        self_->set_ring(&ring_);
         wb_.bind(&ring_);
+        initialized_ = true;
+        if (!dormant) activate();
+        return true;
+    }
+
+    void activate() {
+        if (!initialized_) std::abort();
+        self_->set_ring(&ring_);
+        self_->set_wb_engine(nullptr);
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
             shard->bind_notify_pending(&notify_keyless_pending_);
-        return true;
     }
 
     Ring& ring() { return ring_; }
@@ -65,9 +72,14 @@ public:
         LoopSignals& sig = self_->sig();
         uint32_t idle_spins = 0;
 
-        while (!self_->stop_flag().load(std::memory_order_relaxed)) {
+        while (!self_->stop_flag().load(std::memory_order_relaxed) &&
+               self_->role() == Role::Ex) {
             cached_now_ms_ = realtime_ms();
-            refresh_live_config();
+            const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
+            // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
+            // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
+            // the otherwise-cold configuration refresh path.
+            if (!flip_frozen) refresh_live_config();
             if (maxmemory_enabled_)
                 cached_lru_clock_ = static_cast<uint8_t>(
                     (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
@@ -77,26 +89,48 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
-                did += snapshot_control_pass();
-                did += service_stale_forwards();
-                did += drain_releases();
-                if (!snapshot_blocks_tasks()) {
-                    did += service_multi_retries();
-                    did += service_atomic_deferred();
-                    did += service_xshard_retries();
-                    if (xshard_retries_.empty()) did += service_ordered_deferred();
-                    if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                   ? drain_tasks() : drain_tasks_snapshot();
+                if (flip_frozen) {
+                    // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
+                    // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
+                    // publishes ExInstall. The coordinator may rewrite owner entries immediately
+                    // after observing the acknowledgement.
+                    if (!srv_->flip_acked(self_->id(), FlipStage::ExDrain)) {
+                        did += service_stale_forwards();
+                        did += drain_releases(true);
+                        did += service_multi_retries();
+                        did += service_atomic_deferred();
+                        did += service_xshard_retries();
+                        if (xshard_retries_.empty()) did += service_ordered_deferred();
+                        if (xshard_retries_.empty() && ordered_deferred_.empty())
+                            did += drain_tasks(true);
+                        did += aof_flush_pass();
+                        did += drain_notify_keyless(sig);
+                    }
+                    did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                    did += flip_control_pass();
+                } else {
+                    did += snapshot_control_pass();
+                    did += service_stale_forwards();
+                    did += drain_releases();
+                    if (!snapshot_blocks_tasks()) {
+                        did += service_multi_retries();
+                        did += service_atomic_deferred();
+                        did += service_xshard_retries();
+                        if (xshard_retries_.empty()) did += service_ordered_deferred();
+                        if (xshard_retries_.empty() && ordered_deferred_.empty())
+                            did += snapshot_owner_state_ == SnapshotOwnerState::None
+                                       ? drain_tasks() : drain_tasks_snapshot();
+                    }
+                    if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                        cached_now_ms_ >= blocking_beat_ms_) {
+                        did += blocking_owner_cycle(
+                            *srv_, *self_, ring_, cached_now_ms_, true);
+                        blocking_beat_ms_ = cached_now_ms_ + 10;
+                    }
+                    did += aof_flush_pass();
+                    did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+                    did += flip_control_pass();
                 }
-                if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
-                    cached_now_ms_ >= blocking_beat_ms_) {
-                    did += blocking_owner_cycle(
-                        *srv_, *self_, ring_, cached_now_ms_, true);
-                    blocking_beat_ms_ = cached_now_ms_ + 10;
-                }
-                did += aof_flush_pass();
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             }
             sig.cpu_ns = thread_cpu_ns();
 
@@ -107,6 +141,22 @@ public:
             if (did) {
                 did += drain_notify_keyless(sig);
                 ring_.submit_and_reap(); idle_spins = 0; continue;
+            }
+
+            // A frozen executor must never fall through to sweep(): sweep owns expiry, MVCC
+            // cleanup and blocking-waiter walks, any of which can touch a shard after ExDrain's
+            // acknowledgement. Before the acknowledgement keep polling internal retry debt; after
+            // it, sleep only on the ring the coordinator wakes at every stage publication.
+            if (flip_frozen) {
+                if (!srv_->flip_acked(self_->id(), FlipStage::ExDrain)) {
+                    __builtin_ia32_pause();
+                    continue;
+                }
+                Span idle(sig.idle_ns);
+                self_->arm_blocked();
+                ring_.submit_and_wait(1);
+                self_->clear_blocked();
+                continue;
             }
 
             if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
@@ -126,6 +176,52 @@ public:
     }
 
 private:
+    bool flip_quiesced() const {
+        if (snapshot_owner_state_ != SnapshotOwnerState::None ||
+            !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
+            !stale_releases_.empty() || !atomic_deferred_.empty() ||
+            !multi_retries_.empty() || !xshard_retries_.empty() ||
+            !ordered_deferred_.empty() || notify_keyless_pending_ ||
+            srv_->atomic_inflight() != 0 || srv_->atomic_apply_inflight() != 0) return false;
+        for (const auto& queue : snapshot_backlogs_) if (!queue.empty()) return false;
+        for (Shard* shard : self_->shards()) {
+            if (shard->notify_output_pending()) return false;
+            if (aof_manager_ && aof_manager_->recording() && shard->store().aof().has_pending())
+                return false;
+        }
+        return true;
+    }
+
+    uint32_t flip_control_pass() {
+        const FlipStage stage = srv_->flip_stage();
+        if (stage == FlipStage::IoPrepare &&
+            srv_->flip_candidate_target(self_->id()) == Role::Ifid &&
+            !srv_->flip_acked(self_->id(), stage)) {
+            if (!self_->prepare_io_role())
+                srv_->flip_note_failure("ERR FLIP could not prepare a new IO listener");
+            srv_->flip_ack(self_->id(), stage);
+            return 1;
+        }
+        if (stage == FlipStage::ExDrain && !srv_->flip_acked(self_->id(), stage) &&
+            flip_quiesced()) {
+            srv_->flip_ack(self_->id(), stage);
+            return 1;
+        }
+        if (stage == FlipStage::ExInstall && !srv_->flip_acked(self_->id(), stage)) {
+            for (Shard* shard : self_->shards())
+                shard->bind_notify_pending(&notify_keyless_pending_);
+            srv_->flip_ack(self_->id(), stage);
+            return 1;
+        }
+        if (stage == FlipStage::Rollback && !srv_->flip_acked(self_->id(), stage)) {
+            if (srv_->flip_candidate_target(self_->id()) == Role::Ifid)
+                self_->cancel_prepared_io_role();
+            srv_->flip_ack(self_->id(), stage);
+            return 1;
+        }
+        return 0;
+    }
+
     void refresh_live_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(live_config_version_, snapshot)) return;
@@ -990,6 +1086,7 @@ private:
     std::deque<Task> stale_tasks_;
     std::deque<BorrowRelease> stale_releases_;
     bool       notify_keyless_pending_ = false;
+    bool       initialized_ = false;
     // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
     // predicted-false branch exec_batch pays when the feature is off.
     bool         slowlog_armed_ = false;
