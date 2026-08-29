@@ -240,6 +240,17 @@ struct Config {
     // and its absence was a real bug (threads silently floated instead of erroring).
     bool     pin_threads    = true;
 
+    // ---- weighted placement (boot-latched) -------------------------------------------------
+    // One owner-local bucket counter is touched for every N successfully executed key visits.
+    // Zero is the complete off state: no counter/EWMA/byte-census allocation and count-only FLIP.
+    uint32_t lb_sample_rate = 64;
+    // The remaining controls gate the continuous controller. Each accepts zero as an explicit
+    // off posture; FLIP may still consume sampled weights when only the periodic controller is off.
+    uint32_t lb_tick_ms = 1000;
+    uint32_t lb_imbalance_pct = 25;
+    uint32_t lb_move_cap = 1;
+    uint32_t lb_cooldown_ms = 5000;
+
     // ---- network (boot-only) ---------------------------------------------------------------
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
@@ -650,6 +661,36 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--lb-sample-rate")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_sample_rate)) {
+                std::fprintf(stderr, "--lb-sample-rate wants an unsigned 1-in-N rate (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-tick-ms")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_tick_ms)) {
+                std::fprintf(stderr, "--lb-tick-ms wants unsigned milliseconds (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-imbalance-pct")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_imbalance_pct)) {
+                std::fprintf(stderr, "--lb-imbalance-pct wants an unsigned percent (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-move-cap")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_move_cap)) {
+                std::fprintf(stderr, "--lb-move-cap wants an unsigned per-tick cap (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-cooldown-ms")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_cooldown_ms)) {
+                std::fprintf(stderr, "--lb-cooldown-ms wants unsigned milliseconds (0 disables)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lru-clock-shift")) {
             uint64_t shift = 0;
             if (!cfg_parse_u64(next(nullptr), shift) || shift > 16) {
@@ -935,6 +976,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
+                        "  weighted placement: --lb-sample-rate N --lb-tick-ms N\n"
+                        "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"

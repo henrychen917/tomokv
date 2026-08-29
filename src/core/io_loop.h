@@ -445,11 +445,12 @@ private:
             }
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
+            const bool lb_signal_armed = srv_->lb_signals_enabled();
             // Placement's dense role vectors are mutated only under FLIP's global dispatch
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
                                          srv_->save_cron_writer(self_->id());
-            if (__builtin_expect(client_cron_armed || save_cron_armed, false)) {
+            if (__builtin_expect(client_cron_armed || save_cron_armed || lb_signal_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 if (client_cron_armed && !client_cron_was_armed_) {
@@ -501,6 +502,11 @@ private:
                 did += collect_retire_work<HasUnix, kEp>();
                 did += flush_ready<HasTls, kEp>();
                 did += flip_control_pass<kEp>();
+                if (__builtin_expect(lb_signal_armed &&
+                                     cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
+                    did += lb_client_signal_pass();
+                    lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
+                }
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
@@ -3067,6 +3073,19 @@ ordinary_dispatch:
         return work;
     }
 
+    uint32_t lb_client_signal_pass() {
+        lb_client_observations_.clear();
+        if (lb_client_observations_.capacity() < self_->clients().size())
+            lb_client_observations_.reserve(self_->clients().size());
+        for (Client* client : self_->clients()) {
+            if (client->dead()) continue;
+            lb_client_observations_.push_back({client->id(), client->rob().dispatch_id(),
+                                               client->rob().in_flight()});
+        }
+        srv_->lb_publish_client_observations(self_->id(), lb_client_observations_);
+        return static_cast<uint32_t>(lb_client_observations_.size());
+    }
+
     void refresh_notify_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
@@ -3145,6 +3164,7 @@ ordinary_dispatch:
         wb_.teardown(*c);
         ::close(c->fd());
         srv_->client_released();
+        srv_->lb_forget_client(c->id());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
         // with their mask bits set -- so ONE full
@@ -3207,11 +3227,13 @@ ordinary_dispatch:
     static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
+    uint64_t lb_client_signal_beat_ms_ = 0;
     uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;
     uint32_t cached_now_s_ = 0;
     bool     client_cron_was_armed_ = false;
+    std::vector<LbClientObservation> lb_client_observations_;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;

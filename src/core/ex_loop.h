@@ -50,6 +50,8 @@ public:
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
+        lb_sample_rate_ = srv->cfg().lb_sample_rate;
+        lb_sample_countdown_ = lb_sample_rate_;
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -130,6 +132,7 @@ public:
                     did += aof_flush_pass();
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                     did += flip_control_pass();
+                    lb_bucket_bytes_pass();
                 }
             }
             sig.cpu_ns = thread_cpu_ns();
@@ -784,6 +787,7 @@ private:
         }
         if (op.has_blocking_state()) {
             sh.note_execution(self_->domain());
+            note_lb_hash(sh, op.hash);
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);
         }
         if (has_parked_predecessor(t, op, shard_id) ||
@@ -807,6 +811,10 @@ private:
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
+            if (lb_sample_rate_)
+                xshard_visit_task_hashes(t, this, [](void* context, uint64_t hash) {
+                    static_cast<ExLoop*>(context)->note_lb_hash_by_route(hash);
+                });
             if (__builtin_expect(sh.has_blocking_waiters(), false))
                 blocking_scatter_mutation_published(t, sh, op);
             if (__builtin_expect(aof_manager_ != nullptr, false)) {
@@ -845,6 +853,7 @@ private:
                 op.spec->handler(sh, op);
             }
         }
+        if (!t.scatter) note_lb_hash(sh, op.hash);
         if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
             __builtin_expect(sh.has_watches(), false))
             multi_plain_write_committed(sh, op);
@@ -876,6 +885,27 @@ private:
             ? execute(task) : execute_snapshot_task(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
+    }
+
+    void note_lb_hash(Shard& shard, uint64_t hash) {
+        if (!lb_sample_rate_) return;
+        if (--lb_sample_countdown_ != 0) return;
+        lb_sample_countdown_ = lb_sample_rate_;
+        shard.note_lb_sample(hash);
+    }
+
+    void note_lb_hash_by_route(uint64_t hash) {
+        const int32_t sid = srv_->router().shard_of(hash);
+        note_lb_hash(srv_->shard(sid), hash);
+    }
+
+    void lb_bucket_bytes_pass() {
+        if (!lb_sample_rate_ || cached_now_ms_ < lb_bytes_next_ms_) return;
+        lb_bytes_next_ms_ = cached_now_ms_ + 10;
+        auto& owned = self_->shards();
+        if (owned.empty()) return;
+        if (lb_bytes_shard_cursor_ >= owned.size()) lb_bytes_shard_cursor_ = 0;
+        (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
     uint32_t service_multi_retries() {
@@ -1086,6 +1116,10 @@ private:
     bool       maxmemory_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
+    uint32_t   lb_sample_rate_ = 0;
+    uint32_t   lb_sample_countdown_ = 0;
+    int64_t    lb_bytes_next_ms_ = 0;
+    size_t     lb_bytes_shard_cursor_ = 0;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

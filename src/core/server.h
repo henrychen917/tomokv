@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <sys/resource.h>
+#include <unordered_map>
 #include <vector>
 #include "shard.h"
 #include "thread.h"
@@ -57,6 +58,19 @@ struct ClientLimitsConfigSnapshot {
     uint32_t timeout = 0;
     ClientBufferLimit normal{};
     ClientBufferLimit pubsub{};
+};
+
+struct LbClientObservation {
+    uint64_t id = 0;
+    uint64_t dispatched_ops = 0;
+    uint32_t pipeline_depth = 0;
+};
+
+struct LbClientSignal {
+    uint64_t last_ops = 0;
+    double weight = 0;
+    uint64_t last_move_ms = 0;
+    uint32_t owner = UINT32_MAX;
 };
 
 enum class FlipStage : uint8_t {
@@ -205,6 +219,10 @@ public:
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits,
                              cfg.stream_limits);
+            if (cfg.lb_sample_rate && !shards_[i]->enable_lb_signals()) {
+                std::fprintf(stderr, "fatal: could not allocate weighted-placement signals\n");
+                return false;
+            }
             shards_[i]->bind_atomic_state(
                 [](void* ctx) { return static_cast<Server*>(ctx)->atomic_commit(); }, this,
                 &atomic_activity_, &script_intent_owners_);
@@ -226,6 +244,19 @@ public:
             threads_[i] = std::make_unique<ThreadCtx>();
             threads_[i]->init(i, placement_.role_of(i), nthreads);
             threads_[i]->init_command_counts(command_registry_size());
+        }
+        if (cfg.lb_sample_rate) {
+            try {
+                lb_bucket_last_samples_.assign(kNumBuckets, 0);
+                lb_bucket_weight_.assign(kNumBuckets, 0.0);
+                lb_bucket_last_move_ms_.assign(kNumBuckets, 0);
+                lb_thread_last_busy_.assign(nthreads, 0);
+                lb_thread_last_idle_.assign(nthreads, 0);
+                lb_thread_occupancy_.assign(nthreads, 0.0);
+            } catch (const std::bad_alloc&) {
+                std::fprintf(stderr, "fatal: could not allocate weighted-placement windows\n");
+                return false;
+            }
         }
         for (uint32_t i = 0; i < nthreads; i++)
             atomic_read_floors_[i].store(UINT64_MAX, std::memory_order_relaxed);
@@ -264,10 +295,118 @@ public:
     }
 
     const Config&    cfg()        const { return cfg_; }
+
+    bool lb_signals_enabled() const { return cfg_.lb_sample_rate != 0; }
+    bool lb_controller_enabled() const {
+        return lb_signals_enabled() && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
+               cfg_.lb_move_cap && cfg_.lb_cooldown_ms;
+    }
+
+    // Client observations are gathered by the connection owner once per second. ROB dispatch
+    // deltas are the operation-rate signal; live in-flight depth is a floor so a deep connection
+    // that is temporarily backpressured does not look idle. The state is keyed by connection id,
+    // hence survives an IO ownership move without turning that move into a signal discontinuity.
+    void lb_publish_client_observations(uint32_t owner,
+                                        const std::vector<LbClientObservation>& observations) {
+        if (!lb_signals_enabled() || owner >= nthreads()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        double total = 0;
+        for (const LbClientObservation& observation : observations) {
+            LbClientSignal& signal = lb_clients_[observation.id];
+            const uint64_t delta = observation.dispatched_ops - signal.last_ops;
+            signal.last_ops = observation.dispatched_ops;
+            const double sample = std::max<double>(delta, observation.pipeline_depth);
+            signal.weight = signal.owner == UINT32_MAX
+                ? sample : 0.25 * sample + 0.75 * signal.weight;
+            signal.owner = owner;
+            total += signal.weight;
+        }
+        lb_client_owner_weight_[owner].store(
+            static_cast<uint64_t>(total * 1024.0 + 0.5), std::memory_order_release);
+    }
+    void lb_forget_client(uint64_t id) {
+        if (!lb_signals_enabled()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        lb_clients_.erase(id);
+    }
+    double lb_client_weight(uint64_t id) const {
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        return found == lb_clients_.end() ? 0.0 : found->second.weight;
+    }
+    uint64_t lb_client_last_move_ms(uint64_t id) const {
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        return found == lb_clients_.end() ? 0 : found->second.last_move_ms;
+    }
+    void lb_note_client_move(uint64_t id, uint32_t owner, uint64_t now_ms) {
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        LbClientSignal& signal = lb_clients_[id];
+        signal.owner = owner;
+        signal.last_move_ms = now_ms;
+    }
+    double lb_client_owner_weight(uint32_t tid) const {
+        return tid < nthreads()
+            ? static_cast<double>(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
+                  1024.0
+            : 0.0;
+    }
+
+    // The controller owns this fold. Every bucket keeps a monotonic sampled counter on its
+    // physical shard; EWMA history is indexed by immutable bucket id, never by executor owner.
+    void lb_fold_bucket_signals() {
+        if (!lb_signals_enabled()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        for (uint32_t sid = 0; sid < nshards(); sid++) {
+            Shard& physical = shard(static_cast<int32_t>(sid));
+            for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++) {
+                const uint32_t current = physical.lb_bucket_samples(bucket);
+                const uint32_t delta = current - lb_bucket_last_samples_[bucket];
+                lb_bucket_last_samples_[bucket] = current;
+                const double sample = static_cast<double>(delta) * cfg_.lb_sample_rate;
+                lb_bucket_weight_[bucket] = lb_bucket_primed_
+                    ? 0.25 * sample + 0.75 * lb_bucket_weight_[bucket] : sample;
+            }
+        }
+        // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
+        // polling/spinning is scheduled CPU but does not mean the role has useful work available.
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            const LoopSignals& signal = thread(tid).sig();
+            const uint64_t busy = __atomic_load_n(&signal.busy_ns, __ATOMIC_RELAXED);
+            const uint64_t idle = __atomic_load_n(&signal.idle_ns, __ATOMIC_RELAXED);
+            const uint64_t db = busy - lb_thread_last_busy_[tid];
+            const uint64_t di = idle - lb_thread_last_idle_[tid];
+            lb_thread_last_busy_[tid] = busy;
+            lb_thread_last_idle_[tid] = idle;
+            lb_thread_occupancy_[tid] = db + di
+                ? static_cast<double>(db) / static_cast<double>(db + di) : 0.0;
+        }
+        lb_bucket_primed_ = true;
+    }
+    double lb_bucket_weight(uint32_t bucket) const {
+        if (bucket >= lb_bucket_weight_.size()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        return lb_bucket_weight_[bucket];
+    }
+    double lb_shard_weight(uint32_t sid) const {
+        if (sid >= nshards() || !lb_signals_enabled()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const Shard& physical = shard(static_cast<int32_t>(sid));
+        double weight = 0;
+        for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
+            weight += lb_bucket_weight_[bucket];
+        return weight;
+    }
+    double lb_thread_occupancy(uint32_t tid) const {
+        if (tid >= lb_thread_occupancy_.size()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        return lb_thread_occupancy_[tid];
+    }
     const Topology&  topo()       const { return topo_; }
     Placement&       placement()        { return placement_; }
     Router&          router()           { return router_; }
     Shard&           shard(int32_t i)   { return *shards_[i]; }
+    const Shard&     shard(int32_t i) const { return *shards_[i]; }
     ThreadCtx&       thread(uint32_t i) { return *threads_[i]; }
     uint32_t         nthreads()   const { return static_cast<uint32_t>(threads_.size()); }
     uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
@@ -2268,6 +2407,20 @@ private:
     std::atomic<uint64_t> flip_last_transfers_{0};
     std::atomic<uint64_t> flip_conservation_checks_{0};
     std::atomic<uint64_t> flip_conservation_violations_{0};
+
+    // Weighted-placement state is absent when lb-sample-rate=0. Bucket arrays are indexed by the
+    // immutable routing id; client state is keyed by the immutable connection id. The mutex is a
+    // once-per-controller-beat/read-side lock and is never acquired on an operation path.
+    mutable std::mutex lb_signal_mu_;
+    std::vector<uint32_t> lb_bucket_last_samples_;
+    std::vector<double> lb_bucket_weight_;
+    std::vector<uint64_t> lb_bucket_last_move_ms_;
+    std::vector<uint64_t> lb_thread_last_busy_;
+    std::vector<uint64_t> lb_thread_last_idle_;
+    std::vector<double> lb_thread_occupancy_;
+    bool lb_bucket_primed_ = false;
+    std::unordered_map<uint64_t, LbClientSignal> lb_clients_;
+    std::atomic<uint64_t> lb_client_owner_weight_[kMaxThreads] = {};
     std::atomic<uint32_t> loading_{0};
 
     uint8_t executor_slots_[kMaxThreads] = {};

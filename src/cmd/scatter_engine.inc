@@ -2299,6 +2299,22 @@ bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
 
 }  // namespace
 
+void xshard_visit_task_hashes(const Task& task, void* context,
+                              void (*visit)(void*, uint64_t)) {
+    if (!task.scatter || !visit) return;
+    const ScatterState& state = *task.scatter;
+    const ShardGroup* group = group_for(*task.scatter, task.shard);
+    if (!group) return;
+    if (sort_deref_gathering(state)) {
+        const SortDerefState& sort = *state.sort_deref;
+        for (uint32_t i = 0; i < group->count; i++)
+            visit(context, sort.requests[sort.key_order[group->begin + i]].hash);
+        return;
+    }
+    for (uint32_t i = 0; i < group->count; i++)
+        visit(context, state.keys[state.key_order[group->begin + i]].hash);
+}
+
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
