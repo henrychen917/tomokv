@@ -242,12 +242,11 @@ struct Config {
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
     // One owner-local bucket counter is touched for every N successfully executed key visits.
-    // Zero is the complete off state: no counter/EWMA/byte-census allocation and count-only FLIP.
+    // Zero in any row is the complete off state: no counter/EWMA/byte-census allocation and
+    // count-only FLIP. This is intentionally one feature gate, not five partially-live modes.
     uint32_t lb_sample_rate = 64;
-    // The remaining controls gate the continuous controller. Each accepts zero as an explicit
-    // off posture; FLIP may still consume sampled weights when only the periodic controller is off.
     uint32_t lb_tick_ms = 1000;
-    uint32_t lb_imbalance_pct = 25;
+    uint32_t lb_imbalance_pct = 25; // fire band; release is 80%, after three sustained ticks
     uint32_t lb_move_cap = 1;
     uint32_t lb_cooldown_ms = 5000;
 

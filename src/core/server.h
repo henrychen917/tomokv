@@ -89,6 +89,28 @@ enum class FlipStage : uint8_t {
     Rollback,
 };
 
+enum class LbStage : uint8_t {
+    Idle = 0,
+    ExDrain,
+    ClientDrain,
+    ClientMoving,
+};
+
+struct LbShardMove {
+    uint32_t sid = UINT32_MAX;
+    uint32_t source = UINT32_MAX;
+    uint32_t destination = UINT32_MAX;
+    double weight = 0;
+    uint64_t bytes = 0;
+};
+
+struct LbClientMove {
+    uint64_t id = 0;
+    uint32_t source = UINT32_MAX;
+    uint32_t destination = UINT32_MAX;
+    double weight = 0;
+};
+
 struct FlipReport {
     uint32_t live_io = 0;
     uint32_t live_ex = 0;
@@ -220,7 +242,7 @@ public:
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits,
                              cfg.stream_limits);
-            if (cfg.lb_sample_rate && !shards_[i]->enable_lb_signals()) {
+            if (lb_signals_enabled() && !shards_[i]->enable_lb_signals()) {
                 std::fprintf(stderr, "fatal: could not allocate weighted-placement signals\n");
                 return false;
             }
@@ -246,7 +268,7 @@ public:
             threads_[i]->init(i, placement_.role_of(i), nthreads);
             threads_[i]->init_command_counts(command_registry_size());
         }
-        if (cfg.lb_sample_rate) {
+        if (lb_signals_enabled()) {
             try {
                 lb_bucket_last_samples_.assign(kNumBuckets, 0);
                 lb_bucket_weight_.assign(kNumBuckets, 0.0);
@@ -297,10 +319,12 @@ public:
 
     const Config&    cfg()        const { return cfg_; }
 
-    bool lb_signals_enabled() const { return cfg_.lb_sample_rate != 0; }
-    bool lb_controller_enabled() const {
-        return lb_signals_enabled() && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
+    bool lb_signals_enabled() const {
+        return cfg_.lb_sample_rate && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
                cfg_.lb_move_cap && cfg_.lb_cooldown_ms;
+    }
+    bool lb_controller_enabled() const {
+        return lb_signals_enabled();
     }
 
     // Client observations are gathered by the connection owner once per second. ROB dispatch
@@ -379,8 +403,10 @@ public:
             const uint64_t di = idle - lb_thread_last_idle_[tid];
             lb_thread_last_busy_[tid] = busy;
             lb_thread_last_idle_[tid] = idle;
-            lb_thread_occupancy_[tid] = db + di
+            const double occupancy = db + di
                 ? static_cast<double>(db) / static_cast<double>(db + di) : 0.0;
+            lb_thread_occupancy_[tid] = lb_bucket_primed_
+                ? 0.25 * occupancy + 0.75 * lb_thread_occupancy_[tid] : occupancy;
         }
         lb_bucket_primed_ = true;
     }
@@ -468,6 +494,105 @@ public:
     FlipStage flip_stage() const { return flip_stage_.load(std::memory_order_acquire); }
     uint64_t flip_epoch() const { return flip_epoch_.load(std::memory_order_acquire); }
     bool flip_dispatch_paused() const { return flip_stage() != FlipStage::Idle; }
+    LbStage lb_stage() const { return lb_stage_.load(std::memory_order_acquire); }
+    uint64_t lb_epoch() const { return lb_epoch_.load(std::memory_order_acquire); }
+    bool lb_dispatch_paused() const { return lb_stage() == LbStage::ExDrain; }
+    bool placement_dispatch_paused() const {
+        return flip_dispatch_paused() || lb_dispatch_paused();
+    }
+    bool placement_transition_active() const {
+        return flip_dispatch_paused() || lb_stage() != LbStage::Idle;
+    }
+    bool lb_cron_writer(uint32_t tid) const {
+        if (!lb_controller_enabled() || flip_dispatch_paused()) return false;
+        for (uint32_t candidate = 0; candidate < nthreads(); candidate++)
+            if (thread(candidate).role() == Role::Ifid) return candidate == tid;
+        return false;
+    }
+    uint32_t lb_coordinator() const { return lb_coordinator_; }
+    const std::vector<LbShardMove>& lb_shard_moves() const { return lb_shard_moves_; }
+    LbClientMove lb_client_move() const { return lb_client_move_; }
+    bool lb_should_pause(uint32_t owner, uint64_t id) const {
+        const LbStage stage = lb_stage();
+        return stage == LbStage::ExDrain ||
+               (stage == LbStage::ClientDrain && lb_client_move_.source == owner &&
+                lb_client_move_.id == id);
+    }
+    uint64_t lb_deadline_ns() const { return lb_deadline_ns_.load(std::memory_order_acquire); }
+    void lb_ack(uint32_t tid) {
+        lb_ack_[tid].store((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()),
+                           std::memory_order_release);
+    }
+    bool lb_acked(uint32_t tid) const {
+        return lb_ack_[tid].load(std::memory_order_acquire) ==
+               ((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()));
+    }
+    bool lb_all_ex_acked() const {
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            if (thread(tid).role() == Role::Ex && !lb_acked(tid)) return false;
+        return true;
+    }
+    uint64_t lb_ticks() const { return lb_ticks_.load(std::memory_order_relaxed); }
+    uint64_t lb_bucket_moves() const {
+        return lb_bucket_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_moves() const {
+        return lb_client_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_cross_domain_moves() const {
+        return lb_bucket_cross_domain_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_cross_domain_moves() const {
+        return lb_client_cross_domain_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_no_candidate() const {
+        return lb_no_candidate_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_hysteresis_refused() const {
+        return lb_hysteresis_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_cooldown_refused() const {
+        return lb_cooldown_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_transition_refused() const {
+        return lb_transition_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_capacity_refused() const {
+        return lb_capacity_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_refused() const {
+        return lb_client_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_hot_bucket_refused() const {
+        return lb_hot_bucket_refused_.load(std::memory_order_relaxed);
+    }
+    double lb_bucket_weight_spread_current() const {
+        return lb_bucket_weight_spread_current_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_bucket_weight_spread_before() const {
+        return lb_bucket_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_bucket_weight_spread_after() const {
+        return lb_bucket_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_current() const {
+        return lb_client_weight_spread_current_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_before() const {
+        return lb_client_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_after() const {
+        return lb_client_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    uint64_t lb_bucket_bytes_spread_current() const {
+        return lb_bucket_bytes_spread_current_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_bytes_spread_before() const {
+        return lb_bucket_bytes_spread_before_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_bytes_spread_after() const {
+        return lb_bucket_bytes_spread_after_.load(std::memory_order_relaxed);
+    }
     // Serializes only the two publication edges which begin a snapshot or a FLIP. The long-running
     // operations never hold this mutex: after either publishes Preparing/Planning, the other's
     // atomic state check is sufficient to refuse it.
@@ -520,10 +645,11 @@ public:
     }
     void set_loading(bool loading) { loading_.store(loading ? 1u : 0u, std::memory_order_release); }
     bool loading_begin() {
-        // Runtime DEBUG loads and FLIP use the same short admission edge as snapshots. This makes
-        // "refuse while loading" exact even when two IO owners parse the commands concurrently.
+        // Runtime DEBUG loads and placement transitions use the same short admission edge as
+        // snapshots. This makes "refuse while loading" exact even when two IO owners parse the
+        // commands concurrently.
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-        if (flip_dispatch_paused()) return false;
+        if (placement_transition_active()) return false;
         loading_.fetch_add(1, std::memory_order_acq_rel);
         return true;
     }
@@ -804,6 +930,350 @@ public:
             return false;
         }
     }
+
+    // One cron-owned controller beat. It computes candidates from the same immutable-id signal
+    // windows consumed by FLIP, then publishes either a short EX quiescence transaction or one
+    // connection drain request. Nothing here runs on an operation path.
+    bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
+        if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
+        lb_ticks_.fetch_add(1, std::memory_order_relaxed);
+        try {
+            {
+                std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+                if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+                    snapshot_.in_progress() || loading()) {
+                    lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+                    return false;
+                }
+                // FLIP folds the same windows while holding this admission mutex. Serialising the
+                // fold prevents a losing concurrent planner from consuming and decaying its tick.
+                lb_fold_bucket_signals();
+            }
+            std::vector<uint32_t> executors;
+            std::vector<uint32_t> ios;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) {
+                if (thread(tid).role() == Role::Ex) executors.push_back(tid);
+                else if (thread(tid).role() == Role::Ifid) ios.push_back(tid);
+            }
+
+            auto spread = [](const double* loads, const std::vector<uint32_t>& owners) {
+                if (owners.empty()) return 0.0;
+                double lo = loads[owners.front()], hi = lo;
+                for (uint32_t tid : owners) {
+                    lo = std::min(lo, loads[tid]);
+                    hi = std::max(hi, loads[tid]);
+                }
+                return hi - lo;
+            };
+            auto ratio_pct = [&](double span, const double* loads,
+                                 const std::vector<uint32_t>& owners) {
+                double total = 0;
+                for (uint32_t tid : owners) total += loads[tid];
+                return total > 0 && !owners.empty()
+                    ? span * 100.0 * owners.size() / total : 0.0;
+            };
+            auto update_streak = [&](double ratio, uint32_t& streak) {
+                const double fire = cfg_.lb_imbalance_pct;
+                const double release = fire * 0.8; // Schmitt release band
+                if (ratio > fire) streak = std::min<uint32_t>(streak + 1, 3);
+                else if (ratio < release) streak = 0;
+                if (streak < 3) {
+                    lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
+                    return false;
+                }
+                return true;
+            };
+
+            std::vector<LbShardMove> shard_plan;
+            double shard_before = 0, shard_after = 0;
+            double bytes_before = 0, bytes_after = 0;
+            if (executors.size() >= 2) {
+                double loads[kMaxThreads] = {};
+                double byte_loads[kMaxThreads] = {};
+                std::vector<WeightedLbItem> shard_items;
+                shard_items.reserve(nshards());
+                std::vector<uint64_t> last_move;
+                bool dominant_bucket = false;
+                {
+                    std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                    last_move = lb_bucket_last_move_ms_;
+                    double total = 0, hottest = 0;
+                    for (double weight : lb_bucket_weight_) {
+                        total += weight;
+                        hottest = std::max(hottest, weight);
+                    }
+                    dominant_bucket = total > 0 && hottest * 2.0 > total;
+                }
+                uint32_t cooldown_seen = 0;
+                for (uint32_t sid = 0; sid < nshards(); sid++) {
+                    const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
+                    const double weight = lb_shard_weight(sid);
+                    const uint64_t bytes = lb_shard_bytes(sid);
+                    const Shard& physical = shard(static_cast<int32_t>(sid));
+                    bool cooling = false;
+                    for (uint32_t bucket = physical.bucket_begin();
+                         bucket < physical.bucket_end(); bucket++) {
+                        const uint64_t moved = last_move[bucket];
+                        if (moved && now_ms - moved < cfg_.lb_cooldown_ms) {
+                            cooling = true;
+                            break;
+                        }
+                    }
+                    if (cooling) cooldown_seen++;
+                    shard_items.push_back(
+                        {sid, owner, weight, cooling, static_cast<double>(bytes)});
+                    loads[owner] += weight;
+                    byte_loads[owner] += static_cast<double>(bytes);
+                }
+                shard_before = spread(loads, executors);
+                bytes_before = spread(byte_loads, executors);
+                const double weight_ratio = ratio_pct(shard_before, loads, executors);
+                const double byte_ratio = ratio_pct(bytes_before, byte_loads, executors);
+                lb_bucket_weight_spread_current_.store(
+                    static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_bytes_spread_current_.store(
+                    static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                if (dominant_bucket && weight_ratio > cfg_.lb_imbalance_pct) {
+                    // A bucket carrying at least half of all observed demand cannot be decomposed
+                    // by the single-owner actuator. It may contain a hot key; record and stop
+                    // instead of merely relocating the bottleneck.
+                    lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
+                    lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                    lb_bucket_hot_streak_ = 0;
+                } else if (update_streak(
+                               std::max(weight_ratio, byte_ratio), lb_bucket_hot_streak_)) {
+                    for (uint32_t step = 0; step < cfg_.lb_move_cap; step++) {
+                        const double old_weight_span = spread(loads, executors);
+                        const double old_byte_span = spread(byte_loads, executors);
+                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
+                                                cfg_.lb_imbalance_pct;
+                        const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
+                                                cfg_.lb_imbalance_pct;
+                        if (!demand_hot && !memory_hot) break;
+                        WeightedLbMoveChoice choice;
+                        if (!weighted_lb_best_incremental_move(
+                                shard_items, executors, demand_hot, memory_hot, choice)) {
+                            if (cooldown_seen)
+                                lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
+                            else
+                                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                            break;
+                        }
+                        WeightedLbItem& item = shard_items[choice.item_index];
+                        shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
+                                             choice.destination, item.weight,
+                                             static_cast<uint64_t>(item.secondary)});
+                        loads[choice.source] -= item.weight;
+                        loads[choice.destination] += item.weight;
+                        byte_loads[choice.source] -= item.secondary;
+                        byte_loads[choice.destination] += item.secondary;
+                        item.owner = choice.destination;
+                        item.pinned = true;
+                    }
+                    shard_after = spread(loads, executors);
+                    bytes_after = spread(byte_loads, executors);
+                }
+            } else {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                lb_bucket_hot_streak_ = 0;
+            }
+
+            LbClientMove client_plan;
+            double client_before = 0, client_after = 0;
+            if (ios.size() >= 2) {
+                double loads[kMaxThreads] = {};
+                std::vector<WeightedLbItem> clients;
+                uint32_t cooldown_seen = 0;
+                {
+                    std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                    clients.reserve(lb_clients_.size());
+                    for (const auto& entry : lb_clients_) {
+                        const LbClientSignal& signal = entry.second;
+                        if (signal.owner >= nthreads() ||
+                            thread(signal.owner).role() != Role::Ifid) continue;
+                        const bool cooling = signal.last_move_ms &&
+                            now_ms - signal.last_move_ms < cfg_.lb_cooldown_ms;
+                        if (cooling) cooldown_seen++;
+                        clients.push_back(
+                            {entry.first, signal.owner, signal.weight, cooling, 0.0});
+                        loads[signal.owner] += signal.weight;
+                    }
+                }
+                client_before = spread(loads, ios);
+                lb_client_weight_spread_current_.store(
+                    static_cast<uint64_t>(client_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                const double client_ratio = ratio_pct(client_before, loads, ios);
+                if (update_streak(client_ratio, lb_client_hot_streak_)) {
+                    WeightedLbMoveChoice choice;
+                    if (!weighted_lb_best_incremental_move(
+                            clients, ios, true, false, choice)) {
+                        if (cooldown_seen)
+                            lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
+                        else
+                            lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                    } else {
+                        const WeightedLbItem& client = clients[choice.item_index];
+                        client_plan = {client.id, choice.source, choice.destination, client.weight};
+                        client_after = choice.after_weight_spread;
+                    }
+                }
+            } else {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                lb_client_hot_streak_ = 0;
+            }
+
+            const bool have_bucket = !shard_plan.empty();
+            const bool have_client = client_plan.id != 0;
+            if (!have_bucket && !have_client) {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            const bool choose_client = have_client && (!have_bucket || lb_prefer_client_);
+
+            std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+            if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+                snapshot_.in_progress() || loading()) {
+                lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            for (uint32_t tid = 0; tid < nthreads(); tid++)
+                lb_ack_[tid].store(0, std::memory_order_relaxed);
+            lb_coordinator_ = coordinator;
+            lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
+            lb_deadline_ns_.store(now_ns() + 5ull * 1000 * 1000 * 1000,
+                                  std::memory_order_release);
+            if (choose_client) {
+                lb_client_move_ = client_plan;
+                lb_client_weight_spread_before_.store(
+                    static_cast<uint64_t>(client_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_client_weight_spread_after_.store(
+                    static_cast<uint64_t>(client_after * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_client_hot_streak_ = 0; // consume sustain before touching a candidate
+                lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+            } else {
+                lb_shard_moves_ = std::move(shard_plan);
+                lb_bucket_weight_spread_before_.store(
+                    static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_weight_spread_after_.store(
+                    static_cast<uint64_t>(shard_after * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_bytes_spread_before_.store(
+                    static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                lb_bucket_bytes_spread_after_.store(
+                    static_cast<uint64_t>(bytes_after + 0.5), std::memory_order_relaxed);
+                lb_bucket_hot_streak_ = 0;
+                lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
+            }
+            lb_prefer_client_ = !choose_client;
+            return true;
+        } catch (const std::bad_alloc&) {
+            lb_capacity_refused_.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+    }
+
+    bool lb_commit_shard_plan(uint64_t now_ms) {
+        if (lb_stage() != LbStage::ExDrain || !lb_all_ex_acked()) return false;
+        uint32_t incoming[kMaxThreads] = {};
+        for (const LbShardMove& move : lb_shard_moves_) incoming[move.destination]++;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            if (!incoming[tid]) continue;
+            if (!reserve_shard_capacity(tid, incoming[tid])) {
+                lb_capacity_refused_.fetch_add(1, std::memory_order_relaxed);
+                lb_stage_.store(LbStage::Idle, std::memory_order_release);
+                lb_deadline_ns_.store(0, std::memory_order_release);
+                return false;
+            }
+        }
+        for (const LbShardMove& move : lb_shard_moves_) {
+            if (!transfer_shard_quiesced(static_cast<int32_t>(move.sid), move.source,
+                                          move.destination)) std::abort();
+            Shard& physical = shard(static_cast<int32_t>(move.sid));
+            {
+                std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                for (uint32_t bucket = physical.bucket_begin();
+                     bucket < physical.bucket_end(); bucket++)
+                    lb_bucket_last_move_ms_[bucket] = now_ms;
+            }
+            lb_bucket_moves_.fetch_add(1, std::memory_order_relaxed);
+            if (placement_.domain_of_thread(move.source) !=
+                placement_.domain_of_thread(move.destination))
+                lb_bucket_cross_domain_moves_.fetch_add(1, std::memory_order_relaxed);
+        }
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+        return true;
+    }
+
+    bool lb_client_move_started(uint64_t id, uint64_t now_ms) {
+        if (lb_client_move_.id != id) return false;
+        LbStage expected = LbStage::ClientDrain;
+        if (!lb_stage_.compare_exchange_strong(expected, LbStage::ClientMoving,
+                                               std::memory_order_acq_rel)) return false;
+        {
+            std::lock_guard<std::mutex> lock(lb_signal_mu_);
+            const auto found = lb_clients_.find(id);
+            if (found != lb_clients_.end()) found->second.last_move_ms = now_ms;
+        }
+        lb_client_inflight_id_.store(id, std::memory_order_release);
+        return true;
+    }
+    void lb_refuse_client_request() {
+        if (lb_stage() != LbStage::ClientDrain) return;
+        lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(lb_client_move_.id);
+        if (found != lb_clients_.end())
+            found->second.last_move_ms = now_ns() / 1000000ull;
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+    }
+    void lb_client_move_committed(uint64_t id, uint32_t source, uint32_t destination) {
+        uint64_t expected = id;
+        if (!lb_client_inflight_id_.compare_exchange_strong(
+                expected, 0, std::memory_order_acq_rel)) return;
+        lb_client_moves_.fetch_add(1, std::memory_order_relaxed);
+        if (placement_.domain_of_thread(source) != placement_.domain_of_thread(destination))
+            lb_client_cross_domain_moves_.fetch_add(1, std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        if (found != lb_clients_.end()) found->second.owner = destination;
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+    }
+    void lb_client_move_cancelled(uint64_t id) {
+        uint64_t expected = id;
+        if (lb_client_inflight_id_.compare_exchange_strong(
+                expected, 0, std::memory_order_acq_rel)) {
+            lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+            lb_stage_.store(LbStage::Idle, std::memory_order_release);
+            lb_deadline_ns_.store(0, std::memory_order_release);
+        }
+    }
+    bool lb_timed_out() const {
+        const uint64_t deadline = lb_deadline_ns();
+        return deadline && now_ns() >= deadline;
+    }
+    void lb_stage_timed_out() {
+        const LbStage stage = lb_stage();
+        if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return;
+        if (stage == LbStage::ClientDrain) {
+            lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+            std::lock_guard<std::mutex> lock(lb_signal_mu_);
+            const auto found = lb_clients_.find(lb_client_move_.id);
+            if (found != lb_clients_.end())
+                found->second.last_move_ms = now_ns() / 1000000ull;
+        }
+        else
+            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+    }
     bool flip_timed_out() const {
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
@@ -816,6 +1286,16 @@ public:
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error) {
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        const LbStage live_lb_stage = lb_stage();
+        if (live_lb_stage == LbStage::ExDrain || live_lb_stage == LbStage::ClientDrain) {
+            // An explicit shape change wins over an uncommitted cron candidate. No ownership edge
+            // exists in either stage, so withdrawing it is exact. A ClientMoving request has
+            // already crossed its reversible preflight; FLIP admits it and IoDrain waits for that
+            // existing transfer to settle before it counts or moves any connection.
+            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+            lb_stage_.store(LbStage::Idle, std::memory_order_release);
+            lb_deadline_ns_.store(0, std::memory_order_release);
+        }
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {
@@ -2521,6 +3001,42 @@ private:
     std::atomic<uint64_t> flip_bucket_bytes_spread_after_{0};
     std::atomic<uint64_t> flip_conservation_checks_{0};
     std::atomic<uint64_t> flip_conservation_violations_{0};
+
+    // The continuous controller has one cron writer and publishes only these two cold stages.
+    // EX movement reuses FLIP's quiescence fence; client movement pauses one selected connection
+    // until the existing asynchronous transfer primitive takes ownership.
+    std::atomic<LbStage> lb_stage_{LbStage::Idle};
+    std::atomic<uint64_t> lb_epoch_{0};
+    std::atomic<uint64_t> lb_deadline_ns_{0};
+    std::atomic<uint64_t> lb_ack_[kMaxThreads] = {};
+    uint32_t lb_coordinator_ = UINT32_MAX;
+    std::vector<LbShardMove> lb_shard_moves_;
+    LbClientMove lb_client_move_;
+    std::atomic<uint64_t> lb_client_inflight_id_{0};
+    uint32_t lb_bucket_hot_streak_ = 0;
+    uint32_t lb_client_hot_streak_ = 0;
+    bool lb_prefer_client_ = false;
+    std::atomic<uint64_t> lb_ticks_{0};
+    std::atomic<uint64_t> lb_bucket_moves_{0};
+    std::atomic<uint64_t> lb_client_moves_{0};
+    std::atomic<uint64_t> lb_bucket_cross_domain_moves_{0};
+    std::atomic<uint64_t> lb_client_cross_domain_moves_{0};
+    std::atomic<uint64_t> lb_no_candidate_{0};
+    std::atomic<uint64_t> lb_hysteresis_refused_{0};
+    std::atomic<uint64_t> lb_cooldown_refused_{0};
+    std::atomic<uint64_t> lb_transition_refused_{0};
+    std::atomic<uint64_t> lb_capacity_refused_{0};
+    std::atomic<uint64_t> lb_client_refused_{0};
+    std::atomic<uint64_t> lb_hot_bucket_refused_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_current_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_before_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_after_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_current_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_before_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_after_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_current_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_before_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_after_{0};
 
     // Weighted-placement state is absent when lb-sample-rate=0. Bucket arrays are indexed by the
     // immutable routing id; client state is keyed by the immutable connection id. The mutex is a

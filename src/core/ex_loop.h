@@ -50,8 +50,9 @@ public:
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
-        lb_sample_rate_ = srv->cfg().lb_sample_rate;
+        lb_sample_rate_ = srv->lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
+        lb_controller_armed_ = srv->lb_controller_enabled();
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -78,10 +79,12 @@ public:
                self_->role() == Role::Ex) {
             cached_now_ms_ = realtime_ms();
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
+            const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+            const bool placement_frozen = flip_frozen || lb_frozen;
             // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
             // the otherwise-cold configuration refresh path.
-            if (!flip_frozen) refresh_live_config();
+            if (!placement_frozen) refresh_live_config();
             if (maxmemory_enabled_)
                 cached_lru_clock_ = static_cast<uint8_t>(
                     (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
@@ -91,12 +94,15 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
-                if (flip_frozen) {
+                if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
                     // publishes ExInstall. The coordinator may rewrite owner entries immediately
                     // after observing the acknowledgement.
-                    if (!srv_->flip_acked(self_->id(), FlipStage::ExDrain)) {
+                    const bool acknowledged = flip_frozen
+                        ? srv_->flip_acked(self_->id(), FlipStage::ExDrain)
+                        : srv_->lb_acked(self_->id());
+                    if (!acknowledged) {
                         did += service_stale_forwards();
                         did += drain_releases(true);
                         did += service_multi_retries();
@@ -110,6 +116,7 @@ public:
                     }
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                     did += flip_control_pass();
+                    did += lb_control_pass();
                 } else {
                     did += snapshot_control_pass();
                     did += service_stale_forwards();
@@ -132,6 +139,7 @@ public:
                     did += aof_flush_pass();
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
                     did += flip_control_pass();
+                    did += lb_control_pass();
                     lb_bucket_bytes_pass();
                 }
             }
@@ -150,8 +158,11 @@ public:
             // cleanup and blocking-waiter walks, any of which can touch a shard after ExDrain's
             // acknowledgement. Before the acknowledgement keep polling internal retry debt; after
             // it, sleep only on the ring the coordinator wakes at every stage publication.
-            if (flip_frozen) {
-                if (!srv_->flip_acked(self_->id(), FlipStage::ExDrain)) {
+            if (placement_frozen) {
+                const bool acknowledged = flip_frozen
+                    ? srv_->flip_acked(self_->id(), FlipStage::ExDrain)
+                    : srv_->lb_acked(self_->id());
+                if (!acknowledged) {
                     __builtin_ia32_pause();
                     continue;
                 }
@@ -225,6 +236,30 @@ private:
             return 1;
         }
         return 0;
+    }
+
+    uint32_t lb_control_pass() {
+        if (!lb_controller_armed_) return 0;
+        if (srv_->lb_stage() != LbStage::ExDrain) {
+            lb_ack_wake_pending_ = false;
+            return 0;
+        }
+        auto wake_coordinator = [&]() {
+            Ring* coordinator = srv_->thread(srv_->lb_coordinator()).ring();
+            if (coordinator && ring_.msg_to(*coordinator, ur_tag(UrKind::Wake, nullptr))) {
+                self_->sig().wakes_sent++;
+                lb_ack_wake_pending_ = false;
+            } else {
+                self_->sig().sqe_starved++;
+            }
+            return 1u; // retry after submit if the wake SQE was unavailable
+        };
+        if (lb_ack_wake_pending_) return wake_coordinator();
+        if (srv_->lb_acked(self_->id())) return 0;
+        if (!flip_quiesced()) return 0;
+        srv_->lb_ack(self_->id());
+        lb_ack_wake_pending_ = true;
+        return wake_coordinator();
     }
 
     void refresh_live_config() {
@@ -811,10 +846,13 @@ private:
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
-            if (lb_sample_rate_)
-                xshard_visit_task_hashes(t, this, [](void* context, uint64_t hash) {
-                    static_cast<ExLoop*>(context)->note_lb_hash_by_route(hash);
+            if (lb_sample_rate_) {
+                struct LbVisit { ExLoop* loop; Shard* shard; } visit{this, &sh};
+                xshard_visit_task_hashes(t, &visit, [](void* context, uint64_t hash) {
+                    auto* visit = static_cast<LbVisit*>(context);
+                    visit->loop->note_lb_hash(*visit->shard, hash);
                 });
+            }
             if (__builtin_expect(sh.has_blocking_waiters(), false))
                 blocking_scatter_mutation_published(t, sh, op);
             if (__builtin_expect(aof_manager_ != nullptr, false)) {
@@ -892,11 +930,6 @@ private:
         if (--lb_sample_countdown_ != 0) return;
         lb_sample_countdown_ = lb_sample_rate_;
         shard.note_lb_sample(hash);
-    }
-
-    void note_lb_hash_by_route(uint64_t hash) {
-        const int32_t sid = srv_->router().shard_of(hash);
-        note_lb_hash(srv_->shard(sid), hash);
     }
 
     void lb_bucket_bytes_pass() {
@@ -1118,6 +1151,8 @@ private:
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
+    bool       lb_controller_armed_ = false;
+    bool       lb_ack_wake_pending_ = false;
     int64_t    lb_bytes_next_ms_ = 0;
     size_t     lb_bytes_shard_cursor_ = 0;
     SnapshotManager* snapshot_manager_ = nullptr;

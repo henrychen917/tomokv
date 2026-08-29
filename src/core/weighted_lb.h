@@ -33,6 +33,101 @@ struct WeightedLbAssignment {
     double secondary = 0;
 };
 
+struct WeightedLbMoveChoice {
+    uint32_t item_index = UINT32_MAX;
+    uint32_t source = UINT32_MAX;
+    uint32_t destination = UINT32_MAX;
+    double before_weight_spread = 0;
+    double after_weight_spread = 0;
+    double before_secondary_spread = 0;
+    double after_secondary_spread = 0;
+};
+
+// The incremental face of the same placement policy. Pinned items contribute load but cannot be
+// selected (the controller uses that for cooldown and already-selected candidates). A demand move
+// must strictly improve demand spread. A secondary-only move must not worsen demand and must
+// strictly improve the independent secondary spread. Count spread and stable ids break exact ties.
+inline bool weighted_lb_best_incremental_move(const std::vector<WeightedLbItem>& items,
+                                              const std::vector<uint32_t>& targets,
+                                              bool demand_hot, bool secondary_hot,
+                                              WeightedLbMoveChoice& choice) {
+    choice = {};
+    if (targets.size() < 2 || (!demand_hot && !secondary_hot)) return false;
+    std::vector<double> load(targets.size(), 0);
+    std::vector<double> secondary_load(targets.size(), 0);
+    std::vector<uint32_t> count(targets.size(), 0);
+    auto target_index = [&](uint32_t tid) {
+        for (uint32_t i = 0; i < targets.size(); i++) if (targets[i] == tid) return i;
+        return UINT32_MAX;
+    };
+    for (const WeightedLbItem& item : items) {
+        const uint32_t owner = target_index(item.owner);
+        if (owner == UINT32_MAX) return false;
+        load[owner] += std::max(0.0, item.weight);
+        secondary_load[owner] += std::max(0.0, item.secondary);
+        count[owner]++;
+    }
+    auto spread = [](const auto& values) {
+        const auto [lo, hi] = std::minmax_element(values.begin(), values.end());
+        return values.empty() ? 0.0 : static_cast<double>(*hi - *lo);
+    };
+    const double old_weight = spread(load);
+    const double old_secondary = spread(secondary_load);
+    choice.before_weight_spread = old_weight;
+    choice.before_secondary_spread = old_secondary;
+    double best_weight = old_weight, best_secondary = old_secondary;
+    uint32_t best_count = UINT32_MAX;
+    for (uint32_t item_index = 0; item_index < items.size(); item_index++) {
+        const WeightedLbItem& item = items[item_index];
+        if (item.pinned) continue;
+        const uint32_t source = target_index(item.owner);
+        for (uint32_t destination = 0; destination < targets.size(); destination++) {
+            if (destination == source) continue;
+            load[source] -= std::max(0.0, item.weight);
+            load[destination] += std::max(0.0, item.weight);
+            secondary_load[source] -= std::max(0.0, item.secondary);
+            secondary_load[destination] += std::max(0.0, item.secondary);
+            count[source]--;
+            count[destination]++;
+            const double next_weight = spread(load);
+            const double next_secondary = spread(secondary_load);
+            const auto [count_lo, count_hi] = std::minmax_element(count.begin(), count.end());
+            const uint32_t next_count = *count_hi - *count_lo;
+            count[destination]--;
+            count[source]++;
+            secondary_load[destination] -= std::max(0.0, item.secondary);
+            secondary_load[source] += std::max(0.0, item.secondary);
+            load[destination] -= std::max(0.0, item.weight);
+            load[source] += std::max(0.0, item.weight);
+
+            const bool improves = demand_hot
+                ? next_weight + 1e-9 < old_weight
+                : next_weight <= old_weight + 1e-9 &&
+                  next_secondary + 1e-9 < old_secondary;
+            if (!improves) continue;
+            if (choice.item_index == UINT32_MAX || next_weight < best_weight ||
+                (next_weight == best_weight && next_secondary < best_secondary) ||
+                (next_weight == best_weight && next_secondary == best_secondary &&
+                 next_count < best_count) ||
+                (next_weight == best_weight && next_secondary == best_secondary &&
+                 next_count == best_count && item.id < items[choice.item_index].id) ||
+                (next_weight == best_weight && next_secondary == best_secondary &&
+                 next_count == best_count && item.id == items[choice.item_index].id &&
+                 targets[destination] < choice.destination)) {
+                choice.item_index = item_index;
+                choice.source = item.owner;
+                choice.destination = targets[destination];
+                choice.after_weight_spread = next_weight;
+                choice.after_secondary_spread = next_secondary;
+                best_weight = next_weight;
+                best_secondary = next_secondary;
+                best_count = next_count;
+            }
+        }
+    }
+    return choice.item_index != UINT32_MAX;
+}
+
 inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
                                   const std::vector<uint32_t>& targets,
                                   std::vector<WeightedLbAssignment>& out) {
