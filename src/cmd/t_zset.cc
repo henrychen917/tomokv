@@ -1015,7 +1015,9 @@ AddOutcome zset_add_one(CollectionRef& value, const CompactLimit& limit, double 
 
 template <bool kNotify>
 KvObj* lookup_zset(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = (op.spec->flags & CmdFlags::Readonly)
+        ? shard.store_find_read<kNotify>(op.hash, op.key())
+        : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Zset, op.sink())) return reinterpret_cast<KvObj*>(-1);
     return object;
 }
@@ -2468,9 +2470,13 @@ void zset_sort_promote(Shard& shard, uint64_t hash, Slice key, bool notify) {
 }
 
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
-                                std::vector<ZsetEntry>& entries, int64_t& expire_at_ms) {
+                                bool read_stats, std::vector<ZsetEntry>& entries,
+                                int64_t& expire_at_ms) {
     entries.clear();
-    KvObj* object = notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
+    KvObj* object = read_stats
+        ? (notify ? shard.store_find_read<true>(hash, key)
+                  : shard.store_find_read<false>(hash, key))
+        : (notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key));
     if (!object) { expire_at_ms = -1; return ZsetOwnerResult::Missing; }
     if (static_cast<Type>(object->type) != Type::Zset) return ZsetOwnerResult::WrongType;
     expire_at_ms = object->expire_at_ms();

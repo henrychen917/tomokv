@@ -119,7 +119,9 @@ bool parse_fields_tail(Op& op, uint32_t index, bool write_family, FieldsSpec& ou
 
 template <bool kNotify>
 bool hash_ttl_lookup(Shard& shard, Op& op, KvObj*& object) {
-    object = shard.store_find<kNotify>(op.hash, op.key());
+    object = (op.spec->flags & CmdFlags::Readonly)
+        ? shard.store_find_read<kNotify>(op.hash, op.key())
+        : shard.store_find<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
         object = hash_ttl_on_access(shard, op, object, kNotify);

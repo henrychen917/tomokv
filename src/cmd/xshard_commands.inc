@@ -1787,7 +1787,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         reply_array_header(op.sink(), op.argc() - 1);
         for (uint32_t arg = 1; arg < op.argc(); arg++) {
             const uint64_t hash = arg == 1 ? op.hash : FlatStore::hash_key(op.arg(arg));
-            KvObj* object = shard.store_find<kNotify>(hash, op.arg(arg));
+            KvObj* object = shard.store_find_read<kNotify>(hash, op.arg(arg));
             if (!object || static_cast<Type>(object->type) != Type::String) {
                 reply_null(op.sink(), op.resp3()); continue;
             }
@@ -1901,7 +1901,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             !parse_zrangestore_range(op, options, range)) return;
         ObjectImage source;
         const uint64_t source_hash = FlatStore::hash_key(op.arg(2));
-        KvObj* object = shard.store_find<kNotify>(source_hash, op.arg(2));
+        KvObj* object = shard.store_find_read<kNotify>(source_hash, op.arg(2));
         if (object && static_cast<Type>(object->type) != Type::Zset) {
             reply_wrongtype(op.sink());
             return;
@@ -1934,7 +1934,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         const uint64_t source_hash = FlatStore::hash_key(op.arg(1));
         // Before the pointer is taken: promoting replaces an embedded zset object.
         zset_sort_promote(shard, source_hash, op.arg(1), kNotify);
-        KvObj* object = shard.store_find<kNotify>(source_hash, op.arg(1));
+        KvObj* object = shard.store_find_read<kNotify>(source_hash, op.arg(1));
         if (object && static_cast<Type>(object->type) != Type::List &&
             static_cast<Type>(object->type) != Type::Set &&
             static_cast<Type>(object->type) != Type::Zset) {
@@ -1985,7 +1985,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         std::string values[2];
         for (uint32_t i = 0; i < 2; i++) {
             const Slice key = op.arg(1 + i);
-            KvObj* object = shard.store_find<kNotify>(
+            KvObj* object = shard.store_find_read<kNotify>(
                 i == 0 ? op.hash : FlatStore::hash_key(key), key);
             if (!object) continue;
             if (static_cast<Type>(object->type) != Type::String) {
@@ -2037,8 +2037,15 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                                   local_zset_limit)) return;
         gather_end = gather_first + local_zset_count;
     }
+    const bool sources_are_reads = kind == Kind::Pfcount || kind == Kind::Pfmerge ||
+                                   kind == Kind::Bitop || is_any_zsetop(kind) ||
+                                   is_plain_setop(kind) || is_store_setop(kind) ||
+                                   kind == Kind::Sintercard;
     for (uint32_t arg = gather_first; arg < gather_end; arg++) {
-        KvObj* object = shard.store_find<kNotify>(FlatStore::hash_key(op.arg(arg)), op.arg(arg));
+        const uint64_t hash = FlatStore::hash_key(op.arg(arg));
+        const bool read_lookup = sources_are_reads || (kind == Kind::Copy && arg == 1);
+        KvObj* object = read_lookup ? shard.store_find_read<kNotify>(hash, op.arg(arg))
+                                    : shard.store_find<kNotify>(hash, op.arg(arg));
         if (!serialize_object(object, images[arg])) { set_oom(op); return; }
     }
     WorkError error = WorkError::None;

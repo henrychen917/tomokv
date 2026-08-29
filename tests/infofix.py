@@ -150,10 +150,12 @@ def memory_peak(c):
     low = info(c, "memory")
     base_used = as_int(base, "used_memory")
     high_used = as_int(high, "used_memory")
+    high_dataset = as_int(high, "used_memory_dataset")
     low_used = as_int(low, "used_memory")
     high_peak = as_int(high, "used_memory_peak")
     low_peak = as_int(low, "used_memory_peak")
     check("allocation changed measured memory", high_used, lambda value: value > base_used)
+    check("used memory includes slot overhead", high_used - high_dataset, 12)
     check("delete lowered current memory", low_used, lambda value: value < high_used)
     check("peak observed allocation", high_peak, lambda value: value >= high_used)
     check("peak did not fall after delete", low_peak, lambda value: value >= high_peak)
@@ -179,6 +181,68 @@ def auth_reset(c):
     after = as_int(info(c, "stats"), "auth_failures")
     check("RESETSTAT cleared auth failures", after, 0)
     check("disarm requirepass", c.cmd("CONFIG", "SET", "requirepass", ""), "OK")
+
+
+def keyspace_lookup_stats(c):
+    print("read-lookup keyspace hits/misses")
+    c.cmd("FLUSHALL")
+    c.cmd("SET", "ifx:string", "value")
+    c.cmd("SET", "ifx:getex", "value")
+    c.cmd("SET", "ifx:getdel", "value")
+    c.cmd("HSET", "ifx:hash", "field", "value")
+    c.cmd("SADD", "ifx:set", "member")
+    c.cmd("ZADD", "ifx:zset", "1", "member")
+    c.cmd("RPUSH", "ifx:list", "value")
+    c.cmd("CONFIG", "RESETSTAT")
+
+    # Redis accounts at the key lookup, before type/field/member checks. Thus MGET counts every
+    # key (including the hash, which produces a null result), while HMGET counts its hash once.
+    c.cmd("MGET", "ifx:string", "ifx:missing", "ifx:hash")
+    c.cmd("GETEX", "ifx:getex", "PX", "60000")
+    c.cmd("GETDEL", "ifx:getdel")
+    c.cmd("GETSET", "ifx:string", "changed")
+    c.cmd("HGET", "ifx:hash", "field")
+    c.cmd("HMGET", "ifx:hash", "field", "missing-field")
+    c.cmd("ZSCORE", "ifx:zset", "member")
+    c.cmd("SMEMBERS", "ifx:set")
+    c.cmd("SISMEMBER", "ifx:set", "member")
+    c.cmd("LRANGE", "ifx:list", "0", "-1")
+    c.cmd("LINDEX", "ifx:list", "0")
+    c.cmd("EXISTS", "ifx:string", "ifx:missing-two", "ifx:list")
+    c.cmd("DUMP", "ifx:string")
+    c.cmd("TYPE", "ifx:missing-three")
+    reads = info(c, "stats")
+    check("read lookups counted per key", as_int(reads, "keyspace_hits"), 15)
+    check("read misses counted per key", as_int(reads, "keyspace_misses"), 3)
+
+    # These commands all consult existing keys, but Redis uses lookupKeyWrite for them.
+    c.cmd("SET", "ifx:string", "written")
+    c.cmd("HSET", "ifx:hash", "other", "value")
+    c.cmd("SADD", "ifx:set", "other")
+    c.cmd("ZADD", "ifx:zset", "2", "other")
+    c.cmd("RPUSH", "ifx:list", "other")
+    c.cmd("EXPIRE", "ifx:string", "60")
+    c.cmd("DEL", "ifx:missing-four")
+    writes = info(c, "stats")
+    check("write lookups did not add hits", as_int(writes, "keyspace_hits"), 15)
+    check("write lookups did not add misses", as_int(writes, "keyspace_misses"), 3)
+
+
+def info_section_selection(c):
+    print("variadic INFO sections + Redis default set")
+    plain = c.cmd("INFO")
+    default = c.cmd("INFO", "default")
+    selected = c.cmd("INFO", "server", "clients")
+    extensions = c.cmd("INFO", "commandstats", "lb")
+    for label, body in (("plain INFO", plain), ("INFO default", default)):
+        check(label + " returned text", body, lambda value: isinstance(value, str))
+        check(label + " excludes commandstats", "# Commandstats\r\n" in body, False)
+        check(label + " excludes LB", "# LB\r\n" in body, False)
+    check("variadic INFO includes server", "# Server\r\n" in selected, True)
+    check("variadic INFO includes clients", "# Clients\r\n" in selected, True)
+    check("variadic INFO stays selective", "# Memory\r\n" in selected, False)
+    check("explicit commandstats remains reachable", "# Commandstats\r\n" in extensions, True)
+    check("explicit LB remains reachable", "# LB\r\n" in extensions, True)
 
 
 def wire_bytes_and_rate():
@@ -228,6 +292,8 @@ try:
     main.cmd("CONFIG", "SET", "requirepass", "")
     placeholder_and_commandstats(main)
     memory_peak(main)
+    keyspace_lookup_stats(main)
+    info_section_selection(main)
     auth_reset(main)
 finally:
     try:

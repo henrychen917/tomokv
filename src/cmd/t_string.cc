@@ -327,9 +327,8 @@ void reply_string_bulk(Op& op, const KvObj* o) {
 // borrow protocol to mutation replies would turn a string-only fast path into collection policy.
 template <bool kNotify, bool kAllowBorrow = true>
 void cmd_get(Shard& sh, Op& op) {
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
-    if (!o) { sh.stats().misses++; reply_null(op.sink(), op.resp3()); return; }
-    sh.stats().hits++;
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
+    if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     if (o->is_int()) { reply_string_bulk(op, o); return; }
@@ -551,7 +550,7 @@ void cmd_getex(Shard& sh, Op& op) {
     bool persist = false;
     if (!parse_getex_options(op, kind, expire_arg, persist)) return;
 
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -582,7 +581,7 @@ void cmd_getex(Shard& sh, Op& op) {
 
 template <bool kNotify>
 void cmd_getdel(Shard& sh, Op& op) {
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_null(op.sink(), op.resp3()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -605,7 +604,7 @@ void cmd_exists(Shard& sh, Op& op) {
     uint64_t found = 0;
     for (uint32_t i = 1; i < op.argc(); i++) {
         const uint64_t hash = i == 1 ? op.hash : FlatStore::hash_key(op.arg(i));
-        found += sh.store_find<kNotify>(hash, op.arg(i)) != nullptr;
+        found += sh.store_find_read<kNotify>(hash, op.arg(i)) != nullptr;
     }
     reply_int(op.sink(), static_cast<long long>(found));
 }
@@ -655,7 +654,7 @@ void cmd_append(Shard& sh, Op& op) {
 
 template <bool kNotify>
 void cmd_strlen(Shard& sh, Op& op) {
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -671,7 +670,7 @@ void cmd_getrange(Shard& sh, Op& op) {
         reply_err(op.sink(), "ERR value is not an integer or out of range");
         return;
     }
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_emptystr(op.sink()); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -796,7 +795,7 @@ template <bool kNotify>
 void cmd_getbit(Shard& sh, Op& op) {
     uint64_t offset = 0;
     if (!parse_bit_offset(op, op.arg(2), offset)) return;
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -844,7 +843,7 @@ void cmd_bitcount(Shard& sh, Op& op) {
         return;
     }
 
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -945,7 +944,7 @@ void cmd_bitpos(Shard& sh, Op& op) {
         }
     }
 
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), bit ? -1 : 0); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
@@ -981,7 +980,7 @@ void cmd_bitpos(Shard& sh, Op& op) {
 
 template <bool kNotify>
 void cmd_getset(Shard& sh, Op& op) {
-    KvObj* old = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* old = sh.store_find_read<kNotify>(op.hash, op.key());
     auto sink = op.sink();
     if (!obj_type_check(old, Type::String, sink)) return;
     reply_string_bulk(op, old);
@@ -1188,7 +1187,7 @@ void cmd_pfcount(Shard& sh, Op& op) {
         reply_err(op.sink(), "ERR internal cross-shard routing error");
         return;
     }
-    KvObj* object = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     Slice current;
     if (!hll_object_image(object, op, current)) return;
@@ -1316,7 +1315,7 @@ int64_t rounded_seconds(int64_t ms) {
 
 template <bool kNotify>
 void ttl_generic(Shard& sh, Op& op, bool milliseconds, bool absolute) {
-    KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
+    KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), -2); return; }
     const int64_t expire = o->expire_at_ms();
     if (expire == -1) { reply_int(op.sink(), -1); return; }
@@ -1362,7 +1361,7 @@ const char* type_name(const KvObj* o) {
 
 template <bool kNotify>
 void cmd_type(Shard& sh, Op& op) {
-    reply_simple(op.sink(), type_name(sh.store_find<kNotify>(op.hash, op.key())));
+    reply_simple(op.sink(), type_name(sh.store_find_read<kNotify>(op.hash, op.key())));
 }
 
 

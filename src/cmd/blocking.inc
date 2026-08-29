@@ -383,6 +383,10 @@ BlockingProbe blocking_probe_key(Shard& shard, BlockingState& state,
     KvObj* object = shard.notify_carrier()
         ? shard.store_find<true>(key.hash, blocking_key_slice(key))
         : shard.store().find(key.hash, blocking_key_slice(key));
+    // Redis's stream probe path uses lookupKeyRead (and LOOKUP_NOEFFECTS when waking a waiter),
+    // both of which feed the public hit/miss counters. List/zset blocking probes are write lookups.
+    if (state.kind == BlockingKind::Xread || state.kind == BlockingKind::Xreadgroup)
+        shard.note_keyspace_read(object);
     if (!object) {
         if (state.kind == BlockingKind::Xread && key.cursor_latest && !key.cursor_resolved) {
             key.cursor = {};
