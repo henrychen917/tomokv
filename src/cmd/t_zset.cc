@@ -2149,83 +2149,6 @@ void cmd_zrandmember(Shard& shard, Op& op) {
     }
 }
 
-bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, size_t text_len) {
-    while (pattern_len) {
-        const char token = *pattern++;
-        pattern_len--;
-        if (token == '*') {
-            while (pattern_len && *pattern == '*') {
-                pattern++;
-                pattern_len--;
-            }
-            if (!pattern_len) return true;
-            for (size_t consumed = 0; consumed <= text_len; consumed++)
-                if (glob_match_impl(pattern, pattern_len, text + consumed, text_len - consumed))
-                    return true;
-            return false;
-        }
-        if (!text_len) return false;
-        if (token == '?') {
-            text++;
-            text_len--;
-            continue;
-        }
-        if (token == '[') {
-            bool negate = false, matched = false;
-            if (pattern_len && *pattern == '^') {
-                negate = true;
-                pattern++;
-                pattern_len--;
-            }
-            const int wanted = static_cast<signed char>(*text);
-            while (pattern_len) {
-                char first = *pattern++;
-                pattern_len--;
-                if (first == ']' ) {
-                    break;
-                }
-                if (first == '\\' && pattern_len) {
-                    first = *pattern++;
-                    pattern_len--;
-                }
-                if (pattern_len >= 2 && *pattern == '-' && pattern[1] != ']') {
-                    pattern++;
-                    pattern_len--;
-                    char last = *pattern++;
-                    pattern_len--;
-                    if (last == '\\' && pattern_len) {
-                        last = *pattern++;
-                        pattern_len--;
-                    }
-                    int lo = static_cast<signed char>(first);
-                    int hi = static_cast<signed char>(last);
-                    if (lo > hi) std::swap(lo, hi);
-                    if (wanted >= lo && wanted <= hi) matched = true;
-                } else if (wanted == static_cast<signed char>(first)) {
-                    matched = true;
-                }
-            }
-            if (matched == negate) return false;
-            text++;
-            text_len--;
-            continue;
-        }
-        char literal = token;
-        if (literal == '\\' && pattern_len) {
-            literal = *pattern++;
-            pattern_len--;
-        }
-        if (static_cast<unsigned char>(literal) != static_cast<unsigned char>(*text)) return false;
-        text++;
-        text_len--;
-    }
-    return text_len == 0;
-}
-
-bool glob_match(Slice pattern, Slice text) {
-    return glob_match_impl(pattern.p, pattern.n, text.p, text.n);
-}
-
 struct ScanItem {
     Slice member;
     double score;
@@ -2289,7 +2212,7 @@ void cmd_zscan(Shard& shard, Op& op) {
             for (const Compact::Entry entry : value.compact()) {
                 ScanItem item;
                 if (!compact_decode(entry, item.score, item.member)) continue;
-                if (!use_pattern || glob_match(pattern, item.member)) result.push_back(item);
+                if (!use_pattern || command_glob_match(pattern, item.member)) result.push_back(item);
             }
         } catch (const std::bad_alloc&) {
             reply_oom(op);
@@ -2303,7 +2226,7 @@ void cmd_zscan(Shard& shard, Op& op) {
     try {
         next_cursor = zset_expanded(value)->by_member.scan(cursor, count, [&](ZsetNode* node) {
                 const Slice member = node_member(node);
-                if (!use_pattern || glob_match(pattern, member))
+                if (!use_pattern || command_glob_match(pattern, member))
                     result.push_back({member, node->score});
             });
     } catch (const std::bad_alloc&) {

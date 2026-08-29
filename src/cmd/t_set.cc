@@ -595,102 +595,6 @@ void for_each_member(const CollectionRef& set, Fn&& fn) {
     }
 }
 
-bool glob_match_impl(const char* pattern, size_t pattern_len, const char* string,
-                     size_t string_len, uint32_t nesting, bool& skip_longer) {
-    if (nesting > 1000) return false;
-    while (pattern_len && string_len) {
-        switch (*pattern) {
-            case '*': {
-                while (pattern_len > 1 && pattern[1] == '*') {
-                    pattern++;
-                    pattern_len--;
-                }
-                if (pattern_len == 1) return true;
-                while (string_len) {
-                    if (glob_match_impl(pattern + 1, pattern_len - 1, string, string_len,
-                                        nesting + 1, skip_longer))
-                        return true;
-                    if (skip_longer) return false;
-                    string++;
-                    string_len--;
-                }
-                skip_longer = true;
-                return false;
-            }
-            case '?':
-                string++;
-                string_len--;
-                break;
-            case '[': {
-                pattern++;
-                pattern_len--;
-                bool invert = pattern_len && pattern[0] == '^';
-                if (invert) {
-                    pattern++;
-                    pattern_len--;
-                }
-                bool matched = false;
-                while (true) {
-                    if (pattern_len >= 2 && pattern[0] == '\\') {
-                        pattern++;
-                        pattern_len--;
-                        if (pattern[0] == string[0]) matched = true;
-                    } else if (pattern_len == 0) {
-                        pattern--;
-                        pattern_len++;
-                        break;
-                    } else if (pattern[0] == ']') {
-                        break;
-                    } else if (pattern_len >= 3 && pattern[1] == '-') {
-                        int begin = static_cast<signed char>(pattern[0]);
-                        int end = static_cast<signed char>(pattern[2]);
-                        const int ch = static_cast<signed char>(string[0]);
-                        if (begin > end) std::swap(begin, end);
-                        if (ch >= begin && ch <= end) matched = true;
-                        pattern += 2;
-                        pattern_len -= 2;
-                    } else if (pattern[0] == string[0]) {
-                        matched = true;
-                    }
-                    pattern++;
-                    pattern_len--;
-                }
-                if (invert) matched = !matched;
-                if (!matched) return false;
-                string++;
-                string_len--;
-                break;
-            }
-            case '\\':
-                if (pattern_len >= 2) {
-                    pattern++;
-                    pattern_len--;
-                }
-                [[fallthrough]];
-            default:
-                if (pattern[0] != string[0]) return false;
-                string++;
-                string_len--;
-                break;
-        }
-        pattern++;
-        pattern_len--;
-        if (string_len == 0) {
-            while (pattern_len && pattern[0] == '*') {
-                pattern++;
-                pattern_len--;
-            }
-            break;
-        }
-    }
-    return pattern_len == 0 && string_len == 0;
-}
-
-bool glob_match(Slice pattern, Slice value) {
-    bool skip_longer = false;
-    return glob_match_impl(pattern.p, pattern.n, value.p, value.n, 0, skip_longer);
-}
-
 void reply_scan(Op& op, uint64_t cursor, const std::vector<uint32_t>& slots,
                 const SetMemberTable& table) {
     reply_array_header(op.sink(), 2);
@@ -1154,13 +1058,13 @@ void cmd_sscan(Shard& shard, Op& op) {
     if (set.encoding() != CollectionEncoding::Hashtable) {
         uint64_t matches = 0;
         for_each_member(set, [&](Slice member) {
-            if (!options.use_pattern || glob_match(options.pattern, member)) matches++;
+            if (!options.use_pattern || command_glob_match(options.pattern, member)) matches++;
         });
         reply_array_header(op.sink(), 2);
         reply_bulk(op.sink(), Slice("0", 1));
         reply_array_header(op.sink(), matches);
         for_each_member(set, [&](Slice member) {
-            if (!options.use_pattern || glob_match(options.pattern, member))
+            if (!options.use_pattern || command_glob_match(options.pattern, member))
                 reply_bulk(op.sink(), member);
         });
         return;
@@ -1188,7 +1092,7 @@ void cmd_sscan(Shard& shard, Op& op) {
         if (table.live_at(position)) {
             sampled++;
             const Slice member = table.value_at(position);
-            if (!options.use_pattern || glob_match(options.pattern, member))
+            if (!options.use_pattern || command_glob_match(options.pattern, member))
                 matches.push_back(position);
         }
         position++;

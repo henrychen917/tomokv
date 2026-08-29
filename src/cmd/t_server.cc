@@ -146,72 +146,6 @@ std::string lower_name(const char* name) {
     return out;
 }
 
-// Redis-style glob subset including '*', '?', escapes, and byte ranges/classes. Work is bounded by
-// the pattern and candidate lengths for each key examined by SCAN.
-bool glob_match(const char* pat, size_t pn, const char* text, size_t tn, bool nocase = false) {
-    while (pn) {
-        switch (*pat) {
-            case '*': {
-                while (pn && *pat == '*') { pat++; pn--; }
-                if (!pn) return true;
-                for (size_t i = 0; i <= tn; i++)
-                    if (glob_match(pat, pn, text + i, tn - i, nocase)) return true;
-                return false;
-            }
-            case '?':
-                if (!tn) return false;
-                pat++; pn--; text++; tn--;
-                break;
-            case '[': {
-                if (!tn) return false;
-                pat++; pn--;
-                bool negate = false, matched = false;
-                if (pn && *pat == '^') { negate = true; pat++; pn--; }
-                int want = static_cast<signed char>(*text);
-                while (pn && *pat != ']') {
-                    int lo = static_cast<signed char>(*pat++); pn--;
-                    if (lo == '\\' && pn) { lo = static_cast<signed char>(*pat++); pn--; }
-                    int hi = lo;
-                    if (pn >= 2 && *pat == '-' && pat[1] != ']') {
-                        pat++; pn--;
-                        hi = static_cast<signed char>(*pat++); pn--;
-                        if (hi == '\\' && pn) { hi = static_cast<signed char>(*pat++); pn--; }
-                    }
-                    if (lo > hi) std::swap(lo, hi);
-                    if (nocase) {
-                        lo = std::tolower(lo);
-                        hi = std::tolower(hi);
-                        want = std::tolower(want);
-                    }
-                    if (want >= lo && want <= hi) matched = true;
-                }
-                if (pn && *pat == ']') { pat++; pn--; }
-                if (matched == negate) return false;
-                text++; tn--;
-                break;
-            }
-            case '\\':
-                if (pn > 1) { pat++; pn--; }
-                [[fallthrough]];
-            default: {
-                if (!tn) return false;
-                unsigned char a = static_cast<unsigned char>(*pat);
-                unsigned char b = static_cast<unsigned char>(*text);
-                if (nocase) { a = static_cast<unsigned char>(std::tolower(a));
-                              b = static_cast<unsigned char>(std::tolower(b)); }
-                if (a != b) return false;
-                pat++; pn--; text++; tn--;
-                break;
-            }
-        }
-    }
-    return tn == 0;
-}
-
-bool glob_match(Slice pat, Slice text, bool nocase = false) {
-    return glob_match(pat.p, pat.n, text.p, text.n, nocase);
-}
-
 void appendf(std::string& out, const char* fmt, ...) {
     char stack[512];
     va_list ap;
@@ -1186,7 +1120,7 @@ void cmd_config(Shard& sh, Op& op) {
                 Slice name(item.name, std::strlen(item.name));
                 bool matched = false;
                 for (uint32_t i = 2; i < op.argc() && !matched; i++)
-                    matched = glob_match(op.arg(i), name, true);
+                    matched = command_glob_match(op.arg(i), name, true);
                 if (matched) matches.emplace_back(item.name, item.value);
             }
         }
@@ -2029,7 +1963,7 @@ void cmd_scan(Shard& sh, Op& op) {
     keys.reserve(std::min<uint32_t>(count, 1024));
     inner = sh.store().scan(inner, count, [&](KvObj* obj) {
         if (type.n && !eq_icase(type, object_type(obj))) return;
-        if (glob_match(match, obj->key())) keys.push_back(obj->key());
+        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
     });
     uint64_t next = 0;
     if (inner) next = (static_cast<uint64_t>(shard_id) << 56) | inner;
@@ -2130,10 +2064,6 @@ void cmd_debug(Shard& shard, Op& op) {
         return;
     }
     cmd_debug_impl(shard, op);
-}
-
-bool command_glob_match(Slice pattern, Slice text, bool nocase) {
-    return glob_match(pattern, text, nocase);
 }
 
 Server* command_server() { return g_server; }

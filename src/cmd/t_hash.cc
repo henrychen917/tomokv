@@ -1196,104 +1196,6 @@ void cmd_hkeys(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAll
 template <bool kNotify>
 void cmd_hvals(Shard& shard, Op& op) { generic_getall<kNotify>(shard, op, GetAllMode::Values); }
 
-bool glob_match_impl(const char* pattern, uint32_t pattern_len,
-                     const char* string, uint32_t string_len,
-                     bool& skip_longer_matches, uint32_t nesting) {
-    if (nesting > 1000) return false;
-    while (pattern_len && string_len) {
-        switch (pattern[0]) {
-            case '*': {
-                while (pattern_len > 1 && pattern[1] == '*') {
-                    pattern++;
-                    pattern_len--;
-                }
-                if (pattern_len == 1) return true;
-                while (string_len) {
-                    if (glob_match_impl(pattern + 1, pattern_len - 1,
-                                        string, string_len, skip_longer_matches, nesting + 1))
-                        return true;
-                    if (skip_longer_matches) return false;
-                    string++;
-                    string_len--;
-                }
-                skip_longer_matches = true;
-                return false;
-            }
-            case '?':
-                string++;
-                string_len--;
-                break;
-            case '[': {
-                pattern++;
-                pattern_len--;
-                bool negate = pattern_len && pattern[0] == '^';
-                if (negate) {
-                    pattern++;
-                    pattern_len--;
-                }
-                bool matched = false;
-                while (true) {
-                    if (pattern_len >= 2 && pattern[0] == '\\') {
-                        pattern++;
-                        pattern_len--;
-                        if (pattern[0] == string[0]) matched = true;
-                    } else if (pattern_len == 0) {
-                        pattern--;
-                        pattern_len++;
-                        break;
-                    } else if (pattern[0] == ']') {
-                        break;
-                    } else if (pattern_len >= 3 && pattern[1] == '-') {
-                        int start = static_cast<signed char>(pattern[0]);
-                        int end = static_cast<signed char>(pattern[2]);
-                        const int ch = static_cast<signed char>(string[0]);
-                        if (start > end) std::swap(start, end);
-                        if (ch >= start && ch <= end) matched = true;
-                        pattern += 2;
-                        pattern_len -= 2;
-                    } else if (pattern[0] == string[0]) {
-                        matched = true;
-                    }
-                    pattern++;
-                    pattern_len--;
-                }
-                if (negate) matched = !matched;
-                if (!matched) return false;
-                string++;
-                string_len--;
-                break;
-            }
-            case '\\':
-                if (pattern_len >= 2) {
-                    pattern++;
-                    pattern_len--;
-                }
-                [[fallthrough]];
-            default:
-                if (pattern[0] != string[0]) return false;
-                string++;
-                string_len--;
-                break;
-        }
-        pattern++;
-        pattern_len--;
-        if (!string_len) {
-            while (pattern_len && pattern[0] == '*') {
-                pattern++;
-                pattern_len--;
-            }
-            break;
-        }
-    }
-    return pattern_len == 0 && string_len == 0;
-}
-
-bool glob_match(Slice pattern, Slice string) {
-    bool skip_longer_matches = false;
-    return glob_match_impl(pattern.p, pattern.n, string.p, string.n,
-                           skip_longer_matches, 0);
-}
-
 struct ScanOptions {
     Slice pattern;
     uint64_t count = 10;
@@ -1381,7 +1283,7 @@ void cmd_hscan(Shard& shard, Op& op) {
                     break;
                 }
                 sampled++;
-                if (!options.use_pattern || glob_match(options.pattern, pair.field))
+                if (!options.use_pattern || command_glob_match(options.pattern, pair.field))
                     items.push_back({pair.field, pair.value});
             }
             cursor = position >= hash.entries() ? 0 : position;
@@ -1394,7 +1296,7 @@ void cmd_hscan(Shard& shard, Op& op) {
                 cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
                     sampled++;
                     const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
-                    if (!options.use_pattern || glob_match(options.pattern, field))
+                    if (!options.use_pattern || command_glob_match(options.pattern, field))
                         items.push_back({field, Slice(node.value.data(),
                                                      static_cast<uint32_t>(node.value.size()))});
                 });

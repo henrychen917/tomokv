@@ -738,47 +738,6 @@ void sort_reply_rows(Op& op, const std::vector<std::string>& values,
     }
 }
 
-bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn) {
-    while (pn) {
-        const char c = *pattern++; pn--;
-        if (c == '*') {
-            while (pn && *pattern == '*') { pattern++; pn--; }
-            if (!pn) return true;
-            for (size_t i = 0; i <= tn; i++)
-                if (glob_match(pattern, pn, text + i, tn - i)) return true;
-            return false;
-        }
-        if (!tn) return false;
-        if (c == '?') { text++; tn--; continue; }
-        if (c == '\\' && pn) {
-            const char literal = *pattern++; pn--;
-            if (*text++ != literal) return false;
-            tn--; continue;
-        }
-        if (c == '[') {
-            bool negate = false, match = false;
-            if (pn && *pattern == '^') { negate = true; pattern++; pn--; }
-            while (pn && *pattern != ']') {
-                int lo = static_cast<signed char>(*pattern++); pn--;
-                if (lo == '\\' && pn) { lo = static_cast<signed char>(*pattern++); pn--; }
-                if (pn >= 2 && *pattern == '-' && pattern[1] != ']') {
-                    pattern++; pn--; int hi = static_cast<signed char>(*pattern++); pn--;
-                    if (hi == '\\' && pn) { hi = static_cast<signed char>(*pattern++); pn--; }
-                    if (lo > hi) std::swap(lo, hi);
-                    const int wanted = static_cast<signed char>(*text);
-                    if (wanted >= lo && wanted <= hi) match = true;
-                } else if (*text == lo) match = true;
-            }
-            if (pn && *pattern == ']') { pattern++; pn--; }
-            if (match == negate) return false;
-            text++; tn--; continue;
-        }
-        if (*text++ != c) return false;
-        tn--;
-    }
-    return tn == 0;
-}
-
 bool same_key(const Op& op) {
     const Slice a = op.arg(1), b = op.arg(2);
     return a.n == b.n && (a.n == 0 || std::memcmp(a.p, b.p, a.n) == 0);
