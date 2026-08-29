@@ -6,10 +6,10 @@
 // at this thread count it shows up immediately. Per-command counters live in Shard::Stats or
 // LoopSignals, both single-writer; INFO sums them on request.
 //
-// THE ONE MUTABLE HOT-PATH STRUCTURE is shard_owner_: shard id -> thread id, one atomic load per
-// dispatch. That indirection is deliberate and it is what makes pointer-handoff load balancing
-// possible later — an LB moves a shard by storing a different thread id, with no data movement and
-// no change to routing. See placement.h for the ordering contract that makes such a move safe.
+// THE ONE MUTABLE HOT-PATH STRUCTURE is Router's bucket ownership array.  Each entry includes the
+// immutable physical shard id and mutable EX thread id, so dispatch remains one indexed load while
+// a handoff rewrites only ownership bits and never copies a key.  See NOTES-MIGRATE.md for the
+// range-publication and stale-route forwarding contract.
 #pragma once
 #include <algorithm>
 #include <array>
@@ -197,8 +197,8 @@ public:
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {
             const uint32_t tid = placement_.shard_home(sid);
             threads_[tid]->shards().push_back(shards_[sid].get());
-            // The reverse mapping is the ONE load on dispatch and the ONE release store used by a
-            // future migration. Do not mirror ownership in another synchronised structure.
+            // Populate the EX half of Router's authoritative bucket entries. Do not mirror
+            // ownership in another synchronised structure.
             set_worker_of_shard(static_cast<int32_t>(sid), tid);
             // Seed residency from this exact thread's cpu domain, so note_execution compares at
             // thread resolution even when adjacent tids live in different L3 domains.
@@ -303,12 +303,82 @@ public:
         return 1;
     }
 
-    // One atomic load on the dispatch path; one atomic store is how an LB moves work.
+    // One authoritative bucket-array load on dispatch. A runtime move is a descriptor-masked
+    // rewrite of the complete physical shard range, never a second owner map.
     uint32_t worker_of_shard(int32_t shard_id) const {
-        return shard_owner_[shard_id].load(std::memory_order_acquire);
+        if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) std::abort();
+        return router_.owner_of_bucket(shards_[static_cast<uint32_t>(shard_id)]->bucket_begin());
     }
     void set_worker_of_shard(int32_t shard_id, uint32_t thread_id) {
-        shard_owner_[shard_id].store(thread_id, std::memory_order_release);
+        if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) std::abort();
+        Shard& sh = *shards_[static_cast<uint32_t>(shard_id)];
+        router_.set_initial_owner(sh.bucket_begin(), sh.bucket_end(), thread_id);
+    }
+
+    // The caller must hold both executor loops at the safe point described in NOTES-MIGRATE.md:
+    // no executing/retry/group/snapshot work may touch this shard.  Queue entries which arrive via
+    // a stale pre-commit route are harmless because ExLoop rechecks and forwards before access.
+    // Vector capacity and membership are settled while PREPARING still names the source; the phase
+    // store in commit_transfer() is the sole ownership edge.
+    bool transfer_bucket_range_quiesced(uint32_t begin, uint32_t end, uint32_t source,
+                                         uint32_t destination) {
+        if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
+            destination >= threads_.size() || source == destination) return false;
+        if (threads_[source]->role() != Role::Ex || threads_[destination]->role() != Role::Ex)
+            return false;
+
+        // FlatStore is the lock-free physical ownership unit. Accept a range of one or more whole
+        // stores, never a partial store which would give two threads access to the same table.
+        std::vector<Shard*> moving;
+        try {
+            moving.reserve(shards_.size());
+        } catch (...) {
+            return false;
+        }
+        uint32_t cursor = begin;
+        for (const auto& owned : shards_) {
+            Shard* const shard = owned.get();
+            if (shard->bucket_end() <= begin || shard->bucket_begin() >= end) continue;
+            if (shard->bucket_begin() != cursor || shard->bucket_end() > end ||
+                worker_of_shard(shard->id()) != source) return false;
+            moving.push_back(shard);
+            cursor = shard->bucket_end();
+        }
+        if (moving.empty() || cursor != end) return false;
+
+        auto& from = threads_[source]->shards();
+        auto& to = threads_[destination]->shards();
+        for (Shard* shard : moving) {
+            if (std::find(from.begin(), from.end(), shard) == from.end() ||
+                std::find(to.begin(), to.end(), shard) != to.end()) return false;
+        }
+
+        // Allocation is the sole ordinary failure after validation, so force it before publishing
+        // PREPARING. No recoverable operation remains after begin_transfer succeeds.
+        try {
+            to.reserve(to.size() + moving.size());
+        } catch (...) {
+            return false;
+        }
+        if (!router_.begin_transfer(begin, end, source, destination))
+            return false;
+
+        for (Shard* shard : moving) to.push_back(shard);
+        from.erase(std::remove_if(from.begin(), from.end(), [&](Shard* shard) {
+            return std::find(moving.begin(), moving.end(), shard) != moving.end();
+        }), from.end());
+        router_.commit_transfer();
+        router_.finish_transfer();
+        for (Shard* shard : moving)
+            shard->note_migration(placement_.domain_of_thread(destination));
+        return true;
+    }
+
+    bool transfer_shard_quiesced(int32_t shard_id, uint32_t source, uint32_t destination) {
+        if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) return false;
+        Shard& shard = *shards_[static_cast<uint32_t>(shard_id)];
+        return transfer_bucket_range_quiesced(
+            shard.bucket_begin(), shard.bucket_end(), source, destination);
     }
     uint32_t executor_slot(uint32_t thread_id) const {
         return thread_id < kMaxThreads ? executor_slots_[thread_id] : UINT8_MAX;
@@ -1500,7 +1570,6 @@ private:
     // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
     SnapshotManager snapshot_;
 
-    std::atomic<uint32_t> shard_owner_[256] = {};
     uint8_t executor_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> next_client_id_{1};
     std::atomic<bool>     shutting_down_{false};

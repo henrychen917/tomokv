@@ -428,26 +428,139 @@ private:
     const bool armed_;
 };
 
-// Maps bucket -> shard id. A plain array: one indexed load on the hot path, and reassigning
-// ownership is a write here rather than a data move. This is what makes O(1) resharding possible —
-// flip the owner of a bucket range without copying a single key.
+// The one authoritative bucket map.  Each entry carries two independent facts:
+//
+//   * the immutable physical Shard/FlatStore containing the bucket's keys;
+//   * the mutable EX thread which alone may touch that store.
+//
+// Keeping both in one atomic word preserves the historical one-indexed-load shard route while
+// making the ownership flip itself an array write.  A transfer changes only the EX bits; the shard
+// bits, keys, and table never move.
+//
+// A range needs more than individually atomic entries: publishing 100 entries one by one would let
+// a concurrent router observe two owners for one logical range.  The transfer descriptor masks the
+// in-progress writes.  PREPARING always routes to the source, COMMITTED always routes to the
+// destination, and that phase store is the single ownership edge.  A stale pre-edge route is
+// expected and is forwarded by ExLoop before it touches the shard.
 class Router {
 public:
+    static constexpr uint32_t kNoOwner = UINT16_MAX;
+
+    enum class TransferPhase : uint8_t { Idle = 0, Preparing = 1, Committed = 2 };
+
     void build_uniform(int32_t nshards) {
         nshards_ = nshards;
         const uint32_t per = kNumBuckets / nshards;
         for (uint32_t b = 0; b < kNumBuckets; b++) {
             int32_t s = static_cast<int32_t>(b / per);
             if (s >= nshards) s = nshards - 1;      // remainder buckets go to the last shard
-            owner_[b] = s;
+            owner_[b].store(pack(s, kNoOwner), std::memory_order_relaxed);
         }
     }
-    int32_t shard_of(uint64_t hash) const { return owner_[bucket_of(hash)]; }
+
+    int32_t shard_of(uint64_t hash) const {
+        return unpack_shard(owner_[bucket_of(hash)].load(std::memory_order_relaxed));
+    }
+
+    uint32_t owner_of(uint64_t hash) const { return owner_of_bucket(bucket_of(hash)); }
+    uint32_t owner_of_bucket(uint32_t bucket) const {
+        // Read phase on both sides of the entry.  In particular, a reader which sampled Idle just
+        // before begin_transfer() must not return a destination entry written during PREPARING.
+        // A route that sampled the old entry before a complete commit is merely stale and will be
+        // forwarded at execution, which is the documented handoff protocol.
+        for (;;) {
+            const TransferPhase before = phase_.load(std::memory_order_acquire);
+            const uint32_t entry = owner_[bucket].load(std::memory_order_acquire);
+            const TransferPhase after = phase_.load(std::memory_order_acquire);
+            if (before != after) continue;
+            if (before != TransferPhase::Idle) {
+                const uint32_t begin = transfer_begin_.load(std::memory_order_relaxed);
+                const uint32_t end = transfer_end_.load(std::memory_order_relaxed);
+                if (bucket >= begin && bucket < end) {
+                    return before == TransferPhase::Preparing
+                        ? transfer_source_.load(std::memory_order_relaxed)
+                        : transfer_destination_.load(std::memory_order_relaxed);
+                }
+            }
+            return unpack_owner(entry);
+        }
+    }
+
+    // Boot-only population. Runtime ownership changes must use begin/commit/finish_transfer so a
+    // reader cannot observe a partly rewritten range.
+    void set_initial_owner(uint32_t begin, uint32_t end, uint32_t thread_id) {
+        if (begin >= end || end > kNumBuckets || thread_id >= kNoOwner) std::abort();
+        if (phase_.load(std::memory_order_relaxed) != TransferPhase::Idle) std::abort();
+        for (uint32_t bucket = begin; bucket < end; bucket++) {
+            const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
+            owner_[bucket].store(pack(unpack_shard(entry), thread_id),
+                                 std::memory_order_relaxed);
+        }
+    }
+
+    // Both EX loops must be at migration safe points before this call.  The source remains the
+    // owner after a successful begin; commit_transfer() performs the one ownership handoff.
+    bool begin_transfer(uint32_t begin, uint32_t end, uint32_t source,
+                        uint32_t destination) {
+        if (begin >= end || end > kNumBuckets || source == destination ||
+            source >= kNoOwner || destination >= kNoOwner) return false;
+        if (transfer_writer_.test_and_set(std::memory_order_acquire)) return false;
+        if (phase_.load(std::memory_order_acquire) != TransferPhase::Idle) {
+            transfer_writer_.clear(std::memory_order_release);
+            return false;
+        }
+        for (uint32_t bucket = begin; bucket < end; bucket++) {
+            if (unpack_owner(owner_[bucket].load(std::memory_order_acquire)) != source) {
+                transfer_writer_.clear(std::memory_order_release);
+                return false;
+            }
+        }
+
+        transfer_begin_.store(begin, std::memory_order_relaxed);
+        transfer_end_.store(end, std::memory_order_relaxed);
+        transfer_source_.store(source, std::memory_order_relaxed);
+        transfer_destination_.store(destination, std::memory_order_relaxed);
+        phase_.store(TransferPhase::Preparing, std::memory_order_release);
+
+        for (uint32_t bucket = begin; bucket < end; bucket++) {
+            const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
+            owner_[bucket].store(pack(unpack_shard(entry), destination),
+                                 std::memory_order_release);
+        }
+        return true;
+    }
+
+    void commit_transfer() {
+        if (phase_.load(std::memory_order_acquire) != TransferPhase::Preparing) std::abort();
+        phase_.store(TransferPhase::Committed, std::memory_order_release);
+    }
+
+    void finish_transfer() {
+        if (phase_.load(std::memory_order_acquire) != TransferPhase::Committed) std::abort();
+        phase_.store(TransferPhase::Idle, std::memory_order_release);
+        transfer_writer_.clear(std::memory_order_release);
+    }
+
+    TransferPhase transfer_phase() const { return phase_.load(std::memory_order_acquire); }
     int32_t nshards() const { return nshards_; }
 
 private:
+    static uint32_t pack(int32_t shard, uint32_t owner) {
+        return (owner << 16) | static_cast<uint32_t>(shard);
+    }
+    static int32_t unpack_shard(uint32_t entry) {
+        return static_cast<int32_t>(entry & UINT16_MAX);
+    }
+    static uint32_t unpack_owner(uint32_t entry) { return entry >> 16; }
+
     int32_t nshards_ = 0;
-    int32_t owner_[kNumBuckets] = {};
+    std::atomic<uint32_t> owner_[kNumBuckets] = {};
+    std::atomic<TransferPhase> phase_{TransferPhase::Idle};
+    std::atomic<uint32_t> transfer_begin_{0};
+    std::atomic<uint32_t> transfer_end_{0};
+    std::atomic<uint32_t> transfer_source_{kNoOwner};
+    std::atomic<uint32_t> transfer_destination_{kNoOwner};
+    std::atomic_flag transfer_writer_ = ATOMIC_FLAG_INIT;
 };
 
 }  // namespace tomo

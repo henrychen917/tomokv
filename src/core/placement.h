@@ -138,7 +138,7 @@ public:
 
     // Shard ownership is a flat shard->EX tid table. A manual map must be complete because mixing
     // an accidental omission with defaults would make a supposedly controlled placement measure a
-    // different layout. Runtime dispatch still reads Server::shard_owner_ exactly once.
+    // different layout. Runtime dispatch still reads Router's bucket owner exactly once.
     bool assign_shard_homes(uint32_t nshards, const char* spec) {
         shard_home_.assign(nshards, kNoThread);
         if (!spec) {
@@ -240,14 +240,15 @@ private:
 };
 
 // ---------------------------------------------------------------------------------------------
-// THE MIGRATION CONTRACT. Moving a shard is a single store into worker_of_shard[]. What makes it
-// correct is the ordering around it:
+// THE MIGRATION CONTRACT. Moving a physical shard rewrites the EX-owner bits of its bucket range
+// behind Router's transfer descriptor. What makes it correct is the ordering around it:
 //
-//   1. Stop routing new ops to the old owner (the store does this; it is a release).
-//   2. WAIT for the old owner to finish what it already has — task_in.quiesced(), which tests the
-//      RETIRED frontier. head == tail only means "nothing left to pop"; the worker may still be
-//      executing what it popped.
-//   3. Only then may the new owner touch the shard's store.
+//   1. Bring the old owner to an execution safe point. task_in.quiesced() tests the RETIRED
+//      frontier; head == tail alone is insufficient because a popped task may still be executing.
+//   2. Publish PREPARING, rewrite all entries while routing still resolves to the old owner, and
+//      settle owner-local bookkeeping while both loops remain quiescent.
+//   3. Publish COMMITTED once. Only then may the new owner touch the shard's store. A producer that
+//      had already read the old route is forwarded by the old owner before shard access.
 //
 // Skipping step 2 puts two threads in one FlatStore, which has no locks precisely because that is
 // supposed to be impossible — it would corrupt silently rather than crash.

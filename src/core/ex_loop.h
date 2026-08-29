@@ -78,6 +78,7 @@ public:
             {
                 Span busy(sig.busy_ns);
                 did += snapshot_control_pass();
+                did += service_stale_forwards();
                 did += drain_releases();
                 if (!snapshot_blocks_tasks()) {
                     did += service_multi_retries();
@@ -167,7 +168,7 @@ private:
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
     uint32_t sweep() {
-        uint32_t n = snapshot_control_pass() + drain_releases(true);
+        uint32_t n = snapshot_control_pass() + service_stale_forwards() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
             n += service_multi_retries();
             n += service_atomic_deferred();
@@ -245,7 +246,9 @@ private:
 
     uint32_t drain_releases(bool unmasked = false) {
         auto take = [&](const BorrowRelease& r) {
-            // Routing targets the shard's current owner; only that thread may touch this registry.
+            // The IO producer can have sampled the source just before the bucket ownership edge.
+            // Recheck before the first FlatStore touch and forward the stale release intact.
+            if (forward_stale_release(r)) return;
             srv_->shard(r.shard).store().unborrow(r.ptr);
         };
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
@@ -619,6 +622,9 @@ private:
     }
 
     bool execute(const Task& t) {
+        // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
+        // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
+        if (forward_stale_task(t)) return true;
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
@@ -836,6 +842,72 @@ private:
         return work;
     }
 
+    int32_t task_shard(const Task& task) const {
+        if (task.shard >= 0) return task.shard;
+        if (!task.client) return -1;
+        return task.client->rob().at(task.op_id).shard;
+    }
+
+    bool post_forwarded_task(const Task& task, uint32_t target) {
+        ThreadCtx& destination = srv_->thread(target);
+        return destination.post_task(self_->id(), task, ring_, self_->sig());
+    }
+
+    bool forward_stale_task(const Task& task) {
+        const int32_t sid = task_shard(task);
+        if (sid < 0) return false;
+        const uint32_t target = srv_->worker_of_shard(sid);
+        if (target == self_->id()) return false;
+        if (!post_forwarded_task(task, target)) stale_tasks_.push_back(task);
+        return true;
+    }
+
+    bool post_forwarded_release(const BorrowRelease& release, uint32_t target) {
+        ThreadCtx& destination = srv_->thread(target);
+        return destination.post_release(self_->id(), release, ring_, self_->sig());
+    }
+
+    bool forward_stale_release(const BorrowRelease& release) {
+        if (release.shard < 0) std::abort();
+        const uint32_t target = srv_->worker_of_shard(release.shard);
+        if (target == self_->id()) return false;
+        if (!post_forwarded_release(release, target)) stale_releases_.push_back(release);
+        return true;
+    }
+
+    uint32_t service_stale_forwards() {
+        uint32_t work = 0;
+        while (!stale_tasks_.empty() && work < kExecBatch) {
+            const Task task = stale_tasks_.front();
+            const int32_t sid = task_shard(task);
+            if (sid < 0) std::abort();
+            const uint32_t target = srv_->worker_of_shard(sid);
+            if (target == self_->id()) {
+                stale_tasks_.pop_front();
+                if (!execute(task)) xshard_retries_.push_back(task);
+                work++;
+                continue;
+            }
+            if (!post_forwarded_task(task, target)) break;
+            stale_tasks_.pop_front();
+            work++;
+        }
+        while (!stale_releases_.empty() && work < kExecBatch) {
+            const BorrowRelease release = stale_releases_.front();
+            const uint32_t target = srv_->worker_of_shard(release.shard);
+            if (target == self_->id()) {
+                stale_releases_.pop_front();
+                srv_->shard(release.shard).store().unborrow(release.ptr);
+                work++;
+                continue;
+            }
+            if (!post_forwarded_release(release, target)) break;
+            stale_releases_.pop_front();
+            work++;
+        }
+        return work;
+    }
+
 
 
     // Tell this client's io thread it has completed ops -- it retires the ROB and writes, so it is
@@ -913,6 +985,10 @@ private:
     std::deque<Task> multi_retries_;
     std::deque<Task> xshard_retries_;
     std::deque<Task> ordered_deferred_;
+    // Backpressure cannot turn a stale route into a dropped request/release. These queues contain
+    // objects for shards this loop no longer owns and are serviced before ordinary inbox work.
+    std::deque<Task> stale_tasks_;
+    std::deque<BorrowRelease> stale_releases_;
     bool       notify_keyless_pending_ = false;
     // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
     // predicted-false branch exec_batch pays when the feature is off.
