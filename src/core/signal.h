@@ -201,6 +201,13 @@ public:
         if (!words_[word].load(std::memory_order_relaxed)) return 0;
         return words_[word].exchange(0, std::memory_order_acquire);
     }
+    // Owner-only teardown/migration fence. Once the ROB is quiescent no executor can set this
+    // slot again; clearing it before recycling the slot prevents a stale ready bit from naming the
+    // next connection assigned the same index.
+    void clear(uint32_t slot) {
+        const uint64_t bit = 1ull << (slot & 63);
+        words_[(slot >> 6) % kWords].fetch_and(~bit, std::memory_order_acq_rel);
+    }
     bool any() const {
         for (uint32_t i = 0; i < kWords; i++)
             if (words_[i].load(std::memory_order_relaxed)) return true;

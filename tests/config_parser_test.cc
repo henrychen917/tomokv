@@ -120,6 +120,20 @@ int main() {
     if (network_default.net_io != tomo::NetIoEngine::Uring)
         fail("net-io default is not uring");
 
+    tomo::Config smt;
+    tomo::ConfigParseState smt_state;
+    const std::vector<const char*> smt_args = {"--smt-mode", "1"};
+    if (tomo::parse_config_args(smt_args, smt, smt_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        smt.smt_mode != 1 ||
+        !rejects({"--smt-mode", "2"}) ||
+        !rejects({"--smt-mode", "yes"}) ||
+        !rejects({"--smt-mode", "-1"}))
+        fail("smt-mode boot grammar differs");
+    tomo::Config smt_default;
+    if (smt_default.smt_mode != 0)
+        fail("smt-mode default is not logical-CPU independent");
+
     tomo::Config xscript;
     tomo::ConfigParseState xscript_state;
     const std::vector<const char*> xscript_args = {

@@ -83,6 +83,14 @@ struct CmdFlags {
     // slot unfinished and completes it from a cold deadline list.  Commands without this bit do
     // not enter that machinery; the test lives inside the already-cold ConnLocal branch.
     static constexpr uint32_t DeferredLocal = 1u << 21;
+    // Administrative execution constraints inherited from the shipped fork's FLIP row. They are
+    // named flags (rather than command-name checks) so scripts/MULTI/loading keep one policy gate.
+    static constexpr uint32_t NoScript = 1u << 22;
+    static constexpr uint32_t NoMulti = 1u << 23;
+    static constexpr uint32_t NoAsyncLoading = 1u << 24;
+    // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
+    // coordinator. No other command enters that control path.
+    static constexpr uint32_t FlipAsync = 1u << 25;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -227,6 +235,12 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
+// Runtime IO-owner handoff moves the thread-local CLIENT catalog as an extracted map node. The
+// opaque handle owns that node between source and destination; no metadata field is reconstructed.
+void* command_client_migration_extract(Client* client);
+bool command_client_migration_install(void* catalog);
+void command_client_migration_discard(void* catalog);
+bool command_client_migration_reserve(uint32_t extra);
 void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
                                       uint32_t shard_channels);
 std::string command_client_info_line(const Client& client, uint64_t now_ms);

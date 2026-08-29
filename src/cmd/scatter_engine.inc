@@ -394,6 +394,7 @@ struct ScatterState : SnapshotCut {
     bool script_has_writes = false;
     bool script_stage_limit = false;
     bool script_certifier = false;
+    bool runtime_loading = false;
     // Set for a child lowered inside EXEC. The child keeps its own decision words, but the parent
     // publishes their common ticket and owns the outer transaction decision.
     bool multi_child = false;
@@ -1230,6 +1231,23 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
+    // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
+    // planning so FLIP refuses instead of entering a quiescence transaction concurrently. A count
+    // (not a bool) makes overlapping refused/debug attempts unable to clear each other's witness.
+    struct RuntimeLoadingGuard {
+        Server* server = nullptr;
+        bool active = false;
+        ~RuntimeLoadingGuard() { if (active) server->loading_end(); }
+    } loading_guard;
+    if (kind == Kind::DebugReload || kind == Kind::DebugLoadAof) {
+        if (!server.loading_begin()) {
+            reply_err(op.sink(), "ERR loading is not allowed while FLIP is in progress");
+            return ScatterPrepare::Error;
+        }
+        loading_guard.server = &server;
+        loading_guard.active = true;
+    }
+
     uint32_t script_first = 0, script_count = 0;
     if (kind == Kind::Script) {
         if (!command_validate_script_route(op, script_first, script_count))
@@ -1594,7 +1612,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     const size_t bytes = arena_layout_bytes(
         kind, key_count, group_cap, server.nshards(), atomic_write, atomic_apply,
-        static_cast<uint32_t>(server.placement().ex_threads().size()), sort_options.deref);
+        server.nthreads(), sort_options.deref);
     if (bytes == std::numeric_limits<size_t>::max() || bytes > UINT32_MAX) {
         if (admitted) server.atomic_retire_group(owner_io, admission_generation);
         if (routes != route_stack) delete[] routes;
@@ -1611,6 +1629,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     auto* state = new (memory) ScatterState;
     state->kind = kind;
+    state->runtime_loading = loading_guard.active;
+    loading_guard.active = false;
     state->atomic_write = atomic_write;
     state->atomic_apply = atomic_apply;
     state->atomic_pop = atomic_pop;
@@ -1630,7 +1650,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (__builtin_expect(admitted, false)) server.atomic_apply_open(state->apply_open);
     state->pooled = pooled;
     state->owner_io = owner_io;
-    state->owner_slots = static_cast<uint32_t>(server.placement().ex_threads().size());
+    state->owner_slots = server.nthreads();
     state->admission_generation = admission_generation;
     state->origin_conn_id = origin_conn_id;
     state->script_coordinator_shard = kind == Kind::Script && key_count
@@ -1792,6 +1812,10 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     if (state->script_certifier && state->server) {
         state->server->script_finish_certification();
         state->script_certifier = false;
+    }
+    if (state->runtime_loading && state->server) {
+        state->server->loading_end();
+        state->runtime_loading = false;
     }
     if (state->aof_group && state->aof_group->ticket.load(std::memory_order_acquire) == 0)
         aof_abort_scatter_group(*state);

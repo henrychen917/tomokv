@@ -232,7 +232,8 @@ bool command_forbidden_in_multi(const Op& op) {
     // four regular controls and matches it for SSUBSCRIBE/SUNSUBSCRIBE.
     const bool config_mutation = multi_name(op, "config") && op.argc() > 1 &&
                                  !op.arg(1).eq_icase("get");
-    return multi_name(op, "save") || multi_name(op, "flushall") ||
+    return (op.spec->flags & CmdFlags::NoMulti) ||
+           multi_name(op, "save") || multi_name(op, "flushall") ||
            multi_name(op, "flushdb") || config_mutation || multi_name(op, "randomkey") ||
            multi_name(op, "spop") || multi_name(op, "srandmember") ||
            multi_name(op, "zrandmember") || multi_name(op, "hrandfield") ||
@@ -681,7 +682,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->watch_generation = client.watch_generation();
     state->kind = kind;
     try {
-        state->owner_record_refs.assign(server.placement().ex_threads().size(), 0);
+        state->owner_record_refs.assign(server.nthreads(), 0);
         state->shard_commands.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);

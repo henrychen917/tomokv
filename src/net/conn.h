@@ -273,6 +273,11 @@ public:
     Client& operator=(const Client&) = delete;
 
     int  fd() const { return fd_; }
+    int replace_fd(int replacement) {
+        const int previous = fd_;
+        fd_ = replacement;
+        return previous;
+    }
 
     // ---- read side -----------------------------------------------------------------------------
     char*    rbuf()      { return rbuf_; }
@@ -523,8 +528,10 @@ public:
     // ---- io-thread bookkeeping -----------------------------------------------------------------
     uint64_t id() const { return id_; }
     void set_id(uint64_t v) { id_ = v; }
-    uint32_t ifid_thread() const { return ifid_thread_; }
-    void set_ifid_thread(uint32_t t) { ifid_thread_ = t; }
+    // This release/acquire store is the connection ownership edge. Registration and queue
+    // membership follow it; neither is allowed to stand in for it.
+    uint32_t ifid_thread() const { return ifid_thread_.load(std::memory_order_acquire); }
+    void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
     Session& session() { return session_; }
     const Session& session() const { return session_; }
 
@@ -610,6 +617,7 @@ public:
     }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
+    bool has_atomic_groups_io() const { return atomic_groups_io_ != 0; }
 
     // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
     // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
@@ -648,6 +656,22 @@ public:
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0;
     }
+    bool migration_protocol_idle() const {
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+               !retire_queued_.load(std::memory_order_acquire) &&
+               watched_refs_.load(std::memory_order_acquire) == 0 &&
+               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
+               !subscriber_mode_ && multi_session_ == nullptr && nothing_to_write();
+    }
+    bool flip_drain_idle() const {
+        // Global dispatch is paused, but connections which remain on this IO may retain durable
+        // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work
+        // which can still touch an executor, ROB pointer, output borrow, or barrier must drain.
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+               !retire_queued_.load(std::memory_order_acquire) &&
+               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
+               nothing_to_write();
+    }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
     // that IO thread when it picks the client up. Without it, a pipelined burst of N completions
@@ -658,6 +682,7 @@ public:
     // kNoWbSlot at close), read by every worker deciding how to signal completion. A stale read
     // falls back to the channel path, which is always correct -- so relaxed is enough.
     static constexpr uint32_t kNoWbSlot = UINT32_MAX;
+    static constexpr uint32_t kWbMigrationInstalling = UINT32_MAX - 1;
     uint32_t wb_slot() const { return wb_slot_.load(std::memory_order_relaxed); }
     void set_wb_slot(uint32_t s) { wb_slot_.store(s, std::memory_order_release); }
 
@@ -714,7 +739,7 @@ private:
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;
-    uint32_t  ifid_thread_ = 0;
+    std::atomic<uint32_t> ifid_thread_{0};
     Session   session_;
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------

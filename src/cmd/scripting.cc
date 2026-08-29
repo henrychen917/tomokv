@@ -383,7 +383,7 @@ bool script_name_whitelisted(const CommandSpec& spec) {
 bool script_command_allowed(const CommandSpec& spec, uint32_t argc) {
     const uint32_t forbidden = CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards |
         CmdFlags::RandomShard | CmdFlags::CursorShard | CmdFlags::ConfigRoute |
-        CmdFlags::ScriptRoute;
+        CmdFlags::ScriptRoute | CmdFlags::NoScript;
     if ((spec.flags & forbidden) || !script_name_whitelisted(spec)) return false;
     if (spec.flags & CmdFlags::MultiShard) {
         return argc == 2 && (command_name_is(spec, "DEL") || command_name_is(spec, "UNLINK") ||

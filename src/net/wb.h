@@ -552,6 +552,13 @@ public:
         c.release_all_segments([&](int32_t shard, const char* ptr) { release(shard, ptr); });
     }
 
+    // Migration must neither splice nor strand a push frame. Combined with Client's empty output
+    // segments and no-send predicate, this also proves that no zero-copy value pointer remains in
+    // the kernel on behalf of this connection.
+    bool migration_ready(const Client& c) const {
+        return draining_ != &c && oob_defer_.find(const_cast<Client*>(&c)) == oob_defer_.end();
+    }
+
     // Dead clients still receive their send CQE during the deferred-free window. Consume whatever
     // reached the wire, then release both the completed and unsent BORROW segments exactly once.
     void on_dead_send_complete(Client& c, int res) {

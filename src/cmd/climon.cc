@@ -227,6 +227,10 @@ void IoLoop::climon_track_client(Client* client) {
     command_client_directory_add(client->id(), self_->id());
 }
 
+bool IoLoop::climon_migration_ready(const Client* client) const {
+    return client && climon_conn_.find(client->id()) == climon_conn_.end();
+}
+
 void IoLoop::climon_untrack_client(Client* client) {
     const uint64_t id = client->id();
     command_client_directory_remove(id);

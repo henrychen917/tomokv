@@ -78,6 +78,7 @@
     void climon_track_client(Client* client);
     void climon_untrack_client(Client* client);
     void climon_reset_client(Client* client);
+    bool climon_migration_ready(const Client* client) const;
 
     // ---- CLIENT REPLY ---------------------------------------------------------------------------
     bool climon_reply_suppressed(Client* client);

@@ -14,9 +14,9 @@
 //                               allocated once and freed once. Every operation below moves at most
 //                               an 8-byte slot word that POINTS at it.
 //
-//   Shard migration (LB)        moves NOTHING AT ALL. Reassigning a shard to another worker is one
-//                               atomic store of a thread id into worker_of_shard[]. No table is
-//                               touched, no pointer is rehashed. Pure handoff.
+//   Shard migration (LB)        moves NOTHING AT ALL. Reassigning a shard rewrites only the EX bits
+//                               in Router's bucket entries behind one descriptor commit. No table
+//                               is touched, no pointer is rehashed. Pure ownership handoff.
 //
 //   Table resize                rehashes 8-byte SLOT WORDS into a larger or smaller array, because
 //                               an open-addressed slot index is a function of the capacity. This is
