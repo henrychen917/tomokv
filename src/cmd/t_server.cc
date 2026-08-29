@@ -1396,12 +1396,17 @@ uint64_t accounted_memory_bytes(uint64_t object_bytes, uint64_t keys) {
     return object_bytes + keys * overhead;
 }
 
-bool info_section(Op& op, const char* wanted) {
+bool info_section(Op& op, const char* wanted, bool included_by_default = true) {
     // EVERYTHING is the reference's alias for ALL plus module-generated sections. We load no
     // modules, so the two are identical here -- but omitting it made `INFO everything` match no
     // section at all and return an EMPTY reply, where the reference returns every section.
-    return op.argc() == 1 || eq_icase(op.arg(1), "ALL") || eq_icase(op.arg(1), "DEFAULT") ||
-           eq_icase(op.arg(1), "EVERYTHING") || eq_icase(op.arg(1), wanted);
+    if (op.argc() == 1) return included_by_default;
+    for (uint32_t i = 1; i < op.argc(); i++) {
+        if (eq_icase(op.arg(i), "ALL") || eq_icase(op.arg(i), "EVERYTHING") ||
+            eq_icase(op.arg(i), wanted) ||
+            (included_by_default && eq_icase(op.arg(i), "DEFAULT"))) return true;
+    }
+    return false;
 }
 
 void cmd_info(Shard&, Op& op) {
@@ -1866,7 +1871,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
     }
-    if (info_section(op, "COMMANDSTATS")) {
+    if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             uint64_t calls = 0;
@@ -1885,7 +1890,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "db0:keys=%llu,expires=%llu\r\n",
                 static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires));
     }
-    if (g_server && info_section(op, "LB")) lbsignals_info_section(*g_server, body);
+    if (g_server && info_section(op, "LB", false)) lbsignals_info_section(*g_server, body);
     reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
 }
 
@@ -2032,7 +2037,7 @@ static const CommandSpec kTable[] = {
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
     {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
-    {"INFO",       1,  2, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
+    {"INFO",       1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
         {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
     {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
