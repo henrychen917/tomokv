@@ -135,11 +135,20 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
                "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
                "lb_ratio_star_io_frac:%.4f\r\nlb_total_threads:%u\r\n"
-               "lb_foreign_op_frac:%.4f\r\n\r\n",
+               "lb_foreign_op_frac:%.4f\r\n"
+               "lb_flip_bucket_weight_spread_before:%.3f\r\n"
+               "lb_flip_bucket_weight_spread_after:%.3f\r\n"
+               "lb_flip_client_weight_spread_before:%.3f\r\n"
+               "lb_flip_client_weight_spread_after:%.3f\r\n"
+               "lb_flip_bucket_bytes_spread_before:%" PRIu64 "\r\n"
+               "lb_flip_bucket_bytes_spread_after:%" PRIu64 "\r\n\r\n",
                snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
                snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
                snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
-               sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
+               sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0,
+               srv.flip_bucket_weight_spread_before(), srv.flip_bucket_weight_spread_after(),
+               srv.flip_client_weight_spread_before(), srv.flip_client_weight_spread_after(),
+               srv.flip_bucket_bytes_spread_before(), srv.flip_bucket_bytes_spread_after());
 }
 
 }  // namespace tomo

@@ -1291,7 +1291,7 @@ private:
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_add(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
-        srv_->flip_note_client_transferred();
+        srv_->flip_note_client_transferred(client_id, destination);
         erase_client_migration(client);       // pointer comparison only; source never dereferences
         return true;
     }
@@ -1385,21 +1385,19 @@ private:
     }
 
     bool flip_candidate_clients_ready(std::string& error) const {
-        uint32_t ordinal = 0;
-        std::string refused;
-        for (Client* client : self_->clients()) {
-            if (client == flip_client_) continue;
-            if (ordinal == srv_->flip_source_clients(self_->id())) break;
-            const uint32_t destination = srv_->flip_client_destination(self_->id(), ordinal++);
-            if (!client_transfer_ready(client, destination, refused)) {
-                ordinal--;
-                continue;
+        const uint32_t planned = srv_->flip_source_clients(self_->id());
+        for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+            Client* client = srv_->flip_client_at(self_->id(), ordinal);
+            if (!client || client == flip_client_ || client->ifid_thread() != self_->id()) {
+                error = "the weighted FLIP connection set changed after planning";
+                return false;
             }
-        }
-        if (ordinal != srv_->flip_source_clients(self_->id())) {
-            error = refused.empty()
-                ? "the FLIP coordinator connection cannot move before its reply" : refused;
-            return false;
+            std::string refused;
+            if (!client_transfer_ready(
+                    client, srv_->flip_client_destination(self_->id(), ordinal), refused)) {
+                error = refused.empty() ? "a weighted FLIP connection is not transferable" : refused;
+                return false;
+            }
         }
         return true;
     }
@@ -1489,20 +1487,15 @@ private:
                 } else if (!reserve_client_transfer_state(planned)) {
                     srv_->flip_note_failure("ERR FLIP could not reserve source connection state");
                 } else {
-                    uint32_t ordinal = 0;
-                    for (Client* client : self_->clients()) {
-                        if (client == flip_client_) continue;
-                        if (ordinal == planned) break;
+                    for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+                        Client* client = srv_->flip_client_at(self_->id(), ordinal);
+                        if (!client) std::abort();
                         std::string error;
-                        if (!client_transfer_ready(
-                                client, srv_->flip_client_destination(self_->id(), ordinal), error))
-                            continue;
                         if (!prepare_client_transfer(
                                 client, srv_->flip_client_destination(self_->id(), ordinal), error)) {
                             srv_->flip_note_failure("ERR FLIP could not detach a connection: " + error);
                             break;
                         }
-                        ordinal++;
                     }
                 }
             }
@@ -1563,7 +1556,7 @@ private:
         switch (stage) {
             case FlipStage::IoDrain:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
-                    if (!srv_->flip_build_client_plan(failure))
+                    if (!srv_->flip_build_client_plan(flip_client_, failure))
                         flip_enter_rollback(failure);
                     else
                         flip_publish_stage(FlipStage::IoPrepare);
