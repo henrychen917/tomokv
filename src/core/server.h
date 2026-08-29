@@ -6,10 +6,10 @@
 // at this thread count it shows up immediately. Per-command counters live in Shard::Stats or
 // LoopSignals, both single-writer; INFO sums them on request.
 //
-// THE ONE MUTABLE HOT-PATH STRUCTURE is Router's bucket ownership array.  Each entry includes the
-// immutable physical shard id and mutable EX thread id, so dispatch remains one indexed load while
-// a handoff rewrites only ownership bits and never copies a key.  See NOTES-MIGRATE.md for the
-// range-publication and stale-route forwarding contract.
+// THE ONE MUTABLE HOT-PATH STRUCTURE is shard_owner_: shard id -> thread id, one atomic load per
+// dispatch. Router's packed bucket array remains the bucket-granularity authority; shard_owner_ is
+// its derived shard-granularity fast path, published only at a quiesced commit. See
+// NOTES-MIGRATE.md for the handoff and stale-route forwarding contract.
 #pragma once
 #include <algorithm>
 #include <array>
@@ -296,8 +296,7 @@ public:
         for (uint32_t sid = 0; sid < cfg.shards; sid++) {
             const uint32_t tid = placement_.shard_home(sid);
             threads_[tid]->shards().push_back(shards_[sid].get());
-            // Populate the EX half of Router's authoritative bucket entries. Do not mirror
-            // ownership in another synchronised structure.
+            // Populate Router's authoritative bucket entries and its derived dispatch fast path.
             set_worker_of_shard(static_cast<int32_t>(sid), tid);
             // Seed residency from this exact thread's cpu domain, so note_execution compares at
             // thread resolution even when adjacent tids live in different L3 domains.
@@ -1584,7 +1583,8 @@ private:
                 if (!shard || shard->id() < 0 ||
                     static_cast<uint32_t>(shard->id()) >= nshards() ||
                     shard != shards_[static_cast<uint32_t>(shard->id())].get() ||
-                    seen[static_cast<uint32_t>(shard->id())]++) return false;
+                    seen[static_cast<uint32_t>(shard->id())]++ ||
+                    worker_of_shard(shard->id()) != tid) return false;
                 for (uint32_t bucket = shard->bucket_begin(); bucket < shard->bucket_end(); bucket++)
                     if (router_.shard_of_bucket(bucket) != shard->id() ||
                         router_.owner_of_bucket(bucket) != tid) return false;
@@ -1667,23 +1667,27 @@ public:
         return 1;
     }
 
-    // One authoritative bucket-array load on dispatch. A runtime move is a descriptor-masked
-    // rewrite of the complete physical shard range, never a second owner map.
+    // Exactly one indexed acquire load on dispatch.  The normal optimized build has no bounds
+    // branch; an unoptimized assertion build retains the diagnostic check.
     uint32_t worker_of_shard(int32_t shard_id) const {
+#if !defined(NDEBUG) && !defined(__OPTIMIZE__)
         if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) std::abort();
-        return router_.owner_of_bucket(shards_[static_cast<uint32_t>(shard_id)]->bucket_begin());
+#endif
+        return shard_owner_[shard_id].load(std::memory_order_acquire);
     }
     void set_worker_of_shard(int32_t shard_id, uint32_t thread_id) {
         if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) std::abort();
         Shard& sh = *shards_[static_cast<uint32_t>(shard_id)];
         router_.set_initial_owner(sh.bucket_begin(), sh.bucket_end(), thread_id);
+        shard_owner_[shard_id].store(thread_id, std::memory_order_release);
     }
 
     // The caller must hold both executor loops at the safe point described in NOTES-MIGRATE.md:
     // no executing/retry/group/snapshot work may touch this shard.  Queue entries which arrive via
     // a stale pre-commit route are harmless because ExLoop rechecks and forwards before access.
-    // Vector capacity and membership are settled while PREPARING still names the source; the phase
-    // store in commit_transfer() is the sole ownership edge.
+    // Vector capacity and membership are settled while PREPARING still names the source.  The
+    // phase store in commit_transfer() is the sole ownership edge; bucket entries and the derived
+    // shard array publish destination only after that edge.
     bool transfer_bucket_range_quiesced(uint32_t begin, uint32_t end, uint32_t source,
                                          uint32_t destination) {
         if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
@@ -1732,6 +1736,8 @@ public:
             return std::find(moving.begin(), moving.end(), shard) != moving.end();
         }), from.end());
         router_.commit_transfer();
+        for (Shard* shard : moving)
+            shard_owner_[shard->id()].store(destination, std::memory_order_release);
         router_.finish_transfer();
         for (Shard* shard : moving)
             shard->note_migration(placement_.domain_of_thread(destination));
@@ -1757,6 +1763,7 @@ public:
         *found = from.back();
         from.pop_back();
         router_.commit_transfer();                 // THE single bucket ownership edge
+        shard_owner_[shard_id].store(destination, std::memory_order_release);
         router_.finish_transfer();
         shard.note_migration(placement_.domain_of_thread(destination));
         return true;
@@ -2960,6 +2967,10 @@ private:
     AofManager aof_;
     // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
     SnapshotManager snapshot_;
+
+    // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
+    // shard-granularity dispatch remains one flat-array load.
+    std::atomic<uint32_t> shard_owner_[256] = {};
 
     // FLIP is a cold, manually driven control-plane transaction.  The stage store is the global
     // dispatch barrier; acknowledgements are tagged with the transaction epoch so a late wakeup

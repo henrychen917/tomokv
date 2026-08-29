@@ -513,11 +513,10 @@ private:
 // making the ownership flip itself an array write.  A transfer changes only the EX bits; the shard
 // bits, keys, and table never move.
 //
-// A range needs more than individually atomic entries: publishing 100 entries one by one would let
-// a concurrent router observe two owners for one logical range.  The transfer descriptor masks the
-// in-progress writes.  PREPARING always routes to the source, COMMITTED always routes to the
-// destination, and that phase store is the single ownership edge.  A stale pre-edge route is
-// expected and is forwarded by ExLoop before it touches the shard.
+// Runtime readers never consult the transfer descriptor.  PREPARING leaves owner_[] untouched, so
+// every entry remains a valid source route.  The phase release-store makes the destination valid,
+// after which commit_transfer() publishes destination entries.  A reader may therefore observe
+// only the current or previous owner, and a stale route is forwarded by ExLoop before execution.
 class Router {
 public:
     static constexpr uint32_t kNoOwner = UINT16_MAX;
@@ -544,30 +543,13 @@ public:
 
     uint32_t owner_of(uint64_t hash) const { return owner_of_bucket(bucket_of(hash)); }
     uint32_t owner_of_bucket(uint32_t bucket) const {
-        // Read phase on both sides of the entry.  In particular, a reader which sampled Idle just
-        // before begin_transfer() must not return a destination entry written during PREPARING.
-        // A route that sampled the old entry before a complete commit is merely stale and will be
-        // forwarded at execution, which is the documented handoff protocol.
-        for (;;) {
-            const TransferPhase before = phase_.load(std::memory_order_acquire);
-            const uint32_t entry = owner_[bucket].load(std::memory_order_acquire);
-            const TransferPhase after = phase_.load(std::memory_order_acquire);
-            if (before != after) continue;
-            if (before != TransferPhase::Idle) {
-                const uint32_t begin = transfer_begin_.load(std::memory_order_relaxed);
-                const uint32_t end = transfer_end_.load(std::memory_order_relaxed);
-                if (bucket >= begin && bucket < end) {
-                    return before == TransferPhase::Preparing
-                        ? transfer_source_.load(std::memory_order_relaxed)
-                        : transfer_destination_.load(std::memory_order_relaxed);
-                }
-            }
-            return unpack_owner(entry);
-        }
+        // owner_[] is one atomic packed owner+shard word, so this load cannot tear.  PREPARING does
+        // not modify it; after commit, observing the previous owner is a safe stale route.
+        return unpack_owner(owner_[bucket].load(std::memory_order_acquire));
     }
 
-    // Boot-only population. Runtime ownership changes must use begin/commit/finish_transfer so a
-    // reader cannot observe a partly rewritten range.
+    // Boot-only population. Runtime ownership changes must use begin/commit/finish_transfer so
+    // destination entries cannot become visible before the ownership edge.
     void set_initial_owner(uint32_t begin, uint32_t end, uint32_t thread_id) {
         if (begin >= end || end > kNumBuckets || thread_id >= kNoOwner) std::abort();
         if (phase_.load(std::memory_order_relaxed) != TransferPhase::Idle) std::abort();
@@ -602,17 +584,24 @@ public:
         transfer_destination_.store(destination, std::memory_order_relaxed);
         phase_.store(TransferPhase::Preparing, std::memory_order_release);
 
-        for (uint32_t bucket = begin; bucket < end; bucket++) {
-            const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
-            owner_[bucket].store(pack(unpack_shard(entry), destination),
-                                 std::memory_order_release);
-        }
         return true;
     }
 
     void commit_transfer() {
         if (phase_.load(std::memory_order_acquire) != TransferPhase::Preparing) std::abort();
+        const uint32_t begin = transfer_begin_.load(std::memory_order_relaxed);
+        const uint32_t end = transfer_end_.load(std::memory_order_relaxed);
+        const uint32_t destination = transfer_destination_.load(std::memory_order_relaxed);
+
+        // This is the single logical ownership edge.  Both executors are quiesced, and the
+        // destination's bookkeeping is already installed, so old entries are now safe stale
+        // routes.  Publish each destination entry only after the destination is valid.
         phase_.store(TransferPhase::Committed, std::memory_order_release);
+        for (uint32_t bucket = begin; bucket < end; bucket++) {
+            const uint32_t entry = owner_[bucket].load(std::memory_order_relaxed);
+            owner_[bucket].store(pack(unpack_shard(entry), destination),
+                                 std::memory_order_release);
+        }
     }
 
     void finish_transfer() {

@@ -702,27 +702,14 @@ private:
         entry.conn_next = entry.conn_prev = nullptr;
     }
 
-    KvObj* atomic_find_physical(uint64_t hash, Slice key, int* table = nullptr) const {
-        if (table) *table = -1;
-        if (KvObj* object = find_in(0, hash, key)) {
-            if (table) *table = 0;
-            return object;
-        }
-        if (rehashing()) {
-            if (KvObj* object = find_in(1, hash, key)) {
-                if (table) *table = 1;
-                return object;
-            }
-        }
-        return nullptr;
+    KvObj* atomic_find_physical(uint64_t hash, Slice key) const {
+        if (KvObj* object = find_in(0, hash, key)) return object;
+        return rehashing() ? find_in(1, hash, key) : nullptr;
     }
 
     AtomicResolved atomic_resolve_internal(uint64_t hash, Slice key, uint64_t snapshot,
-                                           bool count_predecessor,
-                                           KvObj** physical_out = nullptr,
-                                           int* physical_table_out = nullptr) {
-        KvObj* physical_value = atomic_find_physical(hash, key, physical_table_out);
-        if (physical_out) *physical_out = physical_value;
+                                           bool count_predecessor) {
+        KvObj* physical_value = atomic_find_physical(hash, key);
         if (!atomic_pending_ || !atomic_pending_->live)
             return AtomicResolved{atomic_live_value(physical_value), false, true};
         const uint64_t bit = atomic_membership_bit(hash);
