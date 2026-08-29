@@ -1,30 +1,44 @@
 #!/bin/bash
-# matrix.sh — the four-way comparison: tomokv vs redis vs valkey vs dragonfly.
+# matrix.sh — the five-way comparison: tomokv vs redis vs valkey vs dragonfly vs garnet.
 #
-# GEOMETRY. Every arm gets the SAME 32 server cores and the same 32 loadgen cores, and each is
-# configured to use them as well as that server knows how. Anything else compares a server against
-# the harness rather than against another server.
+# GEOMETRY. Every arm gets the same server cores and the same loadgen cores, and each is configured
+# to use them as well as that server knows how. Anything else compares a server against the harness.
 #
-# CELL DESIGN. Single-key and multi-key commands have OPPOSITE responses to pipeline depth on this
-# tree: GET/SET gain ~2.5x from p1 to p128, while MGET/MSET LOSE ~36% over the same range and become
-# unstable on the way down (see NOTES / the congestion-collapse finding). So each family is measured
-# where it peaks -- single-key at p128 and p1, multi-key at p8. Running multi-key at p128 next to
-# GET/SET would understate this tree by a third and would do it with 4.5% run-to-run noise.
+# RATIO IS PER CELL. tomokv's io:ex split is a boot flag, and no single value serves the whole table.
+# Measured at 32 cores:
+#     ratio    GET p1     GET p128   MGET8 p8
+#     18:14    1.65M      25.34M     2.13M
+#     28:4     2.42M      10.22M     0.82M
+# p1 is network-bound and wants IO threads (gate_refs pins 7:1 for exactly this reason); p128 and
+# multi-key are execution-bound and want EX threads. Running p1 at the p128 shape reported tomokv 22%
+# BEHIND dragonfly when the correct shape is ~1.1x AHEAD. Cells are grouped by ratio and the server
+# rebooted per group. Competitor arms ignore the ratio but get identical boot/populate treatment, so
+# the procedure is the same for everyone.
 #
-# WHAT THIS SCRIPT REFUSES TO DO. It aborts rather than produce a number it cannot defend:
-#   - an arm whose --version does not match its pin  (a pinned SOURCE is not a pinned BINARY)
-#   - a populate that does not leave dbsize == key-maximum  (unpopulated keys inflate GET)
-#   - a cell where the loadgen is busier than the server  (that measures memtier, not the server)
+# ATOMICS ON. dragonfly and garnet are atomic on multi-key. tomokv defaults --atomic 0, so an
+# unmatched run would flatter us by doing less work. Every tomokv boot here is --atomic 1.
+#
+# CELL DEPTH. Single-key and multi-key have OPPOSITE responses to pipeline depth on this tree:
+# GET/SET gain ~2.5x from p1 to p128 while MGET/MSET LOSE ~36% and grow unstable. Each family is
+# measured where it peaks -- single-key at p128 and p1, multi-key at p8.
+#
+# memtier's --ratio is SET:GET, not read:write. A 9:1 READ-heavy mix is --ratio=1:9.
+#
+# WHAT THIS REFUSES TO DO. It aborts rather than print a number it cannot defend:
+#   - an arm whose version does not match its pin   (a pinned SOURCE is not a pinned BINARY)
+#   - a fill that leaves holes in the keyspace      (unpopulated keys inflate GET)
+#   - a server pid it cannot resolve from the port  ($! can be a wrapper, and wrappers have small RSS)
 set -u
 
 SP=${MATRIX_OUT:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/matrix}
 SRV_CPUS=${MATRIX_SRV_CPUS:-0-31}
-LG_CPUS=${MATRIX_LG_CPUS:-64-95}
+LG_CPUS=${MATRIX_LG_CPUS:-64-127}
 PORT=${MATRIX_PORT:-7870}
 ROUNDS=${MATRIX_ROUNDS:-3}
 KEYMAX=${MATRIX_KEYMAX:-1000000}
 DSIZE=${MATRIX_DSIZE:-64}
 SECS=${MATRIX_SECS:-8}
+NET=${MATRIX_NET:-loopback}          # loopback | nic
 NTHREADS=$(taskset -c "$SRV_CPUS" nproc)
 mkdir -p "$SP"
 
@@ -32,18 +46,31 @@ TOMOKV=${MATRIX_TOMOKV:-/home/user/Projects/tomokv-cpp-perthread/build/tomokv}
 REDIS=${MATRIX_REDIS:-/tmp/claude-1000/redis74/src/redis-server}
 VALKEY=${MATRIX_VALKEY:-/home/user/Projects/valkey/src/valkey-server}
 DRAGONFLY=${MATRIX_DRAGONFLY:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/dragonfly-x86_64}
+DOTNET=${MATRIX_DOTNET:-/home/user/.dotnet/dotnet}
+GARNET=${MATRIX_GARNET:-/home/user/Projects/garnet/main/GarnetServer/bin/Release/net10.0/GarnetServer.dll}
+ARMS=${MATRIX_ARMS:-"tomokv redis valkey dragonfly garnet"}
 
-ARMS=${MATRIX_ARMS:-"tomokv redis valkey dragonfly"}
+# ---- network mode -------------------------------------------------------------------------------
+# NIC mode runs the server in serverns and the loadgen in clientns so traffic crosses a real 25GbE
+# link. Loopback hides send-path behaviour and carries no NIC tax; the two paths differ by ~12% at
+# p128/32c, so a loopback-only table misstates the headline.
+if [ "$NET" = nic ]; then
+  SRV_WRAP=(sudo -n ip netns exec serverns setpriv --reuid=1000 --regid=1000 --clear-groups)
+  LG_WRAP=(sudo -n ip netns exec clientns setpriv --reuid=1000 --regid=1000 --clear-groups)
+  BIND_IP=10.200.0.2; TARGET_IP=10.200.0.2
+else
+  SRV_WRAP=(); LG_WRAP=(); BIND_IP=127.0.0.1; TARGET_IP=127.0.0.1
+fi
+srv() { if [ ${#SRV_WRAP[@]} -gt 0 ]; then "${SRV_WRAP[@]}" "$@"; else "$@"; fi; }
+lg()  { if [ ${#LG_WRAP[@]}  -gt 0 ]; then "${LG_WRAP[@]}"  "$@"; else "$@"; fi; }
+cli() { if [ "$NET" = nic ]; then lg redis-cli -h "$TARGET_IP" -p "$PORT" "$@"; else redis-cli -p "$PORT" "$@"; fi; }
+port_open() { if [ "$NET" = nic ]; then lg bash -c "exec 3<>/dev/tcp/$TARGET_IP/$PORT" 2>/dev/null;
+              else (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null; fi; }
 
 die() { printf '\nABORT: %s\n' "$1" >&2; exit 1; }
 
-# ---- version pins -------------------------------------------------------------------------------
-# A pinned source is not a pinned binary: a previous round of this program compared a dragonfly
-# binary at v1.39.0 against a tag that said v1.40.1. Every arm states its expected version and the
-# run dies if the binary disagrees.
 version_of() {
   case "$1" in
-    tomokv)    "$TOMOKV" --help 2>&1 | grep -oiE 'tomokv[ /-]v?[0-9][0-9.]*' | head -1 ;;
     redis)     "$REDIS" --version 2>&1 | grep -oE 'v=[0-9][0-9.]*' | head -1 ;;
     valkey)    "$VALKEY" --version 2>&1 | grep -oE 'v=[0-9][0-9.]*' | head -1 ;;
     dragonfly) "$DRAGONFLY" --version 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -oE 'v[0-9][0-9.]*' | head -1 ;;
@@ -51,121 +78,93 @@ version_of() {
 }
 expected_version() {
   case "$1" in
-    redis)     echo "v=7.4.2" ;;
-    valkey)    echo "v=9.1.1" ;;
-    dragonfly) echo "v1.40.1" ;;
-    tomokv)    echo "" ;;        # built from this worktree; provenance is the git sha below
+    redis) echo "v=7.4.2" ;; valkey) echo "v=9.1.1" ;; dragonfly) echo "v1.40.1" ;;
+    garnet) echo "" ;;   # no --version; banner-checked after boot
+    tomokv) echo "" ;;   # built from this worktree; provenance is the git sha printed below
   esac
 }
 
-boot_arm() { # arm -> starts server on $PORT pinned to $SRV_CPUS, sets SRV_PID
-  local arm=$1 log="$SP/srv.$1.log"
+boot_arm() { # arm ratio -> server on $PORT, sets SRV_PID
+  local arm=$1 ratio=$2 log="$SP/srv.$1.log"
   SRV_PID=0
   case "$arm" in
-    tomokv)
-      taskset -c "$SRV_CPUS" "$TOMOKV" --port "$PORT" --bind 127.0.0.1 \
-          --shards $((NTHREADS * 2)) --ratio 18:14 > "$log" 2>&1 & ;;
-    redis)
-      # redis 7.4 offloads only reads/writes to io-threads; the command itself stays on one core.
-      # That is redis's own ceiling, not a harness limit -- give it the threads and report what it does.
-      taskset -c "$SRV_CPUS" "$REDIS" --port "$PORT" --bind 127.0.0.1 --save '' --appendonly no \
-          --protected-mode no --io-threads "$NTHREADS" > "$log" 2>&1 & ;;
-    valkey)
-      taskset -c "$SRV_CPUS" "$VALKEY" --port "$PORT" --bind 127.0.0.1 --save '' --appendonly no \
-          --protected-mode no --io-threads "$NTHREADS" > "$log" 2>&1 & ;;
-    dragonfly)
-      taskset -c "$SRV_CPUS" "$DRAGONFLY" --port "$PORT" --bind 127.0.0.1 \
-          --proactor_threads "$NTHREADS" --dbfilename '' --logtostderr > "$log" 2>&1 & ;;
+    tomokv)    srv taskset -c "$SRV_CPUS" "$TOMOKV" --port "$PORT" --bind "$BIND_IP" \
+                   --shards $((NTHREADS * 2)) --ratio "$ratio" --atomic 1 > "$log" 2>&1 & ;;
+    redis)     srv taskset -c "$SRV_CPUS" "$REDIS" --port "$PORT" --bind "$BIND_IP" --save '' \
+                   --appendonly no --protected-mode no --io-threads "$NTHREADS" > "$log" 2>&1 & ;;
+    valkey)    srv taskset -c "$SRV_CPUS" "$VALKEY" --port "$PORT" --bind "$BIND_IP" --save '' \
+                   --appendonly no --protected-mode no --io-threads "$NTHREADS" > "$log" 2>&1 & ;;
+    dragonfly) srv taskset -c "$SRV_CPUS" "$DRAGONFLY" --port "$PORT" --bind "$BIND_IP" \
+                   --proactor_threads "$NTHREADS" --dbfilename '' --logtostderr > "$log" 2>&1 & ;;
+    garnet)    srv taskset -c "$SRV_CPUS" "$DOTNET" "$GARNET" --port "$PORT" --bind "$BIND_IP" \
+                   --no-pubsub --minthreads "$NTHREADS" --maxthreads "$NTHREADS" > "$log" 2>&1 & ;;
   esac
   SRV_PID=$!
-  for _ in $(seq 120); do
-    if (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null; then
-      # Resolve the pid from the LISTENING SOCKET, never from $!. Backgrounding a redirected command
-      # inside a function+case can leave $! pointing at a wrapper rather than the exec'd server, and
-      # that wrapper has a few MB of RSS -- which silently reported redis as 63MB at 1M keys when it
-      # actually holds 153MB. Every memory number in this table depends on this being the real pid.
+  for _ in $(seq 160); do
+    if port_open; then
+      # Resolve the pid from the LISTENING SOCKET. $! can name a wrapper (taskset/netns/setpriv),
+      # and a wrapper's few-MB RSS silently reported redis as 63MB where it actually held 153MB.
       local resolved
-      resolved=$(ss -lptnH "sport = :$PORT" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2)
+      resolved=$(srv ss -lptnH "sport = :$PORT" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2)
       [ -n "${resolved:-}" ] && SRV_PID=$resolved
       [ -r /proc/$SRV_PID/status ] || die "cannot resolve server pid for $arm on port $PORT"
+      if [ "$arm" = garnet ]; then
+        local gv; gv=$(sed 's/\x1b\[[0-9;]*m//g' "$log" | grep -oiE 'Garnet [0-9][0-9.]*' | head -1)
+        [ "$gv" = "Garnet 2.1.4" ] || die "garnet banner reports '${gv:-nothing}', pin expects 'Garnet 2.1.4'"
+      fi
       return 0
     fi
     sleep 0.25
   done
   tail -5 "$log" >&2; return 1
 }
+
 stop_arm() {
-  redis-cli -p "$PORT" shutdown nosave >/dev/null 2>&1
+  cli shutdown nosave >/dev/null 2>&1
   sleep 1
-  # `pgrep -x` matches /proc/<pid>/comm, which the kernel truncates to 15 chars -- "dragonfly-x86_64"
-  # is 16 and can never match, and pgrep says so loudly on every call. Kill the pid we launched, then
-  # sweep the short names only.
   [ "${SRV_PID:-0}" -gt 0 ] && kill -9 "$SRV_PID" 2>/dev/null
+  # `pgrep -x` matches comm, truncated to 15 chars -- "dragonfly-x86_64" is 16 and can never match.
+  pgrep -f "GarnetServer.dll" 2>/dev/null | while read -r p; do kill -9 "$p" 2>/dev/null; done
   for pat in tomokv redis-server valkey-server dragonfly-x86; do
     pgrep -x "$pat" 2>/dev/null | while read -r p; do kill -9 "$p" 2>/dev/null; done
   done
-  # dragonfly has been observed to squat its port after SIGKILL; wait for the port, not the process.
-  for _ in $(seq 60); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null || return 0; sleep 0.5; done
+  for _ in $(seq 60); do port_open || return 0; sleep 0.5; done
   die "port $PORT still accepting after teardown"
 }
 
 rss_mb() { [ "${SRV_PID:-0}" -gt 0 ] && awk '/VmRSS/{printf "%.0f", $2/1024}' /proc/"$SRV_PID"/status 2>/dev/null || echo 0; }
-
-fill() { # low high -- write keys [low,high] and leave them there
-  taskset -c "$LG_CPUS" memtier_benchmark -s 127.0.0.1 -p "$PORT" --protocol=redis \
+fill() { lg taskset -c "$LG_CPUS" memtier_benchmark -s "$TARGET_IP" -p "$PORT" --protocol=redis \
       -t 16 -c 8 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
-      --key-minimum="$1" --key-maximum="$2" -n allkeys -d "$DSIZE" --hide-histogram >/dev/null 2>&1
+      --key-minimum="$1" --key-maximum="$2" -n allkeys -d "$DSIZE" --hide-histogram >/dev/null 2>&1; }
+
+covered() { # low high -- sample the range; every sampled key must exist
+  local lo=$1 hi=$2 k miss=0
+  for k in "$lo" $(( lo + (hi-lo)/4 )) $(( lo + (hi-lo)/2 )) $(( hi - (hi-lo)/4 )) "$hi"; do
+    [ "$(cli exists "memtier-$k" 2>/dev/null | tr -dc '0-9')" = "1" ] || miss=$((miss+1))
+  done
+  [ "$miss" -eq 0 ]
 }
-
-populate() {
-  # MARGINAL bytes/key, measured as a SLOPE across two fills.
-  #
-  # Subtracting the empty baseline is not enough. A freshly loaded server's RSS also carries costs
-  # that scale with CONNECTIONS (256 of them during populate, each with buffers) and with the hash
-  # table's CAPACITY, which grows in large steps and so is mostly a rounding artifact at any given
-  # key count. Charging all of that to the keys reported ~649 B/key for a store whose real per-key
-  # cost is ~109. Filling half, measuring, filling the rest and measuring again cancels every fixed
-  # cost: what is left between the two points is what one more key actually costs.
+populate() { # arm -- fills in two halves so bytes/key is a SLOPE, not a total
+  # Subtracting the empty baseline is not enough: a loaded server's RSS also carries per-connection
+  # buffers and hash-table capacity rounding. Charging those to the keys reported 649 B/key for a
+  # store that costs ~120. (full - half) / (keys/2) cancels every fixed cost.
   local half=$(( KEYMAX / 2 ))
-  # Assert dbsize AT EVERY SAMPLE POINT, not just at the end. A silent undercount in either fill
-  # produces a memory table that looks plausible and is wrong by 2x -- which is exactly what happened
-  # when only the final count was checked. Sampling after the dbsize round-trip also guarantees the
-  # server has settled, which the old "sample the instant the port accepts" empty reading did not.
-  dbsize_now() { redis-cli -p "$PORT" dbsize 2>/dev/null | tr -dc '0-9'; }
-  local db
-  db=$(dbsize_now); [ "${db:-x}" = "0" ] || die "server not empty at boot: dbsize=$db"
+  [ "$(cli dbsize 2>/dev/null | tr -dc '0-9')" = "0" ] || die "$1 not empty at boot (stale server on $PORT?)"
   RSS_EMPTY=$(rss_mb)
-
-  fill 1 "$half"
-  db=$(dbsize_now)
-  [ "${db:-0}" = "$half" ] || die "first fill wrote dbsize=$db, expected $half -- memory slope invalid"
+  fill 1 "$half";  covered 1 "$half"   || die "$1: first fill left holes in [1,$half]"
   RSS_HALF=$(rss_mb)
-
-  fill $((half + 1)) "$KEYMAX"
-  db=$(dbsize_now)
-  [ "${db:-0}" = "$KEYMAX" ] || die "second fill wrote dbsize=$db, expected $KEYMAX (hit-rate trap: an unpopulated keyspace inflates GET)"
+  fill $((half+1)) "$KEYMAX"; covered 1 "$KEYMAX" || die "$1: second fill left holes in [1,$KEYMAX]"
   RSS_FULL=$(rss_mb)
 }
 
-# Snapshots live in SHELL VARIABLES, not temp files. The file-based version of this silently read
-# stale snapshots -- with the cp error suppressed -- and reported an identical, fictitious busy
-# percentage for every cell, which made the saturation guard cry wolf on all of them. A guard that
-# fires always is worse than no guard: it trains you to ignore it.
 cpu_snapshot() { grep -E '^cpu[0-9]' /proc/stat; }
-cpu_busy() { # cpulist "before" "after" -> mean %busy over the listed cpus
-  awk -v list="$1" -v before="$2" -v after="$3" '
-    BEGIN{
-      n = split(list, L, ","); for (j = 1; j <= n; j++) want[L[j]] = 1
-      split(before, B, "\n"); split(after, A, "\n")
-      for (i in B) { split(B[i], f, " "); if (f[1] ~ /^cpu[0-9]/) {
-          c = substr(f[1],4); t = 0; for (x = 2; x <= 11; x++) t += f[x]; bt[c] = t; bi[c] = f[5] + f[6] } }
-      for (i in A) { split(A[i], f, " "); if (f[1] ~ /^cpu[0-9]/) {
-          c = substr(f[1],4); if (!(c in want) || !(c in bt)) continue
-          t = 0; for (x = 2; x <= 11; x++) t += f[x]
-          dt = t - bt[c]; di = (f[5] + f[6]) - bi[c]
-          if (dt > 0) { s += 100 * (dt - di) / dt; k++ } } }
-      printf "%.1f", (k ? s / k : -1)
-    }'; }
+cpu_busy() { awk -v list="$1" -v before="$2" -v after="$3" '
+    BEGIN{ n=split(list,L,","); for(j=1;j<=n;j++) want[L[j]]=1
+      split(before,B,"\n"); split(after,A,"\n")
+      for(i in B){split(B[i],f," "); if(f[1]~/^cpu[0-9]/){c=substr(f[1],4);t=0;for(x=2;x<=11;x++)t+=f[x];bt[c]=t;bi[c]=f[5]+f[6]}}
+      for(i in A){split(A[i],f," "); if(f[1]~/^cpu[0-9]/){c=substr(f[1],4); if(!(c in want)||!(c in bt))continue
+        t=0;for(x=2;x<=11;x++)t+=f[x]; dt=t-bt[c]; di=(f[5]+f[6])-bi[c]; if(dt>0){s+=100*(dt-di)/dt;k++}}}
+      printf "%.1f",(k?s/k:-1) }'; }
 expand() { python3 -c "
 import sys
 out=[]
@@ -176,97 +175,91 @@ for part in sys.argv[1].split(','):
 print(','.join(out))" "$1"; }
 SRV_LIST=$(expand "$SRV_CPUS"); LG_LIST=$(expand "$LG_CPUS")
 
-run_cell() { # arm name pipe command -> appends ops/s, guards saturation
-  local arm=$1 name=$2 pipe=$3 cmd=$4
+run_cell() { # arm name pipeline argv(|-separated)
+  local arm=$1 name=$2 pipe=$3 argvs=$4
+  local -a extra=(); local oldifs="$IFS"; IFS='|'; read -ra extra <<< "$argvs"; IFS="$oldifs"
   local before after v
   before=$(cpu_snapshot)
-  v=$(taskset -c "$LG_CPUS" memtier_benchmark -s 127.0.0.1 -p "$PORT" --protocol=redis \
-        -t 32 -c 8 --pipeline="$pipe" --command="$cmd" --command-key-pattern=R -d "$DSIZE" \
-        --key-minimum=1 --key-maximum="$KEYMAX" --test-time="$SECS" --distinct-client-seed \
-        --hide-histogram 2>/dev/null | tr -d '\r' | awk '/^Totals/{print $2; exit}')
+  # 64 threads x 8 = 512 connections, matching gate_refs.txt. At p1 throughput is Little's law --
+  # connections divided by latency -- so 256 connections reported 1.86M where 512 gives 2.42M at the
+  # same ratio. The connection count is part of the cell, not an incidental harness detail.
+  v=$(lg taskset -c "$LG_CPUS" memtier_benchmark -s "$TARGET_IP" -p "$PORT" --protocol=redis \
+        -t 64 -c 8 --pipeline="$pipe" -d "$DSIZE" --key-minimum=1 --key-maximum="$KEYMAX" \
+        --test-time="$SECS" --distinct-client-seed --hide-histogram "${extra[@]}" 2>/dev/null \
+        | tr -d '\r' | awk '/^Totals/{print $2; exit}')
   after=$(cpu_snapshot)
   local sb lb; sb=$(cpu_busy "$SRV_LIST" "$before" "$after"); lb=$(cpu_busy "$LG_LIST" "$before" "$after")
-  # The question is whether the LOADGEN is the limiter, not whether it is a hair busier. At p128 both
-  # sides sit near 72% and neither is saturated; warning on a 2-point gap fires on every cell and
-  # teaches you to ignore the guard. Warn only when the loadgen is actually near its ceiling, or
-  # dominates the server by a margin no measurement noise explains.
   awk -v s="$sb" -v l="$lb" -v n="$name" -v a="$arm" 'BEGIN{
-    if (l >= 90.0)        printf "  WARN %s/%s: loadgen %.1f%% busy -- at its ceiling, cell may be loadgen-bound\n", a, n, l
-    else if (l - s > 15.0) printf "  WARN %s/%s: loadgen %.1f%% vs server %.1f%% -- loadgen dominates\n", a, n, l, s
-  }' >&2
+    if (l >= 90.0)         printf "  WARN %s/%s: loadgen %.1f%% busy -- at its ceiling, cell is a FLOOR\n", a, n, l
+    else if (l - s > 15.0) printf "  WARN %s/%s: loadgen %.1f%% vs server %.1f%% -- loadgen dominates\n", a, n, l, s }' >&2
   echo "${v:-0}" >> "$SP/$arm.$name"
   echo "$sb $lb" >> "$SP/$arm.$name.cpu"
 }
 
 MG="MGET __key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__"
 MS="MSET __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__"
-# name:pipeline:command   -- single-key at its peak (p128) and at p1; multi-key at ITS peak (p8)
-CELLS=( "GET_p128:128:GET __key__" "SET_p128:128:SET __key__ __data__"
-        "GET_p1:1:GET __key__"     "SET_p1:1:SET __key__ __data__"
-        "MGET8_p8:8:$MG"           "MSET8_p8:8:$MS" )
+BLEND="--command=GET __key__|--command-ratio=1|--command-key-pattern=R|--command=SET __key__ __data__|--command-ratio=1|--command-key-pattern=R|--command=$MG|--command-ratio=1|--command-key-pattern=R|--command=$MS|--command-ratio=1|--command-key-pattern=R"
+# name ; pipeline ; tomokv ratio ; memtier argv   (';' because ratios contain ':')
+CELLS=(
+  "GET_p128;128;18:14;--command=GET __key__|--command-key-pattern=R"
+  "SET_p128;128;18:14;--command=SET __key__ __data__|--command-key-pattern=R"
+  "MGET8_p8;8;18:14;--command=$MG|--command-key-pattern=R"
+  "MSET8_p8;8;18:14;--command=$MS|--command-key-pattern=R"
+  "MIX9to1_p128;128;18:14;--ratio=1:9|--key-pattern=R:R"
+  "MIX1to1_p128;128;18:14;--ratio=1:1|--key-pattern=R:R"
+  "BLEND1111_p8;8;18:14;$BLEND"
+  "GET_p1;1;28:4;--command=GET __key__|--command-key-pattern=R"
+  "SET_p1;1;28:4;--command=SET __key__ __data__|--command-key-pattern=R"
+)
+RATIOS=$(for c in "${CELLS[@]}"; do echo "$c" | cut -d';' -f3; done | awk '!seen[$0]++')
+FIRST_RATIO=$(echo "$RATIOS" | head -1)
 
-echo "=== MATRIX: $ARMS ==="
-echo "    server cores $SRV_CPUS ($NTHREADS), loadgen $LG_CPUS, ${ROUNDS} rounds x ${SECS}s, keyspace $KEYMAX, d=$DSIZE"
-echo "    tomokv sha: $(git -C /home/user/Projects/tomokv-cpp-perthread rev-parse --short HEAD)"
+echo "=== MATRIX ($NET): $ARMS ==="
+echo "    server $SRV_CPUS ($NTHREADS threads), loadgen $LG_CPUS, ${ROUNDS}x${SECS}s, keys $KEYMAX, d=$DSIZE"
+echo "    tomokv sha: $(git -C /home/user/Projects/tomokv-cpp-perthread rev-parse --short HEAD), --atomic 1"
+echo "    tomokv ratios in play: $(echo $RATIOS | tr '\n' ' ')"
 for arm in $ARMS; do
   got=$(version_of "$arm"); want=$(expected_version "$arm")
-  if [ -n "$want" ] && [ "$got" != "$want" ]; then die "$arm binary reports '$got', pin expects '$want'"; fi
+  if [ -n "$want" ] && [ "$got" != "$want" ]; then die "$arm reports '$got', pin expects '$want'"; fi
   printf "    %-10s %s\n" "$arm" "${got:-<from worktree>}"
-  # Truncate EVERY per-arm result file, the rss ledger included. Leaving $arm.rss to accumulate meant
-  # each run's table averaged this run's rows together with every previous run's -- including smoke
-  # runs at a different keyspace -- and reported 99MB where the server actually held 158MB.
-  for c in "${CELLS[@]}"; do : > "$SP/$arm.${c%%:*}"; : > "$SP/$arm.${c%%:*}.cpu"; done
+  for c in "${CELLS[@]}"; do n="${c%%;*}"; : > "$SP/$arm.$n"; : > "$SP/$arm.$n.cpu"; done
   : > "$SP/$arm.rss"
 done
 
 for r in $(seq "$ROUNDS"); do
   for arm in $ARMS; do
-    stop_arm
-    boot_arm "$arm" || die "$arm failed to boot"
-    populate
-    for c in "${CELLS[@]}"; do
-      name="${c%%:*}"; rest="${c#*:}"; pipe="${rest%%:*}"; cmd="${rest#*:}"
-      run_cell "$arm" "$name" "$pipe" "$cmd"
+    for ratio in $RATIOS; do
+      stop_arm
+      boot_arm "$arm" "$ratio" || die "$arm failed to boot at ratio $ratio"
+      populate "$arm"
+      for c in "${CELLS[@]}"; do
+        n="${c%%;*}"; rest="${c#*;}"; pipe="${rest%%;*}"; rest="${rest#*;}"
+        cr="${rest%%;*}"; argv="${rest#*;}"
+        [ "$cr" = "$ratio" ] || continue
+        run_cell "$arm" "$n" "$pipe" "$argv"
+      done
+      # Record RSS once per arm per round, from the first ratio group.
+      [ "$ratio" = "$FIRST_RATIO" ] && echo "${RSS_FULL:-0} ${RSS_HALF:-0} ${RSS_EMPTY:-0}" >> "$SP/$arm.rss"
     done
-    # Memory: RSS with the SAME keyspace loaded in every arm, so bytes/key is comparable.
-    # Use the pid we launched. `pgrep -x` cannot be given several patterns, and would miss
-    # `dragonfly-x86_64` regardless -- comm is truncated at 15 chars and that name is 16.
-    if [ "${SRV_PID:-0}" -gt 0 ] && [ -r /proc/$SRV_PID/status ]; then
-      echo "${RSS_FULL:-0} ${RSS_HALF:-0} ${RSS_EMPTY:-0}" >> "$SP/$arm.rss"
-    else
-      echo "  WARN $arm: could not read RSS for pid ${SRV_PID:-none}" >&2
-    fi
   done
   echo "  round $r done"
 done
 stop_arm
 
-# Report each arm as a MULTIPLE OF TOMOKV. "vs best" was useless the moment tomokv was best in every
-# cell -- it printed +0.00% and said nothing about the margin over anyone.
-printf "\n%-10s" "cell"; for arm in $ARMS; do printf " %14s" "$arm"; done
-printf "  |"; for arm in $ARMS; do [ "$arm" = tomokv ] && continue; printf " %10s" "tomo/$arm"; done; echo
+printf "\n%-14s" "cell"; for arm in $ARMS; do printf " %13s" "$arm"; done
+printf "  |"; for arm in $ARMS; do [ "$arm" = tomokv ] && continue; printf " %11s" "t/$arm"; done; echo
 for c in "${CELLS[@]}"; do
-  name="${c%%:*}"; printf "%-10s" "$name"
-  tm=$(awk '{s+=$1;n++} END{printf "%.0f", (n? s/n : 0)}' "$SP/tomokv.$name" 2>/dev/null || echo 0)
-  for arm in $ARMS; do
-    printf " %14s" "$(awk '{s+=$1;n++} END{printf "%.0f", (n? s/n : 0)}' "$SP/$arm.$name")"
-  done
+  n="${c%%;*}"; printf "%-14s" "$n"
+  tm=$(awk '{s+=$1;k++} END{printf "%.0f",(k?s/k:0)}' "$SP/tomokv.$n" 2>/dev/null || echo 0)
+  for arm in $ARMS; do printf " %13s" "$(awk '{s+=$1;k++} END{printf "%.0f",(k?s/k:0)}' "$SP/$arm.$n")"; done
   printf "  |"
-  for arm in $ARMS; do
-    [ "$arm" = tomokv ] && continue
-    om=$(awk '{s+=$1;n++} END{printf "%.0f", (n? s/n : 0)}' "$SP/$arm.$name")
-    awk -v t="$tm" -v o="$om" 'BEGIN{ printf " %10s", (o>0 ? sprintf("%.2fx", t/o) : "n/a") }'
-  done
-  # spread across rounds: a cell whose own arms are noisy cannot support a ratio claim
-  printf "   CoV(tomo) %s\n" "$(awk '{s+=$1;q[NR]=$1} END{if(NR<2){print "n/a";exit} m=s/NR;
-      for(i=1;i<=NR;i++)v+=(q[i]-m)^2; printf "%.2f%%", 100*sqrt(v/NR)/m}' "$SP/tomokv.$name")"
+  for arm in $ARMS; do [ "$arm" = tomokv ] && continue
+    om=$(awk '{s+=$1;k++} END{printf "%.0f",(k?s/k:0)}' "$SP/$arm.$n")
+    awk -v t="$tm" -v o="$om" 'BEGIN{printf " %11s",(o>0?sprintf("%.2fx",t/o):"n/a")}'; done
+  printf "   CoV %s\n" "$(awk '{s+=$1;q[NR]=$1} END{if(NR<2){print "n/a";exit} m=s/NR;
+      for(i=1;i<=NR;i++)v+=(q[i]-m)^2; printf "%.2f%%",100*sqrt(v/NR)/m}' "$SP/tomokv.$n")"
 done
-printf "\n%-10s" "RSS empty"; for arm in $ARMS; do
-  printf " %14s" "$(awk '{s+=$3;n++} END{printf "%.0f MB", (n? s/n : 0)}' "$SP/$arm.rss" 2>/dev/null)"; done; echo
-printf "%-10s" "RSS half";  for arm in $ARMS; do
-  printf " %14s" "$(awk '{s+=$2;n++} END{printf "%.0f MB", (n? s/n : 0)}' "$SP/$arm.rss" 2>/dev/null)"; done; echo
-printf "%-10s" "RSS full";  for arm in $ARMS; do
-  printf " %14s" "$(awk '{s+=$1;n++} END{printf "%.0f MB", (n? s/n : 0)}' "$SP/$arm.rss" 2>/dev/null)"; done; echo
-printf "%-10s" "B/key";     for arm in $ARMS; do
-  printf " %14s" "$(awk -v k="$KEYMAX" '{d+=($1-$2);n++} END{printf "%.1f", (n&&k? d/n*1048576/(k/2) : 0)}' "$SP/$arm.rss" 2>/dev/null)"; done
-printf "   MARGINAL: (full-half)/(keys/2)\n"
+printf "\n%-14s" "RSS empty"; for arm in $ARMS; do printf " %13s" "$(awk '{s+=$3;k++} END{printf "%.0f MB",(k?s/k:0)}' "$SP/$arm.rss")"; done; echo
+printf "%-14s" "RSS full";   for arm in $ARMS; do printf " %13s" "$(awk '{s+=$1;k++} END{printf "%.0f MB",(k?s/k:0)}' "$SP/$arm.rss")"; done; echo
+printf "%-14s" "B/key";      for arm in $ARMS; do printf " %13s" "$(awk -v k="$KEYMAX" '{d+=($1-$2);n++} END{printf "%.1f",(n&&k?d/n*1048576/(k/2):0)}' "$SP/$arm.rss")"; done
+printf "   MARGINAL (full-half)/(keys/2)\n"
