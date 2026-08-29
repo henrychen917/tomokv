@@ -236,13 +236,11 @@ bool command_client_set_name(Client* client, Slice name);
 std::string command_client_name(const Client* client);
 bool command_client_set_info(Client* client, Slice option, Slice value);
 void command_client_set_no_evict(Client* client, bool enabled);
-bool command_client_no_evict(const Client* client);
 void command_client_set_no_touch(Client* client, bool enabled);
-bool command_client_no_touch(const Client* client);
 // MONITOR feed lines and CLIENT INFO share the owner-catalog peer address.
 std::string command_client_addr(const Client* client);
 // CLIENT INFO's redir= field is owned by the tracking lane, which lives in the io loop.
-void command_client_set_tracking_view(Client* client, bool on, int64_t redirect, bool bcast);
+void command_client_set_tracking_view(Client* client, bool on, int64_t redirect);
 void command_client_reset_meta(Client* client);
 // CLIENT subcommand arity error, shared by climon.cc and tracking.cc.
 void climon_wrong_args(Op& op, const char* subcommand);

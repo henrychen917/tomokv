@@ -18,10 +18,6 @@ namespace tomo {
 static inline uint64_t rd(const uint64_t& f) {
     return __atomic_load_n(&f, __ATOMIC_RELAXED);
 }
-static inline uint32_t rd32(const uint32_t& f) {
-    return __atomic_load_n(&f, __ATOMIC_RELAXED);
-}
-
 LbSnapshot lbsignals_capture(Server& srv) {
     LbSnapshot snap;
     snap.stamp_ns = now_ns();
@@ -78,52 +74,6 @@ LbSnapshot lbsignals_capture(Server& srv) {
         snap.shards.push_back(r);
     }
     return snap;
-}
-
-LbSnapshot lbsignals_diff(const LbSnapshot& prev, const LbSnapshot& cur) {
-    LbSnapshot d = cur;
-    d.stamp_ns = cur.stamp_ns - prev.stamp_ns;
-    auto sub = [](uint64_t a, uint64_t b) { return a >= b ? a - b : 0; };
-    // Thread/shard sets can differ across role flips or resharding; diff only exact id matches
-    // and keep cur's absolute row otherwise — a windowed reader re-anchors on the next capture.
-    for (auto& r : d.threads)
-        for (const auto& p : prev.threads)
-            if (p.tid == r.tid && p.role == r.role) {
-                r.iterations = sub(r.iterations, p.iterations);
-                r.ops = sub(r.ops, p.ops);
-                r.busy_ns = sub(r.busy_ns, p.busy_ns);
-                r.idle_ns = sub(r.idle_ns, p.idle_ns);
-                r.cpu_ns = sub(r.cpu_ns, p.cpu_ns);
-                r.depth_sum = sub(r.depth_sum, p.depth_sum);
-                r.depth_samples = sub(r.depth_samples, p.depth_samples);
-                r.full_events = sub(r.full_events, p.full_events);
-                r.wakes_sent = sub(r.wakes_sent, p.wakes_sent);
-                r.wakes_recv = sub(r.wakes_recv, p.wakes_recv);
-                r.spins = sub(r.spins, p.spins);
-                break;
-            }
-    for (auto& r : d.shards)
-        for (const auto& p : prev.shards)
-            if (p.sid == r.sid) {
-                r.ops = sub(r.ops, p.ops);
-                r.foreign_ops = sub(r.foreign_ops, p.foreign_ops);
-                r.migrations = sub(r.migrations, p.migrations);
-                break;
-            }
-    d.io = LbRoleRollup{};
-    d.ex = LbRoleRollup{};
-    for (const auto& r : d.threads) {
-        LbRoleRollup& roll = r.role == Role::Ifid ? d.io : d.ex;
-        roll.threads++;
-        roll.ops += r.ops;
-        roll.busy_ns += r.busy_ns;
-        roll.idle_ns += r.idle_ns;
-        roll.cpu_ns += r.cpu_ns;
-        roll.depth_sum += r.depth_sum;
-        roll.depth_samples += r.depth_samples;
-        roll.full_events += r.full_events;
-    }
-    return d;
 }
 
 static void appendf_lb(std::string& out, const char* fmt, ...) {

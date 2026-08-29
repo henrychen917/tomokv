@@ -251,7 +251,6 @@ private:
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
-    friend void notify_retire_entry(IoLoop&, Op&);
 #include "pubsub.inc"
 
     template <bool HasUnix, bool HasTls, bool kEp>
@@ -750,7 +749,6 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_conn();
-            self_->sig().accept_rejected++;
             return;
         }
         if (__builtin_expect(srv_->protected_mode() && !srv_->requirepass_enabled() &&
@@ -764,7 +762,6 @@ private:
             }
             ::close(fd);
             srv_->note_rejected_connection();
-            self_->sig().accept_rejected++;
             return;
         }
         auto* c = new (std::nothrow) Client(fd);
@@ -1399,7 +1396,6 @@ subscriber_checks_done:
                 continue;
             }
 
-            op->db    = static_cast<uint8_t>(c->session().db_index);
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.

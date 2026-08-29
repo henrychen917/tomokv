@@ -364,11 +364,10 @@ bool multi_xshard_stage_has_group(const MultiCommand& command, uint32_t stage, i
     return command.xshard_stage_groups[stage][sid >> 6] & (1ull << (sid & 63));
 }
 
-bool make_child_op(MultiCommand& command, uint8_t db) {
+bool make_child_op(MultiCommand& command) {
     command.op = std::make_unique<Op>();
     command.op->reset();
     command.op->spec = command.queued.spec;
-    command.op->db = db;
     for (const std::string& arg : command.queued.argv)
         if (!command.op->push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))))
             return false;
@@ -394,7 +393,7 @@ bool validate_multi_blocking_timeout(Op& op, MultiBlockingPop kind) {
     return true;
 }
 
-bool normalize_multi_blocking_pop(MultiCommand& command, uint8_t db) {
+bool normalize_multi_blocking_pop(MultiCommand& command) {
     const MultiBlockingPop kind = command.blocking_pop;
     const bool list = kind == MultiBlockingPop::Blpop || kind == MultiBlockingPop::Brpop ||
                       kind == MultiBlockingPop::Blmpop;
@@ -431,7 +430,6 @@ bool normalize_multi_blocking_pop(MultiCommand& command, uint8_t db) {
 
     command.op->reset();
     command.op->spec = spec;
-    command.op->db = db;
     for (const std::string& arg : command.exec_argv)
         if (!command.op->push_arg(Slice(arg.data(), static_cast<uint32_t>(arg.size()))))
             return false;
@@ -501,7 +499,7 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
 bool command_has_owner_work(const MultiCommand& command);
 
 bool prepare_commands(Server& server, MultiExecState& state,
-                      std::vector<MultiQueuedCommand>& queue, uint8_t db) {
+                      std::vector<MultiQueuedCommand>& queue) {
     try {
         state.commands.reserve(queue.size());
         state.write_key_set.reserve(queue.size());
@@ -520,7 +518,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 command->key_shards.push_back(server.router().shard_of(hash));
             }
             command->kind = classify_multi_command(*command);
-            if (!make_child_op(*command, db)) return false;
+            if (!make_child_op(*command)) return false;
             uint32_t acl_denied_arg = UINT32_MAX;
             const AclDeniedReason acl_denied = acl_check_queued(
                 state.client->acl_user_idx(), *command->queued.spec,
@@ -560,7 +558,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     command->kind = MultiCommandKind::Prebuilt;
                     command->key_args.clear();
                     command->key_shards.clear();
-                } else if (!normalize_multi_blocking_pop(*command, db)) {
+                } else if (!normalize_multi_blocking_pop(*command)) {
                     return false;
                 }
             }
@@ -1275,8 +1273,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         state->watched = std::move(session->watched);
         state->final_reply = session->queue_error ? MultiFinalReply::ExecAbort : MultiFinalReply::Exec;
         if (!session->queue_error &&
-            !prepare_commands(server, *state, session->queue,
-                              static_cast<uint8_t>(client.session().db_index))) {
+            !prepare_commands(server, *state, session->queue)) {
             destroy_multi_state(state);
             reply_err(op.sink(), "ERR out of memory");
             session->active = false;

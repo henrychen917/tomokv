@@ -227,7 +227,6 @@
         }
         return false;
     }
-    void atomic_set_read_epoch(uint64_t epoch) { atomic_read_epoch_ = epoch; }
     void atomic_set_read_context(uint64_t epoch, uint64_t origin_conn_id) {
         atomic_read_epoch_ = epoch;
         atomic_read_origin_conn_id_ = origin_conn_id;

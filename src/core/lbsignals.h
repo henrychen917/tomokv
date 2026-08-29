@@ -104,10 +104,7 @@ struct LbSnapshot {
 };
 
 // Capture is declared here and defined in src/cmd/lbsignals.cc (it needs the full Server type).
-// diff() is pure struct arithmetic: cur - prev over every monotonic field, stamp delta included,
-// so a reader gets exact windowed rates from any two captures it holds.
 LbSnapshot lbsignals_capture(Server& srv);
-LbSnapshot lbsignals_diff(const LbSnapshot& prev, const LbSnapshot& cur);
 
 // Text renderers. Format is line-oriented, space-separated columns after a row tag — built for
 // the study harness and future tooling to parse without a JSON dependency:

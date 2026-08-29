@@ -216,7 +216,6 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
 // IO retirement.  Special states surrender their batch before their existing destructor runs.
 NotifyBatch* notify_take_batch(Op& op);
 void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
-void notify_retire_entry(IoLoop& loop, Op& op);
 void notify_discard_batch(NotifyBatch* batch);
 void notify_abort_op(Op& op);
 void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state);

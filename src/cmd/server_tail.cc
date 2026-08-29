@@ -910,10 +910,6 @@ bool command_prepare_subcmd_route(Server& server, Op& op) {
     return true;
 }
 
-const char* server_tail_encoding_name(const void* object) {
-    return encoding_name(static_cast<const KvObj*>(object));
-}
-
 static const CommandSpec kTable[] = {
     // name       min max flags                                                  handler       first last step
     {"TIME",        1,  1, CmdFlags::ConnLocal,                                  cmd_time,       0,  0, 0},

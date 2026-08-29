@@ -670,7 +670,6 @@ struct HashVal : CompactValue {
     HashVal(const HashVal&) = delete;
     HashVal& operator=(const HashVal&) = delete;
 
-    uint32_t field_count() const { return entries(); }
     uint64_t random_bounded(uint64_t bound);
 
     // kvobj_size() dispatches statically on HashVal*, so hiding the base accessor here is enough to
@@ -718,7 +717,6 @@ struct StreamNode {
     StreamID base_id{};
     StreamID last_id{};
     uint32_t physical_entries = 0;
-    uint32_t live_entries = 0;
 };
 
 struct StreamNodeIndex {
@@ -815,7 +813,6 @@ inline uint64_t SetMemberTable::allocation_bytes() const {
 enum class SetSmallEncoding : uint8_t { Integer = 0, Generic = 1 };
 
 struct SetVal : CompactValue {
-    void adopt_compact(Compact&& replacement) { replace_compact(std::move(replacement)); }
     void finish_table_promotion(uint64_t logical_payload_bytes) {
         promote_with_payload(CollectionEncoding::Hashtable, table.allocation_bytes(),
                              logical_payload_bytes);

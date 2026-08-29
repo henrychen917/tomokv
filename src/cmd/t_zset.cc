@@ -14,7 +14,6 @@
 #include <limits>
 #include <new>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -32,7 +31,6 @@ namespace {
 
 constexpr uint8_t kZslMaxLevel = 32;
 constexpr uint32_t kCompactScoreBytes = sizeof(double);
-constexpr uint32_t kUnlimited = std::numeric_limits<uint32_t>::max();
 
 struct ScoreRange {
     double min = 0;
@@ -132,10 +130,6 @@ bool parse_i64(Slice s, int64_t& out) {
                           : -static_cast<int64_t>(value))
                    : static_cast<int64_t>(value);
     return true;
-}
-
-bool ascii_equal(Slice s, std::string_view text) {
-    return s.eq_icase(text);
 }
 
 // A score VALUE and a score RANGE BOUND are not the same grammar on redis, and treating them as

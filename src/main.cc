@@ -400,10 +400,6 @@ int main(int argc, char** argv) {
         w.direct          += x.direct;
         w.zc_sends        += x.zc_sends;        w.zc_bytes        += x.zc_bytes;
         w.zc_releases     += x.zc_releases;
-        w.zc_suppressed_tls += x.zc_suppressed_tls;
-        w.tls_plaintext_bytes += x.tls_plaintext_bytes;
-        w.tls_ciphertext_bytes += x.tls_ciphertext_bytes;
-        w.tls_want_read += x.tls_want_read; w.tls_want_write += x.tls_want_write;
         w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
     };
     for (uint32_t i = 0; i < srv.nthreads(); i++) {

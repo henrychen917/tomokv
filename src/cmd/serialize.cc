@@ -42,6 +42,8 @@ enum : uint8_t {
     kRdbZset = 3,
     kRdbHash = 4,
     kRdbZset2 = 5,
+    // Decode-only Redis encodings: RESTORE must accept real Redis DUMP payloads even though this
+    // encoder deliberately emits only the plain collection forms above. Do not remove as unused.
     kRdbSetIntset = 11,
     kRdbHashListpack = 16,
     kRdbZsetListpack = 17,
@@ -55,6 +57,7 @@ enum : uint8_t {
 };
 
 enum : uint8_t {
+    // Decode-only Redis string encodings used by RESTORE; the encoder need not produce them.
     kRdbEncInt8 = 0,
     kRdbEncInt16 = 1,
     kRdbEncInt32 = 2,
@@ -151,7 +154,7 @@ bool append_bytes(std::vector<uint8_t>& out, const uint8_t* bytes, size_t length
     return true;
 }
 
-bool append_rdb_length(std::vector<uint8_t>& out, uint64_t length) {
+void append_rdb_length(std::vector<uint8_t>& out, uint64_t length) {
     if (length < (1u << 6)) {
         out.push_back(static_cast<uint8_t>(length));
     } else if (length < (1u << 14)) {
@@ -168,11 +171,11 @@ bool append_rdb_length(std::vector<uint8_t>& out, uint64_t length) {
         for (int shift = 56; shift >= 0; shift -= 8)
             out.push_back(static_cast<uint8_t>(length >> shift));
     }
-    return true;
 }
 
 bool append_rdb_string(std::vector<uint8_t>& out, const uint8_t* bytes, size_t length) {
-    return append_rdb_length(out, length) && append_bytes(out, bytes, length);
+    append_rdb_length(out, length);
+    return append_bytes(out, bytes, length);
 }
 
 bool append_rdb_string(std::vector<uint8_t>& out, Slice value) {
@@ -414,8 +417,8 @@ bool encode_rdb_value(const KvObj& object, std::vector<uint8_t>& out) {
             std::memcpy(&expire, &bits, sizeof(expire));
             const uint64_t delta = expire < 0 ? 0
                 : static_cast<uint64_t>(expire - minimum) + 1;
-            if (!append_rdb_length(out, delta) || !append_rdb_string(out, field) ||
-                !append_rdb_string(out, value)) return false;
+            append_rdb_length(out, delta);
+            if (!append_rdb_string(out, field) || !append_rdb_string(out, value)) return false;
         }
         return native.empty();
     }

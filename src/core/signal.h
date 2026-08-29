@@ -86,7 +86,6 @@ struct LoopSignals {
     // ---- accept / submission health ------------------------------------------------------------
     uint64_t accepts     = 0;   // connections taken
     uint64_t accept_err  = 0;   // accept completions with a negative result
-    uint64_t accept_rejected = 0; // accepted fd rejected before Client allocation
     uint64_t accept_rearm= 0;   // multishot dropped and had to be re-armed
     uint64_t sqe_starved = 0;
     uint64_t notify_drop = 0;   // post to the sender was refused; the claim had to be released   // get_sqe returned null even after a submit — the ring is saturated
@@ -125,10 +124,6 @@ struct LoopSignals {
     uint64_t epoll_recvs = 0;           // recv syscalls that returned bytes
 
     // Derived, computed on read so the hot path never divides.
-    double utilisation() const {
-        const uint64_t t = busy_ns + idle_ns;
-        return t ? static_cast<double>(busy_ns) / static_cast<double>(t) : 0.0;
-    }
     double avg_depth() const {
         return depth_samples ? static_cast<double>(depth_sum) / static_cast<double>(depth_samples) : 0.0;
     }

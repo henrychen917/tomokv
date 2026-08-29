@@ -86,15 +86,6 @@ inline void free_sized(void* p, size_t n) {
 #endif
 }
 
-inline void free_raw(void* p) {
-    if (!p) return;
-#if defined(TOMO_JEMALLOC)
-    dallocx(p, 0);
-#else
-    std::free(p);
-#endif
-}
-
 // ---- per-thread arena --------------------------------------------------------------------------
 // Called once by each worker after pinning. Without jemalloc this is a no-op and everything still
 // works, just without arena isolation.

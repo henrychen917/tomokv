@@ -283,7 +283,7 @@ public:
             if (!niov) return false;
 
             io_uring_sqe* s = ring_->sqe();
-            if (!s) { stats_.sqe_starved++; return false; }
+            if (!s) return false;
             io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
             s->user_data = ur_tag(UrKind::Send, &c);
             ring_->note_pending();
@@ -338,7 +338,7 @@ public:
                 if (has_borrow) stats_.zc_sends++;
                 const ssize_t n = ::sendmsg(conn.fd(), conn.send_msg(),
                                             MSG_NOSIGNAL | MSG_DONTWAIT);
-                if (n <= 0) return did | note_send_stop(c, n);
+                if (n <= 0) { note_send_stop(c, n); return did; }
                 stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(n),
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 stats_.bytes_sent += static_cast<uint64_t>(n);
@@ -425,13 +425,10 @@ public:
             } else {
                 conn.commit_write(plain_accepted);
             }
-            stats_.tls_plaintext_bytes += plain_accepted;
             if (tls_signals_) tls_signals_->tls_plaintext_output_bytes += plain_accepted;
         } else if (encrypted.op == TlsOp::WantWrite) {
-            stats_.tls_want_write++;
             if (tls_signals_) tls_signals_->tls_want_write++;
         } else if (encrypted.op == TlsOp::WantRead) {
-            stats_.tls_want_read++;
             if (tls_signals_) tls_signals_->tls_want_read++;
         }
         if (tls.failed()) {
@@ -534,7 +531,6 @@ public:
                 return false;
             }
             stats_.bytes_sent += cipher_sent;
-            stats_.tls_ciphertext_bytes += cipher_sent;
             if (tls_signals_) {
                 tls_signals_->net_output_bytes += cipher_sent;
                 tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
@@ -579,7 +575,6 @@ public:
             const uint32_t cipher_sent = static_cast<uint32_t>(res);
             if (tls.consume_output(cipher_sent)) {
                 stats_.bytes_sent += cipher_sent;
-                stats_.tls_ciphertext_bytes += cipher_sent;
                 if (tls_signals_) {
                     tls_signals_->net_output_bytes += cipher_sent;
                     tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
@@ -595,26 +590,18 @@ public:
         uint64_t short_writes    = 0;
         uint64_t send_errors     = 0;
         uint64_t peer_aborts     = 0;   // peer closed mid-send; expected under kill/disconnect
-        uint64_t sqe_starved     = 0;   // pump could not get an SQE; bytes stay staged
         uint64_t serves          = 0;
         uint64_t serves_empty    = 0;   // serve() retired nothing: a wake with no head-ready
         uint64_t bytes_sent      = 0;
         uint64_t retired         = 0;   // ops retired from ROBs by this sender
         uint64_t direct          = 0;   // replies formatted in place by the worker (c->buf trick)
-        uint64_t handoffs        = 0;   // clients passed to another thread's ready queue
         uint64_t zc_sends        = 0;   // sendmsg submissions whose iovecs include a BORROW
         uint64_t zc_bytes        = 0;   // borrowed value bytes reported complete by the kernel
         uint64_t zc_releases     = 0;   // BORROW segments returned on completion or teardown
-        uint64_t zc_suppressed_tls = 0; // borrows copied+released before TLS encryption
-        uint64_t tls_plaintext_bytes = 0;
-        uint64_t tls_ciphertext_bytes = 0;
-        uint64_t tls_want_read = 0;
-        uint64_t tls_want_write = 0;
     };
     Stats& stats() { return stats_; }
     const Stats& stats() const { return stats_; }
     void note_zc_suppressed_tls() {
-        stats_.zc_suppressed_tls++;
         if (tls_signals_) tls_signals_->tls_zc_suppressed++;
     }
 
@@ -772,7 +759,7 @@ private:
         static constexpr size_t kMaxSendBytes = 0x7ffff000u;
         const size_t request = std::min(total - sent, kMaxSendBytes);
         io_uring_sqe* s = ring_->sqe();
-        if (!s) { stats_.sqe_starved++; return false; }
+        if (!s) return false;
         io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::Send, &c);
         ring_->note_pending();
@@ -795,7 +782,7 @@ private:
         stats_.sends_submitted++;
         const ssize_t n = ::send(c.fd(), c.send_buf().data() + sent, request,
                                  MSG_NOSIGNAL | MSG_DONTWAIT);
-        if (n <= 0) { did |= note_send_stop(c, n); return false; }
+        if (n <= 0) { note_send_stop(c, n); return false; }
         c.commit_write(static_cast<uint32_t>(n));
         stats_.bytes_sent += static_cast<uint64_t>(n);
         if (static_cast<size_t>(n) < request) stats_.short_writes++;
@@ -809,16 +796,15 @@ private:
     // NOT be counted as data-path errors; the peer-abort family is the same carve-out the CQE path
     // makes, so err=0 does not become a timing lottery under connection churn. Anything else is
     // fatal for this connection and latches send_failed_.
-    bool note_send_stop(Client& c, ssize_t n) {
-        if (n == 0) return false;                        // wrote nothing; treat as would-block
+    void note_send_stop(Client& c, ssize_t n) {
+        if (n == 0) return;                              // wrote nothing; treat as would-block
         const int err = errno;
-        if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return false;
+        if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return;
         if (err == ECONNRESET || err == EPIPE || err == ECONNABORTED || c.closing())
             stats_.peer_aborts++;
         else
             stats_.send_errors++;
         send_failed_ = true;
-        return false;
     }
 
     template <bool kEp>
@@ -833,11 +819,10 @@ private:
             c.set_send_requested(remaining);
             stats_.sends_submitted++;
             const ssize_t n = ::send(c.fd(), pending, remaining, MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (n <= 0) { (void)note_send_stop(c, n); return did; }
+            if (n <= 0) { note_send_stop(c, n); return did; }
             const uint32_t sent = static_cast<uint32_t>(n);
             if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
             stats_.bytes_sent += sent;
-            stats_.tls_ciphertext_bytes += sent;
             if (tls_signals_) tls_signals_->tls_ciphertext_output_bytes += sent;
             if (cached_now_s_) c.set_last_interaction_s(*cached_now_s_);
             did = true;
@@ -852,7 +837,7 @@ private:
         return did;
       } else {
         io_uring_sqe* s = ring_->sqe();
-        if (!s) { stats_.sqe_starved++; return false; }
+        if (!s) return false;
         io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::TlsSend, &c);
         ring_->note_pending();

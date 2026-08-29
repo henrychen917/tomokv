@@ -2286,7 +2286,6 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
         warning = "truncated AOF tail from " + std::to_string(file.size()) + " to " +
                   std::to_string(valid) + " bytes";
     }
-    plan->valid_file_bytes = valid;
     ::close(fd);
 
     size_t control_pos = 0;
@@ -2415,7 +2414,6 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
             if (error.empty()) error = "AOF manifest increment file is missing";
             return false;
         }
-        plan->file_sequence = entry.first;
         if (base && (plan->hash_kind != base->hash_kind || plan->hash_seed != base->hash_seed ||
                      plan->sip_k0 != base->sip_k0 || plan->sip_k1 != base->sip_k1)) {
             error = "AOF base and increment hash metadata differ";

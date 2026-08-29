@@ -427,7 +427,6 @@ public:
         if (obuf_tracking_) obuf_bytes_ += len;
     }
     bool has_pending_segments() const { return !segments_.empty(); }
-    uint32_t segments_size() const { return segments_.size(); }
 
     // ---- OUT-OF-BAND FRAMES ---------------------------------------------------------------
     // Pub/sub deliveries, tracking invalidations and MONITOR feed lines are WHOLE frames produced
@@ -634,8 +633,6 @@ public:
     void watch_unref() {
         if (watched_refs_.fetch_sub(1, std::memory_order_acq_rel) == 0) std::abort();
     }
-    uint32_t watched_refs() const { return watched_refs_.load(std::memory_order_acquire); }
-
     // ---- the ONLY cross-thread fields ----------------------------------------------------------
     // A connection may be freed only when (a) nothing is in flight through its ROB AND (b) no
     // Client* naming it can still surface from a notification channel. (b) is what the ASAN
