@@ -1905,7 +1905,7 @@ private:
             // parse behind it. Other connections may still parse the FLIP report/control command
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
-            if (c->scatter_barrier() || c->atomic_backpressure()) break;
+            if (c->scatter_barrier() || c->parse_backpressure()) break;
             Op* op = rob.acquire(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
             uint32_t pos = conn.rpos();
@@ -2025,12 +2025,11 @@ private:
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
                 !(spec->flags & CmdFlags::FlipAsync)) {
                 // No ordinary request may create IO-local fanout or executor work after the first
-                // drain acknowledgement. Parsing it only to return BUSY keeps the control plane
-                // reachable without weakening the dispatch barrier.
-                conn.advance_parse(consumed);
-                self_->note_command(spec->id);
-                finish_locally(c, *op, "BUSY FLIP is in progress");
-                continue;
+                // drain acknowledgement. Leave the frame unconsumed and unpublished: TCP framing
+                // keeps younger frames behind it without a ROB barrier, while FlipAsync commands
+                // at the head of other connections remain reachable throughout the pause.
+                c->set_flip_backpressure(true);
+                break;
             }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
@@ -2756,6 +2755,11 @@ nonblocking_dispatch:
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
+            // Success, pre-commit rollback, and synchronous validation refusal all end by publishing
+            // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
+            // after the FLIP and retries the still-unconsumed frame in the re-parse below.
+            if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
+                c->set_flip_backpressure(false);
             // Under epoll the second half of this guard is vacuous and would be actively
             // harmful: recv_armed_ means "an edge is owed", not "the kernel holds a pointer into
             // this buffer" (nothing ever does under this engine), so testing it would make the
@@ -2797,7 +2801,7 @@ nonblocking_dispatch:
             // pipeline in ONE write would get `window` replies and then hang. Retiring frees slots,
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
-                !c->atomic_backpressure()) {
+                !c->parse_backpressure()) {
                 // A CLIENT PAUSE hold deliberately leaves the parsed frame at rpos. Counting that
                 // as work would spin the ring at 100% until the deadline instead of parking it,
                 // so while a pause is live the pass reports progress only if the cursor moved.
