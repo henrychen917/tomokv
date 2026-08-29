@@ -913,24 +913,31 @@ void acl_log_reset() {
 }
 
 bool acl_parse_log_count(Slice value, int64_t& count) {
-    if (!value.n) return false;
-    bool negative = value.p[0] == '-';
-    uint32_t position = negative ? 1 : 0;
+    if (!value.n || value.n > 20) return false;
+    uint32_t position = 0;
+    bool negative = false;
+    if (value.p[0] == '-') { negative = true; position = 1; }
     if (position == value.n) return false;
+    // ACL LOG count has the same string2ll grammar as SLOWLOG GET: canonical decimal only.
+    if (value.p[position] == '0') {
+        if (negative || position + 1 != value.n) return false;
+        count = 0;
+        return true;
+    }
+    if (value.p[position] < '1' || value.p[position] > '9') return false;
     uint64_t parsed = 0;
     for (; position < value.n; position++) {
         const char byte = value.p[position];
         if (byte < '0' || byte > '9') return false;
-        const uint32_t digit = static_cast<uint32_t>(byte - '0');
-        if (parsed > (static_cast<uint64_t>(INT64_MAX) + negative - digit) / 10) return false;
+        const uint64_t digit = static_cast<uint64_t>(byte - '0');
+        if (parsed > (UINT64_MAX - digit) / 10) return false;
         parsed = parsed * 10 + digit;
     }
-    if (negative) {
-        count = parsed == static_cast<uint64_t>(INT64_MAX) + 1 ? INT64_MIN
-                                                               : -static_cast<int64_t>(parsed);
-    } else {
-        count = static_cast<int64_t>(parsed);
-    }
+    const uint64_t limit = negative ? (uint64_t{1} << 63) : (uint64_t{1} << 63) - 1;
+    if (parsed > limit) return false;
+    count = negative ? (parsed == (uint64_t{1} << 63) ? INT64_MIN
+                                                       : -static_cast<int64_t>(parsed))
+                     : static_cast<int64_t>(parsed);
     return true;
 }
 

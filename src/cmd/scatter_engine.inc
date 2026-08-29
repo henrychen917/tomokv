@@ -599,7 +599,6 @@ void set_oom(Op& op);
 void reply_work_error(Op& op, WorkError error);
 bool classify(const Op& op, Kind& kind);
 bool bitop_operation(Slice name, BitOperation& operation);
-bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn);
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id);
 ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
@@ -2859,12 +2858,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const Slice key = object->key();
                     const uint64_t hash = FlatStore::hash_key(key);
                     if (shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
-                        glob_match(pattern.p, pattern.n, key.p, key.n))
+                        command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 if (group.scan_cursor) return ScatterTaskResult::Retry;
                 shard.store().atomic_for_each_side_key(state.snapshot, [&](Slice key) {
-                    if (glob_match(pattern.p, pattern.n, key.p, key.n))
+                    if (command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 return ScatterTaskResult::Complete;

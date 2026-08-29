@@ -146,73 +146,6 @@ std::string lower_name(const char* name) {
     return out;
 }
 
-// Redis-style glob subset including '*', '?', escapes, and byte ranges/classes. Work is bounded by
-// the pattern and candidate lengths for each key examined by SCAN.
-bool glob_match(const char* pat, size_t pn, const char* text, size_t tn, bool nocase = false) {
-    while (pn) {
-        switch (*pat) {
-            case '*': {
-                while (pn && *pat == '*') { pat++; pn--; }
-                if (!pn) return true;
-                for (size_t i = 0; i <= tn; i++)
-                    if (glob_match(pat, pn, text + i, tn - i, nocase)) return true;
-                return false;
-            }
-            case '?':
-                if (!tn) return false;
-                pat++; pn--; text++; tn--;
-                break;
-            case '[': {
-                if (!tn) return false;
-                pat++; pn--;
-                bool negate = false, matched = false;
-                if (pn && (*pat == '^' || *pat == '!')) { negate = true; pat++; pn--; }
-                unsigned char want = static_cast<unsigned char>(*text);
-                if (nocase) want = static_cast<unsigned char>(std::tolower(want));
-                while (pn && *pat != ']') {
-                    unsigned char lo = static_cast<unsigned char>(*pat++); pn--;
-                    if (lo == '\\' && pn) { lo = static_cast<unsigned char>(*pat++); pn--; }
-                    unsigned char hi = lo;
-                    if (pn >= 2 && *pat == '-' && pat[1] != ']') {
-                        pat++; pn--;
-                        hi = static_cast<unsigned char>(*pat++); pn--;
-                        if (hi == '\\' && pn) { hi = static_cast<unsigned char>(*pat++); pn--; }
-                    }
-                    if (nocase) {
-                        lo = static_cast<unsigned char>(std::tolower(lo));
-                        hi = static_cast<unsigned char>(std::tolower(hi));
-                    }
-                    if (lo > hi) std::swap(lo, hi);
-                    if (want >= lo && want <= hi) matched = true;
-                }
-                if (!pn || *pat != ']') return false;
-                pat++; pn--;
-                if (matched == negate) return false;
-                text++; tn--;
-                break;
-            }
-            case '\\':
-                if (pn > 1) { pat++; pn--; }
-                [[fallthrough]];
-            default: {
-                if (!tn) return false;
-                unsigned char a = static_cast<unsigned char>(*pat);
-                unsigned char b = static_cast<unsigned char>(*text);
-                if (nocase) { a = static_cast<unsigned char>(std::tolower(a));
-                              b = static_cast<unsigned char>(std::tolower(b)); }
-                if (a != b) return false;
-                pat++; pn--; text++; tn--;
-                break;
-            }
-        }
-    }
-    return tn == 0;
-}
-
-bool glob_match(Slice pat, Slice text, bool nocase = false) {
-    return glob_match(pat.p, pat.n, text.p, text.n, nocase);
-}
-
 void appendf(std::string& out, const char* fmt, ...) {
     char stack[512];
     va_list ap;
@@ -1187,7 +1120,7 @@ void cmd_config(Shard& sh, Op& op) {
                 Slice name(item.name, std::strlen(item.name));
                 bool matched = false;
                 for (uint32_t i = 2; i < op.argc() && !matched; i++)
-                    matched = glob_match(op.arg(i), name, true);
+                    matched = command_glob_match(op.arg(i), name, true);
                 if (matched) matches.emplace_back(item.name, item.value);
             }
         }
@@ -1986,7 +1919,7 @@ const char* object_type(const KvObj* obj) {
 
 void cmd_scan(Shard& sh, Op& op) {
     uint64_t outer = 0;
-    if (!parse_u64(op.arg(1), outer)) {
+    if (!command_parse_scan_cursor(op.arg(1), outer)) {
         reply_err(op.sink(), "ERR invalid cursor"); return;
     }
     const uint32_t shard_id = static_cast<uint32_t>(outer >> 56);
@@ -2030,7 +1963,7 @@ void cmd_scan(Shard& sh, Op& op) {
     keys.reserve(std::min<uint32_t>(count, 1024));
     inner = sh.store().scan(inner, count, [&](KvObj* obj) {
         if (type.n && !eq_icase(type, object_type(obj))) return;
-        if (glob_match(match, obj->key())) keys.push_back(obj->key());
+        if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
     });
     uint64_t next = 0;
     if (inner) next = (static_cast<uint64_t>(shard_id) << 56) | inner;
@@ -2133,8 +2066,42 @@ void cmd_debug(Shard& shard, Op& op) {
     cmd_debug_impl(shard, op);
 }
 
-bool command_glob_match(Slice pattern, Slice text) {
-    return glob_match(pattern, text, true);
+bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
+    // Redis's string2ull first tries canonical string2ll, then falls back to strtoull. Its input
+    // is a C string, so an embedded NUL terminates the cursor text as well.
+    uint32_t length = 0;
+    while (length < text.n && text.p[length] != '\0') length++;
+    const Slice input(text.p, length);
+
+    int64_t signed_value = 0;
+    if (parse_i64_canonical(input, signed_value)) {
+        if (signed_value < 0) return false;
+        cursor = static_cast<uint64_t>(signed_value);
+        return true;
+    }
+
+    uint32_t position = 0;
+    while (position < input.n &&
+           (input.p[position] == ' ' ||
+            (input.p[position] >= '\t' && input.p[position] <= '\r')))
+        position++;
+    bool negative = false;
+    if (position < input.n && (input.p[position] == '+' || input.p[position] == '-')) {
+        negative = input.p[position] == '-';
+        position++;
+    }
+    if (position == input.n) return false;
+
+    uint64_t magnitude = 0;
+    for (; position < input.n; position++) {
+        const char byte = input.p[position];
+        if (byte < '0' || byte > '9') return false;
+        const uint64_t digit = static_cast<uint64_t>(byte - '0');
+        if (magnitude > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        magnitude = magnitude * 10 + digit;
+    }
+    cursor = negative ? uint64_t{0} - magnitude : magnitude;
+    return true;
 }
 
 Server* command_server() { return g_server; }
@@ -2347,7 +2314,8 @@ bool command_prepare_scan_route(Server& server, Op& op) {
         return false;
     }
     uint64_t cursor = 0;
-    if (!parse_u64(op.arg(1), cursor) || (cursor & kScanInnerMask) > kMaxInnerCursor) {
+    if (!command_parse_scan_cursor(op.arg(1), cursor) ||
+        (cursor & kScanInnerMask) > kMaxInnerCursor) {
         reply_err(op.sink(), "ERR invalid cursor"); return false;
     }
     const uint32_t shard = static_cast<uint32_t>(cursor >> 56);

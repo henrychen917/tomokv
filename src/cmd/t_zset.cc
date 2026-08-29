@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -133,13 +132,6 @@ bool parse_i64(Slice s, int64_t& out) {
                           : -static_cast<int64_t>(value))
                    : static_cast<int64_t>(value);
     return true;
-}
-
-bool parse_u64(Slice s, uint64_t& out) {
-    if (!s.n) return false;
-    const char* end = s.p + s.n;
-    auto result = std::from_chars(s.p, end, out, 10);
-    return result.ec == std::errc{} && result.ptr == end;
 }
 
 bool ascii_equal(Slice s, std::string_view text) {
@@ -2149,84 +2141,6 @@ void cmd_zrandmember(Shard& shard, Op& op) {
     }
 }
 
-bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, size_t text_len) {
-    while (pattern_len) {
-        const char token = *pattern++;
-        pattern_len--;
-        if (token == '*') {
-            while (pattern_len && *pattern == '*') {
-                pattern++;
-                pattern_len--;
-            }
-            if (!pattern_len) return true;
-            for (size_t consumed = 0; consumed <= text_len; consumed++)
-                if (glob_match_impl(pattern, pattern_len, text + consumed, text_len - consumed))
-                    return true;
-            return false;
-        }
-        if (!text_len) return false;
-        if (token == '?') {
-            text++;
-            text_len--;
-            continue;
-        }
-        if (token == '[') {
-            bool negate = false, matched = false, closed = false;
-            if (pattern_len && (*pattern == '^' || *pattern == '!')) {
-                negate = true;
-                pattern++;
-                pattern_len--;
-            }
-            const unsigned char wanted = static_cast<unsigned char>(*text);
-            while (pattern_len) {
-                char first = *pattern++;
-                pattern_len--;
-                if (first == ']' ) {
-                    closed = true;
-                    break;
-                }
-                if (first == '\\' && pattern_len) {
-                    first = *pattern++;
-                    pattern_len--;
-                }
-                if (pattern_len >= 2 && *pattern == '-' && pattern[1] != ']') {
-                    pattern++;
-                    pattern_len--;
-                    char last = *pattern++;
-                    pattern_len--;
-                    if (last == '\\' && pattern_len) {
-                        last = *pattern++;
-                        pattern_len--;
-                    }
-                    unsigned char lo = static_cast<unsigned char>(first);
-                    unsigned char hi = static_cast<unsigned char>(last);
-                    if (lo > hi) std::swap(lo, hi);
-                    if (wanted >= lo && wanted <= hi) matched = true;
-                } else if (wanted == static_cast<unsigned char>(first)) {
-                    matched = true;
-                }
-            }
-            if (!closed || matched == negate) return false;
-            text++;
-            text_len--;
-            continue;
-        }
-        char literal = token;
-        if (literal == '\\' && pattern_len) {
-            literal = *pattern++;
-            pattern_len--;
-        }
-        if (static_cast<unsigned char>(literal) != static_cast<unsigned char>(*text)) return false;
-        text++;
-        text_len--;
-    }
-    return text_len == 0;
-}
-
-bool glob_match(Slice pattern, Slice text) {
-    return glob_match_impl(pattern.p, pattern.n, text.p, text.n);
-}
-
 struct ScanItem {
     Slice member;
     double score;
@@ -2245,7 +2159,7 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items) {
 template <bool kNotify>
 void cmd_zscan(Shard& shard, Op& op) {
     uint64_t cursor;
-    if (!parse_u64(op.arg(2), cursor)) {
+    if (!command_parse_scan_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
@@ -2290,7 +2204,7 @@ void cmd_zscan(Shard& shard, Op& op) {
             for (const Compact::Entry entry : value.compact()) {
                 ScanItem item;
                 if (!compact_decode(entry, item.score, item.member)) continue;
-                if (!use_pattern || glob_match(pattern, item.member)) result.push_back(item);
+                if (!use_pattern || command_glob_match(pattern, item.member)) result.push_back(item);
             }
         } catch (const std::bad_alloc&) {
             reply_oom(op);
@@ -2304,7 +2218,7 @@ void cmd_zscan(Shard& shard, Op& op) {
     try {
         next_cursor = zset_expanded(value)->by_member.scan(cursor, count, [&](ZsetNode* node) {
                 const Slice member = node_member(node);
-                if (!use_pattern || glob_match(pattern, member))
+                if (!use_pattern || command_glob_match(pattern, member))
                     result.push_back({member, node->score});
             });
     } catch (const std::bad_alloc&) {

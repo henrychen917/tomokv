@@ -252,8 +252,11 @@ void command_client_directory_add(uint64_t id, uint32_t io);
 void command_client_directory_remove(uint64_t id);
 bool command_client_directory_find(uint64_t id, uint32_t& io);
 
-// The IO-side pub/sub matcher shares the Redis-compatible glob implementation used by SCAN.
-bool command_glob_match(Slice pattern, Slice text);
+// Redis glob matching is case-sensitive except for the explicitly insensitive command-name
+// filters. ACL and pub/sub callers must keep the default: broadening either match is observable.
+bool command_glob_match(Slice pattern, Slice text, bool nocase = false);
+// SCAN-family cursors use Redis's string2ull grammar, not canonical command integers.
+bool command_parse_scan_cursor(Slice text, uint64_t& cursor);
 
 // Special routing helpers. Validation writes a complete error reply into op on failure.
 bool command_prepare_scan_route(Server& server, Op& op);

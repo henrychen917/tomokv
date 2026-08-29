@@ -236,23 +236,6 @@ bool parse_i64_strict(Slice s, int64_t& out) {
     return true;
 }
 
-bool parse_cursor(Slice s, uint64_t& out) {
-    uint32_t pos = 0;
-    while (pos < s.n && (s.p[pos] == ' ' || (s.p[pos] >= '\t' && s.p[pos] <= '\r'))) pos++;
-    if (pos < s.n && s.p[pos] == '+') pos++;
-    if (pos == s.n || s.p[pos] == '-') return false;
-    uint64_t value = 0;
-    for (; pos < s.n; pos++) {
-        const char ch = s.p[pos];
-        if (ch < '0' || ch > '9') return false;
-        const uint32_t digit = static_cast<uint32_t>(ch - '0');
-        if (value > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
-        value = value * 10 + digit;
-    }
-    out = value;
-    return true;
-}
-
 void reply_not_integer(Op& op) {
     reply_err(op.sink(), "ERR value is not an integer or out of range");
 }
@@ -593,102 +576,6 @@ void for_each_member(const CollectionRef& set, Fn&& fn) {
         const uint32_t len = i64_to_dec(text, integer);
         fn(Slice(text, len));
     }
-}
-
-bool glob_match_impl(const char* pattern, size_t pattern_len, const char* string,
-                     size_t string_len, uint32_t nesting, bool& skip_longer) {
-    if (nesting > 1000) return false;
-    while (pattern_len && string_len) {
-        switch (*pattern) {
-            case '*': {
-                while (pattern_len > 1 && pattern[1] == '*') {
-                    pattern++;
-                    pattern_len--;
-                }
-                if (pattern_len == 1) return true;
-                while (string_len) {
-                    if (glob_match_impl(pattern + 1, pattern_len - 1, string, string_len,
-                                        nesting + 1, skip_longer))
-                        return true;
-                    if (skip_longer) return false;
-                    string++;
-                    string_len--;
-                }
-                skip_longer = true;
-                return false;
-            }
-            case '?':
-                string++;
-                string_len--;
-                break;
-            case '[': {
-                pattern++;
-                pattern_len--;
-                bool invert = pattern_len && pattern[0] == '^';
-                if (invert) {
-                    pattern++;
-                    pattern_len--;
-                }
-                bool matched = false;
-                while (true) {
-                    if (pattern_len >= 2 && pattern[0] == '\\') {
-                        pattern++;
-                        pattern_len--;
-                        if (pattern[0] == string[0]) matched = true;
-                    } else if (pattern_len == 0) {
-                        pattern--;
-                        pattern_len++;
-                        break;
-                    } else if (pattern[0] == ']') {
-                        break;
-                    } else if (pattern_len >= 3 && pattern[1] == '-') {
-                        unsigned char begin = static_cast<unsigned char>(pattern[0]);
-                        unsigned char end = static_cast<unsigned char>(pattern[2]);
-                        const unsigned char ch = static_cast<unsigned char>(string[0]);
-                        if (begin > end) std::swap(begin, end);
-                        if (ch >= begin && ch <= end) matched = true;
-                        pattern += 2;
-                        pattern_len -= 2;
-                    } else if (pattern[0] == string[0]) {
-                        matched = true;
-                    }
-                    pattern++;
-                    pattern_len--;
-                }
-                if (invert) matched = !matched;
-                if (!matched) return false;
-                string++;
-                string_len--;
-                break;
-            }
-            case '\\':
-                if (pattern_len >= 2) {
-                    pattern++;
-                    pattern_len--;
-                }
-                [[fallthrough]];
-            default:
-                if (pattern[0] != string[0]) return false;
-                string++;
-                string_len--;
-                break;
-        }
-        pattern++;
-        pattern_len--;
-        if (string_len == 0) {
-            while (pattern_len && pattern[0] == '*') {
-                pattern++;
-                pattern_len--;
-            }
-            break;
-        }
-    }
-    return pattern_len == 0 && string_len == 0;
-}
-
-bool glob_match(Slice pattern, Slice value) {
-    bool skip_longer = false;
-    return glob_match_impl(pattern.p, pattern.n, value.p, value.n, 0, skip_longer);
 }
 
 void reply_scan(Op& op, uint64_t cursor, const std::vector<uint32_t>& slots,
@@ -1136,7 +1023,7 @@ bool parse_scan_options(Op& op, ScanOptions& options) {
 template <bool kNotify>
 void cmd_sscan(Shard& shard, Op& op) {
     uint64_t cursor = 0;
-    if (!parse_cursor(op.arg(2), cursor)) {
+    if (!command_parse_scan_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
@@ -1154,13 +1041,13 @@ void cmd_sscan(Shard& shard, Op& op) {
     if (set.encoding() != CollectionEncoding::Hashtable) {
         uint64_t matches = 0;
         for_each_member(set, [&](Slice member) {
-            if (!options.use_pattern || glob_match(options.pattern, member)) matches++;
+            if (!options.use_pattern || command_glob_match(options.pattern, member)) matches++;
         });
         reply_array_header(op.sink(), 2);
         reply_bulk(op.sink(), Slice("0", 1));
         reply_array_header(op.sink(), matches);
         for_each_member(set, [&](Slice member) {
-            if (!options.use_pattern || glob_match(options.pattern, member))
+            if (!options.use_pattern || command_glob_match(options.pattern, member))
                 reply_bulk(op.sink(), member);
         });
         return;
@@ -1188,7 +1075,7 @@ void cmd_sscan(Shard& shard, Op& op) {
         if (table.live_at(position)) {
             sampled++;
             const Slice member = table.value_at(position);
-            if (!options.use_pattern || glob_match(options.pattern, member))
+            if (!options.use_pattern || command_glob_match(options.pattern, member))
                 matches.push_back(position);
         }
         position++;
