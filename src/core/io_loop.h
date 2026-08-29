@@ -184,6 +184,54 @@ public:
 
     Ring& ring() { return ring_; }
 
+    // Called only on this loop's physical thread by the migration control lane. The public split
+    // keeps preflight (no state change) distinct from request (source remains owner until an async
+    // recv cancellation has acknowledged that the old ring released Client*).
+    bool client_transfer_ready(Client* client, uint32_t destination, std::string& error) const {
+        if (!client || destination >= srv_->nthreads() || destination == self_->id()) {
+            error = "invalid client transfer owner";
+            return false;
+        }
+        if (client->ifid_thread() != self_->id() || client->dead() || client->closing()) {
+            error = "connection is not live on the source IO thread";
+            return false;
+        }
+        if (client->is_tls()) {
+            error = "TLS connection has owner-local engine state";
+            return false;
+        }
+        if (!client->migration_protocol_idle()) {
+            error = "connection ROB, reply, borrow, or owner-local protocol state is busy";
+            return false;
+        }
+        if (!wb_.migration_ready(*client)) {
+            error = "connection has a deferred out-of-band frame";
+            return false;
+        }
+        if (!climon_migration_ready(client)) {
+            error = "connection has MONITOR, TRACKING, or CLIENT REPLY owner-local state";
+            return false;
+        }
+        return true;
+    }
+
+    bool prepare_client_transfer_capacity(uint32_t incoming) {
+        try {
+            self_->clients().reserve(self_->clients().size() + incoming);
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        return self_->reserve_wb_slots(incoming) && command_client_migration_reserve(incoming);
+    }
+
+    bool request_client_transfer(Client* client, uint32_t destination, std::string& error) {
+        return epoll_ ? request_client_transfer_impl<true>(client, destination, error)
+                      : request_client_transfer_impl<false>(client, destination, error);
+    }
+
+    bool client_transfers_idle() const { return client_migrations_.empty(); }
+    uint64_t client_transfer_failures() const { return client_transfer_failures_; }
+
     // ---- epoll engine: registration -----------------------------------------------------------
     // Everything that will ever be waited on is registered ONCE here. Listeners are
     // level-triggered on purpose: a listener that we stop accepting from (maxclients reached, a
@@ -238,6 +286,12 @@ public:
     }
 
 private:
+    struct ClientMigration {
+        Client* client = nullptr;
+        uint32_t destination = 0;
+        bool cancel_submitted = false;
+    };
+
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend bool auth_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend bool acl_dispatch_entry(IoLoop&, Client&, Op&, uint32_t, uint8_t);
@@ -310,6 +364,8 @@ private:
                 // stream, and therefore this switch, is identical. See uring.h.
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
+                did += service_client_migrations<kEp>();
+                did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
@@ -419,7 +475,7 @@ private:
     // a connection while it is true.
     template <bool kEp>
     void arm_recv(Client* c) {
-        if (c->recv_armed() || c->closing()) return;
+        if (c->recv_armed() || c->closing() || find_client_migration(c)) return;
         if constexpr (kEp) { epoll_recv(c); return; }
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
@@ -657,6 +713,7 @@ private:
                     srv_->snapshot().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                     cqe->res); break;
                 case UrKind::Close: break;
+                case UrKind::MigrateCancel: break;
                 case UrKind::TlsReadPoll: break;
                 case UrKind::TlsWritePoll: break;
                 default: break;
@@ -685,6 +742,7 @@ private:
                     srv_->snapshot().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                     cqe->res); break;
                 case UrKind::Close: break;
+                case UrKind::MigrateCancel: break;
             }
         }
     }
@@ -865,13 +923,179 @@ private:
         self_->sig().tls_connections_freed++;
     }
 
+    ClientMigration* find_client_migration(const Client* client) {
+        for (ClientMigration& migration : client_migrations_)
+            if (migration.client == client) return &migration;
+        return nullptr;
+    }
+    const ClientMigration* find_client_migration(const Client* client) const {
+        for (const ClientMigration& migration : client_migrations_)
+            if (migration.client == client) return &migration;
+        return nullptr;
+    }
+
+    void erase_client_migration(const Client* client) {
+        for (size_t i = 0; i < client_migrations_.size(); i++) {
+            if (client_migrations_[i].client != client) continue;
+            client_migrations_[i] = client_migrations_.back();
+            client_migrations_.pop_back();
+            return;
+        }
+        std::abort();
+    }
+
+    template <bool kEp>
+    void cancel_client_transfer(Client* client) {
+        if constexpr (kEp) {
+            if (!ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
+                         ur_tag(UrKind::Recv, client))) std::abort();
+        }
+        erase_client_migration(client);
+        client_transfer_failures_++;
+        mark_active(client);
+        arm_recv<kEp>(client);
+    }
+
+    template <bool kEp>
+    bool request_client_transfer_impl(Client* client, uint32_t destination,
+                                      std::string& error) {
+        if (!client_transfer_ready(client, destination, error)) return false;
+        if (srv_->thread(destination).role() != Role::Ifid) {
+            error = "destination thread is not a live IO owner";
+            return false;
+        }
+        if (find_client_migration(client)) {
+            error = "connection transfer is already active";
+            return false;
+        }
+        if (!srv_->thread(destination).client_transfer_free_slots(self_->id())) {
+            error = "destination connection-transfer inbox is full";
+            return false;
+        }
+        try {
+            client_migrations_.push_back(ClientMigration{client, destination, false});
+        } catch (const std::bad_alloc&) {
+            error = "could not allocate connection-transfer state";
+            return false;
+        }
+
+        if (client->in_active()) {
+            client->set_in_active(false);
+            active_.erase(client);
+        }
+        if constexpr (kEp) {
+            // Called between epoll batches. No stack frame in the source loop retains this pointer,
+            // and DEL prevents a later source batch from acquiring one.
+            if (!ep_.del(client->fd())) {
+                erase_client_migration(client);
+                mark_active(client);
+                error = "could not detach connection from source epoll set";
+                return false;
+            }
+            client->set_recv_armed(false); // epoll held no buffer pointer; the old edge is discarded
+            return finish_client_transfer<kEp>(client);
+        }
+        return service_client_migrations<kEp>() != 0 || find_client_migration(client) != nullptr;
+    }
+
+    template <bool kEp>
+    bool finish_client_transfer(Client* client) {
+        ClientMigration* migration = find_client_migration(client);
+        if (!migration || client->recv_armed()) return false;
+        const uint32_t destination = migration->destination;
+        ThreadCtx& target = srv_->thread(destination);
+        if (!target.client_transfer_free_slots(self_->id())) return false;
+
+        std::string error;
+        if (!client_transfer_ready(client, destination, error)) {
+            cancel_client_transfer<kEp>(client);
+            return false;
+        }
+        void* catalog = command_client_migration_extract(client);
+        if (!catalog) {
+            cancel_client_transfer<kEp>(client);
+            return false;
+        }
+
+        // Everything below was reserved or validated above. The owner store is deliberately last
+        // among source touches. A failed transport push after the capacity check is an invariant
+        // failure: attempting rollback would make ownership ambiguous.
+        const uint64_t client_id = client->id();
+        self_->release_wb_slot(client->wb_slot());
+        client->set_wb_slot(Client::kNoWbSlot);
+        auto& clients = self_->clients();
+        auto found = std::find(clients.begin(), clients.end(), client);
+        if (found == clients.end()) std::abort();
+        *found = clients.back();
+        clients.pop_back();
+
+        const ClientTransfer transfer{client, catalog, self_->id()};
+        client->set_ifid_thread(destination); // THE single connection ownership edge
+        command_client_directory_add(client_id, destination);
+        if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
+        erase_client_migration(client);       // pointer comparison only; source never dereferences
+        return true;
+    }
+
+    template <bool kEp>
+    uint32_t service_client_migrations() {
+        uint32_t work = 0;
+        // finish_client_transfer erases by swap, so an index advances only when its entry remains.
+        for (size_t i = 0; i < client_migrations_.size();) {
+            ClientMigration& migration = client_migrations_[i];
+            Client* client = migration.client;
+            if (!client->recv_armed()) {
+                const size_t before = client_migrations_.size();
+                (void)finish_client_transfer<kEp>(client);
+                if (client_migrations_.size() != before) { work++; continue; }
+                i++;
+                continue;
+            }
+            if constexpr (!kEp) {
+                if (!migration.cancel_submitted) {
+                    io_uring_sqe* sqe = ring_.sqe();
+                    if (!sqe) { self_->sig().sqe_starved++; i++; continue; }
+                    io_uring_prep_cancel64(sqe, ur_tag(UrKind::Recv, client), 0);
+                    sqe->user_data = ur_tag(UrKind::MigrateCancel, client);
+                    ring_.note_pending();
+                    migration.cancel_submitted = true;
+                    work++;
+                }
+            }
+            i++;
+        }
+        return work;
+    }
+
+    template <bool kEp>
+    uint32_t drain_client_transfers(bool unmasked = false) {
+        auto take = [&](const ClientTransfer& transfer) {
+            Client* client = transfer.client;
+            if (!client || client->ifid_thread() != self_->id()) std::abort();
+            if (!command_client_migration_install(transfer.catalog)) std::abort();
+            try {
+                self_->clients().push_back(client);
+            } catch (...) {
+                std::abort();
+            }
+            client->set_wb_slot(self_->assign_wb_slot(client));
+            if constexpr (kEp) {
+                if (!ep_.add(client->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
+                             ur_tag(UrKind::Recv, client))) std::abort();
+            }
+            mark_active(client);
+            arm_recv<kEp>(client);
+        };
+        return unmasked ? self_->drain_client_transfers_unmasked(take)
+                        : self_->drain_client_transfers(take);
+    }
+
     template <bool kEp>
     void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
-        // ARMED ONCE, HERE, FOR LIFE, IN THE OWNING THREAD'S SET. Both directions, edge triggered;
-        // ::close() is the only deregistration. Registration belongs here rather than at accept
-        // because an AF_UNIX connection is accepted by one io thread and OWNED by another -- the
-        // round-robin handoff below -- and an fd sitting in the accepting thread's epoll set would
-        // deliver every one of its events to a thread that must not touch it.
+        // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
+        // still lets ::close() deregister; migration alone uses explicit DEL/ADD between owners.
+        // Registration belongs here rather than at accept because an AF_UNIX connection can be
+        // accepted by one IO thread and owned by another.
         if constexpr (kEp) {
             if (!set_nonblocking(c->fd()) ||
                 !ep_.add(c->fd(), EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET,
@@ -941,6 +1165,20 @@ private:
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
         if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
+        if (find_client_migration(c)) {
+            // The original Recv CQE, not the cancel CQE, is the old-ring pointer fence. Preserve
+            // bytes which won the race with cancellation but do not parse them on the losing owner.
+            if (res > 0) {
+                c->commit_read(static_cast<size_t>(res));
+                (void)finish_client_transfer<kEp>(c);
+            } else if (res == -ECANCELED) {
+                (void)finish_client_transfer<kEp>(c);
+            } else {
+                cancel_client_transfer<kEp>(c);
+                close_client(c);
+            }
+            return;
+        }
         // A send error can close the fd while this recv is still owned by io_uring. The Client stays
         // alive until this CQE arrives, but it is a corpse: positive bytes must not resurrect it by
         // parsing and dispatching new Tasks after the teardown quiescence fence.
@@ -1798,7 +2036,8 @@ nonblocking_dispatch:
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
-        work += flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
+        work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
+                flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
                 flush_ready<HasTls, kEp>();
         if (srv_->snapshot().writer_is(self_->id()))
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
@@ -2348,6 +2587,8 @@ nonblocking_dispatch:
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
+    std::vector<ClientMigration> client_migrations_; // source-owned until old-ring fence completes
+    uint64_t client_transfer_failures_ = 0;
     struct DeferredWait {
         Client* client = nullptr;
         uint64_t op_id = 0;

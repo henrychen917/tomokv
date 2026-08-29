@@ -22,12 +22,12 @@
 //   3. epoll has no cross-thread doorbell of its own. io_uring has msg_ring. See uring.h for the
 //      eventfd mailbox that stands in for it, so the ex side and every channel wake stay unchanged.
 //
-// EDGE TRIGGERED, ARMED ONCE, NEVER RE-ARMED. Each connection is registered once at accept with
-// EPOLLIN|EPOLLOUT|EPOLLRDHUP|EPOLLET and is never epoll_ctl'd again; ::close() removes it. That is
-// deliberate: EPOLLONESHOT would cost one epoll_ctl syscall per readiness event, which is a syscall
-// per recv on the hot path, and level-triggered EPOLLIN spins the loop at 100% whenever a
-// connection has buffered bytes the ROB window will not let us parse yet. Edge triggering costs
-// neither, at the price of the standard obligation: read/write until EAGAIN, and if we stop early
+// EDGE TRIGGERED, ARMED ONCE PER OWNERSHIP TENURE, NEVER HOT-PATH RE-ARMED. A connection is added
+// when an IO thread acquires ownership and normally remains registered until ::close(). Runtime
+// migration deliberately extends the old lifetime arm-once contract: at an event-loop boundary the
+// old owner uses EPOLL_CTL_DEL, publishes the one connection-owner edge, and the new owner uses
+// EPOLL_CTL_ADD. EPOLLONESHOT is still forbidden -- it would cost one epoll_ctl syscall per event.
+// Edge triggering retains the standard obligation: read/write until EAGAIN, and if we stop early
 // (no read space, ROB full) remember that ourselves rather than expecting another edge. Client's
 // recv_armed_ carries exactly that memory under this engine -- true means "we reached EAGAIN, an
 // edge is owed", false means "there may be more, retry without waiting".
@@ -64,6 +64,11 @@ public:
         ev.events = events;
         ev.data.u64 = tag;
         return ::epoll_ctl(fd_, EPOLL_CTL_ADD, target, &ev) == 0;
+    }
+    // Migration only. Normal teardown continues to rely on close(fd), which removes the
+    // registration atomically with the resource it names.
+    bool del(int target) {
+        return ::epoll_ctl(fd_, EPOLL_CTL_DEL, target, nullptr) == 0;
     }
     // Blocking (or, with timeout_ms == 0, polling) wait. EINTR is reported as zero events rather
     // than as an error: the loop's next pass re-reads its stop flag, which is how shutdown lands.

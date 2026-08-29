@@ -70,6 +70,7 @@ enum class UrKind : uint8_t {
     SnapshotIo = 13,    // persistence-engine request; pointer is writer-private request state
     TlsReadPoll = 14,
     TlsWritePoll = 15,
+    MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {

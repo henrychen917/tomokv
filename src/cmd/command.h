@@ -227,6 +227,12 @@ void command_set_local_context(Client* client, ThreadCtx* thread);
 void command_client_connected(Client* client, const char* addr, const char* laddr,
                               bool unix_socket, uint64_t now_ms);
 void command_client_disconnected(Client* client);
+// Runtime IO-owner handoff moves the thread-local CLIENT catalog as an extracted map node. The
+// opaque handle owns that node between source and destination; no metadata field is reconstructed.
+void* command_client_migration_extract(Client* client);
+bool command_client_migration_install(void* catalog);
+void command_client_migration_discard(void* catalog);
+bool command_client_migration_reserve(uint32_t extra);
 void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
                                       uint32_t shard_channels);
 std::string command_client_info_line(const Client& client, uint64_t now_ms);

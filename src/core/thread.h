@@ -6,13 +6,14 @@
 // the role in the type system would make the one thing we most need to change at runtime the one
 // thing we cannot.
 //
-// EVERY THREAD HAS THE SAME THREE INBOUND CHANNELS, whatever its role. What arrives on them differs;
+// EVERY THREAD HAS THE SAME FOUR INBOUND CHANNELS, whatever its role. What arrives on them differs;
 // their shape, units and wake semantics do not. That uniformity is what lets a flip/LB controller
-// read all three loops through one interface instead of special-casing each:
+// read all four channel families through one interface instead of special-casing each:
 //
 //   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
 //   release_in_[p]  from producer p    IO -> EX   a FlatStore value borrow is off the wire
+//   transfer_in_[p] from producer p    IO -> IO   a fully quiesced connection ownership handoff
 //
 // A thread's current role determines which channel families are active; keeping the arrays uniform
 // means a future role change does not rewire the producer mesh.
@@ -25,6 +26,7 @@
 //   worker; converting Io -> Ex must first migrate its connections and reach rob.quiesced() on each.
 //   A conversion that loses or duplicates a thread breaks pool accounting — a real P0 in the fork.
 #pragma once
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <deque>
@@ -76,9 +78,18 @@ struct BorrowRelease {
     const char* ptr   = nullptr;
 };
 
+// Dedicated IO-to-IO ownership transport. `catalog` is an opaque extracted command-metadata node;
+// it is allocated and detached before the owner store and installed without copying client state.
+struct ClientTransfer {
+    Client* client = nullptr;
+    void* catalog = nullptr;
+    uint32_t source = 0;
+};
+
 using TaskChan   = Channel<Task, kInboxSlots>;
 using ClientChan = Channel<Client*, kInboxSlots>;
 using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
+using TransferChan = Channel<ClientTransfer, kInboxSlots>;
 
 class ThreadCtx {
 public:
@@ -96,6 +107,7 @@ public:
         task_in_   = std::make_unique<TaskChan[]>(nthreads);
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
+        transfer_in_ = std::make_unique<TransferChan[]>(nthreads);
     }
 
     void init_command_counts(uint32_t count) {
@@ -174,6 +186,15 @@ public:
         if (!release_in_[from].push(r, sig)) return false;
         if (release_notify_.set(from)) release_in_[from].wake(my_ring, sig, ring());
         return true;
+    }
+    bool post_client_transfer(uint32_t from, const ClientTransfer& transfer,
+                              Ring& my_ring, LoopSignals& sig) {
+        if (!transfer_in_[from].push(transfer, sig)) return false;
+        if (transfer_notify_.set(from)) transfer_in_[from].wake(my_ring, sig, ring());
+        return true;
+    }
+    uint32_t client_transfer_free_slots(uint32_t from) const {
+        return transfer_in_[from].producer_free_slots();
     }
 
     // Pub/sub payloads use one cold MPSC inbox per owning IO, but wake through the existing
@@ -262,6 +283,27 @@ public:
         return n;
     }
 
+    template <typename Fn>
+    uint32_t drain_client_transfers(Fn&& fn) {
+        uint32_t n = 0;
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = transfer_notify_.take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                ClientTransfer transfer;
+                while (transfer_in_[p].recv(transfer)) {
+                    fn(transfer);
+                    transfer_in_[p].retire();
+                    n++;
+                }
+            }
+        }
+        return n;
+    }
+
     // The ring peers poke to wake this thread. Published once at startup, read by producers.
     void  set_ring(Ring* r) { ring_.store(r, std::memory_order_release); }
     Ring* ring() const      { return ring_.load(std::memory_order_acquire); }
@@ -289,7 +331,8 @@ public:
     void sample_depth() {
         uint64_t d = 0;
         for (uint32_t i = 0; i < nchan_; i++)
-            d += task_in_[i].depth() + client_in_[i].depth() + release_in_[i].depth();
+            d += task_in_[i].depth() + client_in_[i].depth() + release_in_[i].depth() +
+                 transfer_in_[i].depth();
         sig_.depth_sum += d;
         sig_.depth_samples++;
     }
@@ -301,6 +344,7 @@ public:
         parked_.store(true, std::memory_order_release);
         for (uint32_t i = 0; i < nchan_; i++) {
             task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); release_in_[i].arm_blocked();
+            transfer_in_[i].arm_blocked();
         }
         // The other half of the Dekker pair. Declaring intent to block is a store; the role-specific
         // inbound check that follows is a load of a different location. Without this fence the CPU
@@ -312,6 +356,7 @@ public:
         parked_.store(false, std::memory_order_release);
         for (uint32_t i = 0; i < nchan_; i++) {
             task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); release_in_[i].clear_blocked();
+            transfer_in_[i].clear_blocked();
         }
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
@@ -348,6 +393,14 @@ public:
             while (release_in_[p].recv(r)) { fn(r); release_in_[p].retire(); n++; }
         return n;
     }
+    template <typename Fn> uint32_t drain_client_transfers_unmasked(Fn&& fn) {
+        uint32_t n = 0; ClientTransfer transfer;
+        for (uint32_t p = 0; p < nchan_; p++)
+            while (transfer_in_[p].recv(transfer)) {
+                fn(transfer); transfer_in_[p].retire(); n++;
+            }
+        return n;
+    }
 
     // ---- the wb slot table: this thread AS A SENDER --------------------------------------------
     // Maps ready-mask bit -> the client it names. Owned and mutated ONLY by this thread; producers
@@ -362,8 +415,19 @@ public:
         slots_[s] = c;
         return s;
     }
+    bool reserve_wb_slots(uint32_t incoming) {
+        const size_t wanted = std::min<size_t>(ReadyMask::kSlots, slots_.size() + incoming);
+        try {
+            slots_.reserve(wanted);
+            free_slots_.reserve(ReadyMask::kSlots);
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
     void release_wb_slot(uint32_t s) {
         if (s == kNoWbSlot || s >= slots_.size()) return;
+        ready_.clear(s);
         slots_[s] = nullptr;
         free_slots_.push_back(s);
     }
@@ -385,9 +449,9 @@ public:
     // work forever, but none of its drain functions can consume that family.
     bool any_io_inbound() const {
         if (ready_.any()) return true;
-        if (client_notify_.any()) return true;
+        if (client_notify_.any() || transfer_notify_.any()) return true;
         for (uint32_t i = 0; i < nchan_; i++)
-            if (client_in_[i].depth()) return true;
+            if (client_in_[i].depth() || transfer_in_[i].depth()) return true;
         return false;
     }
     bool any_ex_inbound() const {
@@ -411,6 +475,7 @@ private:
     std::unique_ptr<TaskChan[]>   task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
     std::unique_ptr<ReleaseChan[]> release_in_;
+    std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
     uint64_t atomic_groups_ = 0;
@@ -424,6 +489,7 @@ private:
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
+    NotifyMask transfer_notify_;  // "which IO producers handed connection ownership to me"
     uint32_t nchan_ = 0;
 
     // IO-only cold path. A nullptr in client_in is the notification token; payload ownership

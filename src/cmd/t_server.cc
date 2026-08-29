@@ -187,6 +187,13 @@ struct ClientMeta {
 // process-unique connection id used on the IO-to-IO transport.
 thread_local std::unordered_map<uint64_t, ClientMeta> g_client_meta;
 
+// `unordered_map::node_type` retains its allocation when it moves between the source and target
+// thread-local maps. A destination reserves buckets during flip preflight, so installing this node
+// after the connection-owner edge has no ordinary allocation/failure point.
+struct ClientMigrationCatalog {
+    decltype(g_client_meta)::node_type node;
+};
+
 bool valid_client_text(Slice value) {
     for (uint32_t i = 0; i < value.n; i++) {
         const unsigned char ch = static_cast<unsigned char>(value.p[i]);
@@ -2156,6 +2163,38 @@ void command_client_disconnected(Client* client) {
     if (!client) return;
     slowlog_forget_client(client->id());
     g_client_meta.erase(client->id());
+}
+
+void* command_client_migration_extract(Client* client) {
+    if (!client) return nullptr;
+    auto* catalog = new (std::nothrow) ClientMigrationCatalog;
+    if (!catalog) return nullptr;
+    catalog->node = g_client_meta.extract(client->id());
+    if (catalog->node.empty()) {
+        delete catalog;
+        return nullptr;
+    }
+    return catalog;
+}
+
+bool command_client_migration_install(void* opaque) {
+    std::unique_ptr<ClientMigrationCatalog> catalog(
+        static_cast<ClientMigrationCatalog*>(opaque));
+    if (!catalog || catalog->node.empty()) return false;
+    return g_client_meta.insert(std::move(catalog->node)).inserted;
+}
+
+void command_client_migration_discard(void* opaque) {
+    delete static_cast<ClientMigrationCatalog*>(opaque);
+}
+
+bool command_client_migration_reserve(uint32_t extra) {
+    try {
+        g_client_meta.reserve(g_client_meta.size() + extra);
+        return true;
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
 }
 
 // Cold process-wide directory. CLIENT UNBLOCK and CLIENT TRACKING REDIRECT need to name a

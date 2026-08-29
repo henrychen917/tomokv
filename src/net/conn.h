@@ -523,8 +523,10 @@ public:
     // ---- io-thread bookkeeping -----------------------------------------------------------------
     uint64_t id() const { return id_; }
     void set_id(uint64_t v) { id_ = v; }
-    uint32_t ifid_thread() const { return ifid_thread_; }
-    void set_ifid_thread(uint32_t t) { ifid_thread_ = t; }
+    // This release/acquire store is the connection ownership edge. Registration and queue
+    // membership follow it; neither is allowed to stand in for it.
+    uint32_t ifid_thread() const { return ifid_thread_.load(std::memory_order_acquire); }
+    void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
     Session& session() { return session_; }
     const Session& session() const { return session_; }
 
@@ -610,6 +612,7 @@ public:
     }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
+    bool has_atomic_groups_io() const { return atomic_groups_io_ != 0; }
 
     // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
     // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
@@ -647,6 +650,13 @@ public:
                !recv_armed_ && !send_inflight_ &&        // the KERNEL holds no pointer into us
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0;
+    }
+    bool migration_protocol_idle() const {
+        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+               !retire_queued_.load(std::memory_order_acquire) &&
+               watched_refs_.load(std::memory_order_acquire) == 0 &&
+               barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
+               !subscriber_mode_ && multi_session_ == nullptr && nothing_to_write();
     }
 
     // Set by a worker before it tells the owning IO thread this client has ops to retire; cleared by
@@ -714,7 +724,7 @@ private:
 
     // --- cold io state --------------------------------------------------------------------------
     uint64_t  id_ = 0;
-    uint32_t  ifid_thread_ = 0;
+    std::atomic<uint32_t> ifid_thread_{0};
     Session   session_;
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
