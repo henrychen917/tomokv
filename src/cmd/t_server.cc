@@ -1340,6 +1340,7 @@ struct StatBaseline {
     uint64_t hits = 0, misses = 0, expired = 0, evicted = 0;
     uint64_t rejected = 0, auth_failures = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0;
+    uint64_t keys = 0;
     uint64_t object_bytes = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
     std::vector<uint64_t> command_calls;
@@ -1357,6 +1358,7 @@ void collect_stat_totals(StatBaseline& out) {
         out.misses += sh.stats().misses;
         out.expired += sh.stats().expired;
         out.evicted += sh.published_evicted();
+        out.keys += sh.published_size();
         out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
@@ -1385,6 +1387,13 @@ void collect_stat_totals(StatBaseline& out) {
 // shard that was added after the reset must not underflow into a nonsense INFO value.
 inline uint64_t minus_baseline(uint64_t live, uint64_t base) {
     return live >= base ? live - base : 0;
+}
+
+uint64_t accounted_memory_bytes(uint64_t object_bytes, uint64_t keys) {
+    constexpr uint64_t overhead = FlatStore::kSlotOverheadPerKey;
+    if (keys > (std::numeric_limits<uint64_t>::max() - object_bytes) / overhead)
+        return std::numeric_limits<uint64_t>::max();
+    return object_bytes + keys * overhead;
 }
 
 bool info_section(Op& op, const char* wanted) {
@@ -1546,7 +1555,11 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->climon_monitors() : 0));
     }
     if (info_section(op, "MEMORY")) {
-        const uint64_t object_peak = info_stats_observe_memory(obj_bytes);
+        // used_memory follows the same accounted basis that admits/evicts writes and that MEMORY
+        // STATS uses: objects plus the stable per-key slot cost. Redis's dataset excludes keyspace
+        // table overhead, so used_memory_dataset remains the object allocation portion here.
+        const uint64_t used_memory = accounted_memory_bytes(obj_bytes, keys);
+        const uint64_t used_memory_peak = info_stats_observe_memory(used_memory);
         size_t allocated = 0, resident = 0;
 #if defined(TOMO_JEMALLOC)
         uint64_t epoch = 1; size_t epoch_size = sizeof(epoch);
@@ -1557,8 +1570,10 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
                       "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
                       "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n",
-                static_cast<unsigned long long>(obj_bytes), static_cast<unsigned long long>(obj_bytes),
-                static_cast<unsigned long long>(resident), static_cast<unsigned long long>(object_peak),
+                static_cast<unsigned long long>(used_memory),
+                static_cast<unsigned long long>(obj_bytes),
+                static_cast<unsigned long long>(resident),
+                static_cast<unsigned long long>(used_memory_peak),
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident));
     }
@@ -2123,7 +2138,8 @@ void command_config_resetstat() {
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.
     StatBaseline baseline;
     collect_stat_totals(baseline);
-    info_stats_reset(baseline.sampled_ops, baseline.object_bytes);
+    info_stats_reset(baseline.sampled_ops,
+                     accounted_memory_bytes(baseline.object_bytes, baseline.keys));
     std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
     g_stat_baseline = baseline;
 }
