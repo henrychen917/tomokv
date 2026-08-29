@@ -49,9 +49,9 @@ only.
 
 * A **physical shard** is a `Shard` object and its `FlatStore`.  The store is
   never copied or rebuilt during migration.
-* A **bucket owner** is the EX thread id returned by `Router::shard_of(hash)`.
-  Despite the historical method name, the entry is runtime ownership, not
-  physical storage identity.  An immutable home map selects the physical shard.
+* A **bucket owner** is the EX thread id returned by `Router::owner_of(hash)`.
+  `Router::shard_of(hash)` returns the immutable physical storage identity from
+  the other half of the same packed atomic entry.
 * Bucket transfers are aligned to complete physical-shard ranges.  A non-thread-
   safe `FlatStore` cannot safely be split between two EX threads.  A range can
   contain one or more complete shards, but never part of one.
@@ -84,22 +84,21 @@ descriptor `(begin, end, source, destination, phase)`.
    each physical `Shard*` must occur exactly once, only on its live EX owner, and
    each bucket must name that same shard and owner. Destination capacity for the
    worst-case plan is reserved before publication.
-4. **PUBLISHING** — publish the descriptor in `PREPARING`.  Routing through the
-   descriptor still returns `source` while every `owner_[bucket]` entry is
-   written to `destination`.  Readers therefore cannot observe a half-written
-   range.
+4. **PREPARING** — publish the descriptor without changing `owner_[]`. Every
+   ordinary router read remains one acquire-load and can observe only `source`.
 5. **INSTALL BOOKKEEPING** — while `PREPARING` still resolves the range to source,
    move the physical `Shard*` bookkeeping from the source vector to the already
    reserved destination vector.  The vector is bookkeeping, not authority: source
    remains sole owner throughout this step.  The objects and all keys/MVCC versions
    stay put.
 6. **COMMITTED / DESTINATION OWNS** — a single release-store of the descriptor
-   phase is the ownership handoff.  Before it, only source may touch the shards;
-   after it, only destination may touch them.  Routing through the descriptor now
-   returns `destination` even if a caller raced with publication.
-7. **STABLE** — after all pre-commit source work has either completed or passed
-   the receiver's ownership check, clear the descriptor.  The already-written
-   owner array now supplies the same destination result.
+   phase is the ownership handoff. Before it, only source may touch the shards;
+   after it, only destination may touch them. Only after this edge are the packed
+   bucket entries and derived flat shard-owner entries release-stored to
+   `destination`. A racing reader may still return `source`, which is now merely
+   a safe stale route.
+7. **STABLE** — after the complete bucket range and flat shard entries publish,
+   clear the descriptor. Readers never inspect the descriptor in any phase.
 
 The forwarding rule is deliberately chosen over per-request routing epochs: an
 IO thread can route using a pre-flip owner read and enqueue after the handoff.
@@ -121,7 +120,7 @@ strand work in a dormant inbox.
 | Atomic group with commit ticket | Both group and apply/commit witnesses must reach zero; a ticket is never divided. |
 | Borrow release queued for an old owner | Receiver forwards before calling `unborrow`. |
 | Epoch-MVCC read with pinned snapshot | It completes while source owns the unchanged physical shard; transfer waits for the pin/group witness, so no read crosses the edge. |
-| Reader racing the multi-entry owner-array write | The published descriptor returns source throughout `PREPARING` and destination after one commit store. |
+| Reader racing the multi-entry owner-array write | It returns one non-tearing packed entry: source (safe stale route) or destination; destination is never published before commit. |
 | Cursor/whole-shard operation | The complete physical shard is the minimum transfer unit; ownership is sampled once and checked at execution. |
 
 There is no intentionally unsafe case.  Whole-shard alignment is a necessary
