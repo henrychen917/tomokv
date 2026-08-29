@@ -642,9 +642,9 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* string
                     } else if (pattern[0] == ']') {
                         break;
                     } else if (pattern_len >= 3 && pattern[1] == '-') {
-                        unsigned char begin = static_cast<unsigned char>(pattern[0]);
-                        unsigned char end = static_cast<unsigned char>(pattern[2]);
-                        const unsigned char ch = static_cast<unsigned char>(string[0]);
+                        int begin = static_cast<signed char>(pattern[0]);
+                        int end = static_cast<signed char>(pattern[2]);
+                        const int ch = static_cast<signed char>(string[0]);
                         if (begin > end) std::swap(begin, end);
                         if (ch >= begin && ch <= end) matched = true;
                         pattern += 2;

@@ -167,22 +167,22 @@ bool glob_match(const char* pat, size_t pn, const char* text, size_t tn, bool no
                 pat++; pn--;
                 bool negate = false, matched = false;
                 if (pn && *pat == '^') { negate = true; pat++; pn--; }
-                unsigned char want = static_cast<unsigned char>(*text);
-                if (nocase) want = static_cast<unsigned char>(std::tolower(want));
+                int want = static_cast<signed char>(*text);
                 while (pn && *pat != ']') {
-                    unsigned char lo = static_cast<unsigned char>(*pat++); pn--;
-                    if (lo == '\\' && pn) { lo = static_cast<unsigned char>(*pat++); pn--; }
-                    unsigned char hi = lo;
+                    int lo = static_cast<signed char>(*pat++); pn--;
+                    if (lo == '\\' && pn) { lo = static_cast<signed char>(*pat++); pn--; }
+                    int hi = lo;
                     if (pn >= 2 && *pat == '-' && pat[1] != ']') {
                         pat++; pn--;
-                        hi = static_cast<unsigned char>(*pat++); pn--;
-                        if (hi == '\\' && pn) { hi = static_cast<unsigned char>(*pat++); pn--; }
-                    }
-                    if (nocase) {
-                        lo = static_cast<unsigned char>(std::tolower(lo));
-                        hi = static_cast<unsigned char>(std::tolower(hi));
+                        hi = static_cast<signed char>(*pat++); pn--;
+                        if (hi == '\\' && pn) { hi = static_cast<signed char>(*pat++); pn--; }
                     }
                     if (lo > hi) std::swap(lo, hi);
+                    if (nocase) {
+                        lo = std::tolower(lo);
+                        hi = std::tolower(hi);
+                        want = std::tolower(want);
+                    }
                     if (want >= lo && want <= hi) matched = true;
                 }
                 if (!pn || *pat != ']') return false;

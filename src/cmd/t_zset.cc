@@ -2177,7 +2177,7 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
                 pattern++;
                 pattern_len--;
             }
-            const unsigned char wanted = static_cast<unsigned char>(*text);
+            const int wanted = static_cast<signed char>(*text);
             while (pattern_len) {
                 char first = *pattern++;
                 pattern_len--;
@@ -2198,11 +2198,11 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
                         last = *pattern++;
                         pattern_len--;
                     }
-                    unsigned char lo = static_cast<unsigned char>(first);
-                    unsigned char hi = static_cast<unsigned char>(last);
+                    int lo = static_cast<signed char>(first);
+                    int hi = static_cast<signed char>(last);
                     if (lo > hi) std::swap(lo, hi);
                     if (wanted >= lo && wanted <= hi) matched = true;
-                } else if (wanted == static_cast<unsigned char>(first)) {
+                } else if (wanted == static_cast<signed char>(first)) {
                     matched = true;
                 }
             }

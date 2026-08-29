@@ -759,12 +759,14 @@ bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn) {
             bool negate = false, match = false;
             if (pn && *pattern == '^') { negate = true; pattern++; pn--; }
             while (pn && *pattern != ']') {
-                char lo = *pattern++; pn--;
-                if (lo == '\\' && pn) { lo = *pattern++; pn--; }
+                int lo = static_cast<signed char>(*pattern++); pn--;
+                if (lo == '\\' && pn) { lo = static_cast<signed char>(*pattern++); pn--; }
                 if (pn >= 2 && *pattern == '-' && pattern[1] != ']') {
-                    pattern++; pn--; char hi = *pattern++; pn--;
-                    if (hi == '\\' && pn) { hi = *pattern++; pn--; }
-                    if (*text >= lo && *text <= hi) match = true;
+                    pattern++; pn--; int hi = static_cast<signed char>(*pattern++); pn--;
+                    if (hi == '\\' && pn) { hi = static_cast<signed char>(*pattern++); pn--; }
+                    if (lo > hi) std::swap(lo, hi);
+                    const int wanted = static_cast<signed char>(*text);
+                    if (wanted >= lo && wanted <= hi) match = true;
                 } else if (*text == lo) match = true;
             }
             if (pn && *pattern == ']') { pattern++; pn--; }
