@@ -267,7 +267,8 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
         return;
     }
 
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = readonly ? shard.store_find_read<kNotify>(op.hash, op.key())
+                             : shard.store_find<kNotify>(op.hash, op.key());
     if (object && !obj_type_check(object, Type::String, op.sink())) return;
     char integer[24];
     const Slice old = object ? bitfield_string_bytes(object, integer) : Slice("", 0);

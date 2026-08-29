@@ -790,7 +790,7 @@ void cmd_srem(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_sismember(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -802,7 +802,7 @@ void cmd_sismember(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_smismember(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (object) {
         auto sink = op.sink();
         if (!obj_type_check(object, Type::Set, sink)) return;
@@ -814,7 +814,7 @@ void cmd_smismember(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_scard(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         reply_int(op.sink(), 0);
         return;
@@ -826,7 +826,7 @@ void cmd_scard(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_smembers(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         reply_set_header(op.sink(), 0, op.resp3());
         return;
@@ -935,7 +935,7 @@ void cmd_srandmember(Shard& shard, Op& op) {
         }
     }
 
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         if (with_count) reply_array_header(op.sink(), 0);
         else reply_null(op.sink(), op.resp3());
@@ -1027,7 +1027,7 @@ void cmd_sscan(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         reply_empty_scan(op);
         return;

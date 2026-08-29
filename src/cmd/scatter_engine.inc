@@ -2208,10 +2208,16 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
             }
             op.reply.clear();
             op.direct_len = 0;
+            const uint64_t workbench_hits = work->stats().hits;
+            const uint64_t workbench_misses = work->stats().misses;
             {
                 ScriptAccessScope access(op, state.status, state.key_count);
                 op.spec->handler(*work, op);
             }
+            // The workbench is intentionally absent from Server::shards(), so forward the nested
+            // command's read-lookup counters to the real coordinator shard before it is reused.
+            shard.stats().hits += work->stats().hits - workbench_hits;
+            shard.stats().misses += work->stats().misses - workbench_misses;
             if (work->store().object_bytes() >
                 state.server->script_crossshard_workbench_bytes()) {
                 state.final_error = WorkError::Maxmemory;
@@ -2488,10 +2494,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         }
 
         const bool pending_reads = shard.store().atomic_has_records();
-        auto find_value = [&](uint64_t hash, Slice key) {
-            return pending_reads ? shard.store().atomic_find_tracked(hash, key)
-                                 : (notify ? shard.store_find<true>(hash, key)
-                                           : shard.store().find(hash, key));
+        auto find_value = [&](uint64_t hash, Slice key, bool read_lookup = false) {
+            KvObj* object = pending_reads ? shard.store().atomic_find_tracked(hash, key)
+                                          : (notify ? shard.store_find<true>(hash, key)
+                                                    : shard.store().find(hash, key));
+            if (read_lookup) shard.note_keyspace_read(object);
+            return object;
         };
 
         // SORT's second read wave has concrete keys but no argv positions. Each request is executed
@@ -2502,7 +2510,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
                 const Slice key = sort_deref_key(request);
                 state.server->note_sort_deref_lookup();
-                KvObj* object = find_value(request.hash, key);
+                KvObj* object = find_value(request.hash, key, true);
                 if (!object) continue;
                 if (!request.field.empty()) {
                     if (!object->is_type(Type::Hash)) continue;
@@ -2542,6 +2550,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     else if constexpr (Notify)
                         object = shard.store_find<true>(key.hash, op.arg(key.arg));
                     else object = shard.store().find(key.hash, op.arg(key.arg));
+                    shard.note_keyspace_read(object);
                     if (!object || static_cast<Type>(object->type) != Type::String) continue;
                     ValueSlot& slot = state.values[pos];
                     if (object->is_int()) {
@@ -2874,7 +2883,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
-                    state.status[pos] = find_value(key.hash, op.arg(key.arg)) != nullptr;
+                    state.status[pos] = find_value(key.hash, op.arg(key.arg), true) != nullptr;
                 }
                 return ScatterTaskResult::Complete;
             case Kind::Keys: {
@@ -2923,7 +2932,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     for (uint32_t i = 0; i < group.count; i++) {
                         const uint32_t pos = state.key_order[group.begin + i];
                         const KeyRef& key = state.keys[pos];
-                        KvObj* object = find_value(key.hash, op.arg(key.arg));
+                        KvObj* object = find_value(
+                            key.hash, op.arg(key.arg), state.kind == Kind::Copy && pos == 0);
                         ObjectImage& image = state.images[pos];
                         if (!object) continue;
                         image.present = true;
@@ -2968,7 +2978,19 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u);
                     if (sort_source)
                         zset_sort_promote(shard, key.hash, op.arg(key.arg), notify);
-                    KvObj* object = find_value(key.hash, op.arg(key.arg));
+                    const bool source_read =
+                        state.kind == Kind::Pfcount || state.kind == Kind::Pfmerge ||
+                        state.kind == Kind::Lcs ||
+                        (state.kind == Kind::Bitop && pos != 0) ||
+                        (is_plain_setop(state.kind) || state.kind == Kind::Sintercard) ||
+                        (is_store_setop(state.kind) && pos != 0) ||
+                        (is_plain_zsetop(state.kind) || state.kind == Kind::Zintercard) ||
+                        (is_store_zsetop(state.kind) && pos != 0) ||
+                        (state.kind == Kind::Zrangestore && pos != 0) ||
+                        (state.kind == Kind::Sort && sort_source) ||
+                        (is_geo_kind(state.kind) &&
+                         pos == (state.geo_store ? 1u : 0u));
+                    KvObj* object = find_value(key.hash, op.arg(key.arg), source_read);
                     if (!serialize_object(object, state.images[pos])) {
                         state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                         break;

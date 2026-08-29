@@ -508,14 +508,14 @@ void cmd_rpop(Shard& shard, Op& op) { pop_generic<kNotify>(shard, op, false); }
 
 template <bool kNotify>
 void cmd_llen(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!obj_type_check(object, Type::List, op.sink())) return;
     reply_int(op.sink(), object ? list_value(object).entries() : 0);
 }
 
 template <bool kNotify>
 void cmd_lindex(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
     int64_t index = 0;
@@ -539,7 +539,7 @@ void cmd_lrange(Shard& shard, Op& op) {
         reply_integer_error(op);
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) { reply_array_header(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::List, op.sink())) return;
 
@@ -879,7 +879,7 @@ void cmd_lpos(Shard& shard, Op& op) {
     LposOptions options;
     if (!parse_lpos_options(op, options)) return;
 
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.key());
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.key());
     if (!object) {
         if (options.count_given) reply_array_header(op.sink(), 0);
         else reply_null(op.sink(), op.resp3());

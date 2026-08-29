@@ -915,8 +915,9 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
-            KvObj* object = notify ? shard.store_find<true>(FlatStore::hash_key(key), key)
-                                   : shard.store().find(FlatStore::hash_key(key), key);
+            KvObj* object = notify
+                ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
+                : shard.store_find_read<false>(FlatStore::hash_key(key), key);
             if (!object || static_cast<Type>(object->type) != Type::String) continue;
             MultiValue& value = command.values[i];
             if (object->is_int()) {
@@ -988,8 +989,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
-            found += (notify ? shard.store_find<true>(FlatStore::hash_key(key), key)
-                             : shard.store().find(FlatStore::hash_key(key), key)) != nullptr;
+            found += (notify ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
+                             : shard.store_find_read<false>(FlatStore::hash_key(key), key)) != nullptr;
         }
         command.integer.fetch_add(found, std::memory_order_relaxed);
     }

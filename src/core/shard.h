@@ -184,6 +184,24 @@ public:
         if constexpr (kNotify) return store_.find_notify(hash, key, &flat_notify_sink_);
         return store_.find(hash, key);
     }
+    // Redis attaches keyspace hit/miss accounting to lookupKeyRead*, not to commands. Keeping the
+    // distinction at TomoKV's equivalent lookup boundary makes multi-key reads count per key while
+    // write lookups remain invisible even when the command returns the old value.
+    void note_keyspace_read(const KvObj* object) {
+        if (object) stats_.hits++;
+        else stats_.misses++;
+    }
+    template <bool kNotify>
+    KvObj* store_find_read(uint64_t hash, Slice key) {
+        KvObj* object = store_find<kNotify>(hash, key);
+        note_keyspace_read(object);
+        return object;
+    }
+    KvObj* store_find_read_no_touch(uint64_t hash, Slice key) {
+        KvObj* object = store_.find_no_touch(hash, key);
+        note_keyspace_read(object);
+        return object;
+    }
     template <bool kNotify>
     FlatStore::InsertResult store_insert(uint64_t hash, KvObj* object) {
         if constexpr (kNotify) return store_.insert_notify(hash, object, &flat_notify_sink_);

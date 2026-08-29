@@ -561,7 +561,7 @@ void cmd_xack(Shard& shard, Op& op) {
     catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
     for (uint32_t i = 3; i < op.argc(); i++)
         if (!parse_id(op.arg(i), ids[i - 3])) { invalid_id(op); return; }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_int(op.sink(), 0); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
@@ -588,7 +588,7 @@ bool parse_pending_bound(Op& op, Slice input, bool start, StreamID& id, bool& ex
 
 template <bool kNotify>
 void cmd_xpending(Shard& shard, Op& op) {
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroup* group = find_group(object, op.arg(2));
@@ -736,7 +736,7 @@ void cmd_xclaim(Shard& shard, Op& op) {
     }
     if (options.idle_set && options.time_set) { reply_syntax(op.sink()); return; }
 
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
@@ -829,7 +829,7 @@ void cmd_xautoclaim(Shard& shard, Op& op) {
             justid = true; pos++;
         } else { reply_syntax(op.sink()); return; }
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(1));
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(1));
     if (!object) { reply_nogroup(op, op.arg(1), op.arg(2)); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamGroups* groups = groups_of(object);
@@ -1046,7 +1046,7 @@ void cmd_xinfo(Shard& shard, Op& op) {
         reply_help(op, kXinfoHelp, sizeof(kXinfoHelp) / sizeof(kXinfoHelp[0]));
         return;
     }
-    KvObj* object = shard.store_find<kNotify>(op.hash, op.arg(2));
+    KvObj* object = shard.store_find_read<kNotify>(op.hash, op.arg(2));
     if (!object) { reply_err(op.sink(), "ERR no such key"); return; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return;
     StreamHeader header;
@@ -1259,7 +1259,7 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
     const Slice key = op.arg(parsed.key_arg);
     const uint64_t hash = FlatStore::hash_key(key);
     KvObj* object = (op.spec->flags & CmdFlags::NotifySelected)
-        ? shard.store_find<true>(hash, key) : shard.store().find(hash, key);
+        ? shard.store_find_read<true>(hash, key) : shard.store_find_read<false>(hash, key);
     if (!object) { reply_nogroup(op, key, op.arg(parsed.group_arg), true); return true; }
     if (!obj_type_check(object, Type::Stream, op.sink())) return true;
     StreamGroups* groups = groups_of(object);
