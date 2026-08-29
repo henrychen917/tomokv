@@ -697,11 +697,35 @@ public:
     }
 
     KvObj* find(uint64_t h, Slice key) {
-        return find_impl<false>(h, key, nullptr);
+        if (rehashing() && !snapshot_active_) rehash_step();
+        KvObj* found = nullptr;
+        if (__builtin_expect(atomic_pending_ != nullptr, false) &&
+            __builtin_expect(atomic_pending_->live != 0, false)) {
+            found = atomic_resolve(h, key, atomic_read_epoch_);
+        } else {
+            if (KvObj* o = find_in(0, h, key)) found = live_or_expire(0, h, key, o);
+            if (rehashing()) {
+                if (!found)
+                    if (KvObj* o = find_in(1, h, key)) found = live_or_expire(1, h, key, o);
+            }
+        }
+        // The entire disabled-feature read tax: one predicted branch, no metadata write.
+        // CLIENT NO-TOUCH rides INSIDE that branch -- with maxmemory off (the default) the
+        // no-touch byte is never even loaded, because && short-circuits.
+        if (__builtin_expect(maxmemory_enabled_ && !no_touch_, false) && found) touch(found);
+        return found;
     }
 
     KvObj* find_notify(uint64_t h, Slice key, FlatNotifySink* sink) {
-        return find_impl<true>(h, key, sink);
+        KvObj* candidate = find_in(0, h, key);
+        if (!candidate && rehashing()) candidate = find_in(1, h, key);
+        const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
+                             candidate->expire_at_ms() <= cached_now_ms_ &&
+                             !(snapshot_active_ && candidate == find_in(1, h, key));
+        if (expired) notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
+        KvObj* found = find(h, key);
+        if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
+        return found;
     }
 
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew
@@ -1491,46 +1515,6 @@ private:
     }
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
 
-    template <bool kNotify>
-    KvObj* find_impl(uint64_t h, Slice key, FlatNotifySink* sink) {
-        if (rehashing() && !snapshot_active_) rehash_step();
-        KvObj* found = nullptr;
-        if (__builtin_expect(atomic_pending_ != nullptr, false) &&
-            __builtin_expect(atomic_pending_->live != 0, false)) {
-            if constexpr (kNotify) {
-                KvObj* candidate = nullptr;
-                int candidate_table = -1;
-                found = atomic_resolve_internal(h, key, atomic_read_epoch_, true,
-                                                &candidate, &candidate_table).value;
-                const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
-                                     candidate->expire_at_ms() <= cached_now_ms_ &&
-                                     !(snapshot_active_ && candidate_table == 1);
-                if (expired)
-                    notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
-            } else {
-                found = atomic_resolve(h, key, atomic_read_epoch_);
-            }
-        } else {
-            if (KvObj* o = find_in(0, h, key)) {
-                if constexpr (kNotify) found = live_or_expire(0, h, key, o, sink);
-                else found = live_or_expire(0, h, key, o);
-            }
-            if (rehashing() && !found) {
-                if (KvObj* o = find_in(1, h, key)) {
-                    if constexpr (kNotify) found = live_or_expire(1, h, key, o, sink);
-                    else found = live_or_expire(1, h, key, o);
-                }
-            }
-        }
-        // The entire disabled-feature read tax: one predicted branch, no metadata write.
-        // CLIENT NO-TOUCH rides INSIDE that branch -- with maxmemory off (the default) the
-        // no-touch byte is never even loaded, because && short-circuits.
-        if (__builtin_expect(maxmemory_enabled_ && !no_touch_, false) && found) touch(found);
-        if constexpr (kNotify)
-            if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
-        return found;
-    }
-
     KvObj* find_without_touch(uint64_t h, Slice key) {
         // During capture tab_[1] is the positional frozen image. Moving even an unrelated entry
         // here can carry it past the snapshot cursor and omit it from the BASE.
@@ -1812,14 +1796,12 @@ private:
         return nullptr;
     }
 
-    KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o,
-                          FlatNotifySink* sink = nullptr) {
+    KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
         // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
         // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
         if (!(o->flags & KvObjFlags::HasTtl)) return o;
         if (o->expire_at_ms() > cached_now_ms_) return o;
         if (snapshot_active_ && t == 1) return nullptr;
-        notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
         (void)aof_.record_delete(key);
         erase_in(t, h, key);
         if (expired_counter_) (*expired_counter_)++;
