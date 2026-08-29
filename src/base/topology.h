@@ -24,6 +24,7 @@
 // as free will thrash. resident_estimate() exists so the cost can be priced.
 #pragma once
 #include <sched.h>
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -102,11 +103,32 @@ public:
         return !domains_.empty();
     }
 
+    // Read Linux's authoritative SMT relationship for every CPU in the selected topology. Keep
+    // the full sysfs list (rather than deriving an offset or intersecting it with affinity): the
+    // placement validator must be able to distinguish a complete pair from a taskset which made
+    // only one sibling available. This is boot-only and is called only when smt-mode is enabled.
+    bool discover_thread_siblings() {
+        thread_siblings_.assign(CPU_SETSIZE, {});
+        for (const std::vector<int>& domain : domains_) {
+            for (int cpu : domain) {
+                if (!read_thread_siblings(cpu, thread_siblings_[cpu])) return false;
+                if (std::find(thread_siblings_[cpu].begin(), thread_siblings_[cpu].end(), cpu) ==
+                    thread_siblings_[cpu].end()) return false;
+            }
+        }
+        return true;
+    }
+
     uint32_t ndomains() const { return static_cast<uint32_t>(domains_.size()); }
     uint32_t domain_of(int cpu) const {
         return (cpu >= 0 && cpu < static_cast<int>(domain_of_.size())) ? domain_of_[cpu] : kNoDomain;
     }
     const std::vector<int>& cpus_in(uint32_t d) const { return domains_[d]; }
+    const std::vector<int>& thread_siblings(int cpu) const {
+        static const std::vector<int> empty;
+        return cpu >= 0 && cpu < static_cast<int>(thread_siblings_.size())
+            ? thread_siblings_[cpu] : empty;
+    }
 
     void dump(FILE* f) const {
         std::fprintf(f, "topology: %u L3 domain(s)\n", ndomains());
@@ -119,6 +141,20 @@ public:
     }
 
 private:
+    static bool read_thread_siblings(int cpu, std::vector<int>& out) {
+        char path[128];
+        std::snprintf(path, sizeof(path),
+                      "/sys/devices/system/cpu/cpu%d/topology/thread_siblings_list", cpu);
+        FILE* f = std::fopen(path, "r");
+        if (!f) return false;
+        char buf[512] = {0};
+        const bool read = std::fgets(buf, sizeof(buf), f) != nullptr;
+        std::fclose(f);
+        if (!read) return false;
+        parse_cpu_list(buf, out);
+        return !out.empty();
+    }
+
     // Reads the CPUs sharing this cpu's level-3 cache, intersected with the allowed set.
     static bool read_l3_peers(int cpu, const cpu_set_t& allowed, std::vector<int>& out) {
         for (int idx = 0; idx < 8; idx++) {
@@ -161,8 +197,30 @@ private:
         }
     }
 
+    // Sysfs topology parsing intentionally does not intersect the process affinity mask. A
+    // sibling outside that mask is still the sibling, and smt-mode must reject the incomplete unit.
+    static void parse_cpu_list(const char* s, std::vector<int>& out) {
+        while (*s) {
+            while (*s == ',' || *s == ' ' || *s == '\n') s++;
+            if (!*s) break;
+            char* end = nullptr;
+            long a = std::strtol(s, &end, 10);
+            if (end == s) return;
+            long b = a;
+            if (*end == '-') {
+                const char* range = end + 1;
+                b = std::strtol(range, &end, 10);
+                if (end == range) return;
+            }
+            for (long c = a; c <= b; c++)
+                if (c >= 0 && c < CPU_SETSIZE) out.push_back(static_cast<int>(c));
+            s = end;
+        }
+    }
+
     std::vector<uint32_t>          domain_of_;
     std::vector<std::vector<int>>  domains_;
+    std::vector<std::vector<int>>  thread_siblings_;
 };
 
 }  // namespace tomo

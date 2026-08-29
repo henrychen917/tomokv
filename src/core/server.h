@@ -158,6 +158,11 @@ public:
                 return false;
             }
         }
+        if (cfg.smt_mode && !topo_.discover_thread_siblings()) {
+            std::fprintf(stderr,
+                         "fatal: --smt-mode could not read Linux thread_siblings_list topology\n");
+            return false;
+        }
         // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
         // the measured 2s center (4:4-class) generalized to any core count.
         uint32_t di = cfg.even_ifid, de = cfg.even_ex;

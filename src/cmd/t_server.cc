@@ -318,6 +318,8 @@ void init_config(const Config& cfg) {
     // server actually chose, and refused by CONFIG SET rather than silently accepted.
     g_config.push_back({"net-io", ConfigKind::Enum,
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
+    g_config.push_back({"smt-mode", ConfigKind::Unsigned,
+                        std::to_string(cfg.smt_mode), true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,

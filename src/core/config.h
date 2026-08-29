@@ -231,6 +231,10 @@ struct Config {
     // Shards should outnumber workers: a shard is the unit of migration, so more shards gives the
     // LB finer granularity. Too many and each one's working set stops being worth its own table.
     uint32_t shards         = 16;
+    // Boot-only SMT placement contract. 0 (the explicit default) preserves logical-CPU placement:
+    // every provisioned logical CPU is independently schedulable. 1 makes a sysfs-reported sibling
+    // pair one role/FLIP unit; placement validation rejects incomplete or split-role pairs.
+    uint32_t smt_mode       = 0;
     // Pinning is relative to the process's ALLOWED cpu set, so taskset confines both the process and
     // its topology grouping — that property is what lets independent benchmark lanes share one box,
     // and its absence was a real bug (threads silently floated instead of erroring).
@@ -640,6 +644,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             cfg.even_ifid = a2; cfg.even_ex = b;
         }
         else if (!std::strcmp(a, "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(a, "--smt-mode")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.smt_mode) || cfg.smt_mode > 1) {
+                std::fprintf(stderr, "--smt-mode wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lru-clock-shift")) {
             uint64_t shift = 0;
             if (!cfg_parse_u64(next(nullptr), shift) || shift > 16) {
@@ -923,6 +933,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
                         "    --l3-domains LIST           declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
+                        "    --smt-mode 0|1             sibling-pair placement/FLIP units "
+                        "(boot-only; default 0)\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
