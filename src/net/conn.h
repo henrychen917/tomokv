@@ -576,11 +576,20 @@ public:
         barrier_owners_ =
             static_cast<uint8_t>(barrier_owners_ & static_cast<uint8_t>(BarrierOwner::Debug));
     }
-    // Resource backpressure is deliberately distinct from the semantic scatter barrier. It keeps
-    // this connection's unconsumed frame parked only while the global memory valve is full; as
-    // soon as any group retires, parsing may resume without waiting for this connection's ROB.
-    bool atomic_backpressure() const { return atomic_backpressure_; }
-    void set_atomic_backpressure(bool v) { atomic_backpressure_ = v; }
+    // Parse backpressure is deliberately distinct from the semantic scatter barrier. Each owner
+    // parks this connection's unconsumed head frame without publishing a ROB slot, and clears only
+    // its own reason. The byte is a mask because atomic admission and FLIP can overlap.
+    bool parse_backpressure() const { return parse_backpressure_ != 0; }
+    bool atomic_backpressure() const { return parse_backpressure_ & kAtomicBackpressure; }
+    void set_atomic_backpressure(bool v) {
+        if (v) parse_backpressure_ |= kAtomicBackpressure;
+        else parse_backpressure_ &= static_cast<uint8_t>(~kAtomicBackpressure);
+    }
+    bool flip_backpressure() const { return parse_backpressure_ & kFlipBackpressure; }
+    void set_flip_backpressure(bool v) {
+        if (v) parse_backpressure_ |= kFlipBackpressure;
+        else parse_backpressure_ &= static_cast<uint8_t>(~kFlipBackpressure);
+    }
     bool subscriber_mode() const { return subscriber_mode_; }
     void set_subscriber_mode(bool v) { subscriber_mode_ = v; }
     bool blocked() const { return connection_flags_ & kBlocked; }
@@ -657,6 +666,9 @@ public:
                watched_refs_.load(std::memory_order_acquire) == 0;
     }
     bool migration_protocol_idle() const {
+        // Unread input and parse_backpressure_ move with the Client. A held frame is unpublished,
+        // hence outside the ROB, and whichever IO owns the Client after the ownership edge resumes
+        // it when that backpressure reason clears.
         return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0 &&
@@ -728,7 +740,9 @@ private:
     // uint8_t would displace connection_flags_ and grow the 64-byte-aligned Client -- a seventh
     // owner takes the one spare bit (1u << 6), it does not grow the field.
     uint8_t   barrier_owners_ = 0;
-    bool      atomic_backpressure_ = false;
+    static constexpr uint8_t kAtomicBackpressure = 1u << 0;
+    static constexpr uint8_t kFlipBackpressure = 1u << 1;
+    uint8_t   parse_backpressure_ = 0;
     bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
     // The former blocked_ bool is a one-byte flag cell. RESP3 shares it instead of extending the
     // already-full 48..55 bool run and moving id_ (which would grow the 64-byte-aligned Client).

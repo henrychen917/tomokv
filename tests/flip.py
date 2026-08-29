@@ -110,10 +110,7 @@ def ordered_inflight(replies, expected):
     if len(replies) != len(expected):
         return False
     for reply, token in zip(replies, expected):
-        if isinstance(reply, RuntimeError):
-            if "BUSY FLIP is in progress" not in str(reply):
-                return False
-        elif reply != token:
+        if reply != token:
             return False
     return True
 
@@ -248,7 +245,7 @@ def main():
 
         # Put identifiable pipelined replies on every connection, start FLIP concurrently, observe
         # its moving state, then issue more traffic through the dispatch pause. Every command must
-        # receive exactly one position-preserving reply (its token or the documented BUSY reply).
+        # receive exactly one position-preserving reply with no client-visible FLIP error.
         batches = []
         for index, client in enumerate(clients):
             expected = ["pre:%d:%d:%s" % (index, sequence, "x" * 4096)

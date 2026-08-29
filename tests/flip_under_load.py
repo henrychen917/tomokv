@@ -67,9 +67,9 @@ def rd(f):
         raise IOError("connection closed")
     v = line[:-2]
     if p == b"-":
-        # BUSY is a RETRYABLE refusal, not a failure: the server rejects commands that arrive during
-        # the brief flip window rather than holding them. Treating it as fatal made an earlier run of
-        # this test collapse after 16 ops and report the rejection as if it were corruption.
+        # Keep BUSY distinct so the final report names this FLIP regression directly instead of
+        # folding it into a generic protocol error. It is still a test failure: ordinary commands
+        # must be held across the dispatch pause and complete normally afterward.
         msg = v.decode(errors="replace")
         if msg.startswith("BUSY"):
             raise Busy(msg)
@@ -210,6 +210,9 @@ if errors:
     sys.exit(1)
 if flips_ok[0] == 0:
     print("FAIL: no flip was ever applied -- the test proved nothing")
+    sys.exit(1)
+if busy[0] != 0:
+    print("FAIL: ordinary commands received BUSY during FLIP")
     sys.exit(1)
 print("ok: no wrong values, no generation regressions, no dropped connections")
 sys.exit(0)
