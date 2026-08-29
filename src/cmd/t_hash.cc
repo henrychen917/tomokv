@@ -854,20 +854,6 @@ bool parse_i64(Slice text, int64_t& value) {
     return true;
 }
 
-bool parse_cursor(Slice text, uint64_t& value) {
-    if (text.n == 0) return false;
-    uint64_t parsed = 0;
-    for (uint32_t i = 0; i < text.n; i++) {
-        const char ch = text.p[i];
-        if (ch < '0' || ch > '9') return false;
-        const uint32_t digit = static_cast<uint32_t>(ch - '0');
-        if (parsed > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
-        parsed = parsed * 10 + digit;
-    }
-    value = parsed;
-    return true;
-}
-
 // HINCRBYFLOAT shares INCRBYFLOAT's string2ld grammar; see src/base/numeric.h.
 bool parse_long_double(Slice text, long double& value) {
     return parse_long_double_strict(text, value);
@@ -1253,7 +1239,7 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items, boo
 template <bool kNotify>
 void cmd_hscan(Shard& shard, Op& op) {
     uint64_t cursor = 0;
-    if (!parse_cursor(op.arg(2), cursor)) {
+    if (!command_parse_scan_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }

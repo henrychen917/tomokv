@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -133,13 +132,6 @@ bool parse_i64(Slice s, int64_t& out) {
                           : -static_cast<int64_t>(value))
                    : static_cast<int64_t>(value);
     return true;
-}
-
-bool parse_u64(Slice s, uint64_t& out) {
-    if (!s.n) return false;
-    const char* end = s.p + s.n;
-    auto result = std::from_chars(s.p, end, out, 10);
-    return result.ec == std::errc{} && result.ptr == end;
 }
 
 bool ascii_equal(Slice s, std::string_view text) {
@@ -2167,7 +2159,7 @@ void reply_scan(Op& op, uint64_t cursor, const std::vector<ScanItem>& items) {
 template <bool kNotify>
 void cmd_zscan(Shard& shard, Op& op) {
     uint64_t cursor;
-    if (!parse_u64(op.arg(2), cursor)) {
+    if (!command_parse_scan_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }

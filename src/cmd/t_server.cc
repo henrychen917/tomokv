@@ -1919,7 +1919,7 @@ const char* object_type(const KvObj* obj) {
 
 void cmd_scan(Shard& sh, Op& op) {
     uint64_t outer = 0;
-    if (!parse_u64(op.arg(1), outer)) {
+    if (!command_parse_scan_cursor(op.arg(1), outer)) {
         reply_err(op.sink(), "ERR invalid cursor"); return;
     }
     const uint32_t shard_id = static_cast<uint32_t>(outer >> 56);
@@ -2064,6 +2064,44 @@ void cmd_debug(Shard& shard, Op& op) {
         return;
     }
     cmd_debug_impl(shard, op);
+}
+
+bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
+    // Redis's string2ull first tries canonical string2ll, then falls back to strtoull. Its input
+    // is a C string, so an embedded NUL terminates the cursor text as well.
+    uint32_t length = 0;
+    while (length < text.n && text.p[length] != '\0') length++;
+    const Slice input(text.p, length);
+
+    int64_t signed_value = 0;
+    if (parse_i64_canonical(input, signed_value)) {
+        if (signed_value < 0) return false;
+        cursor = static_cast<uint64_t>(signed_value);
+        return true;
+    }
+
+    uint32_t position = 0;
+    while (position < input.n &&
+           (input.p[position] == ' ' ||
+            (input.p[position] >= '\t' && input.p[position] <= '\r')))
+        position++;
+    bool negative = false;
+    if (position < input.n && (input.p[position] == '+' || input.p[position] == '-')) {
+        negative = input.p[position] == '-';
+        position++;
+    }
+    if (position == input.n) return false;
+
+    uint64_t magnitude = 0;
+    for (; position < input.n; position++) {
+        const char byte = input.p[position];
+        if (byte < '0' || byte > '9') return false;
+        const uint64_t digit = static_cast<uint64_t>(byte - '0');
+        if (magnitude > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
+        magnitude = magnitude * 10 + digit;
+    }
+    cursor = negative ? uint64_t{0} - magnitude : magnitude;
+    return true;
 }
 
 Server* command_server() { return g_server; }
@@ -2276,7 +2314,8 @@ bool command_prepare_scan_route(Server& server, Op& op) {
         return false;
     }
     uint64_t cursor = 0;
-    if (!parse_u64(op.arg(1), cursor) || (cursor & kScanInnerMask) > kMaxInnerCursor) {
+    if (!command_parse_scan_cursor(op.arg(1), cursor) ||
+        (cursor & kScanInnerMask) > kMaxInnerCursor) {
         reply_err(op.sink(), "ERR invalid cursor"); return false;
     }
     const uint32_t shard = static_cast<uint32_t>(cursor >> 56);

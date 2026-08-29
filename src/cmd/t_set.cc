@@ -236,23 +236,6 @@ bool parse_i64_strict(Slice s, int64_t& out) {
     return true;
 }
 
-bool parse_cursor(Slice s, uint64_t& out) {
-    uint32_t pos = 0;
-    while (pos < s.n && (s.p[pos] == ' ' || (s.p[pos] >= '\t' && s.p[pos] <= '\r'))) pos++;
-    if (pos < s.n && s.p[pos] == '+') pos++;
-    if (pos == s.n || s.p[pos] == '-') return false;
-    uint64_t value = 0;
-    for (; pos < s.n; pos++) {
-        const char ch = s.p[pos];
-        if (ch < '0' || ch > '9') return false;
-        const uint32_t digit = static_cast<uint32_t>(ch - '0');
-        if (value > (std::numeric_limits<uint64_t>::max() - digit) / 10) return false;
-        value = value * 10 + digit;
-    }
-    out = value;
-    return true;
-}
-
 void reply_not_integer(Op& op) {
     reply_err(op.sink(), "ERR value is not an integer or out of range");
 }
@@ -1040,7 +1023,7 @@ bool parse_scan_options(Op& op, ScanOptions& options) {
 template <bool kNotify>
 void cmd_sscan(Shard& shard, Op& op) {
     uint64_t cursor = 0;
-    if (!parse_cursor(op.arg(2), cursor)) {
+    if (!command_parse_scan_cursor(op.arg(2), cursor)) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
