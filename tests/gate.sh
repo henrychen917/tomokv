@@ -44,7 +44,7 @@ SRV=0; SRVLOG=/dev/null
 # 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
 EXPECT_QUICK=217
-EXPECT_FULL=227                 # full without the optional NIC row.
+EXPECT_FULL=228                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -769,6 +769,32 @@ if GATE_DIFFER_ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$CORES} \
   ok "Redis 7.4 differential matrix"
 else
   bad "Redis 7.4 differential matrix"
+fi
+
+# ---- 4d. full tier: glob / scan-cursor grammar parity -----------------------------------------
+# The differential matrix above generates COMMANDS, so it only reaches the glob patterns its
+# generators happen to emit. This row drives the specific patterns where the five former glob copies
+# disagreed with redis -- case sensitivity, [!x], reversed and high-bit ranges, unterminated classes
+# -- plus the cursor and ACL LOG count grammars. It carries its own negative control: the ACL rows
+# are permission-WIDENING checks, which every allow-path test passes by construction.
+GLOBCASE_ORACLE_PORT=${GATE_GLOBCASE_ORACLE_PORT:-$((PORT+2))}
+if boot ./build/tomokv; then
+  taskset -c ${GATE_DIFFER_ORACLE_CORES:-$CORES} \
+      "${GATE_DIFFER_ORACLE_BIN:-${REDIS74_ROOT:-/tmp/claude-1000/redis74}/src/redis-server}" \
+      --port "$GLOBCASE_ORACLE_PORT" --bind 127.0.0.1 --save '' --appendonly no \
+      >/tmp/gate-globcase-oracle.txt 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 60); do
+    (exec 3<>/dev/tcp/127.0.0.1/$GLOBCASE_ORACLE_PORT) 2>/dev/null && break; sleep 0.25
+  done
+  python3 tests/globcase.py 127.0.0.1 "$PORT" 127.0.0.1 "$GLOBCASE_ORACLE_PORT" \
+      >/tmp/gate-globcase.txt 2>&1 \
+      && ok "glob/scan grammar parity vs Redis 7.4" \
+      || bad "glob/scan grammar parity vs Redis 7.4" "see /tmp/gate-globcase.txt"
+  kill -TERM $GLOBCASE_ORACLE 2>/dev/null; wait $GLOBCASE_ORACLE 2>/dev/null
+  stop
+else
+  bad "glob/scan grammar parity vs Redis 7.4" "target boot failed"
 fi
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
