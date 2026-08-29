@@ -570,8 +570,19 @@ private:
                 return false;
             }
         }
+        const bool publishes =
+            (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0;
+        const bool inspect_read_expiry = !task.scatter && !publishes;
+        const uint64_t expired_before = inspect_read_expiry ? shard.stats().expired : 0;
+        const uint64_t field_expired_before =
+            inspect_read_expiry ? shard.store().field_expired() : 0;
         if (!execute(task)) return false;
-        shard.publish_size();
+        // Scatter execution owns its publication below. Ordinary read tasks publish only if a
+        // lazy key/field expiry actually changed the store; unchanged GETs avoid all four stores.
+        if (!task.scatter &&
+            (publishes || shard.stats().expired != expired_before ||
+             shard.store().field_expired() != field_expired_before))
+            shard.publish_size();
         return true;
     }
 
@@ -790,6 +801,9 @@ private:
         if (!t.scatter) self_->note_command(op.spec->id);
 
         if (t.scatter) {
+            const bool publishes =
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0;
+            const uint64_t expired_before = publishes ? 0 : sh.stats().expired;
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
@@ -799,7 +813,9 @@ private:
                 AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
                 xshard_aof_emit(t, sh, op, context);
             }
-            sh.publish_size();
+            // Read-only scatter fragments normally cannot affect any published gauge. Lazy key
+            // expiry is the exception, witnessed by the owner-local expired counter.
+            if (publishes || sh.stats().expired != expired_before) sh.publish_size();
             const ScatterFinish finished = xshard_complete(*srv_, *self_, ring_, t, op);
             if (finished == ScatterFinish::Waiting) return true;
             if (finished == ScatterFinish::Retry) return false;
