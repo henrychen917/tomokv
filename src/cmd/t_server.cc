@@ -2133,8 +2133,8 @@ void cmd_debug(Shard& shard, Op& op) {
     cmd_debug_impl(shard, op);
 }
 
-bool command_glob_match(Slice pattern, Slice text) {
-    return glob_match(pattern, text, true);
+bool command_glob_match(Slice pattern, Slice text, bool nocase) {
+    return glob_match(pattern, text, nocase);
 }
 
 Server* command_server() { return g_server; }

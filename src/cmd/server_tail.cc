@@ -809,7 +809,7 @@ bool command_list(Op& op) {
         std::string name(metadata_name.p, metadata_name.n);
         if (filter_pattern &&
             !command_glob_match(argument, Slice(name.data(),
-                                                static_cast<uint32_t>(name.size())))) continue;
+                                                static_cast<uint32_t>(name.size())), true)) continue;
         if (filter_aclcat && !(command_metadata_categories(*spec) & category_bit)) continue;
         names.push_back(std::move(name));
     }
