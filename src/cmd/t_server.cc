@@ -166,7 +166,7 @@ bool glob_match(const char* pat, size_t pn, const char* text, size_t tn, bool no
                 if (!tn) return false;
                 pat++; pn--;
                 bool negate = false, matched = false;
-                if (pn && (*pat == '^' || *pat == '!')) { negate = true; pat++; pn--; }
+                if (pn && *pat == '^') { negate = true; pat++; pn--; }
                 unsigned char want = static_cast<unsigned char>(*text);
                 if (nocase) want = static_cast<unsigned char>(std::tolower(want));
                 while (pn && *pat != ']') {

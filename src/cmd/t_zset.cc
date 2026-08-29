@@ -2172,7 +2172,7 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
         }
         if (token == '[') {
             bool negate = false, matched = false, closed = false;
-            if (pattern_len && (*pattern == '^' || *pattern == '!')) {
+            if (pattern_len && *pattern == '^') {
                 negate = true;
                 pattern++;
                 pattern_len--;

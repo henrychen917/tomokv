@@ -757,7 +757,7 @@ bool glob_match(const char* pattern, size_t pn, const char* text, size_t tn) {
         }
         if (c == '[') {
             bool negate = false, match = false;
-            if (pn && (*pattern == '^' || *pattern == '!')) { negate = true; pattern++; pn--; }
+            if (pn && *pattern == '^') { negate = true; pattern++; pn--; }
             while (pn && *pattern != ']') {
                 char lo = *pattern++; pn--;
                 if (lo == '\\' && pn) { lo = *pattern++; pn--; }
