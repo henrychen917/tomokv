@@ -1384,6 +1384,7 @@ private:
         for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
             const Role target = srv_->flip_candidate_target(tid);
             if (target == Role::Idle) continue;
+            if (srv_->thread(tid).role() == target) continue; // peer changed with its SMT unit
             srv_->flip_change_role(tid, target); // direct old->new store; no Idle ownership hole
             if (Ring* peer = srv_->thread(tid).ring())
                 (void)ring_.msg_to(*peer, ur_tag(UrKind::Wake, nullptr));

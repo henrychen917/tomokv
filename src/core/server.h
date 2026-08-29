@@ -79,6 +79,8 @@ struct FlipReport {
     uint32_t live_ex = 0;
     uint32_t target_io = 0;
     uint32_t target_ex = 0;
+    uint32_t smt_mode = 0;
+    uint32_t unit_threads = 1;
     bool moving = false;
 };
 
@@ -174,8 +176,9 @@ public:
         }
         const bool placed = cfg.place
             ? placement_.build_explicit(topo_, cfg.place)
-            : placement_.build_even(topo_, di, de);
+            : placement_.build_even(topo_, di, de, cfg.smt_mode != 0);
         if (!placed) return false;
+        if (!placement_.configure_smt_units(topo_, cfg.smt_mode != 0)) return false;
         if (!placement_.reserve_runtime_roles(placement_.total_threads())) return false;
         if (placement_.ifid_threads().empty() || placement_.ex_threads().empty()) {
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
@@ -282,6 +285,8 @@ public:
         report.live_ex = role_count(Role::Ex, true);
         report.target_io = flip_target_io_.load(std::memory_order_acquire);
         report.target_ex = flip_target_ex_.load(std::memory_order_acquire);
+        report.smt_mode = cfg_.smt_mode;
+        report.unit_threads = cfg_.smt_mode ? 2u : 1u;
         report.moving = flip_stage_.load(std::memory_order_acquire) != FlipStage::Idle;
         return report;
     }
@@ -388,7 +393,7 @@ public:
         // through the report form; erasing it was the fork's most damaging control-plane blind spot.
         flip_target_io_.store(target_io, std::memory_order_release);
         flip_target_ex_.store(target_ex, std::memory_order_release);
-        auto refuse = [&](const char* message) {
+        auto refuse = [&](const std::string& message) {
             error = message;
             flip_refused_.fetch_add(1, std::memory_order_relaxed);
             flip_stage_.store(FlipStage::Idle, std::memory_order_release);
@@ -398,6 +403,8 @@ public:
             return refuse("ERR FLIP requires at least one io and one ex thread");
         if (static_cast<uint64_t>(target_io) + static_cast<uint64_t>(target_ex) != nthreads())
             return refuse("ERR FLIP io + ex must equal the existing total thread count");
+        if (cfg_.smt_mode && ((target_io & 1u) || (target_ex & 1u)))
+            return refuse(flip_smt_pairing_error(target_io));
         if (coordinator >= nthreads() || thread(coordinator).role() != Role::Ifid)
             return refuse("ERR FLIP coordinator is not a live io thread");
         if (loading()) return refuse("ERR FLIP is not allowed while loading");
@@ -428,19 +435,39 @@ public:
             for (auto it = placement_.ifid_threads().rbegin();
                  it != placement_.ifid_threads().rend() && selected < conversions; ++it) {
                 const uint32_t tid = *it;
-                if (tid == coordinator || tid == aof_writer || tid == unix_owner_tid_) continue;
-                flip_convert_[tid] = Role::Ex;
-                selected++;
+                if (!cfg_.smt_mode) {
+                    if (tid == coordinator || tid == aof_writer || tid == unix_owner_tid_) continue;
+                    flip_convert_[tid] = Role::Ex;
+                    selected++;
+                    continue;
+                }
+                const uint32_t peer = placement_.smt_peer(tid);
+                if (peer >= nthreads() || tid < peer) continue; // reverse walk: choose each pair once
+                if (tid == coordinator || peer == coordinator ||
+                    tid == aof_writer || peer == aof_writer ||
+                    tid == unix_owner_tid_ || peer == unix_owner_tid_) continue;
+                flip_convert_[tid] = flip_convert_[peer] = Role::Ex;
+                selected += 2;
             }
         } else {
             for (auto it = placement_.ex_threads().rbegin();
                  it != placement_.ex_threads().rend() && selected < conversions; ++it) {
-                flip_convert_[*it] = Role::Ifid;
-                selected++;
+                const uint32_t tid = *it;
+                if (!cfg_.smt_mode) {
+                    flip_convert_[tid] = Role::Ifid;
+                    selected++;
+                    continue;
+                }
+                const uint32_t peer = placement_.smt_peer(tid);
+                if (peer >= nthreads() || tid < peer) continue;
+                flip_convert_[tid] = flip_convert_[peer] = Role::Ifid;
+                selected += 2;
             }
         }
         if (selected != conversions)
             return refuse("ERR FLIP cannot select enough movable threads (coordinator/AOF/UNIX owner pinned)");
+        if (!flip_candidate_pairs_conserved())
+            return refuse("ERR FLIP candidate plan would split an SMT sibling pair");
 
         flip_surviving_io_count_ = 0;
         for (uint32_t tid : placement_.ifid_threads())
@@ -504,16 +531,27 @@ public:
         error = flip_error_;
         return true;
     }
-    void flip_conservation_check() {
+    void flip_conservation_check(bool ready = false) {
         flip_conservation_checks_.fetch_add(1, std::memory_order_relaxed);
-        if (role_count(Role::Ifid) + role_count(Role::Ex) == nthreads()) return;
+        if (role_count(Role::Ifid, ready) + role_count(Role::Ex, ready) == nthreads() &&
+            flip_live_pairs_conserved(ready)) return;
         flip_conservation_violations_.fetch_add(1, std::memory_order_relaxed);
         std::abort();
     }
     void flip_change_role(uint32_t tid, Role role) {
         flip_conservation_check();
-        placement_.set_runtime_role(tid, role);
-        thread(tid).set_role(role);
+        auto change = [&](uint32_t id) {
+            placement_.set_runtime_role(id, role);
+            thread(id).set_role(role);
+        };
+        if (!cfg_.smt_mode) {
+            change(tid);
+        } else {
+            const uint32_t peer = placement_.smt_peer(tid);
+            if (peer >= nthreads() || flip_candidate_target(peer) != role) std::abort();
+            change(tid);
+            change(peer);
+        }
         flip_conservation_check();
     }
     void flip_refuse_active() {
@@ -525,6 +563,7 @@ public:
     }
     void flip_complete_active() {
         flip_conservation_check();
+        flip_conservation_check(true);
         if (role_count(Role::Ifid, true) != flip_target_io() ||
             role_count(Role::Ex, true) != flip_target_ex()) {
             flip_conservation_violations_.fetch_add(1, std::memory_order_relaxed);
@@ -534,6 +573,48 @@ public:
         flip_stage_.store(FlipStage::Idle, std::memory_order_release);
         flip_deadline_ns_.store(0, std::memory_order_release);
     }
+
+private:
+    std::string flip_smt_pairing_error(uint32_t requested_io) const {
+        std::string nearest;
+        auto add = [&](uint32_t io) {
+            if (io < 2 || io + 2 > nthreads()) return;
+            if (!nearest.empty()) nearest += " and ";
+            nearest += std::to_string(io) + ":" + std::to_string(nthreads() - io);
+        };
+        add(requested_io & ~1u);
+        add((requested_io & ~1u) + 2);
+        return "ERR FLIP SMT sibling pairs require even io/ex counts; nearest achievable splits are " +
+               nearest;
+    }
+
+    bool flip_live_pairs_conserved(bool ready) const {
+        if (!cfg_.smt_mode) return true;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            const uint32_t peer = placement_.smt_peer(tid);
+            if (peer >= nthreads()) return false;
+            const Role role = ready ? thread(tid).ready_role() : thread(tid).role();
+            const Role peer_role = ready ? thread(peer).ready_role() : thread(peer).role();
+            if (role != peer_role) return false;
+        }
+        return true;
+    }
+
+    bool flip_candidate_pairs_conserved() const {
+        if (!cfg_.smt_mode) return true;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            const uint32_t peer = placement_.smt_peer(tid);
+            if (peer >= nthreads()) return false;
+            const Role role = flip_convert_[tid] == Role::Idle
+                ? thread(tid).role() : flip_convert_[tid];
+            const Role peer_role = flip_convert_[peer] == Role::Idle
+                ? thread(peer).role() : flip_convert_[peer];
+            if (role != peer_role) return false;
+        }
+        return true;
+    }
+
+public:
 
     bool save_schedule_armed() const {
         return live_save_armed_.load(std::memory_order_relaxed);

@@ -95,9 +95,12 @@ def main():
     control = Conn(timeout=30)
     initial = record(control.cmd("FLIP"))
     live_io, live_ex = initial["live_io"], initial["live_ex"]
+    unit_threads = initial["unit_threads"]
     total = live_io + live_ex
     check("report starts stable", initial["moving"], 0)
     check("initial conservation", total, lambda value: value >= 2)
+    check("report SMT mode is numeric", initial["smt_mode"], lambda value: value in (0, 1))
+    check("report scheduling unit", unit_threads, 2 if initial["smt_mode"] else 1)
     metadata = control.cmd("COMMAND", "INFO", "FLIP")[0]
     check("metadata row names FLIP", metadata[0].lower(), "flip")
     check("metadata inherits fork arity", metadata[1], -2)
@@ -113,6 +116,15 @@ def main():
     check("refused target remains visible", after_refusal["target_io"], total)
     check("refusal is not moving", after_refusal["moving"], 0)
 
+    if initial["smt_mode"]:
+        pair_refused = control.cmd("FLIP", live_io - 1, live_ex + 1)
+        check("split sibling pair refused", pair_refused,
+              is_error_containing("nearest achievable splits"))
+        after_pair_refusal = record(control.cmd("FLIP"))
+        check("pair refusal leaves live io unchanged", after_pair_refusal["live_io"], live_io)
+        check("pair refusal leaves live ex unchanged", after_pair_refusal["live_ex"], live_ex)
+        check("pair refusal reports two-thread unit", after_pair_refusal["unit_threads"], 2)
+
     check("one-argument grammar rejected", control.cmd("FLIP", live_io),
           is_error_containing("wrong number"))
     check("MULTI starts", control.cmd("MULTI"), "OK")
@@ -120,10 +132,10 @@ def main():
           is_error_containing("not allowed inside a transaction"))
     check("DISCARD after forbidden FLIP", control.cmd("DISCARD"), "OK")
 
-    if live_ex <= 1:
-        print("SKIP role-conversion half: the running server has only one EX thread")
+    if live_ex <= unit_threads:
+        print("SKIP role-conversion half: the running server has only one EX unit")
     else:
-        grown_io, grown_ex = live_io + 1, live_ex - 1
+        grown_io, grown_ex = live_io + unit_threads, live_ex - unit_threads
         baseline = int(before.get("flip_completed", "0"))
         seed = [("SET", "flip:seed:%d" % index, "seed:%d" % index)
                 for index in range(256)]

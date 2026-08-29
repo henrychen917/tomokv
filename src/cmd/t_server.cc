@@ -1410,7 +1410,7 @@ void cmd_flip(Shard&, Op& op) {
     }
     const FlipReport report = g_server->flip_report();
     auto sink = op.sink();
-    reply_map_header(sink, 5, op.resp3());
+    reply_map_header(sink, 7, op.resp3());
     reply_bulk(sink, Slice("live_io", 7));
     reply_int(sink, report.live_io);
     reply_bulk(sink, Slice("live_ex", 7));
@@ -1419,6 +1419,10 @@ void cmd_flip(Shard&, Op& op) {
     reply_int(sink, report.target_io);
     reply_bulk(sink, Slice("target_ex", 9));
     reply_int(sink, report.target_ex);
+    reply_bulk(sink, Slice("smt_mode", 8));
+    reply_int(sink, report.smt_mode);
+    reply_bulk(sink, Slice("unit_threads", 12));
+    reply_int(sink, report.unit_threads);
     reply_bulk(sink, Slice("moving", 6));
     reply_bool(sink, report.moving, op.resp3());
 }
@@ -1560,13 +1564,15 @@ void cmd_info(Shard&, Op& op) {
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
-                      "flip_target_ex:%u\r\nflip_in_progress:%u\r\n",
+                      "flip_target_ex:%u\r\nflip_smt_mode:%u\r\n"
+                      "flip_unit_threads:%u\r\nflip_in_progress:%u\r\n",
                 kVersion, kVersion, sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
+                flip.smt_mode, flip.unit_threads,
                 flip.moving ? 1u : 0u);
     }
     if (info_section(op, "CLIENTS")) {

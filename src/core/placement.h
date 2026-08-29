@@ -1,8 +1,8 @@
 // placement.h — per-thread role/cpu placement and the shard migration contract.
 //
-// THREAD IS THE LOCALITY UNIT. Each dense thread id has one role, one cpu and therefore one L3
-// domain. There is deliberately no node layer between a thread and those facts: SMT siblings,
-// cross-CCX layouts and deliberately asymmetric experiments all fit the same representation.
+// A LOGICAL THREAD IS THE DEFAULT LOCALITY UNIT. With smt-mode=1, Linux's reported sibling pair is
+// the scheduling unit instead: both dense thread ids always have one role and FLIP moves them
+// together. There is deliberately no node layer between a thread and its cpu/L3 facts.
 
 #pragma once
 #include <algorithm>
@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <utility>
 #include <vector>
 #include "shard.h"
 #include "thread.h"
@@ -37,8 +38,10 @@ public:
     // role keeps these same quotas incrementally -- pick the convert candidate from the domain
     // whose count for the shrinking role sits above quota and whose count for the growing role
     // sits below it. Placement stays a pure function of (counts, topology); no node layer.
-    bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex) {
+    bool build_even(const Topology& topo, uint32_t n_ifid, uint32_t n_ex,
+                    bool smt_mode = false) {
         clear();
+        if (smt_mode) return build_even_smt(topo, n_ifid, n_ex);
         const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
         const uint64_t total = static_cast<uint64_t>(n_ifid) + n_ex;
         uint64_t cap = 0;
@@ -198,6 +201,66 @@ public:
     const std::vector<uint32_t>& ifid_threads() const { return ifid_; }
     const std::vector<uint32_t>& ex_threads()   const { return ex_; }
 
+    // Resolve cpu siblings to dense thread ids after either placement frontend has run. Pair mode
+    // is a boot contract, not a best effort: a selected cpu with an absent sibling, a non-pair
+    // sysfs topology, or two sibling threads assigned different roles rejects the shape.
+    bool configure_smt_units(const Topology& topo, bool enabled) {
+        smt_peer_.assign(threads_.size(), kNoThread);
+        if (!enabled) return true;
+        std::vector<uint32_t> cpu_to_tid(CPU_SETSIZE, kNoThread);
+        for (uint32_t tid = 0; tid < threads_.size(); tid++) {
+            const int cpu = threads_[tid].cpu;
+            if (cpu < 0 || cpu >= CPU_SETSIZE || cpu_to_tid[cpu] != kNoThread) {
+                std::fprintf(stderr,
+                             "--smt-mode: cpu %d is not a unique provisioned logical cpu\n", cpu);
+                return false;
+            }
+            cpu_to_tid[cpu] = tid;
+        }
+        for (uint32_t tid = 0; tid < threads_.size(); tid++) {
+            const int cpu = threads_[tid].cpu;
+            const std::vector<int>& siblings = topo.thread_siblings(cpu);
+            if (siblings.size() != 2 ||
+                std::find(siblings.begin(), siblings.end(), cpu) == siblings.end()) {
+                std::fprintf(stderr,
+                             "--smt-mode: cpu %d does not have one sysfs sibling\n", cpu);
+                return false;
+            }
+            const int peer_cpu = siblings[0] == cpu ? siblings[1] : siblings[0];
+            const uint32_t peer = peer_cpu >= 0 && peer_cpu < CPU_SETSIZE
+                ? cpu_to_tid[peer_cpu] : kNoThread;
+            if (peer == kNoThread) {
+                std::fprintf(stderr,
+                             "--smt-mode: cpu %d requires sibling cpu %d in the placement\n",
+                             cpu, peer_cpu);
+                return false;
+            }
+            const std::vector<int>& reverse = topo.thread_siblings(peer_cpu);
+            if (reverse.size() != 2 ||
+                std::find(reverse.begin(), reverse.end(), cpu) == reverse.end()) {
+                std::fprintf(stderr,
+                             "--smt-mode: cpu %d and cpu %d are not a reciprocal sysfs pair\n",
+                             cpu, peer_cpu);
+                return false;
+            }
+            if (threads_[peer].role != threads_[tid].role) {
+                std::fprintf(stderr,
+                             "--smt-mode: sibling cpus %d and %d have different roles\n",
+                             cpu, peer_cpu);
+                return false;
+            }
+            smt_peer_[tid] = peer;
+        }
+        for (uint32_t tid = 0; tid < threads_.size(); tid++)
+            if (smt_peer_[tid] == tid || smt_peer_[tid] >= threads_.size() ||
+                smt_peer_[smt_peer_[tid]] != tid) return false;
+        return true;
+    }
+
+    uint32_t smt_peer(uint32_t tid) const {
+        return tid < smt_peer_.size() ? smt_peer_[tid] : kNoThread;
+    }
+
     bool reserve_runtime_roles(uint32_t total) {
         try {
             ifid_.reserve(total);
@@ -229,11 +292,115 @@ public:
     uint32_t shard_home(uint32_t sid) const { return shard_home_[sid]; }
 
 private:
+    bool build_even_smt(const Topology& topo, uint32_t n_ifid, uint32_t n_ex) {
+        if ((n_ifid & 1u) || (n_ex & 1u)) {
+            std::fprintf(stderr,
+                         "--ratio: --smt-mode requires even logical io and ex counts\n");
+            return false;
+        }
+        const uint32_t nd = topo.ndomains() ? topo.ndomains() : 1;
+        using CpuPair = std::pair<int, int>;
+        std::vector<std::vector<CpuPair>> units(nd);
+        std::vector<bool> used(CPU_SETSIZE, false);
+        for (uint32_t d = 0; d < nd; d++) {
+            for (int cpu : topo.cpus_in(d)) {
+                if (used[cpu]) continue;
+                const std::vector<int>& siblings = topo.thread_siblings(cpu);
+                if (siblings.size() != 2 ||
+                    std::find(siblings.begin(), siblings.end(), cpu) == siblings.end()) {
+                    std::fprintf(stderr,
+                                 "--smt-mode: cpu %d does not have one sysfs sibling\n", cpu);
+                    return false;
+                }
+                const int peer = siblings[0] == cpu ? siblings[1] : siblings[0];
+                const uint32_t peer_domain = topo.domain_of(peer);
+                if (peer_domain == kNoDomain) continue; // incomplete affinity unit is unavailable
+                if (peer_domain != d) {
+                    std::fprintf(stderr,
+                                 "--smt-mode: sibling cpus %d and %d span L3 domains\n",
+                                 cpu, peer);
+                    return false;
+                }
+                const std::vector<int>& reverse = topo.thread_siblings(peer);
+                if (reverse.size() != 2 ||
+                    std::find(reverse.begin(), reverse.end(), cpu) == reverse.end()) {
+                    std::fprintf(stderr,
+                                 "--smt-mode: cpu %d and cpu %d are not a reciprocal sysfs pair\n",
+                                 cpu, peer);
+                    return false;
+                }
+                if (used[peer]) {
+                    std::fprintf(stderr, "--smt-mode: cpu %d belongs to two sibling units\n", peer);
+                    return false;
+                }
+                used[cpu] = used[peer] = true;
+                units[d].push_back(CpuPair{cpu, peer});
+            }
+        }
+
+        const uint64_t total = static_cast<uint64_t>(n_ifid) + n_ex;
+        uint64_t capacity_units = 0;
+        for (const auto& domain : units) capacity_units += domain.size();
+        if (total > capacity_units * 2) {
+            std::fprintf(stderr,
+                         "--ratio: %llu threads but only %llu complete SMT pairs are allowed\n",
+                         static_cast<unsigned long long>(total),
+                         static_cast<unsigned long long>(capacity_units));
+            return false;
+        }
+        if (total > kMaxThreads) {
+            std::fprintf(stderr, "--ratio: %llu threads exceeds the %u-thread channel limit\n",
+                         static_cast<unsigned long long>(total), kMaxThreads);
+            return false;
+        }
+
+        std::vector<uint32_t> qi(nd), qe(nd);
+        auto spread = [nd](uint32_t count, std::vector<uint32_t>& quotas) {
+            for (uint32_t d = 0; d < nd; d++)
+                quotas[d] = count / nd + (d < count % nd ? 1u : 0u);
+        };
+        spread(n_ifid / 2, qi);
+        spread(n_ex / 2, qe);
+        for (uint32_t d = 0; d < nd; d++) {
+            while (qi[d] + qe[d] > units[d].size()) {
+                uint32_t target = kNoDomain;
+                uint64_t best_room = 0;
+                for (uint32_t other = 0; other < nd; other++) {
+                    if (other == d) continue;
+                    const uint64_t assigned = qi[other] + qe[other];
+                    if (units[other].size() > assigned &&
+                        units[other].size() - assigned > best_room) {
+                        best_room = units[other].size() - assigned;
+                        target = other;
+                    }
+                }
+                if (target == kNoDomain) {
+                    std::fprintf(stderr, "--ratio: no domain has an SMT pair to rebalance\n");
+                    return false;
+                }
+                if (qe[d]) { qe[d]--; qe[target]++; }
+                else       { qi[d]--; qi[target]++; }
+            }
+        }
+        for (uint32_t d = 0; d < nd; d++) {
+            uint32_t slot = 0;
+            auto append_pair = [&](Role role) {
+                const CpuPair& pair = units[d][slot++];
+                append(role, pair.first, d);
+                append(role, pair.second, d);
+            };
+            for (uint32_t count = 0; count < qi[d]; count++) append_pair(Role::Ifid);
+            for (uint32_t count = 0; count < qe[d]; count++) append_pair(Role::Ex);
+        }
+        return true;
+    }
+
     void clear() {
         threads_.clear();
         ifid_.clear();
         ex_.clear();
         shard_home_.clear();
+        smt_peer_.clear();
     }
 
     void append(Role role, int cpu, uint32_t domain) {
@@ -263,6 +430,7 @@ private:
     std::vector<uint32_t> ifid_;
     std::vector<uint32_t> ex_;
     std::vector<uint32_t> shard_home_;
+    std::vector<uint32_t> smt_peer_;
 };
 
 // ---------------------------------------------------------------------------------------------

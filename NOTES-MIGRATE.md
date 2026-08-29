@@ -203,10 +203,18 @@ FLIP
 FLIP <io> <ex>
 ```
 
-The no-argument form reports `live_io`, `live_ex`, `target_io`, `target_ex`, and
-whether a transition is moving.  The mutating form returns `+OK` only after the
-live split equals the target.  IO and EX must both be positive and `io + ex` must
-equal the provisioned physical-thread count.
+The no-argument form reports `live_io`, `live_ex`, `target_io`, `target_ex`,
+`smt_mode`, `unit_threads`, and whether a transition is moving.  The mutating form
+returns `+OK` only after the live split equals the target.  IO and EX must both be
+positive and `io + ex` must equal the provisioned logical-thread count.
+
+`smt-mode 0` is the explicit default and preserves logical-thread-independent
+placement and FLIP selection.  `smt-mode 1` reads Linux
+`cpuN/topology/thread_siblings_list`, requires both logical CPUs of every selected
+physical core to be present with the same role, and converts both together.  A
+requested split with an odd IO or EX count is refused before quiescence, without
+rounding; the error names the adjacent even `io:ex` splits and the report retains
+the refused target beside `unit_threads=2`.
 
 The command inherits the fork's flags: write, admin, no-script, no-MULTI, and
 no-async-loading.  Existing C++ admin commands are not generally hidden behind
