@@ -2509,7 +2509,8 @@ ordinary_dispatch:
                 op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
                 op->shard = srv_->router().shard_of(op->hash);
             }
-            ThreadCtx& worker = srv_->thread(srv_->worker_of_shard(op->shard));
+            const uint32_t worker_id = srv_->worker_of_shard(op->shard);
+            ThreadCtx& worker = srv_->thread(worker_id);
 
             // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
             // left a window of two instructions in which a worker could receive the task, execute it,
@@ -2551,9 +2552,9 @@ ordinary_dispatch:
             }
             conn.advance_parse(consumed);
             sig.ops++;
-            {
-                const uint32_t wkr = static_cast<uint32_t>(srv_->worker_of_shard(op->shard));
-                if (!touched_[wkr]) { touched_[wkr] = true; touched_list_[ntouched_++] = wkr; }
+            if (!touched_[worker_id]) {
+                touched_[worker_id] = true;
+                touched_list_[ntouched_++] = worker_id;
             }
             mark_active(c);
         }
