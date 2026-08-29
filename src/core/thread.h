@@ -97,6 +97,7 @@ public:
     using RoleCancelFn = void (*)(void*);
     using ClientRegistrationPrepareFn = bool (*)(void*, Client*);
     using ClientRegistrationCancelFn = void (*)(void*, Client*);
+    using ClientCapacityPrepareFn = bool (*)(void*, uint32_t);
     ThreadCtx() = default;
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
@@ -138,6 +139,9 @@ public:
         client_registration_prepare_ = prepare;
         client_registration_cancel_ = cancel;
     }
+    void bind_client_capacity_hook(ClientCapacityPrepareFn prepare) {
+        client_capacity_prepare_ = prepare;
+    }
     bool prepare_io_role() {
         return io_role_prepare_ && io_role_prepare_(io_role_context_);
     }
@@ -151,6 +155,9 @@ public:
     void cancel_client_registration(Client* client) {
         if (!client_registration_cancel_) std::abort();
         client_registration_cancel_(io_role_context_, client);
+    }
+    bool prepare_client_capacity(uint32_t incoming) {
+        return client_capacity_prepare_ && client_capacity_prepare_(io_role_context_, incoming);
     }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
@@ -347,6 +354,19 @@ public:
     std::vector<Shard*>&  shards()  { return shards_; }    // Ex role
     const std::vector<Shard*>& shards() const { return shards_; }
     std::vector<Client*>& clients() { return clients_; }   // Ifid role
+    uint32_t client_count() const { return client_count_.load(std::memory_order_acquire); }
+    void add_client(Client* client) {
+        clients_.push_back(client);
+        client_count_.fetch_add(1, std::memory_order_release);
+    }
+    bool remove_client(Client* client) {
+        auto found = std::find(clients_.begin(), clients_.end(), client);
+        if (found == clients_.end()) return false;
+        *found = clients_.back();
+        clients_.pop_back();
+        if (client_count_.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+        return true;
+    }
 
     // The single reporting surface. Every loop fills the same fields in the same units, so a
     // controller compares like with like — the failure mode behind every balancer defect in the
@@ -527,6 +547,7 @@ private:
     RoleCancelFn io_role_cancel_ = nullptr;
     ClientRegistrationPrepareFn client_registration_prepare_ = nullptr;
     ClientRegistrationCancelFn client_registration_cancel_ = nullptr;
+    ClientCapacityPrepareFn client_capacity_prepare_ = nullptr;
 
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;
@@ -559,6 +580,7 @@ private:
 
     std::vector<Shard*>  shards_;
     std::vector<Client*> clients_;
+    std::atomic<uint32_t> client_count_{0};
     LoopSignals          sig_;
     // Cold publication only: keep every pre-existing ThreadCtx member at its current offset.
     std::atomic<WbEngine*> wb_engine_{nullptr};

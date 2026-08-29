@@ -1163,8 +1163,10 @@ private:
     bool request_client_transfer_impl(Client* client, uint32_t destination,
                                       bool hold_for_commit, std::string& error) {
         if (!client_transfer_ready(client, destination, error)) return false;
-        if (srv_->thread(destination).role() != Role::Ifid) {
-            error = "destination thread is not a live IO owner";
+        if (srv_->thread(destination).role() != Role::Ifid &&
+            !(srv_->flip_stage() != FlipStage::Idle &&
+              srv_->flip_final_role(destination) == Role::Ifid)) {
+            error = "destination thread is not a current or prepared IO owner";
             return false;
         }
         if (find_client_migration(client)) {
@@ -1277,11 +1279,7 @@ private:
         // Destination epoll readiness may arrive as soon as the owner store publishes. This
         // sentinel keeps those events inert until the pre-reserved client/catalog/WB install.
         client->set_wb_slot(Client::kWbMigrationInstalling);
-        auto& clients = self_->clients();
-        auto found = std::find(clients.begin(), clients.end(), client);
-        if (found == clients.end()) std::abort();
-        *found = clients.back();
-        clients.pop_back();
+        if (!self_->remove_client(client)) std::abort();
 
         const ClientTransfer transfer{client, catalog, self_->id()};
         client->set_ifid_thread(destination); // THE single connection ownership edge
@@ -1343,7 +1341,7 @@ private:
             if (!client || client->ifid_thread() != self_->id()) std::abort();
             if (!command_client_migration_install(transfer.catalog)) std::abort();
             try {
-                self_->clients().push_back(client);
+                self_->add_client(client);
             } catch (...) {
                 std::abort();
             }
@@ -1382,9 +1380,20 @@ private:
 
     bool flip_candidate_clients_ready(std::string& error) const {
         uint32_t ordinal = 0;
+        std::string refused;
         for (Client* client : self_->clients()) {
+            if (client == flip_client_) continue;
+            if (ordinal == srv_->flip_source_clients(self_->id())) break;
             const uint32_t destination = srv_->flip_client_destination(self_->id(), ordinal++);
-            if (!client_transfer_ready(client, destination, error)) return false;
+            if (!client_transfer_ready(client, destination, refused)) {
+                ordinal--;
+                continue;
+            }
+        }
+        if (ordinal != srv_->flip_source_clients(self_->id())) {
+            error = refused.empty()
+                ? "the FLIP coordinator connection cannot move before its reply" : refused;
+            return false;
         }
         return true;
     }
@@ -1423,24 +1432,16 @@ private:
     }
 
     void flip_commit_roles_and_evacuate_shards() {
-        // EX -> IO: the old executor remains the owner while every whole physical shard is handed
-        // to an executor which will survive the role edge.
-        uint32_t final_ex[kMaxThreads] = {};
-        uint32_t final_ex_count = 0;
-        for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
-            const Role target = srv_->flip_candidate_target(tid);
-            const Role final_role = target == Role::Idle ? srv_->thread(tid).role() : target;
-            if (final_role == Role::Ex) final_ex[final_ex_count++] = tid;
-        }
-        if (!final_ex_count) std::abort();
-        uint32_t rr = 0;
-        for (uint32_t source = 0; source < srv_->nthreads(); source++) {
-            if (srv_->flip_candidate_target(source) != Role::Ifid) continue;
-            while (!srv_->thread(source).shards().empty()) {
-                Shard* shard = srv_->thread(source).shards().back();
-                const uint32_t destination = final_ex[rr++ % final_ex_count];
-                if (!srv_->transfer_shard_quiesced(shard->id(), source, destination)) std::abort();
-            }
+        // The exact final owner of every physical shard was chosen and reserved before CLIENT
+        // COMMIT. A future EX may receive into its dormant shard vector while dispatch is paused;
+        // this avoids a staging owner and makes every changed shard cross exactly one owner edge.
+        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+            const uint32_t source = srv_->worker_of_shard(static_cast<int32_t>(sid));
+            const uint32_t destination = srv_->flip_shard_destination(sid);
+            if (source == destination) continue;
+            if (!srv_->transfer_shard_quiesced(static_cast<int32_t>(sid), source, destination))
+                std::abort();
+            srv_->flip_note_bucket_transferred();
         }
 
         for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
@@ -1454,18 +1455,6 @@ private:
         flip_publish_stage(FlipStage::RoleReady);
     }
 
-    void flip_rebalance_new_executors() {
-        const auto& executors = srv_->placement().ex_threads();
-        if (executors.empty()) std::abort();
-        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
-            const uint32_t destination = executors[sid % executors.size()];
-            const uint32_t source = srv_->worker_of_shard(static_cast<int32_t>(sid));
-            if (source == destination) continue;
-            if (!srv_->transfer_shard_quiesced(static_cast<int32_t>(sid), source, destination))
-                std::abort();
-        }
-    }
-
     template <bool kEp>
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
@@ -1473,15 +1462,6 @@ private:
 
         if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage) &&
             flip_io_drained()) {
-            if (srv_->flip_candidate_target(self_->id()) == Role::Ex) {
-                std::string error;
-                if (!flip_candidate_clients_ready(error)) {
-                    srv_->flip_note_failure("ERR FLIP cannot quiesce a connection: " + error);
-                } else if (!srv_->flip_publish_client_plan(
-                               self_->id(), static_cast<uint32_t>(self_->clients().size()), error)) {
-                    srv_->flip_note_failure(error);
-                }
-            }
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::IoPrepare &&
                    !srv_->flip_acked(self_->id(), stage)) {
@@ -1493,36 +1473,42 @@ private:
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
             if (converting_to_ex) quiesce_accepts_for_conversion();
-            if (converting_to_ex &&
+            const uint32_t planned = srv_->flip_source_clients(self_->id());
+            if (planned &&
                 flip_prepare_epoch_ != srv_->flip_epoch()) {
                 flip_prepare_epoch_ = srv_->flip_epoch();
-                const uint32_t count = static_cast<uint32_t>(self_->clients().size());
-                if (!reserve_client_transfer_state(count)) {
+                std::string ready_error;
+                if (!flip_candidate_clients_ready(ready_error)) {
+                    srv_->flip_note_failure("ERR FLIP cannot quiesce a connection: " + ready_error);
+                } else if (!reserve_client_transfer_state(planned)) {
                     srv_->flip_note_failure("ERR FLIP could not reserve source connection state");
                 } else {
-                    for (uint32_t i = 0; i < count; i++) {
-                        Client* client = self_->clients()[i];
+                    uint32_t ordinal = 0;
+                    for (Client* client : self_->clients()) {
+                        if (client == flip_client_) continue;
+                        if (ordinal == planned) break;
                         std::string error;
+                        if (!client_transfer_ready(
+                                client, srv_->flip_client_destination(self_->id(), ordinal), error))
+                            continue;
                         if (!prepare_client_transfer(
-                                client, srv_->flip_client_destination(self_->id(), i), error)) {
+                                client, srv_->flip_client_destination(self_->id(), ordinal), error)) {
                             srv_->flip_note_failure("ERR FLIP could not detach a connection: " + error);
                             break;
                         }
+                        ordinal++;
                     }
                 }
             }
-            if (!converting_to_ex ||
-                (client_transfers_prepared() &&
-                 client_migrations_.size() == srv_->flip_source_clients(self_->id()) &&
-                 accepts_quiesced()))
+            const bool accepts_ready = !converting_to_ex || accepts_quiesced();
+            if (client_transfers_prepared() && client_migrations_.size() == planned && accepts_ready)
                 srv_->flip_ack(self_->id(), stage);
-            else if (converting_to_ex && client_transfers_prepared() &&
-                     client_migrations_.size() != srv_->flip_source_clients(self_->id()))
+            else if (client_transfers_prepared() && client_migrations_.size() != planned)
                 srv_->flip_note_failure(
                     "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&
                    !srv_->flip_acked(self_->id(), stage)) {
-            if (srv_->flip_candidate_target(self_->id()) == Role::Ex)
+            if (srv_->flip_source_clients(self_->id()))
                 commit_prepared_client_transfers_impl<kEp>();
             srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::ClientInstall &&
@@ -1536,6 +1522,11 @@ private:
             // closes its listener; surviving IO rings deliberately retain their armed accepts.
             if (flip_io_drained() && self_->client_transfers_quiesced() &&
                 (!converting_to_ex || accepts_quiesced()))
+                srv_->flip_ack(self_->id(), stage);
+        } else if (stage == FlipStage::RoleReady &&
+                   !srv_->flip_acked(self_->id(), stage)) {
+            if (self_->client_transfers_quiesced() &&
+                self_->client_count() == srv_->flip_client_quota(self_->id()))
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::Rollback &&
                    !srv_->flip_acked(self_->id(), stage)) {
@@ -1566,7 +1557,10 @@ private:
         switch (stage) {
             case FlipStage::IoDrain:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
-                    flip_publish_stage(FlipStage::IoPrepare);
+                    if (!srv_->flip_build_client_plan(failure))
+                        flip_enter_rollback(failure);
+                    else
+                        flip_publish_stage(FlipStage::IoPrepare);
                 }
                 break;
             case FlipStage::IoPrepare: {
@@ -1606,9 +1600,10 @@ private:
                         ready = false;
                 }
                 if (ready) {
-                    flip_publish_stage(FlipStage::ShardCommit);
-                    flip_rebalance_new_executors();
-                    flip_publish_stage(FlipStage::ExInstall);
+                    if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
+                        flip_publish_stage(FlipStage::ShardCommit);
+                        flip_publish_stage(FlipStage::ExInstall);
+                    }
                 }
                 break;
             }
@@ -1644,7 +1639,7 @@ private:
                          ur_tag(UrKind::Recv, c))) {
                 std::fprintf(stderr, "epoll registration failed for client fd %d\n", c->fd());
                 self_->sig().accept_err++;
-                self_->clients().push_back(c);
+                self_->add_client(c);
                 c->set_wb_slot(self_->assign_wb_slot(c));
                 close_client(c);
                 return;
@@ -1669,7 +1664,7 @@ private:
         c->set_ifid_thread(self_->id());
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
-        self_->clients().push_back(c);
+        self_->add_client(c);
         const std::string addr = socket_address(c->fd(), unix_socket, true);
         const std::string laddr = socket_address(c->fd(), unix_socket, false);
         const uint64_t accepted_ms = cached_now_ms_ ? cached_now_ms_ : now_ns() / 1000000ull;
@@ -3124,9 +3119,7 @@ nonblocking_dispatch:
         if (!pubsub_disconnect_ready(c)) { mark_active(c); return; }
         c->set_in_active(false);
         active_.erase(c);
-        auto& v = self_->clients();
-        for (size_t i = 0; i < v.size(); i++)
-            if (v[i] == c) { v[i] = v.back(); v.pop_back(); break; }
+        (void)self_->remove_client(c);
         // THE RETRY IS THE LOAD-BEARING PART of this wait: the client left the active set when it
         // went quiet, so nothing revisits it unless mark_active puts it back -- returning without
         // doing so leaked the entire client (~137KB) per disconnect once. Only a quiesced,

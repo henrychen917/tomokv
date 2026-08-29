@@ -1410,7 +1410,7 @@ void cmd_flip(Shard&, Op& op) {
     }
     const FlipReport report = g_server->flip_report();
     auto sink = op.sink();
-    reply_map_header(sink, 7, op.resp3());
+    reply_map_header(sink, 12, op.resp3());
     reply_bulk(sink, Slice("live_io", 7));
     reply_int(sink, report.live_io);
     reply_bulk(sink, Slice("live_ex", 7));
@@ -1423,6 +1423,16 @@ void cmd_flip(Shard&, Op& op) {
     reply_int(sink, report.smt_mode);
     reply_bulk(sink, Slice("unit_threads", 12));
     reply_int(sink, report.unit_threads);
+    reply_bulk(sink, Slice("bucket_min", 10));
+    reply_int(sink, report.bucket_min);
+    reply_bulk(sink, Slice("bucket_max", 10));
+    reply_int(sink, report.bucket_max);
+    reply_bulk(sink, Slice("client_min", 10));
+    reply_int(sink, report.client_min);
+    reply_bulk(sink, Slice("client_max", 10));
+    reply_int(sink, report.client_max);
+    reply_bulk(sink, Slice("last_transfers", 14));
+    reply_int(sink, report.last_transfers);
     reply_bulk(sink, Slice("moving", 6));
     reply_bool(sink, report.moving, op.resp3());
 }
@@ -1565,14 +1575,18 @@ void cmd_info(Shard&, Op& op) {
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
                       "flip_target_ex:%u\r\nflip_smt_mode:%u\r\n"
-                      "flip_unit_threads:%u\r\nflip_in_progress:%u\r\n",
+                      "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
+                      "flip_client_min:%u\r\nflip_client_max:%u\r\n"
+                      "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
                 kVersion, kVersion, sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
-                flip.smt_mode, flip.unit_threads,
+                flip.smt_mode, flip.unit_threads, flip.bucket_min, flip.bucket_max,
+                flip.client_min, flip.client_max,
+                static_cast<unsigned long long>(flip.last_transfers),
                 flip.moving ? 1u : 0u);
     }
     if (info_section(op, "CLIENTS")) {
@@ -1891,12 +1905,14 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_releases_held() : 0));
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
-                "flip_clients_transferred:%llu\r\n"
+                "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
                 "flip_conservation_checks:%llu\r\nflip_conservation_violations:%llu\r\n",
                 static_cast<unsigned long long>(g_server ? g_server->flip_completed() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->flip_refused() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_clients_transferred() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->flip_last_transfers() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(

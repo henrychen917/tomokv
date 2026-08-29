@@ -118,6 +118,16 @@ def ordered_inflight(replies, expected):
     return True
 
 
+def distribution(report):
+    return (report["bucket_min"], report["bucket_max"],
+            report["client_min"], report["client_max"])
+
+
+def balanced(report):
+    return (report["bucket_max"] - report["bucket_min"] <= 1 and
+            report["client_max"] - report["client_min"] <= 1)
+
+
 def main():
     control = Conn(timeout=30)
     initial = record(control.cmd("FLIP"))
@@ -128,6 +138,9 @@ def main():
     check("initial conservation", total, lambda value: value >= 2)
     check("report SMT mode is numeric", initial["smt_mode"], lambda value: value in (0, 1))
     check("report scheduling unit", unit_threads, 2 if initial["smt_mode"] else 1)
+    check("report exposes bucket bounds", "bucket_min" in initial and "bucket_max" in initial, True)
+    check("report exposes client bounds", "client_min" in initial and "client_max" in initial, True)
+    check("report exposes last-FLIP transfer count", "last_transfers" in initial, True)
     metadata = control.cmd("COMMAND", "INFO", "FLIP")[0]
     check("metadata row names FLIP", metadata[0].lower(), "flip")
     check("metadata inherits fork arity", metadata[1], -2)
@@ -154,19 +167,9 @@ def main():
         check("write complete known keyspace", control.pipeline(seed), ["OK"] * len(seed))
         verify_keyspace(control, keys, "known keyspace readable before FLIP")
 
-        check("EX -> IO completes", control.cmd("FLIP", grown_io, grown_ex), "OK")
-        grown = record(control.cmd("FLIP"))
-        check("grown live io", grown["live_io"], grown_io)
-        check("grown live ex", grown["live_ex"], grown_ex)
-        check("grown target io", grown["target_io"], grown_io)
-        check("grown target ex", grown["target_ex"], grown_ex)
-        after_grow_stats = info(control, "stats")
-        check("first FLIP counter proves actuation",
-              int(after_grow_stats["flip_completed"]), lambda value: value >= baseline + 1)
-        verify_keyspace(control, keys, "every key/value survives EX -> IO")
-
-        # These connections are created after the extra IO listener is live. With SO_REUSEPORT a
-        # subset should land on it; the reverse FLIP must transfer every such connection intact.
+        # Open and identify every held socket before adding IO owners. The future IO threads start
+        # with zero connections, making this target shape deliberately lopsided; the first FLIP must
+        # populate them automatically while preserving every connection and its protocol order.
         clients = [Conn(timeout=30) for _ in range(96)]
         for index, client in enumerate(clients):
             replies = client.pipeline([
@@ -174,8 +177,49 @@ def main():
                 ("GET", "flip:key:%d" % index),
                 ("PING",),
             ])
-            check("pre-shrink pipeline %d" % index, replies,
+            check("pre-grow pipeline %d" % index, replies,
                   ["OK", "value:%d" % index, "PONG"])
+
+        check("EX -> IO completes", control.cmd("FLIP", grown_io, grown_ex), "OK")
+        grown = record(control.cmd("FLIP"))
+        check("grown live io", grown["live_io"], grown_io)
+        check("grown live ex", grown["live_ex"], grown_ex)
+        check("grown target io", grown["target_io"], grown_io)
+        check("grown target ex", grown["target_ex"], grown_ex)
+        check("lopsided FLIP balances buckets and clients", grown, balanced)
+        check("bucket balance bound is explicit",
+              grown["bucket_max"] - grown["bucket_min"], lambda value: value <= 1)
+        check("client balance bound is explicit",
+              grown["client_max"] - grown["client_min"], lambda value: value <= 1)
+        check("rebalancing FLIP reports ownership transfers", grown["last_transfers"],
+              lambda value: value > 0)
+        after_grow_stats = info(control, "stats")
+        check("first FLIP counter proves actuation",
+              int(after_grow_stats["flip_completed"]), lambda value: value >= baseline + 1)
+        verify_keyspace(control, keys, "every key/value survives EX -> IO")
+        for index, client in enumerate(clients):
+            check("connection survives and is ordered after balancing grow %d" % index,
+                  client.pipeline([
+                      ("GET", "flip:key:%d" % index),
+                      ("ECHO", "grown:%d" % index),
+                      ("PING",),
+                  ]),
+                  ["value:%d" % index, "grown:%d" % index, "PONG"])
+
+        # Negative movement control and determinism: from an already balanced state, the same FLIP
+        # twice must retain exactly the same distribution and perform no owner transfer either time.
+        balanced_once = distribution(grown)
+        check("balanced no-op FLIP completes", control.cmd("FLIP", grown_io, grown_ex), "OK")
+        no_move_one = record(control.cmd("FLIP"))
+        check("balanced no-op performs zero transfers", no_move_one["last_transfers"], 0)
+        check("balanced no-op retains distribution", distribution(no_move_one), balanced_once)
+        check("same-state deterministic FLIP completes",
+              control.cmd("FLIP", grown_io, grown_ex), "OK")
+        no_move_two = record(control.cmd("FLIP"))
+        check("same-state deterministic FLIP performs zero transfers",
+              no_move_two["last_transfers"], 0)
+        check("same flip from same state yields same distribution",
+              distribution(no_move_two), distribution(no_move_one))
 
         # NEGATIVE CONTROL with the full keyspace and all client sockets already live. SMT mode
         # uses an odd conserved split; logical mode uses a bad total. Neither may enter quiescence.
@@ -263,6 +307,11 @@ def main():
         restored = record(control.cmd("FLIP"))
         check("restored live io", restored["live_io"], live_io)
         check("restored live ex", restored["live_ex"], live_ex)
+        check("rebalancing shrink balances buckets and clients", restored, balanced)
+        check("restored bucket max-min bound",
+              restored["bucket_max"] - restored["bucket_min"], lambda value: value <= 1)
+        check("restored client max-min bound",
+              restored["client_max"] - restored["client_min"], lambda value: value <= 1)
         verify_keyspace(control, keys, "every key/value survives IO -> EX")
         for index, client in enumerate(clients):
             check("migrated connection %d" % index,

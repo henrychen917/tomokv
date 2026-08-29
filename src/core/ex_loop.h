@@ -199,6 +199,8 @@ private:
             !srv_->flip_acked(self_->id(), stage)) {
             if (!self_->prepare_io_role())
                 srv_->flip_note_failure("ERR FLIP could not prepare a new IO listener");
+            else if (!self_->prepare_client_capacity(srv_->flip_incoming_clients(self_->id())))
+                srv_->flip_note_failure("ERR FLIP could not reserve destination connection state");
             srv_->flip_ack(self_->id(), stage);
             return 1;
         }

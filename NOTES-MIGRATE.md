@@ -172,11 +172,11 @@ buffer is drained rather than moved while it contains work.
 8. **DESTINATION ACTIVE** — destination resumes parsing and retirement using the
    unchanged, empty ROB and any buffered input bytes.
 
-FLIP records the exact number of clients planned from each converting source and
-will not acknowledge CLIENT PREPARE unless that many reversible migration records
-exist. A cancellation/error therefore cannot silently shrink the plan into a
-successful partial FLIP. `flip_clients_transferred` counts owner edges as a live
-mechanism witness.
+FLIP records the exact number of clients planned from every current IO source,
+including an over-quota IO which keeps its role, and will not acknowledge CLIENT
+PREPARE unless that many reversible migration records exist. A cancellation/error
+therefore cannot silently shrink the plan into a successful partial FLIP.
+`flip_clients_transferred` counts owner edges as a live mechanism witness.
 
 ### In-flight cases
 
@@ -210,8 +210,9 @@ client modes is preferable to copying hidden loop-local state or violating the
 ROB/borrow contract.
 
 The refusal-only cases are explicit. TLS, blocked WAIT, pub/sub, tracking,
-MONITOR, CLIENT REPLY state, MULTI, and WATCH are refused when their owner would
-convert. So are insufficient client/catalog/channel/vector capacity, failure to
+MONITOR, CLIENT REPLY state, MULTI, and WATCH are refused when balance requires
+that connection to leave its owner (a survivor may keep such a connection inside
+its quota). So are insufficient client/catalog/channel/vector capacity, failure to
 duplicate or pre-register an epoll fd, a recv cancellation which cannot reach its
 pointer fence, a non-quiescent ROB/reply/borrow/OOB state, or an invalid shard
 partition. All occur before the first owner store. An actual peer disconnect or
@@ -229,9 +230,48 @@ FLIP <io> <ex>
 ```
 
 The no-argument form reports `live_io`, `live_ex`, `target_io`, `target_ex`,
-`smt_mode`, `unit_threads`, and whether a transition is moving.  The mutating form
-returns `+OK` only after the live split equals the target.  IO and EX must both be
-positive and `io + ex` must equal the provisioned logical-thread count.
+`smt_mode`, `unit_threads`, whether a transition is moving, the resulting
+`bucket_min`/`bucket_max` and `client_min`/`client_max`, and `last_transfers`.
+The mutating form returns `+OK` only after the live split equals the target and
+both ownership dimensions are balanced. IO and EX must both be positive and
+`io + ex` must equal the provisioned logical-thread count.
+
+### Automatic arithmetic rebalance
+
+Every mutating FLIP, including `FLIP <live_io> <live_ex>`, plans both dimensions.
+There is no load sampler, throughput signal, timer, hill-climb, or automatic
+target selection in this lane.
+
+For `N` owned objects and `O` final owners, an even distribution means every
+owner has either `floor(N/O)` or `ceil(N/O)` objects. Equivalently, and this is
+asserted before `+OK`, `max(count) - min(count) <= 1`. Client objects are live
+connections. A bucket object is the existing indivisible bucket-transfer unit:
+one complete physical `Shard` and its aligned router-bucket range. The range may
+contain many of the 16,384 routing slots, but splitting that non-thread-safe store
+would violate single ownership.
+
+The remainder quotas are assigned where the extra object saves a transfer; equal
+savings are broken by lowest thread id. Sources and deficits are then visited in
+ascending thread-id order. On an over-quota bucket owner, shard id is the stable
+tie-break: the lowest ids stay. On an over-quota client owner, stable owner-local
+connection order selects movable clients, and destinations still use lowest
+thread id first. Thus the same state produces the same distribution.
+
+Movement is minimal. Once deterministic quota `q[t]` is fixed, every plan must
+move at least
+
+```
+sum over current owners t of max(current[t] - q[t], 0)
+```
+
+objects; a retiring owner has `q[t] = 0`. The implementation moves exactly that
+many buckets and exactly that many clients. An owner which survives at or below
+quota loses none of its objects. A future owner receives only deficits. A shard
+destined for a new EX is transferred directly into that thread's dormant EX
+vector while dispatch is paused, so it crosses one ownership edge rather than a
+temporary staging owner. `last_transfers` is the sum of bucket and client owner
+edges performed by the last successful FLIP; an already-balanced same-shape FLIP
+therefore reports zero.
 
 `smt-mode 0` is the explicit default and preserves logical-thread-independent
 placement and FLIP selection.  `smt-mode 1` reads Linux
@@ -256,18 +296,21 @@ admin-command convention and does not invent a new configuration knob or gate.
    movable candidates (the requester, AOF writer, and UNIX owner are pinned).
    Publish the dispatch pause.  Ordinary requests parsed during the pause receive
    `BUSY` locally and create no executor work; FLIP report/control requests remain
-   available so live-vs-target is observable in flight.  Each IO drains ROBs, replies, OOB, zero-copy
-   borrows, completion/transfer channels, and retry state.  Candidate sources
-   preflight every client and publish their own capacity plan before acknowledging.
+   available so live-vs-target is observable in flight. Each IO drains ROBs,
+   replies, OOB, zero-copy borrows, completion/transfer channels, and retry state.
+   The coordinator reads the frozen counts, assigns deterministic final client
+   quotas and exact source/destination edges, and checks every SPSC lane's capacity.
 3. **IO PREPARE** — future/current IO owners reserve Client, WB, catalog, and
    transfer-inbox storage.  A future IO creates its fallible TCP/TLS listener on
    its own physical thread but does not publish that loop as the role endpoint.
 4. **EX DRAIN** — every EX drains tasks, releases, retries, notify/AOF output,
    scatter/atomic witnesses, then acknowledges a hard safe point.  Once
    acknowledged it performs no expiry, cleanup, waiter, or shard walk until EX
-   INSTALL.  Mask-independent inbox drains prevent a missing hint from faking
-   quiescence.
-5. **CLIENT PREPARE** — selected IO sources pre-register both epoll outcomes or cancel io_uring recv
+   INSTALL. Mask-independent inbox drains prevent a missing hint from faking
+   quiescence. The coordinator computes every final bucket quota and exact shard
+   destination and reserves every destination vector before continuing.
+5. **CLIENT PREPARE** — every IO source with planned excess (not only a converting
+   source) pre-registers both epoll outcomes or cancels io_uring recv
    and wait for the original CQE, but retain connection ownership.  An IO -> EX
    source also stops accepting: epoll keeps its tenure registration dormant,
    while io_uring cancels each multishot accept without closing the listener and
@@ -277,24 +320,29 @@ admin-command convention and does not invent a new configuration knob or gate.
    prepared future listeners.  Clear the gate and increment `flip_refused`;
    retain the refused target beside the old live shape.  No resource or role
    owner changed.
-7. **CLIENT COMMIT / INSTALL** — release-store each connection owner and install
-   it at the target.  With EX producers frozen, run a second full IO drain and
+7. **CLIENT COMMIT / INSTALL** — release-store each planned connection owner and
+   install it at a current target, or queue it in the pre-reserved inbox of a
+   prepared future IO. With EX producers frozen, run a second full IO drain and
    require the global pub/sub event count to reach zero; this catches messages
    which were in transit when an IO published its first drain acknowledgement.
    From the first owner store onward, all allocations and operational refusals are
    already resolved; an unexpected failure aborts as an invariant violation
    rather than exposing a partial healthy server.
-8. **ROLE COMMIT** — EX -> IO candidates first hand off every complete physical
-   shard.  IO -> EX candidates already handed off every connection and also
+8. **BUCKET / ROLE COMMIT** — execute the preflighted bucket plan directly from
+   each old EX to its final EX, including a dormant future EX. IO -> EX candidates
+   already handed off every connection and also
    completed their reversible accept cancellation; their old listeners close as
    the IO tenure ends.  Each role then changes by one direct old-to-new atomic
    store—never through Idle.
 9. **ROLE READY / SHARD COMMIT / EX INSTALL** — converted loops publish the new
-   ready role.  New EX owners then take/rebalance complete shards.  Every live EX
-   binds owner-local notification state and acknowledges installation.
+   ready role. Every final IO drains its queued transfers, verifies its exact
+   planned client quota, and acknowledges. Every live EX binds owner-local
+   notification state and acknowledges installation.
 10. **COMPLETED** — count ready IO/EX, assert conservation, increment
-   `flip_completed`, clear the gate, then complete the request's ROB op with
-   `+OK`.  The reply therefore proves the requested shape is fully live.
+   `flip_completed`, assert both min/max bounds, exact per-thread quotas and exact
+   planned-vs-performed transfer count, publish `last_transfers`, clear the gate,
+   then complete the request's ROB op with `+OK`. The reply therefore proves the
+   requested shape is fully live and balanced.
 
 FLIP is a single transaction at the control-plane level.  Every recoverable
 refusal point is before CLIENT COMMIT, before ownership mutation.  The
@@ -303,7 +351,8 @@ such a rollback would itself create ambiguous ownership.  Unexpected failures
 after that edge terminate via an invariant assertion instead of publishing a
 partial, apparently healthy split.
 
-No fallible allocation or registration remains after that edge. Shard transfer
+This is all-or-nothing option **(a), full preflight**. No fallible allocation or
+registration remains after that edge. Shard transfer
 moves an existing `Shard*` between pre-reserved vectors and rewrites only owner
 bits; the `FlatStore`, keys, values, expiry, and MVCC records never move. Client
 transfer moves the unchanged `Client*`, drained ROB, buffered input, and extracted
@@ -334,12 +383,15 @@ and retries SQ starvation without closing the socket.
 ### Observability and tests
 
 `INFO` exposes live IO/EX counts, completed/refused flips, transferred clients,
-successful conservation checks, and conservation violations. The report form
-exposes live/target counts plus SMT mode and unit width so a conservation refusal
-and a pair-granularity refusal are distinguishable. The directed battery writes
-and re-reads every value, proves both live-shape and completed-counter changes,
-keeps 96 sockets with identifiable unread pipelines across a real moving FLIP,
-requires a non-zero client-transfer witness, and repeats key/client checks after
-a refused negative control.
+the last successful FLIP's combined transfer count, current bucket/client
+min/max, successful conservation checks, and conservation violations. The report
+form exposes the same balance witnesses plus live/target counts, SMT mode, and
+unit width. The directed battery begins with deliberately empty future IO owners,
+asserts both `max-min <= 1` bounds after each moving FLIP, writes and re-reads every
+value, keeps 96 sockets with identifiable unread pipelines across a real moving
+FLIP, checks their ordered replies, requires a non-zero transfer witness, and runs
+the same already-balanced FLIP twice to prove zero movement and deterministic
+distribution.
 
 No automatic controller, timer, target search, or background hill-climb exists.
+No new configuration knob is introduced, so the knob matrix is unchanged.

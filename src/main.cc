@@ -300,6 +300,11 @@ int main(int argc, char** argv) {
                     [](void* p, Client* client) {
                         static_cast<IoLoop*>(p)->cancel_client_registration(client);
                     });
+            if (ok)
+                self.bind_client_capacity_hook(
+                    [](void* p, uint32_t incoming) {
+                        return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
+                    });
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
@@ -393,6 +398,10 @@ int main(int argc, char** argv) {
                 },
                 [](void* p, Client* client) {
                     static_cast<IoLoop*>(p)->cancel_client_registration(client);
+                });
+            self.bind_client_capacity_hook(
+                [](void* p, uint32_t incoming) {
+                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                 });
             for (;;) {
                 if (self.stop_flag().load(std::memory_order_relaxed)) break;
