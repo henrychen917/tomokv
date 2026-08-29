@@ -185,8 +185,7 @@ bool glob_match(const char* pat, size_t pn, const char* text, size_t tn, bool no
                     }
                     if (want >= lo && want <= hi) matched = true;
                 }
-                if (!pn || *pat != ']') return false;
-                pat++; pn--;
+                if (pn && *pat == ']') { pat++; pn--; }
                 if (matched == negate) return false;
                 text++; tn--;
                 break;

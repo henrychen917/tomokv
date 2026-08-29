@@ -2171,7 +2171,7 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
             continue;
         }
         if (token == '[') {
-            bool negate = false, matched = false, closed = false;
+            bool negate = false, matched = false;
             if (pattern_len && *pattern == '^') {
                 negate = true;
                 pattern++;
@@ -2182,7 +2182,6 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
                 char first = *pattern++;
                 pattern_len--;
                 if (first == ']' ) {
-                    closed = true;
                     break;
                 }
                 if (first == '\\' && pattern_len) {
@@ -2206,7 +2205,7 @@ bool glob_match_impl(const char* pattern, size_t pattern_len, const char* text, 
                     matched = true;
                 }
             }
-            if (!closed || matched == negate) return false;
+            if (matched == negate) return false;
             text++;
             text_len--;
             continue;
