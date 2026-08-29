@@ -850,6 +850,26 @@ Slice sort_deref_key(const SortDerefRequest& request) {
     return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()));
 }
 
+// A scatter task runs on the one owner of `group.shard`, and the group's dense range contains only
+// hashes routed to that shard. Warm every local home bucket before the first per-key storage touch;
+// singleton groups have no independent miss to overlap. The hint carries no lookup result, so the
+// command loops below remain authoritative and retain their original order.
+void prefetch_owner_group(FlatStore& store, const ScatterState& state, const ShardGroup& group) {
+    if (group.count < 2) return;
+    if (sort_deref_gathering(state)) {
+        const SortDerefState& sort = *state.sort_deref;
+        for (uint32_t i = 0; i < group.count; i++) {
+            const SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
+            store.prefetch(request.hash);
+        }
+        return;
+    }
+    for (uint32_t i = 0; i < group.count; i++) {
+        const uint32_t pos = state.key_order[group.begin + i];
+        store.prefetch(state.keys[pos].hash);
+    }
+}
+
 // Replace the explicit-key source groups with the dynamically discovered request groups. The
 // generic ShardGroup table remains the dispatch index; only its begin/count ranges point into the
 // SORT sidecar's key_order during this wave.
@@ -2286,6 +2306,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             }
         }
     }
+    // The executor-wide batch prefetch deliberately excludes scatter tasks. Recover their structural
+    // advantage here, after routing has made the batch owner-local and before MVCC promotion or the
+    // ordinary gather serializes the same storage accesses. Atomic writes prepare capacity first
+    // below because that preparation may change table geometry.
+    if (!state.atomic_write) prefetch_owner_group(shard.store(), state, group);
     if (!state.atomic_write && shard.store().atomic_has_records()) {
         const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
         const uint64_t floor = state.server->atomic_read_floor();
@@ -2353,6 +2378,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 shard.store().atomic_discard_group(pending_entry);
                 return ScatterTaskResult::Complete;
             }
+            prefetch_owner_group(shard.store(), state, group);
             // MSETNX tests the pre-command state. Duplicate keys in one command are not an
             // existence failure (Redis installs the last supplied value); probing after the first
             // physical exchange would see our own still-private candidate because the entry is
