@@ -240,6 +240,19 @@ struct Config {
     // and its absence was a real bug (threads silently floated instead of erroring).
     bool     pin_threads    = true;
 
+    // ---- weighted placement (boot-latched) -------------------------------------------------
+    // The two feature gates independently remove their counters, EWMA/census and autonomous
+    // mover; their FLIP partition falls back to count-only placement. The remaining five knobs
+    // tune shared machinery, and zero in any of them disables both halves completely.
+    uint32_t key_lb = 1;
+    uint32_t client_lb = 1;
+    // One owner-local bucket counter is touched for every N successfully executed key visits.
+    uint32_t lb_sample_rate = 64;
+    uint32_t lb_tick_ms = 1000;
+    uint32_t lb_imbalance_pct = 25; // fire band; release is 80%, after three sustained ticks
+    uint32_t lb_move_cap = 1;
+    uint32_t lb_cooldown_ms = 5000;
+
     // ---- network (boot-only) ---------------------------------------------------------------
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
@@ -650,6 +663,48 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--key-lb")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
+                std::fprintf(stderr, "--key-lb wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--client-lb")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
+                std::fprintf(stderr, "--client-lb wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-sample-rate")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_sample_rate)) {
+                std::fprintf(stderr, "--lb-sample-rate wants an unsigned 1-in-N rate (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-tick-ms")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_tick_ms)) {
+                std::fprintf(stderr, "--lb-tick-ms wants unsigned milliseconds (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-imbalance-pct")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_imbalance_pct)) {
+                std::fprintf(stderr, "--lb-imbalance-pct wants an unsigned percent (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-move-cap")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_move_cap)) {
+                std::fprintf(stderr, "--lb-move-cap wants an unsigned per-tick cap (0 disables)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--lb-cooldown-ms")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_cooldown_ms)) {
+                std::fprintf(stderr, "--lb-cooldown-ms wants unsigned milliseconds (0 disables)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lru-clock-shift")) {
             uint64_t shift = 0;
             if (!cfg_parse_u64(next(nullptr), shift) || shift > 16) {
@@ -935,6 +990,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
+                        "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
+                        "    --lb-sample-rate N --lb-tick-ms N\n"
+                        "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"

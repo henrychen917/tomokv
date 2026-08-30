@@ -320,6 +320,20 @@ void init_config(const Config& cfg) {
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
+    g_config.push_back({"key-lb", ConfigKind::Unsigned,
+                        std::to_string(cfg.key_lb), true});
+    g_config.push_back({"client-lb", ConfigKind::Unsigned,
+                        std::to_string(cfg.client_lb), true});
+    g_config.push_back({"lb-sample-rate", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_sample_rate), true});
+    g_config.push_back({"lb-tick-ms", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_tick_ms), true});
+    g_config.push_back({"lb-imbalance-pct", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_imbalance_pct), true});
+    g_config.push_back({"lb-move-cap", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_move_cap), true});
+    g_config.push_back({"lb-cooldown-ms", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_cooldown_ms), true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,

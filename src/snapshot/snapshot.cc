@@ -187,12 +187,12 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      const char* target_dir,
                                                      const char* target_filename) {
     {
-        // Pair this admission edge with Server::flip_begin(). Without the short mutex, two IO
-        // owners could both observe the other's atomic state as idle and publish Preparing and
-        // Planning concurrently.
+        // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
+        // two IO owners could both observe the other's atomic state as idle and publish Preparing
+        // and Planning concurrently.
         std::lock_guard<std::mutex> transition_lock(server.shape_transition_mutex());
-        if (server.flip_dispatch_paused()) {
-            error = "FLIP is in progress";
+        if (server.placement_transition_active()) {
+            error = "placement transition is in progress";
             return StartResult::Busy;
         }
         Phase expected = Phase::Idle;

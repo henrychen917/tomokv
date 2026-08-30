@@ -24,6 +24,7 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -310,6 +311,57 @@ public:
         return published_evicted_.load(std::memory_order_relaxed);
     }
 
+    // Weighted placement is boot-latched. Keeping all three arrays on the immutable physical
+    // shard makes the signal follow the BUCKET, not its current executor: changing ownership never
+    // resets or transfers controller history. Only the current shard owner writes these arrays.
+    bool enable_lb_signals() {
+        const uint32_t n = bucket_end_ - bucket_begin_;
+        try {
+            lb_bucket_samples_ = std::make_unique<uint32_t[]>(n);
+            lb_bucket_bytes_ = std::make_unique<uint64_t[]>(n);
+            lb_bucket_bytes_staging_ = std::make_unique<uint64_t[]>(n);
+            return true;
+        } catch (const std::bad_alloc&) {
+            lb_bucket_samples_.reset();
+            lb_bucket_bytes_.reset();
+            lb_bucket_bytes_staging_.reset();
+            return false;
+        }
+    }
+    bool lb_signals_enabled() const { return lb_bucket_samples_ != nullptr; }
+    void note_lb_sample(uint64_t hash) {
+        const uint32_t bucket = bucket_of(hash);
+        if (!lb_bucket_samples_ || !owns(bucket)) return;
+        lb_bucket_samples_[bucket - bucket_begin_]++;
+    }
+    uint32_t lb_bucket_samples(uint32_t bucket) const {
+        if (!lb_bucket_samples_ || !owns(bucket)) return 0;
+        return __atomic_load_n(&lb_bucket_samples_[bucket - bucket_begin_], __ATOMIC_RELAXED);
+    }
+    uint64_t lb_bucket_bytes(uint32_t bucket) const {
+        if (!lb_bucket_bytes_ || !owns(bucket)) return 0;
+        return __atomic_load_n(&lb_bucket_bytes_[bucket - bucket_begin_], __ATOMIC_RELAXED);
+    }
+
+    // A rolling owner-only census keeps memory fairness separate from request demand without a
+    // random counter write on every SET/DEL. One bounded scan slice runs at a time; a complete
+    // pass publishes the bucket vector atomically entry-by-entry, then starts a fresh census.
+    bool lb_scan_bucket_bytes(uint32_t homes) {
+        if (!lb_bucket_bytes_staging_ || !homes) return false;
+        lb_bytes_cursor_ = store_.scan(lb_bytes_cursor_, homes, [&](KvObj* object) {
+            const uint64_t hash = FlatStore::hash_key(object->key());
+            const uint32_t bucket = bucket_of(hash);
+            if (owns(bucket)) lb_bucket_bytes_staging_[bucket - bucket_begin_] += kvobj_size(object);
+        });
+        if (lb_bytes_cursor_ != 0) return false;
+        const uint32_t n = bucket_end_ - bucket_begin_;
+        for (uint32_t i = 0; i < n; i++) {
+            __atomic_store_n(&lb_bucket_bytes_[i], lb_bucket_bytes_staging_[i], __ATOMIC_RELAXED);
+            lb_bucket_bytes_staging_[i] = 0;
+        }
+        return true;
+    }
+
     // Called by the executing worker on every op. `worker_domain` is that thread's L3 domain.
     // Cheap by construction: one compare and one increment, no atomics — the shard is single-owner.
     void note_execution(uint32_t worker_domain) {
@@ -420,6 +472,12 @@ private:
     Op* notify_source_ = nullptr;
     bool* notify_pending_ = nullptr;
     std::unique_ptr<NotifyShardState> notify_state_;
+    // Allocated only when lb-sample-rate is nonzero. Appended in the cold tail so the hot shard
+    // header and FlatStore offsets remain unchanged when weighted placement is compiled in.
+    std::unique_ptr<uint32_t[]> lb_bucket_samples_;
+    std::unique_ptr<uint64_t[]> lb_bucket_bytes_;
+    std::unique_ptr<uint64_t[]> lb_bucket_bytes_staging_;
+    uint64_t lb_bytes_cursor_ = 0;
     // Cold save-policy tail. Only this shard's owner increments it; the designated IO cron owner
     // samples it once per second. Atomicity makes that cross-thread sample data-race-free.
     std::atomic<uint64_t> save_changes_{0};

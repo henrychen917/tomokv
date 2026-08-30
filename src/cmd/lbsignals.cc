@@ -127,6 +127,17 @@ void lbsignals_info_section(Server& srv, std::string& out) {
     uint64_t sh_ops = 0, sh_foreign = 0;
     for (const auto& r : snap.shards) { sh_ops += r.ops; sh_foreign += r.foreign_ops; }
     const uint32_t total = snap.io.threads + snap.ex.threads;
+    double io_occ_min = 0, io_occ_max = 0, ex_occ_min = 0, ex_occ_max = 0;
+    bool io_occ_first = true, ex_occ_first = true;
+    for (const LbThreadRow& row : snap.threads) {
+        const double occupancy = srv.lb_thread_occupancy(row.tid);
+        double& lo = row.role == Role::Ifid ? io_occ_min : ex_occ_min;
+        double& hi = row.role == Role::Ifid ? io_occ_max : ex_occ_max;
+        bool& first = row.role == Role::Ifid ? io_occ_first : ex_occ_first;
+        if (first) lo = hi = occupancy;
+        else { lo = std::min(lo, occupancy); hi = std::max(hi, occupancy); }
+        first = false;
+    }
     appendf_lb(out,
                "# LB\r\n"
                "lb_io_threads:%u\r\nlb_ex_threads:%u\r\n"
@@ -135,11 +146,68 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
                "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
                "lb_ratio_star_io_frac:%.4f\r\nlb_total_threads:%u\r\n"
-               "lb_foreign_op_frac:%.4f\r\n\r\n",
+               "lb_foreign_op_frac:%.4f\r\n",
                snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
                snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
                snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
                sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
+    appendf_lb(out,
+               "lb_io_occupancy_min:%.4f\r\nlb_io_occupancy_max:%.4f\r\n"
+               "lb_ex_occupancy_min:%.4f\r\nlb_ex_occupancy_max:%.4f\r\n",
+               io_occ_min, io_occ_max, ex_occ_min, ex_occ_max);
+    appendf_lb(out,
+               "lb_flip_bucket_weight_spread_before:%.3f\r\n"
+               "lb_flip_bucket_weight_spread_after:%.3f\r\n"
+               "lb_flip_client_weight_spread_before:%.3f\r\n"
+               "lb_flip_client_weight_spread_after:%.3f\r\n"
+               "lb_flip_bucket_bytes_spread_before:%" PRIu64 "\r\n"
+               "lb_flip_bucket_bytes_spread_after:%" PRIu64 "\r\n",
+               srv.flip_bucket_weight_spread_before(), srv.flip_bucket_weight_spread_after(),
+               srv.flip_client_weight_spread_before(), srv.flip_client_weight_spread_after(),
+               srv.flip_bucket_bytes_spread_before(), srv.flip_bucket_bytes_spread_after());
+    appendf_lb(out,
+               "tomokv_keylb_enabled:%u\r\n"
+               "tomokv_clientlb_enabled:%u\r\n"
+               "tomokv_keylb_stage:%u\r\n"
+               "tomokv_keylb_ticks:%" PRIu64 "\r\n"
+               "tomokv_keylb_bucket_moves:%" PRIu64 "\r\n"
+               "tomokv_keylb_client_moves:%" PRIu64 "\r\n"
+               "tomokv_keylb_bucket_cross_domain_moves:%" PRIu64 "\r\n"
+               "tomokv_keylb_client_cross_domain_moves:%" PRIu64 "\r\n"
+               "tomokv_keylb_no_candidate:%" PRIu64 "\r\n",
+               srv.key_lb_signals_enabled() ? 1u : 0u,
+               srv.client_lb_signals_enabled() ? 1u : 0u,
+               static_cast<unsigned>(srv.lb_stage()),
+               srv.lb_ticks(), srv.lb_bucket_moves(), srv.lb_client_moves(),
+               srv.lb_bucket_cross_domain_moves(), srv.lb_client_cross_domain_moves(),
+               srv.lb_no_candidate());
+    appendf_lb(out,
+               "tomokv_keylb_hysteresis_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_cooldown_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_transition_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_capacity_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_client_refused:%" PRIu64 "\r\n"
+               "tomokv_keylb_hot_bucket_refused:%" PRIu64 "\r\n",
+               srv.lb_hysteresis_refused(), srv.lb_cooldown_refused(),
+               srv.lb_transition_refused(), srv.lb_capacity_refused(), srv.lb_client_refused(),
+               srv.lb_hot_bucket_refused());
+    appendf_lb(out,
+               "tomokv_keylb_bucket_weight_spread_current:%.3f\r\n"
+               "tomokv_keylb_bucket_weight_spread_before:%.3f\r\n"
+               "tomokv_keylb_bucket_weight_spread_after:%.3f\r\n"
+               "tomokv_keylb_client_weight_spread_current:%.3f\r\n"
+               "tomokv_keylb_client_weight_spread_before:%.3f\r\n"
+               "tomokv_keylb_client_weight_spread_after:%.3f\r\n",
+               srv.lb_bucket_weight_spread_current(),
+               srv.lb_bucket_weight_spread_before(), srv.lb_bucket_weight_spread_after(),
+               srv.lb_client_weight_spread_current(), srv.lb_client_weight_spread_before(),
+               srv.lb_client_weight_spread_after());
+    appendf_lb(out,
+               "tomokv_keylb_bucket_bytes_spread_current:%" PRIu64 "\r\n"
+               "tomokv_keylb_bucket_bytes_spread_before:%" PRIu64 "\r\n"
+               "tomokv_keylb_bucket_bytes_spread_after:%" PRIu64 "\r\n\r\n",
+               srv.lb_bucket_bytes_spread_current(),
+               srv.lb_bucket_bytes_spread_before(), srv.lb_bucket_bytes_spread_after());
 }
 
 }  // namespace tomo

@@ -171,6 +171,10 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
 // Executes one bounded owner pass.  KEYS may return Retry; all other tasks complete in one pass.
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id);
+// Visits the hashes represented by one completed owner task. Weighted placement calls this only
+// on the sampled path, keeping ScatterState's private grouping layout out of ExLoop.
+void xshard_visit_task_hashes(const Task& task, void* context,
+                              void (*visit)(void*, uint64_t));
 void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
                          ScatterTaskResult result);
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op);

@@ -87,6 +87,8 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
+        client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
+        lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
@@ -445,11 +447,14 @@ private:
             }
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
+            const bool client_lb_signal_armed = client_lb_signal_armed_;
+            const bool lb_controller_armed = lb_controller_armed_;
             // Placement's dense role vectors are mutated only under FLIP's global dispatch
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
                                          srv_->save_cron_writer(self_->id());
-            if (__builtin_expect(client_cron_armed || save_cron_armed, false)) {
+            if (__builtin_expect(client_cron_armed || save_cron_armed || client_lb_signal_armed ||
+                                 lb_controller_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 if (client_cron_armed && !client_cron_was_armed_) {
@@ -501,6 +506,21 @@ private:
                 did += collect_retire_work<HasUnix, kEp>();
                 did += flush_ready<HasTls, kEp>();
                 did += flip_control_pass<kEp>();
+                if (__builtin_expect(client_lb_signal_armed &&
+                                     cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
+                    did += lb_client_signal_pass();
+                    lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
+                }
+                did += lb_control_pass();
+                if (__builtin_expect(lb_controller_armed &&
+                                     cached_now_ms_ >= lb_controller_beat_ms_, false)) {
+                    lb_controller_beat_ms_ = cached_now_ms_ + srv_->cfg().lb_tick_ms;
+                    if (srv_->lb_cron_writer(self_->id()) &&
+                        srv_->lb_controller_tick(self_->id(), cached_now_ms_))
+                        lb_schedule_wake_all();
+                    did++;
+                }
+                did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
@@ -1153,7 +1173,9 @@ private:
             if (!command_client_migration_install(migration->catalog)) std::abort();
             migration->catalog = nullptr;
         }
+        const uint64_t client_id = client->id();
         erase_client_migration(client);
+        srv_->lb_client_move_cancelled(client_id);
         client_transfer_failures_++;
         mark_active(client);
         arm_recv<kEp>(client);
@@ -1261,6 +1283,7 @@ private:
         ClientMigration* migration = find_client_migration(client);
         if (!migration || !migration->catalog || client->recv_armed()) return false;
         const uint32_t destination = migration->destination;
+        const bool flip_transfer = migration->hold_for_commit;
         ThreadCtx& target = srv_->thread(destination);
         if (!target.client_transfer_free_slots(self_->id())) std::abort();
         if constexpr (kEp) {
@@ -1285,8 +1308,9 @@ private:
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_add(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
-        srv_->flip_note_client_transferred();
+        if (flip_transfer) srv_->flip_note_client_transferred(client_id, destination);
         erase_client_migration(client);       // pointer comparison only; source never dereferences
+        srv_->lb_client_move_committed(client_id, self_->id(), destination);
         return true;
     }
 
@@ -1379,21 +1403,19 @@ private:
     }
 
     bool flip_candidate_clients_ready(std::string& error) const {
-        uint32_t ordinal = 0;
-        std::string refused;
-        for (Client* client : self_->clients()) {
-            if (client == flip_client_) continue;
-            if (ordinal == srv_->flip_source_clients(self_->id())) break;
-            const uint32_t destination = srv_->flip_client_destination(self_->id(), ordinal++);
-            if (!client_transfer_ready(client, destination, refused)) {
-                ordinal--;
-                continue;
+        const uint32_t planned = srv_->flip_source_clients(self_->id());
+        for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+            Client* client = srv_->flip_client_at(self_->id(), ordinal);
+            if (!client || client == flip_client_ || client->ifid_thread() != self_->id()) {
+                error = "the weighted FLIP connection set changed after planning";
+                return false;
             }
-        }
-        if (ordinal != srv_->flip_source_clients(self_->id())) {
-            error = refused.empty()
-                ? "the FLIP coordinator connection cannot move before its reply" : refused;
-            return false;
+            std::string refused;
+            if (!client_transfer_ready(
+                    client, srv_->flip_client_destination(self_->id(), ordinal), refused)) {
+                error = refused.empty() ? "a weighted FLIP connection is not transferable" : refused;
+                return false;
+            }
         }
         return true;
     }
@@ -1406,6 +1428,27 @@ private:
             if (ring_.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) self_->sig().wakes_sent++;
             else self_->sig().sqe_starved++;
         }
+    }
+
+    void lb_schedule_wake_all() { lb_wake_cursor_ = 0; }
+
+    uint32_t lb_wake_all_pass() {
+        if (lb_wake_cursor_ == UINT32_MAX) return 0;
+        while (lb_wake_cursor_ < srv_->nthreads()) {
+            const uint32_t tid = lb_wake_cursor_++;
+            if (tid == self_->id()) continue;
+            Ring* target = srv_->thread(tid).ring();
+            if (!target) continue;
+            if (ring_.msg_to(*target, ur_tag(UrKind::Wake, nullptr))) {
+                self_->sig().wakes_sent++;
+                continue;
+            }
+            self_->sig().sqe_starved++;
+            lb_wake_cursor_--; // retry this exact target after the pending SQEs are submitted
+            return 1;
+        }
+        lb_wake_cursor_ = UINT32_MAX;
+        return 1;
     }
 
     void flip_publish_stage(FlipStage stage) {
@@ -1429,6 +1472,83 @@ private:
         srv_->flip_note_failure(error);
         if (srv_->flip_stage() != FlipStage::Rollback)
             flip_publish_stage(FlipStage::Rollback);
+    }
+
+    uint32_t lb_control_pass() {
+        if (!lb_controller_armed_) return 0;
+        const LbStage stage = srv_->lb_stage();
+        if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
+        if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
+        if (stage == LbStage::ExDrain) {
+            if (self_->id() == srv_->lb_coordinator()) {
+                if (srv_->lb_all_ex_acked()) {
+                    (void)srv_->lb_commit_shard_plan(cached_now_ms_);
+                    lb_schedule_wake_all();
+                    return 1;
+                } else if (srv_->lb_timed_out()) {
+                    srv_->lb_stage_timed_out();
+                    lb_schedule_wake_all();
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        const LbClientMove move = srv_->lb_client_move();
+        auto wake_source = [&]() {
+            Ring* source = srv_->thread(move.source).ring();
+            if (source && ring_.msg_to(*source, ur_tag(UrKind::Wake, nullptr))) {
+                self_->sig().wakes_sent++;
+                lb_client_wake_pending_ = false;
+            } else {
+                self_->sig().sqe_starved++;
+            }
+            return 1u;
+        };
+        if (lb_client_wake_pending_) return wake_source();
+        uint32_t work = 0;
+        if (move.destination == self_->id() && !srv_->lb_acked(self_->id())) {
+            if (!prepare_client_transfer_capacity(1)) {
+                srv_->lb_refuse_client_request();
+                lb_schedule_wake_all();
+                return 1;
+            }
+            srv_->lb_ack(self_->id());
+            lb_client_wake_pending_ = true;
+            work += wake_source();
+        }
+        if (move.source == self_->id() && srv_->lb_stage() == LbStage::ClientDrain &&
+            srv_->lb_acked(move.destination)) {
+            Client* selected = nullptr;
+            for (Client* client : self_->clients())
+                if (client->id() == move.id) { selected = client; break; }
+            if (!selected || selected->ifid_thread() != self_->id()) {
+                srv_->lb_refuse_client_request();
+                lb_schedule_wake_all();
+                return 1;
+            }
+            std::string error;
+            if (client_transfer_ready(selected, move.destination, error)) {
+                if (!srv_->lb_client_move_started(move.id, cached_now_ms_)) return 1;
+                const bool started = request_client_transfer(selected, move.destination, error);
+                if (!started) srv_->lb_client_move_cancelled(move.id);
+                lb_schedule_wake_all();
+                return 1;
+            }
+            if (selected->is_tls() || selected->subscriber_mode() ||
+                selected->multi_session() != nullptr || selected->blocked() ||
+                error == "connection has MONITOR, TRACKING, or CLIENT REPLY owner-local state") {
+                srv_->lb_refuse_client_request();
+                lb_schedule_wake_all();
+                return 1;
+            }
+        }
+        if (self_->id() == srv_->lb_coordinator() && srv_->lb_timed_out()) {
+            srv_->lb_stage_timed_out();
+            lb_schedule_wake_all();
+            return 1;
+        }
+        return work;
     }
 
     void flip_commit_roles_and_evacuate_shards() {
@@ -1483,20 +1603,15 @@ private:
                 } else if (!reserve_client_transfer_state(planned)) {
                     srv_->flip_note_failure("ERR FLIP could not reserve source connection state");
                 } else {
-                    uint32_t ordinal = 0;
-                    for (Client* client : self_->clients()) {
-                        if (client == flip_client_) continue;
-                        if (ordinal == planned) break;
+                    for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+                        Client* client = srv_->flip_client_at(self_->id(), ordinal);
+                        if (!client) std::abort();
                         std::string error;
-                        if (!client_transfer_ready(
-                                client, srv_->flip_client_destination(self_->id(), ordinal), error))
-                            continue;
                         if (!prepare_client_transfer(
                                 client, srv_->flip_client_destination(self_->id(), ordinal), error)) {
                             srv_->flip_note_failure("ERR FLIP could not detach a connection: " + error);
                             break;
                         }
-                        ordinal++;
                     }
                 }
             }
@@ -1557,7 +1672,7 @@ private:
         switch (stage) {
             case FlipStage::IoDrain:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
-                    if (!srv_->flip_build_client_plan(failure))
+                    if (!srv_->flip_build_client_plan(flip_client_, failure))
                         flip_enter_rollback(failure);
                     else
                         flip_publish_stage(FlipStage::IoPrepare);
@@ -1889,6 +2004,11 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
+        // One continuous-placement epoch per parse pass. Work published concurrently with a new
+        // EX drain is included in that drain; reloading the stage for every operation would add a
+        // shared atomic to the request path without strengthening the ownership fence.
+        const bool lb_pause_this_pass = lb_controller_armed_ &&
+            srv_->lb_should_pause(self_->id(), c->id());
         // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
         // non-decreasing along the connection, not distinct: every op this pass parses may share
         // the pass's cut, and the next pass's cut is >= this one because the sequence only moves
@@ -1901,6 +2021,7 @@ private:
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
 
         for (;;) {
+            if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
             // below so live-vs-target remains observable while the dispatch barrier is active.
@@ -3059,6 +3180,19 @@ nonblocking_dispatch:
         return work;
     }
 
+    uint32_t lb_client_signal_pass() {
+        lb_client_observations_.clear();
+        if (lb_client_observations_.capacity() < self_->clients().size())
+            lb_client_observations_.reserve(self_->clients().size());
+        for (Client* client : self_->clients()) {
+            if (client->dead()) continue;
+            lb_client_observations_.push_back({client->id(), client->rob().dispatch_id(),
+                                               client->rob().in_flight()});
+        }
+        srv_->lb_publish_client_observations(self_->id(), lb_client_observations_);
+        return static_cast<uint32_t>(lb_client_observations_.size());
+    }
+
     void refresh_notify_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(notify_config_version_, snapshot)) return;
@@ -3137,6 +3271,7 @@ nonblocking_dispatch:
         wb_.teardown(*c);
         ::close(c->fd());
         srv_->client_released();
+        srv_->lb_forget_client(c->id());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels
         // naming this client. Every such entry was pushed BEFORE this point, and channels are FIFO
         // with their mask bits set -- so ONE full
@@ -3199,11 +3334,18 @@ nonblocking_dispatch:
     static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
+    uint64_t lb_client_signal_beat_ms_ = 0;
+    uint64_t lb_controller_beat_ms_ = 0;
     uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;
     uint32_t cached_now_s_ = 0;
     bool     client_cron_was_armed_ = false;
+    bool     client_lb_signal_armed_ = false;
+    bool     lb_controller_armed_ = false;
+    bool     lb_client_wake_pending_ = false;
+    uint32_t lb_wake_cursor_ = UINT32_MAX;
+    std::vector<LbClientObservation> lb_client_observations_;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;

@@ -20,9 +20,11 @@
 #include <memory>
 #include <mutex>
 #include <sys/resource.h>
+#include <unordered_map>
 #include <vector>
 #include "shard.h"
 #include "thread.h"
+#include "weighted_lb.h"
 #include "placement.h"
 #include "config.h"        // struct Config: every runtime knob, one home
 #include "../base/topology.h"
@@ -59,6 +61,19 @@ struct ClientLimitsConfigSnapshot {
     ClientBufferLimit pubsub{};
 };
 
+struct LbClientObservation {
+    uint64_t id = 0;
+    uint64_t dispatched_ops = 0;
+    uint32_t pipeline_depth = 0;
+};
+
+struct LbClientSignal {
+    uint64_t last_ops = 0;
+    double weight = 0;
+    uint64_t last_move_ms = 0;
+    uint32_t owner = UINT32_MAX;
+};
+
 enum class FlipStage : uint8_t {
     Idle = 0,
     Planning,
@@ -72,6 +87,28 @@ enum class FlipStage : uint8_t {
     ShardCommit,
     ExInstall,
     Rollback,
+};
+
+enum class LbStage : uint8_t {
+    Idle = 0,
+    ExDrain,
+    ClientDrain,
+    ClientMoving,
+};
+
+struct LbShardMove {
+    uint32_t sid = UINT32_MAX;
+    uint32_t source = UINT32_MAX;
+    uint32_t destination = UINT32_MAX;
+    double weight = 0;
+    uint64_t bytes = 0;
+};
+
+struct LbClientMove {
+    uint64_t id = 0;
+    uint32_t source = UINT32_MAX;
+    uint32_t destination = UINT32_MAX;
+    double weight = 0;
 };
 
 struct FlipReport {
@@ -205,6 +242,10 @@ public:
             shards_[i] = std::make_unique<Shard>();
             shards_[i]->init(this, static_cast<int32_t>(i), b0, b1, cfg.zc_min, cfg.type_limits,
                              cfg.stream_limits);
+            if (key_lb_signals_enabled() && !shards_[i]->enable_lb_signals()) {
+                std::fprintf(stderr, "fatal: could not allocate weighted-placement signals\n");
+                return false;
+            }
             shards_[i]->bind_atomic_state(
                 [](void* ctx) { return static_cast<Server*>(ctx)->atomic_commit(); }, this,
                 &atomic_activity_, &script_intent_owners_);
@@ -226,6 +267,26 @@ public:
             threads_[i] = std::make_unique<ThreadCtx>();
             threads_[i]->init(i, placement_.role_of(i), nthreads);
             threads_[i]->init_command_counts(command_registry_size());
+        }
+        if (key_lb_signals_enabled()) {
+            try {
+                lb_bucket_last_samples_.assign(kNumBuckets, 0);
+                lb_bucket_weight_.assign(kNumBuckets, 0.0);
+                lb_bucket_last_move_ms_.assign(kNumBuckets, 0);
+            } catch (const std::bad_alloc&) {
+                std::fprintf(stderr, "fatal: could not allocate weighted key-placement windows\n");
+                return false;
+            }
+        }
+        if (lb_controller_enabled()) {
+            try {
+                lb_thread_last_busy_.assign(nthreads, 0);
+                lb_thread_last_idle_.assign(nthreads, 0);
+                lb_thread_occupancy_.assign(nthreads, 0.0);
+            } catch (const std::bad_alloc&) {
+                std::fprintf(stderr, "fatal: could not allocate shared LB windows\n");
+                return false;
+            }
         }
         for (uint32_t i = 0; i < nthreads; i++)
             atomic_read_floors_[i].store(UINT64_MAX, std::memory_order_relaxed);
@@ -263,10 +324,143 @@ public:
     }
 
     const Config&    cfg()        const { return cfg_; }
+
+    bool lb_machinery_enabled() const {
+        return cfg_.lb_sample_rate && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
+               cfg_.lb_move_cap && cfg_.lb_cooldown_ms;
+    }
+    bool key_lb_signals_enabled() const {
+        return cfg_.key_lb && lb_machinery_enabled();
+    }
+    bool client_lb_signals_enabled() const {
+        return cfg_.client_lb && lb_machinery_enabled();
+    }
+    bool lb_controller_enabled() const {
+        return key_lb_signals_enabled() || client_lb_signals_enabled();
+    }
+
+    // Client observations are gathered by the connection owner once per second. ROB dispatch
+    // deltas are the operation-rate signal; live in-flight depth is a floor so a deep connection
+    // that is temporarily backpressured does not look idle. The state is keyed by connection id,
+    // hence survives an IO ownership move without turning that move into a signal discontinuity.
+    void lb_publish_client_observations(uint32_t owner,
+                                        const std::vector<LbClientObservation>& observations) {
+        if (!client_lb_signals_enabled() || owner >= nthreads()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        double total = 0;
+        for (const LbClientObservation& observation : observations) {
+            LbClientSignal& signal = lb_clients_[observation.id];
+            const uint64_t delta = observation.dispatched_ops - signal.last_ops;
+            signal.last_ops = observation.dispatched_ops;
+            const double sample = std::max<double>(delta, observation.pipeline_depth);
+            signal.weight = signal.owner == UINT32_MAX
+                ? sample : 0.25 * sample + 0.75 * signal.weight;
+            signal.owner = owner;
+            total += signal.weight;
+        }
+        lb_client_owner_weight_[owner].store(
+            static_cast<uint64_t>(total * 1024.0 + 0.5), std::memory_order_release);
+    }
+    void lb_forget_client(uint64_t id) {
+        if (!client_lb_signals_enabled()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        lb_clients_.erase(id);
+    }
+    double lb_client_weight(uint64_t id) const {
+        if (!client_lb_signals_enabled()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        return found == lb_clients_.end() ? 0.0 : found->second.weight;
+    }
+    uint64_t lb_client_last_move_ms(uint64_t id) const {
+        if (!client_lb_signals_enabled()) return 0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        return found == lb_clients_.end() ? 0 : found->second.last_move_ms;
+    }
+    void lb_note_client_move(uint64_t id, uint32_t owner, uint64_t now_ms) {
+        if (!client_lb_signals_enabled()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        LbClientSignal& signal = lb_clients_[id];
+        signal.owner = owner;
+        signal.last_move_ms = now_ms;
+    }
+    double lb_client_owner_weight(uint32_t tid) const {
+        return client_lb_signals_enabled() && tid < nthreads()
+            ? static_cast<double>(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
+                  1024.0
+            : 0.0;
+    }
+
+    // The controller owns this fold. Every bucket keeps a monotonic sampled counter on its
+    // physical shard; EWMA history is indexed by immutable bucket id, never by executor owner.
+    void lb_fold_signals() {
+        if (!lb_controller_enabled()) return;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        if (key_lb_signals_enabled()) {
+            for (uint32_t sid = 0; sid < nshards(); sid++) {
+                Shard& physical = shard(static_cast<int32_t>(sid));
+                for (uint32_t bucket = physical.bucket_begin();
+                     bucket < physical.bucket_end(); bucket++) {
+                    const uint32_t current = physical.lb_bucket_samples(bucket);
+                    const uint32_t delta = current - lb_bucket_last_samples_[bucket];
+                    lb_bucket_last_samples_[bucket] = current;
+                    const double sample = static_cast<double>(delta) * cfg_.lb_sample_rate;
+                    lb_bucket_weight_[bucket] = lb_bucket_primed_
+                        ? 0.25 * sample + 0.75 * lb_bucket_weight_[bucket] : sample;
+                }
+            }
+            lb_bucket_primed_ = true;
+        }
+        // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
+        // polling/spinning is scheduled CPU but does not mean the role has useful work available.
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            const LoopSignals& signal = thread(tid).sig();
+            const uint64_t busy = __atomic_load_n(&signal.busy_ns, __ATOMIC_RELAXED);
+            const uint64_t idle = __atomic_load_n(&signal.idle_ns, __ATOMIC_RELAXED);
+            const uint64_t db = busy - lb_thread_last_busy_[tid];
+            const uint64_t di = idle - lb_thread_last_idle_[tid];
+            lb_thread_last_busy_[tid] = busy;
+            lb_thread_last_idle_[tid] = idle;
+            const double occupancy = db + di
+                ? static_cast<double>(db) / static_cast<double>(db + di) : 0.0;
+            lb_thread_occupancy_[tid] = lb_occupancy_primed_
+                ? 0.25 * occupancy + 0.75 * lb_thread_occupancy_[tid] : occupancy;
+        }
+        lb_occupancy_primed_ = true;
+    }
+    double lb_bucket_weight(uint32_t bucket) const {
+        if (!key_lb_signals_enabled() || bucket >= lb_bucket_weight_.size()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        return lb_bucket_weight_[bucket];
+    }
+    double lb_shard_weight(uint32_t sid) const {
+        if (sid >= nshards() || !key_lb_signals_enabled()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const Shard& physical = shard(static_cast<int32_t>(sid));
+        double weight = 0;
+        for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
+            weight += lb_bucket_weight_[bucket];
+        return weight;
+    }
+    uint64_t lb_shard_bytes(uint32_t sid) const {
+        if (sid >= nshards() || !key_lb_signals_enabled()) return 0;
+        const Shard& physical = shard(static_cast<int32_t>(sid));
+        uint64_t bytes = 0;
+        for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
+            bytes += physical.lb_bucket_bytes(bucket);
+        return bytes;
+    }
+    double lb_thread_occupancy(uint32_t tid) const {
+        if (tid >= lb_thread_occupancy_.size()) return 0.0;
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        return lb_thread_occupancy_[tid];
+    }
     const Topology&  topo()       const { return topo_; }
     Placement&       placement()        { return placement_; }
     Router&          router()           { return router_; }
     Shard&           shard(int32_t i)   { return *shards_[i]; }
+    const Shard&     shard(int32_t i) const { return *shards_[i]; }
     ThreadCtx&       thread(uint32_t i) { return *threads_[i]; }
     uint32_t         nthreads()   const { return static_cast<uint32_t>(threads_.size()); }
     uint32_t         nshards()    const { return static_cast<uint32_t>(shards_.size()); }
@@ -319,6 +513,105 @@ public:
     FlipStage flip_stage() const { return flip_stage_.load(std::memory_order_acquire); }
     uint64_t flip_epoch() const { return flip_epoch_.load(std::memory_order_acquire); }
     bool flip_dispatch_paused() const { return flip_stage() != FlipStage::Idle; }
+    LbStage lb_stage() const { return lb_stage_.load(std::memory_order_acquire); }
+    uint64_t lb_epoch() const { return lb_epoch_.load(std::memory_order_acquire); }
+    bool lb_dispatch_paused() const { return lb_stage() == LbStage::ExDrain; }
+    bool placement_dispatch_paused() const {
+        return flip_dispatch_paused() || lb_dispatch_paused();
+    }
+    bool placement_transition_active() const {
+        return flip_dispatch_paused() || lb_stage() != LbStage::Idle;
+    }
+    bool lb_cron_writer(uint32_t tid) const {
+        if (!lb_controller_enabled() || flip_dispatch_paused()) return false;
+        for (uint32_t candidate = 0; candidate < nthreads(); candidate++)
+            if (thread(candidate).role() == Role::Ifid) return candidate == tid;
+        return false;
+    }
+    uint32_t lb_coordinator() const { return lb_coordinator_; }
+    const std::vector<LbShardMove>& lb_shard_moves() const { return lb_shard_moves_; }
+    LbClientMove lb_client_move() const { return lb_client_move_; }
+    bool lb_should_pause(uint32_t owner, uint64_t id) const {
+        const LbStage stage = lb_stage();
+        return stage == LbStage::ExDrain ||
+               (stage == LbStage::ClientDrain && lb_client_move_.source == owner &&
+                lb_client_move_.id == id);
+    }
+    uint64_t lb_deadline_ns() const { return lb_deadline_ns_.load(std::memory_order_acquire); }
+    void lb_ack(uint32_t tid) {
+        lb_ack_[tid].store((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()),
+                           std::memory_order_release);
+    }
+    bool lb_acked(uint32_t tid) const {
+        return lb_ack_[tid].load(std::memory_order_acquire) ==
+               ((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()));
+    }
+    bool lb_all_ex_acked() const {
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            if (thread(tid).role() == Role::Ex && !lb_acked(tid)) return false;
+        return true;
+    }
+    uint64_t lb_ticks() const { return lb_ticks_.load(std::memory_order_relaxed); }
+    uint64_t lb_bucket_moves() const {
+        return lb_bucket_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_moves() const {
+        return lb_client_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_cross_domain_moves() const {
+        return lb_bucket_cross_domain_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_cross_domain_moves() const {
+        return lb_client_cross_domain_moves_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_no_candidate() const {
+        return lb_no_candidate_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_hysteresis_refused() const {
+        return lb_hysteresis_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_cooldown_refused() const {
+        return lb_cooldown_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_transition_refused() const {
+        return lb_transition_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_capacity_refused() const {
+        return lb_capacity_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_client_refused() const {
+        return lb_client_refused_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_hot_bucket_refused() const {
+        return lb_hot_bucket_refused_.load(std::memory_order_relaxed);
+    }
+    double lb_bucket_weight_spread_current() const {
+        return lb_bucket_weight_spread_current_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_bucket_weight_spread_before() const {
+        return lb_bucket_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_bucket_weight_spread_after() const {
+        return lb_bucket_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_current() const {
+        return lb_client_weight_spread_current_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_before() const {
+        return lb_client_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double lb_client_weight_spread_after() const {
+        return lb_client_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    uint64_t lb_bucket_bytes_spread_current() const {
+        return lb_bucket_bytes_spread_current_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_bytes_spread_before() const {
+        return lb_bucket_bytes_spread_before_.load(std::memory_order_relaxed);
+    }
+    uint64_t lb_bucket_bytes_spread_after() const {
+        return lb_bucket_bytes_spread_after_.load(std::memory_order_relaxed);
+    }
     // Serializes only the two publication edges which begin a snapshot or a FLIP. The long-running
     // operations never hold this mutex: after either publishes Preparing/Planning, the other's
     // atomic state check is sufficient to refuse it.
@@ -334,10 +627,33 @@ public:
     uint64_t flip_clients_transferred() const {
         return flip_clients_transferred_.load(std::memory_order_relaxed);
     }
-    void flip_note_client_transferred() {
+    double flip_bucket_weight_spread_before() const {
+        return flip_bucket_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double flip_bucket_weight_spread_after() const {
+        return flip_bucket_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double flip_client_weight_spread_before() const {
+        return flip_client_weight_spread_before_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    double flip_client_weight_spread_after() const {
+        return flip_client_weight_spread_after_.load(std::memory_order_relaxed) / 1024.0;
+    }
+    uint64_t flip_bucket_bytes_spread_before() const {
+        return flip_bucket_bytes_spread_before_.load(std::memory_order_relaxed);
+    }
+    uint64_t flip_bucket_bytes_spread_after() const {
+        return flip_bucket_bytes_spread_after_.load(std::memory_order_relaxed);
+    }
+    void flip_note_client_transferred(uint64_t id, uint32_t destination) {
         flip_clients_transferred_.fetch_add(1, std::memory_order_relaxed);
         if (flip_stage() != FlipStage::Idle)
             flip_active_transfers_.fetch_add(1, std::memory_order_relaxed);
+        if (client_lb_signals_enabled()) {
+            std::lock_guard<std::mutex> lock(lb_signal_mu_);
+            const auto found = lb_clients_.find(id);
+            if (found != lb_clients_.end()) found->second.owner = destination;
+        }
     }
     void flip_note_refused() { flip_refused_.fetch_add(1, std::memory_order_relaxed); }
     uint64_t flip_conservation_checks() const {
@@ -348,10 +664,11 @@ public:
     }
     void set_loading(bool loading) { loading_.store(loading ? 1u : 0u, std::memory_order_release); }
     bool loading_begin() {
-        // Runtime DEBUG loads and FLIP use the same short admission edge as snapshots. This makes
-        // "refuse while loading" exact even when two IO owners parse the commands concurrently.
+        // Runtime DEBUG loads and placement transitions use the same short admission edge as
+        // snapshots. This makes "refuse while loading" exact even when two IO owners parse the
+        // commands concurrently.
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
-        if (flip_dispatch_paused()) return false;
+        if (placement_transition_active()) return false;
         loading_.fetch_add(1, std::memory_order_acq_rel);
         return true;
     }
@@ -383,6 +700,10 @@ public:
             return UINT32_MAX;
         return flip_client_destinations_[source][ordinal];
     }
+    Client* flip_client_at(uint32_t source, uint32_t ordinal) const {
+        if (source >= nthreads() || ordinal >= flip_client_plan_[source].size()) return nullptr;
+        return flip_client_plan_[source][ordinal];
+    }
     uint32_t flip_client_quota(uint32_t tid) const {
         return tid < nthreads() ? flip_client_quota_[tid] : 0;
     }
@@ -393,83 +714,120 @@ public:
         if (flip_stage() == FlipStage::Idle) std::abort();
         flip_active_transfers_.fetch_add(1, std::memory_order_relaxed);
     }
-    bool flip_build_client_plan(std::string& error) {
+    bool flip_build_client_plan(Client* coordinator_client, std::string& error) {
         if (!flip_surviving_io_count_) {
             error = "ERR FLIP would leave no connection owner";
             return false;
         }
         uint64_t total64 = 0;
-        uint32_t current[kMaxThreads] = {};
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             if (thread(tid).role() != Role::Ifid) continue;
-            current[tid] = thread(tid).client_count();
-            total64 += current[tid];
+            total64 += thread(tid).client_count();
         }
         if (total64 > UINT32_MAX || total64 != live_clients()) {
             error = "ERR FLIP connection ownership count is not conserved";
             return false;
         }
         const uint32_t total = static_cast<uint32_t>(total64);
-        const uint32_t low = total / flip_surviving_io_count_;
-        const uint32_t high_count = total % flip_surviving_io_count_;
-        std::vector<uint32_t> high_order;
         try {
-            high_order.assign(flip_surviving_io_,
-                              flip_surviving_io_ + flip_surviving_io_count_);
-            std::stable_sort(high_order.begin(), high_order.end(), [&](uint32_t a, uint32_t b) {
-                const bool a_saves = current[a] > low;
-                const bool b_saves = current[b] > low;
-                if (a_saves != b_saves) return a_saves > b_saves;
-                return a < b;
-            });
             for (uint32_t tid = 0; tid < nthreads(); tid++) {
                 flip_client_destinations_[tid].clear();
+                flip_client_plan_[tid].clear();
                 flip_client_quota_[tid] = 0;
                 flip_incoming_clients_[tid].store(0, std::memory_order_relaxed);
                 flip_source_clients_[tid].store(0, std::memory_order_relaxed);
             }
-            for (uint32_t i = 0; i < flip_surviving_io_count_; i++)
-                flip_client_quota_[flip_surviving_io_[i]] = low;
-            for (uint32_t i = 0; i < high_count; i++)
-                flip_client_quota_[high_order[i]]++;
+            std::vector<uint32_t> targets(flip_surviving_io_,
+                                          flip_surviving_io_ + flip_surviving_io_count_);
+            std::vector<WeightedLbItem> items;
+            std::vector<Client*> clients;
+            items.reserve(total);
+            clients.reserve(total);
+            const bool weighted_client = client_lb_signals_enabled();
+            bool coordinator_seen = false;
+            for (uint32_t owner = 0; owner < nthreads(); owner++) {
+                if (thread(owner).role() != Role::Ifid) continue;
+                for (Client* client : thread(owner).clients()) {
+                    const bool pinned = client == coordinator_client;
+                    coordinator_seen |= pinned;
+                    items.push_back({client->id(), owner,
+                                     weighted_client ? lb_client_weight(client->id()) : 0.0,
+                                     pinned});
+                    clients.push_back(client);
+                }
+            }
+            if (items.size() != total || !coordinator_seen) {
+                error = "ERR FLIP coordinator connection left the ownership set";
+                return false;
+            }
+            std::vector<WeightedLbAssignment> assignments;
+            if (!weighted_lb_partition(items, targets, assignments) ||
+                assignments.size() != items.size()) {
+                error = "ERR FLIP cannot satisfy weighted client and coordinator constraints";
+                return false;
+            }
 
-            uint32_t deficit[kMaxThreads] = {};
+            uint32_t lanes[kMaxThreads][kMaxThreads] = {};
+            double before[kMaxThreads] = {};
+            double after[kMaxThreads] = {};
             uint32_t planned = 0;
-            for (uint32_t i = 0; i < flip_surviving_io_count_; i++) {
-                const uint32_t tid = flip_surviving_io_[i];
-                if (current[tid] < flip_client_quota_[tid])
-                    deficit[tid] = flip_client_quota_[tid] - current[tid];
+            for (uint32_t i = 0; i < assignments.size(); i++) {
+                const WeightedLbAssignment& assignment = assignments[i];
+                if (assignment.id != clients[i]->id() || assignment.source >= nthreads() ||
+                    assignment.destination >= nthreads()) std::abort();
+                before[assignment.source] += assignment.weight;
+                after[assignment.destination] += assignment.weight;
+                flip_client_quota_[assignment.destination]++;
+                if (assignment.source == assignment.destination) continue;
+                flip_client_plan_[assignment.source].push_back(clients[i]);
+                flip_client_destinations_[assignment.source].push_back(assignment.destination);
+                lanes[assignment.source][assignment.destination]++;
+                flip_incoming_clients_[assignment.destination].fetch_add(
+                    1, std::memory_order_relaxed);
+                planned++;
             }
+            const uint32_t low = total / flip_surviving_io_count_;
+            const uint32_t high = low + (total % flip_surviving_io_count_ != 0);
+            double before_min = 0, before_max = 0, after_min = 0, after_max = 0;
+            bool before_first = true, after_first = true;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) {
+                if (thread(tid).role() == Role::Ifid) {
+                    if (before_first) before_min = before_max = before[tid];
+                    else { before_min = std::min(before_min, before[tid]);
+                           before_max = std::max(before_max, before[tid]); }
+                    before_first = false;
+                }
+            }
+            for (uint32_t target : targets) {
+                if (flip_client_quota_[target] < low || flip_client_quota_[target] > high) {
+                    error = "ERR FLIP weighted client plan violates count balance";
+                    return false;
+                }
+                if (after_first) after_min = after_max = after[target];
+                else { after_min = std::min(after_min, after[target]);
+                       after_max = std::max(after_max, after[target]); }
+                after_first = false;
+            }
+            flip_client_weight_spread_before_.store(
+                static_cast<uint64_t>((before_max - before_min) * 1024.0 + 0.5),
+                std::memory_order_relaxed);
+            flip_client_weight_spread_after_.store(
+                static_cast<uint64_t>((after_max - after_min) * 1024.0 + 0.5),
+                std::memory_order_relaxed);
             for (uint32_t source = 0; source < nthreads(); source++) {
-                if (thread(source).role() != Role::Ifid) continue;
-                const uint32_t quota = flip_final_role(source) == Role::Ifid
-                    ? flip_client_quota_[source] : 0;
-                const uint32_t moves = current[source] > quota ? current[source] - quota : 0;
-                flip_client_destinations_[source].reserve(moves);
-                uint32_t remaining = moves;
-                for (uint32_t i = 0; i < flip_surviving_io_count_ && remaining; i++) {
-                    const uint32_t target = flip_surviving_io_[i];
-                    if (!deficit[target]) continue;
-                    const uint32_t lane = thread(target).client_transfer_free_slots(source);
-                    const uint32_t take = std::min(remaining, std::min(deficit[target], lane));
-                    for (uint32_t n = 0; n < take; n++)
-                        flip_client_destinations_[source].push_back(target);
-                    remaining -= take;
-                    deficit[target] -= take;
-                    flip_incoming_clients_[target].fetch_add(take, std::memory_order_relaxed);
+                if (flip_client_plan_[source].size() !=
+                    flip_client_destinations_[source].size()) std::abort();
+                for (uint32_t destination : targets) {
+                    if (lanes[source][destination] >
+                        thread(destination).client_transfer_free_slots(source)) {
+                        error = "ERR FLIP connection-transfer inbox capacity is insufficient";
+                        return false;
+                    }
                 }
-                if (remaining) {
-                    error = "ERR FLIP connection-transfer inbox capacity is insufficient";
-                    return false;
-                }
-                flip_source_clients_[source].store(moves, std::memory_order_relaxed);
-                planned += moves;
+                flip_source_clients_[source].store(
+                    static_cast<uint32_t>(flip_client_plan_[source].size()),
+                    std::memory_order_relaxed);
             }
-            for (uint32_t i = 0; i < flip_surviving_io_count_; i++)
-                if (deficit[flip_surviving_io_[i]]) {
-                    error = "ERR FLIP client balance plan is incomplete";
-                    return false;
-                }
             flip_planned_client_transfers_ = planned;
             return true;
         } catch (const std::bad_alloc&) {
@@ -494,84 +852,451 @@ public:
                 error = "ERR FLIP would leave no bucket owner";
                 return false;
             }
-
-            uint32_t current[kMaxThreads] = {};
+            std::vector<WeightedLbItem> items;
+            items.reserve(nshards());
+            const bool weighted_key = key_lb_signals_enabled();
             for (uint32_t sid = 0; sid < nshards(); sid++) {
                 const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
                 if (owner >= nthreads()) {
                     error = "ERR FLIP shard ownership names an invalid thread";
                     return false;
                 }
-                current[owner]++;
+                items.push_back({sid, owner,
+                                 weighted_key ? lb_shard_weight(sid) : 0.0, false,
+                                 weighted_key ? static_cast<double>(lb_shard_bytes(sid)) : 0.0});
+            }
+            std::sort(executors.begin(), executors.end());
+            std::vector<WeightedLbAssignment> assignments;
+            if (!weighted_lb_partition(items, executors, assignments) ||
+                assignments.size() != items.size()) {
+                error = "ERR FLIP cannot satisfy weighted bucket and count constraints";
+                return false;
             }
 
-            const uint32_t low = nshards() / static_cast<uint32_t>(executors.size());
-            const uint32_t high_count = nshards() % static_cast<uint32_t>(executors.size());
-            std::stable_sort(executors.begin(), executors.end(), [&](uint32_t a, uint32_t b) {
-                const bool a_saves = current[a] > low;
-                const bool b_saves = current[b] > low;
-                if (a_saves != b_saves) return a_saves > b_saves;
-                return a < b;
-            });
-            for (uint32_t tid : executors) flip_bucket_quota_[tid] = low;
-            for (uint32_t i = 0; i < high_count; i++) flip_bucket_quota_[executors[i]]++;
-            std::sort(executors.begin(), executors.end());
-
-            uint32_t kept[kMaxThreads] = {};
-            uint32_t deficit[kMaxThreads] = {};
             uint32_t incoming[kMaxThreads] = {};
+            double before_weight[kMaxThreads] = {};
+            double after_weight[kMaxThreads] = {};
+            double before_bytes[kMaxThreads] = {};
+            double after_bytes[kMaxThreads] = {};
             for (uint32_t sid = 0; sid < nshards(); sid++)
                 flip_shard_destination_[sid] = UINT32_MAX;
-            // Stable shard-id order decides which members of an over-quota owner stay. Owners at or
-            // below quota keep every shard; only the exact arithmetic excess enters the move pool.
-            for (uint32_t sid = 0; sid < nshards(); sid++) {
-                const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
-                if (flip_final_role(owner) == Role::Ex && kept[owner] < flip_bucket_quota_[owner]) {
-                    flip_shard_destination_[sid] = owner;
-                    kept[owner]++;
-                }
-            }
-            for (uint32_t tid : executors) deficit[tid] = flip_bucket_quota_[tid] - kept[tid];
-            for (uint32_t sid = 0; sid < nshards(); sid++) {
-                if (flip_shard_destination_[sid] != UINT32_MAX) continue;
-                for (uint32_t tid : executors) {
-                    if (!deficit[tid]) continue;
-                    flip_shard_destination_[sid] = tid;
-                    deficit[tid]--;
-                    break;
-                }
-                if (flip_shard_destination_[sid] == UINT32_MAX) std::abort();
-            }
-
             uint32_t moves = 0;
-            for (uint32_t sid = 0; sid < nshards(); sid++) {
-                const uint32_t source = worker_of_shard(static_cast<int32_t>(sid));
-                const uint32_t destination = flip_shard_destination_[sid];
-                if (destination == UINT32_MAX) std::abort();
-                if (source == destination) continue;
-                incoming[destination]++;
-                moves++;
+            for (const WeightedLbAssignment& assignment : assignments) {
+                if (assignment.id >= nshards() || assignment.destination >= nthreads())
+                    std::abort();
+                const uint32_t sid = static_cast<uint32_t>(assignment.id);
+                flip_shard_destination_[sid] = assignment.destination;
+                flip_bucket_quota_[assignment.destination]++;
+                before_weight[assignment.source] += assignment.weight;
+                after_weight[assignment.destination] += assignment.weight;
+                before_bytes[assignment.source] += assignment.secondary;
+                after_bytes[assignment.destination] += assignment.secondary;
+                if (assignment.source != assignment.destination) {
+                    incoming[assignment.destination]++;
+                    moves++;
+                }
             }
-            uint32_t theoretical_minimum = 0;
-            for (uint32_t source = 0; source < nthreads(); source++) {
-                if (thread(source).role() != Role::Ex) continue;
-                const uint32_t quota = flip_final_role(source) == Role::Ex
-                    ? flip_bucket_quota_[source] : 0;
-                if (current[source] > quota) theoretical_minimum += current[source] - quota;
+            const uint32_t low = nshards() / static_cast<uint32_t>(executors.size());
+            const uint32_t high = low + (nshards() % executors.size() != 0);
+            double bw_min = 0, bw_max = 0, aw_min = 0, aw_max = 0;
+            double bb_min = 0, bb_max = 0, ab_min = 0, ab_max = 0;
+            bool before_first = true, after_first = true;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) {
+                if (thread(tid).role() != Role::Ex) continue;
+                if (before_first) {
+                    bw_min = bw_max = before_weight[tid];
+                    bb_min = bb_max = before_bytes[tid];
+                } else {
+                    bw_min = std::min(bw_min, before_weight[tid]);
+                    bw_max = std::max(bw_max, before_weight[tid]);
+                    bb_min = std::min(bb_min, before_bytes[tid]);
+                    bb_max = std::max(bb_max, before_bytes[tid]);
+                }
+                before_first = false;
             }
-            if (moves != theoretical_minimum) std::abort();
             for (uint32_t tid : executors) {
+                if (flip_bucket_quota_[tid] < low || flip_bucket_quota_[tid] > high) {
+                    error = "ERR FLIP weighted bucket plan violates count balance";
+                    return false;
+                }
+                if (after_first) {
+                    aw_min = aw_max = after_weight[tid];
+                    ab_min = ab_max = after_bytes[tid];
+                } else {
+                    aw_min = std::min(aw_min, after_weight[tid]);
+                    aw_max = std::max(aw_max, after_weight[tid]);
+                    ab_min = std::min(ab_min, after_bytes[tid]);
+                    ab_max = std::max(ab_max, after_bytes[tid]);
+                }
+                after_first = false;
                 if (!reserve_shard_capacity(tid, incoming[tid])) {
                     error = "ERR FLIP could not reserve executor shard ownership";
                     return false;
                 }
             }
+            flip_bucket_weight_spread_before_.store(
+                static_cast<uint64_t>((bw_max - bw_min) * 1024.0 + 0.5),
+                std::memory_order_relaxed);
+            flip_bucket_weight_spread_after_.store(
+                static_cast<uint64_t>((aw_max - aw_min) * 1024.0 + 0.5),
+                std::memory_order_relaxed);
+            flip_bucket_bytes_spread_before_.store(
+                static_cast<uint64_t>(bb_max - bb_min + 0.5), std::memory_order_relaxed);
+            flip_bucket_bytes_spread_after_.store(
+                static_cast<uint64_t>(ab_max - ab_min + 0.5), std::memory_order_relaxed);
             flip_planned_shard_transfers_ = moves;
             return true;
         } catch (const std::bad_alloc&) {
             error = "ERR FLIP could not allocate bucket balance plan";
             return false;
         }
+    }
+
+    // One cron-owned controller beat. It computes candidates from the same immutable-id signal
+    // windows consumed by FLIP, then publishes either a short EX quiescence transaction or one
+    // connection drain request. Nothing here runs on an operation path.
+    bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
+        if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
+        const bool key_enabled = key_lb_signals_enabled();
+        const bool client_enabled = client_lb_signals_enabled();
+        lb_ticks_.fetch_add(1, std::memory_order_relaxed);
+        try {
+            {
+                std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+                if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+                    snapshot_.in_progress() || loading()) {
+                    lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+                    return false;
+                }
+                // FLIP folds the same windows while holding this admission mutex. Serialising the
+                // fold prevents a losing concurrent planner from consuming and decaying its tick.
+                lb_fold_signals();
+            }
+            std::vector<uint32_t> executors;
+            std::vector<uint32_t> ios;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) {
+                const Role role = thread(tid).role();
+                if (key_enabled && role == Role::Ex) executors.push_back(tid);
+                else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
+            }
+
+            auto spread = [](const double* loads, const std::vector<uint32_t>& owners) {
+                if (owners.empty()) return 0.0;
+                double lo = loads[owners.front()], hi = lo;
+                for (uint32_t tid : owners) {
+                    lo = std::min(lo, loads[tid]);
+                    hi = std::max(hi, loads[tid]);
+                }
+                return hi - lo;
+            };
+            auto ratio_pct = [&](double span, const double* loads,
+                                 const std::vector<uint32_t>& owners) {
+                double total = 0;
+                for (uint32_t tid : owners) total += loads[tid];
+                return total > 0 && !owners.empty()
+                    ? span * 100.0 * owners.size() / total : 0.0;
+            };
+            auto update_streak = [&](double ratio, uint32_t& streak) {
+                const double fire = cfg_.lb_imbalance_pct;
+                const double release = fire * 0.8; // Schmitt release band
+                if (ratio > fire) streak = std::min<uint32_t>(streak + 1, 3);
+                else if (ratio < release) streak = 0;
+                if (streak < 3) {
+                    lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
+                    return false;
+                }
+                return true;
+            };
+
+            std::vector<LbShardMove> shard_plan;
+            double shard_before = 0, shard_after = 0;
+            double bytes_before = 0, bytes_after = 0;
+            if (key_enabled && executors.size() >= 2) {
+                double loads[kMaxThreads] = {};
+                double byte_loads[kMaxThreads] = {};
+                std::vector<WeightedLbItem> shard_items;
+                shard_items.reserve(nshards());
+                std::vector<uint64_t> last_move;
+                bool dominant_bucket = false;
+                {
+                    std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                    last_move = lb_bucket_last_move_ms_;
+                    double total = 0, hottest = 0;
+                    for (double weight : lb_bucket_weight_) {
+                        total += weight;
+                        hottest = std::max(hottest, weight);
+                    }
+                    dominant_bucket = total > 0 && hottest * 2.0 > total;
+                }
+                uint32_t cooldown_seen = 0;
+                for (uint32_t sid = 0; sid < nshards(); sid++) {
+                    const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
+                    const double weight = lb_shard_weight(sid);
+                    const uint64_t bytes = lb_shard_bytes(sid);
+                    const Shard& physical = shard(static_cast<int32_t>(sid));
+                    bool cooling = false;
+                    for (uint32_t bucket = physical.bucket_begin();
+                         bucket < physical.bucket_end(); bucket++) {
+                        const uint64_t moved = last_move[bucket];
+                        if (moved && now_ms - moved < cfg_.lb_cooldown_ms) {
+                            cooling = true;
+                            break;
+                        }
+                    }
+                    if (cooling) cooldown_seen++;
+                    shard_items.push_back(
+                        {sid, owner, weight, cooling, static_cast<double>(bytes)});
+                    loads[owner] += weight;
+                    byte_loads[owner] += static_cast<double>(bytes);
+                }
+                shard_before = spread(loads, executors);
+                bytes_before = spread(byte_loads, executors);
+                const double weight_ratio = ratio_pct(shard_before, loads, executors);
+                const double byte_ratio = ratio_pct(bytes_before, byte_loads, executors);
+                lb_bucket_weight_spread_current_.store(
+                    static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_bytes_spread_current_.store(
+                    static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                if (dominant_bucket && weight_ratio > cfg_.lb_imbalance_pct) {
+                    // A bucket carrying at least half of all observed demand cannot be decomposed
+                    // by the single-owner actuator. It may contain a hot key; record and stop
+                    // instead of merely relocating the bottleneck.
+                    lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
+                    lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                    lb_bucket_hot_streak_ = 0;
+                } else if (update_streak(
+                               std::max(weight_ratio, byte_ratio), lb_bucket_hot_streak_)) {
+                    for (uint32_t step = 0; step < cfg_.lb_move_cap; step++) {
+                        const double old_weight_span = spread(loads, executors);
+                        const double old_byte_span = spread(byte_loads, executors);
+                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
+                                                cfg_.lb_imbalance_pct;
+                        const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
+                                                cfg_.lb_imbalance_pct;
+                        if (!demand_hot && !memory_hot) break;
+                        WeightedLbMoveChoice choice;
+                        if (!weighted_lb_best_incremental_move(
+                                shard_items, executors, demand_hot, memory_hot, choice)) {
+                            if (cooldown_seen)
+                                lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
+                            else
+                                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                            break;
+                        }
+                        WeightedLbItem& item = shard_items[choice.item_index];
+                        shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
+                                             choice.destination, item.weight,
+                                             static_cast<uint64_t>(item.secondary)});
+                        loads[choice.source] -= item.weight;
+                        loads[choice.destination] += item.weight;
+                        byte_loads[choice.source] -= item.secondary;
+                        byte_loads[choice.destination] += item.secondary;
+                        item.owner = choice.destination;
+                        item.pinned = true;
+                    }
+                    shard_after = spread(loads, executors);
+                    bytes_after = spread(byte_loads, executors);
+                }
+            } else if (key_enabled) {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                lb_bucket_hot_streak_ = 0;
+            }
+
+            LbClientMove client_plan;
+            double client_before = 0, client_after = 0;
+            if (client_enabled && ios.size() >= 2) {
+                double loads[kMaxThreads] = {};
+                std::vector<WeightedLbItem> clients;
+                uint32_t cooldown_seen = 0;
+                {
+                    std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                    clients.reserve(lb_clients_.size());
+                    for (const auto& entry : lb_clients_) {
+                        const LbClientSignal& signal = entry.second;
+                        if (signal.owner >= nthreads() ||
+                            thread(signal.owner).role() != Role::Ifid) continue;
+                        const bool cooling = signal.last_move_ms &&
+                            now_ms - signal.last_move_ms < cfg_.lb_cooldown_ms;
+                        if (cooling) cooldown_seen++;
+                        clients.push_back(
+                            {entry.first, signal.owner, signal.weight, cooling, 0.0});
+                        loads[signal.owner] += signal.weight;
+                    }
+                }
+                client_before = spread(loads, ios);
+                lb_client_weight_spread_current_.store(
+                    static_cast<uint64_t>(client_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                const double client_ratio = ratio_pct(client_before, loads, ios);
+                if (update_streak(client_ratio, lb_client_hot_streak_)) {
+                    WeightedLbMoveChoice choice;
+                    if (!weighted_lb_best_incremental_move(
+                            clients, ios, true, false, choice)) {
+                        if (cooldown_seen)
+                            lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
+                        else
+                            lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                    } else {
+                        const WeightedLbItem& client = clients[choice.item_index];
+                        client_plan = {client.id, choice.source, choice.destination, client.weight};
+                        client_after = choice.after_weight_spread;
+                    }
+                }
+            } else if (client_enabled) {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                lb_client_hot_streak_ = 0;
+            }
+
+            const bool have_bucket = !shard_plan.empty();
+            const bool have_client = client_plan.id != 0;
+            if (!have_bucket && !have_client) {
+                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            const bool choose_client = have_client && (!have_bucket || lb_prefer_client_);
+
+            std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+            if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+                snapshot_.in_progress() || loading()) {
+                lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+                return false;
+            }
+            for (uint32_t tid = 0; tid < nthreads(); tid++)
+                lb_ack_[tid].store(0, std::memory_order_relaxed);
+            lb_coordinator_ = coordinator;
+            lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
+            lb_deadline_ns_.store(now_ns() + 5ull * 1000 * 1000 * 1000,
+                                  std::memory_order_release);
+            if (choose_client) {
+                lb_client_move_ = client_plan;
+                lb_client_weight_spread_before_.store(
+                    static_cast<uint64_t>(client_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_client_weight_spread_after_.store(
+                    static_cast<uint64_t>(client_after * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_client_hot_streak_ = 0; // consume sustain before touching a candidate
+                lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+            } else {
+                lb_shard_moves_ = std::move(shard_plan);
+                lb_bucket_weight_spread_before_.store(
+                    static_cast<uint64_t>(shard_before * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_weight_spread_after_.store(
+                    static_cast<uint64_t>(shard_after * 1024.0 + 0.5),
+                    std::memory_order_relaxed);
+                lb_bucket_bytes_spread_before_.store(
+                    static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
+                lb_bucket_bytes_spread_after_.store(
+                    static_cast<uint64_t>(bytes_after + 0.5), std::memory_order_relaxed);
+                lb_bucket_hot_streak_ = 0;
+                lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
+            }
+            lb_prefer_client_ = !choose_client;
+            return true;
+        } catch (const std::bad_alloc&) {
+            lb_capacity_refused_.fetch_add(1, std::memory_order_relaxed);
+            return false;
+        }
+    }
+
+    bool lb_commit_shard_plan(uint64_t now_ms) {
+        if (lb_stage() != LbStage::ExDrain || !lb_all_ex_acked()) return false;
+        uint32_t incoming[kMaxThreads] = {};
+        for (const LbShardMove& move : lb_shard_moves_) incoming[move.destination]++;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) {
+            if (!incoming[tid]) continue;
+            if (!reserve_shard_capacity(tid, incoming[tid])) {
+                lb_capacity_refused_.fetch_add(1, std::memory_order_relaxed);
+                lb_stage_.store(LbStage::Idle, std::memory_order_release);
+                lb_deadline_ns_.store(0, std::memory_order_release);
+                return false;
+            }
+        }
+        for (const LbShardMove& move : lb_shard_moves_) {
+            if (!transfer_shard_quiesced(static_cast<int32_t>(move.sid), move.source,
+                                          move.destination)) std::abort();
+            Shard& physical = shard(static_cast<int32_t>(move.sid));
+            {
+                std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                for (uint32_t bucket = physical.bucket_begin();
+                     bucket < physical.bucket_end(); bucket++)
+                    lb_bucket_last_move_ms_[bucket] = now_ms;
+            }
+            lb_bucket_moves_.fetch_add(1, std::memory_order_relaxed);
+            if (placement_.domain_of_thread(move.source) !=
+                placement_.domain_of_thread(move.destination))
+                lb_bucket_cross_domain_moves_.fetch_add(1, std::memory_order_relaxed);
+        }
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+        return true;
+    }
+
+    bool lb_client_move_started(uint64_t id, uint64_t now_ms) {
+        if (lb_client_move_.id != id) return false;
+        LbStage expected = LbStage::ClientDrain;
+        if (!lb_stage_.compare_exchange_strong(expected, LbStage::ClientMoving,
+                                               std::memory_order_acq_rel)) return false;
+        {
+            std::lock_guard<std::mutex> lock(lb_signal_mu_);
+            const auto found = lb_clients_.find(id);
+            if (found != lb_clients_.end()) found->second.last_move_ms = now_ms;
+        }
+        lb_client_inflight_id_.store(id, std::memory_order_release);
+        return true;
+    }
+    void lb_refuse_client_request() {
+        if (lb_stage() != LbStage::ClientDrain) return;
+        lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(lb_client_move_.id);
+        if (found != lb_clients_.end())
+            found->second.last_move_ms = now_ns() / 1000000ull;
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+    }
+    void lb_client_move_committed(uint64_t id, uint32_t source, uint32_t destination) {
+        uint64_t expected = id;
+        if (!lb_client_inflight_id_.compare_exchange_strong(
+                expected, 0, std::memory_order_acq_rel)) return;
+        lb_client_moves_.fetch_add(1, std::memory_order_relaxed);
+        if (placement_.domain_of_thread(source) != placement_.domain_of_thread(destination))
+            lb_client_cross_domain_moves_.fetch_add(1, std::memory_order_relaxed);
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        const auto found = lb_clients_.find(id);
+        if (found != lb_clients_.end()) found->second.owner = destination;
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
+    }
+    void lb_client_move_cancelled(uint64_t id) {
+        uint64_t expected = id;
+        if (lb_client_inflight_id_.compare_exchange_strong(
+                expected, 0, std::memory_order_acq_rel)) {
+            lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+            lb_stage_.store(LbStage::Idle, std::memory_order_release);
+            lb_deadline_ns_.store(0, std::memory_order_release);
+        }
+    }
+    bool lb_timed_out() const {
+        const uint64_t deadline = lb_deadline_ns();
+        return deadline && now_ns() >= deadline;
+    }
+    void lb_stage_timed_out() {
+        const LbStage stage = lb_stage();
+        if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return;
+        if (stage == LbStage::ClientDrain) {
+            lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
+            std::lock_guard<std::mutex> lock(lb_signal_mu_);
+            const auto found = lb_clients_.find(lb_client_move_.id);
+            if (found != lb_clients_.end())
+                found->second.last_move_ms = now_ns() / 1000000ull;
+        }
+        else
+            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+        lb_stage_.store(LbStage::Idle, std::memory_order_release);
+        lb_deadline_ns_.store(0, std::memory_order_release);
     }
     bool flip_timed_out() const {
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
@@ -585,6 +1310,16 @@ public:
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error) {
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+        const LbStage live_lb_stage = lb_stage();
+        if (live_lb_stage == LbStage::ExDrain || live_lb_stage == LbStage::ClientDrain) {
+            // An explicit shape change wins over an uncommitted cron candidate. No ownership edge
+            // exists in either stage, so withdrawing it is exact. A ClientMoving request has
+            // already crossed its reversible preflight; FLIP admits it and IoDrain waits for that
+            // existing transfer to settle before it counts or moves any connection.
+            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+            lb_stage_.store(LbStage::Idle, std::memory_order_release);
+            lb_deadline_ns_.store(0, std::memory_order_release);
+        }
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {
@@ -615,10 +1350,12 @@ public:
         if (role_count(Role::Ifid) + role_count(Role::Ex) != nthreads())
             return refuse("ERR FLIP thread conservation is already violated");
         flip_conservation_check();
+        if (lb_controller_enabled()) lb_fold_signals();
 
         const uint32_t live_io = role_count(Role::Ifid);
         for (uint32_t tid = 0; tid < kMaxThreads; tid++) {
             flip_convert_[tid] = Role::Idle;
+            flip_client_plan_[tid].clear();
             flip_client_destinations_[tid].clear();
             flip_client_quota_[tid] = 0;
             flip_bucket_quota_[tid] = 0;
@@ -632,39 +1369,53 @@ public:
         flip_active_transfers_.store(0, std::memory_order_relaxed);
         const uint32_t conversions = live_io > target_io ? live_io - target_io
                                                           : target_io - live_io;
+        struct RoleUnit {
+            uint32_t first = UINT32_MAX;
+            uint32_t second = UINT32_MAX;
+            double occupancy = 0;
+        };
+        RoleUnit units[kMaxThreads];
+        uint32_t unit_count = 0;
         uint32_t selected = 0;
         if (target_io < live_io) {
             const uint32_t aof_writer = aof_.writer_tid();
-            for (auto it = placement_.ifid_threads().rbegin();
-                 it != placement_.ifid_threads().rend() && selected < conversions; ++it) {
-                const uint32_t tid = *it;
+            for (uint32_t tid : placement_.ifid_threads()) {
                 if (!cfg_.smt_mode) {
                     if (tid == coordinator || tid == aof_writer || tid == unix_owner_tid_) continue;
-                    flip_convert_[tid] = Role::Ex;
-                    selected++;
-                    continue;
-                }
-                const uint32_t peer = placement_.smt_peer(tid);
-                if (peer >= nthreads() || tid < peer) continue; // reverse walk: choose each pair once
-                if (tid == coordinator || peer == coordinator ||
-                    tid == aof_writer || peer == aof_writer ||
-                    tid == unix_owner_tid_ || peer == unix_owner_tid_) continue;
-                flip_convert_[tid] = flip_convert_[peer] = Role::Ex;
-                selected += 2;
-            }
-        } else {
-            for (auto it = placement_.ex_threads().rbegin();
-                 it != placement_.ex_threads().rend() && selected < conversions; ++it) {
-                const uint32_t tid = *it;
-                if (!cfg_.smt_mode) {
-                    flip_convert_[tid] = Role::Ifid;
-                    selected++;
+                    units[unit_count++] = {tid, UINT32_MAX, lb_thread_occupancy(tid)};
                     continue;
                 }
                 const uint32_t peer = placement_.smt_peer(tid);
                 if (peer >= nthreads() || tid < peer) continue;
-                flip_convert_[tid] = flip_convert_[peer] = Role::Ifid;
-                selected += 2;
+                if (tid == coordinator || peer == coordinator ||
+                    tid == aof_writer || peer == aof_writer ||
+                    tid == unix_owner_tid_ || peer == unix_owner_tid_) continue;
+                units[unit_count++] = {
+                    tid, peer, (lb_thread_occupancy(tid) + lb_thread_occupancy(peer)) * 0.5};
+            }
+        } else {
+            for (uint32_t tid : placement_.ex_threads()) {
+                if (!cfg_.smt_mode) {
+                    units[unit_count++] = {tid, UINT32_MAX, lb_thread_occupancy(tid)};
+                    continue;
+                }
+                const uint32_t peer = placement_.smt_peer(tid);
+                if (peer >= nthreads() || tid < peer) continue;
+                units[unit_count++] = {
+                    tid, peer, (lb_thread_occupancy(tid) + lb_thread_occupancy(peer)) * 0.5};
+            }
+        }
+        std::sort(units, units + unit_count, [](const RoleUnit& a, const RoleUnit& b) {
+            if (a.occupancy != b.occupancy) return a.occupancy < b.occupancy;
+            return a.first > b.first; // disabled/all-zero signal preserves the old reverse-id tie
+        });
+        const Role target_role = target_io < live_io ? Role::Ex : Role::Ifid;
+        for (uint32_t i = 0; i < unit_count && selected < conversions; i++) {
+            flip_convert_[units[i].first] = target_role;
+            selected++;
+            if (units[i].second != UINT32_MAX) {
+                flip_convert_[units[i].second] = target_role;
+                selected++;
             }
         }
         if (selected != conversions)
@@ -2259,6 +3010,7 @@ private:
     Role flip_convert_[kMaxThreads] = {};
     uint32_t flip_surviving_io_[kMaxThreads] = {};
     uint32_t flip_surviving_io_count_ = 0;
+    std::vector<Client*> flip_client_plan_[kMaxThreads];
     std::vector<uint32_t> flip_client_destinations_[kMaxThreads];
     uint32_t flip_client_quota_[kMaxThreads] = {};
     uint32_t flip_bucket_quota_[kMaxThreads] = {};
@@ -2277,8 +3029,65 @@ private:
     std::atomic<uint64_t> flip_clients_transferred_{0};
     std::atomic<uint64_t> flip_active_transfers_{0};
     std::atomic<uint64_t> flip_last_transfers_{0};
+    std::atomic<uint64_t> flip_bucket_weight_spread_before_{0}; // fixed point, /1024
+    std::atomic<uint64_t> flip_bucket_weight_spread_after_{0};
+    std::atomic<uint64_t> flip_client_weight_spread_before_{0};
+    std::atomic<uint64_t> flip_client_weight_spread_after_{0};
+    std::atomic<uint64_t> flip_bucket_bytes_spread_before_{0};
+    std::atomic<uint64_t> flip_bucket_bytes_spread_after_{0};
     std::atomic<uint64_t> flip_conservation_checks_{0};
     std::atomic<uint64_t> flip_conservation_violations_{0};
+
+    // The continuous controller has one cron writer and publishes only these two cold stages.
+    // EX movement reuses FLIP's quiescence fence; client movement pauses one selected connection
+    // until the existing asynchronous transfer primitive takes ownership.
+    std::atomic<LbStage> lb_stage_{LbStage::Idle};
+    std::atomic<uint64_t> lb_epoch_{0};
+    std::atomic<uint64_t> lb_deadline_ns_{0};
+    std::atomic<uint64_t> lb_ack_[kMaxThreads] = {};
+    uint32_t lb_coordinator_ = UINT32_MAX;
+    std::vector<LbShardMove> lb_shard_moves_;
+    LbClientMove lb_client_move_;
+    std::atomic<uint64_t> lb_client_inflight_id_{0};
+    uint32_t lb_bucket_hot_streak_ = 0;
+    uint32_t lb_client_hot_streak_ = 0;
+    bool lb_prefer_client_ = false;
+    std::atomic<uint64_t> lb_ticks_{0};
+    std::atomic<uint64_t> lb_bucket_moves_{0};
+    std::atomic<uint64_t> lb_client_moves_{0};
+    std::atomic<uint64_t> lb_bucket_cross_domain_moves_{0};
+    std::atomic<uint64_t> lb_client_cross_domain_moves_{0};
+    std::atomic<uint64_t> lb_no_candidate_{0};
+    std::atomic<uint64_t> lb_hysteresis_refused_{0};
+    std::atomic<uint64_t> lb_cooldown_refused_{0};
+    std::atomic<uint64_t> lb_transition_refused_{0};
+    std::atomic<uint64_t> lb_capacity_refused_{0};
+    std::atomic<uint64_t> lb_client_refused_{0};
+    std::atomic<uint64_t> lb_hot_bucket_refused_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_current_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_before_{0};
+    std::atomic<uint64_t> lb_bucket_weight_spread_after_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_current_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_before_{0};
+    std::atomic<uint64_t> lb_client_weight_spread_after_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_current_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_before_{0};
+    std::atomic<uint64_t> lb_bucket_bytes_spread_after_{0};
+
+    // Weighted-placement state is absent when lb-sample-rate=0. Bucket arrays are indexed by the
+    // immutable routing id; client state is keyed by the immutable connection id. The mutex is a
+    // once-per-controller-beat/read-side lock and is never acquired on an operation path.
+    mutable std::mutex lb_signal_mu_;
+    std::vector<uint32_t> lb_bucket_last_samples_;
+    std::vector<double> lb_bucket_weight_;
+    std::vector<uint64_t> lb_bucket_last_move_ms_;
+    std::vector<uint64_t> lb_thread_last_busy_;
+    std::vector<uint64_t> lb_thread_last_idle_;
+    std::vector<double> lb_thread_occupancy_;
+    bool lb_bucket_primed_ = false;
+    bool lb_occupancy_primed_ = false;
+    std::unordered_map<uint64_t, LbClientSignal> lb_clients_;
+    std::atomic<uint64_t> lb_client_owner_weight_[kMaxThreads] = {};
     std::atomic<uint32_t> loading_{0};
 
     uint8_t executor_slots_[kMaxThreads] = {};
