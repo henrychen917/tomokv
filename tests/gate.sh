@@ -457,6 +457,15 @@ python3 tests/flip_ttl.py 127.0.0.1 $PORT >/tmp/gate-flip-ttl.txt 2>&1 \
     { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>/tmp/gate-flip-sat.txt; }
   done
   kill -9 $MTPID 2>/dev/null
+  # The 256 SIGKILLed connections must REAP before shutdown or the drain line reports them as
+  # live (observed: live_conns=256 on the oversubscribed gate cores, where io threads are starved
+  # at the moment of the kill). Waiting for reaping keeps the shutdown invariant meaningful: dead
+  # clients that never reap would be a real defect and still fail the row.
+  for _ in $(seq 100); do
+    LEFT=$(redis-cli -p $PORT info clients 2>/dev/null | tr -d '\r' | sed -n 's/^connected_clients://p')
+    [ -n "$LEFT" ] && [ "$LEFT" -le 2 ] && break
+    sleep 0.1
+  done
   exit $((1 - SATOK))
 ) && ok "FLIP applies under saturated load" \
   || bad "FLIP applies under saturated load" "see /tmp/gate-flip-sat.txt"
