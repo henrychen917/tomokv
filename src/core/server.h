@@ -265,7 +265,7 @@ public:
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
-            threads_[i]->init(i, placement_.role_of(i), nthreads);
+            threads_[i]->init(i, placement_.role_of(i), nthreads, cfg.lb_age_sample_rate);
             threads_[i]->init_command_counts(command_registry_size());
         }
         if (key_lb_signals_enabled()) {

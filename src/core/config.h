@@ -248,6 +248,9 @@ struct Config {
     uint32_t client_lb = 1;
     // One owner-local bucket counter is touched for every N successfully executed key visits.
     uint32_t lb_sample_rate = 64;
+    // One task in N carries a cached-microsecond enqueue stamp in Task's existing padding hole.
+    // Zero removes stamping and all age/delay observation work; no side arrays are allocated.
+    uint32_t lb_age_sample_rate = 1024;
     uint32_t lb_tick_ms = 1000;
     uint32_t lb_imbalance_pct = 25; // fire band; release is 80%, after three sustained ticks
     uint32_t lb_move_cap = 1;
@@ -681,6 +684,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--lb-age-sample-rate")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.lb_age_sample_rate)) {
+                std::fprintf(stderr,
+                             "--lb-age-sample-rate wants an unsigned 1-in-N rate (0 disables)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lb-tick-ms")) {
             if (!cfg_parse_u32(next(nullptr), cfg.lb_tick_ms)) {
                 std::fprintf(stderr, "--lb-tick-ms wants unsigned milliseconds (0 disables)\n");
@@ -991,7 +1001,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
                         "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
-                        "    --lb-sample-rate N --lb-tick-ms N\n"
+                        "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"

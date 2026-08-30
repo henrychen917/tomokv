@@ -27,6 +27,7 @@
 // counters are plain non-atomic uint64 written only by their owning thread; the only atomic on the
 // hot path is the peer-blocked flag, and it is read, not written.
 #pragma once
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <ctime>
@@ -78,6 +79,17 @@ struct LoopSignals {
     uint64_t depth_samples = 0; // divide to get a time-average rather than a spot reading
     uint64_t full_events   = 0; // outbound push refused: real backpressure, not a guess
 
+    // Sampled queue/age signals. Timestamps come from the loop's already-paid busy Span clock;
+    // queue-delay observation therefore adds no clock read or atomic to a per-operation path.
+    // EWMAs use x256 fixed point so writers stay plain owner-local uint64 stores.
+    uint64_t queue_delay_samples = 0;
+    uint64_t queue_delay_ewma_x256 = 0;
+    uint64_t oldest_age_us = 0;          // current role-specific gauge at the 100us signal beat
+    uint64_t oldest_age_samples = 0;
+    uint64_t oldest_age_ewma_x256 = 0;
+    uint64_t oldest_age_min_us = 0;
+    uint64_t oldest_age_max_us = 0;
+
     // ---- signalling --------------------------------------------------------------------------
     uint64_t wakes_sent = 0;
     uint64_t wakes_recv = 0;
@@ -123,9 +135,56 @@ struct LoopSignals {
     uint64_t epoll_events = 0;          // readiness events returned by epoll_wait
     uint64_t epoll_recvs = 0;           // recv syscalls that returned bytes
 
+    // Boot-latched producer sampling state. A zero rate takes the direct Channel push path: no
+    // stamp writes, countdown work, arrays, or EWMA updates. cached_now_us is refreshed from
+    // Span::start_ns(), not by another clock read.
+    uint64_t cached_now_us = 0;
+    uint32_t age_sample_rate = 0;
+    uint32_t age_sample_countdown = 0;
+
+    void configure_age_sampling(uint32_t rate) {
+        age_sample_rate = rate;
+        age_sample_countdown = rate;
+    }
+    uint32_t next_age_stamp() {
+        if (--age_sample_countdown != 0) return 0;
+        age_sample_countdown = age_sample_rate;
+        const uint32_t low = static_cast<uint32_t>(cached_now_us);
+        return low;                        // zero loses one sample per 2^32us; it is the sentinel
+    }
+    uint32_t observe_queue_delay(uint32_t enqueue_us_low) {
+        const uint32_t delay = static_cast<uint32_t>(cached_now_us) - enqueue_us_low;
+        observe_ewma(delay, queue_delay_samples, queue_delay_ewma_x256);
+        return delay;
+    }
+    void observe_oldest_age(uint64_t age_us) {
+        oldest_age_us = age_us;
+        if (!oldest_age_samples) {
+            oldest_age_min_us = oldest_age_max_us = age_us;
+        } else {
+            oldest_age_min_us = std::min(oldest_age_min_us, age_us);
+            oldest_age_max_us = std::max(oldest_age_max_us, age_us);
+        }
+        observe_ewma(age_us, oldest_age_samples, oldest_age_ewma_x256);
+    }
+    void clear_oldest_age() { oldest_age_us = 0; }
+
     // Derived, computed on read so the hot path never divides.
     double avg_depth() const {
         return depth_samples ? static_cast<double>(depth_sum) / static_cast<double>(depth_samples) : 0.0;
+    }
+
+private:
+    static void observe_ewma(uint64_t sample, uint64_t& samples, uint64_t& ewma_x256) {
+        const uint64_t scaled = sample << 8;
+        if (!samples) {
+            ewma_x256 = scaled;
+        } else if (scaled >= ewma_x256) {
+            ewma_x256 += (scaled - ewma_x256 + 7) / 8;
+        } else {
+            ewma_x256 -= (ewma_x256 - scaled + 7) / 8;
+        }
+        samples++;
     }
 };
 
@@ -135,6 +194,7 @@ class Span {
 public:
     explicit Span(uint64_t& sink) : sink_(sink), t0_(now_ns()) {}
     ~Span() { sink_ += now_ns() - t0_; }
+    uint64_t start_ns() const { return t0_; }
     Span(const Span&) = delete;
     Span& operator=(const Span&) = delete;
 private:
@@ -277,9 +337,31 @@ public:
         if (!q_.push(v)) { sig.full_events++; return false; }
         return true;
     }
+    template <typename Prepare>
+    bool push_prepared(T v, LoopSignals& sig, Prepare&& prepare) {
+        if (!q_.push_prepared(v, static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
     bool push_batch(const T* values, uint32_t count, LoopSignals& sig) {
         if (!q_.push_batch(values, count)) { sig.full_events++; return false; }
         return true;
+    }
+    template <typename Prepare>
+    bool push_batch_prepared(const T* values, uint32_t count, LoopSignals& sig,
+                             Prepare&& prepare) {
+        if (!q_.push_batch_prepared(values, count, static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+
+    template <typename Extract>
+    uint32_t newest_nonzero(Extract&& extract) const {
+        return q_.newest_nonzero(static_cast<Extract&&>(extract));
     }
 
     // Call ONLY when the caller performed the mask's empty->flagged transition. That RMW is a full

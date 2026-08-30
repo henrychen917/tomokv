@@ -87,6 +87,7 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
+        age_signals_armed_ = srv_->cfg().lb_age_sample_rate != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
@@ -475,13 +476,14 @@ private:
             }
             client_cron_was_armed_ = client_cron_armed;
             sig.iterations++;
-            self_->sample_depth();
             reap_dead();               // free clients dead for a full iteration -- see close_client
             scatter_pool_.reap_deferred();
 
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                if (self_->sample_depth(busy.start_ns() / 1000) && age_signals_armed_)
+                    sample_rob_head_age(sig.cached_now_us);
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -3134,6 +3136,43 @@ nonblocking_dispatch:
         pending_serve_.push_back(c);
     }
 
+    // IO owns both ROB frontiers, so this 100us signal beat can maintain head_since without a
+    // Client field or a per-operation hook. The active set bounds the walk to connections already
+    // carrying work. Entries not seen in this beat are erased, which also makes client teardown and
+    // pointer reuse harmless without touching either lifecycle hot path.
+    void sample_rob_head_age(uint64_t now_us) {
+        LoopSignals& sig = self_->sig();
+        if (++rob_age_generation_ == 0) {
+            rob_head_ages_.clear();
+            rob_age_generation_ = 1;
+        }
+        uint64_t oldest_us = 0;
+        bool observed = false;
+        for (size_t i = 0; i < active_.size(); i++) {
+            Client* client = active_.at(i);
+            if (!client || client->dead()) continue;
+            const uint64_t head = client->rob().flush_id();
+            if (head == client->rob().dispatch_id()) continue;
+            auto [it, inserted] = rob_head_ages_.try_emplace(client);
+            RobHeadAge& age = it->second;
+            if (inserted || age.head_id != head) {
+                age.head_id = head;
+                age.head_since_us = now_us;
+            }
+            age.seen_generation = rob_age_generation_;
+            oldest_us = std::max(oldest_us, now_us - age.head_since_us);
+            observed = true;
+        }
+        for (auto it = rob_head_ages_.begin(); it != rob_head_ages_.end();) {
+            if (it->second.seen_generation != rob_age_generation_)
+                it = rob_head_ages_.erase(it);
+            else
+                ++it;
+        }
+        if (observed) sig.observe_oldest_age(oldest_us);
+        else          sig.clear_oldest_age();
+    }
+
     bool deferred_wait_start(Client* client, uint64_t op_id, uint64_t timeout_ms) {
         const uint64_t deadline_ms = timeout_ms
             ? now_ns() / 1000000ull + timeout_ms
@@ -3413,8 +3452,17 @@ nonblocking_dispatch:
     bool     client_lb_signal_armed_ = false;
     bool     lb_controller_armed_ = false;
     bool     lb_client_wake_pending_ = false;
+    bool     age_signals_armed_ = false;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
     std::vector<LbClientObservation> lb_client_observations_;
+    struct RobHeadAge {
+        uint64_t head_id = 0;
+        uint64_t head_since_us = 0;
+        uint64_t seen_generation = 0;
+    };
+    // Empty and allocation-free when --lb-age-sample-rate=0.
+    std::unordered_map<Client*, RobHeadAge> rob_head_ages_;
+    uint64_t rob_age_generation_ = 0;
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;
