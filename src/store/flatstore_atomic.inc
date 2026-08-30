@@ -334,25 +334,25 @@
                 while (steps-- && rehashing()) rehash_step();
             }
             if (rehashing())
-                return static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0];
+                return static_cast<uint64_t>(live_[0]) + tombs_[0] + additional < cap_[0];
             // fell through: rehash completed, re-evaluate against the merged table below.
         }
-        if (static_cast<uint64_t>(live_[0] + tombs_[0] + additional) * 100 <
+        if ((static_cast<uint64_t>(live_[0]) + tombs_[0] + additional) * 100 <
             static_cast<uint64_t>(cap_[0]) * kLoadPct)
             return true;
         if (snapshot_prepared_)
-            return static_cast<uint64_t>(live_[0] + tombs_[0] + additional) < cap_[0];
+            return static_cast<uint64_t>(live_[0]) + tombs_[0] + additional < cap_[0];
         // Size for the LIVE set plus the pass (tombstones are dropped by the coming rehash). When
         // tombstones dominate and the live set is small this leaves `wanted == cap_[0]`: a same-size
         // rehash that reclaims them, exactly maybe_start_grow()'s policy.
         uint64_t wanted = cap_[0];
         const uint64_t need = static_cast<uint64_t>(live_[0]) + additional;
         while (need * 100 >= wanted * kLoadPct) {
-            wanted *= 2;
+            wanted *= uint64_t{2};
             if (wanted > UINT32_MAX) return false;
         }
-        auto* fresh = static_cast<uint64_t*>(std::calloc(static_cast<size_t>(wanted),
-                                                         sizeof(uint64_t)));
+        auto* fresh = static_cast<uint64_t*>(
+            flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
         tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
@@ -591,7 +591,10 @@ private:
     }
 
     AtomicEntry* atomic_alloc_entry(uint32_t capacity, uint32_t key_bytes) {
-        const size_t request = sizeof(AtomicEntry) + sizeof(KvObj*) * capacity + key_bytes;
+        const uint64_t request64 = sizeof(AtomicEntry) +
+                                   static_cast<uint64_t>(capacity) * sizeof(KvObj*) + key_bytes;
+        if (request64 > std::numeric_limits<size_t>::max()) return nullptr;
+        const size_t request = static_cast<size_t>(request64);
         const size_t allocation = good_size(request);
         const uint32_t cls = atomic_pool_class(allocation);
         AtomicEntry* entry = nullptr;
@@ -901,7 +904,7 @@ private:
 
     bool atomic_collapse(uint64_t floor, uint64_t cleanup_cutoff) {
         if (!atomic_pending_ || !atomic_pending_->live || snapshot_active_) return false;
-        uint32_t occurrences = 0;
+        uint64_t occurrences = 0;
         AtomicEntry* first_unselected = atomic_pending_->head;
         while (first_unselected) {
             AtomicEntry* entry = first_unselected;
@@ -910,6 +913,7 @@ private:
             const uint64_t epoch = atomic_epoch(*entry);
             if (!aborted && (!epoch || epoch >= floor || epoch > cleanup_cutoff))
                 break;
+            if (occurrences > UINT64_MAX - entry->count) return false;
             occurrences += entry->count;
             first_unselected = entry->next;
         }
@@ -998,9 +1002,10 @@ private:
         // no table probe or chain surgery at all.
         bool overlap = false;
         uint64_t seen_bits = 0;
+        if (occurrences > atomic_seen_keys_.max_size()) return false;
         try {
             atomic_seen_keys_.clear();
-            atomic_seen_keys_.reserve(occurrences);
+            atomic_seen_keys_.reserve(static_cast<size_t>(occurrences));
         } catch (const std::bad_alloc&) {
             return false;
         }
@@ -1102,19 +1107,29 @@ private:
         // Actual overlap is rare, but install order and commit-ticket order may invert. Collapse
         // the prefix by committed argmax, then splice its winner into the first unselected
         // occurrence (or the physical table when no successor exists).
-        uint32_t table_cap = 8;
-        atomic_pending_->cleanup_slow += occurrences;
-        while (table_cap < occurrences * 2) table_cap <<= 1;
+        uint64_t table_cap = 8;
+        if (occurrences > UINT64_MAX / uint64_t{2}) return false;
+        const uint64_t wanted_slots = occurrences * uint64_t{2};
+        while (table_cap < wanted_slots) {
+            table_cap *= uint64_t{2};
+            if (table_cap > UINT32_MAX) return false;
+        }
+        if (occurrences > UINT64_MAX - occurrences / uint64_t{2}) return false;
+        const uint64_t retire_slots = occurrences + occurrences / uint64_t{2};
+        if (occurrences > atomic_collapse_keys_.max_size() ||
+            table_cap > atomic_collapse_slots_.max_size() ||
+            retire_slots > atomic_collapse_retire_.max_size()) return false;
         try {
             atomic_collapse_keys_.clear();
-            atomic_collapse_keys_.reserve(occurrences);
-            atomic_collapse_slots_.assign(table_cap, AtomicCollapseSlot{});
+            atomic_collapse_keys_.reserve(static_cast<size_t>(occurrences));
+            atomic_collapse_slots_.assign(static_cast<size_t>(table_cap), AtomicCollapseSlot{});
             atomic_collapse_retire_.clear();
-            atomic_collapse_retire_.reserve(static_cast<size_t>(occurrences) + occurrences / 2);
+            atomic_collapse_retire_.reserve(static_cast<size_t>(retire_slots));
         } catch (const std::bad_alloc&) {
             return false;
         }
-        const uint32_t table_mask = table_cap - 1;
+        atomic_pending_->cleanup_slow += occurrences;
+        const uint32_t table_mask = static_cast<uint32_t>(table_cap - 1);
         auto key_index = [&](uint64_t hash, Slice key, KvObj* base) -> uint32_t {
             uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table_mask;
             for (;;) {
