@@ -209,6 +209,28 @@ for ATOMIC in 0 1; do
     done
   done
 
+  # The multi/atomic=1/seed=19 leg once caught a 1-in-many reader-vs-cleanup race (an EXISTS that
+  # returned 2 of 3 committed keys) that no distilled stresser has reproduced since. One roll per
+  # gate is a weak sentinel for a rare race, so this leg alone is repeated: the stream is
+  # deterministic, so each repetition re-rolls the exact failing op's timing against the state the
+  # earlier legs accumulated. Repeats are extra rolls of the SAME dice, not new coverage --
+  # they intentionally do not appear in any expected-row ledger outside this script.
+  if [ "$ATOMIC" -eq 1 ]; then
+    for REP in $(seq "${GATE_DIFFER_MULTI_REPEATS:-4}"); do
+      LEG="differ multi (atomic=1 seed=19 rep $REP)"
+      LEG_LOG="$OUT/multi-a1-s19-rep$REP.txt"
+      if taskset -c "$TARGET_CORES" timeout 900 python3 tests/differ.py \
+          127.0.0.1 "$TARGET_PORT" 127.0.0.1 "$ORACLE_PORT" multi 19 \
+          >"$LEG_LOG" 2>&1; then
+        say "$LEG" "ok ($(tail -n 1 "$LEG_LOG"))"
+        PASS=$((PASS+1))
+      else
+        say "$LEG" "FAIL (see $LEG_LOG; $(tail -n 1 "$LEG_LOG"))"
+        FAIL=$((FAIL+1))
+      fi
+    done
+  fi
+
   stop_owned "target atomic=$ATOMIC" "$TARGET_PID" "$TARGET_PORT" || FAIL=$((FAIL+1))
   TARGET_PID=0
 done
