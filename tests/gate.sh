@@ -461,8 +461,16 @@ python3 tests/flip_ttl.py 127.0.0.1 $PORT >/tmp/gate-flip-ttl.txt 2>&1 \
 ) && ok "FLIP applies under saturated load" \
   || bad "FLIP applies under saturated load" "see /tmp/gate-flip-sat.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
-    && ok "flip battery shutdown invariants" || bad "flip battery shutdown invariants"
+# The saturation row kill -9s its memtier, so 256 aborted connections drain at shutdown -- the
+# invariant line lands a beat after stop returns. Poll instead of racing it.
+FLIPSHUT=0
+for _ in $(seq 50); do
+  grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+      && { FLIPSHUT=1; break; }
+  sleep 0.1
+done
+[ "$FLIPSHUT" = 1 ] && ok "flip battery shutdown invariants" \
+    || bad "flip battery shutdown invariants"
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
 for PERSIST_IO in normal uring; do
