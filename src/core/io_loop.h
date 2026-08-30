@@ -403,6 +403,13 @@ public:
     }
 
 private:
+    enum class DispatchResult : uint8_t {
+        Progress,
+        NeedInput,
+        Error,
+        Closed,
+    };
+
     struct ClientMigration {
         Client* client = nullptr;
         uint32_t destination = 0;
@@ -2063,10 +2070,12 @@ private:
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow>
-    void parse_and_dispatch(Client* c) {
+    DispatchResult parse_and_dispatch(Client* c) {
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
+        const uint32_t pass_rpos = conn.rpos();
+        DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
         const uint8_t security_flags = srv_->security_flags();
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
@@ -2117,11 +2126,17 @@ private:
             }
             security_check |= acl_active;
 
-            if (pr == ParseResult::Incomplete) break;
+            if (pr == ParseResult::Incomplete) {
+                // No complete frame was consumed in this pass. The buffered tail is deliberately
+                // left in place; only a new recv/readability completion may make it actionable.
+                if (conn.rpos() == pass_rpos) result = DispatchResult::NeedInput;
+                break;
+            }
             if (pr == ParseResult::Error) {
                 finish_locally(c, *op, err ? err : "ERR protocol error");
                 conn.advance_parse(conn.rlen() - conn.rpos());
                 c->mark_closing();
+                result = DispatchResult::Error;
                 break;
             }
             // The parse cursor is deliberately NOT advanced here. It advances only once this op is
@@ -2405,7 +2420,8 @@ subscriber_checks_done:
                 rob.publish();
                 enqueue_serve(c);
                 mark_active(c);
-                if (c->closing() || acl_command) break;
+                if (c->closing()) { result = DispatchResult::Closed; break; }
+                if (acl_command) break;
                 if (__builtin_expect(climon_armed_dirty_, false)) {
                     climon_armed_dirty_ = false;
                     break;
@@ -2749,6 +2765,7 @@ nonblocking_dispatch:
             srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
         }
         ntouched_ = 0;
+        return result;
     }
 
     // THE ONE DOOR ONTO THE PARSE BARRIER. Every owner parks a connection through here so the
@@ -2902,6 +2919,7 @@ nonblocking_dispatch:
         for (size_t idx = 0; idx < active_.size();) {
             Client* c = active_.at(idx);
             Client& conn = *c;
+            DispatchResult dispatch_result = DispatchResult::Progress;
             TlsConn* tls = nullptr;
             if constexpr (HasTls) tls = tls_engine(c);
             if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
@@ -3003,20 +3021,20 @@ nonblocking_dispatch:
                 if (__builtin_expect(climon_pause_armed(), false)) {
                     const uint32_t rpos_before = conn.rpos();
                     if constexpr (HasTls) {
-                        if (c->is_tls()) parse_and_dispatch<true>(c);
-                        else parse_and_dispatch<false>(c);
+                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
+                        else dispatch_result = parse_and_dispatch<false>(c);
                     } else {
-                        parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<false>(c);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
-                        if (c->is_tls()) parse_and_dispatch<true>(c);
-                        else parse_and_dispatch<false>(c);
+                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
+                        else dispatch_result = parse_and_dispatch<false>(c);
                     } else {
-                        parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<false>(c);
                     }
-                    work++;
+                    if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
                 }
             }
 
@@ -3035,7 +3053,12 @@ nonblocking_dispatch:
             const bool stuck = (conn.rpos() < conn.rlen() && c->rob().full()) ||
                                (!conn.recv_armed() && !c->closing());
 
-            const bool more_input = conn.rpos() < conn.rlen();
+            // NeedInput parks only the read side: the partial bytes stay buffered and a recv is
+            // already armed, while ROB retirement and pending_serve_ remain independently live.
+            // Any complete pipelined frame (including one held by backpressure) returns Progress
+            // and therefore remains actionable here.
+            const bool more_input = conn.rpos() < conn.rlen() &&
+                                    dispatch_result != DispatchResult::NeedInput;
             const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
             const bool done = c->rob().quiesced() && !more_input && !stuck &&
                               !c->serve_pending() && c->nothing_to_write() && !tls_output;
