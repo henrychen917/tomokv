@@ -241,9 +241,12 @@ struct Config {
     bool     pin_threads    = true;
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
+    // The two feature gates independently remove their counters, EWMA/census and autonomous
+    // mover; their FLIP partition falls back to count-only placement. The remaining five knobs
+    // tune shared machinery, and zero in any of them disables both halves completely.
+    uint32_t key_lb = 1;
+    uint32_t client_lb = 1;
     // One owner-local bucket counter is touched for every N successfully executed key visits.
-    // Zero in any row is the complete off state: no counter/EWMA/byte-census allocation and
-    // count-only FLIP. This is intentionally one feature gate, not five partially-live modes.
     uint32_t lb_sample_rate = 64;
     uint32_t lb_tick_ms = 1000;
     uint32_t lb_imbalance_pct = 25; // fire band; release is 80%, after three sustained ticks
@@ -660,6 +663,18 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--key-lb")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
+                std::fprintf(stderr, "--key-lb wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--client-lb")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
+                std::fprintf(stderr, "--client-lb wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lb-sample-rate")) {
             if (!cfg_parse_u32(next(nullptr), cfg.lb_sample_rate)) {
                 std::fprintf(stderr, "--lb-sample-rate wants an unsigned 1-in-N rate (0 disables)\n");
@@ -975,7 +990,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
-                        "  weighted placement: --lb-sample-rate N --lb-tick-ms N\n"
+                        "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
+                        "    --lb-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"

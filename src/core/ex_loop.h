@@ -50,9 +50,9 @@ public:
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
-        lb_sample_rate_ = srv->lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
+        lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
-        lb_controller_armed_ = srv->lb_controller_enabled();
+        lb_controller_armed_ = srv->key_lb_signals_enabled();
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;

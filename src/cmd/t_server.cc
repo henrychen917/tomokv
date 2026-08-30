@@ -320,6 +320,10 @@ void init_config(const Config& cfg) {
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
+    g_config.push_back({"key-lb", ConfigKind::Unsigned,
+                        std::to_string(cfg.key_lb), true});
+    g_config.push_back({"client-lb", ConfigKind::Unsigned,
+                        std::to_string(cfg.client_lb), true});
     g_config.push_back({"lb-sample-rate", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_sample_rate), true});
     g_config.push_back({"lb-tick-ms", ConfigKind::Unsigned,

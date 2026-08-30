@@ -137,20 +137,27 @@ int main() {
     tomo::Config lb;
     tomo::ConfigParseState lb_state;
     const std::vector<const char*> lb_args = {
+        "--key-lb", "0", "--client-lb", "0",
         "--lb-sample-rate", "0", "--lb-tick-ms", "250",
         "--lb-imbalance-pct", "17", "--lb-move-cap", "3",
         "--lb-cooldown-ms", "9000",
     };
     if (tomo::parse_config_args(lb_args, lb, lb_state, 2, "test") != tomo::kConfigParsed ||
-        lb.lb_sample_rate != 0 || lb.lb_tick_ms != 250 || lb.lb_imbalance_pct != 17 ||
-        lb.lb_move_cap != 3 || lb.lb_cooldown_ms != 9000)
+        lb.key_lb != 0 || lb.client_lb != 0 || lb.lb_sample_rate != 0 ||
+        lb.lb_tick_ms != 250 || lb.lb_imbalance_pct != 17 || lb.lb_move_cap != 3 ||
+        lb.lb_cooldown_ms != 9000)
         fail("weighted-LB knob grammar or zero off posture differs");
     tomo::Config lb_default;
-    if (lb_default.lb_sample_rate != 64 || lb_default.lb_tick_ms != 1000 ||
+    if (lb_default.key_lb != 1 || lb_default.client_lb != 1 ||
+        lb_default.lb_sample_rate != 64 || lb_default.lb_tick_ms != 1000 ||
         lb_default.lb_imbalance_pct != 25 || lb_default.lb_move_cap != 1 ||
         lb_default.lb_cooldown_ms != 5000)
         fail("weighted-LB defaults differ");
-    if (!rejects({"--lb-sample-rate", "-1"}) ||
+    if (!rejects({"--key-lb", "2"}) ||
+        !rejects({"--key-lb", "-1"}) ||
+        !rejects({"--client-lb", "yes"}) ||
+        !rejects({"--client-lb", "2"}) ||
+        !rejects({"--lb-sample-rate", "-1"}) ||
         !rejects({"--lb-tick-ms", "later"}) ||
         !rejects({"--lb-imbalance-pct", "-1"}) ||
         !rejects({"--lb-move-cap", "-1"}) ||

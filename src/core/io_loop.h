@@ -87,7 +87,7 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
-        lb_signal_armed_ = srv_->lb_signals_enabled();
+        client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
         if (epoll_ && !init_epoll()) return false;
@@ -447,13 +447,14 @@ private:
             }
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
-            const bool lb_signal_armed = lb_signal_armed_;
+            const bool client_lb_signal_armed = client_lb_signal_armed_;
             const bool lb_controller_armed = lb_controller_armed_;
             // Placement's dense role vectors are mutated only under FLIP's global dispatch
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
                                          srv_->save_cron_writer(self_->id());
-            if (__builtin_expect(client_cron_armed || save_cron_armed || lb_signal_armed, false)) {
+            if (__builtin_expect(client_cron_armed || save_cron_armed || client_lb_signal_armed ||
+                                 lb_controller_armed, false)) {
                 cached_now_ms_ = now_ns() / 1000000ull;
                 cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 if (client_cron_armed && !client_cron_was_armed_) {
@@ -505,7 +506,7 @@ private:
                 did += collect_retire_work<HasUnix, kEp>();
                 did += flush_ready<HasTls, kEp>();
                 did += flip_control_pass<kEp>();
-                if (__builtin_expect(lb_signal_armed &&
+                if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
                     did += lb_client_signal_pass();
                     lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
@@ -3340,7 +3341,7 @@ nonblocking_dispatch:
     uint64_t cached_now_ms_ = 0;
     uint32_t cached_now_s_ = 0;
     bool     client_cron_was_armed_ = false;
-    bool     lb_signal_armed_ = false;
+    bool     client_lb_signal_armed_ = false;
     bool     lb_controller_armed_ = false;
     bool     lb_client_wake_pending_ = false;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
