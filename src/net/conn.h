@@ -2,11 +2,12 @@
 //
 // UNIFIED (owner order, 2026-08-24, after the pure-2s ruling). The ConnIn/ConnOut split — with an
 // alignas(64) firewall between the halves — existed so the parsing thread (ifid) and a remote
-// sending thread (wb/exwb) could not false-share. In pure 2s ONE io thread owns both halves for
-// the connection's whole life, so the split bought padding and a pointer hop for a hazard that no
-// longer exists. The layout rule inverts: pack the io thread's recv+send scalars TIGHT (they are
-// touched together every pass), and give the only genuinely cross-thread fields — the two atomics
-// the EXECUTOR signals through — their own line at the tail.
+// sending thread (wb/exwb) could not false-share. In pure 2s ONE io thread owns both halves at a
+// time; a migration changes that owner only after the connection is quiescent. Thus the split
+// bought padding and a pointer hop for a hazard that no longer exists. The layout rule inverts:
+// pack the io thread's recv+send scalars TIGHT (they are touched together every pass), and give the
+// only genuinely cross-thread fields — the two atomics the EXECUTOR signals through — their own
+// line at the tail.
 //
 // What ex touches, and nothing else: ROB slots (Op state/reply/direct region — Rob manages its own
 // cross-thread layout), the bytes of rbuf via argv Slices (heap data, not this struct), the direct-
@@ -673,7 +674,7 @@ public:
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0 &&
                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
-               !subscriber_mode_ && multi_session_ == nullptr && nothing_to_write();
+               multi_session_ == nullptr && nothing_to_write();
     }
     bool flip_drain_idle() const {
         // Global dispatch is paused, but connections which remain on this IO may retain durable

@@ -79,6 +79,15 @@
     void climon_untrack_client(Client* client);
     void climon_reset_client(Client* client);
     bool climon_migration_ready(const Client* client) const;
+    bool client_routing_prepare(ClientMigration& migration, std::string& error);
+    void client_routing_commit_extract(ClientMigration& migration,
+                                       std::vector<PubSubEvent*>& rebind_events);
+    bool client_routing_install(void* opaque, Client* client, uint32_t source);
+    void client_routing_discard(void* opaque);
+    void client_routing_installed(uint64_t client_id);
+    void client_routing_cleanup_pass();
+    void client_routing_refresh_masks();
+    void client_routing_forward_monitor(const PubSubEvent& event);
 
     // ---- CLIENT REPLY ---------------------------------------------------------------------------
     bool climon_reply_suppressed(Client* client);
@@ -115,6 +124,10 @@
     void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush);
     void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush);
     void tracking_note_prefix_registered(const std::string& prefix, bool added);
+    void tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const;
+    void tracking_migration_extract(uint64_t id, std::vector<std::string>& keys);
+    bool tracking_migration_install(uint64_t id, const std::vector<std::string>& keys);
+    void tracking_forward_stale(const PubSubEvent& event);
 
     // ---- lane state (true cold tail of IoLoop) --------------------------------------------------
     std::unordered_map<uint64_t, ClimonPending> climon_pending_;

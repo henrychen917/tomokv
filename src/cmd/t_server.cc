@@ -1761,7 +1761,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_patterns:%llu\r\npubsub_home_entries:%llu\r\n"
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
-                      "pubsub_delivery_batches:%llu\r\n"
+                      "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
@@ -1782,10 +1782,12 @@ void cmd_info(Shard&, Op& op) {
                       "script_effect_writes:%llu\r\nscript_failed_after_effects:%llu\r\n"
                       "function_generation:%llu\r\nfunction_calls:%llu\r\n"
                       "function_thread_rebuilds:%llu\r\nfunction_readonly_rejections:%llu\r\n"
-                      "monitor_feed_lines:%llu\r\nclient_pause_holds:%llu\r\n"
+                      "monitor_feed_lines:%llu\r\nmonitor_forwarded_stale:%llu\r\n"
+                      "client_pause_holds:%llu\r\n"
                       "client_no_touch_ops:%llu\r\n"
                       "tracking_total_keys:%llu\r\ntracking_total_items:%llu\r\n"
                       "tracking_total_prefixes:%llu\r\ntracking_invalidations:%llu\r\n"
+                      "tracking_forwarded_stale:%llu\r\n"
                       "slowlog_batches_timed:%llu\r\nslowlog_escalations:%llu\r\n"
                       "slowlog_entries_recorded:%llu\r\nlatency_events_recorded:%llu\r\n"
                       "net_io_epoll_events:%llu\r\nnet_io_epoll_recvs:%llu\r\n"
@@ -1878,6 +1880,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_blobs() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
@@ -1916,12 +1919,14 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(functions.thread_rebuilds),
                 static_cast<unsigned long long>(functions.ro_rejections),
                 static_cast<unsigned long long>(g_server ? g_server->climon_monitor_lines() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->monitor_forwarded_stale() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_pause_holds() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_no_touch_ops() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_keys() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_items() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_tracking_prefixes() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->climon_invalidations() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->tracking_forwarded_stale() : 0),
                 // Mechanism counters: a slowlog test that cannot see these move proves nothing.
                 static_cast<unsigned long long>(slowlog_batches_timed()),
                 static_cast<unsigned long long>(slowlog_escalations()),
@@ -2305,13 +2310,23 @@ bool command_client_migration_reserve(uint32_t extra) {
 
 // Cold process-wide directory. CLIENT UNBLOCK and CLIENT TRACKING REDIRECT need to name a
 // connection owned by ANOTHER io thread; the per-owner catalog above deliberately cannot. The
-// mutex is taken at accept, at close, and by those two cold commands -- never on a reply path.
+// mutex is taken at accept/close, by those two cold commands, and by stale notification delivery
+// after migration -- never on an ordinary command or reply path.
 std::mutex g_client_dir_mu;
-std::unordered_map<uint64_t, uint32_t> g_client_dir;
+std::unordered_map<uint64_t, Client*> g_client_dir;
 
-void command_client_directory_add(uint64_t id, uint32_t io) {
+void command_client_directory_add(Client* client, uint32_t io) {
+    if (!client) return;
     std::lock_guard<std::mutex> lock(g_client_dir_mu);
-    g_client_dir[id] = io;
+    if (client->ifid_thread() != io) std::abort();
+    g_client_dir[client->id()] = client;
+}
+
+void command_client_directory_move(uint64_t id, uint32_t io) {
+    std::lock_guard<std::mutex> lock(g_client_dir_mu);
+    auto found = g_client_dir.find(id);
+    if (found == g_client_dir.end() || !found->second || found->second->ifid_thread() != io)
+        std::abort();
 }
 
 void command_client_directory_remove(uint64_t id) {
@@ -2323,7 +2338,12 @@ bool command_client_directory_find(uint64_t id, uint32_t& io) {
     std::lock_guard<std::mutex> lock(g_client_dir_mu);
     auto found = g_client_dir.find(id);
     if (found == g_client_dir.end()) return false;
-    io = found->second;
+    Client* client = found->second;
+    if (!client) return false;
+    // Do not trust a captured registry value at the correctness edge.  The acquire load is the
+    // documented single-owner publication and remains safe while the directory lock prevents
+    // concurrent close from removing and eventually freeing this pointer.
+    io = client->ifid_thread();
     return true;
 }
 

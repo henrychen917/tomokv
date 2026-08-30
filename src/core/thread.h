@@ -83,6 +83,7 @@ struct BorrowRelease {
 struct ClientTransfer {
     Client* client = nullptr;
     void* catalog = nullptr;
+    void* routing = nullptr;
     uint32_t source = 0;
 };
 

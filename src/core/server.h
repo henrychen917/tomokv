@@ -1974,6 +1974,18 @@ public:
     uint64_t climon_invalidations() const {
         return climon_invalidations_.load(std::memory_order_relaxed);
     }
+    void tracking_forwarded_stale_added(uint64_t n = 1) {
+        tracking_forwarded_stale_.fetch_add(n, std::memory_order_relaxed);
+    }
+    uint64_t tracking_forwarded_stale() const {
+        return tracking_forwarded_stale_.load(std::memory_order_relaxed);
+    }
+    void monitor_forwarded_stale_added(uint64_t n = 1) {
+        monitor_forwarded_stale_.fetch_add(n, std::memory_order_relaxed);
+    }
+    uint64_t monitor_forwarded_stale() const {
+        return monitor_forwarded_stale_.load(std::memory_order_relaxed);
+    }
     // PROOF-OF-MECHANISM for the out-of-band frame channel, and the reason it exists is the
     // vacuous-validation trap: the geometry that used to splice a push into a borrowed reply is
     // "an out-of-band frame arrives while ops are still in flight", and a battery that never
@@ -2753,12 +2765,18 @@ public:
     void pubsub_delivery_batch_posted() {
         pubsub_delivery_batches_.fetch_add(1, std::memory_order_relaxed);
     }
+    void pubsub_forwarded_stale_added(uint64_t n = 1) {
+        pubsub_forwarded_stale_.fetch_add(n, std::memory_order_relaxed);
+    }
     uint64_t pubsub_blobs() const { return pubsub_blobs_.load(std::memory_order_relaxed); }
     uint64_t pubsub_deliveries() const {
         return pubsub_deliveries_.load(std::memory_order_relaxed);
     }
     uint64_t pubsub_delivery_batches() const {
         return pubsub_delivery_batches_.load(std::memory_order_relaxed);
+    }
+    uint64_t pubsub_forwarded_stale() const {
+        return pubsub_forwarded_stale_.load(std::memory_order_relaxed);
     }
     bool pubsub_notification_reserve(uint64_t count, uint64_t limit) {
         uint64_t current = pubsub_inflight_.load(std::memory_order_relaxed);
@@ -3194,6 +3212,7 @@ private:
     std::atomic<uint64_t> pubsub_blobs_{0};
     std::atomic<uint64_t> pubsub_deliveries_{0};
     std::atomic<uint64_t> pubsub_delivery_batches_{0};
+    std::atomic<uint64_t> pubsub_forwarded_stale_{0};
     std::atomic<uint64_t> pubsub_pending_{0};
     std::atomic<uint64_t> pubsub_home_entries_{0};
     std::atomic<uint64_t> pubsub_active_channels_{0};
@@ -3201,6 +3220,8 @@ private:
     std::atomic<uint64_t> pubsub_pattern_subscriptions_{0};
     std::atomic<uint64_t> pubsub_shard_channels_{0};
     std::atomic<uint64_t> pubsub_shard_subscriptions_{0};
+    std::atomic<uint64_t> tracking_forwarded_stale_{0};
+    std::atomic<uint64_t> monitor_forwarded_stale_{0};
     // Security and DEBUG state is cold and appended after every pre-existing hot atomic so this
     // feature cannot reshuffle cache-line sharing in dispatch, atomic admission, or pub/sub.
     std::atomic<uint8_t> security_flags_{0};

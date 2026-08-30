@@ -147,8 +147,10 @@ buffer is drained rather than moved while it contains work.
    and resumes it unchanged.
 4. **PREPARE DESTINATION** — reserve destination client/WB/catalog and enqueue
    capacity before detaching anything. Epoll also reserves both the destination
-   registration and a duplicated source rollback fd. Connections with owner-local
-   state that cannot be transferred are refused during preflight.
+   registration and a duplicated source rollback fd. Pub/sub and CLIENT
+   TRACKING/MONITOR routing state is snapshotted and its destination capacity and
+   HOME re-registration events are reserved here; owner-local state that cannot be
+   transferred is refused during preflight.
 5. **DETACH ENGINE (REVERSIBLE)** — still under source ownership:
    * io_uring cancels the fd's receive/poll request and waits for the original CQE
      to acknowledge cancellation.  A cancellation CQE never transfers ownership.
@@ -165,7 +167,9 @@ buffer is drained rather than moved while it contains work.
    unregistered.  Source transports the pointer but never touches the connection
    again.
 7. **DESTINATION INSTALL** — destination acquire-loads ownership, installs its WB
-   slot and directory entry, then:
+   slot and directory entry, the moved pub/sub and CLIENT TRACKING/MONITOR state,
+   then acknowledges installation so the source may retire transient stale-route
+   forwarding state. In addition:
    * io_uring arms a receive on the destination ring;
    * epoll activates the destination registration prepared before handoff.
 8. **DESTINATION ACTIVE** — destination resumes parsing and retirement using the
@@ -191,7 +195,8 @@ therefore cannot silently shrink the plan into a successful partial FLIP.
 | Deferred push/OOB frame | `WbEngine` finishes its drain; migration cannot strand or discard the deferred frame. |
 | Ready/retire queue contains the client | Source consumes it before declaring the client idle. |
 | Newly routed completion races drain | ROB cannot become quiescent until the completion retires; the global FLIP dispatch pause prevents new work. |
-| TLS, blocked WAIT, pubsub, tracking, monitor, MULTI, or WATCH owner-local state | Refused by preflight because that state is not yet represented inside `Client`.  No partial move is attempted. |
+| Pub/sub, tracking, or monitor owner-local state | Reserved and extracted at commit, installed at destination, and re-registered at each pub/sub HOME. In-flight deliveries read `ifid_thread()` and forward from a stale owner. |
+| TLS, blocked WAIT, MULTI, or WATCH owner-local state | Refused by preflight because that state is not transferable. No partial move is attempted. |
 | Close/error during drain | Source remains owner and performs normal close; FLIP preflight is refused. |
 
 This deliberately extends the invariant documented in `src/net/epoll.h`.
@@ -204,20 +209,22 @@ duplicate as the connection fd, and closes the original, so it never depends on
 a fallible fresh registration. Teardown continues to rely on `close(fd)` when no
 migration is occurring.
 
-There is no intentionally unsafe client move.  Refusing non-self-contained
-client modes is preferable to copying hidden loop-local state or violating the
-ROB/borrow contract.
+There is no intentionally unsafe client move. Transferable owner-local routing
+state is prepared and handed off with the connection; refusing remaining
+non-self-contained modes is preferable to copying hidden loop-local state or
+violating the ROB/borrow contract.
 
-The refusal-only cases are explicit. TLS, blocked WAIT, pub/sub, tracking,
-MONITOR, CLIENT REPLY state, MULTI, and WATCH are refused when balance requires
-that connection to leave its owner (a survivor may keep such a connection inside
-its quota). So are insufficient client/catalog/channel/vector capacity, failure to
-duplicate or pre-register an epoll fd, a recv cancellation which cannot reach its
-pointer fence, a non-quiescent ROB/reply/borrow/OOB state, or an invalid shard
-partition. All occur before the first owner store. An actual peer disconnect or
-kernel socket error is external connection failure rather than a FLIP mechanism;
-if it races reversible preparation the FLIP is refused, but the server cannot
-resurrect a socket the peer has already destroyed.
+The refusal-only cases are explicit. TLS, blocked WAIT, MULTI, WATCH, and
+transient pub/sub or CLIENT TRACKING/MONITOR operations are refused when balance
+requires that connection to leave its owner (a survivor may keep such a
+connection inside its quota). Durable pub/sub, tracking, monitor, and CLIENT
+REPLY state is transferable. So are insufficient client/catalog/channel/vector
+capacity, failure to duplicate or pre-register an epoll fd, a recv cancellation
+which cannot reach its pointer fence, a non-quiescent ROB/reply/borrow/OOB state,
+or an invalid shard partition. All occur before the first owner store. An actual
+peer disconnect or kernel socket error is external connection failure rather
+than a FLIP mechanism; if it races reversible preparation the FLIP is refused,
+but the server cannot resurrect a socket the peer has already destroyed.
 
 ## 3. Manual FLIP
 
