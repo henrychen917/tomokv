@@ -250,7 +250,10 @@ struct Config {
     uint32_t lb_sample_rate = 64;
     // One task in N carries a cached-microsecond enqueue stamp in Task's existing padding hole.
     // Zero removes stamping and all age/delay observation work; no side arrays are allocated.
-    uint32_t lb_age_sample_rate = 1024;
+    // 0 = off (no stamps, no sampling work). Measured cost of 1024 at stable p1: -0.7..-1.2%
+    // outside spread (ABBA, 2026-08-31) -- the owner's zero-loss-when-stable law says signals
+    // are enabled by the flip controller when it needs them, never paid for at idle-stable.
+    uint32_t lb_age_sample_rate = 0;
     uint32_t lb_tick_ms = 1000;
     uint32_t lb_imbalance_pct = 25; // fire band; release is 80%, after three sustained ticks
     uint32_t lb_move_cap = 1;
