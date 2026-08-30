@@ -160,7 +160,29 @@ def flipper():
     except Exception as e:
         fail("flipper could not connect: %r" % e)
         return
-    shapes = [(18, 14), (28, 4), (24, 8), (10, 22)]
+    # Shapes derive from the LIVE thread total so the test runs at any pool size -- the original
+    # hardcoded 32-thread shapes made every flip a legal refusal on smaller servers, and the gate
+    # rig boots 8 threads. Same spirit as the originals: four opposed splits, io-heavy through
+    # ex-heavy, each side >= 2.
+    send(s, "FLIP")
+    rep = rd(f)
+    if isinstance(rep, dict):
+        vals = {k.decode(): v for k, v in rep.items()}
+    else:
+        it = iter(rep)
+        vals = {k.decode(): v for k, v in zip(it, it)}
+    total = int(vals["live_io"]) + int(vals["live_ex"])
+    # SMT mode flips sibling PAIRS: odd targets are legal refusals, so shapes must be multiples of
+    # the unit or the test spends its run being correctly refused.
+    unit = int(vals.get("unit_threads", b"1"))
+    shapes = []
+    for frac in (0.56, 0.85, 0.72, 0.30):
+        io = round(total * frac)
+        if unit > 1:
+            io = (io // unit) * unit
+        io = max(unit, min(total - unit, io))
+        if (io, total - io) not in shapes:
+            shapes.append((io, total - io))
     i = 0
     while not stop.is_set():
         io, ex = shapes[i % len(shapes)]

@@ -193,6 +193,39 @@ inline bool weighted_lb_partition(const std::vector<WeightedLbItem>& items,
     }
 
     for (uint32_t c : count) if (c < low || c > high) return false;
+
+    // Ties keep the incumbent -- globally, not just per greedy step. The greedy fill above cannot
+    // see that a zero-move assignment with the same spread exists (once an item's incumbent has
+    // absorbed earlier items it looks "fuller" and the item is shipped elsewhere), so a balanced
+    // no-op FLIP reshuffled a hundred buckets for nothing. If assigning every item to its current
+    // owner is feasible under the same count bounds and no worse in weight or secondary spread
+    // than the greedy plan, prefer it wholesale: locality is free when balance ties.
+    {
+        std::vector<uint32_t> inc_count(targets.size(), 0);
+        std::vector<double> inc_load(targets.size(), 0);
+        std::vector<double> inc_secondary(targets.size(), 0);
+        bool feasible = true;
+        for (uint32_t i = 0; i < items.size() && feasible; i++) {
+            const uint32_t at = target_index(items[i].owner);
+            if (at == UINT32_MAX) { feasible = false; break; }
+            inc_count[at]++;
+            inc_load[at] += std::max(0.0, items[i].weight);
+            inc_secondary[at] += std::max(0.0, items[i].secondary);
+        }
+        if (feasible)
+            for (uint32_t c : inc_count) if (c < low || c > high) { feasible = false; break; }
+        if (feasible) {
+            auto spread = [](const std::vector<double>& v) {
+                const auto [lo, hi] = std::minmax_element(v.begin(), v.end());
+                return v.empty() ? 0.0 : *hi - *lo;
+            };
+            if (spread(inc_load) <= spread(load) + 1e-9 &&
+                spread(inc_secondary) <= spread(secondary_load) + 1e-9) {
+                for (uint32_t i = 0; i < items.size(); i++)
+                    destination[i] = target_index(items[i].owner);
+            }
+        }
+    }
     out.reserve(items.size());
     for (uint32_t i = 0; i < items.size(); i++) {
         if (destination[i] == UINT32_MAX) return false;

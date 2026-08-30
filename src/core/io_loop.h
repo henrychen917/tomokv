@@ -1596,29 +1596,54 @@ private:
             const uint32_t planned = srv_->flip_source_clients(self_->id());
             if (planned &&
                 flip_prepare_epoch_ != srv_->flip_epoch()) {
-                flip_prepare_epoch_ = srv_->flip_epoch();
                 std::string ready_error;
                 if (!flip_candidate_clients_ready(ready_error)) {
-                    srv_->flip_note_failure("ERR FLIP cannot quiesce a connection: " + ready_error);
-                } else if (!reserve_client_transfer_state(planned)) {
-                    srv_->flip_note_failure("ERR FLIP could not reserve source connection state");
+                    // A saturated pipelined connection is momentarily busy at ANY instant, so a
+                    // one-shot readiness snapshot let a single in-flight reply veto the whole
+                    // flip -- under 512-conn p16 load FLIP was refused essentially always, while
+                    // 8-conn tests sailed through. Dispatch is already held for this stage, so
+                    // busy connections drain within milliseconds: leave the epoch unclaimed and
+                    // retry every loop pass, and only convert not-ready into failure when the
+                    // flip's own 5s deadline expires (a genuinely stuck connection still fails).
+                    if (srv_->flip_timed_out()) {
+                        flip_prepare_epoch_ = srv_->flip_epoch();
+                        srv_->flip_note_failure(
+                            "ERR FLIP cannot quiesce a connection: " + ready_error);
+                    }
                 } else {
-                    for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
-                        Client* client = srv_->flip_client_at(self_->id(), ordinal);
-                        if (!client) std::abort();
-                        std::string error;
-                        if (!prepare_client_transfer(
-                                client, srv_->flip_client_destination(self_->id(), ordinal), error)) {
-                            srv_->flip_note_failure("ERR FLIP could not detach a connection: " + error);
-                            break;
+                    flip_prepare_epoch_ = srv_->flip_epoch();
+                    if (!reserve_client_transfer_state(planned)) {
+                        srv_->flip_note_failure(
+                            "ERR FLIP could not reserve source connection state");
+                    } else {
+                        for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+                            Client* client = srv_->flip_client_at(self_->id(), ordinal);
+                            if (!client) std::abort();
+                            std::string error;
+                            if (!prepare_client_transfer(
+                                    client, srv_->flip_client_destination(self_->id(), ordinal),
+                                    error)) {
+                                srv_->flip_note_failure(
+                                    "ERR FLIP could not detach a connection: " + error);
+                                break;
+                            }
                         }
                     }
                 }
             }
             const bool accepts_ready = !converting_to_ex || accepts_quiesced();
-            if (client_transfers_prepared() && client_migrations_.size() == planned && accepts_ready)
+            // While the quiesce retry above has not yet claimed the epoch, no prepare has run and
+            // client_transfers_prepared() is vacuously true over an empty migration list -- the
+            // mismatch test below would misread "still draining" as "set changed" and kill the
+            // flip on its first not-ready iteration. Judge outcomes only after the prepare
+            // actually ran for THIS flip epoch.
+            const bool prepared_this_epoch =
+                planned == 0 || flip_prepare_epoch_ == srv_->flip_epoch();
+            if (prepared_this_epoch && client_transfers_prepared() &&
+                client_migrations_.size() == planned && accepts_ready)
                 srv_->flip_ack(self_->id(), stage);
-            else if (client_transfers_prepared() && client_migrations_.size() != planned)
+            else if (prepared_this_epoch && client_transfers_prepared() &&
+                     client_migrations_.size() != planned)
                 srv_->flip_note_failure(
                     "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&

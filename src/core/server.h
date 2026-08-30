@@ -719,6 +719,7 @@ public:
             error = "ERR FLIP would leave no connection owner";
             return false;
         }
+
         uint64_t total64 = 0;
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             if (thread(tid).role() != Role::Ifid) continue;
@@ -840,6 +841,7 @@ public:
             ? flip_source_clients_[source].load(std::memory_order_acquire) : 0;
     }
     bool flip_reserve_shard_plan(std::string& error) {
+
         if (!flip_shard_ownership_conserved()) {
             error = "ERR FLIP shard ownership is not a complete one-owner partition";
             return false;
@@ -1369,6 +1371,20 @@ public:
         flip_active_transfers_.store(0, std::memory_order_relaxed);
         const uint32_t conversions = live_io > target_io ? live_io - target_io
                                                           : target_io - live_io;
+        if (conversions == 0) {
+            // A same-split request is a completed no-op, not a rebalance trigger: weight-driven
+            // movement belongs to the cron mover with its hysteresis and cooldown. Entering the
+            // stage machine with an empty plan is not an option either -- every stage predicate
+            // (client quotas, RoleReady acks, the completion balance audit) judges distributions
+            // a no-op deliberately leaves alone. Complete here; the caller replies OK on seeing
+            // Idle. (The reshuffle this replaces moved a hundred buckets on a balanced no-op.)
+            flip_last_transfers_.store(0, std::memory_order_relaxed);
+            flip_completed_.fetch_add(1, std::memory_order_relaxed);
+            flip_target_io_.store(target_io, std::memory_order_release);
+            flip_target_ex_.store(target_ex, std::memory_order_release);
+            flip_stage_.store(FlipStage::Idle, std::memory_order_release);
+            return true;
+        }
         struct RoleUnit {
             uint32_t first = UINT32_MAX;
             uint32_t second = UINT32_MAX;
@@ -1409,13 +1425,47 @@ public:
             if (a.occupancy != b.occupancy) return a.occupancy < b.occupancy;
             return a.first > b.first; // disabled/all-zero signal preserves the old reverse-id tie
         });
+        // Domain-even selection. Boot placement spreads both roles evenly across L3 domains
+        // (build_even); a picker that ignores topology un-evens it -- occupancy ties broke by
+        // reverse id, so with cold signals every conversion clustered into the highest domain and
+        // one L3 went role-lopsided after a single flip. Conversions round-robin across domains
+        // (always the domain with the fewest taken so far, most remaining candidates on ties) and
+        // occupancy keeps deciding WITHIN a domain via the sort above.
         const Role target_role = target_io < live_io ? Role::Ex : Role::Ifid;
-        for (uint32_t i = 0; i < unit_count && selected < conversions; i++) {
-            flip_convert_[units[i].first] = target_role;
-            selected++;
-            if (units[i].second != UINT32_MAX) {
-                flip_convert_[units[i].second] = target_role;
+        uint32_t unit_domain[kMaxThreads];
+        uint32_t domain_taken[kMaxThreads] = {};
+        uint32_t domain_left[kMaxThreads] = {};
+        bool     unit_used[kMaxThreads] = {};
+        uint32_t max_domain = 0;
+        for (uint32_t i = 0; i < unit_count; i++) {
+            unit_domain[i] = placement_.domain_of_thread(units[i].first);
+            if (unit_domain[i] >= kMaxThreads) unit_domain[i] = 0;
+            domain_left[unit_domain[i]]++;
+            max_domain = std::max(max_domain, unit_domain[i]);
+        }
+        while (selected < conversions) {
+            uint32_t pick_domain = UINT32_MAX;
+            for (uint32_t d = 0; d <= max_domain; d++) {
+                if (!domain_left[d]) continue;
+                if (pick_domain == UINT32_MAX ||
+                    domain_taken[d] < domain_taken[pick_domain] ||
+                    (domain_taken[d] == domain_taken[pick_domain] &&
+                     domain_left[d] > domain_left[pick_domain]))
+                    pick_domain = d;
+            }
+            if (pick_domain == UINT32_MAX) break;  // no candidates anywhere: caught below
+            for (uint32_t i = 0; i < unit_count; i++) {
+                if (unit_used[i] || unit_domain[i] != pick_domain) continue;
+                unit_used[i] = true;
+                domain_taken[pick_domain]++;
+                domain_left[pick_domain]--;
+                flip_convert_[units[i].first] = target_role;
                 selected++;
+                if (units[i].second != UINT32_MAX) {
+                    flip_convert_[units[i].second] = target_role;
+                    selected++;
+                }
+                break;
             }
         }
         if (selected != conversions)
@@ -1551,6 +1601,7 @@ public:
         if (transfers != static_cast<uint64_t>(flip_planned_shard_transfers_) +
                          flip_planned_client_transfers_)
             std::abort();
+
         flip_last_transfers_.store(transfers, std::memory_order_relaxed);
         flip_completed_.fetch_add(1, std::memory_order_relaxed);
         flip_stage_.store(FlipStage::Idle, std::memory_order_release);
