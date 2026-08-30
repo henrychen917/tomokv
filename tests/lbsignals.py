@@ -52,7 +52,12 @@ def capture(s):
             threads.append({"tid": int(f[1]), "role": f[2], "domain": int(f[3]),
                             "clients": int(f[4]), "iterations": int(f[5]), "ops": int(f[6]),
                             "busy_ns": int(f[7]), "idle_ns": int(f[8]), "cpu_ns": int(f[9]),
-                            "depth_samples": int(f[11]), "full_events": int(f[12])})
+                            "depth_samples": int(f[11]), "full_events": int(f[12]),
+                            "queue_delay_samples": int(f[16]),
+                            "queue_delay_ewma_us": float(f[17]),
+                            "oldest_age_us": int(f[18]), "oldest_age_samples": int(f[19]),
+                            "oldest_age_ewma_us": float(f[20]),
+                            "oldest_age_min_us": int(f[21]), "oldest_age_max_us": int(f[22])})
         elif f[0] == "shard":
             shards.append({"sid": int(f[1]), "owner": int(f[2]), "ops": int(f[4]),
                            "foreign": int(f[5])})
@@ -60,7 +65,10 @@ def capture(s):
             rollups[f[1]] = {"threads": int(f[2]), "ops": int(f[3]), "busy_ns": int(f[4]),
                              "idle_ns": int(f[5]), "cpu_ns": int(f[6]), "busy_frac": float(f[7]),
                              "ns_per_op": float(f[8]), "avg_depth": float(f[9]),
-                             "full_events": int(f[10])}
+                             "full_events": int(f[10]), "queue_delay_samples": int(f[11]),
+                             "queue_delay_ewma_us": float(f[12]),
+                             "oldest_age_min_us": int(f[13]), "oldest_age_max_us": int(f[14]),
+                             "oldest_age_ewma_us": float(f[15])}
         elif f[0] == "derived":
             derived = {f[i]: f[i + 1] for i in range(1, len(f) - 1, 2)}
     return threads, shards, rollups, derived
@@ -96,6 +104,10 @@ time.sleep(0.4)
 t2, _, _, _ = capture(s)
 it1 = {r["tid"]: r["iterations"] for r in t1}
 ok("iterations advance while idle", all(r["iterations"] > it1.get(r["tid"], 0) for r in t2))
+ds1 = {r["tid"]: r["depth_samples"] for r in t1}
+ok("depth is time-gated, not iteration-weighted",
+   all(0 < r["depth_samples"] - ds1.get(r["tid"], 0)
+       < r["iterations"] - it1.get(r["tid"], 0) for r in t2 if r["role"] == "ex"))
 
 # ---- leg 2: op conservation under load -----------------------------------------------------------
 _, _, roll_a, _ = capture(s)
@@ -125,6 +137,10 @@ ok("ex ops conserved", N <= dex <= N + 50, f"dex={dex}")
 ok("io busy advanced under load", roll_b["io"]["busy_ns"] > roll_a["io"]["busy_ns"])
 ok("ex busy advanced under load", roll_b["ex"]["busy_ns"] > roll_a["ex"]["busy_ns"])
 ok("ex depth sampled", roll_b["ex"]["avg_depth"] >= 0.0)
+ok("sampled queue delay fired",
+   roll_b["ex"]["queue_delay_samples"] > roll_a["ex"]["queue_delay_samples"])
+ok("sampled queue delay EWMA valid", roll_b["ex"]["queue_delay_ewma_us"] >= 0.0)
+ok("sampled oldest-entry age fired", roll_b["ex"]["oldest_age_max_us"] > 0)
 ok("no backpressure at this load", roll_b["ex"]["full_events"] == roll_a["ex"]["full_events"])
 ok("shard ops sum >= N", sum(x["ops"] for x in sh_b) >= N)
 ok("clean pinning: zero foreign ops", sum(x["foreign"] for x in sh_b) == 0,
@@ -134,7 +150,12 @@ ok("clean pinning: zero foreign ops", sum(x["foreign"] for x in sh_b) == 0,
 info = cmd(s, "INFO", "LB").decode(errors="replace")
 for field in ("lb_io_threads", "lb_ex_threads", "lb_io_busy_frac", "lb_ex_busy_frac",
               "lb_io_ns_per_op", "lb_ex_ns_per_op", "lb_ratio_star_io_frac",
-              "lb_foreign_op_frac"):
+              "lb_foreign_op_frac", "lb_io_queue_delay_samples",
+              "lb_ex_queue_delay_samples", "lb_io_queue_delay_ewma_us",
+              "lb_ex_queue_delay_ewma_us", "lb_io_oldest_age_min_us",
+              "lb_io_oldest_age_max_us", "lb_io_oldest_age_ewma_us",
+              "lb_ex_oldest_age_min_us", "lb_ex_oldest_age_max_us",
+              "lb_ex_oldest_age_ewma_us"):
     ok(f"INFO has {field}", field + ":" in info)
 val = [l for l in info.split("\r\n") if l.startswith("lb_ex_ns_per_op:")][0].split(":")[1]
 ok("INFO ns_per_op parses > 0", float(val) > 0.0, val)

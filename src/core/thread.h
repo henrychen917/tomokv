@@ -28,6 +28,7 @@
 #pragma once
 #include <algorithm>
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -70,8 +71,19 @@ struct Task {
     Client*  client = nullptr;
     uint64_t op_id  = 0;
     int32_t  shard  = -1;       // -1 means use Op::shard (the ordinary single-shard path)
+    // The original layout has a four-byte hole here before the aligned pointer. Sampled enqueue
+    // time uses the low monotonic-microsecond word; modular subtraction is valid for queue delays
+    // below 2^32 us. Zero means unsampled.
+    uint32_t enqueue_us_low = 0;
     ScatterState* scatter = nullptr;
+
+    Task() = default;
+    Task(Client* c, uint64_t id, int32_t sid, ScatterState* state)
+        : client(c), op_id(id), shard(sid), scatter(state) {}
 };
+static_assert(sizeof(Task) == 32, "Task grew: task bytes multiply across the whole SPSC mesh");
+static_assert(offsetof(Task, enqueue_us_low) == 20,
+              "Task enqueue stamp no longer occupies the proven four-byte padding hole");
 
 struct BorrowRelease {
     int32_t     shard = -1;
@@ -106,7 +118,7 @@ public:
     // `nthreads` is the TOTAL thread count, not the io count: any thread can become a producer
     // through a role change. Sized to the live count rather than kMaxThreads — a fixed 128-wide
     // array would be megabytes per thread, nearly all of it untouched.
-    void init(uint32_t id, Role r, uint32_t nthreads) {
+    void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate) {
         id_ = id;
         role_.store(r, std::memory_order_relaxed);
         nchan_     = nthreads;
@@ -114,6 +126,7 @@ public:
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
         transfer_in_ = std::make_unique<TransferChan[]>(nthreads);
+        sig_.configure_age_sampling(age_sample_rate);
     }
 
     void init_command_counts(uint32_t count) {
@@ -195,7 +208,12 @@ public:
     // Push AND flag, in that order. Flagging before the push would let the consumer take the bit,
     // find an empty queue, and clear it while the item is still in flight.
     bool post_task(uint32_t from, const Task& t, Ring& my_ring, LoopSignals& sig) {
-        if (!task_in_[from].push(t, sig)) return false;
+        const bool pushed = sig.age_sample_rate
+            ? task_in_[from].push_prepared(t, sig, [&](Task& queued) {
+                  queued.enqueue_us_low = sig.next_age_stamp();
+              })
+            : task_in_[from].push(t, sig);
+        if (!pushed) return false;
         // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
         // than it looks -- see Channel::push/wake.
         if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
@@ -209,10 +227,16 @@ public:
     // any_inbound(), not just masks -- the depth check exists precisely so no notification scheme
     // has to be perfect.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
-        return task_in_[from].push(t, sig);
+        if (!sig.age_sample_rate) return task_in_[from].push(t, sig);
+        return task_in_[from].push_prepared(t, sig, [&](Task& queued) {
+            queued.enqueue_us_low = sig.next_age_stamp();
+        });
     }
     bool post_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count, LoopSignals& sig) {
-        return task_in_[from].push_batch(tasks, count, sig);
+        if (!sig.age_sample_rate) return task_in_[from].push_batch(tasks, count, sig);
+        return task_in_[from].push_batch_prepared(tasks, count, sig, [&](Task& queued) {
+            queued.enqueue_us_low = sig.next_age_stamp();
+        });
     }
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_[from].producer_free_slots();
@@ -286,7 +310,11 @@ public:
                 const uint32_t p = w * 64 + b;
                 if (p >= nchan_) continue;
                 Task t;
-                while (task_in_[p].recv(t)) { fn(t); task_in_[p].retire(); n++; }
+                while (task_in_[p].recv(t)) {
+                    if (t.enqueue_us_low)
+                        sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
+                    fn(t); task_in_[p].retire(); n++;
+                }
             }
         }
         return n;
@@ -384,15 +412,37 @@ public:
         return wb_engine_.load(std::memory_order_acquire);
     }
 
-    // Sample inbound pressure. Called once per loop iteration so depth_sum/depth_samples form a
-    // time-average rather than a spot reading, which is too noisy to control on.
-    void sample_depth() {
+    // Sample inbound pressure on a monotonic time gate. The old iteration gate let thousands of
+    // idle spins over-contribute zeros and paid a 4*nchan scan on every pass. At most one sample per
+    // ~100us makes depth_sum/depth_samples a time-weighted signal without another clock read.
+    bool sample_depth(uint64_t cached_now_us) {
+        sig_.cached_now_us = cached_now_us;
+        if (cached_now_us < depth_sample_next_us_) return false;
+        depth_sample_next_us_ = cached_now_us + 100;
         uint64_t d = 0;
-        for (uint32_t i = 0; i < nchan_; i++)
+        uint64_t inbox_age_us = 0;
+        bool inbox_age_observed = false;
+        const bool sample_inbox_age = sig_.age_sample_rate && role() == Role::Ex;
+        for (uint32_t i = 0; i < nchan_; i++) {
             d += task_in_[i].depth() + client_in_[i].depth() + release_in_[i].depth() +
                  transfer_in_[i].depth();
+            if (sample_inbox_age) {
+                const uint32_t stamp = task_in_[i].newest_nonzero(
+                    [](const Task& task) { return task.enqueue_us_low; });
+                if (stamp) {
+                    const uint32_t age = static_cast<uint32_t>(cached_now_us) - stamp;
+                    inbox_age_us = std::max<uint64_t>(inbox_age_us, age);
+                    inbox_age_observed = true;
+                }
+            }
+        }
         sig_.depth_sum += d;
         sig_.depth_samples++;
+        if (sample_inbox_age) {
+            if (inbox_age_observed) sig_.observe_oldest_age(inbox_age_us);
+            else                    sig_.clear_oldest_age();
+        }
+        return true;
     }
 
     // Arm/disarm every inbound channel around a block. Producers only pay a wake syscall while
@@ -436,7 +486,11 @@ public:
     template <typename Fn> uint32_t drain_tasks_unmasked(Fn&& fn) {
         uint32_t n = 0; Task t;
         for (uint32_t p = 0; p < nchan_; p++)
-            while (task_in_[p].recv(t)) { fn(t); task_in_[p].retire(); n++; }
+            while (task_in_[p].recv(t)) {
+                if (t.enqueue_us_low)
+                    sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
+                fn(t); task_in_[p].retire(); n++;
+            }
         return n;
     }
     template <typename Fn> uint32_t drain_clients_unmasked(Fn&& fn) {
@@ -572,6 +626,7 @@ private:
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
     NotifyMask transfer_notify_;  // "which IO producers handed connection ownership to me"
     uint32_t nchan_ = 0;
+    uint64_t depth_sample_next_us_ = 0;
 
     // IO-only cold path. A nullptr in client_in is the notification token; payload ownership
     // moves through this queue and is retired by the destination IoLoop.

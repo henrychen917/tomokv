@@ -41,6 +41,13 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.cpu_ns = rd(s.cpu_ns);
         r.depth_sum = rd(s.depth_sum);
         r.depth_samples = rd(s.depth_samples);
+        r.queue_delay_samples = rd(s.queue_delay_samples);
+        r.queue_delay_ewma_us = static_cast<double>(rd(s.queue_delay_ewma_x256)) / 256.0;
+        r.oldest_age_us = rd(s.oldest_age_us);
+        r.oldest_age_samples = rd(s.oldest_age_samples);
+        r.oldest_age_ewma_us = static_cast<double>(rd(s.oldest_age_ewma_x256)) / 256.0;
+        r.oldest_age_min_us = rd(s.oldest_age_min_us);
+        r.oldest_age_max_us = rd(s.oldest_age_max_us);
         r.full_events = rd(s.full_events);
         r.wakes_sent = rd(s.wakes_sent);
         r.wakes_recv = rd(s.wakes_recv);
@@ -53,6 +60,22 @@ LbSnapshot lbsignals_capture(Server& srv) {
         roll.cpu_ns += r.cpu_ns;
         roll.depth_sum += r.depth_sum;
         roll.depth_samples += r.depth_samples;
+        roll.queue_delay_samples += r.queue_delay_samples;
+        roll.queue_delay_ewma_weighted +=
+            r.queue_delay_ewma_us * static_cast<double>(r.queue_delay_samples);
+        roll.oldest_age_samples += r.oldest_age_samples;
+        roll.oldest_age_ewma_weighted +=
+            r.oldest_age_ewma_us * static_cast<double>(r.oldest_age_samples);
+        if (r.oldest_age_samples) {
+            if (roll.oldest_age_first) {
+                roll.oldest_age_min_us = r.oldest_age_min_us;
+                roll.oldest_age_max_us = r.oldest_age_max_us;
+                roll.oldest_age_first = false;
+            } else {
+                roll.oldest_age_min_us = std::min(roll.oldest_age_min_us, r.oldest_age_min_us);
+                roll.oldest_age_max_us = std::max(roll.oldest_age_max_us, r.oldest_age_max_us);
+            }
+        }
         roll.full_events += r.full_events;
         snap.threads.push_back(r);
     }
@@ -89,9 +112,10 @@ static void appendf_lb(std::string& out, const char* fmt, ...) {
 static void format_rollup(std::string& out, const char* name, const LbRoleRollup& r) {
     appendf_lb(out,
                "rollup %s %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %.6f %.1f %.3f %" PRIu64
-               "\n",
+               " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f\n",
                name, r.threads, r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.busy_frac(), r.ns_per_op(),
-               r.avg_depth(), r.full_events);
+               r.avg_depth(), r.full_events, r.queue_delay_samples, r.queue_delay_ewma_us(),
+               r.oldest_age_min_us, r.oldest_age_max_us, r.oldest_age_ewma_us());
 }
 
 void lbsignals_format(const LbSnapshot& snap, std::string& out) {
@@ -99,10 +123,13 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
     for (const auto& r : snap.threads)
         appendf_lb(out,
                    "thread %u %s %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
-                   " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n",
+                   " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
+                   " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 "\n",
                    r.tid, r.role == Role::Ifid ? "io" : "ex", r.domain, r.clients, r.iterations,
                    r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.depth_sum, r.depth_samples,
-                   r.full_events, r.wakes_sent, r.wakes_recv, r.spins);
+                   r.full_events, r.wakes_sent, r.wakes_recv, r.spins, r.queue_delay_samples,
+                   r.queue_delay_ewma_us, r.oldest_age_us, r.oldest_age_samples,
+                   r.oldest_age_ewma_us, r.oldest_age_min_us, r.oldest_age_max_us);
     for (const auto& r : snap.shards)
         appendf_lb(out,
                    "shard %u %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %u %" PRIu64 "\n",
@@ -151,6 +178,24 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
                snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
                sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
+    appendf_lb(out,
+               "lb_io_queue_delay_samples:%" PRIu64 "\r\n"
+               "lb_ex_queue_delay_samples:%" PRIu64 "\r\n"
+               "lb_io_queue_delay_ewma_us:%.3f\r\nlb_ex_queue_delay_ewma_us:%.3f\r\n"
+               "lb_io_oldest_age_samples:%" PRIu64 "\r\n"
+               "lb_ex_oldest_age_samples:%" PRIu64 "\r\n"
+               "lb_io_oldest_age_min_us:%" PRIu64 "\r\n"
+               "lb_io_oldest_age_max_us:%" PRIu64 "\r\n"
+               "lb_io_oldest_age_ewma_us:%.3f\r\n"
+               "lb_ex_oldest_age_min_us:%" PRIu64 "\r\n"
+               "lb_ex_oldest_age_max_us:%" PRIu64 "\r\n"
+               "lb_ex_oldest_age_ewma_us:%.3f\r\n",
+               snap.io.queue_delay_samples, snap.ex.queue_delay_samples,
+               snap.io.queue_delay_ewma_us(), snap.ex.queue_delay_ewma_us(),
+               snap.io.oldest_age_samples, snap.ex.oldest_age_samples,
+               snap.io.oldest_age_min_us, snap.io.oldest_age_max_us,
+               snap.io.oldest_age_ewma_us(), snap.ex.oldest_age_min_us,
+               snap.ex.oldest_age_max_us, snap.ex.oldest_age_ewma_us());
     appendf_lb(out,
                "lb_io_occupancy_min:%.4f\r\nlb_io_occupancy_max:%.4f\r\n"
                "lb_ex_occupancy_min:%.4f\r\nlb_ex_occupancy_max:%.4f\r\n",

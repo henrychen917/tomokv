@@ -326,6 +326,8 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.client_lb), true});
     g_config.push_back({"lb-sample-rate", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_sample_rate), true});
+    g_config.push_back({"lb-age-sample-rate", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_age_sample_rate), true});
     g_config.push_back({"lb-tick-ms", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_tick_ms), true});
     g_config.push_back({"lb-imbalance-pct", ConfigKind::Unsigned,
@@ -795,6 +797,20 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+#ifndef NDEBUG
+    // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
+    // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
+    if (eq_icase(subcommand, "table-alloc-fail") && op.argc() == 3) {
+        uint64_t count = 0;
+        if (!parse_u64(op.arg(2), count) || count > UINT32_MAX) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        flatstore_debug_fail_table_allocations(static_cast<uint32_t>(count));
+        reply_ok(op.sink());
+        return;
+    }
+#endif
     // Window widener for the cross-shard scan-ordering regression test. Holds a direct RENAME's
     // destination task for N extra owner passes AFTER its source hop is ready, which is exactly
     // the park a younger whole-owner walker used to run past. Production default is 0.

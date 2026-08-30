@@ -19,6 +19,7 @@
 #include <sys/random.h>
 #include <string>
 #include <mutex>
+#include <new>
 #include <thread>
 #include <vector>
 
@@ -175,9 +176,23 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "good_size() disagrees with the allocator's size classes\n");
         return 1;
     }
+    if (!FlatStore::pointer_encoding_supported()) {
+        std::fprintf(stderr,
+                     "fatal: FlatStore requires KvObj allocations below 2^48; "
+                     "this virtual-address layout is unsupported\n");
+        return 1;
+    }
     Server srv;
     const AofReplayPlan* active_aof_plan = aof_plans.empty() ? nullptr : aof_plans.back().get();
-    if (!srv.init(cfg, active_aof_plan)) { std::fprintf(stderr, "server init failed\n"); return 1; }
+    try {
+        if (!srv.init(cfg, active_aof_plan)) {
+            std::fprintf(stderr, "server init failed\n");
+            return 1;
+        }
+    } catch (const std::bad_alloc&) {
+        std::fprintf(stderr, "server init failed: out of memory allocating shard tables\n");
+        return 1;
+    }
     srv.set_loading(true);
     g_srv = &srv;
     command_bind_server(&srv);
