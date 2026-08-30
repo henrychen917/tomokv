@@ -246,6 +246,9 @@ public:
     void deactivate() {
         if (!active_role_) return;
         if (!self_->clients().empty() || !client_migrations_.empty()) std::abort();
+        // Channel homes are members of the live IO set. A thread leaving that set retires its
+        // owner-local indexes here; every new/surviving IO rebuilds the next epoch in RoleReady.
+        pubsub_clear_home_indexes();
         // The UNIX listener is pinned to its boot IO and that thread is never a conversion
         // candidate. TCP/TLS SO_REUSEPORT listeners are per-role-tenure resources.
         if (unix_listen_fd_ >= 0) std::abort();
@@ -288,7 +291,7 @@ public:
             return false;
         }
         if (!climon_migration_ready(client)) {
-            error = "connection has MONITOR, TRACKING, or CLIENT REPLY owner-local state";
+            error = "connection has transient CLIENT/MONITOR/TRACKING state";
             return false;
         }
         return true;
@@ -298,6 +301,8 @@ public:
         try {
             self_->clients().reserve(self_->clients().size() + incoming);
             active_.v.reserve(active_.v.size() + incoming);
+            pubsub_local_.reserve(pubsub_local_.size() + incoming);
+            climon_conn_.reserve(climon_conn_.size() + incoming);
         } catch (const std::bad_alloc&) {
             return false;
         }
@@ -406,6 +411,7 @@ private:
         bool destination_registered = false;
         int source_backup_fd = -1;
         void* catalog = nullptr;
+        void* routing = nullptr;
     };
 
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
@@ -504,6 +510,8 @@ private:
                 }
                 did += flush_borrow_releases();
                 did += collect_retire_work<HasUnix, kEp>();
+                if (__builtin_expect(!routing_forward_.empty(), false))
+                    client_routing_cleanup_pass();
                 did += flush_ready<HasTls, kEp>();
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -1173,6 +1181,10 @@ private:
             if (!command_client_migration_install(migration->catalog)) std::abort();
             migration->catalog = nullptr;
         }
+        if (migration->routing) {
+            client_routing_discard(migration->routing);
+            migration->routing = nullptr;
+        }
         const uint64_t client_id = client->id();
         erase_client_migration(client);
         srv_->lb_client_move_cancelled(client_id);
@@ -1202,9 +1214,18 @@ private:
         try {
             client_migrations_.push_back(
                 ClientMigration{client, destination, false, hold_for_commit,
-                                false, false, -1, nullptr});
+                                false, false, -1, nullptr, nullptr});
         } catch (const std::bad_alloc&) {
             error = "could not allocate connection-transfer state";
+            return false;
+        }
+        try {
+            // Node storage is prepared separately below; this reserves enough buckets for every
+            // migration already admitted on this source, so commit insertion cannot rehash.
+            routing_forward_.reserve(routing_forward_.size() + client_migrations_.size());
+        } catch (const std::bad_alloc&) {
+            client_migrations_.pop_back();
+            error = "could not allocate connection-routing forwarding state";
             return false;
         }
 
@@ -1265,6 +1286,10 @@ private:
             cancel_client_transfer<kEp>(client);
             return false;
         }
+        if (!client_routing_prepare(*migration, error)) {
+            cancel_client_transfer<kEp>(client);
+            return false;
+        }
         migration->catalog = command_client_migration_extract(client);
         if (!migration->catalog) {
             cancel_client_transfer<kEp>(client);
@@ -1293,6 +1318,9 @@ private:
             migration->source_backup_fd = -1;
         }
         void* const catalog = migration->catalog;
+        void* const routing = migration->routing;
+        std::vector<PubSubEvent*> rebind_events;
+        client_routing_commit_extract(*migration, rebind_events);
 
         // Everything below was reserved or validated above. The owner store is deliberately last
         // among source touches. A failed transport push after the capacity check is an invariant
@@ -1304,10 +1332,18 @@ private:
         client->set_wb_slot(Client::kWbMigrationInstalling);
         if (!self_->remove_client(client)) std::abort();
 
-        const ClientTransfer transfer{client, catalog, self_->id()};
+        const ClientTransfer transfer{client, catalog, routing, self_->id()};
         client->set_ifid_thread(destination); // THE single connection ownership edge
-        command_client_directory_add(client_id, destination);
+        command_client_directory_move(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
+        // These ModifyRequests were allocated while source still owned the connection. Posting
+        // after the owner edge lets every channel home resolve the live destination. The receiver
+        // drains its transfer inbox before pub/sub events, so a newly routed delivery cannot beat
+        // installation of the moved local catalog.
+        for (PubSubEvent* event : rebind_events) {
+            srv_->pubsub_event_created();
+            pubsub_post(event->target_io, event);
+        }
         if (flip_transfer) srv_->flip_note_client_transferred(client_id, destination);
         erase_client_migration(client);       // pointer comparison only; source never dereferences
         srv_->lb_client_move_committed(client_id, self_->id(), destination);
@@ -1364,6 +1400,7 @@ private:
             Client* client = transfer.client;
             if (!client || client->ifid_thread() != self_->id()) std::abort();
             if (!command_client_migration_install(transfer.catalog)) std::abort();
+            if (!client_routing_install(transfer.routing, client, transfer.source)) std::abort();
             try {
                 self_->add_client(client);
             } catch (...) {
@@ -1535,9 +1572,8 @@ private:
                 lb_schedule_wake_all();
                 return 1;
             }
-            if (selected->is_tls() || selected->subscriber_mode() ||
-                selected->multi_session() != nullptr || selected->blocked() ||
-                error == "connection has MONITOR, TRACKING, or CLIENT REPLY owner-local state") {
+            if (selected->is_tls() || selected->multi_session() != nullptr ||
+                selected->blocked()) {
                 srv_->lb_refuse_client_request();
                 lb_schedule_wake_all();
                 return 1;
@@ -1665,8 +1701,13 @@ private:
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::RoleReady &&
                    !srv_->flip_acked(self_->id(), stage)) {
+            if (flip_pubsub_rehome_epoch_ != srv_->flip_epoch()) {
+                flip_pubsub_rehome_epoch_ = srv_->flip_epoch();
+                pubsub_rehome_local(flip_pubsub_rehome_epoch_);
+            }
             if (self_->client_transfers_quiesced() &&
-                self_->client_count() == srv_->flip_client_quota(self_->id()))
+                self_->client_count() == srv_->flip_client_quota(self_->id()) &&
+                srv_->pubsub_inflight() == 0)
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::Rollback &&
                    !srv_->flip_acked(self_->id(), stage)) {
@@ -2776,6 +2817,8 @@ nonblocking_dispatch:
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
                 flush_ready<HasTls, kEp>();
+        if (__builtin_expect(!routing_forward_.empty(), false))
+            client_routing_cleanup_pass();
         if (srv_->snapshot().writer_is(self_->id()))
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
         if (srv_->aof().writer_is(self_->id()))
@@ -3347,6 +3390,7 @@ nonblocking_dispatch:
     uint64_t  flip_op_id_ = 0;
     uint64_t  flip_epoch_local_ = 0;
     uint64_t  flip_prepare_epoch_ = 0;
+    uint64_t  flip_pubsub_rehome_epoch_ = 0;
     struct DeferredWait {
         Client* client = nullptr;
         uint64_t op_id = 0;
@@ -3455,6 +3499,36 @@ nonblocking_dispatch:
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
 #include "../cmd/climon.inc"
+    struct ClientForwardRoute {
+        bool installed = false;
+        bool monitor = false;
+        bool tracking = false;
+    };
+
+    struct ClientRoutingMigration {
+        using PubSubNode = std::unordered_map<uint64_t, PubSubLocalConn>::node_type;
+        using ClimonNode = std::unordered_map<uint64_t, ClimonConn>::node_type;
+        using ForwardNode = std::unordered_map<uint64_t, ClientForwardRoute>::node_type;
+
+        PubSubNode pubsub;
+        ClimonNode climon;
+        ForwardNode forward;
+        std::vector<std::string> tracking_keys;
+        // Allocated during reversible preparation, but counted and posted only after commit.
+        std::vector<PubSubEvent*> rebind_events;
+        PubSubEvent* installed_event = nullptr;
+        uint64_t client_id = 0;
+        uint32_t source = 0;
+        uint32_t destination = 0;
+        bool monitor = false;
+        bool tracking = false;
+
+        ~ClientRoutingMigration() {
+            for (PubSubEvent* event : rebind_events) delete event;
+            delete installed_event;
+        }
+    };
+    std::unordered_map<uint64_t, ClientForwardRoute> routing_forward_;
 };
 
 }  // namespace tomo

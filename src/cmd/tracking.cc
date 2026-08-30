@@ -4,9 +4,10 @@
 //
 //   * The key -> interested-connections table is PER IO OWNER and holds only that owner's own
 //     connections (IoLoop::climon_track_keys_). A connection is owned by exactly one io thread
-//     for life, so this table has exactly one reader and one writer and NO LOCK EXISTS ON ANY
-//     ARMED PATH. That is the property the brief asks for; a single global table would have put
-//     a lock on the tracking-armed write path, which is precisely where writes live.
+//     at a time; migration extracts and installs its entries at the ownership commit edge. Thus
+//     each table still has exactly one reader and one writer and NO LOCK EXISTS ON ANY ARMED PATH.
+//     A single global table would have put a lock on the tracking-armed write path, which is
+//     precisely where writes live.
 //
 //   * Read registration is io-side, inside the one armed gate parse_and_dispatch already reaches
 //     (climon_armed_gate). The io thread already holds the connection, the command spec and the
@@ -171,9 +172,68 @@ void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     }
 }
 
+void IoLoop::tracking_migration_snapshot(uint64_t id, std::vector<std::string>& keys) const {
+    for (const auto& entry : climon_track_keys_)
+        if (std::find(entry.second.begin(), entry.second.end(), id) != entry.second.end())
+            keys.push_back(entry.first);
+}
+
+void IoLoop::tracking_migration_extract(uint64_t id, std::vector<std::string>& keys) {
+    size_t out = 0;
+    for (size_t i = 0; i < keys.size(); i++) {
+        std::string& key = keys[i];
+        auto entry = climon_track_keys_.find(key);
+        if (entry == climon_track_keys_.end()) continue;  // invalidated since reversible prepare
+        auto owner = std::find(entry->second.begin(), entry->second.end(), id);
+        if (owner == entry->second.end()) continue;
+        *owner = entry->second.back();
+        entry->second.pop_back();
+        srv_->climon_note_tracking_item_delta(-1);
+        if (entry->second.empty()) {
+            srv_->climon_note_tracking_key_delta(-1);
+            climon_track_keys_.erase(entry);
+        }
+        if (out != i) keys[out] = std::move(key);
+        out++;
+    }
+    keys.resize(out);
+}
+
+bool IoLoop::tracking_migration_install(uint64_t id, const std::vector<std::string>& keys) {
+    try {
+        climon_track_keys_.reserve(climon_track_keys_.size() + keys.size());
+        for (const std::string& key : keys) {
+            std::vector<uint64_t>& owners = climon_track_keys_[key];
+            if (owners.empty()) srv_->climon_note_tracking_key_delta(1);
+            if (std::find(owners.begin(), owners.end(), id) == owners.end()) {
+                owners.push_back(id);
+                srv_->climon_note_tracking_item_delta(1);
+            }
+            track_filter_add(FlatStore::hash_key(Slice(
+                key.data(), static_cast<uint32_t>(key.size()))));
+        }
+    } catch (const std::bad_alloc&) {
+        return false;
+    }
+    return true;
+}
+
 // ---- delivery ------------------------------------------------------------------------------
 
 void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {
+    const uint32_t live_io = target->ifid_thread();
+    if (live_io != self_->id()) {
+        PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
+        event->target_io = live_io;
+        event->origin_io = self_->id();
+        event->client_id = target->id();
+        event->subscribe = redirected;
+        event->count = flush ? 1 : 0;
+        event->channel.assign(key.p, key.n);
+        pubsub_post(live_io, event);
+        srv_->tracking_forwarded_stale_added();
+        return;
+    }
     // Redis decides after resolving REDIRECT. RESP3 always has a push channel; RESP2 only has a
     // valid carriage when another connection is the target and that connection is in pub/sub mode.
     const bool resp3_push = target->resp3();
@@ -245,6 +305,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
     event->target_io = owner_io;
     event->origin_io = self_->id();
     event->client_id = state.redirect;
+    event->subscribe = true;
     event->count = flush ? 1 : 0;
     event->channel.assign(key.p, key.n);
     pubsub_post(owner_io, event);
@@ -296,10 +357,14 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
     }
     if (interesting.empty()) return;
 
-    if ((mask >> (self_->id() & 63)) & 1)
-        for (const std::string& key : interesting)
-            tracking_invalidate_local(Slice(key.data(), static_cast<uint32_t>(key.size())),
-                                      writer_id);
+    PubSubEvent local;
+    local.kind = PubSubEventKind::TrackingInvalidate;
+    local.route_mask = mask;
+    local.caller_id = writer_id;
+    local.items.reserve(interesting.size());
+    for (const std::string& key : interesting)
+        local.items.push_back(PubSubEventItem{0, false, 0, key});
+    if ((mask >> (self_->id() & 63)) & 1) tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
         if (!((mask >> (io & 63)) & 1)) continue;
@@ -307,9 +372,8 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
         event->target_io = io;
         event->origin_io = self_->id();
         event->caller_id = writer_id;
-        event->items.reserve(interesting.size());
-        for (const std::string& key : interesting)
-            event->items.push_back(PubSubEventItem{0, false, 0, key});
+        event->route_mask = mask;
+        event->items = local.items;
         pubsub_post(io, event);
     }
 }
@@ -318,24 +382,17 @@ void IoLoop::tracking_broadcast_flush() {
     track_filter_clear();
     const uint64_t mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
-    if ((mask >> (self_->id() & 63)) & 1) {
-        for (auto& entry : climon_conn_) {
-            ClimonConn& state = entry.second;
-            if (!state.tracking_on) continue;
-            tracking_deliver_frame(state, entry.first, Slice(), true);
-        }
-        for (auto& entry : climon_track_keys_) {
-            srv_->climon_note_tracking_item_delta(-static_cast<int64_t>(entry.second.size()));
-            srv_->climon_note_tracking_key_delta(-1);
-        }
-        climon_track_keys_.clear();
-    }
+    PubSubEvent local;
+    local.kind = PubSubEventKind::TrackingFlush;
+    local.route_mask = mask;
+    if ((mask >> (self_->id() & 63)) & 1) tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
         if (!((mask >> (io & 63)) & 1)) continue;
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingFlush);
         event->target_io = io;
         event->origin_io = self_->id();
+        event->route_mask = mask;
         pubsub_post(io, event);
     }
 }
@@ -347,6 +404,7 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 tracking_invalidate_local(
                     Slice(item.value.data(), static_cast<uint32_t>(item.value.size())),
                     event.caller_id);
+            tracking_forward_stale(event);
             break;
         case PubSubEventKind::TrackingFlush: {
             for (auto& entry : climon_conn_) {
@@ -360,21 +418,59 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 srv_->climon_note_tracking_key_delta(-1);
             }
             climon_track_keys_.clear();
+            tracking_forward_stale(event);
             break;
         }
         case PubSubEventKind::TrackingDeliver: {
+            uint32_t live_io = 0;
+            if (command_client_directory_find(event.client_id, live_io) &&
+                live_io != self_->id()) {
+                PubSubEvent* forward = pubsub_new_event(PubSubEventKind::TrackingDeliver);
+                forward->target_io = live_io;
+                forward->origin_io = self_->id();
+                forward->client_id = event.client_id;
+                forward->subscribe = event.subscribe;
+                forward->count = event.count;
+                forward->channel = event.channel;
+                pubsub_post(live_io, forward);
+                srv_->tracking_forwarded_stale_added();
+                break;
+            }
             Client* target = nullptr;
             for (Client* c : self_->clients())
                 if (c && c->id() == event.client_id) { target = c; break; }
             if (!target || target->dead() || target->closing()) break;
             tracking_emit_invalidation(
-                target, true,
+                target, event.subscribe,
                 Slice(event.channel.data(), static_cast<uint32_t>(event.channel.size())),
                 event.count != 0);
             break;
         }
         default:
             break;
+    }
+}
+
+void IoLoop::tracking_forward_stale(const PubSubEvent& event) {
+    if (routing_forward_.empty()) return;
+    uint64_t posted = event.route_mask;
+    for (const auto& entry : routing_forward_) {
+        if (!entry.second.tracking) continue;
+        uint32_t live_io = 0;
+        if (!command_client_directory_find(entry.first, live_io) || live_io == self_->id())
+            continue;
+        const uint64_t bit = 1ull << (live_io & 63);
+        if (posted & bit) continue;
+        PubSubEvent* forward = pubsub_new_event(event.kind);
+        forward->target_io = live_io;
+        forward->origin_io = self_->id();
+        forward->caller_id = event.caller_id;
+        forward->route_mask = posted | bit;
+        forward->items = event.items;
+        pubsub_post(live_io, forward);
+        posted |= bit;
+        srv_->tracking_forwarded_stale_added(
+            event.kind == PubSubEventKind::TrackingFlush ? 1 : event.items.size());
     }
 }
 

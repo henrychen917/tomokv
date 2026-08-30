@@ -224,11 +224,189 @@ void IoLoop::climon_conn_release(uint64_t id) {
 }
 
 void IoLoop::climon_track_client(Client* client) {
-    command_client_directory_add(client->id(), self_->id());
+    command_client_directory_add(client, self_->id());
 }
 
 bool IoLoop::climon_migration_ready(const Client* client) const {
-    return client && climon_conn_.find(client->id()) == climon_conn_.end();
+    if (!client || climon_pending_.find(client->id()) != climon_pending_.end()) return false;
+    auto pubsub = pubsub_local_.find(client->id());
+    return pubsub == pubsub_local_.end() ||
+           (!pubsub->second.pending && !pubsub->second.cleanup_started);
+}
+
+bool IoLoop::client_routing_prepare(ClientMigration& migration, std::string& error) {
+    if (migration.routing || !migration.client) return migration.routing != nullptr;
+    std::unique_ptr<ClientRoutingMigration> routing;
+    try {
+        routing = std::make_unique<ClientRoutingMigration>();
+        routing->client_id = migration.client->id();
+        routing->source = self_->id();
+        routing->destination = migration.destination;
+
+        auto pubsub = pubsub_local_.find(routing->client_id);
+        if (pubsub != pubsub_local_.end()) {
+            if (pubsub->second.pending || pubsub->second.cleanup_started) {
+                error = "connection has a transient pub/sub operation";
+                return false;
+            }
+            if (!pubsub_prepare_rebind_events(pubsub->second, routing->client_id,
+                                              routing->destination,
+                                              routing->rebind_events)) {
+                error = "could not allocate pub/sub rebind events";
+                return false;
+            }
+        }
+
+        auto climon = climon_conn_.find(routing->client_id);
+        if (climon != climon_conn_.end()) {
+            routing->monitor = climon->second.monitor;
+            routing->tracking = climon->second.tracking_on;
+            if (routing->tracking)
+                tracking_migration_snapshot(routing->client_id, routing->tracking_keys);
+        }
+        if (routing->monitor || routing->tracking) {
+            std::unordered_map<uint64_t, ClientForwardRoute> prepared;
+            prepared.emplace(routing->client_id,
+                             ClientForwardRoute{false, routing->monitor, routing->tracking});
+            routing->forward = prepared.extract(routing->client_id);
+            routing->installed_event = new PubSubEvent;
+            routing->installed_event->kind = PubSubEventKind::ClientRoutingInstalled;
+            routing->installed_event->conn_id = routing->client_id;
+            routing->installed_event->target_io = routing->source;
+        }
+    } catch (const std::bad_alloc&) {
+        error = "could not allocate connection routing transfer state";
+        return false;
+    }
+    migration.routing = routing.release();
+    return true;
+}
+
+void IoLoop::client_routing_commit_extract(ClientMigration& migration,
+                                           std::vector<PubSubEvent*>& rebind_events) {
+    auto* routing = static_cast<ClientRoutingMigration*>(migration.routing);
+    if (!routing || routing->client_id != migration.client->id() ||
+        routing->source != self_->id() || routing->destination != migration.destination)
+        std::abort();
+
+    routing->pubsub = pubsub_local_.extract(routing->client_id);
+    routing->climon = climon_conn_.extract(routing->client_id);
+    if (routing->tracking) tracking_migration_extract(routing->client_id, routing->tracking_keys);
+
+    if (!routing->climon.empty()) {
+        const ClimonConn& state = routing->climon.mapped();
+        if (state.monitor) {
+            if (!climon_local_monitors_) std::abort();
+            climon_local_monitors_--;
+        }
+        if (state.tracking_on) {
+            if (!climon_local_trackers_) std::abort();
+            climon_local_trackers_--;
+        }
+        if (state.reply_mode != kClimonReplyOn) {
+            if (!climon_local_reply_) std::abort();
+            climon_local_reply_--;
+        }
+    }
+    if (!routing->forward.empty()) {
+        auto existing = routing_forward_.find(routing->client_id);
+        if (existing == routing_forward_.end()) {
+            auto inserted = routing_forward_.insert(std::move(routing->forward));
+            if (!inserted.inserted) std::abort();
+        } else {
+            // A client can cycle back before a previous record observes a globally empty event
+            // flight. Reuse that node; the newly prepared node is simply destroyed with routing.
+            existing->second.monitor |= routing->monitor;
+            existing->second.tracking |= routing->tracking;
+            existing->second.installed = false;
+        }
+    }
+    client_routing_refresh_masks();
+    rebind_events.swap(routing->rebind_events);
+}
+
+bool IoLoop::client_routing_install(void* opaque, Client* client, uint32_t source) {
+    std::unique_ptr<ClientRoutingMigration> routing(
+        static_cast<ClientRoutingMigration*>(opaque));
+    if (!routing || !client || routing->client_id != client->id() ||
+        routing->source != source || routing->destination != self_->id()) return false;
+
+    if (!routing->pubsub.empty()) {
+        routing->pubsub.mapped().client = client;
+        if (!pubsub_local_.insert(std::move(routing->pubsub)).inserted) return false;
+    }
+    if (!routing->climon.empty()) {
+        routing->climon.mapped().client = client;
+        auto inserted = climon_conn_.insert(std::move(routing->climon));
+        if (!inserted.inserted) return false;
+        const ClimonConn& state = inserted.position->second;
+        if (state.monitor) climon_local_monitors_++;
+        if (state.tracking_on) climon_local_trackers_++;
+        if (state.reply_mode != kClimonReplyOn) climon_local_reply_++;
+    }
+    if (routing->tracking &&
+        !tracking_migration_install(routing->client_id, routing->tracking_keys)) return false;
+    client_routing_refresh_masks();
+
+    if (routing->installed_event) {
+        PubSubEvent* installed = routing->installed_event;
+        routing->installed_event = nullptr;
+        srv_->pubsub_event_created();
+        pubsub_post(source, installed);
+    }
+    return true;
+}
+
+void IoLoop::client_routing_discard(void* opaque) {
+    delete static_cast<ClientRoutingMigration*>(opaque);
+}
+
+void IoLoop::client_routing_installed(uint64_t client_id) {
+    auto found = routing_forward_.find(client_id);
+    if (found != routing_forward_.end()) found->second.installed = true;
+}
+
+void IoLoop::client_routing_refresh_masks() {
+    bool forward_monitor = false;
+    bool forward_tracking = false;
+    for (const auto& entry : routing_forward_) {
+        forward_monitor |= entry.second.monitor;
+        forward_tracking |= entry.second.tracking;
+    }
+    srv_->climon_set_monitor_io(self_->id(), climon_local_monitors_ || forward_monitor);
+    srv_->climon_set_tracking_io(self_->id(), climon_local_trackers_ || forward_tracking);
+}
+
+void IoLoop::client_routing_cleanup_pass() {
+    if (routing_forward_.empty() || srv_->pubsub_inflight() != 0) return;
+    bool changed = false;
+    for (auto it = routing_forward_.begin(); it != routing_forward_.end();) {
+        if (!it->second.installed) { ++it; continue; }
+        it = routing_forward_.erase(it);
+        changed = true;
+    }
+    if (changed) client_routing_refresh_masks();
+}
+
+void IoLoop::client_routing_forward_monitor(const PubSubEvent& event) {
+    if (!event.blob || routing_forward_.empty()) return;
+    uint64_t posted = event.route_mask;
+    for (const auto& entry : routing_forward_) {
+        if (!entry.second.monitor) continue;
+        uint32_t live_io = 0;
+        if (!command_client_directory_find(entry.first, live_io) || live_io == self_->id())
+            continue;
+        const uint64_t bit = 1ull << (live_io & 63);
+        if (posted & bit) continue;
+        PubSubEvent* forward = pubsub_new_event(PubSubEventKind::MonitorFeed);
+        forward->target_io = live_io;
+        forward->origin_io = self_->id();
+        forward->route_mask = posted | bit;
+        forward->blob = event.blob;
+        pubsub_post(live_io, forward);
+        posted |= bit;
+        srv_->monitor_forwarded_stale_added();
+    }
 }
 
 void IoLoop::climon_untrack_client(Client* client) {
@@ -434,14 +612,20 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
 
     // Encode once, share the blob with every owner that actually has a monitor.
     auto blob = std::make_shared<const std::string>(std::move(line));
-    if (climon_local_monitors_) climon_monitor_deliver(*blob);
     const uint64_t mask = srv_->climon_monitor_io_mask();
+    if (climon_local_monitors_) climon_monitor_deliver(*blob);
+    PubSubEvent local;
+    local.kind = PubSubEventKind::MonitorFeed;
+    local.route_mask = mask;
+    local.blob = blob;
+    if ((mask >> (self_->id() & 63)) & 1) client_routing_forward_monitor(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
         if (!((mask >> (io & 63)) & 1)) continue;
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::MonitorFeed);
         event->target_io = io;
         event->origin_io = self_->id();
+        event->route_mask = mask;
         event->blob = blob;
         pubsub_post(io, event);
     }
@@ -913,7 +1097,13 @@ bool IoLoop::climon_handle_event(PubSubEvent& event) {
             return true;
         }
         case PubSubEventKind::MonitorFeed:
-            if (event.blob) climon_monitor_deliver(*event.blob);
+            if (event.blob) {
+                climon_monitor_deliver(*event.blob);
+                client_routing_forward_monitor(event);
+            }
+            return true;
+        case PubSubEventKind::ClientRoutingInstalled:
+            client_routing_installed(event.conn_id);
             return true;
         case PubSubEventKind::TrackingInvalidate:
         case PubSubEventKind::TrackingFlush:

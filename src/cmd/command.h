@@ -260,9 +260,12 @@ void command_client_set_tracking_view(Client* client, bool on, int64_t redirect)
 void command_client_reset_meta(Client* client);
 // CLIENT subcommand arity error, shared by climon.cc and tracking.cc.
 void climon_wrong_args(Op& op, const char* subcommand);
-// Process-wide id -> owning io thread directory. Written at accept/close only (cold), read only
-// by CLIENT UNBLOCK and CLIENT TRACKING REDIRECT, so no hot path pays for the mutex.
-void command_client_directory_add(uint64_t id, uint32_t io);
+// Process-wide id -> live Client directory. The pointer is read only under the directory mutex and
+// only to acquire-load Client::ifid_thread(), the connection ownership edge. Besides CLIENT
+// UNBLOCK/TRACKING REDIRECT, stale notification deliveries use it after a migration has already
+// moved the old owner's local catalog node.
+void command_client_directory_add(Client* client, uint32_t io);
+void command_client_directory_move(uint64_t id, uint32_t io);
 void command_client_directory_remove(uint64_t id);
 bool command_client_directory_find(uint64_t id, uint32_t& io);
 

@@ -458,6 +458,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
                 invalidate->kind = PubSubEventKind::TrackingInvalidate;
                 invalidate->target_io = io;
                 invalidate->caller_id = 0;
+                invalidate->route_mask = io_mask;
                 invalidate->items.push_back(PubSubEventItem{0, false, 0, out.key});
                 server.pubsub_event_created();
                 if (!server.thread(io).post_pubsub_event_nonblocking(
