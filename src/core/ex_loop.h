@@ -53,6 +53,7 @@ public:
         lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
+        age_sample_rate_cached_ = srv->effective_age_sample_rate();
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -93,7 +94,13 @@ public:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
-                self_->sample_depth(busy.start_ns() / 1000);
+                if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    const uint32_t age_rate = srv_->effective_age_sample_rate();
+                    if (age_rate != age_sample_rate_cached_) {
+                        age_sample_rate_cached_ = age_rate;
+                        self_->sig().configure_age_sampling(age_rate);
+                    }
+                }
                 if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
@@ -1159,6 +1166,7 @@ private:
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
+    uint32_t   age_sample_rate_cached_ = 0;
     bool       lb_controller_armed_ = false;
     bool       lb_ack_wake_pending_ = false;
     bool       lb_rebind_pending_ = false;   // set at ExDrain ack; rebind owned shards after stage

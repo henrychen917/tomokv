@@ -167,6 +167,27 @@ int main() {
         !rejects({"--lb-cooldown-ms", "-1"}))
         fail("invalid weighted-LB knob grammar was accepted");
 
+    tomo::Config flipctl;
+    tomo::ConfigParseState flipctl_state;
+    const std::vector<const char*> flipctl_args = {
+        "--flip-auto", "1", "--flip-auto-band", "7", "--flip-work-window", "0",
+    };
+    if (tomo::parse_config_args(flipctl_args, flipctl, flipctl_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        flipctl.flip_auto != 1 || flipctl.flip_auto_band != 7 ||
+        flipctl.flip_work_window != 0)
+        fail("flip controller knob grammar or zero off posture differs");
+    tomo::Config flipctl_default;
+    if (flipctl_default.flip_auto != 0 || flipctl_default.flip_auto_band != -1 ||
+        flipctl_default.flip_work_window != 100)
+        fail("flip controller defaults differ");
+    if (!rejects({"--flip-auto", "2"}) ||
+        !rejects({"--flip-auto", "yes"}) ||
+        !rejects({"--flip-auto-band", "-2"}) ||
+        !rejects({"--flip-auto-band", "auto"}) ||
+        !rejects({"--flip-work-window", "-1"}))
+        fail("invalid flip controller knob grammar was accepted");
+
     tomo::Config xscript;
     tomo::ConfigParseState xscript_state;
     const std::vector<const char*> xscript_args = {

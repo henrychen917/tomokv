@@ -24,6 +24,7 @@
 #include <vector>
 #include "shard.h"
 #include "thread.h"
+#include "flipctl.h"
 #include "weighted_lb.h"
 #include "placement.h"
 #include "config.h"        // struct Config: every runtime knob, one home
@@ -257,6 +258,10 @@ public:
         // a channel from every other regardless of role, because a role change must not require
         // re-wiring the mesh.
         const uint32_t nthreads = placement_.total_threads();
+        if (!flipctl_.init(cfg.flip_auto != 0, cfg.flip_auto_band, nthreads)) {
+            std::fprintf(stderr, "fatal: could not allocate flip controller state\n");
+            return false;
+        }
         for (uint32_t i = 0; i < kMaxThreads; i++) executor_slots_[i] = UINT8_MAX;
         // Role changes may make any physical thread an executor. Stable tid-indexed slots avoid
         // renumbering live atomic-group arrays at each flip.
@@ -265,7 +270,9 @@ public:
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
-            threads_[i]->init(i, placement_.role_of(i), nthreads, cfg.lb_age_sample_rate);
+            threads_[i]->init(i, placement_.role_of(i), nthreads,
+                              cfg.flip_auto ? 0 : cfg.lb_age_sample_rate,
+                              cfg.flip_work_window);
             threads_[i]->init_command_counts(command_registry_size());
         }
         if (key_lb_signals_enabled()) {
@@ -338,6 +345,19 @@ public:
     bool lb_controller_enabled() const {
         return key_lb_signals_enabled() || client_lb_signals_enabled();
     }
+
+    bool flipctl_enabled() const { return flipctl_.enabled(); }
+    uint32_t flipctl_tick_ms() const {
+        return cfg_.lb_tick_ms ? cfg_.lb_tick_ms : std::max<uint32_t>(1, nthreads());
+    }
+    bool flipctl_tick(uint64_t now_ms) { return flipctl_.tick(*this, now_ms); }
+    uint32_t flipctl_signal_sample_rate() const { return flipctl_.signal_sample_rate(); }
+    uint32_t effective_age_sample_rate() const {
+        return cfg_.flip_auto ? flipctl_signal_sample_rate() : cfg_.lb_age_sample_rate;
+    }
+    void flipctl_force_trigger() { flipctl_.request_forced_trigger(); }
+    FlipctlReport flipctl_report() const { return flipctl_.report(); }
+    std::string flipctl_debug_dump() const { return flipctl_.debug_dump(); }
 
     // Client observations are gathered by the connection owner once per second. ROB dispatch
     // deltas are the operation-rate signal; live in-flight depth is a floor so a deep connection
@@ -745,11 +765,11 @@ public:
             items.reserve(total);
             clients.reserve(total);
             const bool weighted_client = client_lb_signals_enabled();
-            bool coordinator_seen = false;
+            bool coordinator_seen = coordinator_client == nullptr;
             for (uint32_t owner = 0; owner < nthreads(); owner++) {
                 if (thread(owner).role() != Role::Ifid) continue;
                 for (Client* client : thread(owner).clients()) {
-                    const bool pinned = client == coordinator_client;
+                    const bool pinned = coordinator_client && client == coordinator_client;
                     coordinator_seen |= pinned;
                     items.push_back({client->id(), owner,
                                      weighted_client ? lb_client_weight(client->id()) : 0.0,
@@ -3077,6 +3097,7 @@ private:
     AofManager aof_;
     // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
     SnapshotManager snapshot_;
+    FlipController flipctl_;
 
     // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
     // shard-granularity dispatch remains one flat-array load.

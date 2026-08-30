@@ -11,6 +11,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <csignal>
+#include <chrono>
 #include <cerrno>
 #include <condition_variable>
 #include <cstdio>
@@ -452,6 +453,17 @@ int main(int argc, char** argv) {
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
     if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
+
+    // The automatic split controller has exactly one writer: this main/monitor thread. Worker
+    // loops only publish owner-local counters and execute the unchanged FLIP stage machine. With
+    // the default --flip-auto 0 this block does not run and allocates/schedules nothing.
+    if (srv.flipctl_enabled()) {
+        const auto beat = std::chrono::milliseconds(srv.flipctl_tick_ms());
+        while (!srv.shutting_down().load(std::memory_order_relaxed)) {
+            (void)srv.flipctl_tick(now_ns() / 1000000ull);
+            std::this_thread::sleep_for(beat);
+        }
+    }
 
     for (auto& t : pool) t.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
