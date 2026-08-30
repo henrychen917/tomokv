@@ -43,8 +43,8 @@ SRV=0; SRVLOG=/dev/null
 # both atomic modes. Their sibling lanes each claimed 207 -> 209, so the merged ledger owes four.
 # 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
-EXPECT_QUICK=217
-EXPECT_FULL=228                 # full without the optional NIC row.
+EXPECT_QUICK=222
+EXPECT_FULL=233                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -426,6 +426,43 @@ python3 tests/notify.py 127.0.0.1 $PORT >/tmp/gate-notify.txt 2>&1 \
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
+
+# ---- FLIP lane: runtime thread reshaping is a shipped feature and gates like one ---------------
+# Four rows, each guarding a failure class that actually shipped once:
+#   flip.py            the 542-check state battery (incl. same-split no-op moves NOTHING)
+#   flip_under_load    value-verified traffic + flips: no drops, no BUSY, no regressions
+#   flip_ttl           TTL state AND expiry events survive the shard/client moves a flip performs
+#   saturated flips    a one-shot quiesce snapshot once refused ~every flip under 512-conn
+#                      pipelined load while 8-conn tests sailed through; this row flips under
+#                      real saturation and asserts every one APPLIES (live split == requested)
+boot ./build/tomokv --enable-debug-command yes || bad "flip battery boot"
+python3 tests/flip.py 127.0.0.1 $PORT >/tmp/gate-flip.txt 2>&1 \
+    && ok "FLIP state battery" || bad "FLIP state battery" "see /tmp/gate-flip.txt"
+python3 tests/flip_under_load.py 127.0.0.1 $PORT 20 >/tmp/gate-flip-load.txt 2>&1 \
+    && ok "FLIP under verified load" || bad "FLIP under verified load" "see /tmp/gate-flip-load.txt"
+python3 tests/flip_ttl.py 127.0.0.1 $PORT >/tmp/gate-flip-ttl.txt 2>&1 \
+    && ok "FLIP TTL + expiry events" || bad "FLIP TTL + expiry events" "see /tmp/gate-flip-ttl.txt"
+(
+  taskset -c "$CORES" memtier_benchmark -s 127.0.0.1 -p $PORT --protocol=redis -t 8 -c 32 \
+    --pipeline=16 --ratio=1:1 --key-pattern=R:R --key-minimum=1 --key-maximum=200000 -d 64 \
+    --test-time=25 --distinct-client-seed --hide-histogram >/dev/null 2>&1 &
+  MTPID=$!
+  sleep 3
+  SATOK=1
+  TOTAL=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{a=$2} /live_ex/{b=$2} END{print a+b}')
+  for FR in 25 75 50; do
+    TIO=$(( TOTAL * FR / 100 )); [ "$TIO" -lt 2 ] && TIO=2; [ "$TIO" -gt $((TOTAL-2)) ] && TIO=$((TOTAL-2))
+    OUT=$(redis-cli -p $PORT flip $TIO $((TOTAL-TIO)) 2>&1); sleep 1
+    LIVE=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{print $2; exit}')
+    { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>/tmp/gate-flip-sat.txt; }
+  done
+  kill -9 $MTPID 2>/dev/null
+  exit $((1 - SATOK))
+) && ok "FLIP applies under saturated load" \
+  || bad "FLIP applies under saturated load" "see /tmp/gate-flip-sat.txt"
+stop
+grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+    && ok "flip battery shutdown invariants" || bad "flip battery shutdown invariants"
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
 for PERSIST_IO in normal uring; do
