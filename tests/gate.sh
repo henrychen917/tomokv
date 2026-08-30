@@ -174,6 +174,7 @@ done
 # opposite the source. No same-owner or one-executor run can satisfy this row.
 for AT in 0 1; do
   boot ./build/tomokv --ratio 6:2 --atomic "$AT" --enable-debug-command yes \
+       --lb-age-sample-rate 1024 \
       || bad "cross-owner SORT boot (atomic $AT)"
   python3 tests/sort.py 127.0.0.1 "$PORT" >/tmp/gate-sort-$AT.txt 2>&1 \
       && ok "cross-owner SORT battery (atomic $AT)" \
@@ -183,7 +184,8 @@ done
 
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
 for AT in 0 1; do
-  boot ./build/tomokv --atomic $AT --enable-debug-command yes || bad "debug-surface boot (atomic $AT)"
+  boot ./build/tomokv --atomic $AT --enable-debug-command yes --lb-age-sample-rate 1024 \
+      || bad "debug-surface boot (atomic $AT)"
   # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARD proves the group
   # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
   # `atomic` itself as well, so it covers both modes from either boot.

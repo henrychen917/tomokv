@@ -150,7 +150,7 @@ int main() {
         fail("weighted-LB knob grammar or zero off posture differs");
     tomo::Config lb_default;
     if (lb_default.key_lb != 1 || lb_default.client_lb != 1 ||
-        lb_default.lb_sample_rate != 64 || lb_default.lb_age_sample_rate != 1024 ||
+        lb_default.lb_sample_rate != 64 || lb_default.lb_age_sample_rate != 0 ||
         lb_default.lb_tick_ms != 1000 ||
         lb_default.lb_imbalance_pct != 25 || lb_default.lb_move_cap != 1 ||
         lb_default.lb_cooldown_ms != 5000)
