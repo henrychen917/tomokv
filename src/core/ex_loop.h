@@ -89,11 +89,11 @@ public:
                 cached_lru_clock_ = static_cast<uint8_t>(
                     (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
             sig.iterations++;
-            self_->sample_depth();
 
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                self_->sample_depth(busy.start_ns() / 1000);
                 if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP

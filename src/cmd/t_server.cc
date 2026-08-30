@@ -326,6 +326,8 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.client_lb), true});
     g_config.push_back({"lb-sample-rate", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_sample_rate), true});
+    g_config.push_back({"lb-age-sample-rate", ConfigKind::Unsigned,
+                        std::to_string(cfg.lb_age_sample_rate), true});
     g_config.push_back({"lb-tick-ms", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_tick_ms), true});
     g_config.push_back({"lb-imbalance-pct", ConfigKind::Unsigned,
