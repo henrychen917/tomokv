@@ -96,6 +96,7 @@ public:
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
         }, this, [](void* ctx, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(ctx);
+            const bool was_blocked = client.blocked();
             NotifyBatch* notifications = nullptr;
             if (op.has_scatter_state()) {
                 notifications = notify_take_batch(op);
@@ -117,6 +118,16 @@ public:
             }
             if (__builtin_expect(notifications != nullptr, false))
                 notify_retire_batch_entry(*loop, notifications, client.id());
+            if (was_blocked && !client.blocked()) {
+                // A blocking wait is timeout-exempt, so its parked duration cannot become the
+                // idle age the first cron pass sees after retirement. The socket send refresh is
+                // too late: cron runs later in this same IO pass, before its CQE can arrive.
+                client.set_last_interaction_s(loop->cached_now_s_);
+                // One-shot test synchronizer: make that vulnerable retirement -> cron ordering
+                // deterministic. Production never arms it, and the blocking path is already cold.
+                if (loop->srv_->debug_blocking_timeout_reap_take())
+                    loop->client_cron_beat_ms_ = 0;
+            }
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
         }, &cached_now_s_, &self_->sig());
@@ -3219,6 +3230,7 @@ nonblocking_dispatch:
             reply_int(op.sink(), 0);
             op.state.store(OpState::Done, std::memory_order_release);
             client->set_blocked(false);
+            client->set_last_interaction_s(cached_now_s_);
             srv_->blocking_client_unparked();
             deferred_waits_[i] = deferred_waits_.back();
             deferred_waits_.pop_back();
