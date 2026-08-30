@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Directed connection-limits test. Usage: tests/limits.py HOST PORT"""
+"""Directed connection-limits test. Usage: tests/limits.py HOST PORT
+
+The purpose boot must enable DEBUG commands for the deterministic blocked-timeout ordering arm.
+"""
 
 import os
 import socket
@@ -302,12 +305,26 @@ def main():
 
         blocked = Conn(timeout=5)
         blocked_key = f"{token}:blocked"
+        reap_before = admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP")
+        if not isinstance(reap_before, int):
+            raise AssertionError(
+                "blocking timeout regression requires --enable-debug-command yes: "
+                f"{reap_before!r}")
         blocked.send("BLPOP", blocked_key, "0")
         for _ in range(6):
             time.sleep(0.4)
             expect(admin.command("PING"), b"PONG", "blocked timeout heartbeat")
+        # Force the formerly racy order: BLPOP retirement clears `blocked`, then this client's
+        # owner runs its overdue timeout sweep before the send CQE can refresh last activity.
+        # The parked duration is not idle time, so the connection must survive both the reply and
+        # a following command. The counter is the positive control that the one-shot fired.
+        expect(admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP", "1"), b"OK",
+               "blocked timeout deterministic ordering arm")
         expect(admin.command("LPUSH", blocked_key, "wake"), 1, "blocked timeout wake")
         expect(blocked.read(), [blocked_key.encode(), b"wake"], "blocked timeout exemption")
+        expect(blocked.command("PING"), b"PONG", "blocked timeout post-wake alive")
+        expect(admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP"), reap_before + 1,
+               "blocked timeout deterministic ordering fired")
         blocked.close()
 
         active = Conn(timeout=5)

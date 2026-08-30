@@ -2629,6 +2629,22 @@ public:
     bool debug_barrier_hold_armed() const {
         return debug_barrier_hold_.load(std::memory_order_relaxed) != 0;
     }
+    // TEST HOOK (DEBUG BLOCKING-TIMEOUT-REAP). One blocking retirement consumes the arm and makes
+    // its owner's client cron due in that same IO pass. This makes the otherwise probabilistic
+    // ordering between reply retirement and the 100 ms timeout beat deterministic.
+    void set_debug_blocking_timeout_reap(bool armed) {
+        debug_blocking_timeout_reap_.store(armed, std::memory_order_release);
+    }
+    bool debug_blocking_timeout_reap_take() {
+        if (!debug_blocking_timeout_reap_.load(std::memory_order_acquire) ||
+            !debug_blocking_timeout_reap_.exchange(false, std::memory_order_acq_rel))
+            return false;
+        debug_blocking_timeout_reaps_.fetch_add(1, std::memory_order_relaxed);
+        return true;
+    }
+    uint64_t debug_blocking_timeout_reaps() const {
+        return debug_blocking_timeout_reaps_.load(std::memory_order_relaxed);
+    }
     // An overlap: some owner took the parse barrier while another owner already held it. With
     // DEBUG BARRIER-HOLD off this must read ZERO -- it is the live form of the reachability verdict
     // in NOTES-BARRIER.md, and if it ever moves on production traffic the latent case just went
@@ -3221,6 +3237,8 @@ private:
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
     std::atomic<uint32_t> debug_script_stage_defer_{0};
     std::atomic<uint32_t> debug_barrier_hold_{0};
+    std::atomic<bool> debug_blocking_timeout_reap_{false};
+    std::atomic<uint64_t> debug_blocking_timeout_reaps_{0};
     std::atomic<uint64_t> barrier_owner_overlaps_{0};
     std::atomic<uint64_t> barrier_releases_held_{0};
     std::atomic<uint64_t> atomic_commit_windows_{0};

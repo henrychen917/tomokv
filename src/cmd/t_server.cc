@@ -852,6 +852,24 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // One-shot scheduler for the blocking idle-timeout regression. With no argument it reports
+    // how many blocked -> unblocked transitions consumed the arm, so the test cannot pass without
+    // reaching the retirement/cron ordering it claims to cover.
+    if (eq_icase(subcommand, "blocking-timeout-reap")) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (op.argc() == 2) {
+            reply_int(op.sink(), g_server->debug_blocking_timeout_reaps());
+            return;
+        }
+        uint64_t armed = 0;
+        if (op.argc() != 3 || !parse_u64(op.arg(2), armed) || armed > 1) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        g_server->set_debug_blocking_timeout_reap(armed != 0);
+        reply_ok(op.sink());
+        return;
+    }
     // Which owner a key routes to. The hash seed is drawn from the kernel at every boot, so a test
     // cannot know from the key name alone whether a two-key command is one owner's work or a real
     // cross-shard group -- and a cross-shard battery that silently ran same-owner proves nothing.
