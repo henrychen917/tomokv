@@ -242,6 +242,19 @@ private:
         if (!lb_controller_armed_) return 0;
         if (srv_->lb_stage() != LbStage::ExDrain) {
             lb_ack_wake_pending_ = false;
+            // A completed mover stage may have changed this loop's shard set. Every owned shard's
+            // keyless-notify pending pointer must aim at THIS loop, exactly as FlipStage::ExInstall
+            // rebinds after a flip -- the mover's lighter stage protocol shipped without this step,
+            // and a moved shard's expired-key events then pinged the OLD owner, whose drain walks
+            // only its own shards: active-expiry notifications stranded forever (notify battery,
+            // key-lb half, 2/6). Rebinding is a handful of pointer stores and runs only on the
+            // first pass after a stage ends.
+            if (lb_rebind_pending_) {
+                lb_rebind_pending_ = false;
+                for (Shard* shard : self_->shards())
+                    shard->bind_notify_pending(&notify_keyless_pending_);
+                notify_keyless_pending_ = true;   // force one state-checked drain after adoption
+            }
             return 0;
         }
         auto wake_coordinator = [&]() {
@@ -259,6 +272,7 @@ private:
         if (!flip_quiesced()) return 0;
         srv_->lb_ack(self_->id());
         lb_ack_wake_pending_ = true;
+        lb_rebind_pending_ = true;   // membership may change before the stage ends; rebind after
         return wake_coordinator();
     }
 
@@ -286,8 +300,12 @@ private:
         live_config_version_ = snapshot.version;
     }
 
-    uint32_t drain_notify_keyless(LoopSignals& signals) {
-        if (__builtin_expect(!notify_keyless_pending_, true)) return 0;
+    // The pending flag is a HINT, and a hint must never be the only looker: a shard whose binding
+    // went stale (any ownership move a future path forgets to rebind) would strand its events
+    // behind a flag it can no longer set. The busy path keeps the cheap flag gate; sweep() forces
+    // the state walk, so stranded events survive at most until the owner's next idle pass.
+    uint32_t drain_notify_keyless(LoopSignals& signals, bool force = false) {
+        if (__builtin_expect(!notify_keyless_pending_, true) && !force) return 0;
         notify_keyless_pending_ = false;
         uint32_t work = 0;
         for (Shard* shard : self_->shards()) {
@@ -315,7 +333,7 @@ private:
                          ? drain_tasks(true) : drain_tasks_snapshot(true);
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
-        n += drain_notify_keyless(self_->sig());
+        n += drain_notify_keyless(self_->sig(), /*force=*/true);
         if (__builtin_expect(srv_->blocking_waiters() != 0, false))
             n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
         n += aof_flush_pass();
@@ -1137,6 +1155,7 @@ private:
     uint32_t   lb_sample_countdown_ = 0;
     bool       lb_controller_armed_ = false;
     bool       lb_ack_wake_pending_ = false;
+    bool       lb_rebind_pending_ = false;   // set at ExDrain ack; rebind owned shards after stage
     int64_t    lb_bytes_next_ms_ = 0;
     size_t     lb_bytes_shard_cursor_ = 0;
     SnapshotManager* snapshot_manager_ = nullptr;

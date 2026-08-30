@@ -1189,22 +1189,30 @@ public:
     // entries at our load factor and a full walk costs the same number of round trips it always
     // did. A second, looser budget of 10*COUNT examined SLOTS is what keeps one call bounded when
     // tombstones stretch the probe runs; it is the same pair of budgets SSCAN documents.
+    // `expire_on_visit` distinguishes the two legitimate walkers. SCAN/KEYS keep redis semantics:
+    // a visited dead key is logically expired on the spot (event, AOF delete, erase). ACCOUNTING
+    // walks (the LB bucket-byte census) must pass false: they run from the executor loop at census
+    // cadence, not inside any logical operation, and a census that expires keys performs the
+    // expiry OUTSIDE every in-flight operation's pinned cut -- it physically deleted keys between
+    // the fragments of an MGET fan-out and tore the one-cut-per-logical-operation law (caught by
+    // the expwide battery the first time the census shipped default-on).
     template <typename Fn>
-    uint64_t scan(uint64_t cursor, uint32_t count, Fn&& fn) {
+    uint64_t scan(uint64_t cursor, uint32_t count, Fn&& fn, bool expire_on_visit = true) {
         if (!tab_[0]) return 0;
         const uint64_t slot_budget = static_cast<uint64_t>(count) * 10;
         uint32_t homes = 0;
         uint64_t slots = 0;
         do {
             if (!rehashing()) {
-                slots += scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn);
+                slots += scan_home(0, static_cast<uint32_t>(cursor) & mask_[0], fn,
+                                   expire_on_visit);
                 homes++;
                 cursor = scan_cursor_next(cursor, mask_[0]);
             } else if (mask_[0] == mask_[1]) {
                 // Same-size rebuild (tombstone reclaim): identical homes, so one visit each.
                 const uint32_t home = static_cast<uint32_t>(cursor) & mask_[0];
-                slots += scan_home(0, home, fn);        // separate statements: both visits emit,
-                slots += scan_home(1, home, fn);        // so their order must not be unspecified
+                slots += scan_home(0, home, fn, expire_on_visit);  // separate statements: both
+                slots += scan_home(1, home, fn, expire_on_visit);  // emit, order must be defined
                 homes += 2;
                 cursor = scan_cursor_next(cursor, mask_[0]);
             } else {
@@ -1212,10 +1220,12 @@ public:
                 const int large = small ^ 1;                   // shrink puts it in 0
                 const uint64_t small_mask = mask_[small];
                 const uint64_t large_mask = mask_[large];
-                slots += scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn);
+                slots += scan_home(small, static_cast<uint32_t>(cursor & small_mask), fn,
+                                   expire_on_visit);
                 homes++;
                 do {
-                    slots += scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn);
+                    slots += scan_home(large, static_cast<uint32_t>(cursor & large_mask), fn,
+                                       expire_on_visit);
                     homes++;
                     cursor = scan_cursor_next(cursor, large_mask);
                 } while (cursor & (small_mask ^ large_mask));
@@ -1699,7 +1709,7 @@ private:
     // home. Returns slots examined, charged against COUNT, and never zero -- an empty home must
     // still cost the caller one unit or a sparse table would walk itself out in a single call.
     template <typename Fn>
-    uint32_t scan_home(int t, uint32_t home, Fn& fn) {
+    uint32_t scan_home(int t, uint32_t home, Fn& fn, bool expire_on_visit) {
         uint32_t examined = 0;
         uint32_t i = home;
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
@@ -1709,16 +1719,19 @@ private:
             KvObj* o = ptr_of(w);
             if (o) {
                 const uint64_t h = hash_key(o->key());
-                if (slot_start(t, h) == home) scan_visit(t, h, o, fn);
+                if (slot_start(t, h) == home) scan_visit(t, h, o, fn, expire_on_visit);
             }
             i = (i + 1) & mask_[t];
         }
         return examined ? examined : 1;
     }
 
-    // The per-key half of a scan step, unchanged from the physical walk it replaces.
+    // The per-key half of a scan step, unchanged from the physical walk it replaces. A walker
+    // with expire_on_visit=false sees the dead entry as-is: accounting walks must have no
+    // logical side effects (see the scan() comment).
     template <typename Fn>
-    void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn) {
+    void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn, bool expire_on_visit) {
+        if (!expire_on_visit) { fn(o); return; }
         if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.

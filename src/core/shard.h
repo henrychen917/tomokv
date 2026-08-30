@@ -348,11 +348,15 @@ public:
     // pass publishes the bucket vector atomically entry-by-entry, then starts a fresh census.
     bool lb_scan_bucket_bytes(uint32_t homes) {
         if (!lb_bucket_bytes_staging_ || !homes) return false;
+        // expire_on_visit=false: this census runs from the executor loop at its own cadence, not
+        // inside any logical operation. Expiring here deletes keys OUTSIDE every in-flight
+        // operation's pinned cut and tears cross-shard reads (the expwide S1 failure). Counting a
+        // dead-but-unreaped key's bytes is a rounding error; deleting it here is a torn read.
         lb_bytes_cursor_ = store_.scan(lb_bytes_cursor_, homes, [&](KvObj* object) {
             const uint64_t hash = FlatStore::hash_key(object->key());
             const uint32_t bucket = bucket_of(hash);
             if (owns(bucket)) lb_bucket_bytes_staging_[bucket - bucket_begin_] += kvobj_size(object);
-        });
+        }, /*expire_on_visit=*/false);
         if (lb_bytes_cursor_ != 0) return false;
         const uint32_t n = bucket_end_ - bucket_begin_;
         for (uint32_t i = 0; i < n; i++) {
