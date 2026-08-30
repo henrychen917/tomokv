@@ -46,7 +46,8 @@
 //
 //   [63:49] 15-bit tag   high bits of the hash; rejects a non-matching probe without touching the key
 //   [48]    TOMB
-//   [47:0]  KvObj*       x86-64 user pointers are canonical 48-bit, so the top bits are free
+//   [47:0]  KvObj*       boot verifies the allocator stays in the low 48-bit VA range; debug packs
+//                       assert the same invariant before using the top bits
 //
 //   word == 0             EMPTY  the calloc state, and the ONLY thing that stops a probe
 //   ptr != 0              LIVE
@@ -60,6 +61,7 @@
 #pragma once
 #include <algorithm>
 #include <atomic>
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -77,6 +79,33 @@
 #include "../persist/aof.h"
 
 namespace tomo {
+
+// DEBUG-only fault injection for the cold table-allocation paths. The command surface is compiled
+// out when assertions are disabled; production allocation remains a direct calloc with no
+// request-path tax.
+#ifndef NDEBUG
+inline std::atomic<uint32_t> g_flatstore_table_alloc_failures{0};
+
+inline void flatstore_debug_fail_table_allocations(uint32_t count) {
+    g_flatstore_table_alloc_failures.store(count, std::memory_order_relaxed);
+}
+
+inline bool flatstore_debug_consume_table_alloc_failure() {
+    uint32_t remaining = g_flatstore_table_alloc_failures.load(std::memory_order_relaxed);
+    while (remaining) {
+        if (g_flatstore_table_alloc_failures.compare_exchange_weak(
+                remaining, remaining - 1, std::memory_order_relaxed)) return true;
+    }
+    return false;
+}
+#endif
+
+inline void* flatstore_table_calloc(size_t count, size_t width) {
+#ifndef NDEBUG
+    if (flatstore_debug_consume_table_alloc_failure()) return nullptr;
+#endif
+    return std::calloc(count, width);
+}
 
 struct ScatterState;
 uint64_t xshard_atomic_key_hash(const ScatterState* state, uint32_t ordered_index);
@@ -114,7 +143,8 @@ public:
     // expiring until the next command wakes it.
     bool migrating() const { return cap_[1] != 0; }
     size_t memory_bytes() const {
-        return (cap_[0] + cap_[1]) * (sizeof(uint64_t) + sizeof(uint8_t));
+        return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
+                                   (sizeof(uint64_t) + sizeof(uint8_t)));
     }
     void clear() {
         release(0);
@@ -129,13 +159,21 @@ public:
             // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
             // move ends, so this cannot fire; finishing the move is still cheaper than letting an
             // insert run out of slots.
-            if (rehashing() && (live_[1] + tombs_[1] + 1) * 100 >= cap_[1] * 70)
+            if (rehashing() &&
+                (static_cast<uint64_t>(live_[1]) + tombs_[1] + 1) * 100 >=
+                    static_cast<uint64_t>(cap_[1]) * 70)
                 finish_migration();
         }
         if (!cap_[0] && !allocate(0, kMinCap)) return false;
-        if (!rehashing() && (live_[0] + tombs_[0] + 1) * 100 >= cap_[0] * 70) {
-            const size_t cap = live_[0] * 2 >= cap_[0] ? cap_[0] * 2 : cap_[0];
-            if (!begin_rehash(cap)) return false;
+        if (!rehashing() &&
+            (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1) * 100 >=
+                static_cast<uint64_t>(cap_[0]) * 70) {
+            uint64_t wanted = cap_[0];
+            if (static_cast<uint64_t>(live_[0]) * 2 >= cap_[0]) {
+                if (wanted > std::numeric_limits<size_t>::max() / uint64_t{2}) return false;
+                wanted *= uint64_t{2};
+            }
+            if (!begin_rehash(static_cast<size_t>(wanted))) return false;
             migrate(kMigrateSlotsPerOp);
         }
         // A deadline re-registered while the move is in flight must leave the old table, or live_
@@ -231,8 +269,9 @@ private:
     // arrive as demand-zero pages. Writing the zeroes here would put the whole new sidecar back on
     // one operation's critical path -- which is the stall this change exists to remove.
     bool allocate(int t, size_t cap) {
-        auto* hashes = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));
-        auto* states = static_cast<uint8_t*>(std::calloc(cap, sizeof(uint8_t)));  // kEmpty == 0
+        auto* hashes = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
+        auto* states = static_cast<uint8_t*>(
+            flatstore_table_calloc(cap, sizeof(uint8_t)));  // kEmpty == 0
         if (!hashes || !states) { std::free(hashes); std::free(states); return false; }
         std::free(hashes_[t]);
         std::free(states_[t]);
@@ -472,7 +511,22 @@ public:
     enum class InsertResult : uint8_t { Inserted, MaxmemoryOom, Failed };
     enum class OverwriteResult : uint8_t { Updated, NotPossible, MaxmemoryOom };
 
-    explicit FlatStore(uint32_t initial_cap = 1024) { alloc_table(0, round_pow2(initial_cap)); }
+    // KvObj allocations use alloc_raw(), so probe that exact backend before any shard is built.
+    // A platform/allocator that can only supply wider virtual addresses cannot safely use the
+    // packed slot format and must be rejected at boot rather than losing pointer bits later.
+    static bool pointer_encoding_supported() {
+        constexpr size_t kProbeBytes = 64;
+        void* probe = alloc_raw(kProbeBytes);
+        if (!probe) return false;
+        const bool fits = (reinterpret_cast<uint64_t>(probe) & ~kPtrMask) == 0;
+        free_sized(probe, kProbeBytes);
+        return fits;
+    }
+
+    explicit FlatStore(uint32_t initial_cap = 1024) {
+        const uint32_t cap = round_pow2(initial_cap);
+        if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
+    }
     ~FlatStore() {
         // At process teardown no reader survives. Collapse pending entries first so the ordinary
         // table destructor below remains the unique owner of each promoted winner.
@@ -494,7 +548,7 @@ public:
 
     bool     rehashing() const { return tab_[1] != nullptr; }
     uint32_t size() const { return live_[0] + live_[1]; }
-    uint32_t capacity() const { return cap_[0] + cap_[1]; }
+    uint64_t capacity() const { return static_cast<uint64_t>(cap_[0]) + cap_[1]; }
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
@@ -534,7 +588,7 @@ public:
         const size_t objects = obj_bytes_ + atomic_version_bytes_;
         if (keys > (std::numeric_limits<size_t>::max() - objects) / kSlotOverheadPerKey)
             return std::numeric_limits<size_t>::max();
-        return objects + keys * kSlotOverheadPerKey;
+        return objects + static_cast<uint64_t>(keys) * kSlotOverheadPerKey;
     }
 
     // ==== epoch-MVCC atomics (see src/store/flatstore_atomic.inc) ====
@@ -557,8 +611,10 @@ public:
         uint64_t wanted = static_cast<uint64_t>(cap_[0]) * 2;
         if (wanted > UINT32_MAX) return SnapshotWriteResult::Error;
         const uint32_t cap = round_pow2(static_cast<uint32_t>(wanted));
-        snapshot_new_tab_ = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));
-        if (!snapshot_new_tab_) return SnapshotWriteResult::Error;
+        if (!cap) return SnapshotWriteResult::Error;
+        auto* fresh = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
+        if (!fresh) return SnapshotWriteResult::Error;
+        snapshot_new_tab_ = fresh;
         snapshot_new_cap_ = cap;
         snapshot_epoch_ = epoch;
         snapshot_cut_ms_ = cut_ms;
@@ -683,7 +739,8 @@ public:
     // copy cost — nothing is copied — but an L3 domain is filled by access, so a shard that moves
     // has to be read back in on the other side.
     size_t resident_estimate() const {
-        return static_cast<size_t>(cap_[0] + cap_[1]) * 8 + obj_bytes_ +
+        return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
+                                   sizeof(uint64_t)) + obj_bytes_ +
                atomic_version_bytes_ + pending_bytes_ +
                expires_.memory_bytes() + field_expires_.memory_bytes();
     }
@@ -1019,11 +1076,12 @@ public:
         if (rehashing()) {
             if (!capturing) rehash_step();
         } else {
-            maybe_start_grow();
+            if (!maybe_start_grow()) return InsertResult::Failed;
         }
         // Preparation normally has the same cost as the original insert path.  Only an actually
         // full prepared table consults this state and refuses a new key rather than resizing it.
-        if (live_[0] + tombs_[0] + 1 >= cap_[0] && snapshot_prepared_ &&
+        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] &&
+            snapshot_prepared_ &&
             !find_in(0, h, o->key())) return InsertResult::Failed;
         if (capturing) {
             const bool exists = find_in(0, h, o->key()) || find_in(1, h, o->key());
@@ -1033,7 +1091,8 @@ public:
             // Count current-table tombstones as promised destination slots too.  Otherwise a
             // churn-heavy capture could leave enough logical capacity but no EMPTY terminating
             // slot, and the post-capture merge would be unable to place a frozen pointer.
-            if (!exists && live_[0] + tombs_[0] + live_[1] + 1 >= cap_[0])
+            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >=
+                               cap_[0])
                 return InsertResult::Failed;
         }
         // Disabled maxmemory pays one predicted branch and does no metadata write or accounting
@@ -1113,10 +1172,20 @@ public:
     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
     // values move to the existing retirement list, so a send already in flight remains valid.
     void clear() {
+        // Allocate the small replacement before touching either live table. If that cold allocation
+        // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
+        // table and never exposes a half-demoted state.
+        uint64_t* fresh = allocate_table(1024);
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++)
                 if (KvObj* o = ptr_of(tab_[t][i])) retire_obj(o);
+            if (t == 0 && !fresh) {
+                std::memset(tab_[0], 0, static_cast<size_t>(
+                    static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
+                live_[0] = tombs_[0] = 0;
+                continue;
+            }
             std::free(tab_[t]);
             tab_[t] = nullptr;
             cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
@@ -1125,7 +1194,7 @@ public:
         field_expires_.clear();
         field_ttl_gate_ = 0;
         rehash_pos_ = 0;
-        alloc_table(0, 1024);
+        if (fresh) install_empty_table(0, fresh, 1024);
     }
 
     // FLUSH after its scatter gate has prepared every frozen pre-image.  Preserve both table
@@ -1490,38 +1559,68 @@ private:
         }
     }
 
-    void borrow_index_rebuild() {
-        size_t cap = 64;
-        while (cap * 70 < borrows_.size() * 200) cap <<= 1;   // land near 35% loaded
-        try {
-            borrow_idx_.assign(cap, kNoBorrow);
-        } catch (const std::bad_alloc&) {
-            borrow_index_release();       // scan mode; correctness never depended on the index
-            return;
+    bool borrow_index_rebuild() {
+        uint64_t cap = 64;
+        const uint64_t occupancy = static_cast<uint64_t>(borrows_.size());
+        if (occupancy > UINT64_MAX / uint64_t{200}) return false;
+        const uint64_t wanted = occupancy * uint64_t{200};
+        for (;;) {                                             // land near 35% loaded
+            if (cap > UINT64_MAX / uint64_t{70}) return false;
+            if (cap * uint64_t{70} >= wanted) break;
+            if (cap > static_cast<uint64_t>(borrow_idx_.max_size()) / 2) {
+                return false;
+            }
+            cap *= uint64_t{2};
         }
+        std::vector<uint32_t> fresh;
+        try {
+            fresh.assign(static_cast<size_t>(cap), kNoBorrow);
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        const size_t mask = fresh.size() - 1;
+        for (uint32_t i = 0; i < borrows_.size(); i++) {
+            size_t pos = borrow_hash(borrows_[i].ptr) & mask;
+            while (fresh[pos] != kNoBorrow) pos = (pos + 1) & mask;
+            fresh[pos] = i;
+        }
+        borrow_idx_.swap(fresh);
         borrow_tombs_ = 0;
-        for (uint32_t i = 0; i < borrows_.size(); i++) borrow_index_put(borrows_[i].ptr, i);
+        return true;
     }
 
     void borrow_index_added(const char* ptr, uint32_t at) {
         if (borrow_idx_.empty()) {
             if (borrows_.size() < kBorrowIndexMin) return;    // short scan beats a hash
-            borrow_index_rebuild();
+            (void)borrow_index_rebuild();                     // allocation failure stays scan mode
             return;
         }
-        if ((borrows_.size() + borrow_tombs_) * 100 >= borrow_idx_.size() * 70) {
-            borrow_index_rebuild();
-            return;
+        if ((static_cast<uint64_t>(borrows_.size()) + borrow_tombs_) * 100 >=
+            static_cast<uint64_t>(borrow_idx_.size()) * 70) {
+            if (borrow_index_rebuild()) return;
+            // The old index remains valid on allocation failure and still has the trigger's 30%
+            // headroom. Add this borrow there; borrow_index_put() falls back to scan mode if a
+            // pathological tombstone layout nevertheless leaves no usable slot.
         }
         borrow_index_put(ptr, at);
     }
 
-    static uint32_t round_pow2(uint32_t v) { uint32_t p = kMinCap; while (p < v) p <<= 1; return p; }
+    static uint32_t round_pow2(uint32_t v) {
+        uint32_t p = kMinCap;
+        while (p < v) {
+            const uint64_t next = static_cast<uint64_t>(p) * 2;
+            if (next > UINT32_MAX) return 0;
+            p = static_cast<uint32_t>(next);
+        }
+        return p;
+    }
     static uint16_t tag_of(uint64_t h)      { return static_cast<uint16_t>((h >> 49) & 0x7fff); }
     static uint16_t tag_of_word(uint64_t w) { return static_cast<uint16_t>((w >> 49) & 0x7fff); }
     static KvObj*   ptr_of(uint64_t w)      { return reinterpret_cast<KvObj*>(w & kPtrMask); }
     static uint64_t make_word(uint16_t tag, KvObj* o) {
-        return (static_cast<uint64_t>(tag) << 49) | reinterpret_cast<uint64_t>(o);
+        const uint64_t pointer = reinterpret_cast<uint64_t>(o);
+        assert((pointer & ~kPtrMask) == 0 && "KvObj pointer exceeds FlatStore's 48-bit encoding");
+        return (static_cast<uint64_t>(tag) << 49) | pointer;
     }
     uint32_t slot_start(int t, uint64_t h) const { return static_cast<uint32_t>(mix64(h)) & mask_[t]; }
 
@@ -1694,12 +1793,25 @@ private:
         return projected_bytes(protected_key, incoming_bytes) <= maxmemory_limit_;
     }
 
-    void alloc_table(int t, uint32_t cap) {
-        tab_[t]   = static_cast<uint64_t*>(std::calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
+    static uint64_t* allocate_table(uint32_t cap) {
+        return static_cast<uint64_t*>(
+            flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
+    }
+
+    void install_empty_table(int t, uint64_t* table, uint32_t cap) {
+        tab_[t]   = table;
         cap_[t]   = cap;
         mask_[t]  = cap - 1;
         live_[t]  = 0;
         tombs_[t] = 0;
+    }
+
+    bool alloc_table(int t, uint32_t cap) {
+        uint64_t* fresh = allocate_table(cap);
+        if (!fresh) return false;
+        std::free(tab_[t]);
+        install_empty_table(t, fresh, cap);
+        return true;
     }
 
     // Emit every key whose HOME slot is `home`, wherever linear probing actually put it. Those keys
@@ -1933,15 +2045,20 @@ private:
     }
 
     // ---- incremental resize -----------------------------------------------------------------
-    void maybe_start_grow() {
-        if ((live_[0] + tombs_[0] + 1) * 100 < cap_[0] * kLoadPct) return;
-        if (snapshot_prepared_) return;
+    bool maybe_start_grow() {
+        if ((static_cast<uint64_t>(live_[0]) + tombs_[0] + 1) * 100 <
+            static_cast<uint64_t>(cap_[0]) * kLoadPct) return true;
+        if (snapshot_prepared_) return true;
         // Double only when the LIVE set alone justifies it. The trigger counts tombstones, so a
         // delete-heavy workload trips it with almost no live keys and doubling there would inflate
         // the table forever. Otherwise rehash at the same size, which costs the same walk and
         // reclaims every tombstone.
-        const bool double_it = (live_[0] * 200 >= cap_[0] * kLoadPct);
-        start_rehash(double_it ? cap_[0] * 2 : cap_[0]);
+        const bool double_it = static_cast<uint64_t>(live_[0]) * 200 >=
+                               static_cast<uint64_t>(cap_[0]) * kLoadPct;
+        uint64_t wanted = cap_[0];
+        if (double_it) wanted *= uint64_t{2};
+        if (wanted > UINT32_MAX) return false;
+        return start_rehash(static_cast<uint32_t>(wanted));
     }
 
     void maybe_start_shrink() {
@@ -1949,21 +2066,25 @@ private:
         // Hysteresis: grow triggers at kLoadPct and leaves the table at kLoadPct/2, so shrinking
         // only below kLoadPct/4 keeps the two far enough apart that a workload sitting near a
         // boundary cannot rebuild on every other operation.
-        if (live_[0] * 400 > cap_[0] * kLoadPct) return;
+        if (static_cast<uint64_t>(live_[0]) * 400 >
+            static_cast<uint64_t>(cap_[0]) * kLoadPct) return;
         if (snapshot_prepared_) return;
-        start_rehash(cap_[0] / 2);
+        (void)start_rehash(cap_[0] / 2);  // shrinking is opportunistic; OOM keeps the old table
     }
 
     // Demote the current table to the old slot and install a fresh one. NOTHING is copied here —
     // that is the whole point; the slot-word migration is spread across later operations.
-    void start_rehash(uint32_t newcap) {
-        if (rehashing()) return;                            // one at a time; finish before starting
+    bool start_rehash(uint32_t newcap) {
+        if (rehashing()) return true;                       // one at a time; finish before starting
         if (newcap < kMinCap) newcap = kMinCap;
+        uint64_t* fresh = allocate_table(newcap);
+        if (!fresh) return false;
         if (rehash_counter_) (*rehash_counter_)++;
         tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
-        alloc_table(0, newcap);
+        install_empty_table(0, fresh, newcap);
         rehash_pos_ = 0;
+        return true;
     }
 
     // Move a BOUNDED number of SLOT WORDS from the old table to the current one. Called at the head
@@ -1993,6 +2114,11 @@ private:
     }
 
     uint64_t* tab_[2]   = {nullptr, nullptr};
+    // Capacities are power-of-two and intentionally stop at 2^31: slot/probe indices are uint32_t
+    // and insert_into's tombstone sentinel is int32_t. A requested next doubling (2^32 slots,
+    // already 32 GiB for one shard's slot words) returns InsertResult::Failed before any swap.
+    // Tables beyond four billion slots are therefore outside this store's representation rather
+    // than a legitimate reason to widen these hot fields.
     uint32_t  cap_[2]   = {0, 0};
     uint32_t  mask_[2]  = {0, 0};
     uint32_t  live_[2]  = {0, 0};
