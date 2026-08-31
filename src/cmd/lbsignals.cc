@@ -18,6 +18,12 @@ namespace tomo {
 static inline uint64_t rd(const uint64_t& f) {
     return __atomic_load_n(&f, __ATOMIC_RELAXED);
 }
+static inline uint64_t clamp_age(uint64_t value) {
+    return std::min(value, kLbAgeSaneMaxUs);
+}
+static inline double clamp_age(double value) {
+    return std::min(value, static_cast<double>(kLbAgeSaneMaxUs));
+}
 LbSnapshot lbsignals_capture(Server& srv) {
     LbSnapshot snap;
     snap.stamp_ns = now_ns();
@@ -42,12 +48,14 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.depth_sum = rd(s.depth_sum);
         r.depth_samples = rd(s.depth_samples);
         r.queue_delay_samples = rd(s.queue_delay_samples);
-        r.queue_delay_ewma_us = static_cast<double>(rd(s.queue_delay_ewma_x256)) / 256.0;
-        r.oldest_age_us = rd(s.oldest_age_us);
+        r.queue_delay_ewma_us = clamp_age(
+            static_cast<double>(rd(s.queue_delay_ewma_x256)) / 256.0);
+        r.oldest_age_us = clamp_age(rd(s.oldest_age_us));
         r.oldest_age_samples = rd(s.oldest_age_samples);
-        r.oldest_age_ewma_us = static_cast<double>(rd(s.oldest_age_ewma_x256)) / 256.0;
-        r.oldest_age_min_us = rd(s.oldest_age_min_us);
-        r.oldest_age_max_us = rd(s.oldest_age_max_us);
+        r.oldest_age_ewma_us = clamp_age(
+            static_cast<double>(rd(s.oldest_age_ewma_x256)) / 256.0);
+        r.oldest_age_min_us = clamp_age(rd(s.oldest_age_min_us));
+        r.oldest_age_max_us = clamp_age(rd(s.oldest_age_max_us));
         r.full_events = rd(s.full_events);
         r.wakes_sent = rd(s.wakes_sent);
         r.wakes_recv = rd(s.wakes_recv);

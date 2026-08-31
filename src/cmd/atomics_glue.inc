@@ -790,6 +790,60 @@ bool xshard_task_is_whole_owner(const Task& task) {
     return task.scatter != nullptr && task.scatter->key_count == 0;
 }
 
+namespace {
+
+uint64_t tripwire_scatter_slot(const ScatterState& state, const Shard& shard, uint32_t pos) {
+    return (static_cast<uint64_t>(state.phase) << 56) |
+           (static_cast<uint64_t>(static_cast<uint32_t>(shard.id())) << 32) | pos;
+}
+
+bool tripwire_scatter_read_phase(const ScatterState& state) {
+    if (!state.key_count || state.runtime_loading || state.kind == Kind::Script) return false;
+    if (state.atomic_write) return false;
+    if ((state.atomic_apply || state.atomic_pop || state.two_hop) && state.phase == 2) return false;
+    return !sort_deref_gathering(state);
+}
+
+}  // namespace
+
+void xshard_tripwire_fragment_begin(const Task& task, Shard& shard, Op& op) {
+    if (!atomic_tripwire_enabled() || !task.scatter) return;
+    ScatterState& state = *task.scatter;
+    if (!tripwire_scatter_read_phase(state)) return;
+    ShardGroup* group = group_for(state, shard.id());
+    if (!group) return;
+    const uint64_t cut = state.atomic_pop && state.phase == 1 &&
+                         state.pop_retry_snapshot != UINT64_MAX
+        ? state.pop_retry_snapshot : state.snapshot;
+    for (uint32_t i = 0; i < group->count; i++) {
+        const uint32_t pos = state.key_order[group->begin + i];
+        const KeyRef& key = state.keys[pos];
+        const Slice bytes = op.arg(key.arg);
+        atomic_tripwire_plain_begin(
+            &state, &state, tripwire_scatter_slot(state, shard, pos), key.hash, cut,
+            shard.store().atomic_tripwire_ticket(key.hash, bytes),
+            shard.store().atomic_needs_version(key.hash, bytes));
+    }
+}
+
+void xshard_tripwire_fragment_execute(const Task& task, Shard& shard, Op& op,
+                                      bool plain_path, uint64_t cut) {
+    if (!atomic_tripwire_enabled() || !task.scatter) return;
+    ScatterState& state = *task.scatter;
+    if (!tripwire_scatter_read_phase(state)) return;
+    ShardGroup* group = group_for(state, shard.id());
+    if (!group) return;
+    for (uint32_t i = 0; i < group->count; i++) {
+        const uint32_t pos = state.key_order[group->begin + i];
+        const KeyRef& key = state.keys[pos];
+        const Slice bytes = op.arg(key.arg);
+        atomic_tripwire_plain_execution(
+            &state, &state, tripwire_scatter_slot(state, shard, pos), key.hash, cut,
+            shard.store().atomic_tripwire_ticket(key.hash, bytes),
+            shard.store().atomic_needs_version(key.hash, bytes), plain_path);
+    }
+}
+
 bool xshard_tasks_share_key(const Task& older, Op& older_op,
                             const Task& younger, Op& younger_op, int32_t shard_id) {
     if (!older.client || older.client != younger.client || older.op_id >= younger.op_id)

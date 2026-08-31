@@ -145,6 +145,9 @@ public:
             std::fprintf(stderr, "maxmemory-samples must be between 1 and 64\n");
             return false;
         }
+        // #77 diagnostics ship dark with DEBUG itself. The registry is process-cold heap state,
+        // initialized before any worker exists; no Server/Shard/MVCC object gains a field.
+        atomic_tripwire_configure(cfg.enable_debug_command != DebugCommandMode::No);
         live_maxmemory_.store(cfg.maxmemory, std::memory_order_relaxed);
         live_maxmemory_policy_.store(static_cast<uint8_t>(cfg.maxmemory_policy),
                                      std::memory_order_relaxed);

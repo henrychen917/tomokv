@@ -71,6 +71,7 @@
 #include <string>
 #include <vector>
 #include "../base/alloc.h"
+#include "../core/atomic_tripwire.h"
 #include "eviction.h"
 #include "../cmd/notify.h"
 #include "kvobj.h"

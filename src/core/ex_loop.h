@@ -943,6 +943,10 @@ private:
             note_lb_hash(sh, op.hash);
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);
         }
+        // #77 TRIPWIRE A samples before any scheduler park. The first answer is retained across
+        // retries; the debug registry qualifies begin-plain transitions when execution arrives.
+        if (__builtin_expect(atomic_tripwire_enabled(), false))
+            xshard_tripwire_fragment_begin(t, sh, op);
         if (has_parked_predecessor(t, op, shard_id) ||
             xshard_task_should_defer(*srv_, sh, t, op)) {
             atomic_deferred_.push_back(t);

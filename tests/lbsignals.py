@@ -9,6 +9,7 @@ import sys
 import time
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
+SANE_AGE_US = 60_000_000
 
 
 def conn():
@@ -99,6 +100,10 @@ ok("cpu_ns live on every thread", all(r["cpu_ns"] > 0 for r in t1))
 ok("ratio_star fields present", "ratio_star_io_frac" in der1 and "ratio_star_io" in der1)
 f = float(der1["ratio_star_io_frac"])
 ok("ratio_star_io_frac in (0,1)", 0.0 <= f <= 1.0, str(f))
+ok("idle age exports are sane",
+   all(0 <= r[field] <= SANE_AGE_US for r in t1
+       for field in ("queue_delay_ewma_us", "oldest_age_us", "oldest_age_ewma_us",
+                     "oldest_age_min_us", "oldest_age_max_us")))
 
 time.sleep(0.4)
 t2, _, _, _ = capture(s)
@@ -141,6 +146,10 @@ ok("sampled queue delay fired",
    roll_b["ex"]["queue_delay_samples"] > roll_a["ex"]["queue_delay_samples"])
 ok("sampled queue delay EWMA valid", roll_b["ex"]["queue_delay_ewma_us"] >= 0.0)
 ok("sampled oldest-entry age fired", roll_b["ex"]["oldest_age_max_us"] > 0)
+ok("sampled age exports stay bounded",
+   all(0 <= roll_b[role][field] <= SANE_AGE_US for role in ("io", "ex")
+       for field in ("queue_delay_ewma_us", "oldest_age_min_us",
+                     "oldest_age_max_us", "oldest_age_ewma_us")))
 ok("no backpressure at this load", roll_b["ex"]["full_events"] == roll_a["ex"]["full_events"])
 ok("shard ops sum >= N", sum(x["ops"] for x in sh_b) >= N)
 ok("clean pinning: zero foreign ops", sum(x["foreign"] for x in sh_b) == 0,
@@ -159,5 +168,12 @@ for field in ("lb_io_threads", "lb_ex_threads", "lb_io_busy_frac", "lb_ex_busy_f
     ok(f"INFO has {field}", field + ":" in info)
 val = [l for l in info.split("\r\n") if l.startswith("lb_ex_ns_per_op:")][0].split(":")[1]
 ok("INFO ns_per_op parses > 0", float(val) > 0.0, val)
+for field in ("lb_io_queue_delay_ewma_us", "lb_ex_queue_delay_ewma_us",
+              "lb_io_oldest_age_min_us", "lb_io_oldest_age_max_us",
+              "lb_io_oldest_age_ewma_us", "lb_ex_oldest_age_min_us",
+              "lb_ex_oldest_age_max_us", "lb_ex_oldest_age_ewma_us"):
+    value = float([line for line in info.split("\r\n") if line.startswith(field + ":")][0]
+                  .split(":", 1)[1])
+    ok("INFO %s is sane" % field, 0 <= value <= SANE_AGE_US, str(value))
 
 print(f"LBSIGNALS: {checks} checks ok")

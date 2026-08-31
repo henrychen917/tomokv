@@ -215,6 +215,8 @@ void destroy_multi_children(MultiExecState& state) {
 
 void destroy_multi_state(MultiExecState* state) {
     if (!state) return;
+    if (__builtin_expect(atomic_tripwire_enabled(), false))
+        atomic_tripwire_forget_scope(state);
     if (!multi_records_done(*state)) std::abort();
     // The cut bracket is register-at-dispatch / unregister-at-retire, both on the connection's own
     // IO thread. Reaching destruction still holding it would mean this thread's published cleanup
@@ -884,6 +886,43 @@ uint64_t multi_read_cut(const MultiExecState& state) {
     return state.snapshot_registered ? state.snapshot : UINT64_MAX;
 }
 
+uint64_t multi_tripwire_slot(const Shard& shard, size_t key_index) {
+    return (static_cast<uint64_t>(static_cast<uint32_t>(shard.id())) << 32) |
+           static_cast<uint32_t>(key_index);
+}
+
+void multi_tripwire_fragment_begin(MultiExecState& state, Shard& shard) {
+    if (!atomic_tripwire_enabled()) return;
+    const uint32_t shard_id = static_cast<uint32_t>(shard.id());
+    const uint64_t cut = multi_read_cut(state);
+    for (uint32_t command_index : state.shard_commands[shard_id]) {
+        MultiCommand& command = *state.commands[command_index];
+        if (command.kind != MultiCommandKind::Mget &&
+            command.kind != MultiCommandKind::Exists)
+            continue;
+        for (size_t i = 0; i < command.key_args.size(); i++) {
+            if (command.key_shards[i] != shard.id()) continue;
+            const Slice key = command.op->arg(command.key_args[i]);
+            const uint64_t hash = FlatStore::hash_key(key);
+            atomic_tripwire_plain_begin(
+                &state, &command, multi_tripwire_slot(shard, i), hash, cut,
+                shard.store().atomic_tripwire_ticket(hash, key),
+                shard.store().atomic_needs_version(hash, key));
+        }
+    }
+}
+
+void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
+                                   Shard& shard, size_t key_index, Slice key) {
+    if (!atomic_tripwire_enabled()) return;
+    const uint64_t hash = FlatStore::hash_key(key);
+    atomic_tripwire_plain_execution(
+        &state, &command, multi_tripwire_slot(shard, key_index), hash, multi_read_cut(state),
+        shard.store().atomic_tripwire_ticket(hash, key),
+        shard.store().atomic_needs_version(hash, key),
+        shard.store().atomic_tripwire_plain_path());
+}
+
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
@@ -916,6 +955,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
+            if (__builtin_expect(atomic_tripwire_enabled(), false))
+                multi_tripwire_read_execution(state, command, shard, i, key);
             KvObj* object = notify
                 ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
                 : shard.store_find_read<false>(FlatStore::hash_key(key), key);
@@ -990,6 +1031,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
             if (command.key_shards[i] != shard.id()) continue;
             const uint32_t arg = command.key_args[i];
             const Slice key = op.arg(arg);
+            if (__builtin_expect(atomic_tripwire_enabled(), false))
+                multi_tripwire_read_execution(state, command, shard, i, key);
             found += (notify ? shard.store_find_read<true>(FlatStore::hash_key(key), key)
                              : shard.store_find_read<false>(FlatStore::hash_key(key), key)) != nullptr;
         }
@@ -1638,9 +1681,13 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     // Without this, two identical reads in one EXEC could disagree about the same key.
     PinnedNowMs now_cut(shard, state.now_cut_ms);
     uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
-    if (!noted) {
+    if (!(noted & 1u)) {
         shard.note_execution(owner_domain);
-        noted = 1;
+        noted |= 1u;
+    }
+    if (__builtin_expect(atomic_tripwire_enabled(), false) && !(noted & 2u)) {
+        multi_tripwire_fragment_begin(state, shard);
+        noted |= 2u;
     }
     if (!state.watch_phase_done.load(std::memory_order_acquire)) {
         if (!execute_watch_phase(state, shard)) return MultiTaskResult::Retry;

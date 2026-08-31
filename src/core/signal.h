@@ -38,6 +38,13 @@
 
 namespace tomo {
 
+// A scheduling-pressure signal older than one minute has already saturated every useful control
+// decision. More importantly, the low-32-bit enqueue clock's "producer is a few microseconds ahead
+// of the consumer's cached beat" sentinel must never become a multi-billion-us observation. Clamp
+// at the source and again at export so neither future arithmetic drift nor a racy capture can put
+// an absurd age on the operator/controller surface.
+inline constexpr uint64_t kLbAgeSaneMaxUs = 60ull * 1000 * 1000;
+
 inline uint64_t now_ns() {
     timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -154,12 +161,21 @@ struct LoopSignals {
         const uint32_t low = static_cast<uint32_t>(cached_now_us);
         return low;                        // zero loses one sample per 2^32us; it is the sentinel
     }
-    uint32_t observe_queue_delay(uint32_t enqueue_us_low) {
-        const uint32_t delay = static_cast<uint32_t>(cached_now_us) - enqueue_us_low;
+    bool sampled_age(uint32_t enqueue_us_low, uint64_t& age_us) const {
+        const uint32_t modular = static_cast<uint32_t>(cached_now_us) - enqueue_us_low;
+        // The producer stamped after this consumer cached its current beat. This is the transient
+        // empty-queue/future-stamp sentinel, not a task that waited for roughly UINT32_MAX us.
+        if (static_cast<int32_t>(modular) < 0) return false;
+        age_us = std::min<uint64_t>(modular, kLbAgeSaneMaxUs);
+        return true;
+    }
+    bool observe_queue_delay(uint32_t enqueue_us_low, uint64_t& delay) {
+        if (!sampled_age(enqueue_us_low, delay)) return false;
         observe_ewma(delay, queue_delay_samples, queue_delay_ewma_x256);
-        return delay;
+        return true;
     }
     void observe_oldest_age(uint64_t age_us) {
+        age_us = std::min(age_us, kLbAgeSaneMaxUs);
         oldest_age_us = age_us;
         if (!oldest_age_samples) {
             oldest_age_min_us = oldest_age_max_us = age_us;
