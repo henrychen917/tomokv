@@ -6,20 +6,21 @@
 // the role in the type system would make the one thing we most need to change at runtime the one
 // thing we cannot.
 //
-// EVERY THREAD HAS THE SAME FOUR INBOUND CHANNELS, whatever its role. What arrives on them differs;
-// their shape, units and wake semantics do not. That uniformity is what lets a flip/LB controller
-// read all four channel families through one interface instead of special-casing each:
+// EVERY THREAD HAS THE SAME FOUR INBOUND TRANSPORTS, whatever its role. What arrives on them
+// differs; their units and wake semantics do not. That uniformity is what lets a flip/LB controller
+// read all four families through one interface instead of special-casing each:
 //
-//   task_in_[p]     from producer p    IO -> EX   a parsed op to execute
+//   task_in_.lane(p) from producer p   IO -> EX   a parsed op to execute
 //   client_in_[p]   from producer p    EX -> IO   "you have completed ops to retire"
 //   release_in_[p]  from producer p    IO -> EX   a FlatStore value borrow is off the wire
 //   transfer_in_[p] from producer p    IO -> IO   a fully quiesced connection ownership handoff
 //
-// A thread's current role determines which channel families are active; keeping the arrays uniform
-// means a future role change does not rewire the producer mesh.
+// A thread's current role determines which families are active. Task slots are the exception to the
+// old uniform per-pair mesh: one fixed consumer-local allocation is block-masked into SPSC lanes at
+// boot and ExInstall. The other cold/pointer transports retain their per-producer Channel arrays.
 //
-// One channel PER PRODUCER, which is what keeps each ring genuinely SPSC. The alternative is one
-// MPSC inbox per consumer, costing an atomic RMW per push from every producer; the fork measured
+// One private sub-ring PER PRODUCER is what keeps dispatch genuinely SPSC. The alternative is one
+// MPSC queue per consumer, costing an atomic RMW per push from every producer; the fork measured
 // this handoff as instruction volume rather than stalls, so removing the RMW is the direct lever.
 //
 // Runtime FLIP enforces the conversion preconditions here: Ex -> Io drains every inbox and hands
@@ -33,6 +34,7 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <new>
 #include <vector>
 #include "shard.h"
 #include "signal.h"
@@ -99,7 +101,7 @@ struct ClientTransfer {
     uint32_t source = 0;
 };
 
-using TaskChan   = Channel<Task, kInboxSlots>;
+using TaskInbox  = MaskedChannelArray<Task, kMaxThreads>;
 using ClientChan = Channel<Client*, kInboxSlots>;
 using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
 using TransferChan = Channel<ClientTransfer, kInboxSlots>;
@@ -116,17 +118,28 @@ public:
     ThreadCtx& operator=(const ThreadCtx&) = delete;
 
     // `nthreads` is the TOTAL thread count, not the io count: any thread can become a producer
-    // through a role change. Sized to the live count rather than kMaxThreads — a fixed 128-wide
-    // array would be megabytes per thread, nearly all of it untouched.
+    // through a role change. The task slot allocation is deferred until this physical thread has
+    // pinned itself; init_task_inbox_local() then first-touches it from the consumer's local CPU.
     void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate) {
         id_ = id;
         role_.store(r, std::memory_order_relaxed);
         nchan_     = nthreads;
-        task_in_   = std::make_unique<TaskChan[]>(nthreads);
         client_in_ = std::make_unique<ClientChan[]>(nthreads);
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
         transfer_in_ = std::make_unique<TransferChan[]>(nthreads);
         sig_.configure_age_sampling(age_sample_rate);
+    }
+
+    bool init_task_inbox_local(const std::vector<uint32_t>& io,
+                               const std::vector<uint32_t>& ex) {
+        std::unique_ptr<TaskInbox> inbox(new (std::nothrow) TaskInbox);
+        if (!inbox || !inbox->init_local(nchan_, kInboxSlots, io, ex)) return false;
+        task_in_ = std::move(inbox);
+        return true;
+    }
+    bool remask_task_inbox_quiesced(const std::vector<uint32_t>& io,
+                                    const std::vector<uint32_t>& ex) {
+        return task_in_ && task_in_->remask_quiesced(io, ex);
     }
 
     void init_command_counts(uint32_t count) {
@@ -209,14 +222,14 @@ public:
     // find an empty queue, and clear it while the item is still in flight.
     bool post_task(uint32_t from, const Task& t, Ring& my_ring, LoopSignals& sig) {
         const bool pushed = sig.age_sample_rate
-            ? task_in_[from].push_prepared(t, sig, [&](Task& queued) {
+            ? task_in_->push_prepared(from, t, sig, [&](Task& queued) {
                   queued.enqueue_us_low = sig.next_age_stamp();
               })
-            : task_in_[from].push(t, sig);
+            : task_in_->push(from, t, sig);
         if (!pushed) return false;
         // Publish the bit FIRST, wake only if we are the producer that raised it. Order matters more
         // than it looks -- see Channel::push/wake.
-        if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
+        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
         return true;
     }
 
@@ -227,22 +240,22 @@ public:
     // any_inbound(), not just masks -- the depth check exists precisely so no notification scheme
     // has to be perfect.
     bool post_task_quiet(uint32_t from, const Task& t, LoopSignals& sig) {
-        if (!sig.age_sample_rate) return task_in_[from].push(t, sig);
-        return task_in_[from].push_prepared(t, sig, [&](Task& queued) {
+        if (!sig.age_sample_rate) return task_in_->push(from, t, sig);
+        return task_in_->push_prepared(from, t, sig, [&](Task& queued) {
             queued.enqueue_us_low = sig.next_age_stamp();
         });
     }
     bool post_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count, LoopSignals& sig) {
-        if (!sig.age_sample_rate) return task_in_[from].push_batch(tasks, count, sig);
-        return task_in_[from].push_batch_prepared(tasks, count, sig, [&](Task& queued) {
+        if (!sig.age_sample_rate) return task_in_->push_batch(from, tasks, count, sig);
+        return task_in_->push_batch_prepared(from, tasks, count, sig, [&](Task& queued) {
             queued.enqueue_us_low = sig.next_age_stamp();
         });
     }
     uint32_t task_free_slots(uint32_t from) const {
-        return task_in_[from].producer_free_slots();
+        return task_in_->producer_free_slots(from);
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
-        if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
+        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
     }
     bool post_client(uint32_t from, Client* c, Ring& my_ring, LoopSignals& sig) {
         if (!client_in_[from].push(c, sig)) return false;
@@ -310,10 +323,10 @@ public:
                 const uint32_t p = w * 64 + b;
                 if (p >= nchan_) continue;
                 Task t;
-                while (task_in_[p].recv(t)) {
+                while (task_in_->recv(p, t)) {
                     if (t.enqueue_us_low)
                         sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
-                    fn(t); task_in_[p].retire(); n++;
+                    fn(t); task_in_->retire(p); n++;
                 }
             }
         }
@@ -422,12 +435,19 @@ public:
         uint64_t d = 0;
         uint64_t inbox_age_us = 0;
         bool inbox_age_observed = false;
-        const bool sample_inbox_age = sig_.age_sample_rate && role() == Role::Ex;
+        const bool task_consumer = role() == Role::Ex;
+        const bool sample_inbox_age = sig_.age_sample_rate && task_consumer;
         for (uint32_t i = 0; i < nchan_; i++) {
-            d += task_in_[i].depth() + client_in_[i].depth() + release_in_[i].depth() +
+            const uint32_t task_depth = task_in_->depth(i);
+            d += task_depth + client_in_[i].depth() + release_in_[i].depth() +
                  transfer_in_[i].depth();
+            // The 100us signal beat already visits every producer scan point. Make that existing
+            // periodic full sweep a correctness looker: if a summary hint were ever absent while
+            // its lane is non-empty, republish it here. No post/drain branch or extra scan is added,
+            // and drain_tasks_unmasked() before park remains the second mask-independent looker.
+            if (task_consumer && task_depth) (void)task_notify_.set(i);
             if (sample_inbox_age) {
-                const uint32_t stamp = task_in_[i].newest_nonzero(
+                const uint32_t stamp = task_in_->newest_nonzero(i,
                     [](const Task& task) { return task.enqueue_us_low; });
                 if (stamp) {
                     const uint32_t age = static_cast<uint32_t>(cached_now_us) - stamp;
@@ -450,8 +470,9 @@ public:
     // a producer that pushed just before the flag was set would not have woken us.
     void arm_blocked() {
         parked_.store(true, std::memory_order_release);
+        task_in_->arm_blocked();
         for (uint32_t i = 0; i < nchan_; i++) {
-            task_in_[i].arm_blocked(); client_in_[i].arm_blocked(); release_in_[i].arm_blocked();
+            client_in_[i].arm_blocked(); release_in_[i].arm_blocked();
             transfer_in_[i].arm_blocked();
         }
         // The other half of the Dekker pair. Declaring intent to block is a store; the role-specific
@@ -462,8 +483,9 @@ public:
     }
     void clear_blocked() {
         parked_.store(false, std::memory_order_release);
+        task_in_->clear_blocked();
         for (uint32_t i = 0; i < nchan_; i++) {
-            task_in_[i].clear_blocked(); client_in_[i].clear_blocked(); release_in_[i].clear_blocked();
+            client_in_[i].clear_blocked(); release_in_[i].clear_blocked();
             transfer_in_[i].clear_blocked();
         }
     }
@@ -486,10 +508,10 @@ public:
     template <typename Fn> uint32_t drain_tasks_unmasked(Fn&& fn) {
         uint32_t n = 0; Task t;
         for (uint32_t p = 0; p < nchan_; p++)
-            while (task_in_[p].recv(t)) {
+            while (task_in_->recv(p, t)) {
                 if (t.enqueue_us_low)
                     sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
-                fn(t); task_in_[p].retire(); n++;
+                fn(t); task_in_->retire(p); n++;
             }
         return n;
     }
@@ -569,12 +591,12 @@ public:
     bool any_ex_inbound() const {
         if (task_notify_.any() || release_notify_.any()) return true;
         for (uint32_t i = 0; i < nchan_; i++)
-            if (task_in_[i].depth() || release_in_[i].depth()) return true;
+            if (task_in_->depth(i) || release_in_[i].depth()) return true;
         return false;
     }
     bool ex_inbound_quiesced() const {
         for (uint32_t i = 0; i < nchan_; i++)
-            if (!task_in_[i].quiesced() || !release_in_[i].quiesced()) return false;
+            if (!task_in_->quiesced(i) || !release_in_[i].quiesced()) return false;
         return true;
     }
     bool client_transfers_quiesced() const {
@@ -607,7 +629,7 @@ private:
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;
 
-    std::unique_ptr<TaskChan[]>   task_in_;
+    std::unique_ptr<TaskInbox> task_in_;
     std::unique_ptr<ClientChan[]> client_in_;
     std::unique_ptr<ReleaseChan[]> release_in_;
     std::unique_ptr<TransferChan[]> transfer_in_;
