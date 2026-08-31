@@ -1310,6 +1310,27 @@ public:
         if (tab_[1]) __builtin_prefetch(&tab_[1][slot_start(1, h)], 0, 3);
     }
 
+    // Consume the warmed bucket line only far enough to launch the next dependent load.  A tag
+    // collision can hint an unrelated object, which is harmless; execute() performs the exact key
+    // comparison and remains the sole logical probe/mutation path.
+    void prefetch_object(uint64_t h) const {
+        const uint16_t tag = tag_of(h);
+        for (int t = 0; t < 2; t++) {
+            if (!tab_[t]) continue;
+            uint32_t i = slot_start(t, h);
+            for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+                const uint64_t word = tab_[t][i];
+                if (!word) break;
+                KvObj* object = ptr_of(word);
+                if (object && tag_of_word(word) == tag) {
+                    __builtin_prefetch(object, 0, 3);
+                    break;
+                }
+                i = (i + 1) & mask_[t];
+            }
+        }
+    }
+
     // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.

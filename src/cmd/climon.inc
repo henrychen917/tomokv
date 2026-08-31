@@ -92,6 +92,7 @@
     // ---- CLIENT REPLY ---------------------------------------------------------------------------
     bool climon_reply_suppressed(Client* client);
     uint32_t climon_serve_suppressed(Client* client);
+    uint32_t climon_prepare_suppressed(Client* client);
 
     // Append an out-of-band frame to a connection this owner owns, using the same ROB-tail rule
     // pub/sub delivery uses so a push can never overtake a command already parsed ahead of it.

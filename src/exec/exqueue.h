@@ -14,6 +14,7 @@
 // real one when its cached copy says the ring is full. The consumer does the same with tail. In the
 // common case neither thread touches the other's line at all.
 #pragma once
+#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <new>
@@ -113,6 +114,19 @@ public:
         out = slots_[h & kMask];
         head_.store(h + 1, std::memory_order_release);
         return true;
+    }
+
+    // Hint a published consumer prefix without changing any queue frontier.  Arm 3 calls this in
+    // a distinct static micro-stage; the later gather receives the same slots through pop().
+    template <typename Fn>
+    uint32_t read_ahead(uint32_t limit, Fn&& fn) const {
+        const uint32_t h = head_.load(std::memory_order_relaxed);
+        const uint32_t t = tail_.load(std::memory_order_acquire);
+        const uint32_t count = std::min(limit, t - h);
+        for (uint32_t i = 0; i < count; i++)
+            __builtin_prefetch(&slots_[(h + i) & kMask], 0, 2);
+        for (uint32_t i = 0; i < count; i++) fn(slots_[(h + i) & kMask]);
+        return count;
     }
 
     // Called by the consumer AFTER the popped op has actually executed. This is not bookkeeping

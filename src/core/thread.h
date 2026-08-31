@@ -256,6 +256,13 @@ public:
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_[from].producer_free_slots();
     }
+    template <typename Fn>
+    uint32_t read_ahead_task_inputs(uint32_t per_lane, Fn&& fn) const {
+        uint32_t n = 0;
+        for (uint32_t p = 0; p < nchan_; p++)
+            n += task_in_[p].read_ahead(per_lane, fn);
+        return n;
+    }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
         if (task_notify_.set(from)) task_in_[from].wake(my_ring, sig, ring());
     }
@@ -333,6 +340,54 @@ public:
             }
         }
         return n;
+    }
+
+    // Bounded gather for the arm-3 EX buffers.  Popping releases queue capacity, but the separate
+    // retired frontier advances only after the staged batch executes.  If the fixed batch fills,
+    // re-flag this and every unvisited producer so a partial lane cannot lose its discovery bit.
+    uint32_t gather_tasks_bounded(Task* tasks, uint32_t* producers, uint32_t capacity,
+                                  bool unmasked = false) {
+        uint32_t n = 0;
+        auto take_lane = [&](uint32_t p) {
+            Task task;
+            while (n < capacity && task_in_[p].recv(task)) {
+                if (task.enqueue_us_low)
+                    sig_.observe_oldest_age(sig_.observe_queue_delay(task.enqueue_us_low));
+                tasks[n] = task;
+                producers[n] = p;
+                n++;
+            }
+            if (n == capacity) task_notify_.set(p);  // harmless when the lane ended exactly here
+        };
+
+        if (unmasked) {
+            for (uint32_t p = 0; p < nchan_ && n < capacity; p++) take_lane(p);
+            return n;
+        }
+        for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
+            uint64_t bits = task_notify_.take(w);
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t p = w * 64 + b;
+                if (p >= nchan_) continue;
+                take_lane(p);
+                if (n == capacity) {
+                    while (bits) {
+                        const uint32_t rest = static_cast<uint32_t>(__builtin_ctzll(bits));
+                        bits &= bits - 1;
+                        const uint32_t queued = w * 64 + rest;
+                        if (queued < nchan_) task_notify_.set(queued);
+                    }
+                    return n;
+                }
+            }
+        }
+        return n;
+    }
+
+    void retire_gathered_tasks(const uint32_t* producers, uint32_t count) {
+        for (uint32_t i = 0; i < count; i++) task_in_[producers[i]].retire();
     }
 
     template <typename Fn>

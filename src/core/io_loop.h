@@ -292,6 +292,14 @@ public:
             error = "connection is not live on the source IO thread";
             return false;
         }
+        // Arm 3 can hold an unpublished decoded op in an IFID batch, or a Client* whose ready
+        // prefix has been gathered but not submitted in a WB batch.  Both are owner-local state:
+        // moving the Client before that batch advances would make the old owner publish or send on
+        // behalf of the new one.
+        if (client_pipeline_referenced(client)) {
+            error = "connection is held by a generalized-thread pipeline batch";
+            return false;
+        }
         uint32_t directory_owner = UINT32_MAX;
         if (!command_client_directory_find(client->id(), directory_owner) ||
             directory_owner != self_->id()) {
@@ -429,6 +437,28 @@ private:
         Closed,
     };
 
+    enum class IfidPipelineState : uint8_t { Empty, Parsed, Hashed };
+    struct IfidPipelineEntry {
+        Client* client = nullptr;
+        Op* op = nullptr;
+        uint32_t consumed = 0;
+        bool direct_candidate = false;
+    };
+    struct IfidPipelineBatch {
+        std::array<IfidPipelineEntry, kGenthreadIfidBatchOps> entries{};
+        uint64_t sequence = 0;
+        uint32_t count = 0;
+        IfidPipelineState state = IfidPipelineState::Empty;
+    };
+
+    enum class WbPipelineState : uint8_t { Empty, Gathered, Prepared };
+    struct WbPipelineBatch {
+        std::array<Client*, kGenthreadWbBatchConns> clients{};
+        uint64_t sequence = 0;
+        uint32_t count = 0;
+        WbPipelineState state = WbPipelineState::Empty;
+    };
+
     struct ClientMigration {
         Client* client = nullptr;
         uint32_t destination = 0;
@@ -518,10 +548,6 @@ private:
                     if constexpr (HasUnix)
                         if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
                 }
-                // In epoll mode this drains the doorbell mailbox instead of a CQ ring; the tag
-                // stream, and therefore this switch, is identical. See uring.h.
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
-                if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
                 did += service_client_migrations<kEp>();
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
@@ -540,12 +566,9 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
-                // Coarse arm: three independent batches, in one explicit rotation.  Empty stages
-                // return zero and are skipped naturally; no batch is carried through all roles.
-                did += ifid_batch<HasTls, kEp>();
-                did += executor_->fused_pass();
-                did += collect_retire_work<HasUnix, kEp>();
-                did += wb_batch<HasTls, kEp>();
+                did += executor_->fused_pipeline_control();
+                for (GenthreadStage stage : kGenthreadStaticSchedule)
+                    did += pipeline_stage<HasUnix, HasTls, kEp>(stage);
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
@@ -1459,7 +1482,8 @@ private:
             !client_migrations_.empty() || !epoll_closes_.empty() ||
             !dead_next_.empty() || !dead_ready_.empty() ||
             !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
-            !pubsub_notification_chains_.empty() || !self_->io_inbound_quiesced() ||
+            !pubsub_notification_chains_.empty() || !io_pipelines_quiesced() ||
+            !self_->io_inbound_quiesced() ||
             srv_->pubsub_inflight() != 0 || srv_->pubsub_pending() != 0)
             return false;
         for (Client* client : self_->clients()) {
@@ -1941,13 +1965,8 @@ private:
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
         c->set_last_interaction_s(cached_now_s_);
-        if constexpr (HasTls) {
-            if (c->is_tls()) parse_and_dispatch<true>(c);
-            else parse_and_dispatch<false>(c);
-        } else {
-            parse_and_dispatch<false>(c);
-        }
-        // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
+        // Deliberately NOT parsed or re-armed here.  The static IFID.RX_PARSE micro-stage owns both
+        // actions so CQE handling cannot bypass the parse/hash/route buffers.
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
         mark_active(c);
     }
@@ -2056,7 +2075,7 @@ private:
             }
             break;
         }
-        if (decrypted || c->rpos() < c->rlen()) parse_and_dispatch<true>(c);
+        if (decrypted || c->rpos() < c->rlen()) mark_active(c);
         return !tls->failed();
     }
 
@@ -2098,7 +2117,7 @@ private:
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow>
-    DispatchResult parse_and_dispatch(Client* c) {
+    DispatchResult parse_and_dispatch(Client* c, IfidPipelineBatch* pipeline_batch = nullptr) {
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
@@ -2731,6 +2750,16 @@ nonblocking_dispatch:
                 }
                 op->hash = random;
                 op->shard = static_cast<int32_t>(chosen);
+            } else if (pipeline_batch) {
+                // Ordinary keyed work stops after decode.  The batch owns this unpublished ROB
+                // slot until HASH and ROUTE_ISSUE run; no Client field or per-request stage switch
+                // is needed.  One staged op per connection preserves rollback on a full SPSC lane.
+                if (pipeline_batch->count == kGenthreadIfidBatchOps) break;
+                pipeline_batch->entries[pipeline_batch->count++] =
+                    IfidPipelineEntry{c, op, consumed, head_candidate};
+                head_candidate = false;
+                result = DispatchResult::Progress;
+                break;
             } else {
                 op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
                 op->shard = srv_->router().shard_of(op->hash);
@@ -2864,8 +2893,17 @@ nonblocking_dispatch:
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-                flush_borrow_releases() + ifid_batch<HasTls, kEp>();
+                flush_borrow_releases();
+        if (IfidPipelineBatch* batch = empty_ifid_pipeline_batch()) {
+            work += ifid_batch<HasTls, kEp>(batch);
+            if (batch->count) {
+                batch->sequence = next_ifid_pipeline_sequence_++;
+                batch->state = IfidPipelineState::Parsed;
+            }
+        }
         work += executor_->fused_sweep();
+        // Correctness backstop for a stale completion mask.  Hot WB work always takes the static
+        // gather/prepare/submit path; only the already-idle pre-park audit uses the coarse drain.
         work += collect_retire_work<HasUnix, kEp>(true) + wb_batch<HasTls, kEp>();
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
@@ -2931,9 +2969,226 @@ nonblocking_dispatch:
         return n + pubsub_work;
     }
 
+    IfidPipelineBatch* empty_ifid_pipeline_batch() {
+        for (IfidPipelineBatch& batch : ifid_pipeline_)
+            if (batch.state == IfidPipelineState::Empty) return &batch;
+        return nullptr;
+    }
+
+    IfidPipelineBatch* oldest_ifid_pipeline_batch(IfidPipelineState state) {
+        IfidPipelineBatch* oldest = nullptr;
+        for (IfidPipelineBatch& batch : ifid_pipeline_)
+            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
+                oldest = &batch;
+        return oldest;
+    }
+
+    bool client_has_staged_ifid(const Client* client) const {
+        for (const IfidPipelineBatch& batch : ifid_pipeline_)
+            for (uint32_t i = 0; i < batch.count; i++)
+                if (batch.entries[i].client == client) return true;
+        return false;
+    }
+
+    bool client_has_staged_wb(const Client* client) const {
+        for (const WbPipelineBatch& batch : wb_pipeline_)
+            for (uint32_t i = 0; i < batch.count; i++)
+                if (batch.clients[i] == client) return true;
+        return false;
+    }
+
+    bool client_pipeline_referenced(const Client* client) const {
+        return client_has_staged_ifid(client) || client_has_staged_wb(client);
+    }
+
+    bool io_pipelines_quiesced() const {
+        for (const IfidPipelineBatch& batch : ifid_pipeline_)
+            if (batch.state != IfidPipelineState::Empty) return false;
+        for (const WbPipelineBatch& batch : wb_pipeline_)
+            if (batch.state != WbPipelineState::Empty) return false;
+        return true;
+    }
+
+    uint32_t pipeline_ifid_hash() {
+        IfidPipelineBatch* batch = oldest_ifid_pipeline_batch(IfidPipelineState::Parsed);
+        if (!batch) return 0;
+        for (uint32_t i = 0; i < batch->count; i++) {
+            Op& op = *batch->entries[i].op;
+            op.hash = FlatStore::hash_key(
+                op.arg(static_cast<uint32_t>(op.spec->first_key)));
+        }
+        batch->state = IfidPipelineState::Hashed;
+        return batch->count;
+    }
+
+    uint32_t pipeline_ifid_route_issue() {
+        IfidPipelineBatch* batch = oldest_ifid_pipeline_batch(IfidPipelineState::Hashed);
+        if (!batch) return 0;
+        LoopSignals& sig = self_->sig();
+        const uint32_t staged = batch->count;
+        for (uint32_t i = 0; i < batch->count; i++) {
+            const IfidPipelineEntry entry = batch->entries[i];
+            Client* client = entry.client;
+            if (!client || client->dead() || client->closing()) continue;
+            Op& op = *entry.op;
+            Rob<kRobWindow>& rob = client->rob();
+            op.shard = srv_->router().shard_of(op.hash);
+            const uint32_t worker_id = srv_->worker_of_shard(op.shard);
+            ThreadCtx& worker = srv_->thread(worker_id);
+            if (entry.direct_candidate && rob.in_flight() == 0 && client->nothing_to_write()) {
+                SmallBuf<kWbufInline>& fill = client->fill_buf();
+                op.direct = fill.data();
+                op.direct_cap = static_cast<uint32_t>(fill.cap());
+            }
+            const Task task{client, rob.dispatch_id(), -1, nullptr};
+            rob.publish();
+            if (!worker.post_task_quiet(self_->id(), task, sig)) {
+                rob.unpublish();
+                continue;  // cursor is unchanged; the next IFID parse retries the frame
+            }
+            client->advance_parse(entry.consumed);
+            sig.ops++;
+            if (!touched_[worker_id]) {
+                touched_[worker_id] = true;
+                touched_list_[ntouched_++] = worker_id;
+            }
+            mark_active(client);
+        }
+        for (uint32_t i = 0; i < ntouched_; i++) {
+            const uint32_t worker = touched_list_[i];
+            touched_[worker] = false;
+            srv_->thread(worker).flush_task_notify(self_->id(), ring_, sig);
+        }
+        ntouched_ = 0;
+        batch->count = 0;
+        batch->state = IfidPipelineState::Empty;
+        return staged;
+    }
+
+    WbPipelineBatch* empty_wb_pipeline_batch() {
+        for (WbPipelineBatch& batch : wb_pipeline_)
+            if (batch.state == WbPipelineState::Empty) return &batch;
+        return nullptr;
+    }
+
+    WbPipelineBatch* oldest_wb_pipeline_batch(WbPipelineState state) {
+        WbPipelineBatch* oldest = nullptr;
+        for (WbPipelineBatch& batch : wb_pipeline_)
+            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
+                oldest = &batch;
+        return oldest;
+    }
+
+    template <bool HasUnix, bool kEp>
+    uint32_t pipeline_wb_gather() {
+        uint32_t work = collect_retire_work<HasUnix, kEp>();
+        if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+        WbPipelineBatch* batch = empty_wb_pipeline_batch();
+        if (!batch || pending_serve_.empty()) return work;
+        AofManager& aof = srv_->aof();
+        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+        if (!aof.reply_gate_ready(aof_gate_target_)) {
+            aof.register_send_gate_wait(self_->id());
+            return work;
+        }
+        aof_gate_target_ = 0;
+        while (batch->count < kGenthreadWbBatchConns && !pending_serve_.empty()) {
+            Client* client = pending_serve_.front();
+            pending_serve_.pop_front();
+            client->set_serve_pending(false);
+            if (!client->dead()) batch->clients[batch->count++] = client;
+        }
+        if (batch->count) {
+            // The completion producer wrote the head Op state from another executor core.  Touch
+            // the owner-local Client pointers in one tight loop, then let independent IFID/EX
+            // schedule entries cover the miss before WB.PREP consumes the retireable prefix.
+            for (uint32_t i = 0; i < batch->count; i++) {
+                Client* client = batch->clients[i];
+                __builtin_prefetch(client, 0, 2);
+                __builtin_prefetch(&client->rob().at(client->rob().flush_id()), 0, 2);
+            }
+            batch->sequence = next_wb_pipeline_sequence_++;
+            batch->state = WbPipelineState::Gathered;
+            work += batch->count;
+        }
+        return work;
+    }
+
+    template <bool HasTls, bool kEp>
+    uint32_t pipeline_wb_prepare() {
+        WbPipelineBatch* batch = oldest_wb_pipeline_batch(WbPipelineState::Gathered);
+        if (!batch) return 0;
+        for (uint32_t i = 0; i < batch->count; i++) {
+            Client* client = batch->clients[i];
+            if (!client || client->dead()) continue;
+            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                climon_reply_suppressed(client)) {
+                (void)climon_prepare_suppressed(client);
+                continue;
+            }
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(client))
+                    (void)wb_.prepare_tls<kEp>(*client, *tls);
+                else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
+                    (void)wb_.prepare_ktls<kEp>(*client);
+                else
+                    (void)wb_.prepare<kEp>(*client);
+            } else {
+                (void)wb_.prepare<kEp>(*client);
+            }
+        }
+        batch->state = WbPipelineState::Prepared;
+        return batch->count;
+    }
+
+    template <bool HasTls, bool kEp>
+    uint32_t pipeline_wb_submit() {
+        WbPipelineBatch* batch = oldest_wb_pipeline_batch(WbPipelineState::Prepared);
+        if (!batch) return 0;
+        const uint32_t submitted = batch->count;
+        for (uint32_t i = 0; i < batch->count; i++) {
+            Client* client = batch->clients[i];
+            if (!client || client->dead()) continue;
+            bool retry_plain_submit = false;
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(client)) {
+                    (void)wb_.submit_tls<kEp>(*client, *tls);
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        arm_tls_socket_poll<kEp>(client, tls->wanted());
+                    if (tls->failed())
+                        close_client(client, tls->output_pending() || client->send_inflight());
+                } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
+                    const bool did = wb_.submit_ktls<kEp>(*client);
+                    retry_plain_submit = !kEp && !did && !client->send_inflight() &&
+                                         !client->nothing_to_write();
+                } else {
+                    const bool did = wb_.submit<kEp>(*client);
+                    retry_plain_submit = !kEp && !did && !client->send_inflight() &&
+                                         !client->nothing_to_write();
+                }
+            } else {
+                const bool did = wb_.submit<kEp>(*client);
+                retry_plain_submit = !kEp && !did && !client->send_inflight() &&
+                                     !client->nothing_to_write();
+            }
+            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(client);
+            // A full io_uring SQ is a retry, not a completed SUBMIT stage.  No CQE will arrive for
+            // an SQE that was never allocated, so retain the ordinary completion wake explicitly;
+            // the next WB gather/prepare/submit turn retries after this loop flushes the SQ.  A
+            // send already in flight needs no entry because its CQE resubmits accumulated output.
+            if (retry_plain_submit && !client->dead()) {
+                self_->sig().sqe_starved++;
+                enqueue_serve(client);
+            }
+        }
+        batch->count = 0;
+        batch->state = WbPipelineState::Empty;
+        return submitted;
+    }
+
     // ---- IFID: receive-buffer maintenance, parse/hash/route, publish -----------------------------
     template <bool HasTls, bool kEp>
-    uint32_t ifid_batch() {
+    uint32_t ifid_batch(IfidPipelineBatch* pipeline_batch) {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
@@ -2947,6 +3202,10 @@ nonblocking_dispatch:
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
         for (size_t idx = 0; idx < active_.size();) {
             Client* c = active_.at(idx);
+            // A decoded ordinary op keeps the parse cursor and ROB publication frontier fixed
+            // until ROUTE_ISSUE.  Do not let the schedule's second RX_PARSE slot decode that same
+            // frame into another buffer; batching is across independent connections.
+            if (client_has_staged_ifid(c)) { idx++; continue; }
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
             TlsConn* tls = nullptr;
@@ -3050,18 +3309,18 @@ nonblocking_dispatch:
                 if (__builtin_expect(climon_pause_armed(), false)) {
                     const uint32_t rpos_before = conn.rpos();
                     if constexpr (HasTls) {
-                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
-                        else dispatch_result = parse_and_dispatch<false>(c);
+                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c, pipeline_batch);
+                        else dispatch_result = parse_and_dispatch<false>(c, pipeline_batch);
                     } else {
-                        dispatch_result = parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<false>(c, pipeline_batch);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
-                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
-                        else dispatch_result = parse_and_dispatch<false>(c);
+                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c, pipeline_batch);
+                        else dispatch_result = parse_and_dispatch<false>(c, pipeline_batch);
                     } else {
-                        dispatch_result = parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<false>(c, pipeline_batch);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
                 }
@@ -3120,6 +3379,50 @@ nonblocking_dispatch:
         }
 
         return work;
+    }
+
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t pipeline_ifid_rx_parse() {
+        uint32_t work = ring_.for_each_cqe(
+            [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
+        if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
+        IfidPipelineBatch* batch = empty_ifid_pipeline_batch();
+        if (!batch) return work;
+        work += ifid_batch<HasTls, kEp>(batch);
+        if (batch->count) {
+            batch->sequence = next_ifid_pipeline_sequence_++;
+            batch->state = IfidPipelineState::Parsed;
+        }
+        return work;
+    }
+
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t pipeline_stage(GenthreadStage stage) {
+        switch (stage) {
+            case GenthreadStage::ExBucketPrefetch:
+                return executor_->pipeline_bucket_prefetch();
+            case GenthreadStage::IfidHash:
+                return pipeline_ifid_hash();
+            case GenthreadStage::WbPrepare:
+                return pipeline_wb_prepare<HasTls, kEp>();
+            case GenthreadStage::ExObjectPrefetch:
+                return executor_->pipeline_object_prefetch();
+            case GenthreadStage::IfidRouteIssue:
+                return pipeline_ifid_route_issue();
+            case GenthreadStage::ExInputPrefetch:
+                return executor_->pipeline_input_prefetch();
+            case GenthreadStage::WbSubmit:
+                return pipeline_wb_submit<HasTls, kEp>();
+            case GenthreadStage::ExExecute:
+                return executor_->pipeline_execute();
+            case GenthreadStage::IfidRxParse:
+                return pipeline_ifid_rx_parse<HasUnix, HasTls, kEp>();
+            case GenthreadStage::ExFill:
+                return executor_->pipeline_fill();
+            case GenthreadStage::WbGather:
+                return pipeline_wb_gather<HasUnix, kEp>();
+        }
+        return 0;
     }
 
     template <bool HasTls, bool kEp>
@@ -3460,7 +3763,8 @@ nonblocking_dispatch:
         // returns any BORROW the close path could not (idempotent: release_all empties the queue).
         size_t keep = 0;
         for (Client* c : dead_ready_) {
-            if (c->serve_pending() || c->send_inflight() || c->recv_armed()) {
+            if (c->serve_pending() || c->send_inflight() || c->recv_armed() ||
+                client_pipeline_referenced(c)) {
                 dead_ready_[keep++] = c;
                 continue;
             }
@@ -3603,6 +3907,12 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
+    // Arm-3 batch state is owner-local and appended at the cold tail.  Client/Op layouts and all
+    // cross-thread synchronization objects remain unchanged.
+    std::array<IfidPipelineBatch, kGenthreadIfidBuffers> ifid_pipeline_{};
+    std::array<WbPipelineBatch, kGenthreadWbBuffers> wb_pipeline_{};
+    uint64_t next_ifid_pipeline_sequence_ = 1;
+    uint64_t next_wb_pipeline_sequence_ = 1;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;

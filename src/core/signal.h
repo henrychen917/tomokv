@@ -364,6 +364,11 @@ public:
         return q_.newest_nonzero(static_cast<Extract&&>(extract));
     }
 
+    template <typename Fn>
+    uint32_t read_ahead(uint32_t limit, Fn&& fn) const {
+        return q_.read_ahead(limit, static_cast<Fn&&>(fn));
+    }
+
     // Call ONLY when the caller performed the mask's empty->flagged transition. That RMW is a full
     // fence, which is what makes this load safe: without it, store(blocked_)/load(mask) on the
     // consumer and store(mask)/load(blocked_) here are a Dekker pair, and x86 permits exactly the one

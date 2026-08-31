@@ -165,8 +165,18 @@ public:
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp>(c);
-        return serve_impl<false, false, kEp>(c);
+            return serve_impl<true, false, kEp, true>(c);
+        return serve_impl<false, false, kEp, true>(c);
+    }
+
+    // Arm-3 WB split: retire the ready ROB prefix and construct reply/iovec state, but leave the
+    // actual SQE/send operation to a later static schedule entry.
+    template <bool kEp = false>
+    bool prepare(Client& c) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, false, kEp, false>(c);
+        return serve_impl<false, false, kEp, false>(c);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
@@ -175,8 +185,16 @@ public:
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp>(c);
-        return serve_impl<false, true, kEp>(c);
+            return serve_impl<true, true, kEp, true>(c);
+        return serve_impl<false, true, kEp, true>(c);
+    }
+
+    template <bool kEp = false>
+    bool prepare_ktls(Client& c) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true, kEp, false>(c);
+        return serve_impl<false, true, kEp, false>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
@@ -185,9 +203,22 @@ public:
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp>(c, tls);
-        return serve_tls_impl<false, kEp>(c, tls);
+            return serve_tls_impl<true, kEp, true>(c, tls);
+        return serve_tls_impl<false, kEp, true>(c, tls);
     }
+
+    template <bool kEp = false>
+    bool prepare_tls(Client& c, TlsConn& tls) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true, kEp, false>(c, tls);
+        return serve_tls_impl<false, kEp, false>(c, tls);
+    }
+
+    template <bool kEp = false> bool submit(Client& c) { return pump<kEp>(c); }
+    template <bool kEp = false> bool submit_ktls(Client& c) { return pump<kEp>(c); }
+    template <bool kEp = false>
+    bool submit_tls(Client& c, TlsConn& tls) { return pump_tls<kEp>(c, tls); }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
     // on_send_complete returning false and the io loop closing the connection right there. A
@@ -215,7 +246,14 @@ public:
     // of being sent. Direct-reply bytes live in the fill buffer's spare capacity and are simply
     // never committed.
     __attribute__((noinline, cold))
-    bool serve_suppressing(Client& c) {
+    bool serve_suppressing(Client& c) { return serve_suppressing_impl<true>(c); }
+
+    __attribute__((noinline, cold))
+    bool prepare_suppressing(Client& c) { return serve_suppressing_impl<false>(c); }
+
+    template <bool Submit>
+    __attribute__((noinline, cold))
+    bool serve_suppressing_impl(Client& c) {
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
@@ -255,7 +293,8 @@ public:
             stats_.retired += retired;
             return true;
         }
-        if (!conn.nothing_to_write()) did |= epoll_ ? pump<true>(c) : pump<false>(c);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write()) did |= epoll_ ? pump<true>(c) : pump<false>(c);
         stats_.retired += retired;
         return did;
     }
@@ -631,7 +670,7 @@ private:
         return flushed;
     }
 
-    template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit>
     bool serve_impl(Client& c) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -699,7 +738,8 @@ private:
                 return true;
             }
         }
-        if (!conn.nothing_to_write()) did |= pump<kEp>(c);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write()) did |= pump<kEp>(c);
         stats_.retired += retired;
         // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
         // nothing, which is expected and cheap.
@@ -707,7 +747,7 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp>
+    template <bool TrackOutput, bool kEp, bool Submit>
     bool serve_tls_impl(Client& c, TlsConn& tls) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -754,7 +794,8 @@ private:
                 return true;
             }
         }
-        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
         stats_.retired += retired;
         if (!retired) stats_.serves_empty++;
         return did;

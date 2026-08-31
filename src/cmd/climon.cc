@@ -548,6 +548,21 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
     return did ? 1u : 0u;
 }
 
+uint32_t IoLoop::climon_prepare_suppressed(Client* client) {
+    const bool did = wb_.prepare_suppressing(*client);
+    ClimonConn* state = climon_conn_find(client->id());
+    // A one-shot SKIP disarms once its marked op has actually retired -- not when it was marked,
+    // or the suppressing variant would stop being selected before the reply reached the drain.
+    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced()) {
+        state->reply_mode = kClimonReplyOn;
+        if (climon_local_reply_) climon_local_reply_--;
+        srv_->climon_reply_removed();
+        climon_conn_release(client->id());
+        climon_refresh_armed();
+    }
+    return did ? 1u : 0u;
+}
+
 // ---- CLIENT PAUSE --------------------------------------------------------------------------
 
 bool IoLoop::climon_pause_holds(Op& op) {

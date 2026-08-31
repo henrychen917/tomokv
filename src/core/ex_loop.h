@@ -87,9 +87,20 @@ public:
         fused_completion_ = completion;
     }
 
+    // Cold progress callers (snapshot coordination and the pre-park sweep) first drain any arm-3
+    // buffers in sequence order, then use the complete coarse executor pass as a backstop.
+    uint32_t fused_pass() {
+        const uint32_t staged = drain_pipeline_now();
+        return staged + fused_pass_impl(true);
+    }
+
+    // Arm 3 keeps control/persistence work in the executor owner but lets the static schedule own
+    // task gather/prefetch/execute.  This has no internal park and never consumes a Task.
+    uint32_t fused_pipeline_control() { return fused_pass_impl(false); }
+
     // One non-blocking executor turn, called between passes of the fused network loop. This is the
     // ExLoop normal body without its role loop or park: the owning IoLoop performs the sole wait.
-    uint32_t fused_pass() {
+    uint32_t fused_pass_impl(bool consume_tasks) {
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
@@ -106,7 +117,7 @@ public:
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
                 if (xshard_retries_.empty()) did += service_ordered_deferred();
-                if (xshard_retries_.empty() && ordered_deferred_.empty())
+                if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
                     did += drain_tasks(true);
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
@@ -122,7 +133,7 @@ public:
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
                 if (xshard_retries_.empty()) did += service_ordered_deferred();
-                if (xshard_retries_.empty() && ordered_deferred_.empty())
+                if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
                     did += snapshot_owner_state_ == SnapshotOwnerState::None
                                ? drain_tasks() : drain_tasks_snapshot();
             }
@@ -142,6 +153,7 @@ public:
             fused_idle_spins_ = 0;
             return did;
         }
+        if (!consume_tasks) return 0;
         if (lb_frozen) return 0;
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
@@ -155,9 +167,78 @@ public:
         // mask-independent pre-park backstop must not re-enter expiry/cleanup behind that ack.
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep();
+        const uint32_t did = drain_pipeline_now() + sweep();
         if (did) ring_.submit_and_reap();
         return did;
+    }
+
+    // ---- arm-3 EX micro-stages ---------------------------------------------------------------
+    uint32_t pipeline_input_prefetch() {
+        return self_->read_ahead_task_inputs(1, [&](const Task& task) {
+            if (task.client) __builtin_prefetch(&task.client->rob().at(task.op_id), 0, 2);
+        });
+    }
+
+    uint32_t pipeline_fill(bool unmasked = false) {
+        if (!pipeline_tasks_allowed() || !xshard_retries_.empty() ||
+            !ordered_deferred_.empty()) return 0;
+        // Snapshot continuations retain their established owner-local scheduling machinery; the
+        // ordinary hot state is the only one split across the bucket/object stages.
+        if (snapshot_owner_state_ != SnapshotOwnerState::None)
+            return drain_tasks_snapshot(unmasked);
+        ExPipelineBatch* batch = empty_pipeline_batch();
+        if (!batch) return 0;
+        batch->count = self_->gather_tasks_bounded(
+            batch->tasks.data(), batch->producers.data(), kGenthreadExBatchOps, unmasked);
+        if (!batch->count) return 0;
+        batch->sequence = next_pipeline_sequence_++;
+        batch->state = ExPipelineState::Filled;
+        return batch->count;
+    }
+
+    uint32_t pipeline_bucket_prefetch() {
+        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::Filled);
+        if (!batch) return 0;
+        prefetch_exec_batch(batch->tasks.data(), batch->count);
+        batch->state = ExPipelineState::BucketPrefetched;
+        return batch->count;
+    }
+
+    uint32_t pipeline_object_prefetch() {
+        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::BucketPrefetched);
+        if (!batch) return 0;
+        for (uint32_t i = 0; i < batch->count; i++) {
+            const Task& task = batch->tasks[i];
+            if (!task.client || task.scatter) continue;
+            const Op& op = task.client->rob().at(task.op_id);
+            const int32_t shard = task.shard >= 0 ? task.shard : op.shard;
+            if (shard >= 0 &&
+                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                srv_->shard(shard).store().prefetch_object(op.hash);
+        }
+        batch->state = ExPipelineState::Ready;
+        return batch->count;
+    }
+
+    uint32_t pipeline_execute() {
+        if (!pipeline_tasks_allowed()) return 0;
+        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::Ready);
+        if (!batch) return 0;
+        if (snapshot_owner_state_ == SnapshotOwnerState::None)
+            exec_batch_prefetched(batch->tasks.data(), batch->count);
+        else
+            for (uint32_t i = 0; i < batch->count; i++) schedule_snapshot_task(batch->tasks[i]);
+        self_->retire_gathered_tasks(batch->producers.data(), batch->count);
+        self_->sig().ops += batch->count;
+        const uint32_t n = batch->count;
+        batch->count = 0;
+        batch->state = ExPipelineState::Empty;
+        // Remote completions prepared MSG_RING wakes on the executor-owned ring.  In arm 2 the
+        // enclosing fused pass submitted that ring after drain_tasks(); arm 3 executes after the
+        // control pass, so EX.EXECUTE itself must publish those prepared wakes before the owner can
+        // park.  Local completions use the direct callback and make this a harmless empty submit.
+        ring_.submit_and_reap();
+        return n;
     }
 
     void fused_snapshot_start(SnapshotManager* manager) { begin_snapshot(manager); }
@@ -283,6 +364,78 @@ public:
     }
 
 private:
+    enum class ExPipelineState : uint8_t { Empty, Filled, BucketPrefetched, Ready };
+    struct ExPipelineBatch {
+        std::array<Task, kGenthreadExBatchOps> tasks{};
+        std::array<uint32_t, kGenthreadExBatchOps> producers{};
+        uint64_t sequence = 0;
+        uint32_t count = 0;
+        ExPipelineState state = ExPipelineState::Empty;
+    };
+
+    bool pipeline_tasks_allowed() const {
+        if (snapshot_blocks_tasks()) return false;
+        return !(lb_controller_armed_ && srv_->lb_dispatch_paused() &&
+                 srv_->lb_acked(self_->id()));
+    }
+
+    ExPipelineBatch* empty_pipeline_batch() {
+        for (ExPipelineBatch& batch : pipeline_batches_)
+            if (batch.state == ExPipelineState::Empty) return &batch;
+        return nullptr;
+    }
+
+    ExPipelineBatch* oldest_pipeline_batch(ExPipelineState state) {
+        ExPipelineBatch* oldest = nullptr;
+        for (ExPipelineBatch& batch : pipeline_batches_)
+            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
+                oldest = &batch;
+        return oldest;
+    }
+
+    ExPipelineBatch* oldest_pipeline_batch() {
+        ExPipelineBatch* oldest = nullptr;
+        for (ExPipelineBatch& batch : pipeline_batches_)
+            if (batch.state != ExPipelineState::Empty &&
+                (!oldest || batch.sequence < oldest->sequence)) oldest = &batch;
+        return oldest;
+    }
+
+    uint32_t drain_pipeline_now() {
+        if (!pipeline_tasks_allowed()) return 0;
+        uint32_t work = 0;
+        while (ExPipelineBatch* batch = oldest_pipeline_batch()) {
+            if (batch->state == ExPipelineState::Filled) {
+                prefetch_exec_batch(batch->tasks.data(), batch->count);
+                batch->state = ExPipelineState::BucketPrefetched;
+            }
+            if (batch->state == ExPipelineState::BucketPrefetched) {
+                for (uint32_t i = 0; i < batch->count; i++) {
+                    const Task& task = batch->tasks[i];
+                    if (!task.client || task.scatter) continue;
+                    const Op& op = task.client->rob().at(task.op_id);
+                    const int32_t shard = task.shard >= 0 ? task.shard : op.shard;
+                    if (shard >= 0 &&
+                        !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                        srv_->shard(shard).store().prefetch_object(op.hash);
+                }
+                batch->state = ExPipelineState::Ready;
+            }
+            if (snapshot_owner_state_ == SnapshotOwnerState::None)
+                exec_batch_prefetched(batch->tasks.data(), batch->count);
+            else
+                for (uint32_t i = 0; i < batch->count; i++)
+                    schedule_snapshot_task(batch->tasks[i]);
+            self_->retire_gathered_tasks(batch->producers.data(), batch->count);
+            self_->sig().ops += batch->count;
+            work += batch->count;
+            batch->count = 0;
+            batch->state = ExPipelineState::Empty;
+        }
+        if (work) ring_.submit_and_reap();
+        return work;
+    }
+
     bool flip_quiesced() const {
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
             !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
@@ -832,13 +985,7 @@ private:
         }
     }
 
-    // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
-    // round trips overlap instead of each op stalling on its own miss in turn.
-    void exec_batch(const Task* batch, uint32_t n) {
-        if (!xshard_retries_.empty()) {
-            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-            return;
-        }
+    void prefetch_exec_batch(const Task* batch, uint32_t n) {
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -846,6 +993,15 @@ private:
             if (shard >= 0 && !batch[i].scatter &&
                 !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
                 srv_->shard(shard).store().prefetch(op.hash);
+        }
+    }
+
+    // Consume a bucket-prefetched homogeneous batch.  Arm 2 calls this immediately after the
+    // prefetch loop; arm 3 reaches it later through the static schedule.
+    void exec_batch_prefetched(const Task* batch, uint32_t n) {
+        if (!xshard_retries_.empty()) {
+            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
+            return;
         }
         // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
         // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
@@ -868,6 +1024,13 @@ private:
         if (xshard_retries_.empty() && srv_->atomic_work_active()) {
             atomic_cleanup_cycle(256);
         }
+    }
+
+    // Coarse arm compatibility: prefetch the whole batch and consume it without an intervening
+    // micro-stage.  The same two tight loops are reused by both experimental commits.
+    void exec_batch(const Task* batch, uint32_t n) {
+        prefetch_exec_batch(batch, n);
+        exec_batch_prefetched(batch, n);
     }
 
     bool execute(const Task& t) {
@@ -1263,6 +1426,8 @@ private:
     uint32_t   fused_idle_spins_ = 0;
     void*      fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
+    std::array<ExPipelineBatch, kGenthreadExBuffers> pipeline_batches_{};
+    uint64_t next_pipeline_sequence_ = 1;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

@@ -8,10 +8,11 @@ rules. It is not a product lane and this document makes no performance claim.
 
 Boot creates one generalized thread for every selected CPU. Each physical thread constructs both
 an `IoLoop` and an `ExLoop`, owns the network ring used for accepts, receives, sends, and parking,
-and owns the executor ring used by the existing task and persistence paths. The executor is exposed
-as a bounded, non-blocking pass. The IO loop invokes that pass between its own loop passes and
-includes it in its pre-park sweep, so executor work is serviced without a second OS thread or an
-executor spin loop. Only the network loop parks.
+and owns the executor ring used by the existing task and persistence paths. Executor control work
+is exposed as a bounded, non-blocking pass; ordinary task consumption is advanced by the static
+micro-stage schedule described below. The IO loop includes both sides in its pre-park correctness
+sweep, so executor work is serviced without a second OS thread or an executor spin loop. Only the
+network loop parks.
 
 The published `ThreadCtx` wake endpoint remains the network ring. That lets remote producers wake a
 generalized owner whether the pending work is a client operation or an executor task. Startup still
@@ -74,6 +75,71 @@ knobs, fibers, per-request schedulers, or new atomics.
 
 This commit is the coarse comparison arm. It intentionally does not interleave batch micro-stages;
 that is the next commit's arm.
+
+## Arm 3: interleaved batch micro-stages
+
+Arm 3 retains the same three independent streams and the same SPSC/ROB ownership edges, but splits
+only the batch boundaries that launch or consume a useful memory dependency:
+
+- IFID is triple-buffered across `RX_PARSE`, `HASH`, and `ROUTE_ISSUE`. `RX_PARSE` reaps network
+  CQEs, parses and decodes ordinary keyed commands into an owner-local batch, and leaves each
+  connection at its unpublished ROB tail. `HASH` hashes the batch in one tight loop.
+  `ROUTE_ISSUE` maps hashes to shards/owners, prepares direct-reply and Task metadata, publishes the
+  ROB entries, then batch-coalesces publication notifications to the existing producer lanes.
+  Commands with established special continuations keep those paths; every resulting local shard
+  Task still publishes through `task_in_[self]` and never executes in IFID.
+- EX is triple-buffered across `INPUT_PF`, `FILL`, `BUCKET_PF`, `OBJECT_PF`, and `EXECUTE`.
+  `INPUT_PF` reads ahead the published Task slots and their referenced Op state without changing a
+  queue frontier. `FILL` gathers up to 32 Tasks plus their producer-lane IDs. `BUCKET_PF` issues the
+  existing FlatStore bucket prefetch loop. `OBJECT_PF` consumes the warmed bucket probe far enough
+  to prefetch a tag candidate, without making a logical lookup or mutation. `EXECUTE` runs the
+  existing homogeneous execution loop, publishes completions, and only then advances each source
+  lane's separate retired frontier. Older retry, atomic, snapshot, and continuation machinery
+  remains in the executor control pass.
+- WB is triple-buffered across `GATHER`, `PREPARE`, and `SUBMIT`. `GATHER` observes completion
+  channels/ready bits, gathers up to 16 owning connections, and prefetches each ROB head.
+  `PREPARE` drains only the ready ROB prefix in order and stages reply/segment state. `SUBMIT`
+  constructs and publishes the send operation through the existing plain, kTLS, or userspace-TLS
+  pump. Send completion retains its existing byte reclamation and zero-copy release rules.
+
+The three buffer arrays are independent: IFID buffers contain decoded `Op` references, EX buffers
+contain copied `Task` values and producer IDs, and WB buffers contain owning `Client` references.
+They are owner-local and add no atomics or fields to `Op` or `Client`. Sequence numbers preserve
+FIFO batch progression inside each stream. A connection held by IFID or WB cannot migrate or be
+deleted until that owner-local reference is released; EX queue quiescence continues to use the
+existing post-execution retired frontier.
+
+The exact `kGenthreadStaticSchedule` is:
+
+1. `EX.BUCKET_PF`
+2. `IFID.HASH`
+3. `WB.PREPARE`
+4. `EX.OBJECT_PF`
+5. `IFID.ROUTE_ISSUE`
+6. `EX.INPUT_PF`
+7. `WB.SUBMIT`
+8. `EX.EXECUTE`
+9. `IFID.RX_PARSE`
+10. `EX.FILL`
+11. `WB.GATHER`
+12. `EX.BUCKET_PF`
+13. `IFID.RX_PARSE`
+14. `EX.FILL`
+15. `WB.GATHER`
+16. `IFID.HASH`
+17. `WB.PREPARE`
+18. `EX.OBJECT_PF`
+
+The schedule repeats unchanged and every entry returns immediately if its required input buffer is
+empty or its output buffers are full. Thus, for example, bucket prefetch is separated from the
+dependent object probe, object prefetch from execution, IFID parsing from hashing and publication,
+and WB head prefetch/preparation from send submission by useful work from the other streams. The
+pre-park path remains a mask-independent correctness backstop and drains staged EX work before its
+coarse queue sweep.
+
+Batch sizes, all three buffer depths, the stage enum, and this exact order are named compile-time
+constants in the single `genthread_pipeline.h` block. There are no runtime schedule knobs, fibers,
+per-request runnable states, or claims about the eventual tuned order.
 
 ## Retained and disabled controls
 
