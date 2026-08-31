@@ -49,6 +49,13 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.oldest_age_min_us = rd(s.oldest_age_min_us);
         r.oldest_age_max_us = rd(s.oldest_age_max_us);
         r.full_events = rd(s.full_events);
+        const MaskedQueueDiagnostics masked = t.task_inbox_diagnostics();
+        r.masked_lane_high_water = masked.lane_high_water;
+        r.masked_lane_full_events = masked.lane_full_events;
+        r.masked_arena_occupancy_at_lane_full_sum =
+            masked.arena_occupancy_at_lane_full_sum;
+        r.masked_arena_capacity_at_lane_full_sum =
+            masked.arena_capacity_at_lane_full_sum;
         r.wakes_sent = rd(s.wakes_sent);
         r.wakes_recv = rd(s.wakes_recv);
         r.spins = rd(s.spins);
@@ -77,6 +84,13 @@ LbSnapshot lbsignals_capture(Server& srv) {
             }
         }
         roll.full_events += r.full_events;
+        roll.masked_lane_high_water =
+            std::max(roll.masked_lane_high_water, r.masked_lane_high_water);
+        roll.masked_lane_full_events += r.masked_lane_full_events;
+        roll.masked_arena_occupancy_at_lane_full_sum +=
+            r.masked_arena_occupancy_at_lane_full_sum;
+        roll.masked_arena_capacity_at_lane_full_sum +=
+            r.masked_arena_capacity_at_lane_full_sum;
         snap.threads.push_back(r);
     }
     const uint32_t ns = srv.nshards();
@@ -112,10 +126,14 @@ static void appendf_lb(std::string& out, const char* fmt, ...) {
 static void format_rollup(std::string& out, const char* name, const LbRoleRollup& r) {
     appendf_lb(out,
                "rollup %s %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %.6f %.1f %.3f %" PRIu64
-               " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f\n",
+               " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f"
+               " masked_lane_high_water %u masked_lane_full_events %" PRIu64
+               " masked_arena_occupancy_at_lane_full %.6f\n",
                name, r.threads, r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.busy_frac(), r.ns_per_op(),
                r.avg_depth(), r.full_events, r.queue_delay_samples, r.queue_delay_ewma_us(),
-               r.oldest_age_min_us, r.oldest_age_max_us, r.oldest_age_ewma_us());
+               r.oldest_age_min_us, r.oldest_age_max_us, r.oldest_age_ewma_us(),
+               r.masked_lane_high_water, r.masked_lane_full_events,
+               r.masked_arena_occupancy_at_lane_full());
 }
 
 void lbsignals_format(const LbSnapshot& snap, std::string& out) {
@@ -124,12 +142,16 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
         appendf_lb(out,
                    "thread %u %s %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
                    " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
-                   " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 "\n",
+                   " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64
+                   " masked_lane_high_water %u masked_lane_full_events %" PRIu64
+                   " masked_arena_occupancy_at_lane_full %.6f\n",
                    r.tid, r.role == Role::Ifid ? "io" : "ex", r.domain, r.clients, r.iterations,
                    r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.depth_sum, r.depth_samples,
                    r.full_events, r.wakes_sent, r.wakes_recv, r.spins, r.queue_delay_samples,
                    r.queue_delay_ewma_us, r.oldest_age_us, r.oldest_age_samples,
-                   r.oldest_age_ewma_us, r.oldest_age_min_us, r.oldest_age_max_us);
+                   r.oldest_age_ewma_us, r.oldest_age_min_us, r.oldest_age_max_us,
+                   r.masked_lane_high_water, r.masked_lane_full_events,
+                   r.masked_arena_occupancy_at_lane_full());
     for (const auto& r : snap.shards)
         appendf_lb(out,
                    "shard %u %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %u %" PRIu64 "\n",
@@ -178,6 +200,17 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
                snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
                sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
+    appendf_lb(out,
+               "lb_io_masked_lane_high_water:%u\r\n"
+               "lb_ex_masked_lane_high_water:%u\r\n"
+               "lb_io_masked_lane_full_events:%" PRIu64 "\r\n"
+               "lb_ex_masked_lane_full_events:%" PRIu64 "\r\n"
+               "lb_io_masked_arena_occupancy_at_lane_full:%.6f\r\n"
+               "lb_ex_masked_arena_occupancy_at_lane_full:%.6f\r\n",
+               snap.io.masked_lane_high_water, snap.ex.masked_lane_high_water,
+               snap.io.masked_lane_full_events, snap.ex.masked_lane_full_events,
+               snap.io.masked_arena_occupancy_at_lane_full(),
+               snap.ex.masked_arena_occupancy_at_lane_full());
     appendf_lb(out,
                "lb_io_queue_delay_samples:%" PRIu64 "\r\n"
                "lb_ex_queue_delay_samples:%" PRIu64 "\r\n"
