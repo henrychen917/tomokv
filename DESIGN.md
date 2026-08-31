@@ -22,29 +22,58 @@ All selected thread IDs appear in both dense placement views. The bucket-owner a
 round-robin over all generalized threads unless `--shard-home` supplies an explicit complete map.
 `--place` may select exact CPUs; its legacy `ifid`/`ex` labels do not create roles in this build.
 
-## Inline versus inbox dispatch
+## Uniform inbox dispatch
 
 Parsing computes the shard and reads the same bucket-owner array used by the split build.
 
-- If the owner is the client-owning thread, the IO loop publishes the operation in the existing ROB
-  and invokes the existing executor batch path inline. The executor's self-notification is
-  suppressed and the completed client is put directly on that IO loop's serve queue. There is no
-  task-queue post or wake for this case.
-- If the owner is another generalized thread, dispatch uses the existing SPSC task channel and wake
-  protocol. The owner consumes it during an executor pass. Completion returns through the existing
-  ready-mask/reply path to the client-owning thread, which retires the ROB and sends the reply.
+Every owner uses the existing per-producer SPSC task channel and notification protocol. This
+includes self ownership: a generalized thread publishes the ROB entry, posts the `Task` to
+`task_in_[self]` during its IO/parse phase, and consumes it only during its later executor phase.
+There is no inline execution bypass. Blocking commands, cross-shard scatter, and `MULTI`/`EXEC`
+post their self-owned fragments through the same path as their remote fragments, after the same
+all-or-nothing queue-capacity checks.
 
-The same rule is applied to initial per-owner work for blocking commands, cross-shard scatter, and
-`MULTI`/`EXEC`: remote fragments are posted first, then a self-owned fragment may run inline. Their
-existing barriers are installed before inline execution, and the existing continuation,
-coordination, and reply paths remain in charge afterward. Snapshot coordination explicitly makes
-progress on the writer thread's fused executor pass while it waits, avoiding a self-wakeup
-deadlock.
+Remote-owner posting and completion are unchanged. Self completion schedules retirement directly
+on the colocated IO loop without a redundant cross-thread wake. The task still crossed the queue,
+so its publication, execution, continuation, and ROB ordering have the same shape as split mode.
+Snapshot coordination explicitly makes progress on the writer thread's fused executor pass while
+it waits, avoiding a self-wakeup deadlock.
 
-Single ownership is unchanged: only the current bucket owner executes a shard. Locally owned client
-operations execute inline in arrival order. Mixed local/remote operations retain the same ROB
-publish/retire ordering as the split build; inline completion merely makes that ROB entry ready
-immediately.
+Single ownership is unchanged: only the current bucket owner executes a shard. The existing
+masked-monolith SPSC mesh remains the only task transport; `task_in_[self]` is the local staging
+lane, not a special queue and not an inline fast path.
+
+## Arm 2: three coarse batch streams
+
+Every physical thread advances three independent streams. They are not three phases of one batch:
+
+- IFID batches originate on this thread's connections. CQE/RX processing and buffered-input
+  parsing decode commands, hash keys, select shard owners, prepare ROB/Task state, and publish the
+  tasks to each destination's producer lane.
+- EX batches are gathered from every producer lane targeting shards owned by this thread. The
+  established batch first prefetches the batch's FlatStore buckets, then probes/executes the whole
+  homogeneous batch and publishes completions.
+- WB batches originate from completion notifications for this thread's connections. WB finds the
+  retireable ROB prefix, constructs replies/iovecs and send SQEs, submits output, and reclaims the
+  retired slots in ROB order.
+
+The exact arm-2 hot rotation is deliberately coarse and static:
+
+`IFID batch -> EX batch -> WB batch -> repeat`
+
+Each call returns immediately when its stream is empty. Network/control maintenance surrounds the
+rotation, and the pre-park correctness sweep uses the same IFID/EX/WB order. Local tasks published
+by IFID therefore cannot execute until the later EX batch.
+
+The streams are buffered independently by structures they already own: connection read buffers and
+the ROB bound IFID, the per-producer SPSC lanes stage EX input, and the completion masks plus
+`pending_serve_` stage WB input. EX retains gather/prefetch/execute batches of 32; ordinary IFID
+dispatch is capped at 32 operations per connection pass; WB serves up to 16 connections per batch.
+All three sizes are named compile-time constants in `genthread_pipeline.h`. There are no runtime
+knobs, fibers, per-request schedulers, or new atomics.
+
+This commit is the coarse comparison arm. It intentionally does not interleave batch micro-stages;
+that is the next commit's arm.
 
 ## Retained and disabled controls
 

@@ -20,6 +20,7 @@
 #include <deque>
 #include "server.h"
 #include "signal.h"
+#include "genthread_pipeline.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -40,7 +41,7 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
 // that the prefetches have time to land, small enough that the batch stays in L1.
-inline constexpr uint32_t kExecBatch = 32;
+inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
 
 class ExLoop {
@@ -160,20 +161,6 @@ public:
     }
 
     void fused_snapshot_start(SnapshotManager* manager) { begin_snapshot(manager); }
-
-    // Parse-time self ownership enters the exact executor implementation directly. The public ROB
-    // slot is already published. Retry/snapshot machinery remains the same; only the first queue
-    // hop and its wake are absent.
-    bool execute_inline(const Task& task) {
-        const bool was_inline = executing_inline_;
-        executing_inline_ = true;
-        if (snapshot_owner_state_ == SnapshotOwnerState::None) exec_batch(&task, 1);
-        else schedule_snapshot_task(task);
-        executing_inline_ = was_inline;
-        if (!task.client) return true;
-        return task.client->rob().at(task.op_id).state.load(std::memory_order_acquire) ==
-               OpState::Done;
-    }
 
     Ring& ring() { return ring_; }
 
@@ -521,7 +508,8 @@ private:
             batch[held++] = t;
             if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
         };
-        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
+        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take)
+                                    : self_->drain_tasks(take);
         if (held) exec_batch(batch, held);
         self_->sig().ops += n;
         return n;
@@ -769,7 +757,8 @@ private:
 
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
         auto take = [&](const Task& task) { schedule_snapshot_task(task); };
-        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
+        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take)
+                                    : self_->drain_tasks(take);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
@@ -1201,10 +1190,8 @@ private:
     void notify_sender(Client* c) {
         const uint32_t target = c->ifid_thread();
         if (target == self_->id()) {
-            // The direct caller observes Done and schedules retirement itself. If execution was
-            // deferred into snapshot/retry machinery, completion happens in a later executor pass
-            // and must make the local IO loop runnable without a cross-thread post or wake.
-            if (executing_inline_) return;
+            // Queue-consumed self work completes in the executor phase. The callback schedules
+            // retirement on the same physical thread without a redundant cross-thread wake.
             if (!fused_completion_) std::abort();
             fused_completion_(fused_io_context_, c);
             return;
@@ -1276,7 +1263,6 @@ private:
     uint32_t   fused_idle_spins_ = 0;
     void*      fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
-    bool       executing_inline_ = false;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

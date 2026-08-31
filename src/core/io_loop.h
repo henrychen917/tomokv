@@ -32,6 +32,7 @@
 #include <vector>
 #include "server.h"
 #include "ex_loop.h"
+#include "genthread_pipeline.h"
 #include "signal.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
@@ -521,7 +522,6 @@ private:
                 // stream, and therefore this switch, is identical. See uring.h.
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
-                did += executor_->fused_pass();
                 did += service_client_migrations<kEp>();
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
@@ -537,10 +537,15 @@ private:
                     did += deferred_wait_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
-                did += collect_retire_work<HasUnix, kEp>();
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += flush_ready<HasTls, kEp>();
+
+                // Coarse arm: three independent batches, in one explicit rotation.  Empty stages
+                // return zero and are skipped naturally; no batch is carried through all roles.
+                did += ifid_batch<HasTls, kEp>();
+                did += executor_->fused_pass();
+                did += collect_retire_work<HasUnix, kEp>();
+                did += wb_batch<HasTls, kEp>();
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
@@ -2119,8 +2124,10 @@ private:
         // shared-clean line, the sequence load never happens, and the per-op test is never taken.
         const bool atomic_tracking = srv_->atomic_tracking_active();
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
+        const uint64_t batch_start_ops = sig.ops;
 
         for (;;) {
+            if (sig.ops - batch_start_ops >= kGenthreadIfidBatchOps) break;
             if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
@@ -2497,7 +2504,7 @@ subscriber_checks_done:
                 }
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
-                    if (tid != self_->id() && needed[tid] &&
+                    if (needed[tid] &&
                         srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false;
                         break;
@@ -2520,19 +2527,12 @@ subscriber_checks_done:
                     const uint32_t tid = srv_->worker_of_shard(sid);
                     const Task task{c, op_id, sid,
                                     reinterpret_cast<ScatterState*>(dispatch.state)};
-                    if (tid == self_->id()) continue;
                     ThreadCtx& owner = srv_->thread(tid);
                     if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
                     if (!touched_[tid]) {
                         touched_[tid] = true;
                         touched_list_[ntouched_++] = tid;
                     }
-                }
-                for (uint32_t i = 0; i < dispatch.nshards; i++) {
-                    const int32_t sid = blocking_dispatch_shard(dispatch, i);
-                    if (srv_->worker_of_shard(sid) == self_->id())
-                        execute_local_task(Task{c, op_id, sid,
-                            reinterpret_cast<ScatterState*>(dispatch.state)});
                 }
                 self_->note_command(spec->id);
                 conn.advance_parse(consumed);
@@ -2614,8 +2614,7 @@ nonblocking_dispatch:
                     bool room = true;
                     for (uint32_t p = 0; p < nparticipants; p++) {
                         const uint32_t tid = participants[p];
-                        if (tid != self_->id() &&
-                            srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                             room = false;
                             break;
                         }
@@ -2634,18 +2633,12 @@ nonblocking_dispatch:
                         const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                         const uint32_t tid = srv_->worker_of_shard(sid);
                         const Task task{c, op_id, sid, scatter_dispatch.state};
-                        if (tid == self_->id()) continue;
                         ThreadCtx& owner = srv_->thread(tid);
                         if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
                         if (!touched_[tid]) {
                             touched_[tid] = true;
                             touched_list_[ntouched_++] = tid;
                         }
-                    }
-                    for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                        const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                        if (srv_->worker_of_shard(sid) == self_->id())
-                            execute_local_task(Task{c, op_id, sid, scatter_dispatch.state});
                     }
                     self_->note_command(spec->id);
                     conn.advance_parse(consumed);
@@ -2670,8 +2663,7 @@ nonblocking_dispatch:
                 bool room = true;
                 for (uint32_t p = 0; p < nparticipants; p++) {
                     const uint32_t tid = participants[p];
-                    if (tid != self_->id() &&
-                        srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                    if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false; break;
                     }
                 }
@@ -2704,20 +2696,12 @@ nonblocking_dispatch:
                     const uint32_t begin = participant_begin[p];
                     const uint32_t end = p + 1 < nparticipants
                         ? participant_begin[p + 1] : scatter_dispatch.nshards;
-                    if (tid == self_->id()) continue;
                     ThreadCtx& owner = srv_->thread(tid);
                     // Capacity was checked before any push. Publish all of this group's tasks for
                     // one executor with one queue-tail store; the parse-pass notify remains folded.
                     if (!owner.post_tasks_quiet(
                             self_->id(), posts + begin, end - begin, sig)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
-                }
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    if (participants[p] != self_->id()) continue;
-                    const uint32_t begin = participant_begin[p];
-                    const uint32_t end = p + 1 < nparticipants
-                        ? participant_begin[p + 1] : scatter_dispatch.nshards;
-                    for (uint32_t i = begin; i < end; i++) execute_local_task(posts[i]);
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
                 conn.advance_parse(consumed);
@@ -2781,13 +2765,6 @@ nonblocking_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
-            if (worker_id == self_->id()) {
-                execute_local_task(t);
-                conn.advance_parse(consumed);
-                sig.ops++;
-                mark_active(c);
-                continue;
-            }
             if (!worker.post_task_quiet(self_->id(), t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
@@ -2884,11 +2861,12 @@ nonblocking_dispatch:
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
     template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t sweep() {
-        uint32_t work = executor_->fused_sweep();
+        uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-                flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
-                flush_ready<HasTls, kEp>();
+                flush_borrow_releases() + ifid_batch<HasTls, kEp>();
+        work += executor_->fused_sweep();
+        work += collect_retire_work<HasUnix, kEp>(true) + wb_batch<HasTls, kEp>();
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
         if (srv_->snapshot().writer_is(self_->id()))
@@ -2953,17 +2931,15 @@ nonblocking_dispatch:
         return n + pubsub_work;
     }
 
-    // ---- retire -> stage bytes -> send or hand off -------------------------------------------------
-    // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
-    // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
-    // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
+    // ---- IFID: receive-buffer maintenance, parse/hash/route, publish -----------------------------
     template <bool HasTls, bool kEp>
-    uint32_t flush_ready() {
+    uint32_t ifid_batch() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
 
-        // PHASE 1 -- the read side, every active conn, BEFORE any serving. At 2048 conns the old
+        // The read side, every active conn, with no reply retirement or send work mixed into it.
+        // At 2048 conns the old
         // interleaved pass collapsed loop iterations 7.5x: each pass walked ~100 conns doing serve
         // and send work while drained recvs sat un-armed, sockets backed up, and arrivals went
         // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
@@ -3143,13 +3119,20 @@ nonblocking_dispatch:
             }
         }
 
-        // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
+        return work;
+    }
+
+    template <bool HasTls, bool kEp>
+    uint32_t wb_batch() {
+        uint32_t work = 0;
+
+        // PUB/SUB PASS BOUNDARY -- between IFID and WB, on purpose. Everything the IFID batch
         // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
         // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-        // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
+        // WB batch -- serve at most kGenthreadWbBatchConns conns from the FIFO. Bounding it is the
         // fourth application of the same law (per-pass work scales with what the pass does, not
         // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
         // and FIFO order is arrival-order fairness across connections. Under overload the queue is
@@ -3166,7 +3149,7 @@ nonblocking_dispatch:
             aof_gate_target_ = 0;
         }
         uint32_t served = 0;
-        while (served < kServeBudget && !pending_serve_.empty()) {
+        while (served < kGenthreadWbBatchConns && !pending_serve_.empty()) {
             Client* c = pending_serve_.front();
             pending_serve_.pop_front();
             c->set_serve_pending(false);
@@ -3210,11 +3193,6 @@ nonblocking_dispatch:
         if (c->serve_pending()) return;                 // already queued
         c->set_serve_pending(true);
         pending_serve_.push_back(c);
-    }
-
-    void execute_local_task(const Task& task) {
-        if (executor_->execute_inline(task) && task.client && !task.client->dead())
-            enqueue_serve(task.client);
     }
 
     // IO owns both ROB frontiers, so this 100us signal beat can maintain head_since without a
@@ -3499,10 +3477,6 @@ nonblocking_dispatch:
     ThreadCtx* self_ = nullptr;
     ExLoop*    executor_ = nullptr;
     static constexpr uint32_t kFlushBackstopEvery = 64;
-    // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
-    // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
-    // overload.
-    static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
