@@ -30,6 +30,38 @@ struct ThreadPlacement {
 
 class Placement {
 public:
+    // FUSED PLACEMENT. Every selected CPU owns clients and may own shards. The two dense views
+    // intentionally contain the same tids: existing connection fanout consumes ifid_threads(),
+    // while shard/snapshot fanout consumes ex_threads(). Explicit role labels remain accepted as
+    // CPU selectors, but have no runtime meaning in this mode.
+    bool build_fused(const Topology& topo, const char* spec) {
+        clear();
+        if (spec) {
+            if (!build_explicit(topo, spec)) return false;
+        } else {
+            for (uint32_t domain = 0; domain < topo.ndomains(); domain++)
+                for (int cpu : topo.cpus_in(domain)) append(Role::Ifid, cpu, domain);
+        }
+        if (threads_.empty()) {
+            std::fprintf(stderr, "fused placement needs at least one thread\n");
+            return false;
+        }
+        if (threads_.size() > kMaxThreads) {
+            std::fprintf(stderr,
+                         "fused placement has %zu threads, exceeding the %u-thread channel limit\n",
+                         threads_.size(), kMaxThreads);
+            return false;
+        }
+        ifid_.clear();
+        ex_.clear();
+        for (uint32_t tid = 0; tid < threads_.size(); tid++) {
+            threads_[tid].role = Role::Ifid;
+            ifid_.push_back(tid);
+            ex_.push_back(tid);
+        }
+        return true;
+    }
+
     // EVEN GLOBAL PLACEMENT. Counts are whole-server, so shapes no per-node grammar can express
     // (15:2:15) are first-class. Each role is spread across the L3 domains as evenly as integer
     // division allows and roles are interleaved within a domain, so sender pairing stays local.
@@ -167,7 +199,7 @@ public:
                 std::fprintf(stderr, "--shard-home: shard %u is outside 0..%u\n", sid, nshards - 1);
                 return false;
             }
-            if (tid >= threads_.size() || threads_[tid].role != Role::Ex) {
+            if (tid >= threads_.size() || !is_executor(tid)) {
                 std::fprintf(stderr, "--shard-home: thread %u is not an ex thread\n", tid);
                 return false;
             }
@@ -200,6 +232,9 @@ public:
     const std::vector<ThreadPlacement>& threads() const { return threads_; }
     const std::vector<uint32_t>& ifid_threads() const { return ifid_; }
     const std::vector<uint32_t>& ex_threads()   const { return ex_; }
+    bool is_executor(uint32_t tid) const {
+        return std::find(ex_.begin(), ex_.end(), tid) != ex_.end();
+    }
 
     // Resolve cpu siblings to dense thread ids after either placement frontend has run. Pair mode
     // is a boot contract, not a best effort: a selected cpu with an absent sibling, a non-pair

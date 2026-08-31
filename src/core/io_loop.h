@@ -32,6 +32,8 @@
 #include <vector>
 #include "server.h"
 #include "signal.h"
+#include "ex_loop.h"
+#include "genthread_pipeline.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -414,6 +416,17 @@ public:
         }
     }
 
+    void bind_fused_executor(FusedExLoop* executor) {
+        fused_executor_ = executor;
+    }
+
+    void fused_executor_completion(Client* client) {
+        mark_active(client);
+        enqueue_serve(client);
+    }
+
+    void run_fused();
+
 private:
     void refresh_age_sampling() {
         const uint32_t wanted = srv_->effective_age_sample_rate();
@@ -461,7 +474,7 @@ private:
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
 #include "pubsub.inc"
 
-    template <bool HasUnix, bool HasTls, bool kEp>
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
     void run_loop() {
         if constexpr (!kEp) {
             if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
@@ -527,8 +540,9 @@ private:
                 }
                 // In epoll mode this drains the doorbell mailbox instead of a CQ ring; the tag
                 // stream, and therefore this switch, is identical. See uring.h.
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
-                if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
+                did += ring_.for_each_cqe(
+                    [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp, Fused>(cqe); });
+                if constexpr (kEp) did += epoll_pass<HasUnix, HasTls, Fused>(0);
                 did += service_client_migrations<kEp>();
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
@@ -544,10 +558,16 @@ private:
                     did += deferred_wait_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
-                did += collect_retire_work<HasUnix, kEp>();
-                if (__builtin_expect(!routing_forward_.empty(), false))
-                    client_routing_cleanup_pass();
-                did += flush_ready<HasTls, kEp>();
+                if constexpr (Fused) {
+                    if (__builtin_expect(!routing_forward_.empty(), false))
+                        client_routing_cleanup_pass();
+                    did += flush_ready<HasTls, kEp, true, HasUnix>();
+                } else {
+                    did += collect_retire_work<HasUnix, kEp>();
+                    if (__builtin_expect(!routing_forward_.empty(), false))
+                        client_routing_cleanup_pass();
+                    did += flush_ready<HasTls, kEp>();
+                }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
@@ -588,7 +608,10 @@ private:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix, HasTls, kEp>()) { ring_.submit_and_reap(); continue; }
+            if (sweep<HasUnix, HasTls, kEp, Fused>()) {
+                ring_.submit_and_reap();
+                continue;
+            }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -596,10 +619,19 @@ private:
                 // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
                 // flag is only re-read at the top of the loop, so an unbounded block would make
                 // shutdown depend on a connection arriving.
-                if (!self_->any_io_inbound()) epoll_pass<HasUnix, HasTls>(50);
+                if constexpr (Fused) {
+                    if (!self_->any_fused_inbound()) epoll_pass<HasUnix, HasTls, true>(50);
+                } else if (!self_->any_io_inbound()) {
+                    epoll_pass<HasUnix, HasTls>(50);
+                }
             } else {
-                if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
-                else                       ring_.submit_and_reap();
+                if constexpr (Fused) {
+                    if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
+                    else                            ring_.submit_and_reap();
+                } else {
+                    if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
+                    else                         ring_.submit_and_reap();
+                }
             }
             self_->clear_blocked();
         }
@@ -704,7 +736,7 @@ private:
         }
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void arm_tls_recv(Client* c) {
         if (c->recv_armed() || c->closing()) return;
         TlsConn* tls = tls_engine(c);
@@ -727,7 +759,7 @@ private:
             const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
             if (n > 0) {
                 self_->sig().epoll_recvs++;
-                on_tls_recv<kEp>(c, static_cast<int>(n));
+                on_tls_recv<kEp, Fused>(c, static_cast<int>(n));
                 return;
             }
             tls->abandon_input();
@@ -790,7 +822,7 @@ private:
     // it from here, mid-event-array, would mean a Client is freed while a later epoll_event in the
     // same batch still names it. Second, keeping every state transition in one place is what makes
     // "epoll changes only how the thread waits" true rather than aspirational.
-    template <bool HasUnix, bool HasTls>
+    template <bool HasUnix, bool HasTls, bool Fused = false>
     uint32_t epoll_pass(int timeout_ms) {
         const int n = ep_.wait(timeout_ms);
         if (n <= 0) return 0;
@@ -799,12 +831,14 @@ private:
         for (int i = 0; i < n; i++) {
             const epoll_event& ev = ep_.event(i);
             switch (ur_kind(ev.data.u64)) {
-                case UrKind::Accept: work += epoll_accept<true>(UrKind::Accept); break;
+                case UrKind::Accept: work += epoll_accept<true, Fused>(UrKind::Accept); break;
                 case UrKind::TlsAccept:
-                    if constexpr (HasTls) work += epoll_accept<true>(UrKind::TlsAccept);
+                    if constexpr (HasTls)
+                        work += epoll_accept<true, Fused>(UrKind::TlsAccept);
                     break;
                 case UrKind::UnixAccept:
-                    if constexpr (HasUnix) work += epoll_accept<true>(UrKind::UnixAccept);
+                    if constexpr (HasUnix)
+                        work += epoll_accept<true, Fused>(UrKind::UnixAccept);
                     break;
                 case UrKind::Wake:
                     // The doorbell. Draining it here rather than at the park keeps the level-
@@ -885,17 +919,23 @@ private:
         else mark_active(c);
     }
 
-    template <bool HasTls, bool kEp>
+    template <bool HasTls, bool kEp, bool Fused = false>
     void on_cqe(io_uring_cqe* cqe) {
         if constexpr (!HasTls) {
             // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
-                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv<false, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Accept: on_accept<kEp, Fused>(cqe, UrKind::Accept); break;
+                case UrKind::UnixAccept: on_accept<kEp, Fused>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv:
+                    on_recv<false, kEp, Fused>(ur_ptr<Client>(cqe->user_data), cqe->res);
+                    break;
                 case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
-                case UrKind::SnapshotStart: break;
+                case UrKind::SnapshotStart:
+                    if constexpr (Fused)
+                        fused_executor_->fused_snapshot_start(
+                            ur_ptr<SnapshotManager>(cqe->user_data));
+                    break;
                 case UrKind::AofIo:
                     srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                cqe->res); break;
@@ -910,21 +950,29 @@ private:
             }
         } else {
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
-                case UrKind::TlsAccept: on_accept<kEp>(cqe, UrKind::TlsAccept); break;
-                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
-                case UrKind::Recv: on_recv<true, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::TlsRecv: on_tls_recv<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Accept: on_accept<kEp, Fused>(cqe, UrKind::Accept); break;
+                case UrKind::TlsAccept: on_accept<kEp, Fused>(cqe, UrKind::TlsAccept); break;
+                case UrKind::UnixAccept: on_accept<kEp, Fused>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Recv:
+                    on_recv<true, kEp, Fused>(ur_ptr<Client>(cqe->user_data), cqe->res);
+                    break;
+                case UrKind::TlsRecv:
+                    on_tls_recv<kEp, Fused>(ur_ptr<Client>(cqe->user_data), cqe->res);
+                    break;
                 case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
                 case UrKind::TlsSend: on_tls_send_cqe<kEp>(cqe); break;
                 case UrKind::TlsReadPoll:
-                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
-                                       TlsOp::WantRead); break;
+                    on_tls_socket_poll<kEp, Fused>(ur_ptr<Client>(cqe->user_data), cqe->res,
+                                                   TlsOp::WantRead); break;
                 case UrKind::TlsWritePoll:
-                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
-                                       TlsOp::WantWrite); break;
+                    on_tls_socket_poll<kEp, Fused>(ur_ptr<Client>(cqe->user_data), cqe->res,
+                                                   TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
-                case UrKind::SnapshotStart: break;
+                case UrKind::SnapshotStart:
+                    if constexpr (Fused)
+                        fused_executor_->fused_snapshot_start(
+                            ur_ptr<SnapshotManager>(cqe->user_data));
+                    break;
                 case UrKind::AofIo:
                     srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                cqe->res); break;
@@ -995,7 +1043,7 @@ private:
                (tls_listen_fd_ < 0 || tls_accept_armed_);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void on_accept(io_uring_cqe* cqe, UrKind kind) {
         const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
         if (generation != accept_generation_ || self_->role() != Role::Ifid) {
@@ -1015,14 +1063,14 @@ private:
             rearm_accept(cqe, kind);
             return;
         }
-        admit_fd<kEp>(cqe->res, kind);
+        admit_fd<kEp, Fused>(cqe->res, kind);
         rearm_accept(cqe, kind);
     }
 
     // Epoll's accept: the listener only told us there is a backlog, so drain it. Level-triggered
     // registration means an unfinished drain is re-reported rather than lost, but draining to
     // EAGAIN here keeps one epoll_wait per burst instead of one per connection.
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     uint32_t epoll_accept(UrKind kind) {
         if (srv_->flip_dispatch_paused()) return 0;
         const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
@@ -1037,14 +1085,14 @@ private:
                 return taken;
             }
             taken++;
-            admit_fd<kEp>(fd, kind);
+            admit_fd<kEp, Fused>(fd, kind);
         }
     }
 
     // Everything an accepted fd goes through before it becomes a served connection. Shared by both
     // engines verbatim: maxclients, protected mode, Client allocation, TLS attachment, unix
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void admit_fd(int fd, UrKind kind) {
         if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
         const bool unix_socket = kind == UrKind::UnixAccept;
@@ -1096,12 +1144,12 @@ private:
             const auto& ios = srv_->placement().ifid_threads();
             const uint32_t target = ios[unix_rr_++ % ios.size()];
             c->set_ifid_thread(target);
-            if (target == self_->id()) adopt_client<kEp>(c, true);
+            if (target == self_->id()) adopt_client<kEp, Fused>(c, true);
             else if (!srv_->thread(target).post_client(self_->id(), c, ring_, self_->sig()))
                 pending_handoffs_.push_back(c);
         } else {
             c->set_ifid_thread(self_->id());
-            adopt_client<kEp>(c, false, tls_socket);
+            adopt_client<kEp, Fused>(c, false, tls_socket);
         }
     }
 
@@ -1845,7 +1893,7 @@ private:
         return 1;
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
         // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
         // still lets ::close() deregister; migration alone pre-registers destination + rollback
@@ -1892,11 +1940,11 @@ private:
         if (tls_socket) {
             TlsConn* tls = tls_slot_conn(c);
             if (tls && tls->fd_handshake()) {
-                (void)drive_tls<kEp>(c);
+                (void)drive_tls<kEp, Fused>(c);
                 if (!c->closing() && tls->ktls()) arm_recv<kEp>(c);
-                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv<kEp>(c);
+                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv<kEp, Fused>(c);
             } else {
-                arm_tls_recv<kEp>(c);
+                arm_tls_recv<kEp, Fused>(c);
             }
         } else arm_recv<kEp>(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
@@ -1917,7 +1965,7 @@ private:
         return sent;
     }
 
-    template <bool HasTls, bool kEp>
+    template <bool HasTls, bool kEp, bool Fused = false>
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
         if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
@@ -1943,17 +1991,17 @@ private:
         c->commit_read(static_cast<size_t>(res));
         c->set_last_interaction_s(cached_now_s_);
         if constexpr (HasTls) {
-            if (c->is_tls()) parse_and_dispatch<true>(c);
-            else parse_and_dispatch<false>(c);
+            if (c->is_tls()) parse_and_dispatch<true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+            else parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(c);
         } else {
-            parse_and_dispatch<false>(c);
+            parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(c);
         }
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
         mark_active(c);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     bool drive_tls(Client* c) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) return false;
@@ -2057,11 +2105,12 @@ private:
             }
             break;
         }
-        if (decrypted || c->rpos() < c->rlen()) parse_and_dispatch<true>(c);
+        if (decrypted || c->rpos() < c->rlen())
+            parse_and_dispatch<true, Fused ? kGenthreadIfidBatchOps : 0>(c);
         return !tls->failed();
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) { close_client(c); return; }
@@ -2069,11 +2118,11 @@ private:
         c->set_recv_armed(tls->any_poll_armed());
         if (c->dead()) return;
         if (c->closing() || res < 0) { close_client(c); return; }
-        (void)drive_tls<kEp>(c);
+        (void)drive_tls<kEp, Fused>(c);
         mark_active(c);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool Fused = false>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
         if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
@@ -2093,12 +2142,12 @@ private:
         }
         self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
         c->set_last_interaction_s(cached_now_s_);
-        (void)drive_tls<kEp>(c);
+        (void)drive_tls<kEp, Fused>(c);
         mark_active(c);
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
-    template <bool NoBorrow>
+    template <bool NoBorrow, uint32_t BatchOps = 0>
     DispatchResult parse_and_dispatch(Client* c) {
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
@@ -2125,7 +2174,11 @@ private:
         // shared-clean line, the sequence load never happens, and the per-op test is never taken.
         const bool atomic_tracking = srv_->atomic_tracking_active();
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
+        uint64_t batch_start_ops = 0;
+        if constexpr (BatchOps != 0) batch_start_ops = sig.ops;
         for (;;) {
+            if constexpr (BatchOps != 0)
+                if (sig.ops - batch_start_ops >= BatchOps) break;
             if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
@@ -2905,13 +2958,19 @@ nonblocking_dispatch:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    template <bool HasUnix, bool HasTls, bool kEp>
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
-        work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-                flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
-                flush_ready<HasTls, kEp>();
+        if constexpr (Fused) {
+            work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
+                    flush_borrow_releases() +
+                    flush_ready<HasTls, kEp, true, HasUnix, true>();
+        } else {
+            work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
+                    flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
+                    flush_ready<HasTls, kEp>();
+        }
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
         if (srv_->snapshot().writer_is(self_->id()))
@@ -2980,7 +3039,8 @@ nonblocking_dispatch:
     // The io thread's own work per active client. In 2-stage it also owns the reply side and calls
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
-    template <bool HasTls, bool kEp>
+    template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
+              bool SweepPass = false>
     uint32_t flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -3006,7 +3066,7 @@ nonblocking_dispatch:
                     // SSL_write and opposite-direction BIO reads are proven safe while pinned,
                     // but SSL_read/SSL_accept consume the same direction and can move that
                     // frontier. Only the recv completion may drive inbound TLS while armed.
-                    if (!c->closing() && !c->recv_armed()) (void)drive_tls<kEp>(c);
+                    if (!c->closing() && !c->recv_armed()) (void)drive_tls<kEp, Fused>(c);
                     else if (tls->userspace()) {
                         (void)wb_.pump_tls<kEp>(*c, *tls);
                         if (tls->socket_userspace() && tls->has_pinned_plain())
@@ -3072,12 +3132,15 @@ nonblocking_dispatch:
                 if (c->closing()) c->set_recv_armed(false);
                 if (!c->closing()) {
                     if constexpr (HasTls) {
-                        if (tls) arm_tls_recv<kEp>(c);
+                        if (tls) arm_tls_recv<kEp, Fused>(c);
                         else arm_recv<kEp>(c);
                     } else {
                         arm_recv<kEp>(c);
                     }
-                    if constexpr (HasTls) if (tls) { (void)drive_tls<kEp>(c); tls = tls_engine(c); }
+                    if constexpr (HasTls) if (tls) {
+                        (void)drive_tls<kEp, Fused>(c);
+                        tls = tls_engine(c);
+                    }
                     if (wb_.take_send_failure()) epoll_request_close(c);
                 }
             }
@@ -3097,18 +3160,28 @@ nonblocking_dispatch:
                 if (__builtin_expect(climon_pause_armed(), false)) {
                     const uint32_t rpos_before = conn.rpos();
                     if constexpr (HasTls) {
-                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
-                        else dispatch_result = parse_and_dispatch<false>(c);
+                        if (c->is_tls())
+                            dispatch_result = parse_and_dispatch<
+                                true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        else
+                            dispatch_result = parse_and_dispatch<
+                                false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     } else {
-                        dispatch_result = parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<
+                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
-                        if (c->is_tls()) dispatch_result = parse_and_dispatch<true>(c);
-                        else dispatch_result = parse_and_dispatch<false>(c);
+                        if (c->is_tls())
+                            dispatch_result = parse_and_dispatch<
+                                true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        else
+                            dispatch_result = parse_and_dispatch<
+                                false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     } else {
-                        dispatch_result = parse_and_dispatch<false>(c);
+                        dispatch_result = parse_and_dispatch<
+                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
                 }
@@ -3116,7 +3189,7 @@ nonblocking_dispatch:
 
             if constexpr (!kEp) {
                 if constexpr (HasTls) {
-                    if (tls && tls->memory_bio()) arm_tls_recv<kEp>(c);
+                    if (tls && tls->memory_bio()) arm_tls_recv<kEp, Fused>(c);
                     else if (!tls) arm_recv<kEp>(c);
                 } else {
                     arm_recv<kEp>(c);
@@ -3166,6 +3239,14 @@ nonblocking_dispatch:
             }
         }
 
+        // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
+        // batch, collect its local self-lane completions, then enter the existing write-back phase.
+        if constexpr (Fused) {
+            work += SweepPass ? fused_executor_->fused_sweep()
+                              : fused_executor_->fused_pass();
+            work += collect_retire_work<HasUnix, kEp>(SweepPass);
+        }
+
         // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
         // parsed is resolved and appended to its subscribers' buffers HERE, so PHASE 2 sends one
         // coalesced write per subscriber instead of one per message. Off/unarmed servers pay one
@@ -3189,7 +3270,8 @@ nonblocking_dispatch:
             aof_gate_target_ = 0;
         }
         uint32_t served = 0;
-        while (served < kServeBudget && !pending_serve_.empty()) {
+        constexpr uint32_t serve_budget = Fused ? kGenthreadWbBatchConns : kServeBudget;
+        while (served < serve_budget && !pending_serve_.empty()) {
             Client* c = pending_serve_.front();
             pending_serve_.pop_front();
             c->set_serve_pending(false);
@@ -3678,6 +3760,8 @@ nonblocking_dispatch:
         }
     };
     std::unordered_map<uint64_t, ClientForwardRoute> routing_forward_;
+    // Boot-selected fused loop only; appended so split-mode IoLoop offsets stay unchanged.
+    FusedExLoop* fused_executor_ = nullptr;
 };
 
 }  // namespace tomo

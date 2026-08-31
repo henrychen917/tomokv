@@ -196,7 +196,7 @@ CommandTable pfdebug_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
-bool command_registry_init(bool tls_enabled);
+bool command_registry_init(bool tls_enabled, bool fused_mode = false);
 const CommandSpec* command_lookup(Slice name);
 bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
 uint32_t command_registry_size();
@@ -218,6 +218,7 @@ void cmd_bitfield_notify(Shard&, Op&);
 void cmd_bitfield_ro(Shard&, Op&);
 void cmd_bitfield_ro_notify(Shard&, Op&);
 class Server;
+void cmd_flip_unavailable(Shard&, Op&);
 class Client;
 class ThreadCtx;
 struct Op;

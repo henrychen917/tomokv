@@ -47,6 +47,7 @@ namespace tomo {
 class Client;
 class Ring;
 class WbEngine;
+class SnapshotManager;
 
 // Heap-side multi-shard state is deliberately opaque here.  Its vectors, result slots and phase
 // bookkeeping live in cmd/xshard so neither Task nor the footprint-locked Op grows.
@@ -114,6 +115,8 @@ public:
     using ClientRegistrationPrepareFn = bool (*)(void*, Client*);
     using ClientRegistrationCancelFn = void (*)(void*, Client*);
     using ClientCapacityPrepareFn = bool (*)(void*, uint32_t);
+    using ExecutorProgressFn = uint32_t (*)(void*);
+    using SnapshotStartFn = void (*)(void*, SnapshotManager*);
     ThreadCtx() = default;
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
@@ -137,6 +140,12 @@ public:
                                const std::vector<uint32_t>& ex) {
         std::unique_ptr<TaskInbox> inbox(new (std::nothrow) TaskInbox);
         if (!inbox || !inbox->init_local(nchan_, kInboxSlots, io, ex)) return false;
+        task_in_ = std::move(inbox);
+        return true;
+    }
+    bool init_task_inbox_local_fused() {
+        std::unique_ptr<TaskInbox> inbox(new (std::nothrow) TaskInbox);
+        if (!inbox || !inbox->init_local_fused(nchan_, kInboxSlots)) return false;
         task_in_ = std::move(inbox);
         return true;
     }
@@ -188,6 +197,18 @@ public:
     }
     bool prepare_client_capacity(uint32_t incoming) {
         return client_capacity_prepare_ && client_capacity_prepare_(io_role_context_, incoming);
+    }
+    void bind_fused_executor_hooks(void* context, ExecutorProgressFn progress,
+                                   SnapshotStartFn snapshot_start) {
+        fused_executor_context_ = context;
+        executor_progress_ = progress;
+        snapshot_start_ = snapshot_start;
+    }
+    uint32_t progress_fused_executor() {
+        return executor_progress_ ? executor_progress_(fused_executor_context_) : 0;
+    }
+    void begin_fused_snapshot(SnapshotManager* manager) {
+        if (snapshot_start_) snapshot_start_(fused_executor_context_, manager);
     }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
@@ -601,6 +622,14 @@ public:
             if (task_in_->depth(i) || release_in_[i].depth()) return true;
         return false;
     }
+    bool any_fused_inbound() const {
+        if (ready_.any() || task_notify_.any() || client_notify_.any() ||
+            release_notify_.any() || transfer_notify_.any()) return true;
+        for (uint32_t i = 0; i < nchan_; i++)
+            if (task_in_->depth(i) || client_in_[i].depth() || release_in_[i].depth() ||
+                transfer_in_[i].depth()) return true;
+        return false;
+    }
     bool ex_inbound_quiesced() const {
         for (uint32_t i = 0; i < nchan_; i++)
             if (!task_in_->quiesced(i) || !release_in_[i].quiesced()) return false;
@@ -632,7 +661,6 @@ private:
     ClientRegistrationPrepareFn client_registration_prepare_ = nullptr;
     ClientRegistrationCancelFn client_registration_cancel_ = nullptr;
     ClientCapacityPrepareFn client_capacity_prepare_ = nullptr;
-
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;
 
@@ -671,6 +699,10 @@ private:
     LoopSignals          sig_;
     // Cold publication only: keep every pre-existing ThreadCtx member at its current offset.
     std::atomic<WbEngine*> wb_engine_{nullptr};
+    // Fused-only callbacks live at the true tail so split-mode ThreadCtx offsets stay unchanged.
+    void* fused_executor_context_ = nullptr;
+    ExecutorProgressFn executor_progress_ = nullptr;
+    SnapshotStartFn snapshot_start_ = nullptr;
 };
 
 }  // namespace tomo

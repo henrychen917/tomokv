@@ -263,6 +263,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
 
     // The target CQE is the epoch broadcast.  Every executor observes it between operation batches.
     for (uint32_t tid : server.placement().ex_threads()) {
+        if (server.thread_mode() == ThreadMode::Fused && tid == writer.id()) {
+            writer.begin_fused_snapshot(this);
+            continue;
+        }
         Ring* target = server.thread(tid).ring();
         while (!target && !server.shutting_down().load(std::memory_order_relaxed)) {
             std::this_thread::yield();
@@ -277,10 +281,12 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     writer_ring.submit_and_reap();
 
     while (phase() == Phase::Preparing &&
-           ready_owners_.load(std::memory_order_acquire) != executor_count_)
+           ready_owners_.load(std::memory_order_acquire) != executor_count_) {
+        writer.progress_fused_executor();
         std::this_thread::yield();
+    }
     if (phase() == Phase::Preparing) {
-        drain_atomic_groups(server);
+        drain_atomic_groups(server, writer);
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -288,8 +294,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         writer_ring.submit_and_reap();
     }
     while (phase() == Phase::Freeze &&
-           frozen_owners_.load(std::memory_order_acquire) != executor_count_)
+           frozen_owners_.load(std::memory_order_acquire) != executor_count_) {
+        writer.progress_fused_executor();
         std::this_thread::yield();
+    }
     if (phase() == Phase::Freeze) {
         cut_ms_.store(realtime_ms(), std::memory_order_release);
         phase_.store(Phase::Mark, std::memory_order_release);
@@ -299,8 +307,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         writer_ring.submit_and_reap();
     }
     while (phase() == Phase::Mark &&
-           marked_owners_.load(std::memory_order_acquire) != executor_count_)
+           marked_owners_.load(std::memory_order_acquire) != executor_count_) {
+        writer.progress_fused_executor();
         std::this_thread::yield();
+    }
 
     if (phase() == Phase::Mark && rewrite_ &&
         !rewrite_->rewrite_mark(writer, writer_ring, next_epoch, cut_ms(), error)) {
@@ -309,8 +319,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
 
     if (phase() != Phase::Mark) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_)
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+            writer.progress_fused_executor();
             std::this_thread::yield();
+        }
         abort_file();
         server.set_snapshot_atomic_barrier(false);
         phase_.store(Phase::Idle, std::memory_order_release);
@@ -333,8 +345,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     if (!header_started) {
         fail(next_epoch, "could not write snapshot header");
         while (cancelled_owners_.load(std::memory_order_acquire) +
-                   finished_owners_.load(std::memory_order_acquire) != executor_count_)
+                   finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+            writer.progress_fused_executor();
             std::this_thread::yield();
+        }
         discard_chunks();
         abort_file();
         server.set_snapshot_atomic_barrier(false);
@@ -347,6 +361,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     if (!is_blocking) return StartResult::Started;
 
     while (phase() == Phase::Capture) {
+        writer.progress_fused_executor();
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
         if (engine_ == PersistIoEngine::Uring)
@@ -357,6 +372,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_ ||
                io_inflight_ != 0) {
+            writer.progress_fused_executor();
             writer_pass(writer, writer_ring, true);
             writer_ring.submit_and_reap();
             if (engine_ == PersistIoEngine::Uring)
@@ -388,15 +404,17 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
 //
 // cuts_waited_ is the non-vacuous part: a drain that never blocks is indistinguishable from a
 // missing one, so the battery asserts this counter advanced.
-void SnapshotManager::drain_atomic_groups(Server& server) {
+void SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer) {
     cuts_armed_.fetch_add(1, std::memory_order_relaxed);
     const uint64_t queued = server.atomic_apply_inflight();
     if (!queued) return;
     cuts_waited_.fetch_add(1, std::memory_order_relaxed);
     drained_groups_.fetch_add(queued, std::memory_order_relaxed);
     while (server.atomic_apply_inflight() != 0 &&
-           !server.shutting_down().load(std::memory_order_relaxed))
+           !server.shutting_down().load(std::memory_order_relaxed)) {
+        writer.progress_fused_executor();
         std::this_thread::yield();
+    }
 }
 
 void SnapshotManager::owner_ready(uint64_t value) {
