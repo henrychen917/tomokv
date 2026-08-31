@@ -846,6 +846,11 @@ grep -q "ERROR: AddressSanitizer" "$SRVLOG" && bad "ASAN clean" || ok "ASAN clea
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
 zcboot(){
+  tools/quietcheck.sh "${GATE_CORES:-192-199}" "$PORT" 2>/tmp/gate-quiet.err || {
+    sleep 3
+    tools/quietcheck.sh "${GATE_CORES:-192-199}" "$PORT" 2>>/tmp/gate-quiet.err || {
+      echo "boot preflight: cores/port not quiet: $(tail -1 /tmp/gate-quiet.err)"; return 1; }
+  }
   SRV=0; SRVLOG=/dev/null
   (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
       && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
