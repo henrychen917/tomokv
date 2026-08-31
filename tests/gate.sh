@@ -64,7 +64,7 @@ redis_cli_expect_ok(){
 make -j12 >/dev/null 2>&1 && ok "release build (+footprint locks)" || bad "release build"
 ASAN=/tmp/tomokv-gate-asan
 g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
-    src/main.cc src/net/tls.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc \
     -o $ASAN -luring -pthread -lssl -lcrypto 2>/dev/null \
     && ok "ASAN build" || bad "ASAN build"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
