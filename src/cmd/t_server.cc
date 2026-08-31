@@ -1694,14 +1694,20 @@ void cmd_info(Shard&, Op& op) {
                 "flipctl_anchor_rate:%.3f\r\nflipctl_signature_band:%.9f\r\n"
                 "flipctl_rate_band:%.9f\r\nflipctl_triggers:%llu\r\n"
                 "flipctl_boot_triggers:%llu\r\nflipctl_fingerprint_triggers:%llu\r\n"
-                "flipctl_collapse_triggers:%llu\r\nflipctl_forced_triggers:%llu\r\n"
+                "flipctl_rate_surge_triggers:%llu\r\n"
+                "flipctl_rate_collapse_triggers:%llu\r\n"
+                "flipctl_surge_triggers:%llu\r\nflipctl_collapse_triggers:%llu\r\n"
+                "flipctl_forced_triggers:%llu\r\n"
                 "flipctl_last_trigger:%s\r\n",
                 ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
                 ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
                 static_cast<unsigned long long>(ctl.triggers),
                 static_cast<unsigned long long>(ctl.boot_triggers),
                 static_cast<unsigned long long>(ctl.fingerprint_triggers),
-                static_cast<unsigned long long>(ctl.collapse_triggers),
+                static_cast<unsigned long long>(ctl.rate_surge_triggers),
+                static_cast<unsigned long long>(ctl.rate_collapse_triggers),
+                static_cast<unsigned long long>(ctl.rate_surge_triggers),
+                static_cast<unsigned long long>(ctl.rate_collapse_triggers),
                 static_cast<unsigned long long>(ctl.forced_triggers),
                 ctl.last_trigger.c_str());
     }

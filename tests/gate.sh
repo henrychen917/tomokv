@@ -448,11 +448,12 @@ python3 tests/spinprobe.py $PORT >/tmp/gate-spinprobe.txt 2>&1 \
     && ok "partial-frame conn parks (no io spin)" || bad "partial-frame conn parks (no io spin)" "see /tmp/gate-spinprobe.txt"
 stop
 boot ./build/tomokv --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
-     --lb-age-sample-rate 1024 || bad "flipctl boot"
+     --flip-auto-band 2 --lb-age-sample-rate 1024 || bad "flipctl boot"
 timeout 300 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
     >/tmp/gate-flipctl.txt 2>&1 \
-    && ok "flip controller: anchor, hold, one re-maneuver" \
-    || bad "flip controller: anchor, hold, one re-maneuver" "see /tmp/gate-flipctl.txt"
+    && ok "flip controller: ramp gate, hold, surge + mix re-maneuvers" \
+    || bad "flip controller: ramp gate, hold, surge + mix re-maneuvers" \
+           "see /tmp/gate-flipctl.txt"
 stop
 boot ./build/tomokv --enable-debug-command yes || bad "flip battery reboot"
 (

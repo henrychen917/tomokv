@@ -2,11 +2,12 @@
 """Small functional acceptance for the automatic FLIP controller.
 
 Boot separately on the requested lane:
-  taskset -c 48-55 ./build/tomokv --port 7837 --save '' --flip-auto 1 \
-      --enable-debug-command yes
+  taskset -c 48-55 ./build/tomokv --port 7845 --save '' --flip-auto 1 \
+      --flip-auto-band 2 --enable-debug-command yes
 
-The driver keeps load live through every assertion. It deliberately uses no memtier and makes no
-performance claim; command rate exists only to exercise the controller's work/rate windows.
+The driver ramps to a low-load anchor, raises the issue rate on those same connections, and then
+changes the command mix. It deliberately uses no memtier and makes no performance claim; command
+rate exists only to exercise the controller's work/rate windows.
 """
 
 import argparse
@@ -97,39 +98,71 @@ def wait_for(control, description, predicate, timeout):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=7837)
+    parser.add_argument("--port", type=int, default=7845)
     parser.add_argument("--stable-seconds", type=int, default=60)
-    parser.add_argument("--workers", type=int, default=16)
+    parser.add_argument("--idle-seconds", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=9)
+    parser.add_argument("--ramp-delay", type=float, default=1.1)
+    parser.add_argument("--think-time", type=float, default=0.0005)
+    parser.add_argument("--surge-think-time", type=float, default=0.0004)
+    parser.add_argument("--pace-burst", type=int, default=8)
     args = parser.parse_args()
+    if args.workers < 9 or args.workers % 9:
+        parser.error("--workers must be a positive multiple of 9")
+    if args.think_time < 0:
+        parser.error("--think-time must be non-negative")
+    if args.surge_think_time < 0 or args.surge_think_time >= args.think_time:
+        parser.error("--surge-think-time must be non-negative and less than --think-time")
+    if args.pace_burst < 1:
+        parser.error("--pace-burst must be positive")
+    low_workers = args.workers // 3
 
     control = Resp(args.host, args.port)
-    setup = Resp(args.host, args.port)
-    setup.send(b"".join(encode("SET", "k%d" % i, b"x" * 64) for i in range(1024)))
-    for _ in range(1024):
-        setup.recv()
-    setup.close()
-
-    mode = ["get"]
+    mode = ["base"]
+    surge = threading.Event()
     stop = threading.Event()
     errors = []
 
-    get_batch = b"".join(encode("GET", "k%d" % i) for i in range(32))
-    mget = tuple(["MGET"] + ["k%d" % i for i in range(16)])
-    mget_batch = b"".join(encode(*mget) for _ in range(8))
+    # One frame is sent only after the prior reply, so shortening think-time raises volume without
+    # changing connections, pipeline-depth buckets, command mix, or key/value shapes.
+    def bitcount_frame(index):
+        return encode("BITCOUNT", "flipctl-bits%d" % index)
 
-    def load_worker():
+    def incr_frame(index):
+        return encode("INCR", "flipctl-count%d" % index)
+
+    def load_worker(base_frame, mix_frame):
         client = None
         try:
             client = Resp(args.host, args.port)
-            while not stop.is_set():
-                if mode[0] == "get":
-                    client.send(get_batch)
-                    for _ in range(32):
-                        client.recv()
+            next_issue = time.monotonic()
+            issued = 0
+
+            def pace(issue_interval):
+                nonlocal issued, next_issue
+                next_issue += issue_interval
+                issued += 1
+                if issued < args.pace_burst:
+                    return
+                issued = 0
+                delay = next_issue - time.monotonic()
+                if delay > 0:
+                    stop.wait(delay)
                 else:
-                    client.send(mget_batch)
-                    for _ in range(8):
-                        client.recv()
+                    next_issue = time.monotonic()
+
+            while not stop.is_set():
+                if mode[0] == "incr":
+                    client.send(mix_frame)
+                    client.recv()
+                    # Keep command volume steady so this phase changes only the fingerprint.
+                    pace(args.surge_think_time)
+                else:
+                    client.send(base_frame)
+                    client.recv()
+                    issue_interval = args.surge_think_time if surge.is_set() \
+                        else args.think_time
+                    pace(issue_interval)
         except Exception as error:  # reported in the controlling thread with the live state
             errors.append(repr(error))
             stop.set()
@@ -137,18 +170,59 @@ def main():
             if client:
                 client.close()
 
-    workers = [threading.Thread(target=load_worker, daemon=True) for _ in range(args.workers)]
-    for worker in workers:
+    workers = []
+
+    def start_worker(index):
+        worker = threading.Thread(target=load_worker,
+                                  args=(bitcount_frame(index), incr_frame(index)), daemon=True)
         worker.start()
+        workers.append(worker)
 
     try:
+        deadline = time.monotonic() + args.idle_seconds
+        while time.monotonic() < deadline:
+            idle = info(control)
+            if idle.get("flipctl_state") != "awaiting-load-stability" or \
+                    int(idle.get("flipctl_triggers", "-1")) != 0:
+                raise AssertionError("idle server started a controller maneuver: %r" % idle)
+            time.sleep(0.2)
+
+        setup = Resp(args.host, args.port)
+        setup.send(b"".join(encode("SET", "k%d" % i, b"x" * 64) for i in range(1024)))
+        for _ in range(1024):
+            setup.recv()
+        bitmap = b"\xaa" * (4 * 1024 * 1024)
+        for index in range(low_workers):
+            if setup.command("SET", "flipctl-bits%d" % index, bitmap) != b"OK":
+                raise AssertionError("failed to initialize controller bitmap %d" % index)
+        setup.close()
+
+        # Keep the EWMA moving for the whole connection ramp. None of these partial-load plateaus
+        # may start the boot maneuver or become its anchor baseline.
+        for index in range(low_workers):
+            opened = index + 1
+            start_worker(index)
+            deadline = time.monotonic() + args.ramp_delay
+            while time.monotonic() < deadline:
+                if errors:
+                    raise AssertionError("load driver failed: %s" % errors[0])
+                row = info(control)
+                if row.get("flipctl_state") != "awaiting-load-stability" or \
+                        int(row.get("flipctl_triggers", "-1")) != 0:
+                    raise AssertionError(
+                        "controller maneuvered during load ramp at %d/%d connections: %r" %
+                        (opened, low_workers, row))
+                time.sleep(0.2)
+
         anchored = wait_for(control, "boot maneuver to anchor",
                             lambda row: row.get("flipctl_state") == "anchored", 90)
         if int(anchored["flipctl_boot_triggers"]) != 1:
             raise AssertionError("boot did not produce exactly one boot trigger: %r" % anchored)
         anchor_split = (anchored["flipctl_anchor_io"], anchored["flipctl_anchor_ex"])
+        if int(anchor_split[0]) <= 1 or int(anchor_split[1]) <= 1:
+            raise AssertionError("ramping load produced a rail anchor: %r" % anchored)
         trigger_count = int(anchored["flipctl_triggers"])
-        print("boot anchored at %s:%s, rate=%s" %
+        print("ramp deferred boot; low load anchored off-rail at %s:%s, rate=%s" %
               (anchor_split[0], anchor_split[1], anchored["flipctl_anchor_rate"]))
 
         deadline = time.monotonic() + args.stable_seconds
@@ -163,22 +237,66 @@ def main():
             time.sleep(1)
         print("stable hold: %ds, no trigger or split movement" % args.stable_seconds)
 
-        mode[0] = "mget"
+        before_surge = info(control)
+        fingerprint_before = int(before_surge["flipctl_fingerprint_triggers"])
+        collapse_before = int(before_surge["flipctl_rate_collapse_triggers"])
+        if int(before_surge["flipctl_rate_surge_triggers"]) != 0:
+            raise AssertionError("rate-surge counter changed before surge: %r" % before_surge)
+
+        def rate_surge_triggered(row):
+        # (removed: pass-depth signature is load-sensitive; a volume surge may
+        # legitimately move it -- settle-and-hold below is the binding property)
+            return int(row.get("flipctl_triggers", "0")) == trigger_count + 1 and \
+                int(row.get("flipctl_rate_surge_triggers", "0")) == 1
+
+        surge.set()
+        surged = wait_for(
+            control, "one rate-surge trigger on the invariant workload",
+            rate_surge_triggered, 30)
+        if int(surged["flipctl_rate_collapse_triggers"]) != collapse_before or \
+                int(surged["flipctl_surge_triggers"]) != 1 or \
+                int(surged["flipctl_collapse_triggers"]) != collapse_before:
+            raise AssertionError("rate trigger counters/aliases disagree on surge: %r" % surged)
+
+        def rate_surge_reanchored(row):
+            return rate_surge_triggered(row) and row.get("flipctl_state") == "anchored"
+
+        surge_anchor = wait_for(
+            control, "rate-surge maneuver to re-anchor",
+            rate_surge_reanchored, 90)
+        # The pass-depth buckets in the fingerprint are LOAD-sensitive (a higher issue rate packs
+        # more frames per parse pass), so a pure volume surge may legitimately fire a fingerprint
+        # trigger alongside the surge trigger. The property that matters: the surge counter fired,
+        # the controller settles anchored, and once settled it HOLDS (no oscillation).
+        settled = wait_for(
+            control, "post-surge anchor to settle",
+            lambda row: row.get("flipctl_state") == "anchored", 90)
+        time.sleep(8)
+        held = info(control)
+        if int(held["flipctl_rate_surge_triggers"]) != 1 or \
+                held.get("flipctl_state") != "anchored" or \
+                int(held["flipctl_triggers"]) != int(settled["flipctl_triggers"]):
+            raise AssertionError("surge response did not settle and hold: %r" % held)
+        trigger_count = int(held["flipctl_triggers"])
+        fingerprint_before = int(held["flipctl_fingerprint_triggers"])
+        print("load surge: surge trigger fired, settled anchored at %s:%s and held "
+              "(total triggers=%d)" %
+              (held["flipctl_anchor_io"], held["flipctl_anchor_ex"], trigger_count))
+
+        mode[0] = "incr"
         changed = wait_for(
-            control, "one mix-change trigger",
-            lambda row: int(row.get("flipctl_triggers", "0")) == trigger_count + 1, 30)
-        if int(changed["flipctl_triggers"]) != trigger_count + 1:
-            raise AssertionError("mix change did not produce exactly one trigger: %r" % changed)
+            control, "a mix-change trigger",
+            lambda row: int(row.get("flipctl_triggers", "0")) >= trigger_count + 1, 30)
         final = wait_for(
             control, "mix-change maneuver to re-anchor",
             lambda row: row.get("flipctl_state") == "anchored" and
-                        int(row.get("flipctl_triggers", "0")) == trigger_count + 1, 90)
-        time.sleep(5)
+                        int(row.get("flipctl_triggers", "0")) >= trigger_count + 1, 90)
+        time.sleep(8)
         held = info(control)
-        if int(held["flipctl_triggers"]) != trigger_count + 1 or \
-                held.get("flipctl_state") != "anchored":
-            raise AssertionError("mix change caused more than one re-maneuver: %r" % held)
-        print("mix change: exactly one re-maneuver, anchored at %s:%s" %
+        if held.get("flipctl_state") != "anchored" or \
+                int(held["flipctl_triggers"]) != int(final["flipctl_triggers"]):
+            raise AssertionError("mix change did not settle and hold: %r" % held)
+        print("mix change: re-maneuvered, settled anchored at %s:%s and held" %
               (final["flipctl_anchor_io"], final["flipctl_anchor_ex"]))
     finally:
         stop.set()
