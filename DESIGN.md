@@ -1,150 +1,123 @@
-# Masked-monolith executor inbox
+# Split-IO batch micro-pipeline
 
-## Scope and invariants
+## Scope
 
-This lane replaces only the `Task` slot topology used for parsed-operation dispatch. Each physical
-thread owns one fixed-capacity `Task` slot array for the periods when that thread is an executor.
-The allocation is made by that physical thread after CPU pinning, and construction first-touches
-every slot there. A thread changing role reuses the same allocation; a FLIP changes only its block
-mask.
+This lane changes only the internal loop of a pure IO thread. The public architecture remains the
+same split: IO owns connections, parsing, ROB production/retirement, and sends; EX exclusively owns
+shard execution. A command still travels:
 
-The existing footprint locks still compile unchanged:
+```
+connection-owning IO -> destination EX -> connection-owning IO
+```
+
+The task and completion transports, their atomics and memory orders, shard ownership, FLIP stages,
+and the EX loop are unchanged. The existing build assertions remain the footprint gate:
 
 - `sizeof(Op) == 336`
 - `sizeof(Client) == 1984`
-- `sizeof(Task) == 32`
 
-No atomic was added to `Op` or `Task`. Each sub-ring retains the old queue's producer-owned `tail`,
-consumer-owned `head` and `retired` frontier, cached peer index, and release/acquire ordering.
-`client_in`, `release_in`, and `transfer_in` are separate transfer paths and retain their existing
-containers.
+No runtime knob, fiber, per-request scheduler/state machine, or new atomic is introduced.
 
-## Allocation and block mask
+## Independent streams
 
-The total array capacity is fixed at boot to:
+Each IO thread advances two independent batch streams. They are not two halves of one request
+batch: an IFID batch comes from this thread's wire connections, while a WB batch comes from any EX
+core that completed operations for those connections.
 
-```
-physical thread count * 1024 Task slots
-```
+### IFID
 
-This is the old worst-case per-consumer burst envelope (`1024` slots from every possible physical
-producer), consolidated into one allocation. It depends on physical thread count, not the live
-io:ex split, and is never resized on the hot path. There is no configuration knob: the existing
-envelope is sufficient, so a capacity override would add an operational choice without a current
-need.
-
-At boot and at `ExInstall`, a consumer assigns every current producer a contiguous power-of-two
-block. A lane descriptor stores `base`, `capacity`, and `mask = capacity - 1`; slot lookup is:
+The IFID stream is:
 
 ```
-slots[base + (monotonic_index & mask)]
+RX/CQE -> RESP parse/decode -> hash/route -> ROB/Task preparation
+       -> quiet SPSC slot/tail publication -> folded destination notifications
 ```
 
-The allocation is 64-byte aligned. `Task` is 32 bytes and every capacity is at least 256 slots, so
-every block begins and ends on cache-line boundaries. Two producers can never write the same cache
-line. Head/retired/cache and tail/cache occupy distinct aligned cache lines exactly as in the old
-SPSC queue.
+CQE/epoll harvesting commits received bytes and marks connections active; it never parses inline.
+The batch then visits at most 16 active connections and publishes at most 32 operations from each
+connection. `parse_and_dispatch` retains all command-specific barriers and continuation behavior.
+Task slots and producer tails are published immediately during parse/hash/route. `IFID.POST` later
+folds the notification/wake edge once per touched destination; only that per-destination list is
+carried between stages, not per-request state.
 
-IO producers receive the burst capacity after the internal reserve, equally rounded down to a
-power of two. The capacity cannot fall below the old 1024 slots per IO producer. The tree also has
-pre-existing direct executor producers: scatter phase 2, script apply, and stale-owner forwarding.
-Relaying those through IO would change semantics and violate the no-relay rule, so each current EX
-producer receives a 256-slot block in the same monolith. `256` is the existing maximum owner-grouped
-bundle, not a tunable number. Unused rounding slack remains unassigned.
+The partial-frame rule from `744cd57f5` is unchanged. `ParseResult::Incomplete` still becomes
+`NeedInput` only when no cursor progress occurred. Such a connection keeps its partial tail, arms a
+receive, and leaves the active set while WB readiness remains independently actionable. The cold
+pre-park sweep rotates through enough fixed batches to inspect the complete active set once before
+sleeping, so bounding the hot IFID batch cannot strand a re-arm.
 
-For the directed 64-thread extremes:
+### WB
 
-| live split | fixed total | IO block | EX direct block |
-| --- | ---: | ---: | ---: |
-| 63:1 | 65,536 slots | 1,024 slots each | 256 slots |
-| 1:63 | 65,536 slots | 32,768 slots | 256 slots each |
+The WB stream is:
 
-Thus the single IO producer inherits the large unreserved part of the burst envelope while the
-63-producer case preserves the old per-producer capacity.
+```
+completion/ready observation -> prefetch -> ordered ROB retirement/reply preparation
+                             -> iovec/SQE construction -> submit -> CQE/send reclamation
+```
 
-Owner-grouped `push_batch` writes consecutive indices inside exactly one producer block and makes
-one release store to that lane's tail. A wrap may split the physical writes at the end of the same
-block, as it did in the old ring; it can never cross into another producer's block.
+`WB.OBSERVE` drains the existing client channels and ready mask, then detaches at most 16 clients
+from `pending_serve_`. Clearing `serve_pending` at detach preserves the old completion race: a new
+completion may enqueue another future visit while this batch is in progress. The existing AOF reply
+gate is checked before detaching a batch.
 
-## Consumer scan and wake protocol
+`WbEngine::prepare*` is the retirement/reply-staging portion of the former `serve*` call.
+`WbEngine::pump*` remains the only constructor of sends and is invoked later by `WB.SUBMIT`. Their
+combination uses the same ROB drain, output-limit behavior, TLS variants, iovec builder, SQE builder,
+and one-send-per-socket rule as before. ROB slots are still retired strictly from `flush_id` through
+the contiguous Done prefix. Send CQEs advance output frontiers and release completed borrows at the
+next RX/CQE boundary, exactly as before.
 
-Every producer has independent head/tail scan points. `task_notify_` remains the active-producer
-summary bitmap: the hot drain takes a word, visits only its set producers, and drains each indicated
-sub-ring. Producers still publish slots before setting the bit, and the consumer still takes the
-bit before draining. The existing read-first `NotifyMask::set` avoids an RMW while a producer is
-already active.
+## Prefetch targets
 
-The bitmap is a hint, not a correctness oracle. There are two independent full lookers:
+WB prefetching has two passes over the detached batch:
 
-1. The existing 100 microsecond depth-sampling beat already reads every producer scan point. If it
-   sees a non-empty task lane without relying on the summary, it republishes that producer hint, so
-   the next ordinary drain serves it even while other lanes keep the executor busy.
-2. Before parking, `drain_tasks_unmasked` still directly drains every producer lane. The subsequent
-   armed-depth recheck prevents sleeping on a push that raced the park protocol.
+1. Hint the `Op::state` line for every outstanding ROB slot, capped by the 64-slot ROB window.
+2. Acquire-load those states in ROB order. For the contiguous Done prefix, hint up to the first
+   512 bytes (eight 64-byte lines) of a plain zero-copy borrow whose `zc_shard` identifies store
+   ownership.
 
-The task monolith has one blocked flag because the old sleep path armed every task channel together.
-This removes sleep-only stores and does not change the producer wake decision or its memory order.
+The acquire in pass 2 is required before reading the non-atomic borrow descriptor written by EX.
+Negative `zc_shard` markers are special retirement state, not store payloads, and are not followed.
+Prefetch is only a cache hint: it does not read/copy reply bytes, create ownership, extend lifetime,
+or alter release-to-shard handling. Reply construction and `sendmsg` continue to borrow the original
+store pointer.
 
-## Stable fast path
+## Static schedule and buffering
 
-`push`, `push_prepared`, `push_batch`, `pop`, and `retire` have the same control-flow and publication
-shape as `ExQueue`:
+All geometry and the exact schedule live in `src/core/iopipe_pipeline.h` as commented compile-time
+constants. One hot rotation is:
 
-- producer: relaxed tail load, the same cached-full branch/acquire refresh, slot writes, one release
-  tail store;
-- consumer: relaxed head load, the same cached-empty branch/acquire refresh, slot read, one release
-  head store;
-- retirement: the same separate release `retired` store;
-- notification: the same summary-bit transition and parked-peer check.
+```
+WB.OBSERVE(W) -> IFID.RX(I) -> WB.PF(W) -> IFID.PARSE+HASH(I)
+              -> WB.RETIRE+PREP(W) -> IFID.POST(I) -> WB.SUBMIT+RECLAIM(W)
+```
 
-There is no role test, remask test, allocation test, growth test, or new branch in post/drain. Block
-base/mask values are tenure-stable descriptor fields. Owner-grouped bulk posting remains one capacity
-preflight and one tail publication.
+Every stage returns immediately when its stream buffer is empty. IFID parse/hash supplies useful
+independent ALU/control work between WB's remote-state/payload hints and retirement. Quiet task
+publication happens during that filler and therefore does not wait for WB; destination doorbells
+are folded at `IFID.POST` and submitted with the prepared WB sends at the early fire point.
 
-## FLIP stage diff
+IFID and WB each own a ping/pong pair and advance their buffer index independently only after a
+non-empty batch completes. The buffers contain only bounded arrays of `Client*` plus WB's
+batch-local submit permission (needed to preserve output-limit suppression). They add nothing to
+`Client`, `Op`, or any cross-thread structure. The full rotation completes before FLIP control runs,
+so no hidden staged reference crosses an IO quiesce/role-conversion boundary.
 
-No stage was added. The current stage order remains:
+The fixed constants are:
 
-1. `IoDrain`
-2. `IoPrepare`
-3. `ExDrain`
-4. `ClientPrepare`
-5. `ClientCommit`
-6. `ClientInstall`
-7. role commit and `RoleReady`
-8. `ShardCommit`
-9. `ExInstall`
-10. completion to `Idle`
+| item | value |
+| --- | ---: |
+| IFID buffers | 2 |
+| IFID clients per batch | 16 |
+| IFID operations per client | 32 |
+| WB buffers | 2 |
+| WB clients per batch | 16 |
+| WB ready-state hints per client | 64 |
+| borrowed payload hint window | 512 bytes |
+| completion backstop cadence | 64 rotations |
 
-The transport-specific differences are inside the standing steps:
+## Validation posture
 
-| stage | existing obligation | masked-inbox delta |
-| --- | --- | --- |
-| `IoDrain` through `IoPrepare` | pause new dispatch; drain IO work; prepare destinations | none |
-| `ExDrain` | drain retries/tasks/releases/AOF/notifications and acknowledge only when `flip_quiesced()` | `ex_inbound_quiesced()` now checks every monolith lane's `retired == tail`; converting and surviving producers are therefore parked with no claimed task left in a block |
-| `ClientPrepare` through `RoleReady` | move clients, commit roles, activate dormant loops, and wait for ready roles | none; the old mask remains untouched while rollback is still possible |
-| `ShardCommit` | publish final shard owners | none |
-| `ExInstall` | rebind each final executor's shard notification pointers, acknowledge; coordinator completes after all EX acks | **before rebinding/ack**, each final executor calls `remask_task_inbox_quiesced(final_io, final_ex)` inside its existing allocation |
-
-`ExInstall` is after the irreversible role/shard decision and before dispatch resumes. Remasking is
-plain descriptor mutation on the consumer thread. Its acknowledgement is a release publication;
-the coordinator acquire-observes all acknowledgements before publishing `Idle`, and producers
-acquire-observe that stage before dispatching again. No producer can read a partially installed
-base/mask. A pre-commit rollback never remasks and therefore needs no inverse operation.
-
-## Cold growth discipline
-
-The selected fixed envelope has no runtime growth trigger. `MaskedSpscArray::grow_quiesced` exists
-for a future explicit capacity increase and refuses unless every lane is quiesced. It allocates and
-first-touches a replacement on the consumer thread, installs a fresh mask, then releases the old
-array. A caller must place it at the same parked point as the `ExInstall` remask; it is intentionally
-unreachable from post, drain, backpressure, or any other hot path.
-
-## Directed functional proof
-
-`tests/spscmask_flip.py` requires a 64-thread 63:1 boot. Its gated `DEBUG IO-THREAD` observation
-retains one live connection from every initial IO owner, proving all 63 producer lanes fire. Every
-connection continuously pipelines ordered `SET key sequence` / `GET key` pairs while the control
-connection flips 63:1 to 1:63 and back. The test requires every stream counter to advance under all
-three installed masks, checks every reply position, drains every pipeline, and point-reads the final
-acknowledged value for all 63 keys.
+This is a functional experiment, not a performance claim. The operator must measure loopback p1
+and p128 and then the NIC cells before considering a merge; the send-path result remains NIC-gated.
+The lane's functional acceptance uses port 7844 and cores 48–55 only.

@@ -533,8 +533,8 @@ bool IoLoop::climon_reply_suppressed(Client* client) {
     return state && state->reply_mode != kClimonReplyOn;
 }
 
-uint32_t IoLoop::climon_serve_suppressed(Client* client) {
-    const bool did = wb_.serve_suppressing(*client);
+uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
+    const bool did = wb_.prepare_suppressing(*client, submit_allowed);
     ClimonConn* state = climon_conn_find(client->id());
     // A one-shot SKIP disarms once its marked op has actually retired -- not when it was marked,
     // or the suppressing variant would stop being selected before the reply reached the drain.
