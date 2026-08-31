@@ -207,25 +207,10 @@ public:
                          "fatal: --smt-mode could not read Linux thread_siblings_list topology\n");
             return false;
         }
-        // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
-        // the measured 2s center (4:4-class) generalized to any core count.
-        uint32_t di = cfg.even_ifid, de = cfg.even_ex;
-        if (!cfg.place && !(di | de)) {
-            uint32_t n = 0;
-            for (uint32_t d = 0; d < topo_.ndomains(); d++)
-                n += static_cast<uint32_t>(topo_.cpus_in(d).size());
-            di = n - n / 2; de = n / 2;
-        }
-        const bool placed = cfg.place
-            ? placement_.build_explicit(topo_, cfg.place)
-            : placement_.build_even(topo_, di, de, cfg.smt_mode != 0);
+        const bool placed = placement_.build_generalized(topo_, cfg.place);
         if (!placed) return false;
         if (!placement_.configure_smt_units(topo_, cfg.smt_mode != 0)) return false;
         if (!placement_.reserve_runtime_roles(placement_.total_threads())) return false;
-        if (placement_.ifid_threads().empty() || placement_.ex_threads().empty()) {
-            std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
-            return false;
-        }
         unix_owner_tid_ = cfg.unixsocket && *cfg.unixsocket
             ? placement_.ifid_threads().front() : UINT32_MAX;
         if (!adjust_open_files_limit()) return false;
@@ -324,6 +309,7 @@ public:
     }
 
     const Config&    cfg()        const { return cfg_; }
+    static constexpr bool generalized_threads() { return true; }
 
     bool lb_machinery_enabled() const {
         return cfg_.lb_sample_rate && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
@@ -547,8 +533,8 @@ public:
                ((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()));
     }
     bool lb_all_ex_acked() const {
-        for (uint32_t tid = 0; tid < nthreads(); tid++)
-            if (thread(tid).role() == Role::Ex && !lb_acked(tid)) return false;
+        for (uint32_t tid : placement_.ex_threads())
+            if (!lb_acked(tid)) return false;
         return true;
     }
     uint64_t lb_ticks() const { return lb_ticks_.load(std::memory_order_relaxed); }
@@ -976,11 +962,8 @@ public:
             }
             std::vector<uint32_t> executors;
             std::vector<uint32_t> ios;
-            for (uint32_t tid = 0; tid < nthreads(); tid++) {
-                const Role role = thread(tid).role();
-                if (key_enabled && role == Role::Ex) executors.push_back(tid);
-                else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
-            }
+            if (key_enabled) executors = placement_.ex_threads();
+            if (client_enabled) ios = placement_.ifid_threads();
 
             auto spread = [](const double* loads, const std::vector<uint32_t>& owners) {
                 if (owners.empty()) return 0.0;
@@ -1768,7 +1751,7 @@ public:
                                          uint32_t destination) {
         if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
             destination >= threads_.size() || source == destination) return false;
-        if (threads_[source]->role() != Role::Ex || threads_[destination]->role() != Role::Ex)
+        if (!placement_.is_executor(source) || !placement_.is_executor(destination))
             return false;
 
         // FlatStore is the lock-free physical ownership unit. Accept a range of one or more whole
@@ -1824,9 +1807,7 @@ public:
         if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) return false;
         Shard& shard = *shards_[static_cast<uint32_t>(shard_id)];
         if (source >= threads_.size() || destination >= threads_.size() || source == destination ||
-            threads_[source]->role() != Role::Ex ||
-            (threads_[destination]->role() != Role::Ex &&
-             !(flip_stage() != FlipStage::Idle && flip_final_role(destination) == Role::Ex)) ||
+            !placement_.is_executor(source) || !placement_.is_executor(destination) ||
             worker_of_shard(shard_id) != source) return false;
         auto& from = threads_[source]->shards();
         auto& to = threads_[destination]->shards();

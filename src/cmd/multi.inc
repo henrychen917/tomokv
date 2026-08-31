@@ -1380,7 +1380,7 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         needed[loop.srv_->worker_of_shard(sid)]++;
     }
     for (uint32_t tid = 0; tid < loop.srv_->nthreads(); tid++) {
-        if (needed[tid] &&
+        if (tid != loop.self_->id() && needed[tid] &&
             loop.srv_->thread(tid).task_free_slots(loop.self_->id()) < needed[tid]) {
             // Returning through the one parse-loop continuation reaches the existing top-of-loop
             // backpressure check, which has the same effect as the old in-line break.
@@ -1457,17 +1457,24 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     client.atomic_group_started();
     rob.publish();
     multi_dispatch_started(client, dispatch);
+    loop.barrier_arm(&client, BarrierOwner::Exec);
     LoopSignals& sig = loop.self_->sig();
     for (uint32_t i = 0; i < count; i++) {
         const int32_t sid = multi_dispatch_shard(dispatch, i);
         const uint32_t tid = loop.srv_->worker_of_shard(sid);
-        ThreadCtx& owner = loop.srv_->thread(tid);
         const Task task = multi_make_task(&client, op_id, sid, dispatch);
+        if (tid == loop.self_->id()) continue;
+        ThreadCtx& owner = loop.srv_->thread(tid);
         if (!owner.post_task_quiet(loop.self_->id(), task, sig)) std::abort();
         if (!loop.touched_[tid]) {
             loop.touched_[tid] = true;
             loop.touched_list_[loop.ntouched_++] = tid;
         }
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        const int32_t sid = multi_dispatch_shard(dispatch, i);
+        if (loop.srv_->worker_of_shard(sid) == loop.self_->id())
+            loop.execute_local_task(multi_make_task(&client, op_id, sid, dispatch));
     }
     loop.self_->note_command(op.spec->id);
     client.advance_parse(consumed);
@@ -1476,7 +1483,6 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     // so "nothing in flight" and "this transaction is done" are the same instant. Unlike a blocking
     // command, EXEC takes the barrier WITHOUT requiring an empty ROB -- older ops of this
     // connection may still be in flight when it does.
-    loop.barrier_arm(&client, BarrierOwner::Exec);
     loop.mark_active(&client);
     return true;
 }

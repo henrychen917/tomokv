@@ -1467,40 +1467,7 @@ bool info_section(Op& op, const char* wanted, bool included_by_default = true) {
 }
 
 void cmd_flip(Shard&, Op& op) {
-    if (!g_server) { reply_err(op.sink(), "ERR server is not initialized"); return; }
-    if (op.argc() != 1) {
-        // The three-argument mutation form is intercepted by IoLoop and completed asynchronously.
-        // Reaching the ordinary local handler means the grammar was neither report nor mutation.
-        reply_err(op.sink(), "ERR wrong number of arguments for 'flip' command");
-        return;
-    }
-    const FlipReport report = g_server->flip_report();
-    auto sink = op.sink();
-    reply_map_header(sink, 12, op.resp3());
-    reply_bulk(sink, Slice("live_io", 7));
-    reply_int(sink, report.live_io);
-    reply_bulk(sink, Slice("live_ex", 7));
-    reply_int(sink, report.live_ex);
-    reply_bulk(sink, Slice("target_io", 9));
-    reply_int(sink, report.target_io);
-    reply_bulk(sink, Slice("target_ex", 9));
-    reply_int(sink, report.target_ex);
-    reply_bulk(sink, Slice("smt_mode", 8));
-    reply_int(sink, report.smt_mode);
-    reply_bulk(sink, Slice("unit_threads", 12));
-    reply_int(sink, report.unit_threads);
-    reply_bulk(sink, Slice("bucket_min", 10));
-    reply_int(sink, report.bucket_min);
-    reply_bulk(sink, Slice("bucket_max", 10));
-    reply_int(sink, report.bucket_max);
-    reply_bulk(sink, Slice("client_min", 10));
-    reply_int(sink, report.client_min);
-    reply_bulk(sink, Slice("client_max", 10));
-    reply_int(sink, report.client_max);
-    reply_bulk(sink, Slice("last_transfers", 14));
-    reply_int(sink, report.last_transfers);
-    reply_bulk(sink, Slice("moving", 6));
-    reply_bool(sink, report.moving, op.resp3());
+    reply_err(op.sink(), "ERR FLIP is unavailable in generalized-thread mode");
 }
 
 void cmd_info(Shard&, Op& op) {
@@ -1637,6 +1604,7 @@ void cmd_info(Shard&, Op& op) {
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
         // opaque "boot/cell FAIL" long before any measurement was taken.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
+                      "thread_model:generalized\r\ngeneralized_threads:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
@@ -1644,7 +1612,7 @@ void cmd_info(Shard&, Op& op) {
                       "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
                       "flip_client_min:%u\r\nflip_client_max:%u\r\n"
                       "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
-                kVersion, kVersion, sizeof(void*) * 8,
+                kVersion, kVersion, g_server ? g_server->nthreads() : 0, sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
@@ -2163,7 +2131,7 @@ static const CommandSpec kTable[] = {
     {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
     {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
                           CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
-                          CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
+                          CmdFlags::NoAsyncLoading,                                 cmd_flip,       0,  0, 0},
     {"INFO",       1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
         {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},

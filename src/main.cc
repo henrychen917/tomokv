@@ -1,8 +1,6 @@
 // main.cc — boot, thread launch, pinning, shutdown.
 //
-// PURE 2s (owner ruling 2026-08-24): io threads receive, parse, dispatch, retire and send;
-// executors execute. The 3s posture was measured exhaustively and deleted -- see wb.h's header
-// for the evidence. --mode/--wb survive only to reject scripts that still ask for 3s.
+// Generalized-thread ablation: every physical thread owns a network loop and a shard executor.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -245,15 +243,11 @@ int main(int argc, char** argv) {
     }
 
     srv.topo().dump(stdout);
-    const char* mname = "2s (io sends)";
-    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s), %s,"
-                " %s, alloc=%s\n", srv.nthreads(),
-                srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                cfg.shards, mname,
+    std::printf("tomokv-cpp: %u generalized threads, %u shard(s), generalized,"
+                " %s, alloc=%s\n", srv.nthreads(), cfg.shards,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
-        const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";
-        std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu send=", p.id, role, p.cpu,
+        std::printf("  thread t%u: role=generalized cpu=%d L3=%u shards=%zu send=", p.id, p.cpu,
                     p.domain, srv.thread(p.id).shards().size());
         std::printf("self\n");
     }
@@ -268,7 +262,10 @@ int main(int argc, char** argv) {
     std::mutex load_mu;
     std::condition_variable load_cv;
     uint32_t loaders_done = 0;
+    uint32_t runners_ready = 0;
     bool load_ok = true;
+    bool serve_start = false;
+    bool run_start = false;
     std::string load_error;
     for (uint32_t i = 0; i < nthreads; i++) g_threads.push_back(&srv.thread(i));
 
@@ -276,16 +273,16 @@ int main(int argc, char** argv) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };
 
-    // Workers and senders BEFORE io: an io thread that dispatches or hands off to a thread whose
-    // ring does not exist yet would find nothing to wake, and the work would sit until something
-    // unrelated poked the peer.
-    for (uint32_t tid : srv.placement().ex_threads())
+    const uint32_t unix_owner = srv.placement().ifid_threads().front();
+    // Every physical thread provisions both halves before any listener is activated. Main waits
+    // for all owners to load, probes the port, then releases this one start barrier.
+    for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
-            self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
-            bind_thread_arena();                // per-worker jemalloc arena; no-op without it
-            bool ok = exs[tid].init(&srv, &self);
+            self.latch_placement(srv.topo());
+            bind_thread_arena();
+            bool ok = exs[tid].init(&srv, &self, true);
             std::string local_error;
             if (ok && aof_base_plan)
                 ok = snapshot_load_owned(*aof_base_plan, srv, self, local_error);
@@ -296,12 +293,9 @@ int main(int argc, char** argv) {
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
-            // Provision the opposite loop before runtime mutation is possible. Dormant IO creates
-            // its ring/epoll/WB state but no listener and does not bind AOF, so boot loading still
-            // happens before any connection can arrive and before the initial AOF writer exists.
-            if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
-                                   tls_context.get(), true);
+            const int unix_fd = tid == unix_owner ? unix_listener : -1;
+            if (ok) ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
+                                       tls_context.get(), true);
             if (ok)
                 self.bind_io_role_hooks(
                     &ios[tid],
@@ -320,6 +314,21 @@ int main(int argc, char** argv) {
                     [](void* p, uint32_t incoming) {
                         return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                     });
+            if (ok) {
+                exs[tid].activate_fused();
+                ios[tid].bind_fused_executor(&exs[tid]);
+                exs[tid].bind_fused_completion(
+                    &ios[tid],
+                    [](void* p, Client* client) {
+                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
+                    });
+                self.bind_fused_executor_hooks(
+                    &exs[tid],
+                    [](void* p) { return static_cast<ExLoop*>(p)->fused_pass(); },
+                    [](void* p, SnapshotManager* manager) {
+                        static_cast<ExLoop*>(p)->fused_snapshot_start(manager);
+                    });
+            }
             {
                 std::lock_guard<std::mutex> lock(load_mu);
                 if (!ok) {
@@ -329,26 +338,28 @@ int main(int argc, char** argv) {
                 }
                 loaders_done++;
             }
-            load_cv.notify_one();
+            load_cv.notify_all();
             if (!ok) return;
-            for (;;) {
-                if (self.stop_flag().load(std::memory_order_relaxed)) break;
-                const Role role = self.role();
-                if (role == Role::Ex) {
-                    exs[tid].activate();
-                    self.publish_ready_role(Role::Ex);
-                    exs[tid].run();
-                    self.publish_ready_role(Role::Idle);
-                } else if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) std::abort();
-                    self.publish_ready_role(Role::Ifid);
-                    ios[tid].run();
-                    self.publish_ready_role(Role::Idle);
-                    if (!self.stop_flag().load(std::memory_order_relaxed)) ios[tid].deactivate();
-                } else {
-                    std::this_thread::yield();
-                }
+            {
+                std::unique_lock<std::mutex> lock(load_mu);
+                load_cv.wait(lock, [&] {
+                    return serve_start || self.stop_flag().load(std::memory_order_relaxed);
+                });
             }
+            if (self.stop_flag().load(std::memory_order_relaxed)) return;
+            if (!ios[tid].activate()) std::abort();
+            {
+                std::unique_lock<std::mutex> lock(load_mu);
+                runners_ready++;
+                load_cv.notify_all();
+                load_cv.wait(lock, [&] {
+                    return run_start || self.stop_flag().load(std::memory_order_relaxed);
+                });
+            }
+            if (self.stop_flag().load(std::memory_order_relaxed)) return;
+            self.publish_ready_role(Role::Ifid);
+            ios[tid].run();
+            self.publish_ready_role(Role::Idle);
         });
 
     // Main performed every read(2); the real owning executor threads now deserialize their own
@@ -356,11 +367,16 @@ int main(int argc, char** argv) {
     {
         std::unique_lock<std::mutex> lock(load_mu);
         load_cv.wait(lock, [&] {
-            return loaders_done == static_cast<uint32_t>(srv.placement().ex_threads().size());
+            return loaders_done == nthreads;
         });
     }
     if (!load_ok) {
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        {
+            std::lock_guard<std::mutex> lock(load_mu);
+            serve_start = true;
+        }
+        load_cv.notify_all();
         for (auto& thread : pool) thread.join();
         std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
         return 1;
@@ -374,6 +390,8 @@ int main(int argc, char** argv) {
         if (probe < 0) {
             std::perror("bind");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+            { std::lock_guard<std::mutex> lock(load_mu); serve_start = true; }
+            load_cv.notify_all();
             for (auto& thread : pool) thread.join();
             return 1;
         }
@@ -385,58 +403,25 @@ int main(int argc, char** argv) {
         if (probe < 0) {
             std::perror("bind tls-port");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+            { std::lock_guard<std::mutex> lock(load_mu); serve_start = true; }
+            load_cv.notify_all();
             for (auto& thread : pool) thread.join();
             return 1;
         }
         ::close(probe);
     }
 
-    const uint32_t unix_owner = srv.placement().ifid_threads().front();
-    for (uint32_t tid : srv.placement().ifid_threads())
-        pool.emplace_back([&, tid] {
-            pin_for(tid);
-            ThreadCtx& self = srv.thread(tid);
-            self.latch_placement(srv.topo());
-            const int unix_fd = tid == unix_owner ? unix_listener : -1;
-            // Provision dormant EX first; active IO then republishes its own ring as the current
-            // role endpoint. No runtime conversion can fail later for lack of a ring.
-            if (!exs[tid].init(&srv, &self, true)) return;
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
-                               tls_context.get())) return;
-            self.bind_io_role_hooks(
-                &ios[tid],
-                [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
-                [](void* p) { static_cast<IoLoop*>(p)->cancel_prepared_activation(); });
-            self.bind_client_registration_hooks(
-                [](void* p, Client* client) {
-                    return static_cast<IoLoop*>(p)->prepare_client_registration(client);
-                },
-                [](void* p, Client* client) {
-                    static_cast<IoLoop*>(p)->cancel_client_registration(client);
-                });
-            self.bind_client_capacity_hook(
-                [](void* p, uint32_t incoming) {
-                    return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
-                });
-            for (;;) {
-                if (self.stop_flag().load(std::memory_order_relaxed)) break;
-                const Role role = self.role();
-                if (role == Role::Ifid) {
-                    if (!ios[tid].activate()) std::abort();
-                    self.publish_ready_role(Role::Ifid);
-                    ios[tid].run();
-                    self.publish_ready_role(Role::Idle);
-                    if (!self.stop_flag().load(std::memory_order_relaxed)) ios[tid].deactivate();
-                } else if (role == Role::Ex) {
-                    exs[tid].activate();
-                    self.publish_ready_role(Role::Ex);
-                    exs[tid].run();
-                    self.publish_ready_role(Role::Idle);
-                } else {
-                    std::this_thread::yield();
-                }
-            }
-        });
+    {
+        std::lock_guard<std::mutex> lock(load_mu);
+        serve_start = true;
+    }
+    load_cv.notify_all();
+    {
+        std::unique_lock<std::mutex> lock(load_mu);
+        load_cv.wait(lock, [&] { return runners_ready == nthreads; });
+        run_start = true;
+    }
+    load_cv.notify_all();
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
@@ -455,10 +440,10 @@ int main(int argc, char** argv) {
 
     // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
     // evidence of what it did.
-    uint64_t ops = 0, disp = 0;
+    uint64_t work = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
-        (srv.thread(i).role() == Role::Ifid ? disp : ops) += s.ops;
+        work += s.ops;
     }
     uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0, ndrop = 0;
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
@@ -472,18 +457,14 @@ int main(int argc, char** argv) {
                 "thread","role","ops","iters","busy_ms","idle_ms","cpu_ms","wake_tx","wake_rx");
     for (uint32_t i = 0; i < srv.nthreads(); i++) {
         const LoopSignals& s = srv.thread(i).sig();
-        const Role r = srv.thread(i).role();
         std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
-                    r == Role::Ifid ? "io" : "ex",
+                    "gen",
                     (unsigned long long)s.ops, (unsigned long long)s.iterations,
                     s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
                     (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
     }
-    // WHERE DID THE REPLIES GO. dispatched==executed only proves the STORE finished its work; it
-    // says nothing about whether the answer reached the socket. These three levels localise a stall
-    // to one hop: retired < executed means replies are stranded in the ROB (the sender was never
-    // told). retired == executed with bytes_sent short means they are staged but unsent (the pump
-    // was never re-triggered). Both looked identical from outside before this existed.
+    // WHERE DID THE REPLIES GO. In fused mode the shared work counter cannot split dispatch from
+    // execution, so the ROB and write-buffer levels below remain the useful shutdown checks.
     WbEngine::Stats w{};
     auto addw = [&](const WbEngine::Stats& x) {
         w.sends_submitted += x.sends_submitted; w.sends_completed += x.sends_completed;
@@ -593,9 +574,9 @@ int main(int argc, char** argv) {
         std::printf("epoll: events=%llu recvs=%llu\n",
                     (unsigned long long)epoll_events, (unsigned long long)epoll_recvs);
     }
-    std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
+    std::printf("shutdown: generalized_work=%llu accepts=%llu accept_err=%llu "
                 "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
-                static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),
+                static_cast<unsigned long long>(work),
                 static_cast<unsigned long long>(acc), static_cast<unsigned long long>(aerr),
                 static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved),
                 static_cast<unsigned long long>(ndrop));

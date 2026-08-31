@@ -442,9 +442,8 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     return true;
 }
 
-// Cross-source state: --ratio and --place are mutually exclusive WITHIN a source; across sources
-// the later one (CLI over conf) silently replaces the earlier, which is what "base conf, per-run
-// shape override" bench scripts want.
+// Cross-source state retained for the explicit placement parser.  The generalized-thread
+// experiment rejects --ratio because there is no io/ex partition to size.
 struct ConfigParseState {
     int ratio_source = 0;   // 0 = unset, 1 = conf, 2 = cli
     int place_source = 0;
@@ -643,24 +642,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
-        // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
-        // This is the runtime replacement for authoring --place strings offline, and the knob a
-        // flip controller will drive: counts in, placement out, no per-node arithmetic.
         else if (!std::strcmp(a, "--ratio")) {
-            if (st.place_source == source) {
-                std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
-                return kConfigError;
-            }
-            if (st.place_source) { cfg.place = nullptr; st.place_source = 0; }
-            st.ratio_source = source;
-            const char* v = next("");
-            unsigned a2 = 0, b = 0, c = 0;
-            const int got = std::sscanf(v, "%u:%u:%u", &a2, &b, &c);
-            if (got != 2 || a2 == 0 || b == 0) {
-                std::fprintf(stderr, "--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24\n");
-                return kConfigError;
-            }
-            cfg.even_ifid = a2; cfg.even_ex = b;
+            (void)next("");
+            std::fprintf(stderr,
+                         "--ratio is unavailable in generalized-thread mode: every thread does networking and execution\n");
+            return kConfigError;
         }
         else if (!std::strcmp(a, "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
         else if (!std::strcmp(a, "--smt-mode")) {
@@ -982,11 +968,6 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             cfg.node_cpus = next("");
         }
         else if (!std::strcmp(a, "--place")) {
-            if (st.ratio_source == source) {
-                std::fprintf(stderr, "--ratio and --place are mutually exclusive\n");
-                return kConfigError;
-            }
-            if (st.ratio_source) { cfg.even_ifid = cfg.even_ex = 0; st.ratio_source = 0; }
             st.place_source = source;
             cfg.place = next("");
         }
@@ -996,9 +977,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
-                        "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
-                        "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
+                        "  placement (generalized threads; default = every allowed cpu):\n"
+                        "    --place role@cpu,...        explicit cpu list; legacy role labels are ignored\n"
                         "    --l3-domains LIST           declared L3 topology, ranges joined by +\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
@@ -1044,7 +1024,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"
-                        "  (pure 2s is the only server; --mode/--wb/--nodes died with 3s, 2026-08)\n",
+                        "  (--ratio is rejected: generalized mode has no io/ex role split)\n",
                         prog);
             return kConfigHelp;
         }

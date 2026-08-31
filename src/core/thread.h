@@ -44,6 +44,7 @@ namespace tomo {
 class Client;
 class Ring;
 class WbEngine;
+class SnapshotManager;
 
 // Heap-side multi-shard state is deliberately opaque here.  Its vectors, result slots and phase
 // bookkeeping live in cmd/xshard so neither Task nor the footprint-locked Op grows.
@@ -111,6 +112,8 @@ public:
     using ClientRegistrationPrepareFn = bool (*)(void*, Client*);
     using ClientRegistrationCancelFn = void (*)(void*, Client*);
     using ClientCapacityPrepareFn = bool (*)(void*, uint32_t);
+    using ExecutorProgressFn = uint32_t (*)(void*);
+    using SnapshotStartFn = void (*)(void*, SnapshotManager*);
     ThreadCtx() = default;
     ThreadCtx(const ThreadCtx&) = delete;
     ThreadCtx& operator=(const ThreadCtx&) = delete;
@@ -172,6 +175,18 @@ public:
     }
     bool prepare_client_capacity(uint32_t incoming) {
         return client_capacity_prepare_ && client_capacity_prepare_(io_role_context_, incoming);
+    }
+    void bind_fused_executor_hooks(void* context, ExecutorProgressFn progress,
+                                   SnapshotStartFn snapshot_start) {
+        fused_executor_context_ = context;
+        executor_progress_ = progress;
+        snapshot_start_ = snapshot_start;
+    }
+    uint32_t progress_fused_executor() {
+        return executor_progress_ ? executor_progress_(fused_executor_context_) : 0;
+    }
+    void begin_fused_snapshot(SnapshotManager* manager) {
+        if (snapshot_start_) snapshot_start_(fused_executor_context_, manager);
     }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
@@ -603,6 +618,9 @@ private:
     ClientRegistrationPrepareFn client_registration_prepare_ = nullptr;
     ClientRegistrationCancelFn client_registration_cancel_ = nullptr;
     ClientCapacityPrepareFn client_capacity_prepare_ = nullptr;
+    void* fused_executor_context_ = nullptr;
+    ExecutorProgressFn executor_progress_ = nullptr;
+    SnapshotStartFn snapshot_start_ = nullptr;
 
     int      cpu_    = -1;
     uint32_t domain_ = kNoDomain;

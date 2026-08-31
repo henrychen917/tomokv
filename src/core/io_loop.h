@@ -31,6 +31,7 @@
 #include <unordered_set>
 #include <vector>
 #include "server.h"
+#include "ex_loop.h"
 #include "signal.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
@@ -63,6 +64,12 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 class IoLoop {
 public:
     WbEngine& engine() { return wb_; }
+    void bind_fused_executor(ExLoop* executor) { executor_ = executor; }
+    void fused_executor_completion(Client* client) {
+        if (!client || client->dead()) return;
+        enqueue_serve(client);
+        mark_active(client);
+    }
     uint32_t reap_atomic_deferred() {
         return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
     }
@@ -514,6 +521,7 @@ private:
                 // stream, and therefore this switch, is identical. See uring.h.
                 did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
+                did += executor_->fused_pass();
                 did += service_client_migrations<kEp>();
                 did += drain_client_transfers<kEp>();
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
@@ -880,7 +888,9 @@ private:
                 case UrKind::Recv: on_recv<false, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
                 case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
-                case UrKind::SnapshotStart: break;
+                case UrKind::SnapshotStart:
+                    executor_->fused_snapshot_start(ur_ptr<SnapshotManager>(cqe->user_data));
+                    break;
                 case UrKind::AofIo:
                     srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                cqe->res); break;
@@ -909,7 +919,9 @@ private:
                     on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
                                        TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
-                case UrKind::SnapshotStart: break;
+                case UrKind::SnapshotStart:
+                    executor_->fused_snapshot_start(ur_ptr<SnapshotManager>(cqe->user_data));
+                    break;
                 case UrKind::AofIo:
                     srv_->aof().on_io_complete(*self_, ring_, ur_ptr<void>(cqe->user_data),
                                                cqe->res); break;
@@ -2485,7 +2497,7 @@ subscriber_checks_done:
                 }
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
-                    if (needed[tid] &&
+                    if (tid != self_->id() && needed[tid] &&
                         srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false;
                         break;
@@ -2499,28 +2511,37 @@ subscriber_checks_done:
                 op->attach_blocking_state(dispatch.state);
                 blocking_start(dispatch.state, dispatch.nshards);
                 rob.publish();
+                c->set_blocked(true);
+                barrier_arm(c, BarrierOwner::Blocking);
+                if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
+                    barrier_arm(c, BarrierOwner::Debug);
                 for (uint32_t i = 0; i < dispatch.nshards; i++) {
                     const int32_t sid = blocking_dispatch_shard(dispatch, i);
                     const uint32_t tid = srv_->worker_of_shard(sid);
-                    ThreadCtx& owner = srv_->thread(tid);
                     const Task task{c, op_id, sid,
                                     reinterpret_cast<ScatterState*>(dispatch.state)};
+                    if (tid == self_->id()) continue;
+                    ThreadCtx& owner = srv_->thread(tid);
                     if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
                     if (!touched_[tid]) {
                         touched_[tid] = true;
                         touched_list_[ntouched_++] = tid;
                     }
                 }
+                for (uint32_t i = 0; i < dispatch.nshards; i++) {
+                    const int32_t sid = blocking_dispatch_shard(dispatch, i);
+                    if (srv_->worker_of_shard(sid) == self_->id())
+                        execute_local_task(Task{c, op_id, sid,
+                            reinterpret_cast<ScatterState*>(dispatch.state)});
+                }
                 self_->note_command(spec->id);
                 conn.advance_parse(consumed);
                 sig.ops++;
-                c->set_blocked(true);
                 // The Blocking owner spans the WHOLE parked lifetime, including the move scatter
                 // blocking_resume_move() converts this op into: that conversion reuses the ROB
                 // slot and inherits this claim rather than taking a second one, so exactly one
                 // acquire is matched by exactly one release in blocking_retire() OR
                 // blocking_scatter_retire(), whichever of the two exits runs.
-                barrier_arm(c, BarrierOwner::Blocking);
                 // TEST HOOK (DEBUG BARRIER-HOLD): pin a SECOND owner on this connection so the
                 // blocking release has something to fail to drop. The geometry it manufactures is
                 // unreachable in production -- which is exactly why it has to be injected.
@@ -2530,8 +2551,6 @@ subscriber_checks_done:
                 // exactly one overlap, which is what proves the counter can count. The production
                 // assertion (overlaps == 0) is then read from a phase where the latch is off, and
                 // means something, instead of being a number nothing was ever able to move.
-                if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
-                    barrier_arm(c, BarrierOwner::Debug);
                 mark_active(c);
                 break;
             }
@@ -2595,7 +2614,8 @@ nonblocking_dispatch:
                     bool room = true;
                     for (uint32_t p = 0; p < nparticipants; p++) {
                         const uint32_t tid = participants[p];
-                        if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        if (tid != self_->id() &&
+                            srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                             room = false;
                             break;
                         }
@@ -2609,22 +2629,28 @@ nonblocking_dispatch:
                     const uint64_t op_id = rob.dispatch_id();
                     op->attach_scatter_state(scatter_dispatch.state);
                     rob.publish();
+                    if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                     for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                         const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
                         const uint32_t tid = srv_->worker_of_shard(sid);
-                        ThreadCtx& owner = srv_->thread(tid);
                         const Task task{c, op_id, sid, scatter_dispatch.state};
+                        if (tid == self_->id()) continue;
+                        ThreadCtx& owner = srv_->thread(tid);
                         if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
                         if (!touched_[tid]) {
                             touched_[tid] = true;
                             touched_list_[ntouched_++] = tid;
                         }
                     }
+                    for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
+                        const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
+                        if (srv_->worker_of_shard(sid) == self_->id())
+                            execute_local_task(Task{c, op_id, sid, scatter_dispatch.state});
+                    }
                     self_->note_command(spec->id);
                     conn.advance_parse(consumed);
                     sig.ops++;
                     head_candidate = false;
-                    if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                     mark_active(c);
                     continue;
                 }
@@ -2644,7 +2670,8 @@ nonblocking_dispatch:
                 bool room = true;
                 for (uint32_t p = 0; p < nparticipants; p++) {
                     const uint32_t tid = participants[p];
-                    if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                    if (tid != self_->id() &&
+                        srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
                         room = false; break;
                     }
                 }
@@ -2656,6 +2683,7 @@ nonblocking_dispatch:
                 op->attach_scatter_state(scatter_dispatch.state);
                 c->atomic_group_started();
                 rob.publish();
+                if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                 Task posts[256];
                 uint16_t participant_begin[kMaxThreads];
                 uint32_t cursor = 0;
@@ -2676,6 +2704,7 @@ nonblocking_dispatch:
                     const uint32_t begin = participant_begin[p];
                     const uint32_t end = p + 1 < nparticipants
                         ? participant_begin[p + 1] : scatter_dispatch.nshards;
+                    if (tid == self_->id()) continue;
                     ThreadCtx& owner = srv_->thread(tid);
                     // Capacity was checked before any push. Publish all of this group's tasks for
                     // one executor with one queue-tail store; the parse-pass notify remains folded.
@@ -2683,11 +2712,17 @@ nonblocking_dispatch:
                             self_->id(), posts + begin, end - begin, sig)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
+                for (uint32_t p = 0; p < nparticipants; p++) {
+                    if (participants[p] != self_->id()) continue;
+                    const uint32_t begin = participant_begin[p];
+                    const uint32_t end = p + 1 < nparticipants
+                        ? participant_begin[p + 1] : scatter_dispatch.nshards;
+                    for (uint32_t i = begin; i < end; i++) execute_local_task(posts[i]);
+                }
                 self_->note_command(spec->id); // one public command, not one count per shard task
                 conn.advance_parse(consumed);
                 sig.ops++;
                 head_candidate = false;
-                if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                 mark_active(c);
                 continue;
             }
@@ -2746,6 +2781,13 @@ nonblocking_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
+            if (worker_id == self_->id()) {
+                execute_local_task(t);
+                conn.advance_parse(consumed);
+                sig.ops++;
+                mark_active(c);
+                continue;
+            }
             if (!worker.post_task_quiet(self_->id(), t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
@@ -2842,7 +2884,7 @@ nonblocking_dispatch:
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
     template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t sweep() {
-        uint32_t work = 0;
+        uint32_t work = executor_->fused_sweep();
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
@@ -3170,6 +3212,11 @@ nonblocking_dispatch:
         pending_serve_.push_back(c);
     }
 
+    void execute_local_task(const Task& task) {
+        if (executor_->execute_inline(task) && task.client && !task.client->dead())
+            enqueue_serve(task.client);
+    }
+
     // IO owns both ROB frontiers, so this 100us signal beat can maintain head_since without a
     // Client field or a per-operation hook. The active set bounds the walk to connections already
     // carrying work. Entries not seen in this beat are erased, which also makes client teardown and
@@ -3450,6 +3497,7 @@ nonblocking_dispatch:
 
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
+    ExLoop*    executor_ = nullptr;
     static constexpr uint32_t kFlushBackstopEvery = 64;
     // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
     // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs

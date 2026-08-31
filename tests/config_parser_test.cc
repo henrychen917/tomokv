@@ -167,6 +167,9 @@ int main() {
         !rejects({"--lb-cooldown-ms", "-1"}))
         fail("invalid weighted-LB knob grammar was accepted");
 
+    if (!rejects({"--ratio", "4:4"}) || !rejects({"--ratio"}))
+        fail("generalized-thread mode accepted the removed --ratio knob");
+
     tomo::Config xscript;
     tomo::ConfigParseState xscript_state;
     const std::vector<const char*> xscript_args = {
