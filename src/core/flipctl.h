@@ -234,6 +234,7 @@ private:
     bool sample_fingerprint(Server& server);
     bool sample_rate(Server& server, uint64_t now_ms, double& rate);
     bool sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate);
+    bool sample_anchored_rate(Server& server, uint64_t now_ms, double& rate);
     bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
@@ -271,6 +272,7 @@ private:
     uint32_t anchor_io_ = 0;
     uint32_t anchor_ex_ = 0;
     double anchor_rate_ = 0;
+    double anchor_rate_jitter_ = 0;
     double anchor_rate_band_ = 0;
     uint32_t surge_streak_ = 0;
     uint32_t collapse_streak_ = 0;
@@ -290,7 +292,8 @@ private:
     double stable_pair_delta_ = 0;
     double boot_rate_ewma_ = 0;
     double boot_rate_jitter_ = 0;
-    double boot_rate_band_ = 0;
+    double boot_rate_slope_ = 0;
+    double boot_rate_slope_threshold_ = 0;
     double boot_previous_ewma_change_ = 0;
     double anchor_learning_rate_jitter_ = 0;
     double anchor_learning_rate_sum_ = 0;
@@ -301,7 +304,11 @@ private:
     bool boot_rate_ewma_valid_ = false;
     bool boot_previous_ewma_change_valid_ = false;
     bool boot_rate_jitter_valid_ = false;
-    uint32_t boot_stable_ticks_ = 0;
+    bool boot_work_observed_ = false;
+    static constexpr uint32_t kBootTrendTicks = 5;
+    std::array<double, kBootTrendTicks> boot_rate_history_{};
+    uint32_t boot_rate_samples_ = 0;
+    uint32_t boot_nonidle_ticks_ = 0;
 
     uint32_t anchor_signature_samples_ = 0;
     uint32_t signature_learning_windows_ = 1;

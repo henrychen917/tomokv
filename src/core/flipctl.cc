@@ -10,8 +10,15 @@ namespace tomo {
 
 namespace {
 
-// Three controller observations reject a ramp without making boot needlessly sluggish.
-constexpr uint32_t kBootLoadStableTicks = 3;
+// A real workload must not wait forever merely because its stationary noise never presents a
+// quiet absolute-rate band. Thirty seconds is long enough to reject ordinary connection ramps but
+// short enough to make automatic placement useful during a container/cell warm-up. The gate below
+// converts this duration to controller ticks, so --lb-tick-ms keeps the same wall-clock bound.
+constexpr uint64_t kBootMaxDeferralMs = 30'000;
+
+// Anchored drift is deliberately much slower than the half-weight maneuver EWMA. A step workload
+// still supplies two out-of-band observations before this reference can chase it.
+constexpr double kAnchorRateEwmaAlpha = 0.125;
 
 double relative_distance(double left, double right) {
     const double scale = std::max(std::abs(left), std::abs(right));
@@ -304,39 +311,65 @@ bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, dou
     return true;
 }
 
+bool FlipController::sample_anchored_rate(Server& server, uint64_t now_ms, double& rate) {
+    if (!sample_rate(server, now_ms, rate)) return false;
+    if (!previous_subwindow_valid_) {
+        previous_subwindow_rate_ = rate;
+        previous_subwindow_valid_ = true;
+        return false;
+    }
+    const double prior_rate = previous_subwindow_rate_;
+    previous_subwindow_rate_ = rate;
+    stable_pair_delta_ = relative_distance(rate, prior_rate);
+    rate = (rate + prior_rate) * 0.5;
+    return true;
+}
+
 bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
     const auto reset_learning = [this]() {
         boot_rate_ewma_ = 0;
         boot_rate_jitter_ = 0;
-        boot_rate_band_ = 0;
+        boot_rate_slope_ = 0;
+        boot_rate_slope_threshold_ = 0;
         boot_previous_ewma_change_ = 0;
         boot_rate_ewma_valid_ = false;
         boot_previous_ewma_change_valid_ = false;
         boot_rate_jitter_valid_ = false;
-        boot_stable_ticks_ = 0;
+        boot_work_observed_ = false;
+        boot_rate_history_.fill(0);
+        boot_rate_samples_ = 0;
+        boot_nonidle_ticks_ = 0;
     };
-    // A command-rate sample made only of occasional controller observability is not load. When
-    // fingerprinting is configured, require actual work to close a work window on every stable
-    // tick. With fingerprinting explicitly off, zero rate remains the idle guard.
-    if (server.cfg().flip_work_window && !fingerprint_sampled_this_tick_) {
-        reset_learning();
-        rate_window_ms_ = 0;
-        return false;
-    }
     double rate = 0;
-    if (!sample_rate(server, now_ms, rate)) {
-        boot_stable_ticks_ = 0;
-        return false;
-    }
-    if (rate <= 0) {
-        // No commands means there is no split to optimize. Forget stale startup work so an idle
-        // interval cannot be joined to a later workload and mistaken for consecutive stability.
+    if (!sample_rate(server, now_ms, rate)) return false;
+    const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
+    // A health check or controller INFO poll is not a workload worth optimizing. One command per
+    // provisioned thread per controller interval is the self-scaled near-idle floor.
+    const double idle_rate = static_cast<double>(server.nthreads()) * 1000.0 /
+                             static_cast<double>(tick_ms);
+    if (rate <= idle_rate) {
+        // Forget stale startup work so an idle interval cannot be joined to later traffic and
+        // mistaken for either a flat trend or elapsed non-idle deferral.
         reset_learning();
         return false;
     }
+    boot_nonidle_ticks_++;
+    // A command-rate sample made only of controller observability is not enough when work
+    // fingerprinting is available. Once real work closes a window, keep counting all non-idle
+    // rate ticks: a workload below one fingerprint window per tick must still reach the cap.
+    if (server.cfg().flip_work_window) {
+        boot_work_observed_ = boot_work_observed_ || fingerprint_sampled_this_tick_;
+        if (!boot_work_observed_) return false;
+    }
+    const uint64_t max_deferral_ticks = std::max<uint64_t>(
+        1, (kBootMaxDeferralMs + tick_ms - 1) / tick_ms);
+    if (boot_nonidle_ticks_ >= max_deferral_ticks) return true;
+
     if (!boot_rate_ewma_valid_) {
         boot_rate_ewma_ = rate;
         boot_rate_ewma_valid_ = true;
+        boot_rate_history_[0] = rate;
+        boot_rate_samples_ = 1;
         return false;
     }
 
@@ -358,10 +391,29 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
         ? (boot_rate_jitter_ + jitter_sample) * 0.5 : jitter_sample;
     boot_rate_jitter_valid_ = true;
     boot_previous_ewma_change_ = ewma_change;
-    boot_rate_band_ = automatic_rate_band(boot_rate_jitter_, boot_rate_ewma_);
-    if (std::abs(ewma_change) <= boot_rate_band_) boot_stable_ticks_++;
-    else boot_stable_ticks_ = 0;
-    return boot_stable_ticks_ >= kBootLoadStableTicks;
+
+    const uint32_t history_slot = boot_rate_samples_ % kBootTrendTicks;
+    const bool have_trend = boot_rate_samples_ >= kBootTrendTicks;
+    const double trend_origin = boot_rate_history_[history_slot];
+    boot_rate_history_[history_slot] = boot_rate_ewma_;
+    boot_rate_samples_++;
+    if (!have_trend) return false;
+
+    const double trend_scale = std::max(std::abs(trend_origin), std::abs(boot_rate_ewma_));
+    boot_rate_slope_ = trend_scale > 0
+        ? std::abs(boot_rate_ewma_ - trend_origin) /
+              (trend_scale * static_cast<double>(kBootTrendTicks))
+        : 0;
+    // Adjacent EWMA-change jitter estimates the noise in one slope observation. Its standard
+    // error over the N-tick trend supplies a workload-derived threshold; one command per tick is
+    // retained only as a measurement-quantum floor. A monotone ramp has slope but little change
+    // jitter, while stationary rate noise cancels across the longer trend.
+    const double command_rate_quantum = 1000.0 / static_cast<double>(tick_ms);
+    const double relative_quantum = command_rate_quantum / boot_rate_ewma_;
+    boot_rate_slope_threshold_ =
+        2.0 * std::max(boot_rate_jitter_, relative_quantum) /
+        std::sqrt(static_cast<double>(kBootTrendTicks));
+    return boot_rate_slope_ <= boot_rate_slope_threshold_;
 }
 
 void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
@@ -591,9 +643,10 @@ void FlipController::anchor(Server& server, double rate) {
             anchor_learning_rate_jitter_,
             relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
     }
+    anchor_rate_jitter_ = anchor_learning_rate_jitter_;
     anchor_rate_band_ = configured_band_ > 0
         ? static_cast<double>(configured_band_) / 100.0
-        : automatic_rate_band(anchor_learning_rate_jitter_, anchor_rate_);
+        : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
     surge_streak_ = 0;
@@ -617,12 +670,6 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     }
     if (phase_ == Phase::Anchored && forced) {
         start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
-        return false;
-    }
-    if (phase_ == Phase::Anchored && shifted) {
-        last_shift_distance_ = shift_detector_.last_distance();
-        last_shift_band_ = shift_detector_.band();
-        start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
         return false;
     }
     // Mid-maneuver, ONLY a forced trigger may interrupt. The maneuver's own split changes move
@@ -722,12 +769,22 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         return false;
     }
     if (phase_ == Phase::Anchored) {
-        if (!sample_stabilized_rate(server, now_ms, rate)) return false;
-        if (configured_band_ == 0 || anchor_rate_ <= 0) return false;
-        if (rate > anchor_rate_ * (1.0 + anchor_rate_band_)) {
+        if (!sample_anchored_rate(server, now_ms, rate)) {
+            if (shifted) {
+                last_shift_distance_ = shift_detector_.last_distance();
+                last_shift_band_ = shift_detector_.band();
+                start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
+            }
+            return false;
+        }
+        const double reference = anchor_rate_;
+        const double band = anchor_rate_band_;
+        if (configured_band_ != 0 && reference > 0 &&
+            rate > reference * (1.0 + band)) {
             surge_streak_++;
             collapse_streak_ = 0;
-        } else if (rate < anchor_rate_ * (1.0 - anchor_rate_band_)) {
+        } else if (configured_band_ != 0 && reference > 0 &&
+                   rate < reference * (1.0 - band)) {
             collapse_streak_++;
             surge_streak_ = 0;
         } else {
@@ -741,6 +798,30 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
                 : FlipctlTriggerReason::AnchorRateCollapse;
             start_maneuver(server, reason, now_ms);
             return false;
+        }
+
+        // Pass-depth is rate-sensitive: a genuine volume step can cross both detectors on its
+        // first tick. Preserve that first rate observation until the required second one instead
+        // of letting the fingerprint preempt it and re-anchor at the new rate. A pure mix shift,
+        // with no pending rate evidence, still starts immediately.
+        if (shifted && !surge_streak_ && !collapse_streak_) {
+            last_shift_distance_ = shift_detector_.last_distance();
+            last_shift_band_ = shift_detector_.band();
+            start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
+            return false;
+        }
+
+        // This sample was wholly within an anchored, redistribution-free window. Fold its
+        // innovation into a slow live reference only after judging it against the prior reference,
+        // so a real step cannot erase its own evidence. Maneuver windows never reach this branch.
+        const double jitter_sample = relative_distance(rate, reference);
+        anchor_rate_jitter_ +=
+            (jitter_sample - anchor_rate_jitter_) * kAnchorRateEwmaAlpha;
+        anchor_rate_ += (rate - anchor_rate_) * kAnchorRateEwmaAlpha;
+        if (configured_band_ > 0) {
+            anchor_rate_band_ = static_cast<double>(configured_band_) / 100.0;
+        } else if (configured_band_ < 0) {
+            anchor_rate_band_ = automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
         }
     }
     return false;
@@ -774,9 +855,10 @@ std::string FlipController::debug_dump() const {
         head, sizeof(head),
         "state=%s\nphase=%s\nanchor=%u:%u\nanchor_rate=%.3f\n"
         "signature_band=%.9f\nsignature_distance=%.9f\nsignature_jitter=%.9f\n"
-        "rate_band=%.9f\nlast_shift_distance=%.9f\nlast_shift_band=%.9f\n"
-        "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_band=%.9f\n"
-        "boot_stable_ticks=%u\n"
+        "rate_band=%.9f\nanchor_rate_jitter=%.9f\n"
+        "last_shift_distance=%.9f\nlast_shift_band=%.9f\n"
+        "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_slope=%.9f\n"
+        "boot_rate_slope_threshold=%.9f\nboot_nonidle_ticks=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
         "pending_io=%u direction=%d step_units=%u\nvisited=",
@@ -784,8 +866,9 @@ std::string FlipController::debug_dump() const {
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
         shift_detector_.last_distance(), shift_detector_.jitter(), anchor_rate_band_,
-        last_shift_distance_, last_shift_band_, boot_rate_ewma_, boot_rate_jitter_,
-        boot_rate_band_, boot_stable_ticks_, reason_name(last_trigger_),
+        anchor_rate_jitter_, last_shift_distance_, last_shift_band_, boot_rate_ewma_,
+        boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
+        reason_name(last_trigger_),
         static_cast<unsigned long long>(triggers_),
         static_cast<unsigned long long>(boot_triggers_),
         static_cast<unsigned long long>(fingerprint_triggers_),

@@ -60,9 +60,12 @@ another FLIP is never overlapped.
 
 ## 2. Jump with deliberate overshoot
 
-The boot maneuver remains pending until a nonzero command-rate EWMA stays inside a band derived
-from its own change jitter for three consecutive controller ticks. Directional connection ramp-up
-is treated as drift, not as noise allowed to widen that band. An idle server therefore remains in
+The boot maneuver remains pending until the command-rate EWMA's relative slope across five ticks
+falls below a threshold derived from its own change jitter and measurement quantum. Directional
+connection ramp-up therefore remains drift, while jittery stationary traffic can qualify even when
+its absolute rate never enters a quiet band. A 30-second ceiling, converted to ticks from
+`lb-tick-ms`, caps deferral under non-idle traffic. Traffic at or below one command per provisioned
+thread per tick resets the learning/cap state, so an idle server remains in
 `awaiting-load-stability` and never pays for a maneuver it cannot use.
 
 `FlipController::start_maneuver()` arms the existing enqueue-age machinery at runtime. An explicit
@@ -117,14 +120,22 @@ there before anchoring.
 ## 4. Anchor
 
 `FlipController::anchor()` stores the final IO/EX split, stabilized public-command rate, anchored
-fingerprint, and rate/fingerprint bands. It publishes age sampling zero and holds.
+fingerprint, and rate/fingerprint bands. It publishes age sampling zero and holds. While anchored,
+redistribution-free two-window readings update the rate reference with a slow EWMA. Auto mode
+re-derives the rate band from that EWMA's live innovation jitter; maneuver windows never enter
+either baseline.
 
 While anchored:
 
 - a normalized fingerprint distance beyond the anchored band starts one maneuver;
-- two stabilized subwindows above `anchor_rate * (1+rate_band)` start one surge maneuver;
-- two stabilized subwindows below `anchor_rate * (1-rate_band)` start one collapse maneuver;
+- two paired subwindows above the prior live `anchor_rate * (1+rate_band)` start one surge maneuver;
+- two paired subwindows below the prior live `anchor_rate * (1-rate_band)` start one collapse
+  maneuver;
 - `DEBUG FLIPCTL TRIGGER` posts a cold forced-trigger flag for the main owner.
+
+A rate increase can also move the load-sensitive parse-depth fingerprint. If both detectors cross
+together, one pending out-of-band rate observation is allowed its required second sample before the
+fingerprint can preempt it; a pure mix shift with no rate evidence still fires immediately.
 
 A trigger resets the maneuver's readings and capacity baseline. Trigger source counters make boot,
 fingerprint, rate surge, rate collapse, and forced causes independently observable.
@@ -150,7 +161,8 @@ fingerprint, rate surge, rate collapse, and forced causes independently observab
 - `tests/flipctl_unit.cc` scripts quiet count noise followed by a simultaneous pipe/class/key/value
   mix change, and checks the command-work window/off behavior.
 - `tests/flipctl.py` is the small port-7845 Python driver. It asserts that a connection ramp cannot
-  start boot and that the eventual low-load anchor is off-rail, holds it for 60 seconds, then
-  shortens think-time on those same single-frame BITCOUNT connections for exactly one surge
-  maneuver without changing their pipeline fingerprint. It finishes with one BITCOUNT-to-INCR
-  fingerprint maneuver and uses no memtier.
+  start boot, varies think-time with a stationary six-second pattern while retaining the same
+  BITCOUNT mix, and requires a maneuver within the non-idle deferral cap. The eventual low-load
+  anchor must be off-rail and hold for 60 seconds; the driver then shortens think-time on those same
+  single-frame connections for exactly one surge maneuver without changing their pipeline
+  fingerprint. It finishes with one BITCOUNT-to-INCR fingerprint maneuver and uses no memtier.
