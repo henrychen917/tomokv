@@ -352,8 +352,9 @@ public:
                 if (p >= nchan_) continue;
                 Task t;
                 while (task_in_->recv(p, t)) {
-                    if (t.enqueue_us_low)
-                        sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
+                    uint64_t age = 0;
+                    if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
+                        sig_.observe_oldest_age(age);
                     fn(t); task_in_->retire(p); n++;
                 }
             }
@@ -474,13 +475,18 @@ public:
             // its lane is non-empty, republish it here. No post/drain branch or extra scan is added,
             // and drain_tasks_unmasked() before park remains the second mask-independent looker.
             if (task_consumer && task_depth) (void)task_notify_.set(i);
-            if (sample_inbox_age) {
+            // An empty lane has no age sample. Its retired slot may still carry the previous
+            // low-32-bit stamp, so consulting newest_nonzero() here would feed stale/sentinel age
+            // into the EWMA after the queue drained.
+            if (sample_inbox_age && task_depth) {
                 const uint32_t stamp = task_in_->newest_nonzero(i,
                     [](const Task& task) { return task.enqueue_us_low; });
                 if (stamp) {
-                    const uint32_t age = static_cast<uint32_t>(cached_now_us) - stamp;
-                    inbox_age_us = std::max<uint64_t>(inbox_age_us, age);
-                    inbox_age_observed = true;
+                    uint64_t age = 0;
+                    if (sig_.sampled_age(stamp, age)) {
+                        inbox_age_us = std::max(inbox_age_us, age);
+                        inbox_age_observed = true;
+                    }
                 }
             }
         }
@@ -537,8 +543,9 @@ public:
         uint32_t n = 0; Task t;
         for (uint32_t p = 0; p < nchan_; p++)
             while (task_in_->recv(p, t)) {
-                if (t.enqueue_us_low)
-                    sig_.observe_oldest_age(sig_.observe_queue_delay(t.enqueue_us_low));
+                uint64_t age = 0;
+                if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
+                    sig_.observe_oldest_age(age);
                 fn(t); task_in_->retire(p); n++;
             }
         return n;

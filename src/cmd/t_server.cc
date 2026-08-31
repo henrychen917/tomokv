@@ -813,6 +813,13 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
         return;
     }
+    if (eq_icase(subcommand, "tripwire") && op.argc() == 2) {
+        // Empty is a meaningful result: no resolver trip has latched since boot. The ring is a
+        // one-shot diagnostic while INFO's two counters continue advancing after capture.
+        const std::string out = atomic_tripwire_dump();
+        reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
         // DEBUG SLEEP is redis's one unguarded strtod: it validates nothing, so a word sleeps
         // for zero seconds and answers OK. The upper bound is ours -- redis will happily sleep a
@@ -1811,6 +1818,7 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "STATS")) {
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
+        const AtomicTripwireCounts tripwire = atomic_tripwire_counts();
         const uint64_t sampled_rate = info_stats_sample_ops(sampled_ops);
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
@@ -1839,6 +1847,8 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_commit_windows:%llu\r\natomic_commit_holds:%llu\r\n"
                       "atomic_read_cuts_held:%llu\r\natomic_fanout_cuts:%llu\r\n"
                       "atomic_exec_read_cuts:%llu\r\n"
+                      "atomic_tripwire_plain_path_changes:%llu\r\n"
+                      "atomic_tripwire_chain_smaller_tickets:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "script_stage_owner_tasks:%llu\r\nscript_run_attempts:%llu\r\n"
                       "script_validate_owner_tasks:%llu\r\nscript_apply_owner_tasks:%llu\r\n"
@@ -1941,6 +1951,8 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->atomic_fanout_cuts() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->atomic_exec_read_cuts() : 0),
+                static_cast<unsigned long long>(tripwire.plain_path_changes),
+                static_cast<unsigned long long>(tripwire.chain_smaller_tickets),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->script_stage_owner_tasks() : 0),

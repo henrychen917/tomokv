@@ -1799,6 +1799,8 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
 
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io) {
     if (!state) return;
+    if (__builtin_expect(atomic_tripwire_enabled(), false))
+        atomic_tripwire_forget_scope(state);
     if (state->owner_io != owner_io) std::abort();
     if (state->snapshot_registered && state->server)
         pool.unregister_snapshot(*state->server, state, state->owner_io);
@@ -2534,6 +2536,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         }
 
         const bool pending_reads = shard.store().atomic_has_records();
+        if (__builtin_expect(atomic_tripwire_enabled(), false))
+            xshard_tripwire_fragment_execute(
+                task, shard, op, !pending_reads, read_latest ? UINT64_MAX : read_snapshot);
         auto find_value = [&](uint64_t hash, Slice key, bool read_lookup = false) {
             KvObj* object = pending_reads ? shard.store().atomic_find_tracked(hash, key)
                                           : (notify ? shard.store_find<true>(hash, key)

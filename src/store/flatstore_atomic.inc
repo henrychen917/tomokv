@@ -71,6 +71,28 @@
         return atomic_has_record(hash, key) || atomic_has_script_intent(hash, key);
     }
 
+    // DEBUG TRIPWIRE helpers.  Both are owner-local list walks and are called only after the
+    // process-cold debug registry is armed.  Keeping them here lets the probe ask the exact same
+    // question as the writer/resolver instead of reconstructing it in command code.
+    bool atomic_tripwire_plain_path() const {
+        return !atomic_pending_ || atomic_pending_->live == 0;
+    }
+    uint64_t atomic_tripwire_ticket(uint64_t hash, Slice key) const {
+        if (!atomic_pending_ || !atomic_pending_->live) return 0;
+        const uint64_t bit = atomic_membership_bit(hash);
+        uint64_t ticket = 0;
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!(entry->membership & bit)) continue;
+            for (uint32_t i = 0; i < entry->count; i++) {
+                if (atomic_entry_hash(*entry, i) != hash || atomic_entry_key(*entry, i) != key)
+                    continue;
+                const uint64_t candidate = atomic_epoch(*entry);
+                if (candidate && (!ticket || candidate < ticket)) ticket = candidate;
+            }
+        }
+        return ticket;
+    }
+
     // PIN/UNPIN run only on the key's owning executor. The first intent contributes one unit to
     // atomic_activity_, exactly like the first pending version, so writers reach the already-cold
     // preparation path even when --atomic=0. Duplicate declared keys and overlapping activations
@@ -723,6 +745,7 @@ private:
         bool winner_set = false;
         bool winner_physical = false;
         bool winner_private = false;
+        AtomicEntry* winner_entry = nullptr;
         bool matched = false;
         // THE SAME PROGRAM-ORDER REPAIR atomic_collapse() APPLIES, AND IT IS LOAD-BEARING HERE.
         // A read reaches this chain whenever it beats the owner's post-batch cleanup to the pair,
@@ -776,6 +799,7 @@ private:
                 winner_set = true;
                 winner_physical = is_physical;
                 winner_private = own_private;
+                winner_entry = &owner;
             }
         };
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
@@ -795,6 +819,30 @@ private:
         const bool from_physical = winner_set && winner_physical;
         if (!from_physical && count_predecessor && atomic_predecessor_reads_)
             (*atomic_predecessor_reads_)++;
+        // #77 TRIPWIRE B. A finite read cut answered from a parked predecessor while this shard
+        // still held a decided group with an older ticket. That conjunction is the rare resolver /
+        // cleanup geometry the preserved seed-19 EXISTS overcount needs diagnosed. It is not a
+        // correctness gate: count every occurrence, and let the process-global one-shot retain the
+        // first answer/ticket pair. The armed check precedes the extra list walk, so a production
+        // server pays none of the diagnostic work and performs no new atomic operation.
+        if (__builtin_expect(!from_physical && snapshot != UINT64_MAX &&
+                             atomic_tripwire_enabled(), false)) {
+            uint64_t smaller_ticket = 0;
+            for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+                if (!entry->group_epoch ||
+                    (entry->group_aborted &&
+                     entry->group_aborted->load(std::memory_order_acquire)))
+                    continue;
+                const uint64_t ticket = atomic_epoch(*entry);
+                if (ticket && ticket < snapshot &&
+                    (!smaller_ticket || ticket < smaller_ticket))
+                    smaller_ticket = ticket;
+            }
+            if (smaller_ticket) {
+                const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
+                atomic_tripwire_chain_smaller(hash, snapshot, answer_ticket, smaller_ticket);
+            }
+        }
         return AtomicResolved{atomic_live_value(value), true, from_physical};
     }
 
