@@ -446,7 +446,8 @@ private:
     };
     struct IfidPipelineBatch {
         std::array<IfidPipelineEntry, kGenthreadIfidBatchOps> entries{};
-        uint64_t sequence = 0;
+        uint64_t gathered_bytes = 0;
+        uint64_t first_frame_bytes = 0;
         uint32_t count = 0;
         IfidPipelineState state = IfidPipelineState::Empty;
     };
@@ -454,7 +455,6 @@ private:
     enum class WbPipelineState : uint8_t { Empty, Gathered, Prepared };
     struct WbPipelineBatch {
         std::array<Client*, kGenthreadWbBatchConns> clients{};
-        uint64_t sequence = 0;
         uint32_t count = 0;
         WbPipelineState state = WbPipelineState::Empty;
     };
@@ -566,14 +566,16 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
-                did += executor_->fused_pipeline_control();
-                for (uint32_t rotation = 0;
-                     rotation < kGenthreadPipelineRotationsPerLoop; rotation++) {
-                    uint32_t rotation_work = 0;
+                // The gate is evaluated once at the loop-pass boundary.  Deep traffic selects the
+                // coarse IFID -> EX -> WB rotation (interleave window zero); shallow traffic runs
+                // one complete micro-stage schedule, whose capped gathers amortize this traversal.
+                pipeline_depth_gate_pass();
+                if (pipeline_interleave_window_ == 0) {
+                    did += pipeline_coarse_pass<HasUnix, HasTls, kEp>();
+                } else {
+                    did += executor_->fused_pipeline_control();
                     for (GenthreadStage stage : kGenthreadStaticSchedule)
-                        rotation_work += pipeline_stage<HasUnix, HasTls, kEp>(stage);
-                    did += rotation_work;
-                    if (!rotation_work) break;
+                        did += pipeline_stage<HasUnix, HasTls, kEp>(stage);
                 }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -2900,11 +2902,16 @@ nonblocking_dispatch:
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases();
-        if (IfidPipelineBatch* batch = empty_ifid_pipeline_batch()) {
+        if (pipeline_interleave_window_ == 0) {
+            work += ifid_batch<HasTls, kEp>(nullptr);
+        } else if (IfidPipelineBatch* batch = empty_ifid_pipeline_batch()) {
+            batch->gathered_bytes = 0;
+            batch->first_frame_bytes = 0;
             work += ifid_batch<HasTls, kEp>(batch);
             if (batch->count) {
-                batch->sequence = next_ifid_pipeline_sequence_++;
+                observe_pipeline_depth(batch->gathered_bytes, batch->first_frame_bytes);
                 batch->state = IfidPipelineState::Parsed;
+                ifid_fill_index_ = (ifid_fill_index_ + 1) % kGenthreadIfidBuffers;
             }
         }
         work += executor_->fused_sweep();
@@ -2976,17 +2983,8 @@ nonblocking_dispatch:
     }
 
     IfidPipelineBatch* empty_ifid_pipeline_batch() {
-        for (IfidPipelineBatch& batch : ifid_pipeline_)
-            if (batch.state == IfidPipelineState::Empty) return &batch;
-        return nullptr;
-    }
-
-    IfidPipelineBatch* oldest_ifid_pipeline_batch(IfidPipelineState state) {
-        IfidPipelineBatch* oldest = nullptr;
-        for (IfidPipelineBatch& batch : ifid_pipeline_)
-            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
-                oldest = &batch;
-        return oldest;
+        IfidPipelineBatch& batch = ifid_pipeline_[ifid_fill_index_];
+        return batch.state == IfidPipelineState::Empty ? &batch : nullptr;
     }
 
     bool client_has_staged_ifid(const Client* client) const {
@@ -3016,20 +3014,21 @@ nonblocking_dispatch:
     }
 
     uint32_t pipeline_ifid_hash() {
-        IfidPipelineBatch* batch = oldest_ifid_pipeline_batch(IfidPipelineState::Parsed);
-        if (!batch) return 0;
+        IfidPipelineBatch* batch = &ifid_pipeline_[ifid_hash_index_];
+        if (batch->state != IfidPipelineState::Parsed) return 0;
         for (uint32_t i = 0; i < batch->count; i++) {
             Op& op = *batch->entries[i].op;
             op.hash = FlatStore::hash_key(
                 op.arg(static_cast<uint32_t>(op.spec->first_key)));
         }
         batch->state = IfidPipelineState::Hashed;
+        ifid_hash_index_ = (ifid_hash_index_ + 1) % kGenthreadIfidBuffers;
         return batch->count;
     }
 
     uint32_t pipeline_ifid_route_issue() {
-        IfidPipelineBatch* batch = oldest_ifid_pipeline_batch(IfidPipelineState::Hashed);
-        if (!batch) return 0;
+        IfidPipelineBatch* batch = &ifid_pipeline_[ifid_route_index_];
+        if (batch->state != IfidPipelineState::Hashed) return 0;
         LoopSignals& sig = self_->sig();
         const uint32_t staged = batch->count;
         for (uint32_t i = 0; i < batch->count; i++) {
@@ -3068,21 +3067,13 @@ nonblocking_dispatch:
         ntouched_ = 0;
         batch->count = 0;
         batch->state = IfidPipelineState::Empty;
+        ifid_route_index_ = (ifid_route_index_ + 1) % kGenthreadIfidBuffers;
         return staged;
     }
 
     WbPipelineBatch* empty_wb_pipeline_batch() {
-        for (WbPipelineBatch& batch : wb_pipeline_)
-            if (batch.state == WbPipelineState::Empty) return &batch;
-        return nullptr;
-    }
-
-    WbPipelineBatch* oldest_wb_pipeline_batch(WbPipelineState state) {
-        WbPipelineBatch* oldest = nullptr;
-        for (WbPipelineBatch& batch : wb_pipeline_)
-            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
-                oldest = &batch;
-        return oldest;
+        WbPipelineBatch& batch = wb_pipeline_[wb_gather_index_];
+        return batch.state == WbPipelineState::Empty ? &batch : nullptr;
     }
 
     template <bool HasUnix, bool kEp>
@@ -3118,8 +3109,8 @@ nonblocking_dispatch:
                 if (!client->rob().quiesced())
                     __builtin_prefetch(&client->rob().at(client->rob().flush_id()), 0, 2);
             }
-            batch->sequence = next_wb_pipeline_sequence_++;
             batch->state = WbPipelineState::Gathered;
+            wb_gather_index_ = (wb_gather_index_ + 1) % kGenthreadWbBuffers;
             work += batch->count;
         }
         return work;
@@ -3127,8 +3118,8 @@ nonblocking_dispatch:
 
     template <bool HasTls, bool kEp>
     uint32_t pipeline_wb_prepare() {
-        WbPipelineBatch* batch = oldest_wb_pipeline_batch(WbPipelineState::Gathered);
-        if (!batch) return 0;
+        WbPipelineBatch* batch = &wb_pipeline_[wb_prepare_index_];
+        if (batch->state != WbPipelineState::Gathered) return 0;
         for (uint32_t i = 0; i < batch->count; i++) {
             Client* client = batch->clients[i];
             if (!client || client->dead()) continue;
@@ -3149,13 +3140,14 @@ nonblocking_dispatch:
             }
         }
         batch->state = WbPipelineState::Prepared;
+        wb_prepare_index_ = (wb_prepare_index_ + 1) % kGenthreadWbBuffers;
         return batch->count;
     }
 
     template <bool HasTls, bool kEp>
     uint32_t pipeline_wb_submit() {
-        WbPipelineBatch* batch = oldest_wb_pipeline_batch(WbPipelineState::Prepared);
-        if (!batch) return 0;
+        WbPipelineBatch* batch = &wb_pipeline_[wb_submit_index_];
+        if (batch->state != WbPipelineState::Prepared) return 0;
         const uint32_t submitted = batch->count;
         for (uint32_t i = 0; i < batch->count; i++) {
             Client* client = batch->clients[i];
@@ -3194,6 +3186,7 @@ nonblocking_dispatch:
         }
         batch->count = 0;
         batch->state = WbPipelineState::Empty;
+        wb_submit_index_ = (wb_submit_index_ + 1) % kGenthreadWbBuffers;
         return submitted;
     }
 
@@ -3201,6 +3194,8 @@ nonblocking_dispatch:
     template <bool HasTls, bool kEp>
     uint32_t ifid_batch(IfidPipelineBatch* pipeline_batch) {
         uint32_t work = 0;
+        uint64_t gathered_units = 0;
+        uint64_t gathered_batches = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
 
@@ -3212,11 +3207,8 @@ nonblocking_dispatch:
         // stream flowing no matter how deep the reply backlog is -- which is exactly the property
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
         for (size_t idx = 0; idx < active_.size();) {
+            if (pipeline_batch && pipeline_batch->count == kGenthreadIfidBatchOps) break;
             Client* c = active_.at(idx);
-            // A decoded ordinary op keeps the parse cursor and ROB publication frontier fixed
-            // until ROUTE_ISSUE.  Do not let the schedule's second RX_PARSE slot decode that same
-            // frame into another buffer; batching is across independent connections.
-            if (client_has_staged_ifid(c)) { idx++; continue; }
             const uint32_t pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
@@ -3312,6 +3304,8 @@ nonblocking_dispatch:
             // which is what makes the rest parseable.
             if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
                 !c->parse_backpressure()) {
+                const uint32_t available_before = conn.rlen() - conn.rpos();
+                const uint64_t ops_before = self_->sig().ops;
                 // A CLIENT PAUSE hold deliberately leaves the parsed frame at rpos. Counting that
                 // as work would spin the ring at 100% until the deadline instead of parking it,
                 // so while a pause is live the pass reports progress only if the cursor moved.
@@ -3335,6 +3329,18 @@ nonblocking_dispatch:
                         dispatch_result = parse_and_dispatch<false>(c, pipeline_batch);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
+                }
+                if (pipeline_batch && pipeline_batch->count != pipeline_count_before) {
+                    const uint32_t first_frame =
+                        pipeline_batch->entries[pipeline_count_before].consumed;
+                    pipeline_batch->gathered_bytes += available_before;
+                    pipeline_batch->first_frame_bytes += first_frame;
+                } else if (!pipeline_batch) {
+                    const uint64_t parsed = self_->sig().ops - ops_before;
+                    if (parsed) {
+                        gathered_units += parsed;
+                        gathered_batches++;
+                    }
                 }
             }
 
@@ -3399,6 +3405,9 @@ nonblocking_dispatch:
             }
         }
 
+        if (!pipeline_batch && gathered_batches)
+            observe_pipeline_depth(gathered_units, gathered_batches);
+
         return work;
     }
 
@@ -3409,11 +3418,76 @@ nonblocking_dispatch:
         if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
         IfidPipelineBatch* batch = empty_ifid_pipeline_batch();
         if (!batch) return work;
+        batch->gathered_bytes = 0;
+        batch->first_frame_bytes = 0;
         work += ifid_batch<HasTls, kEp>(batch);
         if (batch->count) {
-            batch->sequence = next_ifid_pipeline_sequence_++;
+            observe_pipeline_depth(batch->gathered_bytes, batch->first_frame_bytes);
             batch->state = IfidPipelineState::Parsed;
+            ifid_fill_index_ = (ifid_fill_index_ + 1) % kGenthreadIfidBuffers;
         }
+        return work;
+    }
+
+    // Gather stages report one owner-local sample; only this pass-boundary function can change the
+    // schedule shape.  The ratio is capped because the gate distinguishes "naturally deep" from
+    // "shallow", not pipeline=128 from pipeline=1024, and capping prevents a single large recv from
+    // dominating several later windows.
+    void observe_pipeline_depth(uint64_t gathered, uint64_t unit) {
+        if (!unit) return;
+        const uint64_t depth = std::min<uint64_t>(
+            kGenthreadIfidBatchOps, std::max<uint64_t>(1, gathered / unit));
+        pipeline_depth_pending_sum_ += depth;
+        pipeline_depth_pending_count_++;
+    }
+
+    void pipeline_depth_gate_pass() {
+        if (!pipeline_depth_pending_count_) return;
+        pipeline_depth_window_sum_ += pipeline_depth_pending_sum_;
+        pipeline_depth_window_count_ += pipeline_depth_pending_count_;
+        pipeline_depth_pending_sum_ = 0;
+        pipeline_depth_pending_count_ = 0;
+        if (pipeline_depth_window_count_ < kGenthreadDepthSampleWindow) return;
+
+        const uint64_t average = pipeline_depth_window_sum_ / pipeline_depth_window_count_;
+        if (pipeline_interleave_window_ != 0 &&
+            average >= kGenthreadDeepBatchThreshold) {
+            pipeline_interleave_window_ = 0;
+            pipeline_drain_pending_ = true;
+        } else if (pipeline_interleave_window_ == 0 &&
+                   average <= kGenthreadShallowBatchThreshold) {
+            pipeline_interleave_window_ = kGenthreadInterleaveWindow;
+            pipeline_drain_pending_ = false;
+        }
+        pipeline_depth_window_sum_ = 0;
+        pipeline_depth_window_count_ = 0;
+    }
+
+    // A mode transition may find up to three owner-local batches already staged.  Finish them in
+    // FIFO cursor order once, then enter the established coarse rotation.  This is transition-only
+    // work: steady deep traffic does no buffer search, state clear, or micro-stage dispatch.
+    template <bool HasTls, bool kEp>
+    uint32_t drain_io_pipeline_now() {
+        uint32_t work = 0;
+        while (pipeline_ifid_hash()) {}
+        while (const uint32_t n = pipeline_ifid_route_issue()) work += n;
+        while (pipeline_wb_prepare<HasTls, kEp>()) {}
+        while (const uint32_t n = pipeline_wb_submit<HasTls, kEp>()) work += n;
+        return work;
+    }
+
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t pipeline_coarse_pass() {
+        const bool drain_staged = pipeline_drain_pending_;
+        uint32_t work = drain_staged ? drain_io_pipeline_now<HasTls, kEp>() : 0;
+        work += ring_.for_each_cqe(
+            [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
+        if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
+        work += ifid_batch<HasTls, kEp>(nullptr);
+        work += executor_->fused_coarse_pass(drain_staged);
+        work += collect_retire_work<HasUnix, kEp>();
+        work += wb_batch<HasTls, kEp>();
+        pipeline_drain_pending_ = false;
         return work;
     }
 
@@ -3932,8 +4006,18 @@ nonblocking_dispatch:
     // cross-thread synchronization objects remain unchanged.
     std::array<IfidPipelineBatch, kGenthreadIfidBuffers> ifid_pipeline_{};
     std::array<WbPipelineBatch, kGenthreadWbBuffers> wb_pipeline_{};
-    uint64_t next_ifid_pipeline_sequence_ = 1;
-    uint64_t next_wb_pipeline_sequence_ = 1;
+    uint32_t ifid_fill_index_ = 0;
+    uint32_t ifid_hash_index_ = 0;
+    uint32_t ifid_route_index_ = 0;
+    uint32_t wb_gather_index_ = 0;
+    uint32_t wb_prepare_index_ = 0;
+    uint32_t wb_submit_index_ = 0;
+    uint32_t pipeline_interleave_window_ = kGenthreadInterleaveWindow;
+    bool pipeline_drain_pending_ = false;
+    uint64_t pipeline_depth_pending_sum_ = 0;
+    uint64_t pipeline_depth_window_sum_ = 0;
+    uint32_t pipeline_depth_pending_count_ = 0;
+    uint32_t pipeline_depth_window_count_ = 0;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;

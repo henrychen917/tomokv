@@ -94,6 +94,13 @@ public:
         return staged + fused_pass_impl(true);
     }
 
+    // Deep generalized-thread traffic has already drained staged micro-batches at its one mode
+    // transition.  Keep the steady coarse pass free of empty pipeline-state probes.
+    uint32_t fused_coarse_pass(bool drain_staged) {
+        const uint32_t staged = drain_staged ? drain_pipeline_now() : 0;
+        return staged + fused_pass_impl(true);
+    }
+
     // Arm 3 keeps control/persistence work in the executor owner but lets the static schedule own
     // task gather/prefetch/execute.  This has no internal park and never consumes a Task.
     uint32_t fused_pipeline_control() { return fused_pass_impl(false); }
@@ -174,7 +181,7 @@ public:
 
     // ---- arm-3 EX micro-stages ---------------------------------------------------------------
     uint32_t pipeline_input_prefetch() {
-        return self_->read_ahead_task_inputs(1, [&](const Task& task) {
+        return self_->read_ahead_task_inputs(kGenthreadExBatchOps, [&](const Task& task) {
             if (task.client) __builtin_prefetch(&task.client->rob().at(task.op_id), 0, 2);
         });
     }
@@ -186,27 +193,28 @@ public:
         // ordinary hot state is the only one split across the bucket/object stages.
         if (snapshot_owner_state_ != SnapshotOwnerState::None)
             return drain_tasks_snapshot(unmasked);
-        ExPipelineBatch* batch = empty_pipeline_batch();
-        if (!batch) return 0;
+        ExPipelineBatch* batch = &pipeline_batches_[pipeline_fill_index_];
+        if (batch->state != ExPipelineState::Empty) return 0;
         batch->count = self_->gather_tasks_bounded(
             batch->tasks.data(), batch->producers.data(), kGenthreadExBatchOps, unmasked);
         if (!batch->count) return 0;
-        batch->sequence = next_pipeline_sequence_++;
         batch->state = ExPipelineState::Filled;
+        pipeline_fill_index_ = (pipeline_fill_index_ + 1) % kGenthreadExBuffers;
         return batch->count;
     }
 
     uint32_t pipeline_bucket_prefetch() {
-        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::Filled);
-        if (!batch) return 0;
+        ExPipelineBatch* batch = &pipeline_batches_[pipeline_bucket_index_];
+        if (batch->state != ExPipelineState::Filled) return 0;
         prefetch_exec_batch(batch->tasks.data(), batch->count);
         batch->state = ExPipelineState::BucketPrefetched;
+        pipeline_bucket_index_ = (pipeline_bucket_index_ + 1) % kGenthreadExBuffers;
         return batch->count;
     }
 
     uint32_t pipeline_object_prefetch() {
-        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::BucketPrefetched);
-        if (!batch) return 0;
+        ExPipelineBatch* batch = &pipeline_batches_[pipeline_object_index_];
+        if (batch->state != ExPipelineState::BucketPrefetched) return 0;
         for (uint32_t i = 0; i < batch->count; i++) {
             const Task& task = batch->tasks[i];
             if (!task.client || task.scatter) continue;
@@ -217,13 +225,14 @@ public:
                 srv_->shard(shard).store().prefetch_object(op.hash);
         }
         batch->state = ExPipelineState::Ready;
+        pipeline_object_index_ = (pipeline_object_index_ + 1) % kGenthreadExBuffers;
         return batch->count;
     }
 
     uint32_t pipeline_execute() {
         if (!pipeline_tasks_allowed()) return 0;
-        ExPipelineBatch* batch = oldest_pipeline_batch(ExPipelineState::Ready);
-        if (!batch) return 0;
+        ExPipelineBatch* batch = &pipeline_batches_[pipeline_execute_index_];
+        if (batch->state != ExPipelineState::Ready) return 0;
         if (snapshot_owner_state_ == SnapshotOwnerState::None)
             exec_batch_prefetched(batch->tasks.data(), batch->count);
         else
@@ -233,6 +242,7 @@ public:
         const uint32_t n = batch->count;
         batch->count = 0;
         batch->state = ExPipelineState::Empty;
+        pipeline_execute_index_ = (pipeline_execute_index_ + 1) % kGenthreadExBuffers;
         // Remote completions prepared MSG_RING wakes on the executor-owned ring.  In arm 2 the
         // enclosing fused pass submitted that ring after drain_tasks(); arm 3 executes after the
         // control pass, so EX.EXECUTE itself must publish those prepared wakes before the owner can
@@ -368,7 +378,6 @@ private:
     struct ExPipelineBatch {
         std::array<Task, kGenthreadExBatchOps> tasks{};
         std::array<uint32_t, kGenthreadExBatchOps> producers{};
-        uint64_t sequence = 0;
         uint32_t count = 0;
         ExPipelineState state = ExPipelineState::Empty;
     };
@@ -379,60 +388,12 @@ private:
                  srv_->lb_acked(self_->id()));
     }
 
-    ExPipelineBatch* empty_pipeline_batch() {
-        for (ExPipelineBatch& batch : pipeline_batches_)
-            if (batch.state == ExPipelineState::Empty) return &batch;
-        return nullptr;
-    }
-
-    ExPipelineBatch* oldest_pipeline_batch(ExPipelineState state) {
-        ExPipelineBatch* oldest = nullptr;
-        for (ExPipelineBatch& batch : pipeline_batches_)
-            if (batch.state == state && (!oldest || batch.sequence < oldest->sequence))
-                oldest = &batch;
-        return oldest;
-    }
-
-    ExPipelineBatch* oldest_pipeline_batch() {
-        ExPipelineBatch* oldest = nullptr;
-        for (ExPipelineBatch& batch : pipeline_batches_)
-            if (batch.state != ExPipelineState::Empty &&
-                (!oldest || batch.sequence < oldest->sequence)) oldest = &batch;
-        return oldest;
-    }
-
     uint32_t drain_pipeline_now() {
         if (!pipeline_tasks_allowed()) return 0;
         uint32_t work = 0;
-        while (ExPipelineBatch* batch = oldest_pipeline_batch()) {
-            if (batch->state == ExPipelineState::Filled) {
-                prefetch_exec_batch(batch->tasks.data(), batch->count);
-                batch->state = ExPipelineState::BucketPrefetched;
-            }
-            if (batch->state == ExPipelineState::BucketPrefetched) {
-                for (uint32_t i = 0; i < batch->count; i++) {
-                    const Task& task = batch->tasks[i];
-                    if (!task.client || task.scatter) continue;
-                    const Op& op = task.client->rob().at(task.op_id);
-                    const int32_t shard = task.shard >= 0 ? task.shard : op.shard;
-                    if (shard >= 0 &&
-                        !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
-                        srv_->shard(shard).store().prefetch_object(op.hash);
-                }
-                batch->state = ExPipelineState::Ready;
-            }
-            if (snapshot_owner_state_ == SnapshotOwnerState::None)
-                exec_batch_prefetched(batch->tasks.data(), batch->count);
-            else
-                for (uint32_t i = 0; i < batch->count; i++)
-                    schedule_snapshot_task(batch->tasks[i]);
-            self_->retire_gathered_tasks(batch->producers.data(), batch->count);
-            self_->sig().ops += batch->count;
-            work += batch->count;
-            batch->count = 0;
-            batch->state = ExPipelineState::Empty;
-        }
-        if (work) ring_.submit_and_reap();
+        while (pipeline_bucket_prefetch()) {}
+        while (pipeline_object_prefetch()) {}
+        while (const uint32_t n = pipeline_execute()) work += n;
         return work;
     }
 
@@ -1427,7 +1388,10 @@ private:
     void*      fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
     std::array<ExPipelineBatch, kGenthreadExBuffers> pipeline_batches_{};
-    uint64_t next_pipeline_sequence_ = 1;
+    uint32_t pipeline_fill_index_ = 0;
+    uint32_t pipeline_bucket_index_ = 0;
+    uint32_t pipeline_object_index_ = 0;
+    uint32_t pipeline_execute_index_ = 0;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

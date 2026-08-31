@@ -68,10 +68,9 @@ by IFID therefore cannot execute until the later EX batch.
 
 The streams are buffered independently by structures they already own: connection read buffers and
 the ROB bound IFID, the per-producer SPSC lanes stage EX input, and the completion masks plus
-`pending_serve_` stage WB input. EX retains gather/prefetch/execute batches of 32; ordinary IFID
-dispatch is capped at 32 operations per connection pass; WB serves up to 16 connections per batch.
-All three sizes are named compile-time constants in `genthread_pipeline.h`. There are no runtime
-knobs, fibers, per-request schedulers, or new atomics.
+`pending_serve_` stage WB input. The original coarse comparison used EX/IFID batches of 32 and WB
+batches of 16. The adaptive loop below retains this exact coarse ordering while making the current
+batch caps compile-time sweep points in `genthread_pipeline.h`.
 
 This commit is the coarse comparison arm. It intentionally does not interleave batch micro-stages;
 that is the next commit's arm.
@@ -93,26 +92,28 @@ only the batch boundaries that launch or consume a useful memory dependency:
   Task still publishes through `task_in_[self]` and never executes in IFID.
 - EX is triple-buffered across `INPUT_PF`, `FILL`, `BUCKET_PF`, `OBJECT_PF`, and `EXECUTE`.
   `INPUT_PF` reads ahead the published Task slots and their referenced Op state without changing a
-  queue frontier. `FILL` gathers up to 32 Tasks plus their producer-lane IDs. `BUCKET_PF` issues the
+  queue frontier. `FILL` gathers up to the 128-Task cap plus producer-lane IDs. `BUCKET_PF` issues the
   existing FlatStore bucket prefetch loop. `OBJECT_PF` consumes the warmed bucket probe far enough
   to prefetch a tag candidate, without making a logical lookup or mutation. `EXECUTE` runs the
   existing homogeneous execution loop, publishes completions, and only then advances each source
   lane's separate retired frontier. Older retry, atomic, snapshot, and continuation machinery
   remains in the executor control pass.
 - WB is triple-buffered across `GATHER`, `PREPARE`, and `SUBMIT`. `GATHER` observes completion
-  channels/ready bits, gathers up to 16 owning connections, and prefetches each ROB head.
+  channels/ready bits, gathers up to the 64-connection cap, and prefetches each ROB head.
   `PREPARE` drains only the ready ROB prefix in order and stages reply/segment state. `SUBMIT`
   constructs and publishes the send operation through the existing plain, kTLS, or userspace-TLS
   pump. Send completion retains its existing byte reclamation and zero-copy release rules.
 
 The three buffer arrays are independent: IFID buffers contain decoded `Op` references, EX buffers
 contain copied `Task` values and producer IDs, and WB buffers contain owning `Client` references.
-They are owner-local and add no atomics or fields to `Op` or `Client`. Sequence numbers preserve
-FIFO batch progression inside each stream. A connection held by IFID or WB cannot migrate or be
-deleted until that owner-local reference is released; EX queue quiescence continues to use the
-existing post-execution retired frontier.
+They are owner-local and add no atomics or fields to `Op` or `Client`. Each phase owns a ring index
+into its three slots (fill/hash/route, fill/bucket/object/execute, and gather/prepare/submit).
+Advancing an index preserves FIFO batch progression without scanning every slot for the oldest
+sequence. Consuming a slot changes only its count/state; the arrays are not cleared or shuffled. A
+connection held by IFID or WB cannot migrate or be deleted until that owner-local reference is
+released; EX queue quiescence continues to use the existing post-execution retired frontier.
 
-The exact `kGenthreadStaticSchedule` is:
+The shallow `kGenthreadStaticSchedule` is:
 
 1. `EX.BUCKET_PF`
 2. `IFID.HASH`
@@ -125,28 +126,37 @@ The exact `kGenthreadStaticSchedule` is:
 9. `IFID.RX_PARSE`
 10. `EX.FILL`
 11. `WB.GATHER`
-12. `EX.BUCKET_PF`
-13. `IFID.RX_PARSE`
-14. `EX.FILL`
-15. `WB.GATHER`
-16. `IFID.HASH`
-17. `WB.PREPARE`
-18. `EX.OBJECT_PF`
 
-The schedule repeats unchanged and every entry returns immediately if its required input buffer is
-empty or its output buffers are full.  One outer loop repeats the complete static rotation while it
-makes progress, up to `kGenthreadPipelineRotationsPerLoop`; a deep backlog can therefore advance
-more than one batch through each bottleneck stage without turning the rotation into a dynamic
-scheduler.  Thus, for example, bucket prefetch is separated from the dependent object probe,
-object prefetch from execution, IFID parsing from hashing and publication, and WB head
-prefetch/preparation from send submission by useful work from the other streams. The pre-park path
-remains a mask-independent correctness backstop and drains staged EX work before its coarse queue
-sweep.
+Every entry runs once per shallow loop pass and returns immediately if its required input slot is
+empty or its output slot is full. A gather takes all observed input up to its cap in that one
+invocation: IFID and EX cap at 128 items and WB at 64 connections. Thus backlog grows the useful
+work under one stage entry/exit instead of causing repeated 18-entry rotations of fixed 32/16-item
+batches. Input prefetch is likewise bounded by the EX cap rather than performing one hint per lane.
+Bucket prefetch remains separated from object probe, object probe from execution, IFID parsing from
+hash/publication, and WB head prefetch/preparation from submission by useful work in the other
+streams. The pre-park path remains a mask-independent correctness backstop.
 
-Batch sizes, all three buffer depths, the per-loop rotation quota, the stage enum, and this exact
-order are named compile-time constants in the single `genthread_pipeline.h` block. There are no
-runtime schedule knobs, fibers, per-request runnable states, or claims about the eventual tuned
-order.
+## Depth-adaptive schedule
+
+IFID records one natural-depth observation per gathered batch without changing `Op` or `Client`.
+In shallow mode it divides the bytes already buffered for the gathered connections by the bytes in
+their first decoded frames; in coarse mode it uses operations dispatched per participating
+connection. Both estimate the batch that the input would naturally supply if micro-staging did not
+stop after the first unpublished op. Only the outer loop-pass boundary consumes these owner-local
+observations and changes mode; no operation tests the mode.
+
+The gate averages eight observations. Its high threshold is `EX cap / 8` (16 with the current cap)
+and its low threshold is one quarter of that (4), providing hysteresis. At or above the high
+threshold, the interleave window becomes zero and the loop degenerates to the coarse
+`IFID -> EX -> WB` rotation: stages run back-to-back, executor queue consumption drains naturally,
+and no micro-stage or buffer search is paid. At or below the low threshold it restores the
+two-buffer shallow prefetch window. A shallow-to-deep transition finishes at most three already
+staged batches in cursor order once before entering the coarse steady state.
+
+Batch caps, buffer depths, the two thresholds/window length, the interleave window, stage enum, and
+the exact shallow order are compile-time constants in the single `genthread_pipeline.h` block.
+There are no runtime knobs, fibers, per-request runnable states, new atomics, or changes to
+ownership/ROB semantics.
 
 ## Retained and disabled controls
 

@@ -257,10 +257,10 @@ public:
         return task_in_[from].producer_free_slots();
     }
     template <typename Fn>
-    uint32_t read_ahead_task_inputs(uint32_t per_lane, Fn&& fn) const {
+    uint32_t read_ahead_task_inputs(uint32_t capacity, Fn&& fn) const {
         uint32_t n = 0;
-        for (uint32_t p = 0; p < nchan_; p++)
-            n += task_in_[p].read_ahead(per_lane, fn);
+        for (uint32_t p = 0; p < nchan_ && n < capacity; p++)
+            n += task_in_[p].read_ahead(capacity - n, fn);
         return n;
     }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {

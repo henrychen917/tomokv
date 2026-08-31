@@ -9,11 +9,13 @@
 
 namespace tomo {
 
-// Arm 2 coarse rotation.  IFID bounds ordinary dispatch from one connection, EX preserves the
-// established homogeneous store-prefetch batch, and WB bounds the connection reply batch.
-inline constexpr uint32_t kGenthreadIfidBatchOps = 32;
-inline constexpr uint32_t kGenthreadExBatchOps   = 32;
-inline constexpr uint32_t kGenthreadWbBatchConns = 16;
+// Batch CAPS, not fixed quanta.  A gather takes min(observed backlog, cap) in one invocation, so a
+// deep queue pays one stage entry/exit rather than a string of 16/32-item schedule rotations.  The
+// caps are deliberately compile-time sweep points: they bound owner-local footprint and the time
+// before the loop returns to control work.
+inline constexpr uint32_t kGenthreadIfidBatchOps = 128;
+inline constexpr uint32_t kGenthreadExBatchOps   = 128;
+inline constexpr uint32_t kGenthreadWbBatchConns = 64;
 
 // Arm 3 independent buffering.  Three EX slots permit one batch executing, one with bucket/object
 // prefetches outstanding, and one filling.  IFID and WB use the same depth so parse/hash/route and
@@ -22,11 +24,17 @@ inline constexpr uint32_t kGenthreadIfidBuffers = 3;
 inline constexpr uint32_t kGenthreadExBuffers   = 3;
 inline constexpr uint32_t kGenthreadWbBuffers   = 3;
 
-// A deep client pipeline can leave many batches ready behind every stream.  Repeating the exact
-// static rotation lets its one ROUTE_ISSUE/EXECUTE/SUBMIT slot advance more than one batch per
-// outer loop, while this fixed quota keeps control work and ring submission bounded.  A rotation
-// stops early when every stage reports empty, so shallow/idle traffic does not pay all 16 turns.
-inline constexpr uint32_t kGenthreadPipelineRotationsPerLoop = 16;
+// Depth gate.  IFID observes the natural number of request frames already present per connection
+// (bytes gathered / bytes in the first decoded frame) and folds one sample per loop pass.  Eight
+// passes smooth recv segmentation without making a workload change sticky.  The deep threshold is
+// derived from the EX cap; the lower threshold supplies hysteresis.  Deep mode is the standing
+// coarse arm: its interleave window is zero.  Shallow mode retains the two-buffer prefetch window.
+inline constexpr uint32_t kGenthreadDepthSampleWindow = 8;
+inline constexpr uint32_t kGenthreadDeepBatchThreshold = kGenthreadExBatchOps / 8;
+inline constexpr uint32_t kGenthreadShallowBatchThreshold =
+    kGenthreadDeepBatchThreshold / 4;
+inline constexpr uint32_t kGenthreadInterleaveWindow = kGenthreadExBuffers - 1;
+static_assert(kGenthreadShallowBatchThreshold < kGenthreadDeepBatchThreshold);
 
 enum class GenthreadStage : uint8_t {
     ExBucketPrefetch,
@@ -42,10 +50,10 @@ enum class GenthreadStage : uint8_t {
     WbGather,
 };
 
-// Exact arm-3 schedule.  Repeated fill/parse/gather and prefetch/prepare stages bootstrap and then
-// retain two batches ahead; every invocation is a fixed dispatch and skips when its matching
-// buffer state is empty/full.  The producer/consumer gaps are intentional latency-hiding windows.
-inline constexpr std::array<GenthreadStage, 18> kGenthreadStaticSchedule = {
+// Exact shallow schedule.  Every stage appears once: each gather takes all available work up to its
+// cap, and the ring-indexed buffers carry it to the next pass.  The producer/consumer gaps are the
+// intentional latency-hiding window; repeating entries here only reintroduced depth overhead.
+inline constexpr std::array<GenthreadStage, 11> kGenthreadStaticSchedule = {
     GenthreadStage::ExBucketPrefetch,
     GenthreadStage::IfidHash,
     GenthreadStage::WbPrepare,
@@ -57,13 +65,6 @@ inline constexpr std::array<GenthreadStage, 18> kGenthreadStaticSchedule = {
     GenthreadStage::IfidRxParse,
     GenthreadStage::ExFill,
     GenthreadStage::WbGather,
-    GenthreadStage::ExBucketPrefetch,
-    GenthreadStage::IfidRxParse,
-    GenthreadStage::ExFill,
-    GenthreadStage::WbGather,
-    GenthreadStage::IfidHash,
-    GenthreadStage::WbPrepare,
-    GenthreadStage::ExObjectPrefetch,
 };
 
 }  // namespace tomo
