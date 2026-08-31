@@ -625,9 +625,12 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
         return false;
     }
-    if (phase_ != Phase::Anchored && phase_ != Phase::BootPending && (forced || shifted)) {
-        const FlipctlTriggerReason reason = forced ? FlipctlTriggerReason::Forced
-                                                   : FlipctlTriggerReason::FingerprintShift;
+    // Mid-maneuver, ONLY a forced trigger may interrupt. The maneuver's own split changes move
+    // the pass-depth signature, so honoring `shifted` here lets the actuator re-trigger itself
+    // forever (the sweep-abandon law: a signal the actuator moves cannot police it). The
+    // detector re-baselines at anchor; a real workload change re-fires from the anchored state.
+    if (phase_ != Phase::Anchored && phase_ != Phase::BootPending && forced) {
+        const FlipctlTriggerReason reason = FlipctlTriggerReason::Forced;
         if (phase_ == Phase::WaitingFlip && server.flip_stage() != FlipStage::Idle) {
             // The committed ownership transaction must finish, but none of its throughput samples
             // survive. Restart measurement immediately after Idle instead of overlapping a flip.
