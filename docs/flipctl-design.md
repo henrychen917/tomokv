@@ -151,6 +151,6 @@ fingerprint, rate surge, rate collapse, and forced causes independently observab
   mix change, and checks the command-work window/off behavior.
 - `tests/flipctl.py` is the small port-7845 Python driver. It asserts that a connection ramp cannot
   start boot and that the eventual low-load anchor is off-rail, holds it for 60 seconds, then
-  triples single-frame BITCOUNT connections without changing their pipeline fingerprint for
-  exactly one surge maneuver. It finishes with one BITCOUNT-to-MGET fingerprint maneuver and uses
-  no memtier.
+  shortens think-time on those same single-frame BITCOUNT connections for exactly one surge
+  maneuver without changing their pipeline fingerprint. It finishes with one BITCOUNT-to-INCR
+  fingerprint maneuver and uses no memtier.
