@@ -1,8 +1,7 @@
 // main.cc — boot, thread launch, pinning, shutdown.
 //
-// PURE 2s (owner ruling 2026-08-24): io threads receive, parse, dispatch, retire and send;
-// executors execute. The 3s posture was measured exhaustively and deleted -- see wb.h's header
-// for the evidence. --mode/--wb survive only to reject scripts that still ask for 3s.
+// Split mode keeps the pure 2s design. Fused startup is isolated in genthread.cc so boot mode
+// selection cannot change the split loop translation unit's optimization or object code.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -28,6 +27,7 @@
 #include "base/alloc.h"
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
+#include "core/genthread.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
 #include "persist/aof.h"
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "--load requires a non-empty path\n");
         return 1;
     }
-    if (!command_registry_init(cfg.tls_port != 0)) {
+    if (!command_registry_init(cfg.tls_port != 0, cfg.thread_mode == ThreadMode::Fused)) {
         std::fprintf(stderr, "command registry init failed\n");
         return 1;
     }
@@ -243,6 +243,13 @@ int main(int argc, char** argv) {
         }
         unix_listener = IoLoop::make_unix_listener(cfg.unixsocket, srv.cfg().tcp_backlog);
         if (unix_listener < 0) { std::perror("bind unixsocket"); return 1; }
+    }
+
+    if (cfg.thread_mode == ThreadMode::Fused) {
+        srv.topo().dump(stdout);
+        for (uint32_t i = 0; i < srv.nthreads(); i++) g_threads.push_back(&srv.thread(i));
+        return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
+                                tls_context.get(), unix_listener);
     }
 
     srv.topo().dump(stdout);

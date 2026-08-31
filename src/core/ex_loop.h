@@ -20,6 +20,7 @@
 #include <deque>
 #include "server.h"
 #include "signal.h"
+#include "genthread_pipeline.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -40,11 +41,14 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
 // that the prefetches have time to land, small enough that the batch stays in L1.
-inline constexpr uint32_t kExecBatch = 32;
+inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
 
-class ExLoop {
+template <bool Fused>
+class ExLoopT {
 public:
+    using FusedCompletionFn = void (*)(void*, Client*);
+
     WbEngine& engine() { return wb_; }
     bool init(Server* srv, ThreadCtx* self, bool dormant = false) {
         srv_ = srv; self_ = self;
@@ -68,6 +72,100 @@ public:
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
             shard->bind_notify_pending(&notify_keyless_pending_);
+    }
+
+    // Fused tenure shares the physical thread with IoLoop. IoLoop remains the published wake
+    // endpoint because it owns the only blocking wait; this ring still carries persistence CQEs.
+    void activate_fused() {
+        static_assert(Fused);
+        if (!initialized_) std::abort();
+        blocking_bind_executor(srv_, self_, &ring_);
+        for (Shard* shard : self_->shards())
+            shard->bind_notify_pending(&notify_keyless_pending_);
+    }
+
+    void bind_fused_completion(void* context, FusedCompletionFn completion) {
+        static_assert(Fused);
+        fused_io_context_ = context;
+        fused_completion_ = completion;
+    }
+
+    // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
+    // this pass is the split executor body without its role loop or independent wait.
+    uint32_t fused_pass() {
+        static_assert(Fused);
+        cached_now_ms_ = realtime_ms();
+        const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
+        if (!lb_frozen) refresh_live_config();
+        if (maxmemory_enabled_)
+            cached_lru_clock_ = static_cast<uint8_t>(
+                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
+
+        uint32_t did = 0;
+        if (lb_frozen) {
+            if (!srv_->lb_acked(self_->id())) {
+                did += service_stale_forwards();
+                did += drain_releases(true);
+                did += service_multi_retries();
+                did += service_atomic_deferred();
+                did += service_xshard_retries();
+                if (xshard_retries_.empty()) did += service_ordered_deferred();
+                if (xshard_retries_.empty() && ordered_deferred_.empty())
+                    did += drain_tasks(true);
+                did += aof_flush_pass();
+                did += drain_notify_keyless(self_->sig());
+            }
+            did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+            did += lb_control_pass();
+        } else {
+            did += snapshot_control_pass();
+            did += service_stale_forwards();
+            did += drain_releases();
+            if (!snapshot_blocks_tasks()) {
+                did += service_multi_retries();
+                did += service_atomic_deferred();
+                did += service_xshard_retries();
+                if (xshard_retries_.empty()) did += service_ordered_deferred();
+                if (xshard_retries_.empty() && ordered_deferred_.empty())
+                    did += snapshot_owner_state_ == SnapshotOwnerState::None
+                               ? drain_tasks() : drain_tasks_snapshot();
+            }
+            if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                cached_now_ms_ >= blocking_beat_ms_) {
+                did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
+                blocking_beat_ms_ = cached_now_ms_ + 10;
+            }
+            did += aof_flush_pass();
+            did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
+            did += lb_control_pass();
+            lb_bucket_bytes_pass();
+        }
+        if (did) {
+            did += drain_notify_keyless(self_->sig());
+            ring_.submit_and_reap();
+            fused_idle_spins_ = 0;
+            return did;
+        }
+        if (lb_frozen) return 0;
+        if (++fused_idle_spins_ < kExSpinBudget) return 0;
+        fused_idle_spins_ = 0;
+        did = sweep();
+        if (did) ring_.submit_and_reap();
+        return did;
+    }
+
+    uint32_t fused_sweep() {
+        static_assert(Fused);
+        if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
+        cached_now_ms_ = realtime_ms();
+        const uint32_t did = sweep();
+        if (did) ring_.submit_and_reap();
+        return did;
+    }
+
+    void fused_snapshot_start(SnapshotManager* manager) {
+        static_assert(Fused);
+        begin_snapshot(manager);
     }
 
     Ring& ring() { return ring_; }
@@ -864,7 +962,7 @@ private:
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
             if (lb_sample_rate_) {
-                struct LbVisit { ExLoop* loop; Shard* shard; } visit{this, &sh};
+                struct LbVisit { ExLoopT* loop; Shard* shard; } visit{this, &sh};
                 xshard_visit_task_hashes(t, &visit, [](void* context, uint64_t hash) {
                     auto* visit = static_cast<LbVisit*>(context);
                     visit->loop->note_lb_hash(*visit->shard, hash);
@@ -1107,6 +1205,15 @@ private:
     // enqueue it N times.
     void notify_sender(Client* c) {
         const uint32_t target = c->ifid_thread();
+        if constexpr (Fused) {
+            if (target == self_->id()) {
+                // Self-owned work was consumed from the same SPSC lane as remote work. Schedule
+                // local retirement without a redundant cross-thread post or wake.
+                if (!fused_completion_) std::abort();
+                fused_completion_(fused_io_context_, c);
+                return;
+            }
+        }
         ThreadCtx& snd = srv_->thread(target);
         // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
         // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no
@@ -1196,6 +1303,13 @@ private:
     bool         slowlog_armed_ = false;
     SlowlogArm   slowlog_arm_{};
     SlowlogExState slowlog_state_{};
+    // Fused-only state stays at the true tail so every split ExLoop field keeps its offset.
+    uint32_t fused_idle_spins_ = 0;
+    void* fused_io_context_ = nullptr;
+    FusedCompletionFn fused_completion_ = nullptr;
 };
+
+using ExLoop = ExLoopT<false>;
+using FusedExLoop = ExLoopT<true>;
 
 }  // namespace tomo

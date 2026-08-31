@@ -71,7 +71,7 @@ bool command_equal(Slice input, const char* canonical) {
 
 }  // namespace
 
-bool command_registry_init(bool tls_enabled) {
+bool command_registry_init(bool tls_enabled, bool fused_mode) {
     if (g_registry.built) return true;
     const CommandTable families[] = {
         string_command_table(), hash_command_table(), hash_ttl_command_table(),
@@ -105,6 +105,11 @@ bool command_registry_init(bool tls_enabled) {
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                if (fused_mode && !std::strcmp(copy.name, "FLIP")) {
+                    copy.flags &= ~CmdFlags::FlipAsync;
+                    copy.handler = cmd_flip_unavailable;
+                    copy.handler_notify = cmd_flip_unavailable;
+                }
                 const AclCommandCategoryDefinition* categories =
                     generated_acl_categories(copy.name);
                 if (!categories) {

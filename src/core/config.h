@@ -217,6 +217,9 @@ enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
 // unavailable or unwanted. Deliberately spelled like --persist-io: same shape of decision (which
 // kernel interface carries our IO), same boot-only latching, same enum grammar.
 enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
+// Boot-latched loop architecture. Split retains dedicated network and executor threads; fused
+// gives every selected physical thread both loop objects and rotates their coarse batch passes.
+enum class ThreadMode : uint8_t { Split = 0, Fused = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
@@ -297,6 +300,8 @@ struct Config {
     bool appendonly = false;
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
     PersistIoEngine persist_io = PersistIoEngine::Uring;
+    // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
+    ThreadMode thread_mode = ThreadMode::Split;
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;
@@ -398,6 +403,8 @@ struct Config {
     // condition CONFIG REWRITE reports as an error.
     const char* conf_path = nullptr;
 };
+static_assert(sizeof(Config) == 624,
+              "Config grew: boot knobs must consume existing padding to preserve Server offsets");
 
 // ---- tiny local parsers (const char* flavors; the Slice flavors in the .cc files are separate) --
 
@@ -648,6 +655,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (value && !std::strcmp(value, "local")) cfg.enable_debug_command = DebugCommandMode::Local;
             else {
                 std::fprintf(stderr, "--enable-debug-command wants no, yes or local\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--thread-mode")) {
+            const char* value = next(nullptr);
+            if (value && !std::strcmp(value, "split")) cfg.thread_mode = ThreadMode::Split;
+            else if (value && !std::strcmp(value, "fused")) cfg.thread_mode = ThreadMode::Fused;
+            else {
+                std::fprintf(stderr, "--thread-mode wants split or fused\n");
                 return kConfigError;
             }
         }
@@ -1026,6 +1042,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
+                        "  threading: --thread-mode split|fused (boot-only; default split)\n"
                         "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
@@ -1090,6 +1107,16 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {
+        std::fprintf(stderr,
+                     "--ratio is unavailable with --thread-mode fused: every thread handles networking and execution\n");
+        return kConfigError;
+    }
+    if (cfg.thread_mode == ThreadMode::Fused && cfg.flip_auto) {
+        std::fprintf(stderr,
+                     "--flip-auto is unavailable with --thread-mode fused\n");
+        return kConfigError;
+    }
     if (cfg.databases != 1) {
         std::fprintf(stderr, "databases must be 1: this server owns one keyspace\n");
         return kConfigError;

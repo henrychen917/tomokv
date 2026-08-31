@@ -318,6 +318,8 @@ void init_config(const Config& cfg) {
     // server actually chose, and refused by CONFIG SET rather than silently accepted.
     g_config.push_back({"net-io", ConfigKind::Enum,
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
+    g_config.push_back({"thread-mode", ConfigKind::Enum,
+                        cfg.thread_mode == ThreadMode::Fused ? "fused" : "split", true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned,
@@ -1668,6 +1670,7 @@ void cmd_info(Shard&, Op& op) {
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
         // opaque "boot/cell FAIL" long before any measurement was taken.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
+                      "thread_mode:%s\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
@@ -1675,7 +1678,8 @@ void cmd_info(Shard&, Op& op) {
                       "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
                       "flip_client_min:%u\r\nflip_client_max:%u\r\n"
                       "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
-                kVersion, kVersion, sizeof(void*) * 8,
+                kVersion, kVersion, g_server ? g_server->thread_mode_name() : "split",
+                sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
@@ -2231,6 +2235,10 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+void cmd_flip_unavailable(Shard&, Op& op) {
+    reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode fused");
+}
 
 bool debug_command_allowed(const Server& server, const Client* client) {
     const DebugCommandMode mode = server.cfg().enable_debug_command;

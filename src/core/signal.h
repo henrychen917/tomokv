@@ -412,6 +412,9 @@ public:
                     const std::vector<uint32_t>& ex) {
         return q_.init_local(producers, slots_per_thread, io, ex);
     }
+    bool init_local_fused(uint32_t producers, uint32_t slots_per_thread) {
+        return q_.init_local_fused(producers, slots_per_thread);
+    }
     bool remask_quiesced(const std::vector<uint32_t>& io,
                          const std::vector<uint32_t>& ex) {
         return q_.remask_quiesced(io, ex);

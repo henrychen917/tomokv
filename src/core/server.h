@@ -208,18 +208,23 @@ public:
                          "fatal: --smt-mode could not read Linux thread_siblings_list topology\n");
             return false;
         }
-        // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
-        // the measured 2s center (4:4-class) generalized to any core count.
-        uint32_t di = cfg.even_ifid, de = cfg.even_ex;
-        if (!cfg.place && !(di | de)) {
-            uint32_t n = 0;
-            for (uint32_t d = 0; d < topo_.ndomains(); d++)
-                n += static_cast<uint32_t>(topo_.cpus_in(d).size());
-            di = n - n / 2; de = n / 2;
+        bool placed = false;
+        if (cfg.thread_mode == ThreadMode::Fused) {
+            placed = placement_.build_fused(topo_, cfg.place);
+        } else {
+            // Default shape: an even io/ex split of every allowed cpu, io taking the odd one out --
+            // the measured 2s center (4:4-class) generalized to any core count.
+            uint32_t di = cfg.even_ifid, de = cfg.even_ex;
+            if (!cfg.place && !(di | de)) {
+                uint32_t n = 0;
+                for (uint32_t d = 0; d < topo_.ndomains(); d++)
+                    n += static_cast<uint32_t>(topo_.cpus_in(d).size());
+                di = n - n / 2; de = n / 2;
+            }
+            placed = cfg.place
+                ? placement_.build_explicit(topo_, cfg.place)
+                : placement_.build_even(topo_, di, de, cfg.smt_mode != 0);
         }
-        const bool placed = cfg.place
-            ? placement_.build_explicit(topo_, cfg.place)
-            : placement_.build_even(topo_, di, de, cfg.smt_mode != 0);
         if (!placed) return false;
         if (!placement_.configure_smt_units(topo_, cfg.smt_mode != 0)) return false;
         if (!placement_.reserve_runtime_roles(placement_.total_threads())) return false;
@@ -258,7 +263,8 @@ public:
         // a channel from every other regardless of role, because a role change must not require
         // re-wiring the mesh.
         const uint32_t nthreads = placement_.total_threads();
-        if (!flipctl_.init(cfg.flip_auto != 0, cfg.flip_auto_band, nthreads)) {
+        if (!flipctl_.init(cfg.thread_mode == ThreadMode::Split && cfg.flip_auto != 0,
+                           cfg.flip_auto_band, nthreads)) {
             std::fprintf(stderr, "fatal: could not allocate flip controller state\n");
             return false;
         }
@@ -331,6 +337,10 @@ public:
     }
 
     const Config&    cfg()        const { return cfg_; }
+    ThreadMode thread_mode() const { return cfg_.thread_mode; }
+    const char* thread_mode_name() const {
+        return cfg_.thread_mode == ThreadMode::Fused ? "fused" : "split";
+    }
 
     bool lb_machinery_enabled() const {
         return cfg_.lb_sample_rate && cfg_.lb_tick_ms && cfg_.lb_imbalance_pct &&
@@ -568,7 +578,7 @@ public:
     }
     bool lb_all_ex_acked() const {
         for (uint32_t tid = 0; tid < nthreads(); tid++)
-            if (thread(tid).role() == Role::Ex && !lb_acked(tid)) return false;
+            if (live_executor(tid) && !lb_acked(tid)) return false;
         return true;
     }
     uint64_t lb_ticks() const { return lb_ticks_.load(std::memory_order_relaxed); }
@@ -996,10 +1006,15 @@ public:
             }
             std::vector<uint32_t> executors;
             std::vector<uint32_t> ios;
-            for (uint32_t tid = 0; tid < nthreads(); tid++) {
-                const Role role = thread(tid).role();
-                if (key_enabled && role == Role::Ex) executors.push_back(tid);
-                else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
+            if (cfg_.thread_mode == ThreadMode::Fused) {
+                if (key_enabled) executors = placement_.ex_threads();
+                if (client_enabled) ios = placement_.ifid_threads();
+            } else {
+                for (uint32_t tid = 0; tid < nthreads(); tid++) {
+                    const Role role = thread(tid).role();
+                    if (key_enabled && role == Role::Ex) executors.push_back(tid);
+                    else if (client_enabled && role == Role::Ifid) ios.push_back(tid);
+                }
             }
 
             auto spread = [](const double* loads, const std::vector<uint32_t>& owners) {
@@ -1788,7 +1803,7 @@ public:
                                          uint32_t destination) {
         if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
             destination >= threads_.size() || source == destination) return false;
-        if (threads_[source]->role() != Role::Ex || threads_[destination]->role() != Role::Ex)
+        if (!live_executor(source) || !live_executor(destination))
             return false;
 
         // FlatStore is the lock-free physical ownership unit. Accept a range of one or more whole
@@ -1844,8 +1859,8 @@ public:
         if (shard_id < 0 || static_cast<uint32_t>(shard_id) >= shards_.size()) return false;
         Shard& shard = *shards_[static_cast<uint32_t>(shard_id)];
         if (source >= threads_.size() || destination >= threads_.size() || source == destination ||
-            threads_[source]->role() != Role::Ex ||
-            (threads_[destination]->role() != Role::Ex &&
+            !live_executor(source) ||
+            (!live_executor(destination) &&
              !(flip_stage() != FlipStage::Idle && flip_final_role(destination) == Role::Ex)) ||
             worker_of_shard(shard_id) != source) return false;
         auto& from = threads_[source]->shards();
@@ -1873,6 +1888,12 @@ public:
         } catch (...) {
             return false;
         }
+    }
+
+    bool live_executor(uint32_t tid) const {
+        if (tid >= nthreads()) return false;
+        return cfg_.thread_mode == ThreadMode::Fused
+            ? placement_.is_executor(tid) : thread(tid).role() == Role::Ex;
     }
     uint32_t executor_slot(uint32_t thread_id) const {
         return thread_id < kMaxThreads ? executor_slots_[thread_id] : UINT8_MAX;

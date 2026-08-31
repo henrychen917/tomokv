@@ -85,6 +85,35 @@ public:
         return false;
     }
 
+    // Fused owners use every physical thread as both a client producer and an executor producer.
+    // One producer id still has exactly one SPSC lane into this consumer, including the self lane;
+    // give every lane the original per-thread capacity instead of partitioning by split roles.
+    bool init_local_fused(uint32_t producers, uint32_t slots_per_thread) {
+        if (slots_ || !producers || producers > MaxProducers || !slots_per_thread ||
+            !std::has_single_bit(slots_per_thread)) return false;
+        const uint64_t wanted = static_cast<uint64_t>(producers) * slots_per_thread;
+        if (wanted > UINT32_MAX || !allocate_slots(static_cast<uint32_t>(wanted))) return false;
+        producers_ = producers;
+        uint32_t cursor = 0;
+        for (uint32_t p = 0; p < producers_; p++) {
+            ConsumerLine& c = lanes_[p].consumer;
+            ProducerLine& q = lanes_[p].producer;
+            c.head.store(0, std::memory_order_relaxed);
+            c.retired.store(0, std::memory_order_relaxed);
+            c.tail_cached = 0;
+            c.base = cursor;
+            c.mask = slots_per_thread - 1;
+            c.capacity = slots_per_thread;
+            q.tail.store(0, std::memory_order_relaxed);
+            q.head_cached = 0;
+            q.base = cursor;
+            q.mask = slots_per_thread - 1;
+            q.capacity = slots_per_thread;
+            cursor += slots_per_thread;
+        }
+        return true;
+    }
+
     // Cold growth hook.  No caller may use it outside the same parked/quiesced discipline as
     // remask_quiesced(); there is intentionally no capacity check or allocation in push().
     bool grow_quiesced(uint32_t wanted, const std::vector<uint32_t>& io,

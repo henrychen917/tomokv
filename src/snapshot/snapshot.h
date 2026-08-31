@@ -103,7 +103,7 @@ private:
     bool finish_file_metadata(Ring* ring);
     bool complete_file_success();
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
-    void drain_atomic_groups(Server& server);
+    void drain_atomic_groups(Server& server, ThreadCtx& writer);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);

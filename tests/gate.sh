@@ -43,8 +43,10 @@ SRV=0; SRVLOG=/dev/null
 # both atomic modes. Their sibling lanes each claimed 207 -> 209, so the merged ledger owes four.
 # 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
-EXPECT_QUICK=224
-EXPECT_FULL=235                 # full without the optional NIC row.
+# 224 -> 236: fused mode adds one boot-line assertion plus five directed batteries (s6,
+# multi_exec, edgeproto, atomfix, spinprobe) under each of the two atomic modes: 2 * (1 + 5) = 12.
+EXPECT_QUICK=236
+EXPECT_FULL=247                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -99,6 +101,20 @@ boot(){ # binary -> pid ; server log to $SRVLOG
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
   # them. A generous deadline costs nothing when the server is quick — the loop exits on connect.
+  for _ in $(seq 150); do ./build/tomokv --help >/dev/null 2>&1
+    if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
+    (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
+  return 1
+}
+boot_fused(){ # binary -> pid; deliberately omits --ratio, which fused mode rejects
+  local bin=$1; shift
+  SRV=0; SRVLOG=/dev/null
+  (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
+      && { say "port $PORT pre-boot guard" "FAIL (already accepting)"; exit 1; }
+  SRVLOG=$(mktemp /tmp/gate-srv-fused.XXXXXX)
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 \
+      --thread-mode fused "$@" > "$SRVLOG" 2>&1 &
+  SRV=$!
   for _ in $(seq 150); do ./build/tomokv --help >/dev/null 2>&1
     if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
@@ -166,6 +182,27 @@ for AT in 0 1; do
   stop
   grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
+done
+
+# ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
+for AT in 0 1; do
+  if boot_fused ./build/tomokv --atomic "$AT" --enable-debug-command yes; then
+    grep -q "thread-mode=fused" "$SRVLOG" \
+        && ok "fused boot line (atomic $AT)" \
+        || bad "fused boot line (atomic $AT)" "see $SRVLOG"
+  else
+    bad "fused boot line (atomic $AT)" "server did not boot; see $SRVLOG"
+  fi
+  for t in s6 multi_exec edgeproto atomfix; do
+    python3 "tests/$t.py" 127.0.0.1 "$PORT" >"/tmp/gate-fused-$t-$AT.txt" 2>&1 \
+        && ok "fused $t battery (atomic $AT)" \
+        || bad "fused $t battery (atomic $AT)" "see /tmp/gate-fused-$t-$AT.txt"
+  done
+  python3 tests/spinprobe.py "$PORT" >"/tmp/gate-fused-spinprobe-$AT.txt" 2>&1 \
+      && ok "fused spinprobe battery (atomic $AT)" \
+      || bad "fused spinprobe battery (atomic $AT)" \
+             "see /tmp/gate-fused-spinprobe-$AT.txt"
+  stop
 done
 
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
