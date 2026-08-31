@@ -481,12 +481,14 @@ public:
     bool quiesced(uint32_t producer) const { return q_.quiesced(producer); }
     bool all_quiesced() const { return q_.all_quiesced(); }
     uint32_t depth(uint32_t producer) const { return q_.depth(producer); }
+    uint32_t sample_depth(uint32_t producer) { return q_.sample_depth(producer); }
     uint32_t producer_free_slots(uint32_t producer) const {
         return q_.producer_free_slots(producer);
     }
     void arm_blocked() { blocked_.store(true, std::memory_order_release); }
     void clear_blocked() { blocked_.store(false, std::memory_order_release); }
     uint32_t total_slots() const { return q_.total_slots(); }
+    MaskedQueueDiagnostics diagnostics() const { return q_.diagnostics(); }
 
 private:
     MaskedSpscArray<T, MaxProducers> q_;

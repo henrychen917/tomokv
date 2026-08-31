@@ -153,6 +153,9 @@ public:
                                     const std::vector<uint32_t>& ex) {
         return task_in_ && task_in_->remask_quiesced(io, ex);
     }
+    MaskedQueueDiagnostics task_inbox_diagnostics() const {
+        return task_in_ ? task_in_->diagnostics() : MaskedQueueDiagnostics{};
+    }
 
     void init_command_counts(uint32_t count) {
         command_count_size_ = count;
@@ -467,7 +470,7 @@ public:
         const bool task_consumer = role() == Role::Ex;
         const bool sample_inbox_age = sig_.age_sample_rate && task_consumer;
         for (uint32_t i = 0; i < nchan_; i++) {
-            const uint32_t task_depth = task_in_->depth(i);
+            const uint32_t task_depth = task_in_->sample_depth(i);
             d += task_depth + client_in_[i].depth() + release_in_[i].depth() +
                  transfer_in_[i].depth();
             // The 100us signal beat already visits every producer scan point. Make that existing

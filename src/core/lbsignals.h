@@ -59,9 +59,19 @@ struct LbThreadRow {
     uint64_t oldest_age_min_us = 0;
     uint64_t oldest_age_max_us = 0;
     uint64_t full_events = 0;
+    uint32_t masked_lane_high_water = 0;
+    uint64_t masked_lane_full_events = 0;
+    uint64_t masked_arena_occupancy_at_lane_full_sum = 0;
+    uint64_t masked_arena_capacity_at_lane_full_sum = 0;
     uint64_t wakes_sent = 0;
     uint64_t wakes_recv = 0;
     uint64_t spins = 0;
+    double masked_arena_occupancy_at_lane_full() const {
+        return masked_arena_capacity_at_lane_full_sum
+            ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
+                  static_cast<double>(masked_arena_capacity_at_lane_full_sum)
+            : 0.0;
+    }
 };
 
 struct LbShardRow {
@@ -84,6 +94,10 @@ struct LbRoleRollup {
     uint64_t depth_sum = 0;
     uint64_t depth_samples = 0;
     uint64_t full_events = 0;
+    uint32_t masked_lane_high_water = 0;
+    uint64_t masked_lane_full_events = 0;
+    uint64_t masked_arena_occupancy_at_lane_full_sum = 0;
+    uint64_t masked_arena_capacity_at_lane_full_sum = 0;
     uint64_t queue_delay_samples = 0;
     double queue_delay_ewma_weighted = 0.0;
     uint64_t oldest_age_samples = 0;
@@ -107,6 +121,12 @@ struct LbRoleRollup {
     }
     double oldest_age_ewma_us() const {
         return oldest_age_samples ? oldest_age_ewma_weighted / oldest_age_samples : 0.0;
+    }
+    double masked_arena_occupancy_at_lane_full() const {
+        return masked_arena_capacity_at_lane_full_sum
+            ? static_cast<double>(masked_arena_occupancy_at_lane_full_sum) /
+                  static_cast<double>(masked_arena_capacity_at_lane_full_sum)
+            : 0.0;
     }
 };
 
@@ -136,10 +156,14 @@ LbSnapshot lbsignals_capture(Server& srv);
 //          <depth_sum> <depth_samples> <full_events> <wakes_sent> <wakes_recv> <spins>
 //          <queue_delay_samples> <queue_delay_ewma_us> <oldest_age_us>
 //          <oldest_age_samples> <oldest_age_ewma_us> <oldest_age_min_us> <oldest_age_max_us>
+//          masked_lane_high_water <n> masked_lane_full_events <n>
+//          masked_arena_occupancy_at_lane_full <fraction>
 //   shard <sid> <owner_tid> <owner_domain> <ops> <foreign_ops> <migrations> <size> <obj_bytes>
 //   rollup <io|ex> <threads> <ops> <busy_ns> <idle_ns> <cpu_ns> <busy_frac> <ns_per_op>
 //          <avg_depth> <full_events> <queue_delay_samples> <queue_delay_ewma_us>
 //          <oldest_age_min_us> <oldest_age_max_us> <oldest_age_ewma_us>
+//          masked_lane_high_water <n> masked_lane_full_events <n>
+//          masked_arena_occupancy_at_lane_full <fraction>
 //   derived ratio_star_io_frac <f> ratio_star_io <n> ratio_star_ex <n> foreign_frac <f>
 void lbsignals_format(const LbSnapshot& snap, std::string& out);
 // The short derived block for INFO's # LB section.

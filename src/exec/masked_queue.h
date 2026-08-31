@@ -23,6 +23,22 @@ namespace tomo {
 
 inline constexpr size_t kMaskedQueueCacheLine = 64;
 
+// Cold read-side aggregate.  Each underlying counter has exactly one writer: the arena consumer
+// records observed lane depth, and the lane's sole producer records refusals and their arena sample.
+struct MaskedQueueDiagnostics {
+    uint32_t lane_high_water = 0;
+    uint64_t lane_full_events = 0;
+    uint64_t arena_occupancy_at_lane_full_sum = 0;
+    uint64_t arena_capacity_at_lane_full_sum = 0;
+
+    double arena_occupancy_at_lane_full() const {
+        return arena_capacity_at_lane_full_sum
+            ? static_cast<double>(arena_occupancy_at_lane_full_sum) /
+                  static_cast<double>(arena_capacity_at_lane_full_sum)
+            : 0.0;
+    }
+};
+
 template <typename T, uint32_t MaxProducers>
 class MaskedSpscArray {
     static_assert(std::is_nothrow_default_constructible_v<T>);
@@ -36,6 +52,7 @@ class MaskedSpscArray {
     // keeps one small private block in this same allocation.  256 is the largest owner-grouped
     // task bundle and is cache-line granular for Task's 32-byte footprint.
     static constexpr uint32_t kInternalProducerSlots = 256;
+    static_assert(std::has_single_bit(kInternalProducerSlots));
 
     struct alignas(kMaskedQueueCacheLine) ConsumerLine {
         std::atomic<uint32_t> head{0};
@@ -44,6 +61,7 @@ class MaskedSpscArray {
         uint32_t base = 0;
         uint32_t mask = 0;
         uint32_t capacity = 0;
+        uint32_t lane_high_water = 0;
     };
 
     struct alignas(kMaskedQueueCacheLine) ProducerLine {
@@ -52,6 +70,13 @@ class MaskedSpscArray {
         uint32_t base = 0;
         uint32_t mask = 0;
         uint32_t capacity = 0;
+
+        // A lane has one physical producer for its whole tenure, so these diagnostics remain plain
+        // single-writer counters just like head_cached.  Only the rare full slow path scans the
+        // consumer's complete arena; successful pushes retain the old publication shape.
+        uint64_t lane_full_events = 0;
+        uint64_t arena_occupancy_at_lane_full_sum = 0;
+        uint64_t arena_capacity_at_lane_full_sum = 0;
     };
 
     struct Lane {
@@ -74,7 +99,8 @@ public:
     bool init_local(uint32_t producers, uint32_t slots_per_thread,
                     const std::vector<uint32_t>& io,
                     const std::vector<uint32_t>& ex) {
-        if (slots_ || !producers || producers > MaxProducers || !slots_per_thread) return false;
+        if (slots_ || !producers || producers > MaxProducers ||
+            slots_per_thread < kInternalProducerSlots) return false;
         producers_ = producers;
         const uint64_t wanted = static_cast<uint64_t>(producers) * slots_per_thread;
         if (wanted > UINT32_MAX) return false;
@@ -89,7 +115,8 @@ public:
     // One producer id still has exactly one SPSC lane into this consumer, including the self lane;
     // give every lane the original per-thread capacity instead of partitioning by split roles.
     bool init_local_fused(uint32_t producers, uint32_t slots_per_thread) {
-        if (slots_ || !producers || producers > MaxProducers || !slots_per_thread ||
+        if (slots_ || !producers || producers > MaxProducers ||
+            slots_per_thread < kInternalProducerSlots ||
             !std::has_single_bit(slots_per_thread)) return false;
         const uint64_t wanted = static_cast<uint64_t>(producers) * slots_per_thread;
         if (wanted > UINT32_MAX || !allocate_slots(static_cast<uint32_t>(wanted))) return false;
@@ -161,6 +188,14 @@ public:
         const uint32_t io_capacity = std::bit_floor(io_share);
         if (!io_capacity || io_capacity * sizeof(T) < kMaskedQueueCacheLine) return false;
 
+        // kInternalProducerSlots is also the largest owner-grouped bundle.  Keep the relationship
+        // executable: a future allocation/split constant change must fail boot or ExInstall here,
+        // where the caller reports/aborts the remask, rather than strand an oversized push_batch
+        // forever behind a bank that can never accept it.
+        const uint32_t min_bank_capacity =
+            io_capacity < kInternalProducerSlots ? io_capacity : kInternalProducerSlots;
+        if (min_bank_capacity < kInternalProducerSlots) return false;
+
         uint32_t cursor = 0;
         auto install = [&](uint32_t p, uint32_t capacity) {
             ConsumerLine& c = lanes_[p].consumer;
@@ -193,7 +228,10 @@ public:
         const uint32_t next = tail + 1;
         if (next - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) return false;
+            if (next - p.head_cached > p.capacity) {
+                note_lane_full(p);
+                return false;
+            }
         }
         slots_[p.base + (tail & p.mask)] = value;
         p.tail.store(next, std::memory_order_release);
@@ -208,7 +246,10 @@ public:
         const uint32_t next = tail + 1;
         if (next - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) return false;
+            if (next - p.head_cached > p.capacity) {
+                note_lane_full(p);
+                return false;
+            }
         }
         prepare(value);
         slots_[p.base + (tail & p.mask)] = value;
@@ -224,7 +265,10 @@ public:
         const uint32_t next = tail + count;
         if (next - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) return false;
+            if (next - p.head_cached > p.capacity) {
+                note_lane_full(p);
+                return false;
+            }
         }
         for (uint32_t i = 0; i < count; i++)
             slots_[p.base + ((tail + i) & p.mask)] = values[i];
@@ -242,7 +286,10 @@ public:
         const uint32_t next = tail + count;
         if (next - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) return false;
+            if (next - p.head_cached > p.capacity) {
+                note_lane_full(p);
+                return false;
+            }
         }
         for (uint32_t i = 0; i < count; i++) {
             T value = values[i];
@@ -270,6 +317,8 @@ public:
         if (head == c.tail_cached) {
             c.tail_cached = p.tail.load(std::memory_order_acquire);
             if (head == c.tail_cached) return false;
+            const uint32_t observed_depth = c.tail_cached - head;
+            if (observed_depth > c.lane_high_water) c.lane_high_water = observed_depth;
         }
         out = slots_[c.base + (head & c.mask)];
         c.head.store(head + 1, std::memory_order_release);
@@ -298,6 +347,18 @@ public:
                c.head.load(std::memory_order_relaxed);
     }
 
+    // Consumer-only form used by the standing 100us full-lane sweep.  It turns that already-paid
+    // depth sample into an observed per-lane high-water mark without adding a producer-side atomic
+    // load to every successful push.
+    uint32_t sample_depth(uint32_t producer) {
+        ConsumerLine& c = lanes_[producer].consumer;
+        const ProducerLine& p = lanes_[producer].producer;
+        const uint32_t depth = p.tail.load(std::memory_order_relaxed) -
+                               c.head.load(std::memory_order_relaxed);
+        if (depth > c.lane_high_water) c.lane_high_water = depth;
+        return depth;
+    }
+
     template <typename Extract>
     uint32_t newest_nonzero(uint32_t producer, Extract&& extract) const {
         const ConsumerLine& c = lanes_[producer].consumer;
@@ -313,7 +374,38 @@ public:
 
     uint32_t total_slots() const { return total_slots_; }
 
+    MaskedQueueDiagnostics diagnostics() const {
+        MaskedQueueDiagnostics out;
+        for (uint32_t p = 0; p < producers_; p++) {
+            const ConsumerLine& consumer = lanes_[p].consumer;
+            const ProducerLine& line = lanes_[p].producer;
+            const uint32_t high_water =
+                __atomic_load_n(&consumer.lane_high_water, __ATOMIC_RELAXED);
+            if (high_water > out.lane_high_water) out.lane_high_water = high_water;
+            out.lane_full_events +=
+                __atomic_load_n(&line.lane_full_events, __ATOMIC_RELAXED);
+            out.arena_occupancy_at_lane_full_sum +=
+                __atomic_load_n(&line.arena_occupancy_at_lane_full_sum, __ATOMIC_RELAXED);
+            out.arena_capacity_at_lane_full_sum +=
+                __atomic_load_n(&line.arena_capacity_at_lane_full_sum, __ATOMIC_RELAXED);
+        }
+        return out;
+    }
+
 private:
+    void note_lane_full(ProducerLine& p) {
+        uint64_t occupancy = 0;
+        for (uint32_t lane = 0; lane < producers_; lane++) {
+            const ConsumerLine& c = lanes_[lane].consumer;
+            const ProducerLine& q = lanes_[lane].producer;
+            const uint32_t head = c.head.load(std::memory_order_acquire);
+            occupancy += q.tail.load(std::memory_order_acquire) - head;
+        }
+        p.arena_capacity_at_lane_full_sum += total_slots_;
+        p.arena_occupancy_at_lane_full_sum += occupancy;
+        p.lane_full_events++;
+    }
+
     static T* allocate(uint32_t count) {
         const size_t bytes = static_cast<size_t>(count) * sizeof(T);
         void* raw = ::operator new[](bytes, std::align_val_t{kMaskedQueueCacheLine},
