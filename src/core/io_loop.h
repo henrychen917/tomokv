@@ -210,6 +210,7 @@ public:
         accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
         self_->set_ring(&ring_);
         self_->set_wb_engine(&wb_);
+        iopipe_depth_gate_.reset(self_->sig().ops);
         active_role_ = true;
         return true;
     }
@@ -514,6 +515,10 @@ private:
 
             uint32_t did = 0;
             bool submitted = false;
+            // Sample the frames completed by the preceding pass once, outside every batch/stage.
+            // The returned order is tenure-local and remains fixed through this pass and its
+            // possible pre-park sweep.
+            const bool natural_order = iopipe_depth_gate_.loop_boundary(sig.ops);
             {
                 Span busy(sig.busy_ns);
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
@@ -545,7 +550,7 @@ private:
                 did += flush_borrow_releases();
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += pipeline_pass<HasUnix, HasTls, kEp>(false, submitted);
+                did += pipeline_pass<HasUnix, HasTls, kEp>(false, natural_order, submitted);
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
@@ -589,7 +594,7 @@ private:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix, HasTls, kEp>(submitted)) {
+            if (sweep<HasUnix, HasTls, kEp>(natural_order, submitted)) {
                 if (!submitted || ring_.pending()) ring_.submit_and_reap();
                 continue;
             }
@@ -2909,19 +2914,19 @@ nonblocking_dispatch:
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t sweep(bool& submitted) {
+    uint32_t sweep(bool natural_order, bool& submitted) {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases();
-        // The hot rotation visits one fixed-size IFID batch. Before parking, rotate through enough
-        // batches to inspect the whole active set once, while retaining the exact same static
-        // micro-stage order and the unmasked completion drain.
+        // The hot rotation visits one cap-bounded IFID batch. Before parking, run enough batches
+        // to inspect the whole active set once, retaining this outer pass's selected order and the
+        // unmasked completion drain.
         const size_t active_at_start = active_.size();
         const size_t passes = std::max<size_t>(
             1, (active_at_start + kIoPipeIfidBatchClients - 1) / kIoPipeIfidBatchClients);
         for (size_t pass = 0; pass < passes; pass++)
-            work += pipeline_pass<HasUnix, HasTls, kEp>(true, submitted);
+            work += pipeline_pass<HasUnix, HasTls, kEp>(true, natural_order, submitted);
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
         if (srv_->snapshot().writer_is(self_->id()))
@@ -2999,28 +3004,27 @@ nonblocking_dispatch:
         void clear() { count = 0; }
     };
 
-    // WB.OBSERVE: consume completion hints, then detach one bounded connection batch from the
-    // serve FIFO. Clearing serve_pending at detach preserves the old race contract: a completion
-    // that lands while this batch is being prepared can enqueue a fresh future visit.
-    template <bool HasUnix, bool kEp>
-    uint32_t wb_observe(bool unmasked) {
-        WbBatch& batch = wb_batches_[wb_buffer_];
+    // Detach one backlog-scaled connection batch from the serve FIFO. Clearing serve_pending at
+    // detach preserves the old race contract: a completion that lands while this batch is being
+    // prepared can enqueue a fresh future visit.
+    uint32_t wb_gather(WbBatch& batch) {
         if (batch.count) std::abort();
-        uint32_t work = collect_retire_work<HasUnix, kEp>(unmasked);
         if (pending_serve_.empty()) {
             aof_gate_target_ = 0;
-            return work;
+            return 0;
         }
 
         AofManager& aof = srv_->aof();
         if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
         if (!aof.reply_gate_ready(aof_gate_target_)) {
             aof.register_send_gate_wait(self_->id());
-            return work;
+            return 0;
         }
         aof_gate_target_ = 0;
 
-        while (batch.count < kIoPipeWbBatchClients && !pending_serve_.empty()) {
+        const size_t visits = std::min<size_t>(pending_serve_.size(),
+                                               kIoPipeWbBatchClients);
+        for (size_t i = 0; i < visits; i++) {
             Client* client = pending_serve_.front();
             pending_serve_.pop_front();
             client->set_serve_pending(false);
@@ -3030,14 +3034,20 @@ nonblocking_dispatch:
                 batch.count++;
             }
         }
-        return work + batch.count;
+        return batch.count;
+    }
+
+    // WB.OBSERVE: consume completion hints, then gather the shallow pipeline's WB batch early so
+    // its state/payload prefetch can overlap IFID work.
+    template <bool HasUnix, bool kEp>
+    uint32_t wb_observe(bool unmasked, WbBatch& batch) {
+        return collect_retire_work<HasUnix, kEp>(unmasked) + wb_gather(batch);
     }
 
     // WB.PF pass 1 issues hints for every potentially retireable state line. Pass 2 performs the
     // required acquire and, only for a published plain BORROW, hints the store payload. The hint
     // neither reads nor copies payload bytes and never changes the borrow lifetime.
-    void wb_prefetch() {
-        WbBatch& batch = wb_batches_[wb_buffer_];
+    void wb_prefetch(WbBatch& batch) {
         for (uint32_t i = 0; i < batch.count; i++) {
             Client* client = batch.clients[i];
             if (client->dead()) continue;
@@ -3072,11 +3082,10 @@ nonblocking_dispatch:
     // independently maintained active set. In epoll mode the same tagged callback stream comes
     // from the doorbell mailbox before socket readiness is drained.
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t ifid_rx() {
+    uint32_t ifid_rx(IfidBatch& batch) {
         uint32_t work = ring_.for_each_cqe(
             [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
         if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
-        IfidBatch& batch = ifid_batches_[ifid_buffer_];
         if (batch.count) std::abort();
         const size_t available = active_.size();
         if (!available) { ifid_cursor_ = 0; return work; }
@@ -3092,7 +3101,7 @@ nonblocking_dispatch:
 
     // ---- IFID.PARSE+HASH: read-buffer maintenance, decode/hash/route, quiet publication --------
     template <bool HasTls, bool kEp>
-    uint32_t ifid_parse_hash() {
+    uint32_t ifid_parse_hash(IfidBatch& batch) {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kIoPipeWbBackstopTurns);
         if (backstop_pass_) flush_tick_ = 0;
@@ -3104,7 +3113,6 @@ nonblocking_dispatch:
         // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
         // stream flowing no matter how deep the reply backlog is -- which is exactly the property
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
-        IfidBatch& batch = ifid_batches_[ifid_buffer_];
         for (uint32_t batch_index = 0; batch_index < batch.count; batch_index++) {
             Client* c = batch.clients[batch_index];
             if (c->dead() || !c->in_active()) continue;
@@ -3285,22 +3293,16 @@ nonblocking_dispatch:
 
     // IFID.POST: the quiet queue tail stores are already published. Fold their notification/wake
     // edge once per destination, then preserve the existing pub/sub parse-to-send boundary.
-    uint32_t ifid_post() {
+    uint32_t ifid_post(IfidBatch&) {
         uint32_t work = flush_ifid_posts();
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
-        IfidBatch& batch = ifid_batches_[ifid_buffer_];
-        if (batch.count) {
-            batch.clear();
-            ifid_buffer_ = (ifid_buffer_ + 1) % kIoPipeIfidBuffers;
-        }
         return work;
     }
 
     // WB.RETIRE+PREP: drain only the in-order Done prefix and construct reply buffers/iovecs. The
     // engine methods here are the old serve bodies with their final pump deliberately omitted.
     template <bool HasTls, bool kEp>
-    uint32_t wb_retire_prepare() {
-        WbBatch& batch = wb_batches_[wb_buffer_];
+    uint32_t wb_retire_prepare(WbBatch& batch) {
         uint32_t work = 0;
         for (uint32_t i = 0; i < batch.count; i++) {
             Client* c = batch.clients[i];
@@ -3329,8 +3331,7 @@ nonblocking_dispatch:
     // WB.SUBMIT+RECLAIM: build the actual send SQEs/syscalls from the now-warm prepared batch. Send
     // completion reclamation remains in on_cqe, which is the next rotation's RX/CQE boundary.
     template <bool HasTls, bool kEp>
-    uint32_t wb_submit_reclaim(bool& submitted) {
-        WbBatch& batch = wb_batches_[wb_buffer_];
+    uint32_t wb_submit_reclaim(WbBatch& batch, bool& submitted) {
         uint32_t work = 0;
         for (uint32_t i = 0; i < batch.count; i++) {
             Client* c = batch.clients[i];
@@ -3349,10 +3350,6 @@ nonblocking_dispatch:
             }
             if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
         }
-        if (batch.count) {
-            batch.clear();
-            wb_buffer_ = (wb_buffer_ + 1) % kIoPipeWbBuffers;
-        }
         // This is the one early fire point for both streams: WB send SQEs and IFID destination
         // doorbells are submitted together, without waiting for control/cron work after rotation.
         if constexpr (!kEp) {
@@ -3364,34 +3361,91 @@ nonblocking_dispatch:
         return work;
     }
 
-    template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_pass(bool unmasked, bool& submitted) {
+    // At depth, the completed IFID work already supplies a full latency-hiding window. Preserve
+    // the plain split loop's natural per-client retire/stage/pump order and skip the separate WB
+    // prefetch/prepare walk. This is selected once for the whole outer pass, never per operation.
+    template <bool HasTls, bool kEp>
+    uint32_t wb_serve_natural(WbBatch& batch, bool& submitted) {
         uint32_t work = 0;
-        for (const IoPipeStage stage : kIoPipeSchedule) {
-            switch (stage) {
-                case IoPipeStage::WbObserve:
-                    work += wb_observe<HasUnix, kEp>(unmasked);
-                    break;
-                case IoPipeStage::IfidRx:
-                    work += ifid_rx<HasUnix, HasTls, kEp>();
-                    break;
-                case IoPipeStage::WbPrefetch:
-                    wb_prefetch();
-                    break;
-                case IoPipeStage::IfidParseHash:
-                    work += ifid_parse_hash<HasTls, kEp>();
-                    break;
-                case IoPipeStage::WbRetirePrepare:
-                    work += wb_retire_prepare<HasTls, kEp>();
-                    break;
-                case IoPipeStage::IfidPost:
-                    work += ifid_post();
-                    break;
-                case IoPipeStage::WbSubmitReclaim:
-                    work += wb_submit_reclaim<HasTls, kEp>(submitted);
-                    break;
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* c = batch.clients[i];
+            if (c->dead()) continue;
+            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                climon_reply_suppressed(c)) {
+                work += climon_serve_suppressed(c);
+                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+                continue;
+            }
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(c)) {
+                    if (wb_.serve_tls<kEp>(*c, *tls)) work++;
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        arm_tls_socket_poll<kEp>(c, tls->wanted());
+                    if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
+                } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
+                    if (wb_.serve_ktls<kEp>(*c)) work++;
+                } else if (wb_.serve<kEp>(*c)) {
+                    work++;
+                }
+            } else if (wb_.serve<kEp>(*c)) {
+                work++;
+            }
+            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+        }
+        if constexpr (!kEp) {
+            if (ring_.pending()) {
+                ring_.submit_and_reap();
+                submitted = true;
             }
         }
+        return work;
+    }
+
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t pipeline_pass(bool unmasked, bool natural_order, bool& submitted) {
+        // A rotation is synchronous and no stage retains these owner-local Client* lists. Select
+        // and clear the buffers once here, rather than looking up/toggling ping-pong state in every
+        // stage. Cross-core queue publications and kernel SQEs own their data independently.
+        IfidBatch& ifid = ifid_batch_;
+        WbBatch& wb = wb_batch_;
+        if (ifid.count || wb.count) std::abort();
+        uint32_t work = 0;
+        if (natural_order) {
+            work += ifid_rx<HasUnix, HasTls, kEp>(ifid);
+            work += collect_retire_work<HasUnix, kEp>(unmasked);
+            work += ifid_parse_hash<HasTls, kEp>(ifid);
+            work += ifid_post(ifid);
+            work += wb_gather(wb);
+            work += wb_serve_natural<HasTls, kEp>(wb, submitted);
+        } else {
+            for (const IoPipeStage stage : kIoPipeSchedule) {
+                switch (stage) {
+                    case IoPipeStage::WbObserve:
+                        work += wb_observe<HasUnix, kEp>(unmasked, wb);
+                        break;
+                    case IoPipeStage::IfidRx:
+                        work += ifid_rx<HasUnix, HasTls, kEp>(ifid);
+                        break;
+                    case IoPipeStage::WbPrefetch:
+                        wb_prefetch(wb);
+                        break;
+                    case IoPipeStage::IfidParseHash:
+                        work += ifid_parse_hash<HasTls, kEp>(ifid);
+                        break;
+                    case IoPipeStage::WbRetirePrepare:
+                        work += wb_retire_prepare<HasTls, kEp>(wb);
+                        break;
+                    case IoPipeStage::IfidPost:
+                        work += ifid_post(ifid);
+                        break;
+                    case IoPipeStage::WbSubmitReclaim:
+                        work += wb_submit_reclaim<HasTls, kEp>(wb, submitted);
+                        break;
+                }
+            }
+        }
+        ifid.clear();
+        wb.clear();
         return work;
     }
 
@@ -3681,11 +3735,10 @@ nonblocking_dispatch:
 
     Server*    srv_  = nullptr;
     ThreadCtx* self_ = nullptr;
-    std::array<IfidBatch, kIoPipeIfidBuffers> ifid_batches_{};
-    std::array<WbBatch, kIoPipeWbBuffers> wb_batches_{};
+    IfidBatch ifid_batch_{};
+    WbBatch wb_batch_{};
+    IoPipeDepthGate iopipe_depth_gate_{};
     size_t ifid_cursor_ = 0;
-    uint32_t ifid_buffer_ = 0;
-    uint32_t wb_buffer_ = 0;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;

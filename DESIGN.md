@@ -34,8 +34,10 @@ RX/CQE -> RESP parse/decode -> hash/route -> ROB/Task preparation
 ```
 
 CQE/epoll harvesting commits received bytes and marks connections active; it never parses inline.
-The batch then visits at most 16 active connections and publishes at most 32 operations from each
-connection. `parse_and_dispatch` retains all command-specific barriers and continuation behavior.
+The batch visits `min(active connections, 64)` and publishes `min(complete buffered frames, 64)`
+from each selected connection. Thus shallow traffic remains a naturally small batch, while a deep
+connection can fill its 64-slot ROB with one parse-stage entry/exit. `parse_and_dispatch` retains
+all command-specific barriers and continuation behavior.
 Task slots and producer tails are published immediately during parse/hash/route. `IFID.POST` later
 folds the notification/wake edge once per touched destination; only that per-destination list is
 carried between stages, not per-request state.
@@ -43,7 +45,7 @@ carried between stages, not per-request state.
 The partial-frame rule from `744cd57f5` is unchanged. `ParseResult::Incomplete` still becomes
 `NeedInput` only when no cursor progress occurred. Such a connection keeps its partial tail, arms a
 receive, and leaves the active set while WB readiness remains independently actionable. The cold
-pre-park sweep rotates through enough fixed batches to inspect the complete active set once before
+pre-park sweep rotates through enough bounded batches to inspect the complete active set once before
 sleeping, so bounding the hot IFID batch cannot strand a re-arm.
 
 ### WB
@@ -55,10 +57,10 @@ completion/ready observation -> prefetch -> ordered ROB retirement/reply prepara
                              -> iovec/SQE construction -> submit -> CQE/send reclamation
 ```
 
-`WB.OBSERVE` drains the existing client channels and ready mask, then detaches at most 16 clients
-from `pending_serve_`. Clearing `serve_pending` at detach preserves the old completion race: a new
-completion may enqueue another future visit while this batch is in progress. The existing AOF reply
-gate is checked before detaching a batch.
+`WB.OBSERVE` drains the existing client channels and ready mask, then detaches
+`min(pending_serve_.size(), 64)` clients. Clearing `serve_pending` at detach preserves the old
+completion race: a new completion may enqueue another future visit while this batch is in progress.
+The existing AOF reply gate is checked before detaching a batch.
 
 `WbEngine::prepare*` is the retirement/reply-staging portion of the former `serve*` call.
 `WbEngine::pump*` remains the only constructor of sends and is invoked later by `WB.SUBMIT`. Their
@@ -69,7 +71,7 @@ next RX/CQE boundary, exactly as before.
 
 ## Prefetch targets
 
-WB prefetching has two passes over the detached batch:
+In the shallow schedule, WB prefetching has two passes over the detached batch:
 
 1. Hint the `Op::state` line for every outstanding ROB slot, capped by the 64-slot ROB window.
 2. Acquire-load those states in ROB order. For the contiguous Done prefix, hint up to the first
@@ -82,10 +84,10 @@ Prefetch is only a cache hint: it does not read/copy reply bytes, create ownersh
 or alter release-to-shard handling. Reply construction and `sendmsg` continue to borrow the original
 store pointer.
 
-## Static schedule and buffering
+## Depth-adaptive schedule and buffering
 
-All geometry and the exact schedule live in `src/core/iopipe_pipeline.h` as commented compile-time
-constants. One hot rotation is:
+All geometry and the exact shallow schedule live in `src/core/iopipe_pipeline.h` as commented
+compile-time constants. A shallow pass is:
 
 ```
 WB.OBSERVE(W) -> IFID.RX(I) -> WB.PF(W) -> IFID.PARSE+HASH(I)
@@ -97,27 +99,52 @@ independent ALU/control work between WB's remote-state/payload hints and retirem
 publication happens during that filler and therefore does not wait for WB; destination doorbells
 are folded at `IFID.POST` and submitted with the prepared WB sends at the early fire point.
 
-IFID and WB each own a ping/pong pair and advance their buffer index independently only after a
-non-empty batch completes. The buffers contain only bounded arrays of `Client*` plus WB's
+The IO owner samples its already-existing parsed-operation counter once at the outer loop-pass
+boundary. A four-pass rolling window enters natural order at an average of 64 frames/pass and leaves
+at 32, providing hysteresis without an operation-level branch or a new atomic. The window resets at
+each IO role tenure. At depth the pass becomes the plain split loop's natural order:
+
+```
+IFID.RX -> WB completion observation -> IFID.PARSE+HASH -> IFID.POST
+        -> WB.GATHER -> WB.RETIRE+PREP+SUBMIT
+```
+
+This path skips the two WB prefetch walks and calls the original combined `WbEngine::serve*` shape;
+the arriving frame batch already supplies enough independent work to hide latency. It also gathers
+WB after parsing, so locally completed replies retain the plain loop's same-pass service order.
+Shallow traffic keeps the full prefetch/IFID interleave above.
+
+IFID and WB each own one cap-bounded owner-local buffer. `pipeline_pass` selects them and clears them
+once around the entire synchronous schedule; individual stages neither look up nor rotate buffer
+state. Cross-core task publication and kernel send submission own their data independently, so no
+ping/pong lifetime is required. The buffers contain only bounded arrays of `Client*` plus WB's
 batch-local submit permission (needed to preserve output-limit suppression). They add nothing to
-`Client`, `Op`, or any cross-thread structure. The full rotation completes before FLIP control runs,
+`Client`, `Op`, or any cross-thread structure. The complete pass finishes before FLIP control runs,
 so no hidden staged reference crosses an IO quiesce/role-conversion boundary.
 
 The fixed constants are:
 
 | item | value |
 | --- | ---: |
-| IFID buffers | 2 |
-| IFID clients per batch | 16 |
-| IFID operations per client | 32 |
-| WB buffers | 2 |
-| WB clients per batch | 16 |
+| IFID buffers | 1 |
+| IFID clients per batch cap | 64 |
+| IFID operations per client cap | 64 |
+| WB buffers | 1 |
+| WB clients per batch cap | 64 |
 | WB ready-state hints per client | 64 |
 | borrowed payload hint window | 512 bytes |
 | completion backstop cadence | 64 rotations |
+| depth window | 4 loop passes |
+| natural-order enter / leave | 64 / 32 frames per pass |
 
-## Validation posture
+## Round-2 validation
 
-This is a functional experiment, not a performance claim. The operator must measure loopback p1
-and p128 and then the NIC cells before considering a merge; the send-path result remains NIC-gated.
-The lane's functional acceptance uses port 7844 and cores 48–55 only.
+The release functional acceptance uses port 7852 and cores 48–55. `s6`, `multi_exec`, `edgeproto`,
+the 542-check `flip` battery, and `spinprobe` all pass; the partial-frame connection adds zero ticks
+to the six-second idle baseline.
+
+The depth scratch comparison builds the exact plain-split parent (`d651c056f`) separately. On the
+16-core loopback cell (server 0–15, load generator 64–127, 9:7, p128 GET), the final paired sample is
+14.746M ops/s plain versus 14.928M adaptive (+1.24%). Against the saved `90e35062e` binary on the
+p1 15:1 cell, the final pair is 1.350M pre-fix versus 1.369M adaptive (+1.41%). These are same-host
+sanity checks, not NIC claims.

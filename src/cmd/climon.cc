@@ -533,6 +533,19 @@ bool IoLoop::climon_reply_suppressed(Client* client) {
     return state && state->reply_mode != kClimonReplyOn;
 }
 
+uint32_t IoLoop::climon_serve_suppressed(Client* client) {
+    const bool did = wb_.serve_suppressing(*client);
+    ClimonConn* state = climon_conn_find(client->id());
+    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced()) {
+        state->reply_mode = kClimonReplyOn;
+        if (climon_local_reply_) climon_local_reply_--;
+        srv_->climon_reply_removed();
+        climon_conn_release(client->id());
+        climon_refresh_armed();
+    }
+    return did ? 1u : 0u;
+}
+
 uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
     const bool did = wb_.prepare_suppressing(*client, submit_allowed);
     ClimonConn* state = climon_conn_find(client->id());
