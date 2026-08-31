@@ -259,6 +259,14 @@ struct Config {
     uint32_t lb_move_cap = 1;
     uint32_t lb_cooldown_ms = 5000;
 
+    // ---- automatic role split (boot-latched) -----------------------------------------------
+    // Ships dark. The fingerprint remains owner-local and work-windowed independently so DEBUG
+    // can inspect its detector without adding a shared write to dispatch. A numeric band is a
+    // percent, -1 learns two times the anchor's own quiet jitter, and 0 disables re-triggers.
+    uint32_t flip_auto = 0;
+    int32_t  flip_auto_band = -1;
+    uint32_t flip_work_window = 100;
+
     // ---- network (boot-only) ---------------------------------------------------------------
     uint16_t port           = 6379;
     const char* bind_addr   = "127.0.0.1";
@@ -718,6 +726,28 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--flip-auto")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.flip_auto) || cfg.flip_auto > 1) {
+                std::fprintf(stderr, "--flip-auto wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--flip-auto-band")) {
+            int64_t value = 0;
+            if (!cfg_parse_i64(next(nullptr), value) || value < -1 || value > INT32_MAX) {
+                std::fprintf(stderr,
+                             "--flip-auto-band wants -1 (auto) or an unsigned percent\n");
+                return kConfigError;
+            }
+            cfg.flip_auto_band = static_cast<int32_t>(value);
+        }
+        else if (!std::strcmp(a, "--flip-work-window")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.flip_work_window)) {
+                std::fprintf(stderr,
+                             "--flip-work-window wants an unsigned command count (0 disables)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--lru-clock-shift")) {
             uint64_t shift = 0;
             if (!cfg_parse_u64(next(nullptr), shift) || shift > 16) {
@@ -1006,6 +1036,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
                         "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
+                        "  flip controller: --flip-auto 0|1 --flip-auto-band -1|PERCENT\n"
+                        "    --flip-work-window N       commands per fingerprint sample (0=off)\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"

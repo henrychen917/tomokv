@@ -336,6 +336,12 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.lb_move_cap), true});
     g_config.push_back({"lb-cooldown-ms", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_cooldown_ms), true});
+    g_config.push_back({"flip-auto", ConfigKind::Unsigned,
+                        std::to_string(cfg.flip_auto), true});
+    g_config.push_back({"flip-auto-band", ConfigKind::Signed,
+                        std::to_string(cfg.flip_auto_band), true});
+    g_config.push_back({"flip-work-window", ConfigKind::Unsigned,
+                        std::to_string(cfg.flip_work_window), true});
     g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
     g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
     add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
@@ -778,6 +784,23 @@ void cmd_debug_impl(Shard&, Op& op) {
     if (eq_icase(subcommand, "io-thread") && op.argc() == 2) {
         if (!g_client) { reply_err(op.sink(), "ERR no client context"); return; }
         reply_int(op.sink(), static_cast<long long>(g_client->ifid_thread()));
+        return;
+    }
+    if (eq_icase(subcommand, "flipctl") && op.argc() == 2) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        const std::string out = g_server->flipctl_debug_dump();
+        reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
+    if (eq_icase(subcommand, "flipctl") && op.argc() == 3 &&
+        eq_icase(op.arg(2), "trigger")) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server->flipctl_enabled()) {
+            reply_err(op.sink(), "ERR flip controller is disabled; boot with --flip-auto 1");
+            return;
+        }
+        g_server->flipctl_force_trigger();
+        reply_ok(op.sink());
         return;
     }
     if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
@@ -1662,6 +1685,25 @@ void cmd_info(Shard&, Op& op) {
                 flip.client_min, flip.client_max,
                 static_cast<unsigned long long>(flip.last_transfers),
                 flip.moving ? 1u : 0u);
+    }
+    if (info_section(op, "FLIPCTL")) {
+        const FlipctlReport ctl = g_server ? g_server->flipctl_report() : FlipctlReport{};
+        appendf(body,
+                "# Flipctl\r\nflipctl_state:%s\r\nflipctl_phase:%s\r\n"
+                "flipctl_anchor_io:%u\r\nflipctl_anchor_ex:%u\r\n"
+                "flipctl_anchor_rate:%.3f\r\nflipctl_signature_band:%.9f\r\n"
+                "flipctl_rate_band:%.9f\r\nflipctl_triggers:%llu\r\n"
+                "flipctl_boot_triggers:%llu\r\nflipctl_fingerprint_triggers:%llu\r\n"
+                "flipctl_collapse_triggers:%llu\r\nflipctl_forced_triggers:%llu\r\n"
+                "flipctl_last_trigger:%s\r\n",
+                ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
+                ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
+                static_cast<unsigned long long>(ctl.triggers),
+                static_cast<unsigned long long>(ctl.boot_triggers),
+                static_cast<unsigned long long>(ctl.fingerprint_triggers),
+                static_cast<unsigned long long>(ctl.collapse_triggers),
+                static_cast<unsigned long long>(ctl.forced_triggers),
+                ctl.last_trigger.c_str());
     }
     if (info_section(op, "CLIENTS")) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"

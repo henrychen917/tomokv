@@ -38,6 +38,7 @@
 #include <vector>
 #include "shard.h"
 #include "signal.h"
+#include "flipctl.h"
 #include "pubsub_event.h"
 #include "../base/topology.h"
 
@@ -120,7 +121,8 @@ public:
     // `nthreads` is the TOTAL thread count, not the io count: any thread can become a producer
     // through a role change. The task slot allocation is deferred until this physical thread has
     // pinned itself; init_task_inbox_local() then first-touches it from the consumer's local CPU.
-    void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate) {
+    void init(uint32_t id, Role r, uint32_t nthreads, uint32_t age_sample_rate,
+              uint32_t flip_work_window) {
         id_ = id;
         role_.store(r, std::memory_order_relaxed);
         nchan_     = nthreads;
@@ -128,6 +130,7 @@ public:
         release_in_ = std::make_unique<ReleaseChan[]>(nthreads);
         transfer_in_ = std::make_unique<TransferChan[]>(nthreads);
         sig_.configure_age_sampling(age_sample_rate);
+        flip_fingerprint_.configure(flip_work_window);
     }
 
     bool init_task_inbox_local(const std::vector<uint32_t>& io,
@@ -201,10 +204,14 @@ public:
     // ordinary command execution performs one non-atomic increment in thread-private memory.
     void note_command(uint16_t id) {
         if (id < command_count_size_) command_counts_[id]++;
+        total_commands_++;
     }
     uint64_t command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id] : 0;
     }
+    uint64_t total_commands() const { return total_commands_; }
+    FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
+    const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
     void note_atomic_group() { atomic_groups_++; }
     uint64_t atomic_groups() const { return atomic_groups_; }
     void note_atomic_localfast() { atomic_localfast_++; }
@@ -635,6 +642,8 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
+    uint64_t total_commands_ = 0;
+    FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
     uint64_t atomic_scan_holds_ = 0;

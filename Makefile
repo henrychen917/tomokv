@@ -23,6 +23,7 @@ SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/glob.cc src/c
 SRC      += src/cmd/climon.cc src/cmd/tracking.cc
 SRC      += src/cmd/server_tail.cc src/cmd/slowlog.cc src/cmd/lcs.cc src/cmd/info_stats.cc
 SRC      += src/cmd/lbsignals.cc
+SRC      += src/core/flipctl.cc
 SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc

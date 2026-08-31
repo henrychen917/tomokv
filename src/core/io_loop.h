@@ -87,7 +87,8 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
-        age_signals_armed_ = srv_->cfg().lb_age_sample_rate != 0;
+        age_sample_rate_cached_ = srv_->effective_age_sample_rate();
+        age_signals_armed_ = age_sample_rate_cached_ != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
@@ -414,6 +415,18 @@ public:
     }
 
 private:
+    void refresh_age_sampling() {
+        const uint32_t wanted = srv_->effective_age_sample_rate();
+        if (wanted == age_sample_rate_cached_) return;
+        age_sample_rate_cached_ = wanted;
+        age_signals_armed_ = wanted != 0;
+        self_->sig().configure_age_sampling(wanted);
+        if (!wanted) {
+            rob_head_ages_.clear();
+            rob_head_ages_.rehash(0);
+        }
+    }
+
     enum class DispatchResult : uint8_t {
         Progress,
         NeedInput,
@@ -500,8 +513,10 @@ private:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
-                if (self_->sample_depth(busy.start_ns() / 1000) && age_signals_armed_)
-                    sample_rob_head_age(sig.cached_now_us);
+                if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    refresh_age_sampling();
+                    if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
+                }
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
@@ -1514,7 +1529,10 @@ private:
     }
 
     void finish_flip_command(const char* error = nullptr) {
-        if (!flip_client_ || flip_epoch_local_ != srv_->flip_epoch()) std::abort();
+        // An automatic FLIP is issued by the main monitor and deliberately owns no client ROB
+        // slot. Manual FLIP retains the exact asynchronous completion path below.
+        if (!flip_client_) return;
+        if (flip_epoch_local_ != srv_->flip_epoch()) std::abort();
         Op& op = flip_client_->rob().at(flip_op_id_);
         if (error) reply_err(op.sink(), error);
         else       reply_ok(op.sink());
@@ -2107,7 +2125,6 @@ private:
         // shared-clean line, the sequence load never happens, and the per-op test is never taken.
         const bool atomic_tracking = srv_->atomic_tracking_active();
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
-
         for (;;) {
             if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
@@ -2260,6 +2277,7 @@ private:
                 if (op->cmd_name().eq_icase("reset")) {
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     climon_reset_client(c);
                     pubsub_start_reset(c, *op);
                     sig.ops++;
@@ -2277,6 +2295,7 @@ private:
                 if (op->cmd_name().eq_icase("ping")) {
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     pubsub_reply_ping(*op);
                     finish_prebuilt(c, *op);
                     continue;
@@ -2284,6 +2303,7 @@ private:
                 if (!subscription_control && !op->cmd_name().eq_icase("quit")) {
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     pubsub_reply_restricted(*op);
                     finish_prebuilt(c, *op);
                     continue;
@@ -2293,6 +2313,7 @@ subscriber_checks_done:
             if (spec->flags & CmdFlags::PubSub) {
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
+                flip_fingerprint_note(*spec, *op);
                 const PubSubStartResult result = pubsub_start_command(c, *op);
                 if (result == PubSubStartResult::Async) {
                     sig.ops++;
@@ -2347,6 +2368,7 @@ subscriber_checks_done:
                         started = srv_->flip_begin(target_io, target_ex, self_->id(), error);
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     if (!started || srv_->flip_stage() == FlipStage::Idle) {
                         if (started) reply_ok(op->sink());
                         else reply_err(op->sink(), error.c_str());
@@ -2376,6 +2398,7 @@ subscriber_checks_done:
                         } else {
                             conn.advance_parse(consumed);
                             self_->note_command(spec->id);
+                            flip_fingerprint_note(*spec, *op);
                             rob.publish();
                             c->set_blocked(true);
                             // Released by the quiescence backstop, not here: a parked WAIT's own
@@ -2394,6 +2417,7 @@ subscriber_checks_done:
                     // :0. Both retire through the ordinary local completion path below.
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     op->state.store(OpState::Done, std::memory_order_release);
                     rob.publish();
                     enqueue_serve(c);
@@ -2408,6 +2432,7 @@ subscriber_checks_done:
                     climon_reset_client(c);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
+                flip_fingerprint_note(*spec, *op);
                 command_set_local_context(c, self_);
                 snapshot_bind_io(self_, &ring_);
                 const bool acl_command = __builtin_expect(op->cmd_name().eq_icase("acl"), false);
@@ -2512,6 +2537,7 @@ subscriber_checks_done:
                     }
                 }
                 self_->note_command(spec->id);
+                flip_fingerprint_note(*spec, *op);
                 conn.advance_parse(consumed);
                 sig.ops++;
                 c->set_blocked(true);
@@ -2621,6 +2647,7 @@ nonblocking_dispatch:
                         }
                     }
                     self_->note_command(spec->id);
+                    flip_fingerprint_note(*spec, *op);
                     conn.advance_parse(consumed);
                     sig.ops++;
                     head_candidate = false;
@@ -2684,6 +2711,7 @@ nonblocking_dispatch:
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
+                flip_fingerprint_note(*spec, *op);
                 conn.advance_parse(consumed);
                 sig.ops++;
                 head_candidate = false;
@@ -2759,6 +2787,7 @@ nonblocking_dispatch:
             }
             conn.advance_parse(consumed);
             sig.ops++;
+            flip_fingerprint_note(*spec, *op);
             if (!touched_[worker_id]) {
                 touched_[worker_id] = true;
                 touched_list_[ntouched_++] = worker_id;
@@ -2776,7 +2805,43 @@ nonblocking_dispatch:
             srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
         }
         ntouched_ = 0;
+        if (self_->flip_fingerprint().enabled())
+            self_->flip_fingerprint().finish_parse_pass();
         return result;
+    }
+
+    void flip_fingerprint_note(const CommandSpec& spec, const Op& op) {
+        FlipFingerprintWriter& writer = self_->flip_fingerprint();
+        if (!writer.enabled()) return;
+        uint32_t keys = 0;
+        uint32_t first = 0, last = 0, step = 1;
+        if (spec.first_key > 0 && static_cast<uint32_t>(spec.first_key) < op.argc()) {
+            first = static_cast<uint32_t>(spec.first_key);
+            last = spec.last_key < 0 ? op.argc() - 1
+                                     : std::min<uint32_t>(spec.last_key, op.argc() - 1);
+            step = spec.key_step > 0 ? static_cast<uint32_t>(spec.key_step) : 1;
+            if (last >= first) keys = (last - first) / step + 1;
+        }
+        uint64_t value_bytes = 0;
+        for (uint32_t arg = 1; arg < op.argc(); arg++) {
+            const bool key = keys && arg >= first && arg <= last && (arg - first) % step == 0;
+            if (!key) value_bytes += op.arg(arg).n;
+        }
+        FlipFingerprintClass command_class = FlipFingerprintClass::Other;
+        if (spec.flags & CmdFlags::Blocking) {
+            command_class = FlipFingerprintClass::Blocking;
+        } else if (keys > 1 && srv_->cfg().atomic &&
+                   (spec.flags & CmdFlags::MultiShard)) {
+            command_class = FlipFingerprintClass::AtomicGrouped;
+        } else if (keys > 1) {
+            command_class = spec.flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)
+                ? FlipFingerprintClass::MultiWrite : FlipFingerprintClass::MultiRead;
+        } else if (spec.flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) {
+            command_class = FlipFingerprintClass::Write;
+        } else if (spec.flags & CmdFlags::Readonly) {
+            command_class = FlipFingerprintClass::Read;
+        }
+        writer.note_command(command_class, keys, value_bytes);
     }
 
     // THE ONE DOOR ONTO THE PARSE BARRIER. Every owner parks a connection through here so the
@@ -3488,6 +3553,7 @@ nonblocking_dispatch:
     bool     lb_controller_armed_ = false;
     bool     lb_client_wake_pending_ = false;
     bool     age_signals_armed_ = false;
+    uint32_t age_sample_rate_cached_ = 0;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
     std::vector<LbClientObservation> lb_client_observations_;
     struct RobHeadAge {

@@ -1369,6 +1369,7 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     if (action == MultiIoAction::LocalDone) {
         client.advance_parse(consumed);
         loop.self_->note_command(op.spec->id);
+        loop.flip_fingerprint_note(*op.spec, op);
         loop.finish_prebuilt(&client, op);
         return true;
     }
@@ -1470,6 +1471,7 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         }
     }
     loop.self_->note_command(op.spec->id);
+    loop.flip_fingerprint_note(*op.spec, op);
     client.advance_parse(consumed);
     sig.ops++;
     // Released by the quiescence backstop in flush_ready: EXEC's parked lifetime IS its ROB slot,
