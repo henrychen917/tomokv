@@ -274,6 +274,7 @@ private:
     double anchor_rate_ = 0;
     double anchor_rate_jitter_ = 0;
     double anchor_rate_band_ = 0;
+    double anchor_rate_band_floor_ = 0;
     uint32_t surge_streak_ = 0;
     uint32_t collapse_streak_ = 0;
 

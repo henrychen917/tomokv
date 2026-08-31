@@ -16,9 +16,11 @@ namespace {
 // converts this duration to controller ticks, so --lb-tick-ms keeps the same wall-clock bound.
 constexpr uint64_t kBootMaxDeferralMs = 30'000;
 
-// Anchored drift is deliberately much slower than the half-weight maneuver EWMA. A step workload
-// still supplies two out-of-band observations before this reference can chase it.
-constexpr double kAnchorRateEwmaAlpha = 0.125;
+// Anchored drift is deliberately much slower than both the half-weight maneuver EWMA and the
+// two-observation surge detector. Only in-band readings reach this learner, and a 64-observation
+// time constant lets it follow real long-lived drift without turning ordinary hold jitter into a
+// new reference edge.
+constexpr double kAnchorRateEwmaAlpha = 1.0 / 64.0;
 
 double relative_distance(double left, double right) {
     const double scale = std::max(std::abs(left), std::abs(right));
@@ -647,6 +649,7 @@ void FlipController::anchor(Server& server, double rate) {
     anchor_rate_band_ = configured_band_ > 0
         ? static_cast<double>(configured_band_) / 100.0
         : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
+    anchor_rate_band_floor_ = anchor_rate_band_;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
     surge_streak_ = 0;
@@ -811,9 +814,14 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             return false;
         }
 
-        // This sample was wholly within an anchored, redistribution-free window. Fold its
-        // innovation into a slow live reference only after judging it against the prior reference,
-        // so a real step cannot erase its own evidence. Maneuver windows never reach this branch.
+        // An out-of-band observation is trigger evidence, not baseline evidence. In particular,
+        // do not let the first observation of the two-sample trigger pull the reference toward a
+        // possible step or widen/narrow its band before the confirming observation arrives.
+        if (surge_streak_ || collapse_streak_) return false;
+
+        // This sample was wholly within an anchored, redistribution-free, in-band window. Fold its
+        // innovation into a very slow live reference only after judging it against the prior
+        // reference. Maneuver and pending-trigger windows never reach this branch.
         const double jitter_sample = relative_distance(rate, reference);
         anchor_rate_jitter_ +=
             (jitter_sample - anchor_rate_jitter_) * kAnchorRateEwmaAlpha;
@@ -821,7 +829,11 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         if (configured_band_ > 0) {
             anchor_rate_band_ = static_cast<double>(configured_band_) / 100.0;
         } else if (configured_band_ < 0) {
-            anchor_rate_band_ = automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
+            // The final settling windows define the minimum quiet jitter that this anchor already
+            // proved it needs. Live learning may widen the band, but must never erase that floor.
+            anchor_rate_band_ = std::max(
+                anchor_rate_band_floor_,
+                automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
         }
     }
     return false;

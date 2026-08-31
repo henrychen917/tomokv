@@ -121,9 +121,10 @@ there before anchoring.
 
 `FlipController::anchor()` stores the final IO/EX split, stabilized public-command rate, anchored
 fingerprint, and rate/fingerprint bands. It publishes age sampling zero and holds. While anchored,
-redistribution-free two-window readings update the rate reference with a slow EWMA. Auto mode
-re-derives the rate band from that EWMA's live innovation jitter; maneuver windows never enter
-either baseline.
+redistribution-free, in-band two-window readings update the rate reference with a 64-observation
+EWMA. Auto mode may widen the rate band from that EWMA's live innovation jitter, but retains the
+band learned during final settling as a floor. Out-of-band trigger evidence and maneuver windows
+never enter either baseline.
 
 While anchored:
 
