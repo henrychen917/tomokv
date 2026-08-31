@@ -153,6 +153,7 @@ enum class FlipctlTriggerReason : uint8_t {
     None = 0,
     Boot,
     FingerprintShift,
+    AnchorRateSurge,
     AnchorRateCollapse,
     Forced,
 };
@@ -169,7 +170,8 @@ struct FlipctlReport {
     uint64_t triggers = 0;
     uint64_t boot_triggers = 0;
     uint64_t fingerprint_triggers = 0;
-    uint64_t collapse_triggers = 0;
+    uint64_t rate_surge_triggers = 0;
+    uint64_t rate_collapse_triggers = 0;
     uint64_t forced_triggers = 0;
 };
 
@@ -230,7 +232,9 @@ private:
     static const char* reason_name(FlipctlTriggerReason reason);
     void start_maneuver(Server& server, FlipctlTriggerReason reason, uint64_t now_ms);
     bool sample_fingerprint(Server& server);
+    bool sample_rate(Server& server, uint64_t now_ms, double& rate);
     bool sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate);
+    bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
     bool issue_initial_jump(Server& server, uint32_t coordinator, double rate);
@@ -260,13 +264,15 @@ private:
     uint64_t triggers_ = 0;
     uint64_t boot_triggers_ = 0;
     uint64_t fingerprint_triggers_ = 0;
-    uint64_t collapse_triggers_ = 0;
+    uint64_t rate_surge_triggers_ = 0;
+    uint64_t rate_collapse_triggers_ = 0;
     uint64_t forced_triggers_ = 0;
 
     uint32_t anchor_io_ = 0;
     uint32_t anchor_ex_ = 0;
     double anchor_rate_ = 0;
     double anchor_rate_band_ = 0;
+    uint32_t surge_streak_ = 0;
     uint32_t collapse_streak_ = 0;
 
     uint32_t pending_target_io_ = 0;
@@ -282,16 +288,25 @@ private:
     MovementStamp rate_window_movement_{};
     double previous_subwindow_rate_ = 0;
     double stable_pair_delta_ = 0;
+    double boot_rate_ewma_ = 0;
+    double boot_rate_jitter_ = 0;
+    double boot_rate_band_ = 0;
+    double boot_previous_ewma_change_ = 0;
     double anchor_learning_rate_jitter_ = 0;
     double anchor_learning_rate_sum_ = 0;
     double anchor_learning_rate_min_ = 0;
     double anchor_learning_rate_max_ = 0;
     uint32_t anchor_learning_rate_samples_ = 0;
     bool previous_subwindow_valid_ = false;
+    bool boot_rate_ewma_valid_ = false;
+    bool boot_previous_ewma_change_valid_ = false;
+    bool boot_rate_jitter_valid_ = false;
+    uint32_t boot_stable_ticks_ = 0;
 
     uint32_t anchor_signature_samples_ = 0;
     uint32_t signature_learning_windows_ = 1;
     uint32_t maneuver_learning_windows_ = 1;
+    bool fingerprint_sampled_this_tick_ = false;
     bool anchor_sampling_disabled_ = false;
     uint32_t maneuver_signature_samples_ = 0;
     bool retrigger_after_flip_ = false;

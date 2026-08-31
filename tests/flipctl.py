@@ -2,11 +2,12 @@
 """Small functional acceptance for the automatic FLIP controller.
 
 Boot separately on the requested lane:
-  taskset -c 48-55 ./build/tomokv --port 7837 --save '' --flip-auto 1 \
-      --enable-debug-command yes
+  taskset -c 48-55 ./build/tomokv --port 7845 --save '' --flip-auto 1 \
+      --flip-auto-band 2 --enable-debug-command yes
 
-The driver keeps load live through every assertion. It deliberately uses no memtier and makes no
-performance claim; command rate exists only to exercise the controller's work/rate windows.
+The driver ramps to a low-load anchor, triples that connection load, and then changes the command
+mix. It deliberately uses no memtier and makes no performance claim; command rate exists only to
+exercise the controller's work/rate windows.
 """
 
 import argparse
@@ -97,39 +98,41 @@ def wait_for(control, description, predicate, timeout):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=7837)
+    parser.add_argument("--port", type=int, default=7845)
     parser.add_argument("--stable-seconds", type=int, default=60)
-    parser.add_argument("--workers", type=int, default=16)
+    parser.add_argument("--idle-seconds", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=9)
+    parser.add_argument("--ramp-delay", type=float, default=1.1)
     args = parser.parse_args()
+    if args.workers < 9 or args.workers % 9:
+        parser.error("--workers must be a positive multiple of 9")
+    low_workers = args.workers // 3
+    total_workers = low_workers * 3
 
     control = Resp(args.host, args.port)
-    setup = Resp(args.host, args.port)
-    setup.send(b"".join(encode("SET", "k%d" % i, b"x" * 64) for i in range(1024)))
-    for _ in range(1024):
-        setup.recv()
-    setup.close()
-
-    mode = ["get"]
+    mode = ["base"]
     stop = threading.Event()
     errors = []
 
-    get_batch = b"".join(encode("GET", "k%d" % i) for i in range(32))
     mget = tuple(["MGET"] + ["k%d" % i for i in range(16)])
     mget_batch = b"".join(encode(*mget) for _ in range(8))
+    # One same-shaped frame per send keeps the fingerprint invariant when connections are added;
+    # distinct bitmap keys spread a real executor scan without adding IO-sized replies.
+    def bitcount_frame(index):
+        return encode("BITCOUNT", "flipctl-bits%d" % index)
 
-    def load_worker():
+    def load_worker(base_frame):
         client = None
         try:
             client = Resp(args.host, args.port)
             while not stop.is_set():
-                if mode[0] == "get":
-                    client.send(get_batch)
-                    for _ in range(32):
-                        client.recv()
-                else:
+                if mode[0] == "mget":
                     client.send(mget_batch)
                     for _ in range(8):
                         client.recv()
+                else:
+                    client.send(base_frame)
+                    client.recv()
         except Exception as error:  # reported in the controlling thread with the live state
             errors.append(repr(error))
             stop.set()
@@ -137,18 +140,58 @@ def main():
             if client:
                 client.close()
 
-    workers = [threading.Thread(target=load_worker, daemon=True) for _ in range(args.workers)]
-    for worker in workers:
+    workers = []
+
+    def start_worker(index):
+        worker = threading.Thread(target=load_worker, args=(bitcount_frame(index),), daemon=True)
         worker.start()
+        workers.append(worker)
 
     try:
+        deadline = time.monotonic() + args.idle_seconds
+        while time.monotonic() < deadline:
+            idle = info(control)
+            if idle.get("flipctl_state") != "awaiting-load-stability" or \
+                    int(idle.get("flipctl_triggers", "-1")) != 0:
+                raise AssertionError("idle server started a controller maneuver: %r" % idle)
+            time.sleep(0.2)
+
+        setup = Resp(args.host, args.port)
+        setup.send(b"".join(encode("SET", "k%d" % i, b"x" * 64) for i in range(1024)))
+        for _ in range(1024):
+            setup.recv()
+        bitmap = b"\xaa" * (4 * 1024 * 1024)
+        for index in range(total_workers):
+            if setup.command("SET", "flipctl-bits%d" % index, bitmap) != b"OK":
+                raise AssertionError("failed to initialize controller bitmap %d" % index)
+        setup.close()
+
+        # Keep the EWMA moving for the whole connection ramp. None of these partial-load plateaus
+        # may start the boot maneuver or become its anchor baseline.
+        for index in range(low_workers):
+            opened = index + 1
+            start_worker(index)
+            deadline = time.monotonic() + args.ramp_delay
+            while time.monotonic() < deadline:
+                if errors:
+                    raise AssertionError("load driver failed: %s" % errors[0])
+                row = info(control)
+                if row.get("flipctl_state") != "awaiting-load-stability" or \
+                        int(row.get("flipctl_triggers", "-1")) != 0:
+                    raise AssertionError(
+                        "controller maneuvered during load ramp at %d/%d connections: %r" %
+                        (opened, low_workers, row))
+                time.sleep(0.2)
+
         anchored = wait_for(control, "boot maneuver to anchor",
                             lambda row: row.get("flipctl_state") == "anchored", 90)
         if int(anchored["flipctl_boot_triggers"]) != 1:
             raise AssertionError("boot did not produce exactly one boot trigger: %r" % anchored)
         anchor_split = (anchored["flipctl_anchor_io"], anchored["flipctl_anchor_ex"])
+        if int(anchor_split[0]) <= 1 or int(anchor_split[1]) <= 1:
+            raise AssertionError("ramping load produced a rail anchor: %r" % anchored)
         trigger_count = int(anchored["flipctl_triggers"])
-        print("boot anchored at %s:%s, rate=%s" %
+        print("ramp deferred boot; low load anchored off-rail at %s:%s, rate=%s" %
               (anchor_split[0], anchor_split[1], anchored["flipctl_anchor_rate"]))
 
         deadline = time.monotonic() + args.stable_seconds
@@ -162,6 +205,34 @@ def main():
                 raise AssertionError("controller moved during stable hold: %r" % row)
             time.sleep(1)
         print("stable hold: %ds, no trigger or split movement" % args.stable_seconds)
+
+        surge_before = int(anchored["flipctl_rate_surge_triggers"])
+        collapse_before = int(anchored["flipctl_rate_collapse_triggers"])
+        for index in range(low_workers, total_workers):
+            start_worker(index)
+        surged = wait_for(
+            control, "one rate-surge trigger",
+            lambda row: int(row.get("flipctl_triggers", "0")) == trigger_count + 1 and
+                        int(row.get("flipctl_rate_surge_triggers", "0")) == surge_before + 1,
+            30)
+        if int(surged["flipctl_rate_collapse_triggers"]) != collapse_before or \
+                int(surged["flipctl_surge_triggers"]) != surge_before + 1 or \
+                int(surged["flipctl_collapse_triggers"]) != collapse_before:
+            raise AssertionError("rate trigger counters/aliases disagree on surge: %r" % surged)
+        surge_anchor = wait_for(
+            control, "rate-surge maneuver to re-anchor",
+            lambda row: row.get("flipctl_state") == "anchored" and
+                        int(row.get("flipctl_triggers", "0")) == trigger_count + 1, 90)
+        time.sleep(5)
+        held = info(control)
+        if int(held["flipctl_triggers"]) != trigger_count + 1 or \
+                int(held["flipctl_rate_surge_triggers"]) != surge_before + 1 or \
+                held.get("flipctl_state") != "anchored":
+            raise AssertionError("load surge caused more than one re-maneuver: %r" % held)
+        trigger_count += 1
+        print("load surge: tripled %d to %d connections, exactly one re-maneuver at %s:%s" %
+              (low_workers, total_workers, surge_anchor["flipctl_anchor_io"],
+               surge_anchor["flipctl_anchor_ex"]))
 
         mode[0] = "mget"
         changed = wait_for(

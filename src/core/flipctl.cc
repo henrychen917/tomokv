@@ -10,6 +10,9 @@ namespace tomo {
 
 namespace {
 
+// Three controller observations reject a ramp without making boot needlessly sluggish.
+constexpr uint32_t kBootLoadStableTicks = 3;
+
 double relative_distance(double left, double right) {
     const double scale = std::max(std::abs(left), std::abs(right));
     return scale > 0 ? std::abs(left - right) / scale : 0;
@@ -196,6 +199,7 @@ const char* FlipController::reason_name(FlipctlTriggerReason reason) {
         case FlipctlTriggerReason::None: return "none";
         case FlipctlTriggerReason::Boot: return "boot";
         case FlipctlTriggerReason::FingerprintShift: return "fingerprint-shift";
+        case FlipctlTriggerReason::AnchorRateSurge: return "anchor-rate-surge";
         case FlipctlTriggerReason::AnchorRateCollapse: return "anchor-rate-collapse";
         case FlipctlTriggerReason::Forced: return "forced";
     }
@@ -216,6 +220,7 @@ FlipController::MovementStamp FlipController::movement_stamp(const Server& serve
 }
 
 bool FlipController::sample_fingerprint(Server& server) {
+    fingerprint_sampled_this_tick_ = false;
     if (!server.cfg().flip_work_window) return false;
     FlipFingerprintWindow aggregate;
     bool any = false;
@@ -237,6 +242,7 @@ bool FlipController::sample_fingerprint(Server& server) {
         any = true;
     }
     if (!any) return false;
+    fingerprint_sampled_this_tick_ = true;
     if (phase_ == Phase::Settling) anchor_signature_samples_++;
     const bool shifted = shift_detector_.observe(aggregate);
     if (phase_ != Phase::Anchored && phase_ != Phase::Disabled &&
@@ -255,7 +261,7 @@ double FlipController::automatic_rate_band(double pair_delta, double rate) const
     return 2.0 * std::max(pair_delta, quantum);
 }
 
-bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate) {
+bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) {
     const uint64_t commands = total_commands(server);
     const MovementStamp movement = movement_stamp(server);
     const bool quiescent = server.flip_stage() == FlipStage::Idle &&
@@ -275,6 +281,11 @@ bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, dou
     rate_window_ms_ = now_ms;
     rate_window_commands_ = commands;
     rate_window_movement_ = movement;
+    return true;
+}
+
+bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate) {
+    if (!sample_rate(server, now_ms, rate)) return false;
     if (!previous_subwindow_valid_) {
         previous_subwindow_rate_ = rate;
         previous_subwindow_valid_ = true;
@@ -293,13 +304,74 @@ bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, dou
     return true;
 }
 
+bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
+    const auto reset_learning = [this]() {
+        boot_rate_ewma_ = 0;
+        boot_rate_jitter_ = 0;
+        boot_rate_band_ = 0;
+        boot_previous_ewma_change_ = 0;
+        boot_rate_ewma_valid_ = false;
+        boot_previous_ewma_change_valid_ = false;
+        boot_rate_jitter_valid_ = false;
+        boot_stable_ticks_ = 0;
+    };
+    // A command-rate sample made only of occasional controller observability is not load. When
+    // fingerprinting is configured, require actual work to close a work window on every stable
+    // tick. With fingerprinting explicitly off, zero rate remains the idle guard.
+    if (server.cfg().flip_work_window && !fingerprint_sampled_this_tick_) {
+        reset_learning();
+        rate_window_ms_ = 0;
+        return false;
+    }
+    double rate = 0;
+    if (!sample_rate(server, now_ms, rate)) {
+        boot_stable_ticks_ = 0;
+        return false;
+    }
+    if (rate <= 0) {
+        // No commands means there is no split to optimize. Forget stale startup work so an idle
+        // interval cannot be joined to a later workload and mistaken for consecutive stability.
+        reset_learning();
+        return false;
+    }
+    if (!boot_rate_ewma_valid_) {
+        boot_rate_ewma_ = rate;
+        boot_rate_ewma_valid_ = true;
+        return false;
+    }
+
+    const double previous_ewma = boot_rate_ewma_;
+    boot_rate_ewma_ = (boot_rate_ewma_ + rate) * 0.5;
+    const double scale = std::max(std::abs(previous_ewma), std::abs(boot_rate_ewma_));
+    const double ewma_change = scale > 0
+        ? (boot_rate_ewma_ - previous_ewma) / scale : 0;
+    if (!boot_previous_ewma_change_valid_) {
+        boot_previous_ewma_change_ = ewma_change;
+        boot_previous_ewma_change_valid_ = true;
+        return false;
+    }
+
+    // Jitter is variation in the EWMA's adjacent movement. A monotone connection ramp therefore
+    // remains directional drift instead of widening its own stability band and blessing itself.
+    const double jitter_sample = std::abs(ewma_change - boot_previous_ewma_change_);
+    boot_rate_jitter_ = boot_rate_jitter_valid_
+        ? (boot_rate_jitter_ + jitter_sample) * 0.5 : jitter_sample;
+    boot_rate_jitter_valid_ = true;
+    boot_previous_ewma_change_ = ewma_change;
+    boot_rate_band_ = automatic_rate_band(boot_rate_jitter_, boot_rate_ewma_);
+    if (std::abs(ewma_change) <= boot_rate_band_) boot_stable_ticks_++;
+    else boot_stable_ticks_ = 0;
+    return boot_stable_ticks_ >= kBootLoadStableTicks;
+}
+
 void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
                                     uint64_t now_ms) {
     last_trigger_ = reason;
     triggers_++;
     if (reason == FlipctlTriggerReason::Boot) boot_triggers_++;
     else if (reason == FlipctlTriggerReason::FingerprintShift) fingerprint_triggers_++;
-    else if (reason == FlipctlTriggerReason::AnchorRateCollapse) collapse_triggers_++;
+    else if (reason == FlipctlTriggerReason::AnchorRateSurge) rate_surge_triggers_++;
+    else if (reason == FlipctlTriggerReason::AnchorRateCollapse) rate_collapse_triggers_++;
     else if (reason == FlipctlTriggerReason::Forced) forced_triggers_++;
 
     phase_ = Phase::Measuring;
@@ -307,6 +379,7 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     direction_ = 0;
     step_units_ = 0;
     step_one_reversals_ = 0;
+    surge_streak_ = 0;
     collapse_streak_ = 0;
     shift_detector_.reset();
     anchor_signature_samples_ = 0;
@@ -523,6 +596,7 @@ void FlipController::anchor(Server& server, double rate) {
         : automatic_rate_band(anchor_learning_rate_jitter_, anchor_rate_);
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
+    surge_streak_ = 0;
     collapse_streak_ = 0;
     phase_ = Phase::Anchored;
     rate_window_ms_ = 0;
@@ -536,8 +610,9 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     const bool shifted = sample_fingerprint(server);
     const bool forced = force_requested_.exchange(false, std::memory_order_acq_rel);
     if (phase_ == Phase::BootPending) {
-        start_maneuver(server, forced ? FlipctlTriggerReason::Forced
-                                     : FlipctlTriggerReason::Boot, now_ms);
+        if (forced) start_maneuver(server, FlipctlTriggerReason::Forced, now_ms);
+        else if (boot_load_stable(server, now_ms))
+            start_maneuver(server, FlipctlTriggerReason::Boot, now_ms);
         return false;
     }
     if (phase_ == Phase::Anchored && forced) {
@@ -646,11 +721,22 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     if (phase_ == Phase::Anchored) {
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
         if (configured_band_ == 0 || anchor_rate_ <= 0) return false;
-        if (rate < anchor_rate_ * (1.0 - anchor_rate_band_)) collapse_streak_++;
-        else collapse_streak_ = 0;
+        if (rate > anchor_rate_ * (1.0 + anchor_rate_band_)) {
+            surge_streak_++;
+            collapse_streak_ = 0;
+        } else if (rate < anchor_rate_ * (1.0 - anchor_rate_band_)) {
+            collapse_streak_++;
+            surge_streak_ = 0;
+        } else {
+            surge_streak_ = 0;
+            collapse_streak_ = 0;
+        }
         // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
-        if (collapse_streak_ >= 2) {
-            start_maneuver(server, FlipctlTriggerReason::AnchorRateCollapse, now_ms);
+        if (surge_streak_ >= 2 || collapse_streak_ >= 2) {
+            const FlipctlTriggerReason reason = surge_streak_ >= 2
+                ? FlipctlTriggerReason::AnchorRateSurge
+                : FlipctlTriggerReason::AnchorRateCollapse;
+            start_maneuver(server, reason, now_ms);
             return false;
         }
     }
@@ -660,8 +746,8 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
 FlipctlReport FlipController::report() const {
     std::lock_guard<std::mutex> lock(mutex_);
     FlipctlReport report;
-    report.state = !enabled_ ? "disabled" : phase_ == Phase::Anchored
-        ? "anchored" : "maneuvering";
+    report.state = !enabled_ ? "disabled" : phase_ == Phase::BootPending
+        ? "awaiting-load-stability" : phase_ == Phase::Anchored ? "anchored" : "maneuvering";
     report.phase = phase_name(phase_);
     report.last_trigger = reason_name(last_trigger_);
     report.anchor_io = anchor_io_;
@@ -672,7 +758,8 @@ FlipctlReport FlipController::report() const {
     report.triggers = triggers_;
     report.boot_triggers = boot_triggers_;
     report.fingerprint_triggers = fingerprint_triggers_;
-    report.collapse_triggers = collapse_triggers_;
+    report.rate_surge_triggers = rate_surge_triggers_;
+    report.rate_collapse_triggers = rate_collapse_triggers_;
     report.forced_triggers = forced_triggers_;
     return report;
 }
@@ -685,16 +772,22 @@ std::string FlipController::debug_dump() const {
         "state=%s\nphase=%s\nanchor=%u:%u\nanchor_rate=%.3f\n"
         "signature_band=%.9f\nsignature_distance=%.9f\nsignature_jitter=%.9f\n"
         "rate_band=%.9f\nlast_shift_distance=%.9f\nlast_shift_band=%.9f\n"
+        "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_band=%.9f\n"
+        "boot_stable_ticks=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
-        "collapse=%llu forced=%llu\npending_io=%u direction=%d step_units=%u\nvisited=",
-        !enabled_ ? "disabled" : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
+        "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
+        "pending_io=%u direction=%d step_units=%u\nvisited=",
+        !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
+            : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
         shift_detector_.last_distance(), shift_detector_.jitter(), anchor_rate_band_,
-        last_shift_distance_, last_shift_band_, reason_name(last_trigger_),
+        last_shift_distance_, last_shift_band_, boot_rate_ewma_, boot_rate_jitter_,
+        boot_rate_band_, boot_stable_ticks_, reason_name(last_trigger_),
         static_cast<unsigned long long>(triggers_),
         static_cast<unsigned long long>(boot_triggers_),
         static_cast<unsigned long long>(fingerprint_triggers_),
-        static_cast<unsigned long long>(collapse_triggers_),
+        static_cast<unsigned long long>(rate_surge_triggers_),
+        static_cast<unsigned long long>(rate_collapse_triggers_),
         static_cast<unsigned long long>(forced_triggers_), pending_target_io_, direction_,
         step_units_);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);

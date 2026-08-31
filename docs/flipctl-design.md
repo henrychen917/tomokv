@@ -60,6 +60,11 @@ another FLIP is never overlapped.
 
 ## 2. Jump with deliberate overshoot
 
+The boot maneuver remains pending until a nonzero command-rate EWMA stays inside a band derived
+from its own change jitter for three consecutive controller ticks. Directional connection ramp-up
+is treated as drift, not as noise allowed to widen that band. An idle server therefore remains in
+`awaiting-load-stability` and never pays for a maneuver it cannot use.
+
 `FlipController::start_maneuver()` arms the existing enqueue-age machinery at runtime. An explicit
 `lb-age-sample-rate` is used when nonzero; otherwise the rate derives from the provisioned thread
 count. IO and EX loops apply the published rate to their own `LoopSignals`, preserving single-owner
@@ -117,11 +122,12 @@ fingerprint, and rate/fingerprint bands. It publishes age sampling zero and hold
 While anchored:
 
 - a normalized fingerprint distance beyond the anchored band starts one maneuver;
+- two stabilized subwindows above `anchor_rate * (1+rate_band)` start one surge maneuver;
 - two stabilized subwindows below `anchor_rate * (1-rate_band)` start one collapse maneuver;
 - `DEBUG FLIPCTL TRIGGER` posts a cold forced-trigger flag for the main owner.
 
 A trigger resets the maneuver's readings and capacity baseline. Trigger source counters make boot,
-fingerprint, collapse, and forced causes independently observable.
+fingerprint, rate surge, rate collapse, and forced causes independently observable.
 
 ## Integration and observability
 
@@ -143,6 +149,8 @@ fingerprint, collapse, and forced causes independently observable.
 
 - `tests/flipctl_unit.cc` scripts quiet count noise followed by a simultaneous pipe/class/key/value
   mix change, and checks the command-work window/off behavior.
-- `tests/flipctl.py` is the small port-7837 Python driver. It asserts boot maneuver/settle/anchor,
-  a 60-second stable hold with no split or trigger movement, then one GET-to-MGET mix change and
-  exactly one re-maneuver/re-anchor. It uses no memtier and makes no performance claim.
+- `tests/flipctl.py` is the small port-7845 Python driver. It asserts that a connection ramp cannot
+  start boot and that the eventual low-load anchor is off-rail, holds it for 60 seconds, then
+  triples single-frame BITCOUNT connections without changing their pipeline fingerprint for
+  exactly one surge maneuver. It finishes with one BITCOUNT-to-MGET fingerprint maneuver and uses
+  no memtier.
