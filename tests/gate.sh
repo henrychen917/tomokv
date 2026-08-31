@@ -43,8 +43,8 @@ SRV=0; SRVLOG=/dev/null
 # both atomic modes. Their sibling lanes each claimed 207 -> 209, so the merged ledger owes four.
 # 211 -> 213: pushtear proves out-of-band frames cannot splice borrowed replies and requires the
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
-EXPECT_QUICK=223
-EXPECT_FULL=234                 # full without the optional NIC row.
+EXPECT_QUICK=224
+EXPECT_FULL=235                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -446,6 +446,15 @@ python3 tests/flip_ttl.py 127.0.0.1 $PORT >/tmp/gate-flip-ttl.txt 2>&1 \
     && ok "FLIP TTL + expiry events" || bad "FLIP TTL + expiry events" "see /tmp/gate-flip-ttl.txt"
 python3 tests/spinprobe.py $PORT >/tmp/gate-spinprobe.txt 2>&1 \
     && ok "partial-frame conn parks (no io spin)" || bad "partial-frame conn parks (no io spin)" "see /tmp/gate-spinprobe.txt"
+stop
+boot ./build/tomokv --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
+     --lb-age-sample-rate 1024 || bad "flipctl boot"
+timeout 300 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
+    >/tmp/gate-flipctl.txt 2>&1 \
+    && ok "flip controller: anchor, hold, one re-maneuver" \
+    || bad "flip controller: anchor, hold, one re-maneuver" "see /tmp/gate-flipctl.txt"
+stop
+boot ./build/tomokv --enable-debug-command yes || bad "flip battery reboot"
 (
   taskset -c "$CORES" memtier_benchmark -s 127.0.0.1 -p $PORT --protocol=redis -t 8 -c 32 \
     --pipeline=16 --ratio=1:1 --key-pattern=R:R --key-minimum=1 --key-maximum=200000 -d 64 \
