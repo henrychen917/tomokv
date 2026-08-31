@@ -22,6 +22,12 @@ inline constexpr uint32_t kGenthreadIfidBuffers = 3;
 inline constexpr uint32_t kGenthreadExBuffers   = 3;
 inline constexpr uint32_t kGenthreadWbBuffers   = 3;
 
+// A deep client pipeline can leave many batches ready behind every stream.  Repeating the exact
+// static rotation lets its one ROUTE_ISSUE/EXECUTE/SUBMIT slot advance more than one batch per
+// outer loop, while this fixed quota keeps control work and ring submission bounded.  A rotation
+// stops early when every stage reports empty, so shallow/idle traffic does not pay all 16 turns.
+inline constexpr uint32_t kGenthreadPipelineRotationsPerLoop = 16;
+
 enum class GenthreadStage : uint8_t {
     ExBucketPrefetch,
     IfidHash,

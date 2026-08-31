@@ -86,6 +86,9 @@ only the batch boundaries that launch or consume a useful memory dependency:
   connection at its unpublished ROB tail. `HASH` hashes the batch in one tight loop.
   `ROUTE_ISSUE` maps hashes to shards/owners, prepares direct-reply and Task metadata, publishes the
   ROB entries, then batch-coalesces publication notifications to the existing producer lanes.
+  While an unpublished batch owns an `Op`, RX does not re-arm that Client after parsing: its ROB is
+  still formally quiescent, so a receive-buffer grow would otherwise move the argv slices before
+  `HASH` consumes them.
   Commands with established special continuations keep those paths; every resulting local shard
   Task still publishes through `task_in_[self]` and never executes in IFID.
 - EX is triple-buffered across `INPUT_PF`, `FILL`, `BUCKET_PF`, `OBJECT_PF`, and `EXECUTE`.
@@ -131,15 +134,19 @@ The exact `kGenthreadStaticSchedule` is:
 18. `EX.OBJECT_PF`
 
 The schedule repeats unchanged and every entry returns immediately if its required input buffer is
-empty or its output buffers are full. Thus, for example, bucket prefetch is separated from the
-dependent object probe, object prefetch from execution, IFID parsing from hashing and publication,
-and WB head prefetch/preparation from send submission by useful work from the other streams. The
-pre-park path remains a mask-independent correctness backstop and drains staged EX work before its
-coarse queue sweep.
+empty or its output buffers are full.  One outer loop repeats the complete static rotation while it
+makes progress, up to `kGenthreadPipelineRotationsPerLoop`; a deep backlog can therefore advance
+more than one batch through each bottleneck stage without turning the rotation into a dynamic
+scheduler.  Thus, for example, bucket prefetch is separated from the dependent object probe,
+object prefetch from execution, IFID parsing from hashing and publication, and WB head
+prefetch/preparation from send submission by useful work from the other streams. The pre-park path
+remains a mask-independent correctness backstop and drains staged EX work before its coarse queue
+sweep.
 
-Batch sizes, all three buffer depths, the stage enum, and this exact order are named compile-time
-constants in the single `genthread_pipeline.h` block. There are no runtime schedule knobs, fibers,
-per-request runnable states, or claims about the eventual tuned order.
+Batch sizes, all three buffer depths, the per-loop rotation quota, the stage enum, and this exact
+order are named compile-time constants in the single `genthread_pipeline.h` block. There are no
+runtime schedule knobs, fibers, per-request runnable states, or claims about the eventual tuned
+order.
 
 ## Retained and disabled controls
 

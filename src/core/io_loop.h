@@ -567,8 +567,14 @@ private:
                     client_routing_cleanup_pass();
 
                 did += executor_->fused_pipeline_control();
-                for (GenthreadStage stage : kGenthreadStaticSchedule)
-                    did += pipeline_stage<HasUnix, HasTls, kEp>(stage);
+                for (uint32_t rotation = 0;
+                     rotation < kGenthreadPipelineRotationsPerLoop; rotation++) {
+                    uint32_t rotation_work = 0;
+                    for (GenthreadStage stage : kGenthreadStaticSchedule)
+                        rotation_work += pipeline_stage<HasUnix, HasTls, kEp>(stage);
+                    did += rotation_work;
+                    if (!rotation_work) break;
+                }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
                                      cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
@@ -3105,7 +3111,12 @@ nonblocking_dispatch:
             for (uint32_t i = 0; i < batch->count; i++) {
                 Client* client = batch->clients[i];
                 __builtin_prefetch(client, 0, 2);
-                __builtin_prefetch(&client->rob().at(client->rob().flush_id()), 0, 2);
+                // A disconnect/completion race can leave a harmless stale ready notification for
+                // a Client whose ROB is already empty (and may never have allocated a chunk).
+                // PREPARE already treats that as an empty prefix; do not manufacture a reference
+                // through rob.at() merely for a prefetch in that state.
+                if (!client->rob().quiesced())
+                    __builtin_prefetch(&client->rob().at(client->rob().flush_id()), 0, 2);
             }
             batch->sequence = next_wb_pipeline_sequence_++;
             batch->state = WbPipelineState::Gathered;
@@ -3206,6 +3217,7 @@ nonblocking_dispatch:
             // until ROUTE_ISSUE.  Do not let the schedule's second RX_PARSE slot decode that same
             // frame into another buffer; batching is across independent connections.
             if (client_has_staged_ifid(c)) { idx++; continue; }
+            const uint32_t pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
             TlsConn* tls = nullptr;
@@ -3327,11 +3339,20 @@ nonblocking_dispatch:
             }
 
             if constexpr (!kEp) {
-                if constexpr (HasTls) {
-                    if (tls && tls->memory_bio()) arm_tls_recv<kEp>(c);
-                    else if (!tls) arm_recv<kEp>(c);
-                } else {
-                    arm_recv<kEp>(c);
+                // An unpublished pipeline Op still points into this Client's read buffer, while
+                // its ROB is technically quiescent.  arm_recv() is therefore allowed to grow and
+                // realloc the buffer unless this owner-local reference closes that lifetime gap.
+                // ROUTE_ISSUE publishes the Op before releasing the batch reference, after which
+                // ordinary ROB quiescence once again prevents argv slices from moving.
+                const bool staged_ifid = pipeline_batch &&
+                                         pipeline_batch->count != pipeline_count_before;
+                if (!staged_ifid) {
+                    if constexpr (HasTls) {
+                        if (tls && tls->memory_bio()) arm_tls_recv<kEp>(c);
+                        else if (!tls) arm_recv<kEp>(c);
+                    } else {
+                        arm_recv<kEp>(c);
+                    }
                 }
             }
 
