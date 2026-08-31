@@ -10,7 +10,7 @@
 // So: every cross-thread handoff is a Channel, and every loop reports LoopSignals. Same shape, same
 // units, whatever the direction.
 //
-//   IO -> EX    Channel<Task>      dispatch a parsed op to the shard's owner
+//   IO -> EX    MaskedChannelArray dispatch a parsed Task to the shard's owner
 //   EX -> IO    Channel<Client*>   tell the owner it has completed ops to retire
 //   IO/EX -> WB Channel<Client*>   tell the sender it has bytes to write
 //
@@ -31,7 +31,9 @@
 #include <atomic>
 #include <cstdint>
 #include <ctime>
+#include <vector>
 #include "../exec/exqueue.h"
+#include "../exec/masked_queue.h"
 #include "../net/uring.h"
 
 namespace tomo {
@@ -396,6 +398,79 @@ public:
 
 private:
     ExQueue<T, Cap>   q_;
+    std::atomic<bool> blocked_{false};
+};
+
+// One wake endpoint around one consumer-owned masked slot array.  Queue frontiers remain per
+// producer; only the blocked flag is shared, which is equivalent to the old code arming every task
+// channel together and removes nproducer stores from the sleep-only path.
+template <typename T, uint32_t MaxProducers>
+class MaskedChannelArray {
+public:
+    bool init_local(uint32_t producers, uint32_t slots_per_thread,
+                    const std::vector<uint32_t>& io,
+                    const std::vector<uint32_t>& ex) {
+        return q_.init_local(producers, slots_per_thread, io, ex);
+    }
+    bool remask_quiesced(const std::vector<uint32_t>& io,
+                         const std::vector<uint32_t>& ex) {
+        return q_.remask_quiesced(io, ex);
+    }
+    bool grow_quiesced(uint32_t slots, const std::vector<uint32_t>& io,
+                       const std::vector<uint32_t>& ex) {
+        return q_.grow_quiesced(slots, io, ex);
+    }
+
+    bool push(uint32_t producer, T value, LoopSignals& sig) {
+        if (!q_.push(producer, value)) { sig.full_events++; return false; }
+        return true;
+    }
+    template <typename Prepare>
+    bool push_prepared(uint32_t producer, T value, LoopSignals& sig, Prepare&& prepare) {
+        if (!q_.push_prepared(producer, value, static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    bool push_batch(uint32_t producer, const T* values, uint32_t count, LoopSignals& sig) {
+        if (!q_.push_batch(producer, values, count)) { sig.full_events++; return false; }
+        return true;
+    }
+    template <typename Prepare>
+    bool push_batch_prepared(uint32_t producer, const T* values, uint32_t count,
+                             LoopSignals& sig, Prepare&& prepare) {
+        if (!q_.push_batch_prepared(producer, values, count,
+                                    static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    template <typename Extract>
+    uint32_t newest_nonzero(uint32_t producer, Extract&& extract) const {
+        return q_.newest_nonzero(producer, static_cast<Extract&&>(extract));
+    }
+    void wake(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
+        if (peer_ring && blocked_.load(std::memory_order_acquire)) {
+            my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr));
+            sig.wakes_sent++;
+        }
+    }
+    bool recv(uint32_t producer, T& out) { return q_.pop(producer, out); }
+    void retire(uint32_t producer) { q_.retire(producer); }
+    bool quiesced(uint32_t producer) const { return q_.quiesced(producer); }
+    bool all_quiesced() const { return q_.all_quiesced(); }
+    uint32_t depth(uint32_t producer) const { return q_.depth(producer); }
+    uint32_t producer_free_slots(uint32_t producer) const {
+        return q_.producer_free_slots(producer);
+    }
+    void arm_blocked() { blocked_.store(true, std::memory_order_release); }
+    void clear_blocked() { blocked_.store(false, std::memory_order_release); }
+    uint32_t total_slots() const { return q_.total_slots(); }
+
+private:
+    MaskedSpscArray<T, MaxProducers> q_;
     std::atomic<bool> blocked_{false};
 };
 

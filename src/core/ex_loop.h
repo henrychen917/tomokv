@@ -224,6 +224,12 @@ private:
             return 1;
         }
         if (stage == FlipStage::ExInstall && !srv_->flip_acked(self_->id(), stage)) {
+            // ExDrain retired every old lane and IO dispatch remains parked until all ExInstall
+            // acknowledgements. Reassign blocks in the existing consumer-local allocation now;
+            // no topology object is rebuilt and no producer can observe a half-installed mask.
+            if (!self_->remask_task_inbox_quiesced(srv_->placement().ifid_threads(),
+                                                    srv_->placement().ex_threads()))
+                std::abort();
             for (Shard* shard : self_->shards())
                 shard->bind_notify_pending(&notify_keyless_pending_);
             srv_->flip_ack(self_->id(), stage);

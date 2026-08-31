@@ -772,6 +772,14 @@ void cmd_reset(Shard&, Op& op) {
 
 void cmd_debug_impl(Shard&, Op& op) {
     const Slice subcommand = op.arg(1);
+    // Directed transport tests use this cold hook to prove that their retained sockets cover every
+    // live IO producer before a 63:1 -> 1:63 flip. Returning the connection owner is observational;
+    // it does not alter placement and is available only behind the existing DEBUG permission gate.
+    if (eq_icase(subcommand, "io-thread") && op.argc() == 2) {
+        if (!g_client) { reply_err(op.sink(), "ERR no client context"); return; }
+        reply_int(op.sink(), static_cast<long long>(g_client->ifid_thread()));
+        return;
+    }
     if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
         // Raw monotonic dump; windowing is the reader's job (two calls, subtract). See lbsignals.h.
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }

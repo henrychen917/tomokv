@@ -285,7 +285,9 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
             bind_thread_arena();                // per-worker jemalloc arena; no-op without it
-            bool ok = exs[tid].init(&srv, &self);
+            bool ok = self.init_task_inbox_local(srv.placement().ifid_threads(),
+                                                 srv.placement().ex_threads());
+            if (ok) ok = exs[tid].init(&srv, &self);
             std::string local_error;
             if (ok && aof_base_plan)
                 ok = snapshot_load_owned(*aof_base_plan, srv, self, local_error);
@@ -397,6 +399,14 @@ int main(int argc, char** argv) {
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
+            bind_thread_arena();
+            if (!self.init_task_inbox_local(srv.placement().ifid_threads(),
+                                            srv.placement().ex_threads())) {
+                std::fprintf(stderr, "task inbox initialization failed on t%u\n", tid);
+                for (uint32_t i = 0; i < nthreads; i++)
+                    srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+                return;
+            }
             const int unix_fd = tid == unix_owner ? unix_listener : -1;
             // Provision dormant EX first; active IO then republishes its own ring as the current
             // role endpoint. No runtime conversion can fail later for lack of a ring.
