@@ -531,6 +531,10 @@ private:
                     client_cron_beat_ms_ = cached_now_ms_;
                 }
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
+                    // only (the placement controller deliberately uses busy/idle), so sample it
+                    // on the existing 100us signal beat instead of every hot pass.
+                    sig.cpu_ns = thread_cpu_ns();
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
@@ -603,8 +607,6 @@ private:
                     save_cron_beat_ms_ = cached_now_ms_ + 1000;
                 }
             }
-            sig.cpu_ns = thread_cpu_ns();
-
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
