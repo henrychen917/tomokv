@@ -468,6 +468,25 @@ public:
         return depth;
     }
 
+    // Optional streams A/D filler hint. Visit only producers whose task-notify bit names actual
+    // queued work; unlike task_depth_capped(), this never polls every possible SPSC lane. A producer
+    // racing the peek is harmless: the next modulo chunk or the mask-independent idle audit drains
+    // it, and this hint alone never controls correctness.
+    uint32_t notified_task_depth_capped(uint32_t cap) const {
+        uint32_t depth = 0;
+        for (uint32_t word = 0; word < NotifyMask::kWords && depth < cap; word++) {
+            uint64_t bits = task_notify_.peek(word);
+            while (bits && depth < cap) {
+                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t producer = word * 64 + bit;
+                if (producer >= nchan_) continue;
+                depth += std::min(cap - depth, task_in_[producer].depth());
+            }
+        }
+        return depth;
+    }
+
     template <typename Fn>
     uint32_t drain_clients(Fn&& fn) {
         uint32_t n = 0;

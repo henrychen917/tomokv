@@ -917,6 +917,17 @@ private:
         }
     }
 
+    // Run mutation-capable reclamation only after every buffered E2 in the pass. In particular, an
+    // A/D sequence must not put cleanup between E1(D) and E2(D), and consecutive modulo chunks use
+    // the same rule. The caller still holds every gathered source prefix unretired here.
+    void finish_buffered_exec_pass(uint32_t executable_count) {
+        if (xshard_retries_.empty() && srv_->atomic_work_active() && executable_count) {
+            // The legacy entry supplied 256 cleanup records of service for every batch of at most
+            // 128 tasks. Preserve that capacity while paying the owned-shard walk only once.
+            atomic_cleanup_cycle(std::max<uint32_t>(256, executable_count * 2));
+        }
+    }
+
     // Buffered E2 batches can be much smaller than the shipped coarse drain. Their caller tracks
     // owner-verified shards while E1 already has the route in hand, then publishes that dense set
     // once after the complete multi-chunk EX pass. Keep the ordinary coarse/iofused entry above --
@@ -935,9 +946,6 @@ private:
                 for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
                 break;
             }
-        }
-        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
-            atomic_cleanup_cycle(256);
         }
     }
 

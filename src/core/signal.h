@@ -312,6 +312,12 @@ public:
         return words_[word].exchange(0, std::memory_order_acquire);
     }
 
+    // Read-only optimization hint. Correctness consumers still use take(); a stale or missing bit
+    // here may suppress optional filler work but can never strand the underlying queue.
+    uint64_t peek(uint32_t word) const {
+        return words_[word].load(std::memory_order_relaxed);
+    }
+
     bool any() const {
         for (uint32_t i = 0; i < kWords; i++)
             if (words_[i].load(std::memory_order_relaxed)) return true;

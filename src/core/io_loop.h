@@ -537,9 +537,12 @@ private:
         std::array<ExBatchContext, kGenthreadExContexts> ex_contexts;
         ExRetireContext ex_retire_context;
         std::vector<uint32_t> ex_touched_shards;
-        if (selected_streams0 || selected_streams)
-            ex_touched_shards.reserve(kGenthreadStreamsMaxChunksPerPass *
-                                      kGenthreadExContexts * kGenthreadExBatchOps);
+        std::vector<uint8_t> ex_touched_seen;
+        uint32_t buffered_executable_count = 0;
+        if (selected_streams0 || selected_streams) {
+            ex_touched_shards.reserve(srv_->nshards());
+            ex_touched_seen.resize(srv_->nshards());
+        }
 
         auto ex_pipeline_ready = [&]() {
             return executor_->pipeline_tasks_allowed() &&
@@ -649,8 +652,10 @@ private:
                 }
                 batch.executable[batch.executable_count++] = task;
                 if (shard >= 0) {
-                    if (track_touched)
+                    if (track_touched && !ex_touched_seen[shard]) {
+                        ex_touched_seen[shard] = 1;
                         ex_touched_shards.push_back(static_cast<uint32_t>(shard));
+                    }
                     srv_->shard(shard).store().prefetch(op->hash);
                 }
             }
@@ -666,6 +671,7 @@ private:
                 else
                     executor_->exec_batch_prefetched(
                         batch.executable.data(), batch.executable_count);
+                if (buffered) buffered_executable_count += batch.executable_count;
             }
             return batch.count;
         };
@@ -712,12 +718,9 @@ private:
         };
 
         auto flush_ex_publications = [&]() {
-            std::sort(ex_touched_shards.begin(), ex_touched_shards.end());
-            uint32_t previous = UINT32_MAX;
             for (uint32_t shard : ex_touched_shards) {
-                if (shard == previous) continue;
-                previous = shard;
                 srv_->shard(shard).publish_size();
+                ex_touched_seen[shard] = 0;
             }
             ex_touched_shards.clear();
         };
@@ -728,10 +731,12 @@ private:
             for (uint32_t i = ifid_context.count; i != 0; i--) {
                 const IfidPipelineEntry& entry = ifid_context.entries[i - 1];
                 if (!entry.client) continue;
-                if (ifid_context.defer_parse_advance)
+                if (ifid_context.defer_parse_advance) {
                     entry.client->set_pipeline_prepared(false);
-                else
+                    if (ifid_context.targeted_ready) mark_active(entry.client);
+                } else {
                     entry.client->retreat_unpublished_parse(entry.consumed);
+                }
             }
             ifid_context.count = ifid_context.reserved_worker_count = 0;
             ifid_context.reservation_ready = false;
@@ -801,11 +806,16 @@ private:
             return ifid_context.count;
         };
 
-        auto wb_w0 = [&]() {
+        auto wb_w0 = [&](bool discover = true) {
             // W0 -- ready-mask driven completion collection and ROB-head prefetch. No
-            // active-connection scan is used to discover completion work.
-            uint32_t work = collect_retire_work<HasUnix, kEp>();
-            if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+            // active-connection scan is used to discover completion work. A multi-chunk pass takes
+            // the fixed-size masks once, then revisits them only after its own E2 created completion
+            // work; draining pending_serve_ itself is proportional to clients actually dequeued.
+            uint32_t work = 0;
+            if (discover) {
+                work += collect_retire_work<HasUnix, kEp>();
+                if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+            }
             if (!pending_serve_.empty()) {
                 AofManager& aof = srv_->aof();
                 if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
@@ -875,8 +885,10 @@ private:
                 ThreadCtx& worker = srv_->thread(entry.worker);
                 if (!client || client->dead() || client->closing()) {
                     worker.cancel_task_reservation(self_->id(), 1);
-                    if (client && ifid_context.defer_parse_advance)
+                    if (client && ifid_context.defer_parse_advance) {
                         client->set_pipeline_prepared(false);
+                        if (ifid_context.targeted_ready) mark_active(client);
+                    }
                     continue;
                 }
                 Rob<kRobWindow>& rob = client->rob();
@@ -896,7 +908,11 @@ private:
                     client->set_pipeline_prepared(false);
                 }
                 sig.ops++;
-                mark_active(client);
+                const bool retry_ifid =
+                    client->rpos() < client->rlen() || client->closing() ||
+                    client->parse_backpressure() || client->scatter_barrier() ||
+                    (!client->recv_armed() && !client->closing());
+                if (!ifid_context.targeted_ready || retry_ifid) mark_active(client);
                 published++;
             }
             for (uint32_t i = 0; i < ifid_context.reserved_worker_count; i++)
@@ -943,6 +959,11 @@ private:
                     sig.sqe_starved++;
                     enqueue_serve(client);
                 }
+                // W1 may have opened ROB space after this chunk's I0 already consumed the
+                // completion token. Restore targeted IFID readiness so buffered pipeline suffixes
+                // cannot strand.
+                if (selected_streams && !client->dead() && client->in_active())
+                    enqueue_ifid(client);
             }
             wb_context.count = 0;
             active_wb_context_ = nullptr;
@@ -1075,9 +1096,11 @@ private:
                     ex_contexts[0].count = ex_contexts[1].count = 0;
                     ex_retire_context.lane_count = 0;
                     ex_touched_shards.clear();
+                    buffered_executable_count = 0;
 
                     for (uint32_t chunk = 0;
                          chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        if (pending_ifid_.empty()) break;
                         ifid_context.count = ifid_context.reserved_worker_count = 0;
                         ifid_context.reservation_ready = false;
                         ifid_context.force_coarse = false;
@@ -1105,7 +1128,7 @@ private:
                         did += published;
                         // Reservation refusal rolled B back to the ready list. Retrying the same
                         // full destination lane inside this pass would only burn the fairness cap.
-                        if (!published) break;
+                        if (!published || pending_ifid_.empty()) break;
                     }
 
                     for (uint32_t chunk = 0;
@@ -1122,9 +1145,12 @@ private:
                         } else {
                             break;
                         }
+                        const uint32_t ex_count = ex_contexts[0].count;
                         (void)ex_retire(ex_contexts[0], nullptr, &ex_retire_context);
+                        if (ex_count < kGenthreadExBatchOps) break;
                     }
                     flush_ex_publications();
+                    executor_->finish_buffered_exec_pass(buffered_executable_count);
                     // Every accumulated prefix is terminal and its shard statistics are visible;
                     // now publish one retired frontier per source lane for the complete pass.
                     flush_ex_retire(ex_retire_context);
@@ -1133,46 +1159,63 @@ private:
                          chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
                         wb_context.count = 0;
                         active_wb_context_ = &wb_context;
-                        did += wb_w0();                                 // W0(C[chunk])
+                        did += wb_w0(chunk == 0);                       // W0(C[chunk])
                         if (!wb_context.count) {
                             active_wb_context_ = nullptr;
                             break;
                         }
                         did += wb_w1();                                 // W1(C[chunk])
+                        const uint32_t wb_count = wb_context.count;
                         did += wb_w2();                                 // W2(C[chunk])
+                        if (wb_count < kGenthreadWbBatchConns) break;
                     }
                 } else if (selected_streams && !use_streams_interleaved) {
-                    // Closed `streams` gate: one complete buffered coarse rotation. B and A may
-                    // stop before their first published dependency for one rotation; C never does.
+                    // Closed `streams` gate: drain the complete buffered coarse order in chunks.
+                    // B and A may stop before their first published dependency for one outer
+                    // rotation; C never does.
                     if (ex_contexts[1].count) std::abort();
                     uint32_t streams_occupancy = 0;
-                    if (!ifid_context.count) {
-                        ifid_context.reserved_worker_count = 0;
-                        ifid_context.reservation_ready = false;
-                        streams_ifid_residual_age = 0;
-                    } else if (ifid_context.reservation_ready ||
-                               ifid_context.reserved_worker_count) {
-                        std::abort();
-                    }
-                    ifid_context.force_coarse = false;
-                    ifid_context.one_prepared_per_connection = true;
-                    ifid_context.defer_parse_advance = true;
-                    ifid_context.targeted_ready = true;
-                    active_ifid_context_ = &ifid_context;
+                    ex_retire_context.lane_count = 0;
+                    ex_touched_shards.clear();
+                    buffered_executable_count = 0;
 
-                    did += ifid_batch<HasTls, kEp>(&ifid_context);       // I0
-                    streams_occupancy = std::max(streams_occupancy, ifid_context.count);
-                    if (ifid_context.force_coarse) {
-                        rollback_ifid();
-                        streams_ifid_residual_age = 0;
-                        const uint64_t before = sig.ops;
-                        did += ifid_batch<HasTls, kEp>(nullptr);
-                        streams_occupancy = std::max(
-                            streams_occupancy,
-                            static_cast<uint32_t>(std::min<uint64_t>(
-                                kGenthreadIfidBatchOps, sig.ops - before)));
-                    } else if (ifid_context.count) {
-                        ifid_n1();                                      // N1
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        if (!ifid_context.count && pending_ifid_.empty()) break;
+                        if (!ifid_context.count) {
+                            ifid_context.reserved_worker_count = 0;
+                            ifid_context.reservation_ready = false;
+                            streams_ifid_residual_age = 0;
+                        } else if (ifid_context.reservation_ready ||
+                                   ifid_context.reserved_worker_count) {
+                            std::abort();
+                        }
+                        ifid_context.force_coarse = false;
+                        ifid_context.one_prepared_per_connection = true;
+                        ifid_context.defer_parse_advance = true;
+                        ifid_context.targeted_ready = true;
+                        active_ifid_context_ = &ifid_context;
+
+                        did += ifid_batch<HasTls, kEp>(&ifid_context);   // I0(B[chunk])
+                        streams_occupancy =
+                            std::max(streams_occupancy, ifid_context.count);
+                        if (ifid_context.force_coarse) {
+                            rollback_ifid();
+                            streams_ifid_residual_age = 0;
+                            const uint64_t before = sig.ops;
+                            did += ifid_batch<HasTls, kEp>(nullptr);
+                            streams_occupancy = std::max(
+                                streams_occupancy,
+                                static_cast<uint32_t>(std::min<uint64_t>(
+                                    kGenthreadIfidBatchOps, sig.ops - before)));
+                            break;
+                        }
+                        if (!ifid_context.count) {
+                            streams_ifid_residual_age = 0;
+                            active_ifid_context_ = nullptr;
+                            break;
+                        }
+                        ifid_n1();                                      // N1(B[chunk])
                         const bool carry =
                             ifid_context.count < kGenthreadStreamsMinBatchOccupancy &&
                             streams_ifid_residual_age <
@@ -1180,195 +1223,277 @@ private:
                         if (carry) {
                             streams_ifid_residual_age++;
                             did++;
-                        } else {
-                            streams_ifid_residual_age = 0;
-                            did += ifid_i1();                            // I1
-                            did += ifid_i2();                            // I2
+                            break;
                         }
-                    } else {
                         streams_ifid_residual_age = 0;
-                        active_ifid_context_ = nullptr;
+                        did += ifid_i1();                               // I1(B[chunk])
+                        const uint32_t published = ifid_i2();           // I2(B[chunk])
+                        did += published;
+                        if (!published || pending_ifid_.empty()) break;
                     }
 
-                    const bool ex_had_residual = ex_contexts[0].count != 0;
-                    if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
-                    const bool ex_ready = ex_pipeline_ready();
-                    const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
-                    bool ex_deferred = false;
-                    if (ex_had_residual && !ex_ready) {
-                        did += ex_defer_batch(ex_contexts[0]);
-                        ex_deferred = true;
-                    } else if (ex_ready && ex_had_residual) {
-                        did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
-                    } else if (ex_ready) {
-                        did += ex_e0(ex_contexts[0]);                    // E0
-                    } else if (ex_tasks_allowed) {
-                        did += ex_e0_defer_monolithic(ex_contexts[0]);
-                        ex_deferred = ex_contexts[0].count != 0;
-                    }
-                    streams_occupancy =
-                        std::max(streams_occupancy, ex_contexts[0].count);
-                    if (ex_deferred) {
-                        (void)ex_retire(ex_contexts[0]);                 // E2: DeferredDurably
-                        streams_ex_residual_age = 0;
-                    } else if (ex_contexts[0].count) {
-                        const bool carry =
-                            ex_contexts[0].count < kGenthreadStreamsMinBatchOccupancy &&
-                            streams_ex_residual_age <
-                                kGenthreadStreamsResidualAgeCapRotations;
-                        if (carry) {
-                            streams_ex_residual_age++;
-                            did++;
-                        } else {
-                            streams_ex_residual_age = 0;
-                            did += ex_e1(ex_contexts[0]);                // E1
-                            did += ex_e2(ex_contexts[0]);                // E2
-                            (void)ex_retire(ex_contexts[0]);
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        const bool ex_had_residual = ex_contexts[0].count != 0;
+                        if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
+                        const bool ex_ready = ex_pipeline_ready();
+                        const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
+                        bool ex_deferred = false;
+                        bool ex_input_sampled = false;
+                        if (ex_had_residual && !ex_ready) {
+                            did += ex_defer_batch(ex_contexts[0]);
+                            ex_deferred = true;
+                        } else if (ex_ready && ex_had_residual) {
+                            did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
+                            ex_input_sampled = true;
+                        } else if (ex_ready) {
+                            did += ex_e0(ex_contexts[0]);                // E0(A[chunk])
+                            ex_input_sampled = true;
+                        } else if (ex_tasks_allowed) {
+                            did += ex_e0_defer_monolithic(ex_contexts[0]);
+                            ex_deferred = ex_contexts[0].count != 0;
+                            ex_input_sampled = true;
                         }
-                    } else {
-                        streams_ex_residual_age = 0;
+                        streams_occupancy =
+                            std::max(streams_occupancy, ex_contexts[0].count);
+                        if (!ex_contexts[0].count) {
+                            streams_ex_residual_age = 0;
+                            break;
+                        }
+                        if (!ex_deferred) {
+                            const bool carry =
+                                ex_contexts[0].count < kGenthreadStreamsMinBatchOccupancy &&
+                                streams_ex_residual_age <
+                                    kGenthreadStreamsResidualAgeCapRotations;
+                            if (carry) {
+                                streams_ex_residual_age++;
+                                did++;
+                                break;
+                            }
+                            streams_ex_residual_age = 0;
+                            did += ex_e1(ex_contexts[0], true);          // E1(A[chunk])
+                            did += ex_e2(ex_contexts[0], true);          // E2(A[chunk])
+                        } else {
+                            streams_ex_residual_age = 0;                 // DeferredDurably
+                        }
+                        const uint32_t ex_count = ex_contexts[0].count;
+                        (void)ex_retire(ex_contexts[0], nullptr, &ex_retire_context);
+                        if (ex_input_sampled && ex_count < kGenthreadExBatchOps) break;
                     }
+                    flush_ex_publications();
+                    executor_->finish_buffered_exec_pass(buffered_executable_count);
+                    flush_ex_retire(ex_retire_context);
 
-                    wb_context.count = 0;
-                    active_wb_context_ = &wb_context;
-                    did += wb_w0();                                     // W0
-                    streams_occupancy =
-                        std::max(streams_occupancy, wb_context.count);
-                    did += wb_w1();                                     // W1
-                    did += wb_w2();                                     // W2 -- never carried
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        wb_context.count = 0;
+                        active_wb_context_ = &wb_context;
+                        did += wb_w0(chunk == 0);                       // W0(C[chunk])
+                        streams_occupancy =
+                            std::max(streams_occupancy, wb_context.count);
+                        if (!wb_context.count) {
+                            active_wb_context_ = nullptr;
+                            break;
+                        }
+                        did += wb_w1();                                 // W1(C[chunk])
+                        const uint32_t wb_count = wb_context.count;
+                        did += wb_w2();                                 // W2(C[chunk])
+                        if (wb_count < kGenthreadWbBatchConns) break;
+                    }
                     streams_gate_open =
                         streams_occupancy >= kGenthreadStreamsMinBatchOccupancy;
                 } else if (selected_streams) {
-                    // Open `streams` gate: literal N0 I0 N1 E0 W0 I1 E1 W1 I2 E2 W2 N2.
-                    // A residual retains its original age while this rotation appends to it.
+                    // Open `streams` gate: repeat the literal
+                    // I0 N1 E0 W0 I1 E1 W1 I2 E2 W2 chunk schedule between the sole N0/N2 pair.
+                    // A full round with no terminal payload ends the pass. A carried residual keeps
+                    // its original outer-rotation age and stops only its own stream for this pass.
                     if (ex_contexts[1].count) std::abort();
                     uint32_t streams_occupancy = 0;
-                    if (!ifid_context.count) {
-                        ifid_context.reserved_worker_count = 0;
-                        ifid_context.reservation_ready = false;
-                        streams_ifid_residual_age = 0;
-                    } else if (ifid_context.reservation_ready ||
-                               ifid_context.reserved_worker_count) {
-                        std::abort();
-                    }
-                    ifid_context.force_coarse = false;
-                    ifid_context.one_prepared_per_connection = true;
-                    ifid_context.defer_parse_advance = true;
-                    ifid_context.targeted_ready = true;
-                    active_ifid_context_ = &ifid_context;
-                    wb_context.count = 0;
-                    active_wb_context_ = &wb_context;
+                    ex_retire_context.lane_count = 0;
+                    ex_touched_shards.clear();
+                    buffered_executable_count = 0;
+                    bool ifid_stopped = false;
+                    bool ex_stopped = false;
+                    bool wb_discovery_needed = true;
 
-                    did += ifid_batch<HasTls, kEp>(&ifid_context);       // I0
-                    streams_occupancy = std::max(streams_occupancy, ifid_context.count);
-                    bool buffered_ifid = true;
-                    bool ifid_carry = false;
-                    if (ifid_context.force_coarse) {
-                        rollback_ifid();
-                        streams_ifid_residual_age = 0;
-                        const uint64_t before = sig.ops;
-                        did += ifid_batch<HasTls, kEp>(nullptr);
-                        streams_occupancy = std::max(
-                            streams_occupancy,
-                            static_cast<uint32_t>(std::min<uint64_t>(
-                                kGenthreadIfidBatchOps, sig.ops - before)));
-                        buffered_ifid = false;
-                    } else if (ifid_context.count) {
-                        ifid_n1();                                      // N1
-                        ifid_carry =
-                            ifid_context.count < kGenthreadStreamsMinBatchOccupancy &&
-                            streams_ifid_residual_age <
-                                kGenthreadStreamsResidualAgeCapRotations;
-                        if (ifid_carry) {
-                            streams_ifid_residual_age++;
-                            did++;
-                        } else {
-                            streams_ifid_residual_age = 0;
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        bool terminal_payload = false;
+                        bool buffered_ifid = false;
+                        bool ifid_carry = false;
+
+                        if (!ifid_stopped &&
+                            (ifid_context.count || !pending_ifid_.empty())) {
+                            if (!ifid_context.count) {
+                                ifid_context.reserved_worker_count = 0;
+                                ifid_context.reservation_ready = false;
+                                streams_ifid_residual_age = 0;
+                            } else if (ifid_context.reservation_ready ||
+                                       ifid_context.reserved_worker_count) {
+                                std::abort();
+                            }
+                            ifid_context.force_coarse = false;
+                            ifid_context.one_prepared_per_connection = true;
+                            ifid_context.defer_parse_advance = true;
+                            ifid_context.targeted_ready = true;
+                            active_ifid_context_ = &ifid_context;
+                            buffered_ifid = true;
+
+                            did += ifid_batch<HasTls, kEp>(&ifid_context); // I0(B[chunk])
+                            streams_occupancy =
+                                std::max(streams_occupancy, ifid_context.count);
+                            if (ifid_context.force_coarse) {
+                                rollback_ifid();
+                                streams_ifid_residual_age = 0;
+                                const uint64_t before = sig.ops;
+                                did += ifid_batch<HasTls, kEp>(nullptr);
+                                const uint32_t monolithic = static_cast<uint32_t>(
+                                    std::min<uint64_t>(kGenthreadIfidBatchOps,
+                                                       sig.ops - before));
+                                streams_occupancy =
+                                    std::max(streams_occupancy, monolithic);
+                                terminal_payload |= monolithic != 0;
+                                buffered_ifid = false;
+                                ifid_stopped = true;
+                            } else if (ifid_context.count) {
+                                ifid_n1();                                // N1(B[chunk])
+                                ifid_carry =
+                                    ifid_context.count <
+                                        kGenthreadStreamsMinBatchOccupancy &&
+                                    streams_ifid_residual_age <
+                                        kGenthreadStreamsResidualAgeCapRotations;
+                                if (ifid_carry) {
+                                    streams_ifid_residual_age++;
+                                    did++;
+                                    ifid_stopped = true;
+                                } else {
+                                    streams_ifid_residual_age = 0;
+                                }
+                            } else {
+                                streams_ifid_residual_age = 0;
+                                active_ifid_context_ = nullptr;
+                            }
                         }
-                    } else {
-                        streams_ifid_residual_age = 0;
-                        active_ifid_context_ = nullptr;
-                    }
 
-                    const bool ex_had_residual = ex_contexts[0].count != 0;
-                    if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
-                    const bool ex_ready = ex_pipeline_ready();
-                    const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
-                    bool ex_deferred = false;
-                    if (ex_had_residual && !ex_ready) {
-                        did += ex_defer_batch(ex_contexts[0]);
-                        ex_deferred = true;
-                    } else if (ex_ready && ex_had_residual) {
-                        did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
-                    } else if (ex_ready) {
-                        did += ex_e0(ex_contexts[0]);                    // E0(A)
-                    } else if (ex_tasks_allowed) {
-                        did += ex_e0_defer_monolithic(ex_contexts[0]);
-                        ex_deferred = ex_contexts[0].count != 0;
-                    }
-                    const uint32_t ex_a_occupancy = ex_contexts[0].count;
-                    streams_occupancy = std::max(streams_occupancy, ex_a_occupancy);
-                    bool ex_carry = false;
-                    if (!ex_deferred && ex_contexts[0].count) {
-                        ex_carry =
-                            ex_contexts[0].count < kGenthreadStreamsMinBatchOccupancy &&
-                            streams_ex_residual_age <
-                                kGenthreadStreamsResidualAgeCapRotations;
-                        if (ex_carry) {
-                            streams_ex_residual_age++;
-                            did++;
-                        } else {
-                            streams_ex_residual_age = 0;
+                        bool ex_deferred = false;
+                        bool ex_carry = false;
+                        if (!ex_stopped) {
+                            const bool ex_had_residual = ex_contexts[0].count != 0;
+                            if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
+                            const bool ex_ready = ex_pipeline_ready();
+                            const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
+                            if (ex_had_residual && !ex_ready) {
+                                did += ex_defer_batch(ex_contexts[0]);
+                                ex_deferred = true;
+                            } else if (ex_ready && ex_had_residual) {
+                                did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
+                            } else if (ex_ready) {
+                                did += ex_e0(ex_contexts[0]);             // E0(A[chunk])
+                            } else if (ex_tasks_allowed) {
+                                did += ex_e0_defer_monolithic(ex_contexts[0]);
+                                ex_deferred = ex_contexts[0].count != 0;
+                            } else {
+                                ex_stopped = true;
+                            }
+                            streams_occupancy =
+                                std::max(streams_occupancy, ex_contexts[0].count);
+                            if (!ex_deferred && ex_contexts[0].count) {
+                                ex_carry =
+                                    ex_contexts[0].count <
+                                        kGenthreadStreamsMinBatchOccupancy &&
+                                    streams_ex_residual_age <
+                                        kGenthreadStreamsResidualAgeCapRotations;
+                                if (ex_carry) {
+                                    streams_ex_residual_age++;
+                                    did++;
+                                    ex_stopped = true;
+                                } else {
+                                    streams_ex_residual_age = 0;
+                                }
+                            } else if (!ex_contexts[0].count) {
+                                streams_ex_residual_age = 0;
+                            }
                         }
-                    } else if (!ex_contexts[0].count) {
-                        streams_ex_residual_age = 0;
-                    }
 
-                    did += wb_w0();                                     // W0
-                    streams_occupancy =
-                        std::max(streams_occupancy, wb_context.count);
-
-                    if (buffered_ifid && ifid_context.count && !ifid_carry)
-                        did += ifid_i1();                                // I1
-
-                    const bool ex_a_process =
-                        ex_contexts[0].count && !ex_carry && !ex_deferred;
-                    if (ex_a_process)
-                        did += ex_e1(ex_contexts[0]);                    // E1(A)
-
-                    // The A/D fallback is legal only after A reaches E1. If E1 creates ordered
-                    // monolithic debt, D's guarded E0 remains empty and cannot pass that debt.
-                    const uint32_t ifid_filler = ifid_carry ? 0 : ifid_context.count;
-                    const bool ex_heavy =
-                        ex_a_process &&
-                        ifid_filler + wb_context.count <
-                            kGenthreadStreamsMinBatchOccupancy &&
-                        self_->task_depth_capped(kGenthreadStreamsMinBatchOccupancy) >=
-                            kGenthreadStreamsMinBatchOccupancy;
-                    if (ex_heavy) {
-                        const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
-                        did += ex_d_occupancy;
+                        wb_context.count = 0;
+                        active_wb_context_ = &wb_context;
+                        did += wb_w0(wb_discovery_needed);               // W0(C[chunk])
+                        wb_discovery_needed = false;
                         streams_occupancy =
-                            std::max(streams_occupancy, ex_d_occupancy);
-                        did += ex_e1(ex_contexts[1]);
-                        did += ex_e2(ex_contexts[0]);
-                        did += ex_e2(ex_contexts[1]);
-                        (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
-                        did += wb_w1();                                  // W1
-                        if (buffered_ifid && ifid_context.count && !ifid_carry)
-                            did += ifid_i2();                            // I2
-                    } else {
-                        did += wb_w1();                                  // W1
-                        if (buffered_ifid && ifid_context.count && !ifid_carry)
-                            did += ifid_i2();                            // I2
-                        if (ex_a_process) did += ex_e2(ex_contexts[0]); // E2(A)
-                        if (ex_a_process || ex_deferred) {
-                            (void)ex_retire(ex_contexts[0]);
+                            std::max(streams_occupancy, wb_context.count);
+
+                        const bool ifid_process =
+                            buffered_ifid && ifid_context.count && !ifid_carry;
+                        if (ifid_process)
+                            did += ifid_i1();                             // I1(B[chunk])
+
+                        const bool ex_a_process =
+                            !ex_stopped && ex_contexts[0].count &&
+                            !ex_carry && !ex_deferred;
+                        if (ex_a_process)
+                            did += ex_e1(ex_contexts[0], true);           // E1(A[chunk])
+
+                        // D is only an optional filler batch after A reaches E1. Inspect notified
+                        // producers rather than polling every possible SPSC lane; a missed race
+                        // simply becomes the next modulo chunk's A.
+                        const uint32_t ifid_filler =
+                            ifid_process ? ifid_context.count : 0;
+                        const bool ex_heavy =
+                            ex_a_process &&
+                            ifid_filler + wb_context.count <
+                                kGenthreadStreamsMinBatchOccupancy &&
+                            self_->notified_task_depth_capped(
+                                kGenthreadStreamsMinBatchOccupancy) >=
+                                kGenthreadStreamsMinBatchOccupancy;
+                        if (ex_heavy) {
+                            const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
+                            did += ex_d_occupancy;
+                            streams_occupancy =
+                                std::max(streams_occupancy, ex_d_occupancy);
+                            did += ex_e1(ex_contexts[1], true);
+                            did += ex_e2(ex_contexts[0], true);           // E2(A[chunk])
+                            did += ex_e2(ex_contexts[1], true);           // E2(D[chunk])
+                            wb_discovery_needed = true;
+                            terminal_payload = true;
+                            (void)ex_retire(
+                                ex_contexts[0], &ex_contexts[1], &ex_retire_context);
                             streams_ex_residual_age = 0;
+                            did += wb_w1();                               // W1(C[chunk])
+                            if (ifid_process) {
+                                const uint32_t published = ifid_i2();    // I2(B[chunk])
+                                did += published;
+                                terminal_payload |= published != 0;
+                                if (!published) ifid_stopped = true;
+                            }
+                        } else {
+                            did += wb_w1();                               // W1(C[chunk])
+                            if (ifid_process) {
+                                const uint32_t published = ifid_i2();    // I2(B[chunk])
+                                did += published;
+                                terminal_payload |= published != 0;
+                                if (!published) ifid_stopped = true;
+                            }
+                            if (ex_a_process) {
+                                did += ex_e2(ex_contexts[0], true);       // E2(A[chunk])
+                                wb_discovery_needed = true;
+                            }
+                            if (ex_a_process || ex_deferred) {
+                                terminal_payload = true;
+                                (void)ex_retire(
+                                    ex_contexts[0], nullptr, &ex_retire_context);
+                                streams_ex_residual_age = 0;
+                            }
                         }
+
+                        const uint32_t wb_submitted = wb_w2();           // W2(C[chunk])
+                        did += wb_submitted;
+                        terminal_payload |= wb_submitted != 0;
+                        if (!terminal_payload) break;
                     }
 
-                    did += wb_w2();                                     // W2 -- never carried
+                    flush_ex_publications();
+                    executor_->finish_buffered_exec_pass(buffered_executable_count);
+                    flush_ex_retire(ex_retire_context);
                     streams_gate_open =
                         streams_occupancy >= kGenthreadStreamsMinBatchOccupancy;
                 } else if (!use_interleaved) {
@@ -1531,8 +1656,12 @@ private:
                 // unmasked path on the buffered schedules' pop-unretired -> E2 -> retire_n law.
                 const uint32_t gathered = ex_e0(ex_contexts[0], /*unmasked=*/true);
                 if (gathered) {
-                    (void)ex_e1(ex_contexts[0]);
-                    (void)ex_e2(ex_contexts[0]);
+                    ex_touched_shards.clear();
+                    buffered_executable_count = 0;
+                    (void)ex_e1(ex_contexts[0], true);
+                    (void)ex_e2(ex_contexts[0], true);
+                    flush_ex_publications();
+                    executor_->finish_buffered_exec_pass(buffered_executable_count);
                     buffered_ex_sweep = ex_retire(ex_contexts[0]);
                 }
             }
@@ -4265,7 +4394,9 @@ nonblocking_dispatch:
                         c->closing() || c->parse_backpressure() || c->scatter_barrier() ||
                         (!c->recv_armed() && !c->closing()) ||
                         (more_input && !c->rob().full());
-                    if (retry_without_retire) enqueue_ifid(c);
+                    const bool held_by_streams_batch = pipeline_batch &&
+                        pipeline_batch->defer_parse_advance && c->pipeline_prepared();
+                    if (retry_without_retire && !held_by_streams_batch) enqueue_ifid(c);
                 }
                 continue;
             }

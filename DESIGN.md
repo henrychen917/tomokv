@@ -81,11 +81,13 @@ not overlap their micro-stages. Its compile-time schedule is:
 
 `N0 / I0 / N1 / I1 / I2 / E0 / E1 / E2 / W0 / W1 / W2 / N2`
 
-Thus the three contiguous stream groups are `IFID -> EX -> WB`, empty contexts cost only their
-stage guards, and a self-owned command still crosses `task_in_[self]` at I2 before the later E0
-gather. EX pops with an unretired frontier and publishes one merged retirement update per source
-lane only after E2. Snapshot and ordered/cold executor debt use the established monolithic pass.
-The single N2 boundary submits receive rearms, task/completion notifications, and reply sends.
+Thus the three contiguous stream groups are `IFID -> EX -> WB`. Each group drains batch-sized
+chunks until its input is empty or the compile-time 16-chunk fairness cap is reached; the batch cap
+is a pipelining boundary, not an outer-rotation ration. A self-owned command still crosses
+`task_in_[self]` at I2 before the later E0 gather. EX pops every chunk with an unretired frontier,
+then publishes one merged retirement update per source lane only after every terminal chunk in the
+stage pass. Snapshot and ordered/cold executor debt use the established monolithic pass. The single
+N2 boundary submits receive rearms, task/completion notifications, and reply sends.
 Executor control runs outside the declared N0..N2 rotation. If it leaves ordinary snapshot or
 ordered debt while task consumption is permitted, E0 gathers with an unretired frontier, durably
 appends that batch to the monolithic deque, and only then publishes its one retirement update per
@@ -103,8 +105,9 @@ schedules' unretired E0/E1/E2 path. Its default preserves every pre-existing cal
 `streams0` uses the named compile-time caps `kGenthreadIfidBatchOps=128`,
 `kGenthreadExBatchOps=128`, and `kGenthreadWbBatchConns=64`, with one B context, one active A
 context (the allocated D context is unused in this control), and one C context.
-`kGenthreadStreams0Schedule` is declared beside those caps and context counts in
-`genthread_pipeline.h`. `streams0` is boot-only and requires the uring network engine.
+`kGenthreadStreamsMaxChunksPerPass=16` bounds each drain. `kGenthreadStreams0Schedule` is declared
+beside those caps and context counts in `genthread_pipeline.h`. `streams0` is boot-only and requires
+the uring network engine.
 
 ## Static `streams` microstage arm
 
@@ -117,7 +120,10 @@ The sections are literal sections of the one `IoLoop::run_loop` body. The contex
 loop locals: one IFID B, exactly two EX contexts A/D, and one WB C. They use the named caps
 `kGenthreadIfidBatchOps=128`, `kGenthreadExBatchOps=128`, and
 `kGenthreadWbBatchConns=64`; `kGenthreadStreamsSchedule` records the literal order beside those
-constants in `genthread_pipeline.h`.
+constants in `genthread_pipeline.h`. The literal chunk schedule repeats up to
+`kGenthreadStreamsMaxChunksPerPass=16` times between the single N0 and N2 boundaries, stopping when
+a complete round produces no terminal payload. Feedback therefore remains live inside the pass:
+I2 can feed a later E0, E2 can feed a later W0, and W1 can make a later I0 actionable.
 
 - I0 prepares at most one decoded, unpublished point command per ready connection and leaves its
   parse cursor unchanged. The prepared bit pins the read buffer; N1 can only append into it.
@@ -127,9 +133,10 @@ constants in `genthread_pipeline.h`.
   W1 stages complete reply frames and I2 performs `ROB publish -> reserved Task publish -> parse
   cursor advance`, followed by one notification per destination. Neither W1 nor I2 mutates an
   owned FlatStore, so the E1-to-E2 purity gap is intact.
-- E2 calls the shipped owner-gated `exec_batch_prefetched` path. Only after every gathered task is
-  Executed, Forwarded, or DeferredDurably does it publish one merged retired-frontier update per
-  source lane. W2 builds send SQEs; N2 is the sole network submission boundary.
+- E2 uses the same owner-gated execution body without the shipped all-owned-shards statistics
+  sweep. E1 records only the actual owner-verified shards; after all chunks, the pass publishes each
+  distinct touched shard once and then one merged retired frontier per source lane. W2 builds send
+  SQEs; N2 is the sole network submission boundary.
 
 The four engineered latency windows are E0-to-E1 (W0+I1), E1-to-E2 (W1+I2), W0-to-W1 (I1+E1),
 and I1-to-I2 (E1+W1). If IFID encounters a cold/contextual frame, B's unpublished point ops are
@@ -142,9 +149,10 @@ leave fresh work in the bounded SPSC lanes and preserve their backpressure and s
 
 The EX-heavy fallback uses the second EX context and exactly
 `E1(A) E0(D) E1(D) E2(A) E2(D)`. The merged A/D batch still performs one retired-frontier update
-per source lane. Local point commands have no bypass: I2 publishes them to `task_in_[self]` and a
-later E0/E1/E2 consumes them like remote work. Like `streams0`, `streams` is boot-only and requires
-the uring network engine.
+per source lane at the end of the stage pass. Its depth hint inspects only notified producers, not
+every possible SPSC lane. Local point commands have no bypass: I2 publishes them to
+`task_in_[self]` and a later E0/E1/E2 consumes them like remote work. Like `streams0`, `streams` is
+boot-only and requires the uring network engine.
 
 ## `streams` depth gate and residual carry
 
@@ -152,7 +160,8 @@ the uring network engine.
 `pipelined-fused` gate. It starts closed. A closed rotation runs the complete buffered `streams0`
 order and records the maximum actual IFID-op, EX-task, or WB-client batch occupancy. A sample of at
 least `kGenthreadStreamsMinBatchOccupancy=8` opens the next modulo rotation; a lower sample keeps the
-next rotation coarse. The same actual counts close an open gate. The decision is therefore made
+next rotation coarse. The maximum is taken over actual chunks, never their sum, so several one-op
+chunks cannot manufacture depth. The same actual counts close an open gate. The decision is made
 before N0 without a thread-wide preflight, and thin non-empty work remains proportional to its
 payload through the ready lists and bounded queue gathers.
 
@@ -163,7 +172,9 @@ residual's age, so its second visit must publish, execute, or durably defer it. 
 destination reservations, retains at most one prepared-unpublished Op per connection, and keeps
 the connection's read buffer pinned plus the teardown/migration safety view live. Its prepared bit
 also prevents the ROB-quiescence barrier backstop from treating that unpublished work as fully
-idle. A placement transition rolls B back rather than carry hidden work across its safe point.
+idle. Carry stops only that stream's inner drain, and its age advances once per outer rotation, not
+once per chunk. A placement transition rolls B back rather than carry hidden work across its safe
+point.
 
 A carried A keeps its gathered source-lane prefixes unretired. Its next E0 appends only up to
 `kGenthreadExBatchOps=128` and reissues the Op-line prefetch for the entire combined batch before
