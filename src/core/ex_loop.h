@@ -93,10 +93,7 @@ public:
 
     // Deep generalized-thread traffic has already drained staged micro-batches at its one mode
     // transition.  Keep the steady coarse pass free of empty pipeline-state probes.
-    uint32_t fused_coarse_pass(Ring* submit_gap_ring = nullptr,
-                               bool* submit_gap_used = nullptr) {
-        return fused_pass_impl(true, submit_gap_ring, submit_gap_used);
-    }
+    uint32_t fused_coarse_pass() { return fused_pass_impl(true); }
 
     // Arm 3 keeps control/persistence work in the executor owner but lets the static schedule own
     // task gather/prefetch/execute.  This has no internal park and never consumes a Task.
@@ -104,8 +101,7 @@ public:
 
     // One non-blocking executor turn, called between passes of the fused network loop. This is the
     // ExLoop normal body without its role loop or park: the owning IoLoop performs the sole wait.
-    uint32_t fused_pass_impl(bool consume_tasks, Ring* submit_gap_ring = nullptr,
-                             bool* submit_gap_used = nullptr) {
+    uint32_t fused_pass_impl(bool consume_tasks) {
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
@@ -123,7 +119,7 @@ public:
                 did += service_xshard_retries();
                 if (xshard_retries_.empty()) did += service_ordered_deferred();
                 if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
-                    did += drain_tasks(true, submit_gap_ring, submit_gap_used);
+                    did += drain_tasks(true);
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
@@ -140,8 +136,7 @@ public:
                 if (xshard_retries_.empty()) did += service_ordered_deferred();
                 if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
                     did += snapshot_owner_state_ == SnapshotOwnerState::None
-                               ? drain_tasks(false, submit_gap_ring, submit_gap_used)
-                               : drain_tasks_snapshot();
+                               ? drain_tasks() : drain_tasks_snapshot();
             }
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
@@ -545,20 +540,16 @@ private:
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
     }
 
-    uint32_t drain_tasks(bool unmasked = false, Ring* submit_gap_ring = nullptr,
-                         bool* submit_gap_used = nullptr) {
+    uint32_t drain_tasks(bool unmasked = false) {
         Task batch[kExecBatch];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
             batch[held++] = t;
-            if (held == kExecBatch) {
-                exec_batch(batch, held, submit_gap_ring, submit_gap_used);
-                held = 0;
-            }
+            if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
         };
         const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take)
                                     : self_->drain_tasks(take);
-        if (held) exec_batch(batch, held, submit_gap_ring, submit_gap_used);
+        if (held) exec_batch(batch, held);
         self_->sig().ops += n;
         return n;
     }
@@ -927,17 +918,8 @@ private:
 
     // Coarse arm compatibility: prefetch the whole batch and consume it without an intervening
     // micro-stage.  The same two tight loops are reused by both experimental commits.
-    void exec_batch(const Task* batch, uint32_t n, Ring* submit_gap_ring = nullptr,
-                    bool* submit_gap_used = nullptr) {
+    void exec_batch(const Task* batch, uint32_t n) {
         prefetch_exec_batch(batch, n);
-        // IOFUSED's latency-bearing network submit is useful independent work between the last
-        // FlatStore hint and the first consuming lookup. Submit at most once per outer rotation;
-        // later send construction remains protected by the ordinary immediate outer boundary.
-        if (submit_gap_ring && submit_gap_used && !*submit_gap_used &&
-            submit_gap_ring->send_pending()) {
-            submit_gap_ring->submit_and_reap();
-            *submit_gap_used = true;
-        }
         exec_batch_prefetched(batch, n);
     }
 
