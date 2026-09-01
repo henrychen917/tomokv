@@ -133,6 +133,14 @@ int main() {
     tomo::Config schedule_default;
     if (schedule_default.genthread_schedule != tomo::GenthreadSchedule::Coarse)
         fail("genthread-schedule default is not coarse");
+    tomo::Config iofused_schedule;
+    tomo::ConfigParseState iofused_schedule_state;
+    const std::vector<const char*> iofused_schedule_args = {
+        "--genthread-schedule", "IoFuSeD"};
+    if (tomo::parse_config_args(iofused_schedule_args, iofused_schedule,
+                                iofused_schedule_state, 2, "test") != tomo::kConfigParsed ||
+        iofused_schedule.genthread_schedule != tomo::GenthreadSchedule::IoFused)
+        fail("iofused genthread schedule grammar differs");
     schedule.net_io = tomo::NetIoEngine::Epoll;
     if (tomo::validate_config(schedule) != tomo::kConfigError)
         fail("pipelined-fused accepted an engine without a single N2 boundary");

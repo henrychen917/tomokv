@@ -12,6 +12,9 @@ namespace tomo {
 inline constexpr uint32_t kGenthreadIfidBatchOps = 128;
 inline constexpr uint32_t kGenthreadExBatchOps   = 128;
 inline constexpr uint32_t kGenthreadWbBatchConns = 64;
+inline constexpr uint32_t kGenthreadWbPrefetchOpsPerConn = 64;
+inline constexpr uint32_t kGenthreadWbBorrowPrefetchBytes = 512;
+inline constexpr uint32_t kGenthreadCacheLineBytes = 64;
 
 // V1 has one IFID stream context, exactly two EX contexts (A/D), and one WB stream context.  The
 // contexts are loop locals and are empty again at the pass boundary; there is no triple buffer.

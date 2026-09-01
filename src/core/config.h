@@ -217,7 +217,16 @@ enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
 // unavailable or unwanted. Deliberately spelled like --persist-io: same shape of decision (which
 // kernel interface carries our IO), same boot-only latching, same enum grammar.
 enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
-enum class GenthreadSchedule : uint8_t { Coarse = 0, PipelinedFused = 1 };
+enum class GenthreadSchedule : uint8_t { Coarse = 0, PipelinedFused = 1, IoFused = 2 };
+
+inline const char* genthread_schedule_name(GenthreadSchedule schedule) {
+    switch (schedule) {
+        case GenthreadSchedule::Coarse: return "coarse";
+        case GenthreadSchedule::PipelinedFused: return "pipelined-fused";
+        case GenthreadSchedule::IoFused: return "iofused";
+    }
+    return "unknown";
+}
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
@@ -846,9 +855,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 cfg.genthread_schedule = GenthreadSchedule::Coarse;
             else if (cfg_eq_icase(value, "pipelined-fused"))
                 cfg.genthread_schedule = GenthreadSchedule::PipelinedFused;
+            else if (cfg_eq_icase(value, "iofused"))
+                cfg.genthread_schedule = GenthreadSchedule::IoFused;
             else {
                 std::fprintf(stderr,
-                             "--genthread-schedule wants coarse or pipelined-fused\n");
+                             "--genthread-schedule wants coarse, pipelined-fused or iofused\n");
                 return kConfigError;
             }
         }
@@ -1010,7 +1021,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  network engine: --net-io uring|epoll (boot-only; default uring;\n"
                         "          epoll implies --persist-io normal)\n"
-                        "  generalized schedule: --genthread-schedule coarse|pipelined-fused\n"
+                        "  generalized schedule: --genthread-schedule coarse|pipelined-fused|iofused\n"
                         "          (boot-only; default coarse; thin pipelined passes use coarse)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
@@ -1056,10 +1067,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
-    if (cfg.genthread_schedule == GenthreadSchedule::PipelinedFused &&
+    if (cfg.genthread_schedule != GenthreadSchedule::Coarse &&
         cfg.net_io != NetIoEngine::Uring) {
         std::fprintf(stderr,
-                     "pipelined-fused requires --net-io uring for its single N2 boundary\n");
+                     "%s requires --net-io uring for its single submit boundary\n",
+                     genthread_schedule_name(cfg.genthread_schedule));
         return kConfigError;
     }
     if (cfg.databases != 1) {

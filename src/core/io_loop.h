@@ -613,6 +613,8 @@ private:
         // enters the shipped coarse rotation without executing an N0/I0/E0/W0 pipeline preflight.
         const bool selected_pipelined_fused =
             srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
+        const bool selected_iofused =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
@@ -691,7 +693,7 @@ private:
                 // and send progress, without first paying any pipelined stage machinery.
                 const bool use_pipelined_fused =
                     selected_pipelined_fused && pipeline_gate_open_;
-                if (use_pipelined_fused) {
+                if (use_pipelined_fused || selected_iofused) {
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
                         on_cqe<HasTls, kEp, false>(cqe);
                     });
@@ -703,7 +705,9 @@ private:
                 }
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
 
-                if (!use_pipelined_fused) {
+                if (selected_iofused) {
+                    did += pipeline_iofused_pass<HasUnix, HasTls, kEp>(wb_context);
+                } else if (!use_pipelined_fused) {
                     uint32_t coarse_occupancy = 0;
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
                         selected_pipelined_fused ? &coarse_occupancy : nullptr);
@@ -3674,6 +3678,132 @@ nonblocking_dispatch:
         if (occupancy)
             *occupancy = std::max(ifid_occupancy,
                                   std::max(ex_occupancy, std::max(collected, wb_work)));
+        return work;
+    }
+
+    // iofused step 1: launch the targeted WB dependency stream, use the ordinary coarse IFID pass
+    // as its filler, then consume the warmed retirement batch before running EX unchanged.  The
+    // outer loop retains the one submit_and_reap boundary for receive re-arms, reply sends, task
+    // wakes and completion wakes.
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t pipeline_iofused_pass(WbPipelineBatch& batch) {
+        if (batch.count || active_wb_context_) std::abort();
+        active_wb_context_ = &batch;
+
+        uint32_t work = collect_retire_work<HasUnix, kEp>();
+        if (!pending_serve_.empty()) {
+            AofManager& aof = srv_->aof();
+            if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+            if (!aof.reply_gate_ready(aof_gate_target_)) {
+                aof.register_send_gate_wait(self_->id());
+            } else {
+                aof_gate_target_ = 0;
+                while (batch.count < kGenthreadWbBatchConns && !pending_serve_.empty()) {
+                    Client* client = pending_serve_.front();
+                    pending_serve_.pop_front();
+                    client->set_serve_pending(false);
+                    if (!client->dead()) batch.clients[batch.count++] = client;
+                }
+            }
+        } else {
+            aof_gate_target_ = 0;
+        }
+
+        // First launch every potentially retireable completion-state line.  A second pass performs
+        // the acquire and issues payload hints only for the already-published Done prefix, matching
+        // the proven split-loop mechanism without changing borrow ownership or lifetime.
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            Rob<kRobWindow>& rob = client->rob();
+            const uint64_t first = rob.flush_id();
+            const uint64_t last = rob.dispatch_id();
+            const uint64_t count = std::min<uint64_t>(
+                last - first, kGenthreadWbPrefetchOpsPerConn);
+            for (uint64_t off = 0; off < count; off++)
+                __builtin_prefetch(&rob.at(first + off).state, 0, 3);
+        }
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            Rob<kRobWindow>& rob = client->rob();
+            const uint64_t first = rob.flush_id();
+            const uint64_t last = rob.dispatch_id();
+            const uint64_t count = std::min<uint64_t>(
+                last - first, kGenthreadWbPrefetchOpsPerConn);
+            for (uint64_t off = 0; off < count; off++) {
+                Op& op = rob.at(first + off);
+                if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
+                if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
+                const uint32_t bytes = std::min(
+                    op.zc_len, kGenthreadWbBorrowPrefetchBytes);
+                for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
+                    __builtin_prefetch(op.zc_ptr + pos, 0, 1);
+            }
+        }
+
+        work += batch.count;
+        work += ifid_batch<HasTls, kEp>(nullptr);
+        if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+
+        // Retire/stage first and form send SQEs afterward.  No submission occurs here: N2 remains
+        // the sole kernel boundary for the complete fused rotation.
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            if (__builtin_expect(
+                    (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                climon_reply_suppressed(client)) {
+                (void)climon_prepare_suppressed(client);
+                continue;
+            }
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(client))
+                    (void)wb_.prepare_tls<kEp>(*client, *tls);
+                else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
+                    (void)wb_.prepare_ktls<kEp>(*client);
+                else
+                    (void)wb_.prepare<kEp>(*client);
+            } else {
+                (void)wb_.prepare<kEp>(*client);
+            }
+        }
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            bool retry_plain_submit = false;
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(client)) {
+                    (void)wb_.submit_tls<kEp>(*client, *tls);
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        arm_tls_socket_poll<kEp>(client, tls->wanted());
+                    if (tls->failed())
+                        close_client(client, tls->output_pending() || client->send_inflight());
+                } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
+                    const bool sent = wb_.submit_ktls<kEp>(*client);
+                    retry_plain_submit = !kEp && !sent &&
+                        !client->send_inflight() && !client->nothing_to_write();
+                } else {
+                    const bool sent = wb_.submit<kEp>(*client);
+                    retry_plain_submit = !kEp && !sent &&
+                        !client->send_inflight() && !client->nothing_to_write();
+                }
+            } else {
+                const bool sent = wb_.submit<kEp>(*client);
+                retry_plain_submit = !kEp && !sent &&
+                    !client->send_inflight() && !client->nothing_to_write();
+            }
+            if constexpr (kEp)
+                if (wb_.take_send_failure()) epoll_close_now(client);
+            if (retry_plain_submit && !client->dead()) {
+                self_->sig().sqe_starved++;
+                enqueue_serve(client);
+            }
+        }
+        batch.count = 0;
+        active_wb_context_ = nullptr;
+
+        work += executor_->fused_coarse_pass();
         return work;
     }
 

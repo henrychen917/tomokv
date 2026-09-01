@@ -246,8 +246,7 @@ int main(int argc, char** argv) {
     std::printf("tomokv-cpp: %u generalized threads, %u shard(s), generalized,"
                 " %s, schedule=%s, alloc=%s\n", srv.nthreads(), cfg.shards,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring",
-                cfg.genthread_schedule == GenthreadSchedule::PipelinedFused
-                    ? "pipelined-fused" : "coarse",
+                genthread_schedule_name(cfg.genthread_schedule),
                 alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         std::printf("  thread t%u: role=generalized cpu=%d L3=%u shards=%zu send=", p.id, p.cpu,
