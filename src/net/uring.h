@@ -154,7 +154,6 @@ public:
     }
 
     int submit() {
-        pending_ = 0;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit(&r_);
     }
@@ -171,7 +170,6 @@ public:
     // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
     // exactly, i.e. paid by every request rather than a tail.
     int submit_and_reap() {
-        pending_ = 0;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit_and_get_events(&r_);
     }
@@ -181,7 +179,6 @@ public:
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
-        pending_ = 0;
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
@@ -266,8 +263,9 @@ public:
         return consumed;
     }
 
-    void note_pending() { pending_++; }
-    unsigned pending() const { return pending_; }
+    // Kept as the common marker at SQE producer sites. liburing owns the real pending count; the
+    // former shadow counter had no consumer and added a load/add/store to every prepared SQE.
+    void note_pending() {}
 
     // Post a completion into ANOTHER thread's ring. This is how an IO thread tells a WB thread that
     // a client has replies to send, without a shared queue or an eventfd round trip.
@@ -316,7 +314,6 @@ private:
     io_uring r_{};
     bool     inited_   = false;
     bool     deferred_ = true;
-    unsigned pending_  = 0;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;
