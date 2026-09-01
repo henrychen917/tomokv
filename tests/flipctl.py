@@ -16,6 +16,10 @@ import threading
 import time
 
 
+BOOT_DEFERRAL_CAP_SECONDS = 30
+BOOT_JITTER_FACTORS = (0.8, 0.95, 1.1, 1.2, 1.05, 0.9)
+
+
 def encode(*parts):
     values = [p if isinstance(p, bytes) else str(p).encode() for p in parts]
     return b"*%d\r\n" % len(values) + b"".join(
@@ -84,14 +88,14 @@ def info(control):
     return dict(line.split(":", 1) for line in raw.splitlines() if ":" in line)
 
 
-def wait_for(control, description, predicate, timeout):
+def wait_for(control, description, predicate, timeout, poll_interval=1):
     deadline = time.monotonic() + timeout
     last = None
     while time.monotonic() < deadline:
         last = info(control)
         if predicate(last):
             return last
-        time.sleep(1)
+        time.sleep(poll_interval)
     raise AssertionError("timeout waiting for %s; last=%r" % (description, last))
 
 
@@ -120,6 +124,9 @@ def main():
     control = Resp(args.host, args.port)
     mode = ["base"]
     surge = threading.Event()
+    boot_jitter = threading.Event()
+    boot_jitter.set()
+    boot_jitter_epoch = time.monotonic()
     stop = threading.Event()
     errors = []
 
@@ -162,6 +169,13 @@ def main():
                     client.recv()
                     issue_interval = args.surge_think_time if surge.is_set() \
                         else args.think_time
+                    if boot_jitter.is_set():
+                        # A repeating six-second triangle varies issue rate without changing the
+                        # BITCOUNT mix, connection set, pipeline depth, key, or value shape. It has
+                        # a stationary long-run mean but need not ever present three quiet ticks.
+                        phase = int(time.monotonic() - boot_jitter_epoch) % \
+                            len(BOOT_JITTER_FACTORS)
+                        issue_interval *= BOOT_JITTER_FACTORS[phase]
                     pace(issue_interval)
         except Exception as error:  # reported in the controlling thread with the live state
             errors.append(repr(error))
@@ -214,6 +228,16 @@ def main():
                         (opened, low_workers, row))
                 time.sleep(0.2)
 
+        jitter_started = time.monotonic()
+        boot_started = wait_for(
+            control, "jittery stationary boot maneuver within deferral cap",
+            lambda row: int(row.get("flipctl_boot_triggers", "0")) == 1,
+            BOOT_DEFERRAL_CAP_SECONDS, poll_interval=0.2)
+        jitter_elapsed = time.monotonic() - jitter_started
+        if boot_started.get("flipctl_state") == "awaiting-load-stability":
+            raise AssertionError("boot trigger did not leave pending state: %r" % boot_started)
+        boot_jitter.clear()
+
         anchored = wait_for(control, "boot maneuver to anchor",
                             lambda row: row.get("flipctl_state") == "anchored", 90)
         if int(anchored["flipctl_boot_triggers"]) != 1:
@@ -222,8 +246,10 @@ def main():
         if int(anchor_split[0]) <= 1 or int(anchor_split[1]) <= 1:
             raise AssertionError("ramping load produced a rail anchor: %r" % anchored)
         trigger_count = int(anchored["flipctl_triggers"])
-        print("ramp deferred boot; low load anchored off-rail at %s:%s, rate=%s" %
-              (anchor_split[0], anchor_split[1], anchored["flipctl_anchor_rate"]))
+        print("ramp deferred boot; jittery stationary load maneuvered in %.1fs (cap=%ds); "
+              "anchored off-rail at %s:%s, rate=%s" %
+              (jitter_elapsed, BOOT_DEFERRAL_CAP_SECONDS, anchor_split[0], anchor_split[1],
+               anchored["flipctl_anchor_rate"]))
 
         deadline = time.monotonic() + args.stable_seconds
         while time.monotonic() < deadline:
