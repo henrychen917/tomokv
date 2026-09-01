@@ -631,6 +631,14 @@ public:
     }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
+    // IOFUSED IFID readiness is owner-local and shares the connection flag byte instead of
+    // growing the footprint-locked hot scalar run. Bit 6 is ignored by Op consumers after the
+    // wholesale route-flag capture.
+    bool ifid_pending() const { return connection_flags_ & kIfidPending; }
+    void set_ifid_pending(bool value) {
+        if (value) connection_flags_ |= kIfidPending;
+        else connection_flags_ &= static_cast<uint8_t>(~kIfidPending);
+    }
     bool has_atomic_groups_io() const { return atomic_groups_io_ != 0; }
 
     // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
@@ -754,6 +762,7 @@ private:
     static constexpr uint8_t kBlocked = 1u << 7;
     static constexpr uint8_t kResp3 = 1u << 2;
     static constexpr uint8_t kNoTouch = 1u << 4;
+    static constexpr uint8_t kIfidPending = 1u << 6;
     uint8_t   connection_flags_ = 0;
 
     // --- cold io state --------------------------------------------------------------------------

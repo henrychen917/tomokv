@@ -95,6 +95,7 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
+        targeted_ifid_ = srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
         age_signals_armed_ = srv_->cfg().lb_age_sample_rate != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
@@ -1048,6 +1049,10 @@ private:
                 epoll_close_now(victim);
             }
         }
+        // No producer survives the shared stop edge. Drop owner-local readiness references before
+        // the deterministic corpse grace passes so TLS/client teardown is not retained by a queue
+        // which the stopped loop will never consume.
+        clear_ifid_queue();
         if (srv_->aof().writer_is(self_->id()))
             srv_->aof().writer_shutdown(*self_, ring_);
         // The normal loop deliberately keeps a dead Client for two prologues so stale channel
@@ -1308,8 +1313,10 @@ private:
             return;
         }
         if (!wb_.on_send_complete(*c, cqe->res, ImmediateProgress)) close_client(c);
-        else if constexpr (!ImmediateProgress)
+        else if constexpr (!ImmediateProgress) {
             if (!c->nothing_to_write()) enqueue_serve(c);
+            if (targeted_ifid_) enqueue_ifid(c);
+        }
     }
 
     template <bool kEp, bool ImmediateProgress = true>
@@ -1726,6 +1733,7 @@ private:
             client->set_in_active(false);
             active_.erase(client);
         }
+        discard_ifid(client);
         if constexpr (kEp) {
             // Reserve BOTH possible outcomes before removing the original source interest. The
             // duplicate is already registered on source: rollback adopts that fd without ADD.
@@ -1910,7 +1918,7 @@ private:
     }
 
     bool flip_io_drained() const {
-        if (!pending_serve_.empty() || !pending_releases_.empty() ||
+        if (!pending_serve_.empty() || !pending_ifid_.empty() || !pending_releases_.empty() ||
             !pending_handoffs_.empty() || !deferred_waits_.empty() ||
             !client_migrations_.empty() || !epoll_closes_.empty() ||
             !dead_next_.empty() || !dead_ready_.empty() ||
@@ -3356,9 +3364,38 @@ nonblocking_dispatch:
 
     void mark_active(Client* c) {
         if (c->dead()) return;               // a corpse from the deferred-free list: entry consumed, nothing to do
+        if (targeted_ifid_) enqueue_ifid(c);
         if (c->in_active()) return;          // one load, not a scan of the whole set
         c->set_in_active(true);
         active_.insert(c);
+    }
+
+    void enqueue_ifid(Client* c) {
+        if (!c || c->dead() || c->ifid_pending()) return;
+        c->set_ifid_pending(true);
+        pending_ifid_.push_back(c);
+    }
+
+    // Client migration is cold and requires owner-local protocol quiescence. Remove the sole
+    // queued readiness reference before publishing a new owner, so the source can never revisit a
+    // migrated Client through its IFID list.
+    void discard_ifid(Client* c) {
+        if (!c || !c->ifid_pending()) return;
+        for (auto it = pending_ifid_.begin(); it != pending_ifid_.end(); ++it) {
+            if (*it != c) continue;
+            pending_ifid_.erase(it);
+            c->set_ifid_pending(false);
+            return;
+        }
+        std::abort();
+    }
+
+    void clear_ifid_queue() {
+        while (!pending_ifid_.empty()) {
+            Client* c = pending_ifid_.front();
+            pending_ifid_.pop_front();
+            if (c) c->set_ifid_pending(false);
+        }
     }
 
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
@@ -3441,6 +3478,7 @@ nonblocking_dispatch:
     }
 
     bool client_pipeline_referenced(const Client* client) const {
+        if (client->ifid_pending()) return true;
         if (active_ifid_context_)
             for (uint32_t i = 0; i < active_ifid_context_->count; i++)
                 if (active_ifid_context_->entries[i].client == client) return true;
@@ -3460,6 +3498,8 @@ nonblocking_dispatch:
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
+        const bool targeted_ready = targeted_ifid_ && pipeline_batch == nullptr;
+        size_t ready_visits = targeted_ready ? pending_ifid_.size() : 0;
 
         // The read side, every active conn, with no reply retirement or send work mixed into it.
         // At 2048 conns the old
@@ -3468,10 +3508,20 @@ nonblocking_dispatch:
         // bursty (113k park/wake round-trips where 22k belonged). Arming first keeps the arrival
         // stream flowing no matter how deep the reply backlog is -- which is exactly the property
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
-        for (size_t idx = 0; idx < active_.size();) {
+        for (size_t idx = 0; targeted_ready ? ready_visits != 0 : idx < active_.size();) {
             if (pipeline_batch && pipeline_batch->force_coarse) break;
             if (pipeline_batch && pipeline_batch->count == kGenthreadIfidBatchOps) break;
-            Client* c = active_.at(idx);
+            Client* c = nullptr;
+            if (targeted_ready) {
+                c = pending_ifid_.front();
+                pending_ifid_.pop_front();
+                ready_visits--;
+                if (!c) continue;
+                c->set_ifid_pending(false);
+                if (c->dead() || !c->in_active()) continue;
+            } else {
+                c = active_.at(idx);
+            }
             const uint32_t pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
@@ -3635,6 +3685,31 @@ nonblocking_dispatch:
             // one into its slot. Re-check identity before deciding, and do not advance past a slot
             // whose occupant changed -- the loop bound shrinks with every removal, so this
             // terminates.
+            if (targeted_ready) {
+                if (c->dead() || !c->in_active()) continue;
+                if (done && !c->closing()) {
+                    c->set_in_active(false);
+                    active_.erase(c);
+                } else if (c->closing() && !tls_output && c->safe_to_release()) {
+                    if (pubsub_disconnect_ready(c)) {
+                        c->set_in_active(false);
+                        active_.erase(c);
+                        close_client(c);
+                    } else {
+                        enqueue_ifid(c);
+                    }
+                } else {
+                    // Full ROBs wait for their targeted completion/WB notification. Everything
+                    // else which still needs owner-local progress remains on the IFID list; a
+                    // fixed-point pass that reports no work can still park until an external wake.
+                    const bool retry_without_retire =
+                        c->closing() || c->parse_backpressure() || c->scatter_barrier() ||
+                        (!c->recv_armed() && !c->closing()) ||
+                        (more_input && !c->rob().full());
+                    if (retry_without_retire) enqueue_ifid(c);
+                }
+                continue;
+            }
             if (idx >= active_.size() || active_.at(idx) != c) continue;
             if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
             else if (c->closing() && !tls_output && c->safe_to_release()) {
@@ -3799,6 +3874,10 @@ nonblocking_dispatch:
                 self_->sig().sqe_starved++;
                 enqueue_serve(client);
             }
+            // This connection's retirement happened after the current IFID filler selected its
+            // ready list. Put it on the next list so newly freed ROB slots, quiescent-buffer reset,
+            // and send-completion cleanup are observed without an active-set scan.
+            if (!client->dead() && client->in_active()) enqueue_ifid(client);
         }
         batch.count = 0;
         active_wb_context_ = nullptr;
@@ -4164,6 +4243,7 @@ nonblocking_dispatch:
     ExLoop*    executor_ = nullptr;
     static constexpr uint32_t kFlushBackstopEvery = 64;
     std::deque<Client*> pending_serve_;
+    std::deque<Client*> pending_ifid_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
     std::vector<ClientMigration> client_migrations_; // source-owned until old-ring fence completes
@@ -4232,6 +4312,7 @@ nonblocking_dispatch:
     // (close_client, and adopt_client's failure path). The set itself is never created in uring
     // mode -- its fd stays -1 and nothing else in it is touched.
     bool       epoll_ = false;
+    bool       targeted_ifid_ = false;
     EpollSet   ep_;
     std::vector<Client*> epoll_closes_;   // teardowns deferred out of the active-set walk
     WbEngine   wb_;
