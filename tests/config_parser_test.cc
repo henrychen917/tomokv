@@ -134,6 +134,20 @@ int main() {
     if (smt_default.smt_mode != 0)
         fail("smt-mode default is not logical-CPU independent");
 
+    tomo::Config ex_subpipe;
+    tomo::ConfigParseState ex_subpipe_state;
+    const std::vector<const char*> ex_subpipe_args = {"--ex-subpipe", "4"};
+    if (tomo::parse_config_args(ex_subpipe_args, ex_subpipe, ex_subpipe_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        ex_subpipe.ex_subpipe != 4 ||
+        !rejects({"--ex-subpipe", "5"}) ||
+        !rejects({"--ex-subpipe", "-1"}) ||
+        !rejects({"--ex-subpipe", "tables"}))
+        fail("ex-subpipe boot grammar differs");
+    tomo::Config ex_subpipe_default;
+    if (ex_subpipe_default.ex_subpipe != 0)
+        fail("ex-subpipe default is not the serial executor path");
+
     tomo::Config lb;
     tomo::ConfigParseState lb_state;
     const std::vector<const char*> lb_args = {

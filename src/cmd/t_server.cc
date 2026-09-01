@@ -404,6 +404,8 @@ void init_config(const Config& cfg) {
     add_config("databases", ConfigKind::Unsigned, cfg.databases);
     add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
+    g_config.push_back({"ex-subpipe", ConfigKind::Unsigned,
+                        std::to_string(cfg.ex_subpipe), true});
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
     add_config("atomic-window", ConfigKind::Unsigned, cfg.atomic_window);
     add_config("hash-max-compact-entries", ConfigKind::Unsigned, cfg.type_limits.hash.max_entries);

@@ -320,6 +320,11 @@ struct Config {
                                          // server cycles at d16K on the wire-walled NIC, +20-24%
                                          // class on unwalled wires per the fork's history. 0 = off.
                                          // Also the multi-key gather cutover: min(zc-min, kInline).
+    // Boot-only cap on concurrent per-table EX sub-batches. 0 preserves the serial executor path;
+    // 1 is accepted but cannot form a cross-table pipeline. Keep the cap small: these contexts and
+    // their task indices are batch-scoped stack state, not persistent executor allocations.
+    static constexpr uint32_t kExSubpipeMaxContexts = 4;
+    uint32_t ex_subpipe     = 0;
     uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
     uint32_t maxmemory_samples = 5;
@@ -963,6 +968,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--ex-subpipe")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.ex_subpipe) ||
+                cfg.ex_subpipe > Config::kExSubpipeMaxContexts) {
+                std::fprintf(stderr,
+                             "--ex-subpipe wants 0..4 concurrent table contexts (0 disables)\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--atomic")) {
             if (!cfg_parse_u32(next(nullptr), cfg.atomic) || cfg.atomic > 1) {
                 std::fprintf(stderr, "--atomic wants 0 or 1\n");
@@ -1056,6 +1069,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  flip controller: --flip-auto 0|1 --flip-auto-band -1|PERCENT\n"
                         "    --flip-work-window N       commands per fingerprint sample (0=off)\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
+                        "    --ex-subpipe N              EX table contexts (boot-only; 0=off; max 4)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
