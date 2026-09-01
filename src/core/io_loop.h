@@ -2626,6 +2626,13 @@ subscriber_checks_done:
             }
 
 nonblocking_dispatch:
+            // Ordinary single-key commands never enter the scatter engine. Keep xshard_prepare's
+            // own classification guard for its other callers, but avoid paying the cross-TU call
+            // just to discover that GET/SET have none of the three scatter-routing flags.
+            constexpr uint32_t kScatterRouteFlags =
+                CmdFlags::AllShards | CmdFlags::MultiShard | CmdFlags::ConfigRoute;
+            if (!(spec->flags & kScatterRouteFlags)) goto ordinary_dispatch;
+            {
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
                 xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch,
@@ -2782,7 +2789,9 @@ nonblocking_dispatch:
                 mark_active(c);
                 continue;
             }
+            }
 
+ordinary_dispatch:
             // The ordinary key position is registry metadata. Container children and the other
             // special routes refine it in the existing CursorShard hook below.
             if (spec->flags & CmdFlags::CursorShard) {
