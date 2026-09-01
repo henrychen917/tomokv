@@ -2163,6 +2163,7 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         const uint32_t pass_rpos = conn.rpos();
+        const uint32_t self_id = self_->id();
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
         const uint8_t security_flags = srv_->security_flags();
@@ -2175,7 +2176,7 @@ private:
         // EX drain is included in that drain; reloading the stage for every operation would add a
         // shared atomic to the request path without strengthening the ownership fence.
         const bool lb_pause_this_pass = lb_controller_armed_ &&
-            srv_->lb_should_pause(self_->id(), c->id());
+            srv_->lb_should_pause(self_id, c->id());
         if (__builtin_expect(lb_pause_this_pass, false)) {
             if (self_->flip_fingerprint().enabled())
                 self_->flip_fingerprint().finish_parse_pass();
@@ -2433,7 +2434,7 @@ subscriber_checks_done:
                         error = "ERR FLIP io and ex must be unsigned integers";
                         srv_->flip_note_refused();
                     } else
-                        started = srv_->flip_begin(target_io, target_ex, self_->id(), error);
+                        started = srv_->flip_begin(target_io, target_ex, self_id, error);
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
@@ -2513,7 +2514,7 @@ subscriber_checks_done:
                 if (__builtin_expect(slowlog_armed_, false)) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_->id(), c->id(), *op, now_ns() - slow_started,
+                    slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
                                    slowlog_arm_, true);
@@ -2579,7 +2580,7 @@ subscriber_checks_done:
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
                     if (needed[tid] &&
-                        srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                         room = false;
                         break;
                     }
@@ -2598,7 +2599,7 @@ subscriber_checks_done:
                     ThreadCtx& owner = srv_->thread(tid);
                     const Task task{c, op_id, sid,
                                     reinterpret_cast<ScatterState*>(dispatch.state)};
-                    if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                    if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
                     if (!touched_[tid]) {
                         touched_[tid] = true;
                         touched_list_[ntouched_++] = tid;
@@ -2640,7 +2641,7 @@ nonblocking_dispatch:
             {
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
-                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch,
+                xshard_prepare(*srv_, *op, scatter_pool_, self_id, c->id(), scatter_dispatch,
                                false, c);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
@@ -2674,7 +2675,7 @@ nonblocking_dispatch:
                 // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
                 // RENAME) are not barriered and do not pay it -- they post every task from here.
                 if (scatter_dispatch.barrier && rob.in_flight() != 0) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 // Read-only/plain scatters keep the compact V3 dispatch arm. Constructing route and
@@ -2696,7 +2697,7 @@ nonblocking_dispatch:
                     bool room = true;
                     for (uint32_t p = 0; p < nparticipants; p++) {
                         const uint32_t tid = participants[p];
-                        if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                             room = false;
                             break;
                         }
@@ -2704,7 +2705,7 @@ nonblocking_dispatch:
                     // Restore the zero-on-entry invariant before EVERY exit from this arm.
                     for (uint32_t p = 0; p < nparticipants; p++) needed[participants[p]] = 0;
                     if (!room) {
-                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
                     }
                     const uint64_t op_id = rob.dispatch_id();
@@ -2715,7 +2716,7 @@ nonblocking_dispatch:
                         const uint32_t tid = srv_->worker_of_shard(sid);
                         ThreadCtx& owner = srv_->thread(tid);
                         const Task task{c, op_id, sid, scatter_dispatch.state};
-                        if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                        if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
                         if (!touched_[tid]) {
                             touched_[tid] = true;
                             touched_list_[ntouched_++] = tid;
@@ -2746,12 +2747,12 @@ nonblocking_dispatch:
                 bool room = true;
                 for (uint32_t p = 0; p < nparticipants; p++) {
                     const uint32_t tid = participants[p];
-                    if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                    if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                         room = false; break;
                     }
                 }
                 if (!room) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 const uint64_t op_id = rob.dispatch_id();
@@ -2782,7 +2783,7 @@ nonblocking_dispatch:
                     // Capacity was checked before any push. Publish all of this group's tasks for
                     // one executor with one queue-tail store; the parse-pass notify remains folded.
                     if (!owner.post_tasks_quiet(
-                            self_->id(), posts + begin, end - begin, sig)) std::abort();
+                            self_id, posts + begin, end - begin, sig)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
@@ -2851,7 +2852,7 @@ ordinary_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
-            if (!worker.post_task_quiet(self_->id(), t, sig)) {
+            if (!worker.post_task_quiet(self_id, t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
@@ -2879,7 +2880,7 @@ ordinary_dispatch:
         for (uint32_t i = 0; i < ntouched_; i++) {
             const uint32_t wkr = touched_list_[i];
             touched_[wkr] = false;
-            srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
+            srv_->thread(wkr).flush_task_notify(self_id, ring_, sig);
         }
         ntouched_ = 0;
         if (self_->flip_fingerprint().enabled())
