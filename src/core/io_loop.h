@@ -502,6 +502,17 @@ private:
             if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         LoopSignals& sig = self_->sig();
+        // Boot-latched once for this physical generalized thread. These flags are also available to
+        // the hoisted buffered contexts below, so permanent control arms allocate no touched-shard
+        // scratch and enter none of the buffered-only paths.
+        const bool selected_pipelined_fused =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
+        const bool selected_iofused =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
+        const bool selected_streams0 =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams0;
+        const bool selected_streams =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams;
 
         // Buffered-schedule contexts are hoisted locals for this run_loop tenure; there is no
         // per-request stage machine. Only `streams` may retain pre-I1 B or pre-E1 A for one bounded
@@ -516,9 +527,19 @@ private:
             uint32_t executable_count = 0;
             uint32_t lane_count = 0;
         };
+        struct ExRetireContext {
+            std::array<uint32_t, kMaxThreads> lanes{};
+            std::array<uint32_t, kMaxThreads> lane_counts{};
+            uint32_t lane_count = 0;
+        };
         IfidPipelineBatch ifid_context;
         WbPipelineBatch wb_context;
         std::array<ExBatchContext, kGenthreadExContexts> ex_contexts;
+        ExRetireContext ex_retire_context;
+        std::vector<uint32_t> ex_touched_shards;
+        if (selected_streams0 || selected_streams)
+            ex_touched_shards.reserve(kGenthreadStreamsMaxChunksPerPass *
+                                      kGenthreadExContexts * kGenthreadExBatchOps);
 
         auto ex_pipeline_ready = [&]() {
             return executor_->pipeline_tasks_allowed() &&
@@ -598,7 +619,7 @@ private:
             return ex_defer_batch(batch);
         };
 
-        auto ex_e1 = [&](ExBatchContext& batch) {
+        auto ex_e1 = [&](ExBatchContext& batch, bool track_touched = false) {
             batch.executable_count = 0;
             bool defer_rest = false;
             for (uint32_t i = 0; i < batch.count; i++) {
@@ -627,31 +648,78 @@ private:
                     continue;
                 }
                 batch.executable[batch.executable_count++] = task;
-                if (shard >= 0) srv_->shard(shard).store().prefetch(op->hash);
+                if (shard >= 0) {
+                    if (track_touched)
+                        ex_touched_shards.push_back(static_cast<uint32_t>(shard));
+                    srv_->shard(shard).store().prefetch(op->hash);
+                }
             }
             return batch.count;
         };
 
-        auto ex_e2 = [&](ExBatchContext& batch) {
+        auto ex_e2 = [&](ExBatchContext& batch, bool buffered = false) {
             if (!batch.count) return uint32_t{0};
-            if (batch.executable_count)
-                executor_->exec_batch_prefetched(
-                    batch.executable.data(), batch.executable_count);
+            if (batch.executable_count) {
+                if (buffered)
+                    executor_->exec_batch_prefetched_buffered(
+                        batch.executable.data(), batch.executable_count);
+                else
+                    executor_->exec_batch_prefetched(
+                        batch.executable.data(), batch.executable_count);
+            }
             return batch.count;
         };
 
-        auto ex_retire = [&](ExBatchContext& first, ExBatchContext* second = nullptr) {
+        auto accumulate_ex_retire = [&](ExRetireContext& destination,
+                                        const ExBatchContext& source) {
+            for (uint32_t i = 0; i < source.lane_count; i++) {
+                uint32_t lane = 0;
+                while (lane < destination.lane_count &&
+                       destination.lanes[lane] != source.lanes[i]) lane++;
+                if (lane == destination.lane_count) {
+                    if (lane == kMaxThreads) std::abort();
+                    destination.lanes[lane] = source.lanes[i];
+                    destination.lane_counts[lane] = 0;
+                    destination.lane_count++;
+                }
+                destination.lane_counts[lane] += source.lane_counts[i];
+            }
+        };
+
+        auto ex_retire = [&](ExBatchContext& first, ExBatchContext* second = nullptr,
+                             ExRetireContext* pass = nullptr) {
             if (second) merge_ex_lanes(first, *second);
-            // Exactly one release-store per source lane for the pass, after both A/D E2 sections
-            // have made every pop Executed, Forwarded, or DeferredDurably.
-            self_->retire_task_lanes(
-                first.lanes.data(), first.lane_counts.data(), first.lane_count);
+            // A multi-chunk stage pass accumulates its terminal prefixes and publishes one retired
+            // frontier per source lane after the whole pass. Single-chunk callers retain the
+            // immediate post-E2 update.
+            if (pass)
+                accumulate_ex_retire(*pass, first);
+            else
+                self_->retire_task_lanes(
+                    first.lanes.data(), first.lane_counts.data(), first.lane_count);
             const uint32_t completed = first.count + (second ? second->count : 0);
             sig.ops += completed;
             first.count = first.executable_count = first.lane_count = 0;
             if (second)
                 second->count = second->executable_count = second->lane_count = 0;
             return completed;
+        };
+
+        auto flush_ex_retire = [&](ExRetireContext& pass) {
+            self_->retire_task_lanes(
+                pass.lanes.data(), pass.lane_counts.data(), pass.lane_count);
+            pass.lane_count = 0;
+        };
+
+        auto flush_ex_publications = [&]() {
+            std::sort(ex_touched_shards.begin(), ex_touched_shards.end());
+            uint32_t previous = UINT32_MAX;
+            for (uint32_t shard : ex_touched_shards) {
+                if (shard == previous) continue;
+                previous = shard;
+                srv_->shard(shard).publish_size();
+            }
+            ex_touched_shards.clear();
         };
 
         auto rollback_ifid = [&]() {
@@ -881,16 +949,8 @@ private:
             return submitted;
         };
 
-        // Boot-latched once for this physical generalized thread. The retained pipelined-fused
-        // gate enters its shipped coarse rotation without an N0/I0/E0/W0 pipeline preflight.
-        const bool selected_pipelined_fused =
-            srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
-        const bool selected_iofused =
-            srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
-        const bool selected_streams0 =
-            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams0;
-        const bool selected_streams =
-            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams;
+        // The retained pipelined-fused gate enters its shipped coarse rotation without an
+        // N0/I0/E0/W0 pipeline preflight.
         uint32_t iofused_non_send_rotations = 0;
         bool streams_gate_open = false;
         uint32_t streams_ifid_residual_age = 0;
@@ -1013,6 +1073,8 @@ private:
                     // each stream contiguously in batch-sized chunks. The first empty gather ends a
                     // stage pass; the compile-time cap is only a fairness backstop.
                     ex_contexts[0].count = ex_contexts[1].count = 0;
+                    ex_retire_context.lane_count = 0;
+                    ex_touched_shards.clear();
 
                     for (uint32_t chunk = 0;
                          chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
@@ -1051,8 +1113,8 @@ private:
                         if (ex_pipeline_ready()) {
                             did += ex_e0(ex_contexts[0]);                // E0(A[chunk])
                             if (!ex_contexts[0].count) break;
-                            did += ex_e1(ex_contexts[0]);                // E1(A[chunk])
-                            did += ex_e2(ex_contexts[0]);                // E2(A[chunk])
+                            did += ex_e1(ex_contexts[0], true);          // E1(A[chunk])
+                            did += ex_e2(ex_contexts[0], true);          // E2(A[chunk])
                         } else if (executor_->pipeline_tasks_allowed()) {
                             // Durable monolithic handoff is E2's terminal outcome for this chunk.
                             did += ex_e0_defer_monolithic(ex_contexts[0]);
@@ -1060,10 +1122,12 @@ private:
                         } else {
                             break;
                         }
-                        // One release-store per source lane and chunk, always after that chunk's
-                        // tasks are Executed, Forwarded, or DeferredDurably.
-                        (void)ex_retire(ex_contexts[0]);
+                        (void)ex_retire(ex_contexts[0], nullptr, &ex_retire_context);
                     }
+                    flush_ex_publications();
+                    // Every accumulated prefix is terminal and its shard statistics are visible;
+                    // now publish one retired frontier per source lane for the complete pass.
+                    flush_ex_retire(ex_retire_context);
 
                     for (uint32_t chunk = 0;
                          chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {

@@ -917,6 +917,30 @@ private:
         }
     }
 
+    // Buffered E2 batches can be much smaller than the shipped coarse drain. Their caller tracks
+    // owner-verified shards while E1 already has the route in hand, then publishes that dense set
+    // once after the complete multi-chunk EX pass. Keep the ordinary coarse/iofused entry above --
+    // including its historical all-owned-shards publication -- unchanged.
+    void exec_batch_prefetched_buffered(const Task* batch, uint32_t n) {
+        if (!xshard_retries_.empty()) {
+            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
+            return;
+        }
+        if (__builtin_expect(slowlog_armed_, false)) {
+            exec_batch_timed(batch, n);
+        } else {
+            for (uint32_t i = 0; i < n; i++) {
+                if (execute(batch[i])) continue;
+                xshard_retries_.push_back(batch[i]);
+                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+                break;
+            }
+        }
+        if (xshard_retries_.empty() && srv_->atomic_work_active()) {
+            atomic_cleanup_cycle(256);
+        }
+    }
+
     // Coarse arm compatibility: prefetch the whole batch and consume it without an intervening
     // micro-stage.  The same two tight loops are reused by both experimental commits.
     void exec_batch(const Task* batch, uint32_t n) {
