@@ -1316,11 +1316,6 @@ public:
     // insert() or erase() can advance rehash and free the captured old table. No logical lookup is
     // performed here -- expiry, MVCC resolution, eviction touch and resize stay in the handler.
     struct BatchProbeContext {
-        struct Candidates {
-            KvObj* current;
-            KvObj* old;
-        };
-
         void prefetch_bucket(uint64_t h) const {
             const uint64_t mixed = mix64(h);
             if (tables[0])
@@ -1332,13 +1327,15 @@ public:
         // Walk packed slot words but do not dereference a KvObj. The 15-bit tag normally selects
         // the requested object; a collision merely produces a useless prefetch hint because the
         // unchanged handler later repeats the authoritative probe and full key comparison.
-        Candidates probe_candidates(uint64_t h) const {
-            return Candidates{probe_candidate_in(0, h), probe_candidate_in(1, h)};
+        KvObj* probe_candidate(uint64_t h) const {
+            const uint32_t mixed = static_cast<uint32_t>(mix64(h));
+            const uint16_t tag = tag_of(h);
+            if (KvObj* object = probe_candidate_in(0, mixed, tag)) return object;
+            return probe_candidate_in(1, mixed, tag);
         }
 
-        static void prefetch_candidates(const Candidates& candidates) {
-            if (candidates.current) __builtin_prefetch(candidates.current, 0, 3);
-            if (candidates.old) __builtin_prefetch(candidates.old, 0, 3);
+        static void prefetch_candidate(KvObj* candidate) {
+            if (candidate) __builtin_prefetch(candidate, 0, 3);
         }
 
         const uint64_t* tables[2];
@@ -1346,13 +1343,12 @@ public:
         uint32_t masks[2];
 
     private:
-        KvObj* probe_candidate_in(uint32_t table_index, uint64_t h) const {
+        KvObj* probe_candidate_in(uint32_t table_index, uint32_t mixed, uint16_t tag) const {
             const uint64_t* table = tables[table_index];
             if (!table) return nullptr;
             const uint32_t capacity = capacities[table_index];
             const uint32_t mask = masks[table_index];
-            const uint16_t tag = tag_of(h);
-            uint32_t slot = static_cast<uint32_t>(mix64(h)) & mask;
+            uint32_t slot = mixed & mask;
             for (uint32_t probes = 0; probes <= capacity; probes++) {
                 const uint64_t word = table[slot];
                 if (word == 0) return nullptr;

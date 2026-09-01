@@ -43,6 +43,9 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
+// A second physical probe pass needs enough independent point operations to repay partitioning.
+// This is batch occupancy, not a per-table minimum: a thin table still contributes useful work.
+inline constexpr uint32_t kExSubpipeMinBatchOccupancy = 8;
 
 template <bool Fused>
 class ExLoopT {
@@ -848,6 +851,157 @@ private:
         }
     }
 
+    struct ExSubpipeTableBatch {
+        Shard* shard = nullptr;
+        FlatStore* store = nullptr;
+        uint32_t begin = 0;
+        uint32_t count = 0;
+    };
+
+    // Only completion-only ordinary point tasks may be reordered. Returning false sends the WHOLE
+    // gathered batch through the original path, so a special task retains its exact prefetch,
+    // execute, retry-suffix and slowlog position rather than becoming a barrier inside new code.
+    bool ex_subpipe_point_task(const Task& task, int32_t& target_shard) {
+        if (!task.client || task.shard != -1 || task.scatter) return false;
+        Op& op = task.client->rob().at(task.op_id);
+        if (!op.spec || op.shard < 0 || op.local_xshard() || op.has_blocking_state() ||
+            op.atomic_hazard()) return false;
+
+        constexpr uint32_t kSpecialRoutes =
+            CmdFlags::AllShards | CmdFlags::RandomShard | CmdFlags::CursorShard |
+            CmdFlags::ConfigRoute | CmdFlags::ScriptRoute | CmdFlags::Blocking |
+            CmdFlags::Transaction | CmdFlags::StreamRoute | CmdFlags::SubcmdRoute;
+        if (op.spec->flags & kSpecialRoutes) return false;
+
+        // Runtime key count matters. DEL/EXISTS/TOUCH retain MultiShard metadata but their one-key
+        // fast form is an ordinary Task and is safe here; local multi-key lowering is not.
+        const int32_t last_key = op.spec->last_key < 0
+            ? static_cast<int32_t>(op.argc()) - 1 : op.spec->last_key;
+        if (op.spec->first_key != 1 || last_key != 1) return false;
+
+        target_shard = op.shard;
+        return true;
+    }
+
+    // STATIC PER-TABLE ROTATION (never an op state machine):
+    //
+    //   capture(A..N)
+    //   PF-buckets(A) -> PF-buckets(B) -> ...
+    //   probe-tags(A) -> PF-KvObj(A) -> probe-tags(B) -> PF-KvObj(B) -> ...
+    //   exec(A) -> exec(B) -> ...
+    //
+    // The stable partition preserves gathered order inside every shard. Context waves contain at
+    // most --ex-subpipe tables; different waves and tables may reorder only disjoint FlatStores.
+    // Every captured table pointer/capacity/mask is consumed before the first execute in that wave,
+    // because execute() may advance rehash and free an old physical table. Handlers remain intact,
+    // so their authoritative lookup and every per-op resize/admission check stay exactly in place.
+    __attribute__((noinline))
+    bool exec_batch_subpiped(const Task* batch, uint32_t n, uint32_t context_cap) {
+        if (context_cap < 2 || context_cap > Config::kExSubpipeMaxContexts ||
+            n < kExSubpipeMinBatchOccupancy || n > kExecBatch || slowlog_armed_ ||
+            !atomic_deferred_.empty() || !multi_retries_.empty() ||
+            !ordered_deferred_.empty() || srv_->atomic_work_active() ||
+            atomic_tripwire_enabled()) return false;
+
+        int32_t task_shards[kExecBatch];
+        uint8_t task_order[kExecBatch];
+        for (uint32_t i = 0; i < n; i++) {
+            if (!ex_subpipe_point_task(batch[i], task_shards[i])) return false;
+            task_order[i] = static_cast<uint8_t>(i);
+        }
+
+        // One compact index vector is the stable partition: shard id selects a table and original
+        // batch index is the tie-breaker, so equal-shard tasks retain their exact gathered order.
+        std::sort(task_order, task_order + n, [&](uint8_t left, uint8_t right) {
+            const int32_t left_shard = task_shards[left];
+            const int32_t right_shard = task_shards[right];
+            return left_shard != right_shard ? left_shard < right_shard : left < right;
+        });
+
+        ExSubpipeTableBatch tables[kExecBatch];
+        uint32_t table_count = 0;
+        for (uint32_t sorted = 0; sorted < n; sorted++) {
+            const int32_t shard_id = task_shards[task_order[sorted]];
+            if (table_count && tables[table_count - 1].shard->id() == shard_id) {
+                tables[table_count - 1].count++;
+                continue;
+            }
+            // execute() normally performs this ownership check before its first shard dereference.
+            // A staged physical probe must prove the route current before touching the FlatStore.
+            if (srv_->worker_of_shard(shard_id) != self_->id()) return false;
+            Shard* shard = &srv_->shard(shard_id);
+            if (shard->has_watches() || shard->has_blocking_waiters() ||
+                shard->store().atomic_has_records()) return false;
+            tables[table_count++] = ExSubpipeTableBatch{shard, &shard->store(), sorted, 1};
+        }
+        if (table_count < 2) return false;
+
+        using ProbeContext = FlatStore::BatchProbeContext;
+        KvObj* candidates[kExecBatch];
+
+        for (uint32_t base = 0; base < table_count;) {
+            const uint32_t remaining = table_count - base;
+            uint32_t width = std::min(context_cap, remaining);
+            // Avoid a one-table tail when a >=3-wide wave can donate a context. With a cap of two,
+            // an odd table count necessarily leaves one serial tail; it does no empty-stage work.
+            if (remaining - width == 1 && width > 2) width--;
+
+            if (width == 1) {
+                ExSubpipeTableBatch& table = tables[base];
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    const Op& op = batch[index].client->rob().at(batch[index].op_id);
+                    table.store->prefetch(op.hash);
+                }
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    if (__builtin_expect(!execute(batch[index]), false)) std::abort();
+                }
+                base++;
+                continue;
+            }
+
+            ProbeContext probes[Config::kExSubpipeMaxContexts];
+            for (uint32_t c = 0; c < width; c++)
+                probes[c] = tables[base + c].store->batch_probe_context();
+
+            for (uint32_t c = 0; c < width; c++) {
+                ExSubpipeTableBatch& table = tables[base + c];
+                const ProbeContext& probe = probes[c];
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    const Op& op = batch[index].client->rob().at(batch[index].op_id);
+                    probe.prefetch_bucket(op.hash);
+                }
+            }
+            for (uint32_t c = 0; c < width; c++) {
+                ExSubpipeTableBatch& table = tables[base + c];
+                const ProbeContext& probe = probes[c];
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    const Op& op = batch[index].client->rob().at(batch[index].op_id);
+                    candidates[index] = probe.probe_candidate(op.hash);
+                }
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    ProbeContext::prefetch_candidate(candidates[index]);
+                }
+            }
+
+            for (uint32_t c = 0; c < width; c++) {
+                ExSubpipeTableBatch& table = tables[base + c];
+                for (uint32_t j = 0; j < table.count; j++) {
+                    const uint32_t index = task_order[table.begin + j];
+                    // A retry cannot preserve the original suffix after cross-table execution has
+                    // started. The admission proof above therefore makes completion a hard contract.
+                    if (__builtin_expect(!execute(batch[index]), false)) std::abort();
+                }
+            }
+            base += width;
+        }
+        return true;
+    }
+
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void exec_batch(const Task* batch, uint32_t n) {
@@ -855,25 +1009,29 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        for (uint32_t i = 0; i < n; i++) {
-            if (!batch[i].client) continue;
-            const Op& op = batch[i].client->rob().at(batch[i].op_id);
-            const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
-            if (shard >= 0 && !batch[i].scatter &&
-                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
-                srv_->shard(shard).store().prefetch(op.hash);
-        }
-        // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
-        // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
-        // into this loop at all. The armed body is out of line in exec_batch_timed().
-        if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed(batch, n);
-        } else {
+        const uint32_t context_cap = srv_->cfg().ex_subpipe;
+        if (!__builtin_expect(context_cap >= 2 &&
+                              exec_batch_subpiped(batch, n, context_cap), false)) {
             for (uint32_t i = 0; i < n; i++) {
-                if (execute(batch[i])) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                break;
+                if (!batch[i].client) continue;
+                const Op& op = batch[i].client->rob().at(batch[i].op_id);
+                const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+                if (shard >= 0 && !batch[i].scatter &&
+                    !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                    srv_->shard(shard).store().prefetch(op.hash);
+            }
+            // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
+            // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
+            // into this loop at all. The armed body is out of line in exec_batch_timed().
+            if (__builtin_expect(slowlog_armed_, false)) {
+                exec_batch_timed(batch, n);
+            } else {
+                for (uint32_t i = 0; i < n; i++) {
+                    if (execute(batch[i])) continue;
+                    xshard_retries_.push_back(batch[i]);
+                    for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+                    break;
+                }
             }
         }
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
