@@ -780,8 +780,27 @@ private:
             // A transaction's own still-private installs are its RYOW overlay.  Foreign epoch-zero
             // candidates remain invisible exactly as before; ordinary pipelined commands still
             // defer on their own undecided predecessor before reaching this resolver.
-            if (owner.group_epoch && epoch == 0 && !own_committed) return;
-            if (!(epoch <= snapshot || own_committed)) return;
+            if (owner.group_epoch && epoch == 0 && !own_committed) {
+                // Armed-only: the undecided-foreign skip. Under a single-connection workload the
+                // entry IS the reader's own earlier write, so landing here means the read failed
+                // the own_committed test -- the RYOW hole the seed-19 divergence goes through.
+                if (__builtin_expect(atomic_tripwire_enabled(), false))
+                    atomic_tripwire_excluded(hash, snapshot, 0,
+                                             atomic_read_origin_conn_id_,
+                                             owner.origin_conn_id);
+                return;
+            }
+            if (!(epoch <= snapshot || own_committed)) {
+                // Armed-only: latch WHY a candidate was invisible. Under a single-connection
+                // workload every entry is the reader's own, so any exclusion here is either a
+                // read that carried no origin conn (context never set on its path) or a stale
+                // one -- the two candidate mechanisms for the seed-19 stale-read divergence.
+                if (__builtin_expect(atomic_tripwire_enabled(), false))
+                    atomic_tripwire_excluded(hash, snapshot, epoch,
+                                             atomic_read_origin_conn_id_,
+                                             owner.origin_conn_id);
+                return;
+            }
             // RANK, NOT EPOCH.  An own still-private candidate carries epoch 0 because its ticket is
             // not drawn yet -- it is the NEWEST value this connection has, not the oldest.  Ranking
             // it by its epoch made it lose to any older but committed version of the same key, so
@@ -827,6 +846,7 @@ private:
         // server pays none of the diagnostic work and performs no new atomic operation.
         if (__builtin_expect(!from_physical && snapshot != UINT64_MAX &&
                              atomic_tripwire_enabled(), false)) {
+            const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
             uint64_t smaller_ticket = 0;
             for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
                 if (!entry->group_epoch ||
@@ -838,9 +858,47 @@ private:
                     (!smaller_ticket || ticket < smaller_ticket))
                     smaller_ticket = ticket;
             }
-            if (smaller_ticket) {
-                const uint64_t answer_ticket = winner_entry ? atomic_epoch(*winner_entry) : 0;
+            if (smaller_ticket)
                 atomic_tripwire_chain_smaller(hash, snapshot, answer_ticket, smaller_ticket);
+            // Same-key discrimination for the geometry above.  The chain walk filtered entries by
+            // membership bit; re-walk WITHOUT that filter and compare full hash+key.  Only an
+            // entry strictly newer than the answered version matters -- an older visible version
+            // losing is ordinary MVCC.  A qualifying entry the walk never saw (bit clear) is the
+            // mask-inconsistency smoking gun; one the walk did see is a ranking defect; a matched
+            // foreign group with its ticket still unpublished is the publication-race window.
+            for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+                const bool walked = (entry->membership & bit) != 0;
+                for (uint32_t i = 0; i < entry->count; i++) {
+                    if (atomic_entry_hash(*entry, i) != hash ||
+                        atomic_entry_key(*entry, i) != key)
+                        continue;
+                    if (!entry->group_epoch ||
+                        (entry->group_aborted &&
+                         entry->group_aborted->load(std::memory_order_acquire)))
+                        break;
+                    uint64_t ticket = atomic_epoch(*entry);
+                    if (ticket == 0) {
+                        // Bounded re-poll (armed path only): distinguish "ticket not drawn yet"
+                        // (will draw above our cut -- correct skip) from "ticket drawn at or
+                        // below our cut but its store not yet visible" (a write this cut was
+                        // required to see -- the publication-race miss).
+                        for (int spin = 0; spin < 4096 && ticket == 0; spin++) {
+                            __builtin_ia32_pause();
+                            ticket = atomic_epoch(*entry);
+                        }
+                        if (ticket == 0)
+                            atomic_tripwire_samekey(AtomicTripwireSamekey::Undecided);
+                        else if (ticket <= snapshot)
+                            atomic_tripwire_samekey(AtomicTripwireSamekey::UndecidedLeCut);
+                        else
+                            atomic_tripwire_samekey(AtomicTripwireSamekey::UndecidedGtCut);
+                    } else if (ticket <= snapshot && ticket > answer_ticket) {
+                        atomic_tripwire_samekey(walked
+                                                    ? AtomicTripwireSamekey::VisibleLost
+                                                    : AtomicTripwireSamekey::MaskedOut);
+                    }
+                    break;
+                }
             }
         }
         return AtomicResolved{atomic_live_value(value), true, from_physical};
@@ -1118,6 +1176,10 @@ private:
                         } else {
                             KvObj* physical = atomic_find_physical(hash, key);
                             if (physical != replacement) {
+                                if (__builtin_expect(atomic_tripwire_enabled(), false))
+                                    atomic_tripwire_collapse_write(hash, physical == nullptr,
+                                                                   replacement == nullptr,
+                                                                   atomic_epoch(*entry));
                                 KvObj* loser = atomic_exchange_physical(hash, key, replacement);
                                 if (loser != physical) std::abort();
                                 retire_detached_obj(loser);
@@ -1264,6 +1326,10 @@ private:
             if (key.boundary) {
                 KvObj*& slot = key.boundary->parked()[key.boundary_index];
                 if (slot != key.winner) {
+                    if (__builtin_expect(atomic_tripwire_enabled(), false))
+                        atomic_tripwire_collapse_write(key.hash, slot == nullptr,
+                                                       key.winner == nullptr,
+                                                       key.winner_epoch);
                     if (slot) {
                         atomic_gauge_sub(kvobj_size(slot));
                         atomic_collapse_retire_.push_back(slot);
@@ -1271,6 +1337,9 @@ private:
                     slot = key.winner;
                 }
             } else if (key.physical != key.winner) {
+                if (__builtin_expect(atomic_tripwire_enabled(), false))
+                    atomic_tripwire_collapse_write(key.hash, key.physical == nullptr,
+                                                   key.winner == nullptr, key.winner_epoch);
                 key.physical_loser = atomic_exchange_physical(key.hash, key.key, key.winner);
                 if (key.physical_loser != key.physical) std::abort();
             }

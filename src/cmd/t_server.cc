@@ -1861,6 +1861,15 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_exec_read_cuts:%llu\r\n"
                       "atomic_tripwire_plain_path_changes:%llu\r\n"
                       "atomic_tripwire_chain_smaller_tickets:%llu\r\n"
+                      "atomic_tripwire_samekey_masked_out:%llu\r\n"
+                      "atomic_tripwire_samekey_visible_lost:%llu\r\n"
+                      "atomic_tripwire_samekey_undecided:%llu\r\n"
+                      "atomic_tripwire_samekey_undecided_le_cut:%llu\r\n"
+                      "atomic_tripwire_samekey_undecided_gt_cut:%llu\r\n"
+                      "atomic_tripwire_excluded_reader_zero:%llu\r\n"
+                      "atomic_tripwire_excluded_conn_mismatch:%llu\r\n"
+                      "atomic_tripwire_collapse_undelete:%llu\r\n"
+                      "atomic_tripwire_collapse_write_other:%llu\r\n"
                       "atomic_credit_pool:%u\r\natomic_credit_debt:%u\r\n"
                       "script_stage_owner_tasks:%llu\r\nscript_run_attempts:%llu\r\n"
                       "script_validate_owner_tasks:%llu\r\nscript_apply_owner_tasks:%llu\r\n"
@@ -1965,6 +1974,15 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->atomic_exec_read_cuts() : 0),
                 static_cast<unsigned long long>(tripwire.plain_path_changes),
                 static_cast<unsigned long long>(tripwire.chain_smaller_tickets),
+                static_cast<unsigned long long>(tripwire.samekey_masked_out),
+                static_cast<unsigned long long>(tripwire.samekey_visible_lost),
+                static_cast<unsigned long long>(tripwire.samekey_undecided),
+                static_cast<unsigned long long>(tripwire.samekey_undecided_le_cut),
+                static_cast<unsigned long long>(tripwire.samekey_undecided_gt_cut),
+                static_cast<unsigned long long>(tripwire.excluded_reader_zero),
+                static_cast<unsigned long long>(tripwire.excluded_conn_mismatch),
+                static_cast<unsigned long long>(tripwire.collapse_undelete),
+                static_cast<unsigned long long>(tripwire.collapse_write_other),
                 g_server ? g_server->atomic_credit_pool() : 0,
                 g_server ? g_server->atomic_credit_debt() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->script_stage_owner_tasks() : 0),

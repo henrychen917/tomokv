@@ -41,6 +41,33 @@ struct AtomicTripwireRow {
 struct AtomicTripwireCounts {
     uint64_t plain_path_changes = 0;
     uint64_t chain_smaller_tickets = 0;
+    // Discrimination for the chain_smaller geometry, from an unmasked same-key re-walk (armed
+    // only).  masked_out is the smoking gun: an entry HOLDS the key with a visible ticket at or
+    // below the cut, but the membership-bit filter hid it from the chain walk, so the read
+    // answered from an older version -- the resolver failure class the seed-19 EXISTS overcount
+    // needs.  visible_lost means the walk saw such an entry and base still won (ranking defect).
+    // undecided counts matched foreign groups whose ticket was still unpublished at the read.
+    uint64_t samekey_masked_out = 0;
+    uint64_t samekey_visible_lost = 0;
+    uint64_t samekey_undecided = 0;
+    // The undecided class split by a bounded armed-only re-poll of the group's epoch.  A ticket
+    // that RESOLVES at or below the reader's cut proves the read skipped a write its cut was
+    // required to see (ticket drawn before the read, epoch store not yet visible) -- the
+    // publication-race miss.  Resolving above the cut proves the skip was correct.  Unresolved
+    // means the poll budget expired with the ticket still unpublished.
+    uint64_t samekey_undecided_le_cut = 0;
+    uint64_t samekey_undecided_gt_cut = 0;
+    // consider() exclusions (armed only): a chain candidate rejected by the visibility test
+    // !(epoch <= snapshot || own_committed).  reader_zero means the read carried no origin conn
+    // (read context never set for that path); mismatch means it carried one different from the
+    // entry's.  The ring latches the first exclusion's geometry via phases 5/6.
+    uint64_t excluded_reader_zero = 0;
+    uint64_t excluded_conn_mismatch = 0;
+    // Collapse writes that could resurrect a deleted key (armed only): an absent physical slot or
+    // boundary-parked slot overwritten with a non-null winner.  other counts every remaining
+    // collapse write for rate context.
+    uint64_t collapse_undelete = 0;
+    uint64_t collapse_write_other = 0;
 };
 
 namespace atomic_tripwire_detail {
@@ -205,6 +232,63 @@ inline void atomic_tripwire_chain_smaller(uint64_t key_hash, uint64_t cut,
         {key_hash, cut, smaller_ticket, AtomicTripwirePhase::ParkedSmaller},
     };
     atomic_tripwire_detail::capture_locked(*state, rows, std::size(rows));
+}
+
+enum class AtomicTripwireSamekey : uint32_t {
+    MaskedOut = 0,
+    VisibleLost = 1,
+    Undecided = 2,
+    UndecidedLeCut = 3,
+    UndecidedGtCut = 4,
+};
+
+// A collapse write that changed a slot (armed only).  was_null && !now_null is the resurrection
+// direction: an absent key overwritten with a value by cleanup -- the un-delete a lost-DEL
+// divergence needs.  Everything else counts as write_other for rate context.
+inline void atomic_tripwire_collapse_write(uint64_t key_hash, bool was_null, bool now_null,
+                                           uint64_t winner_epoch) {
+    auto* state = atomic_tripwire_detail::state.get();
+    if (!state) return;
+    std::lock_guard<std::mutex> lock(state->mu);
+    if (was_null && !now_null) {
+        state->counts.collapse_undelete++;
+        const AtomicTripwireRow rows[] = {
+            {key_hash, winner_epoch, 0, AtomicTripwirePhase::ChainAnswer},
+        };
+        atomic_tripwire_detail::capture_locked(*state, rows, std::size(rows));
+    } else {
+        state->counts.collapse_write_other++;
+    }
+}
+
+// A consider() exclusion by the visibility filter, with the geometry the filter judged.  The two
+// counters split by whether the read carried an origin connection at all; the ring latches the
+// first occurrence as a (cut, epoch) pair plus a (reader, owner) conn-id pair.
+inline void atomic_tripwire_excluded(uint64_t key_hash, uint64_t snapshot, uint64_t epoch,
+                                     uint64_t reader_conn, uint64_t owner_conn) {
+    auto* state = atomic_tripwire_detail::state.get();
+    if (!state) return;
+    std::lock_guard<std::mutex> lock(state->mu);
+    if (reader_conn == 0) state->counts.excluded_reader_zero++;
+    else state->counts.excluded_conn_mismatch++;
+    const AtomicTripwireRow rows[] = {
+        {key_hash, snapshot, epoch, AtomicTripwirePhase::ChainAnswer},
+        {reader_conn, owner_conn, epoch, AtomicTripwirePhase::ParkedSmaller},
+    };
+    atomic_tripwire_detail::capture_locked(*state, rows, std::size(rows));
+}
+
+inline void atomic_tripwire_samekey(AtomicTripwireSamekey kind) {
+    auto* state = atomic_tripwire_detail::state.get();
+    if (!state) return;
+    std::lock_guard<std::mutex> lock(state->mu);
+    switch (kind) {
+        case AtomicTripwireSamekey::MaskedOut:      state->counts.samekey_masked_out++; break;
+        case AtomicTripwireSamekey::VisibleLost:    state->counts.samekey_visible_lost++; break;
+        case AtomicTripwireSamekey::Undecided:      state->counts.samekey_undecided++; break;
+        case AtomicTripwireSamekey::UndecidedLeCut: state->counts.samekey_undecided_le_cut++; break;
+        case AtomicTripwireSamekey::UndecidedGtCut: state->counts.samekey_undecided_gt_cut++; break;
+    }
 }
 
 inline AtomicTripwireCounts atomic_tripwire_counts() {

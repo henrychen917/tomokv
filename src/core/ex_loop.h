@@ -893,6 +893,20 @@ private:
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            // PROGRAM ORDER: a transaction fragment must not run past an older same-connection
+            // task parked in atomic_deferred_/xshard_retries_ on this shard. This branch used to
+            // skip the check entirely, so a pipelined EXEC's child executed before the
+            // connection's earlier cross-shard DEL fragment that was deferred here, and the
+            // transaction read the pre-DEL world (the seed-19 differ divergence). An ownerless
+            // teardown fragment (null client, the WATCH-disconnect path) belongs to no
+            // connection and carries no program order -- and has no ROB to consult.
+            if (t.client) {
+                Op& carrier = t.client->rob().at(t.op_id);
+                if (has_parked_predecessor(t, carrier, t.shard)) {
+                    atomic_deferred_.push_back(t);
+                    return true;
+                }
+            }
             // The no-touch answer is PER TASK; a MULTI body inherits the transaction owner's.
             if (__builtin_expect(maxmemory_enabled_, false)) {
                 const Op& carrier = t.client->rob().at(t.op_id);

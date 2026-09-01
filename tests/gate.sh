@@ -47,8 +47,9 @@ SRV=0; SRVLOG=/dev/null
 # multi_exec, edgeproto, atomfix, spinprobe) under each of the two atomic modes: 2 * (1 + 5) = 12.
 # 236 -> 238: atomic MGET/MSET throughput floor + tripwire arm/disarm round-trip (a 9x armed-by-
 # default tax on the atomic chain read once passed this gate with nothing measuring the path).
-EXPECT_QUICK=238
-EXPECT_FULL=249                 # full without the optional NIC row.
+# 238 -> 239: pipelined same-connection program order (seed-19 divergence; 74% stale pre-fix).
+EXPECT_QUICK=239
+EXPECT_FULL=250                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -564,6 +565,11 @@ TWDIS=$(redis-cli -p $PORT debug tripwire disarm 2>&1)
 { [ "$TWARM" = "OK" ] && [ "$TWDIS" = "OK" ]; } \
     && ok "tripwire arm/disarm round-trip" \
     || bad "tripwire arm/disarm round-trip" "arm='$TWARM' disarm='$TWDIS'"
+# Same boot: pipelined same-connection program order (the seed-19 divergence). Pre-fix this
+# answered stale in ~74% of iterations, so 400 iterations are a decisive non-vacuous roll.
+timeout 120 python3 tests/pipeorder.py $PORT 400 >/tmp/gate-pipeorder.txt 2>&1 \
+    && ok "pipelined same-conn program order (400 rolls)" \
+    || bad "pipelined same-conn program order" "see /tmp/gate-pipeorder.txt"
 stop
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------

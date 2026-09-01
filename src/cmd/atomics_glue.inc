@@ -656,6 +656,11 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op) {
     (void)server;
     if (!task.client) return false;
+    // A tagged MULTI fragment carries a MultiExecState; the scatter reads below would be garbage.
+    // Its program order is enforced by has_parked_predecessor alone, and its own-undecided
+    // handling lives in the transaction engine -- deferring it here on misread state parked one
+    // fragment forever while its sibling spun at the command barrier.
+    if (multi_task_tagged(task)) return false;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
         // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER): park every fragment but the lead one until the
@@ -738,6 +743,15 @@ namespace {
 
 template <typename Fn>
 bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
+    // A tagged MULTI child carries a MultiExecState, not a ScatterState -- reading scatter fields
+    // through that pointer is garbage. For program-order overlap a transaction fragment counts as
+    // touching every key on ITS OWN shard (the zero-key whole-owner rule below, with the same
+    // own-shard scoping that avoided the walker livelock): a younger fragment must defer behind
+    // any parked older same-connection task there, and a parked fragment holds younger ones.
+    // This blindness was the seed-19 EXISTS divergence: an EXEC child ran past its own
+    // connection's older cross-shard DEL parked in atomic_deferred_ and read the pre-DEL world.
+    if (multi_task_tagged(task))
+        return (task.shard >= 0 ? task.shard : op.shard) == shard_id;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
         // WHOLE-OWNER COMMANDS NAME NO KEYS, AND THAT IS THE POINT. KEYS, exact DBSIZE and
@@ -787,7 +801,8 @@ bool for_each_task_key(const Task& task, Op& op, int32_t shard_id, Fn&& fn) {
 }  // namespace
 
 bool xshard_task_is_whole_owner(const Task& task) {
-    return task.scatter != nullptr && task.scatter->key_count == 0;
+    return task.scatter != nullptr && !multi_task_tagged(task) &&
+           task.scatter->key_count == 0;
 }
 
 namespace {
@@ -807,7 +822,7 @@ bool tripwire_scatter_read_phase(const ScatterState& state) {
 }  // namespace
 
 void xshard_tripwire_fragment_begin(const Task& task, Shard& shard, Op& op) {
-    if (!atomic_tripwire_enabled() || !task.scatter) return;
+    if (!atomic_tripwire_enabled() || !task.scatter || multi_task_tagged(task)) return;
     ScatterState& state = *task.scatter;
     if (!tripwire_scatter_read_phase(state)) return;
     ShardGroup* group = group_for(state, shard.id());
@@ -828,7 +843,7 @@ void xshard_tripwire_fragment_begin(const Task& task, Shard& shard, Op& op) {
 
 void xshard_tripwire_fragment_execute(const Task& task, Shard& shard, Op& op,
                                       bool plain_path, uint64_t cut) {
-    if (!atomic_tripwire_enabled() || !task.scatter) return;
+    if (!atomic_tripwire_enabled() || !task.scatter || multi_task_tagged(task)) return;
     ScatterState& state = *task.scatter;
     if (!tripwire_scatter_read_phase(state)) return;
     ShardGroup* group = group_for(state, shard.id());
