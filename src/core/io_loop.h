@@ -510,7 +510,8 @@ private:
             uint32_t lane_count = 0;
         };
         IfidPipelineBatch ifid_context;
-        WbPipelineBatch wb_context;
+        std::array<WbPipelineBatch, kGenthreadWbBuffers> wb_contexts;
+        WbPipelineBatch& wb_context = wb_contexts[0];
         std::array<ExBatchContext, kGenthreadExContexts> ex_contexts;
 
         auto ex_e0 = [&](ExBatchContext& batch) {
@@ -708,7 +709,7 @@ private:
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
 
                 if (selected_iofused) {
-                    did += pipeline_iofused_pass<HasUnix, HasTls, kEp>(wb_context);
+                    did += pipeline_iofused_pass<HasUnix, HasTls, kEp>(wb_contexts);
                 } else if (!use_pipelined_fused) {
                     uint32_t coarse_occupancy = 0;
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
@@ -726,6 +727,7 @@ private:
                     ex_contexts[0].count = ex_contexts[1].count = 0;
                     active_ifid_context_ = &ifid_context;
                     active_wb_context_ = &wb_context;
+                    active_wb_context_count_ = 1;
 
                     // I0 -- one thread-wide parse/decode batch across every ready connection and
                     // as many complete frames per connection as the batch/ROB caps permit.
@@ -738,6 +740,7 @@ private:
                         // pass and the special command takes its established path.
                         rollback_ifid();
                         active_wb_context_ = nullptr;
+                        active_wb_context_count_ = 0;
                         uint32_t coarse_occupancy = 0;
                         did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
                         pipeline_gate_open_ =
@@ -980,6 +983,7 @@ private:
                     }
                     wb_context.count = 0;
                     active_wb_context_ = nullptr;
+                    active_wb_context_count_ = 0;
                     did += wb_submitted;
                     // Actual batch occupancy, sampled after the only stage entry for each stream,
                     // controls the next pass.  A thin sample closes the gate before the next N0.
@@ -3522,8 +3526,9 @@ nonblocking_dispatch:
             for (uint32_t i = 0; i < active_ifid_context_->count; i++)
                 if (active_ifid_context_->entries[i].client == client) return true;
         if (active_wb_context_)
-            for (uint32_t i = 0; i < active_wb_context_->count; i++)
-                if (active_wb_context_->clients[i] == client) return true;
+            for (uint32_t b = 0; b < active_wb_context_count_; b++)
+                for (uint32_t i = 0; i < active_wb_context_[b].count; i++)
+                    if (active_wb_context_[b].clients[i] == client) return true;
         return false;
     }
 
@@ -3800,9 +3805,13 @@ nonblocking_dispatch:
     // outer loop retains the one submit_and_reap boundary for receive re-arms, reply sends, task
     // wakes and completion wakes.
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_iofused_pass(WbPipelineBatch& batch) {
-        if (batch.count || active_wb_context_) std::abort();
-        active_wb_context_ = &batch;
+    uint32_t pipeline_iofused_pass(
+            std::array<WbPipelineBatch, kGenthreadWbBuffers>& batches) {
+        if (active_wb_context_ || active_wb_context_count_) std::abort();
+        for (const WbPipelineBatch& batch : batches)
+            if (batch.count) std::abort();
+        active_wb_context_ = batches.data();
+        active_wb_context_count_ = kGenthreadWbBuffers;
 
         uint32_t work = collect_retire_work<HasUnix, kEp>();
         if (!pending_serve_.empty()) {
@@ -3812,11 +3821,14 @@ nonblocking_dispatch:
                 aof.register_send_gate_wait(self_->id());
             } else {
                 aof_gate_target_ = 0;
-                while (batch.count < kGenthreadWbBatchConns && !pending_serve_.empty()) {
-                    Client* client = pending_serve_.front();
-                    pending_serve_.pop_front();
-                    client->set_serve_pending(false);
-                    if (!client->dead()) batch.clients[batch.count++] = client;
+                for (WbPipelineBatch& batch : batches) {
+                    while (batch.count < kGenthreadWbBatchConns &&
+                           !pending_serve_.empty()) {
+                        Client* client = pending_serve_.front();
+                        pending_serve_.pop_front();
+                        client->set_serve_pending(false);
+                        if (!client->dead()) batch.clients[batch.count++] = client;
+                    }
                 }
             }
         } else {
@@ -3826,102 +3838,115 @@ nonblocking_dispatch:
         // First launch every potentially retireable completion-state line.  A second pass performs
         // the acquire and issues payload hints only for the already-published Done prefix, matching
         // the proven split-loop mechanism without changing borrow ownership or lifetime.
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
-            if (!client || client->dead()) continue;
-            Rob<kRobWindow>& rob = client->rob();
-            const uint64_t first = rob.flush_id();
-            const uint64_t last = rob.dispatch_id();
-            const uint64_t count = std::min<uint64_t>(
-                last - first, kGenthreadWbPrefetchOpsPerConn);
-            for (uint64_t off = 0; off < count; off++)
-                __builtin_prefetch(&rob.at(first + off).state, 0, 3);
+        for (WbPipelineBatch& batch : batches) {
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client* client = batch.clients[i];
+                if (!client || client->dead()) continue;
+                Rob<kRobWindow>& rob = client->rob();
+                const uint64_t first = rob.flush_id();
+                const uint64_t last = rob.dispatch_id();
+                const uint64_t count = std::min<uint64_t>(
+                    last - first, kGenthreadWbPrefetchOpsPerConn);
+                for (uint64_t off = 0; off < count; off++)
+                    __builtin_prefetch(&rob.at(first + off).state, 0, 3);
+            }
         }
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
-            if (!client || client->dead()) continue;
-            Rob<kRobWindow>& rob = client->rob();
-            const uint64_t first = rob.flush_id();
-            const uint64_t last = rob.dispatch_id();
-            const uint64_t count = std::min<uint64_t>(
-                last - first, kGenthreadWbPrefetchOpsPerConn);
-            for (uint64_t off = 0; off < count; off++) {
-                Op& op = rob.at(first + off);
-                if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
-                if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
-                const uint32_t bytes = std::min(
-                    op.zc_len, kGenthreadWbBorrowPrefetchBytes);
-                for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
-                    __builtin_prefetch(op.zc_ptr + pos, 0, 1);
+        for (WbPipelineBatch& batch : batches) {
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client* client = batch.clients[i];
+                if (!client || client->dead()) continue;
+                Rob<kRobWindow>& rob = client->rob();
+                const uint64_t first = rob.flush_id();
+                const uint64_t last = rob.dispatch_id();
+                const uint64_t count = std::min<uint64_t>(
+                    last - first, kGenthreadWbPrefetchOpsPerConn);
+                for (uint64_t off = 0; off < count; off++) {
+                    Op& op = rob.at(first + off);
+                    if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
+                    if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
+                    const uint32_t bytes = std::min(
+                        op.zc_len, kGenthreadWbBorrowPrefetchBytes);
+                    for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
+                        __builtin_prefetch(op.zc_ptr + pos, 0, 1);
+                }
             }
         }
 
-        work += batch.count;
-        work += ifid_batch<HasTls, kEp>(nullptr);
+        for (const WbPipelineBatch& batch : batches) work += batch.count;
+        for (uint32_t i = 0; i < kGenthreadIfidBuffers; i++)
+            work += ifid_batch<HasTls, kEp>(nullptr);
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
         // Retire/stage first and form send SQEs afterward.  No submission occurs here: N2 remains
         // the sole kernel boundary for the complete fused rotation.
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
-            if (!client || client->dead()) continue;
-            if (__builtin_expect(
-                    (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-                climon_reply_suppressed(client)) {
-                (void)climon_prepare_suppressed(client);
-                continue;
-            }
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_tls<kEp>(*client, *tls);
-                else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_ktls<kEp>(*client);
-                else
+        for (WbPipelineBatch& batch : batches) {
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client* client = batch.clients[i];
+                if (!client || client->dead()) continue;
+                if (__builtin_expect(
+                        (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                    climon_reply_suppressed(client)) {
+                    (void)climon_prepare_suppressed(client);
+                    continue;
+                }
+                if constexpr (HasTls) {
+                    if (TlsConn* tls = tls_engine(client))
+                        (void)wb_.prepare_tls<kEp>(*client, *tls);
+                    else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
+                        (void)wb_.prepare_ktls<kEp>(*client);
+                    else
+                        (void)wb_.prepare<kEp>(*client);
+                } else {
                     (void)wb_.prepare<kEp>(*client);
-            } else {
-                (void)wb_.prepare<kEp>(*client);
+                }
             }
         }
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
-            if (!client || client->dead()) continue;
-            bool retry_plain_submit = false;
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client)) {
-                    (void)wb_.submit_tls<kEp>(*client, *tls);
-                    if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll<kEp>(client, tls->wanted());
-                    if (tls->failed())
-                        close_client(client, tls->output_pending() || client->send_inflight());
-                } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                    const bool sent = wb_.submit_ktls<kEp>(*client);
-                    retry_plain_submit = !kEp && !sent &&
-                        !client->send_inflight() && !client->nothing_to_write();
+        for (WbPipelineBatch& batch : batches) {
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client* client = batch.clients[i];
+                if (!client || client->dead()) continue;
+                bool retry_plain_submit = false;
+                if constexpr (HasTls) {
+                    if (TlsConn* tls = tls_engine(client)) {
+                        (void)wb_.submit_tls<kEp>(*client, *tls);
+                        if (tls->socket_userspace() && tls->has_pinned_plain())
+                            arm_tls_socket_poll<kEp>(client, tls->wanted());
+                        if (tls->failed())
+                            close_client(client,
+                                         tls->output_pending() || client->send_inflight());
+                    } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
+                        const bool sent = wb_.submit_ktls<kEp>(*client);
+                        retry_plain_submit = !kEp && !sent &&
+                            !client->send_inflight() && !client->nothing_to_write();
+                    } else {
+                        const bool sent = wb_.submit<kEp>(*client);
+                        retry_plain_submit = !kEp && !sent &&
+                            !client->send_inflight() && !client->nothing_to_write();
+                    }
                 } else {
                     const bool sent = wb_.submit<kEp>(*client);
                     retry_plain_submit = !kEp && !sent &&
                         !client->send_inflight() && !client->nothing_to_write();
                 }
-            } else {
-                const bool sent = wb_.submit<kEp>(*client);
-                retry_plain_submit = !kEp && !sent &&
-                    !client->send_inflight() && !client->nothing_to_write();
+                if constexpr (kEp)
+                    if (wb_.take_send_failure()) epoll_close_now(client);
+                if (retry_plain_submit && !client->dead()) {
+                    self_->sig().sqe_starved++;
+                    enqueue_serve(client);
+                }
+                // This connection's retirement happened after the current IFID filler selected
+                // its ready list. Put it on the next list so newly freed ROB slots,
+                // quiescent-buffer reset, and send-completion cleanup are observed without an
+                // active-set scan.
+                if (!client->dead() && client->in_active()) enqueue_ifid(client);
             }
-            if constexpr (kEp)
-                if (wb_.take_send_failure()) epoll_close_now(client);
-            if (retry_plain_submit && !client->dead()) {
-                self_->sig().sqe_starved++;
-                enqueue_serve(client);
-            }
-            // This connection's retirement happened after the current IFID filler selected its
-            // ready list. Put it on the next list so newly freed ROB slots, quiescent-buffer reset,
-            // and send-completion cleanup are observed without an active-set scan.
-            if (!client->dead() && client->in_active()) enqueue_ifid(client);
+            batch.count = 0;
         }
-        batch.count = 0;
         active_wb_context_ = nullptr;
+        active_wb_context_count_ = 0;
 
-        work += executor_->fused_coarse_pass();
+        for (uint32_t i = 0; i < kGenthreadExBuffers; i++)
+            work += executor_->fused_coarse_pass();
         return work;
     }
 
@@ -4413,6 +4438,7 @@ nonblocking_dispatch:
     // and let teardown/migration defer while an unpublished Op or gathered Client is referenced.
     IfidPipelineBatch* active_ifid_context_ = nullptr;
     WbPipelineBatch* active_wb_context_ = nullptr;
+    uint32_t active_wb_context_count_ = 0;
     bool pipeline_gate_open_ = false;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
