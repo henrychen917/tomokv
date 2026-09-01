@@ -282,7 +282,6 @@ public:
 
     // ---- read side -----------------------------------------------------------------------------
     char*    rbuf()      { return rbuf_; }
-    char*    read_append_position() { return rbuf_ + rlen_; }
     uint32_t rlen() const { return rlen_; }
     uint32_t rpos() const { return rpos_; }
     size_t rcap() const { return rcap_; }

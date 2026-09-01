@@ -16,13 +16,6 @@ namespace tomo {
 // A shallow pass still contains only the one or few clients/frames that actually arrived.
 inline constexpr uint32_t kIoPipeIfidBatchClients = 64;
 inline constexpr uint32_t kIoPipeIfidBatchOpsPerClient = 64;
-// A read-only CQ scan only arms its two-level Client/rbuf prefetch when at least this many plain
-// recv completions can share the latency-hiding window. Sparse reaps stay on the ordinary walk.
-inline constexpr uint32_t kIoPipeRecvCqePrefetchThreshold = 4;
-// Until the fourth recv appears, do not walk an unbounded run of unrelated send/control CQEs. A
-// negative decision costs at most this small prefix; after the threshold fires the scan continues
-// through the complete reap so every remaining recv receives the same hints.
-inline constexpr uint32_t kIoPipeRecvCqeProbeLimit = 16;
 
 // WB buffers completion/serve requests by connection.  A ROB holds at most 64 operations, so this
 // window covers every possible retireable prefix instead of letting an unprefetched tail leak into
