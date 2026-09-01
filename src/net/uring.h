@@ -143,18 +143,26 @@ public:
     io_uring_sqe* sqe() {
         if (__builtin_expect(wake_fd_ >= 0, false)) return nullptr;
         io_uring_sqe* s = io_uring_get_sqe(&r_);
-        if (!s) { submit(); s = io_uring_get_sqe(&r_); }
+        if (!s) {
+            submit();
+            sq_full_submit_ = true;
+            s = io_uring_get_sqe(&r_);
+        }
         return s;
     }
 
     // A linked pair must not be split by sqe()'s full-ring flush between its two entries.
     void ensure_sq_space(unsigned needed) {
         if (__builtin_expect(wake_fd_ >= 0, false)) return;
-        if (io_uring_sq_space_left(&r_) < needed) submit();
+        if (io_uring_sq_space_left(&r_) < needed) {
+            submit();
+            sq_full_submit_ = true;
+        }
     }
 
     int submit() {
         pending_ = 0;
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit(&r_);
     }
@@ -172,6 +180,7 @@ public:
     // exactly, i.e. paid by every request rather than a tail.
     int submit_and_reap() {
         pending_ = 0;
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit_and_get_events(&r_);
     }
@@ -182,6 +191,7 @@ public:
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
         pending_ = 0;
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
@@ -267,7 +277,24 @@ public:
     }
 
     void note_pending() { pending_++; }
+    // SEND-bearing batches are latency carrying: a request/response client cannot create the next
+    // arrival until this SQE reaches the kernel. Keep that classification next to the SQE rather
+    // than reconstructing it from higher-level work counts at an outer submit boundary.
+    void note_send_pending() {
+        pending_++;
+        send_pending_ = true;
+    }
     unsigned pending() const { return pending_; }
+    bool send_pending() const { return send_pending_; }
+
+    // sqe()/ensure_sq_space() must flush synchronously when the SQ is full. A coalescing owner uses
+    // this edge to restart its rotation budget; consuming it does not describe ordinary explicit
+    // submit boundaries, which already restart that budget at their call site.
+    bool take_sq_full_submit() {
+        const bool submitted = sq_full_submit_;
+        sq_full_submit_ = false;
+        return submitted;
+    }
 
     // Post a completion into ANOTHER thread's ring. This is how an IO thread tells a WB thread that
     // a client has replies to send, without a shared queue or an eventfd round trip.
@@ -317,6 +344,8 @@ private:
     bool     inited_   = false;
     bool     deferred_ = true;
     unsigned pending_  = 0;
+    bool     send_pending_ = false;
+    bool     sq_full_submit_ = false;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;

@@ -325,7 +325,7 @@ public:
             if (!s) return false;
             io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
             s->user_data = ur_tag(UrKind::Send, &c);
-            ring_->note_pending();
+            ring_->note_send_pending();
 
             conn.set_segmented_send(true);
             conn.set_send_requested(total);
@@ -811,7 +811,7 @@ private:
         if (!s) return false;
         io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::Send, &c);
-        ring_->note_pending();
+        ring_->note_send_pending();
 
         c.set_segmented_send(false);
         c.set_send_requested(static_cast<uint32_t>(request));
@@ -889,7 +889,7 @@ private:
         if (!s) return false;
         io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::TlsSend, &c);
-        ring_->note_pending();
+        ring_->note_send_pending();
         c.set_send_requested(bytes);
         c.set_send_inflight(true);
         stats_.sends_submitted++;
