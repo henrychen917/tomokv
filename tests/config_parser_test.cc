@@ -120,6 +120,23 @@ int main() {
     if (network_default.net_io != tomo::NetIoEngine::Uring)
         fail("net-io default is not uring");
 
+    tomo::Config schedule;
+    tomo::ConfigParseState schedule_state;
+    const std::vector<const char*> schedule_args = {
+        "--genthread-schedule", "PiPeLiNeD-FuSeD"};
+    if (tomo::parse_config_args(schedule_args, schedule, schedule_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        schedule.genthread_schedule != tomo::GenthreadSchedule::PipelinedFused ||
+        !rejects({"--genthread-schedule", "pipeline"}) ||
+        !rejects({"--genthread-schedule", ""}))
+        fail("genthread-schedule boot grammar differs");
+    tomo::Config schedule_default;
+    if (schedule_default.genthread_schedule != tomo::GenthreadSchedule::Coarse)
+        fail("genthread-schedule default is not coarse");
+    schedule.net_io = tomo::NetIoEngine::Epoll;
+    if (tomo::validate_config(schedule) != tomo::kConfigError)
+        fail("pipelined-fused accepted an engine without a single N2 boundary");
+
     tomo::Config smt;
     tomo::ConfigParseState smt_state;
     const std::vector<const char*> smt_args = {"--smt-mode", "1"};

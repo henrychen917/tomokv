@@ -217,6 +217,7 @@ enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
 // unavailable or unwanted. Deliberately spelled like --persist-io: same shape of decision (which
 // kernel interface carries our IO), same boot-only latching, same enum grammar.
 enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
+enum class GenthreadSchedule : uint8_t { Coarse = 0, PipelinedFused = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
@@ -268,6 +269,9 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
+    // Permanent experiment control. Coarse remains the default/control arm; pipelined-fused is
+    // explicitly selected and still falls back to coarse on every thin pass.
+    GenthreadSchedule genthread_schedule = GenthreadSchedule::Coarse;
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -836,6 +840,18 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--genthread-schedule")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "coarse"))
+                cfg.genthread_schedule = GenthreadSchedule::Coarse;
+            else if (cfg_eq_icase(value, "pipelined-fused"))
+                cfg.genthread_schedule = GenthreadSchedule::PipelinedFused;
+            else {
+                std::fprintf(stderr,
+                             "--genthread-schedule wants coarse or pipelined-fused\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--appendfilename")) cfg.appendfilename = next("appendonly.aof");
         else if (!std::strcmp(a, "--appenddirname")) cfg.appenddirname = next("appendonlydir");
         else if (!std::strcmp(a, "--auto-aof-rewrite-percentage")) {
@@ -994,6 +1010,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "  network engine: --net-io uring|epoll (boot-only; default uring;\n"
                         "          epoll implies --persist-io normal)\n"
+                        "  generalized schedule: --genthread-schedule coarse|pipelined-fused\n"
+                        "          (boot-only; default coarse; thin pipelined passes use coarse)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
                         "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
@@ -1038,6 +1056,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.genthread_schedule == GenthreadSchedule::PipelinedFused &&
+        cfg.net_io != NetIoEngine::Uring) {
+        std::fprintf(stderr,
+                     "pipelined-fused requires --net-io uring for its single N2 boundary\n");
+        return kConfigError;
+    }
     if (cfg.databases != 1) {
         std::fprintf(stderr, "databases must be 1: this server owns one keyspace\n");
         return kConfigError;

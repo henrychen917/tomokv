@@ -8,7 +8,9 @@ rules. It is not a product lane and this document makes no performance claim.
 
 Boot creates one generalized thread for every selected CPU. Each physical thread constructs both
 an `IoLoop` and an `ExLoop`, owns the network ring used for accepts, receives, sends, and parking,
-and owns the executor ring used by the existing task and persistence paths. Executor control work
+and owns the executor ring used by existing persistence/control paths. Pipelined task and
+completion handoffs originate on the network ring so N2 is their single submission boundary.
+Executor control work
 is exposed as a bounded, non-blocking pass; ordinary task consumption is advanced by the static
 micro-stage schedule described below. The IO loop includes both sides in its pre-park correctness
 sweep, so executor work is serviced without a second OS thread or an executor spin loop. Only the
@@ -75,88 +77,66 @@ batch caps compile-time sweep points in `genthread_pipeline.h`.
 This commit is the coarse comparison arm. It intentionally does not interleave batch micro-stages;
 that is the next commit's arm.
 
-## Arm 3: interleaved batch micro-stages
+## Selectable pipelined-fused schedule
 
-Arm 3 retains the same three independent streams and the same SPSC/ROB ownership edges, but splits
-only the batch boundaries that launch or consume a useful memory dependency:
+`--genthread-schedule coarse|pipelined-fused` is boot-latched and reported through `CONFIG GET`.
+`coarse` is the default and permanent control arm. Selecting `pipelined-fused` does not remove that
+control: every pass below `kGenthreadPipelineMinOccupancy` runs the complete coarse
+`IFID -> EX -> WB` rotation. Occupancy is capped and measured from the ready work of the three
+independent streams (buffered IFID clients, inbound EX tasks, and completion/WB readiness), so a
+thin non-empty pass does work proportional to its payload instead of traversing empty microstages.
 
-- IFID is triple-buffered across `RX_PARSE`, `HASH`, and `ROUTE_ISSUE`. `RX_PARSE` reaps network
-  CQEs, parses and decodes ordinary keyed commands into an owner-local batch, and leaves each
-  connection at its unpublished ROB tail. `HASH` hashes the batch in one tight loop.
-  `ROUTE_ISSUE` maps hashes to shards/owners, prepares direct-reply and Task metadata, publishes the
-  ROB entries, then batch-coalesces publication notifications to the existing producer lanes.
-  While an unpublished batch owns an `Op`, RX does not re-arm that Client after parsing: its ROB is
-  still formally quiescent, so a receive-buffer grow would otherwise move the argv slices before
-  `HASH` consumes them.
-  Commands with established special continuations keep those paths; every resulting local shard
-  Task still publishes through `task_in_[self]` and never executes in IFID.
-- EX is triple-buffered across `INPUT_PF`, `FILL`, `BUCKET_PF`, `OBJECT_PF`, and `EXECUTE`.
-  `INPUT_PF` reads ahead the published Task slots and their referenced Op state without changing a
-  queue frontier. `FILL` gathers up to the 128-Task cap plus producer-lane IDs. `BUCKET_PF` issues the
-  existing FlatStore bucket prefetch loop. `OBJECT_PF` consumes the warmed bucket probe far enough
-  to prefetch a tag candidate, without making a logical lookup or mutation. `EXECUTE` runs the
-  existing homogeneous execution loop, publishes completions, and only then advances each source
-  lane's separate retired frontier. Older retry, atomic, snapshot, and continuation machinery
-  remains in the executor control pass.
-- WB is triple-buffered across `GATHER`, `PREPARE`, and `SUBMIT`. `GATHER` observes completion
-  channels/ready bits, gathers up to the 64-connection cap, and prefetches each ROB head.
-  `PREPARE` drains only the ready ROB prefix in order and stages reply/segment state. `SUBMIT`
-  constructs and publishes the send operation through the existing plain, kTLS, or userspace-TLS
-  pump. Send completion retains its existing byte reclamation and zero-copy release rules.
+The deep-pass schedule is the owner-approved static order:
 
-The three buffer arrays are independent: IFID buffers contain decoded `Op` references, EX buffers
-contain copied `Task` values and producer IDs, and WB buffers contain owning `Client` references.
-They are owner-local and add no atomics or fields to `Op` or `Client`. Each phase owns a ring index
-into its three slots (fill/hash/route, fill/bucket/object/execute, and gather/prepare/submit).
-Advancing an index preserves FIFO batch progression without scanning every slot for the oldest
-sequence. Consuming a slot changes only its count/state; the arrays are not cleared or shuffled. A
-connection held by IFID or WB cannot migrate or be deleted until that owner-local reference is
-released; EX queue quiescence continues to use the existing post-execution retired frontier.
+`N0 / I0 / N1 / E0 / W0 / I1 / E1 / W1 / I2 / E2 / W2 / N2`
 
-The shallow `kGenthreadStaticSchedule` is:
+- `N0` reaps network events and commits recv/send progress. In the pipelined arm it neither parses
+  nor constructs a follow-up send.
+- `I0` parses and decodes one prepared-unpublished simple point command per ready connection into
+  IFID batch B. Only GET, SET, single-key DEL, INCR, and DECR qualify. Encountering a cold/special
+  shard command discards the unpublished B prefix and runs the coarse pass, so scatter, scripts,
+  scans, blocking commands, retrying atomics, and all other commands retain the monolithic path.
+- `N1` rearms B's connections append-only. A prepared Op pins its argv slices; buffer compaction
+  and growth remain legal only at `ROB quiesced && prepared == 0`.
+- `E0` gathers EX batch A with `pop_unretired` and prefetches the referenced Op line. It does not
+  advance a source lane's retired frontier.
+- `W0` consumes completion channels/ready bits, gathers WB batch C, and prefetches each ROB head.
+  Completion discovery is ready-mask driven rather than an active-connection scan.
+- `I1` hashes/routes B and reserves actual capacity credits in each destination SPSC producer lane.
+  Ordinary publications account for outstanding credits, making I2 failure-free.
+- `E1` resolves each Op, verifies the current shard owner, and only then forms/touches a FlatStore
+  address for prefetch. A stale task is durably transferred to the executor's stale queue. A special
+  task racing the pass preflight, and all younger gathered work behind it, move to the established
+  ordered-deferred monolith.
+- `W1` retires only the ready ROB prefix and stages complete reply frames. Deferred out-of-band
+  frames flush only through the ROB flush frontier produced by that retirement.
+- `I2` performs `ROB publish -> reserved task publish -> parse-cursor advance`, then publishes one
+  notification per touched destination.
+- `E2` executes/completes eligible tasks. Only after every A task is Executed, Forwarded, or
+  DeferredDurably does it issue one `retire_n` frontier update per source lane.
+- `W2` constructs send SQEs without submitting them. `N2` submits the network ring once, including
+  N1 receives, I2 task wakes, E2 completion wakes, and W2 sends. The executor ring remains for real
+  persistence/control IO.
 
-1. `EX.BUCKET_PF`
-2. `IFID.HASH`
-3. `WB.PREPARE`
-4. `EX.OBJECT_PF`
-5. `IFID.ROUTE_ISSUE`
-6. `EX.INPUT_PF`
-7. `WB.SUBMIT`
-8. `EX.EXECUTE`
-9. `IFID.RX_PARSE`
-10. `EX.FILL`
-11. `WB.GATHER`
+The four intended latency gaps are E0->E1 (filled by W0+I1), E1->E2 (W1+I2), W0->W1 (I1+E1), and
+I1->I2 (E1+W1). No work between E1 and E2 mutates an owned FlatStore. The source spells these as
+sections of the one `IoLoop::run_loop` body; B, A/D, and C are hoisted locals, not member-resident
+state machines or eleven context-reloading calls.
 
-Every entry runs once per shallow loop pass and returns immediately if its required input slot is
-empty or its output slot is full. A gather takes all observed input up to its cap in that one
-invocation: IFID and EX cap at 128 items and WB at 64 connections. Thus backlog grows the useful
-work under one stage entry/exit instead of causing repeated 18-entry rotations of fixed 32/16-item
-batches. Input prefetch is likewise bounded by the EX cap rather than performing one hint per lane.
-Bucket prefetch remains separated from object probe, object probe from execution, IFID parsing from
-hash/publication, and WB head prefetch/preparation from submission by useful work in the other
-streams. The pre-park path remains a mask-independent correctness backstop.
+V1 has exactly two EX contexts. When EX remains deep and IFID+WB cannot fill the normal gap, the
+fallback is `E1(A) E0(D) E1(D) E2(A) E2(D)`. A and D merge their lane counts and still publish one
+retired-frontier update per lane after both E2 sections. There is no triple buffering. At the pass
+boundary every local context is empty; cold safety pointers exist only so teardown/migration can
+recognize a Client referenced during the current loop body.
 
-## Depth-adaptive schedule
+Local point commands use the same self-producer SPSC lane as remote commands: I2 publishes them to
+`task_in_[self]`, and a later E0/E1/E2 executes them. IFID never executes shard work inline. The
+existing coarse executor's prefetch loop also performs the owner check before its first FlatStore
+touch, so the formal E1 ordering applies to both selectable schedules.
 
-IFID records one natural-depth observation per gathered batch without changing `Op` or `Client`.
-In shallow mode it divides the bytes already buffered for the gathered connections by the bytes in
-their first decoded frames; in coarse mode it uses operations dispatched per participating
-connection. Both estimate the batch that the input would naturally supply if micro-staging did not
-stop after the first unpublished op. Only the outer loop-pass boundary consumes these owner-local
-observations and changes mode; no operation tests the mode.
-
-The gate averages eight observations. Its high threshold is `EX cap / 8` (16 with the current cap)
-and its low threshold is one quarter of that (4), providing hysteresis. At or above the high
-threshold, the interleave window becomes zero and the loop degenerates to the coarse
-`IFID -> EX -> WB` rotation: stages run back-to-back, executor queue consumption drains naturally,
-and no micro-stage or buffer search is paid. At or below the low threshold it restores the
-two-buffer shallow prefetch window. A shallow-to-deep transition finishes at most three already
-staged batches in cursor order once before entering the coarse steady state.
-
-Batch caps, buffer depths, the two thresholds/window length, the interleave window, stage enum, and
-the exact shallow order are compile-time constants in the single `genthread_pipeline.h` block.
-There are no runtime knobs, fibers, per-request runnable states, new atomics, or changes to
-ownership/ROB semantics.
+All caps, the two-context rule, the occupancy threshold, and the exact static schedule live together
+in `genthread_pipeline.h`. The bake-off axes therefore remain named compile-time constants; the sole
+runtime surface selects the control or experimental schedule.
 
 ## Retained and disabled controls
 

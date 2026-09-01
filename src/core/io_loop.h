@@ -437,26 +437,26 @@ private:
         Closed,
     };
 
-    enum class IfidPipelineState : uint8_t { Empty, Parsed, Hashed };
     struct IfidPipelineEntry {
         Client* client = nullptr;
         Op* op = nullptr;
         uint32_t consumed = 0;
+        uint32_t worker = 0;
         bool direct_candidate = false;
     };
     struct IfidPipelineBatch {
         std::array<IfidPipelineEntry, kGenthreadIfidBatchOps> entries{};
-        uint64_t gathered_bytes = 0;
-        uint64_t first_frame_bytes = 0;
+        std::array<uint32_t, kMaxThreads> reserved_workers{};
+        std::array<uint32_t, kMaxThreads> reserved_counts{};
         uint32_t count = 0;
-        IfidPipelineState state = IfidPipelineState::Empty;
+        uint32_t reserved_worker_count = 0;
+        bool reservation_ready = false;
+        bool force_coarse = false;
     };
 
-    enum class WbPipelineState : uint8_t { Empty, Gathered, Prepared };
     struct WbPipelineBatch {
         std::array<Client*, kGenthreadWbBatchConns> clients{};
         uint32_t count = 0;
-        WbPipelineState state = WbPipelineState::Empty;
     };
 
     struct ClientMigration {
@@ -494,6 +494,108 @@ private:
             if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
         LoopSignals& sig = self_->sig();
+
+        // Pipelined-fused contexts are hoisted locals of this one loop body. They never escape a
+        // pass, so there is no per-request stage machine, member reload, or teardown-visible batch
+        // lifetime. EX has exactly A/D; IFID and WB each have one independent stream context.
+        struct ExBatchContext {
+            std::array<Task, kGenthreadExBatchOps> tasks{};
+            std::array<Task, kGenthreadExBatchOps> executable{};
+            std::array<uint32_t, kMaxThreads> lanes{};
+            std::array<uint32_t, kMaxThreads> lane_counts{};
+            uint32_t count = 0;
+            uint32_t executable_count = 0;
+            uint32_t lane_count = 0;
+        };
+        IfidPipelineBatch ifid_context;
+        WbPipelineBatch wb_context;
+        std::array<ExBatchContext, kGenthreadExContexts> ex_contexts;
+
+        auto ex_e0 = [&](ExBatchContext& batch) {
+            if (!executor_->pipeline_tasks_allowed() || !executor_->xshard_retries_.empty() ||
+                !executor_->ordered_deferred_.empty() ||
+                executor_->snapshot_owner_state_ != ExLoop::SnapshotOwnerState::None)
+                return uint32_t{0};
+            batch.count = self_->gather_tasks_unretired(
+                batch.tasks.data(), batch.lanes.data(), batch.lane_counts.data(),
+                batch.lane_count, kGenthreadExBatchOps);
+            batch.executable_count = 0;
+            // E0 only launches the Op dependency. It does not resolve a route or retire a pop.
+            for (uint32_t i = 0; i < batch.count; i++)
+                if (batch.tasks[i].client)
+                    __builtin_prefetch(
+                        &batch.tasks[i].client->rob().at(batch.tasks[i].op_id), 0, 2);
+            return batch.count;
+        };
+
+        auto ex_e1 = [&](ExBatchContext& batch) {
+            batch.executable_count = 0;
+            bool defer_rest = false;
+            for (uint32_t i = 0; i < batch.count; i++) {
+                const Task& task = batch.tasks[i];
+                if (defer_rest) {
+                    executor_->ordered_deferred_.push_back(task);
+                    continue;
+                }
+                Op* op = task.client ? &task.client->rob().at(task.op_id) : nullptr;
+                const int32_t shard = task.shard >= 0 ? task.shard : (op ? op->shard : -1);
+
+                // Resolve -> verify current owner -> only then form or touch a FlatStore address.
+                // A stale task is durably owned by the executor deque; E2 may therefore retire its
+                // source lane without publishing a duplicate forward in I1's reservation window.
+                if (shard >= 0 && srv_->worker_of_shard(shard) != self_->id()) {
+                    executor_->stale_tasks_.push_back(task);
+                    continue;
+                }
+                if (!op || task.scatter || multi_task_tagged(task) ||
+                    !pipeline_simple_point(*op)) {
+                    // A special task that raced the pass preflight is durably transferred to the
+                    // shipped ordered-deferred monolith. Hold every younger gathered task behind
+                    // it so the microstage cannot invert a source-lane program order edge.
+                    executor_->ordered_deferred_.push_back(task);
+                    defer_rest = true;
+                    continue;
+                }
+                batch.executable[batch.executable_count++] = task;
+                if (shard >= 0) srv_->shard(shard).store().prefetch(op->hash);
+            }
+            return batch.count;
+        };
+
+        auto ex_e2 = [&](ExBatchContext& batch) {
+            if (!batch.count) return uint32_t{0};
+            if (batch.executable_count)
+                executor_->exec_batch_prefetched(
+                    batch.executable.data(), batch.executable_count);
+            return batch.count;
+        };
+
+        auto ex_retire = [&](ExBatchContext& first, ExBatchContext* second = nullptr) {
+            if (second) {
+                for (uint32_t i = 0; i < second->lane_count; i++) {
+                    uint32_t lane = 0;
+                    while (lane < first.lane_count &&
+                           first.lanes[lane] != second->lanes[i]) lane++;
+                    if (lane == first.lane_count) {
+                        first.lanes[lane] = second->lanes[i];
+                        first.lane_counts[lane] = 0;
+                        first.lane_count++;
+                    }
+                    first.lane_counts[lane] += second->lane_counts[i];
+                }
+            }
+            // Exactly one release-store per source lane for the pass, after both A/D E2 sections
+            // have made every pop Executed, Forwarded, or DeferredDurably.
+            self_->retire_task_lanes(
+                first.lanes.data(), first.lane_counts.data(), first.lane_count);
+            const uint32_t completed = first.count + (second ? second->count : 0);
+            sig.ops += completed;
+            first.count = first.executable_count = first.lane_count = 0;
+            if (second)
+                second->count = second->executable_count = second->lane_count = 0;
+            return completed;
+        };
+
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
             refresh_notify_config();
@@ -566,16 +668,316 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
-                // The gate is evaluated once at the loop-pass boundary.  Deep traffic selects the
-                // coarse IFID -> EX -> WB rotation (interleave window zero); shallow traffic runs
-                // one complete micro-stage schedule, whose capped gathers amortize this traversal.
-                pipeline_depth_gate_pass();
-                if (pipeline_interleave_window_ == 0) {
+                // N0 -- commit receive/send/event progress. No RESP parse and no send pump lives
+                // in this section; follow-up send construction is retained for W2.
+                const bool selected_pipelined_fused =
+                    srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
+                if (selected_pipelined_fused) {
+                    did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
+                        on_cqe<HasTls, kEp, false>(cqe);
+                    });
+                } else {
+                    // The permanent control arm retains its original completion-time resubmits.
+                    did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
+                        on_cqe<HasTls, kEp, true>(cqe);
+                    });
+                }
+                if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
+
+                bool use_pipelined_fused = selected_pipelined_fused;
+                if (use_pipelined_fused) {
+                    uint32_t ifid_occupancy = 0;
+                    for (size_t i = 0;
+                         i < active_.size() &&
+                         ifid_occupancy < kGenthreadPipelineMinOccupancy; i++) {
+                        Client* client = active_.at(i);
+                        if (client && !client->dead() && !client->closing() &&
+                            client->rpos() < client->rlen() &&
+                            !client->scatter_barrier() && !client->parse_backpressure())
+                            ifid_occupancy++;
+                    }
+                    const uint32_t ex_occupancy =
+                        self_->task_depth_capped(kGenthreadPipelineMinOccupancy);
+                    // A cold/special task at any E0-visible lane frontier makes the whole pass
+                    // coarse. That task therefore reaches the shipped monolithic executor without
+                    // acquiring microstage state; only GET/SET/single-DEL/INCR/DECR enter A/D.
+                    bool ex_point_only = true;
+                    self_->read_ahead_task_inputs(
+                        kGenthreadExBatchOps, [&](const Task& task) {
+                            if (!task.client || task.scatter || multi_task_tagged(task) ||
+                                !pipeline_simple_point(
+                                    task.client->rob().at(task.op_id)))
+                                ex_point_only = false;
+                        });
+                    const uint32_t pending_wb = static_cast<uint32_t>(std::min<size_t>(
+                        pending_serve_.size(), kGenthreadPipelineMinOccupancy));
+                    const uint32_t wb_occupancy = std::min(
+                        kGenthreadPipelineMinOccupancy,
+                        pending_wb + self_->ready().count_capped(
+                                         kGenthreadPipelineMinOccupancy - pending_wb));
+                    const uint32_t occupancy = std::max(
+                        ifid_occupancy, std::max(ex_occupancy, wb_occupancy));
+                    // Amendment 1: thin is not empty. A pass below the useful batch occupancy
+                    // runs the entire coarse IFID->EX->WB rotation with proportional work.
+                    use_pipelined_fused =
+                        occupancy >= kGenthreadPipelineMinOccupancy && ex_point_only;
+                }
+
+                if (!use_pipelined_fused) {
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>();
                 } else {
                     did += executor_->fused_pipeline_control();
-                    for (GenthreadStage stage : kGenthreadStaticSchedule)
-                        did += pipeline_stage<HasUnix, HasTls, kEp>(stage);
+                    ifid_context.count = ifid_context.reserved_worker_count = 0;
+                    ifid_context.reservation_ready = false;
+                    ifid_context.force_coarse = false;
+                    wb_context.count = 0;
+                    ex_contexts[0].count = ex_contexts[1].count = 0;
+                    active_ifid_context_ = &ifid_context;
+                    active_wb_context_ = &wb_context;
+
+                    // I0 -- parse/decode one prepared-unpublished simple point command per
+                    // connection. Special/cold commands stay in parse_and_dispatch's monolith.
+                    did += ifid_batch<HasTls, kEp>(&ifid_context);
+
+                    if (ifid_context.force_coarse) {
+                        // I0 found a cold shard command. No cursor or ROB frontier moved, so drop
+                        // the speculative prepared B prefix and run the permanent control arm for
+                        // this whole pass; the special command then takes its established path.
+                        ifid_context.count = 0;
+                        active_ifid_context_ = nullptr;
+                        active_wb_context_ = nullptr;
+                        did += pipeline_coarse_pass<HasUnix, HasTls, kEp>();
+                    } else {
+
+                    // N1 -- append-only receive rearm for B. The prepared Op pins every argv
+                    // slice, so read_space is explicitly forbidden to compact or grow here.
+                    for (uint32_t i = 0; i < ifid_context.count; i++) {
+                        Client* client = ifid_context.entries[i].client;
+                        if (!client || client->dead() || client->closing()) continue;
+                        if constexpr (HasTls) {
+                            if (client->is_tls()) arm_tls_recv<kEp>(client);
+                            else arm_recv<kEp, true>(client);
+                        } else {
+                            arm_recv<kEp, true>(client);
+                        }
+                    }
+
+                    // E0(A) -- pop_unretired and launch the remote Op-line dependency.
+                    did += ex_e0(ex_contexts[0]);
+
+                    // W0 -- ready-mask driven completion collection and ROB-head prefetch. No
+                    // active-connection scan is used to discover completion work.
+                    did += collect_retire_work<HasUnix, kEp>();
+                    if (__builtin_expect(pubsub_pass_pending_, false))
+                        did += pubsub_pass_flush();
+                    if (!pending_serve_.empty()) {
+                        AofManager& aof = srv_->aof();
+                        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+                        if (!aof.reply_gate_ready(aof_gate_target_)) {
+                            aof.register_send_gate_wait(self_->id());
+                        } else {
+                            aof_gate_target_ = 0;
+                            while (wb_context.count < kGenthreadWbBatchConns &&
+                                   !pending_serve_.empty()) {
+                                Client* client = pending_serve_.front();
+                                pending_serve_.pop_front();
+                                client->set_serve_pending(false);
+                                if (!client->dead())
+                                    wb_context.clients[wb_context.count++] = client;
+                            }
+                            for (uint32_t i = 0; i < wb_context.count; i++) {
+                                Client* client = wb_context.clients[i];
+                                __builtin_prefetch(client, 0, 2);
+                                if (!client->rob().quiesced())
+                                    __builtin_prefetch(
+                                        &client->rob().at(client->rob().flush_id()), 0, 2);
+                            }
+                            did += wb_context.count;
+                        }
+                    } else {
+                        aof_gate_target_ = 0;
+                    }
+
+                    // I1 -- hash/route B and reserve real capacity credits in every destination
+                    // SPSC lane. W1 publications account for these credits, so I2 cannot fail.
+                    uint32_t participants[kMaxThreads];
+                    uint32_t participant_count = 0;
+                    for (uint32_t i = 0; i < ifid_context.count; i++) {
+                        IfidPipelineEntry& entry = ifid_context.entries[i];
+                        Op& op = *entry.op;
+                        op.hash = FlatStore::hash_key(
+                            op.arg(static_cast<uint32_t>(op.spec->first_key)));
+                        op.shard = srv_->router().shard_of(op.hash);
+                        entry.worker = srv_->worker_of_shard(op.shard);
+                        if (dispatch_needed_[entry.worker]++ == 0)
+                            participants[participant_count++] = entry.worker;
+                    }
+                    bool reserved = true;
+                    uint32_t reserved_participants = 0;
+                    for (; reserved_participants < participant_count; reserved_participants++) {
+                        const uint32_t worker = participants[reserved_participants];
+                        if (!srv_->thread(worker).reserve_task_slots(
+                                self_->id(), dispatch_needed_[worker])) {
+                            reserved = false;
+                            break;
+                        }
+                    }
+                    if (!reserved) {
+                        for (uint32_t i = 0; i < reserved_participants; i++) {
+                            const uint32_t worker = participants[i];
+                            srv_->thread(worker).cancel_task_reservation(
+                                self_->id(), dispatch_needed_[worker]);
+                        }
+                    } else {
+                        ifid_context.reserved_worker_count = participant_count;
+                        for (uint32_t i = 0; i < participant_count; i++) {
+                            const uint32_t worker = participants[i];
+                            ifid_context.reserved_workers[i] = worker;
+                            ifid_context.reserved_counts[i] = dispatch_needed_[worker];
+                        }
+                        ifid_context.reservation_ready = true;
+                    }
+                    for (uint32_t i = 0; i < participant_count; i++)
+                        dispatch_needed_[participants[i]] = 0;
+                    did += ifid_context.count;
+
+                    // E1(A) -- resolve Op, verify the current shard owner, and only then prefetch
+                    // FlatStore. No store-mutating work is permitted until E2(A).
+                    did += ex_e1(ex_contexts[0]);
+
+                    auto wb_w1 = [&]() {
+                        // W1 -- retire only the ready ROB prefix and stage whole reply frames.
+                        // WbEngine flushes deferred OOB only through the resulting flush frontier.
+                        for (uint32_t i = 0; i < wb_context.count; i++) {
+                            Client* client = wb_context.clients[i];
+                            if (!client || client->dead()) continue;
+                            if (__builtin_expect(
+                                    (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                                climon_reply_suppressed(client)) {
+                                (void)climon_prepare_suppressed(client);
+                                continue;
+                            }
+                            if constexpr (HasTls) {
+                                if (TlsConn* tls = tls_engine(client))
+                                    (void)wb_.prepare_tls<kEp>(*client, *tls);
+                                else if (TlsConn* slot = tls_slot_conn(client);
+                                         slot && slot->ktls())
+                                    (void)wb_.prepare_ktls<kEp>(*client);
+                                else
+                                    (void)wb_.prepare<kEp>(*client);
+                            } else {
+                                (void)wb_.prepare<kEp>(*client);
+                            }
+                        }
+                        return wb_context.count;
+                    };
+
+                    auto ifid_i2 = [&]() {
+                        // I2 -- publish ROB, then the reserved Task slot, then advance the parse
+                        // cursor. Destination notification is folded once after all publications.
+                        if (!ifid_context.reservation_ready) {
+                            ifid_context.count = 0;
+                            active_ifid_context_ = nullptr;
+                            return uint32_t{0};
+                        }
+                        uint32_t published = 0;
+                        for (uint32_t i = 0; i < ifid_context.count; i++) {
+                            const IfidPipelineEntry& entry = ifid_context.entries[i];
+                            Client* client = entry.client;
+                            ThreadCtx& worker = srv_->thread(entry.worker);
+                            if (!client || client->dead() || client->closing()) {
+                                worker.cancel_task_reservation(self_->id(), 1);
+                                continue;
+                            }
+                            Rob<kRobWindow>& rob = client->rob();
+                            Op& op = *entry.op;
+                            if (entry.direct_candidate && rob.in_flight() == 0 &&
+                                client->nothing_to_write()) {
+                                SmallBuf<kWbufInline>& fill = client->fill_buf();
+                                op.direct = fill.data();
+                                op.direct_cap = static_cast<uint32_t>(fill.cap());
+                            }
+                            const Task task{client, rob.dispatch_id(), -1, nullptr};
+                            rob.publish();
+                            worker.post_task_reserved_quiet(self_->id(), task, sig);
+                            client->advance_parse(entry.consumed);
+                            sig.ops++;
+                            mark_active(client);
+                            published++;
+                        }
+                        for (uint32_t i = 0; i < ifid_context.reserved_worker_count; i++)
+                            srv_->thread(ifid_context.reserved_workers[i]).flush_task_notify(
+                                self_->id(), ring_, sig);
+                        ifid_context.count = ifid_context.reserved_worker_count = 0;
+                        ifid_context.reservation_ready = false;
+                        active_ifid_context_ = nullptr;
+                        return published;
+                    };
+
+                    // EX-heavy A/D fallback. With too little I/W filler, D's E0/E1 dependency
+                    // chain fills A's store gap: E1(A) E0(D) E1(D) E2(A) E2(D). No third context.
+                    const bool ex_heavy =
+                        ifid_context.count + wb_context.count <
+                            kGenthreadPipelineMinOccupancy &&
+                        self_->task_depth_capped(kGenthreadPipelineMinOccupancy) >=
+                            kGenthreadPipelineMinOccupancy;
+                    if (ex_heavy) {
+                        did += ex_e0(ex_contexts[1]);
+                        did += ex_e1(ex_contexts[1]);
+                        did += ex_e2(ex_contexts[0]);
+                        did += ex_e2(ex_contexts[1]);
+                        (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
+                        did += wb_w1();
+                        did += ifid_i2();
+                    } else {
+                        // W1 + I2 are the only E1(A)->E2(A) filler. Neither mutates an owned
+                        // FlatStore, preserving the owner-approved money gap.
+                        did += wb_w1();
+                        did += ifid_i2();
+                        did += ex_e2(ex_contexts[0]);
+                        (void)ex_retire(ex_contexts[0]);
+                    }
+
+                    // W2 -- construct send SQEs only. Submission is the single N2 boundary below.
+                    const uint32_t wb_submitted = wb_context.count;
+                    for (uint32_t i = 0; i < wb_context.count; i++) {
+                        Client* client = wb_context.clients[i];
+                        if (!client || client->dead()) continue;
+                        bool retry_plain_submit = false;
+                        if constexpr (HasTls) {
+                            if (TlsConn* tls = tls_engine(client)) {
+                                (void)wb_.submit_tls<kEp>(*client, *tls);
+                                if (tls->socket_userspace() && tls->has_pinned_plain())
+                                    arm_tls_socket_poll<kEp>(client, tls->wanted());
+                                if (tls->failed())
+                                    close_client(client,
+                                                 tls->output_pending() || client->send_inflight());
+                            } else if (TlsConn* slot = tls_slot_conn(client);
+                                       slot && slot->ktls()) {
+                                const bool sent = wb_.submit_ktls<kEp>(*client);
+                                retry_plain_submit = !kEp && !sent &&
+                                    !client->send_inflight() && !client->nothing_to_write();
+                            } else {
+                                const bool sent = wb_.submit<kEp>(*client);
+                                retry_plain_submit = !kEp && !sent &&
+                                    !client->send_inflight() && !client->nothing_to_write();
+                            }
+                        } else {
+                            const bool sent = wb_.submit<kEp>(*client);
+                            retry_plain_submit = !kEp && !sent &&
+                                !client->send_inflight() && !client->nothing_to_write();
+                        }
+                        if constexpr (kEp)
+                            if (wb_.take_send_failure()) epoll_close_now(client);
+                        if (retry_plain_submit && !client->dead()) {
+                            sig.sqe_starved++;
+                            enqueue_serve(client);
+                        }
+                    }
+                    wb_context.count = 0;
+                    active_wb_context_ = nullptr;
+                    did += wb_submitted;
+                    }
                 }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -606,10 +1008,9 @@ private:
             }
             sig.cpu_ns = thread_cpu_ns();
 
-            // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
-            // PREPARED during the work section but only reach the kernel on submit; taking
-            // the busy path without submitting strands them in the SQ forever, and the peer
-            // that is waiting on that wake never runs.
+            // N2 -- one network-ring submit boundary for receives, sends, I2 task wakes, and E2
+            // completion wakes. The executor ring is submitted by its control pass only for its
+            // existing persistence/control IO; pipelined point-task handoffs use this ring.
             if (did) { ring_.submit_and_reap(); continue; }
 
             // Nothing to do: declare intent to block, re-check (a producer may have pushed between
@@ -688,15 +1089,15 @@ private:
     // unchanged: `stuck` in flush_ready keeps a connection in the active set while it is false, so
     // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
     // a connection while it is true.
-    template <bool kEp>
+    template <bool kEp, bool AppendOnly = false>
     void arm_recv(Client* c) {
         if (c->recv_armed() || c->closing() || find_client_migration(c)) return;
-        if constexpr (kEp) { epoll_recv(c); return; }
+        if constexpr (kEp) { epoll_recv<AppendOnly>(c); return; }
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
         char* dst = c->read_space(
-            kRecvChunk, avail, c->rob().quiesced(), proto_max_bulk_len_);
+            kRecvChunk, avail, !AppendOnly && c->rob().quiesced(), proto_max_bulk_len_);
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -712,10 +1113,12 @@ private:
     // Bytes are committed but NOT parsed here: this runs inside flush_ready's walk over the active
     // set, and parse_and_dispatch can close connections (CLIENT KILL) whose removal from that set
     // would invalidate the walk's iterator. The pass's existing re-parse step consumes them.
+    template <bool AppendOnly = false>
     void epoll_recv(Client* c) {
         for (;;) {
             size_t avail = 0;
-            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced());
+            char* dst = c->read_space(
+                kRecvChunk, avail, !AppendOnly && c->rob().quiesced());
             if (!dst) return;              // no usable space: stay un-armed so a later pass retries
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
             if (n > 0) {
@@ -890,7 +1293,7 @@ private:
     }
 
     // ---- completions ----------------------------------------------------------------------------
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void on_plain_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         if (c->dead()) {
@@ -898,10 +1301,12 @@ private:
             wb_.on_dead_send_complete(*c, cqe->res);
             return;
         }
-        if (!wb_.on_send_complete(*c, cqe->res)) close_client(c);
+        if (!wb_.on_send_complete(*c, cqe->res, ImmediateProgress)) close_client(c);
+        else if constexpr (!ImmediateProgress)
+            if (!c->nothing_to_write()) enqueue_serve(c);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void on_tls_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         TlsConn* tls = tls_engine(c);
@@ -910,19 +1315,25 @@ private:
             wb_.on_dead_tls_send_complete(*c, *tls, cqe->res);
             return;
         }
-        if (!wb_.on_tls_send_complete(*c, *tls, cqe->res)) close_client(c);
-        else mark_active(c);
+        if (!wb_.on_tls_send_complete(
+                *c, *tls, cqe->res, ImmediateProgress)) close_client(c);
+        else {
+            if constexpr (!ImmediateProgress)
+                if (!c->nothing_to_write() || tls->output_pending()) enqueue_serve(c);
+            mark_active(c);
+        }
     }
 
-    template <bool HasTls, bool kEp>
+    template <bool HasTls, bool kEp, bool ImmediateProgress = true>
     void on_cqe(io_uring_cqe* cqe) {
         if constexpr (!HasTls) {
             // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
-                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Accept: on_accept<kEp, ImmediateProgress>(cqe, UrKind::Accept); break;
+                case UrKind::UnixAccept:
+                    on_accept<kEp, ImmediateProgress>(cqe, UrKind::UnixAccept); break;
                 case UrKind::Recv: on_recv<false, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
+                case UrKind::Send: on_plain_send_cqe<kEp, ImmediateProgress>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart:
                     executor_->fused_snapshot_start(ur_ptr<SnapshotManager>(cqe->user_data));
@@ -941,18 +1352,26 @@ private:
             }
         } else {
             switch (ur_kind(cqe->user_data)) {
-                case UrKind::Accept: on_accept<kEp>(cqe, UrKind::Accept); break;
-                case UrKind::TlsAccept: on_accept<kEp>(cqe, UrKind::TlsAccept); break;
-                case UrKind::UnixAccept: on_accept<kEp>(cqe, UrKind::UnixAccept); break;
+                case UrKind::Accept: on_accept<kEp, ImmediateProgress>(cqe, UrKind::Accept); break;
+                case UrKind::TlsAccept:
+                    on_accept<kEp, ImmediateProgress>(cqe, UrKind::TlsAccept); break;
+                case UrKind::UnixAccept:
+                    on_accept<kEp, ImmediateProgress>(cqe, UrKind::UnixAccept); break;
                 case UrKind::Recv: on_recv<true, kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::TlsRecv: on_tls_recv<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res); break;
-                case UrKind::Send: on_plain_send_cqe<kEp>(cqe); break;
-                case UrKind::TlsSend: on_tls_send_cqe<kEp>(cqe); break;
+                case UrKind::TlsRecv:
+                    on_tls_recv<kEp, ImmediateProgress>(
+                        ur_ptr<Client>(cqe->user_data), cqe->res); break;
+                case UrKind::Send:
+                    on_plain_send_cqe<kEp, ImmediateProgress>(cqe); break;
+                case UrKind::TlsSend:
+                    on_tls_send_cqe<kEp, ImmediateProgress>(cqe); break;
                 case UrKind::TlsReadPoll:
-                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
+                    on_tls_socket_poll<kEp, ImmediateProgress>(
+                                       ur_ptr<Client>(cqe->user_data), cqe->res,
                                        TlsOp::WantRead); break;
                 case UrKind::TlsWritePoll:
-                    on_tls_socket_poll<kEp>(ur_ptr<Client>(cqe->user_data), cqe->res,
+                    on_tls_socket_poll<kEp, ImmediateProgress>(
+                                       ur_ptr<Client>(cqe->user_data), cqe->res,
                                        TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart:
@@ -1028,7 +1447,7 @@ private:
                (tls_listen_fd_ < 0 || tls_accept_armed_);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void on_accept(io_uring_cqe* cqe, UrKind kind) {
         const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
         if (generation != accept_generation_ || self_->role() != Role::Ifid) {
@@ -1048,7 +1467,7 @@ private:
             rearm_accept(cqe, kind);
             return;
         }
-        admit_fd<kEp>(cqe->res, kind);
+        admit_fd<kEp, ImmediateProgress>(cqe->res, kind);
         rearm_accept(cqe, kind);
     }
 
@@ -1077,7 +1496,7 @@ private:
     // Everything an accepted fd goes through before it becomes a served connection. Shared by both
     // engines verbatim: maxclients, protected mode, Client allocation, TLS attachment, unix
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void admit_fd(int fd, UrKind kind) {
         if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
         const bool unix_socket = kind == UrKind::UnixAccept;
@@ -1134,7 +1553,7 @@ private:
                 pending_handoffs_.push_back(c);
         } else {
             c->set_ifid_thread(self_->id());
-            adopt_client<kEp>(c, false, tls_socket);
+            adopt_client<kEp, ImmediateProgress>(c, false, tls_socket);
         }
     }
 
@@ -1876,7 +2295,7 @@ private:
         return 1;
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void adopt_client(Client* c, bool unix_socket, bool tls_socket = false) {
         // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
         // still lets ::close() deregister; migration alone pre-registers destination + rollback
@@ -1921,13 +2340,15 @@ private:
         command_client_connected(c, addr.c_str(), laddr.c_str(), unix_socket, accepted_ms);
         climon_track_client(c);
         if (tls_socket) {
-            TlsConn* tls = tls_slot_conn(c);
-            if (tls && tls->fd_handshake()) {
-                (void)drive_tls<kEp>(c);
-                if (!c->closing() && tls->ktls()) arm_recv<kEp>(c);
-                else if (!c->closing() && tls->memory_userspace()) arm_tls_recv<kEp>(c);
-            } else {
-                arm_tls_recv<kEp>(c);
+            if constexpr (ImmediateProgress) {
+                TlsConn* tls = tls_slot_conn(c);
+                if (tls && tls->fd_handshake()) {
+                    (void)drive_tls<kEp>(c);
+                    if (!c->closing() && tls->ktls()) arm_recv<kEp>(c);
+                    else if (!c->closing() && tls->memory_userspace()) arm_tls_recv<kEp>(c);
+                } else {
+                    arm_tls_recv<kEp>(c);
+                }
             }
         } else arm_recv<kEp>(c);
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
@@ -2087,7 +2508,7 @@ private:
         return !tls->failed();
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
         TlsConn* tls = tls_slot_conn(c);
         if (!tls) { close_client(c); return; }
@@ -2095,11 +2516,11 @@ private:
         c->set_recv_armed(tls->any_poll_armed());
         if (c->dead()) return;
         if (c->closing() || res < 0) { close_client(c); return; }
-        (void)drive_tls<kEp>(c);
+        if constexpr (ImmediateProgress) (void)drive_tls<kEp>(c);
         mark_active(c);
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ImmediateProgress = true>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
         if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
@@ -2119,7 +2540,7 @@ private:
         }
         self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
         c->set_last_interaction_s(cached_now_s_);
-        (void)drive_tls<kEp>(c);
+        if constexpr (ImmediateProgress) (void)drive_tls<kEp>(c);
         mark_active(c);
     }
 
@@ -2486,6 +2907,14 @@ subscriber_checks_done:
                 continue;
             }
 
+            // A pipelined-fused I0 may prepare only the point-command set. Stop before any scatter,
+            // blocking, atomic, cursor, script, or other special lowering can publish an EX task;
+            // the enclosing loop discards its unpublished B prefix and reruns the coarse pass.
+            if (pipeline_batch && !pipeline_simple_point(*op)) {
+                pipeline_batch->force_coarse = true;
+                break;
+            }
+
             // This command only needs an owner-local same-connection pending lookup when an older
             // cross-shard atomic group was already in flight. Set the immutable bit before the
             // current group increments the count, so a group never treats itself as a predecessor.
@@ -2758,13 +3187,12 @@ nonblocking_dispatch:
                 }
                 op->hash = random;
                 op->shard = static_cast<int32_t>(chosen);
-            } else if (pipeline_batch) {
-                // Ordinary keyed work stops after decode.  The batch owns this unpublished ROB
-                // slot until HASH and ROUTE_ISSUE run; no Client field or per-request stage switch
-                // is needed.  One staged op per connection preserves rollback on a full SPSC lane.
+            } else if (pipeline_batch && pipeline_simple_point(*op)) {
+                // Only the owner-approved point set enters B. Everything else continues through
+                // this function's established monolithic hash/route/publication path.
                 if (pipeline_batch->count == kGenthreadIfidBatchOps) break;
                 pipeline_batch->entries[pipeline_batch->count++] =
-                    IfidPipelineEntry{c, op, consumed, head_candidate};
+                    IfidPipelineEntry{c, op, consumed, 0, head_candidate};
                 head_candidate = false;
                 result = DispatchResult::Progress;
                 break;
@@ -2866,6 +3294,18 @@ nonblocking_dispatch:
         return random_state_;
     }
 
+    static bool pipeline_simple_point(const Op& op) {
+        if (!op.spec || op.has_blocking_state() || op.local_xshard()) return false;
+        const Slice name = op.cmd_name();
+        if (name.eq_icase("get") || name.eq_icase("incr") || name.eq_icase("decr"))
+            return op.argc() == 2;
+        if (name.eq_icase("set")) return op.argc() >= 3;
+        // Multi-key DEL is lowered through scatter before this predicate is reached. Retain the
+        // arity guard so a task arriving from the coarse/special path is never misclassified.
+        if (name.eq_icase("del")) return op.argc() == 2;
+        return false;
+    }
+
     // Queue a teardown instead of performing it. Used only by the epoll engine's synchronous
     // read/send paths, which run inside flush_ready's walk over the active set. Deliberately does
     // NOT pre-mark the client closing: close_client's first block (deferred-WAIT cancel, blocking
@@ -2902,18 +3342,8 @@ nonblocking_dispatch:
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases();
-        if (pipeline_interleave_window_ == 0) {
-            work += ifid_batch<HasTls, kEp>(nullptr);
-        } else if (IfidPipelineBatch* batch = empty_ifid_pipeline_batch()) {
-            batch->gathered_bytes = 0;
-            batch->first_frame_bytes = 0;
-            work += ifid_batch<HasTls, kEp>(batch);
-            if (batch->count) {
-                observe_pipeline_depth(batch->gathered_bytes, batch->first_frame_bytes);
-                batch->state = IfidPipelineState::Parsed;
-                ifid_fill_index_ = (ifid_fill_index_ + 1) % kGenthreadIfidBuffers;
-            }
-        }
+        // The already-idle mask-independent audit is deliberately coarse in both selectable arms.
+        work += ifid_batch<HasTls, kEp>(nullptr);
         work += executor_->fused_sweep();
         // Correctness backstop for a stale completion mask.  Hot WB work always takes the static
         // gather/prepare/submit path; only the already-idle pre-park audit uses the coarse drain.
@@ -2982,220 +3412,24 @@ nonblocking_dispatch:
         return n + pubsub_work;
     }
 
-    IfidPipelineBatch* empty_ifid_pipeline_batch() {
-        IfidPipelineBatch& batch = ifid_pipeline_[ifid_fill_index_];
-        return batch.state == IfidPipelineState::Empty ? &batch : nullptr;
-    }
-
-    bool client_has_staged_ifid(const Client* client) const {
-        for (const IfidPipelineBatch& batch : ifid_pipeline_)
-            for (uint32_t i = 0; i < batch.count; i++)
-                if (batch.entries[i].client == client) return true;
-        return false;
-    }
-
-    bool client_has_staged_wb(const Client* client) const {
-        for (const WbPipelineBatch& batch : wb_pipeline_)
-            for (uint32_t i = 0; i < batch.count; i++)
-                if (batch.clients[i] == client) return true;
-        return false;
-    }
-
     bool client_pipeline_referenced(const Client* client) const {
-        return client_has_staged_ifid(client) || client_has_staged_wb(client);
+        if (active_ifid_context_)
+            for (uint32_t i = 0; i < active_ifid_context_->count; i++)
+                if (active_ifid_context_->entries[i].client == client) return true;
+        if (active_wb_context_)
+            for (uint32_t i = 0; i < active_wb_context_->count; i++)
+                if (active_wb_context_->clients[i] == client) return true;
+        return false;
     }
 
     bool io_pipelines_quiesced() const {
-        for (const IfidPipelineBatch& batch : ifid_pipeline_)
-            if (batch.state != IfidPipelineState::Empty) return false;
-        for (const WbPipelineBatch& batch : wb_pipeline_)
-            if (batch.state != WbPipelineState::Empty) return false;
-        return true;
-    }
-
-    uint32_t pipeline_ifid_hash() {
-        IfidPipelineBatch* batch = &ifid_pipeline_[ifid_hash_index_];
-        if (batch->state != IfidPipelineState::Parsed) return 0;
-        for (uint32_t i = 0; i < batch->count; i++) {
-            Op& op = *batch->entries[i].op;
-            op.hash = FlatStore::hash_key(
-                op.arg(static_cast<uint32_t>(op.spec->first_key)));
-        }
-        batch->state = IfidPipelineState::Hashed;
-        ifid_hash_index_ = (ifid_hash_index_ + 1) % kGenthreadIfidBuffers;
-        return batch->count;
-    }
-
-    uint32_t pipeline_ifid_route_issue() {
-        IfidPipelineBatch* batch = &ifid_pipeline_[ifid_route_index_];
-        if (batch->state != IfidPipelineState::Hashed) return 0;
-        LoopSignals& sig = self_->sig();
-        const uint32_t staged = batch->count;
-        for (uint32_t i = 0; i < batch->count; i++) {
-            const IfidPipelineEntry entry = batch->entries[i];
-            Client* client = entry.client;
-            if (!client || client->dead() || client->closing()) continue;
-            Op& op = *entry.op;
-            Rob<kRobWindow>& rob = client->rob();
-            op.shard = srv_->router().shard_of(op.hash);
-            const uint32_t worker_id = srv_->worker_of_shard(op.shard);
-            ThreadCtx& worker = srv_->thread(worker_id);
-            if (entry.direct_candidate && rob.in_flight() == 0 && client->nothing_to_write()) {
-                SmallBuf<kWbufInline>& fill = client->fill_buf();
-                op.direct = fill.data();
-                op.direct_cap = static_cast<uint32_t>(fill.cap());
-            }
-            const Task task{client, rob.dispatch_id(), -1, nullptr};
-            rob.publish();
-            if (!worker.post_task_quiet(self_->id(), task, sig)) {
-                rob.unpublish();
-                continue;  // cursor is unchanged; the next IFID parse retries the frame
-            }
-            client->advance_parse(entry.consumed);
-            sig.ops++;
-            if (!touched_[worker_id]) {
-                touched_[worker_id] = true;
-                touched_list_[ntouched_++] = worker_id;
-            }
-            mark_active(client);
-        }
-        for (uint32_t i = 0; i < ntouched_; i++) {
-            const uint32_t worker = touched_list_[i];
-            touched_[worker] = false;
-            srv_->thread(worker).flush_task_notify(self_->id(), ring_, sig);
-        }
-        ntouched_ = 0;
-        batch->count = 0;
-        batch->state = IfidPipelineState::Empty;
-        ifid_route_index_ = (ifid_route_index_ + 1) % kGenthreadIfidBuffers;
-        return staged;
-    }
-
-    WbPipelineBatch* empty_wb_pipeline_batch() {
-        WbPipelineBatch& batch = wb_pipeline_[wb_gather_index_];
-        return batch.state == WbPipelineState::Empty ? &batch : nullptr;
-    }
-
-    template <bool HasUnix, bool kEp>
-    uint32_t pipeline_wb_gather() {
-        uint32_t work = collect_retire_work<HasUnix, kEp>();
-        if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
-        WbPipelineBatch* batch = empty_wb_pipeline_batch();
-        if (!batch || pending_serve_.empty()) return work;
-        AofManager& aof = srv_->aof();
-        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
-        if (!aof.reply_gate_ready(aof_gate_target_)) {
-            aof.register_send_gate_wait(self_->id());
-            return work;
-        }
-        aof_gate_target_ = 0;
-        while (batch->count < kGenthreadWbBatchConns && !pending_serve_.empty()) {
-            Client* client = pending_serve_.front();
-            pending_serve_.pop_front();
-            client->set_serve_pending(false);
-            if (!client->dead()) batch->clients[batch->count++] = client;
-        }
-        if (batch->count) {
-            // The completion producer wrote the head Op state from another executor core.  Touch
-            // the owner-local Client pointers in one tight loop, then let independent IFID/EX
-            // schedule entries cover the miss before WB.PREP consumes the retireable prefix.
-            for (uint32_t i = 0; i < batch->count; i++) {
-                Client* client = batch->clients[i];
-                __builtin_prefetch(client, 0, 2);
-                // A disconnect/completion race can leave a harmless stale ready notification for
-                // a Client whose ROB is already empty (and may never have allocated a chunk).
-                // PREPARE already treats that as an empty prefix; do not manufacture a reference
-                // through rob.at() merely for a prefetch in that state.
-                if (!client->rob().quiesced())
-                    __builtin_prefetch(&client->rob().at(client->rob().flush_id()), 0, 2);
-            }
-            batch->state = WbPipelineState::Gathered;
-            wb_gather_index_ = (wb_gather_index_ + 1) % kGenthreadWbBuffers;
-            work += batch->count;
-        }
-        return work;
-    }
-
-    template <bool HasTls, bool kEp>
-    uint32_t pipeline_wb_prepare() {
-        WbPipelineBatch* batch = &wb_pipeline_[wb_prepare_index_];
-        if (batch->state != WbPipelineState::Gathered) return 0;
-        for (uint32_t i = 0; i < batch->count; i++) {
-            Client* client = batch->clients[i];
-            if (!client || client->dead()) continue;
-            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-                climon_reply_suppressed(client)) {
-                (void)climon_prepare_suppressed(client);
-                continue;
-            }
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_tls<kEp>(*client, *tls);
-                else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_ktls<kEp>(*client);
-                else
-                    (void)wb_.prepare<kEp>(*client);
-            } else {
-                (void)wb_.prepare<kEp>(*client);
-            }
-        }
-        batch->state = WbPipelineState::Prepared;
-        wb_prepare_index_ = (wb_prepare_index_ + 1) % kGenthreadWbBuffers;
-        return batch->count;
-    }
-
-    template <bool HasTls, bool kEp>
-    uint32_t pipeline_wb_submit() {
-        WbPipelineBatch* batch = &wb_pipeline_[wb_submit_index_];
-        if (batch->state != WbPipelineState::Prepared) return 0;
-        const uint32_t submitted = batch->count;
-        for (uint32_t i = 0; i < batch->count; i++) {
-            Client* client = batch->clients[i];
-            if (!client || client->dead()) continue;
-            bool retry_plain_submit = false;
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client)) {
-                    (void)wb_.submit_tls<kEp>(*client, *tls);
-                    if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll<kEp>(client, tls->wanted());
-                    if (tls->failed())
-                        close_client(client, tls->output_pending() || client->send_inflight());
-                } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                    const bool did = wb_.submit_ktls<kEp>(*client);
-                    retry_plain_submit = !kEp && !did && !client->send_inflight() &&
-                                         !client->nothing_to_write();
-                } else {
-                    const bool did = wb_.submit<kEp>(*client);
-                    retry_plain_submit = !kEp && !did && !client->send_inflight() &&
-                                         !client->nothing_to_write();
-                }
-            } else {
-                const bool did = wb_.submit<kEp>(*client);
-                retry_plain_submit = !kEp && !did && !client->send_inflight() &&
-                                     !client->nothing_to_write();
-            }
-            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(client);
-            // A full io_uring SQ is a retry, not a completed SUBMIT stage.  No CQE will arrive for
-            // an SQE that was never allocated, so retain the ordinary completion wake explicitly;
-            // the next WB gather/prepare/submit turn retries after this loop flushes the SQ.  A
-            // send already in flight needs no entry because its CQE resubmits accumulated output.
-            if (retry_plain_submit && !client->dead()) {
-                self_->sig().sqe_starved++;
-                enqueue_serve(client);
-            }
-        }
-        batch->count = 0;
-        batch->state = WbPipelineState::Empty;
-        wb_submit_index_ = (wb_submit_index_ + 1) % kGenthreadWbBuffers;
-        return submitted;
+        return active_ifid_context_ == nullptr && active_wb_context_ == nullptr;
     }
 
     // ---- IFID: receive-buffer maintenance, parse/hash/route, publish -----------------------------
     template <bool HasTls, bool kEp>
     uint32_t ifid_batch(IfidPipelineBatch* pipeline_batch) {
         uint32_t work = 0;
-        uint64_t gathered_units = 0;
-        uint64_t gathered_batches = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
 
@@ -3207,6 +3441,7 @@ nonblocking_dispatch:
         // stream flowing no matter how deep the reply backlog is -- which is exactly the property
         // that made 3s hold flat (-3.7%) at the conn count where 2s lost 21%.
         for (size_t idx = 0; idx < active_.size();) {
+            if (pipeline_batch && pipeline_batch->force_coarse) break;
             if (pipeline_batch && pipeline_batch->count == kGenthreadIfidBatchOps) break;
             Client* c = active_.at(idx);
             const uint32_t pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
@@ -3330,18 +3565,8 @@ nonblocking_dispatch:
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
                 }
-                if (pipeline_batch && pipeline_batch->count != pipeline_count_before) {
-                    const uint32_t first_frame =
-                        pipeline_batch->entries[pipeline_count_before].consumed;
-                    pipeline_batch->gathered_bytes += available_before;
-                    pipeline_batch->first_frame_bytes += first_frame;
-                } else if (!pipeline_batch) {
-                    const uint64_t parsed = self_->sig().ops - ops_before;
-                    if (parsed) {
-                        gathered_units += parsed;
-                        gathered_batches++;
-                    }
-                }
+                (void)available_before;
+                (void)ops_before;
             }
 
             if constexpr (!kEp) {
@@ -3405,119 +3630,16 @@ nonblocking_dispatch:
             }
         }
 
-        if (!pipeline_batch && gathered_batches)
-            observe_pipeline_depth(gathered_units, gathered_batches);
-
-        return work;
-    }
-
-    template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_ifid_rx_parse() {
-        uint32_t work = ring_.for_each_cqe(
-            [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
-        if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
-        IfidPipelineBatch* batch = empty_ifid_pipeline_batch();
-        if (!batch) return work;
-        batch->gathered_bytes = 0;
-        batch->first_frame_bytes = 0;
-        work += ifid_batch<HasTls, kEp>(batch);
-        if (batch->count) {
-            observe_pipeline_depth(batch->gathered_bytes, batch->first_frame_bytes);
-            batch->state = IfidPipelineState::Parsed;
-            ifid_fill_index_ = (ifid_fill_index_ + 1) % kGenthreadIfidBuffers;
-        }
-        return work;
-    }
-
-    // Gather stages report one owner-local sample; only this pass-boundary function can change the
-    // schedule shape.  The ratio is capped because the gate distinguishes "naturally deep" from
-    // "shallow", not pipeline=128 from pipeline=1024, and capping prevents a single large recv from
-    // dominating several later windows.
-    void observe_pipeline_depth(uint64_t gathered, uint64_t unit) {
-        if (!unit) return;
-        const uint64_t depth = std::min<uint64_t>(
-            kGenthreadIfidBatchOps, std::max<uint64_t>(1, gathered / unit));
-        pipeline_depth_pending_sum_ += depth;
-        pipeline_depth_pending_count_++;
-    }
-
-    void pipeline_depth_gate_pass() {
-        if (!pipeline_depth_pending_count_) return;
-        pipeline_depth_window_sum_ += pipeline_depth_pending_sum_;
-        pipeline_depth_window_count_ += pipeline_depth_pending_count_;
-        pipeline_depth_pending_sum_ = 0;
-        pipeline_depth_pending_count_ = 0;
-        if (pipeline_depth_window_count_ < kGenthreadDepthSampleWindow) return;
-
-        const uint64_t average = pipeline_depth_window_sum_ / pipeline_depth_window_count_;
-        if (pipeline_interleave_window_ != 0 &&
-            average >= kGenthreadDeepBatchThreshold) {
-            pipeline_interleave_window_ = 0;
-            pipeline_drain_pending_ = true;
-        } else if (pipeline_interleave_window_ == 0 &&
-                   average <= kGenthreadShallowBatchThreshold) {
-            pipeline_interleave_window_ = kGenthreadInterleaveWindow;
-            pipeline_drain_pending_ = false;
-        }
-        pipeline_depth_window_sum_ = 0;
-        pipeline_depth_window_count_ = 0;
-    }
-
-    // A mode transition may find up to three owner-local batches already staged.  Finish them in
-    // FIFO cursor order once, then enter the established coarse rotation.  This is transition-only
-    // work: steady deep traffic does no buffer search, state clear, or micro-stage dispatch.
-    template <bool HasTls, bool kEp>
-    uint32_t drain_io_pipeline_now() {
-        uint32_t work = 0;
-        while (pipeline_ifid_hash()) {}
-        while (const uint32_t n = pipeline_ifid_route_issue()) work += n;
-        while (pipeline_wb_prepare<HasTls, kEp>()) {}
-        while (const uint32_t n = pipeline_wb_submit<HasTls, kEp>()) work += n;
         return work;
     }
 
     template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t pipeline_coarse_pass() {
-        const bool drain_staged = pipeline_drain_pending_;
-        uint32_t work = drain_staged ? drain_io_pipeline_now<HasTls, kEp>() : 0;
-        work += ring_.for_each_cqe(
-            [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
-        if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
-        work += ifid_batch<HasTls, kEp>(nullptr);
-        work += executor_->fused_coarse_pass(drain_staged);
+        uint32_t work = ifid_batch<HasTls, kEp>(nullptr);
+        work += executor_->fused_coarse_pass();
         work += collect_retire_work<HasUnix, kEp>();
         work += wb_batch<HasTls, kEp>();
-        pipeline_drain_pending_ = false;
         return work;
-    }
-
-    template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_stage(GenthreadStage stage) {
-        switch (stage) {
-            case GenthreadStage::ExBucketPrefetch:
-                return executor_->pipeline_bucket_prefetch();
-            case GenthreadStage::IfidHash:
-                return pipeline_ifid_hash();
-            case GenthreadStage::WbPrepare:
-                return pipeline_wb_prepare<HasTls, kEp>();
-            case GenthreadStage::ExObjectPrefetch:
-                return executor_->pipeline_object_prefetch();
-            case GenthreadStage::IfidRouteIssue:
-                return pipeline_ifid_route_issue();
-            case GenthreadStage::ExInputPrefetch:
-                return executor_->pipeline_input_prefetch();
-            case GenthreadStage::WbSubmit:
-                return pipeline_wb_submit<HasTls, kEp>();
-            case GenthreadStage::ExExecute:
-                return executor_->pipeline_execute();
-            case GenthreadStage::IfidRxParse:
-                return pipeline_ifid_rx_parse<HasUnix, HasTls, kEp>();
-            case GenthreadStage::ExFill:
-                return executor_->pipeline_fill();
-            case GenthreadStage::WbGather:
-                return pipeline_wb_gather<HasUnix, kEp>();
-        }
-        return 0;
     }
 
     template <bool HasTls, bool kEp>
@@ -4002,22 +4124,10 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
-    // Arm-3 batch state is owner-local and appended at the cold tail.  Client/Op layouts and all
-    // cross-thread synchronization objects remain unchanged.
-    std::array<IfidPipelineBatch, kGenthreadIfidBuffers> ifid_pipeline_{};
-    std::array<WbPipelineBatch, kGenthreadWbBuffers> wb_pipeline_{};
-    uint32_t ifid_fill_index_ = 0;
-    uint32_t ifid_hash_index_ = 0;
-    uint32_t ifid_route_index_ = 0;
-    uint32_t wb_gather_index_ = 0;
-    uint32_t wb_prepare_index_ = 0;
-    uint32_t wb_submit_index_ = 0;
-    uint32_t pipeline_interleave_window_ = kGenthreadInterleaveWindow;
-    bool pipeline_drain_pending_ = false;
-    uint64_t pipeline_depth_pending_sum_ = 0;
-    uint64_t pipeline_depth_window_sum_ = 0;
-    uint32_t pipeline_depth_pending_count_ = 0;
-    uint32_t pipeline_depth_window_count_ = 0;
+    // Cold safety views into the run_loop locals. They are non-null only inside one pipelined pass
+    // and let teardown/migration defer while an unpublished Op or gathered Client is referenced.
+    IfidPipelineBatch* active_ifid_context_ = nullptr;
+    WbPipelineBatch* active_wb_context_ = nullptr;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;

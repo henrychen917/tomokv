@@ -75,8 +75,9 @@ public:
     // Generalized-thread tenure shares the physical thread with IoLoop. IoLoop remains the
     // published wake endpoint because it owns the blocking network wait; this executor keeps its
     // ring only as the source for cross-ring messages and persistence work.
-    void activate_fused() {
+    void activate_fused(Ring* handoff_ring) {
         if (!initialized_) std::abort();
+        fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
             shard->bind_notify_pending(&notify_keyless_pending_);
@@ -87,19 +88,11 @@ public:
         fused_completion_ = completion;
     }
 
-    // Cold progress callers (snapshot coordination and the pre-park sweep) first drain any arm-3
-    // buffers in sequence order, then use the complete coarse executor pass as a backstop.
-    uint32_t fused_pass() {
-        const uint32_t staged = drain_pipeline_now();
-        return staged + fused_pass_impl(true);
-    }
+    uint32_t fused_pass() { return fused_pass_impl(true); }
 
     // Deep generalized-thread traffic has already drained staged micro-batches at its one mode
     // transition.  Keep the steady coarse pass free of empty pipeline-state probes.
-    uint32_t fused_coarse_pass(bool drain_staged) {
-        const uint32_t staged = drain_staged ? drain_pipeline_now() : 0;
-        return staged + fused_pass_impl(true);
-    }
+    uint32_t fused_coarse_pass() { return fused_pass_impl(true); }
 
     // Arm 3 keeps control/persistence work in the executor owner but lets the static schedule own
     // task gather/prefetch/execute.  This has no internal park and never consumes a Task.
@@ -174,81 +167,9 @@ public:
         // mask-independent pre-park backstop must not re-enter expiry/cleanup behind that ack.
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = drain_pipeline_now() + sweep();
+        const uint32_t did = sweep();
         if (did) ring_.submit_and_reap();
         return did;
-    }
-
-    // ---- arm-3 EX micro-stages ---------------------------------------------------------------
-    uint32_t pipeline_input_prefetch() {
-        return self_->read_ahead_task_inputs(kGenthreadExBatchOps, [&](const Task& task) {
-            if (task.client) __builtin_prefetch(&task.client->rob().at(task.op_id), 0, 2);
-        });
-    }
-
-    uint32_t pipeline_fill(bool unmasked = false) {
-        if (!pipeline_tasks_allowed() || !xshard_retries_.empty() ||
-            !ordered_deferred_.empty()) return 0;
-        // Snapshot continuations retain their established owner-local scheduling machinery; the
-        // ordinary hot state is the only one split across the bucket/object stages.
-        if (snapshot_owner_state_ != SnapshotOwnerState::None)
-            return drain_tasks_snapshot(unmasked);
-        ExPipelineBatch* batch = &pipeline_batches_[pipeline_fill_index_];
-        if (batch->state != ExPipelineState::Empty) return 0;
-        batch->count = self_->gather_tasks_bounded(
-            batch->tasks.data(), batch->producers.data(), kGenthreadExBatchOps, unmasked);
-        if (!batch->count) return 0;
-        batch->state = ExPipelineState::Filled;
-        pipeline_fill_index_ = (pipeline_fill_index_ + 1) % kGenthreadExBuffers;
-        return batch->count;
-    }
-
-    uint32_t pipeline_bucket_prefetch() {
-        ExPipelineBatch* batch = &pipeline_batches_[pipeline_bucket_index_];
-        if (batch->state != ExPipelineState::Filled) return 0;
-        prefetch_exec_batch(batch->tasks.data(), batch->count);
-        batch->state = ExPipelineState::BucketPrefetched;
-        pipeline_bucket_index_ = (pipeline_bucket_index_ + 1) % kGenthreadExBuffers;
-        return batch->count;
-    }
-
-    uint32_t pipeline_object_prefetch() {
-        ExPipelineBatch* batch = &pipeline_batches_[pipeline_object_index_];
-        if (batch->state != ExPipelineState::BucketPrefetched) return 0;
-        for (uint32_t i = 0; i < batch->count; i++) {
-            const Task& task = batch->tasks[i];
-            if (!task.client || task.scatter) continue;
-            const Op& op = task.client->rob().at(task.op_id);
-            const int32_t shard = task.shard >= 0 ? task.shard : op.shard;
-            if (shard >= 0 &&
-                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
-                srv_->shard(shard).store().prefetch_object(op.hash);
-        }
-        batch->state = ExPipelineState::Ready;
-        pipeline_object_index_ = (pipeline_object_index_ + 1) % kGenthreadExBuffers;
-        return batch->count;
-    }
-
-    uint32_t pipeline_execute() {
-        if (!pipeline_tasks_allowed()) return 0;
-        ExPipelineBatch* batch = &pipeline_batches_[pipeline_execute_index_];
-        if (batch->state != ExPipelineState::Ready) return 0;
-        if (snapshot_owner_state_ == SnapshotOwnerState::None)
-            exec_batch_prefetched(batch->tasks.data(), batch->count);
-        else
-            for (uint32_t i = 0; i < batch->count; i++) schedule_snapshot_task(batch->tasks[i]);
-        self_->retire_gathered_tasks(batch->producers.data(), batch->count);
-        self_->sig().ops += batch->count;
-        const uint32_t n = batch->count;
-        batch->count = 0;
-        batch->state = ExPipelineState::Empty;
-        pipeline_execute_index_ = (pipeline_execute_index_ + 1) % kGenthreadExBuffers;
-        // Remote completions prepared MSG_RING wakes on the executor-owned ring.  In arm 2 the
-        // enclosing fused pass submitted that ring after drain_tasks(); arm 3 executes after the
-        // control pass, so EX.EXECUTE itself must publish those prepared wakes before the owner can
-        // park.  Local completions use the direct callback and make this a harmless empty submit.
-        ring_.submit_and_reap();
-        return n;
     }
 
     void fused_snapshot_start(SnapshotManager* manager) { begin_snapshot(manager); }
@@ -374,13 +295,7 @@ public:
     }
 
 private:
-    enum class ExPipelineState : uint8_t { Empty, Filled, BucketPrefetched, Ready };
-    struct ExPipelineBatch {
-        std::array<Task, kGenthreadExBatchOps> tasks{};
-        std::array<uint32_t, kGenthreadExBatchOps> producers{};
-        uint32_t count = 0;
-        ExPipelineState state = ExPipelineState::Empty;
-    };
+    friend class IoLoop;
 
     bool pipeline_tasks_allowed() const {
         if (snapshot_blocks_tasks()) return false;
@@ -388,14 +303,7 @@ private:
                  srv_->lb_acked(self_->id()));
     }
 
-    uint32_t drain_pipeline_now() {
-        if (!pipeline_tasks_allowed()) return 0;
-        uint32_t work = 0;
-        while (pipeline_bucket_prefetch()) {}
-        while (pipeline_object_prefetch()) {}
-        while (const uint32_t n = pipeline_execute()) work += n;
-        return work;
-    }
+    Ring& handoff_ring() { return fused_handoff_ring_ ? *fused_handoff_ring_ : ring_; }
 
     bool flip_quiesced() const {
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
@@ -951,7 +859,11 @@ private:
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
             const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+            // The shipped coarse batch must obey the same resolve -> verify-owner -> store-touch
+            // order as pipelined E1. A route can go stale after enqueue; even a prefetch through
+            // the old FlatStore is formally an ownership violation under TSAN's model.
             if (shard >= 0 && !batch[i].scatter &&
+                srv_->worker_of_shard(shard) == self_->id() &&
                 !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
                 srv_->shard(shard).store().prefetch(op.hash);
         }
@@ -1248,7 +1160,7 @@ private:
 
     bool post_forwarded_task(const Task& task, uint32_t target) {
         ThreadCtx& destination = srv_->thread(target);
-        return destination.post_task(self_->id(), task, ring_, self_->sig());
+        return destination.post_task(self_->id(), task, handoff_ring(), self_->sig());
     }
 
     bool forward_stale_task(const Task& task) {
@@ -1262,7 +1174,7 @@ private:
 
     bool post_forwarded_release(const BorrowRelease& release, uint32_t target) {
         ThreadCtx& destination = srv_->thread(target);
-        return destination.post_release(self_->id(), release, ring_, self_->sig());
+        return destination.post_release(self_->id(), release, handoff_ring(), self_->sig());
     }
 
     bool forward_stale_release(const BorrowRelease& release) {
@@ -1335,7 +1247,7 @@ private:
             // stranded exactly this way at 4 nodes, where cross-CCD coherence stretches the window.
             std::atomic_thread_fence(std::memory_order_seq_cst);
             if (snd.ready().set(slot))
-                snd.wake_if_parked(ring_, self_->sig());
+                snd.wake_if_parked(handoff_ring(), self_->sig());
             return;
         }
         // No slot yet: first contact. The claimed post carries the pointer to the sender, which
@@ -1351,7 +1263,7 @@ private:
         }
         TOMO_FORENSIC(c->n_claims.fetch_add(1, std::memory_order_relaxed));
         ThreadCtx& snd = srv_->thread(target);
-        if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
+        if (!snd.post_client(self_->id(), c, handoff_ring(), self_->sig())) {
             self_->sig().notify_drop++;
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
         }
@@ -1387,11 +1299,7 @@ private:
     uint32_t   fused_idle_spins_ = 0;
     void*      fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
-    std::array<ExPipelineBatch, kGenthreadExBuffers> pipeline_batches_{};
-    uint32_t pipeline_fill_index_ = 0;
-    uint32_t pipeline_bucket_index_ = 0;
-    uint32_t pipeline_object_index_ = 0;
-    uint32_t pipeline_execute_index_ = 0;
+    Ring* fused_handoff_ring_ = nullptr;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;

@@ -244,8 +244,11 @@ int main(int argc, char** argv) {
 
     srv.topo().dump(stdout);
     std::printf("tomokv-cpp: %u generalized threads, %u shard(s), generalized,"
-                " %s, alloc=%s\n", srv.nthreads(), cfg.shards,
-                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
+                " %s, schedule=%s, alloc=%s\n", srv.nthreads(), cfg.shards,
+                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring",
+                cfg.genthread_schedule == GenthreadSchedule::PipelinedFused
+                    ? "pipelined-fused" : "coarse",
+                alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         std::printf("  thread t%u: role=generalized cpu=%d L3=%u shards=%zu send=", p.id, p.cpu,
                     p.domain, srv.thread(p.id).shards().size());
@@ -315,7 +318,7 @@ int main(int argc, char** argv) {
                         return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                     });
             if (ok) {
-                exs[tid].activate_fused();
+                exs[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&exs[tid]);
                 exs[tid].bind_fused_completion(
                     &ios[tid],
