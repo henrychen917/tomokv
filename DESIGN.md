@@ -46,7 +46,7 @@ Single ownership is unchanged: only the current bucket owner executes a shard. T
 masked-monolith SPSC mesh remains the only task transport; `task_in_[self]` is the local staging
 lane, not a special queue and not an inline fast path.
 
-## Arm 2: three coarse batch streams
+## Three coarse batch streams
 
 Every physical thread advances three independent streams. They are not three phases of one batch:
 
@@ -74,12 +74,42 @@ the ROB bound IFID, the per-producer SPSC lanes stage EX input, and the completi
 batches of 16. The adaptive loop below retains this exact coarse ordering while making the current
 batch caps compile-time sweep points in `genthread_pipeline.h`.
 
-This commit is the coarse comparison arm. It intentionally does not interleave batch micro-stages;
-that is the next commit's arm.
+The permanent `coarse` arm retains that shipped implementation unchanged. `streams0` is the new
+buffered scheduling control: it uses explicit loop-local IFID B, EX A, and WB C contexts and the
+same queue reservations and post-execution lane retirement as the interleaved experiment, but does
+not overlap their micro-stages. Its compile-time schedule is:
+
+`N0 / I0 / N1 / I1 / I2 / E0 / E1 / E2 / W0 / W1 / W2 / N2`
+
+Thus the three contiguous stream groups are `IFID -> EX -> WB`, empty contexts cost only their
+stage guards, and a self-owned command still crosses `task_in_[self]` at I2 before the later E0
+gather. EX pops with an unretired frontier and publishes one merged retirement update per source
+lane only after E2. Snapshot and ordered/cold executor debt use the established monolithic pass.
+The single N2 boundary submits receive rearms, task/completion notifications, and reply sends.
+Executor control runs outside the declared N0..N2 rotation. If it leaves ordinary snapshot or
+ordered debt while task consumption is permitted, E0 gathers with an unretired frontier, durably
+appends that batch to the monolithic deque, and only then publishes its one retirement update per
+source lane. A snapshot/LB hard task fence instead leaves fresh work in the bounded lanes. The
+mask-independent pre-park audit uses the same unretired E0/E1/E2 path, so `streams0` never falls
+through to the grandfathered coarse executor drain.
+
+There are two forced touches outside the fused loop and schedule/config plumbing. One spare bit in
+`Client::parse_backpressure_` records that B owns a decoded, unpublished Op. It blocks compaction,
+growth, migration, and release until I2 publishes the ROB and reserved task, advances the parse
+cursor, and clears the bit; it does not change the 1984-byte Client layout. `ExLoop::fused_sweep`
+also accepts a no-fresh-task mode so the pre-park audit can leave Task consumption to streams0's
+unretired E0/E1/E2 path. Its default preserves every pre-existing caller.
+
+`streams0` uses the named compile-time caps `kGenthreadIfidBatchOps=128`,
+`kGenthreadExBatchOps=128`, and `kGenthreadWbBatchConns=64`, with one B context, one active A
+context (the allocated D context is unused in this control), and one C context.
+`kGenthreadStreams0Schedule` is declared beside those caps and context counts in
+`genthread_pipeline.h`. `streams0` is boot-only and requires the uring network engine.
 
 ## Selectable pipelined-fused schedule
 
-`--genthread-schedule coarse|pipelined-fused` is boot-latched and reported through `CONFIG GET`.
+`--genthread-schedule coarse|pipelined-fused|iofused|streams0` is boot-latched and reported through
+`CONFIG GET`.
 `coarse` is the default and permanent control arm. Selecting `pipelined-fused` does not remove that
 control: every pass below `kGenthreadPipelineMinOccupancy` runs the complete coarse
 `IFID -> EX -> WB` rotation. The gate is decided before N0 from the preceding pass's actual batch
@@ -139,7 +169,7 @@ recognize a Client referenced during the current loop body.
 Local point commands use the same self-producer SPSC lane as remote commands: I2 publishes them to
 `task_in_[self]`, and a later E0/E1/E2 executes them. IFID never executes shard work inline. The
 existing coarse executor's prefetch loop also performs the owner check before its first FlatStore
-touch, so the formal E1 ordering applies to both selectable schedules.
+touch, so the formal E1 ordering applies to buffered and shipped coarse schedules alike.
 
 All caps, the two-context rule, the occupancy threshold, and the exact static schedule live together
 in `genthread_pipeline.h`. The bake-off axes therefore remain named compile-time constants; the sole

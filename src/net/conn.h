@@ -595,6 +595,14 @@ public:
         if (v) parse_backpressure_ |= kFlipBackpressure;
         else parse_backpressure_ &= static_cast<uint8_t>(~kFlipBackpressure);
     }
+    // A streams IFID context may own one decoded, unpublished Op whose argv slices still name the
+    // read buffer. This owner-local bit is both the parse stop and the prepared==0 lifetime gate;
+    // it consumes an unused bit in the existing mask, so Client's signed footprint is unchanged.
+    bool pipeline_prepared() const { return parse_backpressure_ & kPipelinePrepared; }
+    void set_pipeline_prepared(bool value) {
+        if (value) parse_backpressure_ |= kPipelinePrepared;
+        else parse_backpressure_ &= static_cast<uint8_t>(~kPipelinePrepared);
+    }
     bool subscriber_mode() const { return subscriber_mode_; }
     void set_subscriber_mode(bool v) { subscriber_mode_ = v; }
     bool blocked() const { return connection_flags_ & kBlocked; }
@@ -674,15 +682,16 @@ public:
     // race-free.
     bool safe_to_release() {
         return rob_.quiesced() &&
+               !pipeline_prepared() &&
                !recv_armed_ && !send_inflight_ &&        // the KERNEL holds no pointer into us
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0;
     }
     bool migration_protocol_idle() const {
-        // Unread input and parse_backpressure_ move with the Client. A held frame is unpublished,
-        // hence outside the ROB, and whichever IO owns the Client after the ownership edge resumes
-        // it when that backpressure reason clears.
-        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+        // Ordinary unread input and admission/FLIP backpressure move with the Client. A streams
+        // prepared frame is different: its unpublished Op is owner-local, so it blocks migration.
+        return rob_.quiesced() && !pipeline_prepared() &&
+               !send_inflight_ && !serve_pending_ &&
                !retire_queued_.load(std::memory_order_acquire) &&
                watched_refs_.load(std::memory_order_acquire) == 0 &&
                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
@@ -692,7 +701,8 @@ public:
         // Global dispatch is paused, but connections which remain on this IO may retain durable
         // owner-local modes (subscriptions, WATCH/MULTI session metadata, tracking). Only work
         // which can still touch an executor, ROB pointer, output borrow, or barrier must drain.
-        return rob_.quiesced() && !send_inflight_ && !serve_pending_ &&
+        return rob_.quiesced() && !pipeline_prepared() &&
+               !send_inflight_ && !serve_pending_ &&
                !retire_queued_.load(std::memory_order_acquire) &&
                barrier_owners_ == 0 && atomic_groups_io_ == 0 && !blocked() &&
                nothing_to_write();
@@ -755,6 +765,7 @@ private:
     uint8_t   barrier_owners_ = 0;
     static constexpr uint8_t kAtomicBackpressure = 1u << 0;
     static constexpr uint8_t kFlipBackpressure = 1u << 1;
+    static constexpr uint8_t kPipelinePrepared = 1u << 2;
     uint8_t   parse_backpressure_ = 0;
     bool      subscriber_mode_ = false;  // IO-owned; consumes existing alignment padding
     // The former blocked_ bool is a one-byte flag cell. RESP3 shares it instead of extending the

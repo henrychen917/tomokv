@@ -1,8 +1,8 @@
 // genthread_pipeline.h — compile-time geometry for the generalized-thread schedules.
 //
-// Keep batch caps, context counts, the depth gate, and the owner-approved static order together.
-// The boot knob chooses coarse versus pipelined-fused; these constants remain build-time bake-off
-// axes so neither hot path acquires per-operation tuning state.
+// Keep every generalized-thread batch cap, buffer count, gate, and static order together. The boot
+// knob selects a fixed loop shape; these remain build-time bake-off axes so no hot path acquires
+// per-operation tuning state.
 #pragma once
 #include <array>
 #include <cstdint>
@@ -42,6 +42,24 @@ enum class GenthreadMicrostage : uint8_t {
     E2,
     W2,
     N2,
+};
+
+// `streams0` uses the same explicit B/A/C handoff buffers as the interleaved arm, but drains all
+// sub-stages of one stream before moving to the next. It is the scheduling-overhead control:
+// network reap, coarse IFID, coarse EX, coarse WB, and the sole network submit boundary.
+inline constexpr std::array<GenthreadMicrostage, 12> kGenthreadStreams0Schedule = {
+    GenthreadMicrostage::N0,
+    GenthreadMicrostage::I0,
+    GenthreadMicrostage::N1,
+    GenthreadMicrostage::I1,
+    GenthreadMicrostage::I2,
+    GenthreadMicrostage::E0,
+    GenthreadMicrostage::E1,
+    GenthreadMicrostage::E2,
+    GenthreadMicrostage::W0,
+    GenthreadMicrostage::W1,
+    GenthreadMicrostage::W2,
+    GenthreadMicrostage::N2,
 };
 
 // Owner-approved reference schedule.  The loop body is written in this exact order rather than

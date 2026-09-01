@@ -95,8 +95,8 @@ public:
     // transition.  Keep the steady coarse pass free of empty pipeline-state probes.
     uint32_t fused_coarse_pass() { return fused_pass_impl(true); }
 
-    // Arm 3 keeps control/persistence work in the executor owner but lets the static schedule own
-    // task gather/prefetch/execute.  This has no internal park and never consumes a Task.
+    // Buffered schedules keep control/persistence work in the executor owner but let the fused
+    // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
     uint32_t fused_pipeline_control() { return fused_pass_impl(false); }
 
     // One non-blocking executor turn, called between passes of the fused network loop. This is the
@@ -167,12 +167,13 @@ public:
         return did;
     }
 
-    uint32_t fused_sweep() {
+    uint32_t fused_sweep(bool consume_tasks = true) {
         // Once an LB ExDrain acknowledgement is visible this owner is a hard safe point. IoLoop's
         // mask-independent pre-park backstop must not re-enter expiry/cleanup behind that ack.
-        if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
+        if (lb_controller_armed_ && srv_->lb_dispatch_paused())
+            return consume_tasks ? fused_pass() : fused_pipeline_control();
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep();
+        const uint32_t did = sweep(consume_tasks);
         if (did) fused_submit_boundary();
         return did;
     }
@@ -453,14 +454,14 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
-    uint32_t sweep() {
+    uint32_t sweep(bool consume_tasks = true) {
         uint32_t n = snapshot_control_pass() + service_stale_forwards() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
             n += service_multi_retries();
             n += service_atomic_deferred();
             n += service_xshard_retries();
             if (xshard_retries_.empty()) n += service_ordered_deferred();
-            if (xshard_retries_.empty() && ordered_deferred_.empty())
+            if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
                 n += snapshot_owner_state_ == SnapshotOwnerState::None
                          ? drain_tasks(true) : drain_tasks_snapshot(true);
         }
@@ -886,8 +887,8 @@ private:
         }
     }
 
-    // Consume a bucket-prefetched homogeneous batch.  Arm 2 calls this immediately after the
-    // prefetch loop; arm 3 reaches it later through the static schedule.
+    // Consume a bucket-prefetched homogeneous batch. Streams0 calls this immediately after the
+    // prefetch loop; an interleaved schedule reaches it after independent-stream filler.
     void exec_batch_prefetched(const Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
