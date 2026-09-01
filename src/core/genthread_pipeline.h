@@ -17,17 +17,27 @@ inline constexpr uint32_t kGenthreadWbBorrowPrefetchBytes = 512;
 inline constexpr uint32_t kGenthreadCacheLineBytes = 64;
 inline constexpr uint32_t kGenthreadIoFusedCoalesceRotations = 4;
 
-// V1 has one IFID stream context, exactly two EX contexts (A/D), and one WB stream context.  The
-// contexts are loop locals and are empty again at the pass boundary; there is no triple buffer.
+// V1 has one IFID stream context, exactly two EX contexts (A/D), and one WB stream context. The
+// contexts are loop locals; `streams` may retain only pre-I1 B or pre-E1 A across the boundary.
+// WB is always empty at the boundary, and there is no triple buffer.
 inline constexpr uint32_t kGenthreadIfidContexts = 1;
 inline constexpr uint32_t kGenthreadExContexts   = 2;
 inline constexpr uint32_t kGenthreadWbContexts   = 1;
 static_assert(kGenthreadExContexts == 2, "buffered schedules forbid EX triple buffering");
 
-// Per-pass depth/thinness gate.  If no independent stream can occupy this many batch slots, the
-// selected pipelined arm executes the permanent coarse rotation for the entire pass.  Eight is the
-// first useful cross-stream window while remaining reachable with a modest connection fan-in.
+// Retained `pipelined-fused` depth/thinness gate. If no independent stream can occupy this many
+// batch slots, that legacy arm executes the permanent coarse rotation for the entire pass. Eight
+// is the first useful cross-stream window while remaining reachable with modest connection fan-in.
 inline constexpr uint32_t kGenthreadPipelineMinOccupancy = 8;
+
+// `streams` alone uses this gate and residual policy. A preceding pass below eight selects the
+// buffered coarse rotation. Thin IFID/EX batches may remain before their first publication or
+// store touch for one further rotation; the second visit must publish/execute (or durably defer).
+// WB has no residual constant because reply sends are never delayed for accumulation.
+inline constexpr uint32_t kGenthreadStreamsMinBatchOccupancy = 8;
+inline constexpr uint32_t kGenthreadStreamsResidualAgeCapRotations = 1;
+static_assert(kGenthreadStreamsResidualAgeCapRotations > 0,
+              "streams residual carry needs a positive, finite rotation cap");
 
 enum class GenthreadMicrostage : uint8_t {
     N0,

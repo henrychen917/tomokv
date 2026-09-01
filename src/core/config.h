@@ -1036,7 +1036,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "          epoll implies --persist-io normal)\n"
                         "  generalized schedule: --genthread-schedule "
                         "coarse|pipelined-fused|iofused|streams0|streams\n"
-                        "          (boot-only; default coarse; legacy thin passes use coarse)\n"
+                        "          (boot-only; default coarse; depth-gated arms use coarse order when thin)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
                         "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"

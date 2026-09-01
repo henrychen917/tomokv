@@ -143,9 +143,39 @@ leave fresh work in the bounded SPSC lanes and preserve their backpressure and s
 The EX-heavy fallback uses the second EX context and exactly
 `E1(A) E0(D) E1(D) E2(A) E2(D)`. The merged A/D batch still performs one retired-frontier update
 per source lane. Local point commands have no bypass: I2 publishes them to `task_in_[self]` and a
-later E0/E1/E2 consumes them like remote work. In this commit all contexts are empty again at the
-pass boundary; residual carry and its thinness gate are added separately. Like `streams0`,
-`streams` is boot-only and requires the uring network engine.
+later E0/E1/E2 consumes them like remote work. Like `streams0`, `streams` is boot-only and requires
+the uring network engine.
+
+## `streams` depth gate and residual carry
+
+`streams` has its own compile-time gate; it does not reuse or modify the retained
+`pipelined-fused` gate. It starts closed. A closed rotation runs the complete buffered `streams0`
+order and records the maximum actual IFID-op, EX-task, or WB-client batch occupancy. A sample of at
+least `kGenthreadStreamsMinBatchOccupancy=8` opens the next modulo rotation; a lower sample keeps the
+next rotation coarse. The same actual counts close an open gate. The decision is therefore made
+before N0 without a thread-wide preflight, and thin non-empty work remains proportional to its
+payload through the ready lists and bounded queue gathers.
+
+Only B before I1 and A before E1 may cross N2 to the next N0. A non-empty B or A below the
+occupancy threshold may accumulate for at most
+`kGenthreadStreamsResidualAgeCapRotations=1`; appending new work does not reset the oldest
+residual's age, so its second visit must publish, execute, or durably defer it. A carried B owns no
+destination reservations, retains at most one prepared-unpublished Op per connection, and keeps
+the connection's read buffer pinned plus the teardown/migration safety view live. Its prepared bit
+also prevents the ROB-quiescence barrier backstop from treating that unpublished work as fully
+idle. A placement transition rolls B back rather than carry hidden work across its safe point.
+
+A carried A keeps its gathered source-lane prefixes unretired. Its next E0 appends only up to
+`kGenthreadExBatchOps=128` and reissues the Op-line prefetch for the entire combined batch before
+E1. If snapshot/control state makes the pipeline ineligible, A transfers to the ordered monolithic
+deque before one merged `retire_n` per source lane. A residual is settled before any correctness
+sweep, park, placement safe point, or loop exit; no batch is ever carried after I1 reservations or
+after E1 has touched an owned FlatStore.
+
+WB has no residual state. Every C gathered at W0 reaches W1 and W2 in the same rotation, and N2
+submits a staged SEND immediately. Thus reply transmission is never delayed to manufacture batch
+depth. The gate and age cap live beside all batch caps, context counts, and the static schedules in
+the single commented block in `genthread_pipeline.h`.
 
 ## Schedule selector and legacy pipelined-fused arm
 
@@ -203,18 +233,19 @@ state machines or eleven context-reloading calls.
 
 V1 has exactly two EX contexts. When EX remains deep and IFID+WB cannot fill the normal gap, the
 fallback is `E1(A) E0(D) E1(D) E2(A) E2(D)`. A and D merge their lane counts and still publish one
-retired-frontier update per lane after both E2 sections. There is no triple buffering. At the pass
-boundary every local context is empty; cold safety pointers exist only so teardown/migration can
-recognize a Client referenced during the current loop body.
+retired-frontier update per lane after both E2 sections. There is no triple buffering. For this
+retained legacy arm, every local context is empty at the pass boundary; cold safety pointers exist
+only so teardown/migration can recognize a Client referenced during the current loop body.
 
 Local point commands use the same self-producer SPSC lane as remote commands: I2 publishes them to
 `task_in_[self]`, and a later E0/E1/E2 executes them. IFID never executes shard work inline. The
 existing coarse executor's prefetch loop also performs the owner check before its first FlatStore
 touch, so the formal E1 ordering applies to buffered and shipped coarse schedules alike.
 
-All caps, the two-context rule, the occupancy threshold, and the exact static schedule live together
-in `genthread_pipeline.h`. The bake-off axes therefore remain named compile-time constants; the sole
-runtime surface selects the control or experimental schedule.
+All caps, the two-context rule, both occupancy thresholds, the `streams` residual-age cap, and the
+exact static schedules live together in `genthread_pipeline.h`. The bake-off axes therefore remain
+named compile-time constants; the sole runtime surface selects the control or experimental
+schedule.
 
 ## Retained and disabled controls
 

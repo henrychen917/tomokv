@@ -503,9 +503,10 @@ private:
         }
         LoopSignals& sig = self_->sig();
 
-        // Buffered-schedule contexts are hoisted locals of this one loop body and empty every pass,
-        // so there is no per-request stage machine or teardown-visible batch lifetime. EX has
-        // exactly A/D; IFID and WB each have one independent context.
+        // Buffered-schedule contexts are hoisted locals for this run_loop tenure; there is no
+        // per-request stage machine. Only `streams` may retain pre-I1 B or pre-E1 A for one bounded
+        // rotation. WB, and every context in the other schedules, is empty at each pass boundary.
+        // EX has exactly A/D; IFID and WB each have one independent context.
         struct ExBatchContext {
             std::array<Task, kGenthreadExBatchOps> tasks{};
             std::array<Task, kGenthreadExBatchOps> executable{};
@@ -526,6 +527,22 @@ private:
                    executor_->snapshot_owner_state_ == ExLoop::SnapshotOwnerState::None;
         };
 
+        auto merge_ex_lanes = [&](ExBatchContext& destination,
+                                  const ExBatchContext& source) {
+            for (uint32_t i = 0; i < source.lane_count; i++) {
+                uint32_t lane = 0;
+                while (lane < destination.lane_count &&
+                       destination.lanes[lane] != source.lanes[i]) lane++;
+                if (lane == destination.lane_count) {
+                    if (lane == kMaxThreads) std::abort();
+                    destination.lanes[lane] = source.lanes[i];
+                    destination.lane_counts[lane] = 0;
+                    destination.lane_count++;
+                }
+                destination.lane_counts[lane] += source.lane_counts[i];
+            }
+        };
+
         auto ex_e0 = [&](ExBatchContext& batch, bool unmasked = false) {
             if (!ex_pipeline_ready()) return uint32_t{0};
             batch.count = self_->gather_tasks_unretired(
@@ -540,6 +557,37 @@ private:
             return batch.count;
         };
 
+        auto ex_e0_append = [&](ExBatchContext& batch, ExBatchContext& scratch) {
+            if (!ex_pipeline_ready()) return uint32_t{0};
+            uint32_t added = 0;
+            if (batch.count != kGenthreadExBatchOps) {
+                scratch.count = self_->gather_tasks_unretired(
+                    scratch.tasks.data(), scratch.lanes.data(), scratch.lane_counts.data(),
+                    scratch.lane_count, kGenthreadExBatchOps - batch.count);
+                scratch.executable_count = 0;
+                added = scratch.count;
+                for (uint32_t i = 0; i < added; i++)
+                    batch.tasks[batch.count + i] = scratch.tasks[i];
+                batch.count += added;
+                merge_ex_lanes(batch, scratch);
+                scratch.count = scratch.executable_count = scratch.lane_count = 0;
+            }
+            // A residual's earlier prefetch is a rotation old. Reissue E0 for the whole combined
+            // batch so every task gets the engineered current E0->E1 gap, even when A was full.
+            for (uint32_t i = 0; i < batch.count; i++)
+                if (batch.tasks[i].client)
+                    __builtin_prefetch(
+                        &batch.tasks[i].client->rob().at(batch.tasks[i].op_id), 0, 2);
+            return added;
+        };
+
+        auto ex_defer_batch = [&](ExBatchContext& batch) {
+            batch.executable_count = 0;
+            for (uint32_t i = 0; i < batch.count; i++)
+                executor_->ordered_deferred_.push_back(batch.tasks[i]);
+            return batch.count;
+        };
+
         auto ex_e0_defer_monolithic = [&](ExBatchContext& batch) {
             // Snapshot/control debt keeps fresh tasks on the established monolithic executor
             // path. They still leave the SPSC lanes through E0's unretired gather: durable deque
@@ -547,10 +595,7 @@ private:
             batch.count = self_->gather_tasks_unretired(
                 batch.tasks.data(), batch.lanes.data(), batch.lane_counts.data(),
                 batch.lane_count, kGenthreadExBatchOps);
-            batch.executable_count = 0;
-            for (uint32_t i = 0; i < batch.count; i++)
-                executor_->ordered_deferred_.push_back(batch.tasks[i]);
-            return batch.count;
+            return ex_defer_batch(batch);
         };
 
         auto ex_e1 = [&](ExBatchContext& batch) {
@@ -596,19 +641,7 @@ private:
         };
 
         auto ex_retire = [&](ExBatchContext& first, ExBatchContext* second = nullptr) {
-            if (second) {
-                for (uint32_t i = 0; i < second->lane_count; i++) {
-                    uint32_t lane = 0;
-                    while (lane < first.lane_count &&
-                           first.lanes[lane] != second->lanes[i]) lane++;
-                    if (lane == first.lane_count) {
-                        first.lanes[lane] = second->lanes[i];
-                        first.lane_counts[lane] = 0;
-                        first.lane_count++;
-                    }
-                    first.lane_counts[lane] += second->lane_counts[i];
-                }
-            }
+            if (second) merge_ex_lanes(first, *second);
             // Exactly one release-store per source lane for the pass, after both A/D E2 sections
             // have made every pop Executed, Forwarded, or DeferredDurably.
             self_->retire_task_lanes(
@@ -848,8 +881,8 @@ private:
             return submitted;
         };
 
-        // Boot-latched once for this physical generalized thread.  A closed depth gate therefore
-        // enters the shipped coarse rotation without executing an N0/I0/E0/W0 pipeline preflight.
+        // Boot-latched once for this physical generalized thread. The retained pipelined-fused
+        // gate enters its shipped coarse rotation without an N0/I0/E0/W0 pipeline preflight.
         const bool selected_pipelined_fused =
             srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
         const bool selected_iofused =
@@ -859,6 +892,9 @@ private:
         const bool selected_streams =
             srv_->cfg().genthread_schedule == GenthreadSchedule::Streams;
         uint32_t iofused_non_send_rotations = 0;
+        bool streams_gate_open = false;
+        uint32_t streams_ifid_residual_age = 0;
+        uint32_t streams_ex_residual_age = 0;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
@@ -932,19 +968,32 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
+                // B is unpublished and therefore invisible to destination ExDrain quiescence.
+                // Never carry that hidden work across a placement fence; its clients are already
+                // on the ready list and can decode/route again after the transition.
+                if (selected_streams && ifid_context.count &&
+                    (srv_->flip_dispatch_paused() || srv_->lb_dispatch_paused())) {
+                    rollback_ifid();
+                    streams_ifid_residual_age = 0;
+                    did++;
+                }
+
                 // Executor control surrounds the buffered schedules' declared N0..N2 rotation.
                 // It never consumes a fresh Task; cold/snapshot debt is handled by the durable
                 // EX handoff.
                 if (selected_streams0 || selected_streams)
                     did += executor_->fused_pipeline_control();
 
-                // The thinness decision belongs before N0.  A closed gate executes the complete
-                // coarse completion/IFID/EX/WB pass, including its ordinary completion-time parse
-                // and send progress, without first paying any pipelined stage machinery.
+                // Both thinness decisions belong before N0. The retained arm enters its shipped
+                // coarse pass; `streams` enters the explicit buffered IFID/EX/WB coarse order.
                 const bool use_pipelined_fused =
                     selected_pipelined_fused && pipeline_gate_open_;
-                const bool use_interleaved = use_pipelined_fused || selected_streams;
-                if (use_interleaved || selected_iofused || selected_streams0) {
+                const bool use_streams_interleaved =
+                    selected_streams && streams_gate_open;
+                const bool use_interleaved =
+                    use_pipelined_fused || use_streams_interleaved;
+                if (use_interleaved || selected_streams || selected_iofused ||
+                    selected_streams0) {
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
                         on_cqe<HasTls, kEp, false>(cqe);
                     });
@@ -998,6 +1047,236 @@ private:
                     did += wb_w0();                                     // W0
                     did += wb_w1();                                     // W1
                     did += wb_w2();                                     // W2
+                } else if (selected_streams && !use_streams_interleaved) {
+                    // Closed `streams` gate: one complete buffered coarse rotation. B and A may
+                    // stop before their first published dependency for one rotation; C never does.
+                    if (ex_contexts[1].count) std::abort();
+                    uint32_t streams_occupancy = 0;
+                    if (!ifid_context.count) {
+                        ifid_context.reserved_worker_count = 0;
+                        ifid_context.reservation_ready = false;
+                        streams_ifid_residual_age = 0;
+                    } else if (ifid_context.reservation_ready ||
+                               ifid_context.reserved_worker_count) {
+                        std::abort();
+                    }
+                    ifid_context.force_coarse = false;
+                    ifid_context.one_prepared_per_connection = true;
+                    ifid_context.defer_parse_advance = true;
+                    ifid_context.targeted_ready = true;
+                    active_ifid_context_ = &ifid_context;
+
+                    did += ifid_batch<HasTls, kEp>(&ifid_context);       // I0
+                    streams_occupancy = std::max(streams_occupancy, ifid_context.count);
+                    if (ifid_context.force_coarse) {
+                        rollback_ifid();
+                        streams_ifid_residual_age = 0;
+                        const uint64_t before = sig.ops;
+                        did += ifid_batch<HasTls, kEp>(nullptr);
+                        streams_occupancy = std::max(
+                            streams_occupancy,
+                            static_cast<uint32_t>(std::min<uint64_t>(
+                                kGenthreadIfidBatchOps, sig.ops - before)));
+                    } else if (ifid_context.count) {
+                        ifid_n1();                                      // N1
+                        const bool carry =
+                            ifid_context.count < kGenthreadStreamsMinBatchOccupancy &&
+                            streams_ifid_residual_age <
+                                kGenthreadStreamsResidualAgeCapRotations;
+                        if (carry) {
+                            streams_ifid_residual_age++;
+                            did++;
+                        } else {
+                            streams_ifid_residual_age = 0;
+                            did += ifid_i1();                            // I1
+                            did += ifid_i2();                            // I2
+                        }
+                    } else {
+                        streams_ifid_residual_age = 0;
+                        active_ifid_context_ = nullptr;
+                    }
+
+                    const bool ex_had_residual = ex_contexts[0].count != 0;
+                    if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
+                    const bool ex_ready = ex_pipeline_ready();
+                    const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
+                    bool ex_deferred = false;
+                    if (ex_had_residual && !ex_ready) {
+                        did += ex_defer_batch(ex_contexts[0]);
+                        ex_deferred = true;
+                    } else if (ex_ready && ex_had_residual) {
+                        did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
+                    } else if (ex_ready) {
+                        did += ex_e0(ex_contexts[0]);                    // E0
+                    } else if (ex_tasks_allowed) {
+                        did += ex_e0_defer_monolithic(ex_contexts[0]);
+                        ex_deferred = ex_contexts[0].count != 0;
+                    }
+                    streams_occupancy =
+                        std::max(streams_occupancy, ex_contexts[0].count);
+                    if (ex_deferred) {
+                        (void)ex_retire(ex_contexts[0]);                 // E2: DeferredDurably
+                        streams_ex_residual_age = 0;
+                    } else if (ex_contexts[0].count) {
+                        const bool carry =
+                            ex_contexts[0].count < kGenthreadStreamsMinBatchOccupancy &&
+                            streams_ex_residual_age <
+                                kGenthreadStreamsResidualAgeCapRotations;
+                        if (carry) {
+                            streams_ex_residual_age++;
+                            did++;
+                        } else {
+                            streams_ex_residual_age = 0;
+                            did += ex_e1(ex_contexts[0]);                // E1
+                            did += ex_e2(ex_contexts[0]);                // E2
+                            (void)ex_retire(ex_contexts[0]);
+                        }
+                    } else {
+                        streams_ex_residual_age = 0;
+                    }
+
+                    wb_context.count = 0;
+                    active_wb_context_ = &wb_context;
+                    did += wb_w0();                                     // W0
+                    streams_occupancy =
+                        std::max(streams_occupancy, wb_context.count);
+                    did += wb_w1();                                     // W1
+                    did += wb_w2();                                     // W2 -- never carried
+                    streams_gate_open =
+                        streams_occupancy >= kGenthreadStreamsMinBatchOccupancy;
+                } else if (selected_streams) {
+                    // Open `streams` gate: literal N0 I0 N1 E0 W0 I1 E1 W1 I2 E2 W2 N2.
+                    // A residual retains its original age while this rotation appends to it.
+                    if (ex_contexts[1].count) std::abort();
+                    uint32_t streams_occupancy = 0;
+                    if (!ifid_context.count) {
+                        ifid_context.reserved_worker_count = 0;
+                        ifid_context.reservation_ready = false;
+                        streams_ifid_residual_age = 0;
+                    } else if (ifid_context.reservation_ready ||
+                               ifid_context.reserved_worker_count) {
+                        std::abort();
+                    }
+                    ifid_context.force_coarse = false;
+                    ifid_context.one_prepared_per_connection = true;
+                    ifid_context.defer_parse_advance = true;
+                    ifid_context.targeted_ready = true;
+                    active_ifid_context_ = &ifid_context;
+                    wb_context.count = 0;
+                    active_wb_context_ = &wb_context;
+
+                    did += ifid_batch<HasTls, kEp>(&ifid_context);       // I0
+                    streams_occupancy = std::max(streams_occupancy, ifid_context.count);
+                    bool buffered_ifid = true;
+                    bool ifid_carry = false;
+                    if (ifid_context.force_coarse) {
+                        rollback_ifid();
+                        streams_ifid_residual_age = 0;
+                        const uint64_t before = sig.ops;
+                        did += ifid_batch<HasTls, kEp>(nullptr);
+                        streams_occupancy = std::max(
+                            streams_occupancy,
+                            static_cast<uint32_t>(std::min<uint64_t>(
+                                kGenthreadIfidBatchOps, sig.ops - before)));
+                        buffered_ifid = false;
+                    } else if (ifid_context.count) {
+                        ifid_n1();                                      // N1
+                        ifid_carry =
+                            ifid_context.count < kGenthreadStreamsMinBatchOccupancy &&
+                            streams_ifid_residual_age <
+                                kGenthreadStreamsResidualAgeCapRotations;
+                        if (ifid_carry) {
+                            streams_ifid_residual_age++;
+                            did++;
+                        } else {
+                            streams_ifid_residual_age = 0;
+                        }
+                    } else {
+                        streams_ifid_residual_age = 0;
+                        active_ifid_context_ = nullptr;
+                    }
+
+                    const bool ex_had_residual = ex_contexts[0].count != 0;
+                    if (ex_had_residual && ex_contexts[0].executable_count) std::abort();
+                    const bool ex_ready = ex_pipeline_ready();
+                    const bool ex_tasks_allowed = executor_->pipeline_tasks_allowed();
+                    bool ex_deferred = false;
+                    if (ex_had_residual && !ex_ready) {
+                        did += ex_defer_batch(ex_contexts[0]);
+                        ex_deferred = true;
+                    } else if (ex_ready && ex_had_residual) {
+                        did += ex_e0_append(ex_contexts[0], ex_contexts[1]);
+                    } else if (ex_ready) {
+                        did += ex_e0(ex_contexts[0]);                    // E0(A)
+                    } else if (ex_tasks_allowed) {
+                        did += ex_e0_defer_monolithic(ex_contexts[0]);
+                        ex_deferred = ex_contexts[0].count != 0;
+                    }
+                    const uint32_t ex_a_occupancy = ex_contexts[0].count;
+                    streams_occupancy = std::max(streams_occupancy, ex_a_occupancy);
+                    bool ex_carry = false;
+                    if (!ex_deferred && ex_contexts[0].count) {
+                        ex_carry =
+                            ex_contexts[0].count < kGenthreadStreamsMinBatchOccupancy &&
+                            streams_ex_residual_age <
+                                kGenthreadStreamsResidualAgeCapRotations;
+                        if (ex_carry) {
+                            streams_ex_residual_age++;
+                            did++;
+                        } else {
+                            streams_ex_residual_age = 0;
+                        }
+                    } else if (!ex_contexts[0].count) {
+                        streams_ex_residual_age = 0;
+                    }
+
+                    did += wb_w0();                                     // W0
+                    streams_occupancy =
+                        std::max(streams_occupancy, wb_context.count);
+
+                    if (buffered_ifid && ifid_context.count && !ifid_carry)
+                        did += ifid_i1();                                // I1
+
+                    const bool ex_a_process =
+                        ex_contexts[0].count && !ex_carry && !ex_deferred;
+                    if (ex_a_process)
+                        did += ex_e1(ex_contexts[0]);                    // E1(A)
+
+                    // The A/D fallback is legal only after A reaches E1. If E1 creates ordered
+                    // monolithic debt, D's guarded E0 remains empty and cannot pass that debt.
+                    const uint32_t ifid_filler = ifid_carry ? 0 : ifid_context.count;
+                    const bool ex_heavy =
+                        ex_a_process &&
+                        ifid_filler + wb_context.count <
+                            kGenthreadStreamsMinBatchOccupancy &&
+                        self_->task_depth_capped(kGenthreadStreamsMinBatchOccupancy) >=
+                            kGenthreadStreamsMinBatchOccupancy;
+                    if (ex_heavy) {
+                        const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
+                        did += ex_d_occupancy;
+                        streams_occupancy =
+                            std::max(streams_occupancy, ex_d_occupancy);
+                        did += ex_e1(ex_contexts[1]);
+                        did += ex_e2(ex_contexts[0]);
+                        did += ex_e2(ex_contexts[1]);
+                        (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
+                        did += wb_w1();                                  // W1
+                        if (buffered_ifid && ifid_context.count && !ifid_carry)
+                            did += ifid_i2();                            // I2
+                    } else {
+                        did += wb_w1();                                  // W1
+                        if (buffered_ifid && ifid_context.count && !ifid_carry)
+                            did += ifid_i2();                            // I2
+                        if (ex_a_process) did += ex_e2(ex_contexts[0]); // E2(A)
+                        if (ex_a_process || ex_deferred) {
+                            (void)ex_retire(ex_contexts[0]);
+                            streams_ex_residual_age = 0;
+                        }
+                    }
+
+                    did += wb_w2();                                     // W2 -- never carried
+                    streams_gate_open =
+                        streams_occupancy >= kGenthreadStreamsMinBatchOccupancy;
                 } else if (!use_interleaved) {
                     uint32_t coarse_occupancy = 0;
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
@@ -1007,56 +1286,39 @@ private:
                             coarse_occupancy >= kGenthreadPipelineMinOccupancy;
                 } else {
                     uint32_t pipeline_occupancy = 0;
-                    if (!selected_streams) did += executor_->fused_pipeline_control();
+                    did += executor_->fused_pipeline_control();
                     ifid_context.count = ifid_context.reserved_worker_count = 0;
                     ifid_context.reservation_ready = false;
                     ifid_context.force_coarse = false;
-                    ifid_context.one_prepared_per_connection = selected_streams;
-                    ifid_context.defer_parse_advance = selected_streams;
-                    ifid_context.targeted_ready = selected_streams;
+                    ifid_context.one_prepared_per_connection = false;
+                    ifid_context.defer_parse_advance = false;
+                    ifid_context.targeted_ready = false;
                     wb_context.count = 0;
                     ex_contexts[0].count = ex_contexts[1].count = 0;
                     active_ifid_context_ = &ifid_context;
                     active_wb_context_ = &wb_context;
 
-                    // I0 -- one thread-wide parse/decode batch. `streams` prepares at most one
-                    // unpublished frame per ready connection; the legacy arm retains its suffix.
+                    // I0 -- the retained pipelined-fused arm prepares an unpublished suffix.
                     did += ifid_batch<HasTls, kEp>(&ifid_context);
                     pipeline_occupancy = ifid_context.count;
 
-                    bool buffered_ifid = true;
                     bool run_microstages = true;
                     if (ifid_context.force_coarse) {
-                        if (selected_streams) {
-                            // A cold/contextual frame remains at rpos. Release B's pins and let
-                            // the established IFID monolith publish it; EX and WB still keep their
-                            // independent buffered sections in this rotation.
-                            rollback_ifid();
-                            did += ifid_batch<HasTls, kEp>(nullptr);
-                            buffered_ifid = false;
-                        } else {
-                            // Preserve the legacy experiment's whole-pass coarse retry exactly.
-                            rollback_ifid();
-                            active_wb_context_ = nullptr;
-                            uint32_t coarse_occupancy = 0;
-                            did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
-                            pipeline_gate_open_ =
-                                coarse_occupancy >= kGenthreadPipelineMinOccupancy;
-                            run_microstages = false;
-                        }
+                        // Preserve the legacy experiment's whole-pass coarse retry exactly.
+                        rollback_ifid();
+                        active_wb_context_ = nullptr;
+                        uint32_t coarse_occupancy = 0;
+                        did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
+                        pipeline_gate_open_ =
+                            coarse_occupancy >= kGenthreadPipelineMinOccupancy;
+                        run_microstages = false;
                     }
 
                     if (run_microstages) {
-                        if (buffered_ifid) ifid_n1();  // N1
+                        ifid_n1();  // N1
 
                         // E0(A) -- pop_unretired and launch the remote Op-line dependency.
-                        const bool ex_a_tasks_allowed = executor_->pipeline_tasks_allowed();
-                        const bool ex_a_deferred =
-                            selected_streams && ex_a_tasks_allowed && !ex_pipeline_ready();
-                        const bool ex_a_blocked = selected_streams && !ex_a_tasks_allowed;
-                        const uint32_t ex_a_occupancy = ex_a_deferred
-                            ? ex_e0_defer_monolithic(ex_contexts[0])
-                            : ex_e0(ex_contexts[0]);
+                        const uint32_t ex_a_occupancy = ex_e0(ex_contexts[0]);
                         did += ex_a_occupancy;
                         pipeline_occupancy = std::max(pipeline_occupancy, ex_a_occupancy);
 
@@ -1064,17 +1326,16 @@ private:
                         pipeline_occupancy =
                             std::max(pipeline_occupancy, wb_context.count);
 
-                        if (buffered_ifid) did += ifid_i1();  // I1
+                        did += ifid_i1();  // I1
 
                         // E1(A) -- resolve Op, verify the current shard owner, and only then
                         // prefetch FlatStore. No store-mutating work is permitted until E2(A).
-                        if (!ex_a_deferred) did += ex_e1(ex_contexts[0]);
+                        did += ex_e1(ex_contexts[0]);
 
                         // EX-heavy A/D fallback. With too little I/W filler, D's E0/E1 dependency
                         // chain fills A's store gap: E1(A) E0(D) E1(D) E2(A) E2(D). No third
                         // context.
                         const bool ex_heavy =
-                            !ex_a_deferred && !ex_a_blocked &&
                             ifid_context.count + wb_context.count <
                                 kGenthreadPipelineMinOccupancy &&
                             self_->task_depth_capped(kGenthreadPipelineMinOccupancy) >=
@@ -1089,21 +1350,20 @@ private:
                             did += ex_e2(ex_contexts[1]);
                             (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
                             did += wb_w1();
-                            if (buffered_ifid) did += ifid_i2();
+                            did += ifid_i2();
                         } else {
                             // W1 + I2 are the only E1(A)->E2(A) filler. Neither mutates an owned
                             // FlatStore, preserving the owner-approved money gap.
                             did += wb_w1();
-                            if (buffered_ifid) did += ifid_i2();
-                            if (!ex_a_deferred) did += ex_e2(ex_contexts[0]);
+                            did += ifid_i2();
+                            did += ex_e2(ex_contexts[0]);
                             (void)ex_retire(ex_contexts[0]);
                         }
 
                         did += wb_w2();  // W2
                         // Actual occupancy controls the next pass of the legacy adaptive arm.
-                        if (!selected_streams)
-                            pipeline_gate_open_ =
-                                pipeline_occupancy >= kGenthreadPipelineMinOccupancy;
+                        pipeline_gate_open_ =
+                            pipeline_occupancy >= kGenthreadPipelineMinOccupancy;
                     }
                 }
                 did += flip_control_pass<kEp>();
@@ -1170,7 +1430,9 @@ private:
             // forever. Runs only when this thread has already concluded it has nothing to do.
             uint32_t buffered_ex_sweep = 0;
             const bool buffered_schedule = selected_streams0 || selected_streams;
-            if (buffered_schedule && ex_pipeline_ready()) {
+            const bool streams_residual_pending = selected_streams &&
+                (ifid_context.count != 0 || ex_contexts[0].count != 0);
+            if (!streams_residual_pending && buffered_schedule && ex_pipeline_ready()) {
                 // The correctness backstop may find a lost task-notify bit. Keep even this cold
                 // unmasked path on the buffered schedules' pop-unretired -> E2 -> retire_n law.
                 const uint32_t gathered = ex_e0(ex_contexts[0], /*unmasked=*/true);
@@ -1180,8 +1442,11 @@ private:
                     buffered_ex_sweep = ex_retire(ex_contexts[0]);
                 }
             }
-            const uint32_t sweep_work = buffered_ex_sweep +
-                sweep<HasUnix, HasTls, kEp>(/*executor_tasks=*/!buffered_schedule);
+            // A residual normally contributes `did` and cannot reach this path. Keep the explicit
+            // guard so a future accounting edit can neither overwrite A nor park with B pinned.
+            const uint32_t sweep_work = streams_residual_pending ? 1 :
+                buffered_ex_sweep +
+                    sweep<HasUnix, HasTls, kEp>(/*executor_tasks=*/!buffered_schedule);
             if (sweep_work) {
                 if (!selected_iofused) {
                     ring_.submit_and_reap();
@@ -1210,6 +1475,19 @@ private:
             }
             iofused_non_send_rotations = 0;
             self_->clear_blocked();
+        }
+        // The stop/role edge may land between a residual's two rotations. Release B's unpublished
+        // read-buffer pins before close handling, and durably hand A to the monolithic executor
+        // before publishing its one retired-frontier update per source lane.
+        if (selected_streams) {
+            if (ifid_context.count) rollback_ifid();
+            if (ex_contexts[0].count) {
+                (void)ex_defer_batch(ex_contexts[0]);
+                (void)ex_retire(ex_contexts[0]);
+            }
+            if (ex_contexts[1].count || wb_context.count) std::abort();
+            active_ifid_context_ = nullptr;
+            active_wb_context_ = nullptr;
         }
         // A close requested by the last pass's read/send path has no later flush_ready to drain it,
         // and an undrained entry would show up as a live connection in the shutdown accounting.
@@ -3749,7 +4027,8 @@ nonblocking_dispatch:
                 // With nothing in flight every production owner has completed by definition, so
                 // this releases all of them at once. It is the backstop for the four owners
                 // (WAIT, EXEC, pub/sub, CLIENT fan-out) that have no owner-scoped release site.
-                if (c->rob().quiesced()) c->barrier_release_quiesced();
+                if (c->rob().quiesced() && !c->pipeline_prepared())
+                    c->barrier_release_quiesced();
             }
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
@@ -3839,7 +4118,8 @@ nonblocking_dispatch:
                 // ROUTE_ISSUE publishes the Op before releasing the batch reference, after which
                 // ordinary ROB quiescence once again prevents argv slices from moving.
                 const bool staged_ifid = pipeline_batch &&
-                                         pipeline_batch->count != pipeline_count_before;
+                    (pipeline_batch->count != pipeline_count_before ||
+                     (pipeline_batch->defer_parse_advance && c->pipeline_prepared()));
                 if (!staged_ifid) {
                     if constexpr (HasTls) {
                         if (tls && tls->memory_bio()) arm_tls_recv<kEp>(c);
@@ -4555,8 +4835,9 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
-    // Cold safety views into the run_loop locals. They are non-null only inside one pipelined pass
-    // and let teardown/migration defer while an unpublished Op or gathered Client is referenced.
+    // Cold safety views into run_loop locals. `streams` keeps the IFID view non-null across its one
+    // bounded residual rotation; teardown/migration must defer while either context owns a Client.
+    // WB and every other schedule clear both views within the current pass.
     IfidPipelineBatch* active_ifid_context_ = nullptr;
     WbPipelineBatch* active_wb_context_ = nullptr;
     bool pipeline_gate_open_ = false;
