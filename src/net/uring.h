@@ -202,6 +202,32 @@ public:
 
     // Batch-drain completions. `fn(cqe)` per completion; the ring advances once at the end, which
     // is a single store rather than one per completion.
+    unsigned cqes_ready() const {
+        if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        return static_cast<unsigned>(deferred_cqes_.size()) + io_uring_cq_ready(&r_);
+    }
+
+    // Read-only lookahead over the batch for latency-hiding hints. This deliberately does not
+    // advance the CQ or change the raw-callback bookkeeping: the ordinary for_each_cqe() walk
+    // remains the one and only completion/ownership edge. No caller may retain a CQE pointer;
+    // returning false from the callback stops the lookahead without changing CQ state.
+    template <typename Fn>
+    unsigned scan_cqes(Fn&& fn) {
+        if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
+        unsigned n = 0;
+        for (io_uring_cqe& cqe : deferred_cqes_) {
+            n++;
+            if (!fn(&cqe)) return n;
+        }
+        io_uring_cqe* cqe;
+        unsigned head;
+        io_uring_for_each_cqe(&r_, head, cqe) {
+            n++;
+            if (!fn(cqe)) return n;
+        }
+        return n;
+    }
+
     template <typename Fn>
     unsigned for_each_cqe(Fn&& fn) {
         unsigned n = 0;
