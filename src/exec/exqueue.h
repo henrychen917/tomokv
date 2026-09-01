@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <cstdlib>
 #include <new>
 
 namespace tomo {
@@ -35,9 +36,13 @@ public:
     bool push(T v) {
         const uint32_t t = tail_.load(std::memory_order_relaxed);
         const uint32_t next = t + 1;
-        if (next - head_cached_ > Capacity) {                  // cached says full: re-read
+        // Producer reservations are capacity credits, not pre-published holes.  Unrelated pushes
+        // may still publish at the current tail while a later micro-stage owns credits, but they
+        // must leave those credits free.  The sole producer owns reserved_, so this adds no shared
+        // state and no atomic operation to the SPSC path.
+        if (next + reserved_ - head_cached_ > Capacity) {      // cached says full: re-read
             head_cached_ = head_.load(std::memory_order_acquire);
-            if (next - head_cached_ > Capacity) return false;   // genuinely full
+            if (next + reserved_ - head_cached_ > Capacity) return false; // genuinely full
         }
         slots_[t & kMask] = v;
         tail_.store(next, std::memory_order_release);           // publishes the slot write
@@ -50,9 +55,9 @@ public:
     bool push_prepared(T v, Prepare&& prepare) {
         const uint32_t t = tail_.load(std::memory_order_relaxed);
         const uint32_t next = t + 1;
-        if (next - head_cached_ > Capacity) {
+        if (next + reserved_ - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
-            if (next - head_cached_ > Capacity) return false;
+            if (next + reserved_ - head_cached_ > Capacity) return false;
         }
         prepare(v);
         slots_[t & kMask] = v;
@@ -68,9 +73,9 @@ public:
         if (!count) return true;
         const uint32_t t = tail_.load(std::memory_order_relaxed);
         const uint32_t next = t + count;
-        if (next - head_cached_ > Capacity) {
+        if (next + reserved_ - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
-            if (next - head_cached_ > Capacity) return false;
+            if (next + reserved_ - head_cached_ > Capacity) return false;
         }
         for (uint32_t i = 0; i < count; i++) slots_[(t + i) & kMask] = values[i];
         tail_.store(next, std::memory_order_release);
@@ -82,9 +87,9 @@ public:
         if (!count) return true;
         const uint32_t t = tail_.load(std::memory_order_relaxed);
         const uint32_t next = t + count;
-        if (next - head_cached_ > Capacity) {
+        if (next + reserved_ - head_cached_ > Capacity) {
             head_cached_ = head_.load(std::memory_order_acquire);
-            if (next - head_cached_ > Capacity) return false;
+            if (next + reserved_ - head_cached_ > Capacity) return false;
         }
         for (uint32_t i = 0; i < count; i++) {
             T value = values[i];
@@ -95,17 +100,50 @@ public:
         return true;
     }
 
-    // Producer-only group reservation check. Unlike depth(), this acquire-refreshes the consumer
-    // frontier and is safe for the all-or-nothing scatter preflight. The producer performs no
-    // intervening unrelated pushes between this check and its group enqueue.
+    // Producer-only group capacity after credits already held by a future publication stage.
     uint32_t producer_free_slots() const {
         const uint32_t tail = tail_.load(std::memory_order_relaxed);
         const uint32_t head = head_.load(std::memory_order_acquire);
-        return Capacity - (tail - head);
+        return Capacity - (tail - head) - reserved_;
+    }
+
+    // Reserve capacity without publishing a tail or manufacturing an unreadable hole.  Ordinary
+    // pushes remain legal and account for reserved_ above; push_reserved() later publishes at the
+    // then-current tail and cannot fail.  All methods are called by the lane's sole producer.
+    bool reserve(uint32_t count) {
+        if (!count) return true;
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        head_cached_ = head_.load(std::memory_order_acquire);
+        if (tail + reserved_ + count - head_cached_ > Capacity) return false;
+        reserved_ += count;
+        return true;
+    }
+
+    void cancel_reservation(uint32_t count) {
+        if (count > reserved_) std::abort();
+        reserved_ -= count;
+    }
+
+    void push_reserved(T value) {
+        if (!reserved_) std::abort();
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        slots_[tail & kMask] = value;
+        tail_.store(tail + 1, std::memory_order_release);
+        reserved_--;
+    }
+
+    template <typename Prepare>
+    void push_reserved_prepared(T value, Prepare&& prepare) {
+        if (!reserved_) std::abort();
+        prepare(value);
+        const uint32_t tail = tail_.load(std::memory_order_relaxed);
+        slots_[tail & kMask] = value;
+        tail_.store(tail + 1, std::memory_order_release);
+        reserved_--;
     }
 
     // Consumer side.
-    bool pop(T& out) {
+    bool pop_unretired(T& out) {
         const uint32_t h = head_.load(std::memory_order_relaxed);
         if (h == tail_cached_) {                                // cached says empty: re-read
             tail_cached_ = tail_.load(std::memory_order_acquire);
@@ -115,6 +153,8 @@ public:
         head_.store(h + 1, std::memory_order_release);
         return true;
     }
+
+    bool pop(T& out) { return pop_unretired(out); }
 
     // Hint a published consumer prefix without changing any queue frontier.  Arm 3 calls this in
     // a distinct static micro-stage; the later gather receives the same slots through pop().
@@ -136,6 +176,11 @@ public:
     // execution. The fork learned this the hard way and carries the same separate frontier.
     void retire() { retired_.store(retired_.load(std::memory_order_relaxed) + 1,
                                    std::memory_order_release); }
+    void retire_n(uint32_t count) {
+        if (!count) return;
+        retired_.store(retired_.load(std::memory_order_relaxed) + count,
+                       std::memory_order_release);
+    }
 
     // THE quiescence predicate. Use this one, never depth() == 0.
     bool quiesced() const {
@@ -172,6 +217,7 @@ private:
 
     alignas(kCacheLine) std::atomic<uint32_t> tail_{0};
     uint32_t head_cached_ = 0;          // producer-private, shares the producer's line
+    uint32_t reserved_ = 0;             // producer-private unpublished capacity credits
 
     alignas(kCacheLine) T slots_[Capacity];
 };

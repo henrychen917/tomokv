@@ -273,6 +273,13 @@ public:
             if (words_[i].load(std::memory_order_relaxed)) return true;
         return false;
     }
+    uint32_t count_capped(uint32_t cap) const {
+        uint32_t count = 0;
+        for (uint32_t i = 0; i < kWords && count < cap; i++)
+            count += std::min<uint32_t>(cap - count, static_cast<uint32_t>(
+                __builtin_popcountll(words_[i].load(std::memory_order_relaxed))));
+        return count;
+    }
 
 private:
     alignas(64) std::atomic<uint64_t> words_[kWords] = {};
@@ -349,6 +356,13 @@ public:
         if (!q_.push_batch(values, count)) { sig.full_events++; return false; }
         return true;
     }
+    bool reserve(uint32_t count) { return q_.reserve(count); }
+    void cancel_reservation(uint32_t count) { q_.cancel_reservation(count); }
+    void push_reserved(T value) { q_.push_reserved(value); }
+    template <typename Prepare>
+    void push_reserved_prepared(T value, Prepare&& prepare) {
+        q_.push_reserved_prepared(value, static_cast<Prepare&&>(prepare));
+    }
     template <typename Prepare>
     bool push_batch_prepared(const T* values, uint32_t count, LoopSignals& sig,
                              Prepare&& prepare) {
@@ -385,10 +399,12 @@ public:
 
     // ---- consumer side --------------------------------------------------------------------------
     bool recv(T& out) { return q_.pop(out); }
+    bool pop_unretired(T& out) { return q_.pop_unretired(out); }
 
     // Call AFTER the item has actually been processed — see exqueue.h. quiesced() is the predicate
     // every teardown, reshard and role conversion must test; depth() == 0 is not the same thing.
     void retire()          { q_.retire(); }
+    void retire_n(uint32_t count) { q_.retire_n(count); }
     bool quiesced() const  { return q_.quiesced(); }
     uint32_t depth() const { return q_.depth(); }
     uint32_t producer_free_slots() const { return q_.producer_free_slots(); }
