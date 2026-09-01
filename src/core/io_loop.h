@@ -94,6 +94,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        if (!epoll_) recv_cqe_clients_.reserve(4096);
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
@@ -3007,36 +3008,35 @@ nonblocking_dispatch:
     // MICA-style first-level CQ lookahead. The scan reads CQE tags and collects their Client*
     // values, but the completion walk remains untouched: no recv byte is committed and no Client
     // field is read until after the header hints have had independent WB work in which to land.
-    // The fixed pointer scratch matches the ring depth, so collection never allocates or grows.
+    // The vector is retained across rotations; the 4096-entry reserve is done once at loop init.
     bool recv_cqe_prefetch_scan() {
-        recv_cqe_count_ = 0;
+        recv_cqe_clients_.clear();
         if (ring_.cqes_ready() < kIoPipeRecvCqePrefetchThreshold) return false;
         uint32_t examined = 0;
         ring_.scan_cqes([&](io_uring_cqe* cqe) {
-            if (ur_kind(cqe->user_data) == UrKind::Recv &&
-                recv_cqe_count_ < recv_cqe_clients_.size())
-                recv_cqe_clients_[recv_cqe_count_++] = ur_ptr<Client>(cqe->user_data);
+            if (ur_kind(cqe->user_data) == UrKind::Recv)
+                recv_cqe_clients_.push_back(ur_ptr<Client>(cqe->user_data));
             examined++;
             // Once armed, finish the complete CQ scan. Before then, cap the negative probe so a
             // send-heavy reap with fewer than four recvs falls through to the ordinary walk.
-            if (recv_cqe_count_ >= kIoPipeRecvCqePrefetchThreshold) return true;
+            if (recv_cqe_clients_.size() >= kIoPipeRecvCqePrefetchThreshold) return true;
             return examined < kIoPipeRecvCqeProbeLimit;
         });
-        if (recv_cqe_count_ < kIoPipeRecvCqePrefetchThreshold) {
-            recv_cqe_count_ = 0;
+        if (recv_cqe_clients_.size() < kIoPipeRecvCqePrefetchThreshold) {
+            recv_cqe_clients_.clear();
             return false;
         }
-        for (uint32_t i = 0; i < recv_cqe_count_; i++)
-            __builtin_prefetch(recv_cqe_clients_[i], 1, 3);
+        for (Client* client : recv_cqe_clients_)
+            __builtin_prefetch(client, 1, 3);
         return true;
     }
 
     // The first Client line contains rbuf_ and rlen_. Read those only after the WB filler, issue
     // the dependent heap hint as one batch, and then let the ordinary CQE walk commit bytes.
     void recv_cqe_prefetch_append_positions() {
-        for (uint32_t i = 0; i < recv_cqe_count_; i++)
-            __builtin_prefetch(recv_cqe_clients_[i]->read_append_position(), 0, 3);
-        recv_cqe_count_ = 0;
+        for (Client* client : recv_cqe_clients_)
+            __builtin_prefetch(client->read_append_position(), 1, 3);
+        recv_cqe_clients_.clear();
     }
 
     // Detach one backlog-scaled connection batch from the serve FIFO. Clearing serve_pending at
@@ -3918,9 +3918,8 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
-    // Plain recv CQ lookahead only; fixed at the ring depth and untouched in epoll mode.
-    std::array<Client*, kIoPipeRecvCqePrefetchMaxClients> recv_cqe_clients_{};
-    uint32_t recv_cqe_count_ = 0;
+    // Plain recv CQ lookahead only; reserved once in init and empty in epoll mode.
+    std::vector<Client*> recv_cqe_clients_;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;

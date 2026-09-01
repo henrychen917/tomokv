@@ -23,9 +23,6 @@ inline constexpr uint32_t kIoPipeRecvCqePrefetchThreshold = 4;
 // negative decision costs at most this small prefix; after the threshold fires the scan continues
 // through the complete reap so every remaining recv receives the same hints.
 inline constexpr uint32_t kIoPipeRecvCqeProbeLimit = 16;
-// Matches the io_uring depth. Persistence can defer additional CQEs, but network lookahead is a
-// hint: cap its owner-local pointer scratch instead of allocating or growing in the hot loop.
-inline constexpr uint32_t kIoPipeRecvCqePrefetchMaxClients = 4096;
 
 // WB buffers completion/serve requests by connection.  A ROB holds at most 64 operations, so this
 // window covers every possible retireable prefix instead of letting an unprefetched tail leak into
