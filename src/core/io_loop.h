@@ -660,6 +660,7 @@ private:
             scatter_pool_.reap_deferred();
 
             uint32_t did = 0;
+            bool iofused_submitted_in_ex = false;
             {
                 Span busy(sig.busy_ns);
                 if (self_->sample_depth(busy.start_ns() / 1000) && age_signals_armed_)
@@ -708,7 +709,8 @@ private:
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
 
                 if (selected_iofused) {
-                    did += pipeline_iofused_pass<HasUnix, HasTls, kEp>(wb_context);
+                    did += pipeline_iofused_pass<HasUnix, HasTls, kEp>(
+                        wb_context, iofused_submitted_in_ex);
                 } else if (!use_pipelined_fused) {
                     uint32_t coarse_occupancy = 0;
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
@@ -1023,6 +1025,7 @@ private:
             // four rotations. sqe()'s synchronous full-SQ submit is an earlier boundary and restarts
             // the budget; work staged after it counts as this interval's first rotation.
             if (selected_iofused) {
+                if (iofused_submitted_in_ex) iofused_non_send_rotations = 0;
                 if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
                 if (ring_.send_pending()) {
                     ring_.submit_and_reap();
@@ -3800,7 +3803,8 @@ nonblocking_dispatch:
     // outer loop retains the one submit_and_reap boundary for receive re-arms, reply sends, task
     // wakes and completion wakes.
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_iofused_pass(WbPipelineBatch& batch) {
+    uint32_t pipeline_iofused_pass(WbPipelineBatch& batch,
+                                   bool& submitted_in_ex) {
         if (batch.count || active_wb_context_) std::abort();
         active_wb_context_ = &batch;
 
@@ -3921,7 +3925,7 @@ nonblocking_dispatch:
         batch.count = 0;
         active_wb_context_ = nullptr;
 
-        work += executor_->fused_coarse_pass();
+        work += executor_->fused_coarse_pass(&ring_, &submitted_in_ex);
         return work;
     }
 
