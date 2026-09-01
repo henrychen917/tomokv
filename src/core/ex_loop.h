@@ -42,6 +42,16 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
+
+// Drain-time Op prefetch tuning. Sixteen task positions target the 90-120ns remote-fill gap across
+// the remaining gathers and earlier batch resolves. Cap one drain pass at 64 eligible Tasks (two
+// current-size batches) to bound hint traffic and cache pollution under a deep producer backlog;
+// the 64-byte stride is the cache-line width on the pinned target.
+inline constexpr uint32_t kExDrainOpPrefetchDistance = 16;
+inline constexpr uint32_t kExDrainOpPrefetchPassCap = 64;
+inline constexpr size_t kExDrainOpPrefetchLineBytes = 64;
+static_assert(kExDrainOpPrefetchDistance > 0 && kExDrainOpPrefetchDistance < kExecBatch);
+
 inline constexpr uint32_t kActiveExpireChecks = 20;
 
 template <bool Fused>
@@ -522,12 +532,43 @@ private:
     uint32_t drain_tasks(bool unmasked = false) {
         Task batch[kExecBatch];
         uint32_t held = 0;
+        uint32_t hinted = 0;
+        uint32_t op_prefetches = 0;
+        // A full batch keeps every hint the configured number of gather/resolve positions ahead;
+        // a short pass-end batch uses whatever smaller runway that pass provides.
+        auto prefetch_gathered = [&](uint32_t end) {
+            while (hinted < end && op_prefetches < kExDrainOpPrefetchPassCap) {
+                const Task& task = batch[hinted++];
+                if (!task.client) continue;
+                const char* op = reinterpret_cast<const char*>(
+                    &task.client->rob().at(task.op_id));
+                // Resolve, reply/state, and inline argv occupy separate lines of the fixed Op;
+                // moderate locality avoids asking all six or seven physical lines into L1.
+                __builtin_prefetch(op, 0, 2);
+                const size_t next_line = kExDrainOpPrefetchLineBytes -
+                    (reinterpret_cast<uintptr_t>(op) % kExDrainOpPrefetchLineBytes);
+                for (size_t offset = next_line; offset < sizeof(Op);
+                     offset += kExDrainOpPrefetchLineBytes)
+                    __builtin_prefetch(op + offset, 0, 2);
+                op_prefetches++;
+            }
+            if (op_prefetches == kExDrainOpPrefetchPassCap) hinted = end;
+        };
         auto take = [&](const Task& t) {
             batch[held++] = t;
-            if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
+            const uint32_t gather_gap = kExecBatch - kExDrainOpPrefetchDistance;
+            if (held >= gather_gap) prefetch_gathered(held - gather_gap + 1);
+            if (held == kExecBatch) {
+                prefetch_gathered(held);
+                exec_batch(batch, held);
+                held = hinted = 0;
+            }
         };
         const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
-        if (held) exec_batch(batch, held);
+        if (held) {
+            prefetch_gathered(held);
+            exec_batch(batch, held);
+        }
         self_->sig().ops += n;
         return n;
     }
