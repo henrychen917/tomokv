@@ -571,44 +571,55 @@ def contention_and_deadlock():
     admin = Resp()
     distinct, _ = geometry(admin)
     keys = distinct[:4]
-    admin.cmd("DEL", *keys)
-    admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
-    before = stats(admin)
-    errors = []
-    successes = [0, 0]
     source = "for i=1,#KEYS do redis.call('INCR',KEYS[i]) end return 1"
 
-    def worker(slot, ordered):
-        client = Resp()
-        try:
-            while successes[slot] < 40:
-                reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
-                if reply == 1:
-                    successes[slot] += 1
-                elif isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
-                    continue
-                else:
-                    errors.append((slot, reply))
-                    return
-        finally:
-            client.close()
+    # The correctness half (no deadlock, exact counts) must hold on EVERY round. The contention
+    # half needs the two OCC windows to actually collide, which is scheduling luck: one round of
+    # 2x40 executions occasionally interleaves cleanly and reports retries=+0 with nothing wrong
+    # (first seen after the multi program-order fix shifted EX timing). Roll up to four rounds
+    # and stop at the first observed restart -- the mechanism assertion stays non-vacuous, it
+    # just gets enough collisions offered to it.
+    retry_delta = 0
+    for _ in range(4):
+        admin.cmd("DEL", *keys)
+        admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
+        before = stats(admin)
+        errors = []
+        successes = [0, 0]
 
-    threads = [threading.Thread(target=worker, args=(0, keys)),
-               threading.Thread(target=worker, args=(1, list(reversed(keys))))]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join(20)
-    alive = [thread.name for thread in threads if thread.is_alive()]
-    values = admin.cmd("MGET", *keys)
-    after = stats(admin)
-    retry_delta = after.get("script_group_occ_retries", 0) - \
-        before.get("script_group_occ_retries", 0)
-    note("opposite-order overlapping scripts terminate without deadlock",
-         not alive and not errors and successes == [40, 40] and
-         values == [b"80"] * len(keys),
-         "success=%r alive=%r errors=%r values=%r" %
-         (successes, alive, errors[:2], values))
+        def worker(slot, ordered):
+            client = Resp()
+            try:
+                while successes[slot] < 40:
+                    reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
+                    if reply == 1:
+                        successes[slot] += 1
+                    elif isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
+                        continue
+                    else:
+                        errors.append((slot, reply))
+                        return
+            finally:
+                client.close()
+
+        threads = [threading.Thread(target=worker, args=(0, keys)),
+                   threading.Thread(target=worker, args=(1, list(reversed(keys))))]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(20)
+        alive = [thread.name for thread in threads if thread.is_alive()]
+        values = admin.cmd("MGET", *keys)
+        after = stats(admin)
+        retry_delta = after.get("script_group_occ_retries", 0) - \
+            before.get("script_group_occ_retries", 0)
+        note("opposite-order overlapping scripts terminate without deadlock",
+             not alive and not errors and successes == [40, 40] and
+             values == [b"80"] * len(keys),
+             "success=%r alive=%r errors=%r values=%r" %
+             (successes, alive, errors[:2], values))
+        if alive or errors or retry_delta > 0:
+            break
     note("contention detector forced at least one OCC restart", retry_delta > 0,
          "retries=+%d" % retry_delta)
 
