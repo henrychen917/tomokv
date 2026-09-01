@@ -2174,6 +2174,11 @@ private:
         // shared atomic to the request path without strengthening the ownership fence.
         const bool lb_pause_this_pass = lb_controller_armed_ &&
             srv_->lb_should_pause(self_->id(), c->id());
+        if (__builtin_expect(lb_pause_this_pass, false)) {
+            if (self_->flip_fingerprint().enabled())
+                self_->flip_fingerprint().finish_parse_pass();
+            return result;
+        }
         // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
         // non-decreasing along the connection, not distinct: every op this pass parses may share
         // the pass's cut, and the next pass's cut is >= this one because the sequence only moves
@@ -2189,7 +2194,6 @@ private:
         for (;;) {
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
-            if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
             // below so live-vs-target remains observable while the dispatch barrier is active.
