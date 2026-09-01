@@ -22,7 +22,7 @@ inline constexpr uint32_t kGenthreadIoFusedCoalesceRotations = 4;
 inline constexpr uint32_t kGenthreadIfidContexts = 1;
 inline constexpr uint32_t kGenthreadExContexts   = 2;
 inline constexpr uint32_t kGenthreadWbContexts   = 1;
-static_assert(kGenthreadExContexts == 2, "pipelined-fused v1 forbids EX triple buffering");
+static_assert(kGenthreadExContexts == 2, "buffered schedules forbid EX triple buffering");
 
 // Per-pass depth/thinness gate.  If no independent stream can occupy this many batch slots, the
 // selected pipelined arm executes the permanent coarse rotation for the entire pass.  Eight is the
@@ -65,6 +65,24 @@ inline constexpr std::array<GenthreadMicrostage, 12> kGenthreadStreams0Schedule 
 // Owner-approved reference schedule.  The loop body is written in this exact order rather than
 // dispatching this array through function pointers; the constant is the reviewable/static contract.
 inline constexpr std::array<GenthreadMicrostage, 12> kGenthreadPipelinedFusedSchedule = {
+    GenthreadMicrostage::N0,
+    GenthreadMicrostage::I0,
+    GenthreadMicrostage::N1,
+    GenthreadMicrostage::E0,
+    GenthreadMicrostage::W0,
+    GenthreadMicrostage::I1,
+    GenthreadMicrostage::E1,
+    GenthreadMicrostage::W1,
+    GenthreadMicrostage::I2,
+    GenthreadMicrostage::E2,
+    GenthreadMicrostage::W2,
+    GenthreadMicrostage::N2,
+};
+
+// `streams` is the owner-approved modulo schedule over independent IFID B, EX A/D, and WB C.
+// Its four deliberate latency windows are E0->E1 (W0+I1), E1->E2 (W1+I2), W0->W1 (I1+E1),
+// and I1->I2 (E1+W1). The source spells the same literal order in one loop body.
+inline constexpr std::array<GenthreadMicrostage, 12> kGenthreadStreamsSchedule = {
     GenthreadMicrostage::N0,
     GenthreadMicrostage::I0,
     GenthreadMicrostage::N1,

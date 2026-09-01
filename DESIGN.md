@@ -97,8 +97,8 @@ There are two forced touches outside the fused loop and schedule/config plumbing
 `Client::parse_backpressure_` records that B owns a decoded, unpublished Op. It blocks compaction,
 growth, migration, and release until I2 publishes the ROB and reserved task, advances the parse
 cursor, and clears the bit; it does not change the 1984-byte Client layout. `ExLoop::fused_sweep`
-also accepts a no-fresh-task mode so the pre-park audit can leave Task consumption to streams0's
-unretired E0/E1/E2 path. Its default preserves every pre-existing caller.
+also accepts a no-fresh-task mode so the pre-park audit can leave Task consumption to the buffered
+schedules' unretired E0/E1/E2 path. Its default preserves every pre-existing caller.
 
 `streams0` uses the named compile-time caps `kGenthreadIfidBatchOps=128`,
 `kGenthreadExBatchOps=128`, and `kGenthreadWbBatchConns=64`, with one B context, one active A
@@ -106,10 +106,51 @@ context (the allocated D context is unused in this control), and one C context.
 `kGenthreadStreams0Schedule` is declared beside those caps and context counts in
 `genthread_pipeline.h`. `streams0` is boot-only and requires the uring network engine.
 
-## Selectable pipelined-fused schedule
+## Static `streams` microstage arm
 
-`--genthread-schedule coarse|pipelined-fused|iofused|streams0` is boot-latched and reported through
-`CONFIG GET`.
+`streams` uses the same three independent B/A/C handoffs as `streams0`, but advances them in the
+owner-approved static modulo order:
+
+`N0 / I0 / N1 / E0 / W0 / I1 / E1 / W1 / I2 / E2 / W2 / N2`
+
+The sections are literal sections of the one `IoLoop::run_loop` body. The contexts remain hoisted
+loop locals: one IFID B, exactly two EX contexts A/D, and one WB C. They use the named caps
+`kGenthreadIfidBatchOps=128`, `kGenthreadExBatchOps=128`, and
+`kGenthreadWbBatchConns=64`; `kGenthreadStreamsSchedule` records the literal order beside those
+constants in `genthread_pipeline.h`.
+
+- I0 prepares at most one decoded, unpublished point command per ready connection and leaves its
+  parse cursor unchanged. The prepared bit pins the read buffer; N1 can only append into it.
+- E0 gathers with `pop_unretired` and prefetches Op state. W0 then gathers completion-ready clients
+  and prefetches their ROB heads. I1 hashes/routes B and reserves destination-lane credits.
+- E1 resolves the Op, verifies current shard ownership, and only then prefetches the FlatStore.
+  W1 stages complete reply frames and I2 performs `ROB publish -> reserved Task publish -> parse
+  cursor advance`, followed by one notification per destination. Neither W1 nor I2 mutates an
+  owned FlatStore, so the E1-to-E2 purity gap is intact.
+- E2 calls the shipped owner-gated `exec_batch_prefetched` path. Only after every gathered task is
+  Executed, Forwarded, or DeferredDurably does it publish one merged retired-frontier update per
+  source lane. W2 builds send SQEs; N2 is the sole network submission boundary.
+
+The four engineered latency windows are E0-to-E1 (W0+I1), E1-to-E2 (W1+I2), W0-to-W1 (I1+E1),
+and I1-to-I2 (E1+W1). If IFID encounters a cold/contextual frame, B's unpublished point ops are
+discarded without moving their parse cursors and that input is retried through the established
+monolithic IFID path. Scatter, scripts, scans, blocking commands, and retrying atomics therefore do
+not enter I1/I2. Snapshot or ordered executor debt is handled outside the declared rotation; E0
+durably transfers freshly gathered tasks to the established monolithic deque before the E2
+retirement boundary only while task consumption remains permitted. Snapshot/LB hard-stop states
+leave fresh work in the bounded SPSC lanes and preserve their backpressure and safe-point fence.
+
+The EX-heavy fallback uses the second EX context and exactly
+`E1(A) E0(D) E1(D) E2(A) E2(D)`. The merged A/D batch still performs one retired-frontier update
+per source lane. Local point commands have no bypass: I2 publishes them to `task_in_[self]` and a
+later E0/E1/E2 consumes them like remote work. In this commit all contexts are empty again at the
+pass boundary; residual carry and its thinness gate are added separately. Like `streams0`,
+`streams` is boot-only and requires the uring network engine.
+
+## Schedule selector and legacy pipelined-fused arm
+
+`--genthread-schedule coarse|pipelined-fused|iofused|streams0|streams` is boot-latched and reported
+through `CONFIG GET`.
 `coarse` is the default and permanent control arm. Selecting `pipelined-fused` does not remove that
 control: every pass below `kGenthreadPipelineMinOccupancy` runs the complete coarse
 `IFID -> EX -> WB` rotation. The gate is decided before N0 from the preceding pass's actual batch

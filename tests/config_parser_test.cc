@@ -149,12 +149,23 @@ int main() {
                                 streams0_schedule_state, 2, "test") != tomo::kConfigParsed ||
         streams0_schedule.genthread_schedule != tomo::GenthreadSchedule::Streams0)
         fail("streams0 genthread schedule grammar differs");
+    tomo::Config streams_schedule;
+    tomo::ConfigParseState streams_schedule_state;
+    const std::vector<const char*> streams_schedule_args = {
+        "--genthread-schedule", "StReAmS"};
+    if (tomo::parse_config_args(streams_schedule_args, streams_schedule,
+                                streams_schedule_state, 2, "test") != tomo::kConfigParsed ||
+        streams_schedule.genthread_schedule != tomo::GenthreadSchedule::Streams)
+        fail("streams genthread schedule grammar differs");
     schedule.net_io = tomo::NetIoEngine::Epoll;
     if (tomo::validate_config(schedule) != tomo::kConfigError)
         fail("pipelined-fused accepted an engine without a single N2 boundary");
     streams0_schedule.net_io = tomo::NetIoEngine::Epoll;
     if (tomo::validate_config(streams0_schedule) != tomo::kConfigError)
         fail("streams0 accepted an engine without a single N2 boundary");
+    streams_schedule.net_io = tomo::NetIoEngine::Epoll;
+    if (tomo::validate_config(streams_schedule) != tomo::kConfigError)
+        fail("streams accepted an engine without a single N2 boundary");
 
     tomo::Config smt;
     tomo::ConfigParseState smt_state;

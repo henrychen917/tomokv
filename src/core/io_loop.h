@@ -97,7 +97,8 @@ public:
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
         targeted_ifid_ =
             srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused ||
-            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams0;
+            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams0 ||
+            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams;
         age_signals_armed_ = srv_->cfg().lb_age_sample_rate != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
@@ -855,6 +856,8 @@ private:
             srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
         const bool selected_streams0 =
             srv_->cfg().genthread_schedule == GenthreadSchedule::Streams0;
+        const bool selected_streams =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::Streams;
         uint32_t iofused_non_send_rotations = 0;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
@@ -929,16 +932,19 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
-                // Executor control surrounds streams0's declared N0..N2 rotation. It never
-                // consumes a fresh Task; cold/snapshot debt is handled by the durable EX handoff.
-                if (selected_streams0) did += executor_->fused_pipeline_control();
+                // Executor control surrounds the buffered schedules' declared N0..N2 rotation.
+                // It never consumes a fresh Task; cold/snapshot debt is handled by the durable
+                // EX handoff.
+                if (selected_streams0 || selected_streams)
+                    did += executor_->fused_pipeline_control();
 
                 // The thinness decision belongs before N0.  A closed gate executes the complete
                 // coarse completion/IFID/EX/WB pass, including its ordinary completion-time parse
                 // and send progress, without first paying any pipelined stage machinery.
                 const bool use_pipelined_fused =
                     selected_pipelined_fused && pipeline_gate_open_;
-                if (use_pipelined_fused || selected_iofused || selected_streams0) {
+                const bool use_interleaved = use_pipelined_fused || selected_streams;
+                if (use_interleaved || selected_iofused || selected_streams0) {
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
                         on_cqe<HasTls, kEp, false>(cqe);
                     });
@@ -992,7 +998,7 @@ private:
                     did += wb_w0();                                     // W0
                     did += wb_w1();                                     // W1
                     did += wb_w2();                                     // W2
-                } else if (!use_pipelined_fused) {
+                } else if (!use_interleaved) {
                     uint32_t coarse_occupancy = 0;
                     did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
                         selected_pipelined_fused ? &coarse_occupancy : nullptr);
@@ -1001,84 +1007,103 @@ private:
                             coarse_occupancy >= kGenthreadPipelineMinOccupancy;
                 } else {
                     uint32_t pipeline_occupancy = 0;
-                    did += executor_->fused_pipeline_control();
+                    if (!selected_streams) did += executor_->fused_pipeline_control();
                     ifid_context.count = ifid_context.reserved_worker_count = 0;
                     ifid_context.reservation_ready = false;
                     ifid_context.force_coarse = false;
-                    ifid_context.one_prepared_per_connection = false;
-                    ifid_context.defer_parse_advance = false;
-                    ifid_context.targeted_ready = false;
+                    ifid_context.one_prepared_per_connection = selected_streams;
+                    ifid_context.defer_parse_advance = selected_streams;
+                    ifid_context.targeted_ready = selected_streams;
                     wb_context.count = 0;
                     ex_contexts[0].count = ex_contexts[1].count = 0;
                     active_ifid_context_ = &ifid_context;
                     active_wb_context_ = &wb_context;
 
-                    // I0 -- one thread-wide parse/decode batch across every ready connection and
-                    // as many complete frames per connection as the batch/ROB caps permit.
+                    // I0 -- one thread-wide parse/decode batch. `streams` prepares at most one
+                    // unpublished frame per ready connection; the legacy arm retains its suffix.
                     did += ifid_batch<HasTls, kEp>(&ifid_context);
                     pipeline_occupancy = ifid_context.count;
 
+                    bool buffered_ifid = true;
+                    bool run_microstages = true;
                     if (ifid_context.force_coarse) {
-                        // I0 found a cold/contextual command. Restore every speculative cursor;
-                        // no ROB frontier moved, so the permanent control arm can retry this whole
-                        // pass and the special command takes its established path.
-                        rollback_ifid();
-                        active_wb_context_ = nullptr;
-                        uint32_t coarse_occupancy = 0;
-                        did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
-                        pipeline_gate_open_ =
-                            coarse_occupancy >= kGenthreadPipelineMinOccupancy;
-                    } else {
-
-                    ifid_n1();  // N1
-
-                    // E0(A) -- pop_unretired and launch the remote Op-line dependency.
-                    const uint32_t ex_a_occupancy = ex_e0(ex_contexts[0]);
-                    did += ex_a_occupancy;
-                    pipeline_occupancy = std::max(pipeline_occupancy, ex_a_occupancy);
-
-                    did += wb_w0();  // W0
-                    pipeline_occupancy =
-                        std::max(pipeline_occupancy, wb_context.count);
-
-                    did += ifid_i1();  // I1
-
-                    // E1(A) -- resolve Op, verify the current shard owner, and only then prefetch
-                    // FlatStore. No store-mutating work is permitted until E2(A).
-                    did += ex_e1(ex_contexts[0]);
-
-                    // EX-heavy A/D fallback. With too little I/W filler, D's E0/E1 dependency
-                    // chain fills A's store gap: E1(A) E0(D) E1(D) E2(A) E2(D). No third context.
-                    const bool ex_heavy =
-                        ifid_context.count + wb_context.count <
-                            kGenthreadPipelineMinOccupancy &&
-                        self_->task_depth_capped(kGenthreadPipelineMinOccupancy) >=
-                            kGenthreadPipelineMinOccupancy;
-                    if (ex_heavy) {
-                        const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
-                        did += ex_d_occupancy;
-                        pipeline_occupancy =
-                            std::max(pipeline_occupancy, ex_d_occupancy);
-                        did += ex_e1(ex_contexts[1]);
-                        did += ex_e2(ex_contexts[0]);
-                        did += ex_e2(ex_contexts[1]);
-                        (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
-                        did += wb_w1();
-                        did += ifid_i2();
-                    } else {
-                        // W1 + I2 are the only E1(A)->E2(A) filler. Neither mutates an owned
-                        // FlatStore, preserving the owner-approved money gap.
-                        did += wb_w1();
-                        did += ifid_i2();
-                        did += ex_e2(ex_contexts[0]);
-                        (void)ex_retire(ex_contexts[0]);
+                        if (selected_streams) {
+                            // A cold/contextual frame remains at rpos. Release B's pins and let
+                            // the established IFID monolith publish it; EX and WB still keep their
+                            // independent buffered sections in this rotation.
+                            rollback_ifid();
+                            did += ifid_batch<HasTls, kEp>(nullptr);
+                            buffered_ifid = false;
+                        } else {
+                            // Preserve the legacy experiment's whole-pass coarse retry exactly.
+                            rollback_ifid();
+                            active_wb_context_ = nullptr;
+                            uint32_t coarse_occupancy = 0;
+                            did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
+                            pipeline_gate_open_ =
+                                coarse_occupancy >= kGenthreadPipelineMinOccupancy;
+                            run_microstages = false;
+                        }
                     }
 
-                    did += wb_w2();  // W2
-                    // Actual batch occupancy, sampled after the only stage entry for each stream,
-                    // controls the next pass.  A thin sample closes the gate before the next N0.
-                    pipeline_gate_open_ =
-                        pipeline_occupancy >= kGenthreadPipelineMinOccupancy;
+                    if (run_microstages) {
+                        if (buffered_ifid) ifid_n1();  // N1
+
+                        // E0(A) -- pop_unretired and launch the remote Op-line dependency.
+                        const bool ex_a_tasks_allowed = executor_->pipeline_tasks_allowed();
+                        const bool ex_a_deferred =
+                            selected_streams && ex_a_tasks_allowed && !ex_pipeline_ready();
+                        const bool ex_a_blocked = selected_streams && !ex_a_tasks_allowed;
+                        const uint32_t ex_a_occupancy = ex_a_deferred
+                            ? ex_e0_defer_monolithic(ex_contexts[0])
+                            : ex_e0(ex_contexts[0]);
+                        did += ex_a_occupancy;
+                        pipeline_occupancy = std::max(pipeline_occupancy, ex_a_occupancy);
+
+                        did += wb_w0();  // W0
+                        pipeline_occupancy =
+                            std::max(pipeline_occupancy, wb_context.count);
+
+                        if (buffered_ifid) did += ifid_i1();  // I1
+
+                        // E1(A) -- resolve Op, verify the current shard owner, and only then
+                        // prefetch FlatStore. No store-mutating work is permitted until E2(A).
+                        if (!ex_a_deferred) did += ex_e1(ex_contexts[0]);
+
+                        // EX-heavy A/D fallback. With too little I/W filler, D's E0/E1 dependency
+                        // chain fills A's store gap: E1(A) E0(D) E1(D) E2(A) E2(D). No third
+                        // context.
+                        const bool ex_heavy =
+                            !ex_a_deferred && !ex_a_blocked &&
+                            ifid_context.count + wb_context.count <
+                                kGenthreadPipelineMinOccupancy &&
+                            self_->task_depth_capped(kGenthreadPipelineMinOccupancy) >=
+                                kGenthreadPipelineMinOccupancy;
+                        if (ex_heavy) {
+                            const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
+                            did += ex_d_occupancy;
+                            pipeline_occupancy =
+                                std::max(pipeline_occupancy, ex_d_occupancy);
+                            did += ex_e1(ex_contexts[1]);
+                            did += ex_e2(ex_contexts[0]);
+                            did += ex_e2(ex_contexts[1]);
+                            (void)ex_retire(ex_contexts[0], &ex_contexts[1]);
+                            did += wb_w1();
+                            if (buffered_ifid) did += ifid_i2();
+                        } else {
+                            // W1 + I2 are the only E1(A)->E2(A) filler. Neither mutates an owned
+                            // FlatStore, preserving the owner-approved money gap.
+                            did += wb_w1();
+                            if (buffered_ifid) did += ifid_i2();
+                            if (!ex_a_deferred) did += ex_e2(ex_contexts[0]);
+                            (void)ex_retire(ex_contexts[0]);
+                        }
+
+                        did += wb_w2();  // W2
+                        // Actual occupancy controls the next pass of the legacy adaptive arm.
+                        if (!selected_streams)
+                            pipeline_gate_open_ =
+                                pipeline_occupancy >= kGenthreadPipelineMinOccupancy;
                     }
                 }
                 did += flip_control_pass<kEp>();
@@ -1144,7 +1169,7 @@ private:
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
             uint32_t buffered_ex_sweep = 0;
-            const bool buffered_schedule = selected_streams0;
+            const bool buffered_schedule = selected_streams0 || selected_streams;
             if (buffered_schedule && ex_pipeline_ready()) {
                 // The correctness backstop may find a lost task-notify bit. Keep even this cold
                 // unmasked path on the buffered schedules' pop-unretired -> E2 -> retire_n law.
@@ -2889,7 +2914,7 @@ private:
             if (pipeline_batch &&
                 (!pipeline_simple_point(*op) || security_check || notify_armed ||
                  srv_->flip_dispatch_paused() || conn.multi_session() != nullptr ||
-                 c->subscriber_mode())) {
+                 c->subscriber_mode() || c->has_atomic_group_io())) {
                 pipeline_batch->force_coarse = true;
                 break;
             }
@@ -3488,7 +3513,8 @@ nonblocking_dispatch:
     }
 
     static bool pipeline_simple_point(const Op& op) {
-        if (!op.spec || op.has_blocking_state() || op.local_xshard()) return false;
+        if (!op.spec || op.has_blocking_state() || op.local_xshard() || op.atomic_hazard())
+            return false;
         const Slice name = op.cmd_name();
         if (name.eq_icase("get") || name.eq_icase("incr") || name.eq_icase("decr"))
             return op.argc() == 2;

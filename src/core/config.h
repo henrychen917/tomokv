@@ -222,6 +222,7 @@ enum class GenthreadSchedule : uint8_t {
     PipelinedFused = 1,
     IoFused = 2,
     Streams0 = 3,
+    Streams = 4,
 };
 
 inline const char* genthread_schedule_name(GenthreadSchedule schedule) {
@@ -230,6 +231,7 @@ inline const char* genthread_schedule_name(GenthreadSchedule schedule) {
         case GenthreadSchedule::PipelinedFused: return "pipelined-fused";
         case GenthreadSchedule::IoFused: return "iofused";
         case GenthreadSchedule::Streams0: return "streams0";
+        case GenthreadSchedule::Streams: return "streams";
     }
     return "unknown";
 }
@@ -865,10 +867,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 cfg.genthread_schedule = GenthreadSchedule::IoFused;
             else if (cfg_eq_icase(value, "streams0"))
                 cfg.genthread_schedule = GenthreadSchedule::Streams0;
+            else if (cfg_eq_icase(value, "streams"))
+                cfg.genthread_schedule = GenthreadSchedule::Streams;
             else {
                 std::fprintf(stderr,
-                             "--genthread-schedule wants coarse, pipelined-fused, iofused "
-                             "or streams0\n");
+                             "--genthread-schedule wants coarse, pipelined-fused, iofused, "
+                             "streams0 or streams\n");
                 return kConfigError;
             }
         }
@@ -1031,8 +1035,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  network engine: --net-io uring|epoll (boot-only; default uring;\n"
                         "          epoll implies --persist-io normal)\n"
                         "  generalized schedule: --genthread-schedule "
-                        "coarse|pipelined-fused|iofused|streams0\n"
-                        "          (boot-only; default coarse; thin pipelined passes use coarse)\n"
+                        "coarse|pipelined-fused|iofused|streams0|streams\n"
+                        "          (boot-only; default coarse; legacy thin passes use coarse)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
                         "       --tls-auth-clients yes|no|optional --tls-protocols LIST\n"
