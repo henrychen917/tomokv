@@ -1,5 +1,9 @@
 CXX      ?= g++
 JEDIR    ?= /home/user/Projects/refs/jemalloc/_install
+# Second dependent FlatStore probe prefetch. Keep this as an explicit compile-time pin so control
+# and experiment binaries can be reproduced with TOMO_PROBE_ROUND2=0/1 from the same source tree.
+TOMO_PROBE_ROUND2 ?= 1
+TOMOFLAGS := -DTOMO_PROBE_ROUND2=$(TOMO_PROBE_ROUND2)
 # jemalloc is optional: without it the tree still builds and runs, using the deterministic portable
 # size-class table in alloc.h. Set JE=0 to force that path (useful for A/B-ing the allocator).
 JE       ?= 1
@@ -45,25 +49,25 @@ build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(TOMOFLAGS) -I. -c $< -o $@
 
 asan: CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -O1
 asan: BIN := build/tomokv-asan
 asan:
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
+	$(CXX) $(CXXFLAGS) $(TOMOFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
 
 tsan:
 	@mkdir -p build
 	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
-	  -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
+	  $(TOMOFLAGS) -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
 
 # NEGATIVE-CONTROL BUILD for the cross-owner script reservation sub-wave. Identical to the release
 # build except that ScriptPhase::Pin arms nothing, so tests/xscript.py counterexample MUST fail
 # against it. A detector that cannot report failure proves nothing about the runs that pass.
 noreserve:
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_XSCRIPT_NO_RESERVE -I. $(SRC) \
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(TOMOFLAGS) -DTOMO_XSCRIPT_NO_RESERVE -I. $(SRC) \
 	  -o build/tomokv-noreserve $(JELIBS) $(LDLIBS) -lm
 
 clean:

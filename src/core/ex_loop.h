@@ -33,6 +33,12 @@
 #include "../cmd/xshard.h"
 #include "../persist/aof.h"
 
+#ifndef TOMO_PROBE_ROUND2
+#define TOMO_PROBE_ROUND2 1
+#endif
+static_assert(TOMO_PROBE_ROUND2 == 0 || TOMO_PROBE_ROUND2 == 1,
+              "TOMO_PROBE_ROUND2 must be 0 or 1");
+
 namespace tomo {
 
 // "Long enough to cover an inter-arrival gap, short enough not to burn a core." A starting point to
@@ -848,8 +854,9 @@ private:
         }
     }
 
-    // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
-    // round trips overlap instead of each op stalling on its own miss in turn.
+    // Prefetch the whole batch's slots, optionally chase their tag-only candidate pointers, THEN
+    // execute. The two hint rounds overlap both dependent DRAM trips; execute() remains the only
+    // authoritative lookup and still performs the complete key comparison.
     void exec_batch(const Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
@@ -863,6 +870,25 @@ private:
                 !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
                 srv_->shard(shard).store().prefetch(op.hash);
         }
+#if TOMO_PROBE_ROUND2
+        // Small drains do not provide enough independent work to amortize another probe pass.
+        // Preserve their existing slot-prefetch + execute path byte-for-byte.
+        if (n >= 8) {
+            for (uint32_t i = 0; i < n; i++) {
+                if (!batch[i].client) continue;
+                const Op& op = batch[i].client->rob().at(batch[i].op_id);
+                const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+                if (shard < 0 || batch[i].scatter ||
+                    (op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                    continue;
+                if (KvObj* object = srv_->shard(shard).store().probe_candidate(op.hash)) {
+                    // KvObj's header and ordinary key bytes are contiguous in the first object
+                    // line. Forming this hint address does not inspect the candidate object.
+                    __builtin_prefetch(object, 0, 3);
+                }
+            }
+        }
+#endif
         // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
         // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
         // into this loop at all. The armed body is out of line in exec_batch_timed().

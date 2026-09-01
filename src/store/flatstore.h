@@ -1311,6 +1311,16 @@ public:
         if (tab_[1]) __builtin_prefetch(&tab_[1][slot_start(1, h)], 0, 3);
     }
 
+    // Hint-only half lookup for the executor's second prefetch round. Walk the same packed slot
+    // words as find_in(), but stop at the first matching 15-bit tag and return its encoded pointer
+    // WITHOUT dereferencing the KvObj. A tag collision may therefore return the wrong object, and
+    // a concurrent ownership handoff/rehash may make the hint stale. Both are harmless by design:
+    // execute() still performs the full lookup and key memcmp and this result is never authoritative.
+    KvObj* probe_candidate(uint64_t h) const {
+        if (KvObj* object = probe_candidate_in(0, h)) return object;
+        return tab_[1] ? probe_candidate_in(1, h) : nullptr;
+    }
+
     // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
@@ -1871,6 +1881,20 @@ private:
             if (w == 0) return nullptr;                     // EMPTY — the only stop
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) return o;
+            i = (i + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
+    KvObj* probe_candidate_in(int t, uint64_t h) const {
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t word = tab_[t][i];
+            if (word == 0) return nullptr;
+            if (tag_of_word(word) == tag)
+                if (KvObj* object = ptr_of(word)) return object;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
