@@ -489,13 +489,7 @@ private:
             // per-operation hooks their zero-cost-when-off property.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
-            // A live CLIENT PAUSE is the only lane feature that needs a clock of its own; the
-            // deadline is checked once per batch, never per operation.
-            if (__builtin_expect(climon_pause_armed(), false)) {
-                cached_now_ms_ = now_ns() / 1000000ull;
-                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                if (cached_now_ms_ >= climon_pause_deadline_ms_) climon_release_pause();
-            }
+            const bool pause_armed = climon_pause_armed();
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
@@ -504,15 +498,7 @@ private:
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
                                          srv_->save_cron_writer(self_->id());
-            if (__builtin_expect(client_cron_armed || save_cron_armed || client_lb_signal_armed ||
-                                 lb_controller_armed, false)) {
-                cached_now_ms_ = now_ns() / 1000000ull;
-                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                if (client_cron_armed && !client_cron_was_armed_) {
-                    for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
-                    client_cron_beat_ms_ = cached_now_ms_;
-                }
-            }
+            const bool client_cron_newly_armed = client_cron_armed && !client_cron_was_armed_;
             if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
                 // Turning the last client cron consumer off also retires output accounting once.
                 // The disabled write-back specialization then has no per-serve cleanup branch.
@@ -526,6 +512,24 @@ private:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                // The work-span clock is already sampled once for this pass. Reuse that cut for
+                // every monotonic millisecond consumer instead of issuing separate clock_gettime
+                // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
+                // is milliseconds or seconds.
+                bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
+                                        client_lb_signal_armed || lb_controller_armed ||
+                                        !deferred_waits_.empty();
+                if (__builtin_expect(pass_time_cached, true)) {
+                    cached_now_ms_ = busy.start_ns() / 1000000ull;
+                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                }
+                if (__builtin_expect(pause_armed &&
+                                     cached_now_ms_ >= climon_pause_deadline_ms_, false))
+                    climon_release_pause();
+                if (client_cron_newly_armed) {
+                    for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
+                    client_cron_beat_ms_ = cached_now_ms_;
+                }
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
@@ -553,8 +557,12 @@ private:
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 if (__builtin_expect(!deferred_waits_.empty(), false)) {
-                    cached_now_ms_ = now_ns() / 1000000ull;
-                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                    // CQ processing above may have created the first WAIT after the prologue.
+                    if (!pass_time_cached) {
+                        cached_now_ms_ = busy.start_ns() / 1000000ull;
+                        cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                        pass_time_cached = true;
+                    }
                     did += deferred_wait_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
