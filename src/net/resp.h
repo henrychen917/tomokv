@@ -31,6 +31,32 @@ enum class ParseResult { Ok, Incomplete, Error };
 // Returns Ok / Incomplete / Error. Bounded by `maxv` so a hostile length cannot overflow.
 inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
                                   uint64_t maxv, uint64_t& out) {
+    // Pipeline traffic overwhelmingly uses one/two-digit argc and bulk lengths. Resolve those
+    // complete headers directly; malformed and partial inputs fall through to the bytewise state
+    // machine so its exact Error-versus-Incomplete behavior is unchanged.
+    if (pos < len) {
+        const uint32_t remaining = len - pos;
+        const uint32_t d0 = static_cast<uint8_t>(buf[pos]) - static_cast<uint32_t>('0');
+        if (d0 <= 9 && remaining >= 3) {
+            if (buf[pos + 1] == '\r' && buf[pos + 2] == '\n') {
+                if (d0 > maxv) return ParseResult::Error;
+                pos += 3;
+                out = d0;
+                return ParseResult::Ok;
+            }
+            if (remaining >= 4) {
+                const uint32_t d1 =
+                    static_cast<uint8_t>(buf[pos + 1]) - static_cast<uint32_t>('0');
+                if (d1 <= 9 && buf[pos + 2] == '\r' && buf[pos + 3] == '\n') {
+                    const uint32_t value = d0 * 10 + d1;
+                    if (value > maxv) return ParseResult::Error;
+                    pos += 4;
+                    out = value;
+                    return ParseResult::Ok;
+                }
+            }
+        }
+    }
     uint32_t i = pos;
     uint64_t v = 0;
     uint32_t digits = 0;
