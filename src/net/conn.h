@@ -286,6 +286,10 @@ public:
     uint32_t rpos() const { return rpos_; }
     size_t rcap() const { return rcap_; }
     void     advance_parse(uint32_t n) { rpos_ += n; }
+    void     retreat_unpublished_parse(uint32_t n) {
+        if (n > rpos_) std::abort();
+        rpos_ -= n;
+    }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
     //

@@ -440,6 +440,7 @@ private:
     struct IfidPipelineEntry {
         Client* client = nullptr;
         Op* op = nullptr;
+        uint64_t op_id = 0;
         uint32_t consumed = 0;
         uint32_t worker = 0;
         bool direct_candidate = false;
@@ -596,6 +597,23 @@ private:
             return completed;
         };
 
+        auto rollback_ifid = [&]() {
+            // I0 advances the owner-local parse cursor only to expose the next frame to this same
+            // thread-wide gather.  Until I2 publishes, every one of those advances is reversible.
+            // Walk backwards so multiple prepared frames on one connection restore the exact cut.
+            for (uint32_t i = ifid_context.count; i != 0; i--) {
+                const IfidPipelineEntry& entry = ifid_context.entries[i - 1];
+                if (entry.client) entry.client->retreat_unpublished_parse(entry.consumed);
+            }
+            ifid_context.count = 0;
+            active_ifid_context_ = nullptr;
+        };
+
+        // Boot-latched once for this physical generalized thread.  A closed depth gate therefore
+        // enters the shipped coarse rotation without executing an N0/I0/E0/W0 pipeline preflight.
+        const bool selected_pipelined_fused =
+            srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
+
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
             refresh_notify_config();
@@ -668,11 +686,12 @@ private:
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
 
-                // N0 -- commit receive/send/event progress. No RESP parse and no send pump lives
-                // in this section; follow-up send construction is retained for W2.
-                const bool selected_pipelined_fused =
-                    srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
-                if (selected_pipelined_fused) {
+                // The thinness decision belongs before N0.  A closed gate executes the complete
+                // coarse completion/IFID/EX/WB pass, including its ordinary completion-time parse
+                // and send progress, without first paying any pipelined stage machinery.
+                const bool use_pipelined_fused =
+                    selected_pipelined_fused && pipeline_gate_open_;
+                if (use_pipelined_fused) {
                     did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
                         on_cqe<HasTls, kEp, false>(cqe);
                     });
@@ -684,48 +703,15 @@ private:
                 }
                 if constexpr (kEp) did += epoll_pass<HasUnix, HasTls>(0);
 
-                bool use_pipelined_fused = selected_pipelined_fused;
-                if (use_pipelined_fused) {
-                    uint32_t ifid_occupancy = 0;
-                    for (size_t i = 0;
-                         i < active_.size() &&
-                         ifid_occupancy < kGenthreadPipelineMinOccupancy; i++) {
-                        Client* client = active_.at(i);
-                        if (client && !client->dead() && !client->closing() &&
-                            client->rpos() < client->rlen() &&
-                            !client->scatter_barrier() && !client->parse_backpressure())
-                            ifid_occupancy++;
-                    }
-                    const uint32_t ex_occupancy =
-                        self_->task_depth_capped(kGenthreadPipelineMinOccupancy);
-                    // A cold/special task at any E0-visible lane frontier makes the whole pass
-                    // coarse. That task therefore reaches the shipped monolithic executor without
-                    // acquiring microstage state; only GET/SET/single-DEL/INCR/DECR enter A/D.
-                    bool ex_point_only = true;
-                    self_->read_ahead_task_inputs(
-                        kGenthreadExBatchOps, [&](const Task& task) {
-                            if (!task.client || task.scatter || multi_task_tagged(task) ||
-                                !pipeline_simple_point(
-                                    task.client->rob().at(task.op_id)))
-                                ex_point_only = false;
-                        });
-                    const uint32_t pending_wb = static_cast<uint32_t>(std::min<size_t>(
-                        pending_serve_.size(), kGenthreadPipelineMinOccupancy));
-                    const uint32_t wb_occupancy = std::min(
-                        kGenthreadPipelineMinOccupancy,
-                        pending_wb + self_->ready().count_capped(
-                                         kGenthreadPipelineMinOccupancy - pending_wb));
-                    const uint32_t occupancy = std::max(
-                        ifid_occupancy, std::max(ex_occupancy, wb_occupancy));
-                    // Amendment 1: thin is not empty. A pass below the useful batch occupancy
-                    // runs the entire coarse IFID->EX->WB rotation with proportional work.
-                    use_pipelined_fused =
-                        occupancy >= kGenthreadPipelineMinOccupancy && ex_point_only;
-                }
-
                 if (!use_pipelined_fused) {
-                    did += pipeline_coarse_pass<HasUnix, HasTls, kEp>();
+                    uint32_t coarse_occupancy = 0;
+                    did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(
+                        selected_pipelined_fused ? &coarse_occupancy : nullptr);
+                    if (selected_pipelined_fused)
+                        pipeline_gate_open_ =
+                            coarse_occupancy >= kGenthreadPipelineMinOccupancy;
                 } else {
+                    uint32_t pipeline_occupancy = 0;
                     did += executor_->fused_pipeline_control();
                     ifid_context.count = ifid_context.reserved_worker_count = 0;
                     ifid_context.reservation_ready = false;
@@ -735,24 +721,30 @@ private:
                     active_ifid_context_ = &ifid_context;
                     active_wb_context_ = &wb_context;
 
-                    // I0 -- parse/decode one prepared-unpublished simple point command per
-                    // connection. Special/cold commands stay in parse_and_dispatch's monolith.
+                    // I0 -- one thread-wide parse/decode batch across every ready connection and
+                    // as many complete frames per connection as the batch/ROB caps permit.
                     did += ifid_batch<HasTls, kEp>(&ifid_context);
+                    pipeline_occupancy = ifid_context.count;
 
                     if (ifid_context.force_coarse) {
-                        // I0 found a cold shard command. No cursor or ROB frontier moved, so drop
-                        // the speculative prepared B prefix and run the permanent control arm for
-                        // this whole pass; the special command then takes its established path.
-                        ifid_context.count = 0;
-                        active_ifid_context_ = nullptr;
+                        // I0 found a cold/contextual command. Restore every speculative cursor;
+                        // no ROB frontier moved, so the permanent control arm can retry this whole
+                        // pass and the special command takes its established path.
+                        rollback_ifid();
                         active_wb_context_ = nullptr;
-                        did += pipeline_coarse_pass<HasUnix, HasTls, kEp>();
+                        uint32_t coarse_occupancy = 0;
+                        did += pipeline_coarse_pass<HasUnix, HasTls, kEp>(&coarse_occupancy);
+                        pipeline_gate_open_ =
+                            coarse_occupancy >= kGenthreadPipelineMinOccupancy;
                     } else {
 
                     // N1 -- append-only receive rearm for B. The prepared Op pins every argv
                     // slice, so read_space is explicitly forbidden to compact or grow here.
+                    Client* rearmed_client = nullptr;
                     for (uint32_t i = 0; i < ifid_context.count; i++) {
                         Client* client = ifid_context.entries[i].client;
+                        if (client == rearmed_client) continue;
+                        rearmed_client = client;
                         if (!client || client->dead() || client->closing()) continue;
                         if constexpr (HasTls) {
                             if (client->is_tls()) arm_tls_recv<kEp>(client);
@@ -763,7 +755,9 @@ private:
                     }
 
                     // E0(A) -- pop_unretired and launch the remote Op-line dependency.
-                    did += ex_e0(ex_contexts[0]);
+                    const uint32_t ex_a_occupancy = ex_e0(ex_contexts[0]);
+                    did += ex_a_occupancy;
+                    pipeline_occupancy = std::max(pipeline_occupancy, ex_a_occupancy);
 
                     // W0 -- ready-mask driven completion collection and ROB-head prefetch. No
                     // active-connection scan is used to discover completion work.
@@ -793,6 +787,8 @@ private:
                                         &client->rob().at(client->rob().flush_id()), 0, 2);
                             }
                             did += wb_context.count;
+                            pipeline_occupancy =
+                                std::max(pipeline_occupancy, wb_context.count);
                         }
                     } else {
                         aof_gate_target_ = 0;
@@ -873,11 +869,10 @@ private:
                     };
 
                     auto ifid_i2 = [&]() {
-                        // I2 -- publish ROB, then the reserved Task slot, then advance the parse
-                        // cursor. Destination notification is folded once after all publications.
+                        // I2 -- publish ROB, then the reserved Task slot. The speculative I0 parse
+                        // cut is thereby committed. Notify each destination once after the batch.
                         if (!ifid_context.reservation_ready) {
-                            ifid_context.count = 0;
-                            active_ifid_context_ = nullptr;
+                            rollback_ifid();
                             return uint32_t{0};
                         }
                         uint32_t published = 0;
@@ -897,10 +892,10 @@ private:
                                 op.direct = fill.data();
                                 op.direct_cap = static_cast<uint32_t>(fill.cap());
                             }
-                            const Task task{client, rob.dispatch_id(), -1, nullptr};
+                            const Task task{client, entry.op_id, -1, nullptr};
+                            if (entry.op_id != rob.dispatch_id()) std::abort();
                             rob.publish();
                             worker.post_task_reserved_quiet(self_->id(), task, sig);
-                            client->advance_parse(entry.consumed);
                             sig.ops++;
                             mark_active(client);
                             published++;
@@ -922,7 +917,10 @@ private:
                         self_->task_depth_capped(kGenthreadPipelineMinOccupancy) >=
                             kGenthreadPipelineMinOccupancy;
                     if (ex_heavy) {
-                        did += ex_e0(ex_contexts[1]);
+                        const uint32_t ex_d_occupancy = ex_e0(ex_contexts[1]);
+                        did += ex_d_occupancy;
+                        pipeline_occupancy =
+                            std::max(pipeline_occupancy, ex_d_occupancy);
                         did += ex_e1(ex_contexts[1]);
                         did += ex_e2(ex_contexts[0]);
                         did += ex_e2(ex_contexts[1]);
@@ -977,6 +975,10 @@ private:
                     wb_context.count = 0;
                     active_wb_context_ = nullptr;
                     did += wb_submitted;
+                    // Actual batch occupancy, sampled after the only stage entry for each stream,
+                    // controls the next pass.  A thin sample closes the gate before the next N0.
+                    pipeline_gate_open_ =
+                        pipeline_occupancy >= kGenthreadPipelineMinOccupancy;
                     }
                 }
                 did += flip_control_pass<kEp>();
@@ -2573,6 +2575,7 @@ private:
         const bool atomic_tracking = srv_->atomic_tracking_active();
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
         const uint64_t batch_start_ops = sig.ops;
+        uint32_t pipeline_rob_offset = 0;
 
         for (;;) {
             if (sig.ops - batch_start_ops >= kGenthreadIfidBatchOps) break;
@@ -2582,7 +2585,9 @@ private:
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
-            Op* op = rob.acquire(conn.op_route_flags());
+            Op* op = pipeline_batch
+                ? rob.acquire_unpublished(pipeline_rob_offset, conn.op_route_flags())
+                : rob.acquire(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
@@ -2611,6 +2616,10 @@ private:
                 break;
             }
             if (pr == ParseResult::Error) {
+                if (pipeline_batch) {
+                    pipeline_batch->force_coarse = true;
+                    break;
+                }
                 finish_locally(c, *op, err ? err : "ERR protocol error");
                 conn.advance_parse(conn.rlen() - conn.rpos());
                 c->mark_closing();
@@ -2622,6 +2631,10 @@ private:
             const uint32_t consumed = pos - conn.rpos();
 
             const CommandSpec* spec = command_lookup(op->cmd_name());
+            if (pipeline_batch && !spec) {
+                pipeline_batch->force_coarse = true;
+                break;
+            }
             if (!spec) {
                 conn.advance_parse(consumed);
                 // Redis names the command and echoes the first arguments; client libraries and
@@ -2652,6 +2665,10 @@ private:
                     used += wrote;
                 }
                 finish_locally(c, *op, message); continue;
+            }
+            if (pipeline_batch && !command_arity_ok(*spec, op->argc())) {
+                pipeline_batch->force_coarse = true;
+                break;
             }
             if (!command_arity_ok(*spec, op->argc())) {
                 // Routed containers and SLOWLOG keep a broad container bound in the registry so
@@ -2697,11 +2714,22 @@ private:
                 spec = command_notify_variant(spec);
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
-                if (__builtin_expect(climon_armed_gate(c, *op), false)) break;
             } else {
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
             }
+            // I0 admits only the context-free point path.  Make this decision before ACL,
+            // transactions, subscriber mode, or any local/cold lowering can publish the slot at
+            // the real ROB frontier while older entries in this batch are still unpublished.
+            if (pipeline_batch &&
+                (!pipeline_simple_point(*op) || security_check || notify_armed ||
+                 srv_->flip_dispatch_paused() || conn.multi_session() != nullptr ||
+                 c->subscriber_mode())) {
+                pipeline_batch->force_coarse = true;
+                break;
+            }
+            if (__builtin_expect(notify_armed, false) &&
+                __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
@@ -2905,14 +2933,6 @@ subscriber_checks_done:
                     break;
                 }
                 continue;
-            }
-
-            // A pipelined-fused I0 may prepare only the point-command set. Stop before any scatter,
-            // blocking, atomic, cursor, script, or other special lowering can publish an EX task;
-            // the enclosing loop discards its unpublished B prefix and reruns the coarse pass.
-            if (pipeline_batch && !pipeline_simple_point(*op)) {
-                pipeline_batch->force_coarse = true;
-                break;
             }
 
             // This command only needs an owner-local same-connection pending lookup when an older
@@ -3188,14 +3208,18 @@ nonblocking_dispatch:
                 op->hash = random;
                 op->shard = static_cast<int32_t>(chosen);
             } else if (pipeline_batch && pipeline_simple_point(*op)) {
-                // Only the owner-approved point set enters B. Everything else continues through
-                // this function's established monolithic hash/route/publication path.
+                // I0 owns a speculative parse cut and unpublished ROB suffix for this connection.
+                // Advancing the cursor here exposes the next frame to the SAME thread-wide stage;
+                // rollback restores every advance if I1 cannot reserve all destination credits.
                 if (pipeline_batch->count == kGenthreadIfidBatchOps) break;
                 pipeline_batch->entries[pipeline_batch->count++] =
-                    IfidPipelineEntry{c, op, consumed, 0, head_candidate};
+                    IfidPipelineEntry{c, op, rob.dispatch_id() + pipeline_rob_offset,
+                                      consumed, 0, head_candidate};
                 head_candidate = false;
+                pipeline_rob_offset++;
+                conn.advance_parse(consumed);
                 result = DispatchResult::Progress;
-                break;
+                continue;
             } else {
                 op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
                 op->shard = srv_->router().shard_of(op->hash);
@@ -3634,11 +3658,22 @@ nonblocking_dispatch:
     }
 
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t pipeline_coarse_pass() {
+    uint32_t pipeline_coarse_pass(uint32_t* occupancy = nullptr) {
+        const uint64_t ifid_before = self_->sig().ops;
         uint32_t work = ifid_batch<HasTls, kEp>(nullptr);
+        const uint32_t ifid_occupancy = static_cast<uint32_t>(
+            std::min<uint64_t>(kGenthreadIfidBatchOps, self_->sig().ops - ifid_before));
+        const uint64_t ex_before = self_->sig().ops;
         work += executor_->fused_coarse_pass();
-        work += collect_retire_work<HasUnix, kEp>();
-        work += wb_batch<HasTls, kEp>();
+        const uint32_t ex_occupancy = static_cast<uint32_t>(
+            std::min<uint64_t>(kGenthreadExBatchOps, self_->sig().ops - ex_before));
+        const uint32_t collected = collect_retire_work<HasUnix, kEp>();
+        work += collected;
+        const uint32_t wb_work = wb_batch<HasTls, kEp>();
+        work += wb_work;
+        if (occupancy)
+            *occupancy = std::max(ifid_occupancy,
+                                  std::max(ex_occupancy, std::max(collected, wb_work)));
         return work;
     }
 
@@ -4128,6 +4163,7 @@ nonblocking_dispatch:
     // and let teardown/migration defer while an unpublished Op or gathered Client is referenced.
     IfidPipelineBatch* active_ifid_context_ = nullptr;
     WbPipelineBatch* active_wb_context_ = nullptr;
+    bool pipeline_gate_open_ = false;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;

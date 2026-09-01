@@ -82,9 +82,11 @@ that is the next commit's arm.
 `--genthread-schedule coarse|pipelined-fused` is boot-latched and reported through `CONFIG GET`.
 `coarse` is the default and permanent control arm. Selecting `pipelined-fused` does not remove that
 control: every pass below `kGenthreadPipelineMinOccupancy` runs the complete coarse
-`IFID -> EX -> WB` rotation. Occupancy is capped and measured from the ready work of the three
-independent streams (buffered IFID clients, inbound EX tasks, and completion/WB readiness), so a
-thin non-empty pass does work proportional to its payload instead of traversing empty microstages.
+`IFID -> EX -> WB` rotation. The gate is decided before N0 from the preceding pass's actual batch
+occupancy. A closed gate uses ordinary completion-time progress and the complete coarse rotation;
+it does not scan the active set or read ahead every EX lane to rediscover that the pass is thin.
+The coarse batch's existing IFID/EX/WB counts are the next occupancy sample. A thin non-empty pass
+therefore does work proportional to its payload and executes no pipelined stage preflight.
 
 The deep-pass schedule is the owner-approved static order:
 
@@ -92,10 +94,14 @@ The deep-pass schedule is the owner-approved static order:
 
 - `N0` reaps network events and commits recv/send progress. In the pipelined arm it neither parses
   nor constructs a follow-up send.
-- `I0` parses and decodes one prepared-unpublished simple point command per ready connection into
-  IFID batch B. Only GET, SET, single-key DEL, INCR, and DECR qualify. Encountering a cold/special
-  shard command discards the unpublished B prefix and runs the coarse pass, so scatter, scripts,
-  scans, blocking commands, retrying atomics, and all other commands retain the monolithic path.
+- `I0` parses and decodes one thread-wide batch across all ready connections, taking multiple
+  complete frames per connection until the batch or that connection's ROB window is capped. The
+  owner-local parse cut advances speculatively so later frames are visible inside the same stage;
+  the corresponding ROB suffix remains unpublished. Only GET, SET, single-key DEL, INCR, and DECR
+  qualify. A failed I1 reservation or a cold/contextual command rolls the parse cuts back in reverse
+  order before the coarse path retries them. Protocol errors, ACL/auth, transactions, subscriber
+  mode, scatter, scripts, scans, blocking commands, and retrying atomics cannot publish through an
+  unpublished suffix.
 - `N1` rearms B's connections append-only. A prepared Op pins its argv slices; buffer compaction
   and growth remain legal only at `ROB quiesced && prepared == 0`.
 - `E0` gathers EX batch A with `pop_unretired` and prefetches the referenced Op line. It does not
@@ -110,7 +116,8 @@ The deep-pass schedule is the owner-approved static order:
   ordered-deferred monolith.
 - `W1` retires only the ready ROB prefix and stages complete reply frames. Deferred out-of-band
   frames flush only through the ROB flush frontier produced by that retirement.
-- `I2` performs `ROB publish -> reserved task publish -> parse-cursor advance`, then publishes one
+- `I2` walks each connection's prepared suffix in order and performs `ROB publish -> reserved task
+  publish`; the speculative parse cursor becomes committed at that point. It then publishes one
   notification per touched destination.
 - `E2` executes/completes eligible tasks. Only after every A task is Executed, Forwarded, or
   DeferredDurably does it issue one `retire_n` frontier update per source lane.

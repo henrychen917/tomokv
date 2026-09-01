@@ -69,6 +69,18 @@ public:
         return op;
     }
 
+    // Claim a later slot without moving the published issue frontier.  The pipelined IFID I0
+    // stage uses this to decode a thread-wide batch containing several frames from one connection;
+    // I2 still publishes those slots in order, one ROB publish immediately before each Task
+    // publication.  `offset` is owner-local, bounded by the same ROB window, and never becomes
+    // visible to an executor until the corresponding publish().
+    Op* acquire_unpublished(uint32_t offset, uint8_t route_flags = 0) {
+        if (in_flight() + offset >= Capacity) return nullptr;
+        Op* op = slot((static_cast<uint32_t>(dispatch_id()) + offset) & kMask, true);
+        op->reset(route_flags);
+        return op;
+    }
+
     // Publish the slot claimed by acquire(). RELEASE: everything written into the slot must be
     // visible to the consumer before it can observe the new dispatch_id. Separate from acquire()
     // because the parser may abandon a half-built op without advancing the ROB.
