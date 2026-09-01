@@ -1010,43 +1010,73 @@ private:
                 } else if (selected_streams0) {
                     // `streams0` is the buffered scheduling control. It uses the same explicit
                     // B/A/C handoffs and post-E2 lane retirement as the interleaved arm, but drains
-                    // each stream contiguously: I0 N1 I1 I2 / E0 E1 E2 / W0 W1 W2.
-                    ifid_context.count = ifid_context.reserved_worker_count = 0;
-                    ifid_context.reservation_ready = false;
-                    ifid_context.force_coarse = false;
-                    ifid_context.one_prepared_per_connection = true;
-                    ifid_context.defer_parse_advance = true;
-                    ifid_context.targeted_ready = true;
-                    wb_context.count = 0;
+                    // each stream contiguously in batch-sized chunks. The first empty gather ends a
+                    // stage pass; the compile-time cap is only a fairness backstop.
                     ex_contexts[0].count = ex_contexts[1].count = 0;
-                    active_ifid_context_ = &ifid_context;
-                    active_wb_context_ = &wb_context;
 
-                    did += ifid_batch<HasTls, kEp>(&ifid_context);       // I0
-                    if (ifid_context.force_coarse) {
-                        // The special frame stayed at rpos. Drop B's pins, then let the established
-                        // IFID monolith publish it; shard work still crosses the SPSC self lane.
-                        rollback_ifid();
-                        did += ifid_batch<HasTls, kEp>(nullptr);
-                    } else {
-                        ifid_n1();                                      // N1
-                        did += ifid_i1();                               // I1
-                        did += ifid_i2();                               // I2
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        ifid_context.count = ifid_context.reserved_worker_count = 0;
+                        ifid_context.reservation_ready = false;
+                        ifid_context.force_coarse = false;
+                        ifid_context.one_prepared_per_connection = true;
+                        ifid_context.defer_parse_advance = true;
+                        ifid_context.targeted_ready = true;
+                        active_ifid_context_ = &ifid_context;
+
+                        did += ifid_batch<HasTls, kEp>(&ifid_context);   // I0(B[chunk])
+                        if (ifid_context.force_coarse) {
+                            // The special frame stayed at rpos. Drop B's pins, then let the
+                            // established IFID monolith drain it; shard work still crosses the SPSC
+                            // self lane. The monolith already drains its ready-set snapshot.
+                            rollback_ifid();
+                            did += ifid_batch<HasTls, kEp>(nullptr);
+                            break;
+                        }
+                        if (!ifid_context.count) {
+                            active_ifid_context_ = nullptr;
+                            break;
+                        }
+                        ifid_n1();                                      // N1(B[chunk])
+                        did += ifid_i1();                               // I1(B[chunk])
+                        const uint32_t published = ifid_i2();           // I2(B[chunk])
+                        did += published;
+                        // Reservation refusal rolled B back to the ready list. Retrying the same
+                        // full destination lane inside this pass would only burn the fairness cap.
+                        if (!published) break;
                     }
 
-                    if (ex_pipeline_ready()) {
-                        did += ex_e0(ex_contexts[0]);                    // E0
-                        did += ex_e1(ex_contexts[0]);                    // E1
-                        did += ex_e2(ex_contexts[0]);                    // E2
-                    } else if (executor_->pipeline_tasks_allowed()) {
-                        // Durable monolithic handoff is E2's terminal outcome for this batch.
-                        did += ex_e0_defer_monolithic(ex_contexts[0]);
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        if (ex_pipeline_ready()) {
+                            did += ex_e0(ex_contexts[0]);                // E0(A[chunk])
+                            if (!ex_contexts[0].count) break;
+                            did += ex_e1(ex_contexts[0]);                // E1(A[chunk])
+                            did += ex_e2(ex_contexts[0]);                // E2(A[chunk])
+                        } else if (executor_->pipeline_tasks_allowed()) {
+                            // Durable monolithic handoff is E2's terminal outcome for this chunk.
+                            did += ex_e0_defer_monolithic(ex_contexts[0]);
+                            if (!ex_contexts[0].count) break;
+                        } else {
+                            break;
+                        }
+                        // One release-store per source lane and chunk, always after that chunk's
+                        // tasks are Executed, Forwarded, or DeferredDurably.
+                        (void)ex_retire(ex_contexts[0]);
                     }
-                    (void)ex_retire(ex_contexts[0]);
 
-                    did += wb_w0();                                     // W0
-                    did += wb_w1();                                     // W1
-                    did += wb_w2();                                     // W2
+                    for (uint32_t chunk = 0;
+                         chunk < kGenthreadStreamsMaxChunksPerPass; chunk++) {
+                        wb_context.count = 0;
+                        active_wb_context_ = &wb_context;
+                        did += wb_w0();                                 // W0(C[chunk])
+                        if (!wb_context.count) {
+                            active_wb_context_ = nullptr;
+                            break;
+                        }
+                        did += wb_w1();                                 // W1(C[chunk])
+                        did += wb_w2();                                 // W2(C[chunk])
+                    }
                 } else if (selected_streams && !use_streams_interleaved) {
                     // Closed `streams` gate: one complete buffered coarse rotation. B and A may
                     // stop before their first published dependency for one rotation; C never does.

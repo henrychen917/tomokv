@@ -36,8 +36,14 @@ inline constexpr uint32_t kGenthreadPipelineMinOccupancy = 8;
 // WB has no residual constant because reply sends are never delayed for accumulation.
 inline constexpr uint32_t kGenthreadStreamsMinBatchOccupancy = 8;
 inline constexpr uint32_t kGenthreadStreamsResidualAgeCapRotations = 1;
+// A stage pass normally stops on the first empty gather. This cap is only a fairness backstop for
+// continuously replenished owner-local queues; it must remain large enough to amortize one outer
+// rotation across a genuinely deep pipeline while retaining batch boundaries for `streams`.
+inline constexpr uint32_t kGenthreadStreamsMaxChunksPerPass = 16;
 static_assert(kGenthreadStreamsResidualAgeCapRotations > 0,
               "streams residual carry needs a positive, finite rotation cap");
+static_assert(kGenthreadStreamsMaxChunksPerPass >= 8,
+              "streams stage passes must drain at least eight batch chunks");
 
 enum class GenthreadMicrostage : uint8_t {
     N0,
