@@ -198,7 +198,10 @@ CommandTable pfdebug_command_table();
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
 bool command_registry_init(bool tls_enabled, bool fused_mode = false);
 const CommandSpec* command_lookup(Slice name);
-bool command_arity_ok(const CommandSpec& spec, uint32_t argc);
+inline bool command_arity_ok(const CommandSpec& spec, uint32_t argc) {
+    return argc >= static_cast<uint32_t>(spec.min_arity) &&
+           (spec.max_arity < 0 || argc <= static_cast<uint32_t>(spec.max_arity));
+}
 uint32_t command_registry_size();
 const CommandSpec* command_registry_at(uint32_t id);
 uint64_t command_acl_category_mask(const CommandSpec& spec);

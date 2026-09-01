@@ -248,11 +248,6 @@ const CommandSpec* command_lookup(Slice name) {
     return nullptr;
 }
 
-bool command_arity_ok(const CommandSpec& spec, uint32_t argc) {
-    return argc >= static_cast<uint32_t>(spec.min_arity) &&
-           (spec.max_arity < 0 || argc <= static_cast<uint32_t>(spec.max_arity));
-}
-
 namespace {
 
 void append_ascii_lower(std::string& out, const char* text) {
