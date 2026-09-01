@@ -2169,6 +2169,8 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
+        const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
+        const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // One continuous-placement epoch per parse pass. Work published concurrently with a new
         // EX drain is included in that drain; reloading the stage for every operation would add a
         // shared atomic to the request path without strengthening the ownership fence.
@@ -2212,12 +2214,11 @@ private:
             if (__builtin_expect(security_check, false)) {
                 pr = resp_parse_limited(
                     conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384);
-            } else if (__builtin_expect(
-                           proto_max_bulk_len_ == 512ull * 1024 * 1024, true)) {
+            } else if (__builtin_expect(default_bulk_limit, true)) {
                 pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
             } else {
                 pr = resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err,
-                                        1024 * 1024, proto_max_bulk_len_);
+                                        1024 * 1024, pass_max_bulk_len);
             }
             security_check |= acl_active;
 
