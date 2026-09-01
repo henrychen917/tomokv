@@ -616,6 +616,7 @@ private:
             srv_->cfg().genthread_schedule == GenthreadSchedule::PipelinedFused;
         const bool selected_iofused =
             srv_->cfg().genthread_schedule == GenthreadSchedule::IoFused;
+        uint32_t iofused_non_send_rotations = 0;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
@@ -1015,17 +1016,44 @@ private:
             }
             sig.cpu_ns = thread_cpu_ns();
 
-            // N2 -- one network-ring submit boundary for receives, sends, I2 task wakes, and E2
-            // completion wakes. The executor ring is submitted by its control pass only for its
-            // existing persistence/control IO; pipelined point-task handoffs use this ring.
-            if (did) { ring_.submit_and_reap(); continue; }
+            // IOFUSED has an asymmetric boundary. A SEND in the current SQ is latency-bearing: the
+            // request/response client cannot produce its next arrival until those reply bytes reach
+            // the kernel, so it always retains this rotation's immediate submit. Receive re-arms,
+            // control SQEs, and reap-only passes can ride with that next SEND, but for no more than
+            // four rotations. sqe()'s synchronous full-SQ submit is an earlier boundary and restarts
+            // the budget; work staged after it counts as this interval's first rotation.
+            if (selected_iofused) {
+                if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
+                if (ring_.send_pending()) {
+                    ring_.submit_and_reap();
+                    iofused_non_send_rotations = 0;
+                    continue;
+                }
+                if (did) {
+                    if (++iofused_non_send_rotations >=
+                        kGenthreadIoFusedCoalesceRotations) {
+                        ring_.submit_and_reap();
+                        iofused_non_send_rotations = 0;
+                    }
+                    continue;
+                }
+            } else {
+                // N2 -- one network-ring submit boundary for receives, sends, I2 task wakes, and E2
+                // completion wakes. The executor ring is submitted by its control pass only for its
+                // existing persistence/control IO; pipelined point-task handoffs use this ring.
+                if (did) { ring_.submit_and_reap(); continue; }
+            }
 
             // Nothing to do: declare intent to block, re-check (a producer may have pushed between
             // the last drain and the flag being set), then wait.
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix, HasTls, kEp>()) { ring_.submit_and_reap(); continue; }
+            if (sweep<HasUnix, HasTls, kEp>()) {
+                ring_.submit_and_reap();
+                iofused_non_send_rotations = 0;
+                continue;
+            }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -1038,6 +1066,7 @@ private:
                 if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
                 else                       ring_.submit_and_reap();
             }
+            iofused_non_send_rotations = 0;
             self_->clear_blocked();
         }
         // A close requested by the last pass's read/send path has no later flush_ready to drain it,
