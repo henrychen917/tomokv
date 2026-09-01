@@ -102,8 +102,12 @@ void FlipShiftDetector::update_band() {
     // One rare command can move each of the four normalized feature families. Use that vector
     // dimensionality as the sampling quantum; otherwise an INFO poll amid a zero-value GET stream
     // is numerically larger than the one-command floor and the detector triggers on observability.
-    const double quantum = smoothed_.commands
-        ? 4.0 / static_cast<double>(smoothed_.commands) : 0;
+    // A window that observed no commands supplies no evidence: saturate the quantum at one
+    // command (band 8.0) instead of collapsing to zero, or an anchor cut from an idle window
+    // freezes a zero band and judges the first busy wobble as a mix shift. Rate triggers, not
+    // fingerprints, own the idle->busy transition.
+    const double quantum =
+        4.0 / static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1));
     band_ = 2.0 * std::max(jitter_, quantum);
 }
 
