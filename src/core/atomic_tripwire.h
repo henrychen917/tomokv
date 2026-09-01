@@ -1,13 +1,16 @@
-// atomic_tripwire.h -- debug-armed, process-cold MVCC resolver diagnostics.
+// atomic_tripwire.h -- explicitly-armed, process-cold MVCC resolver diagnostics.
 //
 // The state deliberately lives outside Server, Shard, FlatStore, Task, Op, ScatterState and
-// AtomicEntry.  --enable-debug-command=no therefore allocates nothing, and none of the footprint-
-// locked request/MVCC objects grows.  An armed server pays a mutex only in the two diagnostic
-// paths this facility observes; the ordinary production posture sees one predicted-false pointer
-// test at the call sites and no atomic RMWs.
+// AtomicEntry.  --enable-debug-command=no allocates nothing, and none of the footprint-locked
+// request/MVCC objects grows.  Allocation alone does NOT arm the probes: observation starts only
+// at DEBUG TRIPWIRE ARM, because the armed cost (a shared mutex plus a pending-list walk on every
+// atomic read) is a per-op tax that must never ride along with debug-enabled boots -- it once cost
+// 9x on atomic multi-key throughput while every harness ran debug-enabled.  A disarmed server --
+// debug-enabled or not -- sees one predicted-false flag test at the call sites and no atomic RMWs.
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cinttypes>
 #include <cstdint>
 #include <cstdio>
@@ -88,6 +91,10 @@ struct State {
 // without adding a translation unit or build-system edge.
 inline std::unique_ptr<State> state;
 
+// Runtime observation switch.  The pointer above is fixed at init so workers may read it without
+// synchronization; this flag is the part a DEBUG command may flip while they run.
+inline std::atomic<bool> armed{false};
+
 inline void capture_locked(State& s, const AtomicTripwireRow* rows, size_t count) {
     if (s.captured) return;
     s.captured = true;
@@ -104,11 +111,28 @@ inline void atomic_tripwire_configure(bool enabled) {
                 new (std::nothrow) atomic_tripwire_detail::State());
     } else {
         atomic_tripwire_detail::state.reset();
+        atomic_tripwire_detail::armed.store(false, std::memory_order_relaxed);
     }
 }
 
 inline bool atomic_tripwire_enabled() {
-    return atomic_tripwire_detail::state != nullptr;
+    return atomic_tripwire_detail::armed.load(std::memory_order_relaxed) &&
+           atomic_tripwire_detail::state != nullptr;
+}
+
+// Flip observation on or off at runtime; false means there is no state to arm (debug disabled).
+// Both transitions drop pending begin-probes: a probe recorded under one arming session must not
+// pair with an execution observed in a later one, and disarming mid-flight would otherwise strand
+// entries whose consuming call sites have stopped firing.
+inline bool atomic_tripwire_arm(bool on) {
+    auto* state = atomic_tripwire_detail::state.get();
+    if (!state) return false;
+    {
+        std::lock_guard<std::mutex> lock(state->mu);
+        state->probes.clear();
+    }
+    atomic_tripwire_detail::armed.store(on, std::memory_order_relaxed);
+    return true;
 }
 
 // Idempotent across task retries: the first owner observation is the fragment-begin answer and is

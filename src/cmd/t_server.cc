@@ -814,10 +814,22 @@ void cmd_debug_impl(Shard&, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "tripwire") && op.argc() == 2) {
-        // Empty is a meaningful result: no resolver trip has latched since boot. The ring is a
-        // one-shot diagnostic while INFO's two counters continue advancing after capture.
+        // Empty is a meaningful result: no resolver trip has latched since boot (or the probes
+        // were never armed). The ring is a one-shot diagnostic while INFO's two counters continue
+        // advancing after capture.
         const std::string out = atomic_tripwire_dump();
         reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
+    if (eq_icase(subcommand, "tripwire") && op.argc() == 3 &&
+        (eq_icase(op.arg(2), "arm") || eq_icase(op.arg(2), "disarm"))) {
+        // Observation is a per-op tax (mutex + pending-list walk on atomic reads), so it never
+        // rides along with --enable-debug-command; a diagnosis session arms it explicitly.
+        if (!atomic_tripwire_arm(eq_icase(op.arg(2), "arm"))) {
+            reply_err(op.sink(), "ERR tripwire state unavailable");
+            return;
+        }
+        reply_ok(op.sink());
         return;
     }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {

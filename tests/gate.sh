@@ -45,8 +45,10 @@ SRV=0; SRVLOG=/dev/null
 # segmented/deferred and zero-copy counters to fire, under both atomic modes.
 # 224 -> 236: fused mode adds one boot-line assertion plus five directed batteries (s6,
 # multi_exec, edgeproto, atomfix, spinprobe) under each of the two atomic modes: 2 * (1 + 5) = 12.
-EXPECT_QUICK=236
-EXPECT_FULL=247                 # full without the optional NIC row.
+# 236 -> 238: atomic MGET/MSET throughput floor + tripwire arm/disarm round-trip (a 9x armed-by-
+# default tax on the atomic chain read once passed this gate with nothing measuring the path).
+EXPECT_QUICK=238
+EXPECT_FULL=249                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -531,6 +533,38 @@ for _ in $(seq 50); do
 done
 [ "$FLIPSHUT" = 1 ] && ok "flip battery shutdown invariants" \
     || bad "flip battery shutdown invariants"
+
+# ---- atomic multi-key throughput floor -------------------------------------------------------
+# A 9x per-op tax on the atomic chain-read path (tripwire armed by --enable-debug-command alone)
+# once passed this gate 236/236: nothing here drove MGET/MSET through the resolver and asserted a
+# rate. Floor = 120k on the oversubscribed gate cores; healthy measures ~600k (5x margin), the
+# regression class this catches lands under 70k. Boots the harness posture on purpose -- debug
+# enabled, tripwire NOT armed -- because that is the posture every bench and gate row runs in.
+boot ./build/tomokv --atomic 1 --enable-debug-command yes || bad "atomic mm floor boot"
+MM_K8="__key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__"
+MM_M8="__key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__"
+taskset -c "$CORES" memtier_benchmark -s 127.0.0.1 -p $PORT --protocol=redis -t 4 -c 16 \
+  --pipeline=16 --command="MGET $MM_K8" --command-ratio=9 --command-key-pattern=R \
+  --command="MSET $MM_M8" --command-ratio=1 --command-key-pattern=R -d 64 \
+  --key-minimum=1 --key-maximum=200000 --test-time=20 --hide-histogram >/dev/null 2>&1 &
+MMPID=$!
+sleep 8
+MM_C0=$(redis-cli -p $PORT info stats 2>/dev/null | tr -d '\r' | sed -n 's/^total_commands_processed://p')
+sleep 6
+MM_C1=$(redis-cli -p $PORT info stats 2>/dev/null | tr -d '\r' | sed -n 's/^total_commands_processed://p')
+kill -9 $MMPID 2>/dev/null; wait $MMPID 2>/dev/null
+MM_RATE=$(( (${MM_C1:-0} - ${MM_C0:-0}) / 6 ))
+[ "$MM_RATE" -ge 120000 ] \
+    && ok "atomic MGET/MSET floor (${MM_RATE}/s >= 120k)" \
+    || bad "atomic MGET/MSET floor" "measured ${MM_RATE}/s < 120000/s"
+# Same boot: the explicit arm surface answers OK both ways (observation itself is priced by the
+# floor row above -- if arming ever becomes the boot default again, that row fails, not this one).
+TWARM=$(redis-cli -p $PORT debug tripwire arm 2>&1)
+TWDIS=$(redis-cli -p $PORT debug tripwire disarm 2>&1)
+{ [ "$TWARM" = "OK" ] && [ "$TWDIS" = "OK" ]; } \
+    && ok "tripwire arm/disarm round-trip" \
+    || bad "tripwire arm/disarm round-trip" "arm='$TWARM' disarm='$TWDIS'"
+stop
 
 # ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
 for PERSIST_IO in normal uring; do
