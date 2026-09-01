@@ -56,6 +56,7 @@ public:
         lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
+        iofused_ = srv->cfg().genthread_schedule == GenthreadSchedule::IoFused;
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -149,7 +150,11 @@ public:
         }
         if (did) {
             did += drain_notify_keyless(self_->sig());
-            ring_.submit_and_reap();
+            // In generalized tenure the executor's hot completion path hands work back through
+            // IoLoop's ring, and this private ring owns no SENDs. IOFUSED may therefore amortize
+            // its control SQEs and otherwise pure reap entry with the same four-rotation cap as
+            // the network loop. The network ring independently submits every reply SEND at once.
+            fused_submit_boundary();
             fused_idle_spins_ = 0;
             return did;
         }
@@ -158,7 +163,7 @@ public:
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
         did = sweep();
-        if (did) ring_.submit_and_reap();
+        if (did) fused_submit_boundary();
         return did;
     }
 
@@ -168,7 +173,7 @@ public:
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
         cached_now_ms_ = realtime_ms();
         const uint32_t did = sweep();
-        if (did) ring_.submit_and_reap();
+        if (did) fused_submit_boundary();
         return did;
     }
 
@@ -296,6 +301,18 @@ public:
 
 private:
     friend class IoLoop;
+
+    void fused_submit_boundary() {
+        if (!iofused_) {
+            ring_.submit_and_reap();
+            return;
+        }
+        if (ring_.take_sq_full_submit()) fused_non_submit_rotations_ = 0;
+        if (++fused_non_submit_rotations_ >= kGenthreadIoFusedCoalesceRotations) {
+            ring_.submit_and_reap();
+            fused_non_submit_rotations_ = 0;
+        }
+    }
 
     bool pipeline_tasks_allowed() const {
         if (snapshot_blocks_tasks()) return false;
@@ -1297,6 +1314,7 @@ private:
     int64_t    lb_bytes_next_ms_ = 0;
     size_t     lb_bytes_shard_cursor_ = 0;
     uint32_t   fused_idle_spins_ = 0;
+    uint32_t   fused_non_submit_rotations_ = 0;
     void*      fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
     Ring* fused_handoff_ring_ = nullptr;
@@ -1318,6 +1336,7 @@ private:
     std::deque<Task> stale_tasks_;
     std::deque<BorrowRelease> stale_releases_;
     bool       notify_keyless_pending_ = false;
+    bool       iofused_ = false;
     bool       initialized_ = false;
     // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
     // predicted-false branch exec_batch pays when the feature is off.

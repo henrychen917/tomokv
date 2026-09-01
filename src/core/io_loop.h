@@ -1049,9 +1049,19 @@ private:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<HasUnix, HasTls, kEp>()) {
-                ring_.submit_and_reap();
-                iofused_non_send_rotations = 0;
+            const uint32_t sweep_work = sweep<HasUnix, HasTls, kEp>();
+            if (sweep_work) {
+                if (!selected_iofused) {
+                    ring_.submit_and_reap();
+                    continue;
+                }
+                if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
+                if (ring_.send_pending() ||
+                    ++iofused_non_send_rotations >=
+                        kGenthreadIoFusedCoalesceRotations) {
+                    ring_.submit_and_reap();
+                    iofused_non_send_rotations = 0;
+                }
                 continue;
             }
 
