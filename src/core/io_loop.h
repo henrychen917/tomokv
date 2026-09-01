@@ -94,6 +94,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        if (!epoll_) recv_cqe_clients_.reserve(4096);
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
@@ -3004,6 +3005,40 @@ nonblocking_dispatch:
         void clear() { count = 0; }
     };
 
+    // MICA-style first-level CQ lookahead. The scan reads CQE tags and collects their Client*
+    // values, but the completion walk remains untouched: no recv byte is committed and no Client
+    // field is read until after the header hints have had independent WB work in which to land.
+    // The vector is retained across rotations; the 4096-entry reserve is done once at loop init.
+    bool recv_cqe_prefetch_scan() {
+        recv_cqe_clients_.clear();
+        if (ring_.cqes_ready() < kIoPipeRecvCqePrefetchThreshold) return false;
+        uint32_t examined = 0;
+        ring_.scan_cqes([&](io_uring_cqe* cqe) {
+            if (ur_kind(cqe->user_data) == UrKind::Recv)
+                recv_cqe_clients_.push_back(ur_ptr<Client>(cqe->user_data));
+            examined++;
+            // Once armed, finish the complete CQ scan. Before then, cap the negative probe so a
+            // send-heavy reap with fewer than four recvs falls through to the ordinary walk.
+            if (recv_cqe_clients_.size() >= kIoPipeRecvCqePrefetchThreshold) return true;
+            return examined < kIoPipeRecvCqeProbeLimit;
+        });
+        if (recv_cqe_clients_.size() < kIoPipeRecvCqePrefetchThreshold) {
+            recv_cqe_clients_.clear();
+            return false;
+        }
+        for (Client* client : recv_cqe_clients_)
+            __builtin_prefetch(client, 1, 3);
+        return true;
+    }
+
+    // The first Client line contains rbuf_ and rlen_. Read those only after the WB filler, issue
+    // the dependent heap hint as one batch, and then let the ordinary CQE walk commit bytes.
+    void recv_cqe_prefetch_append_positions() {
+        for (Client* client : recv_cqe_clients_)
+            __builtin_prefetch(client->read_append_position(), 1, 3);
+        recv_cqe_clients_.clear();
+    }
+
     // Detach one backlog-scaled connection batch from the serve FIFO. Clearing serve_pending at
     // detach preserves the old race contract: a completion that lands while this batch is being
     // prepared can enqueue a fresh future visit.
@@ -3082,7 +3117,8 @@ nonblocking_dispatch:
     // independently maintained active set. In epoll mode the same tagged callback stream comes
     // from the doorbell mailbox before socket readiness is drained.
     template <bool HasUnix, bool HasTls, bool kEp>
-    uint32_t ifid_rx(IfidBatch& batch) {
+    uint32_t ifid_rx(IfidBatch& batch, bool recv_cqes_prefetched = false) {
+        if (recv_cqes_prefetched) recv_cqe_prefetch_append_positions();
         uint32_t work = ring_.for_each_cqe(
             [&](io_uring_cqe* cqe) { on_cqe<HasTls, kEp>(cqe); });
         if constexpr (kEp) work += epoll_pass<HasUnix, HasTls>(0);
@@ -3411,23 +3447,39 @@ nonblocking_dispatch:
         if (ifid.count || wb.count) std::abort();
         uint32_t work = 0;
         if (natural_order) {
-            work += ifid_rx<HasUnix, HasTls, kEp>(ifid);
-            work += collect_retire_work<HasUnix, kEp>(unmasked);
+            bool recv_cqes_prefetched = false;
+            if constexpr (!kEp) recv_cqes_prefetched = recv_cqe_prefetch_scan();
+            if (recv_cqes_prefetched) {
+                work += collect_retire_work<HasUnix, kEp>(unmasked);
+                work += wb_gather(wb);
+                wb_prefetch(wb);
+            }
+            work += ifid_rx<HasUnix, HasTls, kEp>(ifid, recv_cqes_prefetched);
+            if (!recv_cqes_prefetched)
+                work += collect_retire_work<HasUnix, kEp>(unmasked);
             work += ifid_parse_hash<HasTls, kEp>(ifid);
             work += ifid_post(ifid);
-            work += wb_gather(wb);
+            if (!recv_cqes_prefetched) work += wb_gather(wb);
             work += wb_serve_natural<HasTls, kEp>(wb, submitted);
         } else {
+            bool recv_cqes_prefetched = false;
+            bool wb_prefetched = false;
             for (const IoPipeStage stage : kIoPipeSchedule) {
                 switch (stage) {
                     case IoPipeStage::WbObserve:
+                        if constexpr (!kEp)
+                            recv_cqes_prefetched = recv_cqe_prefetch_scan();
                         work += wb_observe<HasUnix, kEp>(unmasked, wb);
                         break;
                     case IoPipeStage::IfidRx:
-                        work += ifid_rx<HasUnix, HasTls, kEp>(ifid);
+                        if (recv_cqes_prefetched) {
+                            wb_prefetch(wb);
+                            wb_prefetched = true;
+                        }
+                        work += ifid_rx<HasUnix, HasTls, kEp>(ifid, recv_cqes_prefetched);
                         break;
                     case IoPipeStage::WbPrefetch:
-                        wb_prefetch(wb);
+                        if (!wb_prefetched) wb_prefetch(wb);
                         break;
                     case IoPipeStage::IfidParseHash:
                         work += ifid_parse_hash<HasTls, kEp>(ifid);
@@ -3866,6 +3918,8 @@ nonblocking_dispatch:
     const TlsContext* tls_context_ = nullptr;
     std::vector<std::unique_ptr<TlsConn>> tls_slots_;
     std::vector<uint32_t> tls_free_slots_;
+    // Plain recv CQ lookahead only; reserved once in init and empty in epoll mode.
+    std::vector<Client*> recv_cqe_clients_;
 #include "../cmd/climon.inc"
     struct ClientForwardRoute {
         bool installed = false;
