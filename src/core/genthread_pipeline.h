@@ -17,26 +17,6 @@ inline constexpr uint32_t kGenthreadWbBorrowPrefetchBytes = 512;
 inline constexpr uint32_t kGenthreadCacheLineBytes = 64;
 inline constexpr uint32_t kGenthreadIoFusedCoalesceRotations = 4;
 
-// IOFUSED unroll axes. The one-buffer build is code-shaped like the retained pass; larger builds
-// advance another complete stream batch inside the same loop-body rotation. Keep the sweep at one
-// or two: the second WB context is another 64-pointer list, while the existing two EX scratch
-// contexts and one IFID preparation batch already occupy the rest of the L1-sized local frame.
-#ifndef TOMO_GENTHREAD_IFID_BUFFERS
-#define TOMO_GENTHREAD_IFID_BUFFERS 1
-#endif
-#ifndef TOMO_GENTHREAD_EX_BUFFERS
-#define TOMO_GENTHREAD_EX_BUFFERS 1
-#endif
-#ifndef TOMO_GENTHREAD_WB_BUFFERS
-#define TOMO_GENTHREAD_WB_BUFFERS 1
-#endif
-inline constexpr uint32_t kGenthreadIfidBuffers = TOMO_GENTHREAD_IFID_BUFFERS;
-inline constexpr uint32_t kGenthreadExBuffers = TOMO_GENTHREAD_EX_BUFFERS;
-inline constexpr uint32_t kGenthreadWbBuffers = TOMO_GENTHREAD_WB_BUFFERS;
-static_assert(kGenthreadIfidBuffers >= 1 && kGenthreadIfidBuffers <= 2);
-static_assert(kGenthreadExBuffers >= 1 && kGenthreadExBuffers <= 2);
-static_assert(kGenthreadWbBuffers >= 1 && kGenthreadWbBuffers <= 2);
-
 // V1 has one IFID stream context, exactly two EX contexts (A/D), and one WB stream context.  The
 // contexts are loop locals and are empty again at the pass boundary; there is no triple buffer.
 inline constexpr uint32_t kGenthreadIfidContexts = 1;
