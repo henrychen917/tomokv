@@ -2163,6 +2163,8 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         const uint32_t pass_rpos = conn.rpos();
+        const char* const pass_rbuf = conn.rbuf();
+        const uint32_t pass_rlen = conn.rlen();
         const uint32_t self_id = self_->id();
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
@@ -2214,11 +2216,11 @@ private:
             ParseResult pr;
             if (__builtin_expect(security_check, false)) {
                 pr = resp_parse_limited(
-                    conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384);
+                    pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
             } else if (__builtin_expect(default_bulk_limit, true)) {
-                pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
+                pr = resp_parse(pass_rbuf, pass_rlen, pos, *op, &err);
             } else {
-                pr = resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err,
+                pr = resp_parse_limited(pass_rbuf, pass_rlen, pos, *op, &err,
                                         1024 * 1024, pass_max_bulk_len);
             }
             security_check |= acl_active;
@@ -2231,7 +2233,7 @@ private:
             }
             if (pr == ParseResult::Error) {
                 finish_locally(c, *op, err ? err : "ERR protocol error");
-                conn.advance_parse(conn.rlen() - conn.rpos());
+                conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
                 result = DispatchResult::Error;
                 break;
