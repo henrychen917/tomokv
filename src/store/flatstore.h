@@ -1311,6 +1311,65 @@ public:
         if (tab_[1]) __builtin_prefetch(&tab_[1][slot_start(1, h)], 0, 3);
     }
 
+    // Immutable, hint-only snapshot of one FlatStore's physical tables for an executor batch.
+    // The shard owner may use it only before executing the first operation on this store: find(),
+    // insert() or erase() can advance rehash and free the captured old table. No logical lookup is
+    // performed here -- expiry, MVCC resolution, eviction touch and resize stay in the handler.
+    struct BatchProbeContext {
+        struct Candidates {
+            KvObj* current;
+            KvObj* old;
+        };
+
+        void prefetch_bucket(uint64_t h) const {
+            const uint64_t mixed = mix64(h);
+            if (tables[0])
+                __builtin_prefetch(&tables[0][static_cast<uint32_t>(mixed) & masks[0]], 0, 3);
+            if (tables[1])
+                __builtin_prefetch(&tables[1][static_cast<uint32_t>(mixed) & masks[1]], 0, 3);
+        }
+
+        // Walk packed slot words but do not dereference a KvObj. The 15-bit tag normally selects
+        // the requested object; a collision merely produces a useless prefetch hint because the
+        // unchanged handler later repeats the authoritative probe and full key comparison.
+        Candidates probe_candidates(uint64_t h) const {
+            return Candidates{probe_candidate_in(0, h), probe_candidate_in(1, h)};
+        }
+
+        static void prefetch_candidates(const Candidates& candidates) {
+            if (candidates.current) __builtin_prefetch(candidates.current, 0, 3);
+            if (candidates.old) __builtin_prefetch(candidates.old, 0, 3);
+        }
+
+        const uint64_t* tables[2];
+        uint32_t capacities[2];
+        uint32_t masks[2];
+
+    private:
+        KvObj* probe_candidate_in(uint32_t table_index, uint64_t h) const {
+            const uint64_t* table = tables[table_index];
+            if (!table) return nullptr;
+            const uint32_t capacity = capacities[table_index];
+            const uint32_t mask = masks[table_index];
+            const uint16_t tag = tag_of(h);
+            uint32_t slot = static_cast<uint32_t>(mix64(h)) & mask;
+            for (uint32_t probes = 0; probes <= capacity; probes++) {
+                const uint64_t word = table[slot];
+                if (word == 0) return nullptr;
+                if (tag_of_word(word) == tag)
+                    if (KvObj* object = ptr_of(word)) return object;
+                slot = (slot + 1) & mask;
+            }
+            return nullptr;
+        }
+    };
+
+    BatchProbeContext batch_probe_context() const {
+        return BatchProbeContext{{tab_[0], tab_[1]},
+                                 {cap_[0], cap_[1]},
+                                 {mask_[0], mask_[1]}};
+    }
+
     // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
