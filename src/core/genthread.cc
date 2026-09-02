@@ -1,5 +1,5 @@
-// Fused coarse three-stream runtime. This translation unit is the boot-time architecture wall:
-// only it instantiates ExLoopT<true> and IoLoop's Fused=true loop methods.
+// Unified generalized-thread runtime. This translation unit is the boot-time architecture wall:
+// only it instantiates ExLoopT<true> and IoLoop's Fused=true loop methods for pipelines 0, 1, and 2.
 #include "genthread.h"
 
 #include <algorithm>
@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 #include <unistd.h>
 
@@ -37,22 +38,31 @@ void IoLoop::run_fused() {
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    if (epoll_) {
-        if (tls_context_) {
-            if (has_unix) run_loop<true, true, true, true>();
-            else run_loop<false, true, true, true>();
-        } else {
-            if (has_unix) run_loop<true, false, true, true>();
-            else run_loop<false, false, true, true>();
+    auto run_pipeline = [&](auto pipeline_tag) {
+        constexpr uint8_t Pipeline = decltype(pipeline_tag)::value;
+        if (epoll_) {
+            if (tls_context_) {
+                if (has_unix) run_loop<true, true, true, true, Pipeline>();
+                else run_loop<false, true, true, true, Pipeline>();
+            } else {
+                if (has_unix) run_loop<true, false, true, true, Pipeline>();
+                else run_loop<false, false, true, true, Pipeline>();
+            }
+            return;
         }
-        return;
-    }
-    if (tls_context_) {
-        if (has_unix) run_loop<true, true, false, true>();
-        else run_loop<false, true, false, true>();
-    } else {
-        if (has_unix) run_loop<true, false, false, true>();
-        else run_loop<false, false, false, true>();
+        if (tls_context_) {
+            if (has_unix) run_loop<true, true, false, true, Pipeline>();
+            else run_loop<false, true, false, true, Pipeline>();
+        } else {
+            if (has_unix) run_loop<true, false, false, true, Pipeline>();
+            else run_loop<false, false, false, true, Pipeline>();
+        }
+    };
+    switch (srv_->cfg().thread_pipeline) {
+        case 0: run_pipeline(std::integral_constant<uint8_t, 0>{}); break;
+        case 1: run_pipeline(std::integral_constant<uint8_t, 1>{}); break;
+        case 2: run_pipeline(std::integral_constant<uint8_t, 2>{}); break;
+        default: std::abort();
     }
 }
 
