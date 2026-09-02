@@ -285,6 +285,21 @@ public:
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_->producer_free_slots(from);
     }
+    bool reserve_task_slots(uint32_t from, uint32_t count) {
+        return task_in_->reserve(from, count);
+    }
+    void cancel_task_reservation(uint32_t from, uint32_t count) {
+        task_in_->cancel_reservation(from, count);
+    }
+    void post_task_reserved_quiet(uint32_t from, const Task& task, LoopSignals& sig) {
+        if (!sig.age_sample_rate) {
+            task_in_->push_reserved(from, task);
+            return;
+        }
+        task_in_->push_reserved_prepared(from, task, [&](Task& queued) {
+            queued.enqueue_us_low = sig.next_age_stamp();
+        });
+    }
     void flush_task_notify(uint32_t from, Ring& my_ring, LoopSignals& sig) {
         if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
     }
@@ -363,6 +378,82 @@ public:
             }
         }
         return n;
+    }
+
+    // E0 removes a bounded prefix without advancing the retired frontier. Each source lane is
+    // visited at most once, so E2 can publish exactly one retire_n update for that lane after every
+    // removed task has reached Executed, Forwarded, or durable deferral.
+    uint32_t gather_tasks_unretired(Task* tasks, uint32_t* lanes, uint32_t* lane_counts,
+                                    uint32_t& lane_count, uint32_t capacity,
+                                    bool unmasked = false) {
+        uint32_t count = 0;
+        lane_count = 0;
+        auto take_lane = [&](uint32_t producer) {
+            const uint32_t begin = count;
+            Task task;
+            while (count < capacity && task_in_->pop_unretired(producer, task)) {
+                uint64_t age = 0;
+                if (task.enqueue_us_low &&
+                    sig_.observe_queue_delay(task.enqueue_us_low, age))
+                    sig_.observe_oldest_age(age);
+                tasks[count++] = task;
+            }
+            if (count != begin) {
+                lanes[lane_count] = producer;
+                lane_counts[lane_count++] = count - begin;
+            }
+            if (count == capacity) task_notify_.set(producer);
+        };
+
+        if (unmasked) {
+            for (uint32_t producer = 0; producer < nchan_ && count < capacity; producer++)
+                take_lane(producer);
+            return count;
+        }
+        for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
+            uint64_t bits = task_notify_.take(word);
+            while (bits) {
+                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t producer = word * 64 + bit;
+                if (producer >= nchan_) continue;
+                take_lane(producer);
+                if (count == capacity) {
+                    while (bits) {
+                        const uint32_t rest = static_cast<uint32_t>(__builtin_ctzll(bits));
+                        bits &= bits - 1;
+                        const uint32_t queued = word * 64 + rest;
+                        if (queued < nchan_) task_notify_.set(queued);
+                    }
+                    return count;
+                }
+            }
+        }
+        return count;
+    }
+
+    void retire_task_lanes(const uint32_t* lanes, const uint32_t* lane_counts,
+                           uint32_t lane_count) {
+        for (uint32_t i = 0; i < lane_count; i++)
+            task_in_->retire_n(lanes[i], lane_counts[i]);
+    }
+
+    // Optional streams A/D filler hint. Visit only producers whose task-notify bit names actual
+    // queued work. A producer racing the peek is harmless: the next modulo chunk or the
+    // mask-independent idle audit drains it, and this hint alone never controls correctness.
+    uint32_t notified_task_depth_capped(uint32_t cap) const {
+        uint32_t depth = 0;
+        for (uint32_t word = 0; word < NotifyMask::kWords && depth < cap; word++) {
+            uint64_t bits = task_notify_.peek(word);
+            while (bits && depth < cap) {
+                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t producer = word * 64 + bit;
+                if (producer >= nchan_) continue;
+                depth += std::min(cap - depth, task_in_->depth(producer));
+            }
+        }
+        return depth;
     }
 
     template <typename Fn>

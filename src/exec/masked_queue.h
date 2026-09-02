@@ -14,6 +14,7 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <new>
 #include <type_traits>
@@ -70,6 +71,7 @@ class MaskedSpscArray {
         uint32_t base = 0;
         uint32_t mask = 0;
         uint32_t capacity = 0;
+        uint32_t reserved = 0;
 
         // A lane has one physical producer for its whole tenure, so these diagnostics remain plain
         // single-writer counters just like head_cached.  Only the rare full slow path scans the
@@ -136,6 +138,7 @@ public:
             q.base = cursor;
             q.mask = slots_per_thread - 1;
             q.capacity = slots_per_thread;
+            q.reserved = 0;
             cursor += slots_per_thread;
         }
         return true;
@@ -211,6 +214,7 @@ public:
             q.base = cursor;
             q.mask = capacity - 1;
             q.capacity = capacity;
+            q.reserved = 0;
             cursor += capacity;
         };
         // Tid order makes the mask deterministic and keeps every producer's block contiguous.
@@ -226,9 +230,13 @@ public:
         ConsumerLine& c = lanes_[producer].consumer;
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t next = tail + 1;
-        if (next - p.head_cached > p.capacity) {
+        // Producer reservations are capacity credits, not pre-published holes.  Unrelated pushes
+        // may still publish at the current tail while a later micro-stage owns credits, but they
+        // must leave those credits free.  The sole producer owns reserved, so this adds no shared
+        // state and no atomic operation to the SPSC path.
+        if (next + p.reserved - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) {
+            if (next + p.reserved - p.head_cached > p.capacity) {
                 note_lane_full(p);
                 return false;
             }
@@ -244,9 +252,9 @@ public:
         ConsumerLine& c = lanes_[producer].consumer;
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t next = tail + 1;
-        if (next - p.head_cached > p.capacity) {
+        if (next + p.reserved - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) {
+            if (next + p.reserved - p.head_cached > p.capacity) {
                 note_lane_full(p);
                 return false;
             }
@@ -263,9 +271,9 @@ public:
         ConsumerLine& c = lanes_[producer].consumer;
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t next = tail + count;
-        if (next - p.head_cached > p.capacity) {
+        if (next + p.reserved - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) {
+            if (next + p.reserved - p.head_cached > p.capacity) {
                 note_lane_full(p);
                 return false;
             }
@@ -284,9 +292,9 @@ public:
         ConsumerLine& c = lanes_[producer].consumer;
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t next = tail + count;
-        if (next - p.head_cached > p.capacity) {
+        if (next + p.reserved - p.head_cached > p.capacity) {
             p.head_cached = c.head.load(std::memory_order_acquire);
-            if (next - p.head_cached > p.capacity) {
+            if (next + p.reserved - p.head_cached > p.capacity) {
                 note_lane_full(p);
                 return false;
             }
@@ -305,12 +313,52 @@ public:
         const ConsumerLine& c = lanes_[producer].consumer;
         const uint32_t tail = p.tail.load(std::memory_order_relaxed);
         const uint32_t head = c.head.load(std::memory_order_acquire);
-        return p.capacity - (tail - head);
+        return p.capacity - (tail - head) - p.reserved;
+    }
+
+    // Reserve capacity without publishing a tail or manufacturing an unreadable hole. Ordinary
+    // pushes remain legal and account for reserved above; push_reserved() later publishes at the
+    // then-current tail and cannot fail. All methods are called by the lane's sole producer.
+    bool reserve(uint32_t producer, uint32_t count) {
+        if (!count) return true;
+        ProducerLine& p = lanes_[producer].producer;
+        ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        p.head_cached = c.head.load(std::memory_order_acquire);
+        if (tail + p.reserved + count - p.head_cached > p.capacity) return false;
+        p.reserved += count;
+        return true;
+    }
+
+    void cancel_reservation(uint32_t producer, uint32_t count) {
+        ProducerLine& p = lanes_[producer].producer;
+        if (count > p.reserved) std::abort();
+        p.reserved -= count;
+    }
+
+    void push_reserved(uint32_t producer, T value) {
+        ProducerLine& p = lanes_[producer].producer;
+        if (!p.reserved) std::abort();
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        slots_[p.base + (tail & p.mask)] = value;
+        p.tail.store(tail + 1, std::memory_order_release);
+        p.reserved--;
+    }
+
+    template <typename Prepare>
+    void push_reserved_prepared(uint32_t producer, T value, Prepare&& prepare) {
+        ProducerLine& p = lanes_[producer].producer;
+        if (!p.reserved) std::abort();
+        prepare(value);
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        slots_[p.base + (tail & p.mask)] = value;
+        p.tail.store(tail + 1, std::memory_order_release);
+        p.reserved--;
     }
 
     // Consumer side.  Per-producer head/tail caches are the scan points used by both the summary
     // bitmap drain and the mask-independent full sweep.
-    bool pop(uint32_t producer, T& out) {
+    bool pop_unretired(uint32_t producer, T& out) {
         ConsumerLine& c = lanes_[producer].consumer;
         ProducerLine& p = lanes_[producer].producer;
         const uint32_t head = c.head.load(std::memory_order_relaxed);
@@ -325,9 +373,17 @@ public:
         return true;
     }
 
+    bool pop(uint32_t producer, T& out) { return pop_unretired(producer, out); }
+
     void retire(uint32_t producer) {
         ConsumerLine& c = lanes_[producer].consumer;
         c.retired.store(c.retired.load(std::memory_order_relaxed) + 1,
+                        std::memory_order_release);
+    }
+    void retire_n(uint32_t producer, uint32_t count) {
+        if (!count) return;
+        ConsumerLine& c = lanes_[producer].consumer;
+        c.retired.store(c.retired.load(std::memory_order_relaxed) + count,
                         std::memory_order_release);
     }
     bool quiesced(uint32_t producer) const {
