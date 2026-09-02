@@ -489,7 +489,6 @@ private:
 
     struct WbPipelineBatch {
         std::array<Client*, kGenthreadPipelineWbBatchConns> clients{};
-        std::array<bool, kGenthreadPipelineWbBatchConns> submit_allowed{};
         uint32_t count = 0;
     };
 
@@ -1048,7 +1047,6 @@ private:
                         client->set_serve_pending(false);
                         if (!client->dead()) {
                             wb_context.clients[wb_context.count] = client;
-                            wb_context.submit_allowed[wb_context.count] = true;
                             wb_context.count++;
                         }
                     }
@@ -1069,24 +1067,27 @@ private:
 
         auto wb_w1 = [&]() {
             for (uint32_t i = 0; i < wb_context.count; i++) {
-                Client* client = wb_context.clients[i];
+                Client*& submit_client = wb_context.clients[i];
+                Client* client = submit_client;
                 if (!client || client->dead()) continue;
-                bool& submit_allowed = wb_context.submit_allowed[i];
                 if (__builtin_expect(
                         (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
                     climon_reply_suppressed(client)) {
+                    bool submit_allowed;
                     (void)climon_prepare_suppressed(client, submit_allowed);
+                    if (!submit_allowed) submit_client = nullptr;
                     continue;
                 }
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client))
-                        (void)wb_.prepare_tls<kEp>(*client, *tls, submit_allowed);
+                        (void)wb_.prepare_pipeline_tls<kEp>(
+                            *client, *tls, submit_client);
                     else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                        (void)wb_.prepare_ktls<kEp>(*client, submit_allowed);
+                        (void)wb_.prepare_pipeline_ktls<kEp>(*client, submit_client);
                     else
-                        (void)wb_.prepare<kEp>(*client, submit_allowed);
+                        (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
                 } else {
-                    (void)wb_.prepare<kEp>(*client, submit_allowed);
+                    (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
                 }
             }
             return wb_context.count;
@@ -1146,10 +1147,6 @@ private:
             for (uint32_t i = 0; i < wb_context.count; i++) {
                 Client* client = wb_context.clients[i];
                 if (!client || client->dead()) continue;
-                if (!wb_context.submit_allowed[i]) {
-                    if (client->in_active()) enqueue_ifid(client);
-                    continue;
-                }
                 bool retry_plain_submit = false;
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client)) {
@@ -4560,7 +4557,6 @@ ordinary_dispatch:
                     client->set_serve_pending(false);
                     if (!client->dead()) {
                         batch.clients[batch.count] = client;
-                        batch.submit_allowed[batch.count] = true;
                         batch.count++;
                     }
                 }
@@ -4604,33 +4600,31 @@ ordinary_dispatch:
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
         for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
+            Client*& submit_client = batch.clients[i];
+            Client* client = submit_client;
             if (!client || client->dead()) continue;
-            bool& submit_allowed = batch.submit_allowed[i];
             if (__builtin_expect(
                     (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
                 climon_reply_suppressed(client)) {
+                bool submit_allowed;
                 (void)climon_prepare_suppressed(client, submit_allowed);
+                if (!submit_allowed) submit_client = nullptr;
                 continue;
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_tls<kEp>(*client, *tls, submit_allowed);
+                    (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls, submit_client);
                 else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_ktls<kEp>(*client, submit_allowed);
+                    (void)wb_.prepare_pipeline_ktls<kEp>(*client, submit_client);
                 else
-                    (void)wb_.prepare<kEp>(*client, submit_allowed);
+                    (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
             } else {
-                (void)wb_.prepare<kEp>(*client, submit_allowed);
+                (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
             }
         }
         for (uint32_t i = 0; i < batch.count; i++) {
             Client* client = batch.clients[i];
             if (!client || client->dead()) continue;
-            if (!batch.submit_allowed[i]) {
-                if (client->in_active()) enqueue_ifid(client);
-                continue;
-            }
             bool retry_plain_submit = false;
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(client)) {

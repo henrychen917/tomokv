@@ -183,6 +183,18 @@ public:
         return serve_impl<false, false, kEp, false>(c, &submit_allowed);
     }
 
+    // Unified pipeline batches already guard a nullable Client slot before their submit half.
+    // Reuse that guard for the rare output-limit refusal instead of writing and rereading a
+    // parallel per-client bool on every ordinary reply.
+    template <bool kEp = false>
+    bool prepare_pipeline(Client& c, Client*& submit_client) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, false, kEp, false, false, true>(
+                c, nullptr, &submit_client);
+        return serve_impl<false, false, kEp, false>(c);
+    }
+
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
     template <bool kEp = false, bool ClassifySend = false>
@@ -202,6 +214,15 @@ public:
         return serve_impl<false, true, kEp, false>(c, &submit_allowed);
     }
 
+    template <bool kEp = false>
+    bool prepare_pipeline_ktls(Client& c, Client*& submit_client) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true, kEp, false, false, true>(
+                c, nullptr, &submit_client);
+        return serve_impl<false, true, kEp, false>(c);
+    }
+
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
     template <bool kEp = false, bool ClassifySend = false>
@@ -219,6 +240,15 @@ public:
                              limit_armed_->load(std::memory_order_relaxed), false))
             return serve_tls_impl<true, kEp, false>(c, tls, &submit_allowed);
         return serve_tls_impl<false, kEp, false>(c, tls, &submit_allowed);
+    }
+
+    template <bool kEp = false>
+    bool prepare_pipeline_tls(Client& c, TlsConn& tls, Client*& submit_client) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true, kEp, false, false, true>(
+                c, tls, nullptr, &submit_client);
+        return serve_tls_impl<false, kEp, false>(c, tls);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
@@ -697,8 +727,9 @@ private:
     }
 
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit,
-              bool ClassifySend = false>
-    bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
+              bool ClassifySend = false, bool TombstoneOnLimit = false>
+    bool serve_impl(Client& c, bool* submit_allowed = nullptr,
+                    Client** submit_client = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -760,7 +791,11 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
-                if (submit_allowed) *submit_allowed = false;
+                if constexpr (TombstoneOnLimit) {
+                    *submit_client = nullptr;
+                } else if (submit_allowed) {
+                    *submit_allowed = false;
+                }
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
@@ -775,8 +810,10 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false>
-    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
+    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false,
+              bool TombstoneOnLimit = false>
+    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr,
+                        Client** submit_client = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -817,7 +854,11 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
-                if (submit_allowed) *submit_allowed = false;
+                if constexpr (TombstoneOnLimit) {
+                    *submit_client = nullptr;
+                } else if (submit_allowed) {
+                    *submit_allowed = false;
+                }
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
