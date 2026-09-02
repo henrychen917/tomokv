@@ -295,9 +295,9 @@ public:
     // this edge to restart its rotation budget; consuming it does not describe ordinary explicit
     // submit boundaries, which already restart that budget at their call site.
     bool take_sq_full_submit() {
-        const bool submitted = sq_full_submit_;
+        if (!sq_full_submit_) return false;
         sq_full_submit_ = false;
-        return submitted;
+        return true;
     }
 
     // Schedule boundaries occasionally need to know whether a later stage prepared real SQEs.
