@@ -1059,6 +1059,13 @@ std::string script_clean_error(const char* text, size_t length) {
 }
 
 void script_execute(Shard& shard, Op& op, const ScriptInvocation& call) {
+    // Even a *_RO activation can invoke a nested SnapshotWrite command such as PFCOUNT. The outer
+    // row is Readonly, so close this shard's copied slot at the script boundary rather than adding
+    // a ScriptRoute test to every ordinary GET in ExLoop. Cross-shard scripts are also invalidated
+    // by each scatter fragment before any staged apply.
+    if (Server* server = shard.server())
+        if (HotForward* forwarding = server->hot_forward())
+            forwarding->invalidate_shard(static_cast<uint32_t>(shard.id()));
     LuaEngine& engine = t_lua_engine;
     lua_State* state = engine.state;
     ScriptContext context{&shard, &op, call.key_first, call.key_count};

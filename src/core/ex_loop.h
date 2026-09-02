@@ -53,8 +53,11 @@ public:
     bool init(Server* srv, ThreadCtx* self, bool dormant = false) {
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
+        hot_forward_ = srv->hot_forward();
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
-        lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
+        // Hot-forward reuses this exact sampler even when weighted key placement is disabled.
+        lb_sample_rate_ = (srv->key_lb_signals_enabled() || hot_forward_)
+            ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
@@ -96,7 +99,17 @@ public:
         static_assert(Fused);
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
-        if (!lb_frozen) refresh_live_config();
+        if (!lb_frozen) {
+            lb_rebind_after_move();
+            refresh_live_config();
+            hot_forward_expiry_pass();
+        } else if (!srv_->lb_acked(self_->id())) {
+            // Until this owner publishes its drain acknowledgement it may still execute queued
+            // tasks, so its pass clock must close due slots first. After ack, touching shards is
+            // forbidden until install/rebind.
+            lb_rebind_after_move();
+            hot_forward_expiry_pass();
+        }
         if (maxmemory_enabled_)
             cached_lru_clock_ = static_cast<uint8_t>(
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
@@ -158,6 +171,8 @@ public:
         static_assert(Fused);
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
         cached_now_ms_ = realtime_ms();
+        lb_rebind_after_move();
+        hot_forward_expiry_pass();
         const uint32_t did = sweep();
         if (did) ring_.submit_and_reap();
         return did;
@@ -183,7 +198,19 @@ public:
             // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
             // the otherwise-cold configuration refresh path.
-            if (!placement_frozen) refresh_live_config();
+            if (!placement_frozen) {
+                lb_rebind_after_move();
+                refresh_live_config();
+                hot_forward_expiry_pass();
+            } else {
+                const bool acknowledged = flip_frozen
+                    ? srv_->flip_acked(self_->id(), FlipStage::ExDrain)
+                    : srv_->lb_acked(self_->id());
+                if (!acknowledged) {
+                    lb_rebind_after_move();
+                    hot_forward_expiry_pass();
+                }
+            }
             if (maxmemory_enabled_)
                 cached_lru_clock_ = static_cast<uint8_t>(
                     (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
@@ -337,6 +364,7 @@ private:
                 std::abort();
             for (Shard* shard : self_->shards())
                 shard->bind_notify_pending(&notify_keyless_pending_);
+            hot_forward_rebuild_expiry();
             srv_->flip_ack(self_->id(), stage);
             return 1;
         }
@@ -353,19 +381,9 @@ private:
         if (!lb_controller_armed_) return 0;
         if (srv_->lb_stage() != LbStage::ExDrain) {
             lb_ack_wake_pending_ = false;
-            // A completed mover stage may have changed this loop's shard set. Every owned shard's
-            // keyless-notify pending pointer must aim at THIS loop, exactly as FlipStage::ExInstall
-            // rebinds after a flip -- the mover's lighter stage protocol shipped without this step,
-            // and a moved shard's expired-key events then pinged the OLD owner, whose drain walks
-            // only its own shards: active-expiry notifications stranded forever (notify battery,
-            // key-lb half, 2/6). Rebinding is a handful of pointer stores and runs only on the
-            // first pass after a stage ends.
-            if (lb_rebind_pending_) {
-                lb_rebind_pending_ = false;
-                for (Shard* shard : self_->shards())
-                    shard->bind_notify_pending(&notify_keyless_pending_);
-                notify_keyless_pending_ = true;   // force one state-checked drain after adoption
-            }
+            // The pass entry performs any pending rebind before expiry or task work. If this stage
+            // changed after entry, defer until the next pass rather than touching a new shard set
+            // at this late control point.
             return 0;
         }
         auto wake_coordinator = [&]() {
@@ -387,11 +405,32 @@ private:
         return wake_coordinator();
     }
 
+    void lb_rebind_after_move() {
+        if (!lb_rebind_pending_) return;
+        // If a new drain began before this loop observed the preceding Idle, it still owns and may
+        // inspect its just-adopted shard set until it acknowledges the new epoch. After ack the
+        // coordinator may rewrite that vector at any instant, so defer until the stage ends.
+        if (srv_->lb_stage() == LbStage::ExDrain && srv_->lb_acked(self_->id())) return;
+        // A completed mover stage may have changed this loop's shard set. Rebind before the first
+        // post-move expiry/task pass: a newly adopted slot can already be due, and its deadline
+        // must enter this owner's minimum before any lookup can lazily delete the value.
+        lb_rebind_pending_ = false;
+        for (Shard* shard : self_->shards())
+            shard->bind_notify_pending(&notify_keyless_pending_);
+        hot_forward_rebuild_expiry();
+        notify_keyless_pending_ = true;   // force one state-checked drain after adoption
+    }
+
     void refresh_live_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(live_config_version_, snapshot)) return;
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
+        // Forwarded reads cannot reproduce owner-local LRU/LFU touches. Close every copied slot
+        // before a live transition enables those touches; disabling does not resurrect a slot.
+        if (enabled && !maxmemory_enabled_ && hot_forward_)
+            for (Shard* sh : self_->shards())
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(sh->id()));
         for (Shard* sh : self_->shards()) {
             sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
             // CLIENT TRACKING and periodic SAVE need the same per-write observation points as
@@ -503,6 +542,8 @@ private:
             Shard* shard = shards[atomic_cleanup_cursor_++];
             if (!shard->store().atomic_has_records()) continue;
             shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            if (hot_forward_)
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(shard->id()));
             work += xshard_cleanup_shard_at(*shard, floor, cleanup_cutoff, budget - work);
             if (work >= budget) break;
         }
@@ -915,6 +956,10 @@ private:
                 if (no_touch) srv_->climon_note_no_touch();
             }
             AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
+            // A transaction can install several logical keys and can retry after partial owner
+            // work. Never expose an intermediate copied value.
+            if (hot_forward_)
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(shard.id()));
             const MultiTaskResult result =
                 multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
                                    aof_manager_ ? &aof_context : nullptr);
@@ -936,6 +981,8 @@ private:
             // An ownerless cleanup pass belongs to no connection: clear the per-task no-touch
             // answer so a NO-TOUCH client cannot leave it armed for whatever runs next.
             if (__builtin_expect(maxmemory_enabled_, false)) cleanup.set_no_touch(false);
+            if (hot_forward_)
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(cleanup.id()));
             xshard_cleanup_shard(*srv_, cleanup, 32);
             cleanup.publish_size();
             return true;
@@ -954,7 +1001,11 @@ private:
         }
         if (op.has_blocking_state()) {
             sh.note_execution(self_->domain());
-            note_lb_hash(sh, op.hash);
+            if (lb_controller_armed_) note_lb_hash(sh, op.hash);
+            // Blocking mutations complete inside their engine, so invalidate before entering it.
+            if (hot_forward_ &&
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);
         }
         // #77 TRIPWIRE A samples before any scheduler park. The first answer is retained across
@@ -966,9 +1017,23 @@ private:
             atomic_deferred_.push_back(t);
             return true;
         }
-        if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
-            __builtin_expect(sh.has_watches(), false) && !multi_plain_write_ready(sh, op))
-            return false;
+        const bool mutating =
+            (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0;
+        bool hot_forward_exact_write = false;
+        if (!t.scatter && mutating) {
+            if (__builtin_expect(sh.has_watches(), false) && !multi_plain_write_ready(sh, op))
+                return false;
+        }
+        // Broad handlers can expose several physical stages. Enter the opt-in write arm through
+        // one stable pointer branch; exact writes keep the old independent copy readable until
+        // their post-handler publication below.
+        if (!t.scatter && mutating && __builtin_expect(hot_forward_ != nullptr, false)) {
+            const uint32_t sid = static_cast<uint32_t>(sh.id());
+            if (__builtin_expect(hot_forward_->active(sid), false)) {
+                hot_forward_exact_write = hot_forward_is_exact_write(op);
+                if (!hot_forward_exact_write) hot_forward_->invalidate_shard(sid);
+            }
+        }
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
         // and one increment, no atomics — the shard has a single owner.
         sh.note_execution(self_->domain());
@@ -976,10 +1041,16 @@ private:
         if (!t.scatter) self_->note_command(op.spec->id);
 
         if (t.scatter) {
+            // Scatter fragments may touch several keys and publish in stages. They only invalidate.
+            // ConfigRoute includes the cold DEBUG RELOAD/LOADAOF store replacement paths; its
+            // observational fan-outs are allowed to invalidate conservatively.
+            if ((mutating || (op.spec->flags & (CmdFlags::ConfigRoute | CmdFlags::ScriptRoute))) &&
+                hot_forward_)
+                hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
-            if (lb_sample_rate_) {
+            if (lb_controller_armed_) {
                 struct LbVisit { ExLoopT* loop; Shard* shard; } visit{this, &sh};
                 xshard_visit_task_hashes(t, &visit, [](void* context, uint64_t hash) {
                     auto* visit = static_cast<LbVisit*>(context);
@@ -996,36 +1067,42 @@ private:
             const ScatterFinish finished = xshard_complete(*srv_, *self_, ring_, t, op);
             if (finished == ScatterFinish::Waiting) return true;
             if (finished == ScatterFinish::Retry) return false;
-        } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
-                   !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
-            // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
-            // KvObj and never crosses insert-admission, so an HSET-only workload could blow
-            // through maxmemory unbounded. One predicted-false flag test per op when disabled.
-            // Scatter tasks bypass it -- their writes replace whole objects through insert-level
-            // admission in their owner pass.
-            reply_maxmemory_oom(op);
         } else {
-            // A null pending-entry list is the sole common-path branch. With no cross-shard window,
-            // handlers take their original path with no epoch loads, allocations, or cleanup work.
-            if (__builtin_expect(sh.store().atomic_has_records(), false)) {
-                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
-                const bool defer_blocking =
-                    __builtin_expect(sh.has_blocking_waiters(), false);
-                if (defer_blocking) blocking_defer_plain_publication(true);
-                if (execute_handler) op.spec->handler(sh, op);
-                xshard_plain_finish(sh);
-                if (defer_blocking) {
-                    blocking_defer_plain_publication(false);
-                    if (execute_handler) blocking_plain_mutation_published(sh, op);
-                }
+            if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
+                !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
+                // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
+                // KvObj and never crosses insert-admission, so an HSET-only workload could blow
+                // through maxmemory unbounded. One predicted-false flag test per op when disabled.
+                // Scatter tasks bypass it -- their writes replace whole objects through insert-level
+                // admission in their owner pass.
+                reply_maxmemory_oom(op);
             } else {
-                op.spec->handler(sh, op);
+                // A null pending-entry list is the sole common-path branch. With no cross-shard
+                // window, handlers take their original path with no epoch loads, allocations, or
+                // cleanup work.
+                if (__builtin_expect(sh.store().atomic_has_records(), false)) {
+                    const bool execute_handler =
+                        xshard_plain_prepare(*srv_, sh, op, t.client->id());
+                    const bool defer_blocking =
+                        __builtin_expect(sh.has_blocking_waiters(), false);
+                    if (defer_blocking) blocking_defer_plain_publication(true);
+                    if (execute_handler) op.spec->handler(sh, op);
+                    xshard_plain_finish(sh);
+                    if (defer_blocking) {
+                        blocking_defer_plain_publication(false);
+                        if (execute_handler) blocking_plain_mutation_published(sh, op);
+                    }
+                } else {
+                    op.spec->handler(sh, op);
+                }
             }
         }
-        if (!t.scatter) note_lb_hash(sh, op.hash);
-        if (!t.scatter && (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
-            __builtin_expect(sh.has_watches(), false))
-            multi_plain_write_committed(sh, op);
+        if (!t.scatter && mutating) {
+            if (hot_forward_exact_write) hot_forward_publish_exact_write(sh, op);
+            if (__builtin_expect(sh.has_watches(), false))
+                multi_plain_write_committed(sh, op);
+        }
+        if (!t.scatter) note_lb_op(sh, op);
         if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
             AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
@@ -1056,15 +1133,87 @@ private:
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
     }
 
-    void note_lb_hash(Shard& shard, uint64_t hash) {
-        if (!lb_sample_rate_) return;
-        if (--lb_sample_countdown_ != 0) return;
+    bool note_lb_hash(Shard& shard, uint64_t hash) {
+        if (!lb_sample_rate_) return false;
+        if (--lb_sample_countdown_ != 0) return false;
         lb_sample_countdown_ = lb_sample_rate_;
-        shard.note_lb_sample(hash);
+        if (lb_controller_armed_) shard.note_lb_sample(hash);
+        return true;
+    }
+
+    void note_lb_op(Shard& shard, Op& op) {
+        // This is the pre-existing all-op countdown path. The optional pointer and every detector
+        // gate are consulted only on its 1-in-N tick; hot-forward=0 leaves unsampled operations
+        // identical, while non-GET ticks never update an exact-key candidate.
+        if (!note_lb_hash(shard, op.hash) || !hot_forward_) return;
+        if (!(op.spec->flags & CmdFlags::HotForwardEligible) || op.no_borrow() ||
+            maxmemory_enabled_ || srv_->atomic_tracking_active() ||
+            shard.store().atomic_has_records())
+            return;
+        const KvObj* object = shard.store().find_resident(op.hash, op.key());
+        if (object && object->expire_at_ms() >= 0 &&
+            object->expire_at_ms() <= cached_now_ms_)
+            object = nullptr;
+        hot_forward_->sampled_get(static_cast<uint32_t>(shard.id()), op.hash, op.key(), object);
+        hot_forward_note_expiry(static_cast<uint32_t>(shard.id()));
+    }
+
+    static bool hot_forward_is_exact_write(const Op& op) {
+        return op.spec->first_key == 1 && op.spec->last_key == 1 &&
+            op.spec->key_step == 1 &&
+            !(op.spec->flags & (CmdFlags::AllShards | CmdFlags::MultiShard |
+                                CmdFlags::ScriptRoute | CmdFlags::SubcmdRoute |
+                                CmdFlags::ConfigRoute));
+    }
+
+    void hot_forward_publish_exact_write(Shard& shard, const Op& op) {
+        if (!hot_forward_->targets(static_cast<uint32_t>(shard.id()), op.hash, op.key()))
+            return;
+        if (maxmemory_enabled_ || srv_->atomic_tracking_active() ||
+            shard.store().atomic_has_records()) {
+            hot_forward_->invalidate_shard(static_cast<uint32_t>(shard.id()));
+            return;
+        }
+        const KvObj* object = shard.store().find_resident(op.hash, op.key());
+        if (object && object->expire_at_ms() >= 0 &&
+            object->expire_at_ms() <= cached_now_ms_)
+            object = nullptr;
+        const uint32_t sid = static_cast<uint32_t>(shard.id());
+        if (hot_forward_->publish_target(sid, op.hash, op.key(), object))
+            hot_forward_note_expiry(sid);
+    }
+
+    void hot_forward_note_expiry(uint32_t sid) {
+        const int64_t expiry = hot_forward_->owner_expiry(sid);
+        if (expiry >= 0 &&
+            (hot_forward_next_expire_ms_ < 0 || expiry < hot_forward_next_expire_ms_))
+            hot_forward_next_expire_ms_ = expiry;
+    }
+
+    void hot_forward_rebuild_expiry() {
+        if (!hot_forward_) return;
+        hot_forward_next_expire_ms_ = -1;
+        for (Shard* shard : self_->shards())
+            hot_forward_note_expiry(static_cast<uint32_t>(shard->id()));
+    }
+
+    void hot_forward_expiry_pass() {
+        // Deadline-negative is both the off state and the enabled/no-TTL-hot-key state. Keep it
+        // first so stable passes do not even load the optional forwarding pointer.
+        if (hot_forward_next_expire_ms_ < 0 ||
+            cached_now_ms_ < hot_forward_next_expire_ms_ || !hot_forward_)
+            return;
+        hot_forward_next_expire_ms_ = -1;
+        for (Shard* shard : self_->shards()) {
+            const uint32_t sid = static_cast<uint32_t>(shard->id());
+            hot_forward_->invalidate_expired(sid, cached_now_ms_);
+            hot_forward_note_expiry(sid);
+        }
     }
 
     void lb_bucket_bytes_pass() {
-        if (!lb_sample_rate_ || cached_now_ms_ < lb_bytes_next_ms_) return;
+        if (!lb_controller_armed_ || !lb_sample_rate_ || cached_now_ms_ < lb_bytes_next_ms_)
+            return;
         lb_bytes_next_ms_ = cached_now_ms_ + 10;
         auto& owned = self_->shards();
         if (owned.empty()) return;
@@ -1325,6 +1474,9 @@ private:
     uint32_t fused_idle_spins_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
+    // Boot-latched optional state at the true tail; null is the complete off representation.
+    HotForward* hot_forward_ = nullptr;
+    int64_t hot_forward_next_expire_ms_ = -1;
 };
 
 using ExLoop = ExLoopT<false>;
