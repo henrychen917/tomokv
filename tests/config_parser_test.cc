@@ -134,6 +134,20 @@ int main() {
     if (smt_default.smt_mode != 0)
         fail("smt-mode default is not logical-CPU independent");
 
+    tomo::Config ex_sched;
+    tomo::ConfigParseState ex_sched_state;
+    const std::vector<const char*> ex_sched_args = {"--ex-sched", "1"};
+    if (tomo::parse_config_args(ex_sched_args, ex_sched, ex_sched_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        ex_sched.ex_sched != 1 ||
+        !rejects({"--ex-sched", "2"}) ||
+        !rejects({"--ex-sched", "yes"}) ||
+        !rejects({"--ex-sched", "-1"}))
+        fail("ex-sched boot grammar differs");
+    tomo::Config ex_sched_default;
+    if (ex_sched_default.ex_sched != 0)
+        fail("ex-sched default is not FIFO");
+
     tomo::Config lb;
     tomo::ConfigParseState lb_state;
     const std::vector<const char*> lb_args = {
