@@ -342,7 +342,7 @@ public:
     const Config&    cfg()        const { return cfg_; }
     ThreadMode thread_mode() const { return cfg_.thread_mode; }
     const char* thread_mode_name() const {
-        return cfg_.thread_mode == ThreadMode::Fused ? "fused" : "split";
+        return cfg_.thread_mode == ThreadMode::Fused ? "1s" : "2s";
     }
 
     bool lb_machinery_enabled() const {

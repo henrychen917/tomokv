@@ -319,7 +319,9 @@ void init_config(const Config& cfg) {
     g_config.push_back({"net-io", ConfigKind::Enum,
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"thread-mode", ConfigKind::Enum,
-                        cfg.thread_mode == ThreadMode::Fused ? "fused" : "split", true});
+                        cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", true});
+    g_config.push_back({"thread-pipeline", ConfigKind::Unsigned,
+                        std::to_string(cfg.thread_pipeline), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned,

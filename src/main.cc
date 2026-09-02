@@ -97,6 +97,9 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
+    if (cfg.thread_pipeline == 2)
+        std::fprintf(stderr,
+                     "WARNING: --thread-pipeline 2 selects an experimental research schedule\n");
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.
