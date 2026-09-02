@@ -256,11 +256,10 @@ int main(int argc, char** argv) {
     }
 
     srv.topo().dump(stdout);
-    const char* mname = "2s (io sends)";
-    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s), %s,"
-                " %s, alloc=%s\n", srv.nthreads(),
+    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
+                " thread-mode=2s, thread-pipeline=%u, %s, alloc=%s\n", srv.nthreads(),
                 srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                cfg.shards, mname,
+                cfg.shards, cfg.thread_pipeline,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";
