@@ -3138,8 +3138,6 @@ private:
     // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
     SnapshotManager snapshot_;
     FlipController flipctl_;
-    // Boot-only bounded copied replies. Null is the complete hot-forward=0 representation.
-    std::unique_ptr<HotForward> hot_forward_;
 
     // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
     // shard-granularity dispatch remains one flat-array load.
@@ -3381,6 +3379,8 @@ private:
     std::atomic<uint64_t> save_change_baseline_{0};
     std::atomic<uint64_t> scheduled_save_triggers_{0};
     std::atomic<uint64_t> save_cron_checks_{0};
+    // Boot-only bounded copied replies at the true cold tail. Null is the complete off state.
+    std::unique_ptr<HotForward> hot_forward_;
 };
 
 }  // namespace tomo

@@ -1473,9 +1473,10 @@ void collect_stat_totals(StatBaseline& out) {
         out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
+    const HotForward* forwarding = g_server->hot_forward();
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
         ThreadCtx& thread = g_server->thread(t);
-        out.hits += thread.hot_forward_hits();
+        if (forwarding) out.hits += forwarding->hits(t);
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
@@ -1613,8 +1614,9 @@ void cmd_info(Shard&, Op& op) {
             atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
             blocking_waiters += sh.blocking_waiters();
         }
+        const HotForward* forwarding = g_server->hot_forward();
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
-            hits += g_server->thread(t).hot_forward_hits();
+            if (forwarding) hits += forwarding->hits(t);
             for (uint32_t id = 0; id < command_registry_size(); id++) {
                 const uint64_t calls = g_server->thread(t).command_calls(id);
                 total_ops += calls;

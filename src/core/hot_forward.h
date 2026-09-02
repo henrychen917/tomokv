@@ -52,6 +52,16 @@ public:
     char* scratch(uint32_t tid) noexcept {
         return tid < nthreads_ ? scratches_[tid].bytes.data() : nullptr;
     }
+    void note_hit(uint32_t tid) noexcept {
+        if (tid >= nthreads_) return;
+        // One writer: separate relaxed load/store avoids a locked RMW while keeping INFO's
+        // cross-thread observation free of a C++ data race.
+        const uint64_t current = scratches_[tid].hits.load(std::memory_order_relaxed);
+        scratches_[tid].hits.store(current + 1, std::memory_order_relaxed);
+    }
+    uint64_t hits(uint32_t tid) const noexcept {
+        return tid < nthreads_ ? scratches_[tid].hits.load(std::memory_order_relaxed) : 0;
+    }
 
     // One non-spinning attempt.  realtime_cache is parse-call-local; a value <= 0 means no
     // CLOCK_REALTIME sample has yet been taken.  The clock is sampled only after an exact, stable
@@ -166,6 +176,21 @@ public:
         return sid < nshards_ && slots_[sid].owner.has_target;
     }
 
+    // Owner-thread expiry index. ExLoop keeps only the minimum for its current shard set, checks
+    // it once per owner pass, and invalidates before that pass can lazily/actively delete the key.
+    int64_t owner_expiry(uint32_t sid) const noexcept {
+        if (sid >= nshards_) return -1;
+        const OwnerState& owner = slots_[sid].owner;
+        return owner.published ? owner.target_expire_at_ms : -1;
+    }
+
+    void invalidate_expired(uint32_t sid, int64_t now_ms) noexcept {
+        if (sid >= nshards_) return;
+        Slot& slot = slots_[sid];
+        const int64_t expiry = slot.owner.target_expire_at_ms;
+        if (slot.owner.published && expiry >= 0 && expiry <= now_ms) make_odd(slot);
+    }
+
 private:
     static_assert(std::atomic<uint64_t>::is_always_lock_free,
                   "hot-forward requires always-lock-free 64-bit atomics");
@@ -188,6 +213,7 @@ private:
         uint32_t candidate_len = 0;
         uint64_t target_hash = 0;
         uint64_t candidate_hash = 0;
+        int64_t target_expire_at_ms = -1;
         std::array<char, kKeyBytes> target_key{};
         std::array<char, kKeyBytes> candidate_key{};
     };
@@ -206,6 +232,7 @@ private:
 
     struct alignas(64) Scratch {
         std::array<char, kReplyBytes> bytes{};
+        std::atomic<uint64_t> hits{0};  // one IO writer; INFO is the relaxed reader
     };
 
     template <size_t N>
@@ -329,6 +356,7 @@ private:
                                   std::memory_order_relaxed);
         slot.shared.expire_at_ms.store(expire_bits, std::memory_order_relaxed);
         slot.shared.sequence.store(odd + 1, std::memory_order_release);
+        slot.owner.target_expire_at_ms = expire_at_ms;
         slot.owner.published = true;
         return true;
     }

@@ -234,8 +234,6 @@ public:
         return id < command_count_size_ ? command_counts_[id] : 0;
     }
     uint64_t total_commands() const { return total_commands_; }
-    void note_hot_forward_hit() { hot_forward_hits_++; }
-    uint64_t hot_forward_hits() const { return hot_forward_hits_; }
     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
     const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
     void note_atomic_group() { atomic_groups_++; }
@@ -683,7 +681,6 @@ private:
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
     uint64_t total_commands_ = 0;
-    uint64_t hot_forward_hits_ = 0;
     FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
