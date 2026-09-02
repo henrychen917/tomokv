@@ -72,12 +72,12 @@ public:
         state.store(OpState::Free, std::memory_order_relaxed);
     }
 
-    // Bit 6 is shared with Client's overlap-1 IFID-ready flag. Only the armed coarse parser masks
-    // that captured connection bit before explicitly classifying the slot; reset() above remains
-    // the literal baseline path for every ordinary ROB acquisition.
+    // Bits 6 and 7 are shared with Client-only state. Only the armed coarse parser masks those
+    // captured connection bits before explicitly classifying the slot; reset() above remains the
+    // literal baseline path for every ordinary ROB acquisition.
     void reset_read_local(uint8_t route_flags = 0) {
         reset(static_cast<uint8_t>(
-            route_flags & static_cast<uint8_t>(~kReadLocal)));
+            route_flags & static_cast<uint8_t>(~(kReadLocal | kReadLocalPreciseWrite))));
     }
 
     bool push_arg(Slice s) {
@@ -177,6 +177,12 @@ public:
     // connection flag above.
     void mark_read_local() { route_flags_ |= kReadLocal; }
     bool read_local() const { return route_flags_ & kReadLocal; }
+    // A hash-only write promises that it cannot mutate an unrelated key. If an evicting
+    // maxmemory policy becomes live after IO made that classification, the owner uses this
+    // immutable stamp to suspend eviction for this operation. Bit 7 is Client's blocked flag;
+    // reset_read_local() masks the captured connection value before armed code reuses it.
+    void mark_read_local_precise_write() { route_flags_ |= kReadLocalPreciseWrite; }
+    bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
@@ -313,6 +319,7 @@ private:
     static constexpr uint8_t kNoTouch = 1u << 4;
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
+    static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
     Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;

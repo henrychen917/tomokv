@@ -52,9 +52,10 @@ With `--read-local 0`, local commands take the same self SPSC task lane as remot
 consumed during the executor phase; they are not executed inline. With `--read-local 1`, eligible
 plain single-key GETs instead enter a parsing-thread-local queue. The overlap-0 executor phase
 drains that queue immediately after parsing, in the same coarse rotation, and replies still retire
-through the connection ROB and normal write-back path. Reads with an outstanding connection write,
-WATCH or MULTI state, script/scatter context, target-shard atomic work, a missing or typed value, an
-expired value, sequence churn, or a full local lane fall back to the ordinary owner-task path.
+through the connection ROB and normal write-back path. Reads with an outstanding same-hash
+connection write (or a conservatively overflowed write ring), WATCH or MULTI state, script/scatter
+context, target-shard atomic work, a missing or typed value, an expired value, sequence churn, or a
+full local lane fall back to the ordinary owner-task path.
 
 Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
 network work around a 128-operation coarse executor turn. Overlap 2 selects the exact deep

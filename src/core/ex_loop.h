@@ -55,6 +55,24 @@ static_assert(kGenthreadIfidBatchOps <= kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
+// Constructed only for an armed hash-precise point write whose owner has since enabled eviction.
+// Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
+// self-fulfilling: this operation can update its routed key or fail, but cannot delete a different
+// key behind a younger local read. The owner restores its live policy before the next task.
+class ReadLocalPreciseWriteGuard {
+public:
+    explicit ReadLocalPreciseWriteGuard(FlatStore& store) : store_(&store) {
+        previous_ = store_->script_suspend_eviction();
+    }
+    ~ReadLocalPreciseWriteGuard() { store_->script_restore_eviction(previous_); }
+    ReadLocalPreciseWriteGuard(const ReadLocalPreciseWriteGuard&) = delete;
+    ReadLocalPreciseWriteGuard& operator=(const ReadLocalPreciseWriteGuard&) = delete;
+
+private:
+    FlatStore* store_ = nullptr;
+    MaxmemoryPolicy previous_ = MaxmemoryPolicy::NoEviction;
+};
+
 template <bool Enabled>
 struct ReadLocalExState;
 
@@ -68,6 +86,7 @@ struct ReadLocalExState<true> {
         uint32_t lane_head = 0;
         uint32_t lane_tail = 0;
         uint32_t lane_count = 0;
+        bool point_writes_precise = true;
         ReadLocalDeferredQueue deferred;
 
         void rebind_owned_shards(ThreadCtx& owner) {
@@ -107,6 +126,9 @@ public:
                 if (!impl) return false;
                 impl->lane.reset(new (std::nothrow) Task[kInboxSlots]);
                 if (!impl->lane || !impl->deferred.init(srv, self)) return false;
+                impl->point_writes_precise =
+                    srv->cfg().maxmemory == 0 ||
+                    srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
                 read_local_.impl = std::move(impl);
             }
         }
@@ -500,6 +522,14 @@ private:
         static_assert(Fused);
         if (!read_local_.impl) std::abort();
         return *read_local_.impl;
+    }
+
+    bool read_local_point_writes_precise() const {
+        return read_local_impl().point_writes_precise;
+    }
+
+    void set_read_local_point_writes_precise(bool precise) {
+        read_local_impl().point_writes_precise = precise;
     }
 
     void read_local_rebind_owned_shards_after_lb() {
@@ -1562,7 +1592,7 @@ private:
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
-    template <bool IofusedPrivateQueue = false>
+    template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     bool execute(const Task& t) {
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
@@ -1620,6 +1650,16 @@ private:
         Op& op = t.client->rob().at(t.op_id);
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
+        if constexpr (Fused && !ReadLocalNoEvict) {
+            if (__builtin_expect(
+                    maxmemory_enabled_ && read_local_enabled() &&
+                    op.read_local_precise_write() &&
+                    sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
+                    false)) {
+                ReadLocalPreciseWriteGuard no_evict(sh.store());
+                return execute<IofusedPrivateQueue, true>(t);
+            }
+        }
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
         // CLIENT NO-TOUCH. maxmemory_enabled_ is this loop's own per-pass value, so with the
         // default (maxmemory off) this is one predicted-not-taken test on a register -- and the

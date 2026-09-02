@@ -2408,6 +2408,15 @@ private:
             self_->sig().accept_err++;
             return;
         }
+        // Per-connection read/write ordering state is an armed-only allocation. Prepare it before
+        // the fd is registered or handed to another IO owner so an allocation failure can reject
+        // the connection without exposing a partially armed client.
+        if (srv_->read_local_enabled() && !c->rob().prepare_read_local()) {
+            delete c;
+            ::close(fd);
+            self_->sig().accept_err++;
+            return;
+        }
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
@@ -3548,6 +3557,7 @@ private:
             if (!op) break;                    // window full: backpressure; let replies drain first
             [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
             [[maybe_unused]] bool extend_read_local_batch = false;
+            [[maybe_unused]] bool read_local_point_write = false;
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -3711,7 +3721,25 @@ private:
                     constexpr uint32_t kWriteHazards =
                         CmdFlags::Write | CmdFlags::SnapshotWrite |
                         CmdFlags::Transaction | CmdFlags::ScriptRoute;
-                    if (spec->flags & kWriteHazards) rob.mark_current_write();
+                    if (spec->flags & kWriteHazards) {
+                        // Stage every historical v1 hazard conservatively here. Only a plain,
+                        // exactly-one-key owner route may refine it after the router fills op.hash.
+                        // Evicting maxmemory policies can make a point write delete an unrelated
+                        // victim, so those writes deliberately remain conservative too.
+                        rob.mark_current_write();
+                        constexpr uint32_t kNonPointWriteRoutes =
+                            CmdFlags::AllShards | CmdFlags::RandomShard |
+                            CmdFlags::CursorShard | CmdFlags::ConfigRoute |
+                            CmdFlags::MultiShard | CmdFlags::ScriptRoute |
+                            CmdFlags::Blocking | CmdFlags::Transaction |
+                            CmdFlags::StreamRoute | CmdFlags::SubcmdRoute;
+                        read_local_point_write =
+                            fused_executor_->read_local_point_writes_precise() &&
+                            (spec->flags & kNonPointWriteRoutes) == 0 &&
+                            (spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0 &&
+                            spec->first_key > 0 && spec->last_key == spec->first_key &&
+                            spec->key_step == 1;
+                    }
                 }
             }
             if (__builtin_expect(security_check, false) &&
@@ -4237,9 +4265,22 @@ ordinary_dispatch:
             }
 
             if constexpr (Fused) {
+                if (read_local_enabled && read_local_point_write) {
+                    if (rob.refine_current_write_hash(op->hash))
+                        op->mark_read_local_precise_write();
+                }
                 if (read_local_enabled &&
                     __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
                     ReadLocalStats& local_stats = self_->read_local_stats();
+                    const bool write_conflict = rob.read_local_write_conflicts(op->hash);
+                    // This frame is behind a local prefix already published in this parse pass.
+                    // It cannot be sent to the owner in the middle of that EX lane group. Latch
+                    // the decision across the retry: the prefix can retire together with the
+                    // older write, but a hash that conflicted here must still take the owner path.
+                    if (extend_read_local_batch && write_conflict) {
+                        rob.force_current_read_owner();
+                        break;
+                    }
                     bool eligible = extend_read_local_batch;
                     uint64_t* fallback = nullptr;
                     if (!extend_read_local_batch) {
@@ -4253,7 +4294,7 @@ ordinary_dispatch:
                                                    CmdFlags::AllShards))) {
                             fallback = &local_stats.fallback_context;
                             eligible = false;
-                        } else if (rob.has_unretired_write()) {
+                        } else if (write_conflict) {
                             fallback = &local_stats.fallback_inflight_write;
                             eligible = false;
                         } else {
@@ -6001,6 +6042,9 @@ ordinary_dispatch:
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
+        if (srv_->read_local_enabled())
+            fused_executor_->set_read_local_point_writes_precise(
+                snapshot.maxmemory == 0 || snapshot.policy == MaxmemoryPolicy::NoEviction);
         notify_config_version_ = snapshot.version;
     }
 
