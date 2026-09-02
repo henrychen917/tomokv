@@ -67,8 +67,8 @@ public:
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
         ex_sched_enabled_ = srv->cfg().ex_sched != 0;
-        pipeline_batches_ = Fused && srv->cfg().thread_pipeline != 0;
-        iofused_ = Fused && srv->cfg().thread_pipeline == 1;
+        pipeline_batches_ = Fused && srv->cfg().overlap != 0;
+        iofused_ = Fused && srv->cfg().overlap == 1;
         if (!ring_.init(1024)) return false;
         fused_handoff_ring_ = &ring_;
         wb_.bind(&ring_);
@@ -95,7 +95,7 @@ public:
         // That leaves this private ring with control/persistence SQEs; pipeline 1 can amortize its
         // submit boundary, and pipeline 2 can close N2 over all network work. Pipeline 0 retains
         // its existing ring ownership.
-        if (srv_->cfg().thread_pipeline != 0 && handoff_ring)
+        if (srv_->cfg().overlap != 0 && handoff_ring)
             fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())

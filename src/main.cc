@@ -97,9 +97,9 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
-    if (cfg.thread_pipeline == 2)
+    if (cfg.overlap == 2)
         std::fprintf(stderr,
-                     "WARNING: --thread-pipeline 2 selects an experimental research schedule\n");
+                     "WARNING: --overlap 2 selects an experimental research schedule\n");
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.
@@ -257,9 +257,9 @@ int main(int argc, char** argv) {
 
     srv.topo().dump(stdout);
     std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                " thread-mode=2s, thread-pipeline=%u, %s, alloc=%s\n", srv.nthreads(),
+                " thread-mode=2s, overlap=%u, %s, alloc=%s\n", srv.nthreads(),
                 srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                cfg.shards, cfg.thread_pipeline,
+                cfg.shards, cfg.overlap,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& p : srv.placement().threads()) {
         const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "wb";

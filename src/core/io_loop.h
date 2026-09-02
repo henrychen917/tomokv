@@ -92,7 +92,7 @@ public:
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
         targeted_ifid_ = srv_->cfg().thread_mode == ThreadMode::Fused &&
-                         srv_->cfg().thread_pipeline != 0;
+                         srv_->cfg().overlap != 0;
         age_sample_rate_cached_ = srv_->effective_age_sample_rate();
         age_signals_armed_ = age_sample_rate_cached_ != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
@@ -140,7 +140,7 @@ public:
         }, &cached_now_s_, &self_->sig());
         wb_.set_cold_send_classification(
             srv_->cfg().thread_mode == ThreadMode::Fused &&
-            srv_->cfg().thread_pipeline == 1);
+            srv_->cfg().overlap == 1);
         initialized_ = true;
         return dormant || activate();
     }
@@ -430,7 +430,7 @@ public:
     }
 
     void run() {
-        if (srv_->cfg().thread_pipeline == 1) run_split<1>();
+        if (srv_->cfg().overlap == 1) run_split<1>();
         else                                  run_split<0>();
     }
 

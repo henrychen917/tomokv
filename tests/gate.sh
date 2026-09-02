@@ -190,7 +190,7 @@ done
 # ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
 for AT in 0 1; do
   if boot_fused ./build/tomokv --atomic "$AT" --enable-debug-command yes; then
-    grep -q "thread-mode=1s, thread-pipeline=0" "$SRVLOG" \
+    grep -q "thread-mode=1s, overlap=0" "$SRVLOG" \
         && ok "fused boot line (atomic $AT)" \
         || bad "fused boot line (atomic $AT)" "see $SRVLOG"
   else

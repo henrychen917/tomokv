@@ -1,26 +1,27 @@
 # Thread amortization study surface
 
-`thread-mode` and `thread-pipeline` are one boot-latched measurement surface. The documented mode
+`thread-mode` and `overlap` are one boot-latched measurement surface. The documented mode
 names are `2s` (separate IO and executor threads, the default) and `1s` (one generalized thread owns
 both roles). `split` and `fused` remain parser aliases so old invocations keep working.
 
-| mode | pipeline 0 | pipeline 1 | pipeline 2 |
+| mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary split IO/ex loops | exact `t-iopipe` WB/IFID batch schedule | rejected at config validation |
 | `1s` | coarse IFID → EX → WB rotation | exact `t-genthread` `iofused` schedule | exact `t-genthread` `streams` schedule |
 
-The hidden compatibility option `genthread-schedule` maps `coarse`, `iofused`, and `streams` to
-`1s` plus pipeline 0, 1, and 2 respectively. Pipeline 2 emits a boot warning because it is an
-experimental research schedule. Unified pipeline 1 and 2 require `net-io uring`; the split iopipe
+The compatibility options `thread-pipeline` and `genthread-schedule` remain accepted: the former
+is a numeric alias for `overlap`, while the latter maps `coarse`, `iofused`, and `streams` to
+`1s` plus overlap 0, 1, and 2 respectively. Overlap 2 emits a boot warning because it is an
+experimental research schedule. Unified overlap 1 and 2 require `net-io uring`; the split iopipe
 schedule retains its explicit epoll specialization. No schedule constant is runtime-tunable.
 
-Pipeline 1 is deliberately the measured implementation, not a family resemblance. In `2s`, its
+Overlap 1 is deliberately the measured implementation, not a family resemblance. In `2s`, its
 shallow rotation is WB observe, IFID receive, WB prefetch, IFID parse/hash, WB retire/prepare, IFID
 post, and WB submit/reclaim; its existing depth gate selects the measured natural-order path. In
 `1s`, `iofused` retains the fork's targeted IFID work, WB dependency prefetch, coarse executor turn,
-and SEND-sensitive submission boundary. Pipeline 2 retains the fork's depth gate, bounded residual
+and SEND-sensitive submission boundary. Overlap 2 retains the fork's depth gate, bounded residual
 carry, and literal independent-stream interleave. These shapes are fixed so results can be compared
-against pipeline 0's plain-loop baseline.
+against overlap 0's plain-loop baseline.
 
 # Masked-monolith executor inbox
 

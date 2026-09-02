@@ -58,7 +58,7 @@ void IoLoop::run_fused() {
             else run_loop<false, false, false, true, Pipeline>();
         }
     };
-    switch (srv_->cfg().thread_pipeline) {
+    switch (srv_->cfg().overlap) {
         case 0: run_pipeline(std::integral_constant<uint8_t, 0>{}); break;
         case 1: run_pipeline(std::integral_constant<uint8_t, 1>{}); break;
         case 2: run_pipeline(std::integral_constant<uint8_t, 2>{}); break;
@@ -73,8 +73,8 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
-                " thread-pipeline=%u, %s, alloc=%s\n", nthreads, cfg.shards,
-                cfg.thread_pipeline,
+                " overlap=%u, %s, alloc=%s\n", nthreads, cfg.shards,
+                cfg.overlap,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())
         std::printf("  thread t%u: role=unified cpu=%d L3=%u shards=%zu send=self\n",
@@ -141,7 +141,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (ok) {
                 executors[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&executors[tid]);
-                if (cfg.thread_pipeline == 0)
+                if (cfg.overlap == 0)
                     executors[tid].bind_fused_completion(
                         &ios[tid],
                         [](void* p, Client* client) {
@@ -153,7 +153,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         [](void* p, Client* client) {
                             static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
                         });
-                if (cfg.thread_pipeline == 0)
+                if (cfg.overlap == 0)
                     self.bind_fused_executor_hooks(
                         &executors[tid],
                         [](void* p) {
@@ -162,7 +162,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                         });
-                else if (cfg.thread_pipeline == 1)
+                else if (cfg.overlap == 1)
                     self.bind_fused_executor_hooks(
                         &executors[tid],
                         [](void* p) {
