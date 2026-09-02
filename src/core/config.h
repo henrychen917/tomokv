@@ -217,8 +217,8 @@ enum class PersistIoEngine : uint8_t { Normal = 0, Uring = 1 };
 // unavailable or unwanted. Deliberately spelled like --persist-io: same shape of decision (which
 // kernel interface carries our IO), same boot-only latching, same enum grammar.
 enum class NetIoEngine : uint8_t { Uring = 0, Epoll = 1 };
-// Boot-latched loop architecture. Split retains dedicated network and executor threads; fused
-// gives every selected physical thread both loop objects and rotates their coarse batch passes.
+// Boot-latched loop architecture. 2s retains dedicated network and executor threads; 1s gives
+// every selected physical thread both loop objects. Split/fused remain compatibility spellings.
 enum class ThreadMode : uint8_t { Split = 0, Fused = 1 };
 enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
@@ -279,6 +279,9 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
+    // Boot-only amortization study: 0=plain, 1=interwoven, 2=deep unified streams. This occupies
+    // the alignment slack before ClientOutputBufferLimits, preserving Config's locked footprint.
+    uint32_t thread_pipeline = 0;
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -663,10 +666,34 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--thread-mode")) {
             const char* value = next(nullptr);
-            if (value && !std::strcmp(value, "split")) cfg.thread_mode = ThreadMode::Split;
-            else if (value && !std::strcmp(value, "fused")) cfg.thread_mode = ThreadMode::Fused;
+            if (value && (!std::strcmp(value, "2s") || !std::strcmp(value, "split")))
+                cfg.thread_mode = ThreadMode::Split;
+            else if (value && (!std::strcmp(value, "1s") || !std::strcmp(value, "fused")))
+                cfg.thread_mode = ThreadMode::Fused;
             else {
-                std::fprintf(stderr, "--thread-mode wants split or fused\n");
+                std::fprintf(stderr,
+                             "--thread-mode wants 2s or 1s (split/fused are aliases)\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--thread-pipeline")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.thread_pipeline) || cfg.thread_pipeline > 2) {
+                std::fprintf(stderr, "--thread-pipeline wants 0, 1 or 2\n");
+                return kConfigError;
+            }
+        }
+        // Hidden compatibility alias for the genthread research branch's pinned scripts. That
+        // branch was unified-only, so preserving its meaning requires selecting 1s as well as the
+        // corresponding pipeline schedule.
+        else if (!std::strcmp(a, "--genthread-schedule")) {
+            const char* value = next(nullptr);
+            cfg.thread_mode = ThreadMode::Fused;
+            if (cfg_eq_icase(value, "coarse")) cfg.thread_pipeline = 0;
+            else if (cfg_eq_icase(value, "iofused")) cfg.thread_pipeline = 1;
+            else if (cfg_eq_icase(value, "streams")) cfg.thread_pipeline = 2;
+            else {
+                std::fprintf(stderr,
+                             "--genthread-schedule wants coarse, iofused or streams\n");
                 return kConfigError;
             }
         }
@@ -1051,8 +1078,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode split|fused (boot-only; default split)\n"
-                        "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
+                        "  threading: --thread-mode 2s|1s --thread-pipeline 0|1|2\n"
+                        "             (boot-only; defaults 2s and 0; split/fused are mode aliases)\n"
+                        "  placement (2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
                         "    --l3-domains LIST           declared L3 topology, ranges joined by +\n"
@@ -1104,7 +1132,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  compact encodings: --{hash,list,set,zset}-max-compact-{entries,value} N\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"
-                        "  (pure 2s is the only server; --mode/--wb/--nodes died with 3s, 2026-08)\n",
+                        "  (--mode/--wb/--nodes died with 3s, 2026-08)\n",
                         prog);
             return kConfigHelp;
         }
@@ -1118,14 +1146,26 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.thread_mode == ThreadMode::Split && cfg.thread_pipeline == 2) {
+        std::fprintf(stderr,
+                     "--thread-pipeline 2 is only available with --thread-mode 1s; 2s has no deep unified-stream schedule\n");
+        return kConfigError;
+    }
+    if (cfg.thread_mode == ThreadMode::Fused && cfg.thread_pipeline != 0 &&
+        cfg.net_io != NetIoEngine::Uring) {
+        std::fprintf(stderr,
+                     "--thread-mode 1s with --thread-pipeline %u requires --net-io uring for its single submit boundary\n",
+                     cfg.thread_pipeline);
+        return kConfigError;
+    }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {
         std::fprintf(stderr,
-                     "--ratio is unavailable with --thread-mode fused: every thread handles networking and execution\n");
+                     "--ratio is unavailable with --thread-mode 1s: every thread handles networking and execution\n");
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && cfg.flip_auto) {
         std::fprintf(stderr,
-                     "--flip-auto is unavailable with --thread-mode fused\n");
+                     "--flip-auto is unavailable with --thread-mode 1s\n");
         return kConfigError;
     }
     if (cfg.databases != 1) {

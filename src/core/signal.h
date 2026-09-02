@@ -323,6 +323,12 @@ public:
         return words_[word].exchange(0, std::memory_order_acquire);
     }
 
+    // Read-only optimization hint. Correctness consumers still use take(); a stale or missing bit
+    // here may suppress optional filler work but can never strand the underlying queue.
+    uint64_t peek(uint32_t word) const {
+        return words_[word].load(std::memory_order_relaxed);
+    }
+
     bool any() const {
         for (uint32_t i = 0; i < kWords; i++)
             if (words_[i].load(std::memory_order_relaxed)) return true;
@@ -456,6 +462,19 @@ public:
         if (!q_.push_batch(producer, values, count)) { sig.full_events++; return false; }
         return true;
     }
+    bool reserve(uint32_t producer, uint32_t count) {
+        return q_.reserve(producer, count);
+    }
+    void cancel_reservation(uint32_t producer, uint32_t count) {
+        q_.cancel_reservation(producer, count);
+    }
+    void push_reserved(uint32_t producer, T value) {
+        q_.push_reserved(producer, value);
+    }
+    template <typename Prepare>
+    void push_reserved_prepared(uint32_t producer, T value, Prepare&& prepare) {
+        q_.push_reserved_prepared(producer, value, static_cast<Prepare&&>(prepare));
+    }
     template <typename Prepare>
     bool push_batch_prepared(uint32_t producer, const T* values, uint32_t count,
                              LoopSignals& sig, Prepare&& prepare) {
@@ -477,7 +496,11 @@ public:
         }
     }
     bool recv(uint32_t producer, T& out) { return q_.pop(producer, out); }
+    bool pop_unretired(uint32_t producer, T& out) {
+        return q_.pop_unretired(producer, out);
+    }
     void retire(uint32_t producer) { q_.retire(producer); }
+    void retire_n(uint32_t producer, uint32_t count) { q_.retire_n(producer, count); }
     bool quiesced(uint32_t producer) const { return q_.quiesced(producer); }
     bool all_quiesced() const { return q_.all_quiesced(); }
     uint32_t depth(uint32_t producer) const { return q_.depth(producer); }

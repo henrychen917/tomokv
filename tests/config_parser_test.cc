@@ -120,6 +120,56 @@ int main() {
     if (network_default.net_io != tomo::NetIoEngine::Uring)
         fail("net-io default is not uring");
 
+    tomo::Config threads;
+    tomo::ConfigParseState threads_state;
+    const std::vector<const char*> threads_args = {
+        "--thread-mode", "1s", "--thread-pipeline", "2",
+    };
+    if (tomo::parse_config_args(threads_args, threads, threads_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(threads) != tomo::kConfigParsed ||
+        threads.thread_mode != tomo::ThreadMode::Fused || threads.thread_pipeline != 2)
+        fail("primary thread-mode/thread-pipeline grammar differs");
+    tomo::Config thread_default;
+    if (thread_default.thread_mode != tomo::ThreadMode::Split ||
+        thread_default.thread_pipeline != 0)
+        fail("thread study defaults are not 2s pipeline 0");
+
+    auto parses_threads = [](std::initializer_list<const char*> values,
+                             tomo::ThreadMode mode, uint32_t pipeline) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        const std::vector<const char*> args(values);
+        return tomo::parse_config_args(args, cfg, state, 2, "test") == tomo::kConfigParsed &&
+               tomo::validate_config(cfg) == tomo::kConfigParsed &&
+               cfg.thread_mode == mode && cfg.thread_pipeline == pipeline;
+    };
+    if (!parses_threads({"--thread-mode", "2s", "--thread-pipeline", "1"},
+                        tomo::ThreadMode::Split, 1) ||
+        !parses_threads({"--thread-mode", "split"}, tomo::ThreadMode::Split, 0) ||
+        !parses_threads({"--thread-mode", "fused"}, tomo::ThreadMode::Fused, 0) ||
+        !parses_threads({"--genthread-schedule", "coarse"},
+                        tomo::ThreadMode::Fused, 0) ||
+        !parses_threads({"--genthread-schedule", "IoFuSeD"},
+                        tomo::ThreadMode::Fused, 1) ||
+        !parses_threads({"--genthread-schedule", "streams"},
+                        tomo::ThreadMode::Fused, 2))
+        fail("thread-mode or genthread compatibility aliases differ");
+    if (!rejects({"--thread-mode", "two-stage"}) ||
+        !rejects({"--thread-pipeline", "3"}) ||
+        !rejects({"--thread-pipeline", "-1"}) ||
+        !rejects({"--genthread-schedule", "streams0"}))
+        fail("invalid thread study grammar was accepted");
+    tomo::Config invalid_split_deep;
+    tomo::ConfigParseState invalid_split_deep_state;
+    const std::vector<const char*> invalid_split_deep_args = {
+        "--thread-pipeline", "2", "--thread-mode", "2s",
+    };
+    if (tomo::parse_config_args(invalid_split_deep_args, invalid_split_deep,
+                                invalid_split_deep_state, 2, "test") != tomo::kConfigParsed ||
+        tomo::validate_config(invalid_split_deep) != tomo::kConfigError)
+        fail("2s plus thread-pipeline 2 was not rejected after order-independent parsing");
+
     tomo::Config smt;
     tomo::ConfigParseState smt_state;
     const std::vector<const char*> smt_args = {"--smt-mode", "1"};

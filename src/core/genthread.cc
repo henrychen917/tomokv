@@ -1,5 +1,5 @@
-// Fused coarse three-stream runtime. This translation unit is the boot-time architecture wall:
-// only it instantiates ExLoopT<true> and IoLoop's Fused=true loop methods.
+// Unified generalized-thread runtime. This translation unit is the boot-time architecture wall:
+// only it instantiates ExLoopT<true> and IoLoop's Fused=true loop methods for pipelines 0, 1, and 2.
 #include "genthread.h"
 
 #include <algorithm>
@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <vector>
 #include <unistd.h>
 
@@ -37,22 +38,31 @@ void IoLoop::run_fused() {
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    if (epoll_) {
-        if (tls_context_) {
-            if (has_unix) run_loop<true, true, true, true>();
-            else run_loop<false, true, true, true>();
-        } else {
-            if (has_unix) run_loop<true, false, true, true>();
-            else run_loop<false, false, true, true>();
+    auto run_pipeline = [&](auto pipeline_tag) {
+        constexpr uint8_t Pipeline = decltype(pipeline_tag)::value;
+        if (epoll_) {
+            if (tls_context_) {
+                if (has_unix) run_loop<true, true, true, true, Pipeline>();
+                else run_loop<false, true, true, true, Pipeline>();
+            } else {
+                if (has_unix) run_loop<true, false, true, true, Pipeline>();
+                else run_loop<false, false, true, true, Pipeline>();
+            }
+            return;
         }
-        return;
-    }
-    if (tls_context_) {
-        if (has_unix) run_loop<true, true, false, true>();
-        else run_loop<false, true, false, true>();
-    } else {
-        if (has_unix) run_loop<true, false, false, true>();
-        else run_loop<false, false, false, true>();
+        if (tls_context_) {
+            if (has_unix) run_loop<true, true, false, true, Pipeline>();
+            else run_loop<false, true, false, true, Pipeline>();
+        } else {
+            if (has_unix) run_loop<true, false, false, true, Pipeline>();
+            else run_loop<false, false, false, true, Pipeline>();
+        }
+    };
+    switch (srv_->cfg().thread_pipeline) {
+        case 0: run_pipeline(std::integral_constant<uint8_t, 0>{}); break;
+        case 1: run_pipeline(std::integral_constant<uint8_t, 1>{}); break;
+        case 2: run_pipeline(std::integral_constant<uint8_t, 2>{}); break;
+        default: std::abort();
     }
 }
 
@@ -62,11 +72,12 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      int unix_listener) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
-    std::printf("tomokv-cpp: %u fused threads, %u shard(s), thread-mode=fused,"
-                " %s, alloc=%s\n", nthreads, cfg.shards,
+    std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
+                " thread-pipeline=%u, %s, alloc=%s\n", nthreads, cfg.shards,
+                cfg.thread_pipeline,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())
-        std::printf("  thread t%u: role=fused cpu=%d L3=%u shards=%zu send=self\n",
+        std::printf("  thread t%u: role=unified cpu=%d L3=%u shards=%zu send=self\n",
                     placement.id, placement.cpu, placement.domain,
                     srv.thread(placement.id).shards().size());
     std::fflush(stdout);
@@ -128,19 +139,47 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                     });
             if (ok) {
-                executors[tid].activate_fused();
+                executors[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&executors[tid]);
-                executors[tid].bind_fused_completion(
-                    &ios[tid],
-                    [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
-                    });
-                self.bind_fused_executor_hooks(
-                    &executors[tid],
-                    [](void* p) { return static_cast<FusedExLoop*>(p)->fused_pass(); },
-                    [](void* p, SnapshotManager* manager) {
-                        static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
-                    });
+                if (cfg.thread_pipeline == 0)
+                    executors[tid].bind_fused_completion(
+                        &ios[tid],
+                        [](void* p, Client* client) {
+                            static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
+                        });
+                else
+                    executors[tid].bind_fused_completion(
+                        &ios[tid],
+                        [](void* p, Client* client) {
+                            static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
+                        });
+                if (cfg.thread_pipeline == 0)
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
+                else if (cfg.thread_pipeline == 1)
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
+                else
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_streams_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
             }
             {
                 std::lock_guard<std::mutex> lock(boot_mu);
@@ -148,7 +187,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                     load_ok = false;
                     if (load_error.empty())
                         load_error = local_error.empty()
-                            ? "fused thread initialization failed" : local_error;
+                            ? "unified thread initialization failed" : local_error;
                 }
                 loaders_done++;
             }
@@ -270,7 +309,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 static_cast<unsigned long long>(st_issued),
                 static_cast<unsigned long long>(st_free),
                 static_cast<unsigned long long>(st_flag));
-    std::printf("shutdown: fused_work=%llu\n",
+    std::printf("shutdown: unified_work=%llu\n",
                 static_cast<unsigned long long>(fused_work));
     acl_shutdown();
     return 0;

@@ -107,6 +107,9 @@ public:
     }
 
     Ring&  ring()       { return *ring_; }
+    // Only cold, non-templated send sites consult this boot-latched fallback. Hot paths carry the
+    // pipeline-1 classifier as a template argument.
+    void set_cold_send_classification(bool enabled) { classify_cold_sends_ = enabled; }
 
     // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
@@ -161,32 +164,88 @@ public:
     // Retire completed ops IN ORDER, stage their bytes, and write. Owned and run only by the
     // connection's io thread. Returns true if it did anything, so a caller can tell progress from
     // an empty poll.
-    template <bool kEp = false>
+    template <bool kEp = false, bool ClassifySend = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp>(c);
-        return serve_impl<false, false, kEp>(c);
+            return serve_impl<true, false, kEp, true, ClassifySend>(c);
+        return serve_impl<false, false, kEp, true, ClassifySend>(c);
+    }
+
+    // Micro-pipeline retirement half. It drains exactly the same in-order prefix and stages the
+    // same buffers/segments as serve(), but deliberately leaves SQE construction to pump().
+    template <bool kEp = false>
+    bool prepare(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, false, kEp, false>(c, &submit_allowed);
+        return serve_impl<false, false, kEp, false>(c, &submit_allowed);
+    }
+
+    // Unified pipeline batches already guard a nullable Client slot before their submit half. Its
+    // bound limit callback tombstones that slot on the rare refusal, avoiding a parallel bool on
+    // every ordinary reply while leaving the established split-pipeline prepare API untouched.
+    template <bool kEp = false>
+    bool prepare_pipeline(Client& c) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, false, kEp, false>(c);
+        return serve_impl<false, false, kEp, false>(c);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
-    template <bool kEp = false>
+    template <bool kEp = false, bool ClassifySend = false>
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp>(c);
-        return serve_impl<false, true, kEp>(c);
+            return serve_impl<true, true, kEp, true, ClassifySend>(c);
+        return serve_impl<false, true, kEp, true, ClassifySend>(c);
+    }
+
+    template <bool kEp = false>
+    bool prepare_ktls(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true, kEp, false>(c, &submit_allowed);
+        return serve_impl<false, true, kEp, false>(c, &submit_allowed);
+    }
+
+    template <bool kEp = false>
+    bool prepare_pipeline_ktls(Client& c) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true, kEp, false>(c);
+        return serve_impl<false, true, kEp, false>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
-    template <bool kEp = false>
+    template <bool kEp = false, bool ClassifySend = false>
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp>(c, tls);
-        return serve_tls_impl<false, kEp>(c, tls);
+            return serve_tls_impl<true, kEp, true, ClassifySend>(c, tls);
+        return serve_tls_impl<false, kEp, true, ClassifySend>(c, tls);
+    }
+
+    template <bool kEp = false>
+    bool prepare_tls(Client& c, TlsConn& tls, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true, kEp, false>(c, tls, &submit_allowed);
+        return serve_tls_impl<false, kEp, false>(c, tls, &submit_allowed);
+    }
+
+    template <bool kEp = false>
+    bool prepare_pipeline_tls(Client& c, TlsConn& tls) {
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true, kEp, false>(c, tls);
+        return serve_tls_impl<false, kEp, false>(c, tls);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
@@ -216,6 +275,19 @@ public:
     // never committed.
     __attribute__((noinline, cold))
     bool serve_suppressing(Client& c) {
+        return serve_suppressing_impl(c, true);
+    }
+
+    __attribute__((noinline, cold))
+    bool prepare_suppressing(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        return serve_suppressing_impl(c, false, &submit_allowed);
+    }
+
+private:
+    __attribute__((noinline, cold))
+    bool serve_suppressing_impl(Client& c, bool submit,
+                                bool* submit_allowed = nullptr) {
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
@@ -252,17 +324,27 @@ public:
         bool did = retired != 0;
         did |= flush_deferred_oob(conn);
         if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+            if (submit_allowed) *submit_allowed = false;
             stats_.retired += retired;
             return true;
         }
-        if (!conn.nothing_to_write()) did |= epoll_ ? pump<true>(c) : pump<false>(c);
+        if (submit && !conn.nothing_to_write()) {
+            if (epoll_)
+                did |= pump<true>(c);
+            else if (classify_cold_sends_)
+                did |= pump<false, true>(c);
+            else
+                did |= pump<false>(c);
+        }
         stats_.retired += retired;
         return did;
     }
 
+public:
+
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
-    template <bool kEp = false>
+    template <bool kEp = false, bool ClassifySend = false>
     bool pump(Client& c) {
       if constexpr (kEp) { return pump_epoll(c); }
       else {
@@ -274,7 +356,7 @@ public:
         const size_t legacy_total = conn.send_buf().size();
         const size_t legacy_sent  = conn.wsent();
         if (legacy_sent < legacy_total)
-            return submit_legacy<kEp>(c, legacy_total, legacy_sent);
+            return submit_legacy<kEp, ClassifySend>(c, legacy_total, legacy_sent);
 
         if (conn.has_pending_segments()) {
             bool has_borrow = false;
@@ -286,7 +368,7 @@ public:
             if (!s) return false;
             io_uring_prep_sendmsg(s, conn.fd(), conn.send_msg(), MSG_NOSIGNAL);
             s->user_data = ur_tag(UrKind::Send, &c);
-            ring_->note_pending();
+            ring_->note_send_pending<ClassifySend>();
 
             conn.set_segmented_send(true);
             conn.set_send_requested(total);
@@ -303,7 +385,7 @@ public:
 
         const size_t total = conn.send_buf().size();
         const size_t sent  = conn.wsent();
-        return sent < total ? submit_legacy<kEp>(c, total, sent) : false;
+        return sent < total ? submit_legacy<kEp, ClassifySend>(c, total, sent) : false;
       }
     }
 
@@ -359,12 +441,14 @@ public:
     // Non-templated wrapper for the two cold sites that cannot carry the engine in their type:
     // close_client's TLS alert/close_notify drain, and the CLIENT REPLY suppressed serve.
     bool pump_tls_any(Client& c, TlsConn& tls) {
-        return epoll_ ? pump_tls<true>(c, tls) : pump_tls<false>(c, tls);
+        if (epoll_) return pump_tls<true>(c, tls);
+        return classify_cold_sends_ ? pump_tls<false, true>(c, tls)
+                                    : pump_tls<false>(c, tls);
     }
 
     // Engine independent except for its one ciphertext write, which submit_tls_cipher<kEp> owns.
     // The plaintext -> OpenSSL half is identical in both engines.
-    template <bool kEp = false>
+    template <bool kEp = false, bool ClassifySend = false>
     bool pump_tls(Client& c, TlsConn& tls) {
         if (c.send_inflight()) return false;
 
@@ -373,7 +457,8 @@ public:
         const char* cipher = nullptr;
         const int cipher_bytes = tls.peek_output(cipher);
         if (cipher_bytes > 0)
-            return submit_tls_cipher<kEp>(c, tls, cipher, static_cast<uint32_t>(cipher_bytes));
+            return submit_tls_cipher<kEp, ClassifySend>(
+                c, tls, cipher, static_cast<uint32_t>(cipher_bytes));
         if (!tls.connected()) return false;
 
         Client& conn = c;
@@ -441,12 +526,15 @@ public:
 
         cipher = nullptr;
         const int ready = tls.peek_output(cipher);
-        if (ready > 0) return submit_tls_cipher<kEp>(c, tls, cipher, static_cast<uint32_t>(ready));
+        if (ready > 0)
+            return submit_tls_cipher<kEp, ClassifySend>(
+                c, tls, cipher, static_cast<uint32_t>(ready));
         return encrypted.op == TlsOp::Progress;
     }
 
     // Completion handler. `res` is the CQE result: bytes written, or negative errno.
     // Returns false when the connection should be torn down.
+    template <bool SubmitFollowup = true, bool ClassifySend = false>
     bool on_send_complete(Client& c, int res) {
         bool resubmit = false;
         {
@@ -491,10 +579,12 @@ public:
                 }
             }
         }
-        if (resubmit) pump<false>(c);
+        if constexpr (SubmitFollowup)
+            if (resubmit) pump<false, ClassifySend>(c);
         return true;
     }
 
+    template <bool SubmitFollowup = true, bool ClassifySend = false>
     bool on_tls_send_complete(Client& c, TlsConn& tls, int res) {
         c.set_send_inflight(false);
         bool resubmit = false;
@@ -540,7 +630,8 @@ public:
             else stats_.sends_completed++;
             resubmit = true;
         }
-        if (resubmit) pump_tls<false>(c, tls);
+        if constexpr (SubmitFollowup)
+            if (resubmit) pump_tls<false, ClassifySend>(c, tls);
         return !tls.failed();
     }
 
@@ -632,8 +723,9 @@ private:
         return flushed;
     }
 
-    template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
-    bool serve_impl(Client& c) {
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit,
+              bool ClassifySend = false>
+    bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -695,12 +787,14 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                if (submit_allowed) *submit_allowed = false;
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
             }
         }
-        if (!conn.nothing_to_write()) did |= pump<kEp>(c);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);
         stats_.retired += retired;
         // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
         // nothing, which is expected and cheap.
@@ -708,8 +802,8 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp>
-    bool serve_tls_impl(Client& c, TlsConn& tls) {
+    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false>
+    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -750,17 +844,20 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                if (submit_allowed) *submit_allowed = false;
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
             }
         }
-        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write() || tls.output_pending())
+                did |= pump_tls<kEp, ClassifySend>(c, tls);
         stats_.retired += retired;
         if (!retired) stats_.serves_empty++;
         return did;
     }
-    template <bool kEp>
+    template <bool kEp, bool ClassifySend = false>
     bool submit_legacy(Client& c, size_t total, size_t sent) {
       if constexpr (kEp) { bool did = false; (void)write_legacy_epoll(c, total, sent, did); return did; }
       else {
@@ -770,7 +867,7 @@ private:
         if (!s) return false;
         io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::Send, &c);
-        ring_->note_pending();
+        ring_->note_send_pending<ClassifySend>();
 
         c.set_segmented_send(false);
         c.set_send_requested(static_cast<uint32_t>(request));
@@ -815,7 +912,7 @@ private:
         send_failed_ = true;
     }
 
-    template <bool kEp>
+    template <bool kEp, bool ClassifySend = false>
     bool submit_tls_cipher(Client& c, TlsConn& tls, const char* cipher, uint32_t bytes) {
       if constexpr (kEp) {
         // Drain every record OpenSSL has already produced in one call. Recursing back through
@@ -848,7 +945,7 @@ private:
         if (!s) return false;
         io_uring_prep_send(s, c.fd(), cipher, bytes, MSG_NOSIGNAL);
         s->user_data = ur_tag(UrKind::TlsSend, &c);
-        ring_->note_pending();
+        ring_->note_send_pending<ClassifySend>();
         c.set_send_requested(bytes);
         c.set_send_inflight(true);
         stats_.sends_submitted++;
@@ -875,6 +972,7 @@ private:
     // Engine, for the cold non-templated entry points only. The hot send path never reads it.
     bool   epoll_ = false;
     bool   send_failed_ = false;
+    bool   classify_cold_sends_ = false;
     // The connection whose retire drain is running right now, or null. defer_oob() uses it to make
     // parking unconditional across the partial-reply staging window.
     const Client* draining_ = nullptr;
