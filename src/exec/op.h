@@ -57,22 +57,12 @@ public:
     Op& operator=(const Op&) = delete;
 
     // ---- built by the IO thread while parsing ------------------------------------------------
-    template <bool ReadLocalAccounting = false>
     void reset(uint8_t route_flags = 0) {
         argc_ = 0;
         spec  = nullptr;
         shard = -1;
         read_cut_lo = 0;
-        // Bit 6 is shared with Client's overlap-1 IFID-ready flag. The enabled coarse parser masks
-        // that captured connection bit before explicitly classifying this slot; the off
-        // specialization retains the original route byte exactly, and its read-local consumers
-        // remain disabled.
-        if constexpr (ReadLocalAccounting) {
-            route_flags_ = static_cast<uint8_t>(
-                route_flags & static_cast<uint8_t>(~kReadLocal));
-        } else {
-            route_flags_ = route_flags;
-        }
+        route_flags_ = route_flags;
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -80,6 +70,14 @@ public:
         zc_len = 0;
         zc_shard = -1;
         state.store(OpState::Free, std::memory_order_relaxed);
+    }
+
+    // Bit 6 is shared with Client's overlap-1 IFID-ready flag. Only the armed coarse parser masks
+    // that captured connection bit before explicitly classifying the slot; reset() above remains
+    // the literal baseline path for every ordinary ROB acquisition.
+    void reset_read_local(uint8_t route_flags = 0) {
+        reset(static_cast<uint8_t>(
+            route_flags & static_cast<uint8_t>(~kReadLocal)));
     }
 
     bool push_arg(Slice s) {

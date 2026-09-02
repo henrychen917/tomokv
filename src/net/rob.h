@@ -38,7 +38,6 @@
 // dies); steady-state allocator traffic is zero, and jemalloc needs no pool in front of it.
 #pragma once
 #include <atomic>
-#include <cstdlib>
 #include <cstdint>
 #include "../exec/op.h"
 
@@ -64,36 +63,36 @@ public:
     // without reading, and dropping it is how a server OOMs on one misbehaving connection.
     // Materialization happens HERE and only here — the parser is the sole allocator, so workers
     // and the sender only ever dereference slots that a publish made real.
-    template <bool ReadLocalAccounting = false>
     Op* acquire(uint8_t route_flags = 0) {
         if (full()) return nullptr;
+        Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
+        op->reset(route_flags);
+        return op;
+    }
+
+    // The armed coarse parser owns these slot bitmaps. Clear the recycled position before reset so
+    // stale classifications never survive a wrap; ordinary acquire() above stays exactly baseline.
+    Op* acquire_read_local(uint8_t route_flags = 0) {
+        if (full()) return nullptr;
         const uint32_t index = static_cast<uint32_t>(dispatch_id()) & kMask;
-        if constexpr (ReadLocalAccounting) {
-            const uint64_t keep = ~(uint64_t{1} << index);
-            read_local_slots_ &= keep;
-            write_slots_ &= keep;
-        }
+        const uint64_t keep = ~(uint64_t{1} << index);
+        read_local_slots_ &= keep;
+        write_slots_ &= keep;
         Op* op = slot(index, true);
-        op->reset<ReadLocalAccounting>(route_flags);
+        op->reset_read_local(route_flags);
         return op;
     }
 
     // Publish the slot claimed by acquire(). RELEASE: everything written into the slot must be
     // visible to the consumer before it can observe the new dispatch_id. Separate from acquire()
     // because the parser may abandon a half-built op without advancing the ROB.
-    void publish() {
-        const uint64_t id = dispatch_id();
-        dispatch_.store(id + 1, std::memory_order_release);
-    }
+    void publish() { dispatch_.store(dispatch_id() + 1, std::memory_order_release); }
 
     // Undo the last publish(). Only legal while the op is still un-dispatched, i.e. no worker can
     // have marked it Done -- which is exactly the refused-dispatch path. Safe even if a sender has
     // already observed the higher dispatch_: it can only have seen the slot as not-Done and stopped,
     // because retirement never touches an op that is not Done.
-    void unpublish() {
-        const uint64_t id = dispatch_id() - 1;
-        dispatch_.store(id, std::memory_order_release);
-    }
+    void unpublish() { dispatch_.store(dispatch_id() - 1, std::memory_order_release); }
 
     // The enabled parser marks its currently acquired (not yet published) slot. Stale bits are
     // harmless and cleared on reuse; queries intersect with the live [flush, dispatch) window.
@@ -189,5 +188,9 @@ private:
     uint64_t read_local_slots_ = 0;
     uint64_t write_slots_ = 0;
 };
+
+// Read-local slot maps deliberately occupy the pre-existing tail of flush_'s cache line. Locking
+// the complete ROB keeps future accounting from silently growing every connection.
+static_assert(sizeof(Rob<64>) == 192, "Rob<64> layout changed");
 
 }  // namespace tomo

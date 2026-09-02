@@ -3447,33 +3447,12 @@ private:
               bool IofusedPrivateQueue = false>
     DispatchResult parse_and_dispatch(
         Client* c, IfidPipelineBatch* pipeline_batch = nullptr) {
-        static constexpr bool ReadLocalCapable =
+        static constexpr bool Fused =
             BatchOps == kGenthreadIfidBatchOps &&
             !IoPipe && !BufferedIfid && !TargetedIfid &&
             !SuppressOrdinaryActiveMark && !IofusedPrivateQueue;
-        if constexpr (ReadLocalCapable) {
-            // Boot-only selection sits outside the parse loop. The off specialization contains no
-            // read-local route/accounting code, so a disabled fused parser pays this one cold
-            // branch per batch rather than one branch per decoded operation.
-            if (__builtin_expect(srv_->read_local_enabled(), false))
-                return parse_and_dispatch_impl<
-                    NoBorrow, BatchOps, IoPipe, BufferedIfid, TargetedIfid,
-                    SuppressOrdinaryActiveMark, IofusedPrivateQueue, true>(
-                        c, pipeline_batch);
-        }
-        return parse_and_dispatch_impl<
-            NoBorrow, BatchOps, IoPipe, BufferedIfid, TargetedIfid,
-            SuppressOrdinaryActiveMark, IofusedPrivateQueue, false>(
-                c, pipeline_batch);
-    }
-
-    template <bool NoBorrow, uint32_t BatchOps, bool IoPipe,
-              bool BufferedIfid, bool TargetedIfid,
-              bool SuppressOrdinaryActiveMark, bool IofusedPrivateQueue,
-              bool ReadLocal>
-    DispatchResult parse_and_dispatch_impl(
-        Client* c, IfidPipelineBatch* pipeline_batch) {
-        static_assert(!ReadLocal || BatchOps != 0);
+        [[maybe_unused]] const bool read_local_enabled =
+            Fused && __builtin_expect(srv_->read_local_enabled(), false);
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
@@ -3512,8 +3491,9 @@ private:
         // below may fill that batch with one consecutive GET prefix, but a later invocation cannot
         // parse beyond it until WB retires the prefix. EX either completes the whole prefix locally
         // or downgrades the whole prefix, so no younger hit can overtake an older fallback.
-        if constexpr (ReadLocal) {
-            if (__builtin_expect(rob.has_unretired_read_local(), false)) {
+        if constexpr (Fused) {
+            if (read_local_enabled &&
+                __builtin_expect(rob.has_unretired_read_local(), false)) {
                 if (self_->flip_fingerprint().enabled())
                     self_->flip_fingerprint().finish_parse_pass();
                 return DispatchResult::Held;
@@ -3557,7 +3537,14 @@ private:
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
-            Op* op = rob.acquire<ReadLocal>(conn.op_route_flags());
+            Op* op;
+            if constexpr (Fused) {
+                op = read_local_enabled
+                    ? rob.acquire_read_local(conn.op_route_flags())
+                    : rob.acquire(conn.op_route_flags());
+            } else {
+                op = rob.acquire(conn.op_route_flags());
+            }
             if (!op) break;                    // window full: backpressure; let replies drain first
             [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
             [[maybe_unused]] bool extend_read_local_batch = false;
@@ -3675,11 +3662,11 @@ private:
                 finish_prebuilt(c, *op);
                 continue;
             }
-            if constexpr (ReadLocal) {
+            if constexpr (Fused) {
                 // Decide whether this frame extends the local prefix before climon_armed_gate:
                 // MONITOR, tracking and CLIENT REPLY mutate state even though the parse cursor has
                 // not advanced yet. A held frame must therefore not pass that gate and be replayed.
-                if (read_local_batch) {
+                if (read_local_enabled && read_local_batch) {
                     if (!(spec->flags & CmdFlags::ReadLocalEligible) ||
                         conn.multi_session() != nullptr ||
                         !fused_executor_->local_read_lane_has_room()) break;
@@ -3719,11 +3706,13 @@ private:
                 }
             if (__builtin_expect(notify_armed, false) &&
                 __builtin_expect(climon_armed_gate(c, *op), false)) break;
-            if constexpr (ReadLocal) {
-                constexpr uint32_t kWriteHazards =
-                    CmdFlags::Write | CmdFlags::SnapshotWrite |
-                    CmdFlags::Transaction | CmdFlags::ScriptRoute;
-                if (spec->flags & kWriteHazards) rob.mark_current_write();
+            if constexpr (Fused) {
+                if (read_local_enabled) {
+                    constexpr uint32_t kWriteHazards =
+                        CmdFlags::Write | CmdFlags::SnapshotWrite |
+                        CmdFlags::Transaction | CmdFlags::ScriptRoute;
+                    if (spec->flags & kWriteHazards) rob.mark_current_write();
+                }
             }
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
@@ -3738,8 +3727,9 @@ private:
             }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
-                if constexpr (ReadLocal) {
-                    if (__builtin_expect((spec->flags & CmdFlags::ReadLocalEligible) &&
+                if constexpr (Fused) {
+                    if (read_local_enabled &&
+                        __builtin_expect((spec->flags & CmdFlags::ReadLocalEligible) &&
                                          multi_session_active(conn), false))
                         self_->read_local_stats().fallback_multi++;
                 }
@@ -4246,8 +4236,9 @@ ordinary_dispatch:
                 op->shard = srv_->router().shard_of(op->hash);
             }
 
-            if constexpr (ReadLocal) {
-                if (__builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
+            if constexpr (Fused) {
+                if (read_local_enabled &&
+                    __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
                     ReadLocalStats& local_stats = self_->read_local_stats();
                     bool eligible = extend_read_local_batch;
                     uint64_t* fallback = nullptr;
@@ -4352,11 +4343,12 @@ ordinary_dispatch:
                 // inbox space.
                 break;
             }
-            if constexpr (ReadLocal) {
+            if constexpr (Fused) {
                 // Count only after the owner task is irrevocably queued. A refused SPSC push
                 // unpublishes and reparses this frame; charging before it would double-count and
                 // could report a fallback for a retry that later takes the local lane.
-                if (read_local_fallback_counter) (*read_local_fallback_counter)++;
+                if (read_local_enabled && read_local_fallback_counter)
+                    (*read_local_fallback_counter)++;
             }
             conn.advance_parse(consumed);
             sig.ops++;
@@ -5683,8 +5675,12 @@ ordinary_dispatch:
                         dispatch_result = parse_and_dispatch<
                             false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     }
-                    if (__builtin_expect(dispatch_result != DispatchResult::NeedInput &&
-                                         dispatch_result != DispatchResult::Held, true)) work++;
+                    if constexpr (Fused) {
+                        if (__builtin_expect(dispatch_result != DispatchResult::NeedInput &&
+                                             dispatch_result != DispatchResult::Held, true)) work++;
+                    } else {
+                        if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
+                    }
                 }
             }
 
