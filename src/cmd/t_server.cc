@@ -1699,7 +1699,7 @@ void cmd_info(Shard&, Op& op) {
                       "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
                       "flip_client_min:%u\r\nflip_client_max:%u\r\n"
                       "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
-                kVersion, kVersion, g_server ? g_server->thread_mode_name() : "split",
+                kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
@@ -2287,7 +2287,7 @@ static const CommandSpec kTable[] = {
 }  // namespace
 
 void cmd_flip_unavailable(Shard&, Op& op) {
-    reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode fused");
+    reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode 1s");
 }
 
 bool debug_command_allowed(const Server& server, const Client* client) {
