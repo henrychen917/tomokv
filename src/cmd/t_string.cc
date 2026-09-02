@@ -1371,7 +1371,8 @@ void cmd_type(Shard& sh, Op& op) {
 
 static const CommandSpec kTable[] = {
     // name          min max flags                                  handler          first last step
-    {"GET",           2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_get, 1, 1, 1)},
+    {"GET",           2,  2,  CmdFlags::Readonly | CmdFlags::HotForwardEligible,
+                                                                       TOMO_HANDLER_PAIR(cmd_get, 1, 1, 1)},
     {"SET",           3, -1,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_set, 1, 1, 1)},
     {"APPEND",        3,  3,  CmdFlags::Write | CmdFlags::DenyOom,  TOMO_HANDLER_PAIR(cmd_append, 1, 1, 1)},
     {"STRLEN",        2,  2,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_strlen, 1, 1, 1)},

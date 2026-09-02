@@ -91,6 +91,10 @@ struct CmdFlags {
     // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
     // coordinator. No other command enters that control path.
     static constexpr uint32_t FlipAsync = 1u << 25;
+    // Exact two-argument GET only. The opt-in IO specialization uses this registry fact instead of
+    // comparing command names on the request path; notification/TLS/atomic/maxmemory gates remain
+    // separate because they are live execution state, not command identity.
+    static constexpr uint32_t HotForwardEligible = 1u << 26;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

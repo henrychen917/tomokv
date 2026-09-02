@@ -35,25 +35,8 @@ void pin_fused_thread(int cpu) {
 
 void IoLoop::run_fused() {
     if (!fused_executor_) std::abort();
-    const bool has_unix = unix_listen_fd_ >= 0 ||
-                          (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    if (epoll_) {
-        if (tls_context_) {
-            if (has_unix) run_loop<true, true, true, true>();
-            else run_loop<false, true, true, true>();
-        } else {
-            if (has_unix) run_loop<true, false, true, true>();
-            else run_loop<false, false, true, true>();
-        }
-        return;
-    }
-    if (tls_context_) {
-        if (has_unix) run_loop<true, true, false, true>();
-        else run_loop<false, true, false, true>();
-    } else {
-        if (has_unix) run_loop<true, false, false, true>();
-        else run_loop<false, false, false, true>();
-    }
+    if (srv_->hot_forward_enabled()) run_selected<true, true>();
+    else                             run_selected<false, true>();
 }
 
 int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
