@@ -1,8 +1,9 @@
 // read_local.h — fused read-lane owner-side deferred reclamation.
 //
 // Readers never enter/leave an epoch. Their entire foreign-pointer lifetime is bounded by one
-// coarse fused rotation, whose ThreadCtx tick is published by IoLoop. A store owner unlinks first,
-// then hands the retired allocation to this fixed ring with the current global-epoch stamp.
+// coarse fused rotation, whose ThreadCtx tick is published by every FusedExLoop pass (including
+// snapshot-driven passes). A store owner unlinks first, then hands the retired allocation to this
+// fixed ring with the current global-epoch stamp.
 #pragma once
 #include <cstddef>
 #include <cstdint>
@@ -50,29 +51,17 @@ public:
 
     uint32_t drain_ready() {
         uint32_t drained = 0;
+        // One participant scan per owner pass, not per retired allocation. Stamps are FIFO and
+        // strictly below the returned floor only after every active tick has crossed them; parked
+        // participants contribute infinity because they hold no foreign pointer.
+        const uint64_t grace_floor = server_->read_local_grace_floor();
         while (count_) {
             Entry& entry = entries_[head_];
-            if (!server_->read_local_epoch_graced(entry.stamp)) break;
+            if (entry.stamp >= grace_floor) break;
             reclaim_entry(entry);
             head_ = (head_ + 1) & (kCapacity - 1);
             count_--;
             drained++;
-        }
-        return drained;
-    }
-
-    // Ownership movement may not recycle a source-owned callback on the destination thread. Once
-    // task/local-read debt is empty, ExDrain calls this until every old callback has run.
-    uint32_t drain_for_quiesce() {
-        uint32_t drained = 0;
-        while (count_) {
-            owner_->publish_read_local_tick(server_->read_local_epoch());
-            const uint32_t pass = drain_ready();
-            drained += pass;
-            if (!pass) {
-                __builtin_ia32_pause();
-                ::sched_yield();
-            }
         }
         return drained;
     }
@@ -115,7 +104,8 @@ private:
         // copy before owner mutation can reach here, so publishing its current epoch is the safe
         // point that prevents a full list from waiting on itself.
         while (count_ == kCapacity) {
-            owner_->publish_read_local_tick(server_->read_local_epoch());
+            // Preserve a permanent/parked publication if shutdown cleanup reaches this path.
+            owner_->refresh_read_local_quiescence(server_->read_local_epoch());
             if (!drain_ready()) {
                 __builtin_ia32_pause();
                 ::sched_yield();

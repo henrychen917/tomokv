@@ -443,6 +443,7 @@ private:
     enum class DispatchResult : uint8_t {
         Progress,
         NeedInput,
+        Held,
         Error,
         Closed,
     };
@@ -484,10 +485,6 @@ private:
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
-            if constexpr (Fused) {
-                if (__builtin_expect(srv_->read_local_enabled(), false))
-                    self_->publish_read_local_tick(srv_->read_local_epoch());
-            }
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -630,7 +627,7 @@ private:
             Span idle(sig.idle_ns);
             if constexpr (Fused) {
                 if (__builtin_expect(srv_->read_local_enabled(), false))
-                    self_->publish_read_local_tick(srv_->read_local_epoch());
+                    self_->publish_read_local_parked(srv_->read_local_epoch());
             }
             self_->arm_blocked();
             if constexpr (kEp) {
@@ -652,12 +649,22 @@ private:
                 }
             }
             if constexpr (Fused) {
-                // Publish while parked is still true. Once clear_blocked() makes this thread an
-                // active reader again, its tick therefore represents the completed wait boundary.
-                if (__builtin_expect(srv_->read_local_enabled(), false))
+                // Become active conservatively before sampling the epoch. With the retirement RMW
+                // and grace scan in the same seq-cst order, a reclaimer either sees this old tick
+                // and waits or completed while we were parked; the epoch sample then acquires that
+                // unlink before any later foreign slot probe.
+                if (__builtin_expect(srv_->read_local_enabled(), false)) {
+                    self_->resume_read_local_tick();
                     self_->publish_read_local_tick(srv_->read_local_epoch());
+                }
             }
             self_->clear_blocked();
+        }
+        if constexpr (Fused) {
+            // The read loop is over permanently. Teardown below may take longer than another
+            // owner's bounded retire queue can tolerate, but it performs no foreign store probe.
+            if (srv_->read_local_enabled())
+                self_->publish_read_local_parked(srv_->read_local_epoch());
         }
         // A close requested by the last pass's read/send path has no later flush_ready to drain it,
         // and an undrained entry would show up as a live connection in the shutdown accounting.
@@ -2173,6 +2180,19 @@ private:
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0>
     DispatchResult parse_and_dispatch(Client* c) {
+        if constexpr (BatchOps != 0) {
+            // Boot-only selection sits outside the parse loop. The off specialization contains no
+            // read-local route/accounting code, so a disabled fused parser pays this one cold
+            // branch per batch rather than one branch per decoded operation.
+            if (__builtin_expect(srv_->read_local_enabled(), false))
+                return parse_and_dispatch_impl<NoBorrow, BatchOps, true>(c);
+        }
+        return parse_and_dispatch_impl<NoBorrow, BatchOps, false>(c);
+    }
+
+    template <bool NoBorrow, uint32_t BatchOps, bool ReadLocal>
+    DispatchResult parse_and_dispatch_impl(Client* c) {
+        static_assert(!ReadLocal || BatchOps != 0);
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
@@ -2186,6 +2206,16 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
+        // One outstanding local read per connection is the conservative v1 ordering rule. It
+        // prevents a first lane entry that falls back from being overtaken by a younger local hit;
+        // the lane still forms batches across independent connections.
+        if constexpr (ReadLocal) {
+            if (__builtin_expect(rob.has_unretired_read_local(), false)) {
+                if (self_->flip_fingerprint().enabled())
+                    self_->flip_fingerprint().finish_parse_pass();
+                return DispatchResult::Held;
+            }
+        }
         const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // One continuous-placement epoch per parse pass. Work published concurrently with a new
@@ -2218,8 +2248,9 @@ private:
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
-            Op* op = rob.acquire(conn.op_route_flags());
+            Op* op = rob.acquire<ReadLocal>(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
+            [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -2337,6 +2368,12 @@ private:
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
             }
+            if constexpr (ReadLocal) {
+                constexpr uint32_t kWriteHazards =
+                    CmdFlags::Write | CmdFlags::SnapshotWrite |
+                    CmdFlags::Transaction | CmdFlags::ScriptRoute;
+                if (spec->flags & kWriteHazards) rob.mark_current_write();
+            }
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
@@ -2350,6 +2387,11 @@ private:
             }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
+                if constexpr (ReadLocal) {
+                    if (__builtin_expect((spec->flags & CmdFlags::ReadLocalEligible) &&
+                                         multi_session_active(conn), false))
+                        self_->read_local_stats().fallback_multi++;
+                }
                 if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
             }
             const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
@@ -2838,6 +2880,68 @@ ordinary_dispatch:
                 op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
                 op->shard = srv_->router().shard_of(op->hash);
             }
+
+            if constexpr (ReadLocal) {
+                if (__builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
+                    ReadLocalStats& local_stats = self_->read_local_stats();
+                    bool eligible = true;
+                    uint64_t* fallback = nullptr;
+                    if (multi_session_watch_size(conn) != 0) {
+                        fallback = &local_stats.fallback_watch;
+                        eligible = false;
+                    } else if (c->blocked() || c->subscriber_mode() || op->has_scatter_state() ||
+                               (spec->flags & (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
+                                               CmdFlags::AllShards))) {
+                        fallback = &local_stats.fallback_context;
+                        eligible = false;
+                    } else if (rob.has_unretired_write()) {
+                        fallback = &local_stats.fallback_inflight_write;
+                        eligible = false;
+                    } else {
+                        const uint64_t state =
+                            srv_->shard(op->shard).store().read_local_state_acquire();
+                        if (FlatStore::read_local_pending(state) != 0) {
+                            fallback = &local_stats.fallback_atomic_pending;
+                            eligible = false;
+                        } else if (!FlatStore::read_local_state_eligible(state)) {
+                            fallback = &local_stats.fallback_seq_churn;
+                            eligible = false;
+                        } else if (!fused_executor_->local_read_lane_has_room()) {
+                            fallback = &local_stats.fallback_lane_full;
+                            eligible = false;
+                        }
+                    }
+                    if (!eligible) {
+                        if (!fallback) std::abort();
+                        read_local_fallback_counter = fallback;
+                    }
+                    if (eligible) {
+                        if (head_candidate) {
+                            head_candidate = false;
+                            if (rob.in_flight() == 0 && c->nothing_to_write()) {
+                                SmallBuf<kWbufInline>& fb = c->fill_buf();
+                                op->direct = fb.data();
+                                op->direct_cap = static_cast<uint32_t>(fb.cap());
+                            }
+                        }
+                        const uint64_t op_id = rob.dispatch_id();
+                        op->mark_read_local();
+                        rob.mark_current_read_local();
+                        rob.publish();
+                        if (!fused_executor_->enqueue_local_read(Task{c, op_id, -1, nullptr}))
+                            std::abort();
+                        conn.advance_parse(consumed);
+                        sig.ops++;
+                        flip_fingerprint_note(*spec, *op);
+                        mark_active(c);
+                        // Do not parse a younger command until this slot retires. Besides RYOW,
+                        // this makes an EX-stage type/expiry/churn fallback an ordering-safe owner
+                        // task without per-connection dependency chains in the local lane.
+                        break;
+                    }
+                }
+            }
+
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
 
@@ -2878,6 +2982,12 @@ ordinary_dispatch:
                 // means the command is simply re-parsed on a later pass, once retiring has freed
                 // inbox space.
                 break;
+            }
+            if constexpr (ReadLocal) {
+                // Count only after the owner task is irrevocably queued. A refused SPSC push
+                // unpublishes and reparses this frame; charging before it would double-count and
+                // could report a fallback for a retry that later takes the local lane.
+                if (read_local_fallback_counter) (*read_local_fallback_counter)++;
             }
             conn.advance_parse(consumed);
             sig.ops++;
@@ -3224,7 +3334,8 @@ ordinary_dispatch:
                         dispatch_result = parse_and_dispatch<
                             false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     }
-                    if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
+                    if (__builtin_expect(dispatch_result != DispatchResult::NeedInput &&
+                                         dispatch_result != DispatchResult::Held, true)) work++;
                 }
             }
 
@@ -3244,9 +3355,8 @@ ordinary_dispatch:
                                (!conn.recv_armed() && !c->closing());
 
             // NeedInput parks only the read side: the partial bytes stay buffered and a recv is
-            // already armed, while ROB retirement and pending_serve_ remain independently live.
-            // Any complete pipelined frame (including one held by backpressure) returns Progress
-            // and therefore remains actionable here.
+            // already armed. Held is a complete frame behind an outstanding local-read ROB slot;
+            // neither result itself is progress, while the in-flight slot keeps the client live.
             const bool more_input = conn.rpos() < conn.rlen() &&
                                     dispatch_result != DispatchResult::NeedInput;
             const bool tls_output = tls && (tls->output_pending() || c->send_inflight());

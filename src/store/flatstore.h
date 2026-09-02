@@ -529,7 +529,7 @@ public:
 
     // One boot-latched publication word for foreign fused readers. Bit 0 is set while an outer
     // mutation bracket is open, bit 1 conservatively publishes whether ANY prepared atomic entry
-    // exists, and bits 2..63 are advanced when the outer mutation closes. The full-width generation
+    // exists, and bits 2..63 are advanced when the outer mutation closes. The 62-bit generation
     // avoids the short ABA window of a 32/32 sequence/count split while retaining one acquire load.
     static constexpr uint64_t kReadLocalMutationBit = uint64_t{1} << 0;
     static constexpr uint64_t kReadLocalPendingBit = uint64_t{1} << 1;
@@ -594,8 +594,19 @@ public:
     // false keeps the old store path and every installed writer hook predicted cold.
     void configure_read_local(bool enabled, ReadLocalRetireSink sink) {
         if (enabled && !sink.defer) std::abort();
+        // Persistence loading finishes before the fused executor arms this store. Prepared atomic
+        // records cannot be retroactively marked in their entry headers, so fail closed if that
+        // boot invariant ever changes instead of publishing a false zero-pending state.
+        if (enabled && atomic_pending_entries() != 0) std::abort();
         read_local_retire_sink_ = sink;
         read_local_enabled_ = enabled;
+    }
+    void rebind_read_local_retire_sink(ReadLocalRetireSink sink) {
+        if (!read_local_enabled_ || !sink.defer) std::abort();
+        // Called only after the old owner has acknowledged an empty task/read/retire frontier and
+        // before the new owner executes store work. Foreign probes never read the sink; keeping the
+        // boot-latched enabled byte untouched avoids a true-to-true data race at LB resume.
+        read_local_retire_sink_ = sink;
     }
     bool read_local_enabled() const { return read_local_enabled_; }
 

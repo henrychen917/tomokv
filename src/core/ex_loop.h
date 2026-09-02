@@ -21,6 +21,7 @@
 #include "server.h"
 #include "signal.h"
 #include "genthread_pipeline.h"
+#include "read_local.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -67,6 +68,13 @@ public:
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
         ex_sched_enabled_ = srv->cfg().ex_sched != 0;
+        if constexpr (Fused) {
+            read_local_enabled_ = srv->read_local_enabled();
+            if (read_local_enabled_) {
+                read_local_lane_.reset(new (std::nothrow) Task[kInboxSlots]);
+                if (!read_local_lane_ || !read_local_deferred_.init(srv, self)) return false;
+            }
+        }
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -89,8 +97,13 @@ public:
         static_assert(Fused);
         if (!initialized_) std::abort();
         blocking_bind_executor(srv_, self_, &ring_);
-        for (Shard* shard : self_->shards())
+        if (read_local_enabled_)
+            self_->bind_read_local_retire_sink(*read_local_deferred_.sink());
+        for (Shard* shard : self_->shards()) {
             shard->bind_notify_pending(&notify_keyless_pending_);
+            if (read_local_enabled_)
+                shard->store().configure_read_local(true, *read_local_deferred_.sink());
+        }
     }
 
     void bind_fused_completion(void* context, FusedCompletionFn completion) {
@@ -99,18 +112,49 @@ public:
         fused_completion_ = completion;
     }
 
+    bool enqueue_local_read(const Task& task) {
+        static_assert(Fused);
+        if (!read_local_enabled_ || read_local_lane_count_ == kInboxSlots) return false;
+        read_local_lane_[read_local_lane_tail_] = task;
+        read_local_lane_tail_ = (read_local_lane_tail_ + 1) & (kInboxSlots - 1);
+        read_local_lane_count_++;
+        return true;
+    }
+
+    bool local_read_lane_has_room() const {
+        static_assert(Fused);
+        return read_local_enabled_ && read_local_lane_count_ != kInboxSlots;
+    }
+
+    void read_local_shutdown_drain() {
+        static_assert(Fused);
+        if (read_local_enabled_) (void)read_local_deferred_.drain_shutdown();
+    }
+
     // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
     // this pass is the split executor body without its role loop or independent wait.
     uint32_t fused_pass() {
         static_assert(Fused);
+        struct RotationBoundary {
+            bool enabled;
+            ThreadCtx* self;
+            Server* server;
+            ~RotationBoundary() {
+                if (enabled) self->publish_read_local_tick(server->read_local_epoch());
+            }
+        } rotation_boundary{read_local_enabled_, self_, srv_};
         cached_now_ms_ = realtime_ms();
+        // A completed LB stage may have changed this owner's shard vector. Retirement sinks move
+        // synchronously at commit; refresh the owner-local notification bindings before EX work.
+        if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
+            rebind_owned_shards_after_lb();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)
             cached_lru_clock_ = static_cast<uint8_t>(
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
 
-        uint32_t did = 0;
+        uint32_t did = drain_local_reads();
         if (lb_frozen) {
             if (!srv_->lb_acked(self_->id())) {
                 did += service_stale_forwards();
@@ -149,6 +193,7 @@ public:
             did += lb_control_pass();
             lb_bucket_bytes_pass();
         }
+        if (read_local_enabled_) did += read_local_deferred_.drain_ready();
         if (did) {
             did += drain_notify_keyless(self_->sig());
             ring_.submit_and_reap();
@@ -166,8 +211,18 @@ public:
     uint32_t fused_sweep() {
         static_assert(Fused);
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
+        struct RotationBoundary {
+            bool enabled;
+            ThreadCtx* self;
+            Server* server;
+            ~RotationBoundary() {
+                if (enabled) self->publish_read_local_tick(server->read_local_epoch());
+            }
+        } rotation_boundary{read_local_enabled_, self_, srv_};
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep();
+        if (lb_rebind_pending_) rebind_owned_shards_after_lb();
+        uint32_t did = drain_local_reads() + sweep();
+        if (read_local_enabled_) did += read_local_deferred_.drain_ready();
         if (did) ring_.submit_and_reap();
         return did;
     }
@@ -304,7 +359,119 @@ public:
     }
 
 private:
+    void read_local_clear_reply(Op& op) {
+        op.reply.clear();
+        op.direct_len = 0;
+        op.zc_ptr = nullptr;
+        op.zc_len = 0;
+        op.zc_shard = -1;
+    }
+
+    void read_local_fallback(const Task& task, uint64_t& counter) {
+        counter++;
+        const int32_t shard = task_shard(task);
+        if (shard < 0) std::abort();
+        const uint32_t target = srv_->worker_of_shard(shard);
+        if (!post_forwarded_task(task, target)) stale_tasks_.push_back(task);
+    }
+
+    void execute_local_read(const Task& task) {
+        if (!task.client) std::abort();
+        Op& op = task.client->rob().at(task.op_id);
+        if (!op.read_local() || op.shard < 0) std::abort();
+        FlatStore& store = srv_->shard(op.shard).store();
+        ReadLocalStats& stats = self_->read_local_stats();
+        static constexpr uint32_t kRetries = 3;
+
+        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
+            const FlatStore::ReadLocalProbe probe = store.read_local_probe(op.hash, op.key());
+            if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+                read_local_clear_reply(op);
+                read_local_fallback(task, stats.fallback_atomic_pending);
+                return;
+            }
+            if (probe.result == FlatStore::ReadLocalProbeResult::Missing) {
+                read_local_clear_reply(op);
+                read_local_fallback(task, stats.fallback_missing);
+                return;
+            }
+            if (probe.result == FlatStore::ReadLocalProbeResult::Churn) continue;
+
+            const KvObj* object = probe.object;
+            if (!object) std::abort();
+            const uint8_t flags = object->read_local_flags();
+            if (static_cast<Type>(object->type) != Type::String) {
+                read_local_clear_reply(op);
+                read_local_fallback(task, stats.fallback_typed);
+                return;
+            }
+            if ((flags & KvObjFlags::HasTtl) &&
+                object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
+                read_local_clear_reply(op);
+                read_local_fallback(task, stats.fallback_expired);
+                return;
+            }
+
+            read_local_clear_reply(op);
+            const Enc encoding = static_cast<Enc>(object->enc);
+            if (encoding == Enc::Int) {
+                char text[24];
+                const uint32_t length = i64_to_dec(
+                    text, object->read_local_int_value(flags));
+                reply_bulk(op.sink(), Slice(text, length));
+            } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
+                reply_bulk(op.sink(), object->read_local_str_value(flags));
+            } else {
+                read_local_clear_reply(op);
+                read_local_fallback(task, stats.fallback_typed);
+                return;
+            }
+
+            if (!store.read_local_validate(probe.state)) {
+                read_local_clear_reply(op);
+                continue;
+            }
+            stats.hits++;
+            self_->note_command(op.spec->id);
+            op.state.store(OpState::Done, std::memory_order_release);
+            notify_sender(task.client);
+            return;
+        }
+
+        read_local_clear_reply(op);
+        const uint64_t state = store.read_local_state_acquire();
+        if (FlatStore::read_local_pending(state))
+            read_local_fallback(task, stats.fallback_atomic_pending);
+        else
+            read_local_fallback(task, stats.fallback_seq_churn);
+    }
+
+    uint32_t drain_local_reads() {
+        if constexpr (!Fused) return 0;
+        if (!read_local_enabled_ || !read_local_lane_count_) return 0;
+        Task batch[kExecBatch];
+        const uint32_t count = std::min<uint32_t>(read_local_lane_count_, kExecBatch);
+        for (uint32_t i = 0; i < count; i++) {
+            batch[i] = read_local_lane_[read_local_lane_head_];
+            read_local_lane_head_ = (read_local_lane_head_ + 1) & (kInboxSlots - 1);
+            read_local_lane_count_--;
+        }
+        // Match exec_batch's gather/prefetch/execute shape, but issue only read-safe foreign-table
+        // prefetches and never touch owner-local stats, LRU, expiry or sampling state.
+        for (uint32_t i = 0; i < count; i++) {
+            const Op& op = batch[i].client->rob().at(batch[i].op_id);
+            srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+        }
+        for (uint32_t i = 0; i < count; i++) execute_local_read(batch[i]);
+        self_->sig().ops += count;
+        return count;
+    }
+
     bool flip_quiesced() const {
+        if constexpr (Fused) {
+            if (read_local_lane_count_ != 0 ||
+                (read_local_enabled_ && !read_local_deferred_.empty())) return false;
+        }
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
             !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
             !stale_releases_.empty() || !atomic_deferred_.empty() ||
@@ -369,12 +536,7 @@ private:
             // only its own shards: active-expiry notifications stranded forever (notify battery,
             // key-lb half, 2/6). Rebinding is a handful of pointer stores and runs only on the
             // first pass after a stage ends.
-            if (lb_rebind_pending_) {
-                lb_rebind_pending_ = false;
-                for (Shard* shard : self_->shards())
-                    shard->bind_notify_pending(&notify_keyless_pending_);
-                notify_keyless_pending_ = true;   // force one state-checked drain after adoption
-            }
+            if (lb_rebind_pending_) rebind_owned_shards_after_lb();
             return 0;
         }
         auto wake_coordinator = [&]() {
@@ -394,6 +556,14 @@ private:
         lb_ack_wake_pending_ = true;
         lb_rebind_pending_ = true;   // membership may change before the stage ends; rebind after
         return wake_coordinator();
+    }
+
+    void rebind_owned_shards_after_lb() {
+        lb_rebind_pending_ = false;
+        for (Shard* shard : self_->shards()) {
+            shard->bind_notify_pending(&notify_keyless_pending_);
+        }
+        notify_keyless_pending_ = true;   // force one state-checked drain after adoption
     }
 
     void refresh_live_config() {
@@ -1374,6 +1544,15 @@ private:
             if (sid < 0) std::abort();
             const uint32_t target = srv_->worker_of_shard(sid);
             if (target == self_->id()) {
+                // A read-local fallback first tried this owner's SPSC tail and landed here only
+                // because that lane was full. Executing it directly would jump the older queued
+                // tasks. Retry the tail publication and leave it stale until room exists.
+                if (task.client && task.client->rob().at(task.op_id).read_local()) {
+                    if (!post_forwarded_task(task, target)) break;
+                    stale_tasks_.pop_front();
+                    work++;
+                    continue;
+                }
                 stale_tasks_.pop_front();
                 if (!execute(task)) xshard_retries_.push_back(task);
                 work++;
@@ -1509,6 +1688,12 @@ private:
     uint32_t fused_idle_spins_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
+    bool read_local_enabled_ = false;
+    std::unique_ptr<Task[]> read_local_lane_;
+    uint32_t read_local_lane_head_ = 0;
+    uint32_t read_local_lane_tail_ = 0;
+    uint32_t read_local_lane_count_ = 0;
+    ReadLocalDeferredQueue read_local_deferred_;
 };
 
 using ExLoop = ExLoopT<false>;
