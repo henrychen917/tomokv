@@ -1774,17 +1774,17 @@ private:
     // unchanged: `stuck` in flush_ready keeps a connection in the active set while it is false, so
     // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
     // a connection while it is true.
-    template <bool kEp, bool AppendOnly = false>
+    template <bool kEp, bool AppendOnly = false, bool CanHoldPrepared = false>
     void arm_recv(Client* c) {
         if (c->recv_armed() || c->closing() || find_client_migration(c)) return;
         if constexpr (kEp) { epoll_recv(c); return; }
         size_t avail = 0;
         // may_grow ONLY at quiescence: realloc moves the buffer that every in-flight argv Slice
         // points into. See Conn::read_space.
+        bool may_grow = !AppendOnly && c->rob().quiesced();
+        if constexpr (CanHoldPrepared) may_grow = may_grow && !c->pipeline_prepared();
         char* dst = c->read_space(
-            kRecvChunk, avail,
-            !AppendOnly && c->rob().quiesced() && !c->pipeline_prepared(),
-            proto_max_bulk_len_);
+            kRecvChunk, avail, may_grow, proto_max_bulk_len_);
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -3187,9 +3187,11 @@ private:
         [[maybe_unused]] bool decrypted = false;
         while (tls->connected()) {
             size_t avail = 0;
+            bool may_grow = c->rob().quiesced();
+            if constexpr (Fused && Pipeline == 2)
+                may_grow = may_grow && !c->pipeline_prepared();
             char* dst = c->read_space(
-                kRecvChunk, avail, c->rob().quiesced() && !c->pipeline_prepared(),
-                proto_max_bulk_len_);
+                kRecvChunk, avail, may_grow, proto_max_bulk_len_);
             if (!dst) break;
             const TlsIoResult result = tls->read_plain(dst, avail);
             if (result.op == TlsOp::Progress) {
@@ -3272,7 +3274,8 @@ private:
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
-    template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false>
+    template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
+              bool BufferedIfid = false>
     DispatchResult parse_and_dispatch(
         Client* c, IfidPipelineBatch* pipeline_batch = nullptr) {
         Client& conn = *c;
@@ -3353,10 +3356,11 @@ private:
                 break;
             }
             if (pr == ParseResult::Error) {
-                if (pipeline_batch) {
-                    pipeline_batch->force_coarse = true;
-                    break;
-                }
+                if constexpr (BufferedIfid)
+                    if (pipeline_batch) {
+                        pipeline_batch->force_coarse = true;
+                        break;
+                    }
                 finish_locally(c, *op, err ? err : "ERR protocol error");
                 conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
@@ -3368,10 +3372,11 @@ private:
             const uint32_t consumed = pos - conn.rpos();
 
             const CommandSpec* spec = command_lookup(op->cmd_name());
-            if (pipeline_batch && !spec) {
-                pipeline_batch->force_coarse = true;
-                break;
-            }
+            if constexpr (BufferedIfid)
+                if (pipeline_batch && !spec) {
+                    pipeline_batch->force_coarse = true;
+                    break;
+                }
             if (!spec) {
                 conn.advance_parse(consumed);
                 // Redis names the command and echoes the first arguments; client libraries and
@@ -3403,10 +3408,11 @@ private:
                 }
                 finish_locally(c, *op, message); continue;
             }
-            if (pipeline_batch && !command_arity_ok(*spec, op->argc())) {
-                pipeline_batch->force_coarse = true;
-                break;
-            }
+            if constexpr (BufferedIfid)
+                if (pipeline_batch && !command_arity_ok(*spec, op->argc())) {
+                    pipeline_batch->force_coarse = true;
+                    break;
+                }
             if (!command_arity_ok(*spec, op->argc())) {
                 // Routed containers and SLOWLOG keep a broad container bound in the registry so
                 // malformed requests are rejected before ACL and MULTI. On this already-taken
@@ -3458,13 +3464,14 @@ private:
             // Streams I0 admits only the context-free point path. Decide before ACL,
             // transactions, subscriber mode, or local/scatter lowering can publish at the real
             // ROB frontier while an older entry in this batch is still unpublished.
-            if (pipeline_batch &&
-                (!pipeline_simple_point(*op) || security_check || notify_armed ||
-                 srv_->flip_dispatch_paused() || conn.multi_session() != nullptr ||
-                 c->subscriber_mode() || c->has_atomic_group_io())) {
-                pipeline_batch->force_coarse = true;
-                break;
-            }
+            if constexpr (BufferedIfid)
+                if (pipeline_batch &&
+                    (!pipeline_simple_point(*op) || security_check || notify_armed ||
+                     srv_->flip_dispatch_paused() || conn.multi_session() != nullptr ||
+                     c->subscriber_mode() || c->has_atomic_group_io())) {
+                    pipeline_batch->force_coarse = true;
+                    break;
+                }
             if (__builtin_expect(notify_armed, false) &&
                 __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
@@ -3964,16 +3971,18 @@ ordinary_dispatch:
                 }
                 op->hash = random;
                 op->shard = static_cast<int32_t>(chosen);
-            } else if (pipeline_batch && pipeline_simple_point(*op)) {
-                if (pipeline_batch->count == kGenthreadPipelineIfidBatchOps) break;
-                pipeline_batch->entries[pipeline_batch->count++] =
-                    IfidPipelineEntry{c, op, rob.dispatch_id(), consumed, 0,
-                                      head_candidate};
-                head_candidate = false;
-                c->set_pipeline_prepared(true);
-                result = DispatchResult::Progress;
-                break;
             } else {
+                if constexpr (BufferedIfid)
+                    if (pipeline_batch && pipeline_simple_point(*op)) {
+                        if (pipeline_batch->count == kGenthreadPipelineIfidBatchOps) break;
+                        pipeline_batch->entries[pipeline_batch->count++] =
+                            IfidPipelineEntry{c, op, rob.dispatch_id(), consumed, 0,
+                                              head_candidate};
+                        head_candidate = false;
+                        c->set_pipeline_prepared(true);
+                        result = DispatchResult::Progress;
+                        break;
+                    }
                 op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
                 op->shard = srv_->router().shard_of(op->hash);
             }
@@ -4308,6 +4317,13 @@ ordinary_dispatch:
         return active_ifid_context_ == nullptr && active_wb_context_ == nullptr;
     }
 
+    template <uint8_t Pipeline>
+    static bool genthread_client_prepared(const Client* client) {
+        static_assert(Pipeline == 1 || Pipeline == 2);
+        if constexpr (Pipeline == 2) return client->pipeline_prepared();
+        return false;
+    }
+
     // Unified pipeline IFID: targeted receive-buffer maintenance and either the ordinary uncapped
     // coarse dispatch (pipeline 1) or a bounded batch with one unpublished context-free point op
     // per connection (pipeline 2). Reply retirement and sends remain separate WB stages.
@@ -4321,14 +4337,18 @@ ordinary_dispatch:
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
         if (backstop_pass_) flush_tick_ = 0;
-        const bool targeted_ready = targeted_ifid_ &&
-                                    (!pipeline_batch || pipeline_batch->targeted_ready);
-        size_t ready_visits = targeted_ready ? pending_ifid_.size() : 0;
+        // Every unified call site is targeted: pipeline 1 has no buffered context, and pipeline 2
+        // either marks its context targeted or passes null for the coarse fallback. Keep that
+        // boot/schedule choice out of the per-client loop.
+        static constexpr bool targeted_ready = true;
+        size_t ready_visits = pending_ifid_.size();
 
         for (size_t idx = 0; targeted_ready ? ready_visits != 0 : idx < active_.size();) {
-            if (pipeline_batch && pipeline_batch->force_coarse) break;
-            if (pipeline_batch &&
-                pipeline_batch->count == kGenthreadPipelineIfidBatchOps) break;
+            if constexpr (Pipeline == 2) {
+                if (pipeline_batch && pipeline_batch->force_coarse) break;
+                if (pipeline_batch &&
+                    pipeline_batch->count == kGenthreadPipelineIfidBatchOps) break;
+            }
             Client* c = nullptr;
             if (targeted_ready) {
                 c = pending_ifid_.front();
@@ -4340,7 +4360,9 @@ ordinary_dispatch:
             } else {
                 c = active_.at(idx);
             }
-            const uint32_t pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
+            uint32_t pipeline_count_before = 0;
+            if constexpr (Pipeline == 2)
+                pipeline_count_before = pipeline_batch ? pipeline_batch->count : 0;
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
             TlsConn* tls = nullptr;
@@ -4371,7 +4393,7 @@ ordinary_dispatch:
                 if (__builtin_expect(c->barrier_held_by(BarrierOwner::Debug), false) &&
                     !srv_->debug_barrier_hold_armed())
                     c->barrier_release(BarrierOwner::Debug);
-                if (c->rob().quiesced() && !c->pipeline_prepared())
+                if (c->rob().quiesced() && !genthread_client_prepared<Pipeline>(c))
                     c->barrier_release_quiesced();
             }
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
@@ -4379,7 +4401,7 @@ ordinary_dispatch:
                 c->set_atomic_backpressure(false);
             if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
                 c->set_flip_backpressure(false);
-            if (c->rob().quiesced() && !c->pipeline_prepared() &&
+            if (c->rob().quiesced() && !genthread_client_prepared<Pipeline>(c) &&
                 (kEp || !conn.recv_armed()))
                 conn.reset_rbuf_at_quiescence();
 
@@ -4388,9 +4410,9 @@ ordinary_dispatch:
                 if (!c->closing()) {
                     if constexpr (HasTls) {
                         if (tls) arm_tls_recv<kEp, true, Pipeline>(c);
-                        else arm_recv<kEp>(c);
+                        else arm_recv<kEp, false, Pipeline == 2>(c);
                     } else {
-                        arm_recv<kEp>(c);
+                        arm_recv<kEp, false, Pipeline == 2>(c);
                     }
                     if constexpr (HasTls) if (tls) {
                         (void)drive_tls<kEp, true, Pipeline>(c);
@@ -4407,26 +4429,30 @@ ordinary_dispatch:
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, ParseBatchOps>(c, pipeline_batch);
+                                true, ParseBatchOps, false, Pipeline == 2>(
+                                    c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, ParseBatchOps>(c, pipeline_batch);
+                                false, ParseBatchOps, false, Pipeline == 2>(
+                                    c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, ParseBatchOps>(c, pipeline_batch);
+                            false, ParseBatchOps, false, Pipeline == 2>(c, pipeline_batch);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, ParseBatchOps>(c, pipeline_batch);
+                                true, ParseBatchOps, false, Pipeline == 2>(
+                                    c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, ParseBatchOps>(c, pipeline_batch);
+                                false, ParseBatchOps, false, Pipeline == 2>(
+                                    c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, ParseBatchOps>(c, pipeline_batch);
+                            false, ParseBatchOps, false, Pipeline == 2>(c, pipeline_batch);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true))
                         work++;
@@ -4434,16 +4460,19 @@ ordinary_dispatch:
             }
 
             if constexpr (!kEp) {
-                const bool staged_ifid = pipeline_batch &&
-                    (pipeline_batch->count != pipeline_count_before || c->pipeline_prepared());
+                bool staged_ifid = false;
+                if constexpr (Pipeline == 2)
+                    staged_ifid = pipeline_batch &&
+                        (pipeline_batch->count != pipeline_count_before ||
+                         c->pipeline_prepared());
                 if (!staged_ifid) {
                     if constexpr (HasTls) {
                         if (tls && tls->memory_bio())
                             arm_tls_recv<kEp, true, Pipeline>(c);
                         else if (!tls)
-                            arm_recv<kEp>(c);
+                            arm_recv<kEp, false, Pipeline == 2>(c);
                     } else {
-                        arm_recv<kEp>(c);
+                        arm_recv<kEp, false, Pipeline == 2>(c);
                     }
                 }
             }
@@ -4453,7 +4482,8 @@ ordinary_dispatch:
             const bool more_input = conn.rpos() < conn.rlen() &&
                                     dispatch_result != DispatchResult::NeedInput;
             const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
-            const bool done = c->rob().quiesced() && !c->pipeline_prepared() &&
+            const bool done = c->rob().quiesced() &&
+                              !genthread_client_prepared<Pipeline>(c) &&
                               !more_input && !stuck && !c->serve_pending() &&
                               c->nothing_to_write() && !tls_output;
             if (targeted_ready) {
@@ -4474,8 +4504,9 @@ ordinary_dispatch:
                         c->closing() || c->parse_backpressure() || c->scatter_barrier() ||
                         (!c->recv_armed() && !c->closing()) ||
                         (more_input && !c->rob().full());
-                    const bool held_by_streams_batch =
-                        pipeline_batch && c->pipeline_prepared();
+                    bool held_by_streams_batch = false;
+                    if constexpr (Pipeline == 2)
+                        held_by_streams_batch = pipeline_batch && c->pipeline_prepared();
                     if (retry_without_retire && !held_by_streams_batch) enqueue_ifid(c);
                 }
                 continue;
