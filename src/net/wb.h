@@ -165,8 +165,19 @@ public:
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp>(c);
-        return serve_impl<false, false, kEp>(c);
+            return serve_impl<true, false, kEp, true>(c);
+        return serve_impl<false, false, kEp, true>(c);
+    }
+
+    // Micro-pipeline retirement half. It drains exactly the same in-order prefix and stages the
+    // same buffers/segments as serve(), but deliberately leaves SQE construction to pump().
+    template <bool kEp = false>
+    bool prepare(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, false, kEp, false>(c, &submit_allowed);
+        return serve_impl<false, false, kEp, false>(c, &submit_allowed);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
@@ -175,8 +186,17 @@ public:
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp>(c);
-        return serve_impl<false, true, kEp>(c);
+            return serve_impl<true, true, kEp, true>(c);
+        return serve_impl<false, true, kEp, true>(c);
+    }
+
+    template <bool kEp = false>
+    bool prepare_ktls(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_impl<true, true, kEp, false>(c, &submit_allowed);
+        return serve_impl<false, true, kEp, false>(c, &submit_allowed);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
@@ -185,8 +205,17 @@ public:
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp>(c, tls);
-        return serve_tls_impl<false, kEp>(c, tls);
+            return serve_tls_impl<true, kEp, true>(c, tls);
+        return serve_tls_impl<false, kEp, true>(c, tls);
+    }
+
+    template <bool kEp = false>
+    bool prepare_tls(Client& c, TlsConn& tls, bool& submit_allowed) {
+        submit_allowed = true;
+        if (__builtin_expect(limit_armed_ &&
+                             limit_armed_->load(std::memory_order_relaxed), false))
+            return serve_tls_impl<true, kEp, false>(c, tls, &submit_allowed);
+        return serve_tls_impl<false, kEp, false>(c, tls, &submit_allowed);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
@@ -216,6 +245,19 @@ public:
     // never committed.
     __attribute__((noinline, cold))
     bool serve_suppressing(Client& c) {
+        return serve_suppressing_impl(c, true);
+    }
+
+    __attribute__((noinline, cold))
+    bool prepare_suppressing(Client& c, bool& submit_allowed) {
+        submit_allowed = true;
+        return serve_suppressing_impl(c, false, &submit_allowed);
+    }
+
+private:
+    __attribute__((noinline, cold))
+    bool serve_suppressing_impl(Client& c, bool submit,
+                                bool* submit_allowed = nullptr) {
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
@@ -252,13 +294,17 @@ public:
         bool did = retired != 0;
         did |= flush_deferred_oob(conn);
         if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+            if (submit_allowed) *submit_allowed = false;
             stats_.retired += retired;
             return true;
         }
-        if (!conn.nothing_to_write()) did |= epoll_ ? pump<true>(c) : pump<false>(c);
+        if (submit && !conn.nothing_to_write())
+            did |= epoll_ ? pump<true>(c) : pump<false>(c);
         stats_.retired += retired;
         return did;
     }
+
+public:
 
     // Try to push whatever this client has buffered. Safe to call spuriously: if nothing is pending
     // or a send is already outstanding it does nothing. Returns true if a send was submitted.
@@ -632,8 +678,8 @@ private:
         return flushed;
     }
 
-    template <bool TrackOutput, bool TlsNoBorrow, bool kEp>
-    bool serve_impl(Client& c) {
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit>
+    bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -695,12 +741,13 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                if (submit_allowed) *submit_allowed = false;
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
             }
         }
-        if (!conn.nothing_to_write()) did |= pump<kEp>(c);
+        if constexpr (Submit) if (!conn.nothing_to_write()) did |= pump<kEp>(c);
         stats_.retired += retired;
         // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
         // nothing, which is expected and cheap.
@@ -708,8 +755,8 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp>
-    bool serve_tls_impl(Client& c, TlsConn& tls) {
+    template <bool TrackOutput, bool kEp, bool Submit>
+    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -750,12 +797,14 @@ private:
         did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
+                if (submit_allowed) *submit_allowed = false;
                 stats_.retired += retired;
                 if (!retired) stats_.serves_empty++;
                 return true;
             }
         }
-        if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
+        if constexpr (Submit)
+            if (!conn.nothing_to_write() || tls.output_pending()) did |= pump_tls<kEp>(c, tls);
         stats_.retired += retired;
         if (!retired) stats_.serves_empty++;
         return did;
