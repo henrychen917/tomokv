@@ -158,11 +158,13 @@ scratch buffer is allocated, and the IO loop uses a false template specializatio
 forwarding branch. The executor likewise selects its false/true implementation once per gathered
 batch; its false per-operation body retains the original sampler and contains no forwarding
 detection or write-boundary checks. `1` allocates one fixed slot per physical shard and one fixed
-scratch buffer per physical IO thread. There is no table, resize, runtime allocation, negative
-entry, write forwarding, or multi-key read path. A slot can name exactly one key; the key is capped
-at 256 bytes and its fully formatted positive GET reply at 4096 bytes. Either overflow leaves the
-slot unavailable and GET uses the ordinary task path. Failure to make the bounded boot allocation
-fails initialization.
+scratch buffer per physical thread that can hold the IO role. There is no dynamic forwarding table,
+resize, forwarding-state runtime allocation, negative entry, write forwarding, or multi-key read
+path. A slot can
+name exactly one key; the key is capped at 256 bytes and its fully formatted positive GET reply at
+4096 bytes. Either overflow leaves the slot unavailable and GET uses the ordinary task path.
+Failure to make the bounded boot allocation fails initialization. Reply retirement still uses the
+existing `Op` sink, including its existing spill behavior when a reply exceeds inline capacity.
 
 One slot per physical shard is the narrowest structure that retains a single writer while shards
 move between executors: the current owner of that shard is the slot's only publisher. The existing
@@ -213,11 +215,12 @@ C++ data race that a seqlock around plain bytes would still have. No atomic is a
 The owner updates forwarding state only at logical publication boundaries. After a completed
 ordinary single-key write handler, it republishes the final live String when the command's exact
 key is the promoted key and the bounded copy fits; otherwise it invalidates that matching slot.
-Every scatter, multi-key, script, atomic-group, FLUSH, or other broad write fragment invalidates its
-physical shard's slot and does not republish an intermediate value. These actions occur before the
-write operation's existing `Done` release. MVCC physical changes remain invalid until a later
-sampled plain GET after the pending epoch state has drained. Rehash and snapshot table moves do not
-change a logical value and need no slot action. Each executor also keeps the minimum absolute
+Every mutating scatter/multi-key fragment, script, atomic group, FLUSH, or other broad write
+fragment invalidates its physical shard's slot and does not republish an intermediate value;
+read-only scatters such as MGET do not. These actions occur before the write operation's existing
+`Done` release. MVCC physical changes remain invalid until a later sampled plain GET after the
+pending epoch state has drained. Rehash and snapshot table moves do not change a logical value and
+need no slot action. Each executor also keeps the minimum absolute
 deadline among its published slots. At the start of the first owner pass whose `CLOCK_REALTIME` cut
 reaches that minimum, it makes every due slot odd before that pass can perform lazy or active
 expiry, then recomputes the minimum. This pass-level index adds no expiry hook to `FlatStore` and
