@@ -1691,7 +1691,7 @@ void cmd_info(Shard&, Op& op) {
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
         // opaque "boot/cell FAIL" long before any measurement was taken.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\n"
+                      "thread_mode:%s\r\nthread_pipeline:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
@@ -1700,6 +1700,7 @@ void cmd_info(Shard&, Op& op) {
                       "flip_client_min:%u\r\nflip_client_max:%u\r\n"
                       "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
+                g_server ? g_server->cfg().thread_pipeline : 0u,
                 sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
