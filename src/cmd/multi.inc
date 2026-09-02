@@ -1394,7 +1394,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
     return MultiIoAction::LocalDone;
 }
 
-bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+template <bool IofusedPrivateQueue>
+bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
     MultiSession* queue_session = client.multi_session();
     const bool was_queueing = queue_session && queue_session->active;
     const uint64_t op_id = client.rob().dispatch_id();
@@ -1424,8 +1425,15 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         needed[loop.srv_->worker_of_shard(sid)]++;
     }
     for (uint32_t tid = 0; tid < loop.srv_->nthreads(); tid++) {
-        if (needed[tid] &&
-            loop.srv_->thread(tid).task_free_slots(loop.self_->id()) < needed[tid]) {
+        if (!needed[tid]) continue;
+        ThreadCtx& owner = loop.srv_->thread(tid);
+        const uint32_t free_slots = [&] {
+            if constexpr (IofusedPrivateQueue)
+                return owner.iofused_task_free_slots(loop.self_->id());
+            else
+                return owner.task_free_slots(loop.self_->id());
+        }();
+        if (free_slots < needed[tid]) {
             // Returning through the one parse-loop continuation reaches the existing top-of-loop
             // backpressure check, which has the same effect as the old in-line break.
             client.set_atomic_backpressure(true);
@@ -1507,7 +1515,13 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
         const uint32_t tid = loop.srv_->worker_of_shard(sid);
         ThreadCtx& owner = loop.srv_->thread(tid);
         const Task task = multi_make_task(&client, op_id, sid, dispatch);
-        if (!owner.post_task_quiet(loop.self_->id(), task, sig)) std::abort();
+        const bool posted = [&] {
+            if constexpr (IofusedPrivateQueue)
+                return owner.post_iofused_task_quiet(loop.self_->id(), task, sig);
+            else
+                return owner.post_task_quiet(loop.self_->id(), task, sig);
+        }();
+        if (!posted) std::abort();
         if (!loop.touched_[tid]) {
             loop.touched_[tid] = true;
             loop.touched_list_[loop.ntouched_++] = tid;
@@ -1524,6 +1538,14 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     loop.barrier_arm(&client, BarrierOwner::Exec);
     loop.mark_active(&client);
     return true;
+}
+
+bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+    return multi_dispatch_entry_impl<false>(loop, client, op, consumed);
+}
+
+bool multi_dispatch_entry_iofused(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+    return multi_dispatch_entry_impl<true>(loop, client, op, consumed);
 }
 
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
@@ -1561,7 +1583,8 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
     return multi_reap_deferred(loop.multi_deferred_);
 }
 
-uint32_t multi_owner_pass_entry(IoLoop& loop) {
+template <bool IofusedPrivateQueue>
+uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
     uint32_t work = multi_owner_reap_entry(loop);
     while (!loop.pending_multi_cleanups_.empty()) {
         MultiExecState* state = loop.pending_multi_cleanups_.front();
@@ -1571,8 +1594,15 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
             needed[loop.srv_->worker_of_shard(multi_dispatch_shard(state, i))]++;
         bool room = true;
         for (uint32_t tid = 0; tid < loop.srv_->nthreads(); tid++) {
-            if (needed[tid] &&
-                loop.srv_->thread(tid).task_free_slots(loop.self_->id()) < needed[tid]) {
+            if (!needed[tid]) continue;
+            ThreadCtx& owner = loop.srv_->thread(tid);
+            const uint32_t free_slots = [&] {
+                if constexpr (IofusedPrivateQueue)
+                    return owner.iofused_task_free_slots(loop.self_->id());
+                else
+                    return owner.task_free_slots(loop.self_->id());
+            }();
+            if (free_slots < needed[tid]) {
                 room = false;
                 break;
             }
@@ -1581,9 +1611,16 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
         for (uint32_t i = 0; i < count; i++) {
             const int32_t sid = multi_dispatch_shard(state, i);
             ThreadCtx& owner = loop.srv_->thread(loop.srv_->worker_of_shard(sid));
-            if (!owner.post_task(loop.self_->id(),
-                                 multi_make_task(nullptr, UINT64_MAX, sid, state),
-                                 loop.ring_, loop.self_->sig()))
+            const Task task = multi_make_task(nullptr, UINT64_MAX, sid, state);
+            const bool posted = [&] {
+                if constexpr (IofusedPrivateQueue)
+                    return owner.post_iofused_task(
+                        loop.self_->id(), task, loop.ring_, loop.self_->sig());
+                else
+                    return owner.post_task(
+                        loop.self_->id(), task, loop.ring_, loop.self_->sig());
+            }();
+            if (!posted)
                 std::abort();
         }
         multi_internal_dispatch_started(state);
@@ -1591,6 +1628,14 @@ uint32_t multi_owner_pass_entry(IoLoop& loop) {
         work++;
     }
     return work;
+}
+
+uint32_t multi_owner_pass_entry(IoLoop& loop) {
+    return multi_owner_pass_entry_impl<false>(loop);
+}
+
+uint32_t multi_owner_pass_entry_iofused(IoLoop& loop) {
+    return multi_owner_pass_entry_impl<true>(loop);
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {

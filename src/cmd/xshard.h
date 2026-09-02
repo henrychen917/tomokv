@@ -195,6 +195,8 @@ bool xshard_task_is_whole_owner(const Task& task);
 // a fully-preflighted second hop.  Final means the caller must publish OpState::Done and notify IO.
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
                               const Task& task, Op& op);
+ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring,
+                                      const Task& task, Op& op);
 
 // Ordinary one-key operations only enter this path when their key already has an MVCC record.
 // Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed

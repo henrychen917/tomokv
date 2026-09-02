@@ -434,8 +434,9 @@ public:
                     const std::vector<uint32_t>& ex) {
         return q_.init_local(producers, slots_per_thread, io, ex);
     }
-    bool init_local_fused(uint32_t producers, uint32_t slots_per_thread) {
-        return q_.init_local_fused(producers, slots_per_thread);
+    template <uint32_t SlotsPerProducer>
+    bool init_local_fused(uint32_t producers) {
+        return q_.template init_local_fused<SlotsPerProducer>(producers);
     }
     bool remask_quiesced(const std::vector<uint32_t>& io,
                          const std::vector<uint32_t>& ex) {
@@ -485,6 +486,49 @@ public:
         }
         return true;
     }
+    template <uint32_t SlotsPerProducer>
+    bool push_fused_private(uint32_t producer, T value, LoopSignals& sig) {
+        if (!q_.template push_fused_private<SlotsPerProducer>(producer, value)) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    template <uint32_t SlotsPerProducer, typename Prepare>
+    bool push_fused_private_prepared(uint32_t producer, T value, LoopSignals& sig,
+                                     Prepare&& prepare) {
+        if (!q_.template push_fused_private_prepared<SlotsPerProducer>(
+                producer, value, static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    template <uint32_t SlotsPerProducer>
+    bool push_fused_private_batch(uint32_t producer, const T* values, uint32_t count,
+                                  LoopSignals& sig) {
+        if (!q_.template push_fused_private_batch<SlotsPerProducer>(
+                producer, values, count)) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    template <uint32_t SlotsPerProducer, typename Prepare>
+    bool push_fused_private_batch_prepared(uint32_t producer, const T* values,
+                                           uint32_t count, LoopSignals& sig,
+                                           Prepare&& prepare) {
+        if (!q_.template push_fused_private_batch_prepared<SlotsPerProducer>(
+                producer, values, count, static_cast<Prepare&&>(prepare))) {
+            sig.full_events++;
+            return false;
+        }
+        return true;
+    }
+    template <uint32_t SlotsPerProducer>
+    uint32_t fused_private_free_slots(uint32_t producer) const {
+        return q_.template fused_private_free_slots<SlotsPerProducer>(producer);
+    }
     template <typename Extract>
     uint32_t newest_nonzero(uint32_t producer, Extract&& extract) const {
         return q_.newest_nonzero(producer, static_cast<Extract&&>(extract));
@@ -496,6 +540,10 @@ public:
         }
     }
     bool recv(uint32_t producer, T& out) { return q_.pop(producer, out); }
+    template <uint32_t SlotsPerProducer>
+    bool recv_fused_private(uint32_t producer, T& out) {
+        return q_.template pop_fused_private_unretired<SlotsPerProducer>(producer, out);
+    }
     bool pop_unretired(uint32_t producer, T& out) {
         return q_.pop_unretired(producer, out);
     }

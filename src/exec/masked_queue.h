@@ -117,11 +117,12 @@ public:
     // Fused owners use every physical thread as both a client producer and an executor producer.
     // One producer id still has exactly one SPSC lane into this consumer, including the self lane;
     // give every lane the original per-thread capacity instead of partitioning by split roles.
-    bool init_local_fused(uint32_t producers, uint32_t slots_per_thread) {
-        if (slots_ || !producers || producers > MaxProducers ||
-            slots_per_thread < kInternalProducerSlots ||
-            !std::has_single_bit(slots_per_thread)) return false;
-        const uint64_t wanted = static_cast<uint64_t>(producers) * slots_per_thread;
+    template <uint32_t SlotsPerProducer>
+    bool init_local_fused(uint32_t producers) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        static_assert(SlotsPerProducer >= kInternalProducerSlots);
+        if (slots_ || !producers || producers > MaxProducers) return false;
+        const uint64_t wanted = static_cast<uint64_t>(producers) * SlotsPerProducer;
         if (wanted > UINT32_MAX || !allocate_slots(static_cast<uint32_t>(wanted))) return false;
         producers_ = producers;
         uint32_t cursor = 0;
@@ -132,15 +133,15 @@ public:
             c.retired.store(0, std::memory_order_relaxed);
             c.tail_cached = 0;
             c.base = cursor;
-            c.mask = slots_per_thread - 1;
-            c.capacity = slots_per_thread;
+            c.mask = SlotsPerProducer - 1;
+            c.capacity = SlotsPerProducer;
             q.tail.store(0, std::memory_order_relaxed);
             q.head_cached = 0;
             q.base = cursor;
-            q.mask = slots_per_thread - 1;
-            q.capacity = slots_per_thread;
-            q.available_capacity = slots_per_thread;
-            cursor += slots_per_thread;
+            q.mask = SlotsPerProducer - 1;
+            q.capacity = SlotsPerProducer;
+            q.available_capacity = SlotsPerProducer;
+            cursor += SlotsPerProducer;
         }
         return true;
     }
@@ -307,6 +308,108 @@ public:
         return true;
     }
 
+    // The 1s iofused boot shape is lifetime-fixed: every physical thread is both a producer and a
+    // consumer, FLIP is unavailable, and init_local_fused() gives producer p exactly
+    // [p * SlotsPerProducer, (p + 1) * SlotsPerProducer). These private entry points reproduce the
+    // pre-reservation fork mechanics directly. They never read or update capacity-credit state;
+    // streams keeps the reservation-aware entry points above.
+    template <uint32_t SlotsPerProducer>
+    bool push_fused_private(uint32_t producer, T value) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        ProducerLine& p = lanes_[producer].producer;
+        ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        const uint32_t next = tail + 1;
+        if (next - p.head_cached > SlotsPerProducer) {
+            p.head_cached = c.head.load(std::memory_order_acquire);
+            if (next - p.head_cached > SlotsPerProducer) {
+                note_lane_full(p);
+                return false;
+            }
+        }
+        slots_[producer * SlotsPerProducer + (tail & (SlotsPerProducer - 1))] = value;
+        p.tail.store(next, std::memory_order_release);
+        return true;
+    }
+
+    template <uint32_t SlotsPerProducer, typename Prepare>
+    bool push_fused_private_prepared(uint32_t producer, T value, Prepare&& prepare) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        ProducerLine& p = lanes_[producer].producer;
+        ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        const uint32_t next = tail + 1;
+        if (next - p.head_cached > SlotsPerProducer) {
+            p.head_cached = c.head.load(std::memory_order_acquire);
+            if (next - p.head_cached > SlotsPerProducer) {
+                note_lane_full(p);
+                return false;
+            }
+        }
+        prepare(value);
+        slots_[producer * SlotsPerProducer + (tail & (SlotsPerProducer - 1))] = value;
+        p.tail.store(next, std::memory_order_release);
+        return true;
+    }
+
+    template <uint32_t SlotsPerProducer>
+    bool push_fused_private_batch(uint32_t producer, const T* values, uint32_t count) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        if (!count) return true;
+        ProducerLine& p = lanes_[producer].producer;
+        ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        const uint32_t next = tail + count;
+        if (next - p.head_cached > SlotsPerProducer) {
+            p.head_cached = c.head.load(std::memory_order_acquire);
+            if (next - p.head_cached > SlotsPerProducer) {
+                note_lane_full(p);
+                return false;
+            }
+        }
+        for (uint32_t i = 0; i < count; i++)
+            slots_[producer * SlotsPerProducer +
+                   ((tail + i) & (SlotsPerProducer - 1))] = values[i];
+        p.tail.store(next, std::memory_order_release);
+        return true;
+    }
+
+    template <uint32_t SlotsPerProducer, typename Prepare>
+    bool push_fused_private_batch_prepared(uint32_t producer, const T* values,
+                                           uint32_t count, Prepare&& prepare) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        if (!count) return true;
+        ProducerLine& p = lanes_[producer].producer;
+        ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        const uint32_t next = tail + count;
+        if (next - p.head_cached > SlotsPerProducer) {
+            p.head_cached = c.head.load(std::memory_order_acquire);
+            if (next - p.head_cached > SlotsPerProducer) {
+                note_lane_full(p);
+                return false;
+            }
+        }
+        for (uint32_t i = 0; i < count; i++) {
+            T value = values[i];
+            prepare(value);
+            slots_[producer * SlotsPerProducer +
+                   ((tail + i) & (SlotsPerProducer - 1))] = value;
+        }
+        p.tail.store(next, std::memory_order_release);
+        return true;
+    }
+
+    template <uint32_t SlotsPerProducer>
+    uint32_t fused_private_free_slots(uint32_t producer) const {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        const ProducerLine& p = lanes_[producer].producer;
+        const ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t tail = p.tail.load(std::memory_order_relaxed);
+        const uint32_t head = c.head.load(std::memory_order_acquire);
+        return SlotsPerProducer - (tail - head);
+    }
+
     uint32_t producer_free_slots(uint32_t producer) const {
         const ProducerLine& p = lanes_[producer].producer;
         const ConsumerLine& c = lanes_[producer].consumer;
@@ -357,6 +460,23 @@ public:
 
     // Consumer side.  Per-producer head/tail caches are the scan points used by both the summary
     // bitmap drain and the mask-independent full sweep.
+    template <uint32_t SlotsPerProducer>
+    bool pop_fused_private_unretired(uint32_t producer, T& out) {
+        static_assert(std::has_single_bit(SlotsPerProducer));
+        ConsumerLine& c = lanes_[producer].consumer;
+        ProducerLine& p = lanes_[producer].producer;
+        const uint32_t head = c.head.load(std::memory_order_relaxed);
+        if (head == c.tail_cached) {
+            c.tail_cached = p.tail.load(std::memory_order_acquire);
+            if (head == c.tail_cached) return false;
+            const uint32_t observed_depth = c.tail_cached - head;
+            if (observed_depth > c.lane_high_water) c.lane_high_water = observed_depth;
+        }
+        out = slots_[producer * SlotsPerProducer + (head & (SlotsPerProducer - 1))];
+        c.head.store(head + 1, std::memory_order_release);
+        return true;
+    }
+
     bool pop_unretired(uint32_t producer, T& out) {
         ConsumerLine& c = lanes_[producer].consumer;
         ProducerLine& p = lanes_[producer].producer;

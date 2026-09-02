@@ -506,6 +506,9 @@ private:
     };
 
     friend bool multi_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
+    friend bool multi_dispatch_entry_iofused(IoLoop&, Client&, Op&, uint32_t);
+    template <bool IofusedPrivateQueue>
+    friend bool multi_dispatch_entry_impl(IoLoop&, Client&, Op&, uint32_t);
     friend bool auth_dispatch_entry(IoLoop&, Client&, Op&, uint32_t);
     friend bool acl_dispatch_entry(IoLoop&, Client&, Op&, uint32_t, uint8_t);
     friend bool acl_finish_dispatch_denial(IoLoop&, Client&, Op&, uint32_t,
@@ -514,6 +517,9 @@ private:
     friend void acl_broadcast_user_change(IoLoop&, uint32_t, const AclPerm*, bool);
     friend void multi_retire_entry(IoLoop&, Client&, Op&);
     friend uint32_t multi_owner_pass_entry(IoLoop&);
+    friend uint32_t multi_owner_pass_entry_iofused(IoLoop&);
+    template <bool IofusedPrivateQueue>
+    friend uint32_t multi_owner_pass_entry_impl(IoLoop&);
     friend uint32_t multi_owner_reap_entry(IoLoop&);
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
@@ -524,8 +530,12 @@ private:
               uint8_t Pipeline = 0>
     void run_loop() {
         static_assert(Pipeline <= 2);
-        if constexpr (Fused && Pipeline != 0) {
-            run_fused_pipeline_loop<HasUnix, HasTls, kEp, Pipeline>();
+        if constexpr (Fused && Pipeline == 1) {
+            run_fused_iofused_loop<HasUnix, HasTls, kEp>();
+            return;
+        }
+        if constexpr (Fused && Pipeline == 2) {
+            run_fused_streams_loop<HasUnix, HasTls, kEp>();
             return;
         }
         constexpr bool IoPipe = !Fused && Pipeline == 1;
@@ -749,9 +759,188 @@ private:
         reap_dead();
     }
 
-    template <bool HasUnix, bool HasTls, bool kEp, uint8_t Pipeline>
-    void run_fused_pipeline_loop() {
-        static_assert(Pipeline == 1 || Pipeline == 2);
+    // The shallow 1s schedule is a private boot-time instantiation. It deliberately owns none of
+    // streams' unpublished IFID reservations, A/D executor contexts, residual-age gates, or
+    // buffered retirement state. The order is the source iofused rotation: common/control debt,
+    // one CQ harvest, WB-prefetch -> ordinary targeted IFID -> WB retire/prepare/pump -> coarse EX,
+    // then SEND-immediate / four-non-SEND N2 handling.
+    template <bool HasUnix, bool HasTls, bool kEp>
+    void run_fused_iofused_loop() {
+        if constexpr (!kEp) {
+            if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
+            if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
+            if constexpr (HasUnix)
+                if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
+        }
+        LoopSignals& sig = self_->sig();
+        WbPipelineBatch wb_batch;
+        uint32_t non_send_rotations = 0;
+
+        while (!self_->stop_flag().load(std::memory_order_relaxed) &&
+               self_->role() == Role::Ifid) {
+            refresh_notify_config();
+            if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
+                climon_refresh_armed();
+            const bool pause_armed = climon_pause_armed();
+            const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
+                                           srv_->client_cron_armed();
+            const bool client_lb_signal_armed = client_lb_signal_armed_;
+            const bool lb_controller_armed = lb_controller_armed_;
+            const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
+                                         srv_->save_cron_writer(self_->id());
+            const bool client_cron_newly_armed =
+                client_cron_armed && !client_cron_was_armed_;
+            if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false))
+                for (Client* c : self_->clients()) c->stop_obuf_tracking();
+            client_cron_was_armed_ = client_cron_armed;
+            sig.iterations++;
+            reap_dead();
+            scatter_pool_.reap_deferred();
+
+            uint32_t did = 0;
+            {
+                Span busy(sig.busy_ns);
+                bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
+                                        client_lb_signal_armed || lb_controller_armed ||
+                                        !deferred_waits_.empty();
+                if (__builtin_expect(pass_time_cached, true)) {
+                    cached_now_ms_ = busy.start_ns() / 1000000ull;
+                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                }
+                if (__builtin_expect(pause_armed &&
+                                     cached_now_ms_ >= climon_pause_deadline_ms_, false))
+                    climon_release_pause();
+                if (client_cron_newly_armed) {
+                    for (Client* c : self_->clients())
+                        c->set_last_interaction_s(cached_now_s_);
+                    client_cron_beat_ms_ = cached_now_ms_;
+                }
+                if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    sig.cpu_ns = thread_cpu_ns();
+                    refresh_age_sampling();
+                    if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
+                }
+                if constexpr (!kEp) {
+                    if (accept_pending_) arm_accept(UrKind::Accept);
+                    if constexpr (HasTls)
+                        if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
+                    if constexpr (HasUnix)
+                        if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
+                }
+                did += service_client_migrations<kEp>();
+                did += drain_client_transfers<kEp>();
+                did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
+                if constexpr (HasUnix) did += flush_handoffs();
+                did += multi_owner_pass_entry_iofused(*this);
+                if (srv_->aof().writer_is(self_->id()))
+                    did += srv_->aof().writer_pass(*self_, ring_);
+                if (srv_->snapshot().writer_is(self_->id()))
+                    did += srv_->snapshot().writer_pass(*self_, ring_);
+                if (__builtin_expect(!deferred_waits_.empty(), false)) {
+                    if (!pass_time_cached) {
+                        cached_now_ms_ = busy.start_ns() / 1000000ull;
+                        cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                        pass_time_cached = true;
+                    }
+                    did += deferred_wait_pass(cached_now_ms_);
+                }
+                did += flush_borrow_releases();
+                if (__builtin_expect(!routing_forward_.empty(), false))
+                    client_routing_cleanup_pass();
+
+                // N0 is the rotation's only completion harvest. Receive parsing and SEND follow-up
+                // remain in the explicit IFID/WB body below.
+                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
+                    on_cqe<HasTls, kEp, true, 1>(cqe);
+                });
+                if constexpr (kEp)
+                    did += epoll_pass<HasUnix, HasTls, true, 1>(0);
+                did += genthread_iofused_pass<HasUnix, HasTls, kEp>(wb_batch);
+
+                did += flip_control_pass<kEp>();
+                if (__builtin_expect(client_lb_signal_armed &&
+                                     cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
+                    did += lb_client_signal_pass();
+                    lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
+                }
+                did += lb_control_pass();
+                if (__builtin_expect(lb_controller_armed &&
+                                     cached_now_ms_ >= lb_controller_beat_ms_, false)) {
+                    lb_controller_beat_ms_ = cached_now_ms_ + srv_->cfg().lb_tick_ms;
+                    if (srv_->lb_cron_writer(self_->id()) &&
+                        srv_->lb_controller_tick(self_->id(), cached_now_ms_))
+                        lb_schedule_wake_all();
+                    did++;
+                }
+                did += lb_wake_all_pass();
+                if (__builtin_expect(client_cron_armed &&
+                                     cached_now_ms_ >= client_cron_beat_ms_, false)) {
+                    did += client_cron_pass();
+                    client_cron_beat_ms_ = cached_now_ms_ + 100;
+                }
+                if (__builtin_expect(save_cron_armed &&
+                                     cached_now_ms_ >= save_cron_beat_ms_, false)) {
+                    did += srv_->save_cron_pass(*self_, ring_);
+                    save_cron_beat_ms_ = cached_now_ms_ + 1000;
+                }
+            }
+
+            if (ring_.take_sq_full_submit()) non_send_rotations = 0;
+            if (ring_.send_pending()) {
+                ring_.submit_and_reap<true>();
+                non_send_rotations = 0;
+                continue;
+            }
+            if (did) {
+                if (++non_send_rotations >= kGenthreadIoFusedCoalesceRotations) {
+                    ring_.submit_and_reap<true>();
+                    non_send_rotations = 0;
+                }
+                continue;
+            }
+
+            const uint32_t sweep_work =
+                genthread_iofused_sweep<HasUnix, HasTls, kEp>();
+            if (sweep_work) {
+                if (ring_.take_sq_full_submit()) non_send_rotations = 0;
+                if (ring_.send_pending() ||
+                    ++non_send_rotations >= kGenthreadIoFusedCoalesceRotations) {
+                    ring_.submit_and_reap<true>();
+                    non_send_rotations = 0;
+                }
+                continue;
+            }
+
+            Span idle(sig.idle_ns);
+            self_->arm_blocked();
+            if constexpr (kEp) {
+                if (!self_->any_fused_inbound())
+                    epoll_pass<HasUnix, HasTls, true, 1>(50);
+            } else {
+                if (!self_->any_fused_inbound()) ring_.submit_and_wait<true>(1);
+                else                            ring_.submit_and_reap<true>();
+            }
+            non_send_rotations = 0;
+            self_->clear_blocked();
+        }
+
+        if constexpr (kEp) {
+            while (!epoll_closes_.empty()) {
+                Client* victim = epoll_closes_.back();
+                epoll_closes_.pop_back();
+                epoll_close_now(victim);
+            }
+        }
+        clear_ifid_queue();
+        if (srv_->aof().writer_is(self_->id()))
+            srv_->aof().writer_shutdown(*self_, ring_);
+        reap_dead();
+        reap_dead();
+    }
+
+    template <bool HasUnix, bool HasTls, bool kEp>
+    void run_fused_streams_loop() {
+        static constexpr uint8_t Pipeline = 2;
         if constexpr (!kEp) {
             if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
             if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
@@ -1184,7 +1373,6 @@ private:
             return staged;
         };
 
-        uint32_t iofused_non_send_rotations = 0;
         bool streams_gate_open = false;
         uint32_t streams_ifid_residual_age = 0;
         uint32_t streams_ex_residual_age = 0;
@@ -1632,64 +1820,33 @@ private:
                 }
             }
 
-            // N2. IOFUSED submits SEND-bearing rotations immediately and carries only non-SEND
-            // network/control SQEs for at most four rotations. Streams has one boundary every pass.
-            if constexpr (Pipeline == 1) {
-                if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
-                if (ring_.send_pending()) {
-                    ring_.submit_and_reap<true>();
-                    iofused_non_send_rotations = 0;
-                    continue;
-                }
-                if (did) {
-                    if (++iofused_non_send_rotations >=
-                        kGenthreadIoFusedCoalesceRotations) {
-                        ring_.submit_and_reap<true>();
-                        iofused_non_send_rotations = 0;
-                    }
-                    continue;
-                }
-            } else {
-                if (did) {
-                    ring_.submit_and_reap();
-                    continue;
-                }
+            // N2: streams has one boundary every pass.
+            if (did) {
+                ring_.submit_and_reap();
+                continue;
             }
 
             uint32_t buffered_ex_sweep = 0;
-            const bool streams_residual_pending = Pipeline == 2 &&
-                (ifid_context.count != 0 || ex_contexts[0].count != 0);
-            if constexpr (Pipeline == 2) {
-                if (!streams_residual_pending && ex_pipeline_ready()) {
-                    const uint32_t gathered = ex_e0(ex_contexts[0], true);
-                    if (gathered) {
-                        ex_touched_shards.clear();
-                        buffered_executable_count = 0;
-                        (void)ex_e1(ex_contexts[0], true);
-                        (void)ex_e2(ex_contexts[0], true);
-                        flush_ex_publications();
-                        fused_executor_->finish_buffered_exec_pass(buffered_executable_count);
-                        buffered_ex_sweep = ex_retire(ex_contexts[0]);
-                    }
+            const bool streams_residual_pending =
+                ifid_context.count != 0 || ex_contexts[0].count != 0;
+            if (!streams_residual_pending && ex_pipeline_ready()) {
+                const uint32_t gathered = ex_e0(ex_contexts[0], true);
+                if (gathered) {
+                    ex_touched_shards.clear();
+                    buffered_executable_count = 0;
+                    (void)ex_e1(ex_contexts[0], true);
+                    (void)ex_e2(ex_contexts[0], true);
+                    flush_ex_publications();
+                    fused_executor_->finish_buffered_exec_pass(buffered_executable_count);
+                    buffered_ex_sweep = ex_retire(ex_contexts[0]);
                 }
             }
             const uint32_t sweep_work = streams_residual_pending ? 1 :
                 buffered_ex_sweep +
                     genthread_pipeline_sweep<HasUnix, HasTls, kEp, Pipeline>();
             if (sweep_work) {
-                if constexpr (Pipeline == 2) {
-                    ring_.submit_and_reap();
-                    continue;
-                } else {
-                    if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
-                    if (ring_.send_pending() ||
-                        ++iofused_non_send_rotations >=
-                            kGenthreadIoFusedCoalesceRotations) {
-                        ring_.submit_and_reap<true>();
-                        iofused_non_send_rotations = 0;
-                    }
-                    continue;
-                }
+                ring_.submit_and_reap();
+                continue;
             }
 
             Span idle(sig.idle_ns);
@@ -1698,28 +1855,20 @@ private:
                 if (!self_->any_fused_inbound())
                     epoll_pass<HasUnix, HasTls, true, Pipeline>(50);
             } else {
-                if constexpr (Pipeline == 1) {
-                    if (!self_->any_fused_inbound()) ring_.submit_and_wait<true>(1);
-                    else                            ring_.submit_and_reap<true>();
-                } else {
-                    if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
-                    else                            ring_.submit_and_reap();
-                }
+                if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
+                else                            ring_.submit_and_reap();
             }
-            if constexpr (Pipeline == 1) iofused_non_send_rotations = 0;
             self_->clear_blocked();
         }
 
-        if constexpr (Pipeline == 2) {
-            if (ifid_context.count) rollback_ifid();
-            if (ex_contexts[0].count) {
-                (void)ex_defer_batch(ex_contexts[0]);
-                (void)ex_retire(ex_contexts[0]);
-            }
-            if (ex_contexts[1].count || wb_context.count) std::abort();
-            active_ifid_context_ = nullptr;
-            active_wb_context_ = nullptr;
+        if (ifid_context.count) rollback_ifid();
+        if (ex_contexts[0].count) {
+            (void)ex_defer_batch(ex_contexts[0]);
+            (void)ex_retire(ex_contexts[0]);
         }
+        if (ex_contexts[1].count || wb_context.count) std::abort();
+        active_ifid_context_ = nullptr;
+        active_wb_context_ = nullptr;
         if constexpr (kEp) {
             while (!epoll_closes_.empty()) {
                 Client* victim = epoll_closes_.back();
@@ -3273,7 +3422,8 @@ private:
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
               bool BufferedIfid = false, bool TargetedIfid = false,
-              bool SuppressOrdinaryActiveMark = false>
+              bool SuppressOrdinaryActiveMark = false,
+              bool IofusedPrivateQueue = false>
     DispatchResult parse_and_dispatch(
         Client* c, IfidPipelineBatch* pipeline_batch = nullptr) {
         Client& conn = *c;
@@ -3283,6 +3433,27 @@ private:
         const char* const pass_rbuf = conn.rbuf();
         const uint32_t pass_rlen = conn.rlen();
         const uint32_t self_id = self_->id();
+        auto task_free_slots = [&](ThreadCtx& owner) {
+            if constexpr (IofusedPrivateQueue) {
+                return owner.iofused_task_free_slots(self_id);
+            } else {
+                return owner.task_free_slots(self_id);
+            }
+        };
+        auto post_task_quiet = [&](ThreadCtx& owner, const Task& task) {
+            if constexpr (IofusedPrivateQueue) {
+                return owner.post_iofused_task_quiet(self_id, task, sig);
+            } else {
+                return owner.post_task_quiet(self_id, task, sig);
+            }
+        };
+        auto post_tasks_quiet = [&](ThreadCtx& owner, const Task* tasks, uint32_t count) {
+            if constexpr (IofusedPrivateQueue) {
+                return owner.post_iofused_tasks_quiet(self_id, tasks, count, sig);
+            } else {
+                return owner.post_tasks_quiet(self_id, tasks, count, sig);
+            }
+        };
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
         const uint8_t security_flags = srv_->security_flags();
@@ -3485,7 +3656,11 @@ private:
             }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
-                if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
+                if constexpr (IofusedPrivateQueue) {
+                    if (multi_dispatch_entry_iofused(*this, conn, *op, consumed)) continue;
+                } else {
+                    if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
+                }
             }
             const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
                                         command_config_routes_all_shards(*op);
@@ -3731,7 +3906,7 @@ subscriber_checks_done:
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
                     if (needed[tid] &&
-                        srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
+                        task_free_slots(srv_->thread(tid)) < needed[tid]) {
                         room = false;
                         break;
                     }
@@ -3750,7 +3925,7 @@ subscriber_checks_done:
                     ThreadCtx& owner = srv_->thread(tid);
                     const Task task{c, op_id, sid,
                                     reinterpret_cast<ScatterState*>(dispatch.state)};
-                    if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
+                    if (!post_task_quiet(owner, task)) std::abort();
                     if (!touched_[tid]) {
                         touched_[tid] = true;
                         touched_list_[ntouched_++] = tid;
@@ -3848,7 +4023,7 @@ nonblocking_dispatch:
                     bool room = true;
                     for (uint32_t p = 0; p < nparticipants; p++) {
                         const uint32_t tid = participants[p];
-                        if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
+                        if (task_free_slots(srv_->thread(tid)) < needed[tid]) {
                             room = false;
                             break;
                         }
@@ -3867,7 +4042,7 @@ nonblocking_dispatch:
                         const uint32_t tid = srv_->worker_of_shard(sid);
                         ThreadCtx& owner = srv_->thread(tid);
                         const Task task{c, op_id, sid, scatter_dispatch.state};
-                        if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
+                        if (!post_task_quiet(owner, task)) std::abort();
                         if (!touched_[tid]) {
                             touched_[tid] = true;
                             touched_list_[ntouched_++] = tid;
@@ -3898,7 +4073,7 @@ nonblocking_dispatch:
                 bool room = true;
                 for (uint32_t p = 0; p < nparticipants; p++) {
                     const uint32_t tid = participants[p];
-                    if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
+                    if (task_free_slots(srv_->thread(tid)) < needed[tid]) {
                         room = false; break;
                     }
                 }
@@ -3933,8 +4108,7 @@ nonblocking_dispatch:
                     ThreadCtx& owner = srv_->thread(tid);
                     // Capacity was checked before any push. Publish all of this group's tasks for
                     // one executor with one queue-tail store; the parse-pass notify remains folded.
-                    if (!owner.post_tasks_quiet(
-                            self_id, posts + begin, end - begin, sig)) std::abort();
+                    if (!post_tasks_quiet(owner, posts + begin, end - begin)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
@@ -4014,7 +4188,7 @@ ordinary_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
-            if (!worker.post_task_quiet(self_id, t, sig)) {
+            if (!post_task_quiet(worker, t)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
@@ -4406,8 +4580,15 @@ ordinary_dispatch:
             }
 
             if (c->scatter_barrier()) {
-                if (c->blocked() &&
-                    blocking_resume_move(*srv_, *self_, ring_, *c, scatter_pool_)) {
+                const bool resumed = c->blocked() && ([&] {
+                    if constexpr (Pipeline == 1)
+                        return blocking_resume_move_iofused(
+                            *srv_, *self_, ring_, *c, scatter_pool_);
+                    else
+                        return blocking_resume_move(
+                            *srv_, *self_, ring_, *c, scatter_pool_);
+                })();
+                if (resumed) {
                     enqueue_serve(c);
                     work++;
                 }
@@ -4451,17 +4632,17 @@ ordinary_dispatch:
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
                                 true, ParseBatchOps, false, Pipeline == 2, true,
-                                Pipeline == 1>(
+                                Pipeline == 1, Pipeline == 1>(
                                     c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
                                 false, ParseBatchOps, false, Pipeline == 2, true,
-                                Pipeline == 1>(
+                                Pipeline == 1, Pipeline == 1>(
                                     c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
                             false, ParseBatchOps, false, Pipeline == 2, true,
-                            Pipeline == 1>(c, pipeline_batch);
+                            Pipeline == 1, Pipeline == 1>(c, pipeline_batch);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
@@ -4469,17 +4650,17 @@ ordinary_dispatch:
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
                                 true, ParseBatchOps, false, Pipeline == 2, true,
-                                Pipeline == 1>(
+                                Pipeline == 1, Pipeline == 1>(
                                     c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
                                 false, ParseBatchOps, false, Pipeline == 2, true,
-                                Pipeline == 1>(
+                                Pipeline == 1, Pipeline == 1>(
                                     c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
                             false, ParseBatchOps, false, Pipeline == 2, true,
-                            Pipeline == 1>(c, pipeline_batch);
+                            Pipeline == 1, Pipeline == 1>(c, pipeline_batch);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true))
                         work++;
@@ -4742,6 +4923,27 @@ ordinary_dispatch:
                 if (wb_.take_send_failure()) epoll_close_now(c);
         }
         return work + served;
+    }
+
+    // Private iofused idle audit. Keep the shallow schedule's fallback free of the streams
+    // control/lifecycle selection in genthread_pipeline_sweep().
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t genthread_iofused_sweep() {
+        uint32_t work = 0;
+        if constexpr (HasUnix) work += flush_handoffs();
+        work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
+                flush_borrow_releases();
+        work += genthread_ifid_batch<HasTls, kEp, 1>(nullptr);
+        work += fused_executor_->fused_coarse_sweep();
+        work += collect_retire_work<HasUnix, kEp, true>(true) +
+                genthread_wb_batch<HasTls, kEp, 1>();
+        if (__builtin_expect(!routing_forward_.empty(), false))
+            client_routing_cleanup_pass();
+        if (srv_->snapshot().writer_is(self_->id()))
+            work += srv_->snapshot().writer_pass(*self_, ring_, true);
+        if (srv_->aof().writer_is(self_->id()))
+            work += srv_->aof().writer_pass(*self_, ring_, true);
+        return work;
     }
 
     template <bool HasUnix, bool HasTls, bool kEp, uint8_t Pipeline>

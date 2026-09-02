@@ -23,6 +23,15 @@ and SEND-sensitive submission boundary. Overlap 2 retains the fork's depth gate,
 carry, and literal independent-stream interleave. These shapes are fixed so results can be compared
 against overlap 0's plain-loop baseline.
 
+The `1s` overlap-1 boot instantiation is separate from the deep-stream loop. Its loop-local state is
+only the source `iofused` WB batch and non-SEND rotation counter; overlap-2 IFID reservations, A/D
+executor contexts, residual ages, and buffered retirement never exist in that instantiation.
+Every overlap-1 task publisher and its executor drain use the fused inbox's lifetime-fixed geometry
+directly (1,024 slots per producer), so neither side reads the overlap-2 reservation ceiling or
+dynamic block geometry. That includes blocking, transaction, scatter/script follow-up, and stale-
+owner paths, selected at their already-cold boot latch. Overlap 2 retains the reservation-aware
+masked-queue entry points needed to hold unpublished I0 work across its dependent stages.
+
 # Masked-monolith executor inbox
 
 ## Scope and invariants
