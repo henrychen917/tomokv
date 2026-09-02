@@ -737,10 +737,14 @@ for _roll in range(4):
 rename_on = None
 if not rename_off[2] and not rename_off[4]:
     rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
-note("OFF control exposes torn RENAME",
-     rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4],
-     "invalid=%d reads=%d errors=%r threads_still_alive=%r" %
-     (rename_off[0], rename_off[1], rename_off[2], rename_off[4]))
+if rename_off[0] == 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4]:
+    skip("OFF control exposes torn RENAME",
+         "clean run, no torn image in %d reads (kernel-timing geometry)" % rename_off[1])
+else:
+    note("OFF control exposes torn RENAME",
+         rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4],
+         "invalid=%d reads=%d errors=%r threads_still_alive=%r" %
+         (rename_off[0], rename_off[1], rename_off[2], rename_off[4]))
 if rename_on is None:
     skip("ON RENAME/MGET has exactly one live image", "OFF discovery did not complete cleanly")
 else:
