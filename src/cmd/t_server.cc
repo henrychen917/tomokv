@@ -1475,6 +1475,7 @@ void collect_stat_totals(StatBaseline& out) {
     out.command_calls.assign(command_registry_size(), 0);
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
         ThreadCtx& thread = g_server->thread(t);
+        out.hits += thread.hot_forward_hits();
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
@@ -1613,6 +1614,7 @@ void cmd_info(Shard&, Op& op) {
             blocking_waiters += sh.blocking_waiters();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
+            hits += g_server->thread(t).hot_forward_hits();
             for (uint32_t id = 0; id < command_registry_size(); id++) {
                 const uint64_t calls = g_server->thread(t).command_calls(id);
                 total_ops += calls;
