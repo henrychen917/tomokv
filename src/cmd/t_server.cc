@@ -1465,6 +1465,20 @@ struct StatBaseline {
 std::mutex g_stat_baseline_mu;
 StatBaseline g_stat_baseline;
 
+void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
+    total.hits += local.hits;
+    total.fallback_multi += local.fallback_multi;
+    total.fallback_watch += local.fallback_watch;
+    total.fallback_context += local.fallback_context;
+    total.fallback_inflight_write += local.fallback_inflight_write;
+    total.fallback_atomic_pending += local.fallback_atomic_pending;
+    total.fallback_missing += local.fallback_missing;
+    total.fallback_typed += local.fallback_typed;
+    total.fallback_expired += local.fallback_expired;
+    total.fallback_seq_churn += local.fallback_seq_churn;
+    total.fallback_lane_full += local.fallback_lane_full;
+}
+
 void collect_stat_totals(StatBaseline& out) {
     out = StatBaseline{};
     if (!g_server) return;
@@ -1494,19 +1508,11 @@ void collect_stat_totals(StatBaseline& out) {
         out.acl_denied_auth += sig.acl_access_denied_auth;
         out.net_input_bytes += sig.net_input_bytes;
         out.net_output_bytes += sig.net_output_bytes;
-        const ReadLocalStats& read_local = thread.read_local_stats();
-        out.read_local.hits += read_local.hits;
-        out.read_local.fallback_multi += read_local.fallback_multi;
-        out.read_local.fallback_watch += read_local.fallback_watch;
-        out.read_local.fallback_context += read_local.fallback_context;
-        out.read_local.fallback_inflight_write += read_local.fallback_inflight_write;
-        out.read_local.fallback_atomic_pending += read_local.fallback_atomic_pending;
-        out.read_local.fallback_missing += read_local.fallback_missing;
-        out.read_local.fallback_typed += read_local.fallback_typed;
-        out.read_local.fallback_expired += read_local.fallback_expired;
-        out.read_local.fallback_seq_churn += read_local.fallback_seq_churn;
-        out.read_local.fallback_lane_full += read_local.fallback_lane_full;
-        out.hits += read_local.hits;
+    }
+    if (g_server->read_local_enabled()) {
+        for (uint32_t t = 0; t < g_server->nthreads(); t++)
+            add_read_local_stats(out.read_local, g_server->thread(t).read_local_stats());
+        out.hits += out.read_local.hits;
     }
     out.rejected = g_server->rejected_conns() + g_server->rejected_connections();
     out.auth_failures = g_server->auth_failures();
@@ -1664,18 +1670,6 @@ void cmd_info(Shard&, Op& op) {
             epoll_recvs += sig.epoll_recvs;
             net_input_bytes += sig.net_input_bytes;
             net_output_bytes += sig.net_output_bytes;
-            const ReadLocalStats& local = g_server->thread(t).read_local_stats();
-            read_local.hits += local.hits;
-            read_local.fallback_multi += local.fallback_multi;
-            read_local.fallback_watch += local.fallback_watch;
-            read_local.fallback_context += local.fallback_context;
-            read_local.fallback_inflight_write += local.fallback_inflight_write;
-            read_local.fallback_atomic_pending += local.fallback_atomic_pending;
-            read_local.fallback_missing += local.fallback_missing;
-            read_local.fallback_typed += local.fallback_typed;
-            read_local.fallback_expired += local.fallback_expired;
-            read_local.fallback_seq_churn += local.fallback_seq_churn;
-            read_local.fallback_lane_full += local.fallback_lane_full;
             if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
                 const WbEngine::Stats& stats = wb->stats();
                 sends_submitted += stats.sends_submitted;
@@ -1687,12 +1681,16 @@ void cmd_info(Shard&, Op& op) {
                 zc_releases += stats.zc_releases;
             }
         }
+        if (g_server->read_local_enabled()) {
+            for (uint32_t t = 0; t < g_server->nthreads(); t++)
+                add_read_local_stats(read_local, g_server->thread(t).read_local_stats());
+        }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
         rejected = g_server->rejected_conns() + g_server->rejected_connections();
         auth_failures = g_server->auth_failures();
     }
-    hits += read_local.hits;
+    if (g_server && g_server->read_local_enabled()) hits += read_local.hits;
     // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
     StatBaseline baseline;
     {
@@ -1713,27 +1711,29 @@ void cmd_info(Shard&, Op& op) {
     acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
     acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
     acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
-    read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
-    read_local.fallback_multi = minus_baseline(
-        read_local.fallback_multi, baseline.read_local.fallback_multi);
-    read_local.fallback_watch = minus_baseline(
-        read_local.fallback_watch, baseline.read_local.fallback_watch);
-    read_local.fallback_context = minus_baseline(
-        read_local.fallback_context, baseline.read_local.fallback_context);
-    read_local.fallback_inflight_write = minus_baseline(
-        read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
-    read_local.fallback_atomic_pending = minus_baseline(
-        read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
-    read_local.fallback_missing = minus_baseline(
-        read_local.fallback_missing, baseline.read_local.fallback_missing);
-    read_local.fallback_typed = minus_baseline(
-        read_local.fallback_typed, baseline.read_local.fallback_typed);
-    read_local.fallback_expired = minus_baseline(
-        read_local.fallback_expired, baseline.read_local.fallback_expired);
-    read_local.fallback_seq_churn = minus_baseline(
-        read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
-    read_local.fallback_lane_full = minus_baseline(
-        read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
+    if (g_server && g_server->read_local_enabled()) {
+        read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
+        read_local.fallback_multi = minus_baseline(
+            read_local.fallback_multi, baseline.read_local.fallback_multi);
+        read_local.fallback_watch = minus_baseline(
+            read_local.fallback_watch, baseline.read_local.fallback_watch);
+        read_local.fallback_context = minus_baseline(
+            read_local.fallback_context, baseline.read_local.fallback_context);
+        read_local.fallback_inflight_write = minus_baseline(
+            read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
+        read_local.fallback_atomic_pending = minus_baseline(
+            read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
+        read_local.fallback_missing = minus_baseline(
+            read_local.fallback_missing, baseline.read_local.fallback_missing);
+        read_local.fallback_typed = minus_baseline(
+            read_local.fallback_typed, baseline.read_local.fallback_typed);
+        read_local.fallback_expired = minus_baseline(
+            read_local.fallback_expired, baseline.read_local.fallback_expired);
+        read_local.fallback_seq_churn = minus_baseline(
+            read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+        read_local.fallback_lane_full = minus_baseline(
+            read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
+    }
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
     if (info_section(op, "SERVER")) {

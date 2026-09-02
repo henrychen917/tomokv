@@ -732,6 +732,42 @@ private:
         return atomic_pending_ != nullptr;
     }
 
+    ReadLocalStoreState* read_local_store_state() {
+        return atomic_pending_ && atomic_pending_->read_local_extended
+            ? reinterpret_cast<ReadLocalStoreState*>(atomic_pending_) : nullptr;
+    }
+
+    const ReadLocalStoreState* read_local_store_state() const {
+        return atomic_pending_ && atomic_pending_->read_local_extended
+            ? reinterpret_cast<const ReadLocalStoreState*>(atomic_pending_) : nullptr;
+    }
+
+    ReadLocalStoreState& read_local_store_state_required() {
+        ReadLocalStoreState* state = read_local_store_state();
+        if (!state) std::abort();
+        return *state;
+    }
+
+    const ReadLocalStoreState& read_local_store_state_required() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        if (!state) std::abort();
+        return *state;
+    }
+
+    bool ensure_read_local_store_state() {
+        if (read_local_store_state()) return true;
+        ReadLocalStoreState* extended = new (std::nothrow) ReadLocalStoreState;
+        if (!extended) return false;
+        if (atomic_pending_) {
+            if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
+            extended->atomic = *atomic_pending_;
+            delete atomic_pending_;
+        }
+        extended->atomic.read_local_extended = true;
+        atomic_pending_ = &extended->atomic;
+        return true;
+    }
+
     AtomicEntry* atomic_alloc_entry(uint32_t capacity, uint32_t key_bytes) {
         const uint64_t request64 = sizeof(AtomicEntry) +
                                    static_cast<uint64_t>(capacity) * sizeof(KvObj*) + key_bytes;
@@ -796,6 +832,7 @@ private:
     void atomic_destroy_pending() {
         if (!atomic_pending_) return;
         if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
+        const bool read_local_extended = atomic_pending_->read_local_extended;
         for (uint32_t cls = 0; cls < AtomicPendingState::kPoolClasses; cls++) {
             while (atomic_pending_->free_values[cls]) {
                 auto* block = atomic_pending_->free_values[cls];
@@ -808,7 +845,10 @@ private:
                 free_sized(entry, entry->allocation);
             }
         }
-        delete atomic_pending_;
+        if (read_local_extended)
+            delete reinterpret_cast<ReadLocalStoreState*>(atomic_pending_);
+        else
+            delete atomic_pending_;
         atomic_pending_ = nullptr;
     }
 
@@ -1178,7 +1218,7 @@ private:
 
     void retire_detached_obj_read_local(KvObj* object) {
         if (!object) return;
-        read_local_retire_sink_.retire(
+        read_local_store_state_required().retire_sink.retire(
             this, object, kvobj_size(object), &FlatStore::read_local_reclaim_atomic_object);
     }
 

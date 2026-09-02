@@ -19,6 +19,7 @@
 #include <ctime>
 #include <memory>
 #include <mutex>
+#include <new>
 #include <sys/resource.h>
 #include <unordered_map>
 #include <vector>
@@ -125,6 +126,12 @@ struct FlipReport {
     uint32_t client_max = 0;
     uint64_t last_transfers = 0;
     bool moving = false;
+};
+
+// Allocated only for the boot-armed fused read-local lane. The Server keeps only one pointer at its
+// true tail, so baseline member offsets and cache-line sharing remain unchanged.
+struct ReadLocalServerState {
+    std::atomic<uint64_t> epoch{1};
 };
 
 class Server {
@@ -283,6 +290,25 @@ public:
                               cfg.flip_auto ? 0 : cfg.lb_age_sample_rate,
                               cfg.flip_work_window);
             threads_[i]->init_command_counts(command_registry_size());
+        }
+        if (read_local_enabled()) {
+            read_local_state_.reset(new (std::nothrow) ReadLocalServerState);
+            if (!read_local_state_) {
+                std::fprintf(stderr, "fatal: could not allocate read-local server state\n");
+                return false;
+            }
+            for (const auto& thread : threads_) {
+                if (!thread->init_read_local_state()) {
+                    std::fprintf(stderr, "fatal: could not allocate read-local thread state\n");
+                    return false;
+                }
+            }
+            for (const auto& shard : shards_) {
+                if (!shard->store().prepare_read_local()) {
+                    std::fprintf(stderr, "fatal: could not allocate read-local store state\n");
+                    return false;
+                }
+            }
         }
         if (key_lb_signals_enabled()) {
             try {
@@ -508,12 +534,14 @@ public:
                cfg_.read_local != 0;
     }
     uint64_t read_local_epoch() const {
-        return read_local_epoch_.load(std::memory_order_seq_cst);
+        if (!read_local_state_) std::abort();
+        return read_local_state_->epoch.load(std::memory_order_seq_cst);
     }
     // Retirement uses the returned OLD value as its stamp. The increment makes a subsequent
     // rotation publication strictly newer, which is the grace test below.
     uint64_t advance_read_local_epoch() {
-        return read_local_epoch_.fetch_add(1, std::memory_order_seq_cst);
+        if (!read_local_state_) std::abort();
+        return read_local_state_->epoch.fetch_add(1, std::memory_order_seq_cst);
     }
     uint64_t read_local_grace_floor() const {
         uint64_t floor = UINT64_MAX;
@@ -1868,10 +1896,6 @@ public:
         }
         if (!router_.begin_transfer(begin, end, source, destination))
             return false;
-        if (read_local_enabled()) {
-            const ReadLocalRetireSink sink = threads_[destination]->read_local_retire_sink();
-            for (Shard* shard : moving) shard->store().rebind_read_local_retire_sink(sink);
-        }
 
         for (Shard* shard : moving) to.push_back(shard);
         from.erase(std::remove_if(from.begin(), from.end(), [&](Shard* shard) {
@@ -1901,13 +1925,6 @@ public:
             to.size() == to.capacity()) return false;
         if (!router_.begin_transfer(shard.bucket_begin(), shard.bucket_end(), source, destination))
             return false;
-        if (read_local_enabled()) {
-            // ExDrain has stopped every producer/consumer of this store. Install the destination's
-            // owner-only retire sink before publishing the ownership edge; waiting until its next
-            // EX pass leaves earlier multi/snapshot owner work able to retire through the old sink.
-            shard.store().rebind_read_local_retire_sink(
-                threads_[destination]->read_local_retire_sink());
-        }
         to.push_back(&shard);                       // capacity was reserved before PREPARING
         *found = from.back();
         from.pop_back();
@@ -3162,10 +3179,6 @@ private:
     // shard-granularity dispatch remains one flat-array load.
     std::atomic<uint32_t> shard_owner_[256] = {};
 
-    // Fused read-local reclamation epoch. Store retirement advances it only while the boot-only
-    // lane is armed; fused rotations publish the current value in their ThreadCtx.
-    std::atomic<uint64_t> read_local_epoch_{1};
-
     // FLIP is a cold, manually driven control-plane transaction.  The stage store is the global
     // dispatch barrier; acknowledgements are tagged with the transaction epoch so a late wakeup
     // from an earlier attempt cannot satisfy a later stage.
@@ -3402,6 +3415,8 @@ private:
     std::atomic<uint64_t> save_change_baseline_{0};
     std::atomic<uint64_t> scheduled_save_triggers_{0};
     std::atomic<uint64_t> save_cron_checks_{0};
+    // True tail: disabled servers allocate no epoch state and no established offset moves.
+    std::unique_ptr<ReadLocalServerState> read_local_state_;
 };
 
 }  // namespace tomo

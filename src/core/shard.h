@@ -25,6 +25,7 @@
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -39,6 +40,7 @@ namespace tomo {
 class Client;
 class Op;
 class Server;
+struct ShardLayoutLock;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
 // keys: a key's bucket never changes, only which shard owns that bucket.
@@ -448,6 +450,7 @@ public:
     }
 
 private:
+    friend struct ShardLayoutLock;
     int32_t   id_ = -1;
     uint32_t  bucket_begin_ = 0;
     uint32_t  bucket_end_   = 0;
@@ -488,6 +491,16 @@ private:
     // samples it once per second. Atomicity makes that cross-thread sample data-race-free.
     std::atomic<uint64_t> save_changes_{0};
 };
+
+struct ShardLayoutLock {
+    static constexpr size_t store_offset = offsetof(Shard, store_);
+    static constexpr size_t stats_offset = offsetof(Shard, stats_);
+};
+
+// atomic_torn's gate geometry depends on the pre-read-local Shard stride and hot stats position.
+static_assert(sizeof(Shard) == 1440);
+static_assert(ShardLayoutLock::store_offset == 56);
+static_assert(ShardLayoutLock::stats_offset == 1000);
 
 // Installs one logical operation's expiry cut on an owner for the length of ONE fragment, and puts
 // the executor's own per-pass clock back afterwards. Every exit restores -- Complete, Retry, or an

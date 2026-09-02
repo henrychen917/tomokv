@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <deque>
+#include <type_traits>
 #include "server.h"
 #include "signal.h"
 #include "genthread_pipeline.h"
@@ -54,6 +55,35 @@ static_assert(kGenthreadIfidBatchOps <= kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
+template <bool Enabled>
+struct ReadLocalExState;
+
+template <>
+struct ReadLocalExState<false> {};
+
+template <>
+struct ReadLocalExState<true> {
+    struct Impl {
+        std::unique_ptr<Task[]> lane;
+        uint32_t lane_head = 0;
+        uint32_t lane_tail = 0;
+        uint32_t lane_count = 0;
+        ReadLocalDeferredQueue deferred;
+
+        void rebind_owned_shards(ThreadCtx& owner) {
+            ReadLocalRetireSink* sink = deferred.sink();
+            if (!sink) std::abort();
+            for (Shard* shard : owner.shards())
+                shard->store().rebind_read_local_retire_sink(*sink);
+        }
+    };
+
+    std::unique_ptr<Impl> impl;
+};
+
+using ReadLocalExImpl = ReadLocalExState<true>::Impl;
+static_assert(std::is_empty_v<ReadLocalExState<false>>);
+
 template <bool Fused>
 class ExLoopT {
 public:
@@ -72,10 +102,12 @@ public:
         pipeline_batches_ = Fused && srv->cfg().overlap != 0;
         iofused_ = Fused && srv->cfg().overlap == 1;
         if constexpr (Fused) {
-            read_local_enabled_ = srv->read_local_enabled();
-            if (read_local_enabled_) {
-                read_local_lane_.reset(new (std::nothrow) Task[kInboxSlots]);
-                if (!read_local_lane_ || !read_local_deferred_.init(srv, self)) return false;
+            if (srv->read_local_enabled()) {
+                std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
+                if (!impl) return false;
+                impl->lane.reset(new (std::nothrow) Task[kInboxSlots]);
+                if (!impl->lane || !impl->deferred.init(srv, self)) return false;
+                read_local_.impl = std::move(impl);
             }
         }
         if (!ring_.init(1024)) return false;
@@ -107,12 +139,12 @@ public:
         if (srv_->cfg().overlap != 0 && handoff_ring)
             fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
-        if (read_local_enabled_)
-            self_->bind_read_local_retire_sink(*read_local_deferred_.sink());
+        if (read_local_enabled())
+            self_->bind_read_local_retire_sink(*read_local_impl().deferred.sink());
         for (Shard* shard : self_->shards()) {
             shard->bind_notify_pending(&notify_keyless_pending_);
-            if (read_local_enabled_)
-                shard->store().configure_read_local(true, *read_local_deferred_.sink());
+            if (read_local_enabled())
+                shard->store().configure_read_local(true, *read_local_impl().deferred.sink());
         }
     }
 
@@ -124,21 +156,23 @@ public:
 
     bool enqueue_local_read(const Task& task) {
         static_assert(Fused);
-        if (!read_local_enabled_ || read_local_lane_count_ == kInboxSlots) return false;
-        read_local_lane_[read_local_lane_tail_] = task;
-        read_local_lane_tail_ = (read_local_lane_tail_ + 1) & (kInboxSlots - 1);
-        read_local_lane_count_++;
+        if (!read_local_enabled()) return false;
+        auto& state = read_local_impl();
+        if (state.lane_count == kInboxSlots) return false;
+        state.lane[state.lane_tail] = task;
+        state.lane_tail = (state.lane_tail + 1) & (kInboxSlots - 1);
+        state.lane_count++;
         return true;
     }
 
     bool local_read_lane_has_room() const {
         static_assert(Fused);
-        return read_local_enabled_ && read_local_lane_count_ != kInboxSlots;
+        return read_local_enabled() && read_local_impl().lane_count != kInboxSlots;
     }
 
     void read_local_shutdown_drain() {
         static_assert(Fused);
-        if (read_local_enabled_) (void)read_local_deferred_.drain_shutdown();
+        if (read_local_enabled()) (void)read_local_impl().deferred.drain_shutdown();
     }
 
     // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
@@ -186,12 +220,13 @@ public:
             ~RotationBoundary() {
                 if (enabled) self->publish_read_local_tick(server->read_local_epoch());
             }
-        } rotation_boundary{read_local_enabled_, self_, srv_};
+        } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
-        // A completed LB stage may have changed this owner's shard vector. Retirement sinks move
-        // synchronously at commit; refresh the owner-local notification bindings before EX work.
+        // A completed LB stage may have changed this owner's shard vector. Armed retirement sinks
+        // must follow ownership before any work; the literal baseline notification block remains in
+        // lb_control_pass below.
         if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
-            rebind_owned_shards_after_lb();
+            read_local_rebind_owned_shards_after_lb();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)
@@ -242,7 +277,7 @@ public:
             did += lb_control_pass();
             lb_bucket_bytes_pass();
         }
-        if (read_local_enabled_) did += read_local_deferred_.drain_ready();
+        if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
         if (did) {
             did += drain_notify_keyless(self_->sig());
             fused_submit_boundary<CoalesceSubmit>();
@@ -306,12 +341,12 @@ public:
             ~RotationBoundary() {
                 if (enabled) self->publish_read_local_tick(server->read_local_epoch());
             }
-        } rotation_boundary{read_local_enabled_, self_, srv_};
+        } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
-        if (lb_rebind_pending_) rebind_owned_shards_after_lb();
+        if (lb_rebind_pending_) read_local_rebind_owned_shards_after_lb();
         uint32_t did = drain_local_reads() +
             sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
-        if (read_local_enabled_) did += read_local_deferred_.drain_ready();
+        if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
@@ -450,6 +485,29 @@ public:
 private:
     friend class IoLoop;
 
+    bool read_local_enabled() const {
+        if constexpr (Fused) return read_local_.impl != nullptr;
+        return false;
+    }
+
+    ReadLocalExImpl& read_local_impl() {
+        static_assert(Fused);
+        if (!read_local_.impl) std::abort();
+        return *read_local_.impl;
+    }
+
+    const ReadLocalExImpl& read_local_impl() const {
+        static_assert(Fused);
+        if (!read_local_.impl) std::abort();
+        return *read_local_.impl;
+    }
+
+    void read_local_rebind_owned_shards_after_lb() {
+        if constexpr (Fused) {
+            if (read_local_.impl) read_local_.impl->rebind_owned_shards(*self_);
+        }
+    }
+
     template <bool CoalesceSubmit>
     void fused_submit_boundary() {
         if constexpr (!CoalesceSubmit) {
@@ -561,7 +619,9 @@ private:
 
     uint32_t drain_local_reads() {
         if constexpr (!Fused) return 0;
-        if (!read_local_enabled_ || !read_local_lane_count_) return 0;
+        if (!read_local_enabled()) return 0;
+        auto& lane = read_local_impl();
+        if (!lane.lane_count) return 0;
         Task batch[kExecBatch];
         uint32_t group_ends[kExecBatch];
         uint64_t* fallbacks[kExecBatch];
@@ -569,27 +629,26 @@ private:
         // Like drain_tasks, empty the lane snapshot and use kExecBatch only as the gather/prefetch
         // quantum. Making it a per-rotation limit would simply replace the per-connection governor
         // with a 32-op global governor.
-        while (read_local_lane_count_) {
+        while (lane.lane_count) {
             uint32_t groups = 0;
             uint32_t count = 0;
             // Parser batches are contiguous by Client and bounded by the 32-op IFID quantum. Never
             // split one across executor chunks: its all-local/all-owner decision is the fence.
-            while (read_local_lane_count_ && count < kExecBatch) {
-                Client* client = read_local_lane_[read_local_lane_head_].client;
+            while (lane.lane_count && count < kExecBatch) {
+                Client* client = lane.lane[lane.lane_head].client;
                 uint32_t group_count = 1;
-                while (group_count < read_local_lane_count_) {
+                while (group_count < lane.lane_count) {
                     const uint32_t at =
-                        (read_local_lane_head_ + group_count) & (kInboxSlots - 1);
-                    if (read_local_lane_[at].client != client) break;
+                        (lane.lane_head + group_count) & (kInboxSlots - 1);
+                    if (lane.lane[at].client != client) break;
                     group_count++;
                 }
                 if (group_count > kExecBatch) std::abort();
                 if (count && count + group_count > kExecBatch) break;
                 for (uint32_t i = 0; i < group_count; i++) {
-                    batch[count++] = read_local_lane_[read_local_lane_head_];
-                    read_local_lane_head_ =
-                        (read_local_lane_head_ + 1) & (kInboxSlots - 1);
-                    read_local_lane_count_--;
+                    batch[count++] = lane.lane[lane.lane_head];
+                    lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
+                    lane.lane_count--;
                 }
                 group_ends[groups++] = count;
             }
@@ -642,8 +701,9 @@ private:
 
     bool flip_quiesced() const {
         if constexpr (Fused) {
-            if (read_local_lane_count_ != 0 ||
-                (read_local_enabled_ && !read_local_deferred_.empty())) return false;
+            if (read_local_enabled() &&
+                (read_local_impl().lane_count != 0 || !read_local_impl().deferred.empty()))
+                return false;
         }
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
             !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
@@ -709,7 +769,12 @@ private:
             // only its own shards: active-expiry notifications stranded forever (notify battery,
             // key-lb half, 2/6). Rebinding is a handful of pointer stores and runs only on the
             // first pass after a stage ends.
-            if (lb_rebind_pending_) rebind_owned_shards_after_lb();
+            if (lb_rebind_pending_) {
+                lb_rebind_pending_ = false;
+                for (Shard* shard : self_->shards())
+                    shard->bind_notify_pending(&notify_keyless_pending_);
+                notify_keyless_pending_ = true;   // force one state-checked drain after adoption
+            }
             return 0;
         }
         auto wake_coordinator = [&]() {
@@ -729,14 +794,6 @@ private:
         lb_ack_wake_pending_ = true;
         lb_rebind_pending_ = true;   // membership may change before the stage ends; rebind after
         return wake_coordinator();
-    }
-
-    void rebind_owned_shards_after_lb() {
-        lb_rebind_pending_ = false;
-        for (Shard* shard : self_->shards()) {
-            shard->bind_notify_pending(&notify_keyless_pending_);
-        }
-        notify_keyless_pending_ = true;   // force one state-checked drain after adoption
     }
 
     void refresh_live_config() {
@@ -1846,7 +1903,7 @@ private:
                     // A read-local fallback reached this FIFO after its own or an older group
                     // member's SPSC refusal. Executing it directly would jump the older queued
                     // tasks. Retry the tail publication and leave it stale until room exists.
-                    if (read_local_enabled_ && task.client &&
+                    if (read_local_enabled() && task.client &&
                         task.client->rob().at(task.op_id).read_local()) {
                         if (!post_forwarded_task(task, target)) break;
                         stale_tasks_.pop_front();
@@ -1994,15 +2051,13 @@ private:
     // Pipelines 1/2 share the measured 128-task geometry; only pipeline 1 coalesces submissions.
     bool pipeline_batches_ = false;
     bool iofused_ = false;
-    bool read_local_enabled_ = false;
-    std::unique_ptr<Task[]> read_local_lane_;
-    uint32_t read_local_lane_head_ = 0;
-    uint32_t read_local_lane_tail_ = 0;
-    uint32_t read_local_lane_count_ = 0;
-    ReadLocalDeferredQueue read_local_deferred_;
+    [[no_unique_address]] ReadLocalExState<Fused> read_local_;
 };
 
 using ExLoop = ExLoopT<false>;
 using FusedExLoop = ExLoopT<true>;
+
+// Disabled split executors retain the exact pre-read-local allocation stride.
+static_assert(sizeof(ExLoop) == 5848);
 
 }  // namespace tomo

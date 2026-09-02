@@ -84,11 +84,18 @@ struct AtomicPendingState {
     AtomicEntry* free_entries[kPoolClasses] = {};
     FreeValue* free_values[kPoolClasses] = {};
     uint32_t cached_entries = 0;
+    // Read-local uses an extended allocation whose first member is this exact baseline state.
+    // The discriminator consumes the pre-existing four-byte hole before cleanup_fast, so the
+    // disabled allocation size and every following offset remain locked.
+    bool read_local_extended = false;
     uint64_t cleanup_fast = 0;
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
     size_t cached_value_bytes = 0;
 };
+
+static_assert(sizeof(AtomicPendingState) == 1352);
+static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
 
 struct AtomicResolved {
     KvObj* value = nullptr;

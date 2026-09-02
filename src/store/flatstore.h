@@ -69,6 +69,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include "../base/alloc.h"
 #include "../core/atomic_tripwire.h"
@@ -484,6 +485,19 @@ inline uint64_t scan_cursor_next(uint64_t cursor, uint64_t mask) {
 
 class FlatStore;
 
+// Armed stores extend the already-cold atomic pending allocation. Keeping AtomicPendingState first
+// preserves atomic_pending_ and every FlatStore member/offset; disabled stores allocate precisely
+// the historical AtomicPendingState body and nothing else.
+struct ReadLocalStoreState {
+    AtomicPendingState atomic;
+    std::atomic<uint64_t> publication{0};
+    ReadLocalRetireSink retire_sink{};
+    uint32_t mutation_depth = 0;
+    uint32_t pending_count = 0;
+};
+static_assert(std::is_standard_layout_v<ReadLocalStoreState>);
+static_assert(offsetof(ReadLocalStoreState, atomic) == 0);
+
 // Hash-field TTLs, defined in src/cmd/t_hash_ttl.cc. The store owns the ATTENTION (which keys carry
 // field deadlines, and the bounded cycle that revisits them); the hash lane owns the reap itself,
 // because only it knows the two hash representations. Returns true when no live field is left and
@@ -590,6 +604,9 @@ public:
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
 
+    // Boot-only allocation, before persistence replay or any foreign probe can exist.
+    bool prepare_read_local() { return ensure_read_local_store_state(); }
+
     // Enabled is boot-latched. The sink may be rebound only at a quiesced fused ownership handoff;
     // false keeps the old store path and every installed writer hook predicted cold.
     void configure_read_local(bool enabled, ReadLocalRetireSink sink) {
@@ -598,7 +615,9 @@ public:
         // records cannot be retroactively marked in their entry headers, so fail closed if that
         // boot invariant ever changes instead of publishing a false zero-pending state.
         if (enabled && atomic_pending_entries() != 0) std::abort();
-        read_local_retire_sink_ = sink;
+        ReadLocalStoreState* state = read_local_store_state();
+        if (enabled && !state) std::abort();
+        if (state) state->retire_sink = sink;
         read_local_enabled_ = enabled;
     }
     void rebind_read_local_retire_sink(ReadLocalRetireSink sink) {
@@ -606,12 +625,12 @@ public:
         // Called only after the old owner has acknowledged an empty task/read/retire frontier and
         // before the new owner executes store work. Foreign probes never read the sink; keeping the
         // boot-latched enabled byte untouched avoids a true-to-true data race at LB resume.
-        read_local_retire_sink_ = sink;
+        read_local_store_state_required().retire_sink = sink;
     }
     bool read_local_enabled() const { return read_local_enabled_; }
 
     uint64_t read_local_state_acquire() const {
-        return read_local_state_.load(std::memory_order_acquire);
+        return read_local_store_state_required().publication.load(std::memory_order_acquire);
     }
     static bool read_local_mutating(uint64_t state) {
         return (state & kReadLocalMutationBit) != 0;
@@ -2641,7 +2660,7 @@ private:
     void retire_obj_read_local(KvObj* object) {
         const size_t bytes = kvobj_size(object);
         obj_bytes_ -= bytes;
-        read_local_retire_sink_.retire(
+        read_local_store_state_required().retire_sink.retire(
             this, object, bytes, &FlatStore::read_local_reclaim_object);
     }
 
@@ -2688,12 +2707,12 @@ private:
 
     template <typename T>
     void read_local_topology_store(T* location, T value) {
-        if (!read_local_enabled_ || !read_local_mutation_depth_) std::abort();
+        if (!read_local_enabled_ || !read_local_store_state_required().mutation_depth) std::abort();
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
     void read_local_slot_store(uint64_t* location, uint64_t value) {
-        if (!read_local_enabled_ || !read_local_mutation_depth_) std::abort();
+        if (!read_local_enabled_ || !read_local_store_state_required().mutation_depth) std::abort();
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
@@ -2754,38 +2773,41 @@ private:
 
     void retire_table_read_local(uint64_t* table) {
         if (!table) return;
-        read_local_retire_sink_.retire(
+        read_local_store_state_required().retire_sink.retire(
             this, table, 0, &FlatStore::read_local_reclaim_table);
     }
 
     void read_local_mutation_begin() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
-        if (read_local_mutation_depth_++ == 0) read_local_advance_sequence(false);
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (state.mutation_depth++ == 0) read_local_advance_sequence(false);
     }
 
     void read_local_mutation_end() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
-        if (!read_local_mutation_depth_) std::abort();
-        if (--read_local_mutation_depth_ == 0) read_local_advance_sequence(true);
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (!state.mutation_depth) std::abort();
+        if (--state.mutation_depth == 0) read_local_advance_sequence(true);
     }
 
     // Begin's acq_rel RMW is the writer-side seqlock barrier: no later slot/topology store may move
     // before publication of the open bit. End preserves the pending bit and advances generation.
     void read_local_advance_sequence(bool ending) {
+        std::atomic<uint64_t>& publication = read_local_store_state_required().publication;
         if (!ending) {
-            const uint64_t previous = read_local_state_.fetch_or(
+            const uint64_t previous = publication.fetch_or(
                 kReadLocalMutationBit, std::memory_order_acq_rel);
             if (previous & kReadLocalMutationBit) std::abort();
             return;
         }
-        uint64_t observed = read_local_state_.load(std::memory_order_relaxed);
+        uint64_t observed = publication.load(std::memory_order_relaxed);
         for (;;) {
             if (!(observed & kReadLocalMutationBit)) std::abort();
             const uint64_t desired =
                 (((observed >> kReadLocalGenerationShift) + uint64_t{1})
                      << kReadLocalGenerationShift) |
                 (observed & kReadLocalPendingBit);
-            if (read_local_state_.compare_exchange_weak(
+            if (publication.compare_exchange_weak(
                     observed, desired, std::memory_order_release, std::memory_order_relaxed))
                 return;
         }
@@ -2794,9 +2816,10 @@ private:
     void read_local_pending_publish(AtomicEntry& entry) {
         if (!read_local_enabled_) std::abort();
         if (entry.read_local_pending_published) std::abort();
-        if (read_local_pending_count_ == UINT32_MAX) std::abort();
-        if (read_local_pending_count_++ == 0) {
-            const uint64_t previous = read_local_state_.fetch_or(
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (state.pending_count == UINT32_MAX) std::abort();
+        if (state.pending_count++ == 0) {
+            const uint64_t previous = state.publication.fetch_or(
                 kReadLocalPendingBit, std::memory_order_acq_rel);
             if (previous & kReadLocalPendingBit) std::abort();
         }
@@ -2805,9 +2828,10 @@ private:
 
     void read_local_pending_unpublish(AtomicEntry& entry) {
         if (__builtin_expect(!entry.read_local_pending_published, true)) return;
-        if (!read_local_pending_count_) std::abort();
-        if (--read_local_pending_count_ == 0) {
-            const uint64_t previous = read_local_state_.fetch_and(
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (!state.pending_count) std::abort();
+        if (--state.pending_count == 0) {
+            const uint64_t previous = state.publication.fetch_and(
                 ~kReadLocalPendingBit, std::memory_order_release);
             if (!(previous & kReadLocalPendingBit)) std::abort();
         }
@@ -2949,6 +2973,8 @@ private:
     uint64_t*   evicted_counter_ = nullptr;
     uint64_t*   rehash_counter_ = nullptr;
     bool        maxmemory_enabled_ = false;
+    // Boot-latched read-local gate consumes baseline padding; the armed state itself is sidecarred.
+    bool        read_local_enabled_ = false;
     uint64_t    maxmemory_limit_ = 0;
     MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
     uint32_t    maxmemory_samples_ = 5;
@@ -2981,12 +3007,10 @@ private:
     // those features. The TTL index allocates nothing until the first HEXPIRE in the shard.
     ExpireIndex field_expires_;
     uint64_t    field_expired_ = 0;
-    std::atomic<uint64_t> read_local_state_{0};
-    ReadLocalRetireSink read_local_retire_sink_{};
-    uint32_t read_local_mutation_depth_ = 0;  // owner-only nesting; touched only when enabled
-    uint32_t read_local_pending_count_ = 0;   // owner-only; state bit 1 publishes zero/non-zero
-    bool read_local_enabled_ = false;         // boot-latched (sink alone may rebind at handoff)
 };
+
+// atomic_torn's disabled geometry is contractual: armed state must never grow this baseline object.
+static_assert(sizeof(FlatStore) == 944);
 
 
 // RAII bracket for any mutation of an EXISTING object: samples kvobj_size before, reports the
