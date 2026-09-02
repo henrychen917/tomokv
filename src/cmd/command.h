@@ -101,10 +101,6 @@ struct CmdFlags {
     // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
     // coordinator. No other command enters that control path.
     static constexpr uint32_t FlipAsync = 1u << 25;
-    // Boot-stamped scheduler metadata. Keeping the two-bit class in the six free flag bits avoids
-    // growing the footprint-locked CommandSpec and survives the clean/notify/TLS shadow copies.
-    static constexpr uint32_t LengthShift = 26;
-    static constexpr uint32_t LengthMask = 3u << LengthShift;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -120,6 +116,8 @@ struct CommandSpec {
     int32_t     min_arity;
     int32_t     max_arity;
     uint32_t    flags;
+    // Boot-stamped scheduler metadata in the existing alignment hole before handler.
+    uint8_t     length_class = 0;
     CmdHandler  handler;
 
     // Key range within argv: [first_key, last_key] stepping by key_step.
@@ -141,7 +139,8 @@ struct CommandSpec {
                           int16_t last_key_, int16_t key_step_,
                           CmdHandler handler_notify_ = nullptr)
         : name(name_), min_arity(min_arity_), max_arity(max_arity_), flags(flags_),
-          handler(handler_), first_key(first_key_), last_key(last_key_), key_step(key_step_),
+          length_class(0), handler(handler_), first_key(first_key_), last_key(last_key_),
+          key_step(key_step_),
           handler_notify(handler_notify_ ? handler_notify_ :
                          (handler_ == cmd_xshard_only ? cmd_xshard_only_notify : handler_)) {}
 };
@@ -151,8 +150,7 @@ struct CommandSpec {
 static_assert(sizeof(CommandSpec) == 48);
 
 inline CommandLengthClass command_length_class(const CommandSpec& spec) {
-    return static_cast<CommandLengthClass>((spec.flags & CmdFlags::LengthMask) >>
-                                           CmdFlags::LengthShift);
+    return static_cast<CommandLengthClass>(spec.length_class);
 }
 
 struct CommandTable {

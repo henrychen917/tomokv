@@ -140,9 +140,8 @@ bool command_registry_init(bool tls_enabled, bool fused_mode) {
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
-                copy.flags = (copy.flags & ~CmdFlags::LengthMask) |
-                    (static_cast<uint32_t>(command_length_class_for(copy)) <<
-                     CmdFlags::LengthShift);
+                copy.length_class =
+                    static_cast<uint8_t>(command_length_class_for(copy));
                 if (fused_mode && !std::strcmp(copy.name, "FLIP")) {
                     copy.flags &= ~CmdFlags::FlipAsync;
                     copy.handler = cmd_flip_unavailable;
