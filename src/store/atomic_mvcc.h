@@ -48,6 +48,11 @@ struct AtomicEntry {
     bool plain() const { return group == nullptr; }
 };
 
+// The read-local pending marker consumes existing tail padding. Atomic entries are pooled by
+// allocation class, so growing the header would change both the disabled allocation path and its
+// cache geometry.
+static_assert(sizeof(AtomicEntry) == 144);
+
 // Owner-local protection installed while a cross-owner script is staged.  It deliberately lives
 // beside the cold MVCC list rather than in KvObj: ordinary databases that never execute a cross
 // script allocate none, and a key's hot representation remains byte-identical.  The trailing key

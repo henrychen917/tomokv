@@ -752,15 +752,12 @@ public:
     // old table becomes the immutable-layout snapshot table (values may change only after their
     // pre-image has been serialized), and all new keys land in the fresh current table.
     bool snapshot_mark(int32_t shard_id, int64_t cut_ms) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return snapshot_mark_read_local(shard_id, cut_ms);
         if (!snapshot_prepared_ || snapshot_active_ || rehashing()) return false;
-        ReadLocalMutationGuard mutation(*this);
-        read_local_topology_store(&tab_[1], tab_[0]);
-        read_local_topology_store(&cap_[1], cap_[0]);
-        read_local_topology_store(&mask_[1], mask_[0]);
+        tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
-        read_local_topology_store(&tab_[0], snapshot_new_tab_);
-        read_local_topology_store(&cap_[0], snapshot_new_cap_);
-        read_local_topology_store(&mask_[0], snapshot_new_cap_ - 1);
+        tab_[0] = snapshot_new_tab_; cap_[0] = snapshot_new_cap_; mask_[0] = cap_[0] - 1;
         live_[0] = tombs_[0] = 0;
         snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
         rehash_pos_ = 0;
@@ -786,6 +783,8 @@ public:
     uint64_t snapshot_preimages() const { return snapshot_preimages_; }
 
     SnapshotWriteResult snapshot_prepare_write(uint64_t h, Slice key) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return snapshot_prepare_write_read_local(h, key);
         if (!snapshot_active_) return SnapshotWriteResult::Ready;
         if (snapshot_failed_) return SnapshotWriteResult::Error;
         if (find_in(0, h, key)) return SnapshotWriteResult::Ready;  // born/moved after the cut
@@ -794,8 +793,7 @@ public:
         if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
             return SnapshotWriteResult::Ready;
         if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
-            ReadLocalMutationGuard mutation(*this);
-            read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
+            tab_[1][slot] |= kTombBit;             // absent at the cut; traversal must skip it
             return SnapshotWriteResult::Ready;
         }
         if (snapshot_record_.active) return SnapshotWriteResult::Pending;
@@ -806,6 +804,8 @@ public:
 
     // CPU work on the owner, bounded by both bytes and examined slots.  It never writes a file.
     uint32_t snapshot_progress(uint32_t byte_budget, uint32_t slot_budget) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return snapshot_progress_read_local(byte_budget, slot_budget);
         if (!snapshot_active_ || snapshot_failed_ || snapshot_ready_) return 0;
         uint32_t work = 0;
         while (byte_budget && !snapshot_ready_ && !snapshot_failed_) {
@@ -827,8 +827,7 @@ public:
             slot_budget--; work++;
             if (!object) { snapshot_pos_++; continue; }
             if (word & kTombBit) {
-                ReadLocalMutationGuard mutation(*this);
-                read_local_slot_store(&tab_[1][slot], word & ~kTombBit);
+                tab_[1][slot] = word & ~kTombBit;
                 snapshot_pos_++;
                 continue;
             }
@@ -923,9 +922,8 @@ public:
     // than "new <= old" because good_size() is recomputed from the header — letting the real
     // allocation and the implied one diverge would silently break the resident estimate.
     OverwriteResult try_overwrite(uint64_t h, Slice key, Slice val) {
-        // The only live string-byte mutation is deliberately unavailable while foreign reads are
-        // armed. All string writers then take the existing immutable replacement path.
-        if (__builtin_expect(read_local_enabled_, false)) return OverwriteResult::NotPossible;
+        if (__builtin_expect(read_local_enabled_, false))
+            return try_overwrite_read_local(h, key, val);
         KvObj* o = find_without_touch(h, key);
         if (!o) return OverwriteResult::NotPossible;
         if (static_cast<Enc>(o->enc) != Enc::Raw) return OverwriteResult::NotPossible;
@@ -1065,11 +1063,11 @@ public:
     enum class TtlResult : uint8_t { Missing, NoChange, Updated, Oom, MaxmemoryOom };
 
     TtlResult set_expire(uint64_t h, Slice key, int64_t expire_at_ms) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return set_expire_read_local(h, key, expire_at_ms);
         KvObj* old = find(h, key);
         if (!old) return TtlResult::Missing;
         if (old->flags & KvObjFlags::HasTtl) {
-            if (__builtin_expect(read_local_enabled_, false))
-                return rewrite_expire(h, old, expire_at_ms);
             old->set_expire_at_ms(expire_at_ms);
             expires_.insert(h);
             return TtlResult::Updated;
@@ -1079,11 +1077,11 @@ public:
 
     TtlResult set_expire_notify(uint64_t h, Slice key, int64_t expire_at_ms,
                                 FlatNotifySink* sink) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return set_expire_notify_read_local(h, key, expire_at_ms, sink);
         KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
         if (old->flags & KvObjFlags::HasTtl) {
-            if (__builtin_expect(read_local_enabled_, false))
-                return rewrite_expire(h, old, expire_at_ms);
             old->set_expire_at_ms(expire_at_ms);
             expires_.insert(h);
             return TtlResult::Updated;
@@ -1212,6 +1210,7 @@ public:
 
     // Takes ownership of `o` only on success; frees anything it displaces.
     InsertResult insert(uint64_t h, KvObj* o) {
+        if (__builtin_expect(read_local_enabled_, false)) return insert_read_local(h, o);
         const bool capturing = rehashing() && snapshot_active_;
         if (rehashing()) {
             if (!capturing) rehash_step();
@@ -1244,7 +1243,6 @@ public:
             if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
             if (o->eviction_meta() == 0) initialize_meta(o);
         }
-        ReadLocalMutationGuard mutation(*this);
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
         if (rehashing()) {
@@ -1270,7 +1268,7 @@ public:
     }
 
     bool erase(uint64_t h, Slice key) {
-        ReadLocalMutationGuard mutation(*this);
+        if (__builtin_expect(read_local_enabled_, false)) return erase_read_local(h, key);
         if (rehashing() && !snapshot_active_) rehash_step();
         bool expired = false;
         if (erase_in(0, h, key, &expired)) {
@@ -1314,36 +1312,27 @@ public:
     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
     // values move to the existing retirement list, so a send already in flight remains valid.
     void clear() {
+        if (__builtin_expect(read_local_enabled_, false)) {
+            clear_read_local();
+            return;
+        }
         // Allocate the small replacement before touching either live table. If that cold allocation
         // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
         // table and never exposes a half-demoted state.
         uint64_t* fresh = allocate_table(1024);
-        ReadLocalMutationGuard mutation(*this);
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
-            for (uint32_t i = 0; i < cap_[t]; i++) {
-                if (KvObj* object = ptr_of(tab_[t][i])) {
-                    read_local_slot_store(&tab_[t][i], kTombBit);
-                    retire_obj(object);
-                }
-            }
+            for (uint32_t i = 0; i < cap_[t]; i++)
+                if (KvObj* o = ptr_of(tab_[t][i])) retire_obj(o);
             if (t == 0 && !fresh) {
-                if (__builtin_expect(read_local_enabled_, false)) {
-                    for (uint32_t i = 0; i < cap_[0]; i++)
-                        read_local_slot_store(&tab_[0][i], 0);
-                } else {
-                    std::memset(tab_[0], 0, static_cast<size_t>(
-                        static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
-                }
+                std::memset(tab_[0], 0, static_cast<size_t>(
+                    static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
                 live_[0] = tombs_[0] = 0;
                 continue;
             }
-            uint64_t* retired = tab_[t];
-            read_local_topology_store(&tab_[t], static_cast<uint64_t*>(nullptr));
-            read_local_topology_store(&cap_[t], uint32_t{0});
-            read_local_topology_store(&mask_[t], uint32_t{0});
-            live_[t] = tombs_[t] = 0;
-            retire_table(retired);
+            std::free(tab_[t]);
+            tab_[t] = nullptr;
+            cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
         }
         expires_.clear();
         field_expires_.clear();
@@ -1356,13 +1345,16 @@ public:
     // allocations and their slot numbering until the capture walker releases its cursor; turn all
     // live entries into ordinary tombstones instead of freeing the tables as clear() does.
     void clear_during_snapshot() {
-        ReadLocalMutationGuard mutation(*this);
+        if (__builtin_expect(read_local_enabled_, false)) {
+            clear_during_snapshot_read_local();
+            return;
+        }
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
                 if (KvObj* object = ptr_of(tab_[t][i])) {
-                    read_local_slot_store(&tab_[t][i], kTombBit);
                     retire_obj(object);
+                    tab_[t][i] = kTombBit;
                     live_[t]--;
                     tombs_[t]++;
                 }
@@ -1568,6 +1560,10 @@ private:
     }
 
     void snapshot_progress_record(uint32_t& budget) {
+        if (__builtin_expect(read_local_enabled_, false)) {
+            snapshot_progress_record_read_local(budget);
+            return;
+        }
         SnapshotRecordState& state = snapshot_record_;
         const KvObj* object = state.value.object;
         if (!state.active || !object) { snapshot_failed_ = true; return; }
@@ -1615,10 +1611,7 @@ private:
         const bool preimage = state.preimage;
         const uint32_t slot = state.slot;
         snapshot_record_ = {};
-        if (preimage) {
-            ReadLocalMutationGuard mutation(*this);
-            read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
-        }
+        if (preimage) tab_[1][slot] |= kTombBit;
         else          snapshot_pos_++;
     }
 
@@ -1804,16 +1797,24 @@ private:
     uint8_t lru_clock() const { return cached_lru_clock_; }
 
     void initialize_meta(KvObj* o) {
+        if (__builtin_expect(read_local_enabled_, false)) {
+            initialize_meta_read_local(o);
+            return;
+        }
         if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            write_eviction_meta(o, lru_clock());
+            o->set_eviction_meta(lru_clock());
         } else if (maxmemory_policy_is_lfu(maxmemory_policy_)) {
-            write_eviction_meta(o, 5);
+            o->set_eviction_meta(5);
         }
     }
 
     void touch(KvObj* o) {
+        if (__builtin_expect(read_local_enabled_, false)) {
+            touch_read_local(o);
+            return;
+        }
         if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            write_eviction_meta(o, lru_clock());
+            o->set_eviction_meta(lru_clock());
             return;
         }
         if (!maxmemory_policy_is_lfu(maxmemory_policy_)) return;
@@ -1824,7 +1825,7 @@ private:
         const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
         const uint32_t denominator = base * 10 + 1;
         if (count < 31 && next_random() % denominator == 0) count++;
-        write_eviction_meta(o, count);
+        o->set_eviction_meta(count);
     }
 
     KvObj* random_allkeys_candidate() {
@@ -1857,6 +1858,8 @@ private:
     }
 
     KvObj* choose_victim(Slice protected_key) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return choose_victim_read_local(protected_key);
         KvObj* best = nullptr;
         KvObj* seen[64];
         uint32_t seen_count = 0;
@@ -1890,7 +1893,7 @@ private:
                     // With only five free header bits, sampling is also the bounded aging event:
                     // one count is forgotten whenever a key competes for eviction.
                     uint8_t count = candidate->eviction_meta();
-                    if (count) write_eviction_meta(candidate, --count);
+                    if (count) candidate->set_eviction_meta(--count);
                     score = (static_cast<uint64_t>(31 - count) << 56) |
                             (next_random() & ((1ULL << 56) - 1));
                     break;
@@ -1958,10 +1961,13 @@ private:
     }
 
     void install_empty_table(int t, uint64_t* table, uint32_t cap) {
-        ReadLocalMutationGuard mutation(*this);
-        read_local_topology_store(&tab_[t], table);
-        read_local_topology_store(&cap_[t], cap);
-        read_local_topology_store(&mask_[t], cap - 1);
+        if (__builtin_expect(read_local_enabled_, false)) {
+            install_empty_table_read_local(t, table, cap);
+            return;
+        }
+        tab_[t]   = table;
+        cap_[t]   = cap;
+        mask_[t]  = cap - 1;
         live_[t]  = 0;
         tombs_[t] = 0;
     }
@@ -2094,6 +2100,446 @@ private:
     }
 
     bool insert_into(int t, uint64_t h, KvObj* o, bool track_expire) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return insert_into_read_local(t, h, o, track_expire);
+        const uint16_t tag = tag_of(h);
+        const Slice    key = o->key();
+        uint32_t i = slot_start(t, h);
+        int32_t  first_tomb = -1;
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) {
+                if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
+                else                 { tab_[t][i] = make_word(tag, o); }
+                live_[t]++;
+                obj_bytes_ += kvobj_size(o);
+                if (track_expire) {
+                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    else                                  expires_.erase(h);
+                }
+                return true;
+            }
+            KvObj* cur = ptr_of(w);
+            if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            else if (tag_of_word(w) == tag && cur->key() == key) {
+                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
+                    cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
+                    (*expired_counter_)++;
+                retire_obj(cur);                            // replace in place; live_ unchanged
+                obj_bytes_ += kvobj_size(o);
+                tab_[t][i] = make_word(tag, o);
+                if (track_expire) {
+                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    else                                  expires_.erase(h);
+                }
+                return true;
+            }
+            i = (i + 1) & mask_[t];
+        }
+        return false;   // unreachable while the load factor holds
+    }
+
+    static void notify_emit(FlatNotifySink* sink, uint32_t cls,
+                            NotifyEventId event, Slice key) {
+        if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit)
+            sink->emit(sink->context, cls, event, key);
+    }
+
+    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return erase_in_read_local(t, h, key, was_expired);
+        if (!tab_[t]) return false;
+        const uint16_t tag = tag_of(h);
+        uint32_t i = slot_start(t, h);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t w = tab_[t][i];
+            if (w == 0) return false;
+            KvObj* o = ptr_of(w);
+            if (o && tag_of_word(w) == tag && o->key() == key) {
+                if (was_expired) {
+                    *was_expired = (o->flags & KvObjFlags::HasTtl) &&
+                                   o->expire_at_ms() <= cached_now_ms_;
+                }
+                retire_obj(o);
+                tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
+                live_[t]--; tombs_[t]++;
+                expires_.erase(h);
+                return true;
+            }
+            i = (i + 1) & mask_[t];
+        }
+        return false;
+    }
+
+    TtlResult rewrite_expire(uint64_t h, KvObj* old, int64_t expire_at_ms) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return rewrite_expire_read_local(h, old, expire_at_ms);
+        KvObj* replacement = kvobj_reheader(old, expire_at_ms);
+        if (!replacement) return TtlResult::Oom;
+        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
+
+        const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
+                                      static_cast<Enc>(old->enc) == Enc::Extern;
+        if (moves_collection) {
+            old->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+            replacement->flags |= KvObjFlags::OwnsExtern;
+        }
+        const InsertResult inserted = insert(h, replacement);
+        if (inserted != InsertResult::Inserted) {
+            if (moves_collection) {
+                old->flags |= KvObjFlags::OwnsExtern;
+                replacement->flags &= static_cast<uint8_t>(~KvObjFlags::OwnsExtern);
+            }
+            kvobj_free(replacement);
+            return inserted == InsertResult::MaxmemoryOom
+                ? TtlResult::MaxmemoryOom : TtlResult::Oom;
+        }
+        return TtlResult::Updated;
+    }
+
+    OverwriteResult try_overwrite_read_local(uint64_t, Slice, Slice) {
+        // A published string is immutable for the whole grace period. Make the caller use the
+        // ordinary allocate-and-replace path instead of changing its value bytes in place.
+        return OverwriteResult::NotPossible;
+    }
+
+    bool snapshot_mark_read_local(int32_t shard_id, int64_t cut_ms) {
+        if (!snapshot_prepared_ || snapshot_active_ || rehashing()) return false;
+        ReadLocalMutationGuard mutation(*this);
+        read_local_topology_store(&tab_[1], tab_[0]);
+        read_local_topology_store(&cap_[1], cap_[0]);
+        read_local_topology_store(&mask_[1], mask_[0]);
+        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        read_local_topology_store(&tab_[0], snapshot_new_tab_);
+        read_local_topology_store(&cap_[0], snapshot_new_cap_);
+        read_local_topology_store(&mask_[0], snapshot_new_cap_ - 1);
+        live_[0] = tombs_[0] = 0;
+        snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
+        rehash_pos_ = 0;
+        snapshot_active_ = true;
+        snapshot_shard_id_ = shard_id;
+        snapshot_cut_ms_ = cut_ms;
+        snapshot_pos_ = 0;
+        snapshot_sequence_ = 0;
+        snapshot_failed_ = false;
+        snapshot_finished_ = false;
+        snapshot_build_ = make_snapshot_chunk(SnapshotFrameBegin);
+        snapshot_ready_.reset();
+        snapshot_record_ = {};
+        return snapshot_build_ != nullptr;
+    }
+
+    SnapshotWriteResult snapshot_prepare_write_read_local(uint64_t h, Slice key) {
+        if (!snapshot_active_) return SnapshotWriteResult::Ready;
+        if (snapshot_failed_) return SnapshotWriteResult::Error;
+        if (find_in(0, h, key)) return SnapshotWriteResult::Ready;
+        uint32_t slot = 0;
+        KvObj* object = find_slot_in(1, h, key, slot);
+        if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
+            return SnapshotWriteResult::Ready;
+        if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
+            ReadLocalMutationGuard mutation(*this);
+            read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
+            return SnapshotWriteResult::Ready;
+        }
+        if (snapshot_record_.active) return SnapshotWriteResult::Pending;
+        if (!snapshot_start_record(object, slot, true)) return SnapshotWriteResult::Error;
+        snapshot_preimages_++;
+        return SnapshotWriteResult::Pending;
+    }
+
+    uint32_t snapshot_progress_read_local(uint32_t byte_budget, uint32_t slot_budget) {
+        if (!snapshot_active_ || snapshot_failed_ || snapshot_ready_) return 0;
+        uint32_t work = 0;
+        while (byte_budget && !snapshot_ready_ && !snapshot_failed_) {
+            if (snapshot_record_.active) {
+                const uint32_t before = byte_budget;
+                snapshot_progress_record_read_local(byte_budget);
+                work += before - byte_budget;
+                if (snapshot_record_.active || snapshot_ready_) break;
+                continue;
+            }
+            if (snapshot_pos_ >= cap_[1]) {
+                snapshot_finish_stream();
+                break;
+            }
+            if (!slot_budget) break;
+            const uint32_t slot = snapshot_pos_;
+            const uint64_t word = tab_[1][slot];
+            KvObj* object = ptr_of(word);
+            slot_budget--; work++;
+            if (!object) { snapshot_pos_++; continue; }
+            if (word & kTombBit) {
+                ReadLocalMutationGuard mutation(*this);
+                read_local_slot_store(&tab_[1][slot], word & ~kTombBit);
+                snapshot_pos_++;
+                continue;
+            }
+            if ((object->flags & KvObjFlags::HasTtl) &&
+                object->expire_at_ms() <= snapshot_cut_ms_) {
+                snapshot_pos_++;
+                continue;
+            }
+            if (!snapshot_start_record(object, slot, false)) break;
+        }
+        return work;
+    }
+
+    void snapshot_progress_record_read_local(uint32_t& budget) {
+        SnapshotRecordState& state = snapshot_record_;
+        const KvObj* object = state.value.object;
+        if (!state.active || !object) { snapshot_failed_ = true; return; }
+
+        if (state.header_offset < kSnapshotRecordHeader) {
+            const uint32_t n = snapshot_emit(state.header + state.header_offset,
+                                             kSnapshotRecordHeader - state.header_offset, budget);
+            state.header_offset += n;
+            if (state.header_offset != kSnapshotRecordHeader || snapshot_ready_) return;
+        }
+        if (state.key_offset < object->klen()) {
+            const uint32_t n = snapshot_emit(
+                reinterpret_cast<const uint8_t*>(object->key_ptr()) + state.key_offset,
+                object->klen() - state.key_offset, budget);
+            state.key_offset += n;
+            if (state.key_offset != object->klen() || snapshot_ready_) return;
+        }
+        while (state.value.offset < state.value.total && budget && !snapshot_ready_) {
+            if (!snapshot_build_) snapshot_build_ = make_snapshot_chunk(0);
+            if (!snapshot_build_) return;
+            const size_t room = kSnapshotChunkBytes - snapshot_build_->bytes.size();
+            const size_t capacity = std::min<size_t>(room, budget);
+            const size_t old_size = snapshot_build_->bytes.size();
+            try {
+                snapshot_build_->bytes.resize(old_size + capacity);
+            } catch (const std::bad_alloc&) {
+                snapshot_failed_ = true;
+                return;
+            }
+            size_t written = 0;
+            const SnapshotHookStatus status = state.hooks.read_save(
+                state.value, snapshot_build_->bytes.data() + old_size, capacity, written);
+            if (status != SnapshotHookStatus::Ok || written > capacity ||
+                (written == 0 && state.value.offset < state.value.total)) {
+                snapshot_build_->bytes.resize(old_size);
+                snapshot_failed_ = true;
+                return;
+            }
+            snapshot_build_->bytes.resize(old_size + written);
+            budget -= static_cast<uint32_t>(written);
+            if (snapshot_build_->bytes.size() == kSnapshotChunkBytes) snapshot_seal(0);
+        }
+        if (state.value.offset != state.value.total || snapshot_ready_) return;
+
+        const bool preimage = state.preimage;
+        const uint32_t slot = state.slot;
+        snapshot_record_ = {};
+        if (preimage) {
+            ReadLocalMutationGuard mutation(*this);
+            read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
+        } else {
+            snapshot_pos_++;
+        }
+    }
+
+    TtlResult set_expire_read_local(uint64_t h, Slice key, int64_t expire_at_ms) {
+        KvObj* old = find(h, key);
+        if (!old) return TtlResult::Missing;
+        return rewrite_expire_read_local(h, old, expire_at_ms);
+    }
+
+    TtlResult set_expire_notify_read_local(uint64_t h, Slice key, int64_t expire_at_ms,
+                                           FlatNotifySink* sink) {
+        KvObj* old = find_notify(h, key, sink);
+        if (!old) return TtlResult::Missing;
+        return rewrite_expire_read_local(h, old, expire_at_ms);
+    }
+
+    InsertResult insert_read_local(uint64_t h, KvObj* o) {
+        const bool capturing = rehashing() && snapshot_active_;
+        if (rehashing()) {
+            if (!capturing) rehash_step_read_local();
+        } else {
+            if (!maybe_start_grow()) return InsertResult::Failed;
+        }
+        if (static_cast<uint64_t>(live_[0]) + tombs_[0] + 1 >= cap_[0] &&
+            snapshot_prepared_ &&
+            !find_in(0, h, o->key())) return InsertResult::Failed;
+        if (capturing) {
+            const bool exists = find_in(0, h, o->key()) || find_in(1, h, o->key());
+            if (!exists && static_cast<uint64_t>(live_[0]) + tombs_[0] + live_[1] + 1 >=
+                               cap_[0])
+                return InsertResult::Failed;
+        }
+        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
+            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
+            if (o->eviction_meta() == 0) initialize_meta_read_local(o);
+        }
+        ReadLocalMutationGuard mutation(*this);
+        if (rehashing()) {
+            bool expired = false;
+            if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
+                (*expired_counter_)++;
+        }
+        return insert_into_read_local(0, h, o, true)
+            ? InsertResult::Inserted : InsertResult::Failed;
+    }
+
+    bool erase_read_local(uint64_t h, Slice key) {
+        ReadLocalMutationGuard mutation(*this);
+        if (rehashing() && !snapshot_active_) rehash_step_read_local();
+        bool expired = false;
+        if (erase_in_read_local(0, h, key, &expired)) {
+            maybe_start_shrink();
+            if (expired && expired_counter_) (*expired_counter_)++;
+            return !expired;
+        }
+        if (rehashing() && erase_in_read_local(1, h, key, &expired)) {
+            maybe_start_shrink();
+            if (expired && expired_counter_) (*expired_counter_)++;
+            return !expired;
+        }
+        return false;
+    }
+
+    void clear_read_local() {
+        uint64_t* fresh = allocate_table(1024);
+        ReadLocalMutationGuard mutation(*this);
+        for (int t = 0; t < 2; t++) {
+            if (!tab_[t]) continue;
+            for (uint32_t i = 0; i < cap_[t]; i++) {
+                if (KvObj* object = ptr_of(tab_[t][i])) {
+                    read_local_slot_store(&tab_[t][i], kTombBit);
+                    retire_obj_read_local(object);
+                }
+            }
+            if (t == 0 && !fresh) {
+                for (uint32_t i = 0; i < cap_[0]; i++)
+                    read_local_slot_store(&tab_[0][i], 0);
+                live_[0] = tombs_[0] = 0;
+                continue;
+            }
+            uint64_t* retired = tab_[t];
+            read_local_topology_store(&tab_[t], static_cast<uint64_t*>(nullptr));
+            read_local_topology_store(&cap_[t], uint32_t{0});
+            read_local_topology_store(&mask_[t], uint32_t{0});
+            live_[t] = tombs_[t] = 0;
+            retire_table_read_local(retired);
+        }
+        expires_.clear();
+        field_expires_.clear();
+        field_ttl_gate_ = 0;
+        rehash_pos_ = 0;
+        if (fresh) install_empty_table_read_local(0, fresh, 1024);
+    }
+
+    void clear_during_snapshot_read_local() {
+        ReadLocalMutationGuard mutation(*this);
+        for (int t = 0; t < 2; t++) {
+            if (!tab_[t]) continue;
+            for (uint32_t i = 0; i < cap_[t]; i++) {
+                if (KvObj* object = ptr_of(tab_[t][i])) {
+                    read_local_slot_store(&tab_[t][i], kTombBit);
+                    retire_obj_read_local(object);
+                    live_[t]--;
+                    tombs_[t]++;
+                }
+            }
+        }
+        expires_.clear();
+        field_expires_.clear();
+        field_ttl_gate_ = 0;
+    }
+
+    void initialize_meta_read_local(KvObj* o) {
+        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
+            write_eviction_meta_read_local(o, lru_clock());
+        } else if (maxmemory_policy_is_lfu(maxmemory_policy_)) {
+            write_eviction_meta_read_local(o, 5);
+        }
+    }
+
+    void touch_read_local(KvObj* o) {
+        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
+            write_eviction_meta_read_local(o, lru_clock());
+            return;
+        }
+        if (!maxmemory_policy_is_lfu(maxmemory_policy_)) return;
+
+        uint8_t count = o->eviction_meta();
+        if (count == 0) count = 5;
+        const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
+        const uint32_t denominator = base * 10 + 1;
+        if (count < 31 && next_random() % denominator == 0) count++;
+        write_eviction_meta_read_local(o, count);
+    }
+
+    KvObj* choose_victim_read_local(Slice protected_key) {
+        KvObj* best = nullptr;
+        KvObj* seen[64];
+        uint32_t seen_count = 0;
+        uint64_t best_score = 0;
+        for (uint32_t i = 0; i < maxmemory_samples_; i++) {
+            KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
+                ? random_volatile_candidate() : random_allkeys_candidate();
+            if (!candidate || candidate->key() == protected_key) continue;
+            if (atomic_has_record(hash_key(candidate->key()), candidate->key())) continue;
+            bool duplicate = false;
+            for (uint32_t j = 0; j < seen_count; j++)
+                if (seen[j] == candidate) { duplicate = true; break; }
+            if (duplicate) continue;
+            seen[seen_count++] = candidate;
+
+            uint64_t score = 0;
+            switch (maxmemory_policy_) {
+                case MaxmemoryPolicy::AllKeysRandom:
+                case MaxmemoryPolicy::VolatileRandom:
+                    score = next_random();
+                    break;
+                case MaxmemoryPolicy::AllKeysLru:
+                case MaxmemoryPolicy::VolatileLru: {
+                    const uint8_t age = static_cast<uint8_t>(
+                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
+                    score = (static_cast<uint64_t>(age) << 56) |
+                            (next_random() & ((1ULL << 56) - 1));
+                    break;
+                }
+                case MaxmemoryPolicy::AllKeysLfu:
+                case MaxmemoryPolicy::VolatileLfu: {
+                    uint8_t count = candidate->eviction_meta();
+                    if (count) write_eviction_meta_read_local(candidate, --count);
+                    score = (static_cast<uint64_t>(31 - count) << 56) |
+                            (next_random() & ((1ULL << 56) - 1));
+                    break;
+                }
+                case MaxmemoryPolicy::VolatileTtl:
+                    score = std::numeric_limits<uint64_t>::max() -
+                            static_cast<uint64_t>(candidate->expire_at_ms());
+                    break;
+                case MaxmemoryPolicy::NoEviction:
+                    return nullptr;
+            }
+            if (!best || score > best_score) { best = candidate; best_score = score; }
+        }
+        if (best) {
+            const bool expired = (best->flags & KvObjFlags::HasTtl) &&
+                                 best->expire_at_ms() <= cached_now_ms_;
+            notify_flat_store_emit(this,
+                expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
+                expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
+        }
+        return best;
+    }
+
+    void install_empty_table_read_local(int t, uint64_t* table, uint32_t cap) {
+        ReadLocalMutationGuard mutation(*this);
+        read_local_topology_store(&tab_[t], table);
+        read_local_topology_store(&cap_[t], cap);
+        read_local_topology_store(&mask_[t], cap - 1);
+        live_[t]  = 0;
+        tombs_[t] = 0;
+    }
+
+    bool insert_into_read_local(int t, uint64_t h, KvObj* o, bool track_expire) {
         ReadLocalMutationGuard mutation(*this);
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
@@ -2122,10 +2568,10 @@ private:
                 if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
                     cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
                     (*expired_counter_)++;
-                // Publish the replacement before the old object receives its QSBR stamp. A reader
-                // that starts after the stamp can then never acquire the displaced pointer.
+                // An acquiring reader that starts after the retirement stamp must no longer be
+                // able to acquire the displaced pointer.
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
-                retire_obj(cur);                            // replace in place; live_ unchanged
+                retire_obj_read_local(cur);
                 obj_bytes_ += kvobj_size(o);
                 if (track_expire) {
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
@@ -2135,16 +2581,10 @@ private:
             }
             i = (i + 1) & mask_[t];
         }
-        return false;   // unreachable while the load factor holds
+        return false;
     }
 
-    static void notify_emit(FlatNotifySink* sink, uint32_t cls,
-                            NotifyEventId event, Slice key) {
-        if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit)
-            sink->emit(sink->context, cls, event, key);
-    }
-
-    bool erase_in(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
+    bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
         ReadLocalMutationGuard mutation(*this);
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
@@ -2158,8 +2598,8 @@ private:
                     *was_expired = (o->flags & KvObjFlags::HasTtl) &&
                                    o->expire_at_ms() <= cached_now_ms_;
                 }
-                read_local_slot_store(&tab_[t][i], kTombBit); // DEAD: non-zero, ptr == 0
-                retire_obj(o);
+                read_local_slot_store(&tab_[t][i], kTombBit);
+                retire_obj_read_local(o);
                 live_[t]--; tombs_[t]++;
                 expires_.erase(h);
                 return true;
@@ -2169,7 +2609,7 @@ private:
         return false;
     }
 
-    TtlResult rewrite_expire(uint64_t h, KvObj* old, int64_t expire_at_ms) {
+    TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
         ReadLocalMutationGuard mutation(*this);
@@ -2178,16 +2618,17 @@ private:
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
         if (moves_collection) {
-            write_object_flags(old, static_cast<uint8_t>(
+            write_object_flags_read_local(old, static_cast<uint8_t>(
                 old->flags & static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
-            write_object_flags(replacement,
-                               static_cast<uint8_t>(replacement->flags | KvObjFlags::OwnsExtern));
+            write_object_flags_read_local(
+                replacement, static_cast<uint8_t>(replacement->flags | KvObjFlags::OwnsExtern));
         }
-        const InsertResult inserted = insert(h, replacement);
+        const InsertResult inserted = insert_read_local(h, replacement);
         if (inserted != InsertResult::Inserted) {
             if (moves_collection) {
-                write_object_flags(old, static_cast<uint8_t>(old->flags | KvObjFlags::OwnsExtern));
-                write_object_flags(replacement, static_cast<uint8_t>(
+                write_object_flags_read_local(
+                    old, static_cast<uint8_t>(old->flags | KvObjFlags::OwnsExtern));
+                write_object_flags_read_local(replacement, static_cast<uint8_t>(
                     replacement->flags & static_cast<uint8_t>(~KvObjFlags::OwnsExtern)));
             }
             kvobj_free(replacement);
@@ -2197,23 +2638,63 @@ private:
         return TtlResult::Updated;
     }
 
-    template <typename T>
-    void read_local_topology_store(T* location, T value) {
-        if (__builtin_expect(read_local_enabled_, false)) {
-            if (!read_local_mutation_depth_) std::abort();
-            __atomic_store_n(location, value, __ATOMIC_RELEASE);
-        } else {
-            *location = value;
+    void retire_obj_read_local(KvObj* object) {
+        const size_t bytes = kvobj_size(object);
+        obj_bytes_ -= bytes;
+        read_local_retire_sink_.retire(
+            this, object, bytes, &FlatStore::read_local_reclaim_object);
+    }
+
+    bool start_rehash_read_local(uint32_t newcap) {
+        if (rehashing()) return true;
+        if (newcap < kMinCap) newcap = kMinCap;
+        uint64_t* fresh = allocate_table(newcap);
+        if (!fresh) return false;
+        ReadLocalMutationGuard mutation(*this);
+        if (rehash_counter_) (*rehash_counter_)++;
+        read_local_topology_store(&tab_[1], tab_[0]);
+        read_local_topology_store(&cap_[1], cap_[0]);
+        read_local_topology_store(&mask_[1], mask_[0]);
+        live_[1] = live_[0]; tombs_[1] = tombs_[0];
+        install_empty_table_read_local(0, fresh, newcap);
+        rehash_pos_ = 0;
+        return true;
+    }
+
+    void rehash_step_read_local() {
+        ReadLocalMutationGuard mutation(*this);
+        uint32_t budget = kRehashSlotsPerOp;
+        while (budget && rehash_pos_ < cap_[1]) {
+            const uint64_t w = tab_[1][rehash_pos_];
+            if (KvObj* o = ptr_of(w)) {
+                read_local_slot_store(&tab_[1][rehash_pos_], kTombBit);
+                live_[1]--; tombs_[1]++;
+                obj_bytes_ -= kvobj_size(o);
+                insert_into_read_local(0, hash_key(o->key()), o, false);
+            }
+            rehash_pos_++;
+            budget--;
+        }
+        if (rehash_pos_ >= cap_[1]) {
+            uint64_t* retired = tab_[1];
+            read_local_topology_store(&tab_[1], static_cast<uint64_t*>(nullptr));
+            read_local_topology_store(&cap_[1], uint32_t{0});
+            read_local_topology_store(&mask_[1], uint32_t{0});
+            live_[1] = 0; tombs_[1] = 0;
+            rehash_pos_ = 0;
+            retire_table_read_local(retired);
         }
     }
 
+    template <typename T>
+    void read_local_topology_store(T* location, T value) {
+        if (!read_local_enabled_ || !read_local_mutation_depth_) std::abort();
+        __atomic_store_n(location, value, __ATOMIC_RELEASE);
+    }
+
     void read_local_slot_store(uint64_t* location, uint64_t value) {
-        if (__builtin_expect(read_local_enabled_, false)) {
-            if (!read_local_mutation_depth_) std::abort();
-            __atomic_store_n(location, value, __ATOMIC_RELEASE);
-        } else {
-            *location = value;
-        }
+        if (!read_local_enabled_ || !read_local_mutation_depth_) std::abort();
+        __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
     static uint64_t read_local_slot_load(const uint64_t* location) {
@@ -2248,18 +2729,12 @@ private:
         return nullptr;
     }
 
-    void write_eviction_meta(KvObj* object, uint8_t meta) {
-        if (__builtin_expect(read_local_enabled_, false))
-            object->set_eviction_meta_atomic(meta);
-        else
-            object->set_eviction_meta(meta);
+    void write_eviction_meta_read_local(KvObj* object, uint8_t meta) {
+        object->set_eviction_meta_atomic(meta);
     }
 
-    void write_object_flags(KvObj* object, uint8_t flags) {
-        if (__builtin_expect(read_local_enabled_, false))
-            object->store_flags_atomic(flags);
-        else
-            object->flags = flags;
+    void write_object_flags_read_local(KvObj* object, uint8_t flags) {
+        object->store_flags_atomic(flags);
     }
 
     static void read_local_reclaim_table(void*, void* payload, size_t) {
@@ -2277,14 +2752,10 @@ private:
         if (!store->atomic_recycle_value(object)) store->destroy_retired_obj(object, bytes);
     }
 
-    void retire_table(uint64_t* table) {
+    void retire_table_read_local(uint64_t* table) {
         if (!table) return;
-        if (__builtin_expect(read_local_enabled_, false)) {
-            read_local_retire_sink_.retire(
-                this, table, 0, &FlatStore::read_local_reclaim_table);
-            return;
-        }
-        std::free(table);
+        read_local_retire_sink_.retire(
+            this, table, 0, &FlatStore::read_local_reclaim_table);
     }
 
     void read_local_mutation_begin() {
@@ -2321,7 +2792,7 @@ private:
     }
 
     void read_local_pending_publish(AtomicEntry& entry) {
-        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (!read_local_enabled_) std::abort();
         if (entry.read_local_pending_published) std::abort();
         if (read_local_pending_count_ == UINT32_MAX) std::abort();
         if (read_local_pending_count_++ == 0) {
@@ -2360,15 +2831,19 @@ private:
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
-    void retire_obj(KvObj* object) {
-        const size_t bytes = kvobj_size(object);
+    void retire_obj(KvObj* o) {
+        const size_t bytes = kvobj_size(o);
         obj_bytes_ -= bytes;
-        if (__builtin_expect(read_local_enabled_, false)) {
-            read_local_retire_sink_.retire(
-                this, object, bytes, &FlatStore::read_local_reclaim_object);
+        if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
+        const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
+                              ? o->str_value().p : nullptr;
+        const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
+        if (at != kNoBorrow) {
+            borrows_[at].retired = o;
+            pending_bytes_ += bytes;
             return;
         }
-        destroy_retired_obj(object, bytes);
+        kvobj_free(o);
     }
 
     // ---- incremental resize -----------------------------------------------------------------
@@ -2402,15 +2877,13 @@ private:
     // Demote the current table to the old slot and install a fresh one. NOTHING is copied here —
     // that is the whole point; the slot-word migration is spread across later operations.
     bool start_rehash(uint32_t newcap) {
+        if (__builtin_expect(read_local_enabled_, false)) return start_rehash_read_local(newcap);
         if (rehashing()) return true;                       // one at a time; finish before starting
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
-        ReadLocalMutationGuard mutation(*this);
         if (rehash_counter_) (*rehash_counter_)++;
-        read_local_topology_store(&tab_[1], tab_[0]);
-        read_local_topology_store(&cap_[1], cap_[0]);
-        read_local_topology_store(&mask_[1], mask_[0]);
+        tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         install_empty_table(0, fresh, newcap);
         rehash_pos_ = 0;
@@ -2421,7 +2894,10 @@ private:
     // of every operation, so the cost is amortised and no single operation stalls. The KvObjs those
     // words point at are not touched.
     void rehash_step() {
-        ReadLocalMutationGuard mutation(*this);
+        if (__builtin_expect(read_local_enabled_, false)) {
+            rehash_step_read_local();
+            return;
+        }
         uint32_t budget = kRehashSlotsPerOp;
         while (budget && rehash_pos_ < cap_[1]) {
             const uint64_t w = tab_[1][rehash_pos_];
@@ -2429,7 +2905,7 @@ private:
                 // TOMBSTONE, not EMPTY. Writing 0 here would terminate any probe run passing
                 // through this slot, making every key that probed past it unreachable in the old
                 // table for the rest of the rehash — a silent, transient, load-dependent miss.
-                read_local_slot_store(&tab_[1][rehash_pos_], kTombBit);
+                tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
                 obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
                 insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
@@ -2438,13 +2914,9 @@ private:
             budget--;
         }
         if (rehash_pos_ >= cap_[1]) {
-            uint64_t* retired = tab_[1];
-            read_local_topology_store(&tab_[1], static_cast<uint64_t*>(nullptr));
-            read_local_topology_store(&cap_[1], uint32_t{0});
-            read_local_topology_store(&mask_[1], uint32_t{0});
-            live_[1] = 0; tombs_[1] = 0;
+            std::free(tab_[1]);
+            tab_[1] = nullptr; cap_[1] = 0; mask_[1] = 0; live_[1] = 0; tombs_[1] = 0;
             rehash_pos_ = 0;
-            retire_table(retired);
         }
     }
 
