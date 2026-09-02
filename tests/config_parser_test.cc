@@ -241,6 +241,21 @@ int main() {
         read_local_split.thread_mode != tomo::ThreadMode::Split ||
         read_local_split.read_local != 1)
         fail("read-local split-mode inert setting was rejected");
+    auto parses_read_local_fallback_cell = [](const char* overlap, uint32_t expected) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        const std::vector<const char*> args = {
+            "--thread-mode", "1s", "--overlap", overlap, "--read-local", "1",
+        };
+        return tomo::parse_config_args(args, cfg, state, 2, "test") ==
+                   tomo::kConfigParsed &&
+               tomo::validate_config(cfg) == tomo::kConfigParsed &&
+               cfg.thread_mode == tomo::ThreadMode::Fused &&
+               cfg.overlap == expected && cfg.read_local == 1;
+    };
+    if (!parses_read_local_fallback_cell("1", 1) ||
+        !parses_read_local_fallback_cell("2", 2))
+        fail("read-local overlap fallback cells were rejected");
 
     tomo::Config smt;
     tomo::ConfigParseState smt_state;

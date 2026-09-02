@@ -212,7 +212,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (self.stop_flag().load(std::memory_order_relaxed)) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
-            if (cfg.read_local)
+            if (srv.read_local_enabled())
                 self.publish_read_local_parked(srv.read_local_epoch());
             self.publish_ready_role(Role::Idle);
         });
@@ -275,7 +275,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     for (std::thread& worker : pool) worker.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
 
-    if (cfg.read_local) {
+    if (srv.read_local_enabled()) {
         // All fused readers have joined, so every queued callback is immediately safe. Empty the
         // bounded lists and disable their store hooks BEFORE atomic teardown: collapse can detach
         // more than one full list of values, and no joined thread remains to advance a grace tick.

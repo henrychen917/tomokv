@@ -1845,7 +1845,8 @@ private:
                 // A read-local fallback reached this FIFO after its own or an older group member's
                 // SPSC refusal. Executing it directly would jump the older queued tasks. Retry the
                 // tail publication and leave it stale until room exists.
-                if (task.client && task.client->rob().at(task.op_id).read_local()) {
+                if (read_local_enabled_ && task.client &&
+                    task.client->rob().at(task.op_id).read_local()) {
                     if (!post_forwarded_task(task, target)) break;
                     stale_tasks_.pop_front();
                     work++;
