@@ -167,6 +167,33 @@ int main() {
         !rejects({"--lb-cooldown-ms", "-1"}))
         fail("invalid weighted-LB knob grammar was accepted");
 
+    tomo::Config hot_forward;
+    tomo::ConfigParseState hot_forward_state;
+    const std::vector<const char*> hot_forward_args = {"--hot-forward", "1"};
+    if (tomo::parse_config_args(hot_forward_args, hot_forward, hot_forward_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(hot_forward) != tomo::kConfigParsed ||
+        hot_forward.hot_forward != 1)
+        fail("hot-forward enabled grammar differs");
+    tomo::Config hot_forward_default;
+    if (hot_forward_default.hot_forward != 0)
+        fail("hot-forward default is not off");
+    if (!rejects({"--hot-forward", "2"}) ||
+        !rejects({"--hot-forward", "yes"}) ||
+        !rejects({"--hot-forward", "-1"}) ||
+        !rejects({"--hot-forward", ""}))
+        fail("invalid hot-forward grammar was accepted");
+    tomo::Config hot_forward_unsampled;
+    tomo::ConfigParseState hot_forward_unsampled_state;
+    const std::vector<const char*> hot_forward_unsampled_args = {
+        "--hot-forward", "1", "--lb-sample-rate", "0",
+    };
+    if (tomo::parse_config_args(hot_forward_unsampled_args, hot_forward_unsampled,
+                                hot_forward_unsampled_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(hot_forward_unsampled) != tomo::kConfigError)
+        fail("hot-forward without detector sampling was accepted");
+
     tomo::Config flipctl;
     tomo::ConfigParseState flipctl_state;
     const std::vector<const char*> flipctl_args = {

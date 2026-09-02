@@ -328,6 +328,8 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.client_lb), true});
     g_config.push_back({"lb-sample-rate", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_sample_rate), true});
+    g_config.push_back({"hot-forward", ConfigKind::Unsigned,
+                        std::to_string(cfg.hot_forward), true});
     g_config.push_back({"lb-age-sample-rate", ConfigKind::Unsigned,
                         std::to_string(cfg.lb_age_sample_rate), true});
     g_config.push_back({"lb-tick-ms", ConfigKind::Unsigned,

@@ -242,6 +242,9 @@ struct Config {
     // its topology grouping — that property is what lets independent benchmark lanes share one box,
     // and its absence was a real bug (threads silently floated instead of erroring).
     bool     pin_threads    = true;
+    // Narrow boot-only GET forwarding. Kept in Config's existing post-bool padding so the layout
+    // and every following boot-latched offset remain unchanged. 0 allocates nothing.
+    uint8_t  hot_forward    = 0;
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
     // The two feature gates independently remove their counters, EWMA/census and autonomous
@@ -711,6 +714,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--hot-forward")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value > 1) {
+                std::fprintf(stderr, "--hot-forward wants 0 or 1\n");
+                return kConfigError;
+            }
+            cfg.hot_forward = static_cast<uint8_t>(value);
+        }
         else if (!std::strcmp(a, "--lb-age-sample-rate")) {
             if (!cfg_parse_u32(next(nullptr), cfg.lb_age_sample_rate)) {
                 std::fprintf(stderr,
@@ -1053,6 +1064,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
                         "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
+                        "  hot-key reads: --hot-forward 0|1 (boot-only; default off; requires "
+                        "lb-sample-rate > 0)\n"
                         "  flip controller: --flip-auto 0|1 --flip-auto-band -1|PERCENT\n"
                         "    --flip-work-window N       commands per fingerprint sample (0=off)\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
@@ -1115,6 +1128,10 @@ inline int validate_config(const Config& cfg) {
     if (cfg.thread_mode == ThreadMode::Fused && cfg.flip_auto) {
         std::fprintf(stderr,
                      "--flip-auto is unavailable with --thread-mode fused\n");
+        return kConfigError;
+    }
+    if (cfg.hot_forward && cfg.lb_sample_rate == 0) {
+        std::fprintf(stderr, "--hot-forward 1 requires --lb-sample-rate greater than 0\n");
         return kConfigError;
     }
     if (cfg.databases != 1) {
