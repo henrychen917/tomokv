@@ -503,6 +503,24 @@ public:
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
+    bool read_local_enabled() const {
+        return cfg_.thread_mode == ThreadMode::Fused && cfg_.read_local != 0;
+    }
+    uint64_t read_local_epoch() const {
+        return read_local_epoch_.load(std::memory_order_acquire);
+    }
+    // Retirement uses the returned OLD value as its stamp. The increment makes a subsequent
+    // rotation publication strictly newer, which is the grace test below.
+    uint64_t advance_read_local_epoch() {
+        return read_local_epoch_.fetch_add(1, std::memory_order_acq_rel);
+    }
+    bool read_local_epoch_graced(uint64_t stamp) const {
+        for (const auto& thread : threads_) {
+            if (!thread->parked() && thread->read_local_tick() <= stamp) return false;
+        }
+        return true;
+    }
+
     uint32_t role_count(Role role, bool ready = false) const {
         uint32_t count = 0;
         for (const auto& thread : threads_)
@@ -3126,6 +3144,10 @@ private:
     // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
     // shard-granularity dispatch remains one flat-array load.
     std::atomic<uint32_t> shard_owner_[256] = {};
+
+    // Fused read-local reclamation epoch. Store retirement advances it only while the boot-only
+    // lane is armed; fused rotations publish the current value in their ThreadCtx.
+    std::atomic<uint64_t> read_local_epoch_{1};
 
     // FLIP is a cold, manually driven control-plane transaction.  The stage store is the global
     // dispatch barrier; acknowledgements are tagged with the transaction epoch so a late wakeup

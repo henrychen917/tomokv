@@ -484,6 +484,10 @@ private:
         LoopSignals& sig = self_->sig();
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            if constexpr (Fused) {
+                if (__builtin_expect(srv_->read_local_enabled(), false))
+                    self_->publish_read_local_tick(srv_->read_local_epoch());
+            }
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -624,6 +628,10 @@ private:
             }
 
             Span idle(sig.idle_ns);
+            if constexpr (Fused) {
+                if (__builtin_expect(srv_->read_local_enabled(), false))
+                    self_->publish_read_local_tick(srv_->read_local_epoch());
+            }
             self_->arm_blocked();
             if constexpr (kEp) {
                 // The park. Same 50ms ceiling as the ring wait, and for the same reason: the stop
@@ -642,6 +650,12 @@ private:
                     if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
                     else                         ring_.submit_and_reap();
                 }
+            }
+            if constexpr (Fused) {
+                // Publish while parked is still true. Once clear_blocked() makes this thread an
+                // active reader again, its tick therefore represents the completed wait boundary.
+                if (__builtin_expect(srv_->read_local_enabled(), false))
+                    self_->publish_read_local_tick(srv_->read_local_epoch());
             }
             self_->clear_blocked();
         }

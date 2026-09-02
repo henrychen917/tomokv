@@ -526,6 +526,17 @@ public:
             transfer_in_[i].clear_blocked();
         }
     }
+    bool parked() const { return parked_.load(std::memory_order_acquire); }
+
+    // Fused read-local QSBR publication. A reader publishes once at the coarse rotation boundary,
+    // never per operation. The server compares this tick with a retirement stamp only after an
+    // acquire load (or accepts parked() as an equivalent quiescent state).
+    void publish_read_local_tick(uint64_t tick) {
+        read_local_tick_.store(tick, std::memory_order_release);
+    }
+    uint64_t read_local_tick() const {
+        return read_local_tick_.load(std::memory_order_acquire);
+    }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
     // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
     // "where do I look" hint for the drain path; here we also look at the queues themselves, because
@@ -713,6 +724,7 @@ private:
     void* fused_executor_context_ = nullptr;
     ExecutorProgressFn executor_progress_ = nullptr;
     SnapshotStartFn snapshot_start_ = nullptr;
+    std::atomic<uint64_t> read_local_tick_{0};
 };
 
 }  // namespace tomo
