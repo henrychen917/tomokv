@@ -1,9 +1,9 @@
 // iopipe_pipeline.h -- fixed geometry for the split-IO micro-pipeline experiment.
 //
 // Keep every batch size, buffer count, prefetch window, and schedule entry in this one block.  The
-// lane deliberately has no runtime tuning surface: an operator must measure one static loop shape
-// before any constant is changed.  A stage is batch-granular and returns immediately when its
-// stream buffer is empty; there are no fibers, request schedulers, or per-request stage machines.
+// `--thread-pipeline 1` selects this one static loop shape; the geometry itself is not tunable. A
+// stage is batch-granular and returns immediately when its stream buffer is empty; there are no
+// fibers, request schedulers, or per-request stage machines.
 #pragma once
 #include <array>
 #include <cstdint>

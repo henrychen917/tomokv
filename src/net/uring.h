@@ -267,6 +267,13 @@ public:
     // former shadow counter had no consumer and added a load/add/store to every prepared SQE.
     void note_pending() {}
 
+    // Schedule boundaries occasionally need to know whether a later stage prepared real SQEs.
+    // Query liburing's own tail/head state there instead of restoring the per-SQE shadow counter
+    // removed by the instruction-diet stack.
+    unsigned sq_ready() const {
+        return __builtin_expect(wake_fd_ >= 0, false) ? 0 : io_uring_sq_ready(&r_);
+    }
+
     // Post a completion into ANOTHER thread's ring. This is how an IO thread tells a WB thread that
     // a client has replies to send, without a shared queue or an eventfd round trip.
     bool msg_to(Ring& target, uint64_t tag) {
