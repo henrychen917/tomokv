@@ -7,6 +7,11 @@ aliases for `2s` and `1s`; the new names are the values reported by `INFO Server
 `CONFIG GET` entries. `CONFIG GET overlap` is canonical. For one compatibility release,
 `INFO Server` also emits the old `thread_pipeline` field beside `overlap`.
 
+`--read-local 0|1` is also boot-only and defaults to `0`. A value of `1` arms the local read lane
+described below only for `1s` overlap 0. Every other legal mode/overlap cell accepts the setting but
+keeps reads on the ordinary owner-task path and logs one notice at boot. The setting is exposed by
+`CONFIG GET` and refused by `CONFIG SET`.
+
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary separated IO/executor loops | `t-iopipe` interwoven WB/IFID schedule | rejected |
@@ -43,12 +48,20 @@ Overlap 0 rotates three coarse streams in this order:
 2. consume an executor batch of at most 32 operations;
 3. collect completions and serve at most 16 connections.
 
-Local commands take the same self SPSC task lane as remote commands and are consumed during the
-executor phase. They are not executed inline. Overlap 1 selects the fork's exact `iofused`
-schedule, which overlaps its WB dependency stream and network work around a 128-operation coarse
-executor turn. Overlap 2 selects the exact deep `streams` schedule: independent IFID, EX, and WB
-contexts use its depth gate, one-rotation residual carry, and literal interleave. It is exposed for
-research rather than as a production recommendation.
+With `--read-local 0`, local commands take the same self SPSC task lane as remote commands and are
+consumed during the executor phase; they are not executed inline. With `--read-local 1`, eligible
+plain single-key GETs instead enter a parsing-thread-local queue. The overlap-0 executor phase
+drains that queue immediately after parsing, in the same coarse rotation, and replies still retire
+through the connection ROB and normal write-back path. Reads with an outstanding connection write,
+WATCH or MULTI state, script/scatter context, target-shard atomic work, a missing or typed value, an
+expired value, sequence churn, or a full local lane fall back to the ordinary owner-task path.
+
+Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
+network work around a 128-operation coarse executor turn. Overlap 2 selects the exact deep
+`streams` schedule: independent IFID, EX, and WB contexts use its depth gate, one-rotation residual
+carry, and literal interleave. Read-local is not woven into either schedule in this version, so
+enabling its knob there retains the task path. Overlap 2 is exposed for research rather than as a
+production recommendation.
 
 With no `--place`, `1s` uses every CPU in the process affinity mask. `--place` can select a subset;
 its `ifid@CPU` and `ex@CPU` labels are treated only as CPU selectors because every selected thread

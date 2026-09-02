@@ -19,6 +19,7 @@
 #include <ctime>
 #include <memory>
 #include <mutex>
+#include <new>
 #include <sys/resource.h>
 #include <unordered_map>
 #include <vector>
@@ -125,6 +126,12 @@ struct FlipReport {
     uint32_t client_max = 0;
     uint64_t last_transfers = 0;
     bool moving = false;
+};
+
+// Allocated only for the boot-armed fused read-local lane. The Server keeps only one pointer at its
+// true tail, so baseline member offsets and cache-line sharing remain unchanged.
+struct ReadLocalServerState {
+    std::atomic<uint64_t> epoch{1};
 };
 
 class Server {
@@ -283,6 +290,25 @@ public:
                               cfg.flip_auto ? 0 : cfg.lb_age_sample_rate,
                               cfg.flip_work_window);
             threads_[i]->init_command_counts(command_registry_size());
+        }
+        if (read_local_enabled()) {
+            read_local_state_.reset(new (std::nothrow) ReadLocalServerState);
+            if (!read_local_state_) {
+                std::fprintf(stderr, "fatal: could not allocate read-local server state\n");
+                return false;
+            }
+            for (const auto& thread : threads_) {
+                if (!thread->init_read_local_state()) {
+                    std::fprintf(stderr, "fatal: could not allocate read-local thread state\n");
+                    return false;
+                }
+            }
+            for (const auto& shard : shards_) {
+                if (!shard->store().prepare_read_local()) {
+                    std::fprintf(stderr, "fatal: could not allocate read-local store state\n");
+                    return false;
+                }
+            }
         }
         if (key_lb_signals_enabled()) {
             try {
@@ -502,6 +528,32 @@ public:
     AofManager& aof() { return aof_; }
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
+
+    bool read_local_enabled() const {
+        return cfg_.thread_mode == ThreadMode::Fused && cfg_.overlap == 0 &&
+               cfg_.read_local != 0;
+    }
+    uint64_t read_local_epoch() const {
+        if (!read_local_state_) std::abort();
+        return read_local_state_->epoch.load(std::memory_order_seq_cst);
+    }
+    // Retirement uses the returned OLD value as its stamp. The increment makes a subsequent
+    // rotation publication strictly newer, which is the grace test below.
+    uint64_t advance_read_local_epoch() {
+        if (!read_local_state_) std::abort();
+        return read_local_state_->epoch.fetch_add(1, std::memory_order_seq_cst);
+    }
+    uint64_t read_local_grace_floor() const {
+        uint64_t floor = UINT64_MAX;
+        for (const auto& thread : threads_) {
+            const uint64_t publication = thread->read_local_publication();
+            if (!ThreadCtx::read_local_publication_parked(publication)) {
+                floor = std::min(
+                    floor, ThreadCtx::read_local_publication_tick(publication));
+            }
+        }
+        return floor;
+    }
 
     uint32_t role_count(Role role, bool ready = false) const {
         uint32_t count = 0;
@@ -2623,6 +2675,18 @@ public:
     uint32_t debug_atomic_fanout_defer() const {
         return debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER). Microseconds the destination-validation task of
+    // an atomic-OFF RENAMENX/COPY is PARKED during phase one. Two contenders can therefore both
+    // observe the empty destination before either phase-two install runs. Parking keeps the owner
+    // free to execute the competing task; zero is the production default.
+    void set_debug_atomic_conditional_defer(uint32_t microseconds) {
+        const uint64_t deadline = microseconds
+            ? now_ns() + static_cast<uint64_t>(microseconds) * 1000ull : 0;
+        debug_atomic_conditional_deadline_.store(deadline, std::memory_order_relaxed);
+    }
+    uint64_t debug_atomic_conditional_deadline() const {
+        return debug_atomic_conditional_deadline_.load(std::memory_order_relaxed);
+    }
     // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER). Microseconds every cross-owner script GATHER task
     // except the one on the coordinator's own shard is PARKED -- re-queued, not spun -- after the
     // activation has reserved all of its declared keys and pinned its cut. That park IS the window
@@ -3363,6 +3427,11 @@ private:
     std::atomic<uint64_t> save_change_baseline_{0};
     std::atomic<uint64_t> scheduled_save_triggers_{0};
     std::atomic<uint64_t> save_cron_checks_{0};
+    // Appended cold state: disabled servers allocate no epoch state and no established offset
+    // moves. Later test-only knobs stay behind this pointer for the same reason.
+    std::unique_ptr<ReadLocalServerState> read_local_state_;
+    // Appended at the true tail: this test-only knob must not move any production member.
+    std::atomic<uint64_t> debug_atomic_conditional_deadline_{0};
 };
 
 }  // namespace tomo

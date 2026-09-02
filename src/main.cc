@@ -100,6 +100,11 @@ int main(int argc, char** argv) {
     if (cfg.overlap == 2)
         std::fprintf(stderr,
                      "WARNING: --overlap 2 selects an experimental research schedule\n");
+    if (cfg.read_local &&
+        (cfg.thread_mode != ThreadMode::Fused || cfg.overlap != 0))
+        std::fprintf(stderr,
+                     "NOTICE: --read-local 1 requires --thread-mode 1s --overlap 0 "
+                     "in this version; using the ordinary owner-task path\n");
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.

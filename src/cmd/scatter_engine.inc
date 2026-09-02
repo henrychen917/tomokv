@@ -511,6 +511,9 @@ struct ScatterState : SnapshotCut {
     std::atomic<NotifyBatch*> notify{nullptr};
     // COLD TAIL: only a SORT with an actual `*` dereference carves and constructs this arena object.
     SortDerefState* sort_deref = nullptr;
+    // Appended test-only state: do not move any production ScatterState member. The destination
+    // shard is keys[1].shard; parking that phase-one validation leaves its executor available.
+    uint64_t debug_conditional_deadline = 0;
 };
 
 static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
@@ -1793,6 +1796,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         }
     } else {
         build_initial_groups(*state);
+    }
+    // Only the deliberately non-atomic conditional controls arm this window. Atomic-ON movers use
+    // destination reservation/revalidation and must retain their unmodified scheduling semantics.
+    if (__builtin_expect(state->nsub > 1 && !state->atomic_apply &&
+                         (kind == Kind::Renamenx ||
+                          (kind == Kind::Copy && !copy_replace)), false)) {
+        const uint64_t conditional_deadline = server.debug_atomic_conditional_deadline();
+        if (__builtin_expect(conditional_deadline != 0, false) &&
+            now_ns() < conditional_deadline)
+            state->debug_conditional_deadline = conditional_deadline;
     }
     // TEST HOOK arming, after the groups exist so a lead shard can be named. Only cross-shard READS
     // arm it: they are the commands whose fragments each answer at their own moment.

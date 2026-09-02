@@ -35,6 +35,9 @@ struct AtomicEntry {
     uint32_t capacity = 0;
     uint32_t key_len = 0;
     bool linked = false;
+    // Set after prepare publishes this entry in FlatStore's read-local pending bit. It remains set
+    // through physical install, linking and collapse, and is cleared only by atomic_free_entry().
+    bool read_local_pending_published = false;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -44,6 +47,11 @@ struct AtomicEntry {
     }
     bool plain() const { return group == nullptr; }
 };
+
+// The read-local pending marker consumes existing tail padding. Atomic entries are pooled by
+// allocation class, so growing the header would change both the disabled allocation path and its
+// cache geometry.
+static_assert(sizeof(AtomicEntry) == 144);
 
 // Owner-local protection installed while a cross-owner script is staged.  It deliberately lives
 // beside the cold MVCC list rather than in KvObj: ordinary databases that never execute a cross
@@ -76,11 +84,18 @@ struct AtomicPendingState {
     AtomicEntry* free_entries[kPoolClasses] = {};
     FreeValue* free_values[kPoolClasses] = {};
     uint32_t cached_entries = 0;
+    // Read-local uses an extended allocation whose first member is this exact baseline state.
+    // The discriminator consumes the pre-existing four-byte hole before cleanup_fast, so the
+    // disabled allocation size and every following offset remain locked.
+    bool read_local_extended = false;
     uint64_t cleanup_fast = 0;
     uint64_t cleanup_slow = 0;
     size_t cached_entry_bytes = 0;
     size_t cached_value_bytes = 0;
 };
+
+static_assert(sizeof(AtomicPendingState) == 1352);
+static_assert(offsetof(AtomicPendingState, read_local_extended) == 1316);
 
 struct AtomicResolved {
     KvObj* value = nullptr;

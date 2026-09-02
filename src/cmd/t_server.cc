@@ -322,6 +322,8 @@ void init_config(const Config& cfg) {
                         cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", true});
     g_config.push_back({"overlap", ConfigKind::Unsigned,
                         std::to_string(cfg.overlap), true});
+    g_config.push_back({"read-local", ConfigKind::Unsigned,
+                        std::to_string(cfg.read_local), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,
@@ -979,6 +981,21 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // Deterministic positive control for the atomic-OFF conditional-mover race. The hook parks a
+    // RENAMENX/COPY destination validation without blocking its executor, so a second contender can
+    // validate the same empty destination before either publishes phase two. Atomic-ON groups do
+    // not arm it; their reservation/revalidation semantics are unchanged.
+    if (eq_icase(subcommand, "atomic-conditional-defer") && op.argc() == 3) {
+        uint64_t microseconds = 0;
+        if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_atomic_conditional_defer(static_cast<uint32_t>(microseconds));
+        reply_ok(op.sink());
+        return;
+    }
     // Window widener for the cross-owner script reservation regression. Parks every declared key's
     // GATHER task except the coordinator's own for N microseconds AFTER the reservation sub-wave
     // has armed every key and the cut has been chosen. A plain write landing in that park must be
@@ -1456,11 +1473,26 @@ struct StatBaseline {
     uint64_t keys = 0;
     uint64_t object_bytes = 0;
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
+    ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
 };
 
 std::mutex g_stat_baseline_mu;
 StatBaseline g_stat_baseline;
+
+void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
+    total.hits += local.hits;
+    total.fallback_multi += local.fallback_multi;
+    total.fallback_watch += local.fallback_watch;
+    total.fallback_context += local.fallback_context;
+    total.fallback_inflight_write += local.fallback_inflight_write;
+    total.fallback_atomic_pending += local.fallback_atomic_pending;
+    total.fallback_missing += local.fallback_missing;
+    total.fallback_typed += local.fallback_typed;
+    total.fallback_expired += local.fallback_expired;
+    total.fallback_seq_churn += local.fallback_seq_churn;
+    total.fallback_lane_full += local.fallback_lane_full;
+}
 
 void collect_stat_totals(StatBaseline& out) {
     out = StatBaseline{};
@@ -1491,6 +1523,11 @@ void collect_stat_totals(StatBaseline& out) {
         out.acl_denied_auth += sig.acl_access_denied_auth;
         out.net_input_bytes += sig.net_input_bytes;
         out.net_output_bytes += sig.net_output_bytes;
+    }
+    if (g_server->read_local_enabled()) {
+        for (uint32_t t = 0; t < g_server->nthreads(); t++)
+            add_read_local_stats(out.read_local, g_server->thread(t).read_local_stats());
+        out.hits += out.read_local.hits;
     }
     out.rejected = g_server->rejected_conns() + g_server->rejected_connections();
     out.auth_failures = g_server->auth_failures();
@@ -1588,6 +1625,7 @@ void cmd_info(Shard&, Op& op) {
     // as a live FIRED-MECHANISM proof: a test that claims to be running on epoll and sees
     // net_io_epoll_events at 0 is not running on epoll, and its other assertions prove nothing.
     uint64_t epoll_events = 0, epoll_recvs = 0;
+    ReadLocalStats read_local;
     if (g_server) {
         for (uint32_t i = 0; i < g_server->nshards(); i++) {
             const Shard& sh = g_server->shard(static_cast<int32_t>(i));
@@ -1658,11 +1696,16 @@ void cmd_info(Shard&, Op& op) {
                 zc_releases += stats.zc_releases;
             }
         }
+        if (g_server->read_local_enabled()) {
+            for (uint32_t t = 0; t < g_server->nthreads(); t++)
+                add_read_local_stats(read_local, g_server->thread(t).read_local_stats());
+        }
         // Redis counts BOTH accept-time reject classes in rejected_connections: maxclients
         // (networking.c:1355) and protected-mode denials (networking.c:1306).
         rejected = g_server->rejected_conns() + g_server->rejected_connections();
         auth_failures = g_server->auth_failures();
     }
+    if (g_server && g_server->read_local_enabled()) hits += read_local.hits;
     // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
     StatBaseline baseline;
     {
@@ -1683,6 +1726,29 @@ void cmd_info(Shard&, Op& op) {
     acl_denied_key = minus_baseline(acl_denied_key, baseline.acl_denied_key);
     acl_denied_channel = minus_baseline(acl_denied_channel, baseline.acl_denied_channel);
     acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
+    if (g_server && g_server->read_local_enabled()) {
+        read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
+        read_local.fallback_multi = minus_baseline(
+            read_local.fallback_multi, baseline.read_local.fallback_multi);
+        read_local.fallback_watch = minus_baseline(
+            read_local.fallback_watch, baseline.read_local.fallback_watch);
+        read_local.fallback_context = minus_baseline(
+            read_local.fallback_context, baseline.read_local.fallback_context);
+        read_local.fallback_inflight_write = minus_baseline(
+            read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
+        read_local.fallback_atomic_pending = minus_baseline(
+            read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
+        read_local.fallback_missing = minus_baseline(
+            read_local.fallback_missing, baseline.read_local.fallback_missing);
+        read_local.fallback_typed = minus_baseline(
+            read_local.fallback_typed, baseline.read_local.fallback_typed);
+        read_local.fallback_expired = minus_baseline(
+            read_local.fallback_expired, baseline.read_local.fallback_expired);
+        read_local.fallback_seq_churn = minus_baseline(
+            read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+        read_local.fallback_lane_full = minus_baseline(
+            read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
+    }
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
     if (info_section(op, "SERVER")) {
@@ -2102,6 +2168,30 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_violations() : 0));
+        appendf(body,
+                "read_local_hits:%llu\r\nread_local_fallbacks:%llu\r\n"
+                "read_local_fallback_multi:%llu\r\n"
+                "read_local_fallback_watch:%llu\r\n"
+                "read_local_fallback_context:%llu\r\n"
+                "read_local_fallback_inflight_write:%llu\r\n"
+                "read_local_fallback_atomic_pending:%llu\r\n"
+                "read_local_fallback_missing:%llu\r\n"
+                "read_local_fallback_typed:%llu\r\n"
+                "read_local_fallback_expired:%llu\r\n"
+                "read_local_fallback_seq_churn:%llu\r\n"
+                "read_local_fallback_lane_full:%llu\r\n",
+                static_cast<unsigned long long>(read_local.hits),
+                static_cast<unsigned long long>(read_local.fallbacks()),
+                static_cast<unsigned long long>(read_local.fallback_multi),
+                static_cast<unsigned long long>(read_local.fallback_watch),
+                static_cast<unsigned long long>(read_local.fallback_context),
+                static_cast<unsigned long long>(read_local.fallback_inflight_write),
+                static_cast<unsigned long long>(read_local.fallback_atomic_pending),
+                static_cast<unsigned long long>(read_local.fallback_missing),
+                static_cast<unsigned long long>(read_local.fallback_typed),
+                static_cast<unsigned long long>(read_local.fallback_expired),
+                static_cast<unsigned long long>(read_local.fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.fallback_lane_full));
     }
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";

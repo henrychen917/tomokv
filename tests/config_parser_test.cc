@@ -215,6 +215,47 @@ int main() {
             "--thread-mode 1s with --overlap 1 requires --net-io uring "
             "for its single submit boundary\n")
         fail("thread-study validation rejection text is not canonical");
+    tomo::Config read_local;
+    tomo::ConfigParseState read_local_state;
+    const std::vector<const char*> read_local_args = {
+        "--thread-mode", "1s", "--overlap", "0", "--read-local", "1",
+    };
+    if (tomo::parse_config_args(read_local_args, read_local, read_local_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(read_local) != tomo::kConfigParsed ||
+        read_local.thread_mode != tomo::ThreadMode::Fused || read_local.read_local != 1 ||
+        !rejects({"--read-local", "2"}) ||
+        !rejects({"--read-local", "yes"}) ||
+        !rejects({"--read-local", "-1"}) ||
+        !rejects({"--read-local", ""}))
+        fail("read-local boot grammar differs");
+    tomo::Config read_local_default;
+    if (read_local_default.read_local != 0)
+        fail("read-local default is not off");
+    tomo::Config read_local_split;
+    tomo::ConfigParseState read_local_split_state;
+    const std::vector<const char*> read_local_split_args = {"--read-local", "1"};
+    if (tomo::parse_config_args(read_local_split_args, read_local_split,
+                                read_local_split_state, 2, "test") != tomo::kConfigParsed ||
+        tomo::validate_config(read_local_split) != tomo::kConfigParsed ||
+        read_local_split.thread_mode != tomo::ThreadMode::Split ||
+        read_local_split.read_local != 1)
+        fail("read-local split-mode inert setting was rejected");
+    auto parses_read_local_fallback_cell = [](const char* overlap, uint32_t expected) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        const std::vector<const char*> args = {
+            "--thread-mode", "1s", "--overlap", overlap, "--read-local", "1",
+        };
+        return tomo::parse_config_args(args, cfg, state, 2, "test") ==
+                   tomo::kConfigParsed &&
+               tomo::validate_config(cfg) == tomo::kConfigParsed &&
+               cfg.thread_mode == tomo::ThreadMode::Fused &&
+               cfg.overlap == expected && cfg.read_local == 1;
+    };
+    if (!parses_read_local_fallback_cell("1", 1) ||
+        !parses_read_local_fallback_cell("2", 2))
+        fail("read-local overlap fallback cells were rejected");
 
     tomo::Config smt;
     tomo::ConfigParseState smt_state;

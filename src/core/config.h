@@ -303,8 +303,9 @@ struct Config {
     bool appendonly = false;
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
     PersistIoEngine persist_io = PersistIoEngine::Uring;
-    // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
     ThreadMode thread_mode = ThreadMode::Split;
+    // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
+    uint32_t read_local = 0;            // boot-only 0|1; 1s overlap-0 parsing-thread GET lane
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;
@@ -698,6 +699,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--read-local")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
+                std::fprintf(stderr, "--read-local wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -1079,9 +1086,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode 2s|1s --overlap 0|1|2\n"
-                        "             (boot-only; defaults 2s and 0; --thread-pipeline is an alias)\n"
+                        "  threading: --thread-mode 2s|1s --overlap 0|1|2 --read-local 0|1\n"
+                        "             (boot-only; defaults 2s, overlap 0 and read-local 0)\n"
+                        "             (--thread-pipeline is an overlap alias)\n"
                         "             (split/fused are mode aliases)\n"
+                        "             (read-local is active only with 1s overlap 0)\n"
                         "  placement (2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
