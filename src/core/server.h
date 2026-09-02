@@ -24,6 +24,7 @@
 #include <vector>
 #include "shard.h"
 #include "thread.h"
+#include "hot_forward.h"
 #include "flipctl.h"
 #include "weighted_lb.h"
 #include "placement.h"
@@ -266,6 +267,18 @@ public:
         // a channel from every other regardless of role, because a role change must not require
         // re-wiring the mesh.
         const uint32_t nthreads = placement_.total_threads();
+        if (cfg.hot_forward) {
+            try {
+                hot_forward_ = std::make_unique<HotForward>();
+            } catch (const std::bad_alloc&) {
+                std::fprintf(stderr, "fatal: could not allocate hot-forward state\n");
+                return false;
+            }
+            if (!hot_forward_->init(cfg.shards, nthreads)) {
+                std::fprintf(stderr, "fatal: could not allocate hot-forward slots\n");
+                return false;
+            }
+        }
         if (!flipctl_.init(cfg.thread_mode == ThreadMode::Split && cfg.flip_auto != 0,
                            cfg.flip_auto_band, nthreads)) {
             std::fprintf(stderr, "fatal: could not allocate flip controller state\n");
@@ -358,6 +371,9 @@ public:
     bool lb_controller_enabled() const {
         return key_lb_signals_enabled() || client_lb_signals_enabled();
     }
+    bool hot_forward_enabled() const { return hot_forward_ != nullptr; }
+    HotForward* hot_forward() { return hot_forward_.get(); }
+    const HotForward* hot_forward() const { return hot_forward_.get(); }
 
     bool flipctl_enabled() const { return flipctl_.enabled(); }
     uint32_t flipctl_tick_ms() const {
@@ -3122,6 +3138,8 @@ private:
     // Declared after AOF so its destructor runs first and can detach an active rewrite callback.
     SnapshotManager snapshot_;
     FlipController flipctl_;
+    // Boot-only bounded copied replies. Null is the complete hot-forward=0 representation.
+    std::unique_ptr<HotForward> hot_forward_;
 
     // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
     // shard-granularity dispatch remains one flat-array load.
