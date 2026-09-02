@@ -212,8 +212,11 @@ def script_watch_declared_keys_only():
         for key in candidates:
             owner = writer.cmd("DEBUG", "SHARD", key)
             if not isinstance(owner, int):
-                note("script WATCH declared-key detector", False,
-                     "DEBUG SHARD unavailable: %r" % (owner,))
+                # Needs the DEBUG SHARD hook. Refuse loudly instead of failing so a
+                # debug-disabled boot doesn't read as a MULTI/WATCH defect (atomfix
+                # pattern; this exact false alarm was chased as a latent bug once).
+                print("  SKIP script WATCH declared-key detector: DEBUG SHARD "
+                      "unavailable (%r); boot with --enable-debug-command yes" % (owner,))
                 return
             by_owner.setdefault(owner, []).append(key)
         pair = next((keys[:2] for keys in by_owner.values() if len(keys) >= 2), None)
