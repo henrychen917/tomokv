@@ -512,6 +512,31 @@ public:
     enum class InsertResult : uint8_t { Inserted, MaxmemoryOom, Failed };
     enum class OverwriteResult : uint8_t { Updated, NotPossible, MaxmemoryOom };
 
+    // One boot-latched publication word for foreign fused readers. The low half is an owner-written
+    // sequence (odd while a nested mutation bracket is open); the high half is the conservative
+    // count of prepared atomic entries. A reader can validate both with one pair of acquire loads.
+    static constexpr uint64_t kReadLocalSequenceMask = UINT32_MAX;
+    static constexpr uint32_t kReadLocalPendingShift = 32;
+
+    class ReadLocalMutationGuard {
+    public:
+        explicit ReadLocalMutationGuard(FlatStore& store) : store_(&store) {
+            store_->read_local_mutation_begin();
+        }
+        ~ReadLocalMutationGuard() {
+            if (store_) store_->read_local_mutation_end();
+        }
+        ReadLocalMutationGuard(const ReadLocalMutationGuard&) = delete;
+        ReadLocalMutationGuard& operator=(const ReadLocalMutationGuard&) = delete;
+        ReadLocalMutationGuard(ReadLocalMutationGuard&& other) noexcept : store_(other.store_) {
+            other.store_ = nullptr;
+        }
+        ReadLocalMutationGuard& operator=(ReadLocalMutationGuard&&) = delete;
+
+    private:
+        FlatStore* store_;
+    };
+
     // KvObj allocations use alloc_raw(), so probe that exact backend before any shard is built.
     // A platform/allocator that can only supply wider virtual addresses cannot safely use the
     // packed slot format and must be rejected at boot rather than losing pointer bits later.
@@ -546,6 +571,27 @@ public:
     }
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
+
+    // Boot-only: configure before worker threads start and leave immutable afterwards. False keeps
+    // the old store path; each installed writer hook is then only one predicted-cold branch.
+    void configure_read_local(bool enabled) { read_local_enabled_ = enabled; }
+    bool read_local_enabled() const { return read_local_enabled_; }
+
+    uint64_t read_local_state_acquire() const {
+        return read_local_state_.load(std::memory_order_acquire);
+    }
+    static uint32_t read_local_sequence(uint64_t state) {
+        return static_cast<uint32_t>(state & kReadLocalSequenceMask);
+    }
+    static uint32_t read_local_pending(uint64_t state) {
+        return static_cast<uint32_t>(state >> kReadLocalPendingShift);
+    }
+    static bool read_local_state_eligible(uint64_t state) {
+        return read_local_pending(state) == 0 && (read_local_sequence(state) & 1u) == 0;
+    }
+    [[nodiscard]] ReadLocalMutationGuard read_local_mutation_guard() {
+        return ReadLocalMutationGuard(*this);
+    }
 
     bool     rehashing() const { return tab_[1] != nullptr; }
     uint32_t size() const { return live_[0] + live_[1]; }
@@ -2026,6 +2072,67 @@ private:
         return TtlResult::Updated;
     }
 
+    void read_local_mutation_begin() {
+        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (read_local_mutation_depth_++ == 0) read_local_advance_sequence(false);
+    }
+
+    void read_local_mutation_end() {
+        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (!read_local_mutation_depth_) std::abort();
+        if (--read_local_mutation_depth_ == 0) read_local_advance_sequence(true);
+    }
+
+    // CAS rather than fetch_add is intentional: wrapping the low half must never carry into the
+    // pending half, and a pending adjustment must retain the sequence observed in the same word.
+    void read_local_advance_sequence(bool ending) {
+        uint64_t observed = read_local_state_.load(std::memory_order_relaxed);
+        for (;;) {
+            const uint32_t sequence = read_local_sequence(observed);
+            if (((sequence & 1u) != 0) != ending) std::abort();
+            const uint32_t next_sequence = sequence + uint32_t{1};
+            const uint64_t desired = (observed & ~kReadLocalSequenceMask) | next_sequence;
+            if (read_local_state_.compare_exchange_weak(
+                    observed, desired, std::memory_order_acq_rel, std::memory_order_relaxed))
+                return;
+        }
+    }
+
+    void read_local_pending_publish(AtomicEntry& entry) {
+        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (entry.read_local_pending_published) std::abort();
+        uint64_t observed = read_local_state_.load(std::memory_order_relaxed);
+        for (;;) {
+            const uint32_t pending = read_local_pending(observed);
+            if (pending == UINT32_MAX) std::abort();
+            const uint64_t desired =
+                (observed & kReadLocalSequenceMask) |
+                (static_cast<uint64_t>(pending + uint32_t{1}) << kReadLocalPendingShift);
+            if (read_local_state_.compare_exchange_weak(
+                    observed, desired, std::memory_order_acq_rel, std::memory_order_relaxed)) {
+                entry.read_local_pending_published = true;
+                return;
+            }
+        }
+    }
+
+    void read_local_pending_unpublish(AtomicEntry& entry) {
+        if (__builtin_expect(!entry.read_local_pending_published, true)) return;
+        uint64_t observed = read_local_state_.load(std::memory_order_relaxed);
+        for (;;) {
+            const uint32_t pending = read_local_pending(observed);
+            if (!pending) std::abort();
+            const uint64_t desired =
+                (observed & kReadLocalSequenceMask) |
+                (static_cast<uint64_t>(pending - uint32_t{1}) << kReadLocalPendingShift);
+            if (read_local_state_.compare_exchange_weak(
+                    observed, desired, std::memory_order_release, std::memory_order_relaxed)) {
+                entry.read_local_pending_published = false;
+                return;
+            }
+        }
+    }
+
     bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
@@ -2169,12 +2276,15 @@ private:
     std::unique_ptr<SnapshotChunk> snapshot_build_;
     std::unique_ptr<SnapshotChunk> snapshot_ready_;
     AofProducer aof_;
-    // COLD TAIL. The hash-field-TTL index and its counter go last on purpose: only the 4-byte gate
-    // above is on a hot path, and placing these mid-struct pushed cached_now_ms_ / maxmemory_ /
-    // snapshot_ 96 bytes further out, which showed up as a measurable instr/op regression on a
-    // workload that never uses the feature. Allocates nothing until the first HEXPIRE in the shard.
+    // COLD TAIL. The hash-field-TTL index and read-local publication stay after the established hot
+    // fields on purpose: placing cold state mid-struct pushed cached_now_ms_ / maxmemory_ / snapshot_
+    // further out, which showed up as a measurable instr/op regression on workloads that never use
+    // those features. The TTL index allocates nothing until the first HEXPIRE in the shard.
     ExpireIndex field_expires_;
     uint64_t    field_expired_ = 0;
+    std::atomic<uint64_t> read_local_state_{0};
+    uint32_t read_local_mutation_depth_ = 0;  // owner-only nesting; touched only when enabled
+    bool read_local_enabled_ = false;         // immutable after boot configuration
 };
 
 

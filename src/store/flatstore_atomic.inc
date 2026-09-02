@@ -284,6 +284,9 @@
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
+        // Publish before returning the prepared handle: no caller can perform a physical exchange
+        // until the conservative pending half is visible to an acquiring read-local probe.
+        read_local_pending_publish(*entry);
         return entry;
     }
 
@@ -446,6 +449,7 @@
         entry->key_len = key.n;
         entry->origin_conn_id = origin_conn_id;
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
+        read_local_pending_publish(*entry);
         opaque = entry;
         return true;
     }
@@ -472,6 +476,7 @@
         entry->owner_refs = owner_refs;
         entry->membership = atomic_membership_bit(hash);
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
+        read_local_pending_publish(*entry);
         opaque = entry;
         return true;
     }
@@ -637,6 +642,9 @@ private:
 
     void atomic_free_entry(AtomicEntry* entry) {
         if (!entry) return;
+        // Prepared entries remain conservatively pending through install, linking and collapse.
+        // This is their single final-release point, including a prepare that is discarded unused.
+        read_local_pending_unpublish(*entry);
         const size_t allocation = entry->allocation;
         const uint32_t cls = atomic_pool_class(allocation);
         static constexpr uint32_t kEntryCache = 4096;
