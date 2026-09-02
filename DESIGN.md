@@ -148,3 +148,94 @@ connection continuously pipelines ordered `SET key sequence` / `GET key` pairs w
 connection flips 63:1 to 1:63 and back. The test requires every stream counter to advance under all
 three installed masks, checks every reply position, drains every pipeline, and point-reads the final
 acknowledged value for all 63 keys.
+
+## Hot-key READ forwarding (`hot-forward`)
+
+### Boundary and allocation
+
+`hot-forward` is a boot-only numeric switch. `0` is the default: no forwarding object, slot, or
+scratch buffer is allocated, and the IO loop uses a false template specialization containing no
+forwarding branch. `1` allocates one fixed slot per physical shard and one fixed scratch buffer per
+physical IO thread. There is no table, resize, runtime allocation, negative entry, write forwarding,
+or multi-key read path. A slot can name exactly one key; the key is capped at 256 bytes and its fully
+formatted positive GET reply at 4096 bytes. Either overflow leaves the slot unavailable and GET
+uses the ordinary task path. Failure to make the bounded boot allocation fails initialization.
+
+One slot per physical shard is the narrowest structure that retains a single writer while shards
+move between executors: the current owner of that shard is the slot's only publisher. The existing
+FLIP/LB quiescence and owner-publication barrier transfers that writer tenure together with the
+shard. The slot owns copied key/reply bytes and an absolute expiry stamp; it never exposes a
+`FlatStore`, `KvObj`, value pointer, borrow, or general read epoch.
+
+### Detection and promotion
+
+Detection reuses `ExLoop::note_lb_hash`'s existing 1-in-N countdown. On the tick where that code
+already records a bucket sample, an exact, successful, ordinary GET may also update the shard
+slot's owner-only candidate. Sixteen consecutive sampled GETs for the same exact hash and key
+promote it. Non-GET visits add no detector work, and there is no second counter or heavy-hitter
+policy. `hot-forward=1` keeps this same countdown active even when `key-lb=0`; an explicit
+`lb-sample-rate=0` is rejected with forwarding enabled rather than silently making promotion
+impossible. Until a promotion, the enabled GET path sees only the one predicted unavailable-slot
+branch; detector work occurs only on the pre-existing sampled tick. This is the no-hot
+zero-regression posture.
+
+Promotion performs one owner-local no-touch lookup after the sampled GET. Only a live String is
+published. Integer encoding is rendered to the same decimal bulk reply as `GET`; raw/external
+strings are copied. Missing keys and wrong types are not represented. A different candidate can
+replace the named key only after it independently reaches the same fixed threshold.
+
+### Publication and torn-read protocol
+
+Each opt-in slot contains one atomic 64-bit sequence and atomic 64-bit words for all published
+metadata, exact key bytes, and reply bytes. These are the only new atomics. They are required to be
+always lock-free. The owner makes the sequence odd, writes the atomic words with relaxed stores,
+then release-stores the next even sequence. Invalidation leaves the sequence odd. An IO reader:
+
+1. acquire-loads an even sequence;
+2. relaxed-loads metadata and exact-compares hash, key length, and key words;
+3. copies the bounded reply words into its owner-local scratch buffer;
+4. executes an acquire fence and re-loads the sequence; and
+5. uses the copy only if both sequence reads are the same even value.
+
+There is one attempt: odd sequence, version churn, or any mismatch falls through to normal owner
+dispatch; readers never spin and the owner never waits for readers. Atomic payload words avoid the
+C++ data race that a seqlock around plain bytes would still have. No atomic is added to `Op`,
+`Client`, `Task`, `Shard`, `FlatStore`, or the ordinary routing/store metadata.
+
+The owner updates forwarding state only at logical publication boundaries. After a completed
+ordinary single-key write handler, it republishes the final live String when the command's exact
+key is the promoted key and the bounded copy fits; otherwise it invalidates that matching slot.
+Every scatter, multi-key, script, atomic-group, FLUSH, or other broad write fragment invalidates its
+physical shard's slot and does not republish an intermediate value. These actions occur before the
+write operation's existing `Done` release. MVCC physical changes remain invalid until a later
+sampled plain GET after the pending epoch state has drained. Rehash and snapshot table moves do not
+change a logical value and need no slot action. Lazy/active expiry needs no asynchronous publish:
+the absolute deadline in the slot makes it unusable at that same deadline, and the owner path then
+performs the real deletion.
+
+### IO eligibility, order, and expiry
+
+The enabled IO specialization adds one predicted-false attempt after the ordinary route has
+computed the exact hash and physical shard, but before it loads the executor owner or publishes a
+`Task`. ACL, MULTI handling, connection observers, and atomic read-cut stamping have already run.
+Only the registry's exact two-argument GET row is eligible; TLS, notification/tracking-selected,
+multi-key, and atomic-tracked reads fall back.
+
+A parse call starts a forwarding tail only when that connection's ROB is quiescent. Each local hit
+publishes a normal Done ROB entry and advances the tail. Another local command or owner task
+advances the ROB dispatch id without advancing that tail, permanently disabling forwarding for the
+rest of the parse call. Thus a pure p32 GET pipeline forwards all 32 reads, while `SET k v; GET k`
+cannot read the slot ahead of its owner task. Reply retirement and wire order remain the existing
+ROB path.
+
+The slot carries `expire_at_ms` in the store's absolute `CLOCK_REALTIME` domain. Only after an
+active exact-key match does IO sample that clock (once per parse call); an elapsed slot falls back
+instead of replying null, so the owner performs expiry and any observers. Persistent/no-hot reads
+pay no clock call. Forwarded successes preserve IO command counts, operation counts, fingerprinting,
+and a plain IO-owner forwarded-hit counter included in keyspace hit reporting.
+
+Fallback is therefore mandatory for: no slot; non-GET or multi-key read; non-quiescent/non-prefix
+connection order; ACL/observer/TLS variant; active atomic tracking/read cut; live maxmemory touch
+policy; hash/key mismatch; odd or changed sequence; expired deadline; missing/wrong-type publisher
+state; or key/reply overflow. Every fallback is the pre-existing owner task path, not a second read
+implementation.
