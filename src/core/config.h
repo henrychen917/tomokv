@@ -300,8 +300,9 @@ struct Config {
     bool appendonly = false;
     AppendFsyncPolicy appendfsync = AppendFsyncPolicy::Everysec;
     PersistIoEngine persist_io = PersistIoEngine::Uring;
-    // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
     ThreadMode thread_mode = ThreadMode::Split;
+    // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
+    uint32_t read_local = 0;            // boot-only 0|1; fused parsing-thread GET execution
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;
@@ -667,6 +668,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             else if (value && !std::strcmp(value, "fused")) cfg.thread_mode = ThreadMode::Fused;
             else {
                 std::fprintf(stderr, "--thread-mode wants split or fused\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--read-local")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
+                std::fprintf(stderr, "--read-local wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1051,7 +1058,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode split|fused (boot-only; default split)\n"
+                        "  threading: --thread-mode split|fused --read-local 0|1\n"
+                        "             (boot-only; defaults split and 0)\n"
                         "  placement (pure 2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"

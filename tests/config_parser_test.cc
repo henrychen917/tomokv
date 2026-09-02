@@ -120,6 +120,33 @@ int main() {
     if (network_default.net_io != tomo::NetIoEngine::Uring)
         fail("net-io default is not uring");
 
+    tomo::Config read_local;
+    tomo::ConfigParseState read_local_state;
+    const std::vector<const char*> read_local_args = {
+        "--thread-mode", "fused", "--read-local", "1",
+    };
+    if (tomo::parse_config_args(read_local_args, read_local, read_local_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(read_local) != tomo::kConfigParsed ||
+        read_local.thread_mode != tomo::ThreadMode::Fused || read_local.read_local != 1 ||
+        !rejects({"--read-local", "2"}) ||
+        !rejects({"--read-local", "yes"}) ||
+        !rejects({"--read-local", "-1"}) ||
+        !rejects({"--read-local", ""}))
+        fail("read-local boot grammar differs");
+    tomo::Config read_local_default;
+    if (read_local_default.read_local != 0)
+        fail("read-local default is not off");
+    tomo::Config read_local_split;
+    tomo::ConfigParseState read_local_split_state;
+    const std::vector<const char*> read_local_split_args = {"--read-local", "1"};
+    if (tomo::parse_config_args(read_local_split_args, read_local_split,
+                                read_local_split_state, 2, "test") != tomo::kConfigParsed ||
+        tomo::validate_config(read_local_split) != tomo::kConfigParsed ||
+        read_local_split.thread_mode != tomo::ThreadMode::Split ||
+        read_local_split.read_local != 1)
+        fail("read-local split-mode inert setting was rejected");
+
     tomo::Config smt;
     tomo::ConfigParseState smt_state;
     const std::vector<const char*> smt_args = {"--smt-mode", "1"};

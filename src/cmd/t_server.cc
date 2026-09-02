@@ -320,6 +320,8 @@ void init_config(const Config& cfg) {
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"thread-mode", ConfigKind::Enum,
                         cfg.thread_mode == ThreadMode::Fused ? "fused" : "split", true});
+    g_config.push_back({"read-local", ConfigKind::Unsigned,
+                        std::to_string(cfg.read_local), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,

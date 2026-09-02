@@ -5,6 +5,10 @@ so an existing command line or configuration keeps the same placement, behavior,
 The selected value is reported as `thread_mode` by `INFO Server` and as the immutable
 `thread-mode` value by `CONFIG GET`.
 
+`--read-local 0|1` is also boot-only and defaults to `0`. A value of `1` enables the fused local
+read lane described below; split mode accepts it as an inert compatibility setting and logs one
+notice at boot. Both settings are exposed by `CONFIG GET` and refused by `CONFIG SET`.
+
 ## Split
 
 Split mode assigns each physical thread one live role. IO (`ifid`) threads receive, parse, route,
@@ -28,6 +32,12 @@ Local commands take the same self SPSC task lane as remote commands and are cons
 executor phase. They are not executed inline. This is the coarse three-stream rotation from
 `wt-genthread` commits `53bf7f9d1` and `d2af4a487`; the later interleaved schedule is intentionally
 not part of the supported mode.
+
+With `--read-local 1`, eligible plain single-key GETs instead enter a parsing-thread-local queue.
+That queue is still drained by the thread's executor phase, and replies still retire through the
+connection ROB and normal write-back path. Reads with an outstanding connection write, WATCH or
+MULTI state, script/scatter context, target-shard atomic work, a typed value, or an expired value
+fall back to the ordinary owner-task path.
 
 With no `--place`, fused mode uses every CPU in the process affinity mask. `--place` can select a
 subset; its `ifid@CPU` and `ex@CPU` labels are treated only as CPU selectors because every selected
