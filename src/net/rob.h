@@ -38,6 +38,7 @@
 // dies); steady-state allocator traffic is zero, and jemalloc needs no pool in front of it.
 #pragma once
 #include <atomic>
+#include <cstdlib>
 #include <cstdint>
 #include "../exec/op.h"
 
@@ -46,6 +47,7 @@ namespace tomo {
 template <uint32_t Capacity>
 class Rob {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
+    static_assert(Capacity <= 64, "read-local slot accounting uses one footprint-free word");
     static constexpr uint32_t kMask = Capacity - 1;
 
 public:
@@ -62,23 +64,59 @@ public:
     // without reading, and dropping it is how a server OOMs on one misbehaving connection.
     // Materialization happens HERE and only here — the parser is the sole allocator, so workers
     // and the sender only ever dereference slots that a publish made real.
+    template <bool ReadLocalAccounting = false>
     Op* acquire(uint8_t route_flags = 0) {
         if (full()) return nullptr;
-        Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
-        op->reset(route_flags);
+        const uint32_t index = static_cast<uint32_t>(dispatch_id()) & kMask;
+        if constexpr (ReadLocalAccounting) {
+            const uint64_t keep = ~(uint64_t{1} << index);
+            read_local_slots_ &= keep;
+            write_slots_ &= keep;
+        }
+        Op* op = slot(index, true);
+        op->reset<ReadLocalAccounting>(route_flags);
         return op;
     }
 
     // Publish the slot claimed by acquire(). RELEASE: everything written into the slot must be
     // visible to the consumer before it can observe the new dispatch_id. Separate from acquire()
     // because the parser may abandon a half-built op without advancing the ROB.
-    void publish() { dispatch_.store(dispatch_id() + 1, std::memory_order_release); }
+    void publish() {
+        const uint64_t id = dispatch_id();
+        dispatch_.store(id + 1, std::memory_order_release);
+    }
 
     // Undo the last publish(). Only legal while the op is still un-dispatched, i.e. no worker can
     // have marked it Done -- which is exactly the refused-dispatch path. Safe even if a sender has
     // already observed the higher dispatch_: it can only have seen the slot as not-Done and stopped,
     // because retirement never touches an op that is not Done.
-    void unpublish() { dispatch_.store(dispatch_id() - 1, std::memory_order_release); }
+    void unpublish() {
+        const uint64_t id = dispatch_id() - 1;
+        dispatch_.store(id, std::memory_order_release);
+    }
+
+    // The enabled parser marks its currently acquired (not yet published) slot. Stale bits are
+    // harmless and cleared on reuse; queries intersect with the live [flush, dispatch) window.
+    // Thus ordinary publish/retire remain byte-for-byte free of read-local mode branches.
+    void mark_current_read_local() {
+        read_local_slots_ |= uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+    }
+    void mark_current_write() {
+        write_slots_ |= uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+    }
+
+    uint32_t unretired_read_local() const {
+        return static_cast<uint32_t>(__builtin_popcountll(read_local_slots_ & active_slots_mask()));
+    }
+    bool has_unretired_read_local() const {
+        return read_local_slots_ && (read_local_slots_ & active_slots_mask()) != 0;
+    }
+    uint32_t unretired_writes() const {
+        return static_cast<uint32_t>(__builtin_popcountll(write_slots_ & active_slots_mask()));
+    }
+    bool has_unretired_write() const {
+        return write_slots_ && (write_slots_ & active_slots_mask()) != 0;
+    }
 
     // ---- consumer side (whichever stage sends) -------------------------------------------------
     // Retire every completed op from the head, in order, handing each reply to `sink`. Stops at the
@@ -123,11 +161,33 @@ private:
         return &ch[idx % kChunkOps];
     }
 
+    static constexpr uint64_t capacity_slots_mask() {
+        if constexpr (Capacity == 64) return UINT64_MAX;
+        else return (uint64_t{1} << Capacity) - 1;
+    }
+
+    uint64_t active_slots_mask() const {
+        const uint64_t dispatch = dispatch_.load(std::memory_order_relaxed);
+        const uint64_t flush = flush_.load(std::memory_order_acquire);
+        const uint32_t count = static_cast<uint32_t>(dispatch - flush);
+        if (!count) return 0;
+        if (count >= Capacity) return capacity_slots_mask();
+        const uint32_t begin = static_cast<uint32_t>(flush) & kMask;
+        const uint64_t run = (uint64_t{1} << count) - 1;
+        uint64_t mask = run << begin;
+        if (begin + count > Capacity) mask |= run >> (Capacity - begin);
+        return mask & capacity_slots_mask();
+    }
+
     Op* chunks_[kChunks] = {};
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};
     alignas(64) std::atomic<uint64_t> flush_{0};
+    // These bitmaps fit in flush_'s existing trailing cache-line padding and have one writer (the
+    // connection's IO owner), so neither needs an atomic and Client's footprint remains unchanged.
+    uint64_t read_local_slots_ = 0;
+    uint64_t write_slots_ = 0;
 };
 
 }  // namespace tomo

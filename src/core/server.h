@@ -503,6 +503,29 @@ public:
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
+    bool read_local_enabled() const {
+        return cfg_.thread_mode == ThreadMode::Fused && cfg_.read_local != 0;
+    }
+    uint64_t read_local_epoch() const {
+        return read_local_epoch_.load(std::memory_order_seq_cst);
+    }
+    // Retirement uses the returned OLD value as its stamp. The increment makes a subsequent
+    // rotation publication strictly newer, which is the grace test below.
+    uint64_t advance_read_local_epoch() {
+        return read_local_epoch_.fetch_add(1, std::memory_order_seq_cst);
+    }
+    uint64_t read_local_grace_floor() const {
+        uint64_t floor = UINT64_MAX;
+        for (const auto& thread : threads_) {
+            const uint64_t publication = thread->read_local_publication();
+            if (!ThreadCtx::read_local_publication_parked(publication)) {
+                floor = std::min(
+                    floor, ThreadCtx::read_local_publication_tick(publication));
+            }
+        }
+        return floor;
+    }
+
     uint32_t role_count(Role role, bool ready = false) const {
         uint32_t count = 0;
         for (const auto& thread : threads_)
@@ -1844,6 +1867,10 @@ public:
         }
         if (!router_.begin_transfer(begin, end, source, destination))
             return false;
+        if (read_local_enabled()) {
+            const ReadLocalRetireSink sink = threads_[destination]->read_local_retire_sink();
+            for (Shard* shard : moving) shard->store().rebind_read_local_retire_sink(sink);
+        }
 
         for (Shard* shard : moving) to.push_back(shard);
         from.erase(std::remove_if(from.begin(), from.end(), [&](Shard* shard) {
@@ -1873,6 +1900,13 @@ public:
             to.size() == to.capacity()) return false;
         if (!router_.begin_transfer(shard.bucket_begin(), shard.bucket_end(), source, destination))
             return false;
+        if (read_local_enabled()) {
+            // ExDrain has stopped every producer/consumer of this store. Install the destination's
+            // owner-only retire sink before publishing the ownership edge; waiting until its next
+            // EX pass leaves earlier multi/snapshot owner work able to retire through the old sink.
+            shard.store().rebind_read_local_retire_sink(
+                threads_[destination]->read_local_retire_sink());
+        }
         to.push_back(&shard);                       // capacity was reserved before PREPARING
         *found = from.back();
         from.pop_back();
@@ -3126,6 +3160,10 @@ private:
     // Router is authoritative at bucket granularity. This commit-only derivative exists solely so
     // shard-granularity dispatch remains one flat-array load.
     std::atomic<uint32_t> shard_owner_[256] = {};
+
+    // Fused read-local reclamation epoch. Store retirement advances it only while the boot-only
+    // lane is armed; fused rotations publish the current value in their ThreadCtx.
+    std::atomic<uint64_t> read_local_epoch_{1};
 
     // FLIP is a cold, manually driven control-plane transaction.  The stage store is the global
     // dispatch barrier; acknowledgements are tagged with the transaction epoch so a late wakeup

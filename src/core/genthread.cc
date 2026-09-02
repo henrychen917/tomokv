@@ -212,6 +212,8 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (self.stop_flag().load(std::memory_order_relaxed)) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
+            if (cfg.read_local)
+                self.publish_read_local_parked(srv.read_local_epoch());
             self.publish_ready_role(Role::Idle);
         });
 
@@ -273,6 +275,14 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     for (std::thread& worker : pool) worker.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
 
+    if (cfg.read_local) {
+        // All fused readers have joined, so every queued callback is immediately safe. Empty the
+        // bounded lists and disable their store hooks BEFORE atomic teardown: collapse can detach
+        // more than one full list of values, and no joined thread remains to advance a grace tick.
+        for (FusedExLoop& executor : executors) executor.read_local_shutdown_drain();
+        for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+            srv.shard(static_cast<int32_t>(sid)).store().configure_read_local(false, {});
+    }
     for (uint32_t sid = 0; sid < srv.nshards(); sid++)
         srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
     for (IoLoop& io : ios) io.reap_atomic_deferred();

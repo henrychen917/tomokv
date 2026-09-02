@@ -284,6 +284,9 @@
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
+        // Publish before returning the prepared handle: no caller can perform a physical exchange
+        // until the conservative pending bit is visible to an acquiring read-local probe.
+        read_local_pending_publish(*entry);
         return entry;
     }
 
@@ -376,9 +379,14 @@
         auto* fresh = static_cast<uint64_t*>(
             flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
-        tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
+        ReadLocalMutationGuard mutation(*this);
+        read_local_topology_store(&tab_[1], tab_[0]);
+        read_local_topology_store(&cap_[1], cap_[0]);
+        read_local_topology_store(&mask_[1], mask_[0]);
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
-        tab_[0] = fresh; cap_[0] = static_cast<uint32_t>(wanted); mask_[0] = cap_[0] - 1;
+        read_local_topology_store(&tab_[0], fresh);
+        read_local_topology_store(&cap_[0], static_cast<uint32_t>(wanted));
+        read_local_topology_store(&mask_[0], static_cast<uint32_t>(wanted) - 1);
         live_[0] = tombs_[0] = 0;
         rehash_pos_ = 0;
         return true;
@@ -446,6 +454,7 @@
         entry->key_len = key.n;
         entry->origin_conn_id = origin_conn_id;
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
+        read_local_pending_publish(*entry);
         opaque = entry;
         return true;
     }
@@ -472,6 +481,7 @@
         entry->owner_refs = owner_refs;
         entry->membership = atomic_membership_bit(hash);
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
+        read_local_pending_publish(*entry);
         opaque = entry;
         return true;
     }
@@ -637,6 +647,9 @@ private:
 
     void atomic_free_entry(AtomicEntry* entry) {
         if (!entry) return;
+        // Prepared entries remain conservatively pending through install, linking and collapse.
+        // This is their single final-release point, including a prepare that is discarded unused.
+        read_local_pending_unpublish(*entry);
         const size_t allocation = entry->allocation;
         const uint32_t cls = atomic_pool_class(allocation);
         static constexpr uint32_t kEntryCache = 4096;
@@ -935,6 +948,7 @@ private:
     // searched the table twice and manufactured a tombstone for every promotion; atomic ownership
     // needs the displaced pointer, so insert_into's ordinary retire-in-place path is not usable.
     KvObj* atomic_exchange_physical(uint64_t hash, Slice key, KvObj* replacement) {
+        ReadLocalMutationGuard mutation(*this);
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
@@ -946,12 +960,12 @@ private:
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
-                        tab_[table][slot] = make_word(tag, replacement);
+                        read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
                         obj_bytes_ += kvobj_size(replacement);
                         if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
                         else expires_.erase(hash);
                     } else {
-                        tab_[table][slot] = kTombBit;
+                        read_local_slot_store(&tab_[table][slot], kTombBit);
                         live_[table]--; tombs_[table]++;
                         expires_.erase(hash);
                     }
@@ -995,17 +1009,13 @@ private:
 
     void retire_detached_obj(KvObj* object) {
         if (!object) return;
-        if (atomic_recycle_value(object)) return;
-        if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
-        const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_value().p : nullptr;
-        const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
-        if (at != kNoBorrow) {
-            borrows_[at].retired = object;
-            pending_bytes_ += kvobj_size(object);
+        if (__builtin_expect(read_local_enabled_, false)) {
+            read_local_retire_sink_.retire(
+                this, object, kvobj_size(object), &FlatStore::read_local_reclaim_atomic_object);
             return;
         }
-        kvobj_free(object);
+        if (atomic_recycle_value(object)) return;
+        destroy_retired_obj(object, kvobj_size(object));
     }
 
     bool atomic_collapse(uint64_t floor, uint64_t cleanup_cutoff) {

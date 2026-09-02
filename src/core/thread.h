@@ -108,6 +108,29 @@ using ClientChan = Channel<Client*, kInboxSlots>;
 using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
 using TransferChan = Channel<ClientTransfer, kInboxSlots>;
 
+// Fused read-local telemetry is written only by the physical thread that owns this context.
+// INFO reads it with the same exceptional cross-thread snapshot used for LoopSignals and command
+// counts; keeping it plain avoids adding synchronization to the route and EX hot paths.
+struct ReadLocalStats {
+    uint64_t hits = 0;
+    uint64_t fallback_multi = 0;
+    uint64_t fallback_watch = 0;
+    uint64_t fallback_context = 0;
+    uint64_t fallback_inflight_write = 0;
+    uint64_t fallback_atomic_pending = 0;
+    uint64_t fallback_missing = 0;
+    uint64_t fallback_typed = 0;
+    uint64_t fallback_expired = 0;
+    uint64_t fallback_seq_churn = 0;
+    uint64_t fallback_lane_full = 0;
+
+    uint64_t fallbacks() const {
+        return fallback_multi + fallback_watch + fallback_context +
+               fallback_inflight_write + fallback_atomic_pending + fallback_missing +
+               fallback_typed + fallback_expired + fallback_seq_churn + fallback_lane_full;
+    }
+};
+
 class ThreadCtx {
 public:
     using RolePrepareFn = bool (*)(void*);
@@ -240,6 +263,8 @@ public:
     uint64_t atomic_groups() const { return atomic_groups_; }
     void note_atomic_localfast() { atomic_localfast_++; }
     uint64_t atomic_localfast() const { return atomic_localfast_; }
+    ReadLocalStats& read_local_stats() { return read_local_stats_; }
+    const ReadLocalStats& read_local_stats() const { return read_local_stats_; }
     // Owner-local: counts how often a whole-owner walker (KEYS / exact DBSIZE / FLUSH) was held
     // behind an older same-connection task parked on this shard.  It is the fired-mechanism proof
     // for the scan-ordering fix, so it must be observable rather than merely believed.
@@ -653,6 +678,52 @@ public:
             transfer_in_[i].clear_blocked();
         }
     }
+    bool parked() const { return parked_.load(std::memory_order_acquire); }
+
+    // Fused read-local QSBR publication. A reader publishes once at the coarse rotation boundary,
+    // never per operation. Parked shares this word with the tick so a grace scan cannot accept a
+    // stale separate parked=true after the thread has resumed probing foreign stores. Sequential
+    // consistency orders the park/resume edge with that scan; it is paid only at rotation/park.
+    void publish_read_local_tick(uint64_t tick) {
+        if (tick & kReadLocalParkedBit) std::abort();
+        read_local_tick_.store(tick, std::memory_order_seq_cst);
+    }
+    void publish_read_local_parked(uint64_t tick) {
+        if (tick & kReadLocalParkedBit) std::abort();
+        read_local_tick_.store(tick | kReadLocalParkedBit, std::memory_order_seq_cst);
+    }
+    void resume_read_local_tick() {
+        const uint64_t publication = read_local_tick_.load(std::memory_order_seq_cst);
+        if (!(publication & kReadLocalParkedBit)) std::abort();
+        // First make this participant visibly active with its conservative pre-wait tick. The
+        // caller then samples the global epoch and republishes before it may probe a foreign slot.
+        read_local_tick_.store(
+            publication & ~kReadLocalParkedBit, std::memory_order_seq_cst);
+    }
+    void refresh_read_local_quiescence(uint64_t tick) {
+        if (tick & kReadLocalParkedBit) std::abort();
+        const uint64_t publication = read_local_tick_.load(std::memory_order_seq_cst);
+        read_local_tick_.store(
+            tick | (publication & kReadLocalParkedBit), std::memory_order_seq_cst);
+    }
+    uint64_t read_local_publication() const {
+        return read_local_tick_.load(std::memory_order_seq_cst);
+    }
+    static bool read_local_publication_parked(uint64_t publication) {
+        return (publication & kReadLocalParkedBit) != 0;
+    }
+    static uint64_t read_local_publication_tick(uint64_t publication) {
+        return publication & ~kReadLocalParkedBit;
+    }
+
+    void bind_read_local_retire_sink(ReadLocalRetireSink sink) {
+        if (!sink.defer) std::abort();
+        read_local_retire_sink_ = sink;
+    }
+    ReadLocalRetireSink read_local_retire_sink() const {
+        if (!read_local_retire_sink_.defer) std::abort();
+        return read_local_retire_sink_;
+    }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
     // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
     // "where do I look" hint for the drain path; here we also look at the queues themselves, because
@@ -848,6 +919,10 @@ private:
     void* fused_executor_context_ = nullptr;
     ExecutorProgressFn executor_progress_ = nullptr;
     SnapshotStartFn snapshot_start_ = nullptr;
+    static constexpr uint64_t kReadLocalParkedBit = uint64_t{1} << 63;
+    std::atomic<uint64_t> read_local_tick_{0};
+    ReadLocalRetireSink read_local_retire_sink_{};
+    ReadLocalStats read_local_stats_;
 };
 
 }  // namespace tomo
