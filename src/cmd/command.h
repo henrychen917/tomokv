@@ -101,6 +101,10 @@ struct CmdFlags {
     // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
     // coordinator. No other command enters that control path.
     static constexpr uint32_t FlipAsync = 1u << 25;
+    // Exact hot-decode class for the fused parsing-thread read lane. The flag is deliberately
+    // narrower than Readonly: v1 admits only plain, single-key GET and applies its remaining
+    // connection/store gates after routing has resolved the target shard.
+    static constexpr uint32_t ReadLocalEligible = 1u << 26;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
