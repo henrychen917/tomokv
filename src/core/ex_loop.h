@@ -831,6 +831,7 @@ private:
     // arms per-op timing for the next kSlowlogEscalateBatches batches instead, and the recurrence
     // is timed exactly. This is the documented divergence from redis, which times every command.
     //
+    template <bool HotForward>
     __attribute__((noinline, cold))
     void exec_batch_timed(const Task* batch, uint32_t n) {
         const SlowlogArm arm = slowlog_arm_;
@@ -846,7 +847,7 @@ private:
                 if (client)
                     slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
                 const uint64_t started = now_ns();
-                const bool ok = execute(batch[i]);
+                const bool ok = execute_impl<HotForward>(batch[i]);
                 const uint64_t elapsed = now_ns() - started;
                 // ONE ENTRY PER COMMAND, not per participating shard. A cross-shard op is handed
                 // to every owner it touches; all but the last return with the op still Issued.
@@ -868,7 +869,7 @@ private:
         const uint64_t started = now_ns();
         uint32_t executed = n;
         for (uint32_t i = 0; i < n; i++) {
-            if (execute(batch[i])) continue;
+            if (execute_impl<HotForward>(batch[i])) continue;
             xshard_retries_.push_back(batch[i]);
             for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
             executed = i;
@@ -886,6 +887,16 @@ private:
         if (executed && bar != UINT64_MAX && elapsed / executed >= bar) {
             slowlog_state_.escalate_batches = kSlowlogEscalateBatches;
             slowlog_note_escalation();
+        }
+    }
+
+    template <bool HotForward>
+    void exec_batch_plain(const Task* batch, uint32_t n) {
+        for (uint32_t i = 0; i < n; i++) {
+            if (execute_impl<HotForward>(batch[i])) continue;
+            xshard_retries_.push_back(batch[i]);
+            for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+            break;
         }
     }
 
@@ -908,14 +919,15 @@ private:
         // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
         // into this loop at all. The armed body is out of line in exec_batch_timed().
         if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed(batch, n);
+            if (__builtin_expect(hot_forward_ != nullptr, false))
+                exec_batch_timed<true>(batch, n);
+            else
+                exec_batch_timed<false>(batch, n);
         } else {
-            for (uint32_t i = 0; i < n; i++) {
-                if (execute(batch[i])) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                break;
-            }
+            if (__builtin_expect(hot_forward_ != nullptr, false))
+                exec_batch_plain<true>(batch, n);
+            else
+                exec_batch_plain<false>(batch, n);
         }
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
         // which ones changed, and this thread owns all of them.
@@ -928,6 +940,12 @@ private:
     }
 
     bool execute(const Task& t) {
+        return __builtin_expect(hot_forward_ != nullptr, false)
+            ? execute_impl<true>(t) : execute_impl<false>(t);
+    }
+
+    template <bool HotForward>
+    bool execute_impl(const Task& t) {
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
         if (forward_stale_task(t)) return true;
@@ -958,7 +976,7 @@ private:
             AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
             // A transaction can install several logical keys and can retry after partial owner
             // work. Never expose an intermediate copied value.
-            if (hot_forward_)
+            if constexpr (HotForward)
                 hot_forward_->invalidate_shard(static_cast<uint32_t>(shard.id()));
             const MultiTaskResult result =
                 multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
@@ -981,7 +999,7 @@ private:
             // An ownerless cleanup pass belongs to no connection: clear the per-task no-touch
             // answer so a NO-TOUCH client cannot leave it armed for whatever runs next.
             if (__builtin_expect(maxmemory_enabled_, false)) cleanup.set_no_touch(false);
-            if (hot_forward_)
+            if constexpr (HotForward)
                 hot_forward_->invalidate_shard(static_cast<uint32_t>(cleanup.id()));
             xshard_cleanup_shard(*srv_, cleanup, 32);
             cleanup.publish_size();
@@ -1001,11 +1019,14 @@ private:
         }
         if (op.has_blocking_state()) {
             sh.note_execution(self_->domain());
-            if (lb_controller_armed_) note_lb_hash(sh, op.hash);
-            // Blocking mutations complete inside their engine, so invalidate before entering it.
-            if (hot_forward_ &&
-                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
-                hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
+            if constexpr (HotForward) {
+                if (lb_controller_armed_) note_lb_hash(sh, op.hash);
+                // Blocking mutations complete inside their engine, so invalidate before entering it.
+                if (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+                    hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
+            } else {
+                note_lb_hash(sh, op.hash);
+            }
             return blocking_execute(*srv_, *self_, ring_, t, sh, op);
         }
         // #77 TRIPWIRE A samples before any scheduler park. The first answer is retained across
@@ -1019,19 +1040,22 @@ private:
         }
         const bool mutating =
             (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0;
-        bool hot_forward_exact_write = false;
+        [[maybe_unused]] bool hot_forward_exact_write = false;
         if (!t.scatter && mutating) {
             if (__builtin_expect(sh.has_watches(), false) && !multi_plain_write_ready(sh, op))
                 return false;
         }
-        // Broad handlers can expose several physical stages. Enter the opt-in write arm through
-        // one stable pointer branch; exact writes keep the old independent copy readable until
+        // Broad handlers can expose several physical stages. Only the true batch specialization
+        // contains this arm; its predicted inactive-target branch skips all classification until
+        // a sampled GET has named a key. Exact writes keep the old independent copy readable until
         // their post-handler publication below.
-        if (!t.scatter && mutating && __builtin_expect(hot_forward_ != nullptr, false)) {
-            const uint32_t sid = static_cast<uint32_t>(sh.id());
-            if (__builtin_expect(hot_forward_->active(sid), false)) {
-                hot_forward_exact_write = hot_forward_is_exact_write(op);
-                if (!hot_forward_exact_write) hot_forward_->invalidate_shard(sid);
+        if constexpr (HotForward) {
+            if (!t.scatter && mutating) {
+                const uint32_t sid = static_cast<uint32_t>(sh.id());
+                if (__builtin_expect(hot_forward_->active(sid), false)) {
+                    hot_forward_exact_write = hot_forward_is_exact_write(op);
+                    if (!hot_forward_exact_write) hot_forward_->invalidate_shard(sid);
+                }
             }
         }
         // Records the op AND whether it was executed from this shard's home L3 domain. One compare
@@ -1044,13 +1068,15 @@ private:
             // Scatter fragments may touch several keys and publish in stages. They only invalidate.
             // ConfigRoute includes the cold DEBUG RELOAD/LOADAOF store replacement paths; its
             // observational fan-outs are allowed to invalidate conservatively.
-            if ((mutating || (op.spec->flags & (CmdFlags::ConfigRoute | CmdFlags::ScriptRoute))) &&
-                hot_forward_)
-                hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
+            if constexpr (HotForward) {
+                if (mutating ||
+                    (op.spec->flags & (CmdFlags::ConfigRoute | CmdFlags::ScriptRoute)))
+                    hot_forward_->invalidate_shard(static_cast<uint32_t>(sh.id()));
+            }
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
             if (result == ScatterTaskResult::Retry) return false;
-            if (lb_controller_armed_) {
+            if (HotForward ? lb_controller_armed_ : lb_sample_rate_ != 0) {
                 struct LbVisit { ExLoopT* loop; Shard* shard; } visit{this, &sh};
                 xshard_visit_task_hashes(t, &visit, [](void* context, uint64_t hash) {
                     auto* visit = static_cast<LbVisit*>(context);
@@ -1098,11 +1124,15 @@ private:
             }
         }
         if (!t.scatter && mutating) {
-            if (hot_forward_exact_write) hot_forward_publish_exact_write(sh, op);
+            if constexpr (HotForward)
+                if (hot_forward_exact_write) hot_forward_publish_exact_write(sh, op);
             if (__builtin_expect(sh.has_watches(), false))
                 multi_plain_write_committed(sh, op);
         }
-        if (!t.scatter) note_lb_op(sh, op);
+        if (!t.scatter) {
+            if constexpr (HotForward) note_hot_forward_op(sh, op);
+            else note_lb_hash(sh, op.hash);
+        }
         if (!t.scatter && __builtin_expect(aof_manager_ != nullptr, false)) {
             AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
@@ -1133,23 +1163,33 @@ private:
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
     }
 
-    bool note_lb_hash(Shard& shard, uint64_t hash) {
+    bool lb_sample_tick() {
         if (!lb_sample_rate_) return false;
         if (--lb_sample_countdown_ != 0) return false;
         lb_sample_countdown_ = lb_sample_rate_;
-        if (lb_controller_armed_) shard.note_lb_sample(hash);
         return true;
     }
 
-    void note_lb_op(Shard& shard, Op& op) {
-        // This is the pre-existing all-op countdown path. The optional pointer and every detector
-        // gate are consulted only on its 1-in-N tick; hot-forward=0 leaves unsampled operations
-        // identical, while non-GET ticks never update an exact-key candidate.
-        if (!note_lb_hash(shard, op.hash) || !hot_forward_) return;
-        if (!(op.spec->flags & CmdFlags::HotForwardEligible) || op.no_borrow() ||
-            maxmemory_enabled_ || srv_->atomic_tracking_active() ||
-            shard.store().atomic_has_records())
-            return;
+    void note_lb_hash(Shard& shard, uint64_t hash) {
+        if (!lb_sample_tick()) return;
+        shard.note_lb_sample(hash);
+    }
+
+    void note_hot_forward_op(Shard& shard, Op& op) {
+        if (!lb_controller_armed_) {
+            // With weighted LB off, only an eligible GET consumes the reused countdown. Uniform
+            // writes therefore pay one predicted command-class rejection, not sampler accounting.
+            if (!(op.spec->flags & CmdFlags::HotForwardEligible) || op.no_borrow()) return;
+            if (!lb_sample_tick()) return;
+        } else {
+            // Weighted LB retains its exact all-op sample stream; forwarding inspects only a tick
+            // that the controller was already going to record.
+            if (!lb_sample_tick()) return;
+            shard.note_lb_sample(op.hash);
+            if (!(op.spec->flags & CmdFlags::HotForwardEligible) || op.no_borrow()) return;
+        }
+        if (maxmemory_enabled_ || srv_->atomic_tracking_active() ||
+            shard.store().atomic_has_records()) return;
         const KvObj* object = shard.store().find_resident(op.hash, op.key());
         if (object && object->expire_at_ms() >= 0 &&
             object->expire_at_ms() <= cached_now_ms_)
