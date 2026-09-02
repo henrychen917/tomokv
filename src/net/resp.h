@@ -170,21 +170,6 @@ inline uint32_t u64_to_dec(char* dst, uint64_t v) {
     for (uint32_t i = 0; i < n; i++) dst[i] = tmp[n - 1 - i];
     return n;
 }
-// Bulk lengths on the copied GET path are commonly one or two digits. Write those forward so they
-// do not pay the generic quotient loop, temporary stores and reverse-copy loop.
-inline uint32_t u32_to_dec(char* dst, uint32_t v) {
-    if (v < 10) {
-        dst[0] = static_cast<char>('0' + v);
-        return 1;
-    }
-    if (v < 100) {
-        const uint32_t tens = v / 10;
-        dst[0] = static_cast<char>('0' + tens);
-        dst[1] = static_cast<char>('0' + v - tens * 10);
-        return 2;
-    }
-    return u64_to_dec(dst, v);
-}
 inline uint32_t i64_to_dec(char* dst, int64_t v) {
     if (v < 0) { *dst = '-'; return 1 + u64_to_dec(dst + 1, static_cast<uint64_t>(-(v + 1)) + 1); }
     return u64_to_dec(dst, static_cast<uint64_t>(v));
@@ -239,7 +224,7 @@ template <typename Buf> inline void reply_bulk_header(Buf&& b, uint32_t len) {
     char* p = b.reserve(24);
     char* q = p;
     *q++ = '$';
-    q += u32_to_dec(q, len);
+    q += u64_to_dec(q, len);
     *q++ = '\r'; *q++ = '\n';
     b.advance(static_cast<size_t>(q - p));
 }
@@ -251,7 +236,7 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
     char* p = b.reserve(24 + static_cast<size_t>(s.n) + 2);
     char* q = p;
     *q++ = '$';
-    q += u32_to_dec(q, s.n);
+    q += u64_to_dec(q, s.n);
     *q++ = '\r'; *q++ = '\n';
     std::memcpy(q, s.p, s.n); q += s.n;
     *q++ = '\r'; *q++ = '\n';
