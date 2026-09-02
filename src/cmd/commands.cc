@@ -69,6 +69,38 @@ bool command_equal(Slice input, const char* canonical) {
     return true;
 }
 
+template <size_t N>
+bool command_name_in(const char* name, const char* const (&names)[N]) {
+    for (const char* candidate : names)
+        if (!std::strcmp(name, candidate)) return true;
+    return false;
+}
+
+// Owner scheduler class table. This runs once while copying the registry; execution reads only
+// the two stamped flag bits. Static means deliberately argv-independent: MGET is Long even at one
+// key, and a bounded LRANGE is still Long. That is the cost of keeping policy lookup constant.
+CommandLengthClass command_length_class_for(const CommandSpec& spec) {
+    static constexpr const char* kSmallMulti[] = {
+        "RENAME", "RENAMENX", "COPY", "SMOVE", "LMOVE", "RPOPLPUSH",
+        "BLMOVE", "BRPOPLPUSH",
+    };
+    static constexpr const char* kLong[] = {
+        "GETRANGE", "SUBSTR", "SETRANGE", "BITFIELD", "BITFIELD_RO", "BITCOUNT",
+        "BITPOS", "DUMP", "RESTORE", "RESTORE-ASKING",
+        "HMGET", "HGETALL", "HKEYS", "HVALS", "HRANDFIELD", "HSCAN",
+        "LRANGE", "LPOS",
+        "SMISMEMBER", "SMEMBERS", "SRANDMEMBER", "SSCAN",
+        "ZRANGE", "ZRANGEBYSCORE", "ZREVRANGEBYSCORE", "ZRANGEBYLEX",
+        "ZREVRANGEBYLEX", "ZREVRANGE", "ZRANDMEMBER", "ZSCAN",
+        "GEOSEARCH", "XRANGE", "XREVRANGE", "XPENDING", "XCLAIM", "XAUTOCLAIM",
+        "SCAN", "LCS",
+    };
+    if (command_name_in(spec.name, kSmallMulti)) return CommandLengthClass::SmallMulti;
+    if ((spec.flags & CmdFlags::MultiShard) || command_name_in(spec.name, kLong))
+        return CommandLengthClass::Long;
+    return CommandLengthClass::Point;
+}
+
 }  // namespace
 
 bool command_registry_init(bool tls_enabled, bool fused_mode) {
@@ -105,6 +137,9 @@ bool command_registry_init(bool tls_enabled, bool fused_mode) {
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                copy.flags = (copy.flags & ~CmdFlags::LengthMask) |
+                    (static_cast<uint32_t>(command_length_class_for(copy)) <<
+                     CmdFlags::LengthShift);
                 if (fused_mode && !std::strcmp(copy.name, "FLIP")) {
                     copy.flags &= ~CmdFlags::FlipAsync;
                     copy.handler = cmd_flip_unavailable;

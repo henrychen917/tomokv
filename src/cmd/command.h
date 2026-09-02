@@ -21,6 +21,16 @@ namespace tomo {
 class Shard;
 class Op;
 
+// Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
+// class, not a runtime estimate from argv or clocks. Point includes GET and SET; SmallMulti is the
+// fixed two-key family; Long covers variable multi-key, range, scan, and other whole-value work.
+enum class CommandLengthClass : uint8_t {
+    Point = 0,
+    SmallMulti = 1,
+    Long = 2,
+    Count = 3,
+};
+
 struct CmdFlags {
     static constexpr uint32_t Write     = 1u << 0;   // mutates the keyspace
     static constexpr uint32_t Readonly  = 1u << 1;
@@ -91,6 +101,10 @@ struct CmdFlags {
     // FLIP publishes an unfinished connection-local ROB slot and is completed by IoLoop's staged
     // coordinator. No other command enters that control path.
     static constexpr uint32_t FlipAsync = 1u << 25;
+    // Boot-stamped scheduler metadata. Keeping the two-bit class in the six free flag bits avoids
+    // growing the footprint-locked CommandSpec and survives the clean/notify/TLS shadow copies.
+    static constexpr uint32_t LengthShift = 26;
+    static constexpr uint32_t LengthMask = 3u << LengthShift;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);
@@ -135,6 +149,11 @@ struct CommandSpec {
 // 48 = the ACL audit's measured 40 plus the notify v2 handler_notify tail pointer. Registry rows
 // are cold read-only data; the lock exists to catch accidental growth, not to forbid deliberate.
 static_assert(sizeof(CommandSpec) == 48);
+
+inline CommandLengthClass command_length_class(const CommandSpec& spec) {
+    return static_cast<CommandLengthClass>((spec.flags & CmdFlags::LengthMask) >>
+                                           CmdFlags::LengthShift);
+}
 
 struct CommandTable {
     const CommandSpec* specs;
