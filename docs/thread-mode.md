@@ -57,9 +57,9 @@ mode-unavailable error. Existing key load-balancing bucket movers remain availab
 ## Choosing a cell
 
 The architecture bench found unified mode strongest through 16 cores: it led tuned separated mode
-by 9–21% at 8 cores, and at 16 cores with pipeline 128 it led by 2.4% for GET and 10% for SET. Those
-results should not be extrapolated to larger core counts or different workloads without a separate
-measurement.
+by 9–21% at 8 cores, and at 16 cores with a client request-pipeline depth of 128 it led by 2.4% for
+GET and 10% for SET. Those results should not be extrapolated to larger core counts or different
+workloads without a separate measurement.
 
 Use pipeline 0 when the purpose is ordinary operation or a study baseline. Pipelines 1 and 2 are
 fixed measurement cells: select them only when the schedule itself is the variable under study.
