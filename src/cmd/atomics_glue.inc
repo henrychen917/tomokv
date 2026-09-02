@@ -663,6 +663,13 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     if (multi_task_tagged(task)) return false;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
+        // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
+        // destination check. Both contenders' destination tasks then reach this deferred queue
+        // before either newly posted phase-two task can install its result.
+        if (__builtin_expect(state.debug_conditional_deadline != 0, false) &&
+            state.phase == 1 && task.shard == state.keys[1].shard &&
+            now_ns() < state.debug_conditional_deadline)
+            return true;
         // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER): park every fragment but the lead one until the
         // deadline. A park, not a stall -- the owner returns to its queue, so the transaction this
         // widened window exists to race is free to execute and publish its ticket in the middle of

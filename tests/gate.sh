@@ -163,7 +163,7 @@ E=$(grep -oE "executed=[0-9]+"  "$SRVLOG" | cut -d= -f2)
 
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
 # predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
-boot ./build/tomokv --atomic 1 || bad "atomic release boot"
+boot ./build/tomokv --atomic 1 --enable-debug-command yes || bad "atomic release boot"
 python3 tests/atomic_torn.py 127.0.0.1 $PORT >/tmp/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see /tmp/gate-atomic-torn.txt"
 python3 tests/atomic_ryow.py 127.0.0.1 $PORT >/tmp/gate-atomic-ryow.txt 2>&1 \
@@ -872,7 +872,7 @@ if [ "$TIER" = quick ]; then
 fi
 
 # ---- 4. full tier: torture under ASAN ---------------------------------------------------------
-boot $ASAN --atomic 1 || bad "ASAN boot"
+boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
 python3 tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort-asan.txt 2>&1 \
     && ok "torture under ASAN" || bad "torture under ASAN"
 python3 tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow-asan.txt 2>&1 \

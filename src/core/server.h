@@ -2675,6 +2675,18 @@ public:
     uint32_t debug_atomic_fanout_defer() const {
         return debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
     }
+    // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER). Microseconds the destination-validation task of
+    // an atomic-OFF RENAMENX/COPY is PARKED during phase one. Two contenders can therefore both
+    // observe the empty destination before either phase-two install runs. Parking keeps the owner
+    // free to execute the competing task; zero is the production default.
+    void set_debug_atomic_conditional_defer(uint32_t microseconds) {
+        const uint64_t deadline = microseconds
+            ? now_ns() + static_cast<uint64_t>(microseconds) * 1000ull : 0;
+        debug_atomic_conditional_deadline_.store(deadline, std::memory_order_relaxed);
+    }
+    uint64_t debug_atomic_conditional_deadline() const {
+        return debug_atomic_conditional_deadline_.load(std::memory_order_relaxed);
+    }
     // TEST HOOK (DEBUG SCRIPT-STAGE-DEFER). Microseconds every cross-owner script GATHER task
     // except the one on the coordinator's own shard is PARKED -- re-queued, not spun -- after the
     // activation has reserved all of its declared keys and pinned its cut. That park IS the window
@@ -3415,8 +3427,11 @@ private:
     std::atomic<uint64_t> save_change_baseline_{0};
     std::atomic<uint64_t> scheduled_save_triggers_{0};
     std::atomic<uint64_t> save_cron_checks_{0};
-    // True tail: disabled servers allocate no epoch state and no established offset moves.
+    // Appended cold state: disabled servers allocate no epoch state and no established offset
+    // moves. Later test-only knobs stay behind this pointer for the same reason.
     std::unique_ptr<ReadLocalServerState> read_local_state_;
+    // Appended at the true tail: this test-only knob must not move any production member.
+    std::atomic<uint64_t> debug_atomic_conditional_deadline_{0};
 };
 
 }  // namespace tomo
