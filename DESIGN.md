@@ -218,8 +218,10 @@ performs the real deletion.
 The enabled IO specialization adds one predicted-false attempt after the ordinary route has
 computed the exact hash and physical shard, but before it loads the executor owner or publishes a
 `Task`. ACL, MULTI handling, connection observers, and atomic read-cut stamping have already run.
-Only the registry's exact two-argument GET row is eligible; TLS, notification/tracking-selected,
-multi-key, and atomic-tracked reads fall back.
+Only the registry's exact two-argument GET row is eligible; TLS, multi-key, and atomic-tracked
+reads fall back. The notification shadow remains eligible: monitor/tracking hooks have already run
+before routing, SAVE observes writes rather than reads, and a positive-only slot suppresses no
+key-miss or expired event (both conditions fall back to the owner).
 
 A parse call starts a forwarding tail only when that connection's ROB is quiescent. Each local hit
 publishes a normal Done ROB entry and advances the tail. Another local command or owner task
@@ -235,7 +237,7 @@ pay no clock call. Forwarded successes preserve IO command counts, operation cou
 and a plain IO-owner forwarded-hit counter included in keyspace hit reporting.
 
 Fallback is therefore mandatory for: no slot; non-GET or multi-key read; non-quiescent/non-prefix
-connection order; ACL/observer/TLS variant; active atomic tracking/read cut; live maxmemory touch
+connection order; ACL or TLS rejection; active atomic tracking/read cut; live maxmemory touch
 policy; hash/key mismatch; odd or changed sequence; expired deadline; missing/wrong-type publisher
 state; or key/reply overflow. Every fallback is the pre-existing owner task path, not a second read
 implementation.
