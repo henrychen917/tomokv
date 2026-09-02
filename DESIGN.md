@@ -155,11 +155,14 @@ acknowledged value for all 63 keys.
 
 `hot-forward` is a boot-only numeric switch. `0` is the default: no forwarding object, slot, or
 scratch buffer is allocated, and the IO loop uses a false template specialization containing no
-forwarding branch. `1` allocates one fixed slot per physical shard and one fixed scratch buffer per
-physical IO thread. There is no table, resize, runtime allocation, negative entry, write forwarding,
-or multi-key read path. A slot can name exactly one key; the key is capped at 256 bytes and its fully
-formatted positive GET reply at 4096 bytes. Either overflow leaves the slot unavailable and GET
-uses the ordinary task path. Failure to make the bounded boot allocation fails initialization.
+forwarding branch. The executor likewise selects its false/true implementation once per gathered
+batch; its false per-operation body retains the original sampler and contains no forwarding
+detection or write-boundary checks. `1` allocates one fixed slot per physical shard and one fixed
+scratch buffer per physical IO thread. There is no table, resize, runtime allocation, negative
+entry, write forwarding, or multi-key read path. A slot can name exactly one key; the key is capped
+at 256 bytes and its fully formatted positive GET reply at 4096 bytes. Either overflow leaves the
+slot unavailable and GET uses the ordinary task path. Failure to make the bounded boot allocation
+fails initialization.
 
 One slot per physical shard is the narrowest structure that retains a single writer while shards
 move between executors: the current owner of that shard is the slot's only publisher. The existing
@@ -175,9 +178,11 @@ slot's owner-only candidate. Sixteen consecutive sampled GETs for the same exact
 promote it. Non-GET ticks never update an exact-key candidate, and there is no second counter or
 heavy-hitter policy. `hot-forward=1` keeps this same countdown active even when `key-lb=0`; an explicit
 `lb-sample-rate=0` is rejected with forwarding enabled rather than silently making promotion
-impossible. Until a promotion, the enabled GET path sees only the one predicted unavailable-slot
-branch; detector work occurs only on the pre-existing sampled tick. This is the no-hot
-zero-regression posture.
+impossible. With weighted key LB enabled its established all-operation bucket sample stream remains
+unchanged; with key LB disabled, non-GET and no-borrow operations are rejected before consuming
+that same countdown, so detection accounting is charged only to candidate GETs. Until a promotion, the
+enabled GET path sees only the one predicted unavailable-slot branch; detector work beyond that
+command-class gate occurs only on the sampled tick. This is the no-hot zero-regression posture.
 
 Promotion performs one owner-local no-touch lookup after the sampled GET. Only a live String is
 published. Integer encoding is rendered to the same decimal bulk reply as `GET`; raw/external
