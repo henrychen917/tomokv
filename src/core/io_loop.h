@@ -3449,10 +3449,45 @@ private:
         mark_active_known<Fused && Pipeline != 0>(c);
     }
 
-    // A demotion is planned before the stateful MONITOR/tracking gate, but its Tasks are not
-    // published until ACL and FLIP have admitted the frame. Per-producer queue reservations make
-    // that later commit infallible, so retrying capacity can never replay those stateful hooks.
+    static bool read_local_mget(const Op& op) {
+        return op.spec && command_is_read_local_mget(*op.spec);
+    }
+
+    static void read_local_clear_reply(Op& op) {
+        op.reply.clear();
+        op.direct_len = 0;
+        op.zc_ptr = nullptr;
+        op.zc_len = 0;
+        op.zc_shard = -1;
+    }
+
+    static bool read_local_op_touches_hash(const Op& op, uint64_t hash) {
+        if (!read_local_mget(op)) return op.hash == hash;
+        for (uint32_t arg = 1; arg < op.argc(); arg++)
+            if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
+        return false;
+    }
+
+    // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
+    // published until ACL and FLIP admit the current frame; per-producer reservations make that
+    // later commit infallible. If the existing scatter snapshot window accepts only a prefix, that
+    // prefix contains exclusively older, already-admitted reads and is committed before the
+    // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
+    // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
+    // scatter planner into one owner Task per touched shard.
     class ReadLocalDemotionPlan {
+    private:
+        enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
+
+        struct Storage {
+            uint64_t ids[kRobWindow];
+            ScatterState* scatter[kRobWindow];
+            uint16_t scatter_tasks[kRobWindow];
+            ReadKind kinds[kRobWindow];
+            uint32_t owners[kMaxThreads];
+            uint32_t remaining[kMaxThreads];
+        };
+
     public:
         ReadLocalDemotionPlan() = default;
         ~ReadLocalDemotionPlan() { cancel(); }
@@ -3465,29 +3500,83 @@ private:
                      bool reserve_current_without_reads = false) {
             if (loop_ || !client) std::abort();
             Rob<kRobWindow>& rob = client->rob();
+            if (!rob.has_pending_read_local() &&
+                !(reserve_current_without_reads && reserve_shard >= 0))
+                return true;
+            storage_.reset(new (std::nothrow) Storage);
+            if (!storage_) return false;
             count_ = rob.collect_pending_read_local(
-                0, false, ids_, kRobWindow);
+                0, false, storage_->ids, kRobWindow);
             if (count_ && require_hash_match) {
                 bool collision = false;
                 for (uint32_t i = 0; i < count_; i++)
-                    collision |= rob.at(ids_[i]).hash == hash;
+                    collision |= read_local_op_touches_hash(
+                        rob.at(storage_->ids[i]), hash);
                 if (!collision) {
                     count_ = 0;
                 }
             }
             if (!count_ &&
-                !(reserve_current_without_reads && reserve_shard >= 0))
+                !(reserve_current_without_reads && reserve_shard >= 0)) {
+                storage_.reset();
                 return true;
+            }
 
             loop_ = &loop;
             client_ = client;
             inflight_write_ = inflight_write;
             for (uint32_t i = 0; i < count_; i++) {
-                const int32_t shard = rob.at(ids_[i]).shard;
-                if (shard < 0) std::abort();
-                add_owner(loop.srv_->worker_of_shard(shard));
+                storage_->kinds[i] = ReadKind::Ordinary;
+                storage_->scatter[i] = nullptr;
+                storage_->scatter_tasks[i] = 0;
             }
-            if (reserve_shard >= 0) {
+            for (uint32_t i = 0; i < count_; i++) {
+                Op& op = rob.at(storage_->ids[i]);
+                if (read_local_mget(op)) {
+                    read_local_clear_reply(op);
+                    ScatterDispatch dispatch;
+                    const ScatterPrepare prepared = xshard_prepare(
+                        *loop.srv_, op, loop.scatter_pool_, loop.self_->id(),
+                        client->id(), dispatch, false, client);
+                    if (prepared == ScatterPrepare::Backpressure) {
+                        // A local run can contain more cross-shard reads than the existing
+                        // snapshot window admits concurrently. Publish the already prepared ROB
+                        // prefix as one ordered wave and leave this op plus its suffix local. The
+                        // owner fence makes the next EX pass demote (not execute) that suffix until
+                        // this wave completes; parser callers reparse their unconsumed current
+                        // frame after the same prefix commit.
+                        if (i) {
+                            count_ = i;
+                            partial_ = true;
+                            loop.fused_executor_->preserve_local_read_fallbacks(
+                                client, inflight_write_
+                                    ? ReadLocalFallbackReason::InflightWrite
+                                    : ReadLocalFallbackReason::Context);
+                            break;
+                        }
+                        cancel();
+                        return false;
+                    }
+                    if (prepared == ScatterPrepare::Error) {
+                        storage_->kinds[i] = ReadKind::Error;
+                        continue;
+                    }
+                    if (prepared == ScatterPrepare::Ready) {
+                        storage_->kinds[i] = ReadKind::Scatter;
+                        storage_->scatter[i] = dispatch.state;
+                        storage_->scatter_tasks[i] = dispatch.nshards;
+                        for (uint32_t task = 0; task < dispatch.nshards; task++) {
+                            const int32_t shard = xshard_dispatch_shard(dispatch, task);
+                            if (shard < 0) std::abort();
+                            add_owner(loop.srv_->worker_of_shard(shard));
+                        }
+                        continue;
+                    }
+                }
+                if (op.shard < 0) std::abort();
+                add_owner(loop.srv_->worker_of_shard(op.shard));
+            }
+            if (!partial_ && reserve_shard >= 0) {
                 reserved_current_worker_ = static_cast<int32_t>(
                     loop.srv_->worker_of_shard(reserve_shard));
                 add_owner(static_cast<uint32_t>(reserved_current_worker_));
@@ -3495,45 +3584,95 @@ private:
 
             uint32_t reserved = 0;
             for (; reserved < nowners_; reserved++) {
-                if (!loop.srv_->thread(owners_[reserved]).reserve_task_slots(
-                        loop.self_->id(), remaining_[reserved]))
+                if (!loop.srv_->thread(storage_->owners[reserved]).reserve_task_slots(
+                        loop.self_->id(), storage_->remaining[reserved]))
                     break;
             }
             if (reserved != nowners_) {
                 for (uint32_t i = 0; i < reserved; i++)
-                    loop.srv_->thread(owners_[i]).cancel_task_reservation(
-                        loop.self_->id(), remaining_[i]);
+                    loop.srv_->thread(storage_->owners[i]).cancel_task_reservation(
+                        loop.self_->id(), storage_->remaining[i]);
+                discard_prepared_reads();
                 clear();
                 return false;
             }
+            reservations_live_ = true;
             return true;
         }
 
         bool active() const { return loop_ != nullptr; }
         bool current_reserved() const { return reserved_current_worker_ >= 0; }
+        bool partial() const { return partial_; }
+        uint32_t read_count() const { return count_; }
 
-        void commit_reads() {
+        void commit_reads(const Task* probed = nullptr,
+                          const ReadLocalFallbackReason* fallbacks = nullptr,
+                          uint32_t probed_count = 0) {
             if (!loop_) return;
             Rob<kRobWindow>& rob = client_->rob();
+            bool completed_locally = false;
             for (uint32_t i = 0; i < count_; i++) {
-                const uint32_t worker = loop_->srv_->worker_of_shard(rob.at(ids_[i]).shard);
-                loop_->srv_->thread(worker).post_task_reserved_quiet(
-                    loop_->self_->id(), Task{client_, ids_[i], -1, nullptr},
-                    loop_->self_->sig());
-                consume(worker);
-                loop_->touch_worker(worker);
+                Op& op = rob.at(storage_->ids[i]);
+                if (storage_->kinds[i] == ReadKind::Error) {
+                    rob.complete_pending_read_local(storage_->ids[i]);
+                    op.state.store(OpState::Done, std::memory_order_release);
+                    completed_locally = true;
+                    continue;
+                }
+                if (storage_->kinds[i] == ReadKind::Scatter) {
+                    ScatterState* state = storage_->scatter[i];
+                    if (!state || !storage_->scatter_tasks[i]) std::abort();
+                    ScatterDispatch dispatch;
+                    dispatch.state = state;
+                    dispatch.nshards = storage_->scatter_tasks[i];
+                    op.attach_scatter_state(state);
+                    storage_->scatter[i] = nullptr;  // the Op/IO retirement path owns it now
+                    loop_->self_->note_command(op.spec->id);
+                    for (uint32_t task = 0; task < dispatch.nshards; task++) {
+                        const int32_t shard = xshard_dispatch_shard(dispatch, task);
+                        const uint32_t worker = loop_->srv_->worker_of_shard(shard);
+                        loop_->srv_->thread(worker).post_task_reserved_quiet(
+                            loop_->self_->id(),
+                            Task{client_, storage_->ids[i], shard, state},
+                            loop_->self_->sig());
+                        consume(worker);
+                        loop_->touch_worker(worker);
+                    }
+                } else {
+                    const uint32_t worker = loop_->srv_->worker_of_shard(op.shard);
+                    loop_->srv_->thread(worker).post_task_reserved_quiet(
+                        loop_->self_->id(),
+                        Task{client_, storage_->ids[i], -1, nullptr},
+                        loop_->self_->sig());
+                    consume(worker);
+                    loop_->touch_worker(worker);
+                }
+                rob.publish_pending_read_local_to_owner(storage_->ids[i]);
             }
             if (count_) {
-                for (uint32_t i = 0; i < count_; i++)
-                    rob.publish_pending_read_local_to_owner(ids_[i]);
-                loop_->fused_executor_->note_local_read_tombstones();
                 ReadLocalStats& stats = loop_->self_->read_local_stats();
-                (inflight_write_ ? stats.fallback_inflight_write
-                                 : stats.fallback_context) += count_;
+                for (uint32_t i = 0; i < count_; i++) {
+                    loop_->fused_executor_->note_local_read_demoted(
+                        rob.at(storage_->ids[i]));
+                    ReadLocalFallbackReason reason = inflight_write_
+                        ? ReadLocalFallbackReason::InflightWrite
+                        : ReadLocalFallbackReason::Context;
+                    for (uint32_t j = 0; j < probed_count; j++) {
+                        if (probed[j].op_id != storage_->ids[i]) continue;
+                        if (fallbacks && fallbacks[j] != ReadLocalFallbackReason::None)
+                            reason = fallbacks[j];
+                        break;
+                    }
+                    stats.note_fallback(
+                        reason, read_local_mget(rob.at(storage_->ids[i])));
+                }
             }
+            if (completed_locally)
+                loop_->fused_executor_completion<false>(client_);
+            count_ = 0;  // every prepared scatter/marker is now owned by its published Op
             if (reserved_current_worker_ < 0) {
                 for (uint32_t i = 0; i < nowners_; i++)
-                    if (remaining_[i]) std::abort();
+                    if (storage_->remaining[i]) std::abort();
                 clear();
             }
         }
@@ -3546,35 +3685,52 @@ private:
             consume(worker);
             loop_->touch_worker(worker);
             for (uint32_t i = 0; i < nowners_; i++)
-                if (remaining_[i]) std::abort();
+                if (storage_->remaining[i]) std::abort();
             clear();
         }
 
     private:
         void add_owner(uint32_t worker) {
             uint32_t at = 0;
-            while (at != nowners_ && owners_[at] != worker) at++;
+            while (at != nowners_ && storage_->owners[at] != worker) at++;
             if (at == nowners_) {
-                owners_[nowners_] = worker;
-                remaining_[nowners_] = 0;
+                if (nowners_ == kMaxThreads) std::abort();
+                storage_->owners[nowners_] = worker;
+                storage_->remaining[nowners_] = 0;
                 nowners_++;
             }
-            remaining_[at]++;
+            storage_->remaining[at]++;
         }
 
         void consume(uint32_t worker) {
             uint32_t at = 0;
-            while (at != nowners_ && owners_[at] != worker) at++;
-            if (at == nowners_ || !remaining_[at]) std::abort();
-            remaining_[at]--;
+            while (at != nowners_ && storage_->owners[at] != worker) at++;
+            if (at == nowners_ || !storage_->remaining[at]) std::abort();
+            storage_->remaining[at]--;
+        }
+
+        void discard_prepared_reads() {
+            if (!loop_ || !client_) return;
+            Rob<kRobWindow>& rob = client_->rob();
+            for (uint32_t i = 0; i < count_; i++) {
+                Op& op = rob.at(storage_->ids[i]);
+                if (storage_->scatter[i]) {
+                    xshard_destroy(storage_->scatter[i], loop_->scatter_pool_,
+                                   loop_->self_->id());
+                    storage_->scatter[i] = nullptr;
+                }
+                if (read_local_mget(op)) read_local_clear_reply(op);
+            }
         }
 
         void cancel() {
             if (!loop_) return;
-            for (uint32_t i = 0; i < nowners_; i++)
-                if (remaining_[i])
-                    loop_->srv_->thread(owners_[i]).cancel_task_reservation(
-                        loop_->self_->id(), remaining_[i]);
+            if (reservations_live_)
+                for (uint32_t i = 0; i < nowners_; i++)
+                    if (storage_->remaining[i])
+                        loop_->srv_->thread(storage_->owners[i]).cancel_task_reservation(
+                            loop_->self_->id(), storage_->remaining[i]);
+            discard_prepared_reads();
             clear();
         }
 
@@ -3584,18 +3740,36 @@ private:
             count_ = nowners_ = 0;
             reserved_current_worker_ = -1;
             inflight_write_ = false;
+            reservations_live_ = false;
+            partial_ = false;
+            storage_.reset();
         }
 
         IoLoop* loop_ = nullptr;
         Client* client_ = nullptr;
-        uint64_t ids_[kRobWindow];
-        uint32_t owners_[kRobWindow + 1];
-        uint32_t remaining_[kRobWindow + 1];
+        std::unique_ptr<Storage> storage_;
         uint32_t count_ = 0;
         uint32_t nowners_ = 0;
         int32_t reserved_current_worker_ = -1;
         bool inflight_write_ = false;
+        bool reservations_live_ = false;
+        bool partial_ = false;
     };
+
+public:
+    bool fused_demote_local_read_batch(Client* client, const Task* probed,
+                                       const ReadLocalFallbackReason* fallbacks,
+                                       uint32_t probed_count, uint32_t& demoted) {
+        ReadLocalDemotionPlan plan;
+        if (!plan.prepare(*this, client, 0, false)) return false;
+        demoted = plan.read_count();
+        if (!demoted) std::abort();
+        plan.commit_reads(probed, fallbacks, probed_count);
+        (void)flush_ifid_posts();
+        return true;
+    }
+
+private:
 
     struct EmptyReadLocalDemotionPlan {};
 
@@ -3708,8 +3882,10 @@ private:
                     read_local_owner_fence = true;
                 }
             }
-            [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
+            [[maybe_unused]] ReadLocalFallbackReason read_local_fallback_reason =
+                ReadLocalFallbackReason::None;
             [[maybe_unused]] bool extend_read_local_batch = false;
+            [[maybe_unused]] bool read_local_mget_candidate = false;
             [[maybe_unused]] bool read_local_write_hazard = false;
             [[maybe_unused]] bool read_local_eligible_decided = false;
             [[maybe_unused]] bool read_local_eligible = false;
@@ -3837,6 +4013,7 @@ private:
                 if (read_local_enabled && read_local_batch) {
                     extend_read_local_batch =
                         (spec->flags & CmdFlags::ReadLocalEligible) &&
+                        !command_is_read_local_mget(*spec) &&
                         conn.multi_session() == nullptr &&
                         fused_executor_->local_read_lane_has_room();
                     if (!extend_read_local_batch) read_local_batch = false;
@@ -3928,69 +4105,120 @@ private:
                             read_local_commit_before_lowering = true;
                         }
                     } else if ((spec->flags & CmdFlags::ReadLocalEligible) != 0) {
-                        if (!point_route) std::abort();
-                        ReadLocalStats& local_stats = self_->read_local_stats();
-                        const bool write_conflict = !read_local_owner_fence &&
-                            rob.read_local_write_conflicts(op->hash);
+                        const bool mget = command_is_read_local_mget(*spec);
+                        read_local_mget_candidate = mget;
+                        if (!mget && !point_route) std::abort();
+                        if (mget) {
+                            op->hash = FlatStore::hash_key(op->arg(1));
+                            op->shard = srv_->router().shard_of(op->hash);
+                            read_local_point_prehashed = true;
+                        }
+                        bool write_conflict = false;
+                        bool mget_atomic_pending = false;
+                        bool mget_seq_churn = false;
+                        if (mget) {
+                            for (uint32_t arg = 1; arg < op->argc(); arg++) {
+                                const uint64_t hash = arg == 1
+                                    ? op->hash : FlatStore::hash_key(op->arg(arg));
+                                const int32_t shard = arg == 1
+                                    ? op->shard : srv_->router().shard_of(hash);
+                                if (!read_local_owner_fence)
+                                    write_conflict |= rob.read_local_write_conflicts(hash);
+                                const uint64_t state = srv_->shard(shard)
+                                                           .store()
+                                                           .read_local_state_acquire();
+                                mget_atomic_pending |=
+                                    FlatStore::read_local_pending(state) != 0;
+                                mget_seq_churn |=
+                                    !FlatStore::read_local_state_eligible(state);
+                            }
+                        } else if (!read_local_owner_fence) {
+                            write_conflict = rob.read_local_write_conflicts(op->hash);
+                        }
                         read_local_eligible = extend_read_local_batch && !write_conflict;
                         if (extend_read_local_batch && write_conflict) {
-                            read_local_fallback_counter =
-                                &local_stats.fallback_inflight_write;
+                            read_local_fallback_reason =
+                                ReadLocalFallbackReason::InflightWrite;
                             read_local_batch = false;
                         }
                         if (!extend_read_local_batch) {
                             read_local_eligible = true;
                             if (read_local_owner_fence) {
-                                read_local_fallback_counter =
-                                    &local_stats.fallback_context;
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::Context;
                                 read_local_eligible = false;
                             } else if (multi_session_watch_size(conn) != 0) {
-                                read_local_fallback_counter =
-                                    &local_stats.fallback_watch;
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::Watch;
                                 read_local_eligible = false;
                             } else if (c->blocked() || c->subscriber_mode() ||
                                        op->has_scatter_state() ||
                                        (spec->flags &
-                                        (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
-                                         CmdFlags::AllShards))) {
-                                read_local_fallback_counter =
-                                    &local_stats.fallback_context;
+                                        (CmdFlags::ScriptRoute | CmdFlags::AllShards)) ||
+                                       (!mget && (spec->flags & CmdFlags::MultiShard))) {
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::Context;
                                 read_local_eligible = false;
                             } else if (write_conflict) {
-                                read_local_fallback_counter =
-                                    &local_stats.fallback_inflight_write;
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::InflightWrite;
+                                read_local_eligible = false;
+                            } else if (mget &&
+                                       fused_executor_->read_local_keymiss_notify_armed()) {
+                                // A notify-aware owner lookup can emit keymiss. Local MGET serves
+                                // stable misses as nil, so keep the whole command on the unchanged
+                                // owner/scatter path while key-miss notifications are configured.
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::Context;
                                 read_local_eligible = false;
                             } else {
-                                const uint64_t state = srv_->shard(op->shard)
-                                                           .store()
-                                                           .read_local_state_acquire();
-                                if (FlatStore::read_local_pending(state) != 0) {
-                                    read_local_fallback_counter =
-                                        &local_stats.fallback_atomic_pending;
+                                bool atomic_pending = mget_atomic_pending;
+                                bool seq_churn = mget_seq_churn;
+                                if (!mget) {
+                                    const uint64_t state = srv_->shard(op->shard)
+                                                               .store()
+                                                               .read_local_state_acquire();
+                                    atomic_pending =
+                                        FlatStore::read_local_pending(state) != 0;
+                                    seq_churn = !FlatStore::read_local_state_eligible(state);
+                                }
+                                if (atomic_pending) {
+                                    read_local_fallback_reason =
+                                        ReadLocalFallbackReason::AtomicPending;
                                     read_local_eligible = false;
-                                } else if (!FlatStore::read_local_state_eligible(state)) {
-                                    read_local_fallback_counter =
-                                        &local_stats.fallback_seq_churn;
+                                } else if (seq_churn) {
+                                    read_local_fallback_reason =
+                                        ReadLocalFallbackReason::SeqChurn;
                                     read_local_eligible = false;
-                                } else if (!fused_executor_->local_read_lane_has_room()) {
-                                    read_local_fallback_counter =
-                                        &local_stats.fallback_lane_full;
+                                } else if (!fused_executor_->local_read_lane_has_room(
+                                               mget ? std::min<uint32_t>(
+                                                   op->argc() - 1, srv_->nshards()) : 1)) {
+                                    read_local_fallback_reason =
+                                        ReadLocalFallbackReason::LaneFull;
                                     read_local_eligible = false;
                                 }
                             }
                         }
                         read_local_eligible_decided = true;
                         if (!read_local_eligible) {
-                            if (!read_local_fallback_counter) std::abort();
-                            // Every owner-routed GET extends the execution fence. Otherwise its
-                            // older write/read predecessor could complete, reopen the local lane,
-                            // and let the next GET execute ahead of this still-queued Task.
+                            if (read_local_fallback_reason ==
+                                ReadLocalFallbackReason::None) std::abort();
+                            // Every owner-routed eligible read extends the execution fence.
+                            // Otherwise an older predecessor could complete, reopen the local
+                            // lane, and let a younger read execute ahead of this queued command.
                             rob.extend_current_read_local_owner();
-                            if (!read_local_demotion.prepare(
-                                    *this, c, op->hash, true, op->shard, false,
-                                    reserve_owner_fenced_current))
-                                break;
-                            read_local_commit_at_ordinary = true;
+                            if (mget) {
+                                if (!read_local_demotion.prepare(
+                                        *this, c, 0, false, -1, false))
+                                    break;
+                                read_local_commit_before_lowering = true;
+                            } else {
+                                if (!read_local_demotion.prepare(
+                                        *this, c, op->hash, true, op->shard, false,
+                                        reserve_owner_fenced_current))
+                                    break;
+                                read_local_commit_at_ordinary = true;
+                            }
                         }
                     } else if (!(spec->flags & CmdFlags::ConnLocal)) {
                         if (read_local_owner_fence)
@@ -4003,6 +4231,22 @@ private:
                         if (point_route) read_local_commit_at_ordinary = true;
                         else read_local_commit_before_lowering = true;
                     }
+                }
+            }
+            if constexpr (Fused) {
+                if (read_local_enabled && read_local_demotion.active() &&
+                    read_local_demotion.partial()) {
+                    if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
+                        !(spec->flags & CmdFlags::FlipAsync)) {
+                        c->set_flip_backpressure(true);
+                        break;
+                    }
+                    // Only older, already-admitted reads are published here. The current frame is
+                    // still unconsumed, the FLIP fence above admitted publication, and it has not
+                    // crossed MONITOR/tracking or ACL, so it can be reparsed after the bounded wave
+                    // without replaying stateful hooks.
+                    read_local_demotion.commit_reads();
+                    break;
                 }
             }
             if (__builtin_expect(notify_armed, false) &&
@@ -4035,7 +4279,9 @@ private:
                     if (read_local_enabled &&
                         __builtin_expect((spec->flags & CmdFlags::ReadLocalEligible) &&
                                          multi_session_active(conn), false))
-                        self_->read_local_stats().fallback_multi++;
+                        self_->read_local_stats().note_fallback(
+                            ReadLocalFallbackReason::Multi,
+                            command_is_read_local_mget(*spec));
                 }
                 if constexpr (IofusedPrivateQueue) {
                     if (multi_dispatch_entry_iofused(*this, conn, *op, consumed)) continue;
@@ -4344,6 +4590,9 @@ nonblocking_dispatch:
             // just to discover that GET/SET have none of the three scatter-routing flags.
             constexpr uint32_t kScatterRouteFlags =
                 CmdFlags::AllShards | CmdFlags::MultiShard | CmdFlags::ConfigRoute;
+            if constexpr (Fused)
+                if (read_local_enabled && read_local_mget_candidate && read_local_eligible)
+                    goto ordinary_dispatch;
             if (!(spec->flags & kScatterRouteFlags)) goto ordinary_dispatch;
             {
             ScatterDispatch scatter_dispatch;
@@ -4353,6 +4602,11 @@ nonblocking_dispatch:
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
+                if constexpr (Fused)
+                    if (read_local_enabled && read_local_mget_candidate &&
+                        read_local_fallback_reason != ReadLocalFallbackReason::None)
+                        self_->read_local_stats().note_fallback(
+                            read_local_fallback_reason, true);
                 continue;
             }
             if (scatter_prepared == ScatterPrepare::Backpressure) {
@@ -4433,6 +4687,11 @@ nonblocking_dispatch:
                     flip_fingerprint_note(*spec, *op);
                     conn.advance_parse(consumed);
                     sig.ops++;
+                    if constexpr (Fused)
+                        if (read_local_enabled && read_local_mget_candidate &&
+                            read_local_fallback_reason != ReadLocalFallbackReason::None)
+                            self_->read_local_stats().note_fallback(
+                                read_local_fallback_reason, true);
                     head_candidate = false;
                     if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
                     mark_active_known<TargetedIfid>(c);
@@ -4576,7 +4835,7 @@ ordinary_dispatch:
                         sig.ops++;
                         flip_fingerprint_note(*spec, *op);
                         mark_active_known<TargetedIfid>(c);
-                        read_local_batch = true;
+                        read_local_batch = !read_local_mget_candidate;
                         // Fill at most the existing fused IFID quantum; intervening ordinary frames
                         // simply end this run and do not stop the parser.
                         continue;
@@ -4636,8 +4895,10 @@ ordinary_dispatch:
                 // Count only after the owner task is irrevocably queued. A refused SPSC push
                 // unpublishes and reparses this frame; charging before it would double-count and
                 // could report a fallback for a retry that later takes the local lane.
-                if (read_local_enabled && read_local_fallback_counter)
-                    (*read_local_fallback_counter)++;
+                if (read_local_enabled &&
+                    read_local_fallback_reason != ReadLocalFallbackReason::None)
+                    self_->read_local_stats().note_fallback(
+                        read_local_fallback_reason, read_local_mget_candidate);
             }
             conn.advance_parse(consumed);
             sig.ops++;
@@ -6283,9 +6544,12 @@ ordinary_dispatch:
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
-        if (srv_->read_local_enabled())
+        if (srv_->read_local_enabled()) {
             fused_executor_->set_read_local_point_writes_precise(
                 snapshot.maxmemory == 0 || snapshot.policy == MaxmemoryPolicy::NoEviction);
+            fused_executor_->set_read_local_keymiss_notify(
+                (snapshot.notify_events & NOTIFY_KEY_MISS) != 0);
+        }
         notify_config_version_ = snapshot.version;
     }
 

@@ -1482,6 +1482,8 @@ StatBaseline g_stat_baseline;
 
 void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.hits += local.hits;
+    total.keyspace_hits += local.keyspace_hits;
+    total.keyspace_misses += local.keyspace_misses;
     total.fallback_multi += local.fallback_multi;
     total.fallback_watch += local.fallback_watch;
     total.fallback_context += local.fallback_context;
@@ -1492,6 +1494,16 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_expired += local.fallback_expired;
     total.fallback_seq_churn += local.fallback_seq_churn;
     total.fallback_lane_full += local.fallback_lane_full;
+    total.mget_local_hits += local.mget_local_hits;
+    total.mget_fallback_multi += local.mget_fallback_multi;
+    total.mget_fallback_watch += local.mget_fallback_watch;
+    total.mget_fallback_context += local.mget_fallback_context;
+    total.mget_fallback_inflight_write += local.mget_fallback_inflight_write;
+    total.mget_fallback_atomic_pending += local.mget_fallback_atomic_pending;
+    total.mget_fallback_typed += local.mget_fallback_typed;
+    total.mget_fallback_expired += local.mget_fallback_expired;
+    total.mget_fallback_seq_churn += local.mget_fallback_seq_churn;
+    total.mget_fallback_lane_full += local.mget_fallback_lane_full;
 }
 
 void collect_stat_totals(StatBaseline& out) {
@@ -1527,7 +1539,8 @@ void collect_stat_totals(StatBaseline& out) {
     if (g_server->read_local_enabled()) {
         for (uint32_t t = 0; t < g_server->nthreads(); t++)
             add_read_local_stats(out.read_local, g_server->thread(t).read_local_stats());
-        out.hits += out.read_local.hits;
+        out.hits += out.read_local.keyspace_hits;
+        out.misses += out.read_local.keyspace_misses;
     }
     out.rejected = g_server->rejected_conns() + g_server->rejected_connections();
     out.auth_failures = g_server->auth_failures();
@@ -1705,7 +1718,10 @@ void cmd_info(Shard&, Op& op) {
         rejected = g_server->rejected_conns() + g_server->rejected_connections();
         auth_failures = g_server->auth_failures();
     }
-    if (g_server && g_server->read_local_enabled()) hits += read_local.hits;
+    if (g_server && g_server->read_local_enabled()) {
+        hits += read_local.keyspace_hits;
+        misses += read_local.keyspace_misses;
+    }
     // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
     StatBaseline baseline;
     {
@@ -1728,6 +1744,10 @@ void cmd_info(Shard&, Op& op) {
     acl_denied_auth = minus_baseline(acl_denied_auth, baseline.acl_denied_auth);
     if (g_server && g_server->read_local_enabled()) {
         read_local.hits = minus_baseline(read_local.hits, baseline.read_local.hits);
+        read_local.keyspace_hits = minus_baseline(
+            read_local.keyspace_hits, baseline.read_local.keyspace_hits);
+        read_local.keyspace_misses = minus_baseline(
+            read_local.keyspace_misses, baseline.read_local.keyspace_misses);
         read_local.fallback_multi = minus_baseline(
             read_local.fallback_multi, baseline.read_local.fallback_multi);
         read_local.fallback_watch = minus_baseline(
@@ -1748,6 +1768,30 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
         read_local.fallback_lane_full = minus_baseline(
             read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
+        read_local.mget_local_hits = minus_baseline(
+            read_local.mget_local_hits, baseline.read_local.mget_local_hits);
+        read_local.mget_fallback_multi = minus_baseline(
+            read_local.mget_fallback_multi, baseline.read_local.mget_fallback_multi);
+        read_local.mget_fallback_watch = minus_baseline(
+            read_local.mget_fallback_watch, baseline.read_local.mget_fallback_watch);
+        read_local.mget_fallback_context = minus_baseline(
+            read_local.mget_fallback_context, baseline.read_local.mget_fallback_context);
+        read_local.mget_fallback_inflight_write = minus_baseline(
+            read_local.mget_fallback_inflight_write,
+            baseline.read_local.mget_fallback_inflight_write);
+        read_local.mget_fallback_atomic_pending = minus_baseline(
+            read_local.mget_fallback_atomic_pending,
+            baseline.read_local.mget_fallback_atomic_pending);
+        read_local.mget_fallback_typed = minus_baseline(
+            read_local.mget_fallback_typed, baseline.read_local.mget_fallback_typed);
+        read_local.mget_fallback_expired = minus_baseline(
+            read_local.mget_fallback_expired, baseline.read_local.mget_fallback_expired);
+        read_local.mget_fallback_seq_churn = minus_baseline(
+            read_local.mget_fallback_seq_churn,
+            baseline.read_local.mget_fallback_seq_churn);
+        read_local.mget_fallback_lane_full = minus_baseline(
+            read_local.mget_fallback_lane_full,
+            baseline.read_local.mget_fallback_lane_full);
     }
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
@@ -2169,7 +2213,10 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_violations() : 0));
         appendf(body,
-                "read_local_hits:%llu\r\nread_local_fallbacks:%llu\r\n"
+                "read_local_hits:%llu\r\n"
+                "read_local_keyspace_hits:%llu\r\n"
+                "read_local_keyspace_misses:%llu\r\n"
+                "read_local_fallbacks:%llu\r\n"
                 "read_local_fallback_multi:%llu\r\n"
                 "read_local_fallback_watch:%llu\r\n"
                 "read_local_fallback_context:%llu\r\n"
@@ -2181,6 +2228,8 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_seq_churn:%llu\r\n"
                 "read_local_fallback_lane_full:%llu\r\n",
                 static_cast<unsigned long long>(read_local.hits),
+                static_cast<unsigned long long>(read_local.keyspace_hits),
+                static_cast<unsigned long long>(read_local.keyspace_misses),
                 static_cast<unsigned long long>(read_local.fallbacks()),
                 static_cast<unsigned long long>(read_local.fallback_multi),
                 static_cast<unsigned long long>(read_local.fallback_watch),
@@ -2192,6 +2241,29 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_expired),
                 static_cast<unsigned long long>(read_local.fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.fallback_lane_full));
+        appendf(body,
+                "read_local_mget_local_hits:%llu\r\n"
+                "read_local_mget_fallbacks:%llu\r\n"
+                "read_local_mget_fallback_multi:%llu\r\n"
+                "read_local_mget_fallback_watch:%llu\r\n"
+                "read_local_mget_fallback_context:%llu\r\n"
+                "read_local_mget_fallback_inflight_write:%llu\r\n"
+                "read_local_mget_fallback_atomic_pending:%llu\r\n"
+                "read_local_mget_fallback_typed:%llu\r\n"
+                "read_local_mget_fallback_expired:%llu\r\n"
+                "read_local_mget_fallback_seq_churn:%llu\r\n"
+                "read_local_mget_fallback_lane_full:%llu\r\n",
+                static_cast<unsigned long long>(read_local.mget_local_hits),
+                static_cast<unsigned long long>(read_local.mget_fallbacks()),
+                static_cast<unsigned long long>(read_local.mget_fallback_multi),
+                static_cast<unsigned long long>(read_local.mget_fallback_watch),
+                static_cast<unsigned long long>(read_local.mget_fallback_context),
+                static_cast<unsigned long long>(read_local.mget_fallback_inflight_write),
+                static_cast<unsigned long long>(read_local.mget_fallback_atomic_pending),
+                static_cast<unsigned long long>(read_local.mget_fallback_typed),
+                static_cast<unsigned long long>(read_local.mget_fallback_expired),
+                static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
     }
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";

@@ -305,7 +305,7 @@ struct Config {
     PersistIoEngine persist_io = PersistIoEngine::Uring;
     ThreadMode thread_mode = ThreadMode::Split;
     // Occupies the pre-existing padding before appendfilename, preserving Config and Server layout.
-    uint32_t read_local = 0;            // boot-only 0|1; 1s overlap-0 parsing-thread GET lane
+    uint32_t read_local = 0;            // boot-only 0|1; 1s overlap-0 GET/MGET local-read lane
     const char* appendfilename = "appendonly.aof";
     const char* appenddirname = "appendonlydir";
     uint32_t auto_aof_rewrite_percentage = 100;

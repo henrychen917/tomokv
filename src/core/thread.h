@@ -108,11 +108,30 @@ using ClientChan = Channel<Client*, kInboxSlots>;
 using ReleaseChan = Channel<BorrowRelease, kInboxSlots>;
 using TransferChan = Channel<ClientTransfer, kInboxSlots>;
 
+enum class ReadLocalFallbackReason : uint8_t {
+    None,
+    Multi,
+    Watch,
+    Context,
+    InflightWrite,
+    AtomicPending,
+    Missing,
+    Typed,
+    Expired,
+    SeqChurn,
+    LaneFull,
+};
+
 // Fused read-local telemetry is written only by the physical thread that owns this context.
 // INFO reads it with the same exceptional cross-thread snapshot used for LoopSignals and command
 // counts; keeping it plain avoids adding synchronization to the route and EX hot paths.
 struct ReadLocalStats {
+    // Command-level aggregate across locally completed reads. Local keyspace accounting is
+    // separate and lookup-based, just like Shard::note_keyspace_read: one MGET contributes one
+    // command hit here and one hit or miss per returned element below.
     uint64_t hits = 0;
+    uint64_t keyspace_hits = 0;
+    uint64_t keyspace_misses = 0;
     uint64_t fallback_multi = 0;
     uint64_t fallback_watch = 0;
     uint64_t fallback_context = 0;
@@ -124,10 +143,67 @@ struct ReadLocalStats {
     uint64_t fallback_seq_churn = 0;
     uint64_t fallback_lane_full = 0;
 
+    // Command-level MGET telemetry. A local MGET is one hit regardless of its key count. The
+    // reason counters are a subset of the aggregate fallback counters above; Missing is absent
+    // deliberately because a stable MGET miss is a locally served nil element, not a fallback.
+    uint64_t mget_local_hits = 0;
+    uint64_t mget_fallback_multi = 0;
+    uint64_t mget_fallback_watch = 0;
+    uint64_t mget_fallback_context = 0;
+    uint64_t mget_fallback_inflight_write = 0;
+    uint64_t mget_fallback_atomic_pending = 0;
+    uint64_t mget_fallback_typed = 0;
+    uint64_t mget_fallback_expired = 0;
+    uint64_t mget_fallback_seq_churn = 0;
+    uint64_t mget_fallback_lane_full = 0;
+
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
                fallback_inflight_write + fallback_atomic_pending + fallback_missing +
                fallback_typed + fallback_expired + fallback_seq_churn + fallback_lane_full;
+    }
+
+    uint64_t mget_fallbacks() const {
+        return mget_fallback_multi + mget_fallback_watch + mget_fallback_context +
+               mget_fallback_inflight_write + mget_fallback_atomic_pending +
+               mget_fallback_typed + mget_fallback_expired + mget_fallback_seq_churn +
+               mget_fallback_lane_full;
+    }
+
+    void note_fallback(ReadLocalFallbackReason reason, bool mget = false) {
+        switch (reason) {
+            case ReadLocalFallbackReason::Multi: fallback_multi++; break;
+            case ReadLocalFallbackReason::Watch: fallback_watch++; break;
+            case ReadLocalFallbackReason::Context: fallback_context++; break;
+            case ReadLocalFallbackReason::InflightWrite: fallback_inflight_write++; break;
+            case ReadLocalFallbackReason::AtomicPending: fallback_atomic_pending++; break;
+            case ReadLocalFallbackReason::Missing: fallback_missing++; break;
+            case ReadLocalFallbackReason::Typed: fallback_typed++; break;
+            case ReadLocalFallbackReason::Expired: fallback_expired++; break;
+            case ReadLocalFallbackReason::SeqChurn: fallback_seq_churn++; break;
+            case ReadLocalFallbackReason::LaneFull: fallback_lane_full++; break;
+            case ReadLocalFallbackReason::None: std::abort();
+        }
+        if (!mget) return;
+        switch (reason) {
+            case ReadLocalFallbackReason::Multi: mget_fallback_multi++; break;
+            case ReadLocalFallbackReason::Watch: mget_fallback_watch++; break;
+            case ReadLocalFallbackReason::Context: mget_fallback_context++; break;
+            case ReadLocalFallbackReason::InflightWrite:
+                mget_fallback_inflight_write++;
+                break;
+            case ReadLocalFallbackReason::AtomicPending:
+                mget_fallback_atomic_pending++;
+                break;
+            case ReadLocalFallbackReason::Typed: mget_fallback_typed++; break;
+            case ReadLocalFallbackReason::Expired: mget_fallback_expired++; break;
+            case ReadLocalFallbackReason::SeqChurn: mget_fallback_seq_churn++; break;
+            case ReadLocalFallbackReason::LaneFull: mget_fallback_lane_full++; break;
+            // A local MGET miss is an invariant success. Keep a hard edge here so a future caller
+            // cannot silently turn it into a reasoned MGET fallback counter.
+            case ReadLocalFallbackReason::Missing:
+            case ReadLocalFallbackReason::None: std::abort();
+        }
     }
 };
 
