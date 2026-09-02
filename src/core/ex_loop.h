@@ -45,6 +45,10 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
+// Parser-side demotion may reserve one additional point command behind the entire local run.
+// Leave that credit outside the pending-read fanout budget so the combined reservation can always
+// fit an empty producer lane and therefore cannot retry forever.
+inline constexpr uint32_t kReadLocalDemotionBudget = kInboxSlots - 1;
 inline constexpr uint32_t kExSchedClasses =
     static_cast<uint32_t>(CommandLengthClass::Count);
 inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
@@ -82,12 +86,26 @@ struct ReadLocalExState<false> {};
 template <>
 struct ReadLocalExState<true> {
     struct Impl {
+        using DemoteFn = bool (*)(void*, Client*, const Task*,
+                                  const ReadLocalFallbackReason*, uint32_t, uint32_t&);
+
         std::unique_ptr<Task[]> lane;
+        // A failed probe can sit behind an earlier bounded demotion wave. Preserve its original
+        // reason until that exact ROB op is lowered instead of reclassifying the suffix as Context.
+        std::unique_ptr<ReadLocalFallbackReason[]> lane_fallbacks;
         uint32_t lane_head = 0;
         uint32_t lane_tail = 0;
         uint32_t lane_count = 0;
+        // Upper-bound owner-task demand for every still-local lane entry. GET contributes one;
+        // MGET contributes min(key count, shard count), which bounds its touched-shard fanout.
+        // Keeping the sum within the demotion budget makes every task-capacity plan reservable
+        // (snapshot pressure may still split it into waves).
+        uint32_t lane_demotion_demand = 0;
         bool lane_has_tombstones = false;
         bool point_writes_precise = true;
+        bool keymiss_notify_armed = false;
+        void* demote_context = nullptr;
+        DemoteFn demote = nullptr;
         ReadLocalDeferredQueue deferred;
 
         void rebind_owned_shards(ThreadCtx& owner) {
@@ -126,7 +144,10 @@ public:
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
                 if (!impl) return false;
                 impl->lane.reset(new (std::nothrow) Task[kInboxSlots]);
-                if (!impl->lane || !impl->deferred.init(srv, self)) return false;
+                impl->lane_fallbacks.reset(
+                    new (std::nothrow) ReadLocalFallbackReason[kInboxSlots]);
+                if (!impl->lane || !impl->lane_fallbacks ||
+                    !impl->deferred.init(srv, self)) return false;
                 impl->point_writes_precise =
                     srv->cfg().maxmemory == 0 ||
                     srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
@@ -177,25 +198,73 @@ public:
         fused_completion_ = completion;
     }
 
+    void bind_read_local_demotion(void* context, ReadLocalExImpl::DemoteFn demote) {
+        static_assert(Fused);
+        if (!read_local_enabled() || !context || !demote) std::abort();
+        read_local_impl().demote_context = context;
+        read_local_impl().demote = demote;
+    }
+
     bool enqueue_local_read(const Task& task) {
         static_assert(Fused);
         if (!read_local_enabled()) return false;
         auto& state = read_local_impl();
-        if (state.lane_count == kInboxSlots) return false;
+        if (!task.client) std::abort();
+        const Op& op = task.client->rob().at(task.op_id);
+        const uint32_t demand = read_local_task_demotion_demand(op);
+        if (state.lane_count == kInboxSlots ||
+            demand > kReadLocalDemotionBudget - state.lane_demotion_demand) return false;
         state.lane[state.lane_tail] = task;
+        state.lane_fallbacks[state.lane_tail] = ReadLocalFallbackReason::None;
         state.lane_tail = (state.lane_tail + 1) & (kInboxSlots - 1);
         state.lane_count++;
+        state.lane_demotion_demand += demand;
         return true;
     }
 
-    bool local_read_lane_has_room() const {
+    bool local_read_lane_has_room(uint32_t demotion_demand = 1) const {
         static_assert(Fused);
-        return read_local_enabled() && read_local_impl().lane_count != kInboxSlots;
+        if (!read_local_enabled()) return false;
+        const auto& state = read_local_impl();
+        return state.lane_count != kInboxSlots &&
+               demotion_demand <=
+                   kReadLocalDemotionBudget - state.lane_demotion_demand;
     }
 
-    void note_local_read_tombstones() {
+    void note_local_read_demoted(const Op& op) {
         static_assert(Fused);
-        if (read_local_enabled()) read_local_impl().lane_has_tombstones = true;
+        if (!read_local_enabled()) std::abort();
+        release_local_read_demotion_demand(op);
+        read_local_impl().lane_has_tombstones = true;
+    }
+
+    void preserve_local_read_fallbacks(Client* client,
+                                       ReadLocalFallbackReason default_reason) {
+        static_assert(Fused);
+        if (!read_local_enabled() || !client ||
+            default_reason == ReadLocalFallbackReason::None) std::abort();
+        auto& lane = read_local_impl();
+        for (uint32_t offset = 0; offset < lane.lane_count; offset++) {
+            const uint32_t index =
+                (lane.lane_head + offset) & (kInboxSlots - 1);
+            const Task& task = lane.lane[index];
+            if (task.client != client ||
+                !client->rob().pending_read_local(task.op_id) ||
+                lane.lane_fallbacks[index] != ReadLocalFallbackReason::None)
+                continue;
+            lane.lane_fallbacks[index] = default_reason;
+        }
+    }
+
+    void set_read_local_keymiss_notify(bool armed) {
+        static_assert(Fused);
+        if (!read_local_enabled()) std::abort();
+        read_local_impl().keymiss_notify_armed = armed;
+    }
+
+    bool read_local_keymiss_notify_armed() const {
+        static_assert(Fused);
+        return read_local_enabled() && read_local_impl().keymiss_notify_armed;
     }
 
     void read_local_shutdown_drain() {
@@ -580,12 +649,15 @@ private:
         uint32_t kept = 0;
         const uint32_t old_count = state.lane_count;
         for (uint32_t offset = 0; offset < old_count; offset++) {
-            const Task task = state.lane[
-                (state.lane_head + offset) & (kInboxSlots - 1)];
+            const uint32_t from =
+                (state.lane_head + offset) & (kInboxSlots - 1);
+            const Task task = state.lane[from];
             // Test the full generation before touching its Op slot. The fused pass sweeps any
             // parser-created tombstone before WB's corpse-grace reaper can free its Client.
             if (!task.client || !task.client->rob().pending_read_local(task.op_id)) continue;
-            state.lane[(state.lane_head + kept) & (kInboxSlots - 1)] = task;
+            const uint32_t to = (state.lane_head + kept) & (kInboxSlots - 1);
+            state.lane[to] = task;
+            state.lane_fallbacks[to] = state.lane_fallbacks[from];
             kept++;
         }
         state.lane_count = kept;
@@ -594,93 +666,191 @@ private:
     }
 
     bool demote_local_read_batch(Client* client, const Task* probed,
-                                 uint64_t* const* fallbacks, uint32_t probed_count,
-                                 uint32_t& demoted) {
+                                 const ReadLocalFallbackReason* fallbacks,
+                                 uint32_t probed_count, uint32_t& demoted) {
         static_assert(Fused);
-        Rob<kRobWindow>& rob = client->rob();
-        uint64_t ids[kRobWindow];
-        const uint32_t count = rob.collect_pending_read_local(
-            0, false, ids, kRobWindow);
-        if (!count) std::abort();
-
-        uint32_t owners[kRobWindow];
-        uint32_t needed[kRobWindow];
-        uint32_t nowners = 0;
-        for (uint32_t i = 0; i < count; i++) {
-            const Op& op = rob.at(ids[i]);
-            if (op.shard < 0) std::abort();
-            const uint32_t owner = srv_->worker_of_shard(op.shard);
-            uint32_t at = 0;
-            while (at != nowners && owners[at] != owner) at++;
-            if (at == nowners) {
-                owners[nowners] = owner;
-                needed[nowners] = 0;
-                nowners++;
-            }
-            needed[at]++;
-        }
-
-        uint32_t reserved = 0;
-        for (; reserved < nowners; reserved++) {
-            if (!srv_->thread(owners[reserved]).reserve_task_slots(
-                    self_->id(), needed[reserved]))
-                break;
-        }
-        if (reserved != nowners) {
-            for (uint32_t i = 0; i < reserved; i++)
-                srv_->thread(owners[i]).cancel_task_reservation(
-                    self_->id(), needed[i]);
-            return false;
-        }
-
-        LoopSignals& sig = self_->sig();
-        for (uint32_t i = 0; i < count; i++) {
-            Op& op = rob.at(ids[i]);
-            const uint32_t owner = srv_->worker_of_shard(op.shard);
-            srv_->thread(owner).post_task_reserved_quiet(
-                self_->id(), Task{client, ids[i], -1, nullptr}, sig);
-        }
-        for (uint32_t i = 0; i < nowners; i++)
-            srv_->thread(owners[i]).flush_task_notify(
-                self_->id(), handoff_ring(), sig);
-
-        ReadLocalStats& stats = self_->read_local_stats();
-        for (uint32_t i = 0; i < count; i++) {
-            uint64_t* counter = &stats.fallback_context;
-            for (uint32_t j = 0; j < probed_count; j++) {
-                if (probed[j].op_id != ids[i]) continue;
-                if (fallbacks[j]) counter = fallbacks[j];
-                break;
-            }
-            (*counter)++;
-            rob.publish_pending_read_local_to_owner(ids[i]);
-        }
-        read_local_impl().lane_has_tombstones = true;
-        demoted = count;
-        return true;
+        auto& lane = read_local_impl();
+        if (!lane.demote || !lane.demote_context) std::abort();
+        return lane.demote(
+            lane.demote_context, client, probed, fallbacks, probed_count, demoted);
     }
 
-    // Build one local reply but do not publish Done. A null result means the bytes are complete and
-    // no FlatStore pointer survives this call; otherwise the returned counter describes why this
-    // op requires the owner path. Group commit below prevents a younger hit from overtaking that
-    // fallback.
-    uint64_t* prepare_local_read(const Task& task) {
+    struct PreparedLocalRead {
+        ReadLocalFallbackReason fallback = ReadLocalFallbackReason::None;
+        uint32_t keyspace_hits = 0;
+        uint32_t keyspace_misses = 0;
+    };
+
+    static bool read_local_mget(const Op& op) {
+        return op.spec && command_is_read_local_mget(*op.spec);
+    }
+
+    uint32_t read_local_task_demotion_demand(const Op& op) const {
+        if (!op.read_local()) std::abort();
+        return read_local_mget(op)
+            ? std::min<uint32_t>(op.argc() - 1, srv_->nshards()) : 1;
+    }
+
+    void release_local_read_demotion_demand(const Op& op) {
+        auto& lane = read_local_impl();
+        const uint32_t demand = read_local_task_demotion_demand(op);
+        if (demand > lane.lane_demotion_demand) std::abort();
+        lane.lane_demotion_demand -= demand;
+    }
+
+    PreparedLocalRead prepare_local_mget(Op& op) {
+        static constexpr uint32_t kRetries = 3;
+        static constexpr uint32_t kPrefetchKeys = 32;
+        static constexpr uint32_t kMaxReadLocalShards = 256;
+        const uint32_t key_count = op.argc() - 1;
+        if (!key_count || srv_->nshards() > kMaxReadLocalShards) std::abort();
+
+        uint64_t hashes[kPrefetchKeys];
+        int32_t shards[kPrefetchKeys];
+        const bool cached_routes = key_count <= kPrefetchKeys;
+        if (cached_routes) {
+            for (uint32_t key = 0; key < key_count; key++) {
+                hashes[key] = FlatStore::hash_key(op.arg(key + 1));
+                shards[key] = srv_->router().shard_of(hashes[key]);
+                srv_->shard(shards[key]).store().read_local_prefetch(hashes[key]);
+            }
+        }
+
+        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
+            uint64_t states[kMaxReadLocalShards];
+            uint64_t touched[kMaxReadLocalShards / 64] = {};
+            PreparedLocalRead prepared;
+            bool retry = false;
+            read_local_clear_reply(op);
+            reply_array_header(op.sink(), key_count);
+
+            for (uint32_t key = 0; key < key_count; key++) {
+                const Slice name = op.arg(key + 1);
+                const uint64_t hash = cached_routes ? hashes[key] : FlatStore::hash_key(name);
+                const int32_t shard_id = cached_routes
+                    ? shards[key] : srv_->router().shard_of(hash);
+                FlatStore& store = srv_->shard(shard_id).store();
+                const uint32_t sid = static_cast<uint32_t>(shard_id);
+                const uint64_t bit = uint64_t{1} << (sid & 63);
+                uint64_t& word = touched[sid >> 6];
+                if (!(word & bit)) {
+                    const uint64_t state = store.read_local_state_acquire();
+                    if (FlatStore::read_local_pending(state)) {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::AtomicPending};
+                    }
+                    if (!FlatStore::read_local_state_eligible(state)) {
+                        retry = true;
+                        break;
+                    }
+                    states[sid] = state;
+                    word |= bit;
+                }
+
+                const FlatStore::ReadLocalProbe probe = store.read_local_probe(hash, name);
+                if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::AtomicPending};
+                }
+                if (probe.result == FlatStore::ReadLocalProbeResult::Churn ||
+                    probe.state != states[sid]) {
+                    retry = true;
+                    break;
+                }
+                if (probe.result == FlatStore::ReadLocalProbeResult::Missing) {
+                    // Parser admission excludes an armed keymiss notification, whose owner lookup
+                    // may emit an event. With that state ruled out, a validated absent slot has no
+                    // lazy-expiry side effect and is an ordinary array nil element.
+                    reply_null(op.sink(), op.resp3());
+                    prepared.keyspace_misses++;
+                    continue;
+                }
+
+                const KvObj* object = probe.object;
+                if (!object) std::abort();
+                const uint8_t flags = object->read_local_flags();
+                if (static_cast<Type>(object->type) != Type::String) {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Typed};
+                }
+                if ((flags & KvObjFlags::HasTtl) &&
+                    object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
+                    // Unlike a plain stable miss, expiry-due needs the owner to perform lazy
+                    // expiry and its accounting/notifications, so one such key demotes all MGET.
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Expired};
+                }
+
+                const Enc encoding = static_cast<Enc>(object->enc);
+                if (encoding == Enc::Int) {
+                    char text[24];
+                    const uint32_t length = i64_to_dec(
+                        text, object->read_local_int_value(flags));
+                    reply_bulk(op.sink(), Slice(text, length));
+                } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
+                    reply_bulk(op.sink(), object->read_local_str_value(flags));
+                } else {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Typed};
+                }
+                prepared.keyspace_hits++;
+            }
+
+            // Atomic 0 intentionally promises only per-key independence, so different shard
+            // snapshots may include interleaved plain SETs. At atomic 1, every group touching one
+            // of these shards publishes a pending record before mutation and holds it through
+            // release. Requiring pending==0 on every touched shard, then validating every captured
+            // state after the last copy, makes a torn group observation fail closed. The later B+
+            // per-key filter is deliberately not part of this shard-conservative gate.
+            if (!retry) {
+                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+                    if (!(touched[sid >> 6] & (uint64_t{1} << (sid & 63)))) continue;
+                    if (!srv_->shard(static_cast<int32_t>(sid))
+                             .store().read_local_validate(states[sid])) {
+                        retry = true;
+                        break;
+                    }
+                }
+            }
+            if (!retry) return prepared;
+            read_local_clear_reply(op);
+        }
+
+        // Prefer the actionable atomic reason if a pending record won the final retry race.
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint64_t hash = cached_routes
+                ? hashes[key] : FlatStore::hash_key(op.arg(key + 1));
+            const int32_t shard_id = cached_routes
+                ? shards[key] : srv_->router().shard_of(hash);
+            const uint64_t state =
+                srv_->shard(shard_id).store().read_local_state_acquire();
+            if (FlatStore::read_local_pending(state))
+                return {ReadLocalFallbackReason::AtomicPending};
+        }
+        return {ReadLocalFallbackReason::SeqChurn};
+    }
+
+    // Build one local reply but do not publish Done. `fallback == None` means the bytes are
+    // complete and no FlatStore pointer survives this call. Group commit below prevents a younger
+    // hit from overtaking any operation that needs the owner path.
+    PreparedLocalRead prepare_local_read(const Task& task) {
         if (!task.client) std::abort();
         Op& op = task.client->rob().at(task.op_id);
-        if (!op.read_local() || op.shard < 0) std::abort();
+        if (!op.read_local()) std::abort();
+        if (read_local_mget(op)) return prepare_local_mget(op);
+        if (op.shard < 0) std::abort();
         FlatStore& store = srv_->shard(op.shard).store();
-        ReadLocalStats& stats = self_->read_local_stats();
         static constexpr uint32_t kRetries = 3;
 
         for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
             const FlatStore::ReadLocalProbe probe = store.read_local_probe(op.hash, op.key());
             if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
                 read_local_clear_reply(op);
-                return &stats.fallback_atomic_pending;
+                return {ReadLocalFallbackReason::AtomicPending};
             }
             if (probe.result == FlatStore::ReadLocalProbeResult::Missing) {
                 read_local_clear_reply(op);
-                return &stats.fallback_missing;
+                return {ReadLocalFallbackReason::Missing};
             }
             if (probe.result == FlatStore::ReadLocalProbeResult::Churn) continue;
 
@@ -689,12 +859,12 @@ private:
             const uint8_t flags = object->read_local_flags();
             if (static_cast<Type>(object->type) != Type::String) {
                 read_local_clear_reply(op);
-                return &stats.fallback_typed;
+                return {ReadLocalFallbackReason::Typed};
             }
             if ((flags & KvObjFlags::HasTtl) &&
                 object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
                 read_local_clear_reply(op);
-                return &stats.fallback_expired;
+                return {ReadLocalFallbackReason::Expired};
             }
 
             read_local_clear_reply(op);
@@ -708,21 +878,21 @@ private:
                 reply_bulk(op.sink(), object->read_local_str_value(flags));
             } else {
                 read_local_clear_reply(op);
-                return &stats.fallback_typed;
+                return {ReadLocalFallbackReason::Typed};
             }
 
             if (!store.read_local_validate(probe.state)) {
                 read_local_clear_reply(op);
                 continue;
             }
-            return nullptr;
+            return {ReadLocalFallbackReason::None, 1, 0};
         }
 
         read_local_clear_reply(op);
         const uint64_t state = store.read_local_state_acquire();
         if (FlatStore::read_local_pending(state))
-            return &stats.fallback_atomic_pending;
-        return &stats.fallback_seq_churn;
+            return {ReadLocalFallbackReason::AtomicPending};
+        return {ReadLocalFallbackReason::SeqChurn};
     }
 
     uint32_t drain_local_reads() {
@@ -732,11 +902,13 @@ private:
         compact_local_read_tombstones();
         if (!lane.lane_count) return 0;
         Task batch[kExecBatch];
-        uint64_t* fallbacks[kExecBatch];
+        PreparedLocalRead prepared[kExecBatch];
+        ReadLocalFallbackReason fallbacks[kExecBatch];
         uint32_t work = 0;
         // Work through each client's lane run in gather/prefetch-sized chunks. A successful chunk
-        // can commit immediately. At the first fallback, every still-local Task for that client is
-        // atomically moved to owner queues, including runs appended by a later parse invocation.
+        // can commit immediately. At the first fallback, the still-local client run moves to owner
+        // queues in ROB-order reservation waves; an unfinished wave fences its suffix from local
+        // execution.
         while (lane.lane_count) {
             const Task& head = lane.lane[lane.lane_head];
             if (!head.client || !head.client->rob().pending_read_local(head.op_id)) {
@@ -747,26 +919,47 @@ private:
             Client* client = head.client;
             uint32_t count = 0;
             while (count < lane.lane_count && count < kExecBatch) {
-                const Task& task = lane.lane[
-                    (lane.lane_head + count) & (kInboxSlots - 1)];
+                const uint32_t index =
+                    (lane.lane_head + count) & (kInboxSlots - 1);
+                const Task& task = lane.lane[index];
                 if (task.client != client ||
                     !client->rob().pending_read_local(task.op_id))
                     break;
                 batch[count++] = task;
+                fallbacks[count - 1] = lane.lane_fallbacks[index];
             }
             if (!count) std::abort();
-            for (uint32_t i = 0; i < count; i++) {
-                const Op& op = client->rob().at(batch[i].op_id);
-                srv_->shard(op.shard).store().read_local_prefetch(op.hash);
-            }
-            bool downgrade = false;
-            for (uint32_t i = 0; i < count; i++) {
-                fallbacks[i] = prepare_local_read(batch[i]);
-                downgrade |= fallbacks[i] != nullptr;
+            bool downgrade = client->rob().has_unexecuted_read_local_owner();
+            for (uint32_t i = 0; i < count; i++)
+                downgrade |= fallbacks[i] != ReadLocalFallbackReason::None;
+            if (downgrade) {
+                // A bounded earlier demotion wave still owns the connection's execution tail.
+                // Keep this suffix local only as storage: route it through the next owner wave
+                // instead of letting a successful probe overtake the unfinished prefix.
+                for (uint32_t i = 0; i < count; i++) {
+                    prepared[i] = {};
+                    if (fallbacks[i] == ReadLocalFallbackReason::None)
+                        fallbacks[i] = ReadLocalFallbackReason::Context;
+                }
+            } else {
+                for (uint32_t i = 0; i < count; i++) {
+                    const Op& op = client->rob().at(batch[i].op_id);
+                    if (!read_local_mget(op))
+                        srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+                }
+                for (uint32_t i = 0; i < count; i++) {
+                    prepared[i] = prepare_local_read(batch[i]);
+                    fallbacks[i] = prepared[i].fallback;
+                    downgrade |= fallbacks[i] != ReadLocalFallbackReason::None;
+                }
             }
             if (downgrade) {
-                for (uint32_t i = 0; i < count; i++)
+                for (uint32_t i = 0; i < count; i++) {
                     read_local_clear_reply(client->rob().at(batch[i].op_id));
+                    const uint32_t index =
+                        (lane.lane_head + i) & (kInboxSlots - 1);
+                    lane.lane_fallbacks[index] = fallbacks[i];
+                }
                 uint32_t demoted = 0;
                 if (!demote_local_read_batch(
                         client, batch, fallbacks, count, demoted))
@@ -778,8 +971,12 @@ private:
             ReadLocalStats& stats = self_->read_local_stats();
             for (uint32_t i = 0; i < count; i++) {
                 Op& op = client->rob().at(batch[i].op_id);
+                stats.keyspace_hits += prepared[i].keyspace_hits;
+                stats.keyspace_misses += prepared[i].keyspace_misses;
                 stats.hits++;
+                if (read_local_mget(op)) stats.mget_local_hits++;
                 self_->note_command(op.spec->id);
+                release_local_read_demotion_demand(op);
                 client->rob().complete_pending_read_local(batch[i].op_id);
                 op.state.store(OpState::Done, std::memory_order_release);
             }

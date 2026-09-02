@@ -50,15 +50,20 @@ Overlap 0 rotates three coarse streams in this order:
 
 With `--read-local 0`, local commands take the same self SPSC task lane as remote commands and are
 consumed during the executor phase; they are not executed inline. With `--read-local 1`, eligible
-plain single-key GETs instead enter a parsing-thread-local queue. The overlap-0 executor phase
-drains that queue immediately after parsing, in the same coarse rotation, and replies still retire
-through the connection ROB and normal write-back path. Parsing never waits for that local queue to
-retire: a later same-hash write first moves the connection's not-yet-executed local batch to ordinary
-owner queues, then publishes behind it; conservative writes do the same without a hash precheck.
-Reads with an outstanding same-hash connection write (or a conservatively overflowed
-write ring), WATCH or MULTI state, script/scatter context, target-shard atomic work, a missing or
-typed value, an expired value, sequence churn, or a full local lane fall back to the ordinary
-owner-task path.
+plain GETs and MGETs instead enter a parsing-thread-local queue. The overlap-0 executor phase drains
+that queue immediately after parsing, in the same coarse rotation, and replies still retire through
+one connection ROB slot and the normal write-back path. Parsing never waits for that local queue to
+retire: a later conflicting write first moves the connection's not-yet-executed local batch to
+ordinary owner queues, then publishes behind it; conservative writes do the same without a hash
+precheck. MGET applies the write-ring and store-publication gates to every key/touched shard and is
+all-or-nothing: any failure lowers the whole command through the existing scatter path.
+
+Reads with an outstanding conflicting connection write (or a conservatively overflowed write
+ring), WATCH or MULTI state, script/scatter context, touched-shard atomic work, a typed or
+expiry-due value, sequence churn, or a full local lane fall back to the ordinary owner path. A
+single GET also falls back on missing so its owner can perform lazy-expiry side effects. MGET serves
+a stable missing key as a nil array element; an expiry-due entry still falls back, as does an armed
+key-miss notification that must run on the owner.
 
 Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
 network work around a 128-operation coarse executor turn. Overlap 2 selects the exact deep

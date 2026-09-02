@@ -1399,7 +1399,8 @@ static const CommandSpec kTable[] = {
     {"UNLINK",        2, -1,  CmdFlags::Write | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_del, 1, -1, 1)},
     {"EXISTS",        2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_exists, 1, -1, 1)},
     {"TOUCH",         2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,TOMO_HANDLER_PAIR(cmd_exists, 1, -1, 1)},
-    {"MGET",          2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard,cmd_xshard_only,1,-1, 1},
+    {"MGET",          2, -1,  CmdFlags::Readonly | CmdFlags::MultiShard |
+                                      CmdFlags::ReadLocalEligible,       cmd_xshard_only,1,-1, 1},
     {"MSET",          3, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1, -1,  2},
     {"MSETNX",        3, -1,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1, -1,  2},
     {"RENAME",        3,  3,  CmdFlags::Write | CmdFlags::MultiShard,cmd_xshard_only,  1,  2,  1},

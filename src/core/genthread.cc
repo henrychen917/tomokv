@@ -153,6 +153,15 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         [](void* p, Client* client) {
                             static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
                         });
+                if (srv.read_local_enabled())
+                    executors[tid].bind_read_local_demotion(
+                        &ios[tid],
+                        [](void* p, Client* client, const Task* probed,
+                           const ReadLocalFallbackReason* fallbacks,
+                           uint32_t probed_count, uint32_t& demoted) {
+                            return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(
+                                client, probed, fallbacks, probed_count, demoted);
+                        });
                 if (cfg.overlap == 0)
                     self.bind_fused_executor_hooks(
                         &executors[tid],

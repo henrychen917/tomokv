@@ -147,6 +147,8 @@ public:
                 (uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask))) != 0;
     }
 
+    bool has_pending_read_local() const { return read_local_pending_slots_ != 0; }
+
     uint32_t collect_pending_read_local(uint64_t hash, bool hash_only, uint64_t* ids,
                                         uint32_t capacity) const {
         if (!read_local_pending_slots_) return 0;
