@@ -63,9 +63,10 @@ public:
         spec  = nullptr;
         shard = -1;
         read_cut_lo = 0;
-        // Bit 6 is operation-lifetime bookkeeping, never connection state. Mask it before the
-        // enabled parser explicitly classifies this slot; the off specialization retains the
-        // original route byte exactly.
+        // Bit 6 is shared with Client's overlap-1 IFID-ready flag. The enabled coarse parser masks
+        // that captured connection bit before explicitly classifying this slot; the off
+        // specialization retains the original route byte exactly, and its read-local consumers
+        // remain disabled.
         if constexpr (ReadLocalAccounting) {
             route_flags_ = static_cast<uint8_t>(
                 route_flags & static_cast<uint8_t>(~kReadLocal));
@@ -174,7 +175,8 @@ public:
         if (cut > now) cut -= uint64_t{1} << 32;
         return cut;
     }
-    // Fused read-local bookkeeping occupies one spare bit in the existing route byte.
+    // Fused read-local bookkeeping reuses bit 6 only after the enabled parser masks the captured
+    // connection flag above.
     void mark_read_local() { route_flags_ |= kReadLocal; }
     bool read_local() const { return route_flags_ & kReadLocal; }
     uint8_t route_flags_ = 0;

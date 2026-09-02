@@ -636,8 +636,8 @@ public:
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
     // IOFUSED IFID readiness is owner-local and shares the connection flag byte instead of
-    // growing the footprint-locked hot scalar run. Bit 6 is ignored by Op consumers after the
-    // wholesale route-flag capture.
+    // growing the footprint-locked hot scalar run. Ordinary Op consumers ignore bit 6; the
+    // overlap-0 read-local parser masks it before reusing that bit for a classified slot.
     bool ifid_pending() const { return connection_flags_ & kIfidPending; }
     void set_ifid_pending(bool value) {
         if (value) connection_flags_ |= kIfidPending;

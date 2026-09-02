@@ -504,7 +504,8 @@ public:
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
     bool read_local_enabled() const {
-        return cfg_.thread_mode == ThreadMode::Fused && cfg_.read_local != 0;
+        return cfg_.thread_mode == ThreadMode::Fused && cfg_.overlap == 0 &&
+               cfg_.read_local != 0;
     }
     uint64_t read_local_epoch() const {
         return read_local_epoch_.load(std::memory_order_seq_cst);
