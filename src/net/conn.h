@@ -621,7 +621,8 @@ public:
     }
     // Bit 2 deliberately matches Op::route_flags_'s Resp3 assignment. Passing the byte through
     // Op::reset folds protocol capture into the ROB's existing flags store: RESP2 pays one load,
-    // no mask and no branch. kBlocked occupies an Op-ignored high bit.
+    // no mask and no branch. The armed coarse parser masks kBlocked before reusing its bit for a
+    // hash-precise write stamp; ordinary acquisitions continue to ignore that high bit.
     uint8_t op_route_flags() const { return connection_flags_; }
     static constexpr size_t connection_flags_offset();
     // The owning IO thread captures this into each Op before dispatch. Executors never read Client

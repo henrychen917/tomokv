@@ -55,6 +55,24 @@ static_assert(kGenthreadIfidBatchOps <= kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
+// Constructed only for an armed hash-precise point write whose owner has since enabled eviction.
+// Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
+// self-fulfilling: this operation can update its routed key or fail, but cannot delete a different
+// key behind a younger local read. The owner restores its live policy before the next task.
+class ReadLocalPreciseWriteGuard {
+public:
+    explicit ReadLocalPreciseWriteGuard(FlatStore& store) : store_(&store) {
+        previous_ = store_->script_suspend_eviction();
+    }
+    ~ReadLocalPreciseWriteGuard() { store_->script_restore_eviction(previous_); }
+    ReadLocalPreciseWriteGuard(const ReadLocalPreciseWriteGuard&) = delete;
+    ReadLocalPreciseWriteGuard& operator=(const ReadLocalPreciseWriteGuard&) = delete;
+
+private:
+    FlatStore* store_ = nullptr;
+    MaxmemoryPolicy previous_ = MaxmemoryPolicy::NoEviction;
+};
+
 template <bool Enabled>
 struct ReadLocalExState;
 
@@ -68,6 +86,8 @@ struct ReadLocalExState<true> {
         uint32_t lane_head = 0;
         uint32_t lane_tail = 0;
         uint32_t lane_count = 0;
+        bool lane_has_tombstones = false;
+        bool point_writes_precise = true;
         ReadLocalDeferredQueue deferred;
 
         void rebind_owned_shards(ThreadCtx& owner) {
@@ -107,6 +127,9 @@ public:
                 if (!impl) return false;
                 impl->lane.reset(new (std::nothrow) Task[kInboxSlots]);
                 if (!impl->lane || !impl->deferred.init(srv, self)) return false;
+                impl->point_writes_precise =
+                    srv->cfg().maxmemory == 0 ||
+                    srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
                 read_local_.impl = std::move(impl);
             }
         }
@@ -168,6 +191,11 @@ public:
     bool local_read_lane_has_room() const {
         static_assert(Fused);
         return read_local_enabled() && read_local_impl().lane_count != kInboxSlots;
+    }
+
+    void note_local_read_tombstones() {
+        static_assert(Fused);
+        if (read_local_enabled()) read_local_impl().lane_has_tombstones = true;
     }
 
     void read_local_shutdown_drain() {
@@ -502,6 +530,14 @@ private:
         return *read_local_.impl;
     }
 
+    bool read_local_point_writes_precise() const {
+        return read_local_impl().point_writes_precise;
+    }
+
+    void set_read_local_point_writes_precise(bool precise) {
+        read_local_impl().point_writes_precise = precise;
+    }
+
     void read_local_rebind_owned_shards_after_lb() {
         if constexpr (Fused) {
             if (read_local_.impl) read_local_.impl->rebind_owned_shards(*self_);
@@ -537,19 +573,91 @@ private:
         op.zc_shard = -1;
     }
 
-    void post_read_local_fallback(const Task& task, uint64_t& counter, bool& defer_suffix) {
-        counter++;
-        // Match ordinary parse dispatch: post in program order until the first full owner tail,
-        // then leave that member and the complete younger suffix on the FIFO retry path. Continuing
-        // direct attempts after one refusal could let a younger op overtake it.
-        if (!defer_suffix) {
-            const int32_t shard = task_shard(task);
-            if (shard < 0) std::abort();
-            const uint32_t target = srv_->worker_of_shard(shard);
-            if (post_forwarded_task(task, target)) return;
-            defer_suffix = true;
+    void compact_local_read_tombstones() {
+        if constexpr (!Fused) return;
+        auto& state = read_local_impl();
+        if (!state.lane_has_tombstones) return;
+        uint32_t kept = 0;
+        const uint32_t old_count = state.lane_count;
+        for (uint32_t offset = 0; offset < old_count; offset++) {
+            const Task task = state.lane[
+                (state.lane_head + offset) & (kInboxSlots - 1)];
+            // Test the full generation before touching its Op slot. The fused pass sweeps any
+            // parser-created tombstone before WB's corpse-grace reaper can free its Client.
+            if (!task.client || !task.client->rob().pending_read_local(task.op_id)) continue;
+            state.lane[(state.lane_head + kept) & (kInboxSlots - 1)] = task;
+            kept++;
         }
-        stale_tasks_.push_back(task);
+        state.lane_count = kept;
+        state.lane_tail = (state.lane_head + kept) & (kInboxSlots - 1);
+        state.lane_has_tombstones = false;
+    }
+
+    bool demote_local_read_batch(Client* client, const Task* probed,
+                                 uint64_t* const* fallbacks, uint32_t probed_count,
+                                 uint32_t& demoted) {
+        static_assert(Fused);
+        Rob<kRobWindow>& rob = client->rob();
+        uint64_t ids[kRobWindow];
+        const uint32_t count = rob.collect_pending_read_local(
+            0, false, ids, kRobWindow);
+        if (!count) std::abort();
+
+        uint32_t owners[kRobWindow];
+        uint32_t needed[kRobWindow];
+        uint32_t nowners = 0;
+        for (uint32_t i = 0; i < count; i++) {
+            const Op& op = rob.at(ids[i]);
+            if (op.shard < 0) std::abort();
+            const uint32_t owner = srv_->worker_of_shard(op.shard);
+            uint32_t at = 0;
+            while (at != nowners && owners[at] != owner) at++;
+            if (at == nowners) {
+                owners[nowners] = owner;
+                needed[nowners] = 0;
+                nowners++;
+            }
+            needed[at]++;
+        }
+
+        uint32_t reserved = 0;
+        for (; reserved < nowners; reserved++) {
+            if (!srv_->thread(owners[reserved]).reserve_task_slots(
+                    self_->id(), needed[reserved]))
+                break;
+        }
+        if (reserved != nowners) {
+            for (uint32_t i = 0; i < reserved; i++)
+                srv_->thread(owners[i]).cancel_task_reservation(
+                    self_->id(), needed[i]);
+            return false;
+        }
+
+        LoopSignals& sig = self_->sig();
+        for (uint32_t i = 0; i < count; i++) {
+            Op& op = rob.at(ids[i]);
+            const uint32_t owner = srv_->worker_of_shard(op.shard);
+            srv_->thread(owner).post_task_reserved_quiet(
+                self_->id(), Task{client, ids[i], -1, nullptr}, sig);
+        }
+        for (uint32_t i = 0; i < nowners; i++)
+            srv_->thread(owners[i]).flush_task_notify(
+                self_->id(), handoff_ring(), sig);
+
+        ReadLocalStats& stats = self_->read_local_stats();
+        for (uint32_t i = 0; i < count; i++) {
+            uint64_t* counter = &stats.fallback_context;
+            for (uint32_t j = 0; j < probed_count; j++) {
+                if (probed[j].op_id != ids[i]) continue;
+                if (fallbacks[j]) counter = fallbacks[j];
+                break;
+            }
+            (*counter)++;
+            rob.publish_pending_read_local_to_owner(ids[i]);
+        }
+        read_local_impl().lane_has_tombstones = true;
+        demoted = count;
+        return true;
     }
 
     // Build one local reply but do not publish Done. A null result means the bytes are complete and
@@ -621,82 +729,68 @@ private:
         if constexpr (!Fused) return 0;
         if (!read_local_enabled()) return 0;
         auto& lane = read_local_impl();
+        compact_local_read_tombstones();
         if (!lane.lane_count) return 0;
         Task batch[kExecBatch];
-        uint32_t group_ends[kExecBatch];
         uint64_t* fallbacks[kExecBatch];
-        uint32_t total = 0;
-        // Like drain_tasks, empty the lane snapshot and use kExecBatch only as the gather/prefetch
-        // quantum. Making it a per-rotation limit would simply replace the per-connection governor
-        // with a 32-op global governor.
+        uint32_t work = 0;
+        // Work through each client's lane run in gather/prefetch-sized chunks. A successful chunk
+        // can commit immediately. At the first fallback, every still-local Task for that client is
+        // atomically moved to owner queues, including runs appended by a later parse invocation.
         while (lane.lane_count) {
-            uint32_t groups = 0;
+            const Task& head = lane.lane[lane.lane_head];
+            if (!head.client || !head.client->rob().pending_read_local(head.op_id)) {
+                lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
+                lane.lane_count--;
+                continue;
+            }
+            Client* client = head.client;
             uint32_t count = 0;
-            // Parser batches are contiguous by Client and bounded by the 32-op IFID quantum. Never
-            // split one across executor chunks: its all-local/all-owner decision is the fence.
-            while (lane.lane_count && count < kExecBatch) {
-                Client* client = lane.lane[lane.lane_head].client;
-                uint32_t group_count = 1;
-                while (group_count < lane.lane_count) {
-                    const uint32_t at =
-                        (lane.lane_head + group_count) & (kInboxSlots - 1);
-                    if (lane.lane[at].client != client) break;
-                    group_count++;
-                }
-                if (group_count > kExecBatch) std::abort();
-                if (count && count + group_count > kExecBatch) break;
-                for (uint32_t i = 0; i < group_count; i++) {
-                    batch[count++] = lane.lane[lane.lane_head];
-                    lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
-                    lane.lane_count--;
-                }
-                group_ends[groups++] = count;
+            while (count < lane.lane_count && count < kExecBatch) {
+                const Task& task = lane.lane[
+                    (lane.lane_head + count) & (kInboxSlots - 1)];
+                if (task.client != client ||
+                    !client->rob().pending_read_local(task.op_id))
+                    break;
+                batch[count++] = task;
             }
             if (!count) std::abort();
-            // Match exec_batch's gather/prefetch/execute shape, but issue only read-safe foreign-
-            // table prefetches and never touch owner-local stats, LRU, expiry or sampling state.
             for (uint32_t i = 0; i < count; i++) {
-                const Op& op = batch[i].client->rob().at(batch[i].op_id);
+                const Op& op = client->rob().at(batch[i].op_id);
                 srv_->shard(op.shard).store().read_local_prefetch(op.hash);
             }
-            ReadLocalStats& stats = self_->read_local_stats();
-            uint32_t begin = 0;
-            for (uint32_t group = 0; group < groups; group++) {
-                const uint32_t end = group_ends[group];
-                bool downgrade = false;
-                for (uint32_t i = begin; i < end; i++) {
-                    fallbacks[i] = prepare_local_read(batch[i]);
-                    downgrade |= fallbacks[i] != nullptr;
-                }
-                if (downgrade) {
-                    // Local probing has no visible side effect until Done. Discard every staged
-                    // copy and owner-dispatch the complete prefix in op-id order. Successful probes
-                    // in the group are context fallbacks, keeping totals exact.
-                    bool defer_suffix = false;
-                    for (uint32_t i = begin; i < end; i++) {
-                        Op& op = batch[i].client->rob().at(batch[i].op_id);
-                        read_local_clear_reply(op);
-                        uint64_t& counter =
-                            fallbacks[i] ? *fallbacks[i] : stats.fallback_context;
-                        post_read_local_fallback(batch[i], counter, defer_suffix);
-                    }
-                } else {
-                    // Publish the whole group only after every copy validated. One completion
-                    // callback then makes the connection serveable and WB coalesces the prefix.
-                    for (uint32_t i = begin; i < end; i++) {
-                        Op& op = batch[i].client->rob().at(batch[i].op_id);
-                        stats.hits++;
-                        self_->note_command(op.spec->id);
-                        op.state.store(OpState::Done, std::memory_order_release);
-                    }
-                    notify_sender(batch[begin].client);
-                }
-                begin = end;
+            bool downgrade = false;
+            for (uint32_t i = 0; i < count; i++) {
+                fallbacks[i] = prepare_local_read(batch[i]);
+                downgrade |= fallbacks[i] != nullptr;
             }
-            total += count;
+            if (downgrade) {
+                for (uint32_t i = 0; i < count; i++)
+                    read_local_clear_reply(client->rob().at(batch[i].op_id));
+                uint32_t demoted = 0;
+                if (!demote_local_read_batch(
+                        client, batch, fallbacks, count, demoted))
+                    break;
+                work += demoted;
+                continue;
+            }
+
+            ReadLocalStats& stats = self_->read_local_stats();
+            for (uint32_t i = 0; i < count; i++) {
+                Op& op = client->rob().at(batch[i].op_id);
+                stats.hits++;
+                self_->note_command(op.spec->id);
+                client->rob().complete_pending_read_local(batch[i].op_id);
+                op.state.store(OpState::Done, std::memory_order_release);
+            }
+            notify_sender(client);
+            lane.lane_head = (lane.lane_head + count) & (kInboxSlots - 1);
+            lane.lane_count -= count;
+            work += count;
         }
-        self_->sig().ops += total;
-        return total;
+        compact_local_read_tombstones();
+        self_->sig().ops += work;
+        return work;
     }
 
     bool flip_quiesced() const {
@@ -1562,7 +1656,7 @@ private:
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
-    template <bool IofusedPrivateQueue = false>
+    template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
     bool execute(const Task& t) {
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
@@ -1620,6 +1714,16 @@ private:
         Op& op = t.client->rob().at(t.op_id);
         const int32_t shard_id = t.shard >= 0 ? t.shard : op.shard;
         Shard& sh = srv_->shard(shard_id);
+        if constexpr (Fused && !ReadLocalNoEvict) {
+            if (__builtin_expect(
+                    maxmemory_enabled_ && read_local_enabled() &&
+                    op.read_local_precise_write() &&
+                    sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
+                    false)) {
+                ReadLocalPreciseWriteGuard no_evict(sh.store());
+                return execute<IofusedPrivateQueue, true>(t);
+            }
+        }
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
         // CLIENT NO-TOUCH. maxmemory_enabled_ is this loop's own per-pass value, so with the
         // default (maxmemory off) this is one predicted-not-taken test on a register -- and the

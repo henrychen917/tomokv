@@ -28,6 +28,7 @@
 #include <new>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -463,7 +464,6 @@ private:
     enum class DispatchResult : uint8_t {
         Progress,
         NeedInput,
-        Held,
         Error,
         Closed,
     };
@@ -2408,6 +2408,15 @@ private:
             self_->sig().accept_err++;
             return;
         }
+        // Per-connection read/write ordering state is an armed-only allocation. Prepare it before
+        // the fd is registered or handed to another IO owner so an allocation failure can reject
+        // the connection without exposing a partially armed client.
+        if (srv_->read_local_enabled() && !c->rob().prepare_read_local()) {
+            delete c;
+            ::close(fd);
+            self_->sig().accept_err++;
+            return;
+        }
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
@@ -3440,6 +3449,162 @@ private:
         mark_active_known<Fused && Pipeline != 0>(c);
     }
 
+    // A demotion is planned before the stateful MONITOR/tracking gate, but its Tasks are not
+    // published until ACL and FLIP have admitted the frame. Per-producer queue reservations make
+    // that later commit infallible, so retrying capacity can never replay those stateful hooks.
+    class ReadLocalDemotionPlan {
+    public:
+        ReadLocalDemotionPlan() = default;
+        ~ReadLocalDemotionPlan() { cancel(); }
+        ReadLocalDemotionPlan(const ReadLocalDemotionPlan&) = delete;
+        ReadLocalDemotionPlan& operator=(const ReadLocalDemotionPlan&) = delete;
+
+        bool prepare(IoLoop& loop, Client* client, uint64_t hash,
+                     bool require_hash_match, int32_t reserve_shard = -1,
+                     bool inflight_write = false,
+                     bool reserve_current_without_reads = false) {
+            if (loop_ || !client) std::abort();
+            Rob<kRobWindow>& rob = client->rob();
+            count_ = rob.collect_pending_read_local(
+                0, false, ids_, kRobWindow);
+            if (count_ && require_hash_match) {
+                bool collision = false;
+                for (uint32_t i = 0; i < count_; i++)
+                    collision |= rob.at(ids_[i]).hash == hash;
+                if (!collision) {
+                    count_ = 0;
+                }
+            }
+            if (!count_ &&
+                !(reserve_current_without_reads && reserve_shard >= 0))
+                return true;
+
+            loop_ = &loop;
+            client_ = client;
+            inflight_write_ = inflight_write;
+            for (uint32_t i = 0; i < count_; i++) {
+                const int32_t shard = rob.at(ids_[i]).shard;
+                if (shard < 0) std::abort();
+                add_owner(loop.srv_->worker_of_shard(shard));
+            }
+            if (reserve_shard >= 0) {
+                reserved_current_worker_ = static_cast<int32_t>(
+                    loop.srv_->worker_of_shard(reserve_shard));
+                add_owner(static_cast<uint32_t>(reserved_current_worker_));
+            }
+
+            uint32_t reserved = 0;
+            for (; reserved < nowners_; reserved++) {
+                if (!loop.srv_->thread(owners_[reserved]).reserve_task_slots(
+                        loop.self_->id(), remaining_[reserved]))
+                    break;
+            }
+            if (reserved != nowners_) {
+                for (uint32_t i = 0; i < reserved; i++)
+                    loop.srv_->thread(owners_[i]).cancel_task_reservation(
+                        loop.self_->id(), remaining_[i]);
+                clear();
+                return false;
+            }
+            return true;
+        }
+
+        bool active() const { return loop_ != nullptr; }
+        bool current_reserved() const { return reserved_current_worker_ >= 0; }
+
+        void commit_reads() {
+            if (!loop_) return;
+            Rob<kRobWindow>& rob = client_->rob();
+            for (uint32_t i = 0; i < count_; i++) {
+                const uint32_t worker = loop_->srv_->worker_of_shard(rob.at(ids_[i]).shard);
+                loop_->srv_->thread(worker).post_task_reserved_quiet(
+                    loop_->self_->id(), Task{client_, ids_[i], -1, nullptr},
+                    loop_->self_->sig());
+                consume(worker);
+                loop_->touch_worker(worker);
+            }
+            if (count_) {
+                for (uint32_t i = 0; i < count_; i++)
+                    rob.publish_pending_read_local_to_owner(ids_[i]);
+                loop_->fused_executor_->note_local_read_tombstones();
+                ReadLocalStats& stats = loop_->self_->read_local_stats();
+                (inflight_write_ ? stats.fallback_inflight_write
+                                 : stats.fallback_context) += count_;
+            }
+            if (reserved_current_worker_ < 0) {
+                for (uint32_t i = 0; i < nowners_; i++)
+                    if (remaining_[i]) std::abort();
+                clear();
+            }
+        }
+
+        void post_current(const Task& task, uint32_t worker) {
+            if (!loop_ || reserved_current_worker_ != static_cast<int32_t>(worker))
+                std::abort();
+            loop_->srv_->thread(worker).post_task_reserved_quiet(
+                loop_->self_->id(), task, loop_->self_->sig());
+            consume(worker);
+            loop_->touch_worker(worker);
+            for (uint32_t i = 0; i < nowners_; i++)
+                if (remaining_[i]) std::abort();
+            clear();
+        }
+
+    private:
+        void add_owner(uint32_t worker) {
+            uint32_t at = 0;
+            while (at != nowners_ && owners_[at] != worker) at++;
+            if (at == nowners_) {
+                owners_[nowners_] = worker;
+                remaining_[nowners_] = 0;
+                nowners_++;
+            }
+            remaining_[at]++;
+        }
+
+        void consume(uint32_t worker) {
+            uint32_t at = 0;
+            while (at != nowners_ && owners_[at] != worker) at++;
+            if (at == nowners_ || !remaining_[at]) std::abort();
+            remaining_[at]--;
+        }
+
+        void cancel() {
+            if (!loop_) return;
+            for (uint32_t i = 0; i < nowners_; i++)
+                if (remaining_[i])
+                    loop_->srv_->thread(owners_[i]).cancel_task_reservation(
+                        loop_->self_->id(), remaining_[i]);
+            clear();
+        }
+
+        void clear() {
+            loop_ = nullptr;
+            client_ = nullptr;
+            count_ = nowners_ = 0;
+            reserved_current_worker_ = -1;
+            inflight_write_ = false;
+        }
+
+        IoLoop* loop_ = nullptr;
+        Client* client_ = nullptr;
+        uint64_t ids_[kRobWindow];
+        uint32_t owners_[kRobWindow + 1];
+        uint32_t remaining_[kRobWindow + 1];
+        uint32_t count_ = 0;
+        uint32_t nowners_ = 0;
+        int32_t reserved_current_worker_ = -1;
+        bool inflight_write_ = false;
+    };
+
+    struct EmptyReadLocalDemotionPlan {};
+
+    void touch_worker(uint32_t worker) {
+        if (touched_[worker]) return;
+        touched_[worker] = true;
+        touched_list_[ntouched_++] = worker;
+    }
+
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
               bool BufferedIfid = false, bool TargetedIfid = false,
@@ -3487,18 +3652,6 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
-        // One outstanding local-read BATCH per connection is the ordering rule. The invocation
-        // below may fill that batch with one consecutive GET prefix, but a later invocation cannot
-        // parse beyond it until WB retires the prefix. EX either completes the whole prefix locally
-        // or downgrades the whole prefix, so no younger hit can overtake an older fallback.
-        if constexpr (Fused) {
-            if (read_local_enabled &&
-                __builtin_expect(rob.has_unretired_read_local(), false)) {
-                if (self_->flip_fingerprint().enabled())
-                    self_->flip_fingerprint().finish_parse_pass();
-                return DispatchResult::Held;
-            }
-        }
         const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // One continuous-placement epoch per parse pass. Work published concurrently with a new
@@ -3546,8 +3699,23 @@ private:
                 op = rob.acquire(conn.op_route_flags());
             }
             if (!op) break;                    // window full: backpressure; let replies drain first
+            using DemotionPlan = std::conditional_t<
+                Fused, ReadLocalDemotionPlan, EmptyReadLocalDemotionPlan>;
+            [[maybe_unused]] DemotionPlan read_local_demotion;
+            [[maybe_unused]] bool read_local_owner_fence = false;
+            if constexpr (Fused) {
+                if (read_local_enabled && rob.has_unexecuted_read_local_owner()) {
+                    read_local_owner_fence = true;
+                }
+            }
             [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
             [[maybe_unused]] bool extend_read_local_batch = false;
+            [[maybe_unused]] bool read_local_write_hazard = false;
+            [[maybe_unused]] bool read_local_eligible_decided = false;
+            [[maybe_unused]] bool read_local_eligible = false;
+            [[maybe_unused]] bool read_local_commit_at_ordinary = false;
+            [[maybe_unused]] bool read_local_commit_before_lowering = false;
+            [[maybe_unused]] bool read_local_point_prehashed = false;
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -3663,17 +3831,15 @@ private:
                 continue;
             }
             if constexpr (Fused) {
-                // Decide whether this frame extends the local prefix before climon_armed_gate:
-                // MONITOR, tracking and CLIENT REPLY mutate state even though the parse cursor has
-                // not advanced yet. A held frame must therefore not pass that gate and be replayed.
+                // A consecutive GET can reuse the first member's stable connection gates. Any
+                // other frame ends the run but keeps parsing; later writes demote only conflicting
+                // unresolved reads instead of turning the run into a connection-wide hold.
                 if (read_local_enabled && read_local_batch) {
-                    if (!(spec->flags & CmdFlags::ReadLocalEligible) ||
-                        conn.multi_session() != nullptr ||
-                        !fused_executor_->local_read_lane_has_room()) break;
-                    // The first member proved the connection gates. A GET-only prefix cannot arm
-                    // WATCH/blocking/subscriber/write state. Transient shard state is deliberately
-                    // left to EX, which either commits or owner-downgrades the complete prefix.
-                    extend_read_local_batch = true;
+                    extend_read_local_batch =
+                        (spec->flags & CmdFlags::ReadLocalEligible) &&
+                        conn.multi_session() == nullptr &&
+                        fused_executor_->local_read_lane_has_room();
+                    if (!extend_read_local_batch) read_local_batch = false;
                 }
             }
             // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
@@ -3704,16 +3870,143 @@ private:
                     pipeline_batch->force_coarse = true;
                     break;
                 }
-            if (__builtin_expect(notify_armed, false) &&
-                __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if constexpr (Fused) {
                 if (read_local_enabled) {
                     constexpr uint32_t kWriteHazards =
                         CmdFlags::Write | CmdFlags::SnapshotWrite |
                         CmdFlags::Transaction | CmdFlags::ScriptRoute;
-                    if (spec->flags & kWriteHazards) rob.mark_current_write();
+                    constexpr uint32_t kNonPointRoutes =
+                        CmdFlags::AllShards | CmdFlags::RandomShard |
+                        CmdFlags::CursorShard | CmdFlags::ConfigRoute |
+                        CmdFlags::MultiShard | CmdFlags::ScriptRoute |
+                        CmdFlags::Blocking | CmdFlags::Transaction |
+                        CmdFlags::StreamRoute | CmdFlags::SubcmdRoute;
+                    constexpr uint32_t kReplaySensitiveClimon =
+                        Server::kClimonMonitor | Server::kClimonTracking |
+                        Server::kClimonReply;
+                    const bool reserve_owner_fenced_current =
+                        read_local_owner_fence &&
+                        (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
+                    const bool write_hazard = (spec->flags & kWriteHazards) != 0;
+                    read_local_write_hazard = write_hazard;
+                    const bool point_route =
+                        (spec->flags & kNonPointRoutes) == 0 &&
+                        spec->first_key > 0 && spec->last_key == spec->first_key &&
+                        spec->key_step == 1;
+                    if (point_route) {
+                        op->hash = FlatStore::hash_key(
+                            op->arg(static_cast<uint32_t>(spec->first_key)));
+                        op->shard = srv_->router().shard_of(op->hash);
+                        read_local_point_prehashed = true;
+                    }
+
+                    if (write_hazard) {
+                        // Stage every historical v1 hazard before the stateful climon gate. A
+                        // syntactic one-key owner route can be refined now that arity is proved.
+                        rob.mark_current_write();
+                        const bool ordinary_point_write =
+                            point_route &&
+                            (spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0 &&
+                            !(spec->flags & CmdFlags::ConnLocal);
+                        if (ordinary_point_write) {
+                            // An evicting maxmemory policy makes the write conservative, but it is
+                            // still an ordinary one-owner route. Reserve that current append along
+                            // with the demoted reads so the post-climon sequence remains infallible.
+                            const bool hash_precise =
+                                fused_executor_->read_local_point_writes_precise() &&
+                                rob.refine_current_write_hash(op->hash);
+                            if (hash_precise) op->mark_read_local_precise_write();
+                            if (!read_local_demotion.prepare(
+                                    *this, c, op->hash, hash_precise, op->shard, true,
+                                    reserve_owner_fenced_current))
+                                break;
+                            read_local_commit_at_ordinary = true;
+                        } else if (!read_local_demotion.prepare(
+                                       *this, c, 0, false, -1, true)) {
+                            break;
+                        } else {
+                            read_local_commit_before_lowering = true;
+                        }
+                    } else if ((spec->flags & CmdFlags::ReadLocalEligible) != 0) {
+                        if (!point_route) std::abort();
+                        ReadLocalStats& local_stats = self_->read_local_stats();
+                        const bool write_conflict = !read_local_owner_fence &&
+                            rob.read_local_write_conflicts(op->hash);
+                        read_local_eligible = extend_read_local_batch && !write_conflict;
+                        if (extend_read_local_batch && write_conflict) {
+                            read_local_fallback_counter =
+                                &local_stats.fallback_inflight_write;
+                            read_local_batch = false;
+                        }
+                        if (!extend_read_local_batch) {
+                            read_local_eligible = true;
+                            if (read_local_owner_fence) {
+                                read_local_fallback_counter =
+                                    &local_stats.fallback_context;
+                                read_local_eligible = false;
+                            } else if (multi_session_watch_size(conn) != 0) {
+                                read_local_fallback_counter =
+                                    &local_stats.fallback_watch;
+                                read_local_eligible = false;
+                            } else if (c->blocked() || c->subscriber_mode() ||
+                                       op->has_scatter_state() ||
+                                       (spec->flags &
+                                        (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
+                                         CmdFlags::AllShards))) {
+                                read_local_fallback_counter =
+                                    &local_stats.fallback_context;
+                                read_local_eligible = false;
+                            } else if (write_conflict) {
+                                read_local_fallback_counter =
+                                    &local_stats.fallback_inflight_write;
+                                read_local_eligible = false;
+                            } else {
+                                const uint64_t state = srv_->shard(op->shard)
+                                                           .store()
+                                                           .read_local_state_acquire();
+                                if (FlatStore::read_local_pending(state) != 0) {
+                                    read_local_fallback_counter =
+                                        &local_stats.fallback_atomic_pending;
+                                    read_local_eligible = false;
+                                } else if (!FlatStore::read_local_state_eligible(state)) {
+                                    read_local_fallback_counter =
+                                        &local_stats.fallback_seq_churn;
+                                    read_local_eligible = false;
+                                } else if (!fused_executor_->local_read_lane_has_room()) {
+                                    read_local_fallback_counter =
+                                        &local_stats.fallback_lane_full;
+                                    read_local_eligible = false;
+                                }
+                            }
+                        }
+                        read_local_eligible_decided = true;
+                        if (!read_local_eligible) {
+                            if (!read_local_fallback_counter) std::abort();
+                            // Every owner-routed GET extends the execution fence. Otherwise its
+                            // older write/read predecessor could complete, reopen the local lane,
+                            // and let the next GET execute ahead of this still-queued Task.
+                            rob.extend_current_read_local_owner();
+                            if (!read_local_demotion.prepare(
+                                    *this, c, op->hash, true, op->shard, false,
+                                    reserve_owner_fenced_current))
+                                break;
+                            read_local_commit_at_ordinary = true;
+                        }
+                    } else if (!(spec->flags & CmdFlags::ConnLocal)) {
+                        if (read_local_owner_fence)
+                            rob.extend_current_read_local_owner();
+                        if (!read_local_demotion.prepare(
+                                *this, c, point_route ? op->hash : 0,
+                                point_route, point_route ? op->shard : -1, false,
+                                reserve_owner_fenced_current && point_route))
+                            break;
+                        if (point_route) read_local_commit_at_ordinary = true;
+                        else read_local_commit_before_lowering = true;
+                    }
                 }
             }
+            if (__builtin_expect(notify_armed, false) &&
+                __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
@@ -3724,6 +4017,17 @@ private:
                 // at the head of other connections remain reachable throughout the pause.
                 c->set_flip_backpressure(true);
                 break;
+            }
+            if constexpr (Fused) {
+                // This must follow the per-frame FLIP gate above: demotion itself publishes owner
+                // Tasks. Non-point routes may touch any key, so move every unresolved local read
+                // before any of their lowering paths can publish.
+                if (read_local_enabled && read_local_commit_before_lowering) {
+                    if (read_local_demotion.active() && !read_local_write_hazard) {
+                        rob.extend_current_read_local_owner();
+                    }
+                    read_local_demotion.commit_reads();
+                }
             }
             if (__builtin_expect((spec->flags & CmdFlags::Transaction) != 0, false) ||
                 __builtin_expect(conn.multi_session() != nullptr, false)) {
@@ -4232,50 +4536,27 @@ ordinary_dispatch:
                         result = DispatchResult::Progress;
                         break;
                     }
-                op->hash  = FlatStore::hash_key(op->arg(static_cast<uint32_t>(spec->first_key)));
-                op->shard = srv_->router().shard_of(op->hash);
+                if (!read_local_point_prehashed) {
+                    op->hash = FlatStore::hash_key(
+                        op->arg(static_cast<uint32_t>(spec->first_key)));
+                    op->shard = srv_->router().shard_of(op->hash);
+                }
             }
 
             if constexpr (Fused) {
+                if (read_local_enabled && read_local_commit_at_ordinary) {
+                    // prepare() reserved the complete read batch and this operation before any
+                    // stateful parser hook. Publish the reads first; the retained current credit
+                    // makes the ordinary owner append below infallible and preserves SPSC FIFO.
+                    if (read_local_demotion.active() && !read_local_write_hazard) {
+                        rob.extend_current_read_local_owner();
+                    }
+                    read_local_demotion.commit_reads();
+                }
                 if (read_local_enabled &&
                     __builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
-                    ReadLocalStats& local_stats = self_->read_local_stats();
-                    bool eligible = extend_read_local_batch;
-                    uint64_t* fallback = nullptr;
-                    if (!extend_read_local_batch) {
-                        eligible = true;
-                        if (multi_session_watch_size(conn) != 0) {
-                            fallback = &local_stats.fallback_watch;
-                            eligible = false;
-                        } else if (c->blocked() || c->subscriber_mode() ||
-                                   op->has_scatter_state() ||
-                                   (spec->flags & (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
-                                                   CmdFlags::AllShards))) {
-                            fallback = &local_stats.fallback_context;
-                            eligible = false;
-                        } else if (rob.has_unretired_write()) {
-                            fallback = &local_stats.fallback_inflight_write;
-                            eligible = false;
-                        } else {
-                            const uint64_t state =
-                                srv_->shard(op->shard).store().read_local_state_acquire();
-                            if (FlatStore::read_local_pending(state) != 0) {
-                                fallback = &local_stats.fallback_atomic_pending;
-                                eligible = false;
-                            } else if (!FlatStore::read_local_state_eligible(state)) {
-                                fallback = &local_stats.fallback_seq_churn;
-                                eligible = false;
-                            } else if (!fused_executor_->local_read_lane_has_room()) {
-                                fallback = &local_stats.fallback_lane_full;
-                                eligible = false;
-                            }
-                        }
-                    }
-                    if (!eligible) {
-                        if (!fallback) std::abort();
-                        read_local_fallback_counter = fallback;
-                    }
-                    if (eligible) {
+                    if (!read_local_eligible_decided) std::abort();
+                    if (read_local_eligible) {
                         if (head_candidate) {
                             head_candidate = false;
                             if (rob.in_flight() == 0 && c->nothing_to_write()) {
@@ -4288,15 +4569,16 @@ ordinary_dispatch:
                         op->mark_read_local();
                         rob.mark_current_read_local();
                         rob.publish();
-                        if (!fused_executor_->enqueue_local_read(Task{c, op_id, -1, nullptr}))
+                        if (!fused_executor_->enqueue_local_read(
+                                Task{c, op_id, -1, nullptr}))
                             std::abort();
                         conn.advance_parse(consumed);
                         sig.ops++;
                         flip_fingerprint_note(*spec, *op);
                         mark_active_known<TargetedIfid>(c);
                         read_local_batch = true;
-                        // Fill at most the existing fused IFID quantum. The entry guard above keeps
-                        // a second invocation from extending this batch before it retires.
+                        // Fill at most the existing fused IFID quantum; intervening ordinary frames
+                        // simply end this run and do not stop the parser.
                         continue;
                     }
                 }
@@ -4332,7 +4614,14 @@ ordinary_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
-            if (!post_task_quiet(worker, t)) {
+            bool posted = false;
+            if constexpr (Fused) {
+                if (read_local_enabled && read_local_demotion.current_reserved()) {
+                    read_local_demotion.post_current(t, worker_id);
+                    posted = true;
+                }
+            }
+            if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
@@ -4353,10 +4642,7 @@ ordinary_dispatch:
             conn.advance_parse(consumed);
             sig.ops++;
             flip_fingerprint_note(*spec, *op);
-            if (!touched_[worker_id]) {
-                touched_[worker_id] = true;
-                touched_list_[ntouched_++] = worker_id;
-            }
+            touch_worker(worker_id);
             // Unified pipeline 1 entered with a live active client and its batch tail decides once
             // whether input/backpressure requires another IFID visit. Repeating the same active
             // and queue-dedupe checks for every op was pure per-op work; the other schedules retain
@@ -5675,12 +5961,9 @@ ordinary_dispatch:
                         dispatch_result = parse_and_dispatch<
                             false, Fused ? kGenthreadIfidBatchOps : 0>(c);
                     }
-                    if constexpr (Fused) {
-                        if (__builtin_expect(dispatch_result != DispatchResult::NeedInput &&
-                                             dispatch_result != DispatchResult::Held, true)) work++;
-                    } else {
-                        if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true)) work++;
-                    }
+                    if (__builtin_expect(
+                            dispatch_result != DispatchResult::NeedInput, true))
+                        work++;
                 }
             }
 
@@ -5700,8 +5983,7 @@ ordinary_dispatch:
                                (!conn.recv_armed() && !c->closing());
 
             // NeedInput parks only the read side: the partial bytes stay buffered and a recv is
-            // already armed. Held is a complete frame behind an outstanding local-read ROB slot;
-            // neither result itself is progress, while the in-flight slot keeps the client live.
+            // already armed. Unresolved local reads never hold parsing; conflicts reroute them.
             const bool more_input = conn.rpos() < conn.rlen() &&
                                     dispatch_result != DispatchResult::NeedInput;
             const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
@@ -6001,6 +6283,9 @@ ordinary_dispatch:
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
+        if (srv_->read_local_enabled())
+            fused_executor_->set_read_local_point_writes_precise(
+                snapshot.maxmemory == 0 || snapshot.policy == MaxmemoryPolicy::NoEviction);
         notify_config_version_ = snapshot.version;
     }
 

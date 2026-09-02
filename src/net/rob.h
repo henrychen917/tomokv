@@ -39,9 +39,38 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <cstdlib>
+#include <new>
 #include "../exec/op.h"
 
 namespace tomo {
+
+// Allocated only for connections served by the boot-armed fused read-local lane. The connection's
+// IO owner is the sole reader/writer; the ROB ids carried beside hashes are generations, not
+// cross-thread publications. Retirement is therefore lazy: flush_id advancing past an entry is
+// its removal fence, and stale entries may only cause an allowed false-positive conflict.
+struct ReadLocalRobState {
+    static constexpr uint32_t kWriteRingCapacity = 16;
+    static_assert((kWriteRingCapacity & (kWriteRingCapacity - 1)) == 0);
+
+    enum class PendingWrite : uint8_t { None, Hash, Overflow };
+
+    struct WriteKey {
+        uint64_t hash = 0;
+        uint64_t op_id = 0;
+    };
+
+    uint64_t pending_hash = 0;
+    uint64_t pending_op_id = 0;
+    uint64_t overflow_through = 0;
+    uint8_t write_head = 0;
+    uint8_t write_count = 0;
+    PendingWrite pending_write = PendingWrite::None;
+    bool overflow = false;
+    // Keep the pure/short-ring controls and the first common entries on the leading cache lines.
+    WriteKey write_ring[kWriteRingCapacity]{};
+};
+static_assert(alignof(ReadLocalRobState) >= 2, "read-local sidecar pointer uses its low bit");
 
 template <uint32_t Capacity>
 class Rob {
@@ -70,14 +99,19 @@ public:
         return op;
     }
 
-    // The armed coarse parser owns these slot bitmaps. Clear the recycled position before reset so
-    // stale classifications never survive a wrap; ordinary acquire() above stays exactly baseline.
+    // The armed coarse parser owns the local-read slot bitmap and write generations. Resolve the
+    // preceding candidate before recycling a position; ordinary acquire() above stays baseline.
     Op* acquire_read_local(uint8_t route_flags = 0) {
+        if (read_local_state_active()) {
+            ReadLocalRobState& state = read_local_state_required();
+            read_local_resolve_pending(state);
+            read_local_try_deactivate(state);
+        }
         if (full()) return nullptr;
         const uint32_t index = static_cast<uint32_t>(dispatch_id()) & kMask;
         const uint64_t keep = ~(uint64_t{1} << index);
-        read_local_slots_ &= keep;
-        write_slots_ &= keep;
+        read_local_pending_slots_ &= keep;
+        read_local_owner_slots_ &= keep;
         Op* op = slot(index, true);
         op->reset_read_local(route_flags);
         return op;
@@ -94,27 +128,165 @@ public:
     // because retirement never touches an op that is not Done.
     void unpublish() { dispatch_.store(dispatch_id() - 1, std::memory_order_release); }
 
-    // The enabled parser marks its currently acquired (not yet published) slot. Stale bits are
-    // harmless and cleared on reuse; queries intersect with the live [flush, dispatch) window.
-    // Thus ordinary publish/retire remain byte-for-byte free of read-local mode branches.
+    // The enabled parser marks a slot while its Task still belongs to the local lane. The fused
+    // executor clears it only after the read has completed locally or has entered an ordinary
+    // owner queue. Thus a later write can distinguish work that still needs venue demotion from an
+    // already-executed read without adding any hook to ordinary publish or retirement.
     void mark_current_read_local() {
-        read_local_slots_ |= uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
-    }
-    void mark_current_write() {
-        write_slots_ |= uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+        const uint64_t bit =
+            uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+        if (read_local_owner_slots_ & bit) std::abort();
+        read_local_pending_slots_ |= bit;
     }
 
-    uint32_t unretired_read_local() const {
-        return static_cast<uint32_t>(__builtin_popcountll(read_local_slots_ & active_slots_mask()));
+    bool pending_read_local(uint64_t op_id) const {
+        const uint64_t dispatch = dispatch_id();
+        const uint64_t flush = flush_id();
+        return read_local_id_active(op_id, dispatch, flush) &&
+               (read_local_pending_slots_ &
+                (uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask))) != 0;
     }
-    bool has_unretired_read_local() const {
-        return read_local_slots_ && (read_local_slots_ & active_slots_mask()) != 0;
+
+    uint32_t collect_pending_read_local(uint64_t hash, bool hash_only, uint64_t* ids,
+                                        uint32_t capacity) const {
+        if (!read_local_pending_slots_) return 0;
+        const uint64_t flush = flush_id();
+        const uint32_t begin = static_cast<uint32_t>(flush) & kMask;
+        const uint64_t generation = flush & ~uint64_t{kMask};
+        uint64_t high = read_local_pending_slots_ & (UINT64_MAX << begin);
+        const uint64_t low_mask = begin ? (uint64_t{1} << begin) - 1 : 0;
+        uint64_t low = read_local_pending_slots_ & low_mask;
+        uint32_t count = 0;
+        // Enumerate set bits in logical ROB order across a possible slot-zero wrap.
+        auto append = [&](uint64_t bits, uint64_t base) {
+            while (bits) {
+                const uint32_t index = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint64_t id = base | index;
+                if (hash_only && at(id).hash != hash) continue;
+                if (count == capacity) std::abort();
+                ids[count++] = id;
+            }
+        };
+        append(high, generation);
+        append(low, generation + Capacity);
+        return count;
     }
-    uint32_t unretired_writes() const {
-        return static_cast<uint32_t>(__builtin_popcountll(write_slots_ & active_slots_mask()));
+
+    void complete_pending_read_local(uint64_t op_id) {
+        const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
+        if (!(read_local_pending_slots_ & bit)) std::abort();
+        read_local_pending_slots_ &= ~bit;
     }
-    bool has_unretired_write() const {
-        return write_slots_ && (write_slots_ & active_slots_mask()) != 0;
+
+    void publish_pending_read_local_to_owner(uint64_t op_id) {
+        const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
+        if (!(read_local_pending_slots_ & bit) || (read_local_owner_slots_ & bit))
+            std::abort();
+        read_local_pending_slots_ &= ~bit;
+        read_local_owner_slots_ |= bit;
+    }
+
+    bool has_unexecuted_read_local_owner() {
+        if (!read_local_owner_slots_) return false;
+        read_local_owner_slots_ &= active_slots_mask();
+        uint64_t active = read_local_owner_slots_;
+        if (!active) return false;
+        const uint64_t flush = flush_id();
+        const uint32_t begin = static_cast<uint32_t>(flush) & kMask;
+        const uint64_t generation = flush & ~uint64_t{kMask};
+        uint64_t high = active & (UINT64_MAX << begin);
+        const uint64_t low_mask = begin ? (uint64_t{1} << begin) - 1 : 0;
+        uint64_t low = active & low_mask;
+        auto unfinished = [&](uint64_t bits, uint64_t base) {
+            while (bits) {
+                const uint32_t index = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                if (at(base | index).state.load(std::memory_order_acquire) != OpState::Done)
+                    return true;
+                read_local_owner_slots_ &= ~(uint64_t{1} << index);
+            }
+            return false;
+        };
+        return unfinished(high, generation) || unfinished(low, generation + Capacity);
+    }
+
+    // Once a local batch moves to owner queues, younger reads follow that venue until its execution
+    // tail completes. Extending the generation prevents a newly-local GET from overtaking a
+    // younger owner task after the originally demoted reads themselves have completed.
+    void extend_current_read_local_owner() {
+        read_local_owner_slots_ |=
+            uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
+    }
+
+    // Stage a conservative write record before the parser enters ACL/special lowering. The next
+    // armed acquire is the commit point: an advanced dispatch id means this op published, while an
+    // unchanged id means dispatch was abandoned (including publish + refused-post + unpublish).
+    // Special/multi-key writes leave the pending record conservative. An ordinary point write
+    // refines it below after routing has already produced the hash.
+    void mark_current_write() {
+        read_local_state_activate();
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.pending_write != ReadLocalRobState::PendingWrite::None) std::abort();
+        read_local_prune(state);
+        state.pending_op_id = dispatch_id();
+        state.pending_hash = 0;
+        state.pending_write = ReadLocalRobState::PendingWrite::Overflow;
+    }
+
+    bool refine_current_write_hash(uint64_t hash) {
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.pending_write != ReadLocalRobState::PendingWrite::Overflow ||
+            state.pending_op_id != dispatch_id())
+            std::abort();
+        // Once overflowed, every subsequently published write extends the conservative generation
+        // until that whole run drains. Do not start tracking precise hashes again in its middle.
+        if (state.overflow ||
+            state.write_count == ReadLocalRobState::kWriteRingCapacity)
+            return false;
+        state.pending_hash = hash;
+        state.pending_write = ReadLocalRobState::PendingWrite::Hash;
+        return true;
+    }
+
+    // Hash collisions deliberately conflict. Empty is the pure-GET fast path: it avoids even the
+    // flush frontier load. Otherwise prune the retired FIFO prefix, then scan at most sixteen
+    // hashes (normally one to four). Overflow is v1 behavior until every write published during
+    // that overflow generation has retired.
+    bool read_local_write_conflicts(uint64_t hash) {
+        if (!read_local_state_active()) return false;
+        ReadLocalRobState& state = read_local_state_required();
+        // acquire_read_local normally resolves this first. Preserve the no-false-negative contract
+        // if a future armed caller probes without acquiring through that door.
+        if (state.pending_write != ReadLocalRobState::PendingWrite::None) return true;
+        if (!state.overflow && state.write_count == 0) {
+            read_local_try_deactivate(state);
+            return false;
+        }
+        read_local_prune(state);
+        if (state.overflow) return true;
+        if (state.write_count == 0) {
+            read_local_try_deactivate(state);
+            return false;
+        }
+        for (uint32_t i = 0; i < state.write_count; i++) {
+            const uint32_t at =
+                (static_cast<uint32_t>(state.write_head) + i) &
+                (ReadLocalRobState::kWriteRingCapacity - 1);
+            if (state.write_ring[at].hash == hash) return true;
+        }
+        return false;
+    }
+
+    // Boot-only, before the connection is visible to any loop or kernel registration.
+    bool prepare_read_local() {
+        if (read_local_state_) return true;
+        ReadLocalRobState* state = new (std::nothrow) ReadLocalRobState;
+        if (!state) return false;
+        const uintptr_t ptr = reinterpret_cast<uintptr_t>(state);
+        if (ptr & kReadLocalStateInactive) std::abort();
+        read_local_state_ = ptr | kReadLocalStateInactive;
+        return true;
     }
 
     // ---- consumer side (whichever stage sends) -------------------------------------------------
@@ -145,7 +317,10 @@ public:
     Op& at(uint64_t id) { return *slot(static_cast<uint32_t>(id) & kMask, false); }
     const Op& at(uint64_t id) const { return const_cast<Rob*>(this)->at(id); }
 
-    ~Rob() { for (uint32_t i = 0; i < kChunks; i++) delete[] chunks_[i]; }
+    ~Rob() {
+        for (uint32_t i = 0; i < kChunks; i++) delete[] chunks_[i];
+        delete read_local_state_ptr();
+    }
 
 private:
     static constexpr uint32_t kChunkOps = 8;
@@ -178,19 +353,116 @@ private:
         return mask & capacity_slots_mask();
     }
 
+    static constexpr uintptr_t kReadLocalStateInactive = 1;
+
+    ReadLocalRobState* read_local_state_ptr() const {
+        return reinterpret_cast<ReadLocalRobState*>(
+            read_local_state_ & ~kReadLocalStateInactive);
+    }
+    bool read_local_state_active() const {
+        return read_local_state_ != 0 &&
+               (read_local_state_ & kReadLocalStateInactive) == 0;
+    }
+    void read_local_state_activate() {
+        if (!read_local_state_) std::abort();
+        read_local_state_ &= ~kReadLocalStateInactive;
+    }
+    ReadLocalRobState& read_local_state_required() {
+        ReadLocalRobState* state = read_local_state_ptr();
+        if (!state) std::abort();
+        return *state;
+    }
+    const ReadLocalRobState& read_local_state_required() const {
+        const ReadLocalRobState* state = read_local_state_ptr();
+        if (!state) std::abort();
+        return *state;
+    }
+    void read_local_try_deactivate(const ReadLocalRobState& state) {
+        if (!state.overflow && state.write_count == 0 &&
+            state.pending_write == ReadLocalRobState::PendingWrite::None)
+            read_local_state_ |= kReadLocalStateInactive;
+    }
+
+    static bool read_local_id_active(uint64_t op_id, uint64_t dispatch, uint64_t flush) {
+        return op_id - flush < dispatch - flush;
+    }
+
+    void read_local_prune(ReadLocalRobState& state) {
+        if (!state.overflow && state.write_count == 0) return;
+        read_local_prune(state, dispatch_id(), flush_id());
+    }
+
+    static void read_local_prune(ReadLocalRobState& state, uint64_t dispatch, uint64_t flush) {
+        if (state.overflow) {
+            if (read_local_id_active(state.overflow_through, dispatch, flush)) return;
+            state.overflow = false;
+            state.write_head = 0;
+            state.write_count = 0;
+            return;
+        }
+        while (state.write_count &&
+               !read_local_id_active(
+                   state.write_ring[state.write_head].op_id, dispatch, flush)) {
+            state.write_head = static_cast<uint8_t>(
+                (state.write_head + 1) & (ReadLocalRobState::kWriteRingCapacity - 1));
+            state.write_count--;
+        }
+        if (!state.write_count) state.write_head = 0;
+    }
+
+    void read_local_resolve_pending(ReadLocalRobState& state) {
+        using PendingWrite = ReadLocalRobState::PendingWrite;
+        if (state.pending_write == PendingWrite::None) return;
+        const uint64_t dispatch = dispatch_id();
+        const uint64_t flush = flush_id();
+        const uint64_t op_id = state.pending_op_id;
+        const PendingWrite pending = state.pending_write;
+        const uint64_t hash = state.pending_hash;
+        state.pending_write = PendingWrite::None;
+
+        // The op either never published / was unpublished, or published and already retired before
+        // another frame on this connection could be considered. Neither can constrain that frame.
+        if (!read_local_id_active(op_id, dispatch, flush)) return;
+
+        read_local_prune(state, dispatch, flush);
+        if (state.overflow || pending == PendingWrite::Overflow) {
+            state.overflow = true;
+            state.overflow_through = op_id;
+            state.write_head = 0;
+            state.write_count = 0;
+            return;
+        }
+
+        if (state.write_count == ReadLocalRobState::kWriteRingCapacity) {
+            state.overflow = true;
+            state.overflow_through = op_id;
+            state.write_head = 0;
+            state.write_count = 0;
+            return;
+        }
+        const uint32_t tail =
+            (static_cast<uint32_t>(state.write_head) + state.write_count) &
+            (ReadLocalRobState::kWriteRingCapacity - 1);
+        state.write_ring[tail] = ReadLocalRobState::WriteKey{hash, op_id};
+        state.write_count++;
+    }
+
     Op* chunks_[kChunks] = {};
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};
     alignas(64) std::atomic<uint64_t> flush_{0};
-    // These bitmaps fit in flush_'s existing trailing cache-line padding and have one writer (the
-    // connection's IO owner), so neither needs an atomic and Client's footprint remains unchanged.
-    uint64_t read_local_slots_ = 0;
-    uint64_t write_slots_ = 0;
+    // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
+    // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit
+    // means no write generation is active, so pure GETs do not dereference heap state. All three
+    // words remain inside flush_'s established trailing padding.
+    uint64_t read_local_pending_slots_ = 0;
+    uint64_t read_local_owner_slots_ = 0;
+    uintptr_t read_local_state_ = 0;
 };
 
-// Read-local slot maps deliberately occupy the pre-existing tail of flush_'s cache line. Locking
-// the complete ROB keeps future accounting from silently growing every connection.
+// The bitmaps and tagged sidecar pointer deliberately occupy the pre-existing tail of flush_'s
+// cache line. Locking the complete ROB keeps future accounting from silently growing every client.
 static_assert(sizeof(Rob<64>) == 192, "Rob<64> layout changed");
 
 }  // namespace tomo
