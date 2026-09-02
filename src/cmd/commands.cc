@@ -77,7 +77,7 @@ bool command_name_in(const char* name, const char* const (&names)[N]) {
 }
 
 // Owner scheduler class table. This runs once while copying the registry; execution reads only
-// the two stamped flag bits. Static means deliberately argv-independent: MGET is SmallMulti at
+// the stamped metadata byte. Static means deliberately argv-independent: MGET is SmallMulti at
 // every arity, and a bounded LRANGE is still Long. That is the cost of constant policy lookup.
 CommandLengthClass command_length_class_for(const CommandSpec& spec) {
     static constexpr const char* kSmallMulti[] = {

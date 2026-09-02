@@ -43,6 +43,14 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
+inline constexpr uint32_t kExSchedClasses =
+    static_cast<uint32_t>(CommandLengthClass::Count);
+inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
+inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
+static_assert(kExecBatch <= UINT8_MAX);
+static_assert(kExecBatch <= 32);
+static_assert((kExecBatch & (kExecBatch - 1)) == 0);
+static_assert(kExSchedBuckets == 192);
 
 template <bool Fused>
 class ExLoopT {
@@ -58,6 +66,7 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
+        ex_sched_enabled_ = srv->cfg().ex_sched != 0;
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -532,6 +541,179 @@ private:
         return n;
     }
 
+    // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
+    // barrier in the gathered sequence: eligible work on either side cannot move across it.
+    bool ex_sched_candidate(const Task& task, uint8_t& length) const {
+        if (!task.client || task.scatter) return false;
+        const Op& op = task.client->rob().at(task.op_id);
+        if (!op.spec || op.has_blocking_state()) return false;
+        constexpr uint32_t kSpecial =
+            CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
+            CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
+            CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
+            CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
+        // MultiShard is deliberately absent: a same-owner MGET/MSET local-fast task is ordinary
+        // here. A real scatter has task.scatter set and returned above.
+        if (op.spec->flags & kSpecial) return false;
+        length = static_cast<uint8_t>(command_length_class(*op.spec));
+        if (__builtin_expect(length >= kExSchedClasses, false)) return false;
+        // There is no O(1) class pointer from an op to an exact parked atomic predecessor. The
+        // immutable publish-time hazard bit says an older own atomic group existed; Long is the
+        // safe upper bound without a deque scan or persistent scheduler state.
+        if (op.atomic_hazard()) length = static_cast<uint8_t>(CommandLengthClass::Long);
+        return true;
+    }
+
+    struct ExScheduleKey {
+        uint8_t rank = 0;
+        uint8_t length = 0;
+    };
+
+    void ex_schedule_run(Task* tasks, const uint8_t* base_lengths, uint32_t n) {
+        if (n < 2) return;
+        Client* const only_client = tasks[0].client;
+        uint32_t distinct_at = 1;
+        while (distinct_at < n && tasks[distinct_at].client == only_client) distinct_at++;
+        // Absolute per-connection order leaves no legal permutation in a one-client run.
+        if (distinct_at == n) return;
+
+        ExScheduleKey keys[kExecBatch];
+        uint8_t min_rank = UINT8_MAX;
+        uint8_t max_rank = 0;
+        uint8_t first_length = 0;
+        bool one_length = true;
+
+        // The gather contract presents each connection's Tasks in increasing op_id order. Sample
+        // newest-to-oldest: flush_id only advances, so an older task still receives a strictly
+        // lower rank even if IO retires a completed prefix between samples. Adjacent tasks from
+        // one connection reuse the head load without any per-connection table. The slow path
+        // verifies the contract before reordering; every earlier exit retains FIFO.
+        Client* sampled_client = nullptr;
+        uint64_t sampled_head = 0;
+        for (uint32_t i = n; i-- > 0;) {
+            const Task& task = tasks[i];
+            if (task.client != sampled_client) {
+                sampled_client = task.client;
+                sampled_head = sampled_client->rob().flush_id();
+            }
+            const uint64_t distance = task.op_id - sampled_head;
+            // A fresh unfinished task is always in the 64-slot live ROB window. If that invariant
+            // is ever broken, preserve today's FIFO instead of collapsing ranks and risking order.
+            if (__builtin_expect(distance >= kRobWindow, false)) return;
+            keys[i] = ExScheduleKey{static_cast<uint8_t>(distance), base_lengths[i]};
+            min_rank = std::min(min_rank, keys[i].rank);
+            max_rank = std::max(max_rank, keys[i].rank);
+            if (i == n - 1) first_length = keys[i].length;
+            else one_length &= keys[i].length == first_length;
+        }
+
+        // The measured-law escape is defined on the directly available gathered classes and runs
+        // before conservative widening for an invisible predecessor. This is what keeps homogeneous
+        // rank-adjacent traffic off the dependency and bucket paths.
+        if (one_length && max_rank - min_rank <= 1) return;
+
+        // Effective class is the prefix maximum for each connection in this gathered run. A rank
+        // before the first represented task, or a gap in its ids, means an unrepresented blocker;
+        // its slot cannot safely be read while IO may recycle it, so Long is the no-state upper
+        // bound. Open addressing is at most half full and is reached only after degeneration.
+        static constexpr uint32_t kChainSlots = kExecBatch * 2;
+        Client* chain_client[kChainSlots];
+        uint8_t chain_last[kChainSlots];
+        uint64_t chain_occupied = 0;
+        for (uint32_t i = 0; i < n; i++) {
+            Client* client = tasks[i].client;
+            uint64_t hash = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(client));
+            hash ^= hash >> 33;
+            hash *= uint64_t{0xff51afd7ed558ccdull};
+            hash ^= hash >> 33;
+            uint32_t slot = static_cast<uint32_t>(hash) & (kChainSlots - 1);
+            uint64_t bit = uint64_t{1} << slot;
+            while ((chain_occupied & bit) && chain_client[slot] != client) {
+                slot = (slot + 1) & (kChainSlots - 1);
+                bit = uint64_t{1} << slot;
+            }
+            if (!(chain_occupied & bit)) {
+                chain_occupied |= bit;
+                chain_client[slot] = client;
+                if (keys[i].rank != 0)
+                    keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
+            } else {
+                const uint8_t previous = chain_last[slot];
+                // Preserve the existing FIFO if a producer-lane bug ever violates the gather
+                // contract. The scheduler must never create a same-connection inversion.
+                if (tasks[i].op_id <= tasks[previous].op_id) return;
+                keys[i].length = std::max(keys[i].length, keys[previous].length);
+                if (tasks[i].op_id != tasks[previous].op_id + 1)
+                    keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
+            }
+            chain_last[slot] = static_cast<uint8_t>(i);
+        }
+        one_length = true;
+        for (uint32_t i = 1; i < n; i++) one_length &= keys[i].length == keys[0].length;
+        if (one_length && max_rank - min_rank <= 1) return;
+
+        // Stable gather order often already matches the selected bucket order. Avoid scratch
+        // setup and two Task copies when the policy would be an identity permutation.
+        bool already_ordered = true;
+        uint32_t previous_bucket = keys[0].rank * kExSchedClasses + keys[0].length;
+        for (uint32_t i = 1; i < n; i++) {
+            const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
+            already_ordered &= bucket >= previous_bucket;
+            previous_bucket = bucket;
+        }
+        if (already_ordered) return;
+
+        uint8_t counts[kExSchedBuckets];
+        uint8_t cursors[kExSchedBuckets];
+        uint64_t occupied[kExSchedBucketWords] = {};
+        for (uint32_t i = 0; i < n; i++) {
+            const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
+            const uint32_t word = bucket >> 6;
+            const uint64_t bit = uint64_t{1} << (bucket & 63);
+            if (!(occupied[word] & bit)) {
+                occupied[word] |= bit;
+                counts[bucket] = 0;
+            }
+            counts[bucket]++;
+        }
+
+        uint8_t out = 0;
+        for (uint32_t word = 0; word < kExSchedBucketWords; word++) {
+            uint64_t bits = occupied[word];
+            while (bits) {
+                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t bucket = word * 64 + bit;
+                cursors[bucket] = out;
+                out = static_cast<uint8_t>(out + counts[bucket]);
+            }
+        }
+
+        Task ordered[kExecBatch];
+        for (uint32_t i = 0; i < n; i++) {
+            const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
+            ordered[cursors[bucket]++] = tasks[i];
+        }
+        for (uint32_t i = 0; i < n; i++) tasks[i] = ordered[i];
+    }
+
+    void ex_schedule_batch(Task* tasks, uint32_t n) {
+        uint8_t base_lengths[kExecBatch];
+        uint32_t begin = 0;
+        while (begin < n) {
+            if (!ex_sched_candidate(tasks[begin], base_lengths[begin])) {
+                begin++;
+                continue;
+            }
+            uint32_t end = begin + 1;
+            while (end < n && ex_sched_candidate(tasks[end], base_lengths[end])) end++;
+            ex_schedule_run(tasks + begin, base_lengths + begin, end - begin);
+            // The failed candidate at end is a known barrier; consume it without reading its Op a
+            // second time, then find the next eligible run.
+            begin = end + (end < n);
+        }
+    }
+
     enum class SnapshotOwnerState : uint8_t {
         None, Preparing, Prepared, Frozen, Marked, Capturing, Draining
     };
@@ -850,11 +1032,12 @@ private:
 
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
-    void exec_batch(const Task* batch, uint32_t n) {
+    void exec_batch(Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
+        if (__builtin_expect(ex_sched_enabled_, false)) ex_schedule_batch(batch, n);
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -1287,6 +1470,7 @@ private:
     uint64_t   live_config_version_ = UINT64_MAX;
     AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
+    bool       ex_sched_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
     uint32_t   lb_sample_rate_ = 0;
