@@ -187,10 +187,12 @@ replace the named key only after it independently reaches the same fixed thresho
 ### Publication and torn-read protocol
 
 Each opt-in slot contains one atomic 64-bit sequence and atomic 64-bit words for all published
-metadata, exact key bytes, and reply bytes. These are the only new atomics. They are required to be
-always lock-free. The owner makes the sequence odd, executes a release fence, writes the atomic
-words with relaxed stores, then release-stores the next even sequence. Invalidation leaves the
-sequence odd. An IO reader:
+metadata, exact key bytes, and reply bytes. Each opt-in per-thread scratch also contains one
+single-writer relaxed atomic forwarded-hit counter so INFO can read it without a C++ data race;
+the IO writer uses a relaxed load/store pair, not a locked RMW. These are the only new atomics and
+the slot words are required to be always lock-free. The owner makes the sequence odd, executes a
+release fence, writes the atomic words with relaxed stores, then release-stores the next even
+sequence. Invalidation leaves the sequence odd. An IO reader:
 
 1. acquire-loads an even sequence;
 2. relaxed-loads metadata and exact-compares hash, key length, and key words;
@@ -238,7 +240,7 @@ The slot carries `expire_at_ms` in the store's absolute `CLOCK_REALTIME` domain.
 active exact-key match does IO sample that clock (once per parse call); an elapsed slot falls back
 instead of replying null, so the owner performs expiry and any observers. Persistent/no-hot reads
 pay no clock call. Forwarded successes preserve IO command counts, operation counts, fingerprinting,
-and a plain IO-owner forwarded-hit counter included in keyspace hit reporting.
+and the opt-in per-thread forwarded-hit counter included in keyspace hit reporting.
 
 Fallback is therefore mandatory for: no slot; non-GET or multi-key read; non-quiescent/non-prefix
 connection order; ACL or TLS rejection; active atomic tracking/read cut; live maxmemory touch
