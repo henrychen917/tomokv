@@ -153,12 +153,33 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         [](void* p, Client* client) {
                             static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
                         });
-                self.bind_fused_executor_hooks(
-                    &executors[tid],
-                    [](void* p) { return static_cast<FusedExLoop*>(p)->fused_pass(); },
-                    [](void* p, SnapshotManager* manager) {
-                        static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
-                    });
+                if (cfg.thread_pipeline == 0)
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
+                else if (cfg.thread_pipeline == 1)
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
+                else
+                    self.bind_fused_executor_hooks(
+                        &executors[tid],
+                        [](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_streams_pass();
+                        },
+                        [](void* p, SnapshotManager* manager) {
+                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                        });
             }
             {
                 std::lock_guard<std::mutex> lock(boot_mu);

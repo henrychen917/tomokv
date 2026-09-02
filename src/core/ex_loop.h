@@ -61,6 +61,7 @@ public:
         pipeline_batches_ = Fused && srv->cfg().thread_pipeline != 0;
         iofused_ = Fused && srv->cfg().thread_pipeline == 1;
         if (!ring_.init(1024)) return false;
+        fused_handoff_ring_ = &ring_;
         wb_.bind(&ring_);
         initialized_ = true;
         if (!dormant) activate();
@@ -85,7 +86,8 @@ public:
         // That leaves this private ring with control/persistence SQEs; pipeline 1 can amortize its
         // submit boundary, and pipeline 2 can close N2 over all network work. Pipeline 0 retains
         // its existing ring ownership.
-        fused_handoff_ring_ = srv_->cfg().thread_pipeline != 0 ? handoff_ring : nullptr;
+        if (srv_->cfg().thread_pipeline != 0 && handoff_ring)
+            fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
             shard->bind_notify_pending(&notify_keyless_pending_);
@@ -101,26 +103,39 @@ public:
     // this pass is the split executor body without its role loop or independent wait.
     uint32_t fused_pass() {
         static_assert(Fused);
-        return pipeline_batches_ ? fused_pass_impl<kGenthreadPipelineExBatchOps>(true)
-                                 : fused_pass_impl<kGenthreadExBatchOps>(true);
+        if (!pipeline_batches_)
+            return fused_pass_impl<kGenthreadExBatchOps, true, false>();
+        return iofused_
+            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true>()
+            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
+    }
+
+    uint32_t fused_baseline_pass() {
+        static_assert(Fused);
+        return fused_pass_impl<kGenthreadExBatchOps, true, false>();
     }
 
     // Deep generalized-thread traffic has already drained staged micro-batches at its one mode
     // transition. Keep the steady coarse pass free of empty pipeline-state probes.
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps>(true);
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true>();
+    }
+
+    uint32_t fused_streams_pass() {
+        static_assert(Fused);
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
     }
 
     // Buffered schedules keep control/persistence work in the executor owner but let the fused
     // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
     uint32_t fused_pipeline_control() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps>(false);
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
     }
 
-    template <uint32_t BatchOps>
-    uint32_t fused_pass_impl(bool consume_tasks) {
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit>
+    uint32_t fused_pass_impl() {
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
@@ -137,8 +152,9 @@ public:
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
                 if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
-                if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
-                    did += drain_tasks<BatchOps>(true);
+                if constexpr (ConsumeTasks)
+                    if (xshard_retries_.empty() && ordered_deferred_.empty())
+                        did += drain_tasks<BatchOps>(true);
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
@@ -153,9 +169,10 @@ public:
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
                 if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
-                if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
-                    did += snapshot_owner_state_ == SnapshotOwnerState::None
-                               ? drain_tasks<BatchOps>() : drain_tasks_snapshot<BatchOps>();
+                if constexpr (ConsumeTasks)
+                    if (xshard_retries_.empty() && ordered_deferred_.empty())
+                        did += snapshot_owner_state_ == SnapshotOwnerState::None
+                                   ? drain_tasks<BatchOps>() : drain_tasks_snapshot<BatchOps>();
             }
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
@@ -169,33 +186,61 @@ public:
         }
         if (did) {
             did += drain_notify_keyless(self_->sig());
-            fused_submit_boundary();
+            fused_submit_boundary<CoalesceSubmit>();
             fused_idle_spins_ = 0;
             return did;
         }
-        if (!consume_tasks) return 0;
+        if constexpr (!ConsumeTasks) return 0;
         if (lb_frozen) return 0;
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
-        did = sweep<BatchOps>(consume_tasks);
-        if (did) fused_submit_boundary();
+        did = sweep<BatchOps, ConsumeTasks>();
+        if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
 
     uint32_t fused_sweep(bool consume_tasks = true) {
         static_assert(Fused);
-        if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return consume_tasks ? fused_pass() : fused_pipeline_control();
-        return pipeline_batches_
-            ? fused_sweep_impl<kGenthreadPipelineExBatchOps>(consume_tasks)
-            : fused_sweep_impl<kGenthreadExBatchOps>(consume_tasks);
+        if (!consume_tasks) {
+            if (lb_controller_armed_ && srv_->lb_dispatch_paused())
+                return iofused_
+                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true>()
+                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
+            if (!pipeline_batches_)
+                return fused_sweep_impl<kGenthreadExBatchOps, false, false>();
+            return iofused_
+                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true>()
+                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
+        }
+        if (!pipeline_batches_)
+            return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
+        return iofused_
+            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true>()
+            : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false>();
     }
 
-    template <uint32_t BatchOps>
-    uint32_t fused_sweep_impl(bool consume_tasks) {
+    uint32_t fused_baseline_sweep() {
+        static_assert(Fused);
+        return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
+    }
+
+    uint32_t fused_coarse_sweep() {
+        static_assert(Fused);
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true>();
+    }
+
+    uint32_t fused_pipeline_control_sweep() {
+        static_assert(Fused);
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
+    }
+
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit>
+    uint32_t fused_sweep_impl() {
+        if (lb_controller_armed_ && srv_->lb_dispatch_paused())
+            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit>();
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep<BatchOps>(consume_tasks);
-        if (did) fused_submit_boundary();
+        const uint32_t did = sweep<BatchOps, ConsumeTasks>();
+        if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
 
@@ -333,15 +378,16 @@ public:
 private:
     friend class IoLoop;
 
+    template <bool CoalesceSubmit>
     void fused_submit_boundary() {
-        if (!iofused_) {
+        if constexpr (!CoalesceSubmit) {
             ring_.submit_and_reap();
-            return;
-        }
-        if (ring_.take_sq_full_submit()) fused_non_submit_rotations_ = 0;
-        if (++fused_non_submit_rotations_ >= kGenthreadIoFusedCoalesceRotations) {
-            ring_.submit_and_reap();
-            fused_non_submit_rotations_ = 0;
+        } else {
+            if (ring_.take_sq_full_submit()) fused_non_submit_rotations_ = 0;
+            if (++fused_non_submit_rotations_ >= kGenthreadIoFusedCoalesceRotations) {
+                ring_.submit_and_reap();
+                fused_non_submit_rotations_ = 0;
+            }
         }
     }
 
@@ -351,7 +397,7 @@ private:
                  srv_->lb_acked(self_->id()));
     }
 
-    Ring& handoff_ring() { return fused_handoff_ring_ ? *fused_handoff_ring_ : ring_; }
+    Ring& handoff_ring() { return *fused_handoff_ring_; }
 
     bool flip_quiesced() const {
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
@@ -490,8 +536,8 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
-    uint32_t sweep(bool consume_tasks = true) {
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true>
+    uint32_t sweep() {
         uint32_t n = snapshot_control_pass<BatchOps>() +
                      service_stale_forwards<BatchOps>() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
@@ -499,9 +545,10 @@ private:
             n += service_atomic_deferred();
             n += service_xshard_retries();
             if (xshard_retries_.empty()) n += service_ordered_deferred<BatchOps>();
-            if (consume_tasks && xshard_retries_.empty() && ordered_deferred_.empty())
-                n += snapshot_owner_state_ == SnapshotOwnerState::None
-                         ? drain_tasks<BatchOps>(true) : drain_tasks_snapshot<BatchOps>(true);
+            if constexpr (ConsumeTasks)
+                if (xshard_retries_.empty() && ordered_deferred_.empty())
+                    n += snapshot_owner_state_ == SnapshotOwnerState::None
+                             ? drain_tasks<BatchOps>(true) : drain_tasks_snapshot<BatchOps>(true);
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);

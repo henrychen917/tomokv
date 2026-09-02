@@ -1675,7 +1675,7 @@ private:
             }
             const uint32_t sweep_work = streams_residual_pending ? 1 :
                 buffered_ex_sweep +
-                    genthread_pipeline_sweep<HasUnix, HasTls, kEp, Pipeline>(Pipeline == 1);
+                    genthread_pipeline_sweep<HasUnix, HasTls, kEp, Pipeline>();
             if (sweep_work) {
                 if constexpr (Pipeline == 2) {
                     ring_.submit_and_reap();
@@ -4745,13 +4745,16 @@ ordinary_dispatch:
     }
 
     template <bool HasUnix, bool HasTls, bool kEp, uint8_t Pipeline>
-    uint32_t genthread_pipeline_sweep(bool executor_tasks = true) {
+    uint32_t genthread_pipeline_sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases();
         work += genthread_ifid_batch<HasTls, kEp, Pipeline>(nullptr);
-        work += fused_executor_->fused_sweep(executor_tasks);
+        if constexpr (Pipeline == 1)
+            work += fused_executor_->fused_coarse_sweep();
+        else
+            work += fused_executor_->fused_pipeline_control_sweep();
         work += collect_retire_work<HasUnix, kEp, true>(true) +
                 genthread_wb_batch<HasTls, kEp, Pipeline>();
         if (__builtin_expect(!routing_forward_.empty(), false))
@@ -5378,8 +5381,8 @@ ordinary_dispatch:
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
         // batch, collect its local self-lane completions, then enter the existing write-back phase.
         if constexpr (Fused) {
-            work += SweepPass ? fused_executor_->fused_sweep()
-                              : fused_executor_->fused_pass();
+            work += SweepPass ? fused_executor_->fused_baseline_sweep()
+                              : fused_executor_->fused_baseline_pass();
             work += collect_retire_work<HasUnix, kEp>(SweepPass);
         }
 
