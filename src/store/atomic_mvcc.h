@@ -35,7 +35,7 @@ struct AtomicEntry {
     uint32_t capacity = 0;
     uint32_t key_len = 0;
     bool linked = false;
-    // Set after prepare publishes this entry in FlatStore's read-local pending half. It remains set
+    // Set after prepare publishes this entry in FlatStore's read-local pending bit. It remains set
     // through physical install, linking and collapse, and is cleared only by atomic_free_entry().
     bool read_local_pending_published = false;
 

@@ -66,6 +66,16 @@ struct KvObj {
     void set_eviction_meta(uint8_t meta) {
         flags = static_cast<uint8_t>((flags & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
     }
+    // Foreign fused readers use atomic flag loads because the owner may update the five eviction
+    // bits in place. Layout bits remain immutable for a published read-local-eligible string.
+    uint8_t read_local_flags() const { return __atomic_load_n(&flags, __ATOMIC_ACQUIRE); }
+    void set_eviction_meta_atomic(uint8_t meta) {
+        const uint8_t current = __atomic_load_n(&flags, __ATOMIC_RELAXED);
+        const uint8_t updated = static_cast<uint8_t>(
+            (current & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
+        __atomic_store_n(&flags, updated, __ATOMIC_RELEASE);
+    }
+    void store_flags_atomic(uint8_t value) { __atomic_store_n(&flags, value, __ATOMIC_RELEASE); }
 
     // ---- layout arithmetic -------------------------------------------------------------------
     // Everything after the header is optional and positional, so all offsets are computed rather
@@ -89,6 +99,23 @@ struct KvObj {
     const char* key_ptr() const { return tail() + klen_ext_bytes() + ttl_bytes(); }
     Slice       key()     const { return Slice(key_ptr(), klen()); }
 
+    uint32_t read_local_klen(uint8_t stable_flags) const {
+        if (stable_flags & KvObjFlags::KeyExt) {
+            uint32_t k;
+            std::memcpy(&k, tail(), 4);
+            return k;
+        }
+        return klen8;
+    }
+    const char* read_local_key_ptr(uint8_t stable_flags) const {
+        const uint32_t ext = (stable_flags & KvObjFlags::KeyExt) ? 4u : 0u;
+        const uint32_t ttl = (stable_flags & KvObjFlags::HasTtl) ? 8u : 0u;
+        return tail() + ext + ttl;
+    }
+    Slice read_local_key(uint8_t stable_flags) const {
+        return Slice(read_local_key_ptr(stable_flags), read_local_klen(stable_flags));
+    }
+
     char*       val_ptr()       { return key_ptr() + klen(); }
     const char* val_ptr() const { return key_ptr() + klen(); }
 
@@ -96,6 +123,13 @@ struct KvObj {
         if (!(flags & KvObjFlags::HasTtl)) return -1;
         int64_t t;
         std::memcpy(&t, tail() + klen_ext_bytes(), 8);
+        return t;
+    }
+    int64_t read_local_expire_at_ms(uint8_t stable_flags) const {
+        if (!(stable_flags & KvObjFlags::HasTtl)) return -1;
+        int64_t t;
+        const uint32_t ext = (stable_flags & KvObjFlags::KeyExt) ? 4u : 0u;
+        std::memcpy(&t, tail() + ext, 8);
         return t;
     }
     void set_expire_at_ms(int64_t t) {
@@ -112,9 +146,24 @@ struct KvObj {
         }
         return Slice(val_ptr(), vlen);   // Enc::Raw
     }
+    Slice read_local_str_value(uint8_t stable_flags) const {
+        const char* value = read_local_key_ptr(stable_flags) + read_local_klen(stable_flags);
+        if (static_cast<Enc>(enc) == Enc::Extern) {
+            void* p;
+            std::memcpy(&p, value, sizeof(void*));
+            return Slice(static_cast<const char*>(p), vlen);
+        }
+        return Slice(value, vlen);
+    }
     int64_t int_value() const {
         int64_t v;
         std::memcpy(&v, val_ptr(), 8);
+        return v;
+    }
+    int64_t read_local_int_value(uint8_t stable_flags) const {
+        const char* value = read_local_key_ptr(stable_flags) + read_local_klen(stable_flags);
+        int64_t v;
+        std::memcpy(&v, value, 8);
         return v;
     }
     void set_int_value(int64_t v) { std::memcpy(val_ptr(), &v, 8); }
