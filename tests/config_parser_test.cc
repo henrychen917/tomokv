@@ -15,6 +15,34 @@ namespace {
     std::exit(1);
 }
 
+std::string rejection_text(std::initializer_list<const char*> values,
+                           bool validate = false) {
+    std::FILE* capture = std::tmpfile();
+    if (!capture) fail("tmpfile for stderr capture failed");
+    const int saved_stderr = ::dup(STDERR_FILENO);
+    if (saved_stderr < 0) fail("dup stderr failed");
+    std::fflush(stderr);
+    if (::dup2(::fileno(capture), STDERR_FILENO) < 0) fail("redirect stderr failed");
+
+    tomo::Config cfg;
+    tomo::ConfigParseState state;
+    const std::vector<const char*> args(values);
+    int result = tomo::parse_config_args(args, cfg, state, 2, "test");
+    if (validate && result == tomo::kConfigParsed) result = tomo::validate_config(cfg);
+
+    std::fflush(stderr);
+    if (::dup2(saved_stderr, STDERR_FILENO) < 0) fail("restore stderr failed");
+    ::close(saved_stderr);
+    if (result != tomo::kConfigError) fail("rejection-text probe was not rejected");
+
+    std::rewind(capture);
+    std::string output;
+    char block[256];
+    while (std::fgets(block, sizeof(block), capture)) output += block;
+    std::fclose(capture);
+    return output;
+}
+
 }  // namespace
 
 int main() {
@@ -123,17 +151,17 @@ int main() {
     tomo::Config threads;
     tomo::ConfigParseState threads_state;
     const std::vector<const char*> threads_args = {
-        "--thread-mode", "1s", "--thread-pipeline", "2",
+        "--thread-mode", "1s", "--overlap", "2",
     };
     if (tomo::parse_config_args(threads_args, threads, threads_state, 2, "test") !=
             tomo::kConfigParsed ||
         tomo::validate_config(threads) != tomo::kConfigParsed ||
-        threads.thread_mode != tomo::ThreadMode::Fused || threads.thread_pipeline != 2)
-        fail("primary thread-mode/thread-pipeline grammar differs");
+        threads.thread_mode != tomo::ThreadMode::Fused || threads.overlap != 2)
+        fail("primary thread-mode/overlap grammar differs");
     tomo::Config thread_default;
     if (thread_default.thread_mode != tomo::ThreadMode::Split ||
-        thread_default.thread_pipeline != 0)
-        fail("thread study defaults are not 2s pipeline 0");
+        thread_default.overlap != 0)
+        fail("thread study defaults are not 2s overlap 0");
 
     auto parses_threads = [](std::initializer_list<const char*> values,
                              tomo::ThreadMode mode, uint32_t pipeline) {
@@ -142,10 +170,12 @@ int main() {
         const std::vector<const char*> args(values);
         return tomo::parse_config_args(args, cfg, state, 2, "test") == tomo::kConfigParsed &&
                tomo::validate_config(cfg) == tomo::kConfigParsed &&
-               cfg.thread_mode == mode && cfg.thread_pipeline == pipeline;
+               cfg.thread_mode == mode && cfg.overlap == pipeline;
     };
-    if (!parses_threads({"--thread-mode", "2s", "--thread-pipeline", "1"},
+    if (!parses_threads({"--thread-mode", "2s", "--overlap", "1"},
                         tomo::ThreadMode::Split, 1) ||
+        !parses_threads({"--thread-mode", "1s", "--thread-pipeline", "1"},
+                        tomo::ThreadMode::Fused, 1) ||
         !parses_threads({"--thread-mode", "split"}, tomo::ThreadMode::Split, 0) ||
         !parses_threads({"--thread-mode", "fused"}, tomo::ThreadMode::Fused, 0) ||
         !parses_threads({"--genthread-schedule", "coarse"},
@@ -156,19 +186,35 @@ int main() {
                         tomo::ThreadMode::Fused, 2))
         fail("thread-mode or genthread compatibility aliases differ");
     if (!rejects({"--thread-mode", "two-stage"}) ||
+        !rejects({"--overlap", "3"}) ||
+        !rejects({"--overlap", "-1"}) ||
         !rejects({"--thread-pipeline", "3"}) ||
         !rejects({"--thread-pipeline", "-1"}) ||
         !rejects({"--genthread-schedule", "streams0"}))
         fail("invalid thread study grammar was accepted");
+    if (rejection_text({"--overlap", "3"}) != "--overlap wants 0, 1 or 2\n" ||
+        rejection_text({"--thread-pipeline", "-1"}) !=
+            "--overlap wants 0, 1 or 2\n" ||
+        rejection_text({"--genthread-schedule", "streams0"}) !=
+            "--genthread-schedule wants coarse, iofused or streams\n")
+        fail("thread-study parser rejection text is not canonical");
     tomo::Config invalid_split_deep;
     tomo::ConfigParseState invalid_split_deep_state;
     const std::vector<const char*> invalid_split_deep_args = {
-        "--thread-pipeline", "2", "--thread-mode", "2s",
+        "--overlap", "2", "--thread-mode", "2s",
     };
     if (tomo::parse_config_args(invalid_split_deep_args, invalid_split_deep,
                                 invalid_split_deep_state, 2, "test") != tomo::kConfigParsed ||
         tomo::validate_config(invalid_split_deep) != tomo::kConfigError)
-        fail("2s plus thread-pipeline 2 was not rejected after order-independent parsing");
+        fail("2s plus overlap 2 was not rejected after order-independent parsing");
+    if (rejection_text({"--overlap", "2", "--thread-mode", "2s"}, true) !=
+            "--overlap 2 is only available with --thread-mode 1s; "
+            "2s has no deep unified-stream schedule\n" ||
+        rejection_text({"--thread-mode", "1s", "--overlap", "1",
+                        "--net-io", "epoll"}, true) !=
+            "--thread-mode 1s with --overlap 1 requires --net-io uring "
+            "for its single submit boundary\n")
+        fail("thread-study validation rejection text is not canonical");
 
     tomo::Config smt;
     tomo::ConfigParseState smt_state;

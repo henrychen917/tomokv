@@ -1014,6 +1014,33 @@ uint32_t initialize_owner_completion(ScatterState& state) {
     return owners;
 }
 
+template <bool IofusedPrivateQueue>
+uint32_t scatter_task_free_slots(ThreadCtx& owner, uint32_t producer) {
+    if constexpr (IofusedPrivateQueue)
+        return owner.iofused_task_free_slots(producer);
+    else
+        return owner.task_free_slots(producer);
+}
+
+template <bool IofusedPrivateQueue>
+bool scatter_post_task_quiet(ThreadCtx& owner, uint32_t producer, const Task& task,
+                             LoopSignals& signals) {
+    if constexpr (IofusedPrivateQueue)
+        return owner.post_iofused_task_quiet(producer, task, signals);
+    else
+        return owner.post_task_quiet(producer, task, signals);
+}
+
+template <bool IofusedPrivateQueue>
+bool scatter_post_tasks_quiet(ThreadCtx& owner, uint32_t producer, const Task* tasks,
+                              uint32_t count, LoopSignals& signals) {
+    if constexpr (IofusedPrivateQueue)
+        return owner.post_iofused_tasks_quiet(producer, tasks, count, signals);
+    else
+        return owner.post_tasks_quiet(producer, tasks, count, signals);
+}
+
+template <bool IofusedPrivateQueue>
 bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
                         ScatterState& state) {
     uint32_t needed[kMaxThreads] = {};
@@ -1027,7 +1054,8 @@ bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task&
     }
     for (uint32_t p = 0; p < nparticipants; p++) {
         const uint32_t tid = participants[p];
-        if (server.thread(tid).task_free_slots(self.id()) < needed[tid]) {
+        if (scatter_task_free_slots<IofusedPrivateQueue>(
+                server.thread(tid), self.id()) < needed[tid]) {
             state.final_reply = FinalReply::QueueFull;
             return false;
         }
@@ -1051,13 +1079,15 @@ bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task&
         const uint32_t begin = participant_begin[p];
         const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : state.nsub;
         ThreadCtx& owner = server.thread(tid);
-        if (!owner.post_tasks_quiet(self.id(), posts + begin, end - begin, self.sig()))
+        if (!scatter_post_tasks_quiet<IofusedPrivateQueue>(
+                owner, self.id(), posts + begin, end - begin, self.sig()))
             std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
     }
     return true;
 }
 
+template <bool IofusedPrivateQueue>
 bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
                     ScatterState& state) {
     reset_groups(state);
@@ -1073,7 +1103,8 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
     }
     for (uint32_t p = 0; p < nparticipants; p++) {
         const uint32_t tid = participants[p];
-        if (server.thread(tid).task_free_slots(self.id()) < needed[tid]) {
+        if (scatter_task_free_slots<IofusedPrivateQueue>(
+                server.thread(tid), self.id()) < needed[tid]) {
             state.final_reply = FinalReply::QueueFull;
             return false;
         }
@@ -1104,13 +1135,15 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
         const uint32_t begin = participant_begin[p];
         const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : state.nsub;
         ThreadCtx& owner = server.thread(tid);
-        if (!owner.post_tasks_quiet(self.id(), posts + begin, end - begin, self.sig()))
+        if (!scatter_post_tasks_quiet<IofusedPrivateQueue>(
+                owner, self.id(), posts + begin, end - begin, self.sig()))
             std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
     }
     return true;
 }
 
+template <bool IofusedPrivateQueue>
 bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
                        ScatterState& state) {
     for (uint32_t i = 0; i < state.key_count; i++) {
@@ -1138,7 +1171,8 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
     }
     for (uint32_t p = 0; p < nparticipants; p++) {
         const uint32_t tid = participants[p];
-        if (server.thread(tid).task_free_slots(self.id()) < needed[tid]) {
+        if (scatter_task_free_slots<IofusedPrivateQueue>(
+                server.thread(tid), self.id()) < needed[tid]) {
             state.final_reply = FinalReply::QueueFull;
             return false;
         }
@@ -1165,7 +1199,8 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
         const uint32_t begin = participant_begin[p];
         const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : state.nsub;
         ThreadCtx& owner = server.thread(tid);
-        if (!owner.post_tasks_quiet(self.id(), posts + begin, end - begin, self.sig()))
+        if (!scatter_post_tasks_quiet<IofusedPrivateQueue>(
+                owner, self.id(), posts + begin, end - begin, self.sig()))
             std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
     }
@@ -2036,6 +2071,7 @@ uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
     return count;
 }
 
+template <bool IofusedPrivateQueue>
 ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
                                    const Task& source, ScatterState& state,
                                    ScriptPhase phase) {
@@ -2067,7 +2103,8 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
     }
     for (uint32_t p = 0; p < nparticipants; p++) {
         const uint32_t tid = participants[p];
-        if (server.thread(tid).task_free_slots(self.id()) < needed[tid])
+        if (scatter_task_free_slots<IofusedPrivateQueue>(
+                server.thread(tid), self.id()) < needed[tid])
             return ScriptPostResult::Full;
     }
     if (phase == ScriptPhase::Apply && !state.aof_group &&
@@ -2088,7 +2125,8 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
     if (phase == ScriptPhase::Run) {
         ThreadCtx& owner = server.thread(participants[0]);
         const Task post{source.client, source.op_id, one_shard, &state};
-        if (!owner.post_task_quiet(self.id(), post, self.sig())) std::abort();
+        if (!scatter_post_task_quiet<IofusedPrivateQueue>(
+                owner, self.id(), post, self.sig())) std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
         return ScriptPostResult::Posted;
     }
@@ -2109,7 +2147,8 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
         const uint32_t tid = participants[p];
         const uint32_t end = p + 1 < nparticipants ? begin[p + 1] : cursor;
         ThreadCtx& owner = server.thread(tid);
-        if (!owner.post_tasks_quiet(self.id(), posts + begin[p], end - begin[p], self.sig()))
+        if (!scatter_post_tasks_quiet<IofusedPrivateQueue>(
+                owner, self.id(), posts + begin[p], end - begin[p], self.sig()))
             std::abort();
         owner.flush_task_notify(self.id(), ring, self.sig());
     }
@@ -3093,6 +3132,7 @@ void script_engine_error_reply(Op& op, ScatterState& state, WorkError error) {
 // its own reference. An empty wave, or a wave whose tasks all finished before the poster let go,
 // is driven onward by this thread in the loop rather than by recursion -- an OCC retry storm would
 // otherwise recurse once per restart.
+template <bool IofusedPrivateQueue>
 ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring,
                                      const Task& task, Op& op, ScatterState& state) {
     ScatterFinish outcome = ScatterFinish::Waiting;
@@ -3100,7 +3140,8 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
     // Publishes `next`; returns true when THIS thread still owns the activation afterwards.
     auto launch = [&](ScriptPhase next) -> bool {
-        const ScriptPostResult result = script_post_phase(server, self, ring, task, state, next);
+        const ScriptPostResult result = script_post_phase<IofusedPrivateQueue>(
+            server, self, ring, task, state, next);
         if (result == ScriptPostResult::Full) {
             // No task slots anywhere. Nothing else references the activation, so the poster's
             // reference simply survives the requeue and the retry resumes this same publication.
@@ -3327,11 +3368,13 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
     }
 }
 
-ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
-                              const Task& task, Op& op) {
+template <bool IofusedPrivateQueue>
+ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
+                                   const Task& task, Op& op) {
     ScatterState& state = *task.scatter;
     if (state.kind == Kind::Script)
-        return xshard_complete_script(server, self, ring, task, op, state);
+        return xshard_complete_script<IofusedPrivateQueue>(
+            server, self, ring, task, op, state);
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
             notify_xshard_finished(server.shard(task.shard), op, state);
@@ -3356,7 +3399,7 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
         state.aof_group.reset();
         static constexpr uint32_t kMaxPopRetries = 8;
         if (state.pop_retries++ < kMaxPopRetries &&
-            publish_pop_retry(server, self, ring, task, state))
+            publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
             return ScatterFinish::Waiting;
         if (state.final_reply == FinalReply::QueueFull) return final();
         state.final_reply = FinalReply::NullArray;
@@ -3377,7 +3420,8 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
                 return final();
             }
             if (sort_deref_gathering(state)) {
-                if (publish_sort_deref(server, self, ring, task, state))
+                if (publish_sort_deref<IofusedPrivateQueue>(
+                        server, self, ring, task, state))
                     return ScatterFinish::Waiting;
                 return final();
             }
@@ -3465,8 +3509,19 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
     if (finish_phase1(state, op)) {
         return final();
     }
-    if (publish_phase2(server, self, ring, task, state)) return ScatterFinish::Waiting;
+    if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, state))
+        return ScatterFinish::Waiting;
     return final();
+}
+
+ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
+                              const Task& task, Op& op) {
+    return xshard_complete_impl<false>(server, self, ring, task, op);
+}
+
+ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring,
+                                      const Task& task, Op& op) {
+    return xshard_complete_impl<true>(server, self, ring, task, op);
 }
 
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };

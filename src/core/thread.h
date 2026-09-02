@@ -145,7 +145,7 @@ public:
     }
     bool init_task_inbox_local_fused() {
         std::unique_ptr<TaskInbox> inbox(new (std::nothrow) TaskInbox);
-        if (!inbox || !inbox->init_local_fused(nchan_, kInboxSlots)) return false;
+        if (!inbox || !inbox->init_local_fused<kInboxSlots>(nchan_)) return false;
         task_in_ = std::move(inbox);
         return true;
     }
@@ -285,6 +285,36 @@ public:
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_->producer_free_slots(from);
     }
+    // Private source-fork transport for the boot-fixed 1s iofused rotation. The fused inbox has
+    // exactly kInboxSlots per producer for its full lifetime, so these calls bypass streams'
+    // reservation-credit ceiling and dynamic block geometry entirely.
+    uint32_t iofused_task_free_slots(uint32_t from) const {
+        return task_in_->fused_private_free_slots<kInboxSlots>(from);
+    }
+    bool post_iofused_task_quiet(uint32_t from, const Task& task, LoopSignals& sig) {
+        if (!sig.age_sample_rate)
+            return task_in_->push_fused_private<kInboxSlots>(from, task, sig);
+        return task_in_->push_fused_private_prepared<kInboxSlots>(
+            from, task, sig, [&](Task& queued) {
+                queued.enqueue_us_low = sig.next_age_stamp();
+            });
+    }
+    bool post_iofused_task(uint32_t from, const Task& task, Ring& my_ring,
+                           LoopSignals& sig) {
+        if (!post_iofused_task_quiet(from, task, sig)) return false;
+        if (task_notify_.set(from)) task_in_->wake(my_ring, sig, ring());
+        return true;
+    }
+    bool post_iofused_tasks_quiet(uint32_t from, const Task* tasks, uint32_t count,
+                                  LoopSignals& sig) {
+        if (!sig.age_sample_rate)
+            return task_in_->push_fused_private_batch<kInboxSlots>(
+                from, tasks, count, sig);
+        return task_in_->push_fused_private_batch_prepared<kInboxSlots>(
+            from, tasks, count, sig, [&](Task& queued) {
+                queued.enqueue_us_low = sig.next_age_stamp();
+            });
+    }
     bool reserve_task_slots(uint32_t from, uint32_t count) {
         return task_in_->reserve(from, count);
     }
@@ -358,7 +388,7 @@ public:
     // Visits only FLAGGED producers, so cost tracks active producers rather than possible ones. The
     // bits are TAKEN before the channels are drained -- see NotifyMask on why the reverse order
     // loses a push that lands mid-drain.
-    template <typename Fn>
+    template <bool IofusedPrivateQueue = false, typename Fn>
     uint32_t drain_tasks(Fn&& fn) {
         uint32_t n = 0;
         for (uint32_t w = 0; w < NotifyMask::kWords; w++) {
@@ -369,7 +399,13 @@ public:
                 const uint32_t p = w * 64 + b;
                 if (p >= nchan_) continue;
                 Task t;
-                while (task_in_->recv(p, t)) {
+                auto recv = [&] {
+                    if constexpr (IofusedPrivateQueue)
+                        return task_in_->recv_fused_private<kInboxSlots>(p, t);
+                    else
+                        return task_in_->recv(p, t);
+                };
+                while (recv()) {
                     uint64_t age = 0;
                     if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                         sig_.observe_oldest_age(age);
@@ -633,15 +669,23 @@ public:
     // So the mask stays the hot path and stops being load-bearing for correctness. A thread about to
     // park scans every channel directly; if the mask told the truth, the scan finds nothing and costs
     // a handful of loads, and it only runs when the thread has already decided it has no work.
-    template <typename Fn> uint32_t drain_tasks_unmasked(Fn&& fn) {
+    template <bool IofusedPrivateQueue = false, typename Fn>
+    uint32_t drain_tasks_unmasked(Fn&& fn) {
         uint32_t n = 0; Task t;
-        for (uint32_t p = 0; p < nchan_; p++)
-            while (task_in_->recv(p, t)) {
+        for (uint32_t p = 0; p < nchan_; p++) {
+            auto recv = [&] {
+                if constexpr (IofusedPrivateQueue)
+                    return task_in_->recv_fused_private<kInboxSlots>(p, t);
+                else
+                    return task_in_->recv(p, t);
+            };
+            while (recv()) {
                 uint64_t age = 0;
                 if (t.enqueue_us_low && sig_.observe_queue_delay(t.enqueue_us_low, age))
                     sig_.observe_oldest_age(age);
                 fn(t); task_in_->retire(p); n++;
             }
+        }
         return n;
     }
     template <typename Fn> uint32_t drain_clients_unmasked(Fn&& fn) {

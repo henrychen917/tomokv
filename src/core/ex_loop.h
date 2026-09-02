@@ -67,8 +67,8 @@ public:
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
         ex_sched_enabled_ = srv->cfg().ex_sched != 0;
-        pipeline_batches_ = Fused && srv->cfg().thread_pipeline != 0;
-        iofused_ = Fused && srv->cfg().thread_pipeline == 1;
+        pipeline_batches_ = Fused && srv->cfg().overlap != 0;
+        iofused_ = Fused && srv->cfg().overlap == 1;
         if (!ring_.init(1024)) return false;
         fused_handoff_ring_ = &ring_;
         wb_.bind(&ring_);
@@ -95,7 +95,7 @@ public:
         // That leaves this private ring with control/persistence SQEs; pipeline 1 can amortize its
         // submit boundary, and pipeline 2 can close N2 over all network work. Pipeline 0 retains
         // its existing ring ownership.
-        if (srv_->cfg().thread_pipeline != 0 && handoff_ring)
+        if (srv_->cfg().overlap != 0 && handoff_ring)
             fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
@@ -115,7 +115,7 @@ public:
         if (!pipeline_batches_)
             return fused_pass_impl<kGenthreadExBatchOps, true, false>();
         return iofused_
-            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true>()
+            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>()
             : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
     }
 
@@ -128,7 +128,7 @@ public:
     // transition. Keep the steady coarse pass free of empty pipeline-state probes.
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true>();
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>();
     }
 
     uint32_t fused_streams_pass() {
@@ -143,7 +143,8 @@ public:
         return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
     }
 
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit>
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false>
     uint32_t fused_pass_impl() {
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
@@ -155,33 +156,36 @@ public:
         uint32_t did = 0;
         if (lb_frozen) {
             if (!srv_->lb_acked(self_->id())) {
-                did += service_stale_forwards<BatchOps>();
+                did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
                 did += drain_releases(true);
-                did += service_multi_retries();
-                did += service_atomic_deferred();
-                did += service_xshard_retries();
-                if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
+                did += service_multi_retries<IofusedPrivateQueue>();
+                did += service_atomic_deferred<IofusedPrivateQueue>();
+                did += service_xshard_retries<IofusedPrivateQueue>();
+                if (xshard_retries_.empty())
+                    did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += drain_tasks<BatchOps>(true);
+                        did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             did += lb_control_pass();
         } else {
-            did += snapshot_control_pass<BatchOps>();
-            did += service_stale_forwards<BatchOps>();
+            did += snapshot_control_pass<BatchOps, IofusedPrivateQueue>();
+            did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
             did += drain_releases();
             if (!snapshot_blocks_tasks()) {
-                did += service_multi_retries();
-                did += service_atomic_deferred();
-                did += service_xshard_retries();
-                if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
+                did += service_multi_retries<IofusedPrivateQueue>();
+                did += service_atomic_deferred<IofusedPrivateQueue>();
+                did += service_xshard_retries<IofusedPrivateQueue>();
+                if (xshard_retries_.empty())
+                    did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
                         did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                   ? drain_tasks<BatchOps>() : drain_tasks_snapshot<BatchOps>();
+                                   ? drain_tasks<BatchOps, IofusedPrivateQueue>()
+                                   : drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
             }
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
@@ -203,7 +207,7 @@ public:
         if (lb_frozen) return 0;
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
-        did = sweep<BatchOps, ConsumeTasks>();
+        did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
@@ -213,18 +217,18 @@ public:
         if (!consume_tasks) {
             if (lb_controller_armed_ && srv_->lb_dispatch_paused())
                 return iofused_
-                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true>()
+                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true>()
                     : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
             if (!pipeline_batches_)
                 return fused_sweep_impl<kGenthreadExBatchOps, false, false>();
             return iofused_
-                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true>()
+                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true>()
                 : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
         }
         if (!pipeline_batches_)
             return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
         return iofused_
-            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true>()
+            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>()
             : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false>();
     }
 
@@ -235,7 +239,7 @@ public:
 
     uint32_t fused_coarse_sweep() {
         static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true>();
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>();
     }
 
     uint32_t fused_pipeline_control_sweep() {
@@ -243,12 +247,14 @@ public:
         return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
     }
 
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit>
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false>
     uint32_t fused_sweep_impl() {
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit>();
+            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
+                                   IofusedPrivateQueue>();
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep<BatchOps, ConsumeTasks>();
+        const uint32_t did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
@@ -545,19 +551,23 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
-    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true>
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
+              bool IofusedPrivateQueue = false>
     uint32_t sweep() {
-        uint32_t n = snapshot_control_pass<BatchOps>() +
-                     service_stale_forwards<BatchOps>() + drain_releases(true);
+        uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
+                     service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
+                     drain_releases(true);
         if (!snapshot_blocks_tasks()) {
-            n += service_multi_retries();
-            n += service_atomic_deferred();
-            n += service_xshard_retries();
-            if (xshard_retries_.empty()) n += service_ordered_deferred<BatchOps>();
+            n += service_multi_retries<IofusedPrivateQueue>();
+            n += service_atomic_deferred<IofusedPrivateQueue>();
+            n += service_xshard_retries<IofusedPrivateQueue>();
+            if (xshard_retries_.empty())
+                n += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
             if constexpr (ConsumeTasks)
                 if (xshard_retries_.empty() && ordered_deferred_.empty())
                     n += snapshot_owner_state_ == SnapshotOwnerState::None
-                             ? drain_tasks<BatchOps>(true) : drain_tasks_snapshot<BatchOps>(true);
+                             ? drain_tasks<BatchOps, IofusedPrivateQueue>(true)
+                             : drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);
@@ -635,16 +645,22 @@ private:
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
     }
 
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
         Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
             batch[held++] = t;
-            if (held == BatchOps) { exec_batch(batch, held); held = 0; }
+            if (held == BatchOps) {
+                exec_batch<IofusedPrivateQueue>(batch, held);
+                held = 0;
+            }
         };
-        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
-        if (held) exec_batch(batch, held);
+        const uint32_t n = unmasked
+            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
+            : self_->drain_tasks<IofusedPrivateQueue>(take);
+        if (held) exec_batch<IofusedPrivateQueue>(batch, held);
         self_->sig().ops += n;
         return n;
     }
@@ -848,7 +864,8 @@ private:
         snapshot_backlogs_.resize(srv_->nshards());
     }
 
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
     uint32_t snapshot_control_pass() {
         if (snapshot_owner_state_ == SnapshotOwnerState::None) return 0;
         SnapshotManager::Phase phase = snapshot_manager_->phase();
@@ -909,7 +926,8 @@ private:
             return progress_snapshot_capture();
         }
         if (snapshot_owner_state_ == SnapshotOwnerState::Draining) {
-            const uint32_t n = service_snapshot_backlogs(BatchOps, false);
+            const uint32_t n = service_snapshot_backlogs<IofusedPrivateQueue>(
+                BatchOps, false);
             if (snapshot_backlogs_empty()) {
                 if (snapshot_was_cancelled_) snapshot_manager_->owner_cancelled(snapshot_epoch_);
                 else                         snapshot_manager_->owner_finished(snapshot_epoch_);
@@ -994,11 +1012,12 @@ private:
         return shard.store().snapshot_prepare_write(op.hash, op.arg(first_key));
     }
 
+    template <bool IofusedPrivateQueue = false>
     bool execute_snapshot_task(const Task& task, bool capture_writes) {
         // MULTI's tagged task owns its command images outside the public ROB and performs the
         // snapshot pre-image gate per installed transaction key.  Never decode it as a normal op.
-        if (multi_task_tagged(task)) return execute(task);
-        if (!task.client) return execute(task);
+        if (multi_task_tagged(task)) return execute<IofusedPrivateQueue>(task);
+        if (!task.client) return execute<IofusedPrivateQueue>(task);
         Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         Shard& shard = srv_->shard(sid);
@@ -1013,7 +1032,7 @@ private:
                     return false;
                 }
             }
-            return execute(task);
+            return execute<IofusedPrivateQueue>(task);
         }
         if (capture_writes &&
             (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -1028,34 +1047,45 @@ private:
                 return false;
             }
         }
-        if (!execute(task)) return false;
+        if (!execute<IofusedPrivateQueue>(task)) return false;
         shard.publish_size();
         return true;
     }
 
+    template <bool IofusedPrivateQueue = false>
     void schedule_snapshot_task(const Task& task) {
-        if (multi_task_tagged(task)) { execute(task); return; }
-        if (!task.client) { execute(task); return; }
+        if (multi_task_tagged(task)) {
+            execute<IofusedPrivateQueue>(task);
+            return;
+        }
+        if (!task.client) {
+            execute<IofusedPrivateQueue>(task);
+            return;
+        }
         // A bounded scatter continuation is still the oldest task on this owner.  Holding later
         // work here preserves the queue-order RYOW argument without installing a conn barrier for
         // KEYS.  Snapshot-gated scatter writes use the same ordering hold while Pending.
         if (!xshard_retries_.empty()) { ordered_deferred_.push_back(task); return; }
         if (task.scatter) {
-            if (!execute_snapshot_task(task, true)) xshard_retries_.push_back(task);
+            if (!execute_snapshot_task<IofusedPrivateQueue>(task, true))
+                xshard_retries_.push_back(task);
             return;
         }
         const Op& op = task.client->rob().at(task.op_id);
         const int32_t sid = task.shard >= 0 ? task.shard : op.shard;
         auto& queue = snapshot_backlogs_[static_cast<uint32_t>(sid)];
-        if (!queue.empty() || !execute_snapshot_task(task, true)) queue.push_back(task);
+        if (!queue.empty() || !execute_snapshot_task<IofusedPrivateQueue>(task, true))
+            queue.push_back(task);
     }
 
+    template <bool IofusedPrivateQueue = false>
     uint32_t service_snapshot_backlogs(uint32_t budget, bool capture_writes = true) {
         uint32_t n = 0;
         for (Shard* shard : self_->shards()) {
             auto& queue = snapshot_backlogs_[static_cast<uint32_t>(shard->id())];
             while (budget && !queue.empty()) {
-                if (!execute_snapshot_task(queue.front(), capture_writes)) break;
+                if (!execute_snapshot_task<IofusedPrivateQueue>(
+                        queue.front(), capture_writes)) break;
                 queue.pop_front(); budget--; n++;
             }
             if (!budget) break;
@@ -1063,14 +1093,19 @@ private:
         return n;
     }
 
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
-        auto take = [&](const Task& task) { schedule_snapshot_task(task); };
-        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
+        auto take = [&](const Task& task) {
+            schedule_snapshot_task<IofusedPrivateQueue>(task);
+        };
+        const uint32_t n = unmasked
+            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
+            : self_->drain_tasks<IofusedPrivateQueue>(take);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
-        return n + service_snapshot_backlogs(BatchOps + n);
+        return n + service_snapshot_backlogs<IofusedPrivateQueue>(BatchOps + n);
     }
 
     // The armed slow-log arm. Out of line and cold-marked so its register pressure and its clock
@@ -1082,6 +1117,7 @@ private:
     // arms per-op timing for the next kSlowlogEscalateBatches batches instead, and the recurrence
     // is timed exactly. This is the documented divergence from redis, which times every command.
     //
+    template <bool IofusedPrivateQueue = false>
     __attribute__((noinline, cold))
     void exec_batch_timed(const Task* batch, uint32_t n) {
         const SlowlogArm arm = slowlog_arm_;
@@ -1097,7 +1133,7 @@ private:
                 if (client)
                     slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
                 const uint64_t started = now_ns();
-                const bool ok = execute(batch[i]);
+                const bool ok = execute<IofusedPrivateQueue>(batch[i]);
                 const uint64_t elapsed = now_ns() - started;
                 // ONE ENTRY PER COMMAND, not per participating shard. A cross-shard op is handed
                 // to every owner it touches; all but the last return with the op still Issued.
@@ -1119,7 +1155,7 @@ private:
         const uint64_t started = now_ns();
         uint32_t executed = n;
         for (uint32_t i = 0; i < n; i++) {
-            if (execute(batch[i])) continue;
+            if (execute<IofusedPrivateQueue>(batch[i])) continue;
             xshard_retries_.push_back(batch[i]);
             for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
             executed = i;
@@ -1160,6 +1196,7 @@ private:
     // Consume a bucket-prefetched homogeneous batch. The interwoven schedule calls this
     // immediately after the prefetch loop; an interleaved schedule reaches it after independent-
     // stream filler.
+    template <bool IofusedPrivateQueue = false>
     void exec_batch_prefetched(const Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
@@ -1169,10 +1206,10 @@ private:
         // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
         // into this loop at all. The armed body is out of line in exec_batch_timed().
         if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed(batch, n);
+            exec_batch_timed<IofusedPrivateQueue>(batch, n);
         } else {
             for (uint32_t i = 0; i < n; i++) {
-                if (execute(batch[i])) continue;
+                if (execute<IofusedPrivateQueue>(batch[i])) continue;
                 xshard_retries_.push_back(batch[i]);
                 for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
                 break;
@@ -1222,6 +1259,7 @@ private:
 
     // Coarse compatibility: prefetch the whole batch and consume it without an intervening
     // micro-stage.
+    template <bool IofusedPrivateQueue = false>
     void exec_batch(Task* batch, uint32_t n) {
         // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
         // reorder BEFORE prefetch so prefetch order matches execution order.
@@ -1231,13 +1269,14 @@ private:
         }
         if (__builtin_expect(ex_sched_enabled_, false)) ex_schedule_batch(batch, n);
         prefetch_exec_batch(batch, n);
-        exec_batch_prefetched(batch, n);
+        exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
+    template <bool IofusedPrivateQueue = false>
     bool execute(const Task& t) {
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
-        if (forward_stale_task(t)) return true;
+        if (forward_stale_task<IofusedPrivateQueue>(t)) return true;
         if (multi_task_tagged(t)) {
             Shard& shard = srv_->shard(t.shard);
             shard.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
@@ -1303,7 +1342,12 @@ private:
         if (op.has_blocking_state()) {
             sh.note_execution(self_->domain());
             note_lb_hash(sh, op.hash);
-            return blocking_execute(*srv_, *self_, ring_, t, sh, op);
+            if constexpr (IofusedPrivateQueue) {
+                static_assert(Fused);
+                return blocking_execute_iofused(*srv_, *self_, ring_, t, sh, op);
+            } else {
+                return blocking_execute(*srv_, *self_, ring_, t, sh, op);
+            }
         }
         // #77 TRIPWIRE A samples before any scheduler park. The first answer is retained across
         // retries; the debug registry qualifies begin-plain transitions when execution arrives.
@@ -1341,7 +1385,14 @@ private:
                 xshard_aof_emit(t, sh, op, context);
             }
             sh.publish_size();
-            const ScatterFinish finished = xshard_complete(*srv_, *self_, ring_, t, op);
+            const ScatterFinish finished = [&] {
+                if constexpr (IofusedPrivateQueue) {
+                    static_assert(Fused);
+                    return xshard_complete_iofused(*srv_, *self_, ring_, t, op);
+                } else {
+                    return xshard_complete(*srv_, *self_, ring_, t, op);
+                }
+            }();
             if (finished == ScatterFinish::Waiting) return true;
             if (finished == ScatterFinish::Retry) return false;
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
@@ -1394,12 +1445,14 @@ private:
         return true;
     }
 
+    template <bool IofusedPrivateQueue = false>
     uint32_t service_xshard_retries() {
         if (xshard_retries_.empty()) return 0;
         const Task task = xshard_retries_.front();
         xshard_retries_.pop_front();
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute(task) : execute_snapshot_task(task, true);
+            ? execute<IofusedPrivateQueue>(task)
+            : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;  // one bounded KEYS pass (or one snapshot-gate attempt) per executor iteration
     }
@@ -1420,6 +1473,7 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
         const Task task = multi_retries_.front();
@@ -1427,10 +1481,11 @@ private:
         // execute() requeues an unfinished transaction task on multi_retries_ itself.  Returning
         // true here is work/progress, while ordinary inbox draining remains enabled so every shard
         // participant gets its first turn at the command barrier.
-        execute(task);
+        execute<IofusedPrivateQueue>(task);
         return 1;
     }
 
+    template <bool IofusedPrivateQueue = false>
     uint32_t service_atomic_deferred() {
         if (atomic_deferred_.empty()) return 0;
         const Task task = atomic_deferred_.front();
@@ -1447,7 +1502,8 @@ private:
             return 1;
         }
         const bool complete = snapshot_owner_state_ == SnapshotOwnerState::None
-            ? execute(task) : execute_snapshot_task(task, true);
+            ? execute<IofusedPrivateQueue>(task)
+            : execute_snapshot_task<IofusedPrivateQueue>(task, true);
         if (!complete) xshard_retries_.push_back(task);
         return 1;
     }
@@ -1483,16 +1539,17 @@ private:
         return false;
     }
 
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
     uint32_t service_ordered_deferred() {
         uint32_t work = 0;
         while (work < BatchOps && !ordered_deferred_.empty() && xshard_retries_.empty()) {
             const Task task = ordered_deferred_.front();
             ordered_deferred_.pop_front();
             if (snapshot_owner_state_ == SnapshotOwnerState::None) {
-                if (!execute(task)) xshard_retries_.push_back(task);
+                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
             } else {
-                schedule_snapshot_task(task);
+                schedule_snapshot_task<IofusedPrivateQueue>(task);
             }
             work++;
         }
@@ -1505,17 +1562,27 @@ private:
         return task.client->rob().at(task.op_id).shard;
     }
 
+    template <bool IofusedPrivateQueue = false>
     bool post_forwarded_task(const Task& task, uint32_t target) {
         ThreadCtx& destination = srv_->thread(target);
-        return destination.post_task(self_->id(), task, handoff_ring(), self_->sig());
+        if constexpr (IofusedPrivateQueue) {
+            static_assert(Fused);
+            return destination.post_iofused_task(
+                self_->id(), task, handoff_ring(), self_->sig());
+        } else {
+            return destination.post_task(
+                self_->id(), task, handoff_ring(), self_->sig());
+        }
     }
 
+    template <bool IofusedPrivateQueue = false>
     bool forward_stale_task(const Task& task) {
         const int32_t sid = task_shard(task);
         if (sid < 0) return false;
         const uint32_t target = srv_->worker_of_shard(sid);
         if (target == self_->id()) return false;
-        if (!post_forwarded_task(task, target)) stale_tasks_.push_back(task);
+        if (!post_forwarded_task<IofusedPrivateQueue>(task, target))
+            stale_tasks_.push_back(task);
         return true;
     }
 
@@ -1532,7 +1599,8 @@ private:
         return true;
     }
 
-    template <uint32_t BatchOps = kGenthreadExBatchOps>
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
     uint32_t service_stale_forwards() {
         uint32_t work = 0;
         while (!stale_tasks_.empty() && work < BatchOps) {
@@ -1542,11 +1610,11 @@ private:
             const uint32_t target = srv_->worker_of_shard(sid);
             if (target == self_->id()) {
                 stale_tasks_.pop_front();
-                if (!execute(task)) xshard_retries_.push_back(task);
+                if (!execute<IofusedPrivateQueue>(task)) xshard_retries_.push_back(task);
                 work++;
                 continue;
             }
-            if (!post_forwarded_task(task, target)) break;
+            if (!post_forwarded_task<IofusedPrivateQueue>(task, target)) break;
             stale_tasks_.pop_front();
             work++;
         }

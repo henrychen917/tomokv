@@ -43,8 +43,10 @@ void multi_mark_queue_error(Client& client);
 // transaction dispatch and lifetime machinery in multi.inc preserves the layout of the ordinary
 // parse/dispatch and retirement paths.
 bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed);
+bool multi_dispatch_entry_iofused(IoLoop& loop, Client& client, Op& op, uint32_t consumed);
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op);
 uint32_t multi_owner_pass_entry(IoLoop& loop);
+uint32_t multi_owner_pass_entry_iofused(IoLoop& loop);
 uint32_t multi_owner_reap_entry(IoLoop& loop);
 void multi_close_entry(IoLoop& loop, Client& client);
 void multi_shutdown_entry(IoLoop& loop);

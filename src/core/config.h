@@ -281,7 +281,7 @@ struct Config {
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
     // Boot-only amortization study: 0=plain, 1=interwoven, 2=deep unified streams. This occupies
     // the alignment slack before ClientOutputBufferLimits, preserving Config's locked footprint.
-    uint32_t thread_pipeline = 0;
+    uint32_t overlap = 0;
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -676,9 +676,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
-        else if (!std::strcmp(a, "--thread-pipeline")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.thread_pipeline) || cfg.thread_pipeline > 2) {
-                std::fprintf(stderr, "--thread-pipeline wants 0, 1 or 2\n");
+        else if (!std::strcmp(a, "--overlap") ||
+                 !std::strcmp(a, "--thread-pipeline")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.overlap) || cfg.overlap > 2) {
+                std::fprintf(stderr, "--overlap wants 0, 1 or 2\n");
                 return kConfigError;
             }
         }
@@ -688,9 +689,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--genthread-schedule")) {
             const char* value = next(nullptr);
             cfg.thread_mode = ThreadMode::Fused;
-            if (cfg_eq_icase(value, "coarse")) cfg.thread_pipeline = 0;
-            else if (cfg_eq_icase(value, "iofused")) cfg.thread_pipeline = 1;
-            else if (cfg_eq_icase(value, "streams")) cfg.thread_pipeline = 2;
+            if (cfg_eq_icase(value, "coarse")) cfg.overlap = 0;
+            else if (cfg_eq_icase(value, "iofused")) cfg.overlap = 1;
+            else if (cfg_eq_icase(value, "streams")) cfg.overlap = 2;
             else {
                 std::fprintf(stderr,
                              "--genthread-schedule wants coarse, iofused or streams\n");
@@ -1078,8 +1079,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode 2s|1s --thread-pipeline 0|1|2\n"
-                        "             (boot-only; defaults 2s and 0; split/fused are mode aliases)\n"
+                        "  threading: --thread-mode 2s|1s --overlap 0|1|2\n"
+                        "             (boot-only; defaults 2s and 0; --thread-pipeline is an alias)\n"
+                        "             (split/fused are mode aliases)\n"
                         "  placement (2s; default = even io/ex split over all allowed cpus):\n"
                         "    --ratio io:ex               GLOBAL counts, spread evenly over L3 domains\n"
                         "    --place role@cpu,...        explicit per-thread; roles are ifid, ex\n"
@@ -1146,16 +1148,16 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
-    if (cfg.thread_mode == ThreadMode::Split && cfg.thread_pipeline == 2) {
+    if (cfg.thread_mode == ThreadMode::Split && cfg.overlap == 2) {
         std::fprintf(stderr,
-                     "--thread-pipeline 2 is only available with --thread-mode 1s; 2s has no deep unified-stream schedule\n");
+                     "--overlap 2 is only available with --thread-mode 1s; 2s has no deep unified-stream schedule\n");
         return kConfigError;
     }
-    if (cfg.thread_mode == ThreadMode::Fused && cfg.thread_pipeline != 0 &&
+    if (cfg.thread_mode == ThreadMode::Fused && cfg.overlap != 0 &&
         cfg.net_io != NetIoEngine::Uring) {
         std::fprintf(stderr,
-                     "--thread-mode 1s with --thread-pipeline %u requires --net-io uring for its single submit boundary\n",
-                     cfg.thread_pipeline);
+                     "--thread-mode 1s with --overlap %u requires --net-io uring for its single submit boundary\n",
+                     cfg.overlap);
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {
