@@ -43,12 +43,12 @@ public:
                 for (int cpu : topo.cpus_in(domain)) append(Role::Ifid, cpu, domain);
         }
         if (threads_.empty()) {
-            std::fprintf(stderr, "fused placement needs at least one thread\n");
+            std::fprintf(stderr, "1s placement needs at least one thread\n");
             return false;
         }
         if (threads_.size() > kMaxThreads) {
             std::fprintf(stderr,
-                         "fused placement has %zu threads, exceeding the %u-thread channel limit\n",
+                         "1s placement has %zu threads, exceeding the %u-thread channel limit\n",
                          threads_.size(), kMaxThreads);
             return false;
         }

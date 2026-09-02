@@ -67,7 +67,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 cfg.thread_pipeline,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())
-        std::printf("  thread t%u: role=fused cpu=%d L3=%u shards=%zu send=self\n",
+        std::printf("  thread t%u: role=unified cpu=%d L3=%u shards=%zu send=self\n",
                     placement.id, placement.cpu, placement.domain,
                     srv.thread(placement.id).shards().size());
     std::fflush(stdout);
@@ -149,7 +149,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                     load_ok = false;
                     if (load_error.empty())
                         load_error = local_error.empty()
-                            ? "fused thread initialization failed" : local_error;
+                            ? "unified thread initialization failed" : local_error;
                 }
                 loaders_done++;
             }
@@ -271,7 +271,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 static_cast<unsigned long long>(st_issued),
                 static_cast<unsigned long long>(st_free),
                 static_cast<unsigned long long>(st_flag));
-    std::printf("shutdown: fused_work=%llu\n",
+    std::printf("shutdown: unified_work=%llu\n",
                 static_cast<unsigned long long>(fused_work));
     acl_shutdown();
     return 0;
