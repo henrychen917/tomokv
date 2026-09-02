@@ -38,6 +38,7 @@
 // dies); steady-state allocator traffic is zero, and jemalloc needs no pool in front of it.
 #pragma once
 #include <atomic>
+#include <cstdlib>
 #include <cstdint>
 #include "../exec/op.h"
 
@@ -72,13 +73,30 @@ public:
     // Publish the slot claimed by acquire(). RELEASE: everything written into the slot must be
     // visible to the consumer before it can observe the new dispatch_id. Separate from acquire()
     // because the parser may abandon a half-built op without advancing the ROB.
-    void publish() { dispatch_.store(dispatch_id() + 1, std::memory_order_release); }
+    //
+    // Read-local/write counts are plain because dispatch and retirement are both owned by this
+    // connection's IO thread. Account before publishing the frontier so a younger parse-time GET
+    // observes every older marked slot.
+    void publish() {
+        const uint64_t id = dispatch_id();
+        account_publish(*slot(static_cast<uint32_t>(id) & kMask, false));
+        dispatch_.store(id + 1, std::memory_order_release);
+    }
 
     // Undo the last publish(). Only legal while the op is still un-dispatched, i.e. no worker can
     // have marked it Done -- which is exactly the refused-dispatch path. Safe even if a sender has
     // already observed the higher dispatch_: it can only have seen the slot as not-Done and stopped,
     // because retirement never touches an op that is not Done.
-    void unpublish() { dispatch_.store(dispatch_id() - 1, std::memory_order_release); }
+    void unpublish() {
+        const uint64_t id = dispatch_id() - 1;
+        account_retire(*slot(static_cast<uint32_t>(id) & kMask, false));
+        dispatch_.store(id, std::memory_order_release);
+    }
+
+    uint32_t unretired_read_local() const { return unretired_read_local_; }
+    bool has_unretired_read_local() const { return unretired_read_local_ != 0; }
+    uint32_t unretired_writes() const { return unretired_writes_; }
+    bool has_unretired_write() const { return unretired_writes_ != 0; }
 
     // ---- consumer side (whichever stage sends) -------------------------------------------------
     // Retire every completed op from the head, in order, handing each reply to `sink`. Stops at the
@@ -93,6 +111,7 @@ public:
             if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
             sink(op);                                   // the acquire above orders the reply bytes
             if (op.oversized()) op.shrink();            // bounded retention: bursts do not pin heap
+            account_retire(op);
             op.state.store(OpState::Free, std::memory_order_relaxed);
             f++;
             n++;
@@ -123,11 +142,31 @@ private:
         return &ch[idx % kChunkOps];
     }
 
+    void account_publish(const Op& op) {
+        if (op.read_local()) unretired_read_local_++;
+        if (op.write_hazard()) unretired_writes_++;
+    }
+
+    void account_retire(const Op& op) {
+        if (op.read_local()) {
+            if (!unretired_read_local_) std::abort();
+            unretired_read_local_--;
+        }
+        if (op.write_hazard()) {
+            if (!unretired_writes_) std::abort();
+            unretired_writes_--;
+        }
+    }
+
     Op* chunks_[kChunks] = {};
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};
     alignas(64) std::atomic<uint64_t> flush_{0};
+    // Both counters fit in flush_'s existing trailing cache-line padding. They are bounded by the
+    // 64-slot window and have one writer (the connection's IO owner), so neither needs an atomic.
+    uint32_t unretired_read_local_ = 0;
+    uint32_t unretired_writes_ = 0;
 };
 
 }  // namespace tomo
