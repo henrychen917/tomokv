@@ -143,17 +143,25 @@ public:
     io_uring_sqe* sqe() {
         if (__builtin_expect(wake_fd_ >= 0, false)) return nullptr;
         io_uring_sqe* s = io_uring_get_sqe(&r_);
-        if (!s) { submit(); s = io_uring_get_sqe(&r_); }
+        if (!s) {
+            submit();
+            sq_full_submit_ = true;
+            s = io_uring_get_sqe(&r_);
+        }
         return s;
     }
 
     // A linked pair must not be split by sqe()'s full-ring flush between its two entries.
     void ensure_sq_space(unsigned needed) {
         if (__builtin_expect(wake_fd_ >= 0, false)) return;
-        if (io_uring_sq_space_left(&r_) < needed) submit();
+        if (io_uring_sq_space_left(&r_) < needed) {
+            submit();
+            sq_full_submit_ = true;
+        }
     }
 
     int submit() {
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit(&r_);
     }
@@ -170,6 +178,7 @@ public:
     // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
     // exactly, i.e. paid by every request rather than a tail.
     int submit_and_reap() {
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit_and_get_events(&r_);
     }
@@ -179,6 +188,7 @@ public:
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
+        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
@@ -267,6 +277,21 @@ public:
     // former shadow counter had no consumer and added a load/add/store to every prepared SQE.
     void note_pending() {}
 
+    // SEND-bearing batches are latency carrying: a request/response client cannot create the next
+    // arrival until this SQE reaches the kernel. Keep only that classification rather than
+    // restoring the generic per-SQE shadow counter removed by the instruction-diet stack.
+    void note_send_pending() { send_pending_ = true; }
+    bool send_pending() const { return send_pending_; }
+
+    // sqe()/ensure_sq_space() must flush synchronously when the SQ is full. A coalescing owner uses
+    // this edge to restart its rotation budget; consuming it does not describe ordinary explicit
+    // submit boundaries, which already restart that budget at their call site.
+    bool take_sq_full_submit() {
+        const bool submitted = sq_full_submit_;
+        sq_full_submit_ = false;
+        return submitted;
+    }
+
     // Schedule boundaries occasionally need to know whether a later stage prepared real SQEs.
     // Query liburing's own tail/head state there instead of restoring the per-SQE shadow counter
     // removed by the instruction-diet stack.
@@ -321,6 +346,8 @@ private:
     io_uring r_{};
     bool     inited_   = false;
     bool     deferred_ = true;
+    bool     send_pending_ = false;
+    bool     sq_full_submit_ = false;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;

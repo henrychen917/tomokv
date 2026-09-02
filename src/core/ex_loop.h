@@ -58,6 +58,7 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
+        iofused_ = Fused && srv->cfg().thread_pipeline == 1;
         if (!ring_.init(1024)) return false;
         wb_.bind(&ring_);
         initialized_ = true;
@@ -76,9 +77,14 @@ public:
 
     // Fused tenure shares the physical thread with IoLoop. IoLoop remains the published wake
     // endpoint because it owns the only blocking wait; this ring still carries persistence CQEs.
-    void activate_fused() {
+    void activate_fused(Ring* handoff_ring) {
         static_assert(Fused);
         if (!initialized_) std::abort();
+        // Buffered schedules put executor-originated task/client handoffs on the network ring.
+        // That leaves this private ring with control/persistence SQEs; pipeline 1 can amortize its
+        // submit boundary, and pipeline 2 can close N2 over all network work. Pipeline 0 retains
+        // its existing ring ownership.
+        fused_handoff_ring_ = srv_->cfg().thread_pipeline != 0 ? handoff_ring : nullptr;
         blocking_bind_executor(srv_, self_, &ring_);
         for (Shard* shard : self_->shards())
             shard->bind_notify_pending(&notify_keyless_pending_);
@@ -94,6 +100,12 @@ public:
     // this pass is the split executor body without its role loop or independent wait.
     uint32_t fused_pass() {
         static_assert(Fused);
+        return iofused_ ? fused_pass_impl<kGenthreadPipelineExBatchOps>()
+                        : fused_pass_impl<kGenthreadExBatchOps>();
+    }
+
+    template <uint32_t BatchOps>
+    uint32_t fused_pass_impl() {
         cached_now_ms_ = realtime_ms();
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
@@ -104,31 +116,31 @@ public:
         uint32_t did = 0;
         if (lb_frozen) {
             if (!srv_->lb_acked(self_->id())) {
-                did += service_stale_forwards();
+                did += service_stale_forwards<BatchOps>();
                 did += drain_releases(true);
                 did += service_multi_retries();
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
-                if (xshard_retries_.empty()) did += service_ordered_deferred();
+                if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
                 if (xshard_retries_.empty() && ordered_deferred_.empty())
-                    did += drain_tasks(true);
+                    did += drain_tasks<BatchOps>(true);
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             did += lb_control_pass();
         } else {
-            did += snapshot_control_pass();
-            did += service_stale_forwards();
+            did += snapshot_control_pass<BatchOps>();
+            did += service_stale_forwards<BatchOps>();
             did += drain_releases();
             if (!snapshot_blocks_tasks()) {
                 did += service_multi_retries();
                 did += service_atomic_deferred();
                 did += service_xshard_retries();
-                if (xshard_retries_.empty()) did += service_ordered_deferred();
+                if (xshard_retries_.empty()) did += service_ordered_deferred<BatchOps>();
                 if (xshard_retries_.empty() && ordered_deferred_.empty())
                     did += snapshot_owner_state_ == SnapshotOwnerState::None
-                               ? drain_tasks() : drain_tasks_snapshot();
+                               ? drain_tasks<BatchOps>() : drain_tasks_snapshot<BatchOps>();
             }
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
@@ -142,24 +154,30 @@ public:
         }
         if (did) {
             did += drain_notify_keyless(self_->sig());
-            ring_.submit_and_reap();
+            fused_submit_boundary();
             fused_idle_spins_ = 0;
             return did;
         }
         if (lb_frozen) return 0;
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
-        did = sweep();
-        if (did) ring_.submit_and_reap();
+        did = sweep<BatchOps>();
+        if (did) fused_submit_boundary();
         return did;
     }
 
     uint32_t fused_sweep() {
         static_assert(Fused);
         if (lb_controller_armed_ && srv_->lb_dispatch_paused()) return fused_pass();
+        return iofused_ ? fused_sweep_impl<kGenthreadPipelineExBatchOps>()
+                        : fused_sweep_impl<kGenthreadExBatchOps>();
+    }
+
+    template <uint32_t BatchOps>
+    uint32_t fused_sweep_impl() {
         cached_now_ms_ = realtime_ms();
-        const uint32_t did = sweep();
-        if (did) ring_.submit_and_reap();
+        const uint32_t did = sweep<BatchOps>();
+        if (did) fused_submit_boundary();
         return did;
     }
 
@@ -295,6 +313,20 @@ public:
     }
 
 private:
+    void fused_submit_boundary() {
+        if (!iofused_) {
+            ring_.submit_and_reap();
+            return;
+        }
+        if (ring_.take_sq_full_submit()) fused_non_submit_rotations_ = 0;
+        if (++fused_non_submit_rotations_ >= kGenthreadIoFusedCoalesceRotations) {
+            ring_.submit_and_reap();
+            fused_non_submit_rotations_ = 0;
+        }
+    }
+
+    Ring& handoff_ring() { return fused_handoff_ring_ ? *fused_handoff_ring_ : ring_; }
+
     bool flip_quiesced() const {
         if (snapshot_owner_state_ != SnapshotOwnerState::None ||
             !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
@@ -432,16 +464,18 @@ private:
     // exqueue.h on why the retired frontier is separate from head.
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t sweep() {
-        uint32_t n = snapshot_control_pass() + service_stale_forwards() + drain_releases(true);
+        uint32_t n = snapshot_control_pass<BatchOps>() +
+                     service_stale_forwards<BatchOps>() + drain_releases(true);
         if (!snapshot_blocks_tasks()) {
             n += service_multi_retries();
             n += service_atomic_deferred();
             n += service_xshard_retries();
-            if (xshard_retries_.empty()) n += service_ordered_deferred();
+            if (xshard_retries_.empty()) n += service_ordered_deferred<BatchOps>();
             if (xshard_retries_.empty() && ordered_deferred_.empty())
                 n += snapshot_owner_state_ == SnapshotOwnerState::None
-                         ? drain_tasks(true) : drain_tasks_snapshot(true);
+                         ? drain_tasks<BatchOps>(true) : drain_tasks_snapshot<BatchOps>(true);
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);
@@ -519,12 +553,13 @@ private:
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
     }
 
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t drain_tasks(bool unmasked = false) {
-        Task batch[kExecBatch];
+        Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
             batch[held++] = t;
-            if (held == kExecBatch) { exec_batch(batch, held); held = 0; }
+            if (held == BatchOps) { exec_batch(batch, held); held = 0; }
         };
         const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
         if (held) exec_batch(batch, held);
@@ -558,6 +593,7 @@ private:
         snapshot_backlogs_.resize(srv_->nshards());
     }
 
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t snapshot_control_pass() {
         if (snapshot_owner_state_ == SnapshotOwnerState::None) return 0;
         SnapshotManager::Phase phase = snapshot_manager_->phase();
@@ -618,7 +654,7 @@ private:
             return progress_snapshot_capture();
         }
         if (snapshot_owner_state_ == SnapshotOwnerState::Draining) {
-            const uint32_t n = service_snapshot_backlogs(kExecBatch, false);
+            const uint32_t n = service_snapshot_backlogs(BatchOps, false);
             if (snapshot_backlogs_empty()) {
                 if (snapshot_was_cancelled_) snapshot_manager_->owner_cancelled(snapshot_epoch_);
                 else                         snapshot_manager_->owner_finished(snapshot_epoch_);
@@ -772,13 +808,14 @@ private:
         return n;
     }
 
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
         auto take = [&](const Task& task) { schedule_snapshot_task(task); };
         const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take) : self_->drain_tasks(take);
         self_->sig().ops += n;
         // Retire at least as many deferred Tasks as this drain can add, plus one batch of old debt;
         // otherwise a saturated post-capture owner could remain in Draining forever.
-        return n + service_snapshot_backlogs(kExecBatch + n);
+        return n + service_snapshot_backlogs(BatchOps + n);
     }
 
     // The armed slow-log arm. Out of line and cold-marked so its register pressure and its clock
@@ -1135,9 +1172,10 @@ private:
         return false;
     }
 
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t service_ordered_deferred() {
         uint32_t work = 0;
-        while (work < kExecBatch && !ordered_deferred_.empty() && xshard_retries_.empty()) {
+        while (work < BatchOps && !ordered_deferred_.empty() && xshard_retries_.empty()) {
             const Task task = ordered_deferred_.front();
             ordered_deferred_.pop_front();
             if (snapshot_owner_state_ == SnapshotOwnerState::None) {
@@ -1158,7 +1196,7 @@ private:
 
     bool post_forwarded_task(const Task& task, uint32_t target) {
         ThreadCtx& destination = srv_->thread(target);
-        return destination.post_task(self_->id(), task, ring_, self_->sig());
+        return destination.post_task(self_->id(), task, handoff_ring(), self_->sig());
     }
 
     bool forward_stale_task(const Task& task) {
@@ -1172,7 +1210,7 @@ private:
 
     bool post_forwarded_release(const BorrowRelease& release, uint32_t target) {
         ThreadCtx& destination = srv_->thread(target);
-        return destination.post_release(self_->id(), release, ring_, self_->sig());
+        return destination.post_release(self_->id(), release, handoff_ring(), self_->sig());
     }
 
     bool forward_stale_release(const BorrowRelease& release) {
@@ -1183,9 +1221,10 @@ private:
         return true;
     }
 
+    template <uint32_t BatchOps = kGenthreadExBatchOps>
     uint32_t service_stale_forwards() {
         uint32_t work = 0;
-        while (!stale_tasks_.empty() && work < kExecBatch) {
+        while (!stale_tasks_.empty() && work < BatchOps) {
             const Task task = stale_tasks_.front();
             const int32_t sid = task_shard(task);
             if (sid < 0) std::abort();
@@ -1200,7 +1239,7 @@ private:
             stale_tasks_.pop_front();
             work++;
         }
-        while (!stale_releases_.empty() && work < kExecBatch) {
+        while (!stale_releases_.empty() && work < BatchOps) {
             const BorrowRelease release = stale_releases_.front();
             const uint32_t target = srv_->worker_of_shard(release.shard);
             if (target == self_->id()) {
@@ -1247,7 +1286,7 @@ private:
             // stranded exactly this way at 4 nodes, where cross-CCD coherence stretches the window.
             std::atomic_thread_fence(std::memory_order_seq_cst);
             if (snd.ready().set(slot))
-                snd.wake_if_parked(ring_, self_->sig());
+                snd.wake_if_parked(handoff_ring(), self_->sig());
             return;
         }
         // No slot yet: first contact. The claimed post carries the pointer to the sender, which
@@ -1263,7 +1302,7 @@ private:
         }
         TOMO_FORENSIC(c->n_claims.fetch_add(1, std::memory_order_relaxed));
         ThreadCtx& snd = srv_->thread(target);
-        if (!snd.post_client(self_->id(), c, ring_, self_->sig())) {
+        if (!snd.post_client(self_->id(), c, handoff_ring(), self_->sig())) {
             self_->sig().notify_drop++;
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
         }
@@ -1323,8 +1362,11 @@ private:
     SlowlogExState slowlog_state_{};
     // Fused-only state stays at the true tail so every split ExLoop field keeps its offset.
     uint32_t fused_idle_spins_ = 0;
+    uint32_t fused_non_submit_rotations_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
+    Ring* fused_handoff_ring_ = nullptr;
+    bool iofused_ = false;
 };
 
 using ExLoop = ExLoopT<false>;

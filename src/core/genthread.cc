@@ -62,8 +62,9 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      int unix_listener) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
-    std::printf("tomokv-cpp: %u fused threads, %u shard(s), thread-mode=fused,"
-                " %s, alloc=%s\n", nthreads, cfg.shards,
+    std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
+                " thread-pipeline=%u, %s, alloc=%s\n", nthreads, cfg.shards,
+                cfg.thread_pipeline,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())
         std::printf("  thread t%u: role=fused cpu=%d L3=%u shards=%zu send=self\n",
@@ -128,7 +129,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                     });
             if (ok) {
-                executors[tid].activate_fused();
+                executors[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&executors[tid]);
                 executors[tid].bind_fused_completion(
                     &ios[tid],
