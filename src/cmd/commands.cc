@@ -77,23 +77,26 @@ bool command_name_in(const char* name, const char* const (&names)[N]) {
 }
 
 // Owner scheduler class table. This runs once while copying the registry; execution reads only
-// the two stamped flag bits. Static means deliberately argv-independent: MGET is Long even at one
-// key, and a bounded LRANGE is still Long. That is the cost of keeping policy lookup constant.
+// the two stamped flag bits. Static means deliberately argv-independent: MGET is SmallMulti at
+// every arity, and a bounded LRANGE is still Long. That is the cost of constant policy lookup.
 CommandLengthClass command_length_class_for(const CommandSpec& spec) {
     static constexpr const char* kSmallMulti[] = {
-        "RENAME", "RENAMENX", "COPY", "SMOVE", "LMOVE", "RPOPLPUSH",
-        "BLMOVE", "BRPOPLPUSH",
+        "DEL", "UNLINK", "EXISTS", "TOUCH", "MGET", "MSET", "MSETNX",
+        "HMGET", "SMISMEMBER", "ZMSCORE",
+        "SMOVE", "LMOVE", "RPOPLPUSH",
+        "BLPOP", "BRPOP", "BZPOPMIN", "BZPOPMAX", "BLMOVE", "BRPOPLPUSH",
     };
     static constexpr const char* kLong[] = {
         "GETRANGE", "SUBSTR", "SETRANGE", "BITFIELD", "BITFIELD_RO", "BITCOUNT",
         "BITPOS", "DUMP", "RESTORE", "RESTORE-ASKING",
-        "HMGET", "HGETALL", "HKEYS", "HVALS", "HRANDFIELD", "HSCAN",
-        "LRANGE", "LPOS",
-        "SMISMEMBER", "SMEMBERS", "SRANDMEMBER", "SSCAN",
+        "HGETALL", "HKEYS", "HVALS", "HRANDFIELD", "HSCAN",
+        "LINDEX", "LINSERT", "LRANGE", "LREM", "LSET", "LPOS", "LTRIM",
+        "SMEMBERS", "SRANDMEMBER", "SSCAN",
         "ZRANGE", "ZRANGEBYSCORE", "ZREVRANGEBYSCORE", "ZRANGEBYLEX",
         "ZREVRANGEBYLEX", "ZREVRANGE", "ZRANDMEMBER", "ZSCAN",
+        "ZREMRANGEBYRANK", "ZREMRANGEBYSCORE", "ZREMRANGEBYLEX",
         "GEOSEARCH", "XRANGE", "XREVRANGE", "XPENDING", "XCLAIM", "XAUTOCLAIM",
-        "SCAN", "LCS",
+        "XTRIM", "SCAN",
     };
     if (command_name_in(spec.name, kSmallMulti)) return CommandLengthClass::SmallMulti;
     if ((spec.flags & CmdFlags::MultiShard) || command_name_in(spec.name, kLong))

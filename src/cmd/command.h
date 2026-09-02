@@ -23,7 +23,7 @@ class Op;
 
 // Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
 // class, not a runtime estimate from argv or clocks. Point includes GET and SET; SmallMulti is the
-// fixed two-key family; Long covers variable multi-key, range, scan, and other whole-value work.
+// simple fanout/vector family; Long covers combining, range, scan, and other whole-value work.
 enum class CommandLengthClass : uint8_t {
     Point = 0,
     SmallMulti = 1,
