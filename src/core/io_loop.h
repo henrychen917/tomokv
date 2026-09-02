@@ -138,6 +138,9 @@ public:
         }, srv_->client_obuf_armed_ptr(), this, [](void* ctx, Client& client) {
             return static_cast<IoLoop*>(ctx)->client_obuf_check(&client, true);
         }, &cached_now_s_, &self_->sig());
+        wb_.set_cold_send_classification(
+            srv_->cfg().thread_mode == ThreadMode::Fused &&
+            srv_->cfg().thread_pipeline == 1);
         initialized_ = true;
         return dormant || activate();
     }
@@ -1150,23 +1153,23 @@ private:
                 bool retry_plain_submit = false;
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client)) {
-                        (void)wb_.pump_tls<kEp>(*client, *tls);
+                        (void)wb_.pump_tls<kEp, Pipeline == 1>(*client, *tls);
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(client, tls->wanted());
                         if (tls->failed())
                             close_client(client,
                                          tls->output_pending() || client->send_inflight());
                     } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                        const bool sent = wb_.pump<kEp>(*client);
+                        const bool sent = wb_.pump<kEp, Pipeline == 1>(*client);
                         retry_plain_submit = !kEp && !sent &&
                             !client->send_inflight() && !client->nothing_to_write();
                     } else {
-                        const bool sent = wb_.pump<kEp>(*client);
+                        const bool sent = wb_.pump<kEp, Pipeline == 1>(*client);
                         retry_plain_submit = !kEp && !sent &&
                             !client->send_inflight() && !client->nothing_to_write();
                     }
                 } else {
-                    const bool sent = wb_.pump<kEp>(*client);
+                    const bool sent = wb_.pump<kEp, Pipeline == 1>(*client);
                     retry_plain_submit = !kEp && !sent &&
                         !client->send_inflight() && !client->nothing_to_write();
                 }
@@ -1637,14 +1640,14 @@ private:
             if constexpr (Pipeline == 1) {
                 if (ring_.take_sq_full_submit()) iofused_non_send_rotations = 0;
                 if (ring_.send_pending()) {
-                    ring_.submit_and_reap();
+                    ring_.submit_and_reap<true>();
                     iofused_non_send_rotations = 0;
                     continue;
                 }
                 if (did) {
                     if (++iofused_non_send_rotations >=
                         kGenthreadIoFusedCoalesceRotations) {
-                        ring_.submit_and_reap();
+                        ring_.submit_and_reap<true>();
                         iofused_non_send_rotations = 0;
                     }
                     continue;
@@ -1685,7 +1688,7 @@ private:
                     if (ring_.send_pending() ||
                         ++iofused_non_send_rotations >=
                             kGenthreadIoFusedCoalesceRotations) {
-                        ring_.submit_and_reap();
+                        ring_.submit_and_reap<true>();
                         iofused_non_send_rotations = 0;
                     }
                     continue;
@@ -1698,8 +1701,13 @@ private:
                 if (!self_->any_fused_inbound())
                     epoll_pass<HasUnix, HasTls, true, Pipeline>(50);
             } else {
-                if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
-                else                            ring_.submit_and_reap();
+                if constexpr (Pipeline == 1) {
+                    if (!self_->any_fused_inbound()) ring_.submit_and_wait<true>(1);
+                    else                            ring_.submit_and_reap<true>();
+                } else {
+                    if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
+                    else                            ring_.submit_and_reap();
+                }
             }
             if constexpr (Pipeline == 1) iofused_non_send_rotations = 0;
             self_->clear_blocked();
@@ -1821,7 +1829,7 @@ private:
         // Any engine output is submitted before another socket read. This is the memory-BIO
         // flush-before-read rule that prevents WANT_READ from hiding a required write.
         if (tls->output_pending()) {
-            (void)wb_.pump_tls<kEp>(*c, *tls);
+            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
             if (tls->output_pending()) return;
         }
         // Ciphertext or decrypted plaintext already inside the engine must be drained before a
@@ -1973,7 +1981,7 @@ private:
     }
 
     // ---- completions ----------------------------------------------------------------------------
-    template <bool kEp, bool ImmediateProgress = true>
+    template <bool kEp, bool ImmediateProgress = true, bool ClassifySend = false>
     void on_plain_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         if (c->dead()) {
@@ -1981,14 +1989,15 @@ private:
             wb_.on_dead_send_complete(*c, cqe->res);
             return;
         }
-        if (!wb_.on_send_complete(*c, cqe->res, ImmediateProgress)) close_client(c);
+        if (!wb_.on_send_complete<ImmediateProgress, ClassifySend>(*c, cqe->res))
+            close_client(c);
         else if constexpr (!ImmediateProgress) {
             if (!c->nothing_to_write()) enqueue_serve(c);
-            if (targeted_ifid_) enqueue_ifid(c);
+            enqueue_ifid(c);
         }
     }
 
-    template <bool kEp, bool ImmediateProgress = true>
+    template <bool kEp, bool ImmediateProgress = true, bool ClassifySend = false>
     void on_tls_send_cqe(io_uring_cqe* cqe) {
         Client* c = ur_ptr<Client>(cqe->user_data);
         TlsConn* tls = tls_engine(c);
@@ -1997,8 +2006,8 @@ private:
             wb_.on_dead_tls_send_complete(*c, *tls, cqe->res);
             return;
         }
-        if (!wb_.on_tls_send_complete(
-                *c, *tls, cqe->res, ImmediateProgress)) close_client(c);
+        if (!wb_.on_tls_send_complete<ImmediateProgress, ClassifySend>(
+                *c, *tls, cqe->res)) close_client(c);
         else {
             if constexpr (!ImmediateProgress)
                 if (!c->nothing_to_write() || tls->output_pending()) enqueue_serve(c);
@@ -2021,7 +2030,8 @@ private:
                         ur_ptr<Client>(cqe->user_data), cqe->res);
                     break;
                 case UrKind::Send:
-                    on_plain_send_cqe<kEp, ImmediateSendProgress>(cqe); break;
+                    on_plain_send_cqe<kEp, ImmediateSendProgress,
+                                      Fused && Pipeline == 1>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
@@ -2057,9 +2067,11 @@ private:
                         ur_ptr<Client>(cqe->user_data), cqe->res);
                     break;
                 case UrKind::Send:
-                    on_plain_send_cqe<kEp, ImmediateSendProgress>(cqe); break;
+                    on_plain_send_cqe<kEp, ImmediateSendProgress,
+                                      Fused && Pipeline == 1>(cqe); break;
                 case UrKind::TlsSend:
-                    on_tls_send_cqe<kEp, ImmediateSendProgress>(cqe); break;
+                    on_tls_send_cqe<kEp, ImmediateSendProgress,
+                                    Fused && Pipeline == 1>(cqe); break;
                 case UrKind::TlsReadPoll:
                     on_tls_socket_poll<kEp, Fused, Pipeline>(
                         ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantRead); break;
@@ -3138,7 +3150,7 @@ private:
         }
 
         if (tls->socket_userspace() && tls->has_pinned_plain()) {
-            (void)wb_.pump_tls<kEp>(*c, *tls);
+            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
             if (tls->has_pinned_plain()) {
                 arm_tls_socket_poll<kEp>(c, tls->wanted());
                 return true;
@@ -3146,7 +3158,7 @@ private:
         }
 
         if (tls->output_pending() || c->send_inflight()) {
-            (void)wb_.pump_tls<kEp>(*c, *tls);
+            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
             return !tls->failed();
         }
 
@@ -3158,7 +3170,8 @@ private:
                 self_->sig().tls_handshakes_completed++;
                 self_->sig().tls_ktls_fallback++;
             }
-            (void)wb_.pump_tls<kEp>(*c, *tls);  // alerts and handshake flights are flushed first
+            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(
+                *c, *tls);  // alerts and handshake flights are flushed first
             if (result == TlsOp::Error || result == TlsOp::GracefulEof) {
                 self_->sig().tls_handshakes_failed++;
                 if (!tls->last_error().empty())
@@ -3185,7 +3198,10 @@ private:
                 c->commit_read(result.bytes);
                 self_->sig().tls_plaintext_input_bytes += result.bytes;
                 decrypted = true;
-                if (tls->output_pending()) { (void)wb_.pump_tls<kEp>(*c, *tls); break; }
+                if (tls->output_pending()) {
+                    (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+                    break;
+                }
                 continue;
             }
             if (result.op == TlsOp::WantRead) {
@@ -3195,10 +3211,10 @@ private:
             else if (result.op == TlsOp::WantWrite) {
                 self_->sig().tls_want_write++;
                 if (tls->socket_userspace()) arm_tls_socket_poll<kEp>(c, result.op);
-                else (void)wb_.pump_tls<kEp>(*c, *tls);
+                else (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
             } else if (result.op == TlsOp::GracefulEof) {
                 (void)tls->shutdown();
-                (void)wb_.pump_tls<kEp>(*c, *tls);
+                (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
                 close_client(c, tls->output_pending() || c->send_inflight());
                 return false;
             } else {
@@ -3206,7 +3222,7 @@ private:
                     std::fprintf(stderr, "TLS client %llu: %s\n",
                                  static_cast<unsigned long long>(c->id()),
                                  tls->last_error().c_str());
-                (void)wb_.pump_tls<kEp>(*c, *tls);
+                (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
                 close_client(c, tls->output_pending() || c->send_inflight());
                 return false;
             }
@@ -4336,7 +4352,7 @@ ordinary_dispatch:
                     if (!c->closing() && !c->recv_armed())
                         (void)drive_tls<kEp, true, Pipeline>(c);
                     else if (tls->userspace()) {
-                        (void)wb_.pump_tls<kEp>(*c, *tls);
+                        (void)wb_.pump_tls<kEp, Pipeline == 1>(*c, *tls);
                         if (tls->socket_userspace() && tls->has_pinned_plain())
                             arm_tls_socket_poll<kEp>(c, tls->wanted());
                     }
@@ -4587,23 +4603,23 @@ ordinary_dispatch:
             bool retry_plain_submit = false;
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(client)) {
-                    (void)wb_.pump_tls<kEp>(*client, *tls);
+                    (void)wb_.pump_tls<kEp, true>(*client, *tls);
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(client, tls->wanted());
                     if (tls->failed())
                         close_client(client,
                                      tls->output_pending() || client->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                    const bool sent = wb_.pump<kEp>(*client);
+                    const bool sent = wb_.pump<kEp, true>(*client);
                     retry_plain_submit = !kEp && !sent &&
                         !client->send_inflight() && !client->nothing_to_write();
                 } else {
-                    const bool sent = wb_.pump<kEp>(*client);
+                    const bool sent = wb_.pump<kEp, true>(*client);
                     retry_plain_submit = !kEp && !sent &&
                         !client->send_inflight() && !client->nothing_to_write();
                 }
             } else {
-                const bool sent = wb_.pump<kEp>(*client);
+                const bool sent = wb_.pump<kEp, true>(*client);
                 retry_plain_submit = !kEp && !sent &&
                     !client->send_inflight() && !client->nothing_to_write();
             }
@@ -4622,8 +4638,9 @@ ordinary_dispatch:
         return work;
     }
 
-    template <bool HasTls, bool kEp>
+    template <bool HasTls, bool kEp, uint8_t Pipeline>
     uint32_t genthread_wb_batch() {
+        static_assert(Pipeline == 1 || Pipeline == 2);
         uint32_t work = 0;
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
         if (!pending_serve_.empty()) {
@@ -4653,17 +4670,17 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls<kEp>(*c, *tls)) work++;
+                    if (wb_.serve_tls<kEp, Pipeline == 1>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed())
                         close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls<kEp>(*c)) work++;
-                } else if (wb_.serve<kEp>(*c)) {
+                    if (wb_.serve_ktls<kEp, Pipeline == 1>(*c)) work++;
+                } else if (wb_.serve<kEp, Pipeline == 1>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve<kEp>(*c)) {
+            } else if (wb_.serve<kEp, Pipeline == 1>(*c)) {
                 work++;
             }
             if constexpr (kEp)
@@ -4681,7 +4698,7 @@ ordinary_dispatch:
         work += genthread_ifid_batch<HasTls, kEp, Pipeline>(nullptr);
         work += fused_executor_->fused_sweep(executor_tasks);
         work += collect_retire_work<HasUnix, kEp>(true) +
-                genthread_wb_batch<HasTls, kEp>();
+                genthread_wb_batch<HasTls, kEp, Pipeline>();
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
         if (srv_->snapshot().writer_is(self_->id()))

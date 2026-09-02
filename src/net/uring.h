@@ -145,6 +145,9 @@ public:
         io_uring_sqe* s = io_uring_get_sqe(&r_);
         if (!s) {
             submit();
+            // A forced-full flush is a real boundary for the pipeline-1 SEND classifier. Keep
+            // this reset on the rare slow arm instead of charging every explicit submit.
+            send_pending_ = false;
             sq_full_submit_ = true;
             s = io_uring_get_sqe(&r_);
         }
@@ -156,12 +159,12 @@ public:
         if (__builtin_expect(wake_fd_ >= 0, false)) return;
         if (io_uring_sq_space_left(&r_) < needed) {
             submit();
+            send_pending_ = false;
             sq_full_submit_ = true;
         }
     }
 
     int submit() {
-        send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit(&r_);
     }
@@ -177,8 +180,9 @@ public:
     //
     // Measured cost of getting this wrong: a uniform ~3.9 ms per operation at p1, matching p99
     // exactly, i.e. paid by every request rather than a tail.
+    template <bool ClearSendClassification = false>
     int submit_and_reap() {
-        send_pending_ = false;
+        if constexpr (ClearSendClassification) send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) return 0;
         return io_uring_submit_and_get_events(&r_);
     }
@@ -187,8 +191,9 @@ public:
     // The timeout is not decoration: without it a thread parked here never re-reads its stop flag,
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
+    template <bool ClearSendClassification = false>
     int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
-        send_pending_ = false;
+        if constexpr (ClearSendClassification) send_pending_ = false;
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
@@ -280,7 +285,10 @@ public:
     // SEND-bearing batches are latency carrying: a request/response client cannot create the next
     // arrival until this SQE reaches the kernel. Keep only that classification rather than
     // restoring the generic per-SQE shadow counter removed by the instruction-diet stack.
-    void note_send_pending() { send_pending_ = true; }
+    template <bool Classify>
+    void note_send_pending() {
+        if constexpr (Classify) send_pending_ = true;
+    }
     bool send_pending() const { return send_pending_; }
 
     // sqe()/ensure_sq_space() must flush synchronously when the SQ is full. A coalescing owner uses
