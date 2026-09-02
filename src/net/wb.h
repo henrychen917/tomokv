@@ -493,7 +493,7 @@ public:
 
     // Completion handler. `res` is the CQE result: bytes written, or negative errno.
     // Returns false when the connection should be torn down.
-    bool on_send_complete(Client& c, int res) {
+    bool on_send_complete(Client& c, int res, bool submit_followup = true) {
         bool resubmit = false;
         {
             c.set_send_inflight(false);
@@ -537,11 +537,12 @@ public:
                 }
             }
         }
-        if (resubmit) pump<false>(c);
+        if (resubmit && submit_followup) pump<false>(c);
         return true;
     }
 
-    bool on_tls_send_complete(Client& c, TlsConn& tls, int res) {
+    bool on_tls_send_complete(Client& c, TlsConn& tls, int res,
+                              bool submit_followup = true) {
         c.set_send_inflight(false);
         bool resubmit = false;
         if (res < 0) {
@@ -586,7 +587,7 @@ public:
             else stats_.sends_completed++;
             resubmit = true;
         }
-        if (resubmit) pump_tls<false>(c, tls);
+        if (resubmit && submit_followup) pump_tls<false>(c, tls);
         return !tls.failed();
     }
 
