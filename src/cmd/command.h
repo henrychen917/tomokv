@@ -21,6 +21,16 @@ namespace tomo {
 class Shard;
 class Op;
 
+// Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
+// class, not a runtime estimate from argv or clocks. Point includes GET and SET; SmallMulti is the
+// simple fanout/vector family; Long covers combining, range, scan, and other whole-value work.
+enum class CommandLengthClass : uint8_t {
+    Point = 0,
+    SmallMulti = 1,
+    Long = 2,
+    Count = 3,
+};
+
 struct CmdFlags {
     static constexpr uint32_t Write     = 1u << 0;   // mutates the keyspace
     static constexpr uint32_t Readonly  = 1u << 1;
@@ -106,6 +116,8 @@ struct CommandSpec {
     int32_t     min_arity;
     int32_t     max_arity;
     uint32_t    flags;
+    // Boot-stamped scheduler metadata in the existing alignment hole before handler.
+    uint8_t     length_class = 0;
     CmdHandler  handler;
 
     // Key range within argv: [first_key, last_key] stepping by key_step.
@@ -127,7 +139,8 @@ struct CommandSpec {
                           int16_t last_key_, int16_t key_step_,
                           CmdHandler handler_notify_ = nullptr)
         : name(name_), min_arity(min_arity_), max_arity(max_arity_), flags(flags_),
-          handler(handler_), first_key(first_key_), last_key(last_key_), key_step(key_step_),
+          length_class(0), handler(handler_), first_key(first_key_), last_key(last_key_),
+          key_step(key_step_),
           handler_notify(handler_notify_ ? handler_notify_ :
                          (handler_ == cmd_xshard_only ? cmd_xshard_only_notify : handler_)) {}
 };
@@ -135,6 +148,10 @@ struct CommandSpec {
 // 48 = the ACL audit's measured 40 plus the notify v2 handler_notify tail pointer. Registry rows
 // are cold read-only data; the lock exists to catch accidental growth, not to forbid deliberate.
 static_assert(sizeof(CommandSpec) == 48);
+
+inline CommandLengthClass command_length_class(const CommandSpec& spec) {
+    return static_cast<CommandLengthClass>(spec.length_class);
+}
 
 struct CommandTable {
     const CommandSpec* specs;

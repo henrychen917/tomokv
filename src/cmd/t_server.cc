@@ -322,6 +322,8 @@ void init_config(const Config& cfg) {
                         cfg.thread_mode == ThreadMode::Fused ? "fused" : "split", true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
+    g_config.push_back({"ex-sched", ConfigKind::Unsigned,
+                        std::to_string(cfg.ex_sched), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned,
                         std::to_string(cfg.key_lb), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned,

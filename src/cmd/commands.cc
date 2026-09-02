@@ -92,6 +92,41 @@ bool command_equal(Slice input, const char* canonical) {
     return true;
 }
 
+template <size_t N>
+bool command_name_in(const char* name, const char* const (&names)[N]) {
+    for (const char* candidate : names)
+        if (!std::strcmp(name, candidate)) return true;
+    return false;
+}
+
+// Owner scheduler class table. This runs once while copying the registry; execution reads only
+// the stamped metadata byte. Static means deliberately argv-independent: MGET is SmallMulti at
+// every arity, and a bounded LRANGE is still Long. That is the cost of constant policy lookup.
+CommandLengthClass command_length_class_for(const CommandSpec& spec) {
+    static constexpr const char* kSmallMulti[] = {
+        "DEL", "UNLINK", "EXISTS", "TOUCH", "MGET", "MSET", "MSETNX",
+        "HMGET", "SMISMEMBER", "ZMSCORE",
+        "SMOVE", "LMOVE", "RPOPLPUSH",
+        "BLPOP", "BRPOP", "BZPOPMIN", "BZPOPMAX", "BLMOVE", "BRPOPLPUSH",
+    };
+    static constexpr const char* kLong[] = {
+        "GETRANGE", "SUBSTR", "SETRANGE", "BITFIELD", "BITFIELD_RO", "BITCOUNT",
+        "BITPOS", "DUMP", "RESTORE", "RESTORE-ASKING",
+        "HGETALL", "HKEYS", "HVALS", "HRANDFIELD", "HSCAN",
+        "LINDEX", "LINSERT", "LRANGE", "LREM", "LSET", "LPOS", "LTRIM",
+        "SMEMBERS", "SRANDMEMBER", "SSCAN",
+        "ZRANGE", "ZRANGEBYSCORE", "ZREVRANGEBYSCORE", "ZRANGEBYLEX",
+        "ZREVRANGEBYLEX", "ZREVRANGE", "ZRANDMEMBER", "ZSCAN",
+        "ZREMRANGEBYRANK", "ZREMRANGEBYSCORE", "ZREMRANGEBYLEX",
+        "GEOSEARCH", "XRANGE", "XREVRANGE", "XPENDING", "XCLAIM", "XAUTOCLAIM",
+        "XTRIM", "SCAN",
+    };
+    if (command_name_in(spec.name, kSmallMulti)) return CommandLengthClass::SmallMulti;
+    if ((spec.flags & CmdFlags::MultiShard) || command_name_in(spec.name, kLong))
+        return CommandLengthClass::Long;
+    return CommandLengthClass::Point;
+}
+
 }  // namespace
 
 bool command_registry_init(bool tls_enabled, bool fused_mode) {
@@ -128,6 +163,8 @@ bool command_registry_init(bool tls_enabled, bool fused_mode) {
         for (const CommandTable& family : families)
             for (size_t i = 0; i < family.size; i++) {
                 CommandSpec copy = family.specs[i];
+                copy.length_class =
+                    static_cast<uint8_t>(command_length_class_for(copy));
                 if (fused_mode && !std::strcmp(copy.name, "FLIP")) {
                     copy.flags &= ~CmdFlags::FlipAsync;
                     copy.handler = cmd_flip_unavailable;

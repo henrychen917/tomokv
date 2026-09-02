@@ -365,6 +365,9 @@ struct Config {
     // Cold feature tail: never shift a pre-existing Config field because several boot-latched
     // values are loaded directly in executor code. Empty flag string = notifications off.
     uint32_t notify_events = 0;
+    // Owner EX batch scheduler. Boot-only: 0 preserves the FIFO drain, 1 enables head-rank /
+    // static-length buckets. This consumes the existing alignment hole before the uint64_t below.
+    uint32_t ex_sched = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
     // tracking-table-max-keys, default 1000000, 0 = unlimited). The bound is applied per io
@@ -690,6 +693,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--smt-mode")) {
             if (!cfg_parse_u32(next(nullptr), cfg.smt_mode) || cfg.smt_mode > 1) {
                 std::fprintf(stderr, "--smt-mode wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--ex-sched")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.ex_sched) || cfg.ex_sched > 1) {
+                std::fprintf(stderr, "--ex-sched wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1050,6 +1059,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
+                        "  execution: --ex-sched 0|1   EX batch owner policy "
+                        "(boot-only; default 0/FIFO)\n"
                         "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
                         "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
