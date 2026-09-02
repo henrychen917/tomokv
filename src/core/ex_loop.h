@@ -50,6 +50,7 @@ inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
 inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
 static_assert(kExecBatch <= UINT8_MAX);
 static_assert(kExecBatch <= 32);
+static_assert(kGenthreadIfidBatchOps <= kExecBatch);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
@@ -367,15 +368,26 @@ private:
         op.zc_shard = -1;
     }
 
-    void read_local_fallback(const Task& task, uint64_t& counter) {
+    void post_read_local_fallback(const Task& task, uint64_t& counter, bool& defer_suffix) {
         counter++;
-        const int32_t shard = task_shard(task);
-        if (shard < 0) std::abort();
-        const uint32_t target = srv_->worker_of_shard(shard);
-        if (!post_forwarded_task(task, target)) stale_tasks_.push_back(task);
+        // Match ordinary parse dispatch: post in program order until the first full owner tail,
+        // then leave that member and the complete younger suffix on the FIFO retry path. Continuing
+        // direct attempts after one refusal could let a younger op overtake it.
+        if (!defer_suffix) {
+            const int32_t shard = task_shard(task);
+            if (shard < 0) std::abort();
+            const uint32_t target = srv_->worker_of_shard(shard);
+            if (post_forwarded_task(task, target)) return;
+            defer_suffix = true;
+        }
+        stale_tasks_.push_back(task);
     }
 
-    void execute_local_read(const Task& task) {
+    // Build one local reply but do not publish Done. A null result means the bytes are complete and
+    // no FlatStore pointer survives this call; otherwise the returned counter describes why this
+    // op requires the owner path. Group commit below prevents a younger hit from overtaking that
+    // fallback.
+    uint64_t* prepare_local_read(const Task& task) {
         if (!task.client) std::abort();
         Op& op = task.client->rob().at(task.op_id);
         if (!op.read_local() || op.shard < 0) std::abort();
@@ -387,13 +399,11 @@ private:
             const FlatStore::ReadLocalProbe probe = store.read_local_probe(op.hash, op.key());
             if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
                 read_local_clear_reply(op);
-                read_local_fallback(task, stats.fallback_atomic_pending);
-                return;
+                return &stats.fallback_atomic_pending;
             }
             if (probe.result == FlatStore::ReadLocalProbeResult::Missing) {
                 read_local_clear_reply(op);
-                read_local_fallback(task, stats.fallback_missing);
-                return;
+                return &stats.fallback_missing;
             }
             if (probe.result == FlatStore::ReadLocalProbeResult::Churn) continue;
 
@@ -402,14 +412,12 @@ private:
             const uint8_t flags = object->read_local_flags();
             if (static_cast<Type>(object->type) != Type::String) {
                 read_local_clear_reply(op);
-                read_local_fallback(task, stats.fallback_typed);
-                return;
+                return &stats.fallback_typed;
             }
             if ((flags & KvObjFlags::HasTtl) &&
                 object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
                 read_local_clear_reply(op);
-                read_local_fallback(task, stats.fallback_expired);
-                return;
+                return &stats.fallback_expired;
             }
 
             read_local_clear_reply(op);
@@ -423,48 +431,102 @@ private:
                 reply_bulk(op.sink(), object->read_local_str_value(flags));
             } else {
                 read_local_clear_reply(op);
-                read_local_fallback(task, stats.fallback_typed);
-                return;
+                return &stats.fallback_typed;
             }
 
             if (!store.read_local_validate(probe.state)) {
                 read_local_clear_reply(op);
                 continue;
             }
-            stats.hits++;
-            self_->note_command(op.spec->id);
-            op.state.store(OpState::Done, std::memory_order_release);
-            notify_sender(task.client);
-            return;
+            return nullptr;
         }
 
         read_local_clear_reply(op);
         const uint64_t state = store.read_local_state_acquire();
         if (FlatStore::read_local_pending(state))
-            read_local_fallback(task, stats.fallback_atomic_pending);
-        else
-            read_local_fallback(task, stats.fallback_seq_churn);
+            return &stats.fallback_atomic_pending;
+        return &stats.fallback_seq_churn;
     }
 
     uint32_t drain_local_reads() {
         if constexpr (!Fused) return 0;
         if (!read_local_enabled_ || !read_local_lane_count_) return 0;
         Task batch[kExecBatch];
-        const uint32_t count = std::min<uint32_t>(read_local_lane_count_, kExecBatch);
-        for (uint32_t i = 0; i < count; i++) {
-            batch[i] = read_local_lane_[read_local_lane_head_];
-            read_local_lane_head_ = (read_local_lane_head_ + 1) & (kInboxSlots - 1);
-            read_local_lane_count_--;
+        uint32_t group_ends[kExecBatch];
+        uint64_t* fallbacks[kExecBatch];
+        uint32_t total = 0;
+        // Like drain_tasks, empty the lane snapshot and use kExecBatch only as the gather/prefetch
+        // quantum. Making it a per-rotation limit would simply replace the per-connection governor
+        // with a 32-op global governor.
+        while (read_local_lane_count_) {
+            uint32_t groups = 0;
+            uint32_t count = 0;
+            // Parser batches are contiguous by Client and bounded by the 32-op IFID quantum. Never
+            // split one across executor chunks: its all-local/all-owner decision is the fence.
+            while (read_local_lane_count_ && count < kExecBatch) {
+                Client* client = read_local_lane_[read_local_lane_head_].client;
+                uint32_t group_count = 1;
+                while (group_count < read_local_lane_count_) {
+                    const uint32_t at =
+                        (read_local_lane_head_ + group_count) & (kInboxSlots - 1);
+                    if (read_local_lane_[at].client != client) break;
+                    group_count++;
+                }
+                if (group_count > kExecBatch) std::abort();
+                if (count && count + group_count > kExecBatch) break;
+                for (uint32_t i = 0; i < group_count; i++) {
+                    batch[count++] = read_local_lane_[read_local_lane_head_];
+                    read_local_lane_head_ =
+                        (read_local_lane_head_ + 1) & (kInboxSlots - 1);
+                    read_local_lane_count_--;
+                }
+                group_ends[groups++] = count;
+            }
+            if (!count) std::abort();
+            // Match exec_batch's gather/prefetch/execute shape, but issue only read-safe foreign-
+            // table prefetches and never touch owner-local stats, LRU, expiry or sampling state.
+            for (uint32_t i = 0; i < count; i++) {
+                const Op& op = batch[i].client->rob().at(batch[i].op_id);
+                srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+            }
+            ReadLocalStats& stats = self_->read_local_stats();
+            uint32_t begin = 0;
+            for (uint32_t group = 0; group < groups; group++) {
+                const uint32_t end = group_ends[group];
+                bool downgrade = false;
+                for (uint32_t i = begin; i < end; i++) {
+                    fallbacks[i] = prepare_local_read(batch[i]);
+                    downgrade |= fallbacks[i] != nullptr;
+                }
+                if (downgrade) {
+                    // Local probing has no visible side effect until Done. Discard every staged
+                    // copy and owner-dispatch the complete prefix in op-id order. Successful probes
+                    // in the group are context fallbacks, keeping totals exact.
+                    bool defer_suffix = false;
+                    for (uint32_t i = begin; i < end; i++) {
+                        Op& op = batch[i].client->rob().at(batch[i].op_id);
+                        read_local_clear_reply(op);
+                        uint64_t& counter =
+                            fallbacks[i] ? *fallbacks[i] : stats.fallback_context;
+                        post_read_local_fallback(batch[i], counter, defer_suffix);
+                    }
+                } else {
+                    // Publish the whole group only after every copy validated. One completion
+                    // callback then makes the connection serveable and WB coalesces the prefix.
+                    for (uint32_t i = begin; i < end; i++) {
+                        Op& op = batch[i].client->rob().at(batch[i].op_id);
+                        stats.hits++;
+                        self_->note_command(op.spec->id);
+                        op.state.store(OpState::Done, std::memory_order_release);
+                    }
+                    notify_sender(batch[begin].client);
+                }
+                begin = end;
+            }
+            total += count;
         }
-        // Match exec_batch's gather/prefetch/execute shape, but issue only read-safe foreign-table
-        // prefetches and never touch owner-local stats, LRU, expiry or sampling state.
-        for (uint32_t i = 0; i < count; i++) {
-            const Op& op = batch[i].client->rob().at(batch[i].op_id);
-            srv_->shard(op.shard).store().read_local_prefetch(op.hash);
-        }
-        for (uint32_t i = 0; i < count; i++) execute_local_read(batch[i]);
-        self_->sig().ops += count;
-        return count;
+        self_->sig().ops += total;
+        return total;
     }
 
     bool flip_quiesced() const {
@@ -1544,9 +1606,9 @@ private:
             if (sid < 0) std::abort();
             const uint32_t target = srv_->worker_of_shard(sid);
             if (target == self_->id()) {
-                // A read-local fallback first tried this owner's SPSC tail and landed here only
-                // because that lane was full. Executing it directly would jump the older queued
-                // tasks. Retry the tail publication and leave it stale until room exists.
+                // A read-local fallback reached this FIFO after its own or an older group member's
+                // SPSC refusal. Executing it directly would jump the older queued tasks. Retry the
+                // tail publication and leave it stale until room exists.
                 if (task.client && task.client->rob().at(task.op_id).read_local()) {
                     if (!post_forwarded_task(task, target)) break;
                     stale_tasks_.pop_front();

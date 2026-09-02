@@ -2206,9 +2206,10 @@ private:
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
-        // One outstanding local read per connection is the conservative v1 ordering rule. It
-        // prevents a first lane entry that falls back from being overtaken by a younger local hit;
-        // the lane still forms batches across independent connections.
+        // One outstanding local-read BATCH per connection is the ordering rule. The invocation
+        // below may fill that batch with one consecutive GET prefix, but a later invocation cannot
+        // parse beyond it until WB retires the prefix. EX either completes the whole prefix locally
+        // or downgrades the whole prefix, so no younger hit can overtake an older fallback.
         if constexpr (ReadLocal) {
             if (__builtin_expect(rob.has_unretired_read_local(), false)) {
                 if (self_->flip_fingerprint().enabled())
@@ -2239,6 +2240,7 @@ private:
         const bool atomic_tracking = srv_->atomic_tracking_active();
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
         uint64_t batch_start_ops = 0;
+        [[maybe_unused]] bool read_local_batch = false;
         if constexpr (BatchOps != 0) batch_start_ops = sig.ops;
         for (;;) {
             if constexpr (BatchOps != 0)
@@ -2251,6 +2253,7 @@ private:
             Op* op = rob.acquire<ReadLocal>(conn.op_route_flags());
             if (!op) break;                    // window full: backpressure; let replies drain first
             [[maybe_unused]] uint64_t* read_local_fallback_counter = nullptr;
+            [[maybe_unused]] bool extend_read_local_batch = false;
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -2349,6 +2352,20 @@ private:
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;
+            }
+            if constexpr (ReadLocal) {
+                // Decide whether this frame extends the local prefix before climon_armed_gate:
+                // MONITOR, tracking and CLIENT REPLY mutate state even though the parse cursor has
+                // not advanced yet. A held frame must therefore not pass that gate and be replayed.
+                if (read_local_batch) {
+                    if (!(spec->flags & CmdFlags::ReadLocalEligible) ||
+                        conn.multi_session() != nullptr ||
+                        !fused_executor_->local_read_lane_has_room()) break;
+                    // The first member proved the connection gates. A GET-only prefix cannot arm
+                    // WATCH/blocking/subscriber/write state. Transient shard state is deliberately
+                    // left to EX, which either commits or owner-downgrades the complete prefix.
+                    extend_read_local_batch = true;
+                }
             }
             // THE SOLE DISABLED-STATE FEATURE DECISION on an ordinary operation. The executor
             // receives a spec whose handler pointer is already the clean or armed specialization;
@@ -2884,31 +2901,35 @@ ordinary_dispatch:
             if constexpr (ReadLocal) {
                 if (__builtin_expect(spec->flags & CmdFlags::ReadLocalEligible, false)) {
                     ReadLocalStats& local_stats = self_->read_local_stats();
-                    bool eligible = true;
+                    bool eligible = extend_read_local_batch;
                     uint64_t* fallback = nullptr;
-                    if (multi_session_watch_size(conn) != 0) {
-                        fallback = &local_stats.fallback_watch;
-                        eligible = false;
-                    } else if (c->blocked() || c->subscriber_mode() || op->has_scatter_state() ||
-                               (spec->flags & (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
-                                               CmdFlags::AllShards))) {
-                        fallback = &local_stats.fallback_context;
-                        eligible = false;
-                    } else if (rob.has_unretired_write()) {
-                        fallback = &local_stats.fallback_inflight_write;
-                        eligible = false;
-                    } else {
-                        const uint64_t state =
-                            srv_->shard(op->shard).store().read_local_state_acquire();
-                        if (FlatStore::read_local_pending(state) != 0) {
-                            fallback = &local_stats.fallback_atomic_pending;
+                    if (!extend_read_local_batch) {
+                        eligible = true;
+                        if (multi_session_watch_size(conn) != 0) {
+                            fallback = &local_stats.fallback_watch;
                             eligible = false;
-                        } else if (!FlatStore::read_local_state_eligible(state)) {
-                            fallback = &local_stats.fallback_seq_churn;
+                        } else if (c->blocked() || c->subscriber_mode() ||
+                                   op->has_scatter_state() ||
+                                   (spec->flags & (CmdFlags::ScriptRoute | CmdFlags::MultiShard |
+                                                   CmdFlags::AllShards))) {
+                            fallback = &local_stats.fallback_context;
                             eligible = false;
-                        } else if (!fused_executor_->local_read_lane_has_room()) {
-                            fallback = &local_stats.fallback_lane_full;
+                        } else if (rob.has_unretired_write()) {
+                            fallback = &local_stats.fallback_inflight_write;
                             eligible = false;
+                        } else {
+                            const uint64_t state =
+                                srv_->shard(op->shard).store().read_local_state_acquire();
+                            if (FlatStore::read_local_pending(state) != 0) {
+                                fallback = &local_stats.fallback_atomic_pending;
+                                eligible = false;
+                            } else if (!FlatStore::read_local_state_eligible(state)) {
+                                fallback = &local_stats.fallback_seq_churn;
+                                eligible = false;
+                            } else if (!fused_executor_->local_read_lane_has_room()) {
+                                fallback = &local_stats.fallback_lane_full;
+                                eligible = false;
+                            }
                         }
                     }
                     if (!eligible) {
@@ -2934,10 +2955,10 @@ ordinary_dispatch:
                         sig.ops++;
                         flip_fingerprint_note(*spec, *op);
                         mark_active(c);
-                        // Do not parse a younger command until this slot retires. Besides RYOW,
-                        // this makes an EX-stage type/expiry/churn fallback an ordering-safe owner
-                        // task without per-connection dependency chains in the local lane.
-                        break;
+                        read_local_batch = true;
+                        // Fill at most the existing fused IFID quantum. The entry guard above keeps
+                        // a second invocation from extending this batch before it retires.
+                        continue;
                     }
                 }
             }
