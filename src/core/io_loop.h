@@ -489,13 +489,7 @@ private:
             // per-operation hooks their zero-cost-when-off property.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
-            // A live CLIENT PAUSE is the only lane feature that needs a clock of its own; the
-            // deadline is checked once per batch, never per operation.
-            if (__builtin_expect(climon_pause_armed(), false)) {
-                cached_now_ms_ = now_ns() / 1000000ull;
-                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                if (cached_now_ms_ >= climon_pause_deadline_ms_) climon_release_pause();
-            }
+            const bool pause_armed = climon_pause_armed();
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
@@ -504,15 +498,7 @@ private:
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
                                          srv_->save_cron_writer(self_->id());
-            if (__builtin_expect(client_cron_armed || save_cron_armed || client_lb_signal_armed ||
-                                 lb_controller_armed, false)) {
-                cached_now_ms_ = now_ns() / 1000000ull;
-                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                if (client_cron_armed && !client_cron_was_armed_) {
-                    for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
-                    client_cron_beat_ms_ = cached_now_ms_;
-                }
-            }
+            const bool client_cron_newly_armed = client_cron_armed && !client_cron_was_armed_;
             if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
                 // Turning the last client cron consumer off also retires output accounting once.
                 // The disabled write-back specialization then has no per-serve cleanup branch.
@@ -526,7 +512,29 @@ private:
             uint32_t did = 0;
             {
                 Span busy(sig.busy_ns);
+                // The work-span clock is already sampled once for this pass. Reuse that cut for
+                // every monotonic millisecond consumer instead of issuing separate clock_gettime
+                // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
+                // is milliseconds or seconds.
+                bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
+                                        client_lb_signal_armed || lb_controller_armed ||
+                                        !deferred_waits_.empty();
+                if (__builtin_expect(pass_time_cached, true)) {
+                    cached_now_ms_ = busy.start_ns() / 1000000ull;
+                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                }
+                if (__builtin_expect(pause_armed &&
+                                     cached_now_ms_ >= climon_pause_deadline_ms_, false))
+                    climon_release_pause();
+                if (client_cron_newly_armed) {
+                    for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
+                    client_cron_beat_ms_ = cached_now_ms_;
+                }
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
+                    // only (the placement controller deliberately uses busy/idle), so sample it
+                    // on the existing 100us signal beat instead of every hot pass.
+                    sig.cpu_ns = thread_cpu_ns();
                     refresh_age_sampling();
                     if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
                 }
@@ -553,8 +561,12 @@ private:
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 if (__builtin_expect(!deferred_waits_.empty(), false)) {
-                    cached_now_ms_ = now_ns() / 1000000ull;
-                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                    // CQ processing above may have created the first WAIT after the prologue.
+                    if (!pass_time_cached) {
+                        cached_now_ms_ = busy.start_ns() / 1000000ull;
+                        cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
+                        pass_time_cached = true;
+                    }
                     did += deferred_wait_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
@@ -595,8 +607,6 @@ private:
                     save_cron_beat_ms_ = cached_now_ms_ + 1000;
                 }
             }
-            sig.cpu_ns = thread_cpu_ns();
-
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
             // the busy path without submitting strands them in the SQ forever, and the peer
@@ -2153,17 +2163,27 @@ private:
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         const uint32_t pass_rpos = conn.rpos();
+        const char* const pass_rbuf = conn.rbuf();
+        const uint32_t pass_rlen = conn.rlen();
+        const uint32_t self_id = self_->id();
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
         const uint8_t security_flags = srv_->security_flags();
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
         const bool notify_armed = notify_armed_;
+        const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
+        const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // One continuous-placement epoch per parse pass. Work published concurrently with a new
         // EX drain is included in that drain; reloading the stage for every operation would add a
         // shared atomic to the request path without strengthening the ownership fence.
         const bool lb_pause_this_pass = lb_controller_armed_ &&
-            srv_->lb_should_pause(self_->id(), c->id());
+            srv_->lb_should_pause(self_id, c->id());
+        if (__builtin_expect(lb_pause_this_pass, false)) {
+            if (self_->flip_fingerprint().enabled())
+                self_->flip_fingerprint().finish_parse_pass();
+            return result;
+        }
         // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
         // non-decreasing along the connection, not distinct: every op this pass parses may share
         // the pass's cut, and the next pass's cut is >= this one because the sequence only moves
@@ -2179,7 +2199,6 @@ private:
         for (;;) {
             if constexpr (BatchOps != 0)
                 if (sig.ops - batch_start_ops >= BatchOps) break;
-            if (__builtin_expect(lb_pause_this_pass, false)) break;
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
             // below so live-vs-target remains observable while the dispatch barrier is active.
@@ -2197,13 +2216,12 @@ private:
             ParseResult pr;
             if (__builtin_expect(security_check, false)) {
                 pr = resp_parse_limited(
-                    conn.rbuf(), conn.rlen(), pos, *op, &err, 10, 16384);
-            } else if (__builtin_expect(
-                           proto_max_bulk_len_ == 512ull * 1024 * 1024, true)) {
-                pr = resp_parse(conn.rbuf(), conn.rlen(), pos, *op, &err);
+                    pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
+            } else if (__builtin_expect(default_bulk_limit, true)) {
+                pr = resp_parse(pass_rbuf, pass_rlen, pos, *op, &err);
             } else {
-                pr = resp_parse_limited(conn.rbuf(), conn.rlen(), pos, *op, &err,
-                                        1024 * 1024, proto_max_bulk_len_);
+                pr = resp_parse_limited(pass_rbuf, pass_rlen, pos, *op, &err,
+                                        1024 * 1024, pass_max_bulk_len);
             }
             security_check |= acl_active;
 
@@ -2215,7 +2233,7 @@ private:
             }
             if (pr == ParseResult::Error) {
                 finish_locally(c, *op, err ? err : "ERR protocol error");
-                conn.advance_parse(conn.rlen() - conn.rpos());
+                conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
                 result = DispatchResult::Error;
                 break;
@@ -2418,7 +2436,7 @@ subscriber_checks_done:
                         error = "ERR FLIP io and ex must be unsigned integers";
                         srv_->flip_note_refused();
                     } else
-                        started = srv_->flip_begin(target_io, target_ex, self_->id(), error);
+                        started = srv_->flip_begin(target_io, target_ex, self_id, error);
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
@@ -2498,7 +2516,7 @@ subscriber_checks_done:
                 if (__builtin_expect(slowlog_armed_, false)) {
                     timespec wall{};
                     ::clock_gettime(CLOCK_REALTIME, &wall);
-                    slowlog_record(self_->id(), c->id(), *op, now_ns() - slow_started,
+                    slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
                                    static_cast<int64_t>(wall.tv_sec) * 1000 +
                                        wall.tv_nsec / 1000000,
                                    slowlog_arm_, true);
@@ -2564,7 +2582,7 @@ subscriber_checks_done:
                 bool room = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); tid++) {
                     if (needed[tid] &&
-                        srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                         room = false;
                         break;
                     }
@@ -2583,7 +2601,7 @@ subscriber_checks_done:
                     ThreadCtx& owner = srv_->thread(tid);
                     const Task task{c, op_id, sid,
                                     reinterpret_cast<ScatterState*>(dispatch.state)};
-                    if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                    if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
                     if (!touched_[tid]) {
                         touched_[tid] = true;
                         touched_list_[ntouched_++] = tid;
@@ -2616,9 +2634,16 @@ subscriber_checks_done:
             }
 
 nonblocking_dispatch:
+            // Ordinary single-key commands never enter the scatter engine. Keep xshard_prepare's
+            // own classification guard for its other callers, but avoid paying the cross-TU call
+            // just to discover that GET/SET have none of the three scatter-routing flags.
+            constexpr uint32_t kScatterRouteFlags =
+                CmdFlags::AllShards | CmdFlags::MultiShard | CmdFlags::ConfigRoute;
+            if (!(spec->flags & kScatterRouteFlags)) goto ordinary_dispatch;
+            {
             ScatterDispatch scatter_dispatch;
             const ScatterPrepare scatter_prepared =
-                xshard_prepare(*srv_, *op, scatter_pool_, self_->id(), c->id(), scatter_dispatch,
+                xshard_prepare(*srv_, *op, scatter_pool_, self_id, c->id(), scatter_dispatch,
                                false, c);
             if (scatter_prepared == ScatterPrepare::Error) {
                 conn.advance_parse(consumed);
@@ -2652,7 +2677,7 @@ nonblocking_dispatch:
                 // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
                 // RENAME) are not barriered and do not pay it -- they post every task from here.
                 if (scatter_dispatch.barrier && rob.in_flight() != 0) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 // Read-only/plain scatters keep the compact V3 dispatch arm. Constructing route and
@@ -2674,7 +2699,7 @@ nonblocking_dispatch:
                     bool room = true;
                     for (uint32_t p = 0; p < nparticipants; p++) {
                         const uint32_t tid = participants[p];
-                        if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                        if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                             room = false;
                             break;
                         }
@@ -2682,7 +2707,7 @@ nonblocking_dispatch:
                     // Restore the zero-on-entry invariant before EVERY exit from this arm.
                     for (uint32_t p = 0; p < nparticipants; p++) needed[participants[p]] = 0;
                     if (!room) {
-                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                         break;
                     }
                     const uint64_t op_id = rob.dispatch_id();
@@ -2693,7 +2718,7 @@ nonblocking_dispatch:
                         const uint32_t tid = srv_->worker_of_shard(sid);
                         ThreadCtx& owner = srv_->thread(tid);
                         const Task task{c, op_id, sid, scatter_dispatch.state};
-                        if (!owner.post_task_quiet(self_->id(), task, sig)) std::abort();
+                        if (!owner.post_task_quiet(self_id, task, sig)) std::abort();
                         if (!touched_[tid]) {
                             touched_[tid] = true;
                             touched_list_[ntouched_++] = tid;
@@ -2724,12 +2749,12 @@ nonblocking_dispatch:
                 bool room = true;
                 for (uint32_t p = 0; p < nparticipants; p++) {
                     const uint32_t tid = participants[p];
-                    if (srv_->thread(tid).task_free_slots(self_->id()) < needed[tid]) {
+                    if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
                         room = false; break;
                     }
                 }
                 if (!room) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_->id());
+                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 const uint64_t op_id = rob.dispatch_id();
@@ -2760,7 +2785,7 @@ nonblocking_dispatch:
                     // Capacity was checked before any push. Publish all of this group's tasks for
                     // one executor with one queue-tail store; the parse-pass notify remains folded.
                     if (!owner.post_tasks_quiet(
-                            self_->id(), posts + begin, end - begin, sig)) std::abort();
+                            self_id, posts + begin, end - begin, sig)) std::abort();
                     if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
                 }
                 self_->note_command(spec->id); // one public command, not one count per shard task
@@ -2772,7 +2797,9 @@ nonblocking_dispatch:
                 mark_active(c);
                 continue;
             }
+            }
 
+ordinary_dispatch:
             // The ordinary key position is registry metadata. Container children and the other
             // special routes refine it in the existing CursorShard hook below.
             if (spec->flags & CmdFlags::CursorShard) {
@@ -2827,7 +2854,7 @@ nonblocking_dispatch:
             }
             Task t{c, rob.dispatch_id(), -1, nullptr};
             rob.publish();
-            if (!worker.post_task_quiet(self_->id(), t, sig)) {
+            if (!worker.post_task_quiet(self_id, t, sig)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
@@ -2855,7 +2882,7 @@ nonblocking_dispatch:
         for (uint32_t i = 0; i < ntouched_; i++) {
             const uint32_t wkr = touched_list_[i];
             touched_[wkr] = false;
-            srv_->thread(wkr).flush_task_notify(self_->id(), ring_, sig);
+            srv_->thread(wkr).flush_task_notify(self_id, ring_, sig);
         }
         ntouched_ = 0;
         if (self_->flip_fingerprint().enabled())

@@ -250,7 +250,7 @@ public:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn, c.rob().flush_id());
+        did |= flush_deferred_oob(conn);
         if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
             stats_.retired += retired;
             return true;
@@ -616,10 +616,11 @@ private:
     // Empty on every serve of every connection that has no subscription, tracking or monitor:
     // one predicted-true test per serve, as before. The drain has finished staging and published
     // its new flush frontier, so every append below is on a frame boundary.
-    bool flush_deferred_oob(Client& conn, uint64_t retired_through) {
+    bool flush_deferred_oob(Client& conn) {
         if (__builtin_expect(oob_defer_.empty(), true)) return false;
         auto found = oob_defer_.find(&conn);
         if (found == oob_defer_.end()) return false;
+        const uint64_t retired_through = conn.rob().flush_id();
         DeferredOobQueue& queue = found->second;
         bool flushed = false;
         while (!queue.empty() && queue.front().after <= retired_through) {
@@ -691,7 +692,7 @@ private:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn, c.rob().flush_id());
+        did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
@@ -746,7 +747,7 @@ private:
         });
         draining_ = nullptr;
         bool did = retired != 0;
-        did |= flush_deferred_oob(conn, c.rob().flush_id());
+        did |= flush_deferred_oob(conn);
         if constexpr (TrackOutput) {
             if (limit_fn_ && limit_fn_(limit_ctx_, c)) {
                 stats_.retired += retired;
