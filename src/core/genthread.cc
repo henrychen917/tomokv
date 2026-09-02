@@ -141,11 +141,18 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (ok) {
                 executors[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&executors[tid]);
-                executors[tid].bind_fused_completion(
-                    &ios[tid],
-                    [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
-                    });
+                if (cfg.thread_pipeline == 0)
+                    executors[tid].bind_fused_completion(
+                        &ios[tid],
+                        [](void* p, Client* client) {
+                            static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
+                        });
+                else
+                    executors[tid].bind_fused_completion(
+                        &ios[tid],
+                        [](void* p, Client* client) {
+                            static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
+                        });
                 self.bind_fused_executor_hooks(
                     &executors[tid],
                     [](void* p) { return static_cast<FusedExLoop*>(p)->fused_pass(); },

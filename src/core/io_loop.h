@@ -438,10 +438,11 @@ public:
         fused_executor_ = executor;
     }
 
+    template <bool TargetedIfid>
     void fused_executor_completion(Client* client) {
         if (!client || client->dead()) return;
         enqueue_serve(client);
-        mark_active(client);
+        mark_active_known<TargetedIfid>(client);
     }
 
     void run_fused();
@@ -1029,7 +1030,7 @@ private:
         auto wb_w0 = [&](bool discover = true) {
             uint32_t work = 0;
             if (discover) {
-                work += collect_retire_work<HasUnix, kEp>();
+                work += collect_retire_work<HasUnix, kEp, true>();
                 if (__builtin_expect(pubsub_pass_pending_, false))
                     work += pubsub_pass_flush();
             }
@@ -1080,14 +1081,13 @@ private:
                 }
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client))
-                        (void)wb_.prepare_pipeline_tls<kEp>(
-                            *client, *tls, submit_client);
+                        (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
                     else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                        (void)wb_.prepare_pipeline_ktls<kEp>(*client, submit_client);
+                        (void)wb_.prepare_pipeline_ktls<kEp>(*client);
                     else
-                        (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
+                        (void)wb_.prepare_pipeline<kEp>(*client);
                 } else {
-                    (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
+                    (void)wb_.prepare_pipeline<kEp>(*client);
                 }
             }
             return wb_context.count;
@@ -1967,7 +1967,7 @@ private:
                             c->set_recv_armed(false);
                         }
                     }
-                    mark_active(c);
+                    mark_active_known<Fused && Pipeline != 0>(c);
                     work++;
                     break;
                 }
@@ -2008,7 +2008,7 @@ private:
         else {
             if constexpr (!ImmediateProgress)
                 if (!c->nothing_to_write() || tls->output_pending()) enqueue_serve(c);
-            mark_active(c);
+            mark_active_known<!ImmediateProgress>(c);
         }
     }
 
@@ -3061,7 +3061,7 @@ private:
         // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
         // conn -- it would sit accepted and silent forever (audit finding). The active set's
         // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
-        mark_active(c);
+        mark_active_known<Fused && Pipeline != 0>(c);
     }
 
     uint32_t flush_handoffs() {
@@ -3113,7 +3113,7 @@ private:
         }
         // Deliberately NOT re-armed here. flush_ready() re-arms AFTER it may have reset the read
         // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
-        mark_active(c);
+        mark_active_known<Fused && Pipeline != 0>(c);
     }
 
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
@@ -3243,7 +3243,7 @@ private:
         if (c->dead()) return;
         if (c->closing() || res < 0) { close_client(c); return; }
         (void)drive_tls<kEp, Fused, Pipeline>(c);
-        mark_active(c);
+        mark_active_known<Fused && Pipeline != 0>(c);
     }
 
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
@@ -3267,12 +3267,13 @@ private:
         self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
         c->set_last_interaction_s(cached_now_s_);
         (void)drive_tls<kEp, Fused, Pipeline>(c);
-        mark_active(c);
+        mark_active_known<Fused && Pipeline != 0>(c);
     }
 
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
-              bool BufferedIfid = false>
+              bool BufferedIfid = false, bool TargetedIfid = false,
+              bool SuppressOrdinaryActiveMark = false>
     DispatchResult parse_and_dispatch(
         Client* c, IfidPipelineBatch* pipeline_batch = nullptr) {
         Client& conn = *c;
@@ -3500,7 +3501,7 @@ private:
                     climon_reset_client(c);
                     pubsub_start_reset(c, *op);
                     sig.ops++;
-                    mark_active(c);
+                    mark_active_known<TargetedIfid>(c);
                     break;
                 }
                 if (op->resp3()) goto subscriber_checks_done;
@@ -3536,7 +3537,7 @@ subscriber_checks_done:
                 const PubSubStartResult result = pubsub_start_command(c, *op);
                 if (result == PubSubStartResult::Async) {
                     sig.ops++;
-                    mark_active(c);
+                    mark_active_known<TargetedIfid>(c);
                     if (__builtin_expect(c->scatter_barrier(), false)) break;
                     continue;
                 }
@@ -3594,14 +3595,14 @@ subscriber_checks_done:
                         op->state.store(OpState::Done, std::memory_order_release);
                         rob.publish();
                         enqueue_serve(c);
-                        mark_active(c);
+                        mark_active_known<TargetedIfid>(c);
                         continue;
                     }
                     flip_client_ = c;
                     flip_op_id_ = rob.dispatch_id();
                     flip_epoch_local_ = srv_->flip_epoch();
                     rob.publish();              // sole unfinished op on the coordinator connection
-                    mark_active(c);
+                    mark_active_known<TargetedIfid>(c);
                     break;
                 }
                 // An unsatisfied WAIT has no shard work, but Redis keeps the connection parked
@@ -3626,7 +3627,7 @@ subscriber_checks_done:
                             // the WAIT reply's staging. Owner bit named so the release is
                             // attributable; the release site is deliberately unchanged.
                             barrier_arm(c, BarrierOwner::Wait);
-                            mark_active(c);
+                            mark_active_known<TargetedIfid>(c);
                             break;
                         }
                     } else if (wait == WaitCommandResult::Immediate) {
@@ -3640,7 +3641,7 @@ subscriber_checks_done:
                     op->state.store(OpState::Done, std::memory_order_release);
                     rob.publish();
                     enqueue_serve(c);
-                    mark_active(c);
+                    mark_active_known<TargetedIfid>(c);
                     continue;
                 }
                 // RESET clears this lane's connection state (monitor mode, tracking registration,
@@ -3674,7 +3675,7 @@ subscriber_checks_done:
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 enqueue_serve(c);
-                mark_active(c);
+                mark_active_known<TargetedIfid>(c);
                 if (c->closing()) { result = DispatchResult::Closed; break; }
                 if (acl_command) break;
                 if (__builtin_expect(climon_armed_dirty_, false)) {
@@ -3777,7 +3778,7 @@ subscriber_checks_done:
                 // means something, instead of being a number nothing was ever able to move.
                 if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
                     barrier_arm(c, BarrierOwner::Debug);
-                mark_active(c);
+                mark_active_known<TargetedIfid>(c);
                 break;
             }
 
@@ -3878,7 +3879,7 @@ nonblocking_dispatch:
                     sig.ops++;
                     head_candidate = false;
                     if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
-                    mark_active(c);
+                    mark_active_known<TargetedIfid>(c);
                     continue;
                 }
 
@@ -3942,7 +3943,7 @@ nonblocking_dispatch:
                 sig.ops++;
                 head_candidate = false;
                 if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
-                mark_active(c);
+                mark_active_known<TargetedIfid>(c);
                 continue;
             }
             }
@@ -4031,7 +4032,12 @@ ordinary_dispatch:
                 touched_[worker_id] = true;
                 touched_list_[ntouched_++] = worker_id;
             }
-            mark_active(c);
+            // Unified pipeline 1 entered with a live active client and its batch tail decides once
+            // whether input/backpressure requires another IFID visit. Repeating the same active
+            // and queue-dedupe checks for every op was pure per-op work; the other schedules retain
+            // their existing mark here.
+            if constexpr (!SuppressOrdinaryActiveMark)
+                mark_active_known<TargetedIfid>(c);
         }
         if constexpr (!IoPipe) {
             // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
@@ -4169,6 +4175,19 @@ ordinary_dispatch:
         active_.insert(c);
     }
 
+    template <bool TargetedIfid>
+    void mark_active_known(Client* c) {
+        if (c->dead()) return;
+        if constexpr (TargetedIfid)
+            if (!c->ifid_pending()) {
+                c->set_ifid_pending(true);
+                pending_ifid_.push_back(c);
+            }
+        if (c->in_active()) return;
+        c->set_in_active(true);
+        active_.insert(c);
+    }
+
     void enqueue_ifid(Client* c) {
         if (!c || c->dead() || c->ifid_pending()) return;
         c->set_ifid_pending(true);
@@ -4261,7 +4280,7 @@ ordinary_dispatch:
         return n;
     }
 
-    template <bool HasUnix, bool kEp>
+    template <bool HasUnix, bool kEp, bool TargetedIfid = false>
     uint32_t collect_retire_work(bool unmasked = false) {
         uint32_t pubsub_work = 0;
         auto take = [&](Client* c) {
@@ -4275,11 +4294,12 @@ ordinary_dispatch:
             if constexpr (HasUnix)
                 if (!c->retire_queued().load(std::memory_order_acquire)) {
                     adopt_client<kEp>(c, true);
+                    if constexpr (TargetedIfid) enqueue_ifid(c);
                     return;
                 }
             c->retire_queued().store(false, std::memory_order_release);
             enqueue_serve(c);                    // a posted client is a serve request
-            mark_active(c);
+            mark_active_known<TargetedIfid>(c);
         };
         uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
         // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client,
@@ -4293,7 +4313,11 @@ ordinary_dispatch:
                 const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
                 bits &= bits - 1;
                 Client* c = self_->wb_slot_client(w * 64 + b);
-                if (c && !c->dead()) { enqueue_serve(c); mark_active(c); n++; }
+                if (c && !c->dead()) {
+                    enqueue_serve(c);
+                    mark_active_known<TargetedIfid>(c);
+                    n++;
+                }
             }
         }
         return n + pubsub_work;
@@ -4426,30 +4450,36 @@ ordinary_dispatch:
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, ParseBatchOps, false, Pipeline == 2>(
+                                true, ParseBatchOps, false, Pipeline == 2, true,
+                                Pipeline == 1>(
                                     c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, ParseBatchOps, false, Pipeline == 2>(
+                                false, ParseBatchOps, false, Pipeline == 2, true,
+                                Pipeline == 1>(
                                     c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, ParseBatchOps, false, Pipeline == 2>(c, pipeline_batch);
+                            false, ParseBatchOps, false, Pipeline == 2, true,
+                            Pipeline == 1>(c, pipeline_batch);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, ParseBatchOps, false, Pipeline == 2>(
+                                true, ParseBatchOps, false, Pipeline == 2, true,
+                                Pipeline == 1>(
                                     c, pipeline_batch);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, ParseBatchOps, false, Pipeline == 2>(
+                                false, ParseBatchOps, false, Pipeline == 2, true,
+                                Pipeline == 1>(
                                     c, pipeline_batch);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, ParseBatchOps, false, Pipeline == 2>(c, pipeline_batch);
+                            false, ParseBatchOps, false, Pipeline == 2, true,
+                            Pipeline == 1>(c, pipeline_batch);
                     }
                     if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true))
                         work++;
@@ -4542,7 +4572,7 @@ ordinary_dispatch:
         if (batch.count || active_wb_context_) std::abort();
         active_wb_context_ = &batch;
 
-        uint32_t work = collect_retire_work<HasUnix, kEp>();
+        uint32_t work = collect_retire_work<HasUnix, kEp, true>();
         if (!pending_serve_.empty()) {
             AofManager& aof = srv_->aof();
             if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
@@ -4613,13 +4643,13 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls, submit_client);
+                    (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
                 else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_pipeline_ktls<kEp>(*client, submit_client);
+                    (void)wb_.prepare_pipeline_ktls<kEp>(*client);
                 else
-                    (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
+                    (void)wb_.prepare_pipeline<kEp>(*client);
             } else {
-                (void)wb_.prepare_pipeline<kEp>(*client, submit_client);
+                (void)wb_.prepare_pipeline<kEp>(*client);
             }
         }
         for (uint32_t i = 0; i < batch.count; i++) {
@@ -4722,7 +4752,7 @@ ordinary_dispatch:
                 flush_borrow_releases();
         work += genthread_ifid_batch<HasTls, kEp, Pipeline>(nullptr);
         work += fused_executor_->fused_sweep(executor_tasks);
-        work += collect_retire_work<HasUnix, kEp>(true) +
+        work += collect_retire_work<HasUnix, kEp, true>(true) +
                 genthread_wb_batch<HasTls, kEp, Pipeline>();
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
@@ -5542,6 +5572,16 @@ ordinary_dispatch:
                 "Client id=%llu closed for overcoming of output buffer limits.\n",
                 static_cast<unsigned long long>(c->id()));
         close_client(c);
+        // Unified W1 has already retired/staged this client but must not let W2 submit the bytes
+        // which crossed the hard limit. Its batch already has a nullable-client guard, so encode
+        // this rare refusal there and keep the ordinary prepare path free of a parallel bool.
+        // close_client runs first while the active context still fences the Client lifetime.
+        if (active_wb_context_)
+            for (uint32_t i = 0; i < active_wb_context_->count; i++)
+                if (active_wb_context_->clients[i] == c) {
+                    active_wb_context_->clients[i] = nullptr;
+                    break;
+                }
         return true;
     }
 
