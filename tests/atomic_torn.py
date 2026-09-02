@@ -523,7 +523,16 @@ store_pair = mover_pair
 if store_pair is None:
     store_off = store_on = (-1, 0, ["no cross-shard pair found"], False)
 else:
-    store_off = sinterstore_hammer("at:store-off", 0, store_pair, seconds=2.5)
+    # The OFF control is probabilistic: it must OBSERVE a torn image to prove the detector
+    # works, and a single 2.5s roll can come up clean under ASAN timing (seen at gate
+    # 2026-09-02: invalid=0 once, then 31/69/19 on three re-rolls). Re-roll up to four
+    # times before declaring the control failed — same hardening as the xscript
+    # contention row. A genuine loss of tearing at atomic-off stays a failure: four
+    # consecutive clean rolls is beyond timing luck.
+    for _roll in range(4):
+        store_off = sinterstore_hammer("at:store-off", 0, store_pair, seconds=2.5)
+        if store_off[0] > 0:
+            break
     store_on = sinterstore_hammer("at:store-on", 1, store_pair, seconds=2.0)
 note("OFF control exposes impossible SINTERSTORE image",
      store_off[0] > 0 and store_off[1] > 0 and not store_off[2],
