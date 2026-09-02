@@ -172,8 +172,8 @@ shard. The slot owns copied key/reply bytes and an absolute expiry stamp; it nev
 Detection reuses `ExLoop::note_lb_hash`'s existing 1-in-N countdown. On the tick where that code
 already records a bucket sample, an exact, successful, ordinary GET may also update the shard
 slot's owner-only candidate. Sixteen consecutive sampled GETs for the same exact hash and key
-promote it. Non-GET visits add no detector work, and there is no second counter or heavy-hitter
-policy. `hot-forward=1` keeps this same countdown active even when `key-lb=0`; an explicit
+promote it. Non-GET ticks never update an exact-key candidate, and there is no second counter or
+heavy-hitter policy. `hot-forward=1` keeps this same countdown active even when `key-lb=0`; an explicit
 `lb-sample-rate=0` is rejected with forwarding enabled rather than silently making promotion
 impossible. Until a promotion, the enabled GET path sees only the one predicted unavailable-slot
 branch; detector work occurs only on the pre-existing sampled tick. This is the no-hot
@@ -188,8 +188,9 @@ replace the named key only after it independently reaches the same fixed thresho
 
 Each opt-in slot contains one atomic 64-bit sequence and atomic 64-bit words for all published
 metadata, exact key bytes, and reply bytes. These are the only new atomics. They are required to be
-always lock-free. The owner makes the sequence odd, writes the atomic words with relaxed stores,
-then release-stores the next even sequence. Invalidation leaves the sequence odd. An IO reader:
+always lock-free. The owner makes the sequence odd, executes a release fence, writes the atomic
+words with relaxed stores, then release-stores the next even sequence. Invalidation leaves the
+sequence odd. An IO reader:
 
 1. acquire-loads an even sequence;
 2. relaxed-loads metadata and exact-compares hash, key length, and key words;
@@ -209,9 +210,12 @@ Every scatter, multi-key, script, atomic-group, FLUSH, or other broad write frag
 physical shard's slot and does not republish an intermediate value. These actions occur before the
 write operation's existing `Done` release. MVCC physical changes remain invalid until a later
 sampled plain GET after the pending epoch state has drained. Rehash and snapshot table moves do not
-change a logical value and need no slot action. Lazy/active expiry needs no asynchronous publish:
-the absolute deadline in the slot makes it unusable at that same deadline, and the owner path then
-performs the real deletion.
+change a logical value and need no slot action. Each executor also keeps the minimum absolute
+deadline among its published slots. At the start of the first owner pass whose `CLOCK_REALTIME` cut
+reaches that minimum, it makes every due slot odd before that pass can perform lazy or active
+expiry, then recomputes the minimum. This pass-level index adds no expiry hook to `FlatStore` and
+prevents an IO pass with an older cached clock (or a later wall-clock rollback) from resurrecting a
+copy after the owner deleted it.
 
 ### IO eligibility, order, and expiry
 
@@ -239,5 +243,5 @@ and a plain IO-owner forwarded-hit counter included in keyspace hit reporting.
 Fallback is therefore mandatory for: no slot; non-GET or multi-key read; non-quiescent/non-prefix
 connection order; ACL or TLS rejection; active atomic tracking/read cut; live maxmemory touch
 policy; hash/key mismatch; odd or changed sequence; expired deadline; missing/wrong-type publisher
-state; or key/reply overflow. Every fallback is the pre-existing owner task path, not a second read
-implementation.
+state; key/reply overflow; or `slowlog-log-slower-than 0` (the log-every-command posture). Every
+fallback is the pre-existing owner task path, not a second read implementation.
