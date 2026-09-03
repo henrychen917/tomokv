@@ -85,6 +85,22 @@ note("atomic MSET then plain GET/MGET RYOW",
      "replies=%r/%r/%r" % (r1, r2, r3))
 c.close()
 
+# Put the only overlap at the final MGET argument so admission must scan past every disjoint key,
+# including the command's prehashed routing key. The adjacent frames also leave no intervening GET
+# that could supply its own owner fence and mask an MGET-local RYOW regression.
+guards = ["ary:mget-ring-guard:%d" % i for i in range(8)]
+writes = ["ary:mget-ring-write:%d" % i for i in range(8)]
+admin.cmd("DEL", *(guards + writes))
+admin.cmd(*mset_args(guards, "guard:old"))
+c = Resp()
+c.sock.sendall(frame(*mset_args(writes, "ryow:mget")) +
+               frame("MGET", *(guards + [writes[-1]])))
+w, values = c.read(), c.read()
+note("atomic MSET then last-key-overlapping MGET RYOW",
+     w == b"OK" and values == [b"guard:old"] * 8 + [b"ryow:mget"],
+     "replies=%r/%r" % (w, values))
+c.close()
+
 # The same precise hazard applies to a younger plain write: it must not physically run before the
 # older atomic group decides, even though both frames were parsed and dispatched together.
 orderkeys = ["ary:order%d" % i for i in range(8)]

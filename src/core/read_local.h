@@ -23,11 +23,23 @@ inline bool read_local_command_is_mget(const Op& op) {
     return op.spec && command_is_read_local_mget(*op.spec);
 }
 
+// MSET is a blind write to every key named by its regular key range. While its ROB slot is live,
+// the armed RYOW ring can retain one descriptor for the command and use these immutable argv slices
+// for exact overlap checks. Other multi-key writes remain conservative: source/destination roles,
+// implicit writes, or execution-dependent effects make their registry key range insufficient.
+inline bool read_local_command_is_precise_mset(const Op& op) {
+    return op.spec && op.cmd_name().eq_icase("mset");
+}
+
 // Owner-tail ordering is hash-conservative, like the RYOW write ring: an actual hash collision is
-// allowed to take the owner path. MGET keeps one ROB slot, so every key in its argv participates.
+// allowed to take the owner path. MGET and precise MSET each keep one ROB slot, so every key in the
+// command's immutable argv participates without consuming one ring entry per key.
 inline bool read_local_command_touches_hash(const Op& op, uint64_t hash) {
-    if (!read_local_command_is_mget(op)) return op.hash == hash;
-    for (uint32_t arg = 1; arg < op.argc(); arg++)
+    if (!read_local_command_is_mget(op) && !read_local_command_is_precise_mset(op))
+        return op.hash == hash;
+    const uint32_t step = static_cast<uint32_t>(op.spec->key_step);
+    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key);
+         arg < op.argc(); arg += step)
         if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
     return false;
 }
@@ -53,6 +65,17 @@ inline bool read_local_owner_command_touches_hash(const Op& op, uint64_t hash) {
     if (read_local_command_is_mget(op)) return read_local_command_touches_hash(op, hash);
     if (!read_local_owner_command_is_precise(op)) return true;
     return op.hash == hash;
+}
+
+// Callers use this only after proving that `command` mutates no key outside its declared keyset.
+// Unlike owner-tail overlap, this deliberately accepts precise MSET as an exact command.
+inline bool read_local_commands_overlap_precise_keyset(const Op& read, const Op& command) {
+    if (!read_local_command_is_mget(read))
+        return read_local_command_touches_hash(command, read.hash);
+    for (uint32_t arg = 1; arg < read.argc(); arg++)
+        if (read_local_command_touches_hash(
+                command, FlatStore::hash_key(read.arg(arg)))) return true;
+    return false;
 }
 
 inline bool read_local_commands_overlap(const Op& read, const Op& owner) {

@@ -69,10 +69,11 @@ static_assert(kReadLocalMaxChunksBetweenOwnerBatches > 0);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
-// Constructed only for an armed hash-precise point write whose owner has since enabled eviction.
+// Constructed only for an armed declared-key-precise write whose owner has since enabled eviction.
 // Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
-// self-fulfilling: this operation can update its routed key or fail, but cannot delete a different
-// key behind a younger local read. The owner restores its live policy before the next task.
+// self-fulfilling: this operation can update its declared point/keyset or fail, but cannot delete a
+// different key behind a younger local read. The owner restores its live policy before the next
+// task.
 class ReadLocalPreciseWriteGuard {
 public:
     explicit ReadLocalPreciseWriteGuard(FlatStore& store) : store_(&store) {
