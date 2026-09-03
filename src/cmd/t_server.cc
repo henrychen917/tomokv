@@ -1505,6 +1505,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_typed += local.fallback_typed;
     total.fallback_expired += local.fallback_expired;
     total.fallback_seq_churn += local.fallback_seq_churn;
+    total.fallback_generation += local.fallback_generation;
     total.fallback_lane_full += local.fallback_lane_full;
     total.mget_local_hits += local.mget_local_hits;
     total.mget_fallback_multi += local.mget_fallback_multi;
@@ -1521,6 +1522,8 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_typed += local.mget_fallback_typed;
     total.mget_fallback_expired += local.mget_fallback_expired;
     total.mget_fallback_seq_churn += local.mget_fallback_seq_churn;
+    total.mget_generation_retries += local.mget_generation_retries;
+    total.mget_fallback_generation += local.mget_fallback_generation;
     total.mget_fallback_lane_full += local.mget_fallback_lane_full;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     total.settax.add(local.settax);
@@ -1806,6 +1809,8 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_expired, baseline.read_local.fallback_expired);
         read_local.fallback_seq_churn = minus_baseline(
             read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+        read_local.fallback_generation = minus_baseline(
+            read_local.fallback_generation, baseline.read_local.fallback_generation);
         read_local.fallback_lane_full = minus_baseline(
             read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
         read_local.mget_local_hits = minus_baseline(
@@ -1841,6 +1846,12 @@ void cmd_info(Shard&, Op& op) {
         read_local.mget_fallback_seq_churn = minus_baseline(
             read_local.mget_fallback_seq_churn,
             baseline.read_local.mget_fallback_seq_churn);
+        read_local.mget_generation_retries = minus_baseline(
+            read_local.mget_generation_retries,
+            baseline.read_local.mget_generation_retries);
+        read_local.mget_fallback_generation = minus_baseline(
+            read_local.mget_fallback_generation,
+            baseline.read_local.mget_fallback_generation);
         read_local.mget_fallback_lane_full = minus_baseline(
             read_local.mget_fallback_lane_full,
             baseline.read_local.mget_fallback_lane_full);
@@ -2293,6 +2304,7 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_typed:%llu\r\n"
                 "read_local_fallback_expired:%llu\r\n"
                 "read_local_fallback_seq_churn:%llu\r\n"
+                "read_local_fallback_generation:%llu\r\n"
                 "read_local_fallback_lane_full:%llu\r\n",
                 static_cast<unsigned long long>(read_local.hits),
                 static_cast<unsigned long long>(read_local.keyspace_hits),
@@ -2311,6 +2323,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_typed),
                 static_cast<unsigned long long>(read_local.fallback_expired),
                 static_cast<unsigned long long>(read_local.fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.fallback_generation),
                 static_cast<unsigned long long>(read_local.fallback_lane_full));
         appendf(body,
                 "read_local_mget_local_hits:%llu\r\n"
@@ -2327,6 +2340,8 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_typed:%llu\r\n"
                 "read_local_mget_fallback_expired:%llu\r\n"
                 "read_local_mget_fallback_seq_churn:%llu\r\n"
+                "read_local_mget_generation_retries:%llu\r\n"
+                "read_local_mget_fallback_generation:%llu\r\n"
                 "read_local_mget_fallback_lane_full:%llu\r\n",
                 static_cast<unsigned long long>(read_local.mget_local_hits),
                 static_cast<unsigned long long>(read_local.mget_fallbacks()),
@@ -2344,6 +2359,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_typed),
                 static_cast<unsigned long long>(read_local.mget_fallback_expired),
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.mget_generation_retries),
+                static_cast<unsigned long long>(read_local.mget_fallback_generation),
                 static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         // Temporary experiment telemetry is lifetime-scoped (unlike Redis compatibility stats,

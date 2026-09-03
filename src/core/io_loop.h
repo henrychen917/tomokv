@@ -3929,6 +3929,8 @@ private:
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
+            if constexpr (Fused)
+                if (read_local_enabled && rob.local_mget_fence_pending()) break;
             Op* op;
             if constexpr (Fused) {
                 op = read_local_enabled
@@ -4965,6 +4967,8 @@ ordinary_dispatch:
                         const uint64_t op_id = rob.dispatch_id();
                         op->mark_read_local();
                         rob.mark_current_read_local();
+                        if (read_local_mget_candidate)
+                            rob.arm_current_local_mget_fence();
                         rob.publish();
                         if (!fused_executor_->enqueue_local_read(
                                 Task{c, op_id, -1, nullptr}))
@@ -4975,7 +4979,9 @@ ordinary_dispatch:
                         mark_active_known<TargetedIfid>(c);
                         read_local_batch = !read_local_mget_candidate;
                         // Fill at most the existing fused IFID quantum; intervening ordinary frames
-                        // simply end this run and do not stop the parser.
+                        // simply end this run. MGET holds a one-command cut fence until local
+                        // validation or irrevocable owner demotion, so stop this parse pass now.
+                        if (read_local_mget_candidate) break;
                         continue;
                     }
                 }

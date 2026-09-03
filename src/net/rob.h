@@ -75,6 +75,9 @@ struct ReadLocalRobState {
     uint16_t write_keyset_slots = 0;
     PendingWrite pending_write = PendingWrite::None;
     bool overflow = false;
+    // A local MGET is one command-wide latest-read fence. No younger frame may receive a read cut
+    // until this id either completes locally or is irrevocably transferred to the owner path.
+    uint64_t local_mget_fence_id = UINT64_MAX;
     // Keep the pure/short-ring controls and the first common entries on the leading cache lines.
     WriteKey write_ring[kWriteRingCapacity]{};
 };
@@ -147,6 +150,24 @@ public:
         read_local_pending_slots_ |= bit;
     }
 
+    void arm_current_local_mget_fence() {
+        read_local_state_activate();
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.local_mget_fence_id != UINT64_MAX) std::abort();
+        state.local_mget_fence_id = dispatch_id();
+    }
+
+    bool local_mget_fence_pending() {
+        if (!read_local_state_active()) return false;
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.local_mget_fence_id == UINT64_MAX) return false;
+        if (read_local_id_active(
+                state.local_mget_fence_id, dispatch_id(), flush_id())) return true;
+        state.local_mget_fence_id = UINT64_MAX;
+        read_local_try_deactivate(state);
+        return false;
+    }
+
     bool pending_read_local(uint64_t op_id) const {
         const uint64_t dispatch = dispatch_id();
         const uint64_t flush = flush_id();
@@ -187,6 +208,7 @@ public:
         const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
         if (!(read_local_pending_slots_ & bit)) std::abort();
         read_local_pending_slots_ &= ~bit;
+        read_local_clear_mget_fence(op_id);
     }
 
     void publish_pending_read_local_to_owner(uint64_t op_id) {
@@ -195,6 +217,7 @@ public:
             std::abort();
         read_local_pending_slots_ &= ~bit;
         read_local_owner_slots_ |= bit;
+        read_local_clear_mget_fence(op_id);
     }
 
     // Test only unfinished owner work that is older than `before_id`. Parser callers pass the
@@ -443,8 +466,17 @@ private:
     }
     void read_local_try_deactivate(const ReadLocalRobState& state) {
         if (!state.overflow && state.write_count == 0 &&
-            state.pending_write == ReadLocalRobState::PendingWrite::None)
+            state.pending_write == ReadLocalRobState::PendingWrite::None &&
+            state.local_mget_fence_id == UINT64_MAX)
             read_local_state_ |= kReadLocalStateInactive;
+    }
+
+    void read_local_clear_mget_fence(uint64_t op_id) {
+        if (!read_local_state_active()) return;
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.local_mget_fence_id != op_id) return;
+        state.local_mget_fence_id = UINT64_MAX;
+        read_local_try_deactivate(state);
     }
 
     static bool read_local_id_active(uint64_t op_id, uint64_t dispatch, uint64_t flush) {

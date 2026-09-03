@@ -709,7 +709,11 @@ public:
         return read_local_store_state_required().probe_sequence.load(std::memory_order_acquire);
     }
     uint64_t local_publication_generation_acquire() const {
-        return read_local_store_state_required().publication.load(std::memory_order_acquire);
+        const ReadLocalStoreState& state = read_local_store_state_required();
+        // OFF is a true pre-B+ control: it retains the old topology/atomic sequence and does not
+        // make ordinary immutable SETs publish the MGET-only generation.
+        return (read_local_atomic_filter_ ? state.publication : state.probe_sequence)
+            .load(std::memory_order_acquire);
     }
     static bool read_local_table_mutating(uint64_t state) {
         return (state & kReadLocalTableMutationBit) != 0;
@@ -3299,42 +3303,40 @@ private:
     }
 
     void read_local_publication_mutation_begin() {
-        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (__builtin_expect(!read_local_enabled_ || !read_local_atomic_filter_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
         if (state.publication_mutation_depth++ == 0)
             read_local_advance_generation(state.publication, false);
     }
 
     void read_local_publication_mutation_end() {
-        if (__builtin_expect(!read_local_enabled_, true)) return;
+        if (__builtin_expect(!read_local_enabled_ || !read_local_atomic_filter_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
         if (!state.publication_mutation_depth) std::abort();
         if (--state.publication_mutation_depth == 0)
             read_local_advance_generation(state.publication, true);
     }
 
-    // Begin's acq_rel RMW is the writer-side publication barrier: no later slot/topology update may
-    // precede the open bit. The high generation saturates into a permanent fail-closed value rather
-    // than wrapping to an equal state after 2^62 publications.
+    // Ownership supplies the only writer, so publication needs no locked RMW. The acquire fence
+    // after the release odd-store keeps later data stores on its far side; the final release store
+    // publishes the incremented even generation. Wrap becomes a permanent fail-closed generation.
     static void read_local_advance_generation(std::atomic<uint64_t>& publication, bool ending) {
         if (!ending) {
-            const uint64_t previous = publication.fetch_or(
-                kReadLocalTableMutationBit, std::memory_order_acq_rel);
+            const uint64_t previous = publication.load(std::memory_order_relaxed);
             if (previous & kReadLocalTableMutationBit) std::abort();
+            publication.store(previous | kReadLocalTableMutationBit,
+                              std::memory_order_release);
+            std::atomic_thread_fence(std::memory_order_acquire);
             return;
         }
-        uint64_t observed = publication.load(std::memory_order_relaxed);
-        for (;;) {
-            if (!(observed & kReadLocalTableMutationBit)) std::abort();
-            const uint64_t generation = observed >> kReadLocalGenerationShift;
-            const uint64_t next = generation == kReadLocalGenerationMask
-                ? generation : generation + 1;
-            const uint64_t desired = (next << kReadLocalGenerationShift) |
-                                     (observed & kReadLocalPendingBit);
-            if (publication.compare_exchange_weak(
-                    observed, desired, std::memory_order_release, std::memory_order_relaxed))
-                return;
-        }
+        const uint64_t observed = publication.load(std::memory_order_relaxed);
+        if (!(observed & kReadLocalTableMutationBit)) std::abort();
+        const uint64_t generation = observed >> kReadLocalGenerationShift;
+        const uint64_t next = generation == kReadLocalGenerationMask
+            ? generation : generation + 1;
+        const uint64_t desired = (next << kReadLocalGenerationShift) |
+                                 (observed & kReadLocalPendingBit);
+        publication.store(desired, std::memory_order_release);
     }
 
     void read_local_pending_publish(AtomicEntry& entry) {
