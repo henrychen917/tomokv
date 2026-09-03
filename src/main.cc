@@ -133,7 +133,8 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "--load requires a non-empty path\n");
         return 1;
     }
-    if (!command_registry_init(cfg.tls_port != 0, cfg.thread_mode == ThreadMode::Fused)) {
+    if (!command_registry_init(cfg.tls_port != 0, cfg.thread_mode == ThreadMode::Fused,
+                               Server::read_local_enabled(cfg))) {
         std::fprintf(stderr, "command registry init failed\n");
         return 1;
     }

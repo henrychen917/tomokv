@@ -134,6 +134,22 @@ struct ReadLocalServerState {
     std::atomic<uint64_t> epoch{1};
 };
 
+// Logical two-bit distance, stored one class per byte so the executor pays one indexed load and
+// no packed-field extraction. Rows cover every physical thread because FLIP may change roles while
+// each thread's boot CPU placement remains fixed.
+enum class ExSchedDistanceClass : uint8_t {
+    SameCcx = 0,
+    SameCcd = 1,
+    CrossCcd = 2,
+};
+inline constexpr uint8_t kExSchedFarDistanceThreshold =
+    static_cast<uint8_t>(ExSchedDistanceClass::CrossCcd);
+static_assert(kExSchedFarDistanceThreshold < (1u << 2));
+
+struct alignas(64) ExSchedDistanceState {
+    uint8_t classes[kMaxThreads][kMaxThreads] = {};
+};
+
 class Server {
 public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
@@ -242,6 +258,7 @@ public:
             std::fprintf(stderr, "placement needs at least one ifid and one ex thread\n");
             return false;
         }
+        if (!init_ex_sched_distances()) return false;
         unix_owner_tid_ = cfg.unixsocket && *cfg.unixsocket
             ? placement_.ifid_threads().front() : UINT32_MAX;
         if (!adjust_open_files_limit()) return false;
@@ -529,10 +546,15 @@ public:
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
-    bool read_local_enabled() const {
-        return cfg_.thread_mode == ThreadMode::Fused && cfg_.overlap == 0 &&
-               cfg_.read_local != 0;
+    const uint8_t* ex_sched_distance_row(uint32_t executing_thread) const {
+        if (!ex_sched_distances_ || executing_thread >= placement_.total_threads()) std::abort();
+        return ex_sched_distances_->classes[executing_thread];
     }
+
+    static bool read_local_enabled(const Config& cfg) {
+        return cfg.thread_mode == ThreadMode::Fused && cfg.overlap == 0 && cfg.read_local != 0;
+    }
+    bool read_local_enabled() const { return read_local_enabled(cfg_); }
     uint64_t read_local_epoch() const {
         if (!read_local_state_) std::abort();
         return read_local_state_->epoch.load(std::memory_order_seq_cst);
@@ -3016,6 +3038,43 @@ public:
 private:
     static constexpr uint32_t kAtomicLeaseBatch = 8;
 
+    bool init_ex_sched_distances() {
+        if (cfg_.ex_sched != 2) return true;
+        std::unique_ptr<ExSchedDistanceState> distances(
+            new (std::nothrow) ExSchedDistanceState);
+        if (!distances) {
+            std::fprintf(stderr, "fatal: could not allocate EX scheduler distance table\n");
+            return false;
+        }
+
+        const uint32_t nthreads = placement_.total_threads();
+        uint32_t ccx_by_thread[kMaxThreads] = {};
+        uint64_t ccd_by_thread[kMaxThreads] = {};
+        for (uint32_t tid = 0; tid < nthreads; tid++) {
+            const int cpu = placement_.cpu_of_thread(tid);
+            if (!topo_.ccx_id(cpu, ccx_by_thread[tid]) ||
+                !topo_.ccd_id(cpu, ccd_by_thread[tid])) {
+                std::fprintf(stderr,
+                             "fatal: --ex-sched 2 could not read CCX/CCD topology for cpu %d\n",
+                             cpu);
+                return false;
+            }
+        }
+
+        for (uint32_t executing = 0; executing < nthreads; executing++) {
+            for (uint32_t owner = 0; owner < nthreads; owner++) {
+                ExSchedDistanceClass distance = ExSchedDistanceClass::CrossCcd;
+                if (ccd_by_thread[executing] == ccd_by_thread[owner])
+                    distance = ccx_by_thread[executing] == ccx_by_thread[owner]
+                        ? ExSchedDistanceClass::SameCcx
+                        : ExSchedDistanceClass::SameCcd;
+                distances->classes[executing][owner] = static_cast<uint8_t>(distance);
+            }
+        }
+        ex_sched_distances_ = std::move(distances);
+        return true;
+    }
+
     bool adjust_open_files_limit() {
         rlimit limit{};
         if (::getrlimit(RLIMIT_NOFILE, &limit) != 0) {
@@ -3430,8 +3489,12 @@ private:
     // Appended cold state: disabled servers allocate no epoch state and no established offset
     // moves. Later test-only knobs stay behind this pointer for the same reason.
     std::unique_ptr<ReadLocalServerState> read_local_state_;
-    // Appended at the true tail: this test-only knob must not move any production member.
+    // Appended after production state: this test-only knob must not move any production member.
     std::atomic<uint64_t> debug_atomic_conditional_deadline_{0};
+    // Mode-2-only immutable policy state. Byte-addressed logical two-bit cells avoid extraction on
+    // the blocked-inherit path; the pointer lives at the true tail so no established Server offset
+    // moves.
+    std::unique_ptr<ExSchedDistanceState> ex_sched_distances_;
 };
 
 }  // namespace tomo

@@ -157,7 +157,7 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
-        ex_sched_enabled_ = srv->cfg().ex_sched != 0;
+        ex_sched_mode_ = static_cast<uint8_t>(srv->cfg().ex_sched);
         pipeline_batches_ = Fused && srv->cfg().overlap != 0;
         // Both interwoven schedules use the proven iofused fixed producer lanes.  The legacy
         // streams implementation remains in this file for branch comparison, but overlap 2 no
@@ -1793,8 +1793,11 @@ private:
         auto execute_batch = [&] {
             if (!held) return;
             if (!filler_used && xshard_retries_.empty()) {
-                if (__builtin_expect(ex_sched_enabled_, false))
-                    ex_schedule_batch(batch, held);
+                const uint8_t ex_sched_mode = ex_sched_mode_;
+                if (__builtin_expect(ex_sched_mode != 0, false)) {
+                    if (ex_sched_mode == 2) ex_schedule_batch<true>(batch, held);
+                    else                    ex_schedule_batch<false>(batch, held);
+                }
                 prefetch_exec_batch(batch, held);
                 filler();
                 filler_used = true;
@@ -1844,6 +1847,14 @@ private:
         uint8_t length = 0;
     };
 
+    struct ExScheduleFarState {
+        uint8_t predecessors[kExecBatch];
+        uint32_t blocked_mask = 0;
+    };
+
+    struct ExScheduleNoFarState {};
+
+    template <bool FarDemotion>
     void ex_schedule_run(Task* tasks, const uint8_t* base_lengths, uint32_t n) {
         if (n < 2) return;
         Client* const only_client = tasks[0].client;
@@ -1895,6 +1906,8 @@ private:
         Client* chain_client[kChainSlots];
         uint8_t chain_last[kChainSlots];
         uint64_t chain_occupied = 0;
+        [[maybe_unused]]
+        std::conditional_t<FarDemotion, ExScheduleFarState, ExScheduleNoFarState> far_state;
         for (uint32_t i = 0; i < n; i++) {
             Client* client = tasks[i].client;
             uint64_t hash = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(client));
@@ -1918,14 +1931,39 @@ private:
                 // contract. The scheduler must never create a same-connection inversion.
                 if (tasks[i].op_id <= tasks[previous].op_id) return;
                 keys[i].length = std::max(keys[i].length, keys[previous].length);
-                if (tasks[i].op_id != tasks[previous].op_id + 1)
+                if (tasks[i].op_id != tasks[previous].op_id + 1) {
                     keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
+                } else if constexpr (FarDemotion) {
+                    far_state.predecessors[i] = previous;
+                    far_state.blocked_mask |= uint32_t{1} << i;
+                }
             }
             chain_last[slot] = static_cast<uint8_t>(i);
         }
         one_length = true;
         for (uint32_t i = 1; i < n; i++) one_length &= keys[i].length == keys[0].length;
         if (one_length && max_rank - min_rank <= 1) return;
+
+        if constexpr (FarDemotion) {
+            // Both degeneration exits stay above the first topology access. Only a represented,
+            // consecutive predecessor can make distance actionable; invisible and gapped blockers
+            // are already Long. Replay in gather order so a widened predecessor is inherited by
+            // the rest of its connection chain, then a far edge demotes its blocked op one class.
+            const uint8_t kLong = static_cast<uint8_t>(CommandLengthClass::Long);
+            const uint8_t* distance_row = nullptr;
+            uint32_t blocked = far_state.blocked_mask;
+            while (blocked) {
+                const uint32_t i = static_cast<uint32_t>(__builtin_ctz(blocked));
+                blocked &= blocked - 1;
+                const uint8_t previous = far_state.predecessors[i];
+                keys[i].length = std::max(keys[i].length, keys[previous].length);
+                if (keys[i].length >= kLong) continue;
+                if (!distance_row) distance_row = srv_->ex_sched_distance_row(self_->id());
+                const uint32_t connection_owner = tasks[previous].client->ifid_thread();
+                if (distance_row[connection_owner] >= kExSchedFarDistanceThreshold)
+                    keys[i].length++;
+            }
+        }
 
         // Stable gather order often already matches the selected bucket order. Avoid scratch
         // setup and two Task copies when the policy would be an identity permutation.
@@ -1972,7 +2010,9 @@ private:
         for (uint32_t i = 0; i < n; i++) tasks[i] = ordered[i];
     }
 
-    void ex_schedule_batch(Task* tasks, uint32_t n) {
+    template <bool FarDemotion>
+    void ex_schedule_window(Task* tasks, uint32_t n) {
+        if (!n || n > kExecBatch) std::abort();
         uint8_t base_lengths[kExecBatch];
         uint32_t begin = 0;
         while (begin < n) {
@@ -1982,10 +2022,23 @@ private:
             }
             uint32_t end = begin + 1;
             while (end < n && ex_sched_candidate(tasks[end], base_lengths[end])) end++;
-            ex_schedule_run(tasks + begin, base_lengths + begin, end - begin);
+            ex_schedule_run<FarDemotion>(tasks + begin, base_lengths + begin, end - begin);
             // The failed candidate at end is a known barrier; consume it without reading its Op a
             // second time, then find the next eligible run.
             begin = end + (end < n);
+        }
+    }
+
+    template <bool FarDemotion>
+    void ex_schedule_batch(Task* tasks, uint32_t n) {
+        // Split/fused coarse batches use the scheduler's measured 32-task geometry. Fused overlap
+        // modes may gather 128 tasks, so keep them as consecutive 32-task scheduling windows: no
+        // work crosses a window boundary, and the original scratch/hash/mask bounds remain exact.
+        while (n) {
+            const uint32_t window = std::min(n, kExecBatch);
+            ex_schedule_window<FarDemotion>(tasks, window);
+            tasks += window;
+            n -= window;
         }
     }
 
@@ -2418,7 +2471,11 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        if (__builtin_expect(ex_sched_enabled_, false)) ex_schedule_batch(batch, n);
+        const uint8_t ex_sched_mode = ex_sched_mode_;
+        if (__builtin_expect(ex_sched_mode != 0, false)) {
+            if (ex_sched_mode == 2) ex_schedule_batch<true>(batch, n);
+            else                    ex_schedule_batch<false>(batch, n);
+        }
         prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
@@ -2878,7 +2935,7 @@ private:
     uint64_t   live_config_version_ = UINT64_MAX;
     AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
-    bool       ex_sched_enabled_ = false;
+    uint8_t    ex_sched_mode_ = 0;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
     uint32_t   lb_sample_rate_ = 0;
