@@ -1163,20 +1163,18 @@ private:
     // complete and the reply retains no FlatStore pointer. A caller-owned capture may remain on
     // this rotation's stack until drain_local_reads_bounded_impl returns. Selective commit below
     // keeps an overlapping younger read behind any operation that needs the owner path.
+    // `op`, `store` and `mget` were resolved once by the chunk gather; a point read passes its
+    // home store, an MGET passes null and takes its own multi-store path.
     template <bool CapturePrefetch>
     PreparedLocalRead prepare_local_read(
-            Client* client, uint64_t op_id,
+            Op& op, FlatStore* home, bool mget,
             const FlatStore::ReadLocalPrefetchCapture* captured = nullptr) {
-        if (!client) std::abort();
-        Op& op = client->rob().at(op_id);
-        if (!op.read_local()) std::abort();
-        if (read_local_mget(op)) {
+        if (mget) {
             if (captured) std::abort();
             if constexpr (CapturePrefetch) return prepare_captured_local_mget(op);
             else return prepare_local_mget(op);
         }
-        if (op.shard < 0) std::abort();
-        FlatStore& store = srv_->shard(op.shard).store();
+        FlatStore& store = *home;
         static constexpr uint32_t kRetries = 3;
         [[maybe_unused]] ReadLocalCaptureBuffer<CapturePrefetch, 1> local_capture;
         if constexpr (CapturePrefetch) {
@@ -1291,11 +1289,20 @@ private:
         static_assert(Fused);
         auto& lane = read_local_impl();
         if (!lane.lane_count) return 0;
-        uint64_t batch[kReadLocalDrainChunkOps];
-        PreparedLocalRead prepared[kReadLocalDrainChunkOps];
-        ReadLocalFallbackReason fallbacks[kReadLocalDrainChunkOps];
+        // One record per chunk entry. Gather resolves the Op, its home store and its MGET class
+        // exactly once; every later pass reads them from here instead of walking the ROB again.
+        // Stack-local to this bounded drain, so nothing here outlives the rotation's QSBR tick.
+        struct LocalReadChunk {
+            Op* ops[kReadLocalDrainChunkOps];
+            FlatStore* stores[kReadLocalDrainChunkOps];   // null for an MGET (multi-store)
+            uint64_t op_ids[kReadLocalDrainChunkOps];
+            ReadLocalFallbackReason fallbacks[kReadLocalDrainChunkOps];
+        } chunk;
+        static_assert(kReadLocalDrainChunkOps <= 32, "mget_mask is one 32-bit word");
         [[maybe_unused]] ReadLocalCaptureBuffer<
             CapturePrefetch, kReadLocalDrainChunkOps> captures;
+        const uint32_t nshards = srv_->nshards();
+        ReadLocalStats& stats = self_->read_local_stats();
         uint32_t work = 0;
         uint32_t consumed = 0;
         auto discard_tombstone_heads = [&] {
@@ -1321,6 +1328,7 @@ private:
         while (lane.lane_count && consumed < op_budget) {
             const auto& head = lane.lane[lane.lane_head];
             Client* client = head.client;
+            auto& rob = client->rob();
             uint32_t count = 0;
             uint32_t capacity = std::min<uint32_t>(
                 kReadLocalDrainChunkOps, op_budget - consumed);
@@ -1328,15 +1336,28 @@ private:
                 capacity = std::min<uint32_t>(
                     capacity, kReadLocalDrainChunkOps -
                         consumed % kReadLocalDrainChunkOps);
+            // Gather: one ROB frontier snapshot for the whole same-client run (see
+            // Rob::pending_read_local(id, dispatch, flush)), and each entry's Op, home store and
+            // MGET class resolved here once. bit i of mget_mask marks an MGET entry.
+            const uint64_t dispatch = rob.dispatch_id();
+            const uint64_t flush = rob.flush_id();
+            uint32_t mget_mask = 0;
             while (count < lane.lane_count && count < capacity) {
                 const uint32_t index =
                     (lane.lane_head + count) & (kInboxSlots - 1);
                 const auto& task = lane.lane[index];
                 if (task.client != client ||
-                    !client->rob().pending_read_local(task.op_id))
+                    !rob.pending_read_local(task.op_id, dispatch, flush))
                     break;
-                batch[count++] = task.op_id;
-                fallbacks[count - 1] = lane.lane_fallbacks[index];
+                Op& op = rob.at(task.op_id);
+                const bool mget = read_local_mget(op);
+                if (!mget && op.shard < 0) std::abort();
+                chunk.ops[count] = &op;
+                chunk.stores[count] = mget ? nullptr : &srv_->shard(op.shard).store();
+                chunk.op_ids[count] = task.op_id;
+                chunk.fallbacks[count] = lane.lane_fallbacks[index];
+                mget_mask |= uint32_t{mget} << count;
+                count++;
             }
             if (!count) std::abort();
             consumed += count;
@@ -1344,98 +1365,106 @@ private:
             // Pure point chunks retain the widest I0/C0/E0 overlap. A mixed chunk captures and
             // consumes each command in program order below: MGET may retry and recapture, so
             // pre-capturing a following GET could otherwise let that later command regress.
-            [[maybe_unused]] bool point_capture_batch = false;
-            if constexpr (CapturePrefetch) {
-                point_capture_batch = true;
-                for (uint32_t i = 0; i < count; i++) {
-                    const Op& op = client->rob().at(batch[i]);
-                    if (read_local_mget(op)) {
-                        point_capture_batch = false;
-                        break;
-                    }
-                }
-            }
+            [[maybe_unused]] const bool point_capture_batch = CapturePrefetch && mget_mask == 0;
 
             if constexpr (CapturePrefetch) {
                 if (point_capture_batch) {
                     // I0 retains the old whole-batch home-slot overlap. C0 consumes those warm
                     // words, records their decoded objects, and hints object/value bytes for E0.
+                    for (uint32_t i = 0; i < count; i++)
+                        chunk.stores[i]->read_local_prefetch(chunk.ops[i]->hash);
                     for (uint32_t i = 0; i < count; i++) {
-                        const Op& op = client->rob().at(batch[i]);
-                        srv_->shard(op.shard).store().read_local_prefetch(op.hash);
-                    }
-                    for (uint32_t i = 0; i < count; i++) {
-                        const Op& op = client->rob().at(batch[i]);
+                        const Op& op = *chunk.ops[i];
                         captures.entries[i] =
-                            srv_->shard(op.shard).store().read_local_prefetch_capture(
-                                op.hash, op.key());
+                            chunk.stores[i]->read_local_prefetch_capture(op.hash, op.key());
                     }
                 }
             } else {
                 // Selector 0 is the original hint-only path, including MGET's established bounded
                 // prefetch inside prepare_local_mget().
-                for (uint32_t i = 0; i < count; i++) {
-                    const Op& op = client->rob().at(batch[i]);
-                    if (!read_local_mget(op))
-                        srv_->shard(op.shard).store().read_local_prefetch(op.hash);
-                }
+                for (uint32_t i = 0; i < count; i++)
+                    if (!((mget_mask >> i) & 1u))
+                        chunk.stores[i]->read_local_prefetch(chunk.ops[i]->hash);
             }
+
+            // E0. The owner-map recheck is decided once per chunk: only this thread's parser and
+            // demotion add owner slots, and neither runs inside a chunk, so an empty map stays
+            // empty for every entry. Prefix keyspace counters accumulate only while no fallback
+            // has been seen, which is exactly the prefix complete_local_prefix publishes.
+            const bool owner_fence = rob.has_read_local_owner();
             uint32_t first_fallback = count;
+            uint32_t prefix_keyspace_hits = 0;
+            uint32_t prefix_keyspace_misses = 0;
+            uint32_t prefix_mget_hits = 0;
+            uint32_t prefix_demand = 0;
+            uint64_t prefix_bits = 0;
             for (uint32_t i = 0; i < count; i++) {
-                const Op& op = client->rob().at(batch[i]);
-                if (fallbacks[i] == ReadLocalFallbackReason::None) {
+                Op& op = *chunk.ops[i];
+                const bool mget = ((mget_mask >> i) & 1u) != 0;
+                if (owner_fence && chunk.fallbacks[i] == ReadLocalFallbackReason::None) {
                     bool broad_owner = false;
                     const bool owner_conflict =
-                        client->rob().read_local_owner_conflicts_before(
-                            batch[i], [&](const Op& owner) {
+                        rob.read_local_owner_conflicts_before(
+                            chunk.op_ids[i], [&](const Op& owner) {
                                 if (!read_local_commands_overlap(op, owner)) return false;
                                 broad_owner |= !read_local_owner_command_is_precise(owner);
                                 return true;
                             });
                     if (owner_conflict) {
-                        fallbacks[i] = broad_owner
+                        chunk.fallbacks[i] = broad_owner
                             ? ReadLocalFallbackReason::ContextRoute
                             : ReadLocalFallbackReason::ContextOwnerKey;
                     }
                 }
-                if (fallbacks[i] == ReadLocalFallbackReason::None) {
+                if (chunk.fallbacks[i] == ReadLocalFallbackReason::None) {
+                    PreparedLocalRead prepared;
                     if constexpr (CapturePrefetch) {
                         if (point_capture_batch) {
-                            prepared[i] = prepare_local_read<true>(
-                                client, batch[i], &captures.entries[i]);
+                            prepared = prepare_local_read<true>(
+                                op, chunk.stores[i], false, &captures.entries[i]);
                         } else {
-                            prepared[i] = prepare_local_read<true>(client, batch[i]);
+                            prepared = prepare_local_read<true>(op, chunk.stores[i], mget);
                         }
                     } else {
-                        prepared[i] = prepare_local_read<false>(client, batch[i]);
+                        prepared = prepare_local_read<false>(op, chunk.stores[i], mget);
                     }
-                    fallbacks[i] = prepared[i].fallback;
-                } else {
-                    prepared[i] = {};
+                    chunk.fallbacks[i] = prepared.fallback;
+                    if (first_fallback == count &&
+                        prepared.fallback == ReadLocalFallbackReason::None) {
+                        prefix_keyspace_hits += prepared.keyspace_hits;
+                        prefix_keyspace_misses += prepared.keyspace_misses;
+                        prefix_mget_hits += mget;
+                        prefix_demand += mget
+                            ? std::min<uint32_t>(op.argc() - 1, nshards) : 1;
+                        prefix_bits |= Rob<kRobWindow>::read_local_slot_bit(chunk.op_ids[i]);
+                    }
                 }
-                if (fallbacks[i] != ReadLocalFallbackReason::None &&
+                if (chunk.fallbacks[i] != ReadLocalFallbackReason::None &&
                     first_fallback == count) first_fallback = i;
             }
 
-            ReadLocalStats& stats = self_->read_local_stats();
+            // Completion is chunk-aggregated: one pending-mask clear, one demand release and one
+            // add per statistic instead of six read-modify-writes per op; the prefix accumulators
+            // above describe exactly the entries `completed` names. The pending bits are cleared
+            // before any Done publish, as the per-op order did. note_command and Done stay per op.
             auto complete_local_prefix = [&](uint32_t completed) {
+                if (!completed) return;
+                rob.complete_pending_read_local_mask(prefix_bits);
+                if (prefix_demand > lane.lane_demotion_demand) std::abort();
+                lane.lane_demotion_demand -= prefix_demand;
+                stats.hits += completed;
+                stats.keyspace_hits += prefix_keyspace_hits;
+                stats.keyspace_misses += prefix_keyspace_misses;
+                stats.mget_local_hits += prefix_mget_hits;
                 for (uint32_t i = 0; i < completed; i++) {
-                    Op& op = client->rob().at(batch[i]);
-                    stats.keyspace_hits += prepared[i].keyspace_hits;
-                    stats.keyspace_misses += prepared[i].keyspace_misses;
-                    stats.hits++;
-                    if (read_local_mget(op)) stats.mget_local_hits++;
+                    Op& op = *chunk.ops[i];
                     self_->note_command(op.spec->id);
-                    release_local_read_demotion_demand(op);
-                    client->rob().complete_pending_read_local(batch[i]);
                     op.state.store(OpState::Done, std::memory_order_release);
                 }
-                if (completed) {
-                    notify_sender(client);
-                    lane.lane_head = (lane.lane_head + completed) & (kInboxSlots - 1);
-                    lane.lane_count -= completed;
-                    work += completed;
-                }
+                notify_sender(client);
+                lane.lane_head = (lane.lane_head + completed) & (kInboxSlots - 1);
+                lane.lane_count -= completed;
+                work += completed;
             };
 
             if (first_fallback != count) {
@@ -1444,11 +1473,12 @@ private:
                 // reply without imposing a connection-wide execution venue.
                 complete_local_prefix(first_fallback);
                 for (uint32_t i = first_fallback; i < count; i++)
-                    read_local_clear_reply(client->rob().at(batch[i]));
-                lane.lane_fallbacks[lane.lane_head] = fallbacks[first_fallback];
+                    read_local_clear_reply(*chunk.ops[i]);
+                lane.lane_fallbacks[lane.lane_head] = chunk.fallbacks[first_fallback];
                 uint32_t demoted = 0;
                 if (!demote_local_read_batch(
-                        client, batch + first_fallback, fallbacks + first_fallback,
+                        client, chunk.op_ids + first_fallback,
+                        chunk.fallbacks + first_fallback,
                         count - first_fallback, demoted))
                     break;
                 work += demoted;
