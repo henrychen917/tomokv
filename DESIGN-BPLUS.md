@@ -364,6 +364,10 @@ count or a fail-closed bucket.
 
 ## 3. Commit-generation double-check for multi-key local reads
 
+> **Status (t-bplus-cellcheck):** the per-shard generation sweep described here was built, measured,
+> and found too coarse; section 7 records the audit and the per-cell touch-epoch check that
+> replaces it.  Section 3 remains as the design record of what was tried and why.
+
 ### 3.1 Counter semantics: all read-visible shard publications, not group commits only
 
 The heading says “commit generation,” but the safe unit is broader: **a stable generation means no
@@ -1141,3 +1145,100 @@ wildcards, actual filter fallbacks, and generation retry/fallback counts.  Unifo
 tracks unsafe-key density, hot traffic pays update duty plus read-forward coverage, and mm-mix adds
 the eight-key union plus bounded all-publication churn; none is hidden by weakening MVCC or serving a
 pre-image off-owner.
+
+## 7. Cell-epoch audit and replacement (lane `t-bplus-cellcheck`)
+
+Line numbers in this section are at base commit `4b3a79753` (`t-bplus-impl`).
+
+### 7.1 Measured defect
+
+`--thread-mode 1s --read-local 1 --atomic 1`, 32 cores, 1:1 MGET8/MSET8 at p32, 512 conns, 1M keys,
+64 shards, 14 s: `mget_local_hits 4.79M` (about 50%), `mget_fallbacks 4.87M`, of which
+`fallback_generation 3.76M` (77%), `generation_retries 5.95M`, `fallback_seq_churn 1.06M` (22%),
+`fallback_atomic_pending 57k` (1%).  Net throughput versus `--read-local 0`: mm11 +2.1%, mm91 -1.2%.
+Separately, mix19 (plain GET/SET 1:9, no groups, atomic 1) measured -4.3% versus mainline while pure
+GET was neutral, which points at the SET publish path.
+
+### 7.2 What the MGET double-check read and what advanced it
+
+- Both local MGET variants (`src/core/ex_loop.h:893-1030` plain, `:1032-1176` capture-prefetch)
+  acquire-load `local_publication_generation_acquire()` for every touched shard before any value
+  load (`:919-934`, `:1051-1065`) and again after every copy (`:1000-1015`, `:1147-1162`).
+- With the filter armed that accessor returns `ReadLocalStoreState::publication`
+  (`src/store/flatstore.h:755-761`, word at `:494`); with the filter OFF it returns the table word
+  `probe_sequence` (`:495`).
+- `publication` is advanced by `read_local_publication_mutation_begin/end`
+  (`src/store/flatstore.h:3396-3409`, odd/even via `read_local_advance_generation` `:3413-3431`).
+  Callers: `ReadLocalPublicationGuard answer_change` in `insert_into_read_local` (`:3009` new slot,
+  `:3037` same-key replace), `erase_in_read_local` (`:3079`), the compiled-out selector-3 overwrite
+  (`:2652`), and every `ReadLocalTableGuard`, because `read_local_table_mutation_begin/end` nests the
+  publication bracket (`:3379-3393`).  TableGuard sites: atomic physical exchange
+  (`src/store/flatstore_atomic.inc:1125`, one bracket per installed key), capacity grow (`:693`),
+  ownership rebind (`flatstore.h:746`), scoped filter publication for local-xshard/script writes
+  (`:842`), snapshot mark (`:2670`), rehash table move on insert (`:2837`), FLUSH clears
+  (`:2865`, `:2895`), empty-table install (`:2993`), grow (`:3139`), rehash step (`:3151`), shard
+  poison open (`:3482`).
+- Therefore **every** plain SET/DEL/expiry/eviction on a touched shard and every per-key group
+  install advanced the checked word.  Group commit (the epoch release-store) advances nothing;
+  cleanup advances it only through a physical rewrite (`atomic_exchange_physical_read_local`).  At
+  the measured rate (about 690k MSET8/s over 64 shards = 86k installs/s/shard, plus the same order
+  of plain publications) a touched shard advanced during nearly every 8-key MGET window, so the
+  one retry fired 5.95M times and 3.76M MGETs still fell back.  The check was correct and useless.
+
+### 7.3 What `seq_churn` validated on the MGET path
+
+The executor never returns `SeqChurn` for MGET: after two attempts it classifies the fallback as
+`AtomicPending` (a queried key is now filter-positive) or `Generation`
+(`src/core/ex_loop.h:1021-1030`, `:1167-1176`).  Every one of the 1.06M
+`read_local_mget_fallback_seq_churn` therefore came from the **parser** admission sample
+(`src/core/io_loop.h:4241-4257`): for each key, IO acquire-loads the shard's table word and rejects
+the whole MGET if `!read_local_state_eligible(state)`, i.e. the table-mutation bit is odd at that
+instant (`:4305-4327`).  The odd interval is one atomic exchange bracket (~200 ns) at 86k/s/shard,
+about 1.4% duty per shard; sampled on 8 shards it rejects about 11% of MGETs.  That sample is
+table-generation, not a per-op counter, but it is a snapshot of a bracket that closes long before
+the executor reads anything; it validates nothing the executor does not validate itself.
+
+### 7.4 Unconditional costs found on plain paths
+
+- Plain GET: `foreign_read_key_unsafe` tests the pending bit of the already-loaded table word first
+  (`src/store/flatstore.h:788-796`); no filter cell is touched when the shard has no open group.
+  Confirmed zero-work; matches the neutral pure-GET measurement.
+- Plain SET/DEL: the `publication` bracket above runs on every insert/replace/erase regardless of
+  pending state (two loads, two release stores, an acq_rel fence, a depth counter, and a
+  `__builtin_expect(...,true)` branch that is always mispredicted while armed).  Its only consumer
+  was the MGET sweep.  This is the mix19 suspect and is removed with the sweep.
+
+### 7.5 Replacement: per-cell touch epoch
+
+`ForeignReadSafety` gains `epochs_[4096]` of `std::atomic<uint32_t>` beside `cells_`.  Layout:
+cells 32768 B at offset 0, epochs 16384 B at 32768, three owner witnesses at 49152, `alignas(64)`
+rounds `sizeof` to 49216 B (was 32832); 256 shards = 12.0 MiB, heap-allocated inside
+`ReadLocalStoreState`, no locked struct grows (FlatStore 944, Shard 1440, ThreadCtx 1408, ExLoop
+5848 unchanged).  The owner bumps a cell's epoch after every cell transition it publishes: add
+(group/plain/transaction prepare, scoped writes, poison open), close (final entry free, scope
+close, poison close), saturated-drain rebuild, and permanent poison.  Order is **cell store, then
+epoch store**, both release.  Readers acquire-load an epoch only for keys whose shard word carries
+the pending bit.
+
+MGET protocol: (1) acquire-load the table word of every touched shard; poisoned generation
+falls back; a shard without the pending bit must be even and records its generation; a shard with
+the pending bit records nothing but marks its keys.  (2) For each marked key, acquire-load its
+cell epoch.  (3) Copy every value with the unchanged per-key probe/validate.  (4) Acquire fence,
+then for each non-pending shard require an even, equal generation; for each marked key require an
+equal epoch.  Mismatch retries the whole command once, then falls back (`Generation`); a per-key
+probe churn that survives the retry falls back as `SeqChurn`.  MGETs with more than 128 keys use
+the generation rule for every touched shard (coarse, still correct).
+
+Why there is no false negative.  A group publishes its cells before its first exchange, so a
+reader that copied a pre-group value of `a` and later synchronized with any exchange of that group
+(by reading a post-group `b`) also sees the epoch bump sequenced before that exchange.  A reader
+whose pre-snapshot already contains the bump synchronizes with the epoch store, which is
+sequenced after the cell store, so its cell probe must see the positive cell and falls back.
+ABA: with counting alone a group that opens, installs, commits, and drains inside one MGET window
+leaves the cell at 0 both times; the epoch is monotonic and reads +2 (add and close), so the
+window is rejected.  Non-pending shards keep the table-generation rule, which every group install
+advances; a group that opened but installed nothing changed no answer and the MGET linearizes
+before it.  FLUSH clears now poison the filter for their duration so every epoch advances.
+
+Kept as before: fail-closed saturated/wildcard/poisoned cells, the filter check inside the per-key
+sequence proof, single-owner cell writes, immutable replacement, QSBR, and the one MGET recheck.
