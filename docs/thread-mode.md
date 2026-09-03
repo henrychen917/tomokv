@@ -20,6 +20,11 @@ without bound. `0` retains the original single positional local drain for A/B. T
 inert when read-local is not active, is exposed by `CONFIG GET`, and is refused by `CONFIG SET`.
 Snapshot, placement, and pre-existing retry/deferred turns retain the legacy total ordering.
 
+`--read-local-prefetch-capture 0|1` is the boot-only A/B selector for an armed lane and defaults to
+`1`. At `1`, a prefetch walk captures the exact slot and immutable object it found and execute serves
+that object without reloading the slot. At `0`, the legacy path only hints the table home slots and
+performs a fresh lookup at execute. The selector is accepted but inert when read-local is inactive.
+
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary separated IO/executor loops | `t-iopipe` interwoven WB/IFID schedule | rejected |
@@ -83,7 +88,16 @@ The read validation generation changes only for table topology/migration, owners
 bulk FLUSH that must not expose a partial table clear, plus once when an atomic-pending interval
 closes to rule out a complete pending-bit ABA during an MGET. Stable SET/DEL/TTL replacement swaps
 immutable object pointers with release/acquire ordering; rotation QSBR retains displaced objects,
-so those mutations do not write the generation line.
+so those mutations do not write the generation line. With prefetch capture enabled, a point-only
+batch first hints all home words, then performs complete key-verified probes in program order. Each
+probe retains the observed slot address, decoded `KvObj` pointer, and publication generation on the
+stack, and execute copies directly from that object. Mixed GET/MGET batches capture and consume one
+command at a time to preserve connection order; MGET handles any key count in bounded prefetch,
+capture, and execute windows and recaptures all windows on an internal retry. The final generation
+check still rejects resize/ownership movement or an atomic group that opens or completes across the
+copy; an ordinary cross-client replacement is deliberately allowed to leave the already-prefetched
+version servable. Every later drain pass captures afresh, and all captures are consumed before the
+rotation publishes its next QSBR tick. GET misses still demote and MGET misses still emit nil.
 
 `read_local_fallback_context` remains the compatibility aggregate. INFO also reports its exhaustive
 `_owner_key`, `_connection_state`, `_route`, and `_keymiss_notify` sub-reasons (and matching MGET

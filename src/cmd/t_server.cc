@@ -326,6 +326,9 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.read_local), true});
     g_config.push_back({"read-local-interleave", ConfigKind::Unsigned,
                         std::to_string(cfg.read_local_interleave), true});
+    g_config.push_back({"read-local-prefetch-capture", ConfigKind::Unsigned,
+                        std::to_string(static_cast<uint32_t>(
+                            cfg.read_local_prefetch_capture)), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,
