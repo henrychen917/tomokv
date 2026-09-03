@@ -583,6 +583,59 @@ public:
         return n;
     }
 
+    // Armed read-local scheduling variant. Consume at most one fixed quantum from every producer
+    // named by this pass's mask, rather than letting one deep lane extend the whole fused rotation.
+    // `batch_boundary` runs only after the Task that completed an execution batch has reached the
+    // unchanged per-item retired frontier. A capped producer is conservatively re-notified; an
+    // exactly-empty lane may cost one empty look next pass, while a non-empty lane can never wedge.
+    template <bool IofusedPrivateQueue = false, typename Fn, typename BatchBoundary>
+    uint32_t drain_task_producer_chunks(uint32_t per_producer_limit, Fn&& fn,
+                                        BatchBoundary&& batch_boundary,
+                                        bool unmasked = false) {
+        if (!per_producer_limit) std::abort();
+        uint32_t n = 0;
+        auto take_lane = [&](uint32_t producer) {
+            uint32_t drained = 0;
+            Task task;
+            auto recv = [&] {
+                if constexpr (IofusedPrivateQueue)
+                    return task_in_->recv_fused_private<kInboxSlots>(producer, task);
+                else
+                    return task_in_->recv(producer, task);
+            };
+            while (drained < per_producer_limit && recv()) {
+                uint64_t age = 0;
+                if (task.enqueue_us_low &&
+                    sig_.observe_queue_delay(task.enqueue_us_low, age))
+                    sig_.observe_oldest_age(age);
+                const bool completed_batch = fn(task);
+                task_in_->retire(producer);
+                drained++;
+                n++;
+                if (completed_batch) batch_boundary();
+            }
+            if (drained == per_producer_limit) {
+                (void)task_notify_.set(producer);
+            }
+        };
+
+        if (unmasked) {
+            for (uint32_t producer = 0; producer < nchan_; producer++)
+                take_lane(producer);
+            return n;
+        }
+        for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
+            uint64_t bits = task_notify_.take(word);
+            while (bits) {
+                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                const uint32_t producer = word * 64 + bit;
+                if (producer < nchan_) take_lane(producer);
+            }
+        }
+        return n;
+    }
+
     // E0 removes a bounded prefix without advancing the retired frontier. Each source lane is
     // visited at most once, so E2 can publish exactly one retire_n update for that lane after every
     // removed task has reached Executed, Forwarded, or durable deferral.

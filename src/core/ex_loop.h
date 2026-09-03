@@ -45,6 +45,12 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
 inline constexpr uint32_t kActiveExpireChecks = 20;
+// The armed coarse rotation alternates these two equal quanta. One owner quantum per captured
+// producer bounds the stretch before WB by active producers rather than by queued depth, while the
+// local quantum matches the most one parse invocation can append for a connection.
+inline constexpr uint32_t kReadLocalDrainChunkOps = kGenthreadIfidBatchOps;
+inline constexpr uint32_t kReadLocalOwnerTaskChunkOps = kGenthreadExBatchOps;
+inline constexpr uint32_t kReadLocalMaxChunksBetweenOwnerBatches = 1;
 // Parser-side demotion may reserve one additional point command behind the entire local run.
 // Leave that credit outside the pending-read fanout budget so the combined reservation can always
 // fit an empty producer lane and therefore cannot retry forever.
@@ -56,6 +62,9 @@ inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
 static_assert(kExecBatch <= UINT8_MAX);
 static_assert(kExecBatch <= 32);
 static_assert(kGenthreadIfidBatchOps <= kExecBatch);
+static_assert(kReadLocalDrainChunkOps == kExecBatch);
+static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
+static_assert(kReadLocalMaxChunksBetweenOwnerBatches > 0);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 static_assert(kExSchedBuckets == 192);
 
@@ -104,6 +113,7 @@ struct ReadLocalExState<true> {
         bool lane_has_tombstones = false;
         bool point_writes_precise = true;
         bool keymiss_notify_armed = false;
+        bool interleave_owner_tasks = true;
         void* demote_context = nullptr;
         DemoteFn demote = nullptr;
         ReadLocalDeferredQueue deferred;
@@ -154,6 +164,7 @@ public:
                 impl->point_writes_precise =
                     srv->cfg().maxmemory == 0 ||
                     srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
+                impl->interleave_owner_tasks = srv->cfg().read_local_interleave != 0;
                 read_local_.impl = std::move(impl);
             }
         }
@@ -288,6 +299,8 @@ public:
 
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
+        if (read_local_interleave_enabled())
+            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, true>();
         return fused_pass_impl<kGenthreadExBatchOps, true, false>();
     }
 
@@ -305,7 +318,8 @@ public:
     uint32_t fused_three_way_pass(Filler&& filler) {
         static_assert(Fused);
         using Fn = std::remove_reference_t<Filler>;
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, Fn>(&filler);
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn>(
+            &filler);
     }
 
     // Legacy streams entry retained for branch archaeology; overlap-2 dispatch has no caller.
@@ -322,7 +336,8 @@ public:
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false, typename Filler = void>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
+              typename Filler = void>
     uint32_t fused_pass_impl(Filler* filler = nullptr) {
         constexpr bool HasFiller = !std::is_void_v<Filler>;
         [[maybe_unused]] bool filler_used = false;
@@ -368,7 +383,27 @@ public:
                 finish_filler();
         }
 
-        uint32_t did = drain_local_reads();
+        [[maybe_unused]] bool owner_work_remains = false;
+        bool fairlane_turn = false;
+        if constexpr (InterleaveLocalReads) {
+            static_assert(Fused && ConsumeTasks);
+            static_assert(BatchOps == kReadLocalOwnerTaskChunkOps);
+            if (!read_local_interleave_enabled()) std::abort();
+            // Exceptional debt keeps its established total order. The ordinary saturated turn is
+            // the only place that caps fresh owner work before WB.
+            fairlane_turn = !lb_frozen && !fairlane_owner_debt_pending();
+            if (fairlane_turn) {
+                compact_local_read_tombstones();
+                fairlane_turn = read_local_impl().lane_count != 0;
+            }
+        }
+        uint32_t did = 0;
+        if (fairlane_turn) {
+            // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
+            did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+        } else {
+            did += drain_local_reads();
+        }
         if (lb_frozen) {
             if (!srv_->lb_acked(self_->id())) {
                 did += service_stale_forwards<BatchOps, IofusedPrivateQueue>();
@@ -408,8 +443,13 @@ public:
                             if constexpr (HasFiller)
                                 did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
                                     false, *filler, filler_used);
-                            else
-                                did += drain_tasks<BatchOps, IofusedPrivateQueue>();
+                            else {
+                                if (fairlane_turn)
+                                    did += drain_tasks_read_local_interleaved<
+                                        IofusedPrivateQueue>(false, owner_work_remains);
+                                else
+                                    did += drain_tasks<BatchOps, IofusedPrivateQueue>();
+                            }
                         } else {
                             did += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
                         }
@@ -426,6 +466,12 @@ public:
             did += lb_control_pass();
             lb_bucket_bytes_pass();
         }
+        if (fairlane_turn) {
+            owner_work_remains |= fairlane_owner_debt_pending();
+            if (!owner_work_remains) did += drain_local_read_tail();
+            // Parser-created tombstones must not cross the WB corpse-grace boundary.
+            compact_local_read_tombstones();
+        }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
         if (did) {
             did += drain_notify_keyless(self_->sig());
@@ -437,7 +483,13 @@ public:
         if (lb_frozen) return 0;
         if (++fused_idle_spins_ < kExSpinBudget) return 0;
         fused_idle_spins_ = 0;
-        did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        if constexpr (InterleaveLocalReads) {
+            did = fairlane_turn
+                ? sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
+                : sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        } else {
+            did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        }
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
@@ -464,6 +516,8 @@ public:
 
     uint32_t fused_baseline_sweep() {
         static_assert(Fused);
+        if (read_local_interleave_enabled())
+            return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true>();
         return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
     }
 
@@ -478,7 +532,7 @@ public:
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_sweep_impl() {
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
             return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
@@ -493,8 +547,25 @@ public:
         } rotation_boundary{read_local_enabled(), self_, srv_};
         cached_now_ms_ = realtime_ms();
         if (lb_rebind_pending_) read_local_rebind_owned_shards_after_lb();
-        uint32_t did = drain_local_reads() +
-            sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        uint32_t did = 0;
+        if constexpr (InterleaveLocalReads) {
+            if (!read_local_interleave_enabled()) std::abort();
+            if (fairlane_owner_debt_pending()) {
+                did += drain_local_reads() +
+                    sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+            } else {
+                compact_local_read_tombstones();
+                if (read_local_impl().lane_count) {
+                    did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>();
+                } else {
+                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                }
+            }
+        } else {
+            did += drain_local_reads() +
+                sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
@@ -637,6 +708,21 @@ private:
     bool read_local_enabled() const {
         if constexpr (Fused) return read_local_.impl != nullptr;
         return false;
+    }
+
+    bool read_local_interleave_enabled() const {
+        if constexpr (Fused)
+            return read_local_.impl && read_local_.impl->interleave_owner_tasks;
+        return false;
+    }
+
+    bool fairlane_owner_debt_pending() const {
+        return srv_->flip_dispatch_paused() ||
+            (lb_controller_armed_ && srv_->lb_dispatch_paused()) ||
+            snapshot_owner_state_ != SnapshotOwnerState::None ||
+            !stale_tasks_.empty() || !stale_releases_.empty() ||
+            !multi_retries_.empty() || !atomic_deferred_.empty() ||
+            !xshard_retries_.empty() || !ordered_deferred_.empty();
     }
 
     ReadLocalExImpl& read_local_impl() {
@@ -999,29 +1085,51 @@ private:
         return {ReadLocalFallbackReason::SeqChurn};
     }
 
-    uint32_t drain_local_reads() {
+    // Consume at most `op_budget` lane entries in same-client gather quanta. The fair-lane
+    // scheduler owns tombstone compaction around the complete rotation so an interleave does not
+    // turn each 32-operation chunk into a scan of the 1024-entry lane.
+    template <bool YieldToOwner = false>
+    uint32_t drain_local_reads_bounded(uint32_t op_budget) {
         if constexpr (!Fused) return 0;
-        if (!read_local_enabled()) return 0;
+        if (!read_local_enabled() || !op_budget) return 0;
         auto& lane = read_local_impl();
-        compact_local_read_tombstones();
         if (!lane.lane_count) return 0;
-        Task batch[kExecBatch];
-        PreparedLocalRead prepared[kExecBatch];
-        ReadLocalFallbackReason fallbacks[kExecBatch];
+        Task batch[kReadLocalDrainChunkOps];
+        PreparedLocalRead prepared[kReadLocalDrainChunkOps];
+        ReadLocalFallbackReason fallbacks[kReadLocalDrainChunkOps];
         uint32_t work = 0;
+        uint32_t consumed = 0;
+        auto discard_tombstone_heads = [&] {
+            while (lane.lane_count) {
+                const Task& head = lane.lane[lane.lane_head];
+                if (head.client && head.client->rob().pending_read_local(head.op_id)) break;
+                lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
+                lane.lane_count--;
+            }
+        };
+        auto owner_turn_pending = [&] {
+            if constexpr (YieldToOwner) {
+                if (!consumed || consumed % kReadLocalDrainChunkOps) return false;
+                return fairlane_owner_debt_pending() ||
+                    self_->notified_task_depth_capped(1) != 0;
+            }
+            return false;
+        };
         // Work through each client's lane run in gather/prefetch-sized chunks. A successful chunk
         // can commit immediately. At a fallback, only the intrinsically failing entries and their
         // transitive same-key set move in a ROB-ordered owner wave; unrelated reads remain local.
-        while (lane.lane_count) {
+        discard_tombstone_heads();
+        while (lane.lane_count && consumed < op_budget) {
             const Task& head = lane.lane[lane.lane_head];
-            if (!head.client || !head.client->rob().pending_read_local(head.op_id)) {
-                lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
-                lane.lane_count--;
-                continue;
-            }
             Client* client = head.client;
             uint32_t count = 0;
-            while (count < lane.lane_count && count < kExecBatch) {
+            uint32_t capacity = std::min<uint32_t>(
+                kReadLocalDrainChunkOps, op_budget - consumed);
+            if constexpr (YieldToOwner)
+                capacity = std::min<uint32_t>(
+                    capacity, kReadLocalDrainChunkOps -
+                        consumed % kReadLocalDrainChunkOps);
+            while (count < lane.lane_count && count < capacity) {
                 const uint32_t index =
                     (lane.lane_head + count) & (kInboxSlots - 1);
                 const Task& task = lane.lane[index];
@@ -1032,6 +1140,7 @@ private:
                 fallbacks[count - 1] = lane.lane_fallbacks[index];
             }
             if (!count) std::abort();
+            consumed += count;
             for (uint32_t i = 0; i < count; i++) {
                 const Op& op = client->rob().at(batch[i].op_id);
                 if (!read_local_mget(op))
@@ -1100,13 +1209,25 @@ private:
                         count - first_fallback, demoted))
                     break;
                 work += demoted;
+                discard_tombstone_heads();
+                if (owner_turn_pending()) break;
                 continue;
             }
 
             complete_local_prefix(count);
+            discard_tombstone_heads();
+            if (owner_turn_pending()) break;
         }
-        compact_local_read_tombstones();
         self_->sig().ops += work;
+        return work;
+    }
+
+    uint32_t drain_local_reads() {
+        if constexpr (!Fused) return 0;
+        if (!read_local_enabled()) return 0;
+        compact_local_read_tombstones();
+        const uint32_t work = drain_local_reads_bounded(UINT32_MAX);
+        compact_local_read_tombstones();
         return work;
     }
 
@@ -1253,8 +1374,9 @@ private:
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
-              bool IofusedPrivateQueue = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t sweep() {
+        [[maybe_unused]] bool owner_work_remains = false;
         uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
                      service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
                      drain_releases(true);
@@ -1265,10 +1387,22 @@ private:
             if (xshard_retries_.empty())
                 n += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
             if constexpr (ConsumeTasks)
-                if (xshard_retries_.empty() && ordered_deferred_.empty())
-                    n += snapshot_owner_state_ == SnapshotOwnerState::None
-                             ? drain_tasks<BatchOps, IofusedPrivateQueue>(true)
-                             : drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
+                if (xshard_retries_.empty() && ordered_deferred_.empty()) {
+                    if (snapshot_owner_state_ == SnapshotOwnerState::None) {
+                        if constexpr (InterleaveLocalReads)
+                            n += drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
+                                true, owner_work_remains);
+                        else
+                            n += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                    } else {
+                        n += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
+                    }
+                }
+        }
+        if constexpr (InterleaveLocalReads) {
+            owner_work_remains |= fairlane_owner_debt_pending();
+            if (!owner_work_remains) n += drain_local_read_tail();
+            compact_local_read_tombstones();
         }
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);
@@ -1344,6 +1478,52 @@ private:
             srv_->shard(r.shard).store().unborrow(r.ptr);
         };
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
+    }
+
+    // The armed coarse scheduler gives every captured producer one owner-task quantum. This keeps
+    // WB distance independent of a producer's queued depth and gives a continuously busy remote IO
+    // lane service every rotation. ThreadCtx preserves recv -> callback -> retire for each Task and
+    // invokes the local hook only after the Task completing a full execution batch is retired.
+    template <bool IofusedPrivateQueue = false>
+    uint32_t drain_tasks_read_local_interleaved(bool unmasked,
+                                                bool& owner_work_remains) {
+        Task batch[kReadLocalOwnerTaskChunkOps];
+        uint32_t held = 0;
+        uint32_t local_work = 0;
+        auto take = [&](const Task& task) {
+            batch[held++] = task;
+            if (held != kReadLocalOwnerTaskChunkOps) return false;
+            exec_batch<IofusedPrivateQueue>(batch, held);
+            held = 0;
+            return true;
+        };
+        auto local_turn = [&] {
+            for (uint32_t chunk = 0;
+                 chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
+                local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+        };
+        const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
+            kReadLocalOwnerTaskChunkOps, take, local_turn, unmasked);
+        if (held) {
+            exec_batch<IofusedPrivateQueue>(batch, held);
+            local_turn();
+        }
+        owner_work_remains = self_->notified_task_depth_capped(1) != 0 ||
+            fairlane_owner_debt_pending();
+        self_->sig().ops += n;
+        return n + local_work;
+    }
+
+    // Once the captured owner set is empty, retain the old pure-read capacity by consuming further
+    // bounded chunks. Recheck the ordinary owner hint at every boundary so a newly visible writer
+    // normally yields the tail after at most one chunk; the existing unmasked idle audit remains
+    // the correctness backstop for a lost or racing hint.
+    uint32_t drain_local_read_tail() {
+        if (fairlane_owner_debt_pending() ||
+            self_->notified_task_depth_capped(1)) return 0;
+        // Keep one scratch batch live across the pure-read tail. The bounded drain rechecks owner
+        // work after every scheduling chunk, so the fast path does not pay stack setup per chunk.
+        return drain_local_reads_bounded<true>(UINT32_MAX);
     }
 
     template <uint32_t BatchOps = kGenthreadExBatchOps,
