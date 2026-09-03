@@ -2591,13 +2591,19 @@ private:
         } else {
             // A null pending-entry list is the sole common-path branch. With no cross-shard window,
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
-            if (__builtin_expect(sh.store().atomic_has_records(), false)) {
-                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
+            const bool scoped_foreign_write = read_local_enabled() &&
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+                (op.local_xshard() || (op.spec->flags & CmdFlags::ScriptRoute));
+            if (__builtin_expect(
+                    sh.store().atomic_has_records() || scoped_foreign_write, false)) {
+                PlainForeignReadScope foreign_scope;
+                const bool execute_handler = xshard_plain_prepare(
+                    *srv_, sh, op, t.client->id(), foreign_scope);
                 const bool defer_blocking =
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
-                xshard_plain_finish(sh);
+                xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);
                     if (execute_handler) blocking_plain_mutation_published(sh, op);

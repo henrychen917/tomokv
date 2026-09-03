@@ -945,6 +945,15 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
         return;
     }
+    // Geometry oracle for the B+ directed test. The server hash is boot-randomized, so the test
+    // cannot manufacture an unrelated same-shard key whose filter cell is provably negative from
+    // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
+    // the actual GET/MGET result and read-local counters remain the mechanism oracle.
+    if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
+        const uint64_t hash = FlatStore::hash_key(op.arg(2));
+        reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
+        return;
+    }
     // Window widener for the torn-read regression. Holds a cross-shard group between drawing its
     // commit ticket and storing that ticket into its shared epoch word -- the hole in which the
     // sequence already named a commit whose records still answered "undecided". Production 0.

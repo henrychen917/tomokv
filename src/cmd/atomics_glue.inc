@@ -318,20 +318,20 @@ inline Slice op_routed_key(const Op& op) {
 }
 
 template <typename Fn>
-void for_each_touched_key(Op& op, Fn&& fn) {
+bool for_each_touched_key(Op& op, Fn&& fn) {
     if (op.spec->flags & CmdFlags::ScriptRoute) {
         uint32_t first = 0, count = 0;
-        if (!command_script_key_range(op, first, count)) return;
+        if (!command_script_key_range(op, first, count)) return false;
         for (uint32_t i = 0; i < count; i++) {
             const Slice key = op.arg(first + i);
             fn(FlatStore::hash_key(key), key);
         }
-        return;
+        return true;
     }
     Kind kind;
     if (!classify(op, kind)) {
         if (op.argc() > 1) fn(op.hash, op_routed_key(op));
-        return;
+        return true;
     }
     uint32_t sinter_count = 0;
     uint32_t mpop_count = 0;
@@ -349,20 +349,23 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             mpop_count = static_cast<uint32_t>(parsed);
     } else if (kind == Kind::Sort) {
         SortOptions options;
-        if (parse_sort_options(op, options)) {
-            sort_store = options.store;
-            sort_store_arg = options.store_arg;
-        }
+        if (!parse_sort_options(op, options)) return false;
+        sort_store = options.store;
+        sort_store_arg = options.store_arg;
     } else if (is_any_zsetop(kind)) {
         uint64_t limit = 0;
         std::vector<double> weights;
         ZAggregate aggregate = ZAggregate::Sum;
         bool withscores = false;
         if (!parse_zset_operation(op, kind, zset_count, weights, aggregate, withscores, limit))
-            return;
+            return false;
     } else if (is_geo_kind(kind)) {
-        if (!geo_prepare_route(op, geo_route)) return;
+        if (!geo_prepare_route(op, geo_route)) return false;
     }
+    // Local nonblocking XREADGROUP reaches this helper with xread_count=0. Its only successful
+    // mutation is inside an existing Stream object, a type the two foreign String readers always
+    // demote before consuming; missing and String keys do not mutate. It therefore needs neither a
+    // filter cell nor a broad poison for the B+ GET/MGET scope.
     const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store, 0,
                                          zset_count, geo_route.store);
     for (uint32_t i = 0; i < count; i++) {
@@ -372,6 +375,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
         const Slice key = op.arg(arg);
         fn(FlatStore::hash_key(key), key);
     }
+    return true;
 }
 
 uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
@@ -895,8 +899,39 @@ uint64_t plain_read_cut(Server& server, const Op& op, uint64_t now) {
     return cut;
 }
 
-bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id) {
+bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id,
+                          PlainForeignReadScope& foreign_scope) {
     FlatStore& store = shard.store();
+    const bool scoped_foreign_write = store.read_local_enabled() &&
+        (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+        (op.local_xshard() || (op.spec->flags & CmdFlags::ScriptRoute));
+    if (scoped_foreign_write) {
+        bool allocation_failed = false;
+        const bool enumerated = for_each_touched_key(op, [&](uint64_t hash, Slice key) {
+            if (allocation_failed) return;
+            try { foreign_scope.keys.push_back({hash, key}); }
+            catch (const std::bad_alloc&) { allocation_failed = true; }
+        });
+        foreign_scope.active = true;
+        if (!enumerated || allocation_failed) {
+            // Optional safety metadata must never make an otherwise-valid write fail. A write whose
+            // complete key set cannot be retained runs under the fixed-size shard poison instead;
+            // if MVCC records below independently require exact keys, their established preparation
+            // may still reject the handler for its own parse/allocation failure.
+            foreign_scope.keys.clear();
+            foreign_scope.poisoned = true;
+            store.foreign_read_unenumerable_open();
+            // The shared route parsers install their precise syntax/OOM reply before returning
+            // false. Do not run the handler a second time over that reply. A failure only in this
+            // optional retained vector has no reply and safely continues under the poison.
+            if (!enumerated) return false;
+        } else {
+            store.foreign_read_scope_open_span(
+                static_cast<uint32_t>(foreign_scope.keys.size()), [&](uint32_t index) {
+                    return foreign_scope.keys[index].hash;
+                });
+        }
+    }
     if (!store.atomic_has_records()) return true;
     const uint32_t read_stall = server.debug_atomic_read_delay();
     if (__builtin_expect(read_stall != 0, false) &&
@@ -908,7 +943,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         struct RecordedKey { uint64_t hash; Slice key; };
         std::vector<RecordedKey> recorded;
         bool allocation_failed = false;
-        for_each_touched_key(op, [&](uint64_t hash, Slice key) {
+        const auto inspect_key = [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
             store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
             if (!store.atomic_needs_version(hash, key)) return;
@@ -919,7 +954,15 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
             catch (const std::bad_alloc&) { allocation_failed = true; }
-        });
+        };
+        bool enumerated = true;
+        if (foreign_scope.active && !foreign_scope.poisoned) {
+            for (const PlainForeignReadScope::Key& key : foreign_scope.keys)
+                inspect_key(key.hash, key.key);
+        } else {
+            enumerated = for_each_touched_key(op, inspect_key);
+        }
+        if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }
         if (recorded.empty()) return true;
 
@@ -1032,8 +1075,19 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     return false;
 }
 
-void xshard_plain_finish(Shard& shard) {
+void xshard_plain_finish(Shard& shard, PlainForeignReadScope& foreign_scope) {
     shard.store().atomic_finish_plain();
+    FlatStore& store = shard.store();
+    if (!foreign_scope.active) return;
+    if (foreign_scope.poisoned) {
+        store.foreign_read_unenumerable_close();
+    } else {
+        store.foreign_read_scope_close_span(
+            static_cast<uint32_t>(foreign_scope.keys.size()), [&](uint32_t index) {
+                return foreign_scope.keys[index].hash;
+            });
+    }
+    foreign_scope.active = false;
 }
 
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {

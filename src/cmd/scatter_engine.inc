@@ -2798,6 +2798,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop) {
                 const uint32_t pos = state.key_order[group.begin];
                 const KeyRef& key = state.keys[pos];
+                // The bare phase-two pop may mutate in place without needing an MVCC record.
+                // Publish its selected key for the complete handler interval anyway; an EXEC
+                // child can safely hold this duplicate scope beside its transaction entry.
+                auto foreign_read_scope =
+                    shard.store().foreign_read_key_guard(key.hash);
                 bool plain_active = false;
                 if (!state.multi_child &&
                     shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
@@ -2913,7 +2918,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         }
 
         switch (state.kind) {
-            case Kind::AllShards:
+            case Kind::AllShards: {
+                auto foreign_read_scope = shard.store().foreign_read_poison_guard(
+                    (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0);
                 // FLUSH remains outside the atomic command set. On a recorded shard, install one
                 // owner-local tombstone cut first so clear() cannot free a protected predecessor.
                 // Allocation happens before the ticket or any relink; OOM retries are deferrable.
@@ -2921,7 +2928,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     !shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
+            }
             case Kind::DebugReload: {
+                auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
                 std::string error;
@@ -2933,6 +2942,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugLoadAof: {
+                auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
                 std::string error;

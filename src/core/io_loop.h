@@ -4220,6 +4220,13 @@ private:
                     } else if ((spec->flags & CmdFlags::ReadLocalEligible) != 0) {
                         const bool mget = command_is_read_local_mget(*spec);
                         read_local_mget_candidate = mget;
+                        // MGET owns a one-command latest-read boundary in both outcomes: local
+                        // success publishes its freshly copied vector, while demotion resolves the
+                        // whole command at this pass's pinned cut. Do not let an older local GET
+                        // from the same pass complete at a newer world and then follow it with an
+                        // MGET fallback at the older cut. Leave this frame unconsumed; after the
+                        // existing local lane resolves, reparsing samples a fresh pass cut.
+                        if (mget && rob.has_pending_read_local()) break;
                         if (!mget && !point_route) std::abort();
                         if (mget) {
                             op->hash = FlatStore::hash_key(op->arg(1));

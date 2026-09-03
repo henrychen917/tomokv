@@ -126,6 +126,7 @@ public:
         return poison_refs_.load(std::memory_order_relaxed) ==
                std::numeric_limits<uint64_t>::max();
     }
+    void fail_closed_permanently() { poison_permanently(); }
 
     uint64_t occupied_cells() const {
         uint64_t result = 0;
@@ -239,5 +240,7 @@ private:
 
 static_assert(ForeignReadSafety::kCellCount == 4096);
 static_assert(sizeof(std::atomic<uint64_t>) == sizeof(uint64_t));
+static_assert(std::atomic<uint64_t>::is_always_lock_free,
+              "foreign-read filter cells must remain read-pure lock-free loads");
 
 }  // namespace tomo

@@ -661,8 +661,8 @@ private:
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
-        // Publish before returning the prepared handle: no caller can perform a physical exchange
-        // until the conservative pending bit is visible to an acquiring read-local probe.
+        // Publish every key occurrence before returning the prepared handle: no caller can perform
+        // a physical exchange until an acquiring read-local probe can see its filter cell.
         read_local_pending_publish(*entry);
         return entry;
     }

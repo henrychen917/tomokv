@@ -48,8 +48,9 @@ SRV=0; SRVLOG=/dev/null
 # 236 -> 238: atomic MGET/MSET throughput floor + tripwire arm/disarm round-trip (a 9x armed-by-
 # default tax on the atomic chain read once passed this gate with nothing measuring the path).
 # 238 -> 239: pipelined same-connection program order (seed-19 divergence; 74% stale pre-fix).
-EXPECT_QUICK=239
-EXPECT_FULL=250                 # full without the optional NIC row.
+# 239 -> 241: B+ filter representation unit plus deterministic held-group GET/MGET battery.
+EXPECT_QUICK=241
+EXPECT_FULL=252                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ok(){ say "$1" "ok"; PASS=$((PASS+1)); }
 bad(){ say "$1" "FAIL${2:+ ($2)}"; FAIL=$((FAIL+1)); }
@@ -75,6 +76,11 @@ g++ -std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I. \
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o /tmp/tomokv-config-parser-test \
     && /tmp/tomokv-config-parser-test \
     && ok "Redis config quoting + mid-value #" || bad "Redis config quoting + mid-value #"
+g++ -std=c++20 -O2 -pthread -I. tests/foreign_read_safety_test.cc \
+    -o /tmp/tomokv-foreign-read-safety-test \
+    && /tmp/tomokv-foreign-read-safety-test \
+    && ok "B+ counting-fingerprint filter unit" \
+    || bad "B+ counting-fingerprint filter unit"
 python3 tools/gen_acl_categories.py --redis-root "${REDIS74_ROOT:-/tmp/claude-1000/redis74}" \
     --check src/cmd/acl_categories_generated.h \
     && ok "generated Redis 7.4 ACL categories" || bad "generated Redis 7.4 ACL categories"
@@ -207,6 +213,18 @@ for AT in 0 1; do
              "see /tmp/gate-fused-spinprobe-$AT.txt"
   stop
 done
+
+# ---- B+ pending-atomic filter: negative keys stay local, touched keys lower whole commands -----
+# DEBUG geometry makes false positives impossible in these arms: A/B share one physical shard but
+# use distinct filter cells, as do P/C on the other participating owner. ATOMIC-COMMIT-DELAY holds
+# A/P after raw install and atomic_commit_holds proves the reserved/unpublished window was sampled.
+boot_fused ./build/tomokv --atomic 1 --read-local 1 --read-local-atomic-filter 1 \
+    --enable-debug-command yes \
+    || bad "B+ read-local purpose boot"
+python3 tests/bplus.py 127.0.0.1 "$PORT" >/tmp/gate-bplus.txt 2>&1 \
+    && ok "B+ held-group GET/MGET filter battery" \
+    || bad "B+ held-group GET/MGET filter battery" "see /tmp/gate-bplus.txt"
+stop
 
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
 # tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with

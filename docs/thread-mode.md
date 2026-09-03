@@ -25,6 +25,12 @@ Snapshot, placement, and pre-existing retry/deferred turns retain the legacy tot
 that object without reloading the slot. At `0`, the legacy path only hints the table home slots and
 performs a fresh lookup at execute. The selector is accepted but inert when read-local is inactive.
 
+`--read-local-atomic-filter 0|1` is the boot-only pending-atomic selector and defaults to `1`. At
+`1`, each shard publishes a fail-closed 4096-cell counting-fingerprint filter: a read falls back only
+when its key might belong to an unsafe atomic group. At `0`, any pending atomic work retains the old
+whole-shard refusal for A/B. The selector is accepted but inert when read-local is inactive, is
+exposed by `CONFIG GET`, and is refused by `CONFIG SET`.
+
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary separated IO/executor loops | `t-iopipe` interwoven WB/IFID schedule | rejected |
@@ -78,31 +84,38 @@ write-ring and store-publication gates to every key/touched shard and is all-or-
 lowers the whole command through the existing scatter path.
 
 Reads with an outstanding conflicting connection write (or a conservatively overflowed write
-ring), WATCH or MULTI state, script/scatter context, touched-shard atomic work, a typed or
-expiry-due value, table-generation churn, or a full local lane fall back to the ordinary owner
-path. A single GET also falls back on missing so its owner can perform lazy-expiry side effects.
-MGET serves a stable missing key as a nil array element; an expiry-due entry still falls back, as
-does an armed key-miss notification that must run on the owner.
+ring), WATCH or MULTI state, script/scatter context, an unsafe-key filter hit, a typed or expiry-due
+value, table-generation churn, or a full local lane fall back to the ordinary owner path. Pending
+atomic work on another key in the same shard no longer refuses the read. A filter fingerprint
+collision may conservatively refuse an unrelated key; saturation, bookkeeping overflow, or an
+unenumerable write set fail the complete shard closed. Filter references remain published through
+abort restoration or committed cleanup, not merely until the group decision. A single GET also
+falls back on missing so its owner can perform lazy-expiry side effects. MGET applies the filter to
+every key and falls back as one command on any positive; it serves a stable missing key as a nil
+array element. An expiry-due entry and an armed key-miss notification still fall back.
 
-The read validation generation changes only for table topology/migration, ownership handoff, and a
-bulk FLUSH that must not expose a partial table clear, plus once when an atomic-pending interval
-closes to rule out a complete pending-bit ABA during an MGET. Stable SET/DEL/TTL replacement swaps
-immutable object pointers with release/acquire ordering; rotation QSBR retains displaced objects,
-so those mutations do not write the generation line. With prefetch capture enabled, a point-only
-batch first hints all home words, then performs complete key-verified probes in program order. Each
-probe retains the observed slot address, decoded `KvObj` pointer, and publication generation on the
-stack, and execute copies directly from that object. Mixed GET/MGET batches capture and consume one
-command at a time to preserve connection order; MGET handles any key count in bounded prefetch,
-capture, and execute windows and recaptures all windows on an internal retry. The final generation
-check still rejects resize/ownership movement or an atomic group that opens or completes across the
-copy; an ordinary cross-client replacement is deliberately allowed to leave the already-prefetched
-version servable. Every later drain pass captures afresh, and all captures are consumed before the
-rotation publishes its next QSBR tick. GET misses still demote and MGET misses still emit nil.
+The read-local publication generation changes for every answer-changing store mutation, as well as
+table topology/migration, ownership handoff, and conservative bulk changes. For each local MGET
+attempt, the reader acquire-loads every distinct touched shard generation before copying any value,
+copies all values into a private reply, then acquire-loads those generations again. Every shard must
+be stable and unchanged. Generation or sequence churn retries the complete command once; a second
+failure falls back through the existing owner/scatter path. One-key GET needs no shard sweep: its
+filter check stays inside the existing before/after point-probe sequence validation.
+
+With prefetch capture enabled, a point-only batch first hints all home words, then performs complete
+key-verified probes in program order. Each probe retains the observed slot address and decoded
+immutable `KvObj` pointer on the stack, and execute copies directly from that object. Mixed GET/MGET
+batches capture and consume one command at a time to preserve connection order; MGET handles any key
+count in bounded prefetch, capture, and execute windows and recaptures all windows on its one retry.
+Every later drain pass captures afresh, and all captures are consumed before the rotation publishes
+its next QSBR tick. GET misses still demote and MGET misses still emit nil.
 
 `read_local_fallback_context` remains the compatibility aggregate. INFO also reports its exhaustive
 `_owner_key`, `_connection_state`, `_route`, and `_keymiss_notify` sub-reasons (and matching MGET
 rows): precise owner-key overlap, blocked/subscriber state, special or broad routing, and the MGET
-key-miss notification gate, respectively.
+key-miss notification gate, respectively. The `foreign_read_*` gauges expose current unsafe
+references, occupied/wildcard/saturated cells, and poisoned shards. MGET separately reports local
+hits, generation retries, and pending-filter or generation fallback counts.
 
 Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
 network work around a 128-operation coarse executor turn. Overlap 2 reuses the same ready lists,

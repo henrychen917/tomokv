@@ -70,6 +70,7 @@
 #include <new>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include "../base/alloc.h"
 #include "../core/atomic_tripwire.h"
@@ -612,6 +613,49 @@ public:
         FlatStore* store_;
     };
 
+    class ForeignReadKeyGuard {
+    public:
+        ForeignReadKeyGuard(FlatStore& store, uint64_t hash)
+            : store_(store.read_local_enabled_ ? &store : nullptr), hash_(hash) {
+            if (store_) store_->foreign_read_scope_open(hash_);
+        }
+        ~ForeignReadKeyGuard() {
+            if (store_) store_->foreign_read_scope_close(hash_);
+        }
+        ForeignReadKeyGuard(const ForeignReadKeyGuard&) = delete;
+        ForeignReadKeyGuard& operator=(const ForeignReadKeyGuard&) = delete;
+        ForeignReadKeyGuard(ForeignReadKeyGuard&& other) noexcept
+            : store_(other.store_), hash_(other.hash_) {
+            other.store_ = nullptr;
+        }
+        ForeignReadKeyGuard& operator=(ForeignReadKeyGuard&&) = delete;
+
+    private:
+        FlatStore* store_ = nullptr;
+        uint64_t hash_ = 0;
+    };
+
+    class ForeignReadPoisonGuard {
+    public:
+        explicit ForeignReadPoisonGuard(FlatStore& store, bool active = true)
+            : store_(active && store.read_local_enabled_ ? &store : nullptr) {
+            if (store_) store_->foreign_read_poison_open();
+        }
+        ~ForeignReadPoisonGuard() {
+            if (store_) store_->foreign_read_poison_close();
+        }
+        ForeignReadPoisonGuard(const ForeignReadPoisonGuard&) = delete;
+        ForeignReadPoisonGuard& operator=(const ForeignReadPoisonGuard&) = delete;
+        ForeignReadPoisonGuard(ForeignReadPoisonGuard&& other) noexcept
+            : store_(other.store_) {
+            other.store_ = nullptr;
+        }
+        ForeignReadPoisonGuard& operator=(ForeignReadPoisonGuard&&) = delete;
+
+    private:
+        FlatStore* store_ = nullptr;
+    };
+
     // KvObj allocations use alloc_raw(), so probe that exact backend before any shard is built.
     // A platform/allocator that can only supply wider virtual addresses cannot safely use the
     // packed slot format and must be rejected at boot rather than losing pointer bits later.
@@ -779,6 +823,53 @@ public:
     bool foreign_read_poisoned() const {
         const ReadLocalStoreState* state = read_local_store_state();
         return state && state->foreign_reads.poison_refs() != 0;
+    }
+    [[nodiscard]] ForeignReadKeyGuard foreign_read_key_guard(uint64_t hash) {
+        return ForeignReadKeyGuard(*this, hash);
+    }
+    [[nodiscard]] ForeignReadPoisonGuard foreign_read_poison_guard(bool active = true) {
+        return ForeignReadPoisonGuard(*this, active);
+    }
+
+    // Same-owner group/script paths retain their enumerated hashes through finish. Duplicate
+    // occurrences are intentional and must be closed symmetrically.
+    template <typename HashAt>
+    void foreign_read_scope_open_span(uint32_t count, HashAt&& hash_at) {
+        if (!read_local_enabled_) return;
+        // Unlike an AtomicEntry, this scoped path may mutate through an ordinary immutable slot
+        // replacement. Complete a brief sequence handshake around filter publication so a point
+        // reader that already observed a negative cell cannot validate across the later handler.
+        ReadLocalTableGuard publication(*this);
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_)
+            state.foreign_reads.add_span(count, std::forward<HashAt>(hash_at));
+        foreign_read_pending_witness_open(state);
+    }
+
+    template <typename HashAt>
+    void foreign_read_scope_close_span(uint32_t count, HashAt&& hash_at) {
+        if (!read_local_enabled_) return;
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_)
+            state.foreign_reads.close_span(count, std::forward<HashAt>(hash_at));
+        foreign_read_pending_witness_close(state);
+    }
+
+    void foreign_read_scope_open(uint64_t hash) {
+        foreign_read_scope_open_span(1, [&](uint32_t) { return hash; });
+    }
+
+    void foreign_read_scope_close(uint64_t hash) {
+        foreign_read_scope_close_span(1, [&](uint32_t) { return hash; });
+    }
+
+    // An enumerator that cannot name every key publishes a whole-shard wildcard. The caller must
+    // retain and close this scope after declining or completing the write.
+    void foreign_read_unenumerable_open() {
+        if (read_local_enabled_) foreign_read_poison_open();
+    }
+    void foreign_read_unenumerable_close() {
+        if (read_local_enabled_) foreign_read_poison_close();
     }
 
     ReadLocalProbe read_local_probe(uint64_t hash, Slice key) const {
@@ -3317,16 +3408,16 @@ private:
             read_local_advance_generation(state.publication, true);
     }
 
-    // Ownership supplies the only writer, so publication needs no locked RMW. The acquire fence
-    // after the release odd-store keeps later data stores on its far side; the final release store
-    // publishes the incremented even generation. Wrap becomes a permanent fail-closed generation.
+    // Ownership supplies the only writer, so publication needs no locked RMW. The acq_rel fence
+    // after the release odd-store keeps that marker before later data stores; the final release
+    // store publishes the incremented even generation. Wrap becomes permanently fail-closed.
     static void read_local_advance_generation(std::atomic<uint64_t>& publication, bool ending) {
         if (!ending) {
             const uint64_t previous = publication.load(std::memory_order_relaxed);
             if (previous & kReadLocalTableMutationBit) std::abort();
             publication.store(previous | kReadLocalTableMutationBit,
                               std::memory_order_release);
-            std::atomic_thread_fence(std::memory_order_acquire);
+            std::atomic_thread_fence(std::memory_order_acq_rel);
             return;
         }
         const uint64_t observed = publication.load(std::memory_order_relaxed);
@@ -3347,13 +3438,7 @@ private:
             state.foreign_reads.add_span(entry.capacity, [&](uint32_t index) {
                 return atomic_entry_hash(entry, index);
             });
-        if (state.pending_count == UINT32_MAX) std::abort();
-        if (state.pending_count++ == 0) {
-            const uint64_t previous = state.probe_sequence.fetch_or(
-                kReadLocalPendingBit, std::memory_order_acq_rel);
-            if ((previous & kReadLocalPendingBit) &&
-                !state.foreign_reads.permanently_poisoned()) std::abort();
-        }
+        foreign_read_pending_witness_open(state);
         entry.foreign_read_unsafe_published = true;
     }
 
@@ -3364,14 +3449,46 @@ private:
             state.foreign_reads.close_span(entry.capacity, [&](uint32_t index) {
                 return atomic_entry_hash(entry, index);
             });
-        if (!state.pending_count) std::abort();
-        if (--state.pending_count == 0 &&
-            !state.foreign_reads.permanently_poisoned()) {
-            const uint64_t previous = state.probe_sequence.fetch_and(
-                ~kReadLocalPendingBit, std::memory_order_release);
-            if (!(previous & kReadLocalPendingBit)) std::abort();
-        }
+        foreign_read_pending_witness_close(state);
         entry.foreign_read_unsafe_published = false;
+    }
+
+    void foreign_read_pending_witness_open(ReadLocalStoreState& state) {
+        if (state.pending_count == UINT32_MAX) {
+            state.foreign_reads.fail_closed_permanently();
+            state.probe_sequence.fetch_or(kReadLocalPendingBit, std::memory_order_release);
+            return;
+        }
+        if (state.pending_count++ != 0) return;
+        const uint64_t previous = state.probe_sequence.fetch_or(
+            kReadLocalPendingBit, std::memory_order_acq_rel);
+        if ((previous & kReadLocalPendingBit) &&
+            !state.foreign_reads.permanently_poisoned()) std::abort();
+    }
+
+    void foreign_read_pending_witness_close(ReadLocalStoreState& state) {
+        if (!state.pending_count) {
+            if (state.foreign_reads.permanently_poisoned()) return;
+            std::abort();
+        }
+        state.pending_count--;
+        if (state.pending_count != 0 || state.foreign_reads.permanently_poisoned()) return;
+        const uint64_t previous = state.probe_sequence.fetch_and(
+            ~kReadLocalPendingBit, std::memory_order_release);
+        if (!(previous & kReadLocalPendingBit)) std::abort();
+    }
+
+    void foreign_read_poison_open() {
+        ReadLocalTableGuard publication(*this);
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_) state.foreign_reads.poison_open();
+        foreign_read_pending_witness_open(state);
+    }
+
+    void foreign_read_poison_close() {
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_) state.foreign_reads.poison_close();
+        foreign_read_pending_witness_close(state);
     }
 
     bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
