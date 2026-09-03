@@ -3,6 +3,11 @@
 // One shard owner writes these cells. Foreign IO/fused readers perform one acquire load for the
 // queried key and never follow a pointer into owner state. Fingerprint collisions are deliberately
 // false-positive: a wildcard cell sends the read to the owner until the complete bucket drains.
+//
+// Beside the counting cells sits one monotonic 32-bit touch epoch per cell. The count gates a read;
+// the epoch validates a multi-key read window: it advances after every cell transition the owner
+// publishes (add, close, poison, rebuild), so a bucket that went 0 -> 1 -> 0 inside one MGET window
+// still reads +2. Owner order is cell store first, epoch store second, both release.
 #pragma once
 
 #include <array>
@@ -47,6 +52,14 @@ public:
         const uint64_t cell = cells_[cell_index(hash)].load(std::memory_order_acquire);
         if (!cell) return false;
         return (cell & kWildcardBit) != 0 || cell_fingerprint(cell) == fingerprint(hash);
+    }
+
+    // Reader-side touch epoch of the cell `hash` maps to. Two equal loads bracketing a copy window
+    // prove that no owner add/close/poison touched that bucket in between. A reader whose first
+    // load already contains a bump synchronizes with the epoch store, which is sequenced after the
+    // cell store, so its cell probe cannot miss the positive bucket.
+    uint32_t cell_epoch(uint64_t hash) const {
+        return epochs_[cell_index(hash)].load(std::memory_order_acquire);
     }
 
     template <typename HashAt>
@@ -157,6 +170,12 @@ public:
     uint64_t test_cell(uint64_t hash) const {
         return cells_[cell_index(hash)].load(std::memory_order_relaxed);
     }
+    uint32_t test_cell_epoch(uint64_t hash) const {
+        return epochs_[cell_index(hash)].load(std::memory_order_relaxed);
+    }
+    void test_set_cell_epoch(uint64_t hash, uint32_t epoch) {
+        epochs_[cell_index(hash)].store(epoch, std::memory_order_relaxed);
+    }
 #endif
 
 private:
@@ -174,6 +193,11 @@ private:
     }
 
     void add_cell(uint32_t index, uint32_t fingerprint, bool force_wildcard) {
+        store_add_cell(index, fingerprint, force_wildcard);
+        touch_epoch(index);
+    }
+
+    void store_add_cell(uint32_t index, uint32_t fingerprint, bool force_wildcard) {
         const uint64_t old = cells_[index].load(std::memory_order_relaxed);
         if (!old) {
             cells_[index].store(pack(1, fingerprint, force_wildcard),
@@ -197,9 +221,26 @@ private:
                             std::memory_order_release);
     }
 
+    // Owner-only. The cell transition is already release-published; a reader that acquires this
+    // newer epoch therefore also sees that transition. Wrap needs 2^32 touches of one bucket inside
+    // a single reader window, which the bounded owner rate cannot produce.
+    void touch_epoch(uint32_t index) {
+        epochs_[index].store(epochs_[index].load(std::memory_order_relaxed) + 1,
+                             std::memory_order_release);
+    }
+
+    void touch_all_epochs() {
+        for (uint32_t i = 0; i < kCellCount; i++) touch_epoch(i);
+    }
+
     void close_hash(uint64_t hash) { close_cell(cell_index(hash)); }
 
     void close_cell(uint32_t index) {
+        store_close_cell(index);
+        touch_epoch(index);
+    }
+
+    void store_close_cell(uint32_t index) {
         const uint64_t old = cells_[index].load(std::memory_order_relaxed);
         const uint64_t count = cell_count(old);
         if (!count) std::abort();
@@ -217,6 +258,7 @@ private:
         if (unsafe_refs != 0 || poison_refs_.load(std::memory_order_relaxed) != 0 ||
             saturated_cells_.load(std::memory_order_relaxed) == 0) return;
         for (auto& cell : cells_) cell.store(0, std::memory_order_release);
+        touch_all_epochs();
         saturated_cells_.store(0, std::memory_order_relaxed);
     }
 
@@ -227,10 +269,14 @@ private:
                                  std::memory_order_relaxed);
         for (auto& cell : cells_)
             cell.store(pack(kCountMask, 1, true), std::memory_order_release);
+        touch_all_epochs();
         saturated_cells_.store(kCellCount, std::memory_order_relaxed);
     }
 
     std::array<std::atomic<uint64_t>, kCellCount> cells_{};
+    // Per-cell touch epochs, read only for keys whose shard word carries the pending bit. Kept as
+    // a separate array so the proven 64-bit cell packing is untouched.
+    std::array<std::atomic<uint32_t>, kCellCount> epochs_{};
     // These are exact owner-side lifecycle witnesses. They are atomic only so INFO may sample them
     // from another fused thread without creating a data race; updates remain sole-writer stores.
     std::atomic<uint64_t> unsafe_total_refs_{0};
@@ -240,7 +286,13 @@ private:
 
 static_assert(ForeignReadSafety::kCellCount == 4096);
 static_assert(sizeof(std::atomic<uint64_t>) == sizeof(uint64_t));
+static_assert(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
 static_assert(std::atomic<uint64_t>::is_always_lock_free,
               "foreign-read filter cells must remain read-pure lock-free loads");
+static_assert(std::atomic<uint32_t>::is_always_lock_free,
+              "foreign-read cell epochs must remain read-pure lock-free loads");
+// 32 KiB cells + 16 KiB epochs + three owner witnesses, cacheline rounded. Heap-allocated inside
+// ReadLocalStoreState, so no locked FlatStore/Shard footprint moves.
+static_assert(sizeof(ForeignReadSafety) == 49216);
 
 }  // namespace tomo

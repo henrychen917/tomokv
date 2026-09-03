@@ -798,6 +798,13 @@ public:
         const uint64_t state = read_local_state_acquire();
         return foreign_read_key_unsafe(state, hash);
     }
+    // Multi-key window validator. Load it only for a key whose shard word carries the pending bit,
+    // and only to compare against a later load of the same cell. With the filter OFF a pending
+    // shard sends every key to its owner before any comparison, so the constant is never compared.
+    uint32_t foreign_read_cell_epoch(uint64_t hash) const {
+        if (!read_local_atomic_filter_) return 0;
+        return read_local_store_state_required().foreign_reads.cell_epoch(hash);
+    }
     static uint32_t foreign_read_filter_index(uint64_t hash) {
         return ForeignReadSafety::cell_index(hash);
     }

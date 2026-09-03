@@ -80,8 +80,8 @@ void require_empty(const ForeignReadSafety& safety, const char* message) {
 
 static_assert(ForeignReadSafety::kCellCount == 4096);
 static_assert(alignof(ForeignReadSafety) == 64);
-static_assert(sizeof(ForeignReadSafety) == 32832,
-              "4096 cells plus three owner witnesses, cacheline rounded");
+static_assert(sizeof(ForeignReadSafety) == 49216,
+              "4096 cells, 4096 touch epochs, three owner witnesses, cacheline rounded");
 
 int main() {
     const CollisionSet collision = find_three_fingerprints_in_one_cell();
@@ -194,6 +194,64 @@ int main() {
     close_refs(overflow, {collision.first});
     require(overflow.permanently_poisoned() && overflow.might_contain(other),
             "close escaped permanent overflow poison");
+
+    // Touch epochs: the counting field gates, the epoch validates a multi-key window. Every add and
+    // every close of a bucket advances it exactly once; unrelated buckets never move.
+    ForeignReadSafety epochs;
+    require(epochs.cell_epoch(collision.first) == 0 && epochs.cell_epoch(other) == 0,
+            "fresh filter has nonzero touch epochs");
+    add(epochs, {collision.first});
+    require(epochs.cell_epoch(collision.first) == 1 && epochs.cell_epoch(other) == 0 &&
+                epochs.cell_epoch(collision.third) == 1,
+            "add did not touch exactly the target bucket once");
+    close_refs(epochs, {collision.first});
+    require(epochs.cell_epoch(collision.first) == 2 && epochs.cell_epoch(other) == 0 &&
+                !epochs.might_contain(collision.first),
+            "0 -> 1 -> 0 did not leave a +2 witness (ABA would be invisible to the count)");
+    add(epochs, {collision.first, collision.second});
+    require(epochs.cell_epoch(collision.first) == 4 && epochs.wildcard_cells() == 1,
+            "two adds into one wildcard bucket did not touch it twice");
+    close_refs(epochs, {collision.second, collision.first});
+    require(epochs.cell_epoch(collision.first) == 6 && epochs.cell_epoch(other) == 0,
+            "closes did not touch the bucket once each");
+    require_empty(epochs, "epoch filter did not drain");
+    add(epochs, {other});
+    require(epochs.cell_epoch(collision.first) == 6 && epochs.cell_epoch(other) == 1,
+            "an unrelated bucket's add moved another bucket's epoch");
+    close_refs(epochs, {other});
+
+    // Poison touches every bucket on open and on final close; nested opens touch nothing.
+    ForeignReadSafety poison_epochs;
+    poison_epochs.poison_open();
+    require(poison_epochs.cell_epoch(collision.first) == 1 && poison_epochs.cell_epoch(other) == 1,
+            "poison open did not touch every bucket");
+    poison_epochs.poison_open();
+    require(poison_epochs.cell_epoch(other) == 1, "nested poison open touched buckets");
+    poison_epochs.poison_close();
+    require(poison_epochs.cell_epoch(other) == 1, "inner poison close touched buckets");
+    poison_epochs.poison_close();
+    require(poison_epochs.cell_epoch(collision.first) == 2 && poison_epochs.cell_epoch(other) == 2,
+            "final poison close did not touch every bucket");
+    require_empty(poison_epochs, "poison epochs filter did not drain");
+
+    // Saturated-drain rebuild and permanent poison touch every bucket too.
+    ForeignReadSafety rebuild_epochs;
+    rebuild_epochs.test_set_cell(collision.first, ForeignReadSafety::kCountMask - 1);
+    rebuild_epochs.test_set_unsafe_total_refs(0);
+    add(rebuild_epochs, {collision.first});
+    require(rebuild_epochs.cell_epoch(collision.first) == 1 && rebuild_epochs.cell_epoch(other) == 0,
+            "saturating add did not touch exactly its bucket");
+    close_refs(rebuild_epochs, {collision.first});
+    require(rebuild_epochs.cell_epoch(collision.first) == 3 && rebuild_epochs.cell_epoch(other) == 1,
+            "exact-drain rebuild did not touch every bucket");
+    require_empty(rebuild_epochs, "rebuild epochs filter did not drain");
+    rebuild_epochs.test_set_cell_epoch(other, UINT32_MAX);
+    add(rebuild_epochs, {other});
+    require(rebuild_epochs.cell_epoch(other) == 0, "epoch wrap did not stay a plain modular step");
+    close_refs(rebuild_epochs, {other});
+    rebuild_epochs.fail_closed_permanently();
+    require(rebuild_epochs.cell_epoch(collision.first) == 4 && rebuild_epochs.cell_epoch(other) == 2,
+            "permanent poison did not touch every bucket");
 
     std::puts("foreign-read-safety unit: PASS");
     return 0;
