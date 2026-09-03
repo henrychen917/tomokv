@@ -156,7 +156,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
                         &ios[tid],
-                        [](void* p, Client* client, const Task* probed,
+                        [](void* p, Client* client, const uint64_t* probed,
                            const ReadLocalFallbackReason* fallbacks,
                            uint32_t probed_count, uint32_t& demoted) {
                             return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(

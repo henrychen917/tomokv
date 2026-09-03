@@ -97,10 +97,19 @@ struct ReadLocalExState<false> {};
 template <>
 struct ReadLocalExState<true> {
     struct Impl {
-        using DemoteFn = bool (*)(void*, Client*, const Task*,
+        using DemoteFn = bool (*)(void*, Client*, const uint64_t*,
                                   const ReadLocalFallbackReason*, uint32_t, uint32_t&);
 
-        std::unique_ptr<Task[]> lane;
+        // A lane entry is the ROB handle only. The full 32-byte Task carried a shard and a
+        // scatter pointer that were always -1/nullptr here; at kInboxSlots entries that doubled
+        // the lane to the size of the whole L1D. Demotion builds its owner Tasks from the id.
+        struct LaneEntry {
+            Client* client;
+            uint64_t op_id;
+        };
+        static_assert(sizeof(LaneEntry) == 16);
+
+        std::unique_ptr<LaneEntry[]> lane;
         // A failed probe can sit behind an earlier bounded demotion wave. Preserve its original
         // reason until that exact ROB op is lowered instead of reclassifying the suffix as Context.
         std::unique_ptr<ReadLocalFallbackReason[]> lane_fallbacks;
@@ -167,7 +176,7 @@ public:
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
                 if (!impl) return false;
-                impl->lane.reset(new (std::nothrow) Task[kInboxSlots]);
+                impl->lane.reset(new (std::nothrow) ReadLocalExImpl::LaneEntry[kInboxSlots]);
                 impl->lane_fallbacks.reset(
                     new (std::nothrow) ReadLocalFallbackReason[kInboxSlots]);
                 if (!impl->lane || !impl->lane_fallbacks ||
@@ -230,21 +239,19 @@ public:
         read_local_impl().demote = demote;
     }
 
-    bool enqueue_local_read(const Task& task) {
+    // The armed parser is the only producer and calls this immediately after its own
+    // local_read_lane_has_room(demand) verdict on the same op, with nothing that can consume lane
+    // room in between (only demand releases can run there). It already holds the Op, its MGET
+    // classification and its demotion demand, so this is the four lane stores and nothing else.
+    __attribute__((always_inline)) void enqueue_local_read(Client* client, uint64_t op_id,
+                                                           uint32_t demand) {
         static_assert(Fused);
-        if (!read_local_enabled()) return false;
-        auto& state = read_local_impl();
-        if (!task.client) std::abort();
-        const Op& op = task.client->rob().at(task.op_id);
-        const uint32_t demand = read_local_task_demotion_demand(op);
-        if (state.lane_count == kInboxSlots ||
-            demand > kReadLocalDemotionBudget - state.lane_demotion_demand) return false;
-        state.lane[state.lane_tail] = task;
+        auto& state = *read_local_.impl;
+        state.lane[state.lane_tail] = {client, op_id};
         state.lane_fallbacks[state.lane_tail] = ReadLocalFallbackReason::None;
         state.lane_tail = (state.lane_tail + 1) & (kInboxSlots - 1);
         state.lane_count++;
         state.lane_demotion_demand += demand;
-        return true;
     }
 
     bool local_read_lane_has_room(uint32_t demotion_demand = 1) const {
@@ -272,7 +279,7 @@ public:
         for (uint32_t offset = 0; offset < lane.lane_count; offset++) {
             const uint32_t index =
                 (lane.lane_head + offset) & (kInboxSlots - 1);
-            const Task& task = lane.lane[index];
+            const auto& task = lane.lane[index];
             if (task.client != client || task.op_id != op_id) continue;
             if (!client->rob().pending_read_local(op_id)) std::abort();
             if (lane.lane_fallbacks[index] == ReadLocalFallbackReason::None)
@@ -801,7 +808,7 @@ private:
         for (uint32_t offset = 0; offset < old_count; offset++) {
             const uint32_t from =
                 (state.lane_head + offset) & (kInboxSlots - 1);
-            const Task task = state.lane[from];
+            const ReadLocalExImpl::LaneEntry task = state.lane[from];
             // Test the full generation before touching its Op slot. The fused pass sweeps any
             // parser-created tombstone before WB's corpse-grace reaper can free its Client.
             if (!task.client || !task.client->rob().pending_read_local(task.op_id)) continue;
@@ -815,7 +822,7 @@ private:
         state.lane_has_tombstones = false;
     }
 
-    bool demote_local_read_batch(Client* client, const Task* probed,
+    bool demote_local_read_batch(Client* client, const uint64_t* probed,
                                  const ReadLocalFallbackReason* fallbacks,
                                  uint32_t probed_count, uint32_t& demoted) {
         static_assert(Fused);
@@ -1158,10 +1165,10 @@ private:
     // keeps an overlapping younger read behind any operation that needs the owner path.
     template <bool CapturePrefetch>
     PreparedLocalRead prepare_local_read(
-            const Task& task,
+            Client* client, uint64_t op_id,
             const FlatStore::ReadLocalPrefetchCapture* captured = nullptr) {
-        if (!task.client) std::abort();
-        Op& op = task.client->rob().at(task.op_id);
+        if (!client) std::abort();
+        Op& op = client->rob().at(op_id);
         if (!op.read_local()) std::abort();
         if (read_local_mget(op)) {
             if (captured) std::abort();
@@ -1284,7 +1291,7 @@ private:
         static_assert(Fused);
         auto& lane = read_local_impl();
         if (!lane.lane_count) return 0;
-        Task batch[kReadLocalDrainChunkOps];
+        uint64_t batch[kReadLocalDrainChunkOps];
         PreparedLocalRead prepared[kReadLocalDrainChunkOps];
         ReadLocalFallbackReason fallbacks[kReadLocalDrainChunkOps];
         [[maybe_unused]] ReadLocalCaptureBuffer<
@@ -1293,7 +1300,7 @@ private:
         uint32_t consumed = 0;
         auto discard_tombstone_heads = [&] {
             while (lane.lane_count) {
-                const Task& head = lane.lane[lane.lane_head];
+                const auto& head = lane.lane[lane.lane_head];
                 if (head.client && head.client->rob().pending_read_local(head.op_id)) break;
                 lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
                 lane.lane_count--;
@@ -1312,7 +1319,7 @@ private:
         // transitive same-key set move in a ROB-ordered owner wave; unrelated reads remain local.
         discard_tombstone_heads();
         while (lane.lane_count && consumed < op_budget) {
-            const Task& head = lane.lane[lane.lane_head];
+            const auto& head = lane.lane[lane.lane_head];
             Client* client = head.client;
             uint32_t count = 0;
             uint32_t capacity = std::min<uint32_t>(
@@ -1324,11 +1331,11 @@ private:
             while (count < lane.lane_count && count < capacity) {
                 const uint32_t index =
                     (lane.lane_head + count) & (kInboxSlots - 1);
-                const Task& task = lane.lane[index];
+                const auto& task = lane.lane[index];
                 if (task.client != client ||
                     !client->rob().pending_read_local(task.op_id))
                     break;
-                batch[count++] = task;
+                batch[count++] = task.op_id;
                 fallbacks[count - 1] = lane.lane_fallbacks[index];
             }
             if (!count) std::abort();
@@ -1341,7 +1348,7 @@ private:
             if constexpr (CapturePrefetch) {
                 point_capture_batch = true;
                 for (uint32_t i = 0; i < count; i++) {
-                    const Op& op = client->rob().at(batch[i].op_id);
+                    const Op& op = client->rob().at(batch[i]);
                     if (read_local_mget(op)) {
                         point_capture_batch = false;
                         break;
@@ -1354,11 +1361,11 @@ private:
                     // I0 retains the old whole-batch home-slot overlap. C0 consumes those warm
                     // words, records their decoded objects, and hints object/value bytes for E0.
                     for (uint32_t i = 0; i < count; i++) {
-                        const Op& op = client->rob().at(batch[i].op_id);
+                        const Op& op = client->rob().at(batch[i]);
                         srv_->shard(op.shard).store().read_local_prefetch(op.hash);
                     }
                     for (uint32_t i = 0; i < count; i++) {
-                        const Op& op = client->rob().at(batch[i].op_id);
+                        const Op& op = client->rob().at(batch[i]);
                         captures.entries[i] =
                             srv_->shard(op.shard).store().read_local_prefetch_capture(
                                 op.hash, op.key());
@@ -1368,19 +1375,19 @@ private:
                 // Selector 0 is the original hint-only path, including MGET's established bounded
                 // prefetch inside prepare_local_mget().
                 for (uint32_t i = 0; i < count; i++) {
-                    const Op& op = client->rob().at(batch[i].op_id);
+                    const Op& op = client->rob().at(batch[i]);
                     if (!read_local_mget(op))
                         srv_->shard(op.shard).store().read_local_prefetch(op.hash);
                 }
             }
             uint32_t first_fallback = count;
             for (uint32_t i = 0; i < count; i++) {
-                const Op& op = client->rob().at(batch[i].op_id);
+                const Op& op = client->rob().at(batch[i]);
                 if (fallbacks[i] == ReadLocalFallbackReason::None) {
                     bool broad_owner = false;
                     const bool owner_conflict =
                         client->rob().read_local_owner_conflicts_before(
-                            batch[i].op_id, [&](const Op& owner) {
+                            batch[i], [&](const Op& owner) {
                                 if (!read_local_commands_overlap(op, owner)) return false;
                                 broad_owner |= !read_local_owner_command_is_precise(owner);
                                 return true;
@@ -1395,12 +1402,12 @@ private:
                     if constexpr (CapturePrefetch) {
                         if (point_capture_batch) {
                             prepared[i] = prepare_local_read<true>(
-                                batch[i], &captures.entries[i]);
+                                client, batch[i], &captures.entries[i]);
                         } else {
-                            prepared[i] = prepare_local_read<true>(batch[i]);
+                            prepared[i] = prepare_local_read<true>(client, batch[i]);
                         }
                     } else {
-                        prepared[i] = prepare_local_read<false>(batch[i]);
+                        prepared[i] = prepare_local_read<false>(client, batch[i]);
                     }
                     fallbacks[i] = prepared[i].fallback;
                 } else {
@@ -1413,14 +1420,14 @@ private:
             ReadLocalStats& stats = self_->read_local_stats();
             auto complete_local_prefix = [&](uint32_t completed) {
                 for (uint32_t i = 0; i < completed; i++) {
-                    Op& op = client->rob().at(batch[i].op_id);
+                    Op& op = client->rob().at(batch[i]);
                     stats.keyspace_hits += prepared[i].keyspace_hits;
                     stats.keyspace_misses += prepared[i].keyspace_misses;
                     stats.hits++;
                     if (read_local_mget(op)) stats.mget_local_hits++;
                     self_->note_command(op.spec->id);
                     release_local_read_demotion_demand(op);
-                    client->rob().complete_pending_read_local(batch[i].op_id);
+                    client->rob().complete_pending_read_local(batch[i]);
                     op.state.store(OpState::Done, std::memory_order_release);
                 }
                 if (completed) {
@@ -1437,7 +1444,7 @@ private:
                 // reply without imposing a connection-wide execution venue.
                 complete_local_prefix(first_fallback);
                 for (uint32_t i = first_fallback; i < count; i++)
-                    read_local_clear_reply(client->rob().at(batch[i].op_id));
+                    read_local_clear_reply(client->rob().at(batch[i]));
                 lane.lane_fallbacks[lane.lane_head] = fallbacks[first_fallback];
                 uint32_t demoted = 0;
                 if (!demote_local_read_batch(
