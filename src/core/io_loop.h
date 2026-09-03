@@ -4238,8 +4238,13 @@ private:
                             ReadLocalFallbackReason::None;
                         bool write_conflict = false;
                         bool mget_atomic_pending = false;
-                        bool mget_seq_churn = false;
                         if (mget) {
+                            // Sample only the pending-key filter here. An open group outlives the
+                            // parse-to-execute gap, so that sample predicts the executor's answer;
+                            // the table-mutation bit is one ~200 ns exchange bracket that has
+                            // closed long before the executor reads, and sampling it on every
+                            // touched shard rejected about 11% of MGETs for nothing the executor's
+                            // own probe/validate would not have caught (mget_fallback_seq_churn).
                             for (uint32_t arg = 1; arg < op->argc(); arg++) {
                                 const uint64_t hash = arg == 1
                                     ? op->hash : FlatStore::hash_key(op->arg(arg));
@@ -4247,14 +4252,8 @@ private:
                                     ? op->shard : srv_->router().shard_of(hash);
                                 write_conflict |= rob.read_local_write_conflicts(
                                     hash, read_local_command_touches_hash);
-                                const uint64_t state = srv_->shard(shard)
-                                                           .store()
-                                                           .read_local_state_acquire();
                                 mget_atomic_pending |=
-                                    srv_->shard(shard).store().foreign_read_key_unsafe(
-                                        state, hash);
-                                mget_seq_churn |=
-                                    !FlatStore::read_local_state_eligible(state);
+                                    srv_->shard(shard).store().foreign_read_key_unsafe(hash);
                             }
                         } else {
                             write_conflict = rob.read_local_write_conflicts(
@@ -4303,7 +4302,7 @@ private:
                                 read_local_eligible = false;
                             } else {
                                 bool atomic_pending = mget_atomic_pending;
-                                bool seq_churn = mget_seq_churn;
+                                bool seq_churn = false;
                                 if (!mget) {
                                     const uint64_t state = srv_->shard(op->shard)
                                                                .store()
