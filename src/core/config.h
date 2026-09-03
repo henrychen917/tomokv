@@ -279,7 +279,7 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    // Boot-only amortization study: 0=plain, 1=interwoven, 2=deep unified streams. This occupies
+    // Boot-only amortization study: 0=plain, 1=interwoven, 2=gated unified three-way. This occupies
     // the alignment slack before ClientOutputBufferLimits, preserving Config's locked footprint.
     uint32_t overlap = 0;
     ClientOutputBufferLimits client_output_buffer_limits;
@@ -686,7 +686,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         // Hidden compatibility alias for the genthread research branch's pinned scripts. That
         // branch was unified-only, so preserving its meaning requires selecting 1s as well as the
-        // corresponding pipeline schedule.
+        // corresponding overlap value. `streams` remains the legacy spelling for overlap 2 even
+        // though that value now dispatches the iofused-style three-way schedule.
         else if (!std::strcmp(a, "--genthread-schedule")) {
             const char* value = next(nullptr);
             cfg.thread_mode = ThreadMode::Fused;

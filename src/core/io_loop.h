@@ -141,7 +141,7 @@ public:
         }, &cached_now_s_, &self_->sig());
         wb_.set_cold_send_classification(
             srv_->cfg().thread_mode == ThreadMode::Fused &&
-            srv_->cfg().overlap == 1);
+            srv_->cfg().overlap != 0);
         initialized_ = true;
         return dormant || activate();
     }
@@ -532,11 +532,13 @@ private:
     void run_loop() {
         static_assert(Pipeline <= 2);
         if constexpr (Fused && Pipeline == 1) {
-            run_fused_iofused_loop<HasUnix, HasTls, kEp>();
+            run_fused_iofused_loop<HasUnix, HasTls, kEp, false>();
             return;
         }
         if constexpr (Fused && Pipeline == 2) {
-            run_fused_streams_loop<HasUnix, HasTls, kEp>();
+            // Overlap 2 is the gated three-way extension of iofused.  The old streams loop remains
+            // below for branch comparison, but no boot-time dispatch can reach it.
+            run_fused_iofused_loop<HasUnix, HasTls, kEp, true>();
             return;
         }
         constexpr bool IoPipe = !Fused && Pipeline == 1;
@@ -780,12 +782,12 @@ private:
         reap_dead();
     }
 
-    // The shallow 1s schedule is a private boot-time instantiation. It deliberately owns none of
-    // streams' unpublished IFID reservations, A/D executor contexts, residual-age gates, or
-    // buffered retirement state. The order is the source iofused rotation: common/control debt,
-    // one CQ harvest, WB-prefetch -> ordinary targeted IFID -> WB retire/prepare/pump -> coarse EX,
-    // then SEND-immediate / four-non-SEND N2 handling.
-    template <bool HasUnix, bool HasTls, bool kEp>
+    // The iofused family is a private boot-time instantiation. Neither arm owns streams' unpublished
+    // IFID reservations, A/D executor contexts, residual-age gates, or buffered retirement state.
+    // Overlap 1 retains the source WB-prefetch -> targeted IFID -> WB -> coarse EX rotation.
+    // Overlap 2 selects the gated whole-batch three-way pass below. Both retain the measured
+    // SEND-immediate / four-non-SEND N2 handling.
+    template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay>
     void run_fused_iofused_loop() {
         if constexpr (!kEp) {
             if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
@@ -796,6 +798,7 @@ private:
         LoopSignals& sig = self_->sig();
         WbPipelineBatch wb_batch;
         uint32_t non_send_rotations = 0;
+        bool three_way_gate_open = false;
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
@@ -876,7 +879,11 @@ private:
                 });
                 if constexpr (kEp)
                     did += epoll_pass<HasUnix, HasTls, true, 1>(0);
-                did += genthread_iofused_pass<HasUnix, HasTls, kEp>(wb_batch);
+                if constexpr (ThreeWay)
+                    did += genthread_three_way_pass<HasUnix, HasTls, kEp>(
+                        wb_batch, three_way_gate_open);
+                else
+                    did += genthread_iofused_pass<HasUnix, HasTls, kEp>(wb_batch);
 
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -920,6 +927,7 @@ private:
                 continue;
             }
 
+            if constexpr (ThreeWay) three_way_gate_open = false;
             const uint32_t sweep_work =
                 genthread_iofused_sweep<HasUnix, HasTls, kEp>();
             if (sweep_work) {
@@ -959,6 +967,7 @@ private:
         reap_dead();
     }
 
+    // Legacy streams loop retained for branch comparison; run_loop() has no dispatch edge here.
     template <bool HasUnix, bool HasTls, bool kEp>
     void run_fused_streams_loop() {
         static constexpr uint8_t Pipeline = 2;
@@ -5572,9 +5581,181 @@ ordinary_dispatch:
         return work;
     }
 
-    template <bool HasTls, bool kEp, uint8_t Pipeline>
-    uint32_t genthread_wb_batch() {
+    // OVERLAP 2: iofused's ready lists and whole batches, with the first ordinary EX batch split at
+    // its existing prefetch seam.  The gate starts closed and samples only work completed by this
+    // pass. Closed rotations use the literal coarse IFID -> EX -> WB owner order; an open rotation
+    // freezes and warms WB first, then runs IFID -> EX loads -> WB stores -> EX consumption. The WB
+    // callback is synchronous, so neither its client batch nor EX's stack task batch crosses an
+    // outer boundary.
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t genthread_three_way_pass(WbPipelineBatch& batch, bool& gate_open) {
+        if (batch.count || active_wb_context_) std::abort();
+        LoopSignals& sig = self_->sig();
+        uint32_t occupancy = 0;
+        auto note_ops_since = [&](uint64_t before) {
+            const uint64_t delta = sig.ops >= before ? sig.ops - before : 0;
+            occupancy = std::max<uint32_t>(
+                occupancy, static_cast<uint32_t>(std::min<uint64_t>(delta, UINT32_MAX)));
+        };
+
+        if (!gate_open) {
+            uint32_t work = 0;
+            uint64_t before = sig.ops;
+            work += genthread_ifid_batch<HasTls, kEp, 1>(nullptr);
+            note_ops_since(before);
+
+            before = sig.ops;
+            work += fused_executor_->fused_coarse_pass();
+            note_ops_since(before);
+
+            work += collect_retire_work<HasUnix, kEp, true>();
+            uint32_t wb_occupancy = 0;
+            work += genthread_wb_batch<HasTls, kEp, 1, true>(&wb_occupancy);
+            occupancy = std::max(occupancy, wb_occupancy);
+            gate_open = occupancy >= kGenthreadThreeWayMinBatchOccupancy;
+            return work;
+        }
+
+        active_wb_context_ = &batch;
+        uint32_t work = collect_retire_work<HasUnix, kEp, true>();
+        if (!pending_serve_.empty()) {
+            AofManager& aof = srv_->aof();
+            if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+            if (!aof.reply_gate_ready(aof_gate_target_)) {
+                aof.register_send_gate_wait(self_->id());
+            } else {
+                aof_gate_target_ = 0;
+                while (batch.count < kGenthreadPipelineWbBatchConns &&
+                       !pending_serve_.empty()) {
+                    Client* client = pending_serve_.front();
+                    pending_serve_.pop_front();
+                    client->set_serve_pending(false);
+                    if (!client->dead()) batch.clients[batch.count++] = client;
+                }
+            }
+        } else {
+            aof_gate_target_ = 0;
+        }
+
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            Rob<kRobWindow>& rob = client->rob();
+            const uint64_t first = rob.flush_id();
+            const uint64_t last = rob.dispatch_id();
+            const uint64_t count = std::min<uint64_t>(
+                last - first, kGenthreadWbPrefetchOpsPerConn);
+            for (uint64_t off = 0; off < count; off++)
+                __builtin_prefetch(&rob.at(first + off).state, 0, 3);
+        }
+        for (uint32_t i = 0; i < batch.count; i++) {
+            Client* client = batch.clients[i];
+            if (!client || client->dead()) continue;
+            Rob<kRobWindow>& rob = client->rob();
+            const uint64_t first = rob.flush_id();
+            const uint64_t last = rob.dispatch_id();
+            const uint64_t count = std::min<uint64_t>(
+                last - first, kGenthreadWbPrefetchOpsPerConn);
+            for (uint64_t off = 0; off < count; off++) {
+                Op& op = rob.at(first + off);
+                if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
+                if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
+                const uint32_t bytes = std::min(
+                    op.zc_len, kGenthreadWbBorrowPrefetchBytes);
+                for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
+                    __builtin_prefetch(op.zc_ptr + pos, 0, 1);
+            }
+        }
+
+        const uint32_t wb_occupancy = batch.count;
+        occupancy = std::max(occupancy, wb_occupancy);
+        work += wb_occupancy;
+        const uint64_t before_ifid = sig.ops;
+        work += genthread_ifid_batch<HasTls, kEp, 1>(nullptr);
+        note_ops_since(before_ifid);
+        if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
+
+        bool wb_filled = false;
+        auto wb_filler = [&] {
+            if (wb_filled) std::abort();
+            wb_filled = true;
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client*& submit_client = batch.clients[i];
+                Client* client = submit_client;
+                if (!client || client->dead()) continue;
+                if (__builtin_expect(
+                        (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                    climon_reply_suppressed(client)) {
+                    bool submit_allowed;
+                    (void)climon_prepare_suppressed(client, submit_allowed);
+                    if (!submit_allowed) submit_client = nullptr;
+                    continue;
+                }
+                if constexpr (HasTls) {
+                    if (TlsConn* tls = tls_engine(client))
+                        (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
+                    else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
+                        (void)wb_.prepare_pipeline_ktls<kEp>(*client);
+                    else
+                        (void)wb_.prepare_pipeline<kEp>(*client);
+                } else {
+                    (void)wb_.prepare_pipeline<kEp>(*client);
+                }
+            }
+            for (uint32_t i = 0; i < batch.count; i++) {
+                Client* client = batch.clients[i];
+                if (!client || client->dead()) continue;
+                bool retry_plain_submit = false;
+                if constexpr (HasTls) {
+                    if (TlsConn* tls = tls_engine(client)) {
+                        (void)wb_.pump_tls<kEp, true>(*client, *tls);
+                        if (tls->socket_userspace() && tls->has_pinned_plain())
+                            arm_tls_socket_poll<kEp>(client, tls->wanted());
+                        if (tls->failed())
+                            close_client(client,
+                                         tls->output_pending() || client->send_inflight());
+                    } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
+                        const bool sent = wb_.pump<kEp, true>(*client);
+                        retry_plain_submit = !kEp && !sent &&
+                            !client->send_inflight() && !client->nothing_to_write();
+                    } else {
+                        const bool sent = wb_.pump<kEp, true>(*client);
+                        retry_plain_submit = !kEp && !sent &&
+                            !client->send_inflight() && !client->nothing_to_write();
+                    }
+                } else {
+                    const bool sent = wb_.pump<kEp, true>(*client);
+                    retry_plain_submit = !kEp && !sent &&
+                        !client->send_inflight() && !client->nothing_to_write();
+                }
+                if constexpr (kEp)
+                    if (wb_.take_send_failure()) epoll_close_now(client);
+                if (retry_plain_submit && !client->dead()) {
+                    self_->sig().sqe_starved++;
+                    enqueue_serve(client);
+                }
+                if (!client->dead() && client->in_active()) enqueue_ifid(client);
+            }
+            batch.count = 0;
+            active_wb_context_ = nullptr;
+        };
+
+        const uint64_t before_ex = sig.ops;
+        work += fused_executor_->fused_three_way_pass(wb_filler);
+        note_ops_since(before_ex);
+        if (!wb_filled || batch.count || active_wb_context_) std::abort();
+
+        gate_open = occupancy >= kGenthreadThreeWayMinBatchOccupancy;
+        return work;
+    }
+
+    template <bool HasTls, bool kEp, uint8_t Pipeline, bool ReportOccupancy = false>
+    uint32_t genthread_wb_batch(uint32_t* occupancy = nullptr) {
         static_assert(Pipeline == 1 || Pipeline == 2);
+        if constexpr (ReportOccupancy) {
+            if (!occupancy) std::abort();
+            *occupancy = 0;
+        }
         uint32_t work = 0;
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
         if (!pending_serve_.empty()) {
@@ -5620,6 +5801,7 @@ ordinary_dispatch:
             if constexpr (kEp)
                 if (wb_.take_send_failure()) epoll_close_now(c);
         }
+        if constexpr (ReportOccupancy) *occupancy = served;
         return work + served;
     }
 

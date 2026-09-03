@@ -138,7 +138,10 @@ public:
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
         ex_sched_enabled_ = srv->cfg().ex_sched != 0;
         pipeline_batches_ = Fused && srv->cfg().overlap != 0;
-        iofused_ = Fused && srv->cfg().overlap == 1;
+        // Both interwoven schedules use the proven iofused fixed producer lanes.  The legacy
+        // streams implementation remains in this file for branch comparison, but overlap 2 no
+        // longer reaches its reservation-aware task transport.
+        iofused_ = Fused && srv->cfg().overlap != 0;
         if constexpr (Fused) {
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
@@ -176,10 +179,9 @@ public:
     void activate_fused(Ring* handoff_ring) {
         static_assert(Fused);
         if (!initialized_) std::abort();
-        // Buffered schedules put executor-originated task/client handoffs on the network ring.
-        // That leaves this private ring with control/persistence SQEs; pipeline 1 can amortize its
-        // submit boundary, and pipeline 2 can close N2 over all network work. Pipeline 0 retains
-        // its existing ring ownership.
+        // Interwoven schedules put executor-originated task/client handoffs on the network ring.
+        // That leaves this private ring with control/persistence SQEs; both iofused-family arms
+        // amortize at their shared N2 boundary. Pipeline 0 retains its existing ring ownership.
         if (srv_->cfg().overlap != 0 && handoff_ring)
             fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
@@ -288,13 +290,24 @@ public:
         return fused_pass_impl<kGenthreadExBatchOps, true, false>();
     }
 
-    // Deep generalized-thread traffic has already drained staged micro-batches at its one mode
-    // transition. Keep the steady coarse pass free of empty pipeline-state probes.
+    // Private-lane whole-batch turn shared by source iofused, overlap-2's thin path, idle repair,
+    // and blocking snapshot progress. It has no streams pipeline-state probes.
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
         return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>();
     }
 
+    // Three-way overlap is the ordinary iofused executor envelope with one piece of independent
+    // CPU work inserted into the first fresh task batch's existing prefetch gap.  The batch remains
+    // the stack-local whole batch used by drain_tasks(); nothing is staged across this call.
+    template <typename Filler>
+    uint32_t fused_three_way_pass(Filler&& filler) {
+        static_assert(Fused);
+        using Fn = std::remove_reference_t<Filler>;
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, Fn>(&filler);
+    }
+
+    // Legacy streams entry retained for branch archaeology; overlap-2 dispatch has no caller.
     uint32_t fused_streams_pass() {
         static_assert(Fused);
         return fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
@@ -308,8 +321,19 @@ public:
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false>
-    uint32_t fused_pass_impl() {
+              bool IofusedPrivateQueue = false, typename Filler = void>
+    uint32_t fused_pass_impl(Filler* filler = nullptr) {
+        constexpr bool HasFiller = !std::is_void_v<Filler>;
+        [[maybe_unused]] bool filler_used = false;
+        auto finish_filler = [&] {
+            if constexpr (HasFiller) {
+                if (!filler) std::abort();
+                if (!filler_used) {
+                    (*filler)();
+                    filler_used = true;
+                }
+            }
+        };
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -330,6 +354,19 @@ public:
             cached_lru_clock_ = static_cast<uint8_t>(
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
 
+        // The WB batch captured its AOF gate before entering this call. Only a clean fresh-task
+        // turn may put that WB work into an EX prefetch gap: executing older retry/deferred debt
+        // first could make a newly Done prefix eligible for the already-gated batch. Exceptional
+        // control state therefore consumes WB immediately and continues in the ordinary coarse EX
+        // order. The saturated steady path has all five queues empty and reaches the split below.
+        if constexpr (HasFiller) {
+            if (lb_frozen || snapshot_owner_state_ != SnapshotOwnerState::None ||
+                !stale_tasks_.empty() || !multi_retries_.empty() ||
+                !atomic_deferred_.empty() || !xshard_retries_.empty() ||
+                !ordered_deferred_.empty())
+                finish_filler();
+        }
+
         uint32_t did = drain_local_reads();
         if (lb_frozen) {
             if (!srv_->lb_acked(self_->id())) {
@@ -341,11 +378,17 @@ public:
                 if (xshard_retries_.empty())
                     did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
-                    if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                    if (xshard_retries_.empty() && ordered_deferred_.empty()) {
+                        if constexpr (HasFiller)
+                            did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                                true, *filler, filler_used);
+                        else
+                            did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                    }
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
+            finish_filler();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             did += lb_control_pass();
         } else {
@@ -359,11 +402,19 @@ public:
                 if (xshard_retries_.empty())
                     did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
-                    if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                   ? drain_tasks<BatchOps, IofusedPrivateQueue>()
-                                   : drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
+                    if (xshard_retries_.empty() && ordered_deferred_.empty()) {
+                        if (snapshot_owner_state_ == SnapshotOwnerState::None) {
+                            if constexpr (HasFiller)
+                                did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                                    false, *filler, filler_used);
+                            else
+                                did += drain_tasks<BatchOps, IofusedPrivateQueue>();
+                        } else {
+                            did += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
+                        }
+                    }
             }
+            finish_filler();
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
                 did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
@@ -1242,6 +1293,40 @@ private:
             ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
             : self_->drain_tasks<IofusedPrivateQueue>(take);
         if (held) exec_batch<IofusedPrivateQueue>(batch, held);
+        self_->sig().ops += n;
+        return n;
+    }
+
+    // Identical ready-mask drain and stack batch as the iofused coarse path.  Only the first batch
+    // is split at its existing load-to-use seam; the caller's WB work runs synchronously there and
+    // every later batch remains the ordinary prefetch+execute unit.  ThreadCtx still owns the exact
+    // same pop/retire sequence, so no streams lane list or delayed-retirement context is involved.
+    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
+        Task batch[BatchOps];
+        uint32_t held = 0;
+        auto execute_batch = [&] {
+            if (!held) return;
+            if (!filler_used && xshard_retries_.empty()) {
+                if (__builtin_expect(ex_sched_enabled_, false))
+                    ex_schedule_batch(batch, held);
+                prefetch_exec_batch(batch, held);
+                filler();
+                filler_used = true;
+                exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
+            } else {
+                exec_batch<IofusedPrivateQueue>(batch, held);
+            }
+            held = 0;
+        };
+        auto take = [&](const Task& task) {
+            batch[held++] = task;
+            if (held == BatchOps) execute_batch();
+        };
+        const uint32_t n = unmasked
+            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
+            : self_->drain_tasks<IofusedPrivateQueue>(take);
+        execute_batch();
         self_->sig().ops += n;
         return n;
     }
@@ -2349,7 +2434,7 @@ private:
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
     Ring* fused_handoff_ring_ = nullptr;
-    // Pipelines 1/2 share the measured 128-task geometry; only pipeline 1 coalesces submissions.
+    // Both interwoven schedules share the measured 128-task geometry and coalesced N2 boundary.
     bool pipeline_batches_ = false;
     bool iofused_ = false;
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;

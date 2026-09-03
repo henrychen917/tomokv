@@ -404,9 +404,9 @@ public:
     uint32_t task_free_slots(uint32_t from) const {
         return task_in_->producer_free_slots(from);
     }
-    // Private source-fork transport for the boot-fixed 1s iofused rotation. The fused inbox has
-    // exactly kInboxSlots per producer for its full lifetime, so these calls bypass streams'
-    // reservation-credit ceiling and dynamic block geometry entirely.
+    // Private source-fork transport for both boot-fixed 1s iofused-family rotations. The fused
+    // inbox has exactly kInboxSlots per producer for its full lifetime, so these calls bypass the
+    // legacy streams reservation-credit ceiling and dynamic block geometry entirely.
     uint32_t iofused_task_free_slots(uint32_t from) const {
         return task_in_->fused_private_free_slots<kInboxSlots>(from);
     }

@@ -26,9 +26,17 @@ inline constexpr uint32_t kGenthreadCacheLineBytes = 64;
 // non-SEND network/control work for at most this many outer rotations.
 inline constexpr uint32_t kGenthreadIoFusedCoalesceRotations = 4;
 
-// Pipeline 2 keeps one IFID context, exactly two EX contexts (A/D), and one WB context. The
-// contexts are loop locals; streams may carry only a pre-I1 IFID batch or pre-E1 EX batch across
-// one rotation. WB is empty at every outer boundary, and triple-buffered EX is forbidden.
+// The three-way arm starts in the ordinary coarse order and opens its interleave only after a
+// completed pass exposes at least this much work in one whole IFID, EX, or WB batch.  A single
+// threshold and one loop-local gate are the entire depth policy: a thin completed pass returns the
+// next rotation to coarse order, and no hysteresis/residual state follows an operation across
+// rotations.
+inline constexpr uint32_t kGenthreadThreeWayMinBatchOccupancy = 8;
+
+// Legacy streams implementation retained below the overlap-2 dispatch for branch comparison.  It
+// keeps one IFID context, exactly two EX contexts (A/D), and one WB context. The contexts are loop
+// locals; streams may carry only a pre-I1 IFID batch or pre-E1 EX batch across one rotation. WB is
+// empty at every outer boundary, and triple-buffered EX is forbidden.
 inline constexpr uint32_t kGenthreadIfidContexts = 1;
 inline constexpr uint32_t kGenthreadExContexts = 2;
 inline constexpr uint32_t kGenthreadWbContexts = 1;

@@ -15,13 +15,14 @@ keeps reads on the ordinary owner-task path and logs one notice at boot. The set
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary separated IO/executor loops | `t-iopipe` interwoven WB/IFID schedule | rejected |
-| `1s` | coarse generalized-thread rotation | `t-genthread` `iofused` schedule | `t-genthread` `streams` schedule |
+| `1s` | coarse generalized-thread rotation | `t-genthread` `iofused` schedule | gated `iofused` three-way schedule |
 
 Overlap 2 prints a boot warning identifying it as an experimental research schedule. Unified
 overlap 1 and 2 require `--net-io uring` because their measured schedules share a single explicit
 submission boundary. The shipped `--thread-pipeline` spelling remains a numeric alias for
 `--overlap`. The compatibility knob `--genthread-schedule` accepts only `coarse`, `iofused`, or
-`streams` and selects the corresponding `1s` overlap value.
+`streams` and selects the corresponding `1s` overlap value. `streams` is now only the legacy name
+for overlap 2; it does not select the retained streams implementation.
 
 ## 2s: separated threads
 
@@ -32,7 +33,7 @@ TomoKV makes the same even IO/ex split across the allowed CPUs as before.
 Overlap 0 is the unchanged plain-loop baseline. Overlap 1 is the exact measured `t-iopipe`
 schedule: it interweaves bounded WB and IFID batches inside each IO thread while retaining separate
 executor threads. Its shallow order, depth-selected natural order, prefetch walks, and submission
-boundary are fixed rather than tunable. Overlap 2 is rejected because the deep streams schedule
+boundary are fixed rather than tunable. Overlap 2 is rejected because the three-way schedule
 requires unified ownership.
 
 Use `2s` when you need `--ratio`, explicit IO/ex role placement, manual `FLIP`, or the automatic
@@ -66,11 +67,18 @@ a stable missing key as a nil array element; an expiry-due entry still falls bac
 key-miss notification that must run on the owner.
 
 Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
-network work around a 128-operation coarse executor turn. Overlap 2 selects the exact deep
-`streams` schedule: independent IFID, EX, and WB contexts use its depth gate, one-rotation residual
-carry, and literal interleave. Read-local is not woven into either schedule in this version, so
-enabling its knob there retains the task path. Overlap 2 is exposed for research rather than as a
-production recommendation.
+network work around a 128-operation coarse executor turn. Overlap 2 reuses the same ready lists,
+fixed private task lanes, whole batches, and SEND-sensitive outer submission boundary. On a deep
+pass it freezes and prefetches the ready WB batch, runs the targeted IFID batch, then gathers,
+schedules, and prefetches one whole EX batch. The existing WB prepare/pump work fills that EX load
+gap; the prefetched EX batch executes afterward, followed by ordinary whole EX batches. No kernel
+submit/reap occurs inside the gap. A single gate bit, recomputed from work actually completed in the
+pass, returns the next rotation to coarse IFID → EX → WB after thin work. There is no residual
+carry, unpublished IFID state, reservation credit, or delayed EX retirement in this path. The old
+streams loop remains in source for branch comparison but is unreachable from overlap-2 dispatch.
+
+Read-local is not woven into either interwoven schedule in this version, so enabling its knob there
+retains the task path. Overlap 2 is exposed for research rather than as a production recommendation.
 
 With no `--place`, `1s` uses every CPU in the process affinity mask. `--place` can select a subset;
 its `ifid@CPU` and `ex@CPU` labels are treated only as CPU selectors because every selected thread
