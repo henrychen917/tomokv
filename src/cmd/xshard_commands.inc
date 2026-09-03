@@ -1795,7 +1795,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                 char integer[24];
                 const uint32_t n = i64_to_dec(integer, object->int_value());
                 reply_bulk(op.sink(), Slice(integer, n));
-            } else reply_bulk(op.sink(), object->str_value());
+            } else {
+                KvObjRawReadBuffer raw;
+                reply_bulk(op.sink(), kvobj_string_value(object, raw));
+            }
         }
         return;
     }
@@ -1996,7 +1999,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
                 char integer[24];
                 values[i].assign(integer, i64_to_dec(integer, object->int_value()));
             } else {
-                const Slice value = object->str_value();
+                KvObjRawReadBuffer raw;
+                const Slice value = kvobj_string_value(object, raw);
                 try { values[i].assign(value.p, value.n); }
                 catch (const std::bad_alloc&) { set_oom(op); return; }
             }

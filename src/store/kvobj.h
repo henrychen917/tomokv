@@ -21,13 +21,17 @@
 //   varint header noted at TODO(density); doing it before the data path works would be premature.
 #pragma once
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <cstdint>
 #include <cstring>
 #include <cstdlib>
+#include <memory>
 #include <new>
 #include "../base/slice.h"
 #include "../base/alloc.h"
 #include "../net/resp.h"
+#include "read_local_settax.h"
 #include "typeval.h"
 
 namespace tomo {
@@ -145,6 +149,14 @@ struct KvObj {
             return Slice(static_cast<const char*>(p), vlen);
         }
         return Slice(val_ptr(), vlen);   // Enc::Raw
+    }
+    const char* str_data() const {
+        if (static_cast<Enc>(enc) == Enc::Extern) {
+            void* p;
+            std::memcpy(&p, val_ptr(), sizeof(void*));
+            return static_cast<const char*>(p);
+        }
+        return val_ptr();
     }
     Slice read_local_str_value(uint8_t stable_flags) const {
         const char* value = read_local_key_ptr(stable_flags) + read_local_klen(stable_flags);
@@ -618,6 +630,109 @@ inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc e
     return n;
 }
 
+inline void kvobj_prepare_read_local_raw_cells(KvObj* object);
+
+// Variant A deliberately reuses the store's existing per-shard publication sequence instead of
+// putting a sequence word in every object. The sequence rejects a torn logical snapshot, while the
+// relaxed atomic accesses below make the concurrent payload access itself legal C++. Cell geometry
+// depends only on the immutable value address and allocation class, never on a changing vlen: full
+// aligned machine words carry the body and only the unaligned allocation edges use byte atomics.
+// Constructors and every non-A build retain their original memcpy path before publication.
+inline uint32_t kvobj_read_local_raw_length(const KvObj* object) {
+    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+        static_assert(std::atomic_ref<uint32_t>::is_always_lock_free,
+                      "variant A requires a lock-free atomic Raw length");
+        static_assert(std::atomic_ref<uint32_t>::required_alignment <= alignof(KvObj),
+                      "variant A requires KvObj to align its atomic Raw length");
+        return std::atomic_ref<const uint32_t>(object->vlen).load(std::memory_order_relaxed);
+    }
+    return object->vlen;
+}
+
+inline uint32_t kvobj_string_length(const KvObj* object) {
+    if (static_cast<Enc>(object->enc) == Enc::Raw)
+        return kvobj_read_local_raw_length(object);
+    return object->vlen;
+}
+
+inline void kvobj_read_local_copy_raw(const KvObj* object, uint8_t stable_flags,
+                                      uint32_t length, char* destination) {
+    const char* source = object->read_local_key_ptr(stable_flags) +
+                         object->read_local_klen(stable_flags);
+    if constexpr (kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::SequenceOverwrite) {
+        if (length) std::memcpy(destination, source, length);
+        return;
+    }
+
+    static_assert(kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::SequenceOverwrite ||
+                  std::atomic_ref<uint64_t>::is_always_lock_free,
+                  "variant A requires lock-free atomic payload words");
+    static_assert(kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::SequenceOverwrite ||
+                  std::atomic_ref<uint64_t>::required_alignment == alignof(uint64_t),
+                  "variant A's fixed payload cells require natural uint64_t atomic alignment");
+    size_t offset = 0;
+    while (offset < length &&
+           (reinterpret_cast<uintptr_t>(source + offset) & (alignof(uint64_t) - 1))) {
+        destination[offset] = std::atomic_ref<const uint8_t>(
+            *reinterpret_cast<const uint8_t*>(source + offset)).load(std::memory_order_relaxed);
+        offset++;
+    }
+    // Once aligned, load the entire fixed cell even when only its prefix is logically live. Variant
+    // A constructors zero that at-most-seven-byte slack before publication. Consequently a reader
+    // using the old length and a writer using the new one can never choose different atomic widths
+    // for overlapping bytes.
+    while (offset < length) {
+        const uint64_t word = std::atomic_ref<const uint64_t>(
+            *reinterpret_cast<const uint64_t*>(source + offset)).load(std::memory_order_relaxed);
+        const size_t copied = std::min<size_t>(sizeof(word), length - offset);
+        std::memcpy(destination + offset, &word, copied);
+        offset += copied;
+    }
+}
+
+inline void kvobj_write_read_local_raw(KvObj* object, Slice value) {
+    char* destination = object->val_ptr();
+    size_t offset = 0;
+    while (offset < value.n &&
+           (reinterpret_cast<uintptr_t>(destination + offset) & (alignof(uint64_t) - 1))) {
+        auto* cell = reinterpret_cast<uint8_t*>(destination + offset);
+        const uint8_t byte = static_cast<uint8_t>(value.p[offset]);
+        std::atomic_ref<uint8_t>(*cell).store(byte, std::memory_order_relaxed);
+        offset++;
+    }
+    while (offset < value.n) {
+        uint64_t word = 0;
+        const size_t copied = std::min<size_t>(sizeof(word), value.n - offset);
+        std::memcpy(&word, value.p + offset, copied);
+        auto* cell = reinterpret_cast<uint64_t*>(destination + offset);
+        std::atomic_ref<uint64_t>(*cell).store(word, std::memory_order_relaxed);
+        offset += copied;
+    }
+}
+
+// An owner can read a published Raw value while a foreign read-local probe is in flight. Variant
+// A must therefore use the same atomic_ref cells on the owner side too: atomic_ref's contract does
+// not permit even a concurrent ordinary read of a referenced cell. The buffer is full-sized only
+// in the A build; OFF and B compile this helper back to the original direct Slice.
+struct alignas(uint64_t) KvObjRawReadBuffer {
+    std::array<char,
+               kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite
+                   ? kEmbedThreshold : 1> bytes;
+};
+
+inline Slice kvobj_string_value(const KvObj* object, KvObjRawReadBuffer& buffer) {
+    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+        if (static_cast<Enc>(object->enc) == Enc::Raw) {
+            const uint32_t length = kvobj_read_local_raw_length(object);
+            if (length > kEmbedThreshold) std::abort();
+            kvobj_read_local_copy_raw(object, object->read_local_flags(), length,
+                                      buffer.bytes.data());
+            return Slice(buffer.bytes.data(), length);
+        }
+    }
+    return object->str_value();
+}
+
 // Builds a String KvObj. `val` is copied when it fits the embed threshold, otherwise a second block
 // holds it and this one keeps the pointer. Returns nullptr on OOM rather than throwing: the worker
 // loop reports an error reply instead of unwinding.
@@ -636,6 +751,7 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
     if (has_ttl) o->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
     if (val.n) std::memcpy(o->val_ptr(), val.p, val.n);
+    kvobj_prepare_read_local_raw_cells(o);
     return o;
 }
 
@@ -847,9 +963,10 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
     const Type type = static_cast<Type>(src->type);
     KvObj* replacement = nullptr;
     if (type == Type::String) {
+        KvObjRawReadBuffer raw;
         replacement = src->is_int()
             ? kvobj_new_int(src->key(), src->int_value(), expire_at_ms)
-            : kvobj_new_string(src->key(), src->str_value(), expire_at_ms);
+            : kvobj_new_string(src->key(), kvobj_string_value(src, raw), expire_at_ms);
     } else if (static_cast<Enc>(src->enc) == Enc::Compact) {
         const EmbeddedCompact* embedded = embedded_compact(src);
         const Slice key = src->key();
@@ -884,13 +1001,54 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
 // capacity. Recomputed rather than stored: a size field would cost every key 4 bytes to save a
 // multiply, and the computation is a pure function of the header.
 inline size_t kvobj_request_size(const KvObj* o) {
-    return kvobj_alloc_size(o->klen(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0,
-                            static_cast<Enc>(o->enc));
+    const Enc encoding = static_cast<Enc>(o->enc);
+    const uint32_t length = encoding == Enc::Raw ? kvobj_read_local_raw_length(o) : o->vlen;
+    return kvobj_alloc_size(o->klen(), length, (o->flags & KvObjFlags::HasTtl) != 0, encoding);
 }
 
 // What the allocator actually handed back. The slack between request and class is already paid for,
 // and exposing it is what lets a SET whose value grew by a few bytes still avoid allocating.
 inline size_t kvobj_capacity(const KvObj* o) { return good_size(kvobj_request_size(o)); }
+
+inline void kvobj_prepare_read_local_raw_cells(KvObj* object) {
+    if constexpr (kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::SequenceOverwrite) return;
+    if (static_cast<Type>(object->type) != Type::String ||
+        static_cast<Enc>(object->enc) != Enc::Raw) return;
+
+    char* const value = object->val_ptr();
+    char* const logical_end = value + object->vlen;
+    char* const allocation_end = reinterpret_cast<char*>(object) + kvobj_capacity(object);
+    const size_t allocation_value_bytes = static_cast<size_t>(allocation_end - value);
+    const size_t maximum_length = std::min<size_t>(kEmbedThreshold, allocation_value_bytes);
+    const uintptr_t maximum_logical_end = reinterpret_cast<uintptr_t>(value) + maximum_length;
+    const uintptr_t maximum_cell_end = (maximum_logical_end + sizeof(uint64_t) - 1) &
+                                       ~(sizeof(uint64_t) - 1);
+    char* const prepared_end = reinterpret_cast<char*>(
+        std::min<uintptr_t>(maximum_cell_end, reinterpret_cast<uintptr_t>(allocation_end)));
+    // Prepare the whole region any future same-class Raw overwrite may address, not merely today's
+    // length. A reader from an older long generation can survive a shrink and overlap a later grow;
+    // constructing cells lazily during that grow would race with it even though both validations
+    // eventually reject. The bound is at most kEmbedThreshold plus one partial word.
+    if (prepared_end > logical_end)
+        std::memset(logical_end, 0, static_cast<size_t>(prepared_end - logical_end));
+    char* cursor = value;
+    while (cursor < prepared_end &&
+           (reinterpret_cast<uintptr_t>(cursor) & (alignof(uint64_t) - 1))) {
+        const uint8_t byte = static_cast<uint8_t>(*cursor);
+        std::construct_at(reinterpret_cast<uint8_t*>(cursor), byte);
+        cursor++;
+    }
+    if (cursor == prepared_end) return;
+
+    // Placement construction makes every atomic_ref target an explicit live uint64_t object instead
+    // of relying on malloc's implicit-lifetime rule.
+    while (cursor < prepared_end) {
+        uint64_t word;
+        std::memcpy(&word, cursor, sizeof(word));
+        std::construct_at(reinterpret_cast<uint64_t*>(cursor), word);
+        cursor += sizeof(word);
+    }
+}
 
 // Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
 // external value block.

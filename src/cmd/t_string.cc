@@ -118,8 +118,8 @@ uint32_t format_long_double(char* text, size_t capacity, long double value) {
     return static_cast<uint32_t>(n);
 }
 
-Slice string_bytes(const KvObj* o, char (&integer)[24]) {
-    if (!o->is_int()) return o->str_value();
+Slice string_bytes(const KvObj* o, char (&integer)[24], KvObjRawReadBuffer& raw) {
+    if (!o->is_int()) return kvobj_string_value(o, raw);
     return Slice(integer, i64_to_dec(integer, o->int_value()));
 }
 
@@ -320,7 +320,26 @@ void reply_string_bulk(Op& op, const KvObj* o) {
         reply_bulk(op.sink(), Slice(text, n));
         return;
     }
-    reply_bulk(op.sink(), o->str_value());
+    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+        if (static_cast<Enc>(o->enc) == Enc::Raw) {
+            const uint32_t length = kvobj_read_local_raw_length(o);
+            auto sink = op.sink();
+            char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
+            char* payload = frame;
+            *payload++ = '$';
+            payload += u64_to_dec(payload, length);
+            *payload++ = '\r';
+            *payload++ = '\n';
+            kvobj_read_local_copy_raw(o, o->read_local_flags(), length, payload);
+            payload += length;
+            *payload++ = '\r';
+            *payload++ = '\n';
+            sink.advance(static_cast<size_t>(payload - frame));
+            return;
+        }
+    }
+    KvObjRawReadBuffer raw;
+    reply_bulk(op.sink(), kvobj_string_value(o, raw));
 }
 
 // GET alone may borrow FlatStore bytes. GETEX/GETDEL/SET GET copy before mutation; extending the
@@ -332,10 +351,24 @@ void cmd_get(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     if (o->is_int()) { reply_string_bulk(op, o); return; }
-    const Slice value = o->str_value();
+    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+        if (static_cast<Enc>(o->enc) == Enc::Raw) {
+            if constexpr (!kAllowBorrow) {
+                const uint32_t zc_min = sh.zc_min();
+                if (zc_min && kvobj_read_local_raw_length(o) >= zc_min) op.mark_no_borrow();
+            }
+            reply_string_bulk(op, o);
+            return;
+        }
+    }
+    KvObjRawReadBuffer raw;
+    const Slice value = kvobj_string_value(o, raw);
     if constexpr (kAllowBorrow) {
         const uint32_t zc_min = sh.zc_min();
-        if (zc_min && value.n >= zc_min) {
+        bool may_borrow = true;
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite)
+            may_borrow = static_cast<Enc>(o->enc) != Enc::Raw;
+        if (may_borrow && zc_min && value.n >= zc_min) {
             reply_bulk_header(op.sink(), value.n);
             op.zc_ptr = value.p;
             op.zc_len = value.n;
@@ -625,7 +658,8 @@ void cmd_append(Shard& sh, Op& op) {
     if (!obj_type_check(o, Type::String, sink)) return;
 
     char integer[24];
-    const Slice old = string_bytes(o, integer);
+    KvObjRawReadBuffer raw;
+    const Slice old = string_bytes(o, integer, raw);
     // A raw empty append changes no observable value or encoding. Integer encoding is the one
     // exception: Redis's append path materializes it even when the appended byte count is zero.
     if (op.arg(2).n == 0 && !o->is_int()) {
@@ -658,9 +692,13 @@ void cmd_strlen(Shard& sh, Op& op) {
     if (!o) { reply_int(op.sink(), 0); return; }
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
-    if (!o->is_int()) { reply_int(op.sink(), o->str_value().n); return; }
+    if (!o->is_int()) {
+        reply_int(op.sink(), kvobj_string_length(o));
+        return;
+    }
     char integer[24];
-    reply_int(op.sink(), string_bytes(o, integer).n);
+    KvObjRawReadBuffer raw;
+    reply_int(op.sink(), string_bytes(o, integer, raw).n);
 }
 
 template <bool kNotify>
@@ -676,7 +714,8 @@ void cmd_getrange(Shard& sh, Op& op) {
     if (!obj_type_check(o, Type::String, sink)) return;
 
     char integer[24];
-    const Slice value = string_bytes(o, integer);
+    KvObjRawReadBuffer raw;
+    const Slice value = string_bytes(o, integer, raw);
     const int64_t length = value.n;
     if (start < 0 && end < 0 && start > end) { reply_emptystr(op.sink()); return; }
     if (start < 0) start = length + start;
@@ -705,7 +744,8 @@ void cmd_setrange(Shard& sh, Op& op) {
     if (op.arg(3).n == 0) {
         if (!o) { reply_int(op.sink(), 0); return; }
         char integer[24];
-        reply_int(op.sink(), string_bytes(o, integer).n);
+        KvObjRawReadBuffer raw;
+        reply_int(op.sink(), string_bytes(o, integer, raw).n);
         return;
     }
 
@@ -715,7 +755,8 @@ void cmd_setrange(Shard& sh, Op& op) {
         return;
     }
     char integer[24];
-    const Slice old = o ? string_bytes(o, integer) : Slice("", 0);
+    KvObjRawReadBuffer raw;
+    const Slice old = o ? string_bytes(o, integer, raw) : Slice("", 0);
     const uint32_t new_length = static_cast<uint32_t>(std::max<uint64_t>(old.n, write_end));
     char* changed = static_cast<char*>(std::malloc(new_length));
     if (!changed) { reply_err(op.sink(), "ERR out of memory"); return; }
@@ -759,7 +800,8 @@ void cmd_setbit(Shard& sh, Op& op) {
         if (!obj_type_check(o, Type::String, sink)) return;
     }
     char integer[24];
-    const Slice old = o ? string_bytes(o, integer) : Slice("", 0);
+    KvObjRawReadBuffer raw;
+    const Slice old = o ? string_bytes(o, integer, raw) : Slice("", 0);
     const uint32_t byte = static_cast<uint32_t>(offset >> 3);
     const uint8_t mask = static_cast<uint8_t>(1u << (7 - (offset & 7)));
     const int old_bit = byte < old.n && (static_cast<uint8_t>(old.p[byte]) & mask) ? 1 : 0;
@@ -800,7 +842,8 @@ void cmd_getbit(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     char integer[24];
-    const Slice value = string_bytes(o, integer);
+    KvObjRawReadBuffer raw;
+    const Slice value = string_bytes(o, integer, raw);
     const uint64_t byte = offset >> 3;
     const uint8_t mask = static_cast<uint8_t>(1u << (7 - (offset & 7)));
     const bool set = byte < value.n && (static_cast<uint8_t>(value.p[byte]) & mask);
@@ -848,7 +891,8 @@ void cmd_bitcount(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     char integer[24];
-    const Slice value = string_bytes(o, integer);
+    KvObjRawReadBuffer raw;
+    const Slice value = string_bytes(o, integer, raw);
     if (!ranged) {
         reply_int(op.sink(), static_cast<long long>(bitmap_popcount(
             reinterpret_cast<const uint8_t*>(value.p), value.n)));
@@ -949,7 +993,8 @@ void cmd_bitpos(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     char integer[24];
-    const Slice value = string_bytes(o, integer);
+    KvObjRawReadBuffer raw;
+    const Slice value = string_bytes(o, integer, raw);
     int64_t total = bit_unit ? static_cast<int64_t>(value.n) * 8 : value.n;
 
     if (!ranged) {
@@ -1030,9 +1075,12 @@ void incr_decr(Shard& sh, Op& op, int64_t increment) {
         auto sink = op.sink();
         if (!obj_type_check(o, Type::String, sink)) return;
         if (o->is_int()) old = o->int_value();
-        else if (!parse_i64(o->str_value(), old)) {
-            reply_err(op.sink(), "ERR value is not an integer or out of range");
-            return;
+        else {
+            KvObjRawReadBuffer raw;
+            if (!parse_i64(kvobj_string_value(o, raw), old)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range");
+                return;
+            }
         }
         expire = o->expire_at_ms();
     }
@@ -1088,9 +1136,12 @@ void cmd_incrbyfloat(Shard& sh, Op& op) {
     long double value = 0;
     if (o) {
         if (o->is_int()) value = static_cast<long double>(o->int_value());
-        else if (!parse_long_double(o->str_value(), value)) {
-            reply_err(op.sink(), "ERR value is not a valid float");
-            return;
+        else {
+            KvObjRawReadBuffer raw;
+            if (!parse_long_double(kvobj_string_value(o, raw), value)) {
+                reply_err(op.sink(), "ERR value is not a valid float");
+                return;
+            }
         }
     }
     long double increment = 0;
@@ -1124,7 +1175,7 @@ void reply_hll_corrupt(Op& op) {
     reply_err(op.sink(), "INVALIDOBJ Corrupted HLL object detected");
 }
 
-bool hll_object_image(KvObj* object, Op& op, Slice& image) {
+bool hll_object_image(KvObj* object, Op& op, Slice& image, KvObjRawReadBuffer& raw) {
     if (static_cast<Type>(object->type) != Type::String) {
         reply_wrongtype(op.sink());
         return false;
@@ -1133,7 +1184,7 @@ bool hll_object_image(KvObj* object, Op& op, Slice& image) {
         reply_hll_bad_header(op);
         return false;
     }
-    image = object->str_value();
+    image = kvobj_string_value(object, raw);
     if (!hll::header_valid(image)) {
         reply_hll_bad_header(op);
         return false;
@@ -1145,7 +1196,8 @@ template <bool kNotify>
 void cmd_pfadd(Shard& sh, Op& op) {
     KvObj* object = sh.store_find<kNotify>(op.hash, op.key());
     Slice current;
-    if (object && !hll_object_image(object, op, current)) return;
+    KvObjRawReadBuffer raw;
+    if (object && !hll_object_image(object, op, current, raw)) return;
 
     std::string image;
     try {
@@ -1190,7 +1242,8 @@ void cmd_pfcount(Shard& sh, Op& op) {
     KvObj* object = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!object) { reply_int(op.sink(), 0); return; }
     Slice current;
-    if (!hll_object_image(object, op, current)) return;
+    KvObjRawReadBuffer raw;
+    if (!hll_object_image(object, op, current, raw)) return;
     if (hll::cache_valid(current)) {
         reply_int(op.sink(), static_cast<long long>(hll::cached_count(current)));
         return;
@@ -1454,7 +1507,7 @@ SnapshotHookStatus string_snapshot_begin(const KvObj& object, SnapshotSaveCursor
     cursor = {};
     cursor.object = &object;
     encoding = object.enc;
-    cursor.total = object.is_int() ? sizeof(int64_t) : object.str_value().n;
+    cursor.total = object.is_int() ? sizeof(int64_t) : kvobj_string_length(&object);
     return SnapshotHookStatus::Ok;
 }
 
@@ -1470,7 +1523,8 @@ SnapshotHookStatus string_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* des
         snapshot_put_u64(bytes, static_cast<uint64_t>(cursor.object->int_value()));
         std::memcpy(destination, bytes + cursor.offset, take);
     } else {
-        const Slice value = cursor.object->str_value();
+        KvObjRawReadBuffer raw;
+        const Slice value = kvobj_string_value(cursor.object, raw);
         std::memcpy(destination, value.p + cursor.offset, take);
     }
     cursor.offset += take;

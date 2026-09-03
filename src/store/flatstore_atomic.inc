@@ -1204,7 +1204,7 @@ private:
             return false;
         const Enc encoding = static_cast<Enc>(object->enc);
         if (encoding != Enc::Raw && encoding != Enc::Int) return false;
-        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_value().p))
+        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_data()))
             return false;
         const size_t allocation = kvobj_capacity(object);
         const uint32_t cls = atomic_pool_class(allocation);
@@ -1231,7 +1231,7 @@ private:
         if (atomic_recycle_value(object)) return;
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_value().p : nullptr;
+                              ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;

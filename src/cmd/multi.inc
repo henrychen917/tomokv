@@ -967,7 +967,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 const uint32_t n = i64_to_dec(text, object->int_value());
                 value.value.assign(text, n);
             } else {
-                const Slice bytes = object->str_value();
+                KvObjRawReadBuffer raw;
+                const Slice bytes = kvobj_string_value(object, raw);
                 value.value.assign(bytes.p, bytes.n);
             }
             value.present = true;

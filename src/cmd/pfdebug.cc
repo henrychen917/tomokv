@@ -42,7 +42,8 @@ void reply_corrupt(Op& op) {
 }
 
 template <bool kNotify>
-bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image) {
+bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image,
+              KvObjRawReadBuffer& raw) {
     object = shard.store_find<kNotify>(op.hash, op.arg(2));
     if (!object) {
         reply_err(op.sink(), "ERR The specified key does not exist");
@@ -56,7 +57,7 @@ bool load_hll(Shard& shard, Op& op, KvObj*& object, Slice& image) {
         reply_bad_header(op);
         return false;
     }
-    image = object->str_value();
+    image = kvobj_string_value(object, raw);
     if (!hll::header_valid(image)) {
         reply_bad_header(op);
         return false;
@@ -94,7 +95,8 @@ template <bool kNotify>
 void cmd_pfdebug_impl(Shard& shard, Op& op) {
     KvObj* object = nullptr;
     Slice image;
-    if (!load_hll<kNotify>(shard, op, object, image)) return;
+    KvObjRawReadBuffer raw;
+    if (!load_hll<kNotify>(shard, op, object, image, raw)) return;
 
     const Slice subcommand = op.arg(1);
     if (eq_icase(subcommand, "ENCODING")) {

@@ -737,6 +737,29 @@ private:
         return op.spec && command_is_read_local_mget(*op.spec);
     }
 
+    static void read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
+        const Enc encoding = static_cast<Enc>(object->enc);
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+            if (encoding == Enc::Raw) {
+                const uint32_t length = kvobj_read_local_raw_length(object);
+                auto sink = op.sink();
+                char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
+                char* payload = frame;
+                *payload++ = '$';
+                payload += u64_to_dec(payload, length);
+                *payload++ = '\r';
+                *payload++ = '\n';
+                kvobj_read_local_copy_raw(object, stable_flags, length, payload);
+                payload += length;
+                *payload++ = '\r';
+                *payload++ = '\n';
+                sink.advance(static_cast<size_t>(payload - frame));
+                return;
+            }
+        }
+        reply_bulk(op.sink(), object->read_local_str_value(stable_flags));
+    }
+
     uint32_t read_local_task_demotion_demand(const Op& op) const {
         if (!op.read_local()) std::abort();
         return read_local_mget(op)
@@ -840,7 +863,7 @@ private:
                         text, object->read_local_int_value(flags));
                     reply_bulk(op.sink(), Slice(text, length));
                 } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                    reply_bulk(op.sink(), object->read_local_str_value(flags));
+                    read_local_reply_string(op, object, flags);
                 } else {
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::Typed};
@@ -927,7 +950,7 @@ private:
                     text, object->read_local_int_value(flags));
                 reply_bulk(op.sink(), Slice(text, length));
             } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                reply_bulk(op.sink(), object->read_local_str_value(flags));
+                read_local_reply_string(op, object, flags);
             } else {
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::Typed};

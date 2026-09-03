@@ -620,6 +620,17 @@ public:
         if (enabled && atomic_pending_entries() != 0) std::abort();
         ReadLocalStoreState* state = read_local_store_state();
         if (enabled && !state) std::abort();
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+            // Persistence/bootstrap may have used the ordinary overwrite path before the boot latch
+            // is exposed. Establish fixed atomic payload cells for that final image while no foreign
+            // probe can exist; every later Raw constructor performs the same preparation directly.
+            if (enabled && !read_local_enabled_)
+                for (int table = 0; table < 2; table++)
+                    if (tab_[table])
+                        for (uint32_t slot = 0; slot < cap_[table]; slot++)
+                            if (KvObj* object = ptr_of(tab_[table][slot]))
+                                kvobj_prepare_read_local_raw_cells(object);
+        }
         if (state) state->retire_sink = sink;
         read_local_enabled_ = enabled;
     }
@@ -959,7 +970,7 @@ public:
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
-        if (outstanding_borrows_ && is_borrowed(o->str_value().p))
+        if (outstanding_borrows_ && is_borrowed(o->str_data()))
             return OverwriteResult::NotPossible;
 
         // The entire disabled-feature write tax is this branch. When enabled, the target key is
@@ -2222,10 +2233,47 @@ private:
         return TtlResult::Updated;
     }
 
-    OverwriteResult try_overwrite_read_local(uint64_t, Slice, Slice) {
-        // A published string is immutable for the whole grace period. Make the caller use the
-        // ordinary allocate-and-replace path instead of changing its value bytes in place.
-        return OverwriteResult::NotPossible;
+    OverwriteResult try_overwrite_read_local(uint64_t h, Slice key, Slice val) {
+        if constexpr (kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::SequenceOverwrite) {
+            // OFF and variant B keep published values immutable for the whole grace period.
+            return OverwriteResult::NotPossible;
+        }
+
+        KvObj* object = find_without_touch(h, key);
+        if (!object) return OverwriteResult::NotPossible;
+        if (static_cast<Enc>(object->enc) != Enc::Raw)
+            return OverwriteResult::NotPossible;
+        if (object->flags & KvObjFlags::HasTtl)
+            return OverwriteResult::NotPossible;  // SET clears TTL
+        if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;  // becomes Extern
+        const size_t wanted = kvobj_alloc_size(object->klen(), val.n, false, Enc::Raw);
+        if (good_size(wanted) != kvobj_capacity(object))
+            return OverwriteResult::NotPossible;
+        if (outstanding_borrows_ && is_borrowed(object->str_data()))
+            return OverwriteResult::NotPossible;
+
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(key, good_size(wanted))) return OverwriteResult::MaxmemoryOom;
+            touch(object);
+        }
+
+        // Reuse the armed store's already-required shard sequence. A per-object side table would
+        // add an allocation/lookup to the path this experiment is meant to cheapen, while a header
+        // word would violate KvObj's locked eight-byte layout. Unrelated writes can therefore cause
+        // a conservative retry, but no per-object or default-layout tax is introduced.
+        ReadLocalMutationGuard mutation(*this);
+        const uint32_t previous_length = kvobj_read_local_raw_length(object);
+        if (previous_length == val.n) {
+            kvobj_write_read_local_raw(object, val);
+            return OverwriteResult::Updated;
+        }
+        obj_bytes_ -= kvobj_size(object);
+        kvobj_write_read_local_raw(object, val);
+        // Publish length after its payload. Readers that began before the open sequence retain the
+        // old bound; readers that can accept the closing sequence acquire both relaxed updates.
+        std::atomic_ref<uint32_t>(object->vlen).store(val.n, std::memory_order_relaxed);
+        obj_bytes_ += kvobj_size(object);
+        return OverwriteResult::Updated;
     }
 
     bool snapshot_mark_read_local(int32_t shard_id, int64_t cut_ms) {
@@ -2857,7 +2905,7 @@ private:
     void destroy_retired_obj(KvObj* object, size_t bytes) {
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_value().p : nullptr;
+                              ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;
@@ -2874,7 +2922,7 @@ private:
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
-                              ? o->str_value().p : nullptr;
+                              ? o->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = o;
