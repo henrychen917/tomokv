@@ -132,7 +132,7 @@ void clear_reply(Op& op);
 StoreResult map_insert(FlatStore& store, uint64_t hash, KvObj* replacement) {
     const FlatStore::InsertResult inserted = store.insert(hash, replacement);
     if (inserted == FlatStore::InsertResult::Inserted) return StoreResult::Stored;
-    kvobj_free(replacement);
+    store.discard_set_value(replacement);
     return inserted == FlatStore::InsertResult::MaxmemoryOom ? StoreResult::MaxmemoryOom
                                                              : StoreResult::InsertFailed;
 }
@@ -141,7 +141,7 @@ StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64
                          bool integer_encode) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer)) {
-        KvObj* replacement = kvobj_new_int(key, integer, expire_at_ms);
+        KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
         if (!replacement) return StoreResult::Oom;
         return map_insert(sh.store(), hash, replacement);
     }
@@ -154,14 +154,14 @@ StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom) return StoreResult::MaxmemoryOom;
     }
 
-    KvObj* replacement = kvobj_new_string(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_string(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert(sh.store(), hash, replacement);
 }
 
 StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
                           int64_t expire_at_ms) {
-    KvObj* replacement = kvobj_new_int(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert(sh.store(), hash, replacement);
 }
@@ -170,7 +170,7 @@ StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
 StoreResult map_insert_notify(Shard& sh, uint64_t hash, KvObj* replacement) {
     const FlatStore::InsertResult inserted = sh.store_insert<true>(hash, replacement);
     if (inserted == FlatStore::InsertResult::Inserted) return StoreResult::Stored;
-    kvobj_free(replacement);
+    sh.store().discard_set_value(replacement);
     return inserted == FlatStore::InsertResult::MaxmemoryOom ? StoreResult::MaxmemoryOom
                                                              : StoreResult::InsertFailed;
 }
@@ -179,7 +179,7 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
                                 int64_t expire_at_ms, bool integer_encode) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer)) {
-        KvObj* replacement = kvobj_new_int(key, integer, expire_at_ms);
+        KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
         if (!replacement) return StoreResult::Oom;
         return map_insert_notify(sh, hash, replacement);
     }
@@ -190,7 +190,7 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom)
             return StoreResult::MaxmemoryOom;
     }
-    KvObj* replacement = kvobj_new_string(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_string(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert_notify(sh, hash, replacement);
 }
@@ -214,7 +214,7 @@ StoreResult store_integer_for(Shard& sh, Slice key, uint64_t hash, int64_t value
                               int64_t expire_at_ms) {
     if constexpr (!kNotify) return store_integer(sh, key, hash, value, expire_at_ms);
 #ifdef TOMO_STRING_NOTIFY_TU
-    KvObj* replacement = kvobj_new_int(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert_notify(sh, hash, replacement);
 #else

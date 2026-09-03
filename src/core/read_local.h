@@ -10,8 +10,11 @@
 #include <memory>
 #include <new>
 #include <sched.h>
+#include <type_traits>
 #include "server.h"
+#include "../base/alloc.h"
 #include "../store/read_local_reclaim.h"
+#include "../store/read_local_settax.h"
 
 namespace tomo {
 
@@ -65,6 +68,8 @@ public:
     static constexpr uint32_t kCapacity = 4096;
     static_assert((kCapacity & (kCapacity - 1)) == 0);
 
+    ~ReadLocalDeferredQueue() { recycle_pool_.trim(0); }
+
     bool init(Server* server, ThreadCtx* owner) {
         server_ = server;
         owner_ = owner;
@@ -72,6 +77,11 @@ public:
         if (!entries_) return false;
         sink_.context = this;
         sink_.defer = &ReadLocalDeferredQueue::defer_thunk;
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            sink_.bind_recycler(&ReadLocalDeferredQueue::acquire_thunk,
+                                &ReadLocalDeferredQueue::recycle_thunk,
+                                &ReadLocalDeferredQueue::trim_thunk);
+        }
         return true;
     }
 
@@ -126,10 +136,107 @@ public:
             count_--;
             drained++;
         }
+        recycle_pool_.trim(0);
         return drained;
     }
 
 private:
+    struct DisabledRecyclePool {
+        void* acquire(size_t) { return nullptr; }
+        bool recycle(void*, size_t) { return false; }
+        void trim(size_t) {}
+    };
+
+    // The cache belongs to this physical executor, not to a shard. A shard ownership handoff
+    // therefore changes which pool supplies future SETs without ever making one pool cross-thread.
+    // Only post-grace Raw/Int KvObj blocks reach this type-erased cache.
+    struct RecyclePool {
+        struct FreeBlock {
+            FreeBlock* next;
+            size_t allocation;
+        };
+
+        static constexpr uint32_t kClasses = 69;  // every good_size class through 4 MiB
+        static constexpr uint32_t kNodeLimit = 4096;
+        static constexpr uint32_t kClassLimit = 256;
+        static constexpr size_t kByteLimit = 4 * 1024 * 1024;
+
+        void* acquire(size_t allocation) {
+            if (!eligible(allocation)) return nullptr;
+            const uint32_t cls = pool_class(allocation);
+            FreeBlock* block = heads[cls];
+            if (!block) return nullptr;
+            if (block->allocation != allocation || !class_counts[cls] || !nodes ||
+                bytes < allocation) std::abort();
+            heads[cls] = block->next;
+            class_counts[cls]--;
+            nodes--;
+            bytes -= allocation;
+            std::destroy_at(block);
+            return block;
+        }
+
+        bool recycle(void* memory, size_t allocation) {
+            if (!memory || !eligible(allocation)) return false;
+            const uint32_t cls = pool_class(allocation);
+            if (nodes == kNodeLimit || class_counts[cls] == kClassLimit ||
+                allocation > kByteLimit - bytes) return false;
+            auto* block = new (memory) FreeBlock{heads[cls], allocation};
+            heads[cls] = block;
+            class_counts[cls]++;
+            nodes++;
+            bytes += allocation;
+            return true;
+        }
+
+        void trim(size_t target_bytes) {
+            if (target_bytes >= bytes) return;
+            for (uint32_t cursor = kClasses; cursor && bytes > target_bytes;) {
+                const uint32_t cls = --cursor;
+                while (heads[cls] && bytes > target_bytes) {
+                    FreeBlock* block = heads[cls];
+                    const size_t allocation = block->allocation;
+                    heads[cls] = block->next;
+                    if (!class_counts[cls] || !nodes || bytes < allocation) std::abort();
+                    class_counts[cls]--;
+                    nodes--;
+                    bytes -= allocation;
+                    std::destroy_at(block);
+                    free_sized(block, allocation);
+                }
+            }
+        }
+
+        static bool eligible(size_t allocation) {
+            return allocation >= sizeof(FreeBlock) && allocation <= kByteLimit &&
+                   good_size(allocation) == allocation;
+        }
+
+        static uint32_t pool_class(size_t allocation) {
+            uint32_t cls;
+            if (allocation <= 8) cls = 0;
+            else if (allocation <= 128) cls = static_cast<uint32_t>(allocation / 16);
+            else {
+                const int k = 63 - __builtin_clzll(
+                    static_cast<unsigned long long>(allocation - 1));
+                const size_t step = size_t{1} << (k - 2);
+                const uint32_t quarter = static_cast<uint32_t>(allocation / step);
+                cls = 9u + 4u * static_cast<uint32_t>(k - 7) + (quarter - 5u);
+            }
+            if (cls >= kClasses) std::abort();
+            return cls;
+        }
+
+        FreeBlock* heads[kClasses] = {};
+        uint16_t class_counts[kClasses] = {};
+        uint32_t nodes = 0;
+        size_t bytes = 0;
+    };
+
+    using ActiveRecyclePool = std::conditional_t<
+        kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle,
+        RecyclePool, DisabledRecyclePool>;
+
     struct Entry {
         void* owner = nullptr;
         void* payload = nullptr;
@@ -144,8 +251,21 @@ private:
             owner, payload, auxiliary, reclaim);
     }
 
-    static void reclaim_entry(Entry& entry) {
-        entry.reclaim(entry.owner, entry.payload, entry.auxiliary);
+    static void* acquire_thunk(void* context, size_t allocation) {
+        return static_cast<ReadLocalDeferredQueue*>(context)->recycle_pool_.acquire(allocation);
+    }
+
+    static bool recycle_thunk(void* context, void* allocation, size_t bytes) {
+        return static_cast<ReadLocalDeferredQueue*>(context)->recycle_pool_.recycle(
+            allocation, bytes);
+    }
+
+    static void trim_thunk(void* context, size_t target_bytes) {
+        static_cast<ReadLocalDeferredQueue*>(context)->recycle_pool_.trim(target_bytes);
+    }
+
+    void reclaim_entry(Entry& entry) {
+        entry.reclaim(sink_, entry.owner, entry.payload, entry.auxiliary);
         entry = {};
     }
 
@@ -181,6 +301,7 @@ private:
     ThreadCtx* owner_ = nullptr;
     std::unique_ptr<Entry[]> entries_;
     ReadLocalRetireSink sink_;
+    ActiveRecyclePool recycle_pool_;
     uint32_t head_ = 0;
     uint32_t tail_ = 0;
     uint32_t count_ = 0;

@@ -614,6 +614,9 @@ public:
     // false keeps the old store path and every installed writer hook predicted cold.
     void configure_read_local(bool enabled, ReadLocalRetireSink sink) {
         if (enabled && !sink.defer) std::abort();
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (enabled && !sink.recycler_bound()) std::abort();
+        }
         // Persistence loading finishes before the fused executor arms this store. Prepared atomic
         // records cannot be retroactively marked in their entry headers, so fail closed if that
         // boot invariant ever changes instead of publishing a false zero-pending state.
@@ -636,6 +639,9 @@ public:
     }
     void rebind_read_local_retire_sink(ReadLocalRetireSink sink) {
         if (!read_local_enabled_ || !sink.defer) std::abort();
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (!sink.recycler_bound()) std::abort();
+        }
         // Called only after the old owner has acknowledged an empty task/read/retire frontier and
         // before the new owner executes store work. Advance the table generation at that ownership
         // edge so a foreign copy cannot validate across two retire domains. Foreign probes never
@@ -998,6 +1004,52 @@ public:
         return try_overwrite(h, key, val);
     }
 
+    // Variant B draws only inline String blocks from the owner-thread QSBR cache. Extern keeps its
+    // independent value allocation and therefore stays on the immutable baseline allocator path.
+    KvObj* make_set_string(Slice key, Slice value, int64_t expire_at_ms = -1) {
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_ && value.n <= kEmbedThreshold) {
+                const bool has_ttl = expire_at_ms >= 0;
+                const size_t allocation = good_size(
+                    kvobj_alloc_size(key.n, value.n, has_ttl, Enc::Raw));
+                void* memory = acquire_set_block_read_local(allocation);
+                return memory ? kvobj_init_raw_string(memory, key, value, expire_at_ms) : nullptr;
+            }
+        }
+        KvObj* object = kvobj_new_string(key, value, expire_at_ms);
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (!object && read_local_enabled_) {
+                read_local_store_state_required().retire_sink.trim(0);
+                object = kvobj_new_string(key, value, expire_at_ms);
+            }
+        }
+        return object;
+    }
+
+    KvObj* make_set_int(Slice key, int64_t value, int64_t expire_at_ms = -1) {
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_) {
+                const bool has_ttl = expire_at_ms >= 0;
+                const size_t allocation = good_size(
+                    kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+                void* memory = acquire_set_block_read_local(allocation);
+                return memory ? kvobj_init_int(memory, key, value, expire_at_ms) : nullptr;
+            }
+        }
+        return kvobj_new_int(key, value, expire_at_ms);
+    }
+
+    // Failed insertion never published the replacement and needs no grace period. Feeding it back
+    // here preserves the same bounded pool behavior without perturbing live-object accounting.
+    void discard_set_value(KvObj* object) {
+        if (!object) return;
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_ && recycle_set_value_read_local(
+                    object, read_local_store_state_required().retire_sink)) return;
+        }
+        kvobj_free(object);
+    }
+
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
     // an allocation cannot be reused while it is either table-owned or retained as `retired`.
     void borrow(const char* ptr) {
@@ -1228,6 +1280,7 @@ public:
         // semantics), so the very key being grown always "fits". The gate asks the raw question:
         // is the shard over budget NOW; evict others, never the op's key; else refuse.
         if (accounted_bytes() <= maxmemory_limit_) return true;
+        trim_set_recycler_on_pressure();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
         uint32_t budget = kEvictionsPerOp;
         while (budget-- && accounted_bytes() > maxmemory_limit_) {
@@ -1974,6 +2027,7 @@ private:
 
     bool make_room_for(Slice protected_key, size_t incoming_bytes) {
         if (projected_bytes(protected_key, incoming_bytes) <= maxmemory_limit_) return true;
+        trim_set_recycler_on_pressure();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
 
         uint32_t budget = kEvictionsPerOp;
@@ -2807,19 +2861,61 @@ private:
         object->store_flags_atomic(flags);
     }
 
-    static void read_local_reclaim_table(void*, void* payload, size_t) {
+    void* acquire_set_block_read_local(size_t allocation) {
+        ReadLocalRetireSink& sink = read_local_store_state_required().retire_sink;
+        void* memory = sink.acquire(allocation);
+        if (!memory) memory = alloc_raw(allocation);
+        if (!memory) {
+            // The cache is deliberately outside logical object_bytes accounting, but it still
+            // consumes physical memory. On allocator pressure, release it and retry once.
+            sink.trim(0);
+            memory = alloc_raw(allocation);
+        }
+        if (memory) ::new (memory) KvObj;
+        return memory;
+    }
+
+    bool recycle_set_value_read_local(KvObj* object,
+                                      const ReadLocalRetireSink& sink) const {
+        if constexpr (kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::QsbrRecycle)
+            return false;
+        if (!object || static_cast<Type>(object->type) != Type::String) return false;
+        const Enc encoding = static_cast<Enc>(object->enc);
+        if (encoding != Enc::Raw && encoding != Enc::Int) return false;
+        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_data()))
+            return false;
+        // Retirement already removed this object's bytes from obj_bytes_. The cache is deliberately
+        // unaccounted; a later insert accounts the reinitialized block exactly once, just as fresh.
+        return sink.recycle(object, kvobj_capacity(object));
+    }
+
+    void trim_set_recycler_on_pressure() {
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_)
+                read_local_store_state_required().retire_sink.trim(1024 * 1024);
+        }
+    }
+
+    static void read_local_reclaim_table(const ReadLocalRetireSink&, void*, void* payload,
+                                         size_t) {
         std::free(payload);
     }
 
-    static void read_local_reclaim_object(void* owner, void* payload, size_t bytes) {
-        static_cast<FlatStore*>(owner)->destroy_retired_obj(
-            static_cast<KvObj*>(payload), bytes);
-    }
-
-    static void read_local_reclaim_atomic_object(void* owner, void* payload, size_t bytes) {
+    static void read_local_reclaim_object(const ReadLocalRetireSink& sink, void* owner,
+                                          void* payload, size_t bytes) {
         FlatStore* store = static_cast<FlatStore*>(owner);
         KvObj* object = static_cast<KvObj*>(payload);
-        if (!store->atomic_recycle_value(object)) store->destroy_retired_obj(object, bytes);
+        if (!store->recycle_set_value_read_local(object, sink))
+            store->destroy_retired_obj(object, bytes);
+    }
+
+    static void read_local_reclaim_atomic_object(const ReadLocalRetireSink& sink, void* owner,
+                                                 void* payload, size_t bytes) {
+        FlatStore* store = static_cast<FlatStore*>(owner);
+        KvObj* object = static_cast<KvObj*>(payload);
+        if (!store->atomic_recycle_value(object) &&
+            !store->recycle_set_value_read_local(object, sink))
+            store->destroy_retired_obj(object, bytes);
     }
 
     void retire_table_read_local(uint64_t* table) {

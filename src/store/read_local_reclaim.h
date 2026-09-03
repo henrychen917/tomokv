@@ -6,20 +6,79 @@
 // grace period.
 #pragma once
 #include <cstddef>
+#include "read_local_settax.h"
 
 namespace tomo {
 
 struct ReadLocalRetireSink {
-    using ReclaimFn = void (*)(void* owner, void* payload, size_t auxiliary);
+    using ReclaimFn = void (*)(const ReadLocalRetireSink& sink, void* owner,
+                               void* payload, size_t auxiliary);
     using DeferFn = void (*)(void* context, void* owner, void* payload,
                             size_t auxiliary, ReclaimFn reclaim);
+    using AcquireFn = void* (*)(void* context, size_t allocation);
+    using RecycleFn = bool (*)(void* context, void* allocation, size_t bytes);
+    using TrimFn = void (*)(void* context, size_t target_bytes);
 
     void* context = nullptr;
     DeferFn defer = nullptr;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+    AcquireFn acquire_block = nullptr;
+    RecycleFn recycle_block = nullptr;
+    TrimFn trim_blocks = nullptr;
+#endif
 
     void retire(void* owner, void* payload, size_t auxiliary, ReclaimFn reclaim) const {
         defer(context, owner, payload, auxiliary, reclaim);
     }
+
+    void bind_recycler(AcquireFn acquire, RecycleFn recycle, TrimFn trim) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        acquire_block = acquire;
+        recycle_block = recycle;
+        trim_blocks = trim;
+#else
+        (void)acquire;
+        (void)recycle;
+        (void)trim;
+#endif
+    }
+    bool recycler_bound() const {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        return acquire_block && recycle_block && trim_blocks;
+#else
+        return false;
+#endif
+    }
+
+    void* acquire(size_t allocation) const {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        return acquire_block ? acquire_block(context, allocation) : nullptr;
+#else
+        (void)allocation;
+        return nullptr;
+#endif
+    }
+    bool recycle(void* allocation, size_t bytes) const {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        return recycle_block && recycle_block(context, allocation, bytes);
+#else
+        (void)allocation;
+        (void)bytes;
+        return false;
+#endif
+    }
+    void trim(size_t target_bytes) const {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        if (trim_blocks) trim_blocks(context, target_bytes);
+#else
+        (void)target_bytes;
+#endif
+    }
 };
+
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 2
+static_assert(sizeof(ReadLocalRetireSink) == 2 * sizeof(void*),
+              "OFF/A retire sink must retain its original sidecar layout");
+#endif
 
 }  // namespace tomo
