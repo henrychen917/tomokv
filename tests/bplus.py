@@ -180,7 +180,7 @@ def topology(connection):
     shard_owner = {}
     for line in raw.splitlines():
         fields = line.split()
-        if len(fields) >= 3 and fields[0] == b"thread" and fields[2] == b"ex":
+        if len(fields) >= 3 and fields[0] == b"thread" and fields[2] in (b"ex", b"io"):
             executors.add(int(fields[1]))
         elif len(fields) >= 3 and fields[0] == b"shard":
             shard_owner[int(fields[1])] = int(fields[2])
