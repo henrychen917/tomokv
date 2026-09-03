@@ -15,6 +15,51 @@
 
 namespace tomo {
 
+inline bool read_local_command_is_mget(const Op& op) {
+    return op.spec && command_is_read_local_mget(*op.spec);
+}
+
+// Owner-tail ordering is hash-conservative, like the RYOW write ring: an actual hash collision is
+// allowed to take the owner path. MGET keeps one ROB slot, so every key in its argv participates.
+inline bool read_local_command_touches_hash(const Op& op, uint64_t hash) {
+    if (!read_local_command_is_mget(op)) return op.hash == hash;
+    for (uint32_t arg = 1; arg < op.argc(); arg++)
+        if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
+    return false;
+}
+
+inline bool read_local_command_is_precise_point(const Op& op) {
+    if (!op.spec) return false;
+    constexpr uint32_t kNonPointRoutes =
+        CmdFlags::AllShards | CmdFlags::RandomShard | CmdFlags::CursorShard |
+        CmdFlags::ConfigRoute | CmdFlags::MultiShard | CmdFlags::ScriptRoute |
+        CmdFlags::Blocking | CmdFlags::Transaction | CmdFlags::StreamRoute |
+        CmdFlags::SubcmdRoute;
+    return (op.spec->flags & kNonPointRoutes) == 0 && op.spec->first_key > 0 &&
+           op.spec->last_key == op.spec->first_key && op.spec->key_step == 1;
+}
+
+inline bool read_local_owner_command_is_precise(const Op& op) {
+    return read_local_command_is_mget(op) || read_local_command_is_precise_point(op);
+}
+
+// A marked broad owner route remains conservative. Marked GETs, MGETs, and ordinary point routes
+// carry enough immutable ROB metadata to fence only a later read of the same hash.
+inline bool read_local_owner_command_touches_hash(const Op& op, uint64_t hash) {
+    if (read_local_command_is_mget(op)) return read_local_command_touches_hash(op, hash);
+    if (!read_local_owner_command_is_precise(op)) return true;
+    return op.hash == hash;
+}
+
+inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
+    if (!read_local_command_is_mget(read))
+        return read_local_owner_command_touches_hash(owner, read.hash);
+    for (uint32_t arg = 1; arg < read.argc(); arg++)
+        if (read_local_owner_command_touches_hash(
+                owner, FlatStore::hash_key(read.arg(arg)))) return true;
+    return false;
+}
+
 class ReadLocalDeferredQueue {
 public:
     static constexpr uint32_t kCapacity = 4096;

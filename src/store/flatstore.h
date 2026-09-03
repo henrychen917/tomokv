@@ -492,7 +492,7 @@ struct ReadLocalStoreState {
     AtomicPendingState atomic;
     std::atomic<uint64_t> publication{0};
     ReadLocalRetireSink retire_sink{};
-    uint32_t mutation_depth = 0;
+    uint32_t table_mutation_depth = 0;
     uint32_t pending_count = 0;
 };
 static_assert(std::is_standard_layout_v<ReadLocalStoreState>);
@@ -541,28 +541,31 @@ public:
     };
     struct ReadLocalTopology { ReadLocalTable tables[2]; };
 
-    // One boot-latched publication word for foreign fused readers. Bit 0 is set while an outer
-    // mutation bracket is open, bit 1 conservatively publishes whether ANY prepared atomic entry
-    // exists, and bits 2..63 are advanced when the outer mutation closes. The 62-bit generation
-    // avoids the short ABA window of a 32/32 sequence/count split while retaining one acquire load.
-    static constexpr uint64_t kReadLocalMutationBit = uint64_t{1} << 0;
+    // One boot-latched publication word for foreign fused readers. Bit 0 is set only while table
+    // topology or a bulk table clear is changing (including old-to-new rehash moves), bit 1
+    // conservatively publishes whether ANY prepared atomic entry exists, and bits 2..63 are the
+    // validation generation. Stable immutable-object slot swaps never write this word. The
+    // generation advances on those table changes and once when an atomic-pending interval closes,
+    // preventing an atomic-1 MGET from accepting a complete pending 0->1->0 ABA between its copies.
+    static constexpr uint64_t kReadLocalTableMutationBit = uint64_t{1} << 0;
     static constexpr uint64_t kReadLocalPendingBit = uint64_t{1} << 1;
     static constexpr uint32_t kReadLocalGenerationShift = 2;
 
-    class ReadLocalMutationGuard {
+    class ReadLocalTableGuard {
     public:
-        explicit ReadLocalMutationGuard(FlatStore& store) : store_(&store) {
-            store_->read_local_mutation_begin();
+        explicit ReadLocalTableGuard(FlatStore& store, bool active = true)
+            : store_(active ? &store : nullptr) {
+            if (store_) store_->read_local_table_mutation_begin();
         }
-        ~ReadLocalMutationGuard() {
-            if (store_) store_->read_local_mutation_end();
+        ~ReadLocalTableGuard() {
+            if (store_) store_->read_local_table_mutation_end();
         }
-        ReadLocalMutationGuard(const ReadLocalMutationGuard&) = delete;
-        ReadLocalMutationGuard& operator=(const ReadLocalMutationGuard&) = delete;
-        ReadLocalMutationGuard(ReadLocalMutationGuard&& other) noexcept : store_(other.store_) {
+        ReadLocalTableGuard(const ReadLocalTableGuard&) = delete;
+        ReadLocalTableGuard& operator=(const ReadLocalTableGuard&) = delete;
+        ReadLocalTableGuard(ReadLocalTableGuard&& other) noexcept : store_(other.store_) {
             other.store_ = nullptr;
         }
-        ReadLocalMutationGuard& operator=(ReadLocalMutationGuard&&) = delete;
+        ReadLocalTableGuard& operator=(ReadLocalTableGuard&&) = delete;
 
     private:
         FlatStore* store_;
@@ -623,8 +626,11 @@ public:
     void rebind_read_local_retire_sink(ReadLocalRetireSink sink) {
         if (!read_local_enabled_ || !sink.defer) std::abort();
         // Called only after the old owner has acknowledged an empty task/read/retire frontier and
-        // before the new owner executes store work. Foreign probes never read the sink; keeping the
-        // boot-latched enabled byte untouched avoids a true-to-true data race at LB resume.
+        // before the new owner executes store work. Advance the table generation at that ownership
+        // edge so a foreign copy cannot validate across two retire domains. Foreign probes never
+        // read the sink; keeping the boot-latched enabled byte untouched avoids a true-to-true data
+        // race at LB resume.
+        ReadLocalTableGuard ownership_change(*this);
         read_local_store_state_required().retire_sink = sink;
     }
     bool read_local_enabled() const { return read_local_enabled_; }
@@ -632,17 +638,17 @@ public:
     uint64_t read_local_state_acquire() const {
         return read_local_store_state_required().publication.load(std::memory_order_acquire);
     }
-    static bool read_local_mutating(uint64_t state) {
-        return (state & kReadLocalMutationBit) != 0;
+    static bool read_local_table_mutating(uint64_t state) {
+        return (state & kReadLocalTableMutationBit) != 0;
     }
     static uint32_t read_local_pending(uint64_t state) {
         return (state & kReadLocalPendingBit) ? 1u : 0u;
     }
     static bool read_local_state_eligible(uint64_t state) {
-        return (state & (kReadLocalMutationBit | kReadLocalPendingBit)) == 0;
+        return (state & (kReadLocalTableMutationBit | kReadLocalPendingBit)) == 0;
     }
-    [[nodiscard]] ReadLocalMutationGuard read_local_mutation_guard() {
-        return ReadLocalMutationGuard(*this);
+    [[nodiscard]] ReadLocalTableGuard read_local_table_guard() {
+        return ReadLocalTableGuard(*this);
     }
 
     ReadLocalProbe read_local_probe(uint64_t hash, Slice key) const {
@@ -650,7 +656,7 @@ public:
         const uint64_t state = read_local_state_acquire();
         if (read_local_pending(state))
             return {ReadLocalProbeResult::AtomicPending, nullptr, state};
-        if (read_local_mutating(state))
+        if (read_local_table_mutating(state))
             return {ReadLocalProbeResult::Churn, nullptr, state};
 
         ReadLocalTopology topology;
@@ -2224,7 +2230,7 @@ private:
 
     bool snapshot_mark_read_local(int32_t shard_id, int64_t cut_ms) {
         if (!snapshot_prepared_ || snapshot_active_ || rehashing()) return false;
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
         read_local_topology_store(&mask_[1], mask_[0]);
@@ -2257,7 +2263,6 @@ private:
         if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
             return SnapshotWriteResult::Ready;
         if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
-            ReadLocalMutationGuard mutation(*this);
             read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
             return SnapshotWriteResult::Ready;
         }
@@ -2289,7 +2294,6 @@ private:
             slot_budget--; work++;
             if (!object) { snapshot_pos_++; continue; }
             if (word & kTombBit) {
-                ReadLocalMutationGuard mutation(*this);
                 read_local_slot_store(&tab_[1][slot], word & ~kTombBit);
                 snapshot_pos_++;
                 continue;
@@ -2353,7 +2357,6 @@ private:
         const uint32_t slot = state.slot;
         snapshot_record_ = {};
         if (preimage) {
-            ReadLocalMutationGuard mutation(*this);
             read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
         } else {
             snapshot_pos_++;
@@ -2393,7 +2396,8 @@ private:
             if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
             if (o->eviction_meta() == 0) initialize_meta_read_local(o);
         }
-        ReadLocalMutationGuard mutation(*this);
+        const bool moves_from_old = rehashing() && find_in(1, h, o->key()) != nullptr;
+        ReadLocalTableGuard table_move(*this, moves_from_old);
         if (rehashing()) {
             bool expired = false;
             if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
@@ -2404,7 +2408,6 @@ private:
     }
 
     bool erase_read_local(uint64_t h, Slice key) {
-        ReadLocalMutationGuard mutation(*this);
         if (rehashing() && !snapshot_active_) rehash_step_read_local();
         bool expired = false;
         if (erase_in_read_local(0, h, key, &expired)) {
@@ -2422,7 +2425,7 @@ private:
 
     void clear_read_local() {
         uint64_t* fresh = allocate_table(1024);
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
@@ -2452,7 +2455,7 @@ private:
     }
 
     void clear_during_snapshot_read_local() {
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
@@ -2550,7 +2553,7 @@ private:
     }
 
     void install_empty_table_read_local(int t, uint64_t* table, uint32_t cap) {
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[t], table);
         read_local_topology_store(&cap_[t], cap);
         read_local_topology_store(&mask_[t], cap - 1);
@@ -2559,7 +2562,6 @@ private:
     }
 
     bool insert_into_read_local(int t, uint64_t h, KvObj* o, bool track_expire) {
-        ReadLocalMutationGuard mutation(*this);
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -2604,7 +2606,6 @@ private:
     }
 
     bool erase_in_read_local(int t, uint64_t h, Slice key, bool* was_expired = nullptr) {
-        ReadLocalMutationGuard mutation(*this);
         if (!tab_[t]) return false;
         const uint16_t tag = tag_of(h);
         uint32_t i = slot_start(t, h);
@@ -2631,7 +2632,6 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        ReadLocalMutationGuard mutation(*this);
         if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
@@ -2669,7 +2669,7 @@ private:
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         if (rehash_counter_) (*rehash_counter_)++;
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
@@ -2681,7 +2681,7 @@ private:
     }
 
     void rehash_step_read_local() {
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         uint32_t budget = kRehashSlotsPerOp;
         while (budget && rehash_pos_ < cap_[1]) {
             const uint64_t w = tab_[1][rehash_pos_];
@@ -2707,12 +2707,15 @@ private:
 
     template <typename T>
     void read_local_topology_store(T* location, T value) {
-        if (!read_local_enabled_ || !read_local_store_state_required().mutation_depth) std::abort();
+        if (!read_local_enabled_ ||
+            !read_local_store_state_required().table_mutation_depth) std::abort();
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
     void read_local_slot_store(uint64_t* location, uint64_t value) {
-        if (!read_local_enabled_ || !read_local_store_state_required().mutation_depth) std::abort();
+        // Slot words publish immutable objects. A release swap plus QSBR lifetime is sufficient;
+        // only a multi-slot/table move needs the topology bracket above.
+        if (!read_local_enabled_) std::abort();
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
@@ -2777,32 +2780,32 @@ private:
             this, table, 0, &FlatStore::read_local_reclaim_table);
     }
 
-    void read_local_mutation_begin() {
+    void read_local_table_mutation_begin() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
-        if (state.mutation_depth++ == 0) read_local_advance_sequence(false);
+        if (state.table_mutation_depth++ == 0) read_local_advance_table_generation(false);
     }
 
-    void read_local_mutation_end() {
+    void read_local_table_mutation_end() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
-        if (!state.mutation_depth) std::abort();
-        if (--state.mutation_depth == 0) read_local_advance_sequence(true);
+        if (!state.table_mutation_depth) std::abort();
+        if (--state.table_mutation_depth == 0) read_local_advance_table_generation(true);
     }
 
-    // Begin's acq_rel RMW is the writer-side seqlock barrier: no later slot/topology store may move
-    // before publication of the open bit. End preserves the pending bit and advances generation.
-    void read_local_advance_sequence(bool ending) {
+    // Begin's acq_rel RMW is the writer-side topology barrier: no later pointer/capacity bundle or
+    // old-to-new slot move may precede the open bit. End preserves pending and advances generation.
+    void read_local_advance_table_generation(bool ending) {
         std::atomic<uint64_t>& publication = read_local_store_state_required().publication;
         if (!ending) {
             const uint64_t previous = publication.fetch_or(
-                kReadLocalMutationBit, std::memory_order_acq_rel);
-            if (previous & kReadLocalMutationBit) std::abort();
+                kReadLocalTableMutationBit, std::memory_order_acq_rel);
+            if (previous & kReadLocalTableMutationBit) std::abort();
             return;
         }
         uint64_t observed = publication.load(std::memory_order_relaxed);
         for (;;) {
-            if (!(observed & kReadLocalMutationBit)) std::abort();
+            if (!(observed & kReadLocalTableMutationBit)) std::abort();
             const uint64_t desired =
                 (((observed >> kReadLocalGenerationShift) + uint64_t{1})
                      << kReadLocalGenerationShift) |
@@ -2831,9 +2834,20 @@ private:
         ReadLocalStoreState& state = read_local_store_state_required();
         if (!state.pending_count) std::abort();
         if (--state.pending_count == 0) {
-            const uint64_t previous = state.publication.fetch_and(
-                ~kReadLocalPendingBit, std::memory_order_release);
-            if (!(previous & kReadLocalPendingBit)) std::abort();
+            // MGET atomic-1 snapshots several keys before their final state validation. Merely
+            // clearing pending would make a complete 0->1->0 atomic group invisible (ABA), so the
+            // one close of the whole pending interval also advances the validation generation.
+            uint64_t observed = state.publication.load(std::memory_order_relaxed);
+            for (;;) {
+                if (!(observed & kReadLocalPendingBit)) std::abort();
+                const uint64_t desired =
+                    (((observed >> kReadLocalGenerationShift) + uint64_t{1})
+                         << kReadLocalGenerationShift) |
+                    (observed & kReadLocalTableMutationBit);
+                if (state.publication.compare_exchange_weak(
+                        observed, desired, std::memory_order_release,
+                        std::memory_order_relaxed)) break;
+            }
         }
         entry.read_local_pending_published = false;
     }

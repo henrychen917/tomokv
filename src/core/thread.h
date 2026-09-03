@@ -112,7 +112,10 @@ enum class ReadLocalFallbackReason : uint8_t {
     None,
     Multi,
     Watch,
-    Context,
+    ContextOwnerKey,        // unfinished precise owner op with an overlapping key hash
+    ContextConnectionState, // blocked or subscriber-mode connection
+    ContextRoute,           // scatter/script/all-shard or conservative broad-owner route
+    ContextKeymissNotify,   // MGET miss must retain owner-side notification behavior
     InflightWrite,
     AtomicPending,
     Missing,
@@ -134,7 +137,13 @@ struct ReadLocalStats {
     uint64_t keyspace_misses = 0;
     uint64_t fallback_multi = 0;
     uint64_t fallback_watch = 0;
+    // Compatibility aggregate followed by its exhaustive sub-reasons. Keeping the aggregate lets
+    // existing INFO consumers continue to compute the same fallback total.
     uint64_t fallback_context = 0;
+    uint64_t fallback_context_owner_key = 0;
+    uint64_t fallback_context_connection_state = 0;
+    uint64_t fallback_context_route = 0;
+    uint64_t fallback_context_keymiss_notify = 0;
     uint64_t fallback_inflight_write = 0;
     uint64_t fallback_atomic_pending = 0;
     uint64_t fallback_missing = 0;
@@ -150,6 +159,10 @@ struct ReadLocalStats {
     uint64_t mget_fallback_multi = 0;
     uint64_t mget_fallback_watch = 0;
     uint64_t mget_fallback_context = 0;
+    uint64_t mget_fallback_context_owner_key = 0;
+    uint64_t mget_fallback_context_connection_state = 0;
+    uint64_t mget_fallback_context_route = 0;
+    uint64_t mget_fallback_context_keymiss_notify = 0;
     uint64_t mget_fallback_inflight_write = 0;
     uint64_t mget_fallback_atomic_pending = 0;
     uint64_t mget_fallback_typed = 0;
@@ -174,7 +187,22 @@ struct ReadLocalStats {
         switch (reason) {
             case ReadLocalFallbackReason::Multi: fallback_multi++; break;
             case ReadLocalFallbackReason::Watch: fallback_watch++; break;
-            case ReadLocalFallbackReason::Context: fallback_context++; break;
+            case ReadLocalFallbackReason::ContextOwnerKey:
+                fallback_context++;
+                fallback_context_owner_key++;
+                break;
+            case ReadLocalFallbackReason::ContextConnectionState:
+                fallback_context++;
+                fallback_context_connection_state++;
+                break;
+            case ReadLocalFallbackReason::ContextRoute:
+                fallback_context++;
+                fallback_context_route++;
+                break;
+            case ReadLocalFallbackReason::ContextKeymissNotify:
+                fallback_context++;
+                fallback_context_keymiss_notify++;
+                break;
             case ReadLocalFallbackReason::InflightWrite: fallback_inflight_write++; break;
             case ReadLocalFallbackReason::AtomicPending: fallback_atomic_pending++; break;
             case ReadLocalFallbackReason::Missing: fallback_missing++; break;
@@ -188,7 +216,22 @@ struct ReadLocalStats {
         switch (reason) {
             case ReadLocalFallbackReason::Multi: mget_fallback_multi++; break;
             case ReadLocalFallbackReason::Watch: mget_fallback_watch++; break;
-            case ReadLocalFallbackReason::Context: mget_fallback_context++; break;
+            case ReadLocalFallbackReason::ContextOwnerKey:
+                mget_fallback_context++;
+                mget_fallback_context_owner_key++;
+                break;
+            case ReadLocalFallbackReason::ContextConnectionState:
+                mget_fallback_context++;
+                mget_fallback_context_connection_state++;
+                break;
+            case ReadLocalFallbackReason::ContextRoute:
+                mget_fallback_context++;
+                mget_fallback_context_route++;
+                break;
+            case ReadLocalFallbackReason::ContextKeymissNotify:
+                mget_fallback_context++;
+                mget_fallback_context_keymiss_notify++;
+                break;
             case ReadLocalFallbackReason::InflightWrite:
                 mget_fallback_inflight_write++;
                 break;

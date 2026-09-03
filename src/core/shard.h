@@ -3,9 +3,9 @@
 // A shard owns a contiguous range of the 16,384 routing buckets and every key hashing into it, plus
 // its own FlatStore. Exactly one thread touches a given shard at a time, which is the invariant the
 // whole design rests on. The boot-disabled fused read-local lane is the narrow exception: foreign
-// threads perform read-only probes under a per-store sequence and rotation QSBR, while every
-// mutation remains on this single owner. With that lane off, DEL retains the immediate-free path
-// unless the allocation is explicitly borrowed by the wire send path.
+// threads perform read-only probes under a per-store table generation and rotation QSBR, while
+// every mutation remains on this single owner. With that lane off, DEL retains the immediate-free
+// path unless the allocation is explicitly borrowed by the wire send path.
 //
 // NO NODE LAYER. The keyspace is one flat set of shards over the whole server; there is no NUMA or
 // L3 partitioning of it. That is a deliberate simplification and it gives up a measured gain — on

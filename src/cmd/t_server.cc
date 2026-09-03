@@ -1487,6 +1487,10 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_multi += local.fallback_multi;
     total.fallback_watch += local.fallback_watch;
     total.fallback_context += local.fallback_context;
+    total.fallback_context_owner_key += local.fallback_context_owner_key;
+    total.fallback_context_connection_state += local.fallback_context_connection_state;
+    total.fallback_context_route += local.fallback_context_route;
+    total.fallback_context_keymiss_notify += local.fallback_context_keymiss_notify;
     total.fallback_inflight_write += local.fallback_inflight_write;
     total.fallback_atomic_pending += local.fallback_atomic_pending;
     total.fallback_missing += local.fallback_missing;
@@ -1498,6 +1502,12 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_multi += local.mget_fallback_multi;
     total.mget_fallback_watch += local.mget_fallback_watch;
     total.mget_fallback_context += local.mget_fallback_context;
+    total.mget_fallback_context_owner_key += local.mget_fallback_context_owner_key;
+    total.mget_fallback_context_connection_state +=
+        local.mget_fallback_context_connection_state;
+    total.mget_fallback_context_route += local.mget_fallback_context_route;
+    total.mget_fallback_context_keymiss_notify +=
+        local.mget_fallback_context_keymiss_notify;
     total.mget_fallback_inflight_write += local.mget_fallback_inflight_write;
     total.mget_fallback_atomic_pending += local.mget_fallback_atomic_pending;
     total.mget_fallback_typed += local.mget_fallback_typed;
@@ -1754,6 +1764,17 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_watch, baseline.read_local.fallback_watch);
         read_local.fallback_context = minus_baseline(
             read_local.fallback_context, baseline.read_local.fallback_context);
+        read_local.fallback_context_owner_key = minus_baseline(
+            read_local.fallback_context_owner_key,
+            baseline.read_local.fallback_context_owner_key);
+        read_local.fallback_context_connection_state = minus_baseline(
+            read_local.fallback_context_connection_state,
+            baseline.read_local.fallback_context_connection_state);
+        read_local.fallback_context_route = minus_baseline(
+            read_local.fallback_context_route, baseline.read_local.fallback_context_route);
+        read_local.fallback_context_keymiss_notify = minus_baseline(
+            read_local.fallback_context_keymiss_notify,
+            baseline.read_local.fallback_context_keymiss_notify);
         read_local.fallback_inflight_write = minus_baseline(
             read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
         read_local.fallback_atomic_pending = minus_baseline(
@@ -1776,6 +1797,18 @@ void cmd_info(Shard&, Op& op) {
             read_local.mget_fallback_watch, baseline.read_local.mget_fallback_watch);
         read_local.mget_fallback_context = minus_baseline(
             read_local.mget_fallback_context, baseline.read_local.mget_fallback_context);
+        read_local.mget_fallback_context_owner_key = minus_baseline(
+            read_local.mget_fallback_context_owner_key,
+            baseline.read_local.mget_fallback_context_owner_key);
+        read_local.mget_fallback_context_connection_state = minus_baseline(
+            read_local.mget_fallback_context_connection_state,
+            baseline.read_local.mget_fallback_context_connection_state);
+        read_local.mget_fallback_context_route = minus_baseline(
+            read_local.mget_fallback_context_route,
+            baseline.read_local.mget_fallback_context_route);
+        read_local.mget_fallback_context_keymiss_notify = minus_baseline(
+            read_local.mget_fallback_context_keymiss_notify,
+            baseline.read_local.mget_fallback_context_keymiss_notify);
         read_local.mget_fallback_inflight_write = minus_baseline(
             read_local.mget_fallback_inflight_write,
             baseline.read_local.mget_fallback_inflight_write);
@@ -2220,6 +2253,10 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_multi:%llu\r\n"
                 "read_local_fallback_watch:%llu\r\n"
                 "read_local_fallback_context:%llu\r\n"
+                "read_local_fallback_context_owner_key:%llu\r\n"
+                "read_local_fallback_context_connection_state:%llu\r\n"
+                "read_local_fallback_context_route:%llu\r\n"
+                "read_local_fallback_context_keymiss_notify:%llu\r\n"
                 "read_local_fallback_inflight_write:%llu\r\n"
                 "read_local_fallback_atomic_pending:%llu\r\n"
                 "read_local_fallback_missing:%llu\r\n"
@@ -2234,6 +2271,10 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_multi),
                 static_cast<unsigned long long>(read_local.fallback_watch),
                 static_cast<unsigned long long>(read_local.fallback_context),
+                static_cast<unsigned long long>(read_local.fallback_context_owner_key),
+                static_cast<unsigned long long>(read_local.fallback_context_connection_state),
+                static_cast<unsigned long long>(read_local.fallback_context_route),
+                static_cast<unsigned long long>(read_local.fallback_context_keymiss_notify),
                 static_cast<unsigned long long>(read_local.fallback_inflight_write),
                 static_cast<unsigned long long>(read_local.fallback_atomic_pending),
                 static_cast<unsigned long long>(read_local.fallback_missing),
@@ -2247,6 +2288,10 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_multi:%llu\r\n"
                 "read_local_mget_fallback_watch:%llu\r\n"
                 "read_local_mget_fallback_context:%llu\r\n"
+                "read_local_mget_fallback_context_owner_key:%llu\r\n"
+                "read_local_mget_fallback_context_connection_state:%llu\r\n"
+                "read_local_mget_fallback_context_route:%llu\r\n"
+                "read_local_mget_fallback_context_keymiss_notify:%llu\r\n"
                 "read_local_mget_fallback_inflight_write:%llu\r\n"
                 "read_local_mget_fallback_atomic_pending:%llu\r\n"
                 "read_local_mget_fallback_typed:%llu\r\n"
@@ -2258,6 +2303,12 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_multi),
                 static_cast<unsigned long long>(read_local.mget_fallback_watch),
                 static_cast<unsigned long long>(read_local.mget_fallback_context),
+                static_cast<unsigned long long>(read_local.mget_fallback_context_owner_key),
+                static_cast<unsigned long long>(
+                    read_local.mget_fallback_context_connection_state),
+                static_cast<unsigned long long>(read_local.mget_fallback_context_route),
+                static_cast<unsigned long long>(
+                    read_local.mget_fallback_context_keymiss_notify),
                 static_cast<unsigned long long>(read_local.mget_fallback_inflight_write),
                 static_cast<unsigned long long>(read_local.mget_fallback_atomic_pending),
                 static_cast<unsigned long long>(read_local.mget_fallback_typed),
