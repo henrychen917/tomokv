@@ -3471,10 +3471,7 @@ private:
     }
 
     static bool read_local_op_touches_hash(const Op& op, uint64_t hash) {
-        if (!read_local_mget(op)) return op.hash == hash;
-        for (uint32_t arg = 1; arg < op.argc(); arg++)
-            if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
-        return false;
+        return read_local_command_touches_hash(op, hash);
     }
 
     // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
@@ -3546,7 +3543,7 @@ private:
             } else if (count_ && intersect_command) {
                 selective = true;
                 for (uint32_t i = 0; i < count_; i++)
-                    selected[i] = read_local_commands_overlap(
+                    selected[i] = read_local_commands_overlap_precise_keyset(
                         rob.at(storage_->ids[i]), *intersect_command);
             } else if (count_ && require_hash_match) {
                 selective = true;
@@ -4163,7 +4160,8 @@ private:
 
                     if (write_hazard) {
                         // Stage every historical v1 hazard before the stateful climon gate. A
-                        // syntactic one-key owner route can be refined now that arity is proved.
+                        // syntactic one-key owner route or blind MSET keyset can be refined now
+                        // that arity is proved. Other multi-key writes remain conservative.
                         rob.mark_current_write();
                         const bool ordinary_point_write =
                             point_route &&
@@ -4192,6 +4190,24 @@ private:
                                     reserve_owner_fenced_current))
                                 break;
                             read_local_commit_at_ordinary = true;
+                        } else if (read_local_command_is_precise_mset(*op) &&
+                                   fused_executor_->read_local_point_writes_precise()) {
+                            const uint32_t key_count = (op->argc() - 1) / 2;
+                            uint64_t filter = 0;
+                            if (key_count <= ReadLocalRobState::kMaxPreciseKeysetKeys)
+                                for (uint32_t arg = 1; arg < op->argc(); arg += 2)
+                                    filter |= ReadLocalRobState::keyset_filter(
+                                        FlatStore::hash_key(op->arg(arg)));
+                            const bool keyset_precise =
+                                rob.refine_current_write_keyset(filter, key_count);
+                            if (keyset_precise) op->mark_read_local_precise_write();
+                            if (!read_local_demotion.prepare(
+                                    *this, c, 0, false, -1,
+                                    ReadLocalFallbackReason::InflightWrite, false,
+                                    nullptr, nullptr, 0,
+                                    keyset_precise ? op : nullptr))
+                                break;
+                            read_local_commit_before_lowering = true;
                         } else if (!read_local_demotion.prepare(
                                        *this, c, 0, false, -1,
                                        ReadLocalFallbackReason::InflightWrite)) {
@@ -4220,7 +4236,8 @@ private:
                                     ? op->hash : FlatStore::hash_key(op->arg(arg));
                                 const int32_t shard = arg == 1
                                     ? op->shard : srv_->router().shard_of(hash);
-                                write_conflict |= rob.read_local_write_conflicts(hash);
+                                write_conflict |= rob.read_local_write_conflicts(
+                                    hash, read_local_command_touches_hash);
                                 const uint64_t state = srv_->shard(shard)
                                                            .store()
                                                            .read_local_state_acquire();
@@ -4230,7 +4247,8 @@ private:
                                     !FlatStore::read_local_state_eligible(state);
                             }
                         } else {
-                            write_conflict = rob.read_local_write_conflicts(op->hash);
+                            write_conflict = rob.read_local_write_conflicts(
+                                op->hash, read_local_command_touches_hash);
                         }
                         read_local_eligible = extend_read_local_batch &&
                             !write_conflict && !read_local_owner_conflict;

@@ -177,10 +177,10 @@ public:
     // connection flag above.
     void mark_read_local() { route_flags_ |= kReadLocal; }
     bool read_local() const { return route_flags_ & kReadLocal; }
-    // A hash-only write promises that it cannot mutate an unrelated key. If an evicting
-    // maxmemory policy becomes live after IO made that classification, the owner uses this
-    // immutable stamp to suspend eviction for this operation. Bit 7 is Client's blocked flag;
-    // reset_read_local() masks the captured connection value before armed code reuses it.
+    // A precise write promises that it cannot mutate outside its declared point/keyset. If an
+    // evicting maxmemory policy becomes live after IO made that classification, the owner uses
+    // this immutable stamp to suspend eviction for this operation. Bit 7 is Client's blocked
+    // flag; reset_read_local() masks the captured connection value before armed code reuses it.
     void mark_read_local_precise_write() { route_flags_ |= kReadLocalPreciseWrite; }
     bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;

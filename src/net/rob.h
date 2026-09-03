@@ -51,9 +51,16 @@ namespace tomo {
 // its removal fence, and stale entries may only cause an allowed false-positive conflict.
 struct ReadLocalRobState {
     static constexpr uint32_t kWriteRingCapacity = 16;
+    static constexpr uint32_t kMaxPreciseKeysetKeys = kWriteRingCapacity;
     static_assert((kWriteRingCapacity & (kWriteRingCapacity - 1)) == 0);
+    static_assert(kWriteRingCapacity <= 16, "keyset slot bitmap width");
 
-    enum class PendingWrite : uint8_t { None, Hash, Overflow };
+    static constexpr uint64_t keyset_filter(uint64_t hash) {
+        return (uint64_t{1} << (hash & 63)) |
+               (uint64_t{1} << ((hash >> 32) & 63));
+    }
+
+    enum class PendingWrite : uint8_t { None, Hash, Keyset, Overflow };
 
     struct WriteKey {
         uint64_t hash = 0;
@@ -65,6 +72,7 @@ struct ReadLocalRobState {
     uint64_t overflow_through = 0;
     uint8_t write_head = 0;
     uint8_t write_count = 0;
+    uint16_t write_keyset_slots = 0;
     PendingWrite pending_write = PendingWrite::None;
     bool overflow = false;
     // Keep the pure/short-ring controls and the first common entries on the leading cache lines.
@@ -240,8 +248,8 @@ public:
     // Stage a conservative write record before the parser enters ACL/special lowering. The next
     // armed acquire is the commit point: an advanced dispatch id means this op published, while an
     // unchanged id means dispatch was abandoned (including publish + refused-post + unpublish).
-    // Special/multi-key writes leave the pending record conservative. An ordinary point write
-    // refines it below after routing has already produced the hash.
+    // Every write starts conservative. After arity and routing are known, ordinary point writes
+    // and bounded blind keysets may refine it; all other special/multi-key writes leave it broad.
     void mark_current_write() {
         read_local_state_activate();
         ReadLocalRobState& state = read_local_state_required();
@@ -267,16 +275,50 @@ public:
         return true;
     }
 
+    // A bounded precise multi-key write occupies one ring slot, just like a point write. Its live
+    // ROB op owns the immutable key argv used by the conflict predicate, while the stored filter
+    // rejects almost every disjoint probe without rescanning argv. Wider keysets stay Overflow.
+    bool refine_current_write_keyset(uint64_t filter, uint32_t key_count) {
+        ReadLocalRobState& state = read_local_state_required();
+        if (state.pending_write != ReadLocalRobState::PendingWrite::Overflow ||
+            state.pending_op_id != dispatch_id())
+            std::abort();
+        if (!key_count || key_count > ReadLocalRobState::kMaxPreciseKeysetKeys || !filter)
+            return false;
+        if (state.overflow ||
+            state.write_count == ReadLocalRobState::kWriteRingCapacity)
+            return false;
+        state.pending_hash = filter;
+        state.pending_write = ReadLocalRobState::PendingWrite::Keyset;
+        return true;
+    }
+
     // Hash collisions deliberately conflict. Empty is the pure-GET fast path: it avoids even the
     // flush frontier load. Otherwise prune the retired FIFO prefix, then scan at most sixteen
-    // hashes (normally one to four). Overflow is v1 behavior until every write published during
-    // that overflow generation has retired.
-    bool read_local_write_conflicts(uint64_t hash) {
+    // write descriptors (normally one to four). Hash entries compare directly; exact keyset
+    // entries ask the caller to inspect their still-live ROB argv. Overflow remains conservative
+    // until every write published during that overflow generation has retired.
+    template <typename KeysetTouchesHash>
+    bool read_local_write_conflicts(uint64_t hash,
+                                    KeysetTouchesHash&& keyset_touches_hash) {
         if (!read_local_state_active()) return false;
         ReadLocalRobState& state = read_local_state_required();
+        const bool has_keysets =
+            state.pending_write == ReadLocalRobState::PendingWrite::Keyset ||
+            state.write_keyset_slots != 0;
+        const uint64_t probe_filter = has_keysets
+            ? ReadLocalRobState::keyset_filter(hash) : 0;
         // acquire_read_local normally resolves this first. Preserve the no-false-negative contract
         // if a future armed caller probes without acquiring through that door.
-        if (state.pending_write != ReadLocalRobState::PendingWrite::None) return true;
+        if (state.pending_write == ReadLocalRobState::PendingWrite::Overflow) return true;
+        if (state.pending_write == ReadLocalRobState::PendingWrite::Hash &&
+            state.pending_hash == hash)
+            return true;
+        if (state.pending_write == ReadLocalRobState::PendingWrite::Keyset) {
+            if ((state.pending_hash & probe_filter) == probe_filter &&
+                keyset_touches_hash(at(state.pending_op_id), hash))
+                return true;
+        }
         if (!state.overflow && state.write_count == 0) {
             read_local_try_deactivate(state);
             return false;
@@ -291,7 +333,13 @@ public:
             const uint32_t at =
                 (static_cast<uint32_t>(state.write_head) + i) &
                 (ReadLocalRobState::kWriteRingCapacity - 1);
-            if (state.write_ring[at].hash == hash) return true;
+            if (state.write_keyset_slots & (uint16_t{1} << at)) {
+                if ((state.write_ring[at].hash & probe_filter) == probe_filter &&
+                    keyset_touches_hash(this->at(state.write_ring[at].op_id), hash))
+                    return true;
+            } else if (state.write_ring[at].hash == hash) {
+                return true;
+            }
         }
         return false;
     }
@@ -414,16 +462,22 @@ private:
             state.overflow = false;
             state.write_head = 0;
             state.write_count = 0;
+            state.write_keyset_slots = 0;
             return;
         }
         while (state.write_count &&
                !read_local_id_active(
                    state.write_ring[state.write_head].op_id, dispatch, flush)) {
+            state.write_keyset_slots &=
+                static_cast<uint16_t>(~(uint16_t{1} << state.write_head));
             state.write_head = static_cast<uint8_t>(
                 (state.write_head + 1) & (ReadLocalRobState::kWriteRingCapacity - 1));
             state.write_count--;
         }
-        if (!state.write_count) state.write_head = 0;
+        if (!state.write_count) {
+            state.write_head = 0;
+            state.write_keyset_slots = 0;
+        }
     }
 
     void read_local_resolve_pending(ReadLocalRobState& state) {
@@ -446,6 +500,7 @@ private:
             state.overflow_through = op_id;
             state.write_head = 0;
             state.write_count = 0;
+            state.write_keyset_slots = 0;
             return;
         }
 
@@ -454,12 +509,17 @@ private:
             state.overflow_through = op_id;
             state.write_head = 0;
             state.write_count = 0;
+            state.write_keyset_slots = 0;
             return;
         }
         const uint32_t tail =
             (static_cast<uint32_t>(state.write_head) + state.write_count) &
             (ReadLocalRobState::kWriteRingCapacity - 1);
         state.write_ring[tail] = ReadLocalRobState::WriteKey{hash, op_id};
+        if (pending == PendingWrite::Keyset)
+            state.write_keyset_slots |= uint16_t{1} << tail;
+        else
+            state.write_keyset_slots &= static_cast<uint16_t>(~(uint16_t{1} << tail));
         state.write_count++;
     }
 
