@@ -26,6 +26,9 @@ struct ReadLocalRetireSink {
     RecycleFn recycle_block = nullptr;
     TrimFn trim_blocks = nullptr;
 #endif
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+    ReadLocalSetTaxStats* settax_stats = nullptr;
+#endif
 
     void retire(void* owner, void* payload, size_t auxiliary, ReclaimFn reclaim) const {
         defer(context, owner, payload, auxiliary, reclaim);
@@ -40,6 +43,21 @@ struct ReadLocalRetireSink {
         (void)acquire;
         (void)recycle;
         (void)trim;
+#endif
+    }
+
+    void bind_settax_stats(ReadLocalSetTaxStats* stats) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        settax_stats = stats;
+#else
+        (void)stats;
+#endif
+    }
+    ReadLocalSetTaxStats* diagnostics() const {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        return settax_stats;
+#else
+        return nullptr;
 #endif
     }
     bool recycler_bound() const {
@@ -76,9 +94,9 @@ struct ReadLocalRetireSink {
     }
 };
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 2
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 0 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 1
 static_assert(sizeof(ReadLocalRetireSink) == 2 * sizeof(void*),
-              "OFF/A retire sink must retain its original sidecar layout");
+              "OFF/legacy-sequence retire sink must retain its original sidecar layout");
 #endif
 
 }  // namespace tomo

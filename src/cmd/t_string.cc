@@ -320,8 +320,8 @@ void reply_string_bulk(Op& op, const KvObj* o) {
         reply_bulk(op.sink(), Slice(text, n));
         return;
     }
-    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
-        if (static_cast<Enc>(o->enc) == Enc::Raw) {
+    if constexpr (kReadLocalSetTaxAtomicRaw) {
+        if (o->encoding() == Enc::Raw) {
             const uint32_t length = kvobj_read_local_raw_length(o);
             auto sink = op.sink();
             char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
@@ -351,8 +351,24 @@ void cmd_get(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     if (o->is_int()) { reply_string_bulk(op, o); return; }
-    if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
-        if (static_cast<Enc>(o->enc) == Enc::Raw) {
+    if constexpr (kReadLocalSetTaxAtomicRaw) {
+        if (o->encoding() == Enc::Raw) {
+            if constexpr (kReadLocalSetTaxVariant ==
+                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite &&
+                          kAllowBorrow) {
+                const uint32_t length = kvobj_read_local_raw_length(o);
+                const uint32_t zc_min = sh.zc_min();
+                if (zc_min && length >= zc_min) {
+                    reply_bulk_header(op.sink(), length);
+                    op.zc_ptr = o->str_data();
+                    op.zc_len = length;
+                    op.zc_shard = sh.id();
+                    // The owner publishes this registry entry before it can run another command;
+                    // selector 3's overwrite gate then leaves these exact bytes immutable.
+                    sh.store().borrow(op.zc_ptr);
+                    return;
+                }
+            }
             if constexpr (!kAllowBorrow) {
                 const uint32_t zc_min = sh.zc_min();
                 if (zc_min && kvobj_read_local_raw_length(o) >= zc_min) op.mark_no_borrow();
@@ -367,7 +383,7 @@ void cmd_get(Shard& sh, Op& op) {
         const uint32_t zc_min = sh.zc_min();
         bool may_borrow = true;
         if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite)
-            may_borrow = static_cast<Enc>(o->enc) != Enc::Raw;
+            may_borrow = o->encoding() != Enc::Raw;
         if (may_borrow && zc_min && value.n >= zc_min) {
             reply_bulk_header(op.sink(), value.n);
             op.zc_ptr = value.p;
