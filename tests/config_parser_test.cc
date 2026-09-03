@@ -230,8 +230,24 @@ int main() {
         !rejects({"--read-local", ""}))
         fail("read-local boot grammar differs");
     tomo::Config read_local_default;
-    if (read_local_default.read_local != 0)
-        fail("read-local default is not off");
+    if (read_local_default.read_local != 0 ||
+        read_local_default.read_local_interleave != 1)
+        fail("read-local defaults differ");
+    auto parses_read_local_interleave = [](const char* value, uint32_t expected) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        const std::vector<const char*> args = {"--read-local-interleave", value};
+        return tomo::parse_config_args(args, cfg, state, 2, "test") ==
+                   tomo::kConfigParsed &&
+               cfg.read_local_interleave == expected;
+    };
+    if (!parses_read_local_interleave("0", 0) ||
+        !parses_read_local_interleave("1", 1) ||
+        !rejects({"--read-local-interleave", "2"}) ||
+        !rejects({"--read-local-interleave", "yes"}) ||
+        !rejects({"--read-local-interleave", "-1"}) ||
+        !rejects({"--read-local-interleave", ""}))
+        fail("read-local-interleave boot grammar differs");
     tomo::Config read_local_split;
     tomo::ConfigParseState read_local_split_state;
     const std::vector<const char*> read_local_split_args = {"--read-local", "1"};

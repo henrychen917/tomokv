@@ -12,6 +12,14 @@ described below only for `1s` overlap 0. Every other legal mode/overlap cell acc
 keeps reads on the ordinary owner-task path and logs one notice at boot. The setting is exposed by
 `CONFIG GET` and refused by `CONFIG SET`.
 
+`--read-local-interleave 0|1` is the boot-only internal scheduling selector for that armed cell and
+defaults to `1`. It serves bounded local-read chunks before and between owner-task chunks. Each
+captured owner producer gets one bounded quantum per rotation and is re-notified if work remains,
+so no producer can be stranded behind the local lane and queued depth cannot stretch the rotation
+without bound. `0` retains the original single positional local drain for A/B. The selector is
+inert when read-local is not active, is exposed by `CONFIG GET`, and is refused by `CONFIG SET`.
+Snapshot, placement, and pre-existing retry/deferred turns retain the legacy total ordering.
+
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary separated IO/executor loops | `t-iopipe` interwoven WB/IFID schedule | rejected |
@@ -51,16 +59,18 @@ Overlap 0 rotates three coarse streams in this order:
 
 With `--read-local 0`, local commands take the same self SPSC task lane as remote commands and are
 consumed during the executor phase; they are not executed inline. With `--read-local 1`, eligible
-plain GETs and MGETs instead enter a parsing-thread-local queue. The overlap-0 executor phase drains
-that queue immediately after parsing, in the same coarse rotation, and replies still retire through
-one connection ROB slot and the normal write-back path. Parsing never waits for that local queue to
-retire: a later hash-precise write first moves the unresolved reads in its transitive key-overlap
-component to ordinary owner queues, then publishes behind them; a conservative write moves the
-whole unresolved set. An unfinished precise owner-path operation fences only younger reads whose
-key hashes overlap, so unrelated reads may still execute locally while the ROB retires every reply
-in connection order. A broad owner route remains a conservative fence and is reported separately
-as route context. MGET applies the write-ring and store-publication gates to every key/touched shard
-and is all-or-nothing: any failure lowers the whole command through the existing scatter path.
+plain GETs and MGETs instead enter a parsing-thread-local queue. With the default interleave
+selector, the overlap-0 executor phase drains one bounded chunk immediately after parsing and more
+bounded chunks between owner-task chunks. The selector's `0` control retains the original single
+drain slot. In both cases replies still retire through one connection ROB slot and the normal
+write-back path. Parsing never waits for that local queue to retire: a later hash-precise write
+first moves the unresolved reads in its transitive key-overlap component to ordinary owner queues,
+then publishes behind them; a conservative write moves the whole unresolved set. An unfinished
+precise owner-path operation fences only younger reads whose key hashes overlap, so unrelated reads
+may still execute locally while the ROB retires every reply in connection order. A broad owner
+route remains a conservative fence and is reported separately as route context. MGET applies the
+write-ring and store-publication gates to every key/touched shard and is all-or-nothing: any failure
+lowers the whole command through the existing scatter path.
 
 Reads with an outstanding conflicting connection write (or a conservatively overflowed write
 ring), WATCH or MULTI state, script/scatter context, touched-shard atomic work, a typed or

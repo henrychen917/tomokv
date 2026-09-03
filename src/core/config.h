@@ -403,6 +403,10 @@ struct Config {
     int64_t  slowlog_log_slower_than = 10000;
     uint64_t slowlog_max_len = 128;
     uint32_t latency_monitor_threshold = 0;
+    // Internal boot-only A/B selector for the armed read-local rotation. This consumes the
+    // existing four-byte alignment hole before conf_path, preserving every established offset.
+    // 1 selects bounded local/owner interleave; 0 retains the original positional local drain.
+    uint32_t read_local_interleave = 1;
 
     // The conf file this process booted from, retained purely so CONFIG REWRITE has a destination.
     // It is set by the argv pre-scan in main, NOT by parse_config_args -- `--conf` is consumed
@@ -703,6 +707,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--read-local")) {
             if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
                 std::fprintf(stderr, "--read-local wants 0 or 1\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--read-local-interleave")) {
+            if (!cfg_parse_u32(next(nullptr), cfg.read_local_interleave) ||
+                cfg.read_local_interleave > 1) {
+                std::fprintf(stderr, "--read-local-interleave wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1089,6 +1100,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
                         "  threading: --thread-mode 2s|1s --overlap 0|1|2 --read-local 0|1\n"
                         "             (boot-only; defaults 2s, overlap 0 and read-local 0)\n"
+                        "             --read-local-interleave 0|1 (boot-only; default 1)\n"
                         "             (--thread-pipeline is an overlap alias)\n"
                         "             (split/fused are mode aliases)\n"
                         "             (read-local is active only with 1s overlap 0)\n"
