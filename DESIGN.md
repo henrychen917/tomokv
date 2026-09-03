@@ -7,30 +7,35 @@ both roles). `split` and `fused` remain parser aliases so old invocations keep w
 | mode | overlap 0 | overlap 1 | overlap 2 |
 | --- | --- | --- | --- |
 | `2s` | ordinary split IO/ex loops | exact `t-iopipe` WB/IFID batch schedule | rejected at config validation |
-| `1s` | coarse IFID → EX → WB rotation | exact `t-genthread` `iofused` schedule | exact `t-genthread` `streams` schedule |
+| `1s` | coarse IFID → EX → WB rotation | exact `t-genthread` `iofused` schedule | gated `iofused` three-way schedule |
 
 The compatibility options `thread-pipeline` and `genthread-schedule` remain accepted: the former
-is a numeric alias for `overlap`, while the latter maps `coarse`, `iofused`, and `streams` to
-`1s` plus overlap 0, 1, and 2 respectively. Overlap 2 emits a boot warning because it is an
-experimental research schedule. Unified overlap 1 and 2 require `net-io uring`; the split iopipe
-schedule retains its explicit epoll specialization. No schedule constant is runtime-tunable.
+is a numeric alias for `overlap`, while the latter maps `coarse`, `iofused`, and the legacy
+`streams` name to `1s` plus overlap 0, 1, and 2 respectively. The legacy name is only a parser
+alias; overlap 2 no longer runs the streams implementation. Overlap 2 emits a boot warning because
+it is an experimental research schedule. Unified overlap 1 and 2 require `net-io uring`; the split
+iopipe schedule retains its explicit epoll specialization. No schedule constant is runtime-tunable.
 
 Overlap 1 is deliberately the measured implementation, not a family resemblance. In `2s`, its
 shallow rotation is WB observe, IFID receive, WB prefetch, IFID parse/hash, WB retire/prepare, IFID
 post, and WB submit/reclaim; its existing depth gate selects the measured natural-order path. In
 `1s`, `iofused` retains the fork's targeted IFID work, WB dependency prefetch, coarse executor turn,
-and SEND-sensitive submission boundary. Overlap 2 retains the fork's depth gate, bounded residual
-carry, and literal independent-stream interleave. These shapes are fixed so results can be compared
-against overlap 0's plain-loop baseline.
+and SEND-sensitive submission boundary. Overlap 2 builds on those same mechanics. Its deep path
+freezes and prefetches a ready-list WB batch, performs the targeted IFID batch, gathers/schedules and
+prefetches one whole EX batch, uses WB prepare/pump as the EX load-gap filler, then executes that EX
+batch and drains any remaining EX batches normally. Kernel submission remains at the single outer
+boundary. A one-bit depth gate returns the next rotation to the unchanged coarse IFID → EX → WB
+order after a thin pass. These shapes are fixed so results can be compared against overlap 0's
+plain-loop baseline.
 
-The `1s` overlap-1 boot instantiation is separate from the deep-stream loop. Its loop-local state is
-only the source `iofused` WB batch and non-SEND rotation counter; overlap-2 IFID reservations, A/D
-executor contexts, residual ages, and buffered retirement never exist in that instantiation.
-Every overlap-1 task publisher and its executor drain use the fused inbox's lifetime-fixed geometry
-directly (1,024 slots per producer), so neither side reads the overlap-2 reservation ceiling or
-dynamic block geometry. That includes blocking, transaction, scatter/script follow-up, and stale-
-owner paths, selected at their already-cold boot latch. Overlap 2 retains the reservation-aware
-masked-queue entry points needed to hold unpublished I0 work across its dependent stages.
+The `1s` overlap-1 implementation remains unchanged. Both unified overlap schedules use its pending
+IFID/WB ready lists and the fused inbox's lifetime-fixed geometry directly (1,024 slots per
+producer), including blocking, transaction, scatter/script follow-up, and stale-owner paths. The
+overlap-2 deep path adds only one gate bit and a stack-local whole EX batch to overlap 1's WB batch;
+it has no IFID reservations, residual ages, A/D executor contexts, delayed lane retirement, or
+unpublished operations. The old streams source is retained for branch comparison but is unreachable
+from overlap-2 dispatch. Reservation-capable queue operations remain because overlap-0 read-local
+demotion uses them; neither overlap 1 nor overlap 2 enters them.
 
 # Masked-monolith executor inbox
 

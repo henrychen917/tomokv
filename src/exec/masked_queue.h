@@ -308,11 +308,11 @@ public:
         return true;
     }
 
-    // The 1s iofused boot shape is lifetime-fixed: every physical thread is both a producer and a
-    // consumer, FLIP is unavailable, and init_local_fused() gives producer p exactly
+    // The 1s iofused-family boot shape is lifetime-fixed: every physical thread is both a producer
+    // and a consumer, FLIP is unavailable, and init_local_fused() gives producer p exactly
     // [p * SlotsPerProducer, (p + 1) * SlotsPerProducer). These private entry points reproduce the
     // pre-reservation fork mechanics directly. They never read or update capacity-credit state;
-    // streams keeps the reservation-aware entry points above.
+    // the retained legacy streams source keeps the reservation-aware entry points above.
     template <uint32_t SlotsPerProducer>
     bool push_fused_private(uint32_t producer, T value) {
         static_assert(std::has_single_bit(SlotsPerProducer));
