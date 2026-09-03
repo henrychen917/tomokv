@@ -189,33 +189,49 @@ public:
         read_local_owner_slots_ |= bit;
     }
 
-    bool has_unexecuted_read_local_owner() {
+    // Test only unfinished owner work that is older than `before_id`. Parser callers pass the
+    // current dispatch id; EX callers pass the local task's id so a younger demotion cannot fence
+    // an older read. The predicate supplies GET/MGET keyset overlap without teaching the ROB how
+    // commands encode keys.
+    template <typename Match>
+    bool read_local_owner_conflicts_before(uint64_t before_id, Match&& match) {
         if (!read_local_owner_slots_) return false;
-        read_local_owner_slots_ &= active_slots_mask();
+        // Use one dispatch/flush snapshot both to prune the bitmap and to reconstruct wrapped IDs.
+        // The sender may advance flush concurrently; mixing two snapshots could otherwise interpret
+        // a just-retired low slot as belonging to the next ROB generation.
+        const uint64_t dispatch = dispatch_id();
+        const uint64_t flush = flush_id();
+        read_local_owner_slots_ &= active_slots_mask(dispatch, flush);
         uint64_t active = read_local_owner_slots_;
         if (!active) return false;
-        const uint64_t flush = flush_id();
+        const uint64_t before_distance = before_id - flush;
+        if (before_distance > dispatch - flush) std::abort();
         const uint32_t begin = static_cast<uint32_t>(flush) & kMask;
         const uint64_t generation = flush & ~uint64_t{kMask};
         uint64_t high = active & (UINT64_MAX << begin);
         const uint64_t low_mask = begin ? (uint64_t{1} << begin) - 1 : 0;
         uint64_t low = active & low_mask;
-        auto unfinished = [&](uint64_t bits, uint64_t base) {
+        bool conflict = false;
+        auto inspect = [&](uint64_t bits, uint64_t base) {
             while (bits) {
                 const uint32_t index = static_cast<uint32_t>(__builtin_ctzll(bits));
                 bits &= bits - 1;
-                if (at(base | index).state.load(std::memory_order_acquire) != OpState::Done)
-                    return true;
-                read_local_owner_slots_ &= ~(uint64_t{1} << index);
+                const uint64_t id = base | index;
+                const Op& op = at(id);
+                if (op.state.load(std::memory_order_acquire) == OpState::Done) {
+                    read_local_owner_slots_ &= ~(uint64_t{1} << index);
+                    continue;
+                }
+                if (id - flush < before_distance && match(op)) conflict = true;
             }
-            return false;
         };
-        return unfinished(high, generation) || unfinished(low, generation + Capacity);
+        inspect(high, generation);
+        inspect(low, generation + Capacity);
+        return conflict;
     }
 
-    // Once a local batch moves to owner queues, younger reads follow that venue until its execution
-    // tail completes. Extending the generation prevents a newly-local GET from overtaking a
-    // younger owner task after the originally demoted reads themselves have completed.
+    // Mark an owner-routed read (or the precise point operation that forced its demotion). Younger
+    // reads consult this slot only when their keysets overlap; ROB retirement alone orders replies.
     void extend_current_read_local_owner() {
         read_local_owner_slots_ |=
             uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
@@ -342,9 +358,7 @@ private:
         else return (uint64_t{1} << Capacity) - 1;
     }
 
-    uint64_t active_slots_mask() const {
-        const uint64_t dispatch = dispatch_.load(std::memory_order_relaxed);
-        const uint64_t flush = flush_.load(std::memory_order_acquire);
+    static uint64_t active_slots_mask(uint64_t dispatch, uint64_t flush) {
         const uint32_t count = static_cast<uint32_t>(dispatch - flush);
         if (!count) return 0;
         if (count >= Capacity) return capacity_slots_mask();

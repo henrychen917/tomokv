@@ -676,7 +676,7 @@ private:
         auto* fresh = static_cast<uint64_t*>(
             flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
-        ReadLocalMutationGuard mutation(*this);
+        ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
         read_local_topology_store(&mask_[1], mask_[0]);
@@ -1113,7 +1113,9 @@ private:
 
     KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key,
                                                KvObj* replacement) {
-        ReadLocalMutationGuard mutation(*this);
+        // Atomic pending excludes local probes, but an old-to-new replacement is still a physical
+        // table move. Its rare two-slot update gets a topology bracket; a stable-table pointer
+        // exchange (or one-slot erase) is already covered by pending and its close generation.
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
@@ -1142,6 +1144,8 @@ private:
         };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
+            const bool moves_from_old = replacement && find_in(1, hash, key) != nullptr;
+            ReadLocalTableGuard table_move(*this, moves_from_old);
             if (KvObj* object = exchange(1)) {
                 if (replacement && !insert_into_read_local(0, hash, replacement, true))
                     std::abort();

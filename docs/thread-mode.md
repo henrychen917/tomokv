@@ -53,17 +53,31 @@ consumed during the executor phase; they are not executed inline. With `--read-l
 plain GETs and MGETs instead enter a parsing-thread-local queue. The overlap-0 executor phase drains
 that queue immediately after parsing, in the same coarse rotation, and replies still retire through
 one connection ROB slot and the normal write-back path. Parsing never waits for that local queue to
-retire: a later conflicting write first moves the connection's not-yet-executed local batch to
-ordinary owner queues, then publishes behind it; conservative writes do the same without a hash
-precheck. MGET applies the write-ring and store-publication gates to every key/touched shard and is
-all-or-nothing: any failure lowers the whole command through the existing scatter path.
+retire: a later hash-precise write first moves the unresolved reads in its transitive key-overlap
+component to ordinary owner queues, then publishes behind them; a conservative write moves the
+whole unresolved set. An unfinished precise owner-path operation fences only younger reads whose
+key hashes overlap, so unrelated reads may still execute locally while the ROB retires every reply
+in connection order. A broad owner route remains a conservative fence and is reported separately
+as route context. MGET applies the write-ring and store-publication gates to every key/touched shard
+and is all-or-nothing: any failure lowers the whole command through the existing scatter path.
 
 Reads with an outstanding conflicting connection write (or a conservatively overflowed write
 ring), WATCH or MULTI state, script/scatter context, touched-shard atomic work, a typed or
-expiry-due value, sequence churn, or a full local lane fall back to the ordinary owner path. A
-single GET also falls back on missing so its owner can perform lazy-expiry side effects. MGET serves
-a stable missing key as a nil array element; an expiry-due entry still falls back, as does an armed
-key-miss notification that must run on the owner.
+expiry-due value, table-generation churn, or a full local lane fall back to the ordinary owner
+path. A single GET also falls back on missing so its owner can perform lazy-expiry side effects.
+MGET serves a stable missing key as a nil array element; an expiry-due entry still falls back, as
+does an armed key-miss notification that must run on the owner.
+
+The read validation generation changes only for table topology/migration, ownership handoff, and a
+bulk FLUSH that must not expose a partial table clear, plus once when an atomic-pending interval
+closes to rule out a complete pending-bit ABA during an MGET. Stable SET/DEL/TTL replacement swaps
+immutable object pointers with release/acquire ordering; rotation QSBR retains displaced objects,
+so those mutations do not write the generation line.
+
+`read_local_fallback_context` remains the compatibility aggregate. INFO also reports its exhaustive
+`_owner_key`, `_connection_state`, `_route`, and `_keymiss_notify` sub-reasons (and matching MGET
+rows): precise owner-key overlap, blocked/subscriber state, special or broad routing, and the MGET
+key-miss notification gate, respectively.
 
 Overlap 1 selects the fork's exact `iofused` schedule, which overlaps its WB dependency stream and
 network work around a 128-operation coarse executor turn. Overlap 2 selects the exact deep

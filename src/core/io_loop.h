@@ -3484,6 +3484,7 @@ private:
             ScatterState* scatter[kRobWindow];
             uint16_t scatter_tasks[kRobWindow];
             ReadKind kinds[kRobWindow];
+            ReadLocalFallbackReason reasons[kRobWindow];
             uint32_t owners[kMaxThreads];
             uint32_t remaining[kMaxThreads];
         };
@@ -3496,9 +3497,18 @@ private:
 
         bool prepare(IoLoop& loop, Client* client, uint64_t hash,
                      bool require_hash_match, int32_t reserve_shard = -1,
-                     bool inflight_write = false,
-                     bool reserve_current_without_reads = false) {
+                     ReadLocalFallbackReason reason =
+                         ReadLocalFallbackReason::ContextOwnerKey,
+                     bool reserve_current_without_reads = false,
+                     const Task* fallback_tasks = nullptr,
+                     const ReadLocalFallbackReason* fallback_reasons = nullptr,
+                     uint32_t fallback_count = 0,
+                     const Op* intersect_command = nullptr) {
             if (loop_ || !client) std::abort();
+            if (reason == ReadLocalFallbackReason::None) std::abort();
+            if ((fallback_tasks == nullptr) != (fallback_reasons == nullptr) ||
+                (fallback_count != 0) != (fallback_tasks != nullptr) ||
+                (fallback_count && intersect_command)) std::abort();
             Rob<kRobWindow>& rob = client->rob();
             if (!rob.has_pending_read_local() &&
                 !(reserve_current_without_reads && reserve_shard >= 0))
@@ -3507,14 +3517,64 @@ private:
             if (!storage_) return false;
             count_ = rob.collect_pending_read_local(
                 0, false, storage_->ids, kRobWindow);
-            if (count_ && require_hash_match) {
-                bool collision = false;
-                for (uint32_t i = 0; i < count_; i++)
-                    collision |= read_local_op_touches_hash(
-                        rob.at(storage_->ids[i]), hash);
-                if (!collision) {
-                    count_ = 0;
+            bool selective = false;
+            bool selected[kRobWindow] = {};
+            for (uint32_t i = 0; i < count_; i++) storage_->reasons[i] = reason;
+            if (count_ && fallback_count) {
+                selective = true;
+                for (uint32_t seed = 0; seed < fallback_count; seed++) {
+                    if (fallback_reasons[seed] == ReadLocalFallbackReason::None) continue;
+                    bool found = false;
+                    for (uint32_t i = 0; i < count_; i++) {
+                        if (storage_->ids[i] != fallback_tasks[seed].op_id) continue;
+                        selected[i] = true;
+                        storage_->reasons[i] = fallback_reasons[seed];
+                        found = true;
+                        break;
+                    }
+                    if (!found) std::abort();
                 }
+            } else if (count_ && intersect_command) {
+                selective = true;
+                for (uint32_t i = 0; i < count_; i++)
+                    selected[i] = read_local_commands_overlap(
+                        rob.at(storage_->ids[i]), *intersect_command);
+            } else if (count_ && require_hash_match) {
+                selective = true;
+                for (uint32_t i = 0; i < count_; i++)
+                    selected[i] = read_local_op_touches_hash(
+                        rob.at(storage_->ids[i]), hash);
+            }
+            if (count_ && selective) {
+                // MGET makes key overlap a graph rather than a single hash. Close every selective
+                // parser or EX seed transitively: if a selected MGET touches an otherwise unrelated
+                // key, its older/later local read of that key must join the same owner wave too.
+                bool changed;
+                do {
+                    changed = false;
+                    for (uint32_t i = 0; i < count_; i++) {
+                        if (selected[i]) continue;
+                        const Op& candidate = rob.at(storage_->ids[i]);
+                        for (uint32_t prior = 0; prior < count_; prior++) {
+                            if (!selected[prior] ||
+                                !read_local_commands_overlap(
+                                    candidate, rob.at(storage_->ids[prior]))) continue;
+                            selected[i] = true;
+                            storage_->reasons[i] =
+                                ReadLocalFallbackReason::ContextOwnerKey;
+                            changed = true;
+                            break;
+                        }
+                    }
+                } while (changed);
+                uint32_t out = 0;
+                for (uint32_t i = 0; i < count_; i++) {
+                    if (!selected[i]) continue;
+                    storage_->ids[out] = storage_->ids[i];
+                    storage_->reasons[out] = storage_->reasons[i];
+                    out++;
+                }
+                count_ = out;
             }
             if (!count_ &&
                 !(reserve_current_without_reads && reserve_shard >= 0)) {
@@ -3524,7 +3584,6 @@ private:
 
             loop_ = &loop;
             client_ = client;
-            inflight_write_ = inflight_write;
             for (uint32_t i = 0; i < count_; i++) {
                 storage_->kinds[i] = ReadKind::Ordinary;
                 storage_->scatter[i] = nullptr;
@@ -3541,17 +3600,16 @@ private:
                     if (prepared == ScatterPrepare::Backpressure) {
                         // A local run can contain more cross-shard reads than the existing
                         // snapshot window admits concurrently. Publish the already prepared ROB
-                        // prefix as one ordered wave and leave this op plus its suffix local. The
-                        // owner fence makes the next EX pass demote (not execute) that suffix until
-                        // this wave completes; parser callers reparse their unconsumed current
-                        // frame after the same prefix commit.
+                        // prefix as one ordered wave and leave this op plus the exact selected
+                        // remainder tagged in the local lane. The next EX pass demotes only entries
+                        // that overlap the unfinished owner wave; parser callers reparse their
+                        // unconsumed current frame after the same prefix commit.
                         if (i) {
+                            const uint32_t selected_count = count_;
+                            partial_begin_ = i;
+                            partial_count_ = selected_count - i;
                             count_ = i;
                             partial_ = true;
-                            loop.fused_executor_->preserve_local_read_fallbacks(
-                                client, inflight_write_
-                                    ? ReadLocalFallbackReason::InflightWrite
-                                    : ReadLocalFallbackReason::Context);
                             break;
                         }
                         cancel();
@@ -3605,9 +3663,7 @@ private:
         bool partial() const { return partial_; }
         uint32_t read_count() const { return count_; }
 
-        void commit_reads(const Task* probed = nullptr,
-                          const ReadLocalFallbackReason* fallbacks = nullptr,
-                          uint32_t probed_count = 0) {
+        void commit_reads() {
             if (!loop_) return;
             Rob<kRobWindow>& rob = client_->rob();
             bool completed_locally = false;
@@ -3649,22 +3705,21 @@ private:
                 }
                 rob.publish_pending_read_local_to_owner(storage_->ids[i]);
             }
+            // A partial plan's suffix is still local. Publish its exact fallback tags only after
+            // the prepared prefix is irrevocable; cancel/backpressure before commit must leave the
+            // lane untouched so a later EX pass can probe it normally.
+            for (uint32_t i = 0; i < partial_count_; i++) {
+                const uint32_t pending = partial_begin_ + i;
+                loop_->fused_executor_->preserve_local_read_fallback(
+                    client_, storage_->ids[pending], storage_->reasons[pending]);
+            }
             if (count_) {
                 ReadLocalStats& stats = loop_->self_->read_local_stats();
                 for (uint32_t i = 0; i < count_; i++) {
                     loop_->fused_executor_->note_local_read_demoted(
                         rob.at(storage_->ids[i]));
-                    ReadLocalFallbackReason reason = inflight_write_
-                        ? ReadLocalFallbackReason::InflightWrite
-                        : ReadLocalFallbackReason::Context;
-                    for (uint32_t j = 0; j < probed_count; j++) {
-                        if (probed[j].op_id != storage_->ids[i]) continue;
-                        if (fallbacks && fallbacks[j] != ReadLocalFallbackReason::None)
-                            reason = fallbacks[j];
-                        break;
-                    }
                     stats.note_fallback(
-                        reason, read_local_mget(rob.at(storage_->ids[i])));
+                        storage_->reasons[i], read_local_mget(rob.at(storage_->ids[i])));
                 }
             }
             if (completed_locally)
@@ -3738,8 +3793,8 @@ private:
             loop_ = nullptr;
             client_ = nullptr;
             count_ = nowners_ = 0;
+            partial_begin_ = partial_count_ = 0;
             reserved_current_worker_ = -1;
-            inflight_write_ = false;
             reservations_live_ = false;
             partial_ = false;
             storage_.reset();
@@ -3750,8 +3805,9 @@ private:
         std::unique_ptr<Storage> storage_;
         uint32_t count_ = 0;
         uint32_t nowners_ = 0;
+        uint32_t partial_begin_ = 0;
+        uint32_t partial_count_ = 0;
         int32_t reserved_current_worker_ = -1;
-        bool inflight_write_ = false;
         bool reservations_live_ = false;
         bool partial_ = false;
     };
@@ -3761,10 +3817,13 @@ public:
                                        const ReadLocalFallbackReason* fallbacks,
                                        uint32_t probed_count, uint32_t& demoted) {
         ReadLocalDemotionPlan plan;
-        if (!plan.prepare(*this, client, 0, false)) return false;
+        if (!plan.prepare(
+                *this, client, 0, false, -1,
+                ReadLocalFallbackReason::ContextOwnerKey, false,
+                probed, fallbacks, probed_count)) return false;
         demoted = plan.read_count();
         if (!demoted) std::abort();
-        plan.commit_reads(probed, fallbacks, probed_count);
+        plan.commit_reads();
         (void)flush_ifid_posts();
         return true;
     }
@@ -3876,12 +3935,9 @@ private:
             using DemotionPlan = std::conditional_t<
                 Fused, ReadLocalDemotionPlan, EmptyReadLocalDemotionPlan>;
             [[maybe_unused]] DemotionPlan read_local_demotion;
-            [[maybe_unused]] bool read_local_owner_fence = false;
-            if constexpr (Fused) {
-                if (read_local_enabled && rob.has_unexecuted_read_local_owner()) {
-                    read_local_owner_fence = true;
-                }
-            }
+            [[maybe_unused]] bool read_local_owner_conflict = false;
+            [[maybe_unused]] ReadLocalFallbackReason read_local_owner_conflict_reason =
+                ReadLocalFallbackReason::None;
             [[maybe_unused]] ReadLocalFallbackReason read_local_fallback_reason =
                 ReadLocalFallbackReason::None;
             [[maybe_unused]] bool extend_read_local_batch = false;
@@ -4061,9 +4117,6 @@ private:
                     constexpr uint32_t kReplaySensitiveClimon =
                         Server::kClimonMonitor | Server::kClimonTracking |
                         Server::kClimonReply;
-                    const bool reserve_owner_fenced_current =
-                        read_local_owner_fence &&
-                        (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
                     const bool write_hazard = (spec->flags & kWriteHazards) != 0;
                     read_local_write_hazard = write_hazard;
                     const bool point_route =
@@ -4076,6 +4129,28 @@ private:
                         op->shard = srv_->router().shard_of(op->hash);
                         read_local_point_prehashed = true;
                     }
+                    auto classify_owner_conflict = [&](auto&& overlaps) {
+                        bool broad = false;
+                        const bool conflict = rob.read_local_owner_conflicts_before(
+                            rob.dispatch_id(), [&](const Op& owner) {
+                                if (!overlaps(owner)) return false;
+                                broad |= !read_local_owner_command_is_precise(owner);
+                                return true;
+                            });
+                        return !conflict ? ReadLocalFallbackReason::None
+                            : broad ? ReadLocalFallbackReason::ContextRoute
+                                    : ReadLocalFallbackReason::ContextOwnerKey;
+                    };
+                    auto owner_conflict_for_hash = [&](uint64_t hash) {
+                        return classify_owner_conflict([&](const Op& owner) {
+                            return read_local_owner_command_touches_hash(owner, hash);
+                        });
+                    };
+                    auto owner_conflict_for_command = [&]() {
+                        return classify_owner_conflict([&](const Op& owner) {
+                            return read_local_commands_overlap(*op, owner);
+                        });
+                    };
 
                     if (write_hazard) {
                         // Stage every historical v1 hazard before the stateful climon gate. A
@@ -4086,6 +4161,15 @@ private:
                             (spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0 &&
                             !(spec->flags & CmdFlags::ConnLocal);
                         if (ordinary_point_write) {
+                            if (climon_armed_cached_ & kReplaySensitiveClimon) {
+                                read_local_owner_conflict_reason =
+                                    owner_conflict_for_hash(op->hash);
+                                read_local_owner_conflict = read_local_owner_conflict_reason !=
+                                    ReadLocalFallbackReason::None;
+                            }
+                            const bool reserve_owner_fenced_current =
+                                read_local_owner_conflict &&
+                                (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
                             // An evicting maxmemory policy makes the write conservative, but it is
                             // still an ordinary one-owner route. Reserve that current append along
                             // with the demoted reads so the post-climon sequence remains infallible.
@@ -4094,12 +4178,14 @@ private:
                                 rob.refine_current_write_hash(op->hash);
                             if (hash_precise) op->mark_read_local_precise_write();
                             if (!read_local_demotion.prepare(
-                                    *this, c, op->hash, hash_precise, op->shard, true,
+                                    *this, c, op->hash, hash_precise, op->shard,
+                                    ReadLocalFallbackReason::InflightWrite,
                                     reserve_owner_fenced_current))
                                 break;
                             read_local_commit_at_ordinary = true;
                         } else if (!read_local_demotion.prepare(
-                                       *this, c, 0, false, -1, true)) {
+                                       *this, c, 0, false, -1,
+                                       ReadLocalFallbackReason::InflightWrite)) {
                             break;
                         } else {
                             read_local_commit_before_lowering = true;
@@ -4113,6 +4199,9 @@ private:
                             op->shard = srv_->router().shard_of(op->hash);
                             read_local_point_prehashed = true;
                         }
+                        read_local_owner_conflict_reason = owner_conflict_for_command();
+                        read_local_owner_conflict = read_local_owner_conflict_reason !=
+                            ReadLocalFallbackReason::None;
                         bool write_conflict = false;
                         bool mget_atomic_pending = false;
                         bool mget_seq_churn = false;
@@ -4122,8 +4211,7 @@ private:
                                     ? op->hash : FlatStore::hash_key(op->arg(arg));
                                 const int32_t shard = arg == 1
                                     ? op->shard : srv_->router().shard_of(hash);
-                                if (!read_local_owner_fence)
-                                    write_conflict |= rob.read_local_write_conflicts(hash);
+                                write_conflict |= rob.read_local_write_conflicts(hash);
                                 const uint64_t state = srv_->shard(shard)
                                                            .store()
                                                            .read_local_state_acquire();
@@ -4132,36 +4220,41 @@ private:
                                 mget_seq_churn |=
                                     !FlatStore::read_local_state_eligible(state);
                             }
-                        } else if (!read_local_owner_fence) {
+                        } else {
                             write_conflict = rob.read_local_write_conflicts(op->hash);
                         }
-                        read_local_eligible = extend_read_local_batch && !write_conflict;
-                        if (extend_read_local_batch && write_conflict) {
-                            read_local_fallback_reason =
-                                ReadLocalFallbackReason::InflightWrite;
+                        read_local_eligible = extend_read_local_batch &&
+                            !write_conflict && !read_local_owner_conflict;
+                        if (extend_read_local_batch &&
+                            (write_conflict || read_local_owner_conflict)) {
+                            read_local_fallback_reason = write_conflict
+                                ? ReadLocalFallbackReason::InflightWrite
+                                : read_local_owner_conflict_reason;
                             read_local_batch = false;
                         }
                         if (!extend_read_local_batch) {
                             read_local_eligible = true;
-                            if (read_local_owner_fence) {
-                                read_local_fallback_reason =
-                                    ReadLocalFallbackReason::Context;
-                                read_local_eligible = false;
-                            } else if (multi_session_watch_size(conn) != 0) {
+                            if (multi_session_watch_size(conn) != 0) {
                                 read_local_fallback_reason =
                                     ReadLocalFallbackReason::Watch;
                                 read_local_eligible = false;
-                            } else if (c->blocked() || c->subscriber_mode() ||
-                                       op->has_scatter_state() ||
+                            } else if (c->blocked() || c->subscriber_mode()) {
+                                read_local_fallback_reason =
+                                    ReadLocalFallbackReason::ContextConnectionState;
+                                read_local_eligible = false;
+                            } else if (op->has_scatter_state() ||
                                        (spec->flags &
                                         (CmdFlags::ScriptRoute | CmdFlags::AllShards)) ||
                                        (!mget && (spec->flags & CmdFlags::MultiShard))) {
                                 read_local_fallback_reason =
-                                    ReadLocalFallbackReason::Context;
+                                    ReadLocalFallbackReason::ContextRoute;
                                 read_local_eligible = false;
                             } else if (write_conflict) {
                                 read_local_fallback_reason =
                                     ReadLocalFallbackReason::InflightWrite;
+                                read_local_eligible = false;
+                            } else if (read_local_owner_conflict) {
+                                read_local_fallback_reason = read_local_owner_conflict_reason;
                                 read_local_eligible = false;
                             } else if (mget &&
                                        fused_executor_->read_local_keymiss_notify_armed()) {
@@ -4169,7 +4262,7 @@ private:
                                 // stable misses as nil, so keep the whole command on the unchanged
                                 // owner/scatter path while key-miss notifications are configured.
                                 read_local_fallback_reason =
-                                    ReadLocalFallbackReason::Context;
+                                    ReadLocalFallbackReason::ContextKeymissNotify;
                                 read_local_eligible = false;
                             } else {
                                 bool atomic_pending = mget_atomic_pending;
@@ -4203,30 +4296,45 @@ private:
                         if (!read_local_eligible) {
                             if (read_local_fallback_reason ==
                                 ReadLocalFallbackReason::None) std::abort();
-                            // Every owner-routed eligible read extends the execution fence.
-                            // Otherwise an older predecessor could complete, reopen the local
-                            // lane, and let a younger read execute ahead of this queued command.
+                            // Keep the owner-routed read visible only to younger overlapping keys.
+                            // Disjoint reads may execute locally; ROB retirement orders replies.
                             rob.extend_current_read_local_owner();
                             if (mget) {
                                 if (!read_local_demotion.prepare(
-                                        *this, c, 0, false, -1, false))
+                                        *this, c, 0, false, -1,
+                                        ReadLocalFallbackReason::ContextOwnerKey,
+                                        false, nullptr, nullptr, 0, op))
                                     break;
                                 read_local_commit_before_lowering = true;
                             } else {
+                                const bool reserve_owner_fenced_current =
+                                    read_local_owner_conflict &&
+                                    (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
                                 if (!read_local_demotion.prepare(
-                                        *this, c, op->hash, true, op->shard, false,
+                                        *this, c, op->hash, true, op->shard,
+                                        ReadLocalFallbackReason::ContextOwnerKey,
                                         reserve_owner_fenced_current))
                                     break;
                                 read_local_commit_at_ordinary = true;
                             }
                         }
                     } else if (!(spec->flags & CmdFlags::ConnLocal)) {
-                        if (read_local_owner_fence)
+                        read_local_owner_conflict_reason = point_route
+                            ? owner_conflict_for_hash(op->hash)
+                            : classify_owner_conflict([](const Op&) { return true; });
+                        read_local_owner_conflict = read_local_owner_conflict_reason !=
+                            ReadLocalFallbackReason::None;
+                        if (read_local_owner_conflict)
                             rob.extend_current_read_local_owner();
+                        const bool reserve_owner_fenced_current =
+                            read_local_owner_conflict && point_route &&
+                            (climon_armed_cached_ & kReplaySensitiveClimon) != 0;
                         if (!read_local_demotion.prepare(
                                 *this, c, point_route ? op->hash : 0,
-                                point_route, point_route ? op->shard : -1, false,
-                                reserve_owner_fenced_current && point_route))
+                                point_route, point_route ? op->shard : -1,
+                                point_route ? ReadLocalFallbackReason::ContextOwnerKey
+                                            : ReadLocalFallbackReason::ContextRoute,
+                                reserve_owner_fenced_current))
                             break;
                         if (point_route) read_local_commit_at_ordinary = true;
                         else read_local_commit_before_lowering = true;
@@ -4804,9 +4912,9 @@ ordinary_dispatch:
 
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_commit_at_ordinary) {
-                    // prepare() reserved the complete read batch and this operation before any
-                    // stateful parser hook. Publish the reads first; the retained current credit
-                    // makes the ordinary owner append below infallible and preserves SPSC FIFO.
+                    // prepare() reserved the selected reads and this operation before any stateful
+                    // parser hook. Publish the reads first; the retained current credit makes the
+                    // ordinary owner append below infallible and preserves SPSC FIFO.
                     if (read_local_demotion.active() && !read_local_write_hazard) {
                         rob.extend_current_read_local_owner();
                     }
