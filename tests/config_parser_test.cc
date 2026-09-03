@@ -232,6 +232,35 @@ int main() {
     tomo::Config read_local_default;
     if (read_local_default.read_local != 0)
         fail("read-local default is not off");
+    tomo::Config prefetch_capture_off;
+    tomo::ConfigParseState prefetch_capture_off_state;
+    const std::vector<const char*> prefetch_capture_off_args = {
+        "--read-local-prefetch-capture", "0",
+    };
+    if (tomo::parse_config_args(prefetch_capture_off_args, prefetch_capture_off,
+                                prefetch_capture_off_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        prefetch_capture_off.read_local_prefetch_capture != 0 ||
+        !rejects({"--read-local-prefetch-capture", "2"}) ||
+        !rejects({"--read-local-prefetch-capture", "yes"}) ||
+        !rejects({"--read-local-prefetch-capture", "-1"}) ||
+        !rejects({"--read-local-prefetch-capture", ""}))
+        fail("read-local-prefetch-capture boot grammar differs");
+    tomo::Config prefetch_capture_on;
+    tomo::ConfigParseState prefetch_capture_on_state;
+    const std::vector<const char*> prefetch_capture_on_args = {
+        "--read-local-prefetch-capture", "1",
+    };
+    if (tomo::parse_config_args(prefetch_capture_on_args, prefetch_capture_on,
+                                prefetch_capture_on_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        tomo::validate_config(prefetch_capture_on) != tomo::kConfigParsed ||
+        prefetch_capture_on.read_local != 0 ||
+        prefetch_capture_on.read_local_prefetch_capture != 1)
+        fail("read-local-prefetch-capture inert on setting was rejected");
+    tomo::Config prefetch_capture_default;
+    if (prefetch_capture_default.read_local_prefetch_capture != 1)
+        fail("read-local-prefetch-capture default is not capture-at-prefetch");
     tomo::Config read_local_split;
     tomo::ConfigParseState read_local_split_state;
     const std::vector<const char*> read_local_split_args = {"--read-local", "1"};

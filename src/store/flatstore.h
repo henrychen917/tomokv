@@ -534,6 +534,18 @@ public:
         uint64_t state = 0;
     };
 
+    // Stack-local result of the batch prefetch walk. `slot` identifies the exact word whose
+    // acquire load produced `object`; execute must never dereference it, because doing so would
+    // reload a concurrent replacement and defeat capture-at-prefetch. Rotation QSBR keeps both
+    // pointers allocated until the fused pass returns. Keep this a trivial, uninitialized aggregate:
+    // hot-path capture arrays assign every consumed entry, so default member stores would be waste.
+    struct ReadLocalPrefetchCapture {
+        ReadLocalProbeResult result;
+        const uint64_t* slot;
+        const KvObj* object;
+        uint64_t state;
+    };
+
     struct ReadLocalTable {
         uint64_t* slots = nullptr;
         uint32_t cap = 0;
@@ -718,6 +730,43 @@ public:
             const uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table.mask;
             __builtin_prefetch(table.slots + slot, 0, 1);
         }
+    }
+
+    ReadLocalPrefetchCapture read_local_prefetch_capture(uint64_t hash, Slice key) const {
+        if (__builtin_expect(!read_local_enabled_, false))
+            return {ReadLocalProbeResult::Churn, nullptr, nullptr, 0};
+        const uint64_t state = read_local_state_acquire();
+        if (read_local_pending(state))
+            return {ReadLocalProbeResult::AtomicPending, nullptr, nullptr, state};
+        if (read_local_table_mutating(state))
+            return {ReadLocalProbeResult::Churn, nullptr, nullptr, state};
+
+        ReadLocalTopology topology;
+        if (!read_local_snapshot_topology(state, topology)) {
+            const uint64_t changed = read_local_state_acquire();
+            return {read_local_pending(changed) ? ReadLocalProbeResult::AtomicPending
+                                                : ReadLocalProbeResult::Churn,
+                    nullptr, nullptr, changed};
+        }
+
+        const uint64_t* slot = nullptr;
+        const KvObj* object = read_local_capture_in(topology.tables[0], hash, key, slot);
+        if (!object) {
+            const uint64_t* old_slot = nullptr;
+            object = read_local_capture_in(topology.tables[1], hash, key, old_slot);
+            // Keep the current table's empty stopper when there is no old table. During a rehash,
+            // the old-table match/stopper is the last word that decided the complete lookup.
+            if (old_slot) slot = old_slot;
+        }
+        const uint64_t final_state = read_local_state_acquire();
+        if (final_state != state) {
+            return {read_local_pending(final_state) ? ReadLocalProbeResult::AtomicPending
+                                                    : ReadLocalProbeResult::Churn,
+                    nullptr, nullptr, final_state};
+        }
+        if (object) read_local_prefetch_object(object);
+        return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing,
+                slot, object, state};
     }
 
     bool     rehashing() const { return tab_[1] != nullptr; }
@@ -2977,6 +3026,43 @@ private:
             slot = (slot + 1) & table.mask;
         }
         return nullptr;
+    }
+
+    const KvObj* read_local_capture_in(const ReadLocalTable& table, uint64_t hash, Slice key,
+                                       const uint64_t*& captured_slot) const {
+        captured_slot = nullptr;
+        if (!table.slots || !table.cap) return nullptr;
+        const uint16_t tag = tag_of(hash);
+        uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table.mask;
+        for (uint32_t probes = 0; probes <= table.cap; probes++) {
+            captured_slot = table.slots + slot;
+            const uint64_t word = read_local_slot_load(captured_slot);
+            if (word == 0) return nullptr;
+            const KvObj* object = ptr_of(word);
+            if (object && tag_of_word(word) == tag) {
+                const uint8_t flags = object->read_local_flags();
+                if (object->read_local_key(flags) == key) return object;
+            }
+            slot = (slot + 1) & table.mask;
+        }
+        return nullptr;
+    }
+
+    static void read_local_prefetch_object(const KvObj* object) {
+        __builtin_prefetch(object, 0, 1);
+        if (static_cast<Type>(object->type) != Type::String) return;
+
+        const uint8_t flags = object->read_local_flags();
+        const char* value = object->read_local_key_ptr(flags) +
+                            object->read_local_klen(flags);
+        if (object->encoding() != Enc::Extern) {
+            __builtin_prefetch(value, 0, 1);
+            return;
+        }
+
+        const void* external = nullptr;
+        std::memcpy(&external, value, sizeof(external));
+        if (external) __builtin_prefetch(external, 0, 1);
     }
 
     void write_eviction_meta_read_local(KvObj* object, uint8_t meta) {

@@ -44,6 +44,7 @@ inline constexpr uint32_t kExSpinBudget = 2048;
 // How many ops are gathered before executing, so their storage prefetches can overlap. Large enough
 // that the prefetches have time to land, small enough that the batch stays in L1.
 inline constexpr uint32_t kExecBatch = kGenthreadExBatchOps;
+inline constexpr uint32_t kReadLocalPrefetchKeys = 32;
 inline constexpr uint32_t kActiveExpireChecks = 20;
 // Parser-side demotion may reserve one additional point command behind the entire local run.
 // Leave that credit outside the pending-read fanout budget so the combined reservation can always
@@ -104,6 +105,7 @@ struct ReadLocalExState<true> {
         bool lane_has_tombstones = false;
         bool point_writes_precise = true;
         bool keymiss_notify_armed = false;
+        bool prefetch_capture = true;
         void* demote_context = nullptr;
         DemoteFn demote = nullptr;
         ReadLocalDeferredQueue deferred;
@@ -121,6 +123,14 @@ struct ReadLocalExState<true> {
 
 using ReadLocalExImpl = ReadLocalExState<true>::Impl;
 static_assert(std::is_empty_v<ReadLocalExState<false>>);
+
+template <bool Enabled, uint32_t Capacity>
+struct ReadLocalCaptureBuffer {};
+
+template <uint32_t Capacity>
+struct ReadLocalCaptureBuffer<true, Capacity> {
+    FlatStore::ReadLocalPrefetchCapture entries[Capacity];
+};
 
 template <bool Fused>
 class ExLoopT {
@@ -154,6 +164,7 @@ public:
                 impl->point_writes_precise =
                     srv->cfg().maxmemory == 0 ||
                     srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
+                impl->prefetch_capture = srv->cfg().read_local_prefetch_capture != 0;
                 read_local_.impl = std::move(impl);
             }
         }
@@ -792,14 +803,13 @@ private:
 
     PreparedLocalRead prepare_local_mget(Op& op) {
         static constexpr uint32_t kRetries = 3;
-        static constexpr uint32_t kPrefetchKeys = 32;
         static constexpr uint32_t kMaxReadLocalShards = 256;
         const uint32_t key_count = op.argc() - 1;
         if (!key_count || srv_->nshards() > kMaxReadLocalShards) std::abort();
 
-        uint64_t hashes[kPrefetchKeys];
-        int32_t shards[kPrefetchKeys];
-        const bool cached_routes = key_count <= kPrefetchKeys;
+        uint64_t hashes[kReadLocalPrefetchKeys];
+        int32_t shards[kReadLocalPrefetchKeys];
+        const bool cached_routes = key_count <= kReadLocalPrefetchKeys;
         if (cached_routes) {
             for (uint32_t key = 0; key < key_count; key++) {
                 hashes[key] = FlatStore::hash_key(op.arg(key + 1));
@@ -928,32 +938,199 @@ private:
         return {ReadLocalFallbackReason::SeqChurn};
     }
 
+    PreparedLocalRead prepare_captured_local_mget(Op& op) {
+        static constexpr uint32_t kRetries = 3;
+        static constexpr uint32_t kMaxReadLocalShards = 256;
+        const uint32_t key_count = op.argc() - 1;
+        if (!key_count || srv_->nshards() > kMaxReadLocalShards) std::abort();
+
+        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
+            uint64_t states[kMaxReadLocalShards];
+            uint64_t touched[kMaxReadLocalShards / 64] = {};
+            PreparedLocalRead prepared;
+            bool retry = false;
+            read_local_clear_reply(op);
+            reply_array_header(op.sink(), key_count);
+
+            for (uint32_t first = 0; first < key_count && !retry;
+                 first += kReadLocalPrefetchKeys) {
+                const uint32_t count = std::min<uint32_t>(
+                    key_count - first, kReadLocalPrefetchKeys);
+                uint64_t hashes[kReadLocalPrefetchKeys];
+                int32_t shards[kReadLocalPrefetchKeys];
+                ReadLocalCaptureBuffer<true, kReadLocalPrefetchKeys> captures;
+
+                // I0 warms every home word in this bounded window. C0 then performs the complete
+                // key-verified walk and prefetches the exact object's value before E0 copies it.
+                for (uint32_t offset = 0; offset < count; offset++) {
+                    const Slice name = op.arg(first + offset + 1);
+                    hashes[offset] = FlatStore::hash_key(name);
+                    shards[offset] = srv_->router().shard_of(hashes[offset]);
+                    srv_->shard(shards[offset]).store().read_local_prefetch(hashes[offset]);
+                }
+                for (uint32_t offset = 0; offset < count; offset++) {
+                    captures.entries[offset] =
+                        srv_->shard(shards[offset]).store().read_local_prefetch_capture(
+                            hashes[offset], op.arg(first + offset + 1));
+                }
+
+                for (uint32_t offset = 0; offset < count; offset++) {
+                    const int32_t shard_id = shards[offset];
+                    FlatStore& store = srv_->shard(shard_id).store();
+                    const uint32_t sid = static_cast<uint32_t>(shard_id);
+                    const uint64_t bit = uint64_t{1} << (sid & 63);
+                    uint64_t& word = touched[sid >> 6];
+                    const FlatStore::ReadLocalPrefetchCapture& capture =
+                        captures.entries[offset];
+                    if (capture.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::AtomicPending};
+                    }
+                    if (capture.result == FlatStore::ReadLocalProbeResult::Churn) {
+                        retry = true;
+                        break;
+                    }
+                    if (!(word & bit)) {
+                        states[sid] = capture.state;
+                        word |= bit;
+                    } else if (capture.state != states[sid]) {
+                        retry = true;
+                        break;
+                    }
+                    if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
+                        reply_null(op.sink(), op.resp3());
+                        prepared.keyspace_misses++;
+                        continue;
+                    }
+
+                    const KvObj* object = capture.object;
+                    if (!capture.slot || !object) std::abort();
+                    const uint8_t flags = object->read_local_flags();
+                    if (static_cast<Type>(object->type) != Type::String) {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::Typed};
+                    }
+                    if ((flags & KvObjFlags::HasTtl) &&
+                        object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::Expired};
+                    }
+
+                    const Enc encoding = object->encoding();
+                    if (encoding == Enc::Int) {
+                        char text[24];
+                        const uint32_t length = i64_to_dec(
+                            text, object->read_local_int_value(flags));
+                        reply_bulk(op.sink(), Slice(text, length));
+                    } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
+                        if (!read_local_reply_string(op, object, flags)) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                            self_->read_local_stats().settax.object_sequence_retries++;
+#endif
+                            retry = true;
+                            break;
+                        }
+                    } else {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::Typed};
+                    }
+                    prepared.keyspace_hits++;
+                }
+            }
+
+            // A pending interval or table/ownership generation change anywhere across the windowed
+            // copies fails the whole MGET closed, preserving the existing atomic-1 torn-read gate.
+            if (!retry) {
+                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+                    if (!(touched[sid >> 6] & (uint64_t{1} << (sid & 63)))) continue;
+                    if (!srv_->shard(static_cast<int32_t>(sid))
+                             .store().read_local_validate(states[sid])) {
+                        retry = true;
+                        break;
+                    }
+                }
+            }
+            if (!retry) return prepared;
+            read_local_clear_reply(op);
+        }
+
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint64_t hash = FlatStore::hash_key(op.arg(key + 1));
+            const int32_t shard_id = srv_->router().shard_of(hash);
+            const uint64_t state =
+                srv_->shard(shard_id).store().read_local_state_acquire();
+            if (FlatStore::read_local_pending(state))
+                return {ReadLocalFallbackReason::AtomicPending};
+        }
+        return {ReadLocalFallbackReason::SeqChurn};
+    }
+
     // Build one local reply but do not publish Done. `fallback == None` means the bytes are
-    // complete and no FlatStore pointer survives this call. Selective commit below keeps an
+    // complete and the reply retains no FlatStore pointer. A caller-owned capture may remain on
+    // this rotation's stack until drain_local_reads_impl returns. Selective commit below keeps an
     // overlapping younger read behind any operation that needs the owner path.
-    PreparedLocalRead prepare_local_read(const Task& task) {
+    template <bool CapturePrefetch>
+    PreparedLocalRead prepare_local_read(
+            const Task& task,
+            const FlatStore::ReadLocalPrefetchCapture* captured = nullptr) {
         if (!task.client) std::abort();
         Op& op = task.client->rob().at(task.op_id);
         if (!op.read_local()) std::abort();
-        if (read_local_mget(op)) return prepare_local_mget(op);
+        if (read_local_mget(op)) {
+            if (captured) std::abort();
+            if constexpr (CapturePrefetch) return prepare_captured_local_mget(op);
+            else return prepare_local_mget(op);
+        }
         if (op.shard < 0) std::abort();
         FlatStore& store = srv_->shard(op.shard).store();
         static constexpr uint32_t kRetries = 3;
+        [[maybe_unused]] ReadLocalCaptureBuffer<CapturePrefetch, 1> local_capture;
+        if constexpr (CapturePrefetch) {
+            // A mixed GET/MGET chunk executes in program order. Its point reads capture here so a
+            // later GET can never retain a version older than the preceding MGET returned.
+            if (!captured) {
+                store.read_local_prefetch(op.hash);
+                local_capture.entries[0] =
+                    store.read_local_prefetch_capture(op.hash, op.key());
+                captured = &local_capture.entries[0];
+            }
+        } else {
+            if (captured) std::abort();
+        }
 
         for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
-            const FlatStore::ReadLocalProbe probe = store.read_local_probe(op.hash, op.key());
-            if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+            FlatStore::ReadLocalProbeResult result;
+            const KvObj* object = nullptr;
+            uint64_t probe_state = 0;
+            if constexpr (CapturePrefetch) {
+                result = captured->result;
+                object = captured->object;
+                probe_state = captured->state;
+            } else {
+                const FlatStore::ReadLocalProbe probe = store.read_local_probe(op.hash, op.key());
+                result = probe.result;
+                object = probe.object;
+                probe_state = probe.state;
+            }
+            if (result == FlatStore::ReadLocalProbeResult::AtomicPending) {
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::AtomicPending};
             }
-            if (probe.result == FlatStore::ReadLocalProbeResult::Missing) {
+            if (result == FlatStore::ReadLocalProbeResult::Missing) {
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::Missing};
             }
-            if (probe.result == FlatStore::ReadLocalProbeResult::Churn) continue;
+            if (result == FlatStore::ReadLocalProbeResult::Churn) {
+                if constexpr (CapturePrefetch) break;
+                else continue;
+            }
 
-            const KvObj* object = probe.object;
             if (!object) std::abort();
+            if constexpr (CapturePrefetch) {
+                // Keep the observed word's address as part of the snapshot, but consume only the
+                // decoded immutable object. Loading through slot here would chase a newer version.
+                if (!captured->slot) std::abort();
+            }
             const uint8_t flags = object->read_local_flags();
             if (static_cast<Type>(object->type) != Type::String) {
                 read_local_clear_reply(op);
@@ -985,9 +1162,10 @@ private:
                 return {ReadLocalFallbackReason::Typed};
             }
 
-            if (!store.read_local_validate(probe.state)) {
+            if (!store.read_local_validate(probe_state)) {
                 read_local_clear_reply(op);
-                continue;
+                if constexpr (CapturePrefetch) break;
+                else continue;
             }
             return {ReadLocalFallbackReason::None, 1, 0};
         }
@@ -1000,14 +1178,26 @@ private:
     }
 
     uint32_t drain_local_reads() {
-        if constexpr (!Fused) return 0;
-        if (!read_local_enabled()) return 0;
+        if constexpr (!Fused) {
+            return 0;
+        } else {
+            if (!read_local_enabled()) return 0;
+            return read_local_impl().prefetch_capture
+                ? drain_local_reads_impl<true>()
+                : drain_local_reads_impl<false>();
+        }
+    }
+
+    template <bool CapturePrefetch>
+    uint32_t drain_local_reads_impl() {
+        static_assert(Fused);
         auto& lane = read_local_impl();
         compact_local_read_tombstones();
         if (!lane.lane_count) return 0;
         Task batch[kExecBatch];
         PreparedLocalRead prepared[kExecBatch];
         ReadLocalFallbackReason fallbacks[kExecBatch];
+        [[maybe_unused]] ReadLocalCaptureBuffer<CapturePrefetch, kExecBatch> captures;
         uint32_t work = 0;
         // Work through each client's lane run in gather/prefetch-sized chunks. A successful chunk
         // can commit immediately. At a fallback, only the intrinsically failing entries and their
@@ -1032,10 +1222,45 @@ private:
                 fallbacks[count - 1] = lane.lane_fallbacks[index];
             }
             if (!count) std::abort();
-            for (uint32_t i = 0; i < count; i++) {
-                const Op& op = client->rob().at(batch[i].op_id);
-                if (!read_local_mget(op))
-                    srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+
+            // Pure point chunks retain the widest I0/C0/E0 overlap. A mixed chunk captures and
+            // consumes each command in program order below: MGET may retry and recapture, so
+            // pre-capturing a following GET could otherwise let that later command regress.
+            [[maybe_unused]] bool point_capture_batch = false;
+            if constexpr (CapturePrefetch) {
+                point_capture_batch = true;
+                for (uint32_t i = 0; i < count; i++) {
+                    const Op& op = client->rob().at(batch[i].op_id);
+                    if (read_local_mget(op)) {
+                        point_capture_batch = false;
+                        break;
+                    }
+                }
+            }
+
+            if constexpr (CapturePrefetch) {
+                if (point_capture_batch) {
+                    // I0 retains the old whole-batch home-slot overlap. C0 consumes those warm
+                    // words, records their decoded objects, and hints object/value bytes for E0.
+                    for (uint32_t i = 0; i < count; i++) {
+                        const Op& op = client->rob().at(batch[i].op_id);
+                        srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+                    }
+                    for (uint32_t i = 0; i < count; i++) {
+                        const Op& op = client->rob().at(batch[i].op_id);
+                        captures.entries[i] =
+                            srv_->shard(op.shard).store().read_local_prefetch_capture(
+                                op.hash, op.key());
+                    }
+                }
+            } else {
+                // Selector 0 is the original hint-only path, including MGET's established bounded
+                // prefetch inside prepare_local_mget().
+                for (uint32_t i = 0; i < count; i++) {
+                    const Op& op = client->rob().at(batch[i].op_id);
+                    if (!read_local_mget(op))
+                        srv_->shard(op.shard).store().read_local_prefetch(op.hash);
+                }
             }
             uint32_t first_fallback = count;
             for (uint32_t i = 0; i < count; i++) {
@@ -1056,7 +1281,16 @@ private:
                     }
                 }
                 if (fallbacks[i] == ReadLocalFallbackReason::None) {
-                    prepared[i] = prepare_local_read(batch[i]);
+                    if constexpr (CapturePrefetch) {
+                        if (point_capture_batch) {
+                            prepared[i] = prepare_local_read<true>(
+                                batch[i], &captures.entries[i]);
+                        } else {
+                            prepared[i] = prepare_local_read<true>(batch[i]);
+                        }
+                    } else {
+                        prepared[i] = prepare_local_read<false>(batch[i]);
+                    }
                     fallbacks[i] = prepared[i].fallback;
                 } else {
                     prepared[i] = {};

@@ -40,3 +40,24 @@ side of the read cut.
 Every later batch must probe and capture afresh; no capture may be stored in the persistent local
 lane or survive a rotation boundary.  Stable misses retain their existing command behavior: GET
 demotes to the owner, while MGET emits a nil element.
+
+## Phase 2 implementation
+
+`--read-local-prefetch-capture 1` (the default) keeps the legacy home-slot hint pass, then captures
+the exact result of a complete open-address probe: result, slot address, decoded immutable `KvObj`
+pointer, and publication state.  Execute copies from that captured object without loading through
+the slot.  `--read-local-prefetch-capture 0` selects the old hint-only prefetch plus execute-time
+probe for A/B measurement.
+
+Point-only client chunks use three passes so slot and object latency can overlap across the batch:
+I0 hints home words, C0 captures and hints the selected objects/values, and E0 copies the captured
+versions.  Mixed GET/MGET chunks capture and consume commands in connection order.  MGET processes
+arbitrary key counts in bounded 32-key I0/C0/E0 windows and rebuilds all of its window captures on
+an internal retry.  All capture buffers are stack locals inside `drain_local_reads()` and are gone
+before the enclosing rotation publishes its QSBR tick.
+
+The post-copy publication validation remains unchanged in purpose.  It rejects pending atomic work
+and completed pending-bit intervals, table resize/move, clear, and ownership changes, while stable
+immutable SET/DEL/TTL slot swaps remain intentionally invisible.  Same-connection write-ring and
+owner-tail gates continue to keep RYOW reads out of this local path; only cross-client publication
+can replace a captured object between C0 and E0.
