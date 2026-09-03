@@ -94,10 +94,12 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
     destination.expire_at_ms = source->expire_at_ms();
     KvObj* clone = nullptr;
     if (destination.type == Type::String) {
+        KvObjRawReadBuffer raw;
         clone = source->is_int()
             ? kvobj_new_int(op.arg(destination_key.arg), source->int_value(),
                             destination.expire_at_ms)
-            : xshard_make_string(op.arg(destination_key.arg), source->str_value(),
+            : xshard_make_string(op.arg(destination_key.arg),
+                                 kvobj_string_value(source, raw),
                                  destination.expire_at_ms, false);
     } else {
         if (!serialize_object(source, destination)) {

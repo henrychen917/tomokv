@@ -737,6 +737,46 @@ private:
         return op.spec && command_is_read_local_mget(*op.spec);
     }
 
+    static bool read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
+        const Enc encoding = object->encoding();
+        if constexpr (kReadLocalSetTaxAtomicRaw) {
+            if (encoding == Enc::Raw) {
+                [[maybe_unused]] uint32_t sequence = 0;
+                if constexpr (kReadLocalSetTaxVariant ==
+                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
+                    sequence = object->raw_sequence_acquire();
+                }
+                // Selector 3 may copy after observing odd: both the bounded length and fixed cells
+                // are atomic, and both old/new lengths fit this allocation class. Combining odd
+                // with the final mismatch therefore leaves the stable GET path one branch.
+                const uint32_t length = kvobj_read_local_raw_length(object);
+                auto sink = op.sink();
+                char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
+                char* payload = frame;
+                *payload++ = '$';
+                payload += u64_to_dec(payload, length);
+                *payload++ = '\r';
+                *payload++ = '\n';
+                kvobj_read_local_copy_raw(object, stable_flags, length, payload);
+                payload += length;
+                *payload++ = '\r';
+                *payload++ = '\n';
+                if constexpr (kReadLocalSetTaxVariant ==
+                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
+                    // Keep every payload load before the confirming sequence load. Saturating the
+                    // writer sequence makes equality an ABA-free validation even across preemption.
+                    std::atomic_thread_fence(std::memory_order_acquire);
+                    const uint32_t confirmed = object->raw_sequence_relaxed();
+                    if (((confirmed ^ sequence) | (sequence & 1u)) != 0) return false;
+                }
+                sink.advance(static_cast<size_t>(payload - frame));
+                return true;
+            }
+        }
+        reply_bulk(op.sink(), object->read_local_str_value(stable_flags));
+        return true;
+    }
+
     uint32_t read_local_task_demotion_demand(const Op& op) const {
         if (!op.read_local()) std::abort();
         return read_local_mget(op)
@@ -833,14 +873,20 @@ private:
                     return {ReadLocalFallbackReason::Expired};
                 }
 
-                const Enc encoding = static_cast<Enc>(object->enc);
+                const Enc encoding = object->encoding();
                 if (encoding == Enc::Int) {
                     char text[24];
                     const uint32_t length = i64_to_dec(
                         text, object->read_local_int_value(flags));
                     reply_bulk(op.sink(), Slice(text, length));
                 } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                    reply_bulk(op.sink(), object->read_local_str_value(flags));
+                    if (!read_local_reply_string(op, object, flags)) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                        self_->read_local_stats().settax.object_sequence_retries++;
+#endif
+                        retry = true;
+                        break;
+                    }
                 } else {
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::Typed};
@@ -920,14 +966,20 @@ private:
             }
 
             read_local_clear_reply(op);
-            const Enc encoding = static_cast<Enc>(object->enc);
+            const Enc encoding = object->encoding();
             if (encoding == Enc::Int) {
                 char text[24];
                 const uint32_t length = i64_to_dec(
                     text, object->read_local_int_value(flags));
                 reply_bulk(op.sink(), Slice(text, length));
             } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                reply_bulk(op.sink(), object->read_local_str_value(flags));
+                if (!read_local_reply_string(op, object, flags)) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                    self_->read_local_stats().settax.object_sequence_retries++;
+#endif
+                    read_local_clear_reply(op);
+                    continue;
+                }
             } else {
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::Typed};

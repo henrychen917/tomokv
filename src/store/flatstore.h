@@ -614,17 +614,40 @@ public:
     // false keeps the old store path and every installed writer hook predicted cold.
     void configure_read_local(bool enabled, ReadLocalRetireSink sink) {
         if (enabled && !sink.defer) std::abort();
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (enabled && !sink.recycler_bound()) std::abort();
+        }
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        if (enabled && !sink.diagnostics()) std::abort();
+#endif
         // Persistence loading finishes before the fused executor arms this store. Prepared atomic
         // records cannot be retroactively marked in their entry headers, so fail closed if that
         // boot invariant ever changes instead of publishing a false zero-pending state.
         if (enabled && atomic_pending_entries() != 0) std::abort();
         ReadLocalStoreState* state = read_local_store_state();
         if (enabled && !state) std::abort();
+        if constexpr (kReadLocalSetTaxAtomicRaw) {
+            // Persistence/bootstrap may have used the ordinary overwrite path before the boot latch
+            // is exposed. Establish fixed atomic payload cells for that final image while no foreign
+            // probe can exist; every later Raw constructor performs the same preparation directly.
+            if (enabled && !read_local_enabled_)
+                for (int table = 0; table < 2; table++)
+                    if (tab_[table])
+                        for (uint32_t slot = 0; slot < cap_[table]; slot++)
+                            if (KvObj* object = ptr_of(tab_[table][slot]))
+                                kvobj_prepare_read_local_raw_cells(object);
+        }
         if (state) state->retire_sink = sink;
         read_local_enabled_ = enabled;
     }
     void rebind_read_local_retire_sink(ReadLocalRetireSink sink) {
         if (!read_local_enabled_ || !sink.defer) std::abort();
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (!sink.recycler_bound()) std::abort();
+        }
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        if (!sink.diagnostics()) std::abort();
+#endif
         // Called only after the old owner has acknowledged an empty task/read/retire frontier and
         // before the new owner executes store work. Advance the table generation at that ownership
         // edge so a foreign copy cannot validate across two retire domains. Foreign probes never
@@ -951,7 +974,7 @@ public:
             return try_overwrite_read_local(h, key, val);
         KvObj* o = find_without_touch(h, key);
         if (!o) return OverwriteResult::NotPossible;
-        if (static_cast<Enc>(o->enc) != Enc::Raw) return OverwriteResult::NotPossible;
+        if (o->encoding() != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
         if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
         const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
@@ -959,7 +982,7 @@ public:
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
-        if (outstanding_borrows_ && is_borrowed(o->str_value().p))
+        if (outstanding_borrows_ && is_borrowed(o->str_data()))
             return OverwriteResult::NotPossible;
 
         // The entire disabled-feature write tax is this branch. When enabled, the target key is
@@ -971,12 +994,12 @@ public:
 
         // Same length means the same class and the same footprint: the accounting delta is exactly
         // zero, so do not compute it (kvobj_size was 7.7% of SET-cell cycles before this).
-        if (val.n == o->vlen) {
+        if (val.n == kvobj_read_local_raw_length(o)) {
             std::memcpy(o->val_ptr(), val.p, val.n);
             return OverwriteResult::Updated;
         }
         obj_bytes_ -= kvobj_size(o);
-        o->vlen = val.n;
+        o->store_raw_length_relaxed(val.n);
         std::memcpy(o->val_ptr(), val.p, val.n);
         obj_bytes_ += kvobj_size(o);
         return OverwriteResult::Updated;
@@ -985,6 +1008,91 @@ public:
     OverwriteResult try_overwrite_notify(uint64_t h, Slice key, Slice val,
                                          FlatNotifySink*) {
         return try_overwrite(h, key, val);
+    }
+
+    // Variant B draws only inline String blocks from the owner-thread QSBR cache. Extern keeps its
+    // independent value allocation and therefore stays on the immutable baseline allocator path.
+    KvObj* make_set_string(Slice key, Slice value, int64_t expire_at_ms = -1) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        ReadLocalSetTaxStats* stats = read_local_enabled_ ? &settax_stats() : nullptr;
+        if (stats) {
+            if (value.n <= kEmbedThreshold) stats->init_raw_calls++;
+            else stats->init_extern_calls++;
+            stats->init_key_bytes += key.n;
+            stats->init_value_bytes += value.n;
+        }
+#endif
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_ && value.n <= kEmbedThreshold) {
+                const bool has_ttl = expire_at_ms >= 0;
+                const size_t allocation = good_size(
+                    kvobj_alloc_size(key.n, value.n, has_ttl, Enc::Raw));
+                void* memory = acquire_set_block_read_local(allocation);
+                KvObj* object = memory
+                    ? kvobj_init_raw_string(memory, key, value, expire_at_ms) : nullptr;
+                return object;
+            }
+        }
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        KvObj* object = kvobj_new_string(
+            key, value, expire_at_ms, stats ? &stats->fresh_allocation_attempts : nullptr);
+#else
+        KvObj* object = kvobj_new_string(key, value, expire_at_ms);
+#endif
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        if (stats && object && value.n <= kEmbedThreshold) {
+            stats->init_cell_prepare_calls++;
+        }
+#endif
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (!object && read_local_enabled_) {
+                read_local_store_state_required().retire_sink.trim(0);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+                object = kvobj_new_string(
+                    key, value, expire_at_ms, &stats->fresh_allocation_attempts);
+#else
+                object = kvobj_new_string(key, value, expire_at_ms);
+#endif
+            }
+        }
+        return object;
+    }
+
+    KvObj* make_set_int(Slice key, int64_t value, int64_t expire_at_ms = -1) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        ReadLocalSetTaxStats* stats = read_local_enabled_ ? &settax_stats() : nullptr;
+        if (stats) {
+            stats->init_int_calls++;
+            stats->init_key_bytes += key.n;
+            stats->init_value_bytes += sizeof(value);
+        }
+#endif
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_) {
+                const bool has_ttl = expire_at_ms >= 0;
+                const size_t allocation = good_size(
+                    kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+                void* memory = acquire_set_block_read_local(allocation);
+                return memory ? kvobj_init_int(memory, key, value, expire_at_ms) : nullptr;
+            }
+        }
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        return kvobj_new_int(
+            key, value, expire_at_ms, stats ? &stats->fresh_allocation_attempts : nullptr);
+#else
+        return kvobj_new_int(key, value, expire_at_ms);
+#endif
+    }
+
+    // Failed insertion never published the replacement and needs no grace period. Feeding it back
+    // here preserves the same bounded pool behavior without perturbing live-object accounting.
+    void discard_set_value(KvObj* object) {
+        if (!object) return;
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_ && recycle_set_value_read_local(
+                    object, read_local_store_state_required().retire_sink)) return;
+        }
+        kvobj_free(object);
     }
 
     // Called by GET on the shard owner before publishing the Op. Pointer identity is sufficient:
@@ -1217,6 +1325,7 @@ public:
         // semantics), so the very key being grown always "fits". The gate asks the raw question:
         // is the shard over budget NOW; evict others, never the op's key; else refuse.
         if (accounted_bytes() <= maxmemory_limit_) return true;
+        trim_set_recycler_on_pressure();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
         uint32_t budget = kEvictionsPerOp;
         while (budget-- && accounted_bytes() > maxmemory_limit_) {
@@ -1963,6 +2072,7 @@ private:
 
     bool make_room_for(Slice protected_key, size_t incoming_bytes) {
         if (projected_bytes(protected_key, incoming_bytes) <= maxmemory_limit_) return true;
+        trim_set_recycler_on_pressure();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
 
         uint32_t budget = kEvictionsPerOp;
@@ -2222,10 +2332,101 @@ private:
         return TtlResult::Updated;
     }
 
-    OverwriteResult try_overwrite_read_local(uint64_t, Slice, Slice) {
-        // A published string is immutable for the whole grace period. Make the caller use the
-        // ordinary allocate-and-replace path instead of changing its value bytes in place.
-        return OverwriteResult::NotPossible;
+    OverwriteResult try_overwrite_read_local(uint64_t h, Slice key, Slice val) {
+        if constexpr (!kReadLocalSetTaxAtomicRaw) {
+            // OFF and variant B keep published values immutable for the whole grace period.
+            return OverwriteResult::NotPossible;
+        }
+
+        KvObj* object = find_without_touch(h, key);
+        if (!object) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_missing++;
+#endif
+            return OverwriteResult::NotPossible;
+        }
+        if (object->encoding() != Enc::Raw) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_encoding++;
+#endif
+            return OverwriteResult::NotPossible;
+        }
+        if (object->flags & KvObjFlags::HasTtl) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_ttl++;
+#endif
+            return OverwriteResult::NotPossible;  // SET clears TTL
+        }
+        if (val.n > kEmbedThreshold) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_oversize++;
+#endif
+            return OverwriteResult::NotPossible;  // becomes Extern
+        }
+        const size_t wanted = kvobj_alloc_size(object->klen(), val.n, false, Enc::Raw);
+        if (good_size(wanted) != kvobj_capacity(object)) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_size_class++;
+#endif
+            return OverwriteResult::NotPossible;
+        }
+        if (outstanding_borrows_ && is_borrowed(object->str_data())) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_borrowed++;
+#endif
+            return OverwriteResult::NotPossible;
+        }
+
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(key, good_size(wanted))) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().overwrite_maxmemory_oom++;
+#endif
+                return OverwriteResult::MaxmemoryOom;
+            }
+            touch(object);
+        }
+
+        const uint32_t previous_length = kvobj_read_local_raw_length(object);
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite) {
+            // Legacy selector 1 intentionally reuses the table publication word. Its unrelated-key
+            // retry tax is the round-1 control; selector 3 below never touches table generation.
+            ReadLocalTableGuard legacy_shard_sequence(*this);
+            if (previous_length == val.n) {
+                kvobj_write_read_local_raw(object, val);
+                return OverwriteResult::Updated;
+            }
+            obj_bytes_ -= kvobj_size(object);
+            kvobj_write_read_local_raw(object, val);
+            std::atomic_ref<uint32_t>(object->vlen).store(val.n, std::memory_order_relaxed);
+            obj_bytes_ += kvobj_size(object);
+            return OverwriteResult::Updated;
+        }
+
+        // Selector 3 overlays Raw's otherwise-unneeded vlen word with a full u32 object sequence;
+        // the bounded length occupies the byte freed by packing Type+Enc. Saturate into immutable
+        // replacement rather than wrap: even a preempted reader can therefore never accept ABA.
+        const uint32_t sequence = object->raw_sequence_relaxed();
+        if (sequence & 1u) std::abort();       // one shard owner means no concurrent writer
+        if (sequence >= UINT32_MAX - 1u) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().reject_sequence_saturated++;
+#endif
+            return OverwriteResult::NotPossible;
+        }
+        object->open_raw_sequence(sequence);
+        // The release fence after publishing odd keeps every following relaxed cell store on the
+        // far side of the open marker. One shard owner makes locked RMWs unnecessary here.
+        std::atomic_thread_fence(std::memory_order_release);
+        kvobj_write_read_local_raw(object, val);
+        if (previous_length != val.n) object->store_raw_length_relaxed(val.n);
+        object->close_raw_sequence(sequence);
+        // The old/new request sizes are in the same allocator class by the eligibility check above;
+        // Raw has no external allocation, so resident accounting is exactly unchanged.
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        settax_stats().overwrite_hits++;
+#endif
+        return OverwriteResult::Updated;
     }
 
     bool snapshot_mark_read_local(int32_t shard_id, int64_t cut_ms) {
@@ -2576,10 +2777,20 @@ private:
                     read_local_slot_store(&tab_[t][i], make_word(tag, o));
                 }
                 live_[t]++;
-                obj_bytes_ += kvobj_size(o);
+                const size_t added_bytes = kvobj_size(o);
+                obj_bytes_ += added_bytes;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().accounting_add_calls++;
+                settax_stats().accounting_bytes += added_bytes;
+#endif
                 if (track_expire) {
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
-                    else                                  expires_.erase(h);
+                    else {
+                        expires_.erase(h);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                        settax_stats().expire_erases++;
+#endif
+                    }
                 }
                 return true;
             }
@@ -2592,11 +2803,24 @@ private:
                 // An acquiring reader that starts after the retirement stamp must no longer be
                 // able to acquire the displaced pointer.
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().slot_replacements++;
+#endif
                 retire_obj_read_local(cur);
-                obj_bytes_ += kvobj_size(o);
+                const size_t added_bytes = kvobj_size(o);
+                obj_bytes_ += added_bytes;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().accounting_add_calls++;
+                settax_stats().accounting_bytes += added_bytes;
+#endif
                 if (track_expire) {
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
-                    else                                  expires_.erase(h);
+                    else {
+                        expires_.erase(h);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                        settax_stats().expire_erases++;
+#endif
+                    }
                 }
                 return true;
             }
@@ -2660,6 +2884,10 @@ private:
     void retire_obj_read_local(KvObj* object) {
         const size_t bytes = kvobj_size(object);
         obj_bytes_ -= bytes;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        settax_stats().accounting_sub_calls++;
+        settax_stats().accounting_bytes += bytes;
+#endif
         read_local_store_state_required().retire_sink.retire(
             this, object, bytes, &FlatStore::read_local_reclaim_object);
     }
@@ -2759,19 +2987,104 @@ private:
         object->store_flags_atomic(flags);
     }
 
-    static void read_local_reclaim_table(void*, void* payload, size_t) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+    ReadLocalSetTaxStats& settax_stats() const {
+        ReadLocalSetTaxStats* stats =
+            read_local_store_state_required().retire_sink.diagnostics();
+        if (!stats) std::abort();
+        return *stats;
+    }
+#endif
+
+    void* acquire_set_block_read_local(size_t allocation) {
+        ReadLocalRetireSink& sink = read_local_store_state_required().retire_sink;
+        void* memory = sink.acquire(allocation);
+        if (!memory) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+            settax_stats().fresh_allocation_attempts++;
+#endif
+            memory = alloc_raw(allocation);
+        }
+        if (!memory) {
+            // The cache is deliberately outside logical object_bytes accounting, but it still
+            // consumes physical memory. On allocator pressure, release it and retry once.
+            sink.trim(0);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+            settax_stats().fresh_allocation_attempts++;
+#endif
+            memory = alloc_raw(allocation);
+        }
+        if (memory) ::new (memory) KvObj;
+        return memory;
+    }
+
+    bool recycle_set_value_read_local(KvObj* object,
+                                      const ReadLocalRetireSink& sink) const {
+        if constexpr (kReadLocalSetTaxVariant != ReadLocalSetTaxVariant::QsbrRecycle)
+            return false;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        ReadLocalSetTaxStats& stats = settax_stats();
+        stats.recycle_candidate_attempts++;
+#endif
+        if (!object || static_cast<Type>(object->type) != Type::String) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+            stats.recycle_reject_not_string++;
+#endif
+            return false;
+        }
+        const Enc encoding = object->encoding();
+        if (encoding != Enc::Raw && encoding != Enc::Int) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+            stats.recycle_reject_encoding++;
+#endif
+            return false;
+        }
+        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_data())) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+            stats.recycle_reject_borrowed++;
+#endif
+            return false;
+        }
+        // Retirement already removed this object's bytes from obj_bytes_. The cache is deliberately
+        // unaccounted; a later insert accounts the reinitialized block exactly once, just as fresh.
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
+        stats.recycle_capacity_evals++;
+#endif
+        return sink.recycle(object, kvobj_capacity(object));
+    }
+
+    void trim_set_recycler_on_pressure() {
+        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
+            if (read_local_enabled_)
+                read_local_store_state_required().retire_sink.trim(1024 * 1024);
+        }
+    }
+
+    static void read_local_reclaim_table(const ReadLocalRetireSink&, void*, void* payload,
+                                         size_t) {
         std::free(payload);
     }
 
-    static void read_local_reclaim_object(void* owner, void* payload, size_t bytes) {
-        static_cast<FlatStore*>(owner)->destroy_retired_obj(
-            static_cast<KvObj*>(payload), bytes);
-    }
-
-    static void read_local_reclaim_atomic_object(void* owner, void* payload, size_t bytes) {
+    static void read_local_reclaim_object(const ReadLocalRetireSink& sink, void* owner,
+                                          void* payload, size_t bytes) {
         FlatStore* store = static_cast<FlatStore*>(owner);
         KvObj* object = static_cast<KvObj*>(payload);
-        if (!store->atomic_recycle_value(object)) store->destroy_retired_obj(object, bytes);
+        if (!store->recycle_set_value_read_local(object, sink))
+            store->destroy_retired_obj(object, bytes);
+    }
+
+    static void read_local_reclaim_atomic_object(const ReadLocalRetireSink& sink, void* owner,
+                                                 void* payload, size_t bytes) {
+        FlatStore* store = static_cast<FlatStore*>(owner);
+        KvObj* object = static_cast<KvObj*>(payload);
+        if (store->atomic_recycle_value(object)) {
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            store->settax_stats().recycle_atomic_pool_accepts++;
+#endif
+            return;
+        }
+        if (!store->recycle_set_value_read_local(object, sink))
+            store->destroy_retired_obj(object, bytes);
     }
 
     void retire_table_read_local(uint64_t* table) {
@@ -2857,7 +3170,7 @@ private:
     void destroy_retired_obj(KvObj* object, size_t bytes) {
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_value().p : nullptr;
+                              ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;
@@ -2874,7 +3187,7 @@ private:
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
-                              ? o->str_value().p : nullptr;
+                              ? o->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = o;

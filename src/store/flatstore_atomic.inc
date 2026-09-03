@@ -438,9 +438,19 @@
             if (block->allocation != allocation) std::abort();
             atomic_pending_->free_values[cls] = block->next;
             atomic_pending_->cached_value_bytes -= allocation;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            std::destroy_at(block);
+            return ::new (block) KvObj;
+#else
             return block;
+#endif
         }
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        void* memory = alloc_raw(allocation);
+        return memory ? ::new (memory) KvObj : nullptr;
+#else
         return alloc_raw(allocation);
+#endif
     }
 
     void atomic_discard_value(KvObj* value) {
@@ -1204,7 +1214,7 @@ private:
             return false;
         const Enc encoding = static_cast<Enc>(object->enc);
         if (encoding != Enc::Raw && encoding != Enc::Int) return false;
-        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_value().p))
+        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_data()))
             return false;
         const size_t allocation = kvobj_capacity(object);
         const uint32_t cls = atomic_pool_class(allocation);
@@ -1212,9 +1222,16 @@ private:
         if (cls >= AtomicPendingState::kPoolClasses ||
             allocation < sizeof(AtomicPendingState::FreeValue) ||
             atomic_pending_->cached_value_bytes + allocation > kValueCacheBytes) return false;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        void* memory = object;
+        std::destroy_at(object);
+        auto* block = ::new (memory) AtomicPendingState::FreeValue{
+            atomic_pending_->free_values[cls], allocation};
+#else
         auto* block = reinterpret_cast<AtomicPendingState::FreeValue*>(object);
         block->next = atomic_pending_->free_values[cls];
         block->allocation = allocation;
+#endif
         atomic_pending_->free_values[cls] = block;
         atomic_pending_->cached_value_bytes += allocation;
         return true;
@@ -1231,7 +1248,7 @@ private:
         if (atomic_recycle_value(object)) return;
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
-                              ? object->str_value().p : nullptr;
+                              ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;

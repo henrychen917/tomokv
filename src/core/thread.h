@@ -170,6 +170,11 @@ struct ReadLocalStats {
     uint64_t mget_fallback_seq_churn = 0;
     uint64_t mget_fallback_lane_full = 0;
 
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+    // Keep temporary SET attribution off the remotely scanned quiescence-publication cache line.
+    alignas(64) ReadLocalSetTaxStats settax{};
+#endif
+
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
                fallback_inflight_write + fallback_atomic_pending + fallback_missing +

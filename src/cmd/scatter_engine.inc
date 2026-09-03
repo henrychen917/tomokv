@@ -2626,7 +2626,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     char integer[24];
                     request.value.assign(integer, i64_to_dec(integer, object->int_value()));
                 } else {
-                    const Slice value = object->str_value();
+                    KvObjRawReadBuffer raw;
+                    const Slice value = kvobj_string_value(object, raw);
                     request.value.assign(value.p, value.n);
                 }
                 request.present = true;
@@ -2655,10 +2656,41 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         slot.kind = ValueKind::Inline;
                         continue;
                     }
-                    const Slice value = object->str_value();
+                    if constexpr (kReadLocalSetTaxVariant ==
+                                  ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
+                        if (object->encoding() == Enc::Raw) {
+                            const uint32_t length = kvobj_read_local_raw_length(object);
+                            slot.len = length;
+                            const uint32_t cutover =
+                                std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
+                            if (length <= cutover) {
+                                kvobj_read_local_copy_raw(
+                                    object, object->read_local_flags(), length, slot.small);
+                                slot.kind = ValueKind::Inline;
+                            } else {
+                                const char* value = object->str_data();
+                                // Registration precedes the next owner command, whose overwrite
+                                // gate will force immutable replacement until IO releases this ptr.
+                                shard.store().borrow(value);
+                                slot.ptr = value;
+                                slot.shard = shard.id();
+                                slot.kind = ValueKind::Borrow;
+                            }
+                            continue;
+                        }
+                    }
+                    KvObjRawReadBuffer raw;
+                    const Slice value = kvobj_string_value(object, raw);
                     slot.len = value.n;
-                    const uint32_t cutover =
+                    uint32_t cutover =
                         std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
+                    if constexpr (kReadLocalSetTaxVariant ==
+                                  ReadLocalSetTaxVariant::SequenceOverwrite) {
+                        // A materializes Raw through atomic cells. Keep that owner-local copy in
+                        // the gather slot instead of publishing its stack address as a borrow.
+                        if (object->encoding() == Enc::Raw)
+                            cutover = ValueSlot::kInline;
+                    }
                     if (value.n <= cutover) {
                         if (value.n) std::memcpy(slot.small, value.p, value.n);
                         slot.kind = ValueKind::Inline;
@@ -3047,10 +3079,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                             continue;
                         }
                         KeyRef& destination = state.keys[1];
+                        KvObjRawReadBuffer raw;
                         KvObj* clone = object->is_int()
                             ? kvobj_new_int(op.arg(destination.arg), object->int_value(),
                                             image.expire_at_ms)
-                            : xshard_make_string(op.arg(destination.arg), object->str_value(),
+                            : xshard_make_string(op.arg(destination.arg),
+                                                 kvobj_string_value(object, raw),
                                                  image.expire_at_ms, false);
                         if (!clone) {
                             state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
