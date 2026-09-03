@@ -10,7 +10,7 @@
 #include <cstdint>
 
 #ifndef TOMO_READ_LOCAL_SET_TAX_VARIANT
-#define TOMO_READ_LOCAL_SET_TAX_VARIANT 0
+#define TOMO_READ_LOCAL_SET_TAX_VARIANT 3
 #endif
 
 namespace tomo {
