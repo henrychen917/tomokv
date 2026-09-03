@@ -3470,10 +3470,6 @@ private:
         op.zc_shard = -1;
     }
 
-    static bool read_local_op_touches_hash(const Op& op, uint64_t hash) {
-        return read_local_command_touches_hash(op, hash);
-    }
-
     // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
     // published until ACL and FLIP admit the current frame; per-producer reservations make that
     // later commit infallible. If the existing scatter snapshot window accepts only a prefix, that
@@ -3516,76 +3512,112 @@ private:
                 (fallback_count != 0) != (fallback_tasks != nullptr) ||
                 (fallback_count && intersect_command)) std::abort();
             Rob<kRobWindow>& rob = client->rob();
-            if (!rob.has_pending_read_local() &&
-                !(reserve_current_without_reads && reserve_shard >= 0))
-                return true;
-            storage_.reset(new (std::nothrow) Storage);
-            if (!storage_) return false;
-            count_ = rob.collect_pending_read_local(
-                0, false, storage_->ids, kRobWindow);
-            bool selective = false;
+            const bool reserve_current =
+                reserve_current_without_reads && reserve_shard >= 0;
+            if (!rob.has_pending_read_local() && !reserve_current) return true;
+            // Superset pre-check (ReadLocalPendingFilter, rob.h): the filter holds every key hash
+            // any still-pending local read of this connection can touch, so a miss PROVES that no
+            // pending read shares the point hash / any declared key of the exact command. The
+            // ordinary disjoint write returns here without allocating or walking anything; a hit
+            // runs the unchanged exact plan below. EX seeds are selected by id, and a reserved
+            // current op needs the plan regardless of reads, so neither consults the filter.
+            if (!reserve_current && !fallback_count) {
+                if (intersect_command) {
+                    if (!read_local_pending_filter_may_touch_command(
+                            rob.read_local_pending_filter(), *intersect_command))
+                        return true;
+                } else if (require_hash_match && !rob.read_local_pending_may_touch(hash)) {
+                    return true;
+                }
+            }
+            // Select on the stack; Storage is only paid for once a read is actually demoted or
+            // the current op must be reserved.
+            uint64_t ids[kRobWindow];
+            ReadLocalFallbackReason reasons[kRobWindow];
             bool selected[kRobWindow] = {};
-            for (uint32_t i = 0; i < count_; i++) storage_->reasons[i] = reason;
-            if (count_ && fallback_count) {
+            const uint32_t pending =
+                rob.collect_pending_read_local(0, false, ids, kRobWindow);
+            for (uint32_t i = 0; i < pending; i++) reasons[i] = reason;
+            bool selective = false;
+            bool any_selected = false;
+            // The key-walking modes visit every pending read, so they also recompute the exact
+            // pending-key filter and hand it back: false hits never accumulate.
+            ReadLocalPendingFilter exact;
+            bool exact_known = false;
+            if (pending && fallback_count) {
                 selective = true;
                 for (uint32_t seed = 0; seed < fallback_count; seed++) {
                     if (fallback_reasons[seed] == ReadLocalFallbackReason::None) continue;
                     bool found = false;
-                    for (uint32_t i = 0; i < count_; i++) {
-                        if (storage_->ids[i] != fallback_tasks[seed].op_id) continue;
+                    for (uint32_t i = 0; i < pending; i++) {
+                        if (ids[i] != fallback_tasks[seed].op_id) continue;
                         selected[i] = true;
-                        storage_->reasons[i] = fallback_reasons[seed];
+                        any_selected = true;
+                        reasons[i] = fallback_reasons[seed];
                         found = true;
                         break;
                     }
                     if (!found) std::abort();
                 }
-            } else if (count_ && intersect_command) {
+            } else if (pending && intersect_command) {
                 selective = true;
-                for (uint32_t i = 0; i < count_; i++)
-                    selected[i] = read_local_commands_overlap_precise_keyset(
-                        rob.at(storage_->ids[i]), *intersect_command);
-            } else if (count_ && require_hash_match) {
+                exact_known = true;
+                for (uint32_t i = 0; i < pending; i++) {
+                    selected[i] = read_local_commands_overlap_precise_keyset_collect(
+                        rob.at(ids[i]), *intersect_command, exact);
+                    any_selected |= selected[i];
+                }
+            } else if (pending && require_hash_match) {
                 selective = true;
-                for (uint32_t i = 0; i < count_; i++)
-                    selected[i] = read_local_op_touches_hash(
-                        rob.at(storage_->ids[i]), hash);
+                exact_known = true;
+                for (uint32_t i = 0; i < pending; i++) {
+                    selected[i] = read_local_command_touches_hash_collect(
+                        rob.at(ids[i]), hash, exact);
+                    any_selected |= selected[i];
+                }
             }
-            if (count_ && selective) {
+            if (exact_known) rob.reset_read_local_pending_filter(exact);
+            if (selective && any_selected) {
                 // MGET makes key overlap a graph rather than a single hash. Close every selective
                 // parser or EX seed transitively: if a selected MGET touches an otherwise unrelated
                 // key, its older/later local read of that key must join the same owner wave too.
+                // With nothing selected the closure is the identity, so it is skipped.
                 bool changed;
                 do {
                     changed = false;
-                    for (uint32_t i = 0; i < count_; i++) {
+                    for (uint32_t i = 0; i < pending; i++) {
                         if (selected[i]) continue;
-                        const Op& candidate = rob.at(storage_->ids[i]);
-                        for (uint32_t prior = 0; prior < count_; prior++) {
+                        const Op& candidate = rob.at(ids[i]);
+                        for (uint32_t prior = 0; prior < pending; prior++) {
                             if (!selected[prior] ||
                                 !read_local_commands_overlap(
-                                    candidate, rob.at(storage_->ids[prior]))) continue;
+                                    candidate, rob.at(ids[prior]))) continue;
                             selected[i] = true;
-                            storage_->reasons[i] =
-                                ReadLocalFallbackReason::ContextOwnerKey;
+                            reasons[i] = ReadLocalFallbackReason::ContextOwnerKey;
                             changed = true;
                             break;
                         }
                     }
                 } while (changed);
+            }
+            uint32_t count = pending;
+            if (selective) {
                 uint32_t out = 0;
-                for (uint32_t i = 0; i < count_; i++) {
+                for (uint32_t i = 0; i < pending; i++) {
                     if (!selected[i]) continue;
-                    storage_->ids[out] = storage_->ids[i];
-                    storage_->reasons[out] = storage_->reasons[i];
+                    ids[out] = ids[i];
+                    reasons[out] = reasons[i];
                     out++;
                 }
-                count_ = out;
+                count = out;
             }
-            if (!count_ &&
-                !(reserve_current_without_reads && reserve_shard >= 0)) {
-                storage_.reset();
-                return true;
+            if (!count && !reserve_current) return true;
+            storage_.reset(new (std::nothrow) Storage);
+            if (!storage_) return false;
+            count_ = count;
+            for (uint32_t i = 0; i < count_; i++) {
+                storage_->ids[i] = ids[i];
+                storage_->reasons[i] = reasons[i];
             }
 
             loop_ = &loop;
@@ -3954,6 +3986,9 @@ private:
             [[maybe_unused]] bool read_local_commit_at_ordinary = false;
             [[maybe_unused]] bool read_local_commit_before_lowering = false;
             [[maybe_unused]] bool read_local_point_prehashed = false;
+            // Keys a local read hands to Rob::mark_current_read_local: the point hash, or every
+            // MGET key hashed by the eligibility walk below (no second hashing pass).
+            [[maybe_unused]] ReadLocalPendingFilter read_local_pending_keys{};
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -4236,6 +4271,7 @@ private:
                                     ? op->hash : FlatStore::hash_key(op->arg(arg));
                                 const int32_t shard = arg == 1
                                     ? op->shard : srv_->router().shard_of(hash);
+                                read_local_pending_keys.add(hash);
                                 write_conflict |= rob.read_local_write_conflicts(
                                     hash, read_local_command_touches_hash);
                                 const uint64_t state = srv_->shard(shard)
@@ -4961,7 +4997,10 @@ ordinary_dispatch:
                         }
                         const uint64_t op_id = rob.dispatch_id();
                         op->mark_read_local();
-                        rob.mark_current_read_local();
+                        // Every hash read_local_command_touches_hash(*op, .) can match must enter
+                        // the pending filter here (GET: op->hash; MGET: the keys hashed above).
+                        if (!read_local_mget_candidate) read_local_pending_keys.add(op->hash);
+                        rob.mark_current_read_local(read_local_pending_keys);
                         rob.publish();
                         if (!fused_executor_->enqueue_local_read(
                                 Task{c, op_id, -1, nullptr}))

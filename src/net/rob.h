@@ -80,6 +80,38 @@ struct ReadLocalRobState {
 };
 static_assert(alignof(ReadLocalRobState) >= 2, "read-local sidecar pointer uses its low bit");
 
+// Superset summary of every key hash that one connection's still-pending local reads may touch.
+// The armed parser ORs a read's keyset in when it marks the slot pending; the words are cleared
+// only when the pending bitmap drains to zero and are rewritten only from a walk of the complete
+// pending set. Membership is therefore never lost while a read is pending: a miss PROVES that no
+// pending read shares the probed hash, a hit merely means "run the exact demotion plan". Same
+// hash-conservative contract as the RYOW write ring (a real 64-bit collision may take the owner
+// path). Two bits per key across four words: ~8 pending GETs give well under 1% false hits.
+struct ReadLocalPendingFilter {
+    static constexpr uint32_t kWords = 4;
+    static_assert((kWords & (kWords - 1)) == 0);
+
+    static constexpr uint32_t word_of(uint64_t hash) {
+        return static_cast<uint32_t>((hash >> 6) & (kWords - 1));
+    }
+    void add(uint64_t hash) {
+        words[word_of(hash)] |= ReadLocalRobState::keyset_filter(hash);
+    }
+    bool may_contain(uint64_t hash) const {
+        const uint64_t bits = ReadLocalRobState::keyset_filter(hash);
+        return (words[word_of(hash)] & bits) == bits;
+    }
+    void merge(const ReadLocalPendingFilter& other) {
+        for (uint32_t i = 0; i < kWords; i++) words[i] |= other.words[i];
+    }
+    void clear() {
+        for (uint32_t i = 0; i < kWords; i++) words[i] = 0;
+    }
+
+    uint64_t words[kWords] = {};
+};
+static_assert(sizeof(ReadLocalPendingFilter) == 32, "fills the Rob's spare flush_-line tail");
+
 template <uint32_t Capacity>
 class Rob {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
@@ -140,11 +172,27 @@ public:
     // executor clears it only after the read has completed locally or has entered an ordinary
     // owner queue. Thus a later write can distinguish work that still needs venue demotion from an
     // already-executed read without adding any hook to ordinary publish or retirement.
-    void mark_current_read_local() {
+    // `keys` must cover every hash read_local_command_touches_hash() can report for this op: the
+    // demotion planner's pre-check treats a filter miss as proof that no pending read overlaps.
+    void mark_current_read_local(const ReadLocalPendingFilter& keys) {
         const uint64_t bit =
             uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
         if (read_local_owner_slots_ & bit) std::abort();
         read_local_pending_slots_ |= bit;
+        read_local_pending_filter_.merge(keys);
+    }
+
+    // False proves that no still-pending local read may touch `hash`; true only means "walk".
+    bool read_local_pending_may_touch(uint64_t hash) const {
+        return read_local_pending_filter_.may_contain(hash);
+    }
+    const ReadLocalPendingFilter& read_local_pending_filter() const {
+        return read_local_pending_filter_;
+    }
+    // Legal only with a summary just computed over EVERY currently pending read (the planner's
+    // complete walk); it restores exactness after false hits without touching the ordinary path.
+    void reset_read_local_pending_filter(const ReadLocalPendingFilter& exact) {
+        read_local_pending_filter_ = exact;
     }
 
     bool pending_read_local(uint64_t op_id) const {
@@ -186,14 +234,14 @@ public:
     void complete_pending_read_local(uint64_t op_id) {
         const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
         if (!(read_local_pending_slots_ & bit)) std::abort();
-        read_local_pending_slots_ &= ~bit;
+        read_local_retire_pending_bit(bit);
     }
 
     void publish_pending_read_local_to_owner(uint64_t op_id) {
         const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
         if (!(read_local_pending_slots_ & bit) || (read_local_owner_slots_ & bit))
             std::abort();
-        read_local_pending_slots_ &= ~bit;
+        read_local_retire_pending_bit(bit);
         read_local_owner_slots_ |= bit;
     }
 
@@ -535,10 +583,21 @@ private:
     uint64_t read_local_pending_slots_ = 0;
     uint64_t read_local_owner_slots_ = 0;
     uintptr_t read_local_state_ = 0;
+    // Superset of the pending reads' key hashes (see ReadLocalPendingFilter). It completes flush_'s
+    // cache line: the parser that marks/probes it already owns that line for the bitmaps above.
+    ReadLocalPendingFilter read_local_pending_filter_;
+
+    // Removing a pending read never shrinks the filter (superset stays valid); an empty pending set
+    // is the one point where the summary can be reset for free.
+    void read_local_retire_pending_bit(uint64_t bit) {
+        read_local_pending_slots_ &= ~bit;
+        if (!read_local_pending_slots_) read_local_pending_filter_.clear();
+    }
 };
 
-// The bitmaps and tagged sidecar pointer deliberately occupy the pre-existing tail of flush_'s
-// cache line. Locking the complete ROB keeps future accounting from silently growing every client.
+// The bitmaps, tagged sidecar pointer and pending-key filter deliberately occupy the pre-existing
+// tail of flush_'s cache line. Locking the complete ROB keeps future accounting from silently
+// growing every client.
 static_assert(sizeof(Rob<64>) == 192, "Rob<64> layout changed");
 
 }  // namespace tomo

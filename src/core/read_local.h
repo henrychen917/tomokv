@@ -27,8 +27,11 @@ inline bool read_local_command_is_mget(const Op& op) {
 // the armed RYOW ring can retain one descriptor for the command and use these immutable argv slices
 // for exact overlap checks. Other multi-key writes remain conservative: source/destination roles,
 // implicit writes, or execution-dependent effects make their registry key range insufficient.
+// MSET's registry row is the only string-write candidate that steps by two (t_string.cc: first_key
+// 1, last_key -1, key_step 2; armed shadow rows copy the row). Testing the already-loaded spec
+// first lets every point op prove "not MSET" without loading argv[0] for the string compare.
 inline bool read_local_command_is_precise_mset(const Op& op) {
-    return op.spec && op.cmd_name().eq_icase("mset");
+    return op.spec && op.spec->key_step == 2 && op.cmd_name().eq_icase("mset");
 }
 
 // Owner-tail ordering is hash-conservative, like the RYOW write ring: an actual hash collision is
@@ -41,6 +44,41 @@ inline bool read_local_command_touches_hash(const Op& op, uint64_t hash) {
     for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key);
          arg < op.argc(); arg += step)
         if (FlatStore::hash_key(op.arg(arg)) == hash) return true;
+    return false;
+}
+
+// The same walk, additionally reporting EVERY key hash of `op` into `keys` (no early exit). The
+// demotion planner uses it to rebuild a connection's pending-read filter exactly while it is
+// walking the pending set anyway. It must never disagree with touches_hash about an op's keys:
+// the filter's "miss proves absence" contract rests on that.
+inline bool read_local_command_touches_hash_collect(const Op& op, uint64_t hash,
+                                                    ReadLocalPendingFilter& keys) {
+    if (!read_local_command_is_mget(op) && !read_local_command_is_precise_mset(op)) {
+        keys.add(op.hash);
+        return op.hash == hash;
+    }
+    bool touched = false;
+    const uint32_t step = static_cast<uint32_t>(op.spec->key_step);
+    for (uint32_t arg = static_cast<uint32_t>(op.spec->first_key);
+         arg < op.argc(); arg += step) {
+        const uint64_t key = FlatStore::hash_key(op.arg(arg));
+        keys.add(key);
+        touched |= key == hash;
+    }
+    return touched;
+}
+
+// Pre-check for read_local_commands_overlap_precise_keyset below: false PROVES that no pending
+// local read can share a key with `command`, because every pending read's keys are in `pending`
+// and this walks exactly the keys touches_hash(command, .) would compare against.
+inline bool read_local_pending_filter_may_touch_command(const ReadLocalPendingFilter& pending,
+                                                        const Op& command) {
+    if (!read_local_command_is_mget(command) && !read_local_command_is_precise_mset(command))
+        return pending.may_contain(command.hash);
+    const uint32_t step = static_cast<uint32_t>(command.spec->key_step);
+    for (uint32_t arg = static_cast<uint32_t>(command.spec->first_key);
+         arg < command.argc(); arg += step)
+        if (pending.may_contain(FlatStore::hash_key(command.arg(arg)))) return true;
     return false;
 }
 
@@ -76,6 +114,22 @@ inline bool read_local_commands_overlap_precise_keyset(const Op& read, const Op&
         if (read_local_command_touches_hash(
                 command, FlatStore::hash_key(read.arg(arg)))) return true;
     return false;
+}
+
+// Same predicate, also reporting every key hash of `read` into `keys` (planner filter rebuild).
+inline bool read_local_commands_overlap_precise_keyset_collect(
+        const Op& read, const Op& command, ReadLocalPendingFilter& keys) {
+    if (!read_local_command_is_mget(read)) {
+        keys.add(read.hash);
+        return read_local_command_touches_hash(command, read.hash);
+    }
+    bool overlap = false;
+    for (uint32_t arg = 1; arg < read.argc(); arg++) {
+        const uint64_t key = FlatStore::hash_key(read.arg(arg));
+        keys.add(key);
+        if (!overlap) overlap = read_local_command_touches_hash(command, key);
+    }
+    return overlap;
 }
 
 inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
