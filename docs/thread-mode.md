@@ -94,13 +94,18 @@ falls back on missing so its owner can perform lazy-expiry side effects. MGET ap
 every key and falls back as one command on any positive; it serves a stable missing key as a nil
 array element. An expiry-due entry and an armed key-miss notification still fall back.
 
-The read-local publication generation changes for every answer-changing store mutation, as well as
-table topology/migration, ownership handoff, and conservative bulk changes. For each local MGET
-attempt, the reader acquire-loads every distinct touched shard generation before copying any value,
-copies all values into a private reply, then acquire-loads those generations again. Every shard must
-be stable and unchanged. Generation or sequence churn retries the complete command once; a second
-failure falls back through the existing owner/scatter path. One-key GET needs no shard sweep: its
-filter check stays inside the existing before/after point-probe sequence validation.
+A local MGET validates its command-wide window with two rules chosen per touched shard from the
+table word it already loads. A shard with no open group must keep an even, equal table generation
+(advanced by every group install, topology move, ownership handoff, and bulk clear, never by a plain
+immutable SET). A shard with an open group is validated per queried key by the touch epoch of that
+key's filter cell, a monotonic counter the owner advances after every add, close, poison, or rebuild
+of that cell; unrelated group installs on the same shard do not move it, and a cell that went
+0 -> 1 -> 0 inside the window still reads +2. The reader loads epochs only for keys on a pending
+shard, copies all values into a private reply, then re-reads the same words. Any change retries the
+complete command once; a second failure falls back through the existing owner/scatter path. FLUSH
+clears poison the filter for their duration so every epoch moves. One-key GET needs no shard sweep:
+its filter check stays inside the existing before/after point-probe sequence validation. Plain
+writes publish nothing beyond their slot store when read-local is armed.
 
 With prefetch capture enabled, a point-only batch first hints all home words, then performs complete
 key-verified probes in program order. Each probe retains the observed slot address and decoded

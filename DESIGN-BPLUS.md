@@ -1218,7 +1218,8 @@ rounds `sizeof` to 49216 B (was 32832); 256 shards = 12.0 MiB, heap-allocated in
 (group/plain/transaction prepare, scoped writes, poison open), close (final entry free, scope
 close, poison close), saturated-drain rebuild, and permanent poison.  Order is **cell store, then
 epoch store**, both release.  Readers acquire-load an epoch only for keys whose shard word carries
-the pending bit.
+the pending bit and only while the filter is armed; with the filter OFF (A/B control) every shard
+keeps the generation rule below.
 
 MGET protocol: (1) acquire-load the table word of every touched shard; poisoned generation
 falls back; a shard without the pending bit must be even and records its generation; a shard with

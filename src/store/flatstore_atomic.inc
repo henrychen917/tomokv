@@ -1119,9 +1119,9 @@ private:
     KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key,
                                                KvObj* replacement) {
         // The key filter was release-published before this call. Enclose every possible physical
-        // exchange in the point-probe sequence so a reader that observed the old empty cell cannot
-        // consume an epoch-zero/aborted candidate. The same guard also advances MGET's all-write
-        // generation; nested insert/rehash helpers share its owner-local depths.
+        // exchange in the table sequence so a reader that observed the old empty cell cannot
+        // consume an epoch-zero/aborted candidate. The same bracket is what a local MGET compares
+        // on a group-free participant; nested insert/rehash helpers share its owner-local depth.
         ReadLocalTableGuard atomic_change(*this);
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
