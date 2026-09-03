@@ -4242,7 +4242,8 @@ private:
                                                            .store()
                                                            .read_local_state_acquire();
                                 mget_atomic_pending |=
-                                    FlatStore::read_local_pending(state) != 0;
+                                    srv_->shard(shard).store().foreign_read_key_unsafe(
+                                        state, hash);
                                 mget_seq_churn |=
                                     !FlatStore::read_local_state_eligible(state);
                             }
@@ -4299,7 +4300,9 @@ private:
                                                                .store()
                                                                .read_local_state_acquire();
                                     atomic_pending =
-                                        FlatStore::read_local_pending(state) != 0;
+                                        srv_->shard(op->shard)
+                                            .store()
+                                            .foreign_read_key_unsafe(state, op->hash);
                                     seq_churn = !FlatStore::read_local_state_eligible(state);
                                 }
                                 if (atomic_pending) {

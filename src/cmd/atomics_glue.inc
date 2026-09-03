@@ -50,7 +50,7 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     }
 
     void* prepared = nullptr;
-    if (!store.atomic_prepare_plain(key, origin_conn_id, prepared) ||
+    if (!store.atomic_prepare_plain(key, hash, origin_conn_id, prepared) ||
         !store.atomic_prepare_capacity(1) || !store.atomic_admit(key, clone)) {
         if (prepared) store.atomic_discard_plain(prepared);
         if (clone) kvobj_free(clone);
@@ -967,7 +967,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                     break;
                 }
             }
-            if (!store.atomic_prepare_plain(item.key, origin_conn_id, next.entry)) {
+            if (!store.atomic_prepare_plain(
+                    item.key, item.hash, origin_conn_id, next.entry)) {
                 if (next.clone) kvobj_free(next.clone);
                 failure = WorkError::Oom;
                 break;

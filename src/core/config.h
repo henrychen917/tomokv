@@ -245,6 +245,9 @@ struct Config {
     // Armed local-read A/B latch: 1 retains the exact object found during batch prefetch; 0 keeps
     // the legacy hint-only prefetch and execute-time slot reload. Consumes existing bool padding.
     uint8_t  read_local_prefetch_capture = 1;
+    // Boot-latched B+ selector. 1 uses the exact per-key atomic safety filter; 0 preserves the
+    // former whole-shard pending refusal while leaving the read-local customer itself armed.
+    uint8_t  read_local_atomic_filter = 1;
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
     // The two feature gates independently remove their counters, EWMA/census and autonomous
@@ -728,6 +731,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.read_local_prefetch_capture = static_cast<uint8_t>(value);
         }
+        else if (!std::strcmp(a, "--read-local-atomic-filter")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value > 1) {
+                std::fprintf(stderr, "--read-local-atomic-filter wants 0 or 1\n");
+                return kConfigError;
+            }
+            cfg.read_local_atomic_filter = static_cast<uint8_t>(value);
+        }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -1113,6 +1124,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "             (boot-only; defaults 2s, overlap 0 and read-local 0)\n"
                         "             --read-local-interleave 0|1 (boot-only; default 1)\n"
                         "             --read-local-prefetch-capture 0|1 (boot-only; default 1)\n"
+                        "             --read-local-atomic-filter 0|1 (boot-only; default 1)\n"
                         "             (--thread-pipeline is an overlap alias)\n"
                         "             (split/fused are mode aliases)\n"
                         "             (read-local is active only with 1s overlap 0)\n"

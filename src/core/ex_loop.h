@@ -213,7 +213,9 @@ public:
         for (Shard* shard : self_->shards()) {
             shard->bind_notify_pending(&notify_keyless_pending_);
             if (read_local_enabled())
-                shard->store().configure_read_local(true, *read_local_impl().deferred.sink());
+                shard->store().configure_read_local(
+                    true, *read_local_impl().deferred.sink(),
+                    srv_->cfg().read_local_atomic_filter != 0);
         }
     }
 
@@ -924,10 +926,6 @@ private:
                 uint64_t& word = touched[sid >> 6];
                 if (!(word & bit)) {
                     const uint64_t state = store.read_local_state_acquire();
-                    if (FlatStore::read_local_pending(state)) {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::AtomicPending};
-                    }
                     if (!FlatStore::read_local_state_eligible(state)) {
                         retry = true;
                         break;
@@ -1011,15 +1009,15 @@ private:
             read_local_clear_reply(op);
         }
 
-        // Prefer the actionable atomic reason if a pending record won the final retry race.
+        // Prefer the actionable atomic reason if one queried key won the final retry race.
         for (uint32_t key = 0; key < key_count; key++) {
             const uint64_t hash = cached_routes
                 ? hashes[key] : FlatStore::hash_key(op.arg(key + 1));
             const int32_t shard_id = cached_routes
                 ? shards[key] : srv_->router().shard_of(hash);
-            const uint64_t state =
-                srv_->shard(shard_id).store().read_local_state_acquire();
-            if (FlatStore::read_local_pending(state))
+            FlatStore& store = srv_->shard(shard_id).store();
+            const uint64_t state = store.read_local_state_acquire();
+            if (store.foreign_read_key_unsafe(state, hash))
                 return {ReadLocalFallbackReason::AtomicPending};
         }
         return {ReadLocalFallbackReason::SeqChurn};
@@ -1144,9 +1142,9 @@ private:
         for (uint32_t key = 0; key < key_count; key++) {
             const uint64_t hash = FlatStore::hash_key(op.arg(key + 1));
             const int32_t shard_id = srv_->router().shard_of(hash);
-            const uint64_t state =
-                srv_->shard(shard_id).store().read_local_state_acquire();
-            if (FlatStore::read_local_pending(state))
+            FlatStore& store = srv_->shard(shard_id).store();
+            const uint64_t state = store.read_local_state_acquire();
+            if (store.foreign_read_key_unsafe(state, hash))
                 return {ReadLocalFallbackReason::AtomicPending};
         }
         return {ReadLocalFallbackReason::SeqChurn};
@@ -1259,7 +1257,7 @@ private:
 
         read_local_clear_reply(op);
         const uint64_t state = store.read_local_state_acquire();
-        if (FlatStore::read_local_pending(state))
+        if (store.foreign_read_key_unsafe(state, op.hash))
             return {ReadLocalFallbackReason::AtomicPending};
         return {ReadLocalFallbackReason::SeqChurn};
     }

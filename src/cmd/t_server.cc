@@ -329,6 +329,9 @@ void init_config(const Config& cfg) {
     g_config.push_back({"read-local-prefetch-capture", ConfigKind::Unsigned,
                         std::to_string(static_cast<uint32_t>(
                             cfg.read_local_prefetch_capture)), true});
+    g_config.push_back({"read-local-atomic-filter", ConfigKind::Unsigned,
+                        std::to_string(static_cast<uint32_t>(
+                            cfg.read_local_atomic_filter)), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,
@@ -1646,6 +1649,9 @@ void cmd_info(Shard&, Op& op) {
              watch_reservation_waits = 0, watch_reservation_coexist = 0,
              watch_reservation_precommit_aborts = 0;
     uint64_t hash_field_expires = 0, expired_hash_fields = 0;
+    uint64_t foreign_read_unsafe_refs = 0, foreign_read_occupied_cells = 0,
+             foreign_read_wildcard_cells = 0, foreign_read_saturated_cells = 0,
+             foreign_read_poisoned_shards = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
              tls_handshakes_completed = 0, tls_handshakes_failed = 0,
              tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
@@ -1681,6 +1687,11 @@ void cmd_info(Shard&, Op& op) {
             atomic_pending_entries += sh.store().atomic_pending_entries();
             atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
             atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
+            foreign_read_unsafe_refs += sh.store().foreign_read_unsafe_refs();
+            foreign_read_occupied_cells += sh.store().foreign_read_occupied_cells();
+            foreign_read_wildcard_cells += sh.store().foreign_read_wildcard_cells();
+            foreign_read_saturated_cells += sh.store().foreign_read_saturated_cells();
+            foreign_read_poisoned_shards += sh.store().foreign_read_poisoned();
             blocking_waiters += sh.blocking_waiters();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
@@ -2253,6 +2264,17 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->flip_conservation_checks() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_violations() : 0));
+        appendf(body,
+                "foreign_read_unsafe_refs:%llu\r\n"
+                "foreign_read_occupied_cells:%llu\r\n"
+                "foreign_read_wildcard_cells:%llu\r\n"
+                "foreign_read_saturated_cells:%llu\r\n"
+                "foreign_read_poisoned_shards:%llu\r\n",
+                static_cast<unsigned long long>(foreign_read_unsafe_refs),
+                static_cast<unsigned long long>(foreign_read_occupied_cells),
+                static_cast<unsigned long long>(foreign_read_wildcard_cells),
+                static_cast<unsigned long long>(foreign_read_saturated_cells),
+                static_cast<unsigned long long>(foreign_read_poisoned_shards));
         appendf(body,
                 "read_local_hits:%llu\r\n"
                 "read_local_keyspace_hits:%llu\r\n"

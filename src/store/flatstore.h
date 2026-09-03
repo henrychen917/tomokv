@@ -77,6 +77,7 @@
 #include "../cmd/notify.h"
 #include "kvobj.h"
 #include "atomic_mvcc.h"
+#include "foreign_read_safety.h"
 #include "read_local_reclaim.h"
 #include "../snapshot/format.h"
 #include "../persist/aof.h"
@@ -490,10 +491,17 @@ class FlatStore;
 // the historical AtomicPendingState body and nothing else.
 struct ReadLocalStoreState {
     AtomicPendingState atomic;
+    // `publication` is the all-answer-changing generation consumed only by local MGET. The
+    // independent probe sequence changes for topology and atomic physical exchanges, but not an
+    // ordinary immutable one-slot SET; single-key GET therefore keeps its established no-unrelated-
+    // writer-churn behavior while still enclosing the pending-key filter check.
     std::atomic<uint64_t> publication{0};
+    std::atomic<uint64_t> probe_sequence{0};
     ReadLocalRetireSink retire_sink{};
     uint32_t table_mutation_depth = 0;
+    uint32_t publication_mutation_depth = 0;
     uint32_t pending_count = 0;
+    ForeignReadSafety foreign_reads{};
 };
 static_assert(std::is_standard_layout_v<ReadLocalStoreState>);
 static_assert(offsetof(ReadLocalStoreState, atomic) == 0);
@@ -553,15 +561,15 @@ public:
     };
     struct ReadLocalTopology { ReadLocalTable tables[2]; };
 
-    // One boot-latched publication word for foreign fused readers. Bit 0 is set only while table
-    // topology or a bulk table clear is changing (including old-to-new rehash moves), bit 1
-    // conservatively publishes whether ANY prepared atomic entry exists, and bits 2..63 are the
-    // validation generation. Stable immutable-object slot swaps never write this word. The
-    // generation advances on those table changes and once when an atomic-pending interval closes,
-    // preventing an atomic-1 MGET from accepting a complete pending 0->1->0 ABA between its copies.
+    // Both read-local sequence words share this layout. Bit 0 is open while a mutation is being
+    // published; bit 1 remains the legacy whole-shard pending marker used as an invariant/fail-
+    // closed witness; bits 2..63 are an ABA-resistant generation. Per-key probes use the topology/
+    // atomic sequence, while MGET's command-wide sweep uses the all-write publication generation.
     static constexpr uint64_t kReadLocalTableMutationBit = uint64_t{1} << 0;
     static constexpr uint64_t kReadLocalPendingBit = uint64_t{1} << 1;
     static constexpr uint32_t kReadLocalGenerationShift = 2;
+    static constexpr uint64_t kReadLocalGenerationMask =
+        std::numeric_limits<uint64_t>::max() >> kReadLocalGenerationShift;
 
     class ReadLocalTableGuard {
     public:
@@ -578,6 +586,27 @@ public:
             other.store_ = nullptr;
         }
         ReadLocalTableGuard& operator=(ReadLocalTableGuard&&) = delete;
+
+    private:
+        FlatStore* store_;
+    };
+
+    class ReadLocalPublicationGuard {
+    public:
+        explicit ReadLocalPublicationGuard(FlatStore& store, bool active = true)
+            : store_(active ? &store : nullptr) {
+            if (store_) store_->read_local_publication_mutation_begin();
+        }
+        ~ReadLocalPublicationGuard() {
+            if (store_) store_->read_local_publication_mutation_end();
+        }
+        ReadLocalPublicationGuard(const ReadLocalPublicationGuard&) = delete;
+        ReadLocalPublicationGuard& operator=(const ReadLocalPublicationGuard&) = delete;
+        ReadLocalPublicationGuard(ReadLocalPublicationGuard&& other) noexcept
+            : store_(other.store_) {
+            other.store_ = nullptr;
+        }
+        ReadLocalPublicationGuard& operator=(ReadLocalPublicationGuard&&) = delete;
 
     private:
         FlatStore* store_;
@@ -624,7 +653,8 @@ public:
 
     // Enabled is boot-latched. The sink may be rebound only at a quiesced fused ownership handoff;
     // false keeps the old store path and every installed writer hook predicted cold.
-    void configure_read_local(bool enabled, ReadLocalRetireSink sink) {
+    void configure_read_local(bool enabled, ReadLocalRetireSink sink,
+                              bool atomic_filter = true) {
         if (enabled && !sink.defer) std::abort();
         if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
             if (enabled && !sink.recycler_bound()) std::abort();
@@ -638,6 +668,10 @@ public:
         if (enabled && atomic_pending_entries() != 0) std::abort();
         ReadLocalStoreState* state = read_local_store_state();
         if (enabled && !state) std::abort();
+        if (enabled) {
+            if (read_local_enabled_ && read_local_atomic_filter_ != atomic_filter) std::abort();
+            read_local_atomic_filter_ = atomic_filter;
+        }
         if constexpr (kReadLocalSetTaxAtomicRaw) {
             // Persistence/bootstrap may have used the ordinary overwrite path before the boot latch
             // is exposed. Establish fixed atomic payload cells for that final image while no foreign
@@ -669,8 +703,12 @@ public:
         read_local_store_state_required().retire_sink = sink;
     }
     bool read_local_enabled() const { return read_local_enabled_; }
+    bool read_local_atomic_filter_enabled() const { return read_local_atomic_filter_; }
 
     uint64_t read_local_state_acquire() const {
+        return read_local_store_state_required().probe_sequence.load(std::memory_order_acquire);
+    }
+    uint64_t local_publication_generation_acquire() const {
         return read_local_store_state_required().publication.load(std::memory_order_acquire);
     }
     static bool read_local_table_mutating(uint64_t state) {
@@ -679,35 +717,88 @@ public:
     static uint32_t read_local_pending(uint64_t state) {
         return (state & kReadLocalPendingBit) ? 1u : 0u;
     }
+    static uint64_t local_publication_generation(uint64_t state) {
+        return state >> kReadLocalGenerationShift;
+    }
+    static bool local_publication_generation_poisoned(uint64_t state) {
+        return local_publication_generation(state) == kReadLocalGenerationMask;
+    }
     static bool read_local_state_eligible(uint64_t state) {
-        return (state & (kReadLocalTableMutationBit | kReadLocalPendingBit)) == 0;
+        return !read_local_table_mutating(state) &&
+               !local_publication_generation_poisoned(state);
+    }
+    static bool local_publication_generation_stable(uint64_t state) {
+        return !read_local_table_mutating(state) &&
+               !local_publication_generation_poisoned(state);
+    }
+    static bool local_publication_generation_equal(uint64_t first, uint64_t second) {
+        return local_publication_generation(first) == local_publication_generation(second);
     }
     [[nodiscard]] ReadLocalTableGuard read_local_table_guard() {
         return ReadLocalTableGuard(*this);
     }
 
+    bool foreign_read_key_unsafe(uint64_t state, uint64_t hash) const {
+        // Pending is also the cheap empty-filter hint. It stays latched if filter bookkeeping ever
+        // permanently poisons, so short-circuiting here cannot turn that fail-closed state into a
+        // false negative after the last enumerable entry drains.
+        if (!read_local_pending(state)) return false;
+        if (!read_local_atomic_filter_) return true;
+        return read_local_store_state_required().foreign_reads.might_contain(hash);
+    }
+    bool foreign_read_key_unsafe(uint64_t hash) const {
+        const uint64_t state = read_local_state_acquire();
+        return foreign_read_key_unsafe(state, hash);
+    }
+    static uint32_t foreign_read_filter_index(uint64_t hash) {
+        return ForeignReadSafety::cell_index(hash);
+    }
+    static uint32_t foreign_read_filter_fingerprint(uint64_t hash) {
+        return ForeignReadSafety::fingerprint(hash);
+    }
+    uint64_t foreign_read_unsafe_refs() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        return state ? state->foreign_reads.unsafe_total_refs() : 0;
+    }
+    uint64_t foreign_read_occupied_cells() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        return state ? state->foreign_reads.occupied_cells() : 0;
+    }
+    uint64_t foreign_read_wildcard_cells() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        return state ? state->foreign_reads.wildcard_cells() : 0;
+    }
+    uint64_t foreign_read_saturated_cells() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        return state ? state->foreign_reads.saturated_cells() : 0;
+    }
+    bool foreign_read_poisoned() const {
+        const ReadLocalStoreState* state = read_local_store_state();
+        return state && state->foreign_reads.poison_refs() != 0;
+    }
+
     ReadLocalProbe read_local_probe(uint64_t hash, Slice key) const {
         if (__builtin_expect(!read_local_enabled_, false)) return {};
         const uint64_t state = read_local_state_acquire();
-        if (read_local_pending(state))
+        if (foreign_read_key_unsafe(state, hash))
             return {ReadLocalProbeResult::AtomicPending, nullptr, state};
-        if (read_local_table_mutating(state))
+        if (!read_local_state_eligible(state))
             return {ReadLocalProbeResult::Churn, nullptr, state};
 
         ReadLocalTopology topology;
         if (!read_local_snapshot_topology(state, topology)) {
             const uint64_t changed = read_local_state_acquire();
-            return {read_local_pending(changed) ? ReadLocalProbeResult::AtomicPending
-                                                : ReadLocalProbeResult::Churn,
+            return {foreign_read_key_unsafe(changed, hash)
+                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
                     nullptr, changed};
         }
 
         const KvObj* object = read_local_find_in(topology.tables[0], hash, key);
         if (!object) object = read_local_find_in(topology.tables[1], hash, key);
         const uint64_t final_state = read_local_state_acquire();
-        if (final_state != state) {
-            return {read_local_pending(final_state) ? ReadLocalProbeResult::AtomicPending
-                                                    : ReadLocalProbeResult::Churn,
+        if (!read_local_probe_sequence_equal(final_state, state)) {
+            return {foreign_read_key_unsafe(final_state, hash)
+                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
                     nullptr, final_state};
         }
         return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing,
@@ -716,7 +807,7 @@ public:
 
     bool read_local_validate(uint64_t state) const {
         return read_local_enabled_ && read_local_state_eligible(state) &&
-               read_local_state_acquire() == state;
+               read_local_probe_sequence_equal(read_local_state_acquire(), state);
     }
 
     void read_local_prefetch(uint64_t hash) const {
@@ -736,16 +827,16 @@ public:
         if (__builtin_expect(!read_local_enabled_, false))
             return {ReadLocalProbeResult::Churn, nullptr, nullptr, 0};
         const uint64_t state = read_local_state_acquire();
-        if (read_local_pending(state))
+        if (foreign_read_key_unsafe(state, hash))
             return {ReadLocalProbeResult::AtomicPending, nullptr, nullptr, state};
-        if (read_local_table_mutating(state))
+        if (!read_local_state_eligible(state))
             return {ReadLocalProbeResult::Churn, nullptr, nullptr, state};
 
         ReadLocalTopology topology;
         if (!read_local_snapshot_topology(state, topology)) {
             const uint64_t changed = read_local_state_acquire();
-            return {read_local_pending(changed) ? ReadLocalProbeResult::AtomicPending
-                                                : ReadLocalProbeResult::Churn,
+            return {foreign_read_key_unsafe(changed, hash)
+                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
                     nullptr, nullptr, changed};
         }
 
@@ -759,9 +850,9 @@ public:
             if (old_slot) slot = old_slot;
         }
         const uint64_t final_state = read_local_state_acquire();
-        if (final_state != state) {
-            return {read_local_pending(final_state) ? ReadLocalProbeResult::AtomicPending
-                                                    : ReadLocalProbeResult::Churn,
+        if (!read_local_probe_sequence_equal(final_state, state)) {
+            return {foreign_read_key_unsafe(final_state, hash)
+                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
                     nullptr, nullptr, final_state};
         }
         if (object) read_local_prefetch_object(object);
@@ -2463,6 +2554,7 @@ private:
 #endif
             return OverwriteResult::NotPossible;
         }
+        ReadLocalPublicationGuard answer_change(*this);
         object->open_raw_sequence(sequence);
         // The release fence after publishing odd keeps every following relaxed cell store on the
         // far side of the open marker. One shard owner makes locked RMWs unnecessary here.
@@ -2819,6 +2911,7 @@ private:
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
             if (w == 0) {
+                ReadLocalPublicationGuard answer_change(*this);
                 if (first_tomb >= 0) {
                     read_local_slot_store(&tab_[t][first_tomb], make_word(tag, o));
                     tombs_[t]--;
@@ -2846,6 +2939,7 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
+                ReadLocalPublicationGuard answer_change(*this);
                 if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
                     cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
                     (*expired_counter_)++;
@@ -2887,6 +2981,7 @@ private:
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
+                ReadLocalPublicationGuard answer_change(*this);
                 if (was_expired) {
                     *was_expired = (o->flags & KvObjFlags::HasTtl) &&
                                    o->expire_at_ms() <= cached_now_ms_;
@@ -3000,6 +3095,13 @@ private:
         return __atomic_load_n(location, __ATOMIC_ACQUIRE);
     }
 
+    static bool read_local_probe_sequence_equal(uint64_t first, uint64_t second) {
+        // The legacy pending bit is an independent owner-fallback hint. Per-key filter publication
+        // may toggle it for an unrelated key without changing topology, so it is not part of the
+        // point-probe seqlock comparison.
+        return ((first ^ second) & ~kReadLocalPendingBit) == 0;
+    }
+
     bool read_local_snapshot_topology(uint64_t state, ReadLocalTopology& topology) const {
         for (int table = 0; table < 2; table++) {
             topology.tables[table].slots = __atomic_load_n(&tab_[table], __ATOMIC_ACQUIRE);
@@ -3008,7 +3110,7 @@ private:
         }
         // Validate before using a pointer/capacity pair. A final validation alone is too late: a
         // mixed grow/shrink snapshot could otherwise calculate an out-of-bounds slot first.
-        return read_local_state_acquire() == state;
+        return read_local_probe_sequence_equal(read_local_state_acquire(), state);
     }
 
     const KvObj* read_local_find_in(const ReadLocalTable& table, uint64_t hash, Slice key) const {
@@ -3182,20 +3284,39 @@ private:
     void read_local_table_mutation_begin() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
-        if (state.table_mutation_depth++ == 0) read_local_advance_table_generation(false);
+        read_local_publication_mutation_begin();
+        if (state.table_mutation_depth++ == 0)
+            read_local_advance_generation(state.probe_sequence, false);
     }
 
     void read_local_table_mutation_end() {
         if (__builtin_expect(!read_local_enabled_, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
         if (!state.table_mutation_depth) std::abort();
-        if (--state.table_mutation_depth == 0) read_local_advance_table_generation(true);
+        if (--state.table_mutation_depth == 0)
+            read_local_advance_generation(state.probe_sequence, true);
+        read_local_publication_mutation_end();
     }
 
-    // Begin's acq_rel RMW is the writer-side topology barrier: no later pointer/capacity bundle or
-    // old-to-new slot move may precede the open bit. End preserves pending and advances generation.
-    void read_local_advance_table_generation(bool ending) {
-        std::atomic<uint64_t>& publication = read_local_store_state_required().publication;
+    void read_local_publication_mutation_begin() {
+        if (__builtin_expect(!read_local_enabled_, true)) return;
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (state.publication_mutation_depth++ == 0)
+            read_local_advance_generation(state.publication, false);
+    }
+
+    void read_local_publication_mutation_end() {
+        if (__builtin_expect(!read_local_enabled_, true)) return;
+        ReadLocalStoreState& state = read_local_store_state_required();
+        if (!state.publication_mutation_depth) std::abort();
+        if (--state.publication_mutation_depth == 0)
+            read_local_advance_generation(state.publication, true);
+    }
+
+    // Begin's acq_rel RMW is the writer-side publication barrier: no later slot/topology update may
+    // precede the open bit. The high generation saturates into a permanent fail-closed value rather
+    // than wrapping to an equal state after 2^62 publications.
+    static void read_local_advance_generation(std::atomic<uint64_t>& publication, bool ending) {
         if (!ending) {
             const uint64_t previous = publication.fetch_or(
                 kReadLocalTableMutationBit, std::memory_order_acq_rel);
@@ -3205,10 +3326,11 @@ private:
         uint64_t observed = publication.load(std::memory_order_relaxed);
         for (;;) {
             if (!(observed & kReadLocalTableMutationBit)) std::abort();
-            const uint64_t desired =
-                (((observed >> kReadLocalGenerationShift) + uint64_t{1})
-                     << kReadLocalGenerationShift) |
-                (observed & kReadLocalPendingBit);
+            const uint64_t generation = observed >> kReadLocalGenerationShift;
+            const uint64_t next = generation == kReadLocalGenerationMask
+                ? generation : generation + 1;
+            const uint64_t desired = (next << kReadLocalGenerationShift) |
+                                     (observed & kReadLocalPendingBit);
             if (publication.compare_exchange_weak(
                     observed, desired, std::memory_order_release, std::memory_order_relaxed))
                 return;
@@ -3217,38 +3339,37 @@ private:
 
     void read_local_pending_publish(AtomicEntry& entry) {
         if (!read_local_enabled_) std::abort();
-        if (entry.read_local_pending_published) std::abort();
+        if (entry.foreign_read_unsafe_published) std::abort();
         ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_)
+            state.foreign_reads.add_span(entry.capacity, [&](uint32_t index) {
+                return atomic_entry_hash(entry, index);
+            });
         if (state.pending_count == UINT32_MAX) std::abort();
         if (state.pending_count++ == 0) {
-            const uint64_t previous = state.publication.fetch_or(
+            const uint64_t previous = state.probe_sequence.fetch_or(
                 kReadLocalPendingBit, std::memory_order_acq_rel);
-            if (previous & kReadLocalPendingBit) std::abort();
+            if ((previous & kReadLocalPendingBit) &&
+                !state.foreign_reads.permanently_poisoned()) std::abort();
         }
-        entry.read_local_pending_published = true;
+        entry.foreign_read_unsafe_published = true;
     }
 
     void read_local_pending_unpublish(AtomicEntry& entry) {
-        if (__builtin_expect(!entry.read_local_pending_published, true)) return;
+        if (__builtin_expect(!entry.foreign_read_unsafe_published, true)) return;
         ReadLocalStoreState& state = read_local_store_state_required();
+        if (read_local_atomic_filter_)
+            state.foreign_reads.close_span(entry.capacity, [&](uint32_t index) {
+                return atomic_entry_hash(entry, index);
+            });
         if (!state.pending_count) std::abort();
-        if (--state.pending_count == 0) {
-            // MGET atomic-1 snapshots several keys before their final state validation. Merely
-            // clearing pending would make a complete 0->1->0 atomic group invisible (ABA), so the
-            // one close of the whole pending interval also advances the validation generation.
-            uint64_t observed = state.publication.load(std::memory_order_relaxed);
-            for (;;) {
-                if (!(observed & kReadLocalPendingBit)) std::abort();
-                const uint64_t desired =
-                    (((observed >> kReadLocalGenerationShift) + uint64_t{1})
-                         << kReadLocalGenerationShift) |
-                    (observed & kReadLocalTableMutationBit);
-                if (state.publication.compare_exchange_weak(
-                        observed, desired, std::memory_order_release,
-                        std::memory_order_relaxed)) break;
-            }
+        if (--state.pending_count == 0 &&
+            !state.foreign_reads.permanently_poisoned()) {
+            const uint64_t previous = state.probe_sequence.fetch_and(
+                ~kReadLocalPendingBit, std::memory_order_release);
+            if (!(previous & kReadLocalPendingBit)) std::abort();
         }
-        entry.read_local_pending_published = false;
+        entry.foreign_read_unsafe_published = false;
     }
 
     bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
@@ -3386,8 +3507,9 @@ private:
     uint64_t*   evicted_counter_ = nullptr;
     uint64_t*   rehash_counter_ = nullptr;
     bool        maxmemory_enabled_ = false;
-    // Boot-latched read-local gate consumes baseline padding; the armed state itself is sidecarred.
+    // Boot-latched read-local gates consume baseline padding; armed state itself is sidecarred.
     bool        read_local_enabled_ = false;
+    bool        read_local_atomic_filter_ = false;
     uint64_t    maxmemory_limit_ = 0;
     MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
     uint32_t    maxmemory_samples_ = 5;

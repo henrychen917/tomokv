@@ -35,9 +35,9 @@ struct AtomicEntry {
     uint32_t capacity = 0;
     uint32_t key_len = 0;
     bool linked = false;
-    // Set after prepare publishes this entry in FlatStore's read-local pending bit. It remains set
-    // through physical install, linking and collapse, and is cleared only by atomic_free_entry().
-    bool read_local_pending_published = false;
+    // Set after prepare publishes every key occurrence in the foreign-read safety filter (and the
+    // legacy whole-shard pending witness). It remains set through install, linking and collapse.
+    bool foreign_read_unsafe_published = false;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -48,7 +48,7 @@ struct AtomicEntry {
     bool plain() const { return group == nullptr; }
 };
 
-// The read-local pending marker consumes existing tail padding. Atomic entries are pooled by
+// The foreign-read lifetime marker consumes existing tail padding. Atomic entries are pooled by
 // allocation class, so growing the header would change both the disabled allocation path and its
 // cache geometry.
 static_assert(sizeof(AtomicEntry) == 144);
