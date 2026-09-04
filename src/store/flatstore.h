@@ -199,7 +199,12 @@ public:
         return insert_raw(rehashing() ? 1 : 0, hash, deadline);
     }
 
+    // Erasing from an index with nothing LIVE in it is a PROVEN no-op, not an approximation:
+    // erase_in() only ever clears a kLive slot, and it changes nothing else. So this guard is
+    // exact, and it is the only skip that is. Do NOT make the erase conditional on "the key has a
+    // deadline" instead -- see track_expire() for the two things that would break.
     bool erase(uint64_t hash) {
+        if (size() == 0) return false;
         bool removed = erase_in(1, hash);
         if (!removed) removed = erase_in(0, hash);
         if (removed && size() == 0) collapse_empty();
@@ -1940,6 +1945,21 @@ private:
         if (!object) return true;
         const int64_t at = object->expire_at_ms();
         if (at >= 0) return expires_.insert(hash, at);
+        // The un-TTL'd store never reaches the index at all. Repeated here rather than left to
+        // ExpireIndex::erase() so the CALL goes too, which is most of what it cost.
+        //
+        // The erase itself STAYS, and it is load-bearing. `SET k v EX 10` then `SET k v` clears
+        // the deadline (redis semantics) and this is what takes the hash back out. Two things
+        // break if a stale entry is allowed to survive instead:
+        //   - INFO keyspace `expires` is expires_.size(); tests/expireindex.py asserts that count
+        //     EXACTLY (== n, == 0), so it would over-report until active expiry happened to
+        //     resample the hash;
+        //   - with TOMO_TTL_DEADLINE_SIDECAR=1 (src/store/store_ttl.h) deadline() reads the
+        //     deadline back OUT of this index, so a stale entry resurrects the TTL the SET just
+        //     cleared -- a wrong answer, not a slow one.
+        // Reaping alone would tolerate a false positive (active_expire() cleans stale trackers,
+        // and the index is documented hash-only, "may carry a deadline"); those two do not.
+        if (expires_.size() == 0) return true;
         expires_.erase(hash);
         return true;
     }
@@ -2330,7 +2350,7 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key() == protected_key) continue;
+            if (!candidate || candidate->key().key_eq(protected_key)) continue;
             if (atomic_has_record(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
@@ -2498,7 +2518,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;                     // EMPTY — the only stop
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) return o;
+            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2512,7 +2532,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) { slot = i; return o; }
+            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) { slot = i; return o; }
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2592,6 +2612,12 @@ private:
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            // The ONE key-equality site left on memcmp, and it is measured, not an oversight.
+            // This loop holds enough live state that inlining the byte compare cost 13
+            // instructions of extra spill on EVERY first insert -- more than the compare saves,
+            // and the compare itself almost never runs (it needs a 15-bit tag match: a real
+            // replacement or a collision). Both spellings are exact byte equality over the same
+            // bytes, so no path can answer differently; only the inlining policy differs.
             else if (tag_of_word(w) == tag && cur->key() == key) {
                 if (fresh && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
@@ -2622,7 +2648,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) {
+            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) {
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
@@ -3039,7 +3065,7 @@ private:
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
                 ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key() == protected_key) continue;
+            if (!candidate || candidate->key().key_eq(protected_key)) continue;
             if (atomic_has_record(hash_key(candidate->key()), candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
@@ -3129,6 +3155,7 @@ private:
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
+            // Same measured exception as insert_into: memcmp here, not the inline compare.
             else if (tag_of_word(w) == tag && cur->key() == key) {
                 if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
@@ -3166,7 +3193,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) {
+            if (o && tag_of_word(w) == tag && o->key().key_eq(key)) {
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
@@ -3321,7 +3348,7 @@ private:
             const KvObj* object = ptr_of(word);
             if (object && tag_of_word(word) == tag) {
                 const uint8_t flags = object->read_local_flags();
-                if (object->read_local_key(flags) == key) return object;
+                if (object->read_local_key(flags).key_eq(key)) return object;
             }
             slot = (slot + 1) & table.mask;
         }
@@ -3341,7 +3368,7 @@ private:
             const KvObj* object = ptr_of(word);
             if (object && tag_of_word(word) == tag) {
                 const uint8_t flags = object->read_local_flags();
-                if (object->read_local_key(flags) == key) return object;
+                if (object->read_local_key(flags).key_eq(key)) return object;
             }
             slot = (slot + 1) & table.mask;
         }

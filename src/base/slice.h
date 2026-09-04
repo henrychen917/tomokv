@@ -16,6 +16,45 @@
 
 namespace tomo {
 
+// ---- key byte equality ------------------------------------------------------------------------
+// The store's key comparison. Every FlatStore probe run ends here, so it is the hottest comparison
+// in the server, and the shipped build reached it through `memcmp@plt`. What that call costs is
+// NOT mainly the PLT hop: glibc's vector memcmp is about 22 instructions end to end for a key this
+// short. It is the CALL — four caller-saved registers spilled and reloaded around it because the
+// probe loop holds live state across the comparison. Removing the call is what pays, and what it
+// pays is about 17 instructions on a GET hit with a 24-byte key (-1.0%) -- not the 5.6% the
+// nallocx PLT removal bought. The full before/after table is in the commit message.
+//
+// Contract, and the two properties that make it SAFE:
+//   - EQUALITY ONLY. This never yields memcmp's three-way order. Ordering comparisons (ZRANGEBYLEX,
+//     SORT, ACL selector order, the cross-shard merge) still call memcmp and must keep doing so.
+//   - It reads at most `n` bytes from each side and assumes no NUL terminator. Slices point INTO
+//     the connection read buffer and into KvObj key slices a foreign fused reader may be scanning;
+//     glibc's vector memcmp may read past `n` within a page, this never does. That also keeps the
+//     ASAN build clean.
+//
+// Shape: overlapping word pairs, not a loop and not a per-word branch ladder. A probe that reaches
+// the byte compare has already matched the 15-bit tag AND the length, so a mismatch is rare and an
+// early exit buys nothing — OR the differences together and test once. The tail word is re-read at
+// [n-8, n) rather than masked. Below 8 bytes that overlap would leave the buffer, so 4..7 uses two
+// overlapping 4-byte loads and 1..3 compares {first, middle, last}, which at those lengths is
+// every byte. Above the ceiling the vector memcmp wins outright and gets the work back.
+inline constexpr uint32_t kInlineByteEqualMax = 32;
+
+__attribute__((always_inline)) inline bool bytes_equal(const char* a, const char* b, uint32_t n) {
+    auto ld8 = [](const char* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
+    auto ld4 = [](const char* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
+    if (__builtin_expect(n >= 8, 1)) {
+        if (__builtin_expect(n > kInlineByteEqualMax, false)) return std::memcmp(a, b, n) == 0;
+        uint64_t d = (ld8(a) ^ ld8(b)) | (ld8(a + n - 8) ^ ld8(b + n - 8));
+        if (n > 16) d |= (ld8(a + 8) ^ ld8(b + 8)) | (ld8(a + n - 16) ^ ld8(b + n - 16));
+        return d == 0;
+    }
+    if (n >= 4) return ((ld4(a) ^ ld4(b)) | (ld4(a + n - 4) ^ ld4(b + n - 4))) == 0;
+    if (n == 0) return true;
+    return a[0] == b[0] && a[n >> 1] == b[n >> 1] && a[n - 1] == b[n - 1];
+}
+
 struct Slice {
     const char* p = nullptr;
     uint32_t    n = 0;
@@ -29,9 +68,19 @@ struct Slice {
     const char* end() const { return p + n; }
     std::string_view sv() const { return {p, n}; }
 
+    // General slice equality: values, members, fields, patterns. Lengths vary widely here and
+    // glibc's vector memcmp is the right tool, so this stays a library call.
     bool operator==(const Slice& o) const {
         return n == o.n && (n == 0 || std::memcmp(p, o.p, n) == 0);
     }
+
+    // KEY equality. Length first (in a probe run a length mismatch is the common rejection, and it
+    // is one register compare), then the inline byte compare. Every key-identity LOOKUP in the
+    // store goes through this one member -- FlatStore's probes, the fused read-local probes, the
+    // atomic entry and script-intent scans -- so those paths cannot drift apart. The one deliberate
+    // exception is FlatStore::insert_into(), which keeps operator== for a measured reason stated
+    // there; both are exact byte equality, so the answer is the same either way.
+    bool key_eq(const Slice& o) const { return n == o.n && bytes_equal(p, o.p, n); }
 
     // Case-insensitive compare against a literal — command names arrive in any case. CONTRACT:
     // the LITERAL must be lowercase. Only the left side is folded (one fold per byte on the verb
