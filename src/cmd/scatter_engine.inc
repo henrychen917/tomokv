@@ -91,8 +91,8 @@ struct KeyRef {
     uint64_t hash = 0;
     uint32_t arg = 0;
     int32_t shard = -1;
-    KvObj* stable_object = nullptr;          // entry key identity; never copied into the entry
-    KvObj* key_anchor = nullptr;             // rare absent-DEL identity, freed with ScatterState
+    KvObj* stable_object = nullptr;          // value-backed entry key identity
+    KvObj* key_anchor = nullptr;             // uninstalled value ownership, freed with ScatterState
 };
 
 struct ResultHeap {
@@ -2481,9 +2481,18 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             const uint32_t owner_slot = state.server->executor_slot(owner_thread_id);
             if (owner_slot >= state.owner_slots) std::abort();
             auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
+            const bool copy_record_keys = state.kind == Kind::Del || state.kind == Kind::Unlink;
+            uint64_t record_key_bytes = 0;
+            if (copy_record_keys) {
+                for (uint32_t i = 0; i < group.count; i++) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    record_key_bytes += op.arg(state.keys[pos].arg).n;
+                }
+            }
             void* pending_entry = shard.store().atomic_prepare_group(
                 &state, group.begin, group.count, publish_epoch(state), &state.record_refs,
-                publish_aborted(state), state.origin_conn_id, owner_refs, group.membership);
+                publish_aborted(state), state.origin_conn_id, owner_refs, group.membership,
+                copy_record_keys, record_key_bytes);
             if (!pending_entry) {
                 group.error = WorkError::Oom;
                 state.aborted.store(true, std::memory_order_release);
@@ -2550,16 +2559,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         if (duplicate) break;
                     }
                     state.status[pos] = visible && !duplicate;
-                    // DEL installs no object of its own. Keep key identity in the group arena's
-                    // anchor rather than in its parked predecessor: prefix promotion may splice
-                    // and retire that predecessor while a later DEL entry is still pending.
-                    key.key_anchor = xshard_make_string(key_slice, Slice{});
-                    if (!key.key_anchor) {
-                        group.error = WorkError::Oom;
-                        state.aborted.store(true, std::memory_order_release);
-                        break;
-                    }
-                    key.stable_object = key.key_anchor;
+                    // DEL installs no object of its own. atomic_install_group copies key identity
+                    // into this owner span's packed record tail before the record is published.
                     KvObj* old = shard.store().atomic_install_group(
                         pending_entry, key.hash, key_slice, nullptr);
                     if (old) parked_bytes += kvobj_size(old);
