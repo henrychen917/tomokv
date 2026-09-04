@@ -1064,6 +1064,28 @@ public:
         return try_overwrite(h, key, val);
     }
 
+    // Same-object rewrite of an integer-encoded string, allocation-free. An Enc::Int value has a
+    // fixed footprint and is never borrowed (GET copies integers), so beyond the key being present
+    // the only eligibility is that its deadline does not change: the INCR family passes the
+    // deadline it read, SET passes -1 and so requires a TTL-free key (SET clears TTL). Armed
+    // stores keep immutable replacement -- the same law as try_overwrite -- so this is the
+    // unarmed owner path only.
+    OverwriteResult try_overwrite_int(uint64_t h, Slice key, int64_t value, int64_t expire_at_ms) {
+        if (__builtin_expect(read_local_enabled_, false)) return OverwriteResult::NotPossible;
+        KvObj* o = find_without_touch(h, key);
+        if (!o) return OverwriteResult::NotPossible;
+        if (o->encoding() != Enc::Int || static_cast<Type>(o->type) != Type::String)
+            return OverwriteResult::NotPossible;
+        if (o->expire_at_ms() != expire_at_ms) return OverwriteResult::NotPossible;
+        // The incoming footprint is the resident one; the disabled-feature tax is this branch.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(key, kvobj_size(o))) return OverwriteResult::MaxmemoryOom;
+            touch(o);
+        }
+        o->set_int_value(value);
+        return OverwriteResult::Updated;
+    }
+
     // Variant B draws only inline String blocks from the owner-thread QSBR cache. Extern keeps its
     // independent value allocation and therefore stays on the immutable baseline allocator path.
     KvObj* make_set_string(Slice key, Slice value, int64_t expire_at_ms = -1) {
