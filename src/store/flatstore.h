@@ -3348,7 +3348,21 @@ private:
             const KvObj* object = ptr_of(word);
             if (object && tag_of_word(word) == tag) {
                 const uint8_t flags = object->read_local_flags();
-                if (object->read_local_key(flags).key_eq(key)) return object;
+                // MEMCMP HERE, not Slice::key_eq -- the same measured exception insert_into makes,
+                // and for the same reason: this loop holds enough live state (the topology
+                // snapshot, the slot cursor, the mask, the tag) that inlining the byte compare
+                // costs more in spill than the call costs. It is not a small effect and it is not
+                // on a cold path. Armed GET hit, instructions per operation, read-local probe slope
+                // over 9M ops, --shards 64 --thread-mode 1s --read-local 1 --atomic 1, two threads:
+                //     key           16       24       40
+                //     key_eq    1789.7   1814.1   1848.3
+                //     memcmp    1764.2   1783.2   1813.1     (-25.5, -30.9, -35.2)
+                // The unarmed replay the inline compare was tuned on never reaches this function,
+                // which is how it came to be converted: read_local_find_in and
+                // read_local_capture_in only run with --read-local 1 in fused mode.
+                // Both spellings are exact byte equality over the same bytes, so no path can
+                // answer differently; only the inlining policy differs.
+                if (object->read_local_key(flags) == key) return object;
             }
             slot = (slot + 1) & table.mask;
         }
@@ -3368,7 +3382,8 @@ private:
             const KvObj* object = ptr_of(word);
             if (object && tag_of_word(word) == tag) {
                 const uint8_t flags = object->read_local_flags();
-                if (object->read_local_key(flags).key_eq(key)) return object;
+                // memcmp, for the reason spelled out in read_local_find_in above.
+                if (object->read_local_key(flags) == key) return object;
             }
             slot = (slot + 1) & table.mask;
         }
