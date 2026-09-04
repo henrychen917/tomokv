@@ -37,18 +37,23 @@ tables invariant change at the same logical points as today.
 
 Replace the three command-specific answers with one fixed-capacity span list
 produced beside `classify`. Each span names an argv start, count, stride, and
-whether those keys are mutated. Dynamic forms (numkeys families, streams,
-scripts, SORT STORE, and GEO store variants) are parsed there; simple forms use
-the same compact representation. The routing path flattens the spans instead of
-calling `key_count_for`/`key_arg_for`; the localfast program-order fence walks all
-spans; the local snapshot COW gate walks only write spans. There is no heap
-allocation for the span list and no fourth command table.
+whether those keys need a local snapshot pre-image. Dynamic forms (numkeys
+families, streams, scripts, SORT STORE, and GEO store variants) are parsed
+there; simple forms use the same compact representation. Generic
+`key_count_for`/`key_arg_for` flatten the plan for routing; the localfast
+program-order fence walks all spans; the local snapshot COW gate walks only
+snapshot-write spans. There is no heap allocation for the span list, and none
+of these three consumers retains a per-command position table. The separate
+local AOF post-image policy is outside this oracle: its emitted set is not the
+snapshot-write subset (for example, existing COPY logging names both source
+and destination).
 
 This preserves routing order, including destination-first STORE forms, because
 downstream scatter code indexes results by the flattened order. Parse failure is
-returned to the existing caller with its parser-produced reply. The XREAD and
-XREADGROUP locations therefore have one source of truth for routing, fences, and
-snapshot preparation.
+returned to the existing caller; option parsers retain their parser-produced
+reply, while count-only owner replay cannot fail after IO validation. The XREAD
+and XREADGROUP locations therefore have one source of truth for routing, fences,
+and snapshot preparation.
 
 ## Laws and measurement
 

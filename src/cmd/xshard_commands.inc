@@ -317,6 +317,161 @@ bool classify(const Op& op, Kind& kind) {
     return false;
 }
 
+bool append_key_span(const Op& op, XshardKeyPlan& keys, uint32_t first,
+                     uint32_t count, uint32_t step, XshardKeyUse use) {
+    if (!count) return true;
+    if (!step || keys.span_count >= 2 ||
+        count > UINT32_MAX - keys.key_count) return false;
+    const uint64_t last = static_cast<uint64_t>(first) +
+                          static_cast<uint64_t>(count - 1) * step;
+    if (last >= op.argc()) return false;
+    keys.spans[keys.span_count++] = XshardKeySpan{first, count, step, use};
+    keys.key_count += count;
+    return true;
+}
+
+bool classify_keys(const Op& op, Kind kind, const XshardKeyHints& hints,
+                   XshardKeyPlan& keys) {
+    keys = XshardKeyPlan{};
+    const auto add_read = [&](uint32_t first, uint32_t count, uint32_t step = 1) {
+        return append_key_span(op, keys, first, count, step, XshardKeyUse::Read);
+    };
+    const auto add_write = [&](uint32_t first, uint32_t count, uint32_t step = 1) {
+        return append_key_span(op, keys, first, count, step, XshardKeyUse::SnapshotWrite);
+    };
+    const uint32_t after_command = op.argc() > 1 ? op.argc() - 1 : 0;
+
+    switch (kind) {
+        case Kind::AllShards:
+        case Kind::DebugReload:
+        case Kind::DebugLoadAof:
+        case Kind::DebugBorrowCount:
+        case Kind::DbsizeExact:
+        case Kind::Keys:
+            return true;
+        case Kind::Mget:
+        case Kind::Exists:
+        case Kind::Touch:
+        case Kind::Pfcount:
+        case Kind::Sinter:
+        case Kind::Sunion:
+        case Kind::Sdiff:
+            return add_read(1, after_command);
+        case Kind::Mset:
+        case Kind::Msetnx:
+            return add_write(1, after_command / 2, 2);
+        case Kind::Del:
+        case Kind::Unlink:
+            return add_write(1, after_command);
+        // Option-hidden stream positions live here once for routing, the own-write fence, and
+        // snapshot COW. Keeping XREADGROUP writable is the S2 invariant.
+        case Kind::Xread:
+            return add_read(hints.first, hints.count);
+        case Kind::Xreadgroup:
+            return add_write(hints.first, hints.count);
+        case Kind::Lcs:
+            return add_read(1, 2);
+        case Kind::Rename:
+        case Kind::Renamenx:
+        case Kind::Smove:
+        case Kind::Lmove:
+        case Kind::Rpoplpush:
+            return add_write(1, 2);
+        case Kind::Copy:
+            return add_read(1, 1) && add_write(2, 1);
+        case Kind::Sintercard:
+            return add_read(2, hints.count);
+        case Kind::Sinterstore:
+        case Kind::Sunionstore:
+        case Kind::Sdiffstore:
+            return add_write(1, 1) && add_read(2, op.argc() - 2);
+        case Kind::Zunion:
+        case Kind::Zinter:
+        case Kind::Zdiff:
+        case Kind::Zintercard:
+            return add_read(2, hints.count);
+        case Kind::Zunionstore:
+        case Kind::Zinterstore:
+        case Kind::Zdiffstore:
+            return add_write(1, 1) && add_read(3, hints.count);
+        case Kind::Bitop:
+            return add_write(2, 1) && add_read(3, op.argc() - 3);
+        case Kind::Pfmerge:
+            return add_write(1, 1) && add_read(2, op.argc() - 2);
+        case Kind::Lmpop:
+        case Kind::Zmpop:
+            return add_write(2, hints.count);
+        case Kind::Zrangestore:
+            return add_write(1, 1) && add_read(2, 1);
+        case Kind::Sort:
+            if (hints.store)
+                return add_write(hints.destination, 1) && add_read(1, 1);
+            return add_read(1, 1);
+        case Kind::Geosearchstore:
+        case Kind::Georadius:
+        case Kind::Georadiusbymember:
+            if (hints.store)
+                return add_write(hints.destination, 1) && add_read(hints.source, 1);
+            return add_read(hints.source, 1);
+        case Kind::Script: {
+            const bool needs_snapshot_cow =
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) != 0;
+            return needs_snapshot_cow
+                ? add_write(hints.first, hints.count)
+                : add_read(hints.first, hints.count);
+        }
+    }
+    return false;
+}
+
+// Owner-side localfast consumers reconstruct only the dynamic positions. xshard_prepare already
+// validated the full grammar before marking an op local, so count-only families do not allocate
+// the weights/result scratch their execution parser already built and discarded on IO.
+bool classify_keys(Op& op, Kind kind, XshardKeyPlan& keys) {
+    XshardKeyHints hints;
+    if (kind == Kind::Sintercard) {
+        int64_t count = 0;
+        if (!parse_i64(op.arg(1), count) || count < 1 ||
+            static_cast<uint64_t>(count) > UINT32_MAX) return false;
+        hints.count = static_cast<uint32_t>(count);
+    } else if (is_any_zsetop(kind)) {
+        int64_t count = 0;
+        const uint32_t count_arg = is_store_zsetop(kind) ? 2 : 1;
+        if (!parse_i64(op.arg(count_arg), count) || count < 1 ||
+            static_cast<uint64_t>(count) > UINT32_MAX) return false;
+        hints.count = static_cast<uint32_t>(count);
+    } else if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
+        int64_t count = 0;
+        if (!parse_i64(op.arg(1), count) || count < 1 ||
+            static_cast<uint64_t>(count) > UINT32_MAX) return false;
+        hints.count = static_cast<uint32_t>(count);
+    } else if (kind == Kind::Sort) {
+        SortOptions options;
+        if (!parse_sort_options(op, options)) return false;
+        hints.store = options.store;
+        hints.destination = options.store_arg;
+    } else if (is_geo_kind(kind)) {
+        GeoRoute route;
+        if (!geo_prepare_route(op, route)) return false;
+        hints.store = route.store;
+        hints.source = route.source_arg;
+        hints.destination = route.destination_arg;
+    } else if (kind == Kind::Xread) {
+        StreamXreadArgs parsed;
+        if (!stream_parse_xread(op, parsed)) return false;
+        hints.first = parsed.first_key;
+        hints.count = parsed.key_count;
+    } else if (kind == Kind::Xreadgroup) {
+        StreamXreadGroupArgs parsed;
+        if (!stream_parse_xreadgroup(op, parsed)) return false;
+        hints.first = parsed.key_arg;
+        hints.count = 1;
+    } else if (kind == Kind::Script) {
+        if (!command_script_key_range(op, hints.first, hints.count)) return false;
+    }
+    return classify_keys(static_cast<const Op&>(op), kind, hints, keys);
+}
+
 
 bool decode_elements(const ObjectImage& image, std::vector<std::string>& out) {
     out.clear();
