@@ -144,20 +144,36 @@ public:
 
     // The armed coarse parser owns the local-read slot bitmap and write generations. Resolve the
     // preceding candidate before recycling a position; ordinary acquire() above stays baseline.
-    Op* acquire_read_local(uint8_t route_flags = 0) {
-        if (read_local_state_active()) {
-            ReadLocalRobState& state = read_local_state_required();
-            read_local_resolve_pending(state);
-            read_local_try_deactivate(state);
-        }
-        if (full()) return nullptr;
-        const uint32_t index = static_cast<uint32_t>(dispatch_id()) & kMask;
+    //
+    // SHAPE, not policy: this body performs exactly what the single-function version performed, in
+    // the same order. The write-generation resolution moved behind a noinline call because with it
+    // inline the function reached 917 bytes and GCC declined to inline it into the (very large)
+    // parse loop -- so every armed frame paid a call and a register-allocation barrier to discover
+    // that no write generation was live. acquire() next door, which is the same shape minus that
+    // machinery, inlines at every one of its call sites.
+    __attribute__((always_inline)) Op* acquire_read_local(uint8_t route_flags = 0) {
+        if (__builtin_expect(read_local_state_active(), false)) resolve_read_local_write();
+        // One dispatch load serves the window test and the slot index. Only this connection's io
+        // thread stores dispatch_ (see the header note), and nothing between the two uses stores
+        // it, so the second load the previous shape performed could only return the same value.
+        const uint64_t dispatch = dispatch_.load(std::memory_order_relaxed);
+        if (static_cast<uint32_t>(dispatch - flush_id()) >= Capacity) return nullptr;
+        const uint32_t index = static_cast<uint32_t>(dispatch) & kMask;
         const uint64_t keep = ~(uint64_t{1} << index);
         read_local_pending_slots_ &= keep;
         read_local_owner_slots_ &= keep;
         Op* op = slot(index, true);
         op->reset_read_local(route_flags);
         return op;
+    }
+
+    // Cold half of acquire_read_local: a write generation is live, so the staged candidate from the
+    // previous frame must be resolved into the ring (or into an overflow generation) before this
+    // position is recycled.
+    __attribute__((noinline)) void resolve_read_local_write() {
+        ReadLocalRobState& state = read_local_state_required();
+        read_local_resolve_pending(state);
+        read_local_try_deactivate(state);
     }
 
     // Publish the slot claimed by acquire(). RELEASE: everything written into the slot must be
@@ -177,12 +193,23 @@ public:
     // already-executed read without adding any hook to ordinary publish or retirement.
     // `keys` must cover every hash read_local_command_touches_hash() can report for this op: the
     // demotion planner's pre-check treats a filter miss as proof that no pending read overlaps.
-    void mark_current_read_local(const ReadLocalPendingFilter& keys) {
-        const uint64_t bit =
-            uint64_t{1} << (static_cast<uint32_t>(dispatch_id()) & kMask);
-        if (read_local_owner_slots_ & bit) std::abort();
-        read_local_pending_slots_ |= bit;
+    // `op_id` must be the current dispatch id -- the caller has just loaded it to name the op it
+    // is about to publish (io_loop.h, the read-local accept arm), so the load is not repeated here.
+    __attribute__((always_inline)) void mark_current_read_local(
+            uint64_t op_id, const ReadLocalPendingFilter& keys) {
+        mark_current_read_local_slot(op_id);
         read_local_pending_filter_.merge(keys);
+    }
+
+    // Point form. A marked read that is not an MGET reports exactly one hash to every predicate
+    // that consults this filter: read_local_command_touches_hash() takes its non-MGET/non-precise-
+    // MSET branch for such an op and compares op.hash alone, and the keyset overlap predicates use
+    // read.hash alone. Merging a four-word summary whose other three words the caller had just
+    // zeroed set the identical bits at three times the traffic.
+    __attribute__((always_inline)) void mark_current_read_local_hash(
+            uint64_t op_id, uint64_t hash) {
+        mark_current_read_local_slot(op_id);
+        read_local_pending_filter_.add(hash);
     }
 
     // False proves that no still-pending local read may touch `hash`; true only means "walk".
@@ -297,6 +324,11 @@ public:
     // current dispatch id; EX callers pass the local task's id so a younger demotion cannot fence
     // an older read. The predicate supplies GET/MGET keyset overlap without teaching the ROB how
     // commands encode keys.
+    // NOT split the way acquire_read_local and read_local_write_conflicts are. This one is
+    // instantiated once per predicate lambda -- about a dozen times across the parser and the fused
+    // drain, most of them cold -- so forcing its shell inline duplicated it at every site: +2613
+    // bytes of fused parse and +1367 of fused drain, for 0.13 points MORE instructions per read.
+    // Measured, not assumed: scratchpad/robdiet/bisect.csv, arm D against arm C.
     template <typename Match>
     bool read_local_owner_conflicts_before(uint64_t before_id, Match&& match) {
         if (!read_local_owner_slots_) return false;
@@ -390,14 +422,24 @@ public:
     }
 
     // Hash collisions deliberately conflict. Empty is the pure-GET fast path: it avoids even the
-    // flush frontier load. Otherwise prune the retired FIFO prefix, then scan at most sixteen
-    // write descriptors (normally one to four). Hash entries compare directly; exact keyset
-    // entries ask the caller to inspect their still-live ROB argv. Overflow remains conservative
-    // until every write published during that overflow generation has retired.
+    // flush frontier load -- and that emptiness test is this shell, which stays inline. It was
+    // already the merged function's first line, but the merged function was 612 bytes and out of
+    // line, so a pure GET paid a call to be told that nothing was pending.
     template <typename KeysetTouchesHash>
-    bool read_local_write_conflicts(uint64_t hash,
-                                    KeysetTouchesHash&& keyset_touches_hash) {
+    __attribute__((always_inline)) bool read_local_write_conflicts(
+            uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
         if (!read_local_state_active()) return false;
+        return read_local_write_conflicts_pending(
+            hash, static_cast<KeysetTouchesHash&&>(keyset_touches_hash));
+    }
+
+    // A write generation is live: prune the retired FIFO prefix, then scan at most sixteen write
+    // descriptors (normally one to four). Hash entries compare directly; exact keyset entries ask
+    // the caller to inspect their still-live ROB argv. Overflow remains conservative until every
+    // write published during that overflow generation has retired. Unchanged from the merged form.
+    template <typename KeysetTouchesHash>
+    __attribute__((noinline)) bool read_local_write_conflicts_pending(
+            uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
         ReadLocalRobState& state = read_local_state_required();
         const bool has_keysets =
             state.pending_write == ReadLocalRobState::PendingWrite::Keyset ||
@@ -542,6 +584,13 @@ private:
             state.pending_write == ReadLocalRobState::PendingWrite::None &&
             state.local_mget_fence_id == UINT64_MAX)
             read_local_state_ |= kReadLocalStateInactive;
+    }
+
+    // Slot half shared by both mark_current_read_local forms.
+    __attribute__((always_inline)) void mark_current_read_local_slot(uint64_t op_id) {
+        const uint64_t bit = uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
+        if (read_local_owner_slots_ & bit) std::abort();
+        read_local_pending_slots_ |= bit;
     }
 
     void read_local_clear_mget_fence(uint64_t op_id) {

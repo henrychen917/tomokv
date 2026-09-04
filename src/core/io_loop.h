@@ -3993,8 +3993,9 @@ private:
             [[maybe_unused]] bool read_local_commit_at_ordinary = false;
             [[maybe_unused]] bool read_local_commit_before_lowering = false;
             [[maybe_unused]] bool read_local_point_prehashed = false;
-            // Keys a local read hands to Rob::mark_current_read_local: the point hash, or every
-            // MGET key hashed by the eligibility walk below (no second hashing pass).
+            // Keys a local read hands to Rob::mark_current_read_local: every MGET key hashed by
+            // the eligibility walk below (no second hashing pass). A point read reports exactly
+            // one hash and reaches mark_current_read_local_hash() without building a summary.
             [[maybe_unused]] ReadLocalPendingFilter read_local_pending_keys{};
             // Owner-task demand this read would need if demoted: GET one, MGET its touched-shard
             // bound. Computed once here; the lane room gate and the lane append both consume it.
@@ -5080,8 +5081,12 @@ ordinary_dispatch:
                         op->mark_read_local();
                         // Every hash read_local_command_touches_hash(*op, .) can match must enter
                         // the pending filter here (GET: op->hash; MGET: the keys hashed above).
-                        if (!read_local_mget_candidate) read_local_pending_keys.add(op->hash);
-                        rob.mark_current_read_local(read_local_pending_keys);
+                        // A point read reports exactly one, so it sets that word directly instead
+                        // of merging a summary whose other three words it had just zeroed.
+                        if (read_local_mget_candidate)
+                            rob.mark_current_read_local(op_id, read_local_pending_keys);
+                        else
+                            rob.mark_current_read_local_hash(op_id, op->hash);
                         if (read_local_mget_candidate)
                             rob.arm_current_local_mget_fence();
                         rob.publish();
