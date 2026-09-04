@@ -91,8 +91,8 @@ struct KeyRef {
     uint64_t hash = 0;
     uint32_t arg = 0;
     int32_t shard = -1;
-    KvObj* stable_object = nullptr;          // entry key identity; never copied into the entry
-    KvObj* key_anchor = nullptr;             // rare absent-DEL identity, freed with ScatterState
+    KvObj* stable_object = nullptr;          // value-backed entry key identity
+    KvObj* key_anchor = nullptr;             // uninstalled value ownership, freed with ScatterState
 };
 
 struct ResultHeap {
@@ -111,6 +111,33 @@ struct RouteKey {
     uint64_t hash = 0;
     uint32_t arg = 0;
     int32_t shard = -1;
+};
+
+enum class XshardKeyUse : uint8_t { Read, SnapshotWrite };
+
+struct XshardKeySpan {
+    uint32_t first = 0;
+    uint32_t count = 0;
+    uint32_t step = 1;
+    XshardKeyUse use = XshardKeyUse::Read;
+};
+
+// Every supported argv shape is at most two ordered spans: destination/source forms deliberately
+// keep their execution-sensitive order. This is stack-only classification state, not arena state.
+struct XshardKeyPlan {
+    XshardKeySpan spans[2];
+    uint32_t span_count = 0;
+    uint32_t key_count = 0;
+};
+
+// xshard_prepare has already parsed these values for execution. Passing that result into the key
+// oracle avoids parsing option grammars or allocating parser scratch a second time on IO.
+struct XshardKeyHints {
+    uint32_t first = 0;
+    uint32_t count = 0;
+    uint32_t source = 1;
+    uint32_t destination = 0;
+    bool store = false;
 };
 
 constexpr uint32_t kRouteStack = 32;
@@ -602,6 +629,9 @@ void finish_lcs(ScatterState& state);
 void set_oom(Op& op);
 void reply_work_error(Op& op, WorkError error);
 bool classify(const Op& op, Kind& kind);
+bool classify_keys(const Op& op, Kind kind, const XshardKeyHints& hints,
+                   XshardKeyPlan& keys);
+bool classify_keys(Op& op, Kind kind, XshardKeyPlan& keys);
 bool bitop_operation(Slice name, BitOperation& operation);
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id);
@@ -636,45 +666,23 @@ bool first_error(const ScatterState& state, WorkError& error) {
     return false;
 }
 
-uint32_t key_count_for(Kind kind, const Op& op, uint32_t sinter_count,
-                       uint32_t mpop_count, bool sort_store, uint32_t xread_count = 0,
-                       uint32_t zset_count = 0, bool geo_store = false) {
-    if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) return 0;
-    if (kind == Kind::Mset || kind == Kind::Msetnx) return (op.argc() - 1) / 2;
-    if (kind == Kind::Bitop) return op.argc() - 2;
-    if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Copy ||
-        kind == Kind::Smove || kind == Kind::Lmove || kind == Kind::Rpoplpush) return 2;
-    if (kind == Kind::Sintercard) return sinter_count;
-    if (is_any_zsetop(kind)) return zset_count + (is_store_zsetop(kind) ? 1 : 0);
-    if (is_geo_kind(kind)) return geo_store ? 2 : 1;
-    if (kind == Kind::Lmpop || kind == Kind::Zmpop) return mpop_count;
-    if (kind == Kind::Zrangestore) return 2;
-    if (kind == Kind::Lcs) return 2;
-    if (kind == Kind::Sort) return sort_store ? 2 : 1;
-    if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_count;
-    if (kind == Kind::Script) {
-        uint32_t first = 0, count = 0;
-        return command_script_key_range(op, first, count) ? count : 0;
-    }
-    return op.argc() - 1;
+uint32_t key_count_for(const XshardKeyPlan& keys, bool snapshot_writes_only = false) {
+    if (!snapshot_writes_only) return keys.key_count;
+    uint32_t count = 0;
+    for (uint32_t i = 0; i < keys.span_count; i++)
+        if (keys.spans[i].use == XshardKeyUse::SnapshotWrite) count += keys.spans[i].count;
+    return count;
 }
 
-uint32_t key_arg_for(Kind kind, uint32_t key, uint32_t, uint32_t sort_store_arg,
-                     uint32_t xread_first_key = 0, bool geo_store = false,
-                     uint32_t geo_source_arg = 1, uint32_t geo_destination_arg = 0) {
-    if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + key * 2;
-    if (kind == Kind::Bitop) return 2 + key;
-    if (kind == Kind::Sintercard) return 2 + key;
-    if (is_any_zsetop(kind))
-        return is_store_zsetop(kind) ? (key == 0 ? 1 : 2 + key) : 2 + key;
-    if (is_geo_kind(kind))
-        return geo_store ? (key == 0 ? geo_destination_arg : geo_source_arg) : geo_source_arg;
-    if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + key;
-    if (kind == Kind::Sort && sort_store_arg) return key == 0 ? sort_store_arg : 1;
-    if (kind == Kind::Xread || kind == Kind::Xreadgroup) return xread_first_key + key;
-    if (kind == Kind::Script) return 3 + key;
-    return 1 + key;
+uint32_t key_arg_for(const XshardKeyPlan& keys, uint32_t key,
+                     bool snapshot_writes_only = false) {
+    for (uint32_t i = 0; i < keys.span_count; i++) {
+        const XshardKeySpan& span = keys.spans[i];
+        if (snapshot_writes_only && span.use != XshardKeyUse::SnapshotWrite) continue;
+        if (key < span.count) return span.first + key * span.step;
+        key -= span.count;
+    }
+    std::abort();
 }
 
 bool has_values(Kind kind, bool atomic_write) {
@@ -1327,6 +1335,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
          kind == Kind::Touch) && op.argc() == 2) return ScatterPrepare::NotScatter;
     if (kind == Kind::Pfcount && op.argc() == 2) return ScatterPrepare::NotScatter;
 
+    XshardKeyHints key_hints;
+    if (kind == Kind::Script) {
+        key_hints.first = script_first;
+        key_hints.count = script_count;
+    }
     std::unique_ptr<SnapshotLoadPlan> reload_plan;
     std::unique_ptr<SnapshotLoadPlan> aof_reload_base;
     std::vector<std::unique_ptr<AofReplayPlan>> aof_reload_increments;
@@ -1454,6 +1467,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             }
             sinter_limit = static_cast<uint64_t>(parsed_limit);
         }
+        key_hints.count = sinter_count;
     }
 
     uint32_t zset_count = 0;
@@ -1465,10 +1479,16 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         !parse_zset_operation(op, kind, zset_count, zset_weights, zset_aggregate,
                               zset_withscores, zset_limit))
         return ScatterPrepare::Error;
+    if (is_any_zsetop(kind)) key_hints.count = zset_count;
 
     GeoRoute geo_route;
     if (is_geo_kind(kind) && !geo_prepare_route(op, geo_route))
         return ScatterPrepare::Error;
+    if (is_geo_kind(kind)) {
+        key_hints.store = geo_route.store;
+        key_hints.source = geo_route.source_arg;
+        key_hints.destination = geo_route.destination_arg;
+    }
 
     uint32_t mpop_count = 0;
     bool pop_edge = false;
@@ -1476,6 +1496,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if ((kind == Kind::Lmpop || kind == Kind::Zmpop) &&
         !parse_mpop(op, kind, mpop_count, pop_edge, pop_count))
         return ScatterPrepare::Error;
+    if (kind == Kind::Lmpop || kind == Kind::Zmpop) key_hints.count = mpop_count;
 
     ImageRangeOptions range_options;
     ImageRangeSpec range_spec;
@@ -1487,6 +1508,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     SortOptions sort_options;
     if (kind == Kind::Sort && !parse_sort_options(op, sort_options))
         return ScatterPrepare::Error;
+    if (kind == Kind::Sort) {
+        key_hints.store = sort_options.store;
+        key_hints.destination = sort_options.store_arg;
+    }
     StreamXreadArgs xread_options;
     if (kind == Kind::Xread && !stream_parse_xread(op, xread_options))
         return ScatterPrepare::Error;
@@ -1496,6 +1521,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         xread_options.first_key = xreadgroup_options.key_arg;
         xread_options.key_count = 1;
         xread_options.block = xreadgroup_options.block && xreadgroup_options.new_entries;
+    }
+    if (kind == Kind::Xread || kind == Kind::Xreadgroup) {
+        key_hints.first = xread_options.first_key;
+        key_hints.count = xread_options.key_count;
     }
     const bool atomic_apply = kind == Kind::Script || ((atomic_enabled || script_guard) &&
         is_atomic_apply_kind(kind, sort_options.store, geo_route.store));
@@ -1545,9 +1574,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         from_left = false; to_left = true;
     }
 
-    const uint32_t key_count = key_count_for(kind, op, sinter_count, mpop_count,
-                                             sort_options.store, xread_options.key_count,
-                                             zset_count, geo_route.store);
+    XshardKeyPlan classified_keys;
+    if (!classify_keys(op, kind, key_hints, classified_keys)) {
+        reply_err(op.sink(), "ERR internal cross-shard key classification error");
+        return ScatterPrepare::Error;
+    }
+    const uint32_t key_count = key_count_for(classified_keys);
     RouteKey route_stack[kRouteStack];
     RouteKey* routes = route_stack;
     if (key_count > kRouteStack) {
@@ -1555,9 +1587,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         if (!routes) { set_oom(op); return ScatterPrepare::Error; }
     }
     for (uint32_t i = 0; i < key_count; i++) {
-        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_options.store_arg,
-                                         xread_options.first_key, geo_route.store,
-                                         geo_route.source_arg, geo_route.destination_arg);
+        const uint32_t arg = key_arg_for(classified_keys, i);
         const uint64_t hash = FlatStore::hash_key(op.arg(arg));
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
@@ -1947,7 +1977,7 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
 }
 
 void xshard_aof_emit_local(Shard& shard, Op& op, AofOwnerContext& context) {
-    // Script commands take the local-xshard route but are deliberately absent from classify().
+    // Script commands need grouped AOF treatment before the ordinary local post-image policy.
     // Their declared KEYS range is the closed touched set enforced by the Lua bridge. Preserve one
     // script activation as one AOF group so recovery can never apply only part of a multi-key
     // effect. The *_RO rows are Readonly and must not produce post images.
@@ -2442,18 +2472,19 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         const uint64_t floor = state.server->atomic_read_floor();
         if (sort_deref_gathering(state)) {
             SortDerefState& sort = *state.sort_deref;
-            for (uint32_t i = 0; i < group.count; i++) {
-                const SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
-                shard.store().atomic_promote_key(
-                    request.hash, sort_deref_key(request), floor, cleanup_cutoff);
-            }
+            shard.store().atomic_promote_keys(
+                group.count, group.membership, floor, cleanup_cutoff, [&](uint32_t i) {
+                    const SortDerefRequest& request =
+                        sort.requests[sort.key_order[group.begin + i]];
+                    return std::pair<uint64_t, Slice>{request.hash, sort_deref_key(request)};
+                });
         } else {
-            for (uint32_t i = 0; i < group.count; i++) {
-                const uint32_t pos = state.key_order[group.begin + i];
-                const KeyRef& key = state.keys[pos];
-                shard.store().atomic_promote_key(
-                    key.hash, op.arg(key.arg), floor, cleanup_cutoff);
-            }
+            shard.store().atomic_promote_keys(
+                group.count, group.membership, floor, cleanup_cutoff, [&](uint32_t i) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    const KeyRef& key = state.keys[pos];
+                    return std::pair<uint64_t, Slice>{key.hash, op.arg(key.arg)};
+                });
         }
     }
     struct ReadEpochGuard {
@@ -2489,9 +2520,18 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             const uint32_t owner_slot = state.server->executor_slot(owner_thread_id);
             if (owner_slot >= state.owner_slots) std::abort();
             auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
+            const bool copy_record_keys = state.kind == Kind::Del || state.kind == Kind::Unlink;
+            uint64_t record_key_bytes = 0;
+            if (copy_record_keys) {
+                for (uint32_t i = 0; i < group.count; i++) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    record_key_bytes += op.arg(state.keys[pos].arg).n;
+                }
+            }
             void* pending_entry = shard.store().atomic_prepare_group(
                 &state, group.begin, group.count, publish_epoch(state), &state.record_refs,
-                publish_aborted(state), state.origin_conn_id, owner_refs, group.membership);
+                publish_aborted(state), state.origin_conn_id, owner_refs, group.membership,
+                copy_record_keys, record_key_bytes);
             if (!pending_entry) {
                 group.error = WorkError::Oom;
                 state.aborted.store(true, std::memory_order_release);
@@ -2558,16 +2598,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         if (duplicate) break;
                     }
                     state.status[pos] = visible && !duplicate;
-                    // DEL installs no object of its own. Keep key identity in the group arena's
-                    // anchor rather than in its parked predecessor: prefix promotion may splice
-                    // and retire that predecessor while a later DEL entry is still pending.
-                    key.key_anchor = xshard_make_string(key_slice, Slice{});
-                    if (!key.key_anchor) {
-                        group.error = WorkError::Oom;
-                        state.aborted.store(true, std::memory_order_release);
-                        break;
-                    }
-                    key.stable_object = key.key_anchor;
+                    // DEL installs no object of its own. atomic_install_group copies key identity
+                    // into this owner span's packed record tail before the record is published.
                     KvObj* old = shard.store().atomic_install_group(
                         pending_entry, key.hash, key_slice, nullptr);
                     if (old) parked_bytes += kvobj_size(old);

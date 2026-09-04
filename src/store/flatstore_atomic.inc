@@ -271,13 +271,19 @@
                                std::atomic<uint64_t>* group_epoch,
                                std::atomic<uint32_t>* group_refs,
                                std::atomic<bool>* group_aborted, uint64_t origin_conn_id,
-                               uint32_t* owner_refs, uint64_t membership) {
+                               uint32_t* owner_refs, uint64_t membership,
+                               bool copy_keys = false, uint64_t key_bytes = 0) {
+        if (!copy_keys && key_bytes) std::abort();
         if (__builtin_expect(read_local_enabled_, false))
             return atomic_prepare_group_read_local(
                 group, begin, capacity, group_epoch, group_refs, group_aborted,
-                origin_conn_id, owner_refs, membership);
+                origin_conn_id, owner_refs, membership, copy_keys, key_bytes);
         if (!capacity || !atomic_ensure_pending()) return nullptr;
-        AtomicEntry* entry = atomic_alloc_entry(capacity, 0);
+        if (copy_keys && key_bytes > UINT32_MAX) return nullptr;
+        const uint64_t offsets_bytes = copy_keys
+            ? static_cast<uint64_t>(capacity) * sizeof(uint32_t) : 0;
+        if (key_bytes > UINT64_MAX - offsets_bytes) return nullptr;
+        AtomicEntry* entry = atomic_alloc_entry(capacity, offsets_bytes + key_bytes);
         if (!entry) return nullptr;
         entry->group = group;
         entry->group_epoch = group_epoch;
@@ -288,6 +294,8 @@
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
+        entry->copied_group_keys = copy_keys;
+        if (copy_keys) entry->key_len = static_cast<uint32_t>(key_bytes);
         return entry;
     }
 
@@ -304,14 +312,25 @@
         opaque = nullptr;
     }
 
-    // The caller has initialized the corresponding ScatterState key position to point at stable
-    // KvObj key storage. Capacity was preflighted for the whole pass, so the table exchange cannot
-    // fail. `value == nullptr` is the physical erase used by DEL/UNLINK.
+    // Object-backed groups have initialized the corresponding ScatterState key position; copied
+    // groups own their key bytes in this entry's packed tail. Capacity was preflighted for the
+    // whole pass, so the table exchange cannot fail. `value == nullptr` is the physical erase used
+    // by DEL/UNLINK.
     KvObj* atomic_install_group(void* opaque, uint64_t hash, Slice key, KvObj* value) {
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry || entry->count >= entry->capacity) std::abort();
+        const uint32_t index = entry->count;
+        if (entry->copied_group_keys) {
+            uint32_t* offsets = entry->group_key_offsets();
+            const uint32_t begin = index ? offsets[index - 1] : 0;
+            const uint64_t end = static_cast<uint64_t>(begin) + key.n;
+            if (end > entry->key_len) std::abort();
+            if (key.n) std::memcpy(entry->group_key_data() + begin, key.p, key.n);
+            offsets[index] = static_cast<uint32_t>(end);
+        }
         KvObj* old = atomic_exchange_physical(hash, key, value);
-        entry->parked()[entry->count++] = old;
+        entry->parked()[index] = old;
+        entry->count = index + 1;
         return old;
     }
 
@@ -596,9 +615,43 @@
         return logical < 0 ? 0 : static_cast<uint64_t>(logical);
     }
 
+    // Promotion is task-scoped: prove that any key in the owner span still has a record with one
+    // membership-filtered list walk, then let the key-agnostic collapse reclaim its whole eligible
+    // prefix once. The entry teardown below remains the sole place that closes B+ filter cells.
+    template <typename KeyAt>
+    bool atomic_promote_keys(uint32_t count, uint64_t membership, uint64_t floor,
+                             uint64_t cleanup_cutoff, KeyAt&& key_at) {
+        if (!count || !atomic_pending_ || !atomic_pending_->live) return false;
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!(entry->membership & membership)) continue;
+            for (uint32_t i = 0; i < entry->count; i++) {
+                const uint64_t hash = atomic_entry_hash(*entry, i);
+                if (!(membership & atomic_membership_bit(hash))) continue;
+                const Slice key = atomic_entry_key(*entry, i);
+                for (uint32_t j = 0; j < count; j++) {
+                    const auto [candidate_hash, candidate_key] = key_at(j);
+                    if (candidate_hash == hash && candidate_key == key)
+                        return atomic_collapse(floor, cleanup_cutoff);
+                }
+            }
+        }
+        return false;
+    }
+
+    template <typename KeyAt>
+    bool atomic_promote_keys(uint32_t count, uint64_t floor, uint64_t cleanup_cutoff,
+                             KeyAt&& key_at) {
+        uint64_t membership = 0;
+        for (uint32_t i = 0; i < count; i++)
+            membership |= atomic_membership_bit(key_at(i).first);
+        return atomic_promote_keys(
+            count, membership, floor, cleanup_cutoff, std::forward<KeyAt>(key_at));
+    }
+
     bool atomic_promote_key(uint64_t hash, Slice key, uint64_t floor, uint64_t cleanup_cutoff) {
-        if (!atomic_key_pending(hash, key)) return false;
-        return atomic_collapse(floor, cleanup_cutoff);
+        return atomic_promote_keys(
+            1, atomic_membership_bit(hash), floor, cleanup_cutoff,
+            [&](uint32_t) { return std::pair<uint64_t, Slice>{hash, key}; });
     }
 
     uint32_t atomic_sweep(uint64_t floor, uint64_t cleanup_cutoff, uint32_t budget) {
@@ -669,9 +722,14 @@ private:
         ScatterState* group, uint32_t begin, uint32_t capacity,
         std::atomic<uint64_t>* group_epoch, std::atomic<uint32_t>* group_refs,
         std::atomic<bool>* group_aborted, uint64_t origin_conn_id,
-        uint32_t* owner_refs, uint64_t membership) {
+        uint32_t* owner_refs, uint64_t membership, bool copy_keys,
+        uint64_t key_bytes) {
         if (!capacity || !atomic_ensure_pending()) return nullptr;
-        AtomicEntry* entry = atomic_alloc_entry(capacity, 0);
+        if (copy_keys && key_bytes > UINT32_MAX) return nullptr;
+        const uint64_t offsets_bytes = copy_keys
+            ? static_cast<uint64_t>(capacity) * sizeof(uint32_t) : 0;
+        if (key_bytes > UINT64_MAX - offsets_bytes) return nullptr;
+        AtomicEntry* entry = atomic_alloc_entry(capacity, offsets_bytes + key_bytes);
         if (!entry) return nullptr;
         entry->group = group;
         entry->group_epoch = group_epoch;
@@ -682,6 +740,8 @@ private:
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
+        entry->copied_group_keys = copy_keys;
+        if (copy_keys) entry->key_len = static_cast<uint32_t>(key_bytes);
         // Publish every key occurrence before returning the prepared handle: no caller can perform
         // a physical exchange until an acquiring read-local probe can see its filter cell.
         read_local_pending_publish(*entry);
@@ -806,9 +866,9 @@ private:
         return true;
     }
 
-    AtomicEntry* atomic_alloc_entry(uint32_t capacity, uint32_t key_bytes) {
+    AtomicEntry* atomic_alloc_entry(uint32_t capacity, uint64_t tail_bytes) {
         const uint64_t request64 = sizeof(AtomicEntry) +
-                                   static_cast<uint64_t>(capacity) * sizeof(KvObj*) + key_bytes;
+                                   static_cast<uint64_t>(capacity) * sizeof(KvObj*) + tail_bytes;
         if (request64 > std::numeric_limits<size_t>::max()) return nullptr;
         const size_t request = static_cast<size_t>(request64);
         const size_t allocation = good_size(request);
@@ -884,9 +944,15 @@ private:
     }
 
     Slice atomic_entry_key(const AtomicEntry& entry, uint32_t index) const {
-        return entry.plain()
-            ? Slice(entry.plain_key_data(), entry.key_len)
-            : xshard_atomic_key_slice(entry.group, entry.begin + index);
+        if (entry.plain()) return Slice(entry.plain_key_data(), entry.key_len);
+        if (!entry.copied_group_keys)
+            return xshard_atomic_key_slice(entry.group, entry.begin + index);
+        if (index >= entry.count) std::abort();
+        const uint32_t* offsets = entry.group_key_offsets();
+        const uint32_t begin = index ? offsets[index - 1] : 0;
+        const uint32_t end = offsets[index];
+        if (end < begin || end > entry.key_len) std::abort();
+        return Slice(entry.group_key_data() + begin, end - begin);
     }
 
     bool atomic_key_pending(uint64_t hash, Slice key) const {
@@ -1140,18 +1206,35 @@ private:
     KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key,
                                                KvObj* replacement) {
         // The key filter was release-published before this call. Enclose every possible physical
-        // exchange in the table sequence so a reader that observed the old empty cell cannot
-        // consume an epoch-zero/aborted candidate. The same bracket is what a local MGET compares
-        // on a group-free participant; nested insert/rehash helpers share its owner-local depth.
+        // exchange or direct insertion in the table sequence so a reader that observed the old
+        // empty cell cannot consume an epoch-zero/aborted candidate. The same bracket is what a
+        // local MGET compares on a group-free participant.
         ReadLocalTableGuard atomic_change(*this);
+        uint32_t insertion_slot = 0;
+        bool have_insertion_slot = false;
+        bool insertion_reuses_tomb = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
             uint32_t slot = slot_start(table, hash);
+            uint32_t first_tomb = 0;
+            bool have_first_tomb = false;
+            const bool retain_insertion = replacement && table == 0;
             for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
                 const uint64_t word = tab_[table][slot];
-                if (word == 0) return nullptr;
+                if (word == 0) {
+                    if (retain_insertion) {
+                        insertion_slot = have_first_tomb ? first_tomb : slot;
+                        insertion_reuses_tomb = have_first_tomb;
+                        have_insertion_slot = true;
+                    }
+                    return nullptr;
+                }
                 KvObj* object = ptr_of(word);
+                if (retain_insertion && !object && !have_first_tomb) {
+                    first_tomb = slot;
+                    have_first_tomb = true;
+                }
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
@@ -1170,32 +1253,70 @@ private:
             }
             return nullptr;
         };
+        auto insert_replacement = [&] {
+            if (!replacement) return;
+            if (!have_insertion_slot) std::abort();
+            read_local_slot_store(
+                &tab_[0][insertion_slot], make_word(tag_of(hash), replacement));
+            if (insertion_reuses_tomb) tombs_[0]--;
+            live_[0]++;
+            const size_t added_bytes = kvobj_size(replacement);
+            obj_bytes_ += added_bytes;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().accounting_add_calls++;
+            settax_stats().accounting_bytes += added_bytes;
+#endif
+            if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
+            else {
+                expires_.erase(hash);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().expire_erases++;
+#endif
+            }
+        };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into_read_local(0, hash, replacement, true))
-                    std::abort();
+                insert_replacement();
                 return object;
             }
         }
-        if (replacement && !insert_into_read_local(0, hash, replacement, true)) std::abort();
+        insert_replacement();
         return nullptr;
     }
 
-    // Swap a key's physical representation in its existing probe slot. The old detach+attach pair
-    // searched the table twice and manufactured a tombstone for every promotion; atomic ownership
-    // needs the displaced pointer, so insert_into's ordinary retire-in-place path is not usable.
+    // Swap a key in its existing slot, or retain the first tombstone and terminal empty while
+    // proving it absent so a new replacement installs without repeating the current-table probe.
+    // Atomic ownership needs the displaced pointer, so insert_into's ordinary retire-in-place path
+    // is not usable.
     KvObj* atomic_exchange_physical(uint64_t hash, Slice key, KvObj* replacement) {
         if (__builtin_expect(read_local_enabled_, false))
             return atomic_exchange_physical_read_local(hash, key, replacement);
+        uint32_t insertion_slot = 0;
+        bool have_insertion_slot = false;
+        bool insertion_reuses_tomb = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
             uint32_t slot = slot_start(table, hash);
+            uint32_t first_tomb = 0;
+            bool have_first_tomb = false;
+            const bool retain_insertion = replacement && table == 0;
             for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
                 const uint64_t word = tab_[table][slot];
-                if (word == 0) return nullptr;
+                if (word == 0) {
+                    if (retain_insertion) {
+                        insertion_slot = have_first_tomb ? first_tomb : slot;
+                        insertion_reuses_tomb = have_first_tomb;
+                        have_insertion_slot = true;
+                    }
+                    return nullptr;
+                }
                 KvObj* object = ptr_of(word);
+                if (retain_insertion && !object && !have_first_tomb) {
+                    first_tomb = slot;
+                    have_first_tomb = true;
+                }
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
@@ -1214,14 +1335,24 @@ private:
             }
             return nullptr;
         };
+        auto insert_replacement = [&] {
+            if (!replacement) return;
+            if (!have_insertion_slot) std::abort();
+            tab_[0][insertion_slot] = make_word(tag_of(hash), replacement);
+            if (insertion_reuses_tomb) tombs_[0]--;
+            live_[0]++;
+            obj_bytes_ += kvobj_size(replacement);
+            if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
+            else expires_.erase(hash);
+        };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+                insert_replacement();
                 return object;
             }
         }
-        if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+        insert_replacement();
         return nullptr;
     }
 

@@ -9,9 +9,9 @@ namespace {
 
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
+    // Cleanup is owner-pass work: every caller has already made the pass's single promotion
+    // attempt before asking individual keys whether they still need a version.
     FlatStore& store = shard.store();
-    const uint64_t cleanup_cutoff = server.atomic_snapshot();
-    store.atomic_promote_key(hash, key, server.atomic_read_floor(), cleanup_cutoff);
     const bool had_record = store.atomic_has_record(hash, key);
     // A key reserved by a staged cross-owner script carries no MVCC record of its own, so the
     // record test alone sent this write down the untracked physical path -- it mutated the value
@@ -316,87 +316,34 @@ inline Slice op_routed_key(const Op& op) {
 }
 
 template <typename Fn>
-bool for_each_touched_key(Op& op, Fn&& fn) {
-    if (op.spec->flags & CmdFlags::ScriptRoute) {
-        uint32_t first = 0, count = 0;
-        if (!command_script_key_range(op, first, count)) return false;
-        for (uint32_t i = 0; i < count; i++) {
-            const Slice key = op.arg(first + i);
-            fn(FlatStore::hash_key(key), key);
-        }
-        return true;
-    }
+bool with_touched_keys(Op& op, Fn&& fn) {
     Kind kind;
     if (!classify(op, kind)) {
-        if (op.argc() > 1) fn(op.hash, op_routed_key(op));
+        const uint32_t count = op.argc() > 1 ? 1 : 0;
+        fn(count, [&](uint32_t) {
+            return std::pair<uint64_t, Slice>{op.hash, op_routed_key(op)};
+        });
         return true;
     }
-    // THE STREAM READS NAME THEIR KEYS BEHIND AN OPTION LIST, so the positional table below cannot
-    // place them and used to be handed xread_count == 0: a localfast XREAD/XREADGROUP touched no
-    // key at all. It therefore never deferred behind its own connection's undecided DEL/EXEC on
-    // the stream, and xshard_plain_prepare bound no read context, so the handler resolved at
-    // (latest, no connection) and an own still-private tombstone or XADD was invisible -- the
-    // pipelined `DEL s x` / `XREAD STREAMS s 0` pair answered the deleted stream's entries.
-    // Every op that reaches this function as local_xshard already parsed on IO
-    // (xshard_prepare), so the re-parse cannot fail and never writes to the sink.
-    if (kind == Kind::Xread || kind == Kind::Xreadgroup) {
-        uint32_t first = 0, count = 0;
-        if (kind == Kind::Xread) {
-            StreamXreadArgs parsed;
-            if (!stream_parse_xread(op, parsed)) return false;
-            first = parsed.first_key;
-            count = parsed.key_count;
-        } else {
-            StreamXreadGroupArgs parsed;
-            if (!stream_parse_xreadgroup(op, parsed)) return false;
-            first = parsed.key_arg;
-            count = 1;
-        }
-        for (uint32_t i = 0; i < count; i++) {
-            const Slice key = op.arg(first + i);
-            fn(FlatStore::hash_key(key), key);
-        }
-        return true;
-    }
-    uint32_t sinter_count = 0;
-    uint32_t mpop_count = 0;
-    bool sort_store = false;
-    uint32_t sort_store_arg = 0;
-    uint32_t zset_count = 0;
-    GeoRoute geo_route;
-    if (kind == Kind::Sintercard) {
-        uint64_t parsed = 0;
-        if (parse_u64(op.arg(1), parsed) && parsed <= UINT32_MAX)
-            sinter_count = static_cast<uint32_t>(parsed);
-    } else if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
-        int64_t parsed = 0;
-        if (parse_i64(op.arg(1), parsed) && parsed > 0 && parsed <= UINT32_MAX)
-            mpop_count = static_cast<uint32_t>(parsed);
-    } else if (kind == Kind::Sort) {
-        SortOptions options;
-        if (!parse_sort_options(op, options)) return false;
-        sort_store = options.store;
-        sort_store_arg = options.store_arg;
-    } else if (is_any_zsetop(kind)) {
-        uint64_t limit = 0;
-        std::vector<double> weights;
-        ZAggregate aggregate = ZAggregate::Sum;
-        bool withscores = false;
-        if (!parse_zset_operation(op, kind, zset_count, weights, aggregate, withscores, limit))
-            return false;
-    } else if (is_geo_kind(kind)) {
-        if (!geo_prepare_route(op, geo_route)) return false;
-    }
-    const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store, 0,
-                                         zset_count, geo_route.store);
-    for (uint32_t i = 0; i < count; i++) {
-        const uint32_t arg = key_arg_for(kind, i, sinter_count, sort_store_arg, 0,
-                                         geo_route.store, geo_route.source_arg,
-                                         geo_route.destination_arg);
+    XshardKeyPlan keys;
+    if (!classify_keys(op, kind, keys)) return false;
+    const uint32_t count = key_count_for(keys);
+    fn(count, [&](uint32_t i) {
+        const uint32_t arg = key_arg_for(keys, i);
         const Slice key = op.arg(arg);
-        fn(FlatStore::hash_key(key), key);
-    }
+        return std::pair<uint64_t, Slice>{FlatStore::hash_key(key), key};
+    });
     return true;
+}
+
+template <typename Fn>
+bool for_each_touched_key(Op& op, Fn&& fn) {
+    return with_touched_keys(op, [&](uint32_t count, auto&& key_at) {
+        for (uint32_t i = 0; i < count; i++) {
+            const auto [hash, key] = key_at(i);
+            fn(hash, key);
+        }
+    });
 }
 
 uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
@@ -568,71 +515,13 @@ uint32_t ScatterArenaPool::reap_deferred() {
 }
 
 FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shard) {
-    if (op.spec->flags & CmdFlags::ScriptRoute) {
-        uint32_t first = 0, count = 0;
-        if (!command_script_key_range(op, first, count))
-            return FlatStore::SnapshotWriteResult::Error;
-        while (op.zc_len < count) {
-            const Slice key = op.arg(first + op.zc_len);
-            const auto result = shard.store().snapshot_prepare_write(
-                FlatStore::hash_key(key), key);
-            if (result != FlatStore::SnapshotWriteResult::Ready) return result;
-            op.zc_len++;
-        }
-        return FlatStore::SnapshotWriteResult::Ready;
-    }
     Kind kind;
     if (!classify(op, kind)) return FlatStore::SnapshotWriteResult::Ready;
-    uint32_t count = 0;
-    uint32_t mpop_count = 0;
-    bool pop_edge = false;
-    uint64_t pop_count = 1;
-    SortOptions sort_options;
-    GeoRoute geo_route;
-    if (kind == Kind::Lmpop || kind == Kind::Zmpop) {
-        if (!parse_mpop(op, kind, mpop_count, pop_edge, pop_count))
-            return FlatStore::SnapshotWriteResult::Error;
-    }
-    if (kind == Kind::Sort) {
-        if (!parse_sort_options(op, sort_options))
-            return FlatStore::SnapshotWriteResult::Error;
-        if (!sort_options.store) return FlatStore::SnapshotWriteResult::Ready;
-    }
-    if (is_geo_kind(kind)) {
-        if (!geo_prepare_route(op, geo_route)) return FlatStore::SnapshotWriteResult::Error;
-        if (!geo_route.store) return FlatStore::SnapshotWriteResult::Ready;
-    }
-    // XREADGROUP is the one stream READ that writes (it advances the PEL). Its key sits behind
-    // the option list, so the positional rules below cannot place it; parse it like the fence does.
-    StreamXreadGroupArgs xreadgroup;
-    if (kind == Kind::Xreadgroup && !stream_parse_xreadgroup(op, xreadgroup))
-        return FlatStore::SnapshotWriteResult::Error;
-    auto arg_at = [&](uint32_t i) -> uint32_t {
-        if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + i * 2;
-        if (kind == Kind::Bitop) return 2;
-        if (kind == Kind::Copy) return 2;
-        if (is_store_setop(kind) || is_store_zsetop(kind)) return 1;
-        if (is_geo_kind(kind)) return geo_route.destination_arg;
-        if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + i;
-        if (kind == Kind::Zrangestore) return 1;
-        if (kind == Kind::Sort) return sort_options.store_arg;
-        if (kind == Kind::Xreadgroup) return xreadgroup.key_arg;
-        return 1 + i;
-    };
-    if (kind == Kind::Mset || kind == Kind::Msetnx) count = (op.argc() - 1) / 2;
-    else if (kind == Kind::Del || kind == Kind::Unlink) count = op.argc() - 1;
-    else if (kind == Kind::Copy || is_store_setop(kind) || is_store_zsetop(kind) ||
-             kind == Kind::Bitop) count = 1;
-    else if (is_geo_kind(kind)) count = 1;
-    else if (kind == Kind::Lmpop || kind == Kind::Zmpop) count = mpop_count;
-    else if (kind == Kind::Zrangestore || kind == Kind::Sort) count = 1;
-    else if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Smove ||
-             kind == Kind::Lmove || kind == Kind::Rpoplpush) count = 2;
-    else if (kind == Kind::Xreadgroup) count = 1;
-    else return FlatStore::SnapshotWriteResult::Ready;
-
+    XshardKeyPlan keys;
+    if (!classify_keys(op, kind, keys)) return FlatStore::SnapshotWriteResult::Error;
+    const uint32_t count = key_count_for(keys, true);
     while (op.zc_len < count) {
-        const uint32_t arg = arg_at(op.zc_len);
+        const uint32_t arg = key_arg_for(keys, op.zc_len, true);
         const Slice key = op.arg(arg);
         const uint64_t hash = arg == 1 ? op.hash : FlatStore::hash_key(key);
         const auto result = shard.store().snapshot_prepare_write(hash, key);
@@ -973,7 +862,6 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         bool allocation_failed = false;
         const auto inspect_key = [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
-            store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
             if (!store.atomic_needs_version(hash, key)) return;
             if (!store.atomic_has_record(hash, key) &&
                 (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
@@ -985,10 +873,22 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         };
         bool enumerated = true;
         if (foreign_scope.active && !foreign_scope.poisoned) {
+            store.atomic_promote_keys(
+                static_cast<uint32_t>(foreign_scope.keys.size()), floor, cleanup_cutoff,
+                [&](uint32_t index) {
+                    const PlainForeignReadScope::Key& key = foreign_scope.keys[index];
+                    return std::pair<uint64_t, Slice>{key.hash, key.key};
+                });
             for (const PlainForeignReadScope::Key& key : foreign_scope.keys)
                 inspect_key(key.hash, key.key);
         } else {
-            enumerated = for_each_touched_key(op, inspect_key);
+            enumerated = with_touched_keys(op, [&](uint32_t count, auto&& key_at) {
+                store.atomic_promote_keys(count, floor, cleanup_cutoff, key_at);
+                for (uint32_t i = 0; i < count; i++) {
+                    const auto [hash, key] = key_at(i);
+                    inspect_key(hash, key);
+                }
+            });
         }
         if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }

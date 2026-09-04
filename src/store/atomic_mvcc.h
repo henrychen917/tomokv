@@ -38,12 +38,27 @@ struct AtomicEntry {
     // Set after prepare publishes every key occurrence in the foreign-read safety filter (and the
     // legacy whole-shard pending witness). It remains set through install, linking and collapse.
     bool foreign_read_unsafe_published = false;
+    // DEL/UNLINK groups own packed key bytes in this allocation instead of one empty KvObj per
+    // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
+    bool copied_group_keys = false;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
     char* plain_key_data() { return reinterpret_cast<char*>(parked() + capacity); }
     const char* plain_key_data() const {
         return reinterpret_cast<const char*>(parked() + capacity);
+    }
+    uint32_t* group_key_offsets() {
+        return reinterpret_cast<uint32_t*>(parked() + capacity);
+    }
+    const uint32_t* group_key_offsets() const {
+        return reinterpret_cast<const uint32_t*>(parked() + capacity);
+    }
+    char* group_key_data() {
+        return reinterpret_cast<char*>(group_key_offsets() + capacity);
+    }
+    const char* group_key_data() const {
+        return reinterpret_cast<const char*>(group_key_offsets() + capacity);
     }
     bool plain() const { return group == nullptr; }
 };
