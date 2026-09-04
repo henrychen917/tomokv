@@ -387,10 +387,20 @@
         auto* fresh = static_cast<uint64_t*>(
             flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
+        if (eviction_sidecar_ &&
+            !eviction_sidecar_->prepare_table(static_cast<uint32_t>(wanted),
+                                               flatstore_table_calloc)) {
+            std::free(fresh);
+            return false;
+        }
         tab_[1] = tab_[0]; cap_[1] = cap_[0]; mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         tab_[0] = fresh; cap_[0] = static_cast<uint32_t>(wanted); mask_[0] = cap_[0] - 1;
         live_[0] = tombs_[0] = 0;
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         rehash_pos_ = 0;
         return true;
     }
@@ -570,7 +580,7 @@
     KvObj* atomic_find_tracked(uint64_t hash, Slice key) {
         if (rehashing() && !snapshot_active_) rehash_step();
         KvObj* found = atomic_resolve(hash, key, atomic_read_epoch_);
-        if (__builtin_expect(maxmemory_enabled_, false) && found) touch(found);
+        if (__builtin_expect(maxmemory_enabled_, false) && found) touch(hash, found);
         return found;
     }
 
@@ -725,6 +735,12 @@ private:
         auto* fresh = static_cast<uint64_t*>(
             flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
+        if (eviction_sidecar_ &&
+            !eviction_sidecar_->prepare_table(static_cast<uint32_t>(wanted),
+                                               flatstore_table_calloc)) {
+            std::free(fresh);
+            return false;
+        }
         ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
@@ -734,6 +750,10 @@ private:
         read_local_topology_store(&cap_[0], static_cast<uint32_t>(wanted));
         read_local_topology_store(&mask_[0], static_cast<uint32_t>(wanted) - 1);
         live_[0] = tombs_[0] = 0;
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         rehash_pos_ = 0;
         return true;
     }
@@ -1158,6 +1178,8 @@ private:
         // consume an epoch-zero/aborted candidate. The same bracket is what a local MGET compares
         // on a group-free participant; nested insert/rehash helpers share its owner-local depth.
         ReadLocalTableGuard atomic_change(*this);
+        uint8_t detached_meta = 0;
+        bool detached_had_meta = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
@@ -1169,10 +1191,19 @@ private:
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        const bool reset_meta = eviction_sidecar_ &&
+                            deadline_elapsed(hash, object, cached_now_ms_);
                         replace_expire_tracking(hash, object, replacement);
                         read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
                         obj_bytes_ += kvobj_size(replacement);
+                        if (reset_meta)
+                            eviction_sidecar_->set_meta(
+                                table, slot, initial_eviction_meta());
                     } else {
+                        if (eviction_sidecar_) {
+                            detached_meta = eviction_sidecar_->take_meta(table, slot);
+                            detached_had_meta = true;
+                        }
                         untrack_expire(hash, object);
                         read_local_slot_store(&tab_[table][slot], kTombBit);
                         live_[table]--; tombs_[table]++;
@@ -1186,12 +1217,22 @@ private:
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into_read_local(0, hash, replacement, true))
-                    std::abort();
+                if (replacement) {
+                    const bool inserted = detached_had_meta
+                        ? insert_into_read_local_eviction(0, hash, replacement, true,
+                                                          detached_meta, true)
+                        : insert_into_read_local(0, hash, replacement, true);
+                    if (!inserted) std::abort();
+                }
                 return object;
             }
         }
-        if (replacement && !insert_into_read_local(0, hash, replacement, true)) std::abort();
+        if (replacement) {
+            const bool inserted = eviction_sidecar_
+                ? insert_into_read_local_eviction(0, hash, replacement, true)
+                : insert_into_read_local(0, hash, replacement, true);
+            if (!inserted) std::abort();
+        }
         return nullptr;
     }
 
@@ -1201,6 +1242,8 @@ private:
     KvObj* atomic_exchange_physical(uint64_t hash, Slice key, KvObj* replacement) {
         if (__builtin_expect(read_local_enabled_, false))
             return atomic_exchange_physical_read_local(hash, key, replacement);
+        uint8_t detached_meta = 0;
+        bool detached_had_meta = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
@@ -1212,10 +1255,19 @@ private:
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        const bool reset_meta = eviction_sidecar_ &&
+                            deadline_elapsed(hash, object, cached_now_ms_);
                         replace_expire_tracking(hash, object, replacement);
                         tab_[table][slot] = make_word(tag, replacement);
                         obj_bytes_ += kvobj_size(replacement);
+                        if (reset_meta)
+                            eviction_sidecar_->set_meta(
+                                table, slot, initial_eviction_meta());
                     } else {
+                        if (eviction_sidecar_) {
+                            detached_meta = eviction_sidecar_->take_meta(table, slot);
+                            detached_had_meta = true;
+                        }
                         untrack_expire(hash, object);
                         tab_[table][slot] = kTombBit;
                         live_[table]--; tombs_[table]++;
@@ -1229,11 +1281,22 @@ private:
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+                if (replacement) {
+                    const bool inserted = detached_had_meta
+                        ? insert_into_eviction(0, hash, replacement, true,
+                                               detached_meta, true)
+                        : insert_into(0, hash, replacement, true);
+                    if (!inserted) std::abort();
+                }
                 return object;
             }
         }
-        if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+        if (replacement) {
+            const bool inserted = eviction_sidecar_
+                ? insert_into_eviction(0, hash, replacement, true)
+                : insert_into(0, hash, replacement, true);
+            if (!inserted) std::abort();
+        }
         return nullptr;
     }
 

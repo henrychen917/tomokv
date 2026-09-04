@@ -122,9 +122,9 @@ public:
         store_.set_cached_now_ms(now_ms);
     }
     void set_no_touch(bool value) { store_.set_no_touch(value); }
-    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+    bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
-        store_.configure_maxmemory(enabled, shard_limit, policy, samples);
+        return store_.configure_maxmemory(enabled, shard_limit, policy, samples);
     }
     void bind_atomic_state(FlatStore::AtomicTicketFn ticket_fn, void* ticket_ctx,
                            std::atomic<uint64_t>* activity,

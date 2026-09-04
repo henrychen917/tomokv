@@ -154,10 +154,10 @@ growth; we have no such reservation, so a short appended value stays `embstr`.
 Other OBJECT notes:
 - `REFCOUNT` is always `1`. We have no shared-object table; redis reports `INT_MAX` for its shared
   small integers. Documented, not faked.
-- `IDLETIME` is derived from the same five-bit eviction metadata the victim chooser reads, so it is
-  quantised to `1 << lru-clock-shift` seconds and **wraps after 32 buckets** (~8192 s at the
-  default shift). With `maxmemory` disabled those bits are never written, so it reports `0`.
-- `FREQ` reports the 5-bit LFU counter (max 31), where redis's is 8-bit (max 255).
+- `IDLETIME` is derived from the same maxmemory-only sidecar byte the victim chooser reads, so it is
+  quantised to `1 << lru-clock-shift` seconds and **wraps after 256 buckets** (~18 hours at the
+  default shift). With `maxmemory` disabled the sidecar is absent, so it reports `0`.
+- `FREQ` reports the LFU counter capped at 31, where redis's is 8-bit (max 255).
 - `IDLETIME`/`FREQ` use a **no-touch** lookup (`FlatStore::find_no_touch`), because reporting idle
   time through the ordinary `find()` would reset the very metadata being reported. Redis solves the
   same problem with `LOOKUP_NOTOUCH`.

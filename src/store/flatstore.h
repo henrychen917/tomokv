@@ -75,6 +75,7 @@
 #include "../base/alloc.h"
 #include "../core/atomic_tripwire.h"
 #include "eviction.h"
+#include "eviction_sidecar.h"
 #include "../cmd/notify.h"
 #include "expire_wheel.h"
 #include "kvobj.h"
@@ -783,6 +784,7 @@ public:
                     if (KvObj* o = ptr_of(tab_[t][i])) kvobj_free(o);
                 std::free(tab_[t]);
             }
+        EvictionSidecar::disarm(eviction_sidecar_);
         // Retired objects no longer appear in either table. They remain here only because an io
         // thread may still be handing their value bytes to the kernel.
         for (const Borrow& b : borrows_)
@@ -1121,6 +1123,11 @@ public:
         if (!cap) return SnapshotWriteResult::Error;
         auto* fresh = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
         if (!fresh) return SnapshotWriteResult::Error;
+        if (eviction_sidecar_ &&
+            !eviction_sidecar_->prepare_table(cap, flatstore_table_calloc)) {
+            std::free(fresh);
+            return SnapshotWriteResult::Error;
+        }
         snapshot_new_tab_ = fresh;
         snapshot_new_cap_ = cap;
         snapshot_epoch_ = epoch;
@@ -1140,6 +1147,10 @@ public:
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         tab_[0] = snapshot_new_tab_; cap_[0] = snapshot_new_cap_; mask_[0] = cap_[0] - 1;
         live_[0] = tombs_[0] = 0;
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
         rehash_pos_ = 0;
         snapshot_active_ = true;
@@ -1239,6 +1250,8 @@ public:
 
     void snapshot_cancel() {
         if (snapshot_new_tab_) std::free(snapshot_new_tab_);
+        if (eviction_sidecar_ && eviction_sidecar_->has_prepared())
+            eviction_sidecar_->free_prepared();
         snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
         snapshot_active_ = false; snapshot_failed_ = false; snapshot_finished_ = false;
         snapshot_build_.reset(); snapshot_ready_.reset(); snapshot_record_ = {};
@@ -1254,7 +1267,8 @@ public:
         return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
                                    sizeof(uint64_t)) + obj_bytes_ +
                atomic_version_bytes_ + pending_bytes_ +
-               expires_.memory_bytes() + field_expires_.memory_bytes();
+               expires_.memory_bytes() + field_expires_.memory_bytes() +
+               (eviction_sidecar_ ? eviction_sidecar_->memory_bytes() : 0);
     }
 
     // Collection values grow and shrink behind a stable KvObj header. The shard owner brackets
@@ -1281,7 +1295,7 @@ public:
         // The entire disabled-feature read tax: one predicted branch, no metadata write.
         // CLIENT NO-TOUCH rides INSIDE that branch -- with maxmemory off (the default) the
         // no-touch byte is never even loaded, because && short-circuits.
-        if (__builtin_expect(maxmemory_enabled_ && !no_touch_, false) && found) touch(found);
+        if (__builtin_expect(maxmemory_enabled_ && !no_touch_, false) && found) touch(h, found);
         return found;
     }
 
@@ -1320,7 +1334,7 @@ public:
         // protected while make_room_for() evicts other candidates.
         if (__builtin_expect(maxmemory_enabled_, false)) {
             if (!make_room_for(key, good_size(want))) return OverwriteResult::MaxmemoryOom;
-            touch(o);
+            touch(h, o);
         }
 
         // Same length means the same class and the same footprint: the accounting delta is exactly
@@ -1494,7 +1508,7 @@ public:
     // maxmemory is enabled, so it costs nothing in the default configuration.
     void set_no_touch(bool value) { no_touch_ = value; }
 
-    // OBJECT IDLETIME/FREQ report the same five-bit eviction metadata the victim chooser reads, so
+    // OBJECT IDLETIME/FREQ report the same sidecar byte the victim chooser reads, so
     // they need the policy, the arming flag and the clock that gives the bits their meaning. All
     // three are owner-thread reads of owner-thread state; nothing here is on the lookup path.
     MaxmemoryPolicy maxmemory_policy() const { return maxmemory_policy_; }
@@ -1509,6 +1523,12 @@ public:
     KvObj* find_resident(uint64_t h, Slice key) const {
         if (KvObj* object = find_in(0, h, key)) return object;
         return rehashing() ? find_in(1, h, key) : nullptr;
+    }
+    // Owner-only view of the byte parallel to an exact physical slot. Pending MVCC values do not
+    // own a slot and therefore report zero until they are promoted into table 0.
+    uint8_t eviction_meta_for(uint64_t hash, const KvObj* object) const {
+        const uint8_t* meta = eviction_meta_slot(hash, object);
+        return meta ? *meta : 0;
     }
     // Owner-only deadline accessor. With the prototype selector enabled, a physically TTL-capable
     // object pays one ExpireIndex probe; objects without the slot return before touching sidecar
@@ -1545,12 +1565,22 @@ public:
     // does not move has not exercised resize-during-iteration at all, and its "0 keys missed"
     // would be vacuous.
     void bind_rehash_counter(uint64_t* counter) { rehash_counter_ = counter; }
-    void configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
+    bool configure_maxmemory(bool enabled, uint64_t shard_limit, MaxmemoryPolicy policy,
                              uint32_t samples) {
         maxmemory_enabled_ = enabled;
         maxmemory_limit_ = shard_limit;
         maxmemory_policy_ = policy;
         maxmemory_samples_ = samples == 0 ? 1 : (samples > 64 ? 64 : samples);
+        if (!enabled) {
+            EvictionSidecar::disarm(eviction_sidecar_);
+            return true;
+        }
+
+        const uint32_t prepared_cap = snapshot_prepared_ ? snapshot_new_cap_ : 0;
+        if (!EvictionSidecar::arm(eviction_sidecar_, cap_[0], cap_[1], prepared_cap,
+                                 flatstore_table_calloc))
+            return false;
+        return true;
     }
 
     // An atomic script can roll back every declared key, but an eviction victim is deliberately
@@ -1788,24 +1818,15 @@ public:
         // SUSPENDED while a capture is active: make_room_for deletes sampled victims, and the
         // snapshot write-gate pre-images only the incoming command's key — an evicted, unvisited
         // frozen victim would vanish from the dump.  The capture window is short and bounded.
-        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
-            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
-            if (o->eviction_meta() == 0) initialize_meta(o);
+        // Reuse the one historical maxmemory branch as the dispatch into a separately instantiated
+        // slot path. The false instantiation contains no sidecar load or metadata branch, preserving
+        // maxmemory=0 SET instruction shape.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(), kvobj_size(o)))
+                return InsertResult::MaxmemoryOom;
+            return finish_insert<true>(h, o);
         }
-        // The exact wheel may allocate for this object identity. Prepare it before evicting an old
-        // table copy so OOM leaves both the table and its old timer untouched. The sampler keeps
-        // its historical post-publication registration order.
-        if (!prepare_expire_install(h, o)) return InsertResult::Failed;
-        // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
-        // and the key resurrects — see the header.
-        if (rehashing()) {
-            bool expired = false;
-            if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
-                (*expired_counter_)++;
-        }
-        if (insert_into(0, h, o, true)) return InsertResult::Inserted;
-        cancel_prepared_expire_install(h, o);
-        return InsertResult::Failed;
+        return finish_insert<false>(h, o);
     }
 
     InsertResult insert_notify(uint64_t h, KvObj* o, FlatNotifySink* sink) {
@@ -1873,6 +1894,15 @@ public:
         // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
         // table and never exposes a half-demoted state.
         uint64_t* fresh = allocate_table(1024);
+        if (fresh && eviction_sidecar_) {
+            // snapshot_prepare owns the one unpublished metadata array until snapshot_mark/cancel.
+            // FLUSH remains infallible by retaining table 0 when that transaction is in flight.
+            if (eviction_sidecar_->has_prepared() ||
+                !eviction_sidecar_->prepare_table(1024, flatstore_table_calloc)) {
+                std::free(fresh);
+                fresh = nullptr;
+            }
+        }
         // Exact wheel identities must disappear before any object can enter retirement.
         expires_.clear();
         for (int t = 0; t < 2; t++) {
@@ -1883,16 +1913,21 @@ public:
                 std::memset(tab_[0], 0, static_cast<size_t>(
                     static_cast<uint64_t>(cap_[0]) * sizeof(uint64_t)));
                 live_[0] = tombs_[0] = 0;
+                if (eviction_sidecar_) eviction_sidecar_->clear_table(0);
                 continue;
             }
             std::free(tab_[t]);
+            if (eviction_sidecar_) eviction_sidecar_->free_table(t);
             tab_[t] = nullptr;
             cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
         }
         field_expires_.clear();
         field_ttl_gate_ = 0;
         rehash_pos_ = 0;
-        if (fresh) install_empty_table(0, fresh, 1024);
+        if (fresh) {
+            install_empty_table(0, fresh, 1024);
+            if (eviction_sidecar_) eviction_sidecar_->install_prepared(0);
+        }
     }
 
     // FLUSH after its scatter gate has prepared every frozen pre-image.  Preserve both table
@@ -1912,6 +1947,7 @@ public:
                     tab_[t][i] = kTombBit;
                     live_[t]--;
                     tombs_[t]++;
+                    if (eviction_sidecar_) eviction_sidecar_->clear_meta(t, i);
                 }
             }
         }
@@ -2396,55 +2432,56 @@ private:
 
     uint8_t lru_clock() const { return cached_lru_clock_; }
 
-    void initialize_meta(KvObj* o) {
-        if (__builtin_expect(read_local_enabled_, false)) {
-            initialize_meta_read_local(o);
-            return;
-        }
-        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            o->set_eviction_meta(lru_clock());
-        } else if (maxmemory_policy_is_lfu(maxmemory_policy_)) {
-            o->set_eviction_meta(5);
-        }
+    uint8_t initial_eviction_meta() const {
+        return maxmemory_policy_is_lfu(maxmemory_policy_) ? uint8_t{5} : lru_clock();
     }
 
-    void touch(KvObj* o) {
-        if (__builtin_expect(read_local_enabled_, false)) {
-            touch_read_local(o);
+    void touch(uint64_t hash, KvObj* o) {
+        uint8_t* meta = eviction_meta_slot(hash, o);
+        if (!meta) return;
+        // OBJECT IDLETIME is valid for every non-LFU policy, including random, volatile-ttl and
+        // noeviction. Keep their access clock meaningful even when victim scoring ignores it.
+        if (!maxmemory_policy_is_lfu(maxmemory_policy_)) {
+            *meta = lru_clock();
             return;
         }
-        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            o->set_eviction_meta(lru_clock());
-            return;
-        }
-        if (!maxmemory_policy_is_lfu(maxmemory_policy_)) return;
 
-        uint8_t count = o->eviction_meta();
+        uint8_t count = std::min<uint8_t>(*meta, 31);
         if (count == 0) count = 5;
-        // Redis-style logarithmic increment with its default factor 10, compressed to five bits.
+        // Redis-style logarithmic increment with its default factor 10. LFU remains capped at 31;
+        // policy changes can reinterpret a full-width LRU byte, so clamp before doing arithmetic.
         const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
         const uint32_t denominator = base * 10 + 1;
         if (count < 31 && next_random() % denominator == 0) count++;
-        o->set_eviction_meta(count);
+        *meta = count;
     }
 
-    KvObj* random_allkeys_candidate() {
+    KvObj* random_allkeys_candidate(uint8_t*& sampled_meta) {
+        sampled_meta = nullptr;
+        if (!eviction_sidecar_) return nullptr;
         const uint64_t total_cap = static_cast<uint64_t>(cap_[0]) + cap_[1];
         if (total_cap == 0 || size() == 0) return nullptr;
         for (uint32_t attempt = 0; attempt < kSampleProbeAttempts; attempt++) {
             uint64_t pos = next_random() % total_cap;
             const int table = pos < cap_[0] ? 0 : 1;
             if (table == 1) pos -= cap_[0];
-            if (KvObj* o = ptr_of(tab_[table][pos])) return o;
+            if (KvObj* o = ptr_of(tab_[table][pos])) {
+                sampled_meta = eviction_sidecar_->data(table) + pos;
+                return o;
+            }
         }
         // Sparse-table backstop. It remains bounded and advances between calls rather than
         // restarting at slot zero and repeatedly missing the same empty prefix.
         for (uint32_t attempt = 0; attempt < kSampleProbeAttempts; attempt++) {
-            if (sample_cursor_ >= total_cap) sample_cursor_ = 0;
-            uint64_t pos = sample_cursor_++;
+            uint64_t& cursor = eviction_sidecar_->sample_cursor();
+            if (cursor >= total_cap) cursor = 0;
+            uint64_t pos = cursor++;
             const int table = pos < cap_[0] ? 0 : 1;
             if (table == 1) pos -= cap_[0];
-            if (KvObj* o = ptr_of(tab_[table][pos])) return o;
+            if (KvObj* o = ptr_of(tab_[table][pos])) {
+                sampled_meta = eviction_sidecar_->data(table) + pos;
+                return o;
+            }
         }
         return nullptr;
     }
@@ -2467,17 +2504,21 @@ private:
     }
 
     KvObj* choose_victim(Slice protected_key) {
-        if (__builtin_expect(read_local_enabled_, false))
-            return choose_victim_read_local(protected_key);
+        // Arming maxmemory is transactional. If the allocation failed, maxmemory remains logically
+        // enabled but cannot choose an untracked victim, so admission fails closed and later live
+        // config refreshes can retry the arm.
+        if (!eviction_sidecar_) return nullptr;
         KvObj* best = nullptr;
         KvObj* seen[64];
         uint32_t seen_count = 0;
         uint64_t best_score = 0;
         for (uint32_t i = 0; i < maxmemory_samples_; i++) {
+            uint8_t* sampled_meta = nullptr;
             KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
-                ? random_volatile_candidate() : random_allkeys_candidate();
+                ? random_volatile_candidate() : random_allkeys_candidate(sampled_meta);
             if (!candidate || candidate->key() == protected_key) continue;
-            if (atomic_has_record(hash_key(candidate->key()), candidate->key())) continue;
+            const uint64_t candidate_hash = hash_key(candidate->key());
+            if (atomic_has_record(candidate_hash, candidate->key())) continue;
             bool duplicate = false;
             for (uint32_t j = 0; j < seen_count; j++)
                 if (seen[j] == candidate) { duplicate = true; break; }
@@ -2492,24 +2533,30 @@ private:
                     break;
                 case MaxmemoryPolicy::AllKeysLru:
                 case MaxmemoryPolicy::VolatileLru: {
-                    const uint8_t age = static_cast<uint8_t>(
-                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
+                    uint8_t* meta = sampled_meta
+                        ? sampled_meta : eviction_meta_slot(candidate_hash, candidate);
+                    if (!meta) continue;
+                    const uint8_t age = static_cast<uint8_t>(lru_clock() - *meta);
                     score = (static_cast<uint64_t>(age) << 56) | (next_random() & ((1ULL << 56) - 1));
                     break;
                 }
                 case MaxmemoryPolicy::AllKeysLfu:
                 case MaxmemoryPolicy::VolatileLfu: {
-                    // With only five free header bits, sampling is also the bounded aging event:
-                    // one count is forgotten whenever a key competes for eviction.
-                    uint8_t count = candidate->eviction_meta();
-                    if (count) candidate->set_eviction_meta(--count);
+                    uint8_t* meta = sampled_meta
+                        ? sampled_meta : eviction_meta_slot(candidate_hash, candidate);
+                    if (!meta) continue;
+                    // Sampling is also the bounded aging event: one count is forgotten whenever a
+                    // key competes. Clamp bytes inherited from a prior full-width LRU policy.
+                    uint8_t count = std::min<uint8_t>(*meta, 31);
+                    if (count) --count;
+                    *meta = count;
                     score = (static_cast<uint64_t>(31 - count) << 56) |
                             (next_random() & ((1ULL << 56) - 1));
                     break;
                 }
                 case MaxmemoryPolicy::VolatileTtl:
                     score = std::numeric_limits<uint64_t>::max() -
-                            static_cast<uint64_t>(deadline(hash_key(candidate->key()), candidate));
+                            static_cast<uint64_t>(deadline(candidate_hash, candidate));
                     break;
                 case MaxmemoryPolicy::NoEviction:
                     return nullptr;
@@ -2664,6 +2711,28 @@ private:
         return nullptr;
     }
 
+    const uint8_t* eviction_meta_slot(uint64_t h, const KvObj* object) const {
+        if (!eviction_sidecar_ || !object) return nullptr;
+        const uint16_t tag = tag_of(h);
+        for (int table = 0; table < 2; table++) {
+            if (!tab_[table]) continue;
+            uint32_t slot = slot_start(table, h);
+            for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
+                const uint64_t word = tab_[table][slot];
+                if (word == 0) break;
+                if (ptr_of(word) == object && tag_of_word(word) == tag)
+                    return eviction_sidecar_->data(table) + slot;
+                slot = (slot + 1) & mask_[table];
+            }
+        }
+        return nullptr;
+    }
+
+    uint8_t* eviction_meta_slot(uint64_t h, const KvObj* object) {
+        return const_cast<uint8_t*>(
+            static_cast<const FlatStore*>(this)->eviction_meta_slot(h, object));
+    }
+
     KvObj* find_hash_in(int t, uint64_t h) const {
         if (!tab_[t]) return nullptr;
         const uint16_t tag = tag_of(h);
@@ -2727,9 +2796,58 @@ private:
         return nullptr;
     }
 
+    template <bool TrackEviction>
+    InsertResult finish_insert(uint64_t h, KvObj* object) {
+        // The exact wheel may allocate for this object identity. Prepare it before evicting an old
+        // table copy so OOM leaves both the table and its old timer untouched.
+        if (!prepare_expire_install(h, object)) return InsertResult::Failed;
+        uint8_t carried_meta = 0;
+        bool has_carried_meta = false;
+        if (rehashing()) {
+            if constexpr (TrackEviction) {
+                KvObj* old = find_in(1, h, object->key());
+                if (const uint8_t* meta = eviction_meta_slot(h, old)) {
+                    carried_meta = *meta;
+                    has_carried_meta = true;
+                }
+            }
+            bool expired = false;
+            if (erase_in(1, h, object->key(), &expired) && expired) {
+                has_carried_meta = false;
+                if (expired_counter_) (*expired_counter_)++;
+            }
+        }
+        const bool inserted = [&] {
+            if constexpr (TrackEviction)
+                return insert_into_eviction(0, h, object, true,
+                                            carried_meta, has_carried_meta);
+            return insert_into(0, h, object, true);
+        }();
+        if (inserted) return InsertResult::Inserted;
+        cancel_prepared_expire_install(h, object);
+        return InsertResult::Failed;
+    }
+
     bool insert_into(int t, uint64_t h, KvObj* o, bool track_expire) {
-        if (__builtin_expect(read_local_enabled_, false))
+        return insert_into_impl<false>(t, h, o, track_expire, 0, false);
+    }
+
+    bool insert_into_eviction(int t, uint64_t h, KvObj* o, bool track_expire,
+                              uint8_t carried_meta = 0,
+                              bool has_carried_meta = false) {
+        return insert_into_impl<true>(t, h, o, track_expire,
+                                      carried_meta, has_carried_meta);
+    }
+
+    template <bool TrackEviction>
+    bool insert_into_impl(int t, uint64_t h, KvObj* o, bool track_expire,
+                          uint8_t carried_meta, bool has_carried_meta) {
+        if (__builtin_expect(read_local_enabled_, false)) {
+            if constexpr (TrackEviction)
+                return insert_into_read_local_eviction(t, h, o, track_expire,
+                                                       carried_meta, has_carried_meta);
             return insert_into_read_local(t, h, o, track_expire);
+        }
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -2737,22 +2855,34 @@ private:
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
             if (w == 0) {
-                if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
-                else                 { tab_[t][i] = make_word(tag, o); }
+                const uint32_t destination = first_tomb >= 0
+                    ? static_cast<uint32_t>(first_tomb) : i;
+                tab_[t][destination] = make_word(tag, o);
+                if (first_tomb >= 0) tombs_[t]--;
                 live_[t]++;
                 obj_bytes_ += kvobj_size(o);
+                if constexpr (TrackEviction) {
+                    if (eviction_sidecar_)
+                        eviction_sidecar_->set_meta(
+                            t, destination,
+                            has_carried_meta ? carried_meta : initial_eviction_meta());
+                }
                 if (track_expire) (void)this->track_expire(h, o);
                 return true;
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
-                    (*expired_counter_)++;
+                const bool expired = track_expire && deadline_elapsed(h, cur, cached_now_ms_);
+                if (expired && expired_counter_) (*expired_counter_)++;
                 if (track_expire) replace_expire_tracking(h, cur, o);
                 retire_obj(cur);                            // replace in place; live_ unchanged
                 obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
+                if constexpr (TrackEviction) {
+                    if (expired && eviction_sidecar_)
+                        eviction_sidecar_->set_meta(t, i, initial_eviction_meta());
+                }
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -2783,6 +2913,8 @@ private:
                 untrack_expire(h, o);
                 retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
+                // The parallel byte may stay stale: a dead slot is unobservable, and the
+                // eviction-enabled insertion instantiation overwrites it before reuse.
                 live_[t]--; tombs_[t]++;
                 return true;
             }
@@ -2796,7 +2928,6 @@ private:
             return rewrite_expire_read_local(h, old, expire_at_ms);
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -2869,7 +3000,7 @@ private:
 #endif
                 return OverwriteResult::MaxmemoryOom;
             }
-            touch(object);
+            touch(h, object);
         }
 
         const uint32_t previous_length = kvobj_read_local_raw_length(object);
@@ -2925,6 +3056,10 @@ private:
         read_local_topology_store(&cap_[0], snapshot_new_cap_);
         read_local_topology_store(&mask_[0], snapshot_new_cap_ - 1);
         live_[0] = tombs_[0] = 0;
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         snapshot_new_tab_ = nullptr; snapshot_new_cap_ = 0; snapshot_prepared_ = false;
         rehash_pos_ = 0;
         snapshot_active_ = true;
@@ -3077,21 +3212,12 @@ private:
                                cap_[0])
                 return InsertResult::Failed;
         }
-        if (__builtin_expect(maxmemory_enabled_, false) && !snapshot_active_) {
-            if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
-            if (o->eviction_meta() == 0) initialize_meta_read_local(o);
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!snapshot_active_ && !make_room_for(o->key(), kvobj_size(o)))
+                return InsertResult::MaxmemoryOom;
+            return finish_insert_read_local<true>(h, o);
         }
-        if (!prepare_expire_install(h, o)) return InsertResult::Failed;
-        const bool moves_from_old = rehashing() && find_in(1, h, o->key()) != nullptr;
-        ReadLocalTableGuard table_move(*this, moves_from_old);
-        if (rehashing()) {
-            bool expired = false;
-            if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
-                (*expired_counter_)++;
-        }
-        if (insert_into_read_local(0, h, o, true)) return InsertResult::Inserted;
-        cancel_prepared_expire_install(h, o);
-        return InsertResult::Failed;
+        return finish_insert_read_local<false>(h, o);
     }
 
     bool erase_read_local(uint64_t h, Slice key) {
@@ -3112,6 +3238,13 @@ private:
 
     void clear_read_local() {
         uint64_t* fresh = allocate_table(1024);
+        if (fresh && eviction_sidecar_) {
+            if (eviction_sidecar_->has_prepared() ||
+                !eviction_sidecar_->prepare_table(1024, flatstore_table_calloc)) {
+                std::free(fresh);
+                fresh = nullptr;
+            }
+        }
         // A clear rewrites every answer without naming a key. Poison the per-key filter for its
         // duration so a multi-key local read straddling it sees every cell epoch move; the poison
         // opens before the first slot store and closes after the table bracket below.
@@ -3130,6 +3263,7 @@ private:
                 for (uint32_t i = 0; i < cap_[0]; i++)
                     read_local_slot_store(&tab_[0][i], 0);
                 live_[0] = tombs_[0] = 0;
+                if (eviction_sidecar_) eviction_sidecar_->clear_table(0);
                 continue;
             }
             uint64_t* retired = tab_[t];
@@ -3138,11 +3272,15 @@ private:
             read_local_topology_store(&mask_[t], uint32_t{0});
             live_[t] = tombs_[t] = 0;
             retire_table_read_local(retired);
+            if (eviction_sidecar_) eviction_sidecar_->free_table(t);
         }
         field_expires_.clear();
         field_ttl_gate_ = 0;
         rehash_pos_ = 0;
-        if (fresh) install_empty_table_read_local(0, fresh, 1024);
+        if (fresh) {
+            install_empty_table_read_local(0, fresh, 1024);
+            if (eviction_sidecar_) eviction_sidecar_->install_prepared(0);
+        }
     }
 
     void clear_during_snapshot_read_local() {
@@ -3157,90 +3295,12 @@ private:
                     retire_obj_read_local(object);
                     live_[t]--;
                     tombs_[t]++;
+                    if (eviction_sidecar_) eviction_sidecar_->clear_meta(t, i);
                 }
             }
         }
         field_expires_.clear();
         field_ttl_gate_ = 0;
-    }
-
-    void initialize_meta_read_local(KvObj* o) {
-        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            write_eviction_meta_read_local(o, lru_clock());
-        } else if (maxmemory_policy_is_lfu(maxmemory_policy_)) {
-            write_eviction_meta_read_local(o, 5);
-        }
-    }
-
-    void touch_read_local(KvObj* o) {
-        if (maxmemory_policy_is_lru(maxmemory_policy_)) {
-            write_eviction_meta_read_local(o, lru_clock());
-            return;
-        }
-        if (!maxmemory_policy_is_lfu(maxmemory_policy_)) return;
-
-        uint8_t count = o->eviction_meta();
-        if (count == 0) count = 5;
-        const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
-        const uint32_t denominator = base * 10 + 1;
-        if (count < 31 && next_random() % denominator == 0) count++;
-        write_eviction_meta_read_local(o, count);
-    }
-
-    KvObj* choose_victim_read_local(Slice protected_key) {
-        KvObj* best = nullptr;
-        KvObj* seen[64];
-        uint32_t seen_count = 0;
-        uint64_t best_score = 0;
-        for (uint32_t i = 0; i < maxmemory_samples_; i++) {
-            KvObj* candidate = maxmemory_policy_is_volatile(maxmemory_policy_)
-                ? random_volatile_candidate() : random_allkeys_candidate();
-            if (!candidate || candidate->key() == protected_key) continue;
-            if (atomic_has_record(hash_key(candidate->key()), candidate->key())) continue;
-            bool duplicate = false;
-            for (uint32_t j = 0; j < seen_count; j++)
-                if (seen[j] == candidate) { duplicate = true; break; }
-            if (duplicate) continue;
-            seen[seen_count++] = candidate;
-
-            uint64_t score = 0;
-            switch (maxmemory_policy_) {
-                case MaxmemoryPolicy::AllKeysRandom:
-                case MaxmemoryPolicy::VolatileRandom:
-                    score = next_random();
-                    break;
-                case MaxmemoryPolicy::AllKeysLru:
-                case MaxmemoryPolicy::VolatileLru: {
-                    const uint8_t age = static_cast<uint8_t>(
-                        (lru_clock() - candidate->eviction_meta()) & 0x1f);
-                    score = (static_cast<uint64_t>(age) << 56) |
-                            (next_random() & ((1ULL << 56) - 1));
-                    break;
-                }
-                case MaxmemoryPolicy::AllKeysLfu:
-                case MaxmemoryPolicy::VolatileLfu: {
-                    uint8_t count = candidate->eviction_meta();
-                    if (count) write_eviction_meta_read_local(candidate, --count);
-                    score = (static_cast<uint64_t>(31 - count) << 56) |
-                            (next_random() & ((1ULL << 56) - 1));
-                    break;
-                }
-                case MaxmemoryPolicy::VolatileTtl:
-                    score = std::numeric_limits<uint64_t>::max() -
-                            static_cast<uint64_t>(deadline(hash_key(candidate->key()), candidate));
-                    break;
-                case MaxmemoryPolicy::NoEviction:
-                    return nullptr;
-            }
-            if (!best || score > best_score) { best = candidate; best_score = score; }
-        }
-        if (best) {
-            const bool expired = deadline_elapsed(hash_key(best->key()), best, cached_now_ms_);
-            notify_flat_store_emit(this,
-                expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
-                expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
-        }
-        return best;
     }
 
     void install_empty_table_read_local(int t, uint64_t* table, uint32_t cap) {
@@ -3252,7 +3312,54 @@ private:
         tombs_[t] = 0;
     }
 
+    template <bool TrackEviction>
+    InsertResult finish_insert_read_local(uint64_t h, KvObj* object) {
+        if (!prepare_expire_install(h, object)) return InsertResult::Failed;
+        const bool moves_from_old = rehashing() && find_in(1, h, object->key()) != nullptr;
+        uint8_t carried_meta = 0;
+        bool has_carried_meta = false;
+        if constexpr (TrackEviction) {
+            if (moves_from_old) {
+                KvObj* old = find_in(1, h, object->key());
+                if (const uint8_t* meta = eviction_meta_slot(h, old)) {
+                    carried_meta = *meta;
+                    has_carried_meta = true;
+                }
+            }
+        }
+        ReadLocalTableGuard table_move(*this, moves_from_old);
+        if (rehashing()) {
+            bool expired = false;
+            if (erase_in_read_local(1, h, object->key(), &expired) && expired) {
+                has_carried_meta = false;
+                if (expired_counter_) (*expired_counter_)++;
+            }
+        }
+        const bool inserted = [&] {
+            if constexpr (TrackEviction)
+                return insert_into_read_local_eviction(0, h, object, true,
+                                                       carried_meta, has_carried_meta);
+            return insert_into_read_local(0, h, object, true);
+        }();
+        if (inserted) return InsertResult::Inserted;
+        cancel_prepared_expire_install(h, object);
+        return InsertResult::Failed;
+    }
+
     bool insert_into_read_local(int t, uint64_t h, KvObj* o, bool track_expire) {
+        return insert_into_read_local_impl<false>(t, h, o, track_expire, 0, false);
+    }
+
+    bool insert_into_read_local_eviction(int t, uint64_t h, KvObj* o,
+                                         bool track_expire, uint8_t carried_meta = 0,
+                                         bool has_carried_meta = false) {
+        return insert_into_read_local_impl<true>(t, h, o, track_expire,
+                                                 carried_meta, has_carried_meta);
+    }
+
+    template <bool TrackEviction>
+    bool insert_into_read_local_impl(int t, uint64_t h, KvObj* o, bool track_expire,
+                                     uint8_t carried_meta, bool has_carried_meta) {
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -3260,13 +3367,21 @@ private:
         for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
             const uint64_t w = tab_[t][i];
             if (w == 0) {
+                const uint32_t destination = first_tomb >= 0
+                    ? static_cast<uint32_t>(first_tomb) : i;
                 if (first_tomb >= 0) {
-                    read_local_slot_store(&tab_[t][first_tomb], make_word(tag, o));
+                    read_local_slot_store(&tab_[t][destination], make_word(tag, o));
                     tombs_[t]--;
                 } else {
-                    read_local_slot_store(&tab_[t][i], make_word(tag, o));
+                    read_local_slot_store(&tab_[t][destination], make_word(tag, o));
                 }
                 live_[t]++;
+                if constexpr (TrackEviction) {
+                    if (eviction_sidecar_)
+                        eviction_sidecar_->set_meta(
+                            t, destination,
+                            has_carried_meta ? carried_meta : initial_eviction_meta());
+                }
                 const size_t added_bytes = kvobj_size(o);
                 obj_bytes_ += added_bytes;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -3286,12 +3401,16 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
-                    (*expired_counter_)++;
+                const bool expired = track_expire && deadline_elapsed(h, cur, cached_now_ms_);
+                if (expired && expired_counter_) (*expired_counter_)++;
                 // An acquiring reader that starts after the retirement stamp must no longer be
                 // able to acquire the displaced pointer.
                 if (track_expire) replace_expire_tracking(h, cur, o);
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
+                if constexpr (TrackEviction) {
+                    if (expired && eviction_sidecar_)
+                        eviction_sidecar_->set_meta(t, i, initial_eviction_meta());
+                }
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                 settax_stats().slot_replacements++;
 #endif
@@ -3328,6 +3447,7 @@ private:
                 }
                 untrack_expire(h, o);
                 read_local_slot_store(&tab_[t][i], kTombBit);
+                // Leave the dead slot's unobservable byte stale; reuse always initializes it.
                 retire_obj_read_local(o);
                 live_[t]--; tombs_[t]++;
                 return true;
@@ -3340,7 +3460,6 @@ private:
     TtlResult rewrite_expire_read_local(uint64_t h, KvObj* old, int64_t expire_at_ms) {
         KvObj* replacement = kvobj_reheader(old, expire_at_ms);
         if (!replacement) return TtlResult::Oom;
-        if (maxmemory_enabled_) replacement->set_eviction_meta(old->eviction_meta());
 
         const bool moves_collection = static_cast<Type>(old->type) != Type::String &&
                                       static_cast<Enc>(old->enc) == Enc::Extern;
@@ -3383,6 +3502,11 @@ private:
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
+        if (eviction_sidecar_ &&
+            !eviction_sidecar_->prepare_table(newcap, flatstore_table_calloc)) {
+            std::free(fresh);
+            return false;
+        }
         ReadLocalTableGuard table_change(*this);
         if (rehash_counter_) (*rehash_counter_)++;
         read_local_topology_store(&tab_[1], tab_[0]);
@@ -3390,6 +3514,10 @@ private:
         read_local_topology_store(&mask_[1], mask_[0]);
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         install_empty_table_read_local(0, fresh, newcap);
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         rehash_pos_ = 0;
         return true;
     }
@@ -3400,10 +3528,17 @@ private:
         while (budget && rehash_pos_ < cap_[1]) {
             const uint64_t w = tab_[1][rehash_pos_];
             if (KvObj* o = ptr_of(w)) {
+                const bool has_meta = eviction_sidecar_ != nullptr;
+                const uint8_t meta = has_meta
+                    ? eviction_sidecar_->take_meta(1, rehash_pos_) : uint8_t{0};
                 read_local_slot_store(&tab_[1][rehash_pos_], kTombBit);
                 live_[1]--; tombs_[1]++;
                 obj_bytes_ -= kvobj_size(o);
-                insert_into_read_local(0, hash_key(o->key()), o, false);
+                if (has_meta)
+                    insert_into_read_local_eviction(
+                        0, hash_key(o->key()), o, false, meta, true);
+                else
+                    insert_into_read_local(0, hash_key(o->key()), o, false);
             }
             rehash_pos_++;
             budget--;
@@ -3416,6 +3551,7 @@ private:
             live_[1] = 0; tombs_[1] = 0;
             rehash_pos_ = 0;
             retire_table_read_local(retired);
+            if (eviction_sidecar_) eviction_sidecar_->free_table(1);
         }
     }
 
@@ -3507,10 +3643,6 @@ private:
         const void* external = nullptr;
         std::memcpy(&external, value, sizeof(external));
         if (external) __builtin_prefetch(external, 0, 1);
-    }
-
-    void write_eviction_meta_read_local(KvObj* object, uint8_t meta) {
-        object->set_eviction_meta_atomic(meta);
     }
 
     void write_object_flags_read_local(KvObj* object, uint8_t flags) {
@@ -3789,10 +3921,19 @@ private:
         if (newcap < kMinCap) newcap = kMinCap;
         uint64_t* fresh = allocate_table(newcap);
         if (!fresh) return false;
+        if (eviction_sidecar_ &&
+            !eviction_sidecar_->prepare_table(newcap, flatstore_table_calloc)) {
+            std::free(fresh);
+            return false;
+        }
         if (rehash_counter_) (*rehash_counter_)++;
         tab_[1]  = tab_[0];  cap_[1] = cap_[0];  mask_[1] = mask_[0];
         live_[1] = live_[0]; tombs_[1] = tombs_[0];
         install_empty_table(0, fresh, newcap);
+        if (eviction_sidecar_) {
+            eviction_sidecar_->move_table(0, 1);
+            eviction_sidecar_->install_prepared(0);
+        }
         rehash_pos_ = 0;
         return true;
     }
@@ -3809,19 +3950,26 @@ private:
         while (budget && rehash_pos_ < cap_[1]) {
             const uint64_t w = tab_[1][rehash_pos_];
             if (KvObj* o = ptr_of(w)) {
+                const bool has_meta = eviction_sidecar_ != nullptr;
+                const uint8_t meta = has_meta
+                    ? eviction_sidecar_->take_meta(1, rehash_pos_) : uint8_t{0};
                 // TOMBSTONE, not EMPTY. Writing 0 here would terminate any probe run passing
                 // through this slot, making every key that probed past it unreachable in the old
                 // table for the rest of the rehash — a silent, transient, load-dependent miss.
                 tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
                 obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
-                insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
+                if (has_meta)
+                    insert_into_eviction(0, hash_key(o->key()), o, false, meta, true);
+                else
+                    insert_into(0, hash_key(o->key()), o, false);
             }
             rehash_pos_++;
             budget--;
         }
         if (rehash_pos_ >= cap_[1]) {
             std::free(tab_[1]);
+            if (eviction_sidecar_) eviction_sidecar_->free_table(1);
             tab_[1] = nullptr; cap_[1] = 0; mask_[1] = 0; live_[1] = 0; tombs_[1] = 0;
             rehash_pos_ = 0;
         }
@@ -3865,7 +4013,7 @@ private:
     MaxmemoryPolicy maxmemory_policy_ = MaxmemoryPolicy::NoEviction;
     uint32_t    maxmemory_samples_ = 5;
     uint64_t    random_state_ = 0x9e3779b97f4a7c15ULL;
-    uint64_t    sample_cursor_ = 0;
+    EvictionSidecar* eviction_sidecar_ = nullptr;
 
 
     // Snapshot state is owner-only.  No atomics or locks enter FlatStore, and the ordinary lookup

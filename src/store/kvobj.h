@@ -13,7 +13,8 @@
 //     traffic is a shared-line write. A KvObj is owned outright by one shard: copy or move, never
 //     share. There is no shared-integer cache either.
 //  3. NOTHING STORED THAT THE TABLE ALREADY HAS. FlatStore's slot carries a 15-bit tag, so no hash
-//     is kept here. Optional LRU/LFU state steals proven-spare header bits; it adds no field.
+//     is kept here. Live LRU/LFU state is an optional byte parallel to that slot; legacy spare
+//     header bits remain only for layout compatibility.
 //
 // BUDGET (this is a test, not an aspiration — see bench/kvobj_footprint):
 //   16-byte key + 64-byte value, no TTL  ->  target < 85 B all-in.
@@ -64,8 +65,8 @@ struct KvObjFlags {
     // Re-headering a collection moves this ownership bit to the replacement before FlatStore
     // retires the old header. Both headers briefly name the pointer; exactly one may destroy it.
     static constexpr uint8_t OwnsExtern = 1u << 2;
-    // Bits 3..7 are the optional five-bit eviction metadata. They are never written while
-    // maxmemory is disabled. See KvObj::eviction_meta().
+    // Bits 3..7 retain the legacy five-bit eviction encoding and its accessors for header/layout
+    // compatibility. Live FlatStore eviction metadata belongs to its owner-local slot sidecar.
     static constexpr uint8_t LayoutMask = HasTtl | KeyExt | OwnsExtern;
 };
 
@@ -165,8 +166,8 @@ struct KvObj {
     void set_eviction_meta(uint8_t meta) {
         flags = static_cast<uint8_t>((flags & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
     }
-    // Foreign fused readers use atomic flag loads because the owner may update the five eviction
-    // bits in place. Layout bits remain immutable for a published read-local-eligible string.
+    // Keep the legacy atomic flag accessors layout-compatible. Live eviction touches use the slot
+    // sidecar, while layout bits remain immutable for a published read-local-eligible string.
     uint8_t read_local_flags() const { return __atomic_load_n(&flags, __ATOMIC_ACQUIRE); }
     void set_eviction_meta_atomic(uint8_t meta) {
         const uint8_t current = __atomic_load_n(&flags, __ATOMIC_RELAXED);

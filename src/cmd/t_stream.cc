@@ -608,7 +608,6 @@ bool externalize_stream(Shard& shard, Op& op, KvObj*& object) {
                                           shard.store().deadline(op.hash, object),
                                           object->has_ttl_slot());
     if (!replacement) { delete value; reply_err(op.sink(), "ERR out of memory"); return false; }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);

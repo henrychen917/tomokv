@@ -382,7 +382,7 @@ public:
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)
             cached_lru_clock_ = static_cast<uint8_t>(
-                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
+                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0xff);
 
         // The WB batch captured its AOF gate before entering this call. Only a clean fresh-task
         // turn may put that WB work into an EX prefetch gap: executing older retry/deferred debt
@@ -614,7 +614,7 @@ public:
             if (!placement_frozen) refresh_live_config();
             if (maxmemory_enabled_)
                 cached_lru_clock_ = static_cast<uint8_t>(
-                    (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0x1f);
+                    (static_cast<uint64_t>(cached_now_ms_ / 1000) >> lru_clock_shift_) & 0xff);
             sig.iterations++;
 
             uint32_t did = 0;
@@ -1686,8 +1686,14 @@ private:
         if (!srv_->live_config_snapshot_if_changed(live_config_version_, snapshot)) return;
         const bool enabled = snapshot.maxmemory != 0;
         const uint64_t shard_limit = snapshot.maxmemory / srv_->nshards();
+        bool maxmemory_configured = true;
         for (Shard* sh : self_->shards()) {
-            sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples);
+            // Do not short-circuit: a sidecar allocation failure on one shard must not prevent the
+            // other owned shards from applying the same live snapshot.  Successful shards make
+            // the next retry cheap; the failed shard remains fail-closed until allocation works.
+            maxmemory_configured =
+                sh->configure_maxmemory(enabled, shard_limit, snapshot.policy, snapshot.samples) &&
+                maxmemory_configured;
             // CLIENT TRACKING and periodic SAVE need the same per-write observation points as
             // keyspace notifications, so they ride the shard mask as synthetic observer bits.
             // notify_record expands those observers over NOTIFY_ALL without adding those class
@@ -1702,7 +1708,7 @@ private:
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
-        live_config_version_ = snapshot.version;
+        if (maxmemory_configured) live_config_version_ = snapshot.version;
     }
 
     // The pending flag is a HINT, and a hint must never be the only looker: a shard whose binding

@@ -106,8 +106,9 @@ reverse edge, and counted in the resident migration estimate but not in the stab
 maxmemory budget.  At the 70% table target the physical cost is about 1.43 bytes per live key.
 
 Metadata belongs to a physical slot, not a value object.  New slots initialize it, same-slot
-replacement preserves it, erase/tomb creation clears it, and rehash carries it with the slot word.
-Snapshot preimage marks retain it because `kTombBit | pointer` is not an empty slot.  Direct atomic
+replacement preserves it, and rehash carries it with the slot word.  A dead slot's byte is
+unobservable and is reset on reuse instead of adding a sidecar branch to DEL/expiry.  Snapshot
+preimage marks retain it because `kTombBit | pointer` is not an empty slot.  Direct atomic
 capacity/exchange paths mirror the same transitions.  Pending-only MVCC versions have no byte and
 receive fresh metadata only if they become physical, preserving `AtomicEntry=144`.
 

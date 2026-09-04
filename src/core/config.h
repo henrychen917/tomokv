@@ -333,9 +333,9 @@ struct Config {
     uint64_t maxmemory      = 0;         // bytes; zero removes all eviction-path work.
     MaxmemoryPolicy maxmemory_policy = MaxmemoryPolicy::NoEviction;
     uint32_t maxmemory_samples = 5;
-    // LRU bucket = (1 << lru_clock_shift) seconds; 5 clock bits give 32 buckets, so the window
-    // before ages alias is 32 << shift seconds. Default 8 = 256s buckets / ~2h16m window: zero
-    // header bytes and right for cache-realistic timescales. Shrink it (e.g. 6 = 64s / ~34min)
+    // LRU bucket = (1 << lru_clock_shift) seconds; the maxmemory-only byte gives 256 buckets, so
+    // the window before ages alias is 256 << shift seconds. Default 8 = 256s buckets / ~18h12m
+    // window. Shrink it (e.g. 6 = 64s / ~4h33m)
     // for fast-shifting working sets; for real cache duty allkeys-lfu discriminates with no clock
     // at all and is the recommended default.               (boot-only)
     uint32_t lru_clock_shift = 8;

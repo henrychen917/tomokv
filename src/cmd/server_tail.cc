@@ -399,16 +399,19 @@ void cmd_object_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), 1);
         return;
     }
-    // Both remaining forms read the five-bit eviction metadata, which is only written while
-    // maxmemory is enabled. With eviction off the bits are meaningless, so report a fresh key.
+    // Both remaining forms read the owner-local slot sidecar, which exists only while maxmemory
+    // is enabled. With eviction off the byte is absent, so report a fresh key.
     if (!shard.store().maxmemory_enabled()) { reply_int(op.sink(), 0); return; }
-    if (freq) { reply_int(op.sink(), object->eviction_meta()); return; }
-    // Age is quantised to 1<<lru-clock-shift seconds and wraps after 32 buckets (~8192s at the
-    // default shift of 8) because the clock is five bits wide. Documented, not hidden.
+    const uint8_t meta = shard.store().eviction_meta_for(op.hash, object);
+    // A live LRU -> LFU policy switch leaves clock bytes wider than LFU's 0..31 domain. Report
+    // the same bounded count that touch/victim scoring converges the byte toward.
+    if (freq) { reply_int(op.sink(), std::min<uint8_t>(meta, 31)); return; }
+    // Age is quantised to 1<<lru-clock-shift seconds and wraps after 256 buckets (~18 hours at
+    // the default shift of 8) because the sidecar clock is eight bits wide.
     const Server* server = command_server();
     const uint32_t shift = server ? server->cfg().lru_clock_shift : 8;
     const uint8_t age = static_cast<uint8_t>(
-        (shard.store().published_lru_clock() - object->eviction_meta()) & 0x1f);
+        shard.store().published_lru_clock() - meta);
     reply_int(op.sink(), static_cast<long long>(age) << shift);
 }
 

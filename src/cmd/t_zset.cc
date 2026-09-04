@@ -1072,7 +1072,6 @@ bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
         reply_oom(op);
         return false;
     }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
@@ -2454,7 +2453,6 @@ bool zset_sort_promote_one(Shard& shard, uint64_t hash, Slice key) {
                                             shard.store().deadline(hash, object),
                                             object->has_ttl_slot());
         if (!replacement) { delete moved; return false; }
-        replacement->set_eviction_meta(object->eviction_meta());
         if (shard.store_insert<kNotify>(hash, replacement) != FlatStore::InsertResult::Inserted) {
             kvobj_free(replacement);
             return false;

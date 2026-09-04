@@ -288,7 +288,6 @@ bool externalize_list(Shard& shard, Op& op, KvObj*& object) {
         reply_oom(op);
         return false;
     }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
@@ -1052,7 +1051,6 @@ XshardElementResult xshard_externalize_list(Shard& shard, Slice key, uint64_t ha
         delete value;
         return XshardElementResult::Oom;
     }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);

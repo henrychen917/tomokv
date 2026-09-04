@@ -620,7 +620,6 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
         reply_err(op.sink(), "ERR out of memory");
         return false;
     }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(op.hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);
@@ -1148,7 +1147,6 @@ XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t has
         delete value;
         return XshardElementResult::Oom;
     }
-    replacement->set_eviction_meta(object->eviction_meta());
     const FlatStore::InsertResult inserted = shard.store_insert<kNotify>(hash, replacement);
     if (inserted != FlatStore::InsertResult::Inserted) {
         kvobj_free(replacement);

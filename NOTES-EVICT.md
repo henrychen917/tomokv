@@ -51,36 +51,36 @@ means disabled.
 
 ## Metadata encoding
 
-The chosen design is spare-bit encoding, so it costs **0 additional bytes per key** both on and
-off (therefore below the requested four-byte enabled bound), and `static_assert(sizeof(KvObj) == 8)`
-continues to hold.
+The chosen design is a maxmemory-only byte array parallel to each table. It costs nothing while
+maxmemory is off and about 1.43 bytes per live key at the table's 70% target load while enabled.
+The sidecar pointer replaces FlatStore's old sample cursor slot (the cursor moves into the
+sidecar), so both `static_assert(sizeof(KvObj) == 8)` and the FlatStore layout lock continue to hold.
 
 ```text
-flags[7:3] = five-bit policy-dependent eviction metadata
+flags[7:3] = legacy spare bits (not used by live eviction)
 flags[2:0] = OwnsExtern, KeyExt, HasTtl layout bits
 vlen       = unchanged 32-bit value length
 ```
 
-The three `vlen` bits contemplated by the alternative encoding are deliberately not used: doing so
-would require masking every value-length read even while the feature is off. Keeping metadata
-wholly in `flags[7:3]` preserves the foundation's value-access instructions and its existing bulk
-limit. TTL re-headering preserves metadata only while maxmemory is enabled. With
-`maxmemory=0`, lookup and insertion do not write metadata; the store pays one predicted disabled
-branch at each read/write hook and performs no eviction accounting work.
+The three `vlen` bits contemplated by the alternative encoding remain unused: doing so would
+require masking every value-length read even while the feature is off. Metadata follows physical
+slots across rehash and survives same-slot immutable replacement; foreign readers never acquire
+or publish the sidecar. With `maxmemory=0`, lookup and insertion do not access metadata and the
+sidecar owns no allocation.
 
-The five bits are policy-dependent:
+The byte is policy-dependent:
 
-- LRU uses a 5-bit clock at 256-second resolution. The EX already reads wall time once per pass;
+- LRU uses an 8-bit clock at 256-second resolution. The EX already reads wall time once per pass;
   the store derives the clock from that cached seconds value, so no operation reads a clock.
-  Modular subtraction ranks idle time over an approximately 136-minute window. Older keys alias
-  after wrap; this is the explicit precision/range tradeoff for preserving both the eight-byte
-  header and the exact disabled-path instructions.
-- LFU uses a 5-bit logarithmic counter. New keys start at five. Access uses Redis's
+  Modular subtraction ranks idle time over an approximately 18-hour window. Older keys alias
+  after wrap.
+- LFU uses the existing 0..31 logarithmic range. New keys start at five. Access uses Redis's
   default-factor-10 probability shape, saturating at 31. With no per-key epoch bits, bounded victim
   sampling is also aging: a candidate forgets one count each time it competes in an eviction round.
   This adapts under pressure without a keyspace decay pass. Policy changes do not scan the keyspace;
-  old metadata is reinterpreted and converges through accesses/sampling.
-- Random, TTL and noeviction policies do not need or update recency/frequency metadata.
+  a byte inherited from LRU is clamped and converges through accesses/sampling.
+- Random, TTL and noeviction policies do not consult metadata for victim choice. Their non-LFU
+  access path still refreshes the clock so `OBJECT IDLETIME` retains Redis-compatible meaning.
 
 ## Sampling, victim rules and bounded work
 
