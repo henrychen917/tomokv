@@ -838,6 +838,11 @@ inline Slice kvobj_string_value(const KvObj* object, KvObjRawReadBuffer& buffer)
 // Builds a String KvObj. `val` is copied when it fits the embed threshold, otherwise a second block
 // holds it and this one keeps the pointer. Returns nullptr on OOM rather than throwing: the worker
 // loop reports an error reply instead of unwinding.
+// ALWAYS_INLINE, and measured rather than decorative. This body sits just under GCC's inlining
+// cost limit at its three call sites; growing it by the inline key copy below tipped it over, and
+// the resulting out-of-line call cost the first-insert path about twenty instructions -- more than
+// the copy saved. Keeping it inlined is what makes the change a win there instead of a wash.
+__attribute__((always_inline))
 inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
                                     int64_t expire_at_ms = -1,
                                     bool reserve_ttl_slot = false) {
@@ -856,7 +861,10 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
     o->init_raw_length(val.n);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
-    if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
+    // The KEY is short and bounded and the object is not published yet, so the inline copy applies.
+    // The VALUE deliberately keeps the library memcpy: it is a whole payload, unbounded up to
+    // proto-max-bulk-len, and inlining a copy of it buys nothing the fallback would not already do.
+    if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
     if (val.n) std::memcpy(o->val_ptr(), val.p, val.n);
     kvobj_prepare_read_local_raw_cells(o);
     return o;
@@ -880,7 +888,7 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
     o->init_nonraw_length(0);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
-    if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
+    if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
     o->set_int_value(value);
     return o;
 }
@@ -922,7 +930,7 @@ inline KvObj* kvobj_new_string(
     o->init_nonraw_length(val.n);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
-    if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
+    if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
 #endif
@@ -973,7 +981,7 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
     o->init_nonraw_length(value_size);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
-    std::memcpy(o->key_ptr(), key.p, key.n);
+    bytes_copy(o->key_ptr(), key.p, key.n);
     o->set_external_ptr(value);
     return o;
 }

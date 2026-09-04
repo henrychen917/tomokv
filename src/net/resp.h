@@ -150,11 +150,16 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 }
 
 // ---- reply formatting. Handlers call these; they append RESP into the op's own buffer. ----------
-template <typename Buf> inline void reply_ok(Buf&& b)   { b.append("+OK\r\n", 5); }
-template <typename Buf> inline void reply_nil(Buf&& b)  { b.append("$-1\r\n", 5); }
-template <typename Buf> inline void reply_pong(Buf&& b) { b.append("+PONG\r\n", 7); }
-template <typename Buf> inline void reply_null_array(Buf&& b) { b.append("*-1\r\n", 5); }
-template <typename Buf> inline void reply_emptystr(Buf&& b) { b.append("$0\r\n\r\n", 6); }
+// The one-argument append() below is the LITERAL overload (src/exec/op.h, src/base/slice.h): the
+// length stays a compile-time constant all the way to the store, so a fixed reply costs a store
+// instead of a call to the out-of-line append plus a call to memcpy. Same bytes as before, NUL
+// excluded. Only replies that fit in a machine word or two are written this way; the longer error
+// texts below keep the explicit length and the out-of-line path.
+template <typename Buf> inline void reply_ok(Buf&& b)   { b.append("+OK\r\n"); }
+template <typename Buf> inline void reply_nil(Buf&& b)  { b.append("$-1\r\n"); }
+template <typename Buf> inline void reply_pong(Buf&& b) { b.append("+PONG\r\n"); }
+template <typename Buf> inline void reply_null_array(Buf&& b) { b.append("*-1\r\n"); }
+template <typename Buf> inline void reply_emptystr(Buf&& b) { b.append("$0\r\n\r\n"); }
 template <typename Buf> inline void reply_wrongtype(Buf&& b) {
     b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
