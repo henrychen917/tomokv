@@ -159,13 +159,11 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
                 // A foreign undecided value is deliberately invisible to ordinary reads. For an
                 // NX validator it is a reservation: let its group decide, then re-run validation.
-                // Raw table iteration is reached only on this uncommon collision arm and avoids
-                // adding a query to the frozen MVCC engine.
-                bool physical_candidate = false;
-                store.for_each([&](KvObj* object) {
-                    physical_candidate |= object->key() == op.arg(key.arg);
-                });
-                if (physical_candidate) return ScatterTaskResult::Retry;
+                // One hash probe of both tables answers "is there a physical candidate"; the
+                // previous full for_each walk of the shard ran on every Retry of this arm and
+                // stalled the owner for the whole table while the foreign group was undecided.
+                if (store.atomic_has_physical(key.hash, op.arg(key.arg)))
+                    return ScatterTaskResult::Retry;
             }
         }
     }
@@ -331,6 +329,33 @@ void for_each_touched_key(Op& op, Fn&& fn) {
     Kind kind;
     if (!classify(op, kind)) {
         if (op.argc() > 1) fn(op.hash, op_routed_key(op));
+        return;
+    }
+    // THE STREAM READS NAME THEIR KEYS BEHIND AN OPTION LIST, so the positional table below cannot
+    // place them and used to be handed xread_count == 0: a localfast XREAD/XREADGROUP touched no
+    // key at all. It therefore never deferred behind its own connection's undecided DEL/EXEC on
+    // the stream, and xshard_plain_prepare bound no read context, so the handler resolved at
+    // (latest, no connection) and an own still-private tombstone or XADD was invisible -- the
+    // pipelined `DEL s x` / `XREAD STREAMS s 0` pair answered the deleted stream's entries.
+    // Every op that reaches this function as local_xshard already parsed on IO
+    // (xshard_prepare), so the re-parse cannot fail and never writes to the sink.
+    if (kind == Kind::Xread || kind == Kind::Xreadgroup) {
+        uint32_t first = 0, count = 0;
+        if (kind == Kind::Xread) {
+            StreamXreadArgs parsed;
+            if (!stream_parse_xread(op, parsed)) return;
+            first = parsed.first_key;
+            count = parsed.key_count;
+        } else {
+            StreamXreadGroupArgs parsed;
+            if (!stream_parse_xreadgroup(op, parsed)) return;
+            first = parsed.key_arg;
+            count = 1;
+        }
+        for (uint32_t i = 0; i < count; i++) {
+            const Slice key = op.arg(first + i);
+            fn(FlatStore::hash_key(key), key);
+        }
         return;
     }
     uint32_t sinter_count = 0;
@@ -577,6 +602,11 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
         if (!geo_prepare_route(op, geo_route)) return FlatStore::SnapshotWriteResult::Error;
         if (!geo_route.store) return FlatStore::SnapshotWriteResult::Ready;
     }
+    // XREADGROUP is the one stream READ that writes (it advances the PEL). Its key sits behind
+    // the option list, so the positional rules below cannot place it; parse it like the fence does.
+    StreamXreadGroupArgs xreadgroup;
+    if (kind == Kind::Xreadgroup && !stream_parse_xreadgroup(op, xreadgroup))
+        return FlatStore::SnapshotWriteResult::Error;
     auto arg_at = [&](uint32_t i) -> uint32_t {
         if (kind == Kind::Mset || kind == Kind::Msetnx) return 1 + i * 2;
         if (kind == Kind::Bitop) return 2;
@@ -586,6 +616,7 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
         if (kind == Kind::Lmpop || kind == Kind::Zmpop) return 2 + i;
         if (kind == Kind::Zrangestore) return 1;
         if (kind == Kind::Sort) return sort_options.store_arg;
+        if (kind == Kind::Xreadgroup) return xreadgroup.key_arg;
         return 1 + i;
     };
     if (kind == Kind::Mset || kind == Kind::Msetnx) count = (op.argc() - 1) / 2;
@@ -597,6 +628,7 @@ FlatStore::SnapshotWriteResult xshard_local_snapshot_prepare(Op& op, Shard& shar
     else if (kind == Kind::Zrangestore || kind == Kind::Sort) count = 1;
     else if (kind == Kind::Rename || kind == Kind::Renamenx || kind == Kind::Smove ||
              kind == Kind::Lmove || kind == Kind::Rpoplpush) count = 2;
+    else if (kind == Kind::Xreadgroup) count = 1;
     else return FlatStore::SnapshotWriteResult::Ready;
 
     while (op.zc_len < count) {

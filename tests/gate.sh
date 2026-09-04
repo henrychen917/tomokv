@@ -69,8 +69,10 @@ ROW_T=$(date +%s.%N)
 # 238 -> 239: pipelined same-connection program order (seed-19 divergence; 74% stale pre-fix).
 # 239 -> 240: the flip-controller model unit test (tests/flipctl_unit.cc) as a static build row;
 # it compiled clean but nothing built or ran it (AUDIT-TESTS F15). Full: 250 -> 251.
-EXPECT_QUICK=240
-EXPECT_FULL=251                 # full without the optional NIC row.
+# 240 -> 241: atomic_hazards locks the S1 FLUSH read-cut and S2 XREAD touched-key fixes on the
+# existing atomic-on, DEBUG-enabled 2s boot. Full: 251 -> 252.
+EXPECT_QUICK=241
+EXPECT_FULL=252                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -280,6 +282,9 @@ py tests/atomic_torn.py 127.0.0.1 $PORT >/tmp/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see /tmp/gate-atomic-torn.txt"
 py tests/atomic_ryow.py 127.0.0.1 $PORT >/tmp/gate-atomic-ryow.txt 2>&1 \
     && ok "atomic RYOW/mixed-write battery" || bad "atomic RYOW/mixed-write battery" "see /tmp/gate-atomic-ryow.txt"
+py tests/atomic_hazards.py 127.0.0.1 $PORT >/tmp/gate-atomic-hazards.txt 2>&1 \
+    && ok "atomic owner-local hazard battery" \
+    || bad "atomic owner-local hazard battery" "see /tmp/gate-atomic-hazards.txt"
 stop
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"

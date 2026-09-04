@@ -759,8 +759,13 @@ void init_arena_arrays(ScatterState& state) {
     if (state.hop2) std::memset(state.hop2, 0, sizeof(uint32_t) * state.key_count);
     if (state.shard_groups)
         std::fill_n(state.shard_groups, state.shard_slots, UINT16_MAX);
-    for (uint32_t i = 0; state.owner_record_refs && i < state.owner_slots; i++)
-        new (&state.owner_record_refs[i]) OwnerRecordRefs;
+    // owner_record_refs is deliberately NOT constructed here. Each slot is its own cache line
+    // (alignas(64)) and there is one per server thread, so value-initializing all of them wrote
+    // nthreads lines per atomic group -- 64 on the 64-thread box -- for a group that typically has
+    // eight owners. initialize_owner_completion() constructs exactly the participating slots, and
+    // every later reader (xshard_execute, execute_atomic_apply, xshard_complete_impl,
+    // xshard_multi_child_complete) indexes by the executor that is running, which is by
+    // construction a participant.
     if (state.sort_deref) new (state.sort_deref) SortDerefState;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) new (&state.images[i]) ObjectImage;
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) new (&state.apply[i]) ObjectImage;
@@ -781,7 +786,10 @@ void build_groups(ScatterState& state, const uint32_t* positions, uint32_t count
     uint32_t counts[256] = {};
     for (uint32_t i = 0; i < count; i++) counts[state.keys[positions[i]].shard]++;
     uint32_t cursor = 0;
-    for (uint32_t sid = 0; sid < 256; sid++) {
+    // Shard ids are dense below nshards(); scanning all 256 ran ~190 useless iterations per op.
+    // Ascending shard order is preserved exactly (groups[0] is the fan-out lead).
+    const uint32_t nshards = state.server->nshards();
+    for (uint32_t sid = 0; sid < nshards; sid++) {
         if (!counts[sid]) continue;
         ShardGroup& group = state.groups[state.nsub++];
         group.shard = static_cast<int32_t>(sid);
@@ -821,7 +829,8 @@ void build_initial_groups(ScatterState& state) {
     for (uint32_t pos = state.phase1_first; pos < state.key_count; pos++)
         counts[state.keys[pos].shard]++;
     uint32_t cursor = 0;
-    for (uint32_t sid = 0; sid < 256; sid++) {
+    const uint32_t nshards = state.server->nshards();   // see build_groups
+    for (uint32_t sid = 0; sid < nshards; sid++) {
         if (!counts[sid]) continue;
         ShardGroup& group = state.groups[state.nsub++];
         group.shard = static_cast<int32_t>(sid);
@@ -884,7 +893,8 @@ void build_sort_deref_groups(ScatterState& state) {
     for (const SortDerefRequest& request : sort.requests)
         counts[static_cast<uint32_t>(request.shard)]++;
     uint32_t cursor = 0;
-    for (uint32_t sid = 0; sid < 256; sid++) {
+    const uint32_t nshards = state.server->nshards();   // see build_groups
+    for (uint32_t sid = 0; sid < nshards; sid++) {
         if (!counts[sid]) continue;
         ShardGroup& group = state.groups[state.nsub++];
         group.shard = static_cast<int32_t>(sid);
@@ -1002,18 +1012,26 @@ WorkError finish_sort_deref(ScatterState& state) {
 
 uint32_t initialize_owner_completion(ScatterState& state) {
     if (!state.atomic_write && !(state.atomic_apply && state.phase == 2)) return state.nsub;
+    // Construct and count only the slots this wave actually uses (see init_arena_arrays). A slot
+    // that no group maps to keeps whatever the recycled arena held; nobody indexes it.
+    bool seen[kMaxThreads] = {};
+    uint32_t participants[kMaxThreads];
     uint32_t owners = 0;
     for (uint32_t i = 0; i < state.nsub; i++) {
         const uint32_t tid = state.server->worker_of_shard(state.groups[i].shard);
         const uint32_t slot = state.server->executor_slot(tid);
-        if (slot >= state.owner_slots) std::abort();
-        OwnerRecordRefs& progress = state.owner_record_refs[slot];
-        if (progress.group_count++ == 0) owners++;
+        if (slot >= state.owner_slots || slot >= kMaxThreads) std::abort();
+        if (!seen[slot]) {
+            seen[slot] = true;
+            new (&state.owner_record_refs[slot]) OwnerRecordRefs;
+            participants[owners++] = slot;
+        }
+        state.owner_record_refs[slot].group_count++;
     }
-    for (uint32_t slot = 0; slot < state.owner_slots; slot++)
-        if (state.owner_record_refs[slot].group_count)
-            state.owner_record_refs[slot].remaining =
-                state.owner_record_refs[slot].group_count;
+    for (uint32_t p = 0; p < owners; p++) {
+        OwnerRecordRefs& progress = state.owner_record_refs[participants[p]];
+        progress.remaining = progress.group_count;
+    }
     return owners;
 }
 

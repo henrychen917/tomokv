@@ -565,6 +565,15 @@
         return !atomic_key_pending(hash, key) || atomic_resolve(hash, key, snapshot) != nullptr;
     }
 
+    // Does the table hold a physical slot for this key, ignoring every pending version? This is
+    // exactly the question the conditional movers' NX validator asks when the destination carries
+    // a foreign undecided record: a physical candidate means the reservation may still materialize
+    // and the validation must be re-run once that group decides. It used to be answered with a
+    // full for_each walk of both tables on every retry; the probe visits the same two tables.
+    bool atomic_has_physical(uint64_t hash, Slice key) const {
+        return atomic_find_physical(hash, key) != nullptr;
+    }
+
     template <typename Fn>
     void atomic_for_each_side_key(uint64_t snapshot, Fn&& fn) {
         if (!atomic_pending_) return;
@@ -621,6 +630,16 @@
             return false;
         }
 
+        // atomic_install_plain selects the freshly installed version as the store's read cut,
+        // because its ordinary caller (begin_plain_version) needs the handler that follows to see
+        // the clone it just installed. FLUSH is not that caller: it runs under an unbound read
+        // context and nothing after it restores the cut, so the store was left resolving every
+        // later unbound chain read (a direct RENAME's source lookup, a MULTI child's pop hop) at
+        // FLUSH's ticket with no origin connection -- a newer committed group of the same
+        // connection was then invisible and RENAME answered "no such key" for a key its own MSET
+        // had acknowledged. Preserve whatever context the caller had.
+        const uint64_t saved_epoch = atomic_read_epoch_;
+        const uint64_t saved_origin = atomic_read_origin_conn_id_;
         const uint64_t ticket = atomic_ticket_fn_(atomic_ticket_ctx_);
         for (PreparedClear& item : prepared) {
             Slice key(item.key.data(), static_cast<uint32_t>(item.key.size()));
@@ -628,6 +647,8 @@
             KvObj* tombstone = nullptr;
             atomic_install_plain(item.hash, key, opaque, tombstone, ticket);
         }
+        atomic_read_epoch_ = saved_epoch;
+        atomic_read_origin_conn_id_ = saved_origin;
         return true;
     }
 
