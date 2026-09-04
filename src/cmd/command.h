@@ -11,6 +11,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <utility>
 #include <vector>
@@ -223,7 +224,72 @@ CommandTable pfdebug_command_table();
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
 bool command_registry_init(bool tls_enabled, bool fused_mode = false);
-const CommandSpec* command_lookup(Slice name);
+
+// Clean registry rows for the verbs command_lookup resolves inline. command_registry_init stamps
+// them from the same rows the hash table indexes and re-checks the two against each other; they
+// stay null before that, so a pre-init lookup is still "unknown", exactly as the hash probe says.
+// Read on every dispatch and written only at boot, so it owns its cache line: no .bss neighbour
+// that is written at runtime can false-share the GET pointer load.
+struct alignas(64) HotCommandSpecs {
+    const CommandSpec* get  = nullptr;
+    const CommandSpec* set  = nullptr;
+    const CommandSpec* del  = nullptr;
+    const CommandSpec* mget = nullptr;
+    const CommandSpec* mset = nullptr;
+    const CommandSpec* incr = nullptr;
+};
+extern HotCommandSpecs g_hot_command_specs;
+
+// The cold entry: open-addressed probe of the uppercase-normalized name. Callers use
+// command_lookup below, which reaches this only for a name the inline resolve did not claim.
+const CommandSpec* command_lookup_registry(Slice name);
+
+// Little-endian packed verb key with every byte OR 0x20. For an ASCII letter, OR 0x20 has exactly
+// its two spellings as preimages ('G' 0x47 and 'g' 0x67 both give 0x67) and nothing else, and the
+// length is matched first, so key equality against a canonical verb is byte-exact case-insensitive
+// equality — the relation command_lookup_registry's ascii_upper compare implements — and no other
+// byte string, binary or otherwise, can alias a hot verb. A 3-byte key carries 0x20 in its top byte.
+inline constexpr uint32_t command_verb_key(char a, char b, char c, char d = ' ') {
+    return (static_cast<uint32_t>(static_cast<uint8_t>(a)) |
+            (static_cast<uint32_t>(static_cast<uint8_t>(b)) << 8) |
+            (static_cast<uint32_t>(static_cast<uint8_t>(c)) << 16) |
+            (static_cast<uint32_t>(static_cast<uint8_t>(d)) << 24)) | 0x20202020u;
+}
+
+// Command lookup. GET/SET/DEL and MGET/MSET/INCR resolve here, in registers, from the length the
+// parser already established: no call, no frame, no canary, no stack round-trip. Every other verb,
+// every other length, and the pre-init state take the out-of-line probe. The 3-byte key is built
+// from an in-bounds 16-bit load plus one byte rather than a 3-byte memcpy: GCC lowers that memcpy
+// to two narrow stack stores and a wider reload, which forces a frame and a store-forwarding stall
+// on every GET.
+// Always inlined so the parse loop never depends on the unit-growth heuristics (see the t_string.o
+// inliner note in the Makefile).
+__attribute__((always_inline)) inline const CommandSpec* command_lookup(Slice name) {
+    if (name.n == 3) {
+        uint16_t lo;
+        std::memcpy(&lo, name.p, 2);    // one 16-bit load plus one byte: both inside the name
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        lo = __builtin_bswap16(lo);
+#endif
+        const uint32_t key =
+            (static_cast<uint32_t>(lo) |
+             (static_cast<uint32_t>(static_cast<uint8_t>(name.p[2])) << 16)) | 0x20202020u;
+        if (key == command_verb_key('G', 'E', 'T')) return g_hot_command_specs.get;
+        if (key == command_verb_key('S', 'E', 'T')) return g_hot_command_specs.set;
+        if (key == command_verb_key('D', 'E', 'L')) return g_hot_command_specs.del;
+    } else if (name.n == 4) {
+        uint32_t key;
+        std::memcpy(&key, name.p, 4);   // one 32-bit load, never widened past the name
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        key = __builtin_bswap32(key);
+#endif
+        key |= 0x20202020u;
+        if (key == command_verb_key('M', 'G', 'E', 'T')) return g_hot_command_specs.mget;
+        if (key == command_verb_key('M', 'S', 'E', 'T')) return g_hot_command_specs.mset;
+        if (key == command_verb_key('I', 'N', 'C', 'R')) return g_hot_command_specs.incr;
+    }
+    return command_lookup_registry(name);
+}
 inline bool command_arity_ok(const CommandSpec& spec, uint32_t argc) {
     return argc >= static_cast<uint32_t>(spec.min_arity) &&
            (spec.max_arity < 0 || argc <= static_cast<uint32_t>(spec.max_arity));

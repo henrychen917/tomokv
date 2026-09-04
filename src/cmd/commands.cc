@@ -25,10 +25,6 @@ struct Registry {
     std::vector<CommandSpec> tls_notify_entries;
     std::vector<const CommandSpec*> slots;
     uint64_t acl_categories[256] = {};
-    const CommandSpec* hot_get = nullptr;
-    const CommandSpec* hot_set = nullptr;
-    const CommandSpec* hot_mget = nullptr;
-    const CommandSpec* hot_mset = nullptr;
     uint32_t mask = 0;
     bool built = false;
 };
@@ -37,25 +33,6 @@ Registry g_registry;
 
 inline uint8_t ascii_upper(uint8_t c) {
     return (c >= 'a' && c <= 'z') ? static_cast<uint8_t>(c - ('a' - 'A')) : c;
-}
-
-// Exact 3/4-byte ASCII verb key. The input length is checked by the caller and memcpy reads only
-// those bytes. OR 0x20 has exactly the upper/lower spelling of each target letter as a preimage,
-// so binary command names cannot alias one of these four keys.
-inline uint32_t short_verb_key(const char* p, uint32_t n) {
-    uint32_t key = 0;
-    std::memcpy(&key, p, n);
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    key = __builtin_bswap32(key);
-#endif
-    return key | 0x20202020u;
-}
-
-inline constexpr uint32_t short_verb_key(char a, char b, char c, char d = ' ') {
-    return static_cast<uint32_t>(a) |
-           (static_cast<uint32_t>(b) << 8) |
-           (static_cast<uint32_t>(c) << 16) |
-           (static_cast<uint32_t>(d) << 24);
 }
 
 uint64_t command_hash(const char* p, size_t n) {
@@ -128,6 +105,8 @@ CommandLengthClass command_length_class_for(const CommandSpec& spec) {
 }
 
 }  // namespace
+
+HotCommandSpecs g_hot_command_specs;
 
 bool command_registry_init(bool tls_enabled, bool fused_mode) {
     if (g_registry.built) return true;
@@ -234,10 +213,12 @@ bool command_registry_init(bool tls_enabled, bool fused_mode) {
     for (const CommandSpec& entry : g_registry.entries) {
         const CommandSpec* spec = &entry;
         const size_t n = std::strlen(spec->name);
-        if (!std::strcmp(spec->name, "GET")) g_registry.hot_get = spec;
-        else if (!std::strcmp(spec->name, "SET")) g_registry.hot_set = spec;
-        else if (!std::strcmp(spec->name, "MGET")) g_registry.hot_mget = spec;
-        else if (!std::strcmp(spec->name, "MSET")) g_registry.hot_mset = spec;
+        if (!std::strcmp(spec->name, "GET")) g_hot_command_specs.get = spec;
+        else if (!std::strcmp(spec->name, "SET")) g_hot_command_specs.set = spec;
+        else if (!std::strcmp(spec->name, "DEL")) g_hot_command_specs.del = spec;
+        else if (!std::strcmp(spec->name, "MGET")) g_hot_command_specs.mget = spec;
+        else if (!std::strcmp(spec->name, "MSET")) g_hot_command_specs.mset = spec;
+        else if (!std::strcmp(spec->name, "INCR")) g_hot_command_specs.incr = spec;
         if (n == 0 || spec->min_arity < 1 ||
             (spec->max_arity >= 0 && spec->max_arity < spec->min_arity) ||
             spec->first_key < 0 || spec->key_step < 0 ||
@@ -261,20 +242,22 @@ bool command_registry_init(bool tls_enabled, bool fused_mode) {
         g_registry.slots[pos] = spec;
     }
     g_registry.built = true;
+    // The inline resolve in command_lookup bypasses the table for these rows, so pin the two to
+    // each other here: a renamed or dropped row fails at boot, not as a divergent wire reply.
+    static constexpr const char* kHotVerbs[] = {"GET", "SET", "DEL", "MGET", "MSET", "INCR"};
+    for (const char* verb : kHotVerbs) {
+        const Slice name(verb, static_cast<uint32_t>(std::strlen(verb)));
+        if (command_lookup(name) != command_lookup_registry(name)) {
+            std::fprintf(stderr, "hot command row '%s' disagrees with the registry\n", verb);
+            g_registry.built = false;
+            return false;
+        }
+    }
     return true;
 }
 
-const CommandSpec* command_lookup(Slice name) {
+const CommandSpec* command_lookup_registry(Slice name) {
     if (!g_registry.built || name.n == 0) return nullptr;
-    if (name.n == 3) {
-        const uint32_t key = short_verb_key(name.p, 3);
-        if (key == short_verb_key('g', 'e', 't')) return g_registry.hot_get;
-        if (key == short_verb_key('s', 'e', 't')) return g_registry.hot_set;
-    } else if (name.n == 4) {
-        const uint32_t key = short_verb_key(name.p, 4);
-        if (key == short_verb_key('m', 'g', 'e', 't')) return g_registry.hot_mget;
-        if (key == short_verb_key('m', 's', 'e', 't')) return g_registry.hot_mset;
-    }
     size_t pos = command_hash(name.p, name.n) & g_registry.mask;
     for (size_t probes = 0; probes < g_registry.slots.size(); probes++) {
         const CommandSpec* spec = g_registry.slots[pos];
