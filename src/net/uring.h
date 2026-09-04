@@ -307,8 +307,9 @@ public:
         return __builtin_expect(wake_fd_ >= 0, false) ? 0 : io_uring_sq_ready(&r_);
     }
 
-    // Post a completion into ANOTHER thread's ring. This is how an IO thread tells a WB thread that
-    // a client has replies to send, without a shared queue or an eventfd round trip.
+    // Post a completion into ANOTHER thread's ring. This is how an executor wakes a parked io
+    // thread that has replies to retire (ThreadCtx::wake_if_parked), and how any producer pokes a
+    // parked consumer (Channel::wake), without a shared queue or an eventfd round trip.
     bool msg_to(Ring& target, uint64_t tag) {
         if (__builtin_expect(target.wake_fd_ >= 0, false)) return target.post_mail(tag);
         io_uring_sqe* s = sqe();
