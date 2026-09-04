@@ -64,8 +64,11 @@ All of this is confined to append-only writer code; appendonly-off command paths
 At the existing freeze-to-mark transition, after every shard has acknowledged Freeze and before any
 Mark work is published, the snapshot manager reads the server's existing atomic commit-safe word
 once and latches it as `snapshot_cut_ticket`.  INFO performs a plain relaxed read of that latch.  The
-last completed cut remains visible; zero means no cut has yet been established.  This adds no reader
-retry and no synchronization to mutations.
+last established cut remains visible.  Zero is also a valid completed cut before the first commit
+ticket; consumers that must distinguish that state from "no cut yet" pair it with
+`snapshot_cuts_armed`.  This adds no reader retry and no synchronization to mutations.  The typed
+snapshot race brackets a target cut with sequential cross-owner EXEC tickets B/C/D, so every value
+verified after reload is classified by ticket rather than wall-clock timing.
 
 ## Geometry and hop diagnostics
 
@@ -79,8 +82,11 @@ Both `ATOMIC-COMMIT-DELAY` and `ATOMIC-OFF-HOP-DELAY` set it, last writer wins, 
 to disarm it.  Atomic mode reads it at the existing ticket-to-publish boundary.  Non-atomic scatter
 loads it only after classifying a cross-owner write: one lead owner is allowed to publish, remaining
 owner tasks yield through the existing deferred-task queue until the deadline.  Two-hop commands arm
-the same boundary at the first mutation phase, not at a read/probe phase.  Ordinary single-owner
-commands never enter scatter; when the field is zero no deadline or delay work runs.
+the boundary whose inter-owner split exposes their publication contract: normally the first
+mutation phase, but a derived store or multi-pop whose only multi-owner wave is its read/probe phase
+arms there.  The deadline begins only after the lead fragment completes, so scheduler delay cannot
+consume the observation window.  Ordinary single-owner commands never enter scatter; when the
+field is zero no deadline or delay work runs.
 
 ## Boot, listeners, and shutdown
 

@@ -148,6 +148,14 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               Client* origin_client = nullptr);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
+// Post-join abandonment is deliberately two-phase. Prepare only makes the shared decision
+// terminal and removes physical-store script intents while Op argv is still alive. Destroy runs
+// after FlatStore records and WATCH reservations have dropped their state references; it then
+// returns gather borrows and blocking origins without posting to a stopped executor.
+void xshard_shutdown_prepare(ScatterState* state, Op& op);
+bool xshard_shutdown_destroy(ScatterState* state, Op& op, ScatterArenaPool& pool,
+                             uint32_t owner_io, void* release_ctx,
+                             void (*release_fn)(void*, int32_t, const char*));
 
 // Called by the connection-owning IO thread immediately before the ROB slot is staged.  It builds
 // final RESP bytes/segments, transfers every gathered borrow to the connection segment queue, and

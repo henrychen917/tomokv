@@ -522,6 +522,20 @@ public:
                c.head.load(std::memory_order_relaxed);
     }
 
+    // Read-only post-join walk.  Unlike pop(), this deliberately leaves both ownership frontiers
+    // untouched so shutdown phase A can make queued group decisions terminal before FlatStore
+    // drops the records which still point at those decisions.
+    template <typename Fn>
+    uint32_t visit_pending_after_join(uint32_t producer, Fn&& fn) const {
+        const ConsumerLine& c = lanes_[producer].consumer;
+        const ProducerLine& p = lanes_[producer].producer;
+        const uint32_t head = c.head.load(std::memory_order_acquire);
+        const uint32_t tail = p.tail.load(std::memory_order_acquire);
+        for (uint32_t cursor = head; cursor != tail; cursor++)
+            fn(slots_[c.base + (cursor & c.mask)]);
+        return tail - head;
+    }
+
     // Consumer-only form used by the standing 100us full-lane sweep.  It turns that already-paid
     // depth sample into an observed per-lane high-water mark without adding a producer-side atomic
     // load to every successful push.

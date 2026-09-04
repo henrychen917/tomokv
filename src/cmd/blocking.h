@@ -38,6 +38,8 @@ BlockingPrepare blocking_prepare(Server& server, Client& client, Op& op, uint64_
                                  BlockingDispatch& dispatch);
 int32_t blocking_dispatch_shard(const BlockingDispatch& dispatch, uint32_t index);
 void blocking_destroy_unpublished(BlockingState* state);
+void blocking_shutdown_prepare(Server& server, BlockingState* state);
+void blocking_shutdown_destroy(Server& server, BlockingState* state);
 void blocking_start(BlockingState* state, uint32_t tasks);
 
 // Blocking tasks use Task::scatter as an opaque carrier without growing the queue entry.  Op's

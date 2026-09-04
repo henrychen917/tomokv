@@ -987,6 +987,32 @@ public:
         return n;
     }
 
+    // No producer or consumer may still be running.  These walks preserve the queue frontiers so
+    // the coordinator can first abort/unpin every referenced state, release shard-local records,
+    // and only then consume the carriers and reclaim their Clients.
+    template <typename Fn> uint32_t visit_tasks_unmasked_after_join(Fn&& fn) const {
+        if (!task_in_) return 0;
+        uint32_t n = 0;
+        for (uint32_t p = 0; p < nchan_; p++)
+            n += task_in_->visit_pending_after_join(p, fn);
+        return n;
+    }
+    template <typename Fn> uint32_t visit_clients_unmasked_after_join(Fn&& fn) const {
+        if (!client_in_) return 0;
+        uint32_t n = 0;
+        for (uint32_t p = 0; p < nchan_; p++)
+            n += client_in_[p].visit_pending_after_join(fn);
+        return n;
+    }
+    template <typename Fn>
+    uint32_t visit_client_transfers_unmasked_after_join(Fn&& fn) const {
+        if (!transfer_in_) return 0;
+        uint32_t n = 0;
+        for (uint32_t p = 0; p < nchan_; p++)
+            n += transfer_in_[p].visit_pending_after_join(fn);
+        return n;
+    }
+
     // ---- the wb slot table: this thread AS A SENDER --------------------------------------------
     // Maps ready-mask bit -> the client it names. Owned and mutated ONLY by this thread; producers
     // never touch it -- they read the slot index off the Client and set a bit.

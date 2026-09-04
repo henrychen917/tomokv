@@ -6,8 +6,10 @@
 #pragma once
 
 #include <cerrno>
+#include <climits>
 #include <csignal>
 #include <cstdint>
+#include <poll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
 
@@ -58,6 +60,22 @@ inline void signal_doorbell_notify() {
         // terminal notification. Other failures cannot be reported safely from a signal handler.
     }
     errno = saved_errno;
+}
+
+// Wait without consuming the sticky event. Every worker ring and the main controller therefore
+// observe the same terminal edge independently. The clamp avoids poll(2)'s signed timeout wrap
+// for a deliberately huge configured controller interval.
+inline bool signal_doorbell_wait(uint32_t timeout_ms) {
+    const int fd = signal_doorbell_fd();
+    pollfd event{fd, POLLIN, 0};
+    const int timeout = timeout_ms > static_cast<uint32_t>(INT_MAX)
+                            ? INT_MAX
+                            : static_cast<int>(timeout_ms);
+    int result;
+    do {
+        result = ::poll(fd >= 0 ? &event : nullptr, fd >= 0 ? 1 : 0, timeout);
+    } while (result < 0 && errno == EINTR);
+    return result > 0;
 }
 
 }  // namespace tomo

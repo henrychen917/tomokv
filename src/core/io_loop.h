@@ -21,7 +21,6 @@
 #include <netinet/tcp.h>
 #include <poll.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
@@ -71,6 +70,85 @@ public:
     WbEngine& engine() { return wb_; }
     uint32_t reap_atomic_deferred() {
         return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
+    }
+
+    void shutdown_transport_after_join() {
+        ring_.shutdown();
+        ep_.shutdown();
+        if (self_) {
+            self_->set_ring(nullptr);
+            self_->set_wb_engine(nullptr);
+        }
+    }
+
+    // The one process-level connection teardown entry. Call only after every worker has joined
+    // and after the immutable shutdown report has been captured. Phase A fences every kernel
+    // carrier and makes all reachable group decisions terminal without detaching their owners.
+    // FlatStore/WATCH can then drop the last external references. Phase B consumes task/mailbox
+    // ownership and destroys connections; nothing here posts to a stopped loop.
+    template <class IoLoops, class ExecutionLoops>
+    static void close_all_clients(Server& server, IoLoops& io_loops,
+                                  ExecutionLoops& execution_loops) {
+        for (IoLoop& loop : io_loops) loop.shutdown_transport_after_join();
+        for (auto& loop : execution_loops) loop.shutdown_transport_after_join();
+
+        for (IoLoop& loop : io_loops) loop.shutdown_prepare_clients_after_join();
+        for (auto& loop : execution_loops)
+            (void)loop.shutdown_visit_tasks_after_join([&](const Task& task) {
+                if (task.client) shutdown_prepare_client_after_join(server, task.client);
+                multi_shutdown_prepare_task(task);
+            });
+
+        auto release = [&](const BorrowRelease& borrow) {
+            if (borrow.shard < 0 ||
+                static_cast<uint32_t>(borrow.shard) >= server.nshards() || !borrow.ptr)
+                return;
+            server.shard(borrow.shard).store().unborrow(borrow.ptr);
+        };
+        for (uint32_t tid = 0; tid < server.nthreads(); tid++)
+            server.thread(tid).drain_releases_unmasked(release);
+        for (auto& loop : execution_loops)
+            (void)loop.shutdown_release_borrows_after_join();
+
+        // Every Client and every detached state is still held by its original owner. Registry and
+        // FlatStore retirement can therefore decrement their references without racing a free.
+        for (uint32_t sid = 0; sid < server.nshards(); sid++) {
+            Shard& shard = server.shard(static_cast<int32_t>(sid));
+            shard.shutdown_release_blocking();
+            shard.shutdown_release_watches();
+            shard.store().atomic_shutdown_release_records();
+        }
+
+        uint32_t unreclaimed = 0;
+        for (auto& loop : execution_loops)
+            unreclaimed += loop.shutdown_discard_tasks_after_join([&](const Task& task) {
+                return multi_shutdown_discard_task(
+                    task, &server, &IoLoop::shutdown_unborrow);
+            });
+
+        for (IoLoop& loop : io_loops)
+            unreclaimed += loop.shutdown_release_sidecars_after_join();
+
+        std::unordered_set<Client*> reclaimed;
+        try { reclaimed.reserve(static_cast<size_t>(server.live_clients()) + 16); }
+        catch (const std::bad_alloc&) {}
+
+        // Completion channels are non-owning, except for a not-yet-adopted AF_UNIX connection.
+        // Empty every channel globally before a registered Client can be freed.
+        for (IoLoop& loop : io_loops)
+            unreclaimed += loop.shutdown_drain_client_channel_after_join(reclaimed);
+        for (IoLoop& loop : io_loops)
+            unreclaimed += loop.shutdown_destroy_owned_clients_after_join(reclaimed);
+        // A committed migration is solely owned by its destination transfer mailbox. Process
+        // those after every source registry; the process-wide set makes even a broken stale source
+        // carrier a single reclaim rather than a double free.
+        for (IoLoop& loop : io_loops)
+            unreclaimed += loop.shutdown_drain_transfers_after_join(reclaimed);
+        for (IoLoop& loop : io_loops) loop.shutdown_finish_after_join();
+        if (unreclaimed)
+            std::fprintf(stderr,
+                         "shutdown cleanup: unreclaimed_states=%u (external refs remained)\n",
+                         unreclaimed);
     }
     // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
     //
@@ -174,23 +252,6 @@ public:
         if (::inet_pton(AF_INET, addr, &sa.sin_addr) != 1) { ::close(fd); return -1; }
         if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) { ::close(fd); return -1; }
         if (::listen(fd, static_cast<int>(backlog)) != 0) { ::close(fd); return -1; }
-        return fd;
-    }
-
-    // Linux does not provide TCP-style SO_REUSEPORT distribution for filesystem AF_UNIX paths:
-    // the pathname is a unique bind key. One listener is therefore armed by one IO thread, which
-    // round-robins accepted Client handles through the existing per-producer client channels.
-    static int make_unix_listener(const char* path, uint32_t backlog = 511) {
-        sockaddr_un sa{};
-        if (!path || !*path || std::strlen(path) >= sizeof(sa.sun_path)) return -1;
-        int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-        if (fd < 0) return -1;
-        sa.sun_family = AF_UNIX;
-        std::memcpy(sa.sun_path, path, std::strlen(path) + 1);
-        if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0 ||
-            ::listen(fd, static_cast<int>(backlog)) != 0) {
-            ::close(fd); return -1;
-        }
         return fd;
     }
 
@@ -537,6 +598,10 @@ private:
     friend uint32_t multi_owner_reap_entry(IoLoop&);
     friend void multi_close_entry(IoLoop&, Client&);
     friend void multi_shutdown_entry(IoLoop&);
+    friend bool multi_shutdown_op_entry(IoLoop&, Client&, Op&, void*,
+                                        void (*)(void*, int32_t, const char*));
+    friend uint32_t multi_shutdown_after_join(IoLoop&, void*,
+                                              void (*)(void*, int32_t, const char*));
     friend void notify_retire_batch_entry(IoLoop&, NotifyBatch*, uint64_t);
 #include "pubsub.inc"
 
@@ -7009,6 +7074,246 @@ ordinary_dispatch:
                 (snapshot.notify_events & NOTIFY_KEY_MISS) != 0);
         }
         notify_config_version_ = snapshot.version;
+    }
+
+    static void shutdown_unborrow(void* opaque, int32_t shard, const char* ptr) {
+        auto* server = static_cast<Server*>(opaque);
+        if (!server || shard < 0 || static_cast<uint32_t>(shard) >= server->nshards() || !ptr)
+            return;
+        server->shard(shard).store().unborrow(ptr);
+    }
+
+    static void shutdown_prepare_client_after_join(Server& server, Client* client) {
+        if (!client) return;
+        multi_shutdown_prepare_session(*client);
+        Rob<kRobWindow>& rob = client->rob();
+        for (uint64_t id = rob.flush_id(), end = rob.dispatch_id(); id != end; id++) {
+            Op& op = rob.at(id);
+            if (op.has_scatter_state())
+                xshard_shutdown_prepare(op.scatter_state(), op);
+            else if (op.has_multi_state())
+                multi_shutdown_prepare_op(op);
+            else if (op.has_blocking_state())
+                blocking_shutdown_prepare(server, op.blocking_state());
+        }
+    }
+
+    void shutdown_prepare_clients_after_join() {
+        if (!srv_ || !self_) return;
+        for (Client* client : self_->clients())
+            shutdown_prepare_client_after_join(*srv_, client);
+        for (Client* client : dead_ready_)
+            shutdown_prepare_client_after_join(*srv_, client);
+        for (Client* client : dead_next_)
+            shutdown_prepare_client_after_join(*srv_, client);
+        for (Client* client : pending_handoffs_)
+            shutdown_prepare_client_after_join(*srv_, client);
+        for (const ClientMigration& migration : client_migrations_)
+            shutdown_prepare_client_after_join(*srv_, migration.client);
+        (void)self_->visit_client_transfers_unmasked_after_join(
+            [&](const ClientTransfer& transfer) {
+                shutdown_prepare_client_after_join(*srv_, transfer.client);
+            });
+        (void)self_->visit_clients_unmasked_after_join(
+            [&](Client* client) { shutdown_prepare_client_after_join(*srv_, client); });
+        for (MultiExecState* state : pending_multi_cleanups_)
+            multi_shutdown_prepare_state(state);
+        for (MultiExecState* state : multi_deferred_)
+            multi_shutdown_prepare_state(state);
+    }
+
+    uint32_t shutdown_release_sidecars_after_join() {
+        if (!srv_ || !self_) return 0;
+        uint32_t unreclaimed = 0;
+        if (!ring_.shutdown_complete()) {
+            std::fprintf(stderr,
+                         "shutdown cleanup: t%u client ring was not fenced; clients retained\n",
+                         self_->id());
+            return static_cast<uint32_t>(self_->clients().size());
+        }
+
+        // A source migration is an alias of its still-registered Client until the commit function
+        // removes that registry entry and posts the sole destination owner. With all loops joined,
+        // discard its extracted sidecars and backup registration before any Client is considered.
+        for (ClientMigration& migration : client_migrations_) {
+            if (migration.source_backup_fd >= 0) ::close(migration.source_backup_fd);
+            command_client_migration_discard(migration.catalog);
+            client_routing_discard(migration.routing);
+            migration.catalog = nullptr;
+            migration.routing = nullptr;
+            migration.source_backup_fd = -1;
+        }
+        client_migrations_.clear();
+
+        pubsub_shutdown_events();
+        pubsub_clear_home_indexes();
+        pubsub_local_.clear();
+        pubsub_pending_.clear();
+        routing_forward_.clear();
+        while (!pending_releases_.empty()) {
+            const BorrowRelease release = pending_releases_.front();
+            pending_releases_.pop_front();
+            shutdown_unborrow(srv_, release.shard, release.ptr);
+        }
+        unreclaimed += multi_shutdown_after_join(
+            *this, srv_, &IoLoop::shutdown_unborrow);
+        return unreclaimed;
+    }
+
+    bool shutdown_destroy_client_state_after_join(Client& client) {
+        if (!multi_shutdown_session_after_join(
+                *this, client, srv_, &IoLoop::shutdown_unborrow))
+            return false;
+        Rob<kRobWindow>& rob = client.rob();
+        for (uint64_t id = rob.flush_id(), end = rob.dispatch_id(); id != end; id++) {
+            Op& op = rob.at(id);
+            if (op.has_scatter_state()) {
+                if (!xshard_shutdown_destroy(op.scatter_state(), op, scatter_pool_,
+                                              self_->id(), srv_,
+                                              &IoLoop::shutdown_unborrow))
+                    return false;
+                op.detach_scatter_state();
+            } else if (op.has_multi_state()) {
+                if (!multi_shutdown_op_entry(*this, client, op, srv_,
+                                             &IoLoop::shutdown_unborrow))
+                    return false;
+            } else if (op.has_blocking_state()) {
+                BlockingState* state = op.blocking_state();
+                op.detach_blocking_state();
+                blocking_shutdown_destroy(*srv_, state);
+            } else {
+                if (op.has_notify_state()) notify_abort_op(op);
+                if (op.zc_ptr && op.zc_shard >= 0)
+                    shutdown_unborrow(srv_, op.zc_shard, op.zc_ptr);
+                op.detach_scatter_state();
+            }
+        }
+        return true;
+    }
+
+    bool shutdown_reclaim_client_after_join(
+            Client* client, bool counted, bool registered,
+            std::unordered_set<Client*>& reclaimed) {
+        if (!client) return true;
+        if (reclaimed.find(client) != reclaimed.end()) {
+            if (registered) (void)self_->remove_client(client); // pointer comparison only
+            return true;
+        }
+        if (!shutdown_destroy_client_state_after_join(*client)) return false;
+        try {
+            if (!reclaimed.insert(client).second) return true;
+        } catch (const std::bad_alloc&) {
+            // Keep the original ownership carrier intact when possible. Mailbox-only callers
+            // report the retained allocation rather than risking a double free without dedupe.
+            return false;
+        }
+
+        // queue_exit/epoll close is the pointer fence: sendmsg can no longer pin these iovecs.
+        client->set_recv_armed(false);
+        client->set_send_inflight(false);
+        client->release_all_segments([&](int32_t shard, const char* ptr) {
+            shutdown_unborrow(srv_, shard, ptr);
+        });
+        wb_.teardown(*client);
+
+        if (counted) {
+            climon_untrack_client(client);
+            command_client_disconnected(client);
+        }
+        if (registered) {
+            self_->release_wb_slot(client->wb_slot());
+            client->set_wb_slot(Client::kNoWbSlot);
+            (void)self_->remove_client(client);
+        }
+        if (counted) {
+            ::shutdown(client->fd(), SHUT_RDWR);
+            ::close(client->fd());
+            srv_->client_released();
+            srv_->lb_forget_client(client->id());
+        }
+        release_tls(client);
+        delete client;
+        return true;
+    }
+
+    uint32_t shutdown_drain_client_channel_after_join(
+            std::unordered_set<Client*>& reclaimed) {
+        if (!srv_ || !self_) return 0;
+        uint32_t unreclaimed = 0;
+        self_->drain_clients_unmasked([&](Client* client) {
+            if (!client) return; // pub/sub doorbell token; payloads were drained separately
+            // A corrupt/stale second carrier must be rejected before even reading the object: the
+            // first AF_UNIX carrier may have been its sole owner and reclaimed it above.
+            if (reclaimed.find(client) != reclaimed.end()) return;
+            if (client->retire_queued().load(std::memory_order_acquire)) {
+                client->retire_queued().store(false, std::memory_order_release);
+                return; // executor completion: the owner registry remains the lifetime edge
+            }
+            // AF_UNIX handoff: the destination has not adopted it and the channel is sole owner.
+            if (!shutdown_reclaim_client_after_join(client, true, false, reclaimed))
+                unreclaimed++;
+        });
+        return unreclaimed;
+    }
+
+    uint32_t shutdown_destroy_owned_clients_after_join(
+            std::unordered_set<Client*>& reclaimed) {
+        if (!srv_ || !self_) return 0;
+        uint32_t unreclaimed = 0;
+        size_t index = 0;
+        while (index < self_->clients().size()) {
+            Client* client = self_->clients()[index];
+            if (shutdown_reclaim_client_after_join(client, true, true, reclaimed))
+                continue; // remove_client swapped a new entry into this index
+            unreclaimed++;
+            index++;
+        }
+        for (auto it = pending_handoffs_.begin(); it != pending_handoffs_.end();) {
+            if (shutdown_reclaim_client_after_join(*it, true, false, reclaimed))
+                it = pending_handoffs_.erase(it);
+            else {
+                unreclaimed++;
+                ++it;
+            }
+        }
+        auto destroy_dead = [&](std::vector<Client*>& dead) {
+            for (size_t i = 0; i < dead.size();) {
+                if (shutdown_reclaim_client_after_join(dead[i], false, false, reclaimed)) {
+                    dead[i] = dead.back();
+                    dead.pop_back();
+                } else {
+                    unreclaimed++;
+                    i++;
+                }
+            }
+        };
+        destroy_dead(dead_ready_);
+        destroy_dead(dead_next_);
+        return unreclaimed;
+    }
+
+    uint32_t shutdown_drain_transfers_after_join(
+            std::unordered_set<Client*>& reclaimed) {
+        if (!srv_ || !self_) return 0;
+        uint32_t unreclaimed = 0;
+        self_->drain_client_transfers_unmasked([&](const ClientTransfer& transfer) {
+            command_client_migration_discard(transfer.catalog);
+            client_routing_discard(transfer.routing);
+            if (!shutdown_reclaim_client_after_join(
+                    transfer.client, true, false, reclaimed))
+                unreclaimed++;
+        });
+        return unreclaimed;
+    }
+
+    void shutdown_finish_after_join() {
+        if (!srv_ || !self_) return;
+        pending_serve_.clear();
+        pending_ifid_.clear();
+        deferred_timers_.clear();
+        epoll_closes_.clear();
+        active_.v.clear();
+        (void)reap_atomic_deferred();
     }
 
     void close_client(Client* c, bool drain_tls_output = false) {

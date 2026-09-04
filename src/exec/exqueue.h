@@ -148,6 +148,18 @@ public:
         return 0;
     }
 
+    // Coordinator-only inspection after both the producer and consumer have joined.  Shutdown
+    // needs to abort decisions referenced by queued connection/task carriers before it can release
+    // MVCC records, but consuming the carrier here would lose its phase-B ownership edge.
+    template <typename Fn>
+    uint32_t visit_pending_after_join(Fn&& fn) const {
+        const uint32_t head = head_.load(std::memory_order_acquire);
+        const uint32_t tail = tail_.load(std::memory_order_acquire);
+        for (uint32_t cursor = head; cursor != tail; cursor++)
+            fn(slots_[cursor & kMask]);
+        return tail - head;
+    }
+
 private:
     alignas(kCacheLine) std::atomic<uint32_t> head_{0};
     // Written by the consumer only, and deliberately on the consumer's line beside head_: the

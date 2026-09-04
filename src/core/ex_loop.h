@@ -300,6 +300,92 @@ public:
         if (read_local_enabled()) (void)read_local_impl().deferred.drain_shutdown();
     }
 
+    // Coordinator-only, after this loop's worker has joined. Ring teardown is the kernel fence
+    // before Client storage can be reclaimed; stale releases are then returned directly because
+    // no executor remains to consume another channel post.
+    void shutdown_transport_after_join() {
+        ring_.shutdown();
+        if (self_) self_->set_ring(nullptr);
+    }
+
+    uint32_t shutdown_release_borrows_after_join() {
+        uint32_t released = 0;
+        if (!srv_) return released;
+        while (!stale_releases_.empty()) {
+            const BorrowRelease release = stale_releases_.front();
+            stale_releases_.pop_front();
+            if (release.shard >= 0 &&
+                static_cast<uint32_t>(release.shard) < srv_->nshards() && release.ptr) {
+                srv_->shard(release.shard).store().unborrow(release.ptr);
+                released++;
+            }
+        }
+        return released;
+    }
+
+    template <typename Fn>
+    uint32_t shutdown_visit_tasks_after_join(Fn&& fn) const {
+        if (!self_) return 0;
+        uint32_t visited = self_->visit_tasks_unmasked_after_join(fn);
+        auto visit_queue = [&](const auto& queue) {
+            for (const Task& task : queue) {
+                fn(task);
+                visited++;
+            }
+        };
+        visit_queue(atomic_deferred_);
+        visit_queue(multi_retries_);
+        visit_queue(xshard_retries_);
+        visit_queue(ordered_deferred_);
+        visit_queue(stale_tasks_);
+        for (const auto& queue : snapshot_backlogs_) visit_queue(queue);
+        if constexpr (Fused) {
+            if (read_local_.impl) {
+                const ReadLocalExImpl& lane = *read_local_.impl;
+                for (uint32_t offset = 0; offset < lane.lane_count; offset++) {
+                    fn(lane.lane[(lane.lane_head + offset) & (kInboxSlots - 1)]);
+                    visited++;
+                }
+            }
+        }
+        return visited;
+    }
+
+    template <typename Fn>
+    uint32_t shutdown_discard_tasks_after_join(Fn&& fn) {
+        if (!self_) return 0;
+        uint32_t rejected = 0;
+        auto discard = [&](const Task& task) { rejected += fn(task) ? 0u : 1u; };
+        (void)self_->template drain_tasks_unmasked<Fused>(discard);
+        auto discard_queue = [&](auto& queue) {
+            while (!queue.empty()) {
+                const Task task = queue.front();
+                queue.pop_front();
+                discard(task);
+            }
+        };
+        discard_queue(atomic_deferred_);
+        discard_queue(multi_retries_);
+        discard_queue(xshard_retries_);
+        discard_queue(ordered_deferred_);
+        discard_queue(stale_tasks_);
+        for (auto& queue : snapshot_backlogs_) discard_queue(queue);
+        if constexpr (Fused) {
+            if (read_local_.impl) {
+                ReadLocalExImpl& lane = *read_local_.impl;
+                while (lane.lane_count) {
+                    const Task task = lane.lane[lane.lane_head];
+                    lane.lane_head = (lane.lane_head + 1) & (kInboxSlots - 1);
+                    lane.lane_count--;
+                    discard(task);
+                }
+                lane.lane_head = lane.lane_tail = lane.lane_demotion_demand = 0;
+                lane.lane_has_tombstones = false;
+            }
+        }
+        return rejected;
+    }
+
     // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
     // this pass is the split executor body without its role loop or independent wait.
     uint32_t fused_pass() {

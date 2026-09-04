@@ -1929,6 +1929,63 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
     pool.release(state, pooled);
 }
 
+void xshard_shutdown_prepare(ScatterState* state, Op& op) {
+    if (!state) return;
+
+    // FlatStore's final atomic drain refuses to destroy a pending list while a physical script
+    // intent remains.  The intent key itself was copied by FlatStore, but finding the exact entry
+    // still uses this live Op argv, hence prepare must precede Client destruction.
+    if (state->script_pinned && state->server)
+        for (uint32_t i = 0; i < state->key_count; i++) {
+            if (!state->script_pinned[i]) continue;
+            const KeyRef& key = state->keys[i];
+            state->server->shard(key.shard).store().atomic_script_unpin(
+                key.hash, op.arg(key.arg));
+            state->server->note_script_key_released();
+            state->script_pinned[i] = 0;
+        }
+    state->script_pins_live = false;
+
+    // A reserved script ticket is a sequence bracket even when shutdown discards its write set.
+    // Publish the unused reservation so no later teardown observer sees a permanently open cut.
+    if (state->script_ticket_live && state->server) {
+        state->server->atomic_commit_publish();
+        state->script_ticket_live = false;
+    }
+    state->aborted.store(true, std::memory_order_release);
+}
+
+bool xshard_shutdown_destroy(ScatterState* state, Op& op, ScatterArenaPool& pool,
+                             uint32_t owner_io, void* release_ctx,
+                             void (*release_fn)(void*, int32_t, const char*)) {
+    if (!state) return true;
+    xshard_shutdown_prepare(state, op);
+
+    // A partially gathered MGET owns the same immutable FlatStore borrows as a staged wire
+    // segment, but it has not reached xshard_retire() yet. Return them directly now that every
+    // owner and every kernel ring has joined; posting to the IO->EX release channel would strand
+    // them forever.
+    for (uint32_t i = 0; state->values && i < state->key_count; i++) {
+        ValueSlot& value = state->values[i];
+        if (value.kind != ValueKind::Borrow) continue;
+        if (release_fn) release_fn(release_ctx, value.shard, value.ptr);
+        value.kind = ValueKind::Nil;
+        value.ptr = nullptr;
+    }
+
+    if (state->blocking_origin) {
+        blocking_shutdown_destroy(*state->server, state->blocking_origin);
+        state->blocking_origin = nullptr;
+    }
+
+    const bool reclaimable =
+        state->record_refs.load(std::memory_order_acquire) == 0 &&
+        state->watch_refs.load(std::memory_order_acquire) == 0;
+    if (!reclaimable) return false;
+    xshard_destroy(state, pool, owner_io);
+    return true;
+}
+
 bool xshard_is_local(const Op& op) { return op.local_xshard(); }
 
 void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {

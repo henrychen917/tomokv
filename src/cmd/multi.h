@@ -50,6 +50,20 @@ uint32_t multi_owner_pass_entry_iofused(IoLoop& loop);
 uint32_t multi_owner_reap_entry(IoLoop& loop);
 void multi_close_entry(IoLoop& loop, Client& client);
 void multi_shutdown_entry(IoLoop& loop);
+void multi_shutdown_prepare_state(MultiExecState* state);
+void multi_shutdown_prepare_op(Op& op);
+void multi_shutdown_prepare_session(Client& client);
+void multi_shutdown_prepare_task(const Task& task);
+bool multi_shutdown_op_entry(IoLoop& loop, Client& client, Op& op,
+                             void* release_ctx,
+                             void (*release_fn)(void*, int32_t, const char*));
+uint32_t multi_shutdown_after_join(IoLoop& loop, void* release_ctx,
+                                   void (*release_fn)(void*, int32_t, const char*));
+bool multi_shutdown_session_after_join(IoLoop& loop, Client& client,
+                                       void* release_ctx,
+                                       void (*release_fn)(void*, int32_t, const char*));
+bool multi_shutdown_discard_task(const Task& task, void* release_ctx,
+                                 void (*release_fn)(void*, int32_t, const char*));
 
 uint32_t multi_dispatch_count(const MultiExecState* state);
 int32_t multi_dispatch_shard(const MultiExecState* state, uint32_t index);

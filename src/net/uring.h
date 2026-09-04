@@ -86,10 +86,7 @@ inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48)
 class Ring {
 public:
     Ring() = default;
-    ~Ring() {
-        if (inited_) io_uring_queue_exit(&r_);
-        if (wake_fd_ >= 0) ::close(wake_fd_);
-    }
+    ~Ring() { shutdown(); }
     Ring(const Ring&) = delete;
     Ring& operator=(const Ring&) = delete;
 
@@ -129,6 +126,34 @@ public:
         }
         return true;
     }
+
+    // POST-JOIN FENCE. io_uring CQEs carry raw Client*/buffer pointers and the epoll fallback's
+    // mailbox carries the same tagged pointers. Queue teardown must therefore precede destruction
+    // of any connection those entries can name. Only the coordinator calls this, after every ring
+    // issuer has joined; making it idempotent also keeps partially initialized boot failures safe.
+    void shutdown() {
+        if (inited_) {
+            io_uring_queue_exit(&r_);
+            inited_ = false;
+        }
+        if (wake_fd_ >= 0) {
+            ::close(wake_fd_);
+            wake_fd_ = -1;
+        }
+        shutdown_fd_ = -1;  // borrowed process doorbell; Ring never closes it
+        deferred_cqes_.clear();
+        {
+            std::lock_guard<std::mutex> lock(mail_mu_);
+            mail_.clear();
+        }
+        raw_callback_active_ = false;
+        raw_callback_taken_ = false;
+        raw_callback_index_ = 0;
+        send_pending_ = false;
+        sq_full_submit_ = false;
+    }
+
+    bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
 
     io_uring* raw() { return &r_; }
     bool deferred() const { return deferred_; }

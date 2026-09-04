@@ -10,7 +10,6 @@
 #include <csignal>
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cerrno>
 #include <condition_variable>
 #include <cstdio>
@@ -327,6 +326,13 @@ int main(int argc, char** argv) {
     auto pin_for = [&](uint32_t tid) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };
+    auto report_graceful_shutdown = [&] {
+        ShutdownReport report = collect_shutdown_report(srv, ios, exs);
+        print_shutdown_report_human(report);
+        final_shutdown_line.arm(std::move(report));
+        IoLoop::close_all_clients(srv, ios, exs);
+        acl_shutdown();
+    };
 
     // Workers and senders BEFORE io: an io thread that dispatches or hands off to a thread whose
     // ring does not exist yet would find nothing to wake, and the work would sit until something
@@ -416,10 +422,23 @@ int main(int argc, char** argv) {
     if (!load_ok) {
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         for (auto& thread : pool) thread.join();
+        if (srv.shutting_down().load(std::memory_order_relaxed)) {
+            srv.set_loading(false);
+            report_graceful_shutdown();
+            return 0;
+        }
         std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
         return 1;
     }
     srv.set_loading(false);
+    if (srv.shutting_down().load(std::memory_order_relaxed)) {
+        for (uint32_t i = 0; i < nthreads; i++)
+            srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+        for (auto& thread : pool)
+            if (thread.joinable()) thread.join();
+        report_graceful_shutdown();
+        return 0;
+    }
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
     if (cfg.port) {
@@ -523,24 +542,14 @@ int main(int argc, char** argv) {
     // loops only publish owner-local counters and execute the unchanged FLIP stage machine. With
     // the default --flip-auto 0 this block does not run and allocates/schedules nothing.
     if (srv.flipctl_enabled()) {
-        const auto beat = std::chrono::milliseconds(srv.flipctl_tick_ms());
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {
             (void)srv.flipctl_tick(now_ns() / 1000000ull);
-            std::this_thread::sleep_for(beat);
+            if (srv.shutting_down().load(std::memory_order_relaxed)) break;
+            (void)signal_doorbell_wait(srv.flipctl_tick_ms());
         }
     }
 
     for (auto& t : pool) t.join();
-    // All owners and readers are quiescent. Release pending-entry references before IoLoop destruction,
-    // then return their deferred ScatterState arenas to the correct IO-owned pools. Server normally
-    // outlives those pools, so leaving this to FlatStore destructors would leak the retained arenas.
-    for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
-    for (IoLoop& io : ios) io.reap_atomic_deferred();
-
-    ShutdownReport report = collect_shutdown_report(srv, ios, exs);
-    print_shutdown_report_human(report);
-    final_shutdown_line.arm(std::move(report));
-    acl_shutdown();
+    report_graceful_shutdown();
     return 0;
 }

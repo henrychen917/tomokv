@@ -387,6 +387,10 @@ public:
     uint32_t newest_nonzero(Extract&& extract) const {
         return q_.newest_nonzero(static_cast<Extract&&>(extract));
     }
+    template <typename Fn>
+    uint32_t visit_pending_after_join(Fn&& fn) const {
+        return q_.visit_pending_after_join(static_cast<Fn&&>(fn));
+    }
 
     // Call ONLY when the caller performed the mask's empty->flagged transition. That RMW is a full
     // fence, which is what makes this load safe: without it, store(blocked_)/load(mask) on the
@@ -532,6 +536,10 @@ public:
     template <typename Extract>
     uint32_t newest_nonzero(uint32_t producer, Extract&& extract) const {
         return q_.newest_nonzero(producer, static_cast<Extract&&>(extract));
+    }
+    template <typename Fn>
+    uint32_t visit_pending_after_join(uint32_t producer, Fn&& fn) const {
+        return q_.visit_pending_after_join(producer, static_cast<Fn&&>(fn));
     }
     void wake(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
         if (peer_ring && blocked_.load(std::memory_order_acquire)) {

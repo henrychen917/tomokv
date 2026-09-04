@@ -18,6 +18,7 @@
 #include "../core/config.h"
 #include "../core/server.h"
 #include "../core/shard.h"
+#include "../core/signal_doorbell.h"
 #include "../core/thread.h"
 #include "../exec/op.h"
 #include "../net/conn.h"
@@ -286,6 +287,7 @@ void cmd_shutdown(Shard&, Op& op) {
         if (Ring* ring = self->ring())
             for (uint32_t i = 0; i < server->nthreads(); i++)
                 server->thread(i).wake_if_parked(*ring, self->sig());
+    signal_doorbell_notify();
     // Deliberately no reply: the client observes a closed connection, exactly like redis.
 }
 

@@ -676,6 +676,18 @@ public:
             }
     }
 
+    void shutdown_clear(Shard& shard) {
+        for (BlockingQueue& queue : queues_)
+            while (!queue.waiters.empty()) {
+                BlockingState* state = queue.waiters.front().state;
+                queue.waiters.pop_front();
+                shard.blocking_waiter_removed();
+                state->server->blocking_waiter_removed();
+                blocking_state_release(state);
+            }
+        queues_.clear();
+    }
+
     bool add(Shard& shard, BlockingState& state, uint32_t key_index) {
         const BlockingKey& key = state.keys[key_index];
         // Duplicate keys in one command are one registry alias at their earliest argument position.
@@ -946,6 +958,16 @@ Shard::~Shard() {
     blocking_registry_destroy(static_cast<BlockingRegistry*>(blocking_registry_));
 }
 
+void Shard::shutdown_release_blocking() {
+    // No executor survives this call. Registry destruction only drops its refcount aliases; the
+    // connection's ROB drops the final/base reference in IoLoop::close_all_clients(). Keeping the
+    // two phases separate prevents a registry callback from trying to wake a stopped owner.
+    auto* registry = static_cast<BlockingRegistry*>(blocking_registry_);
+    if (registry) registry->shutdown_clear(*this);
+    blocking_registry_destroy(registry);
+    blocking_registry_ = nullptr;
+}
+
 void blocking_bind_executor(Server* server, ThreadCtx* self, Ring* ring) {
     (void)server;
     blocking_tls_self = self;
@@ -1014,6 +1036,19 @@ int32_t blocking_dispatch_shard(const BlockingDispatch& dispatch, uint32_t index
 }
 
 void blocking_destroy_unpublished(BlockingState* state) { blocking_state_release(state); }
+
+void blocking_shutdown_prepare(Server& server, BlockingState* state) {
+    if (!state) return;
+    state->cancel_requested.store(true, std::memory_order_release);
+    if (state->counted.exchange(false, std::memory_order_acq_rel))
+        server.blocking_client_unparked();
+}
+
+void blocking_shutdown_destroy(Server& server, BlockingState* state) {
+    if (!state) return;
+    blocking_shutdown_prepare(server, state);
+    blocking_state_release(state);
+}
 
 void blocking_start(BlockingState* state, uint32_t tasks) {
     state->pending.store(tasks, std::memory_order_relaxed);

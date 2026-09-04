@@ -53,7 +53,7 @@ public:
     static constexpr int kMaxEvents = 256;
 
     EpollSet() = default;
-    ~EpollSet() { if (fd_ >= 0) ::close(fd_); }
+    ~EpollSet() { shutdown(); }
     EpollSet(const EpollSet&) = delete;
     EpollSet& operator=(const EpollSet&) = delete;
 
@@ -61,6 +61,13 @@ public:
         fd_ = ::epoll_create1(EPOLL_CLOEXEC);
         if (fd_ < 0) { std::perror("epoll_create1"); return false; }
         return true;
+    }
+    void shutdown() {
+        if (fd_ >= 0) {
+            ::close(fd_);
+            fd_ = -1;
+        }
+        n_ = 0;
     }
     bool add(int target, uint32_t events, uint64_t tag) {
         epoll_event ev{};

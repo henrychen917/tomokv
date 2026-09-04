@@ -91,9 +91,18 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     FusedBootGate boot(nthreads);
     const uint32_t unix_owner = srv.placement().ifid_threads().front();
     auto report_graceful_shutdown = [&] {
+        if (srv.read_local_enabled()) {
+            // Joined fused readers cannot run another grace callback. Empty their private
+            // retirement queues and disarm every store hook before taking the immutable report;
+            // the subsequent atomic-record drain may detach more than a bounded callback list.
+            for (FusedExLoop& executor : executors) executor.read_local_shutdown_drain();
+            for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+                srv.shard(static_cast<int32_t>(sid)).store().configure_read_local(false, {});
+        }
         ShutdownReport report = collect_shutdown_report(srv, ios, executors);
         print_shutdown_report_human(report);
         final_report.arm(std::move(report));
+        IoLoop::close_all_clients(srv, ios, executors);
         acl_shutdown();
     };
 
@@ -200,7 +209,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 boot.give_up(tid, "unified listener activation failed");
                 return;
             }
-            boot.arrive_ready(tid);
+            if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
@@ -225,6 +234,11 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         return interrupted ? 0 : 1;
     }
     srv.set_loading(false);
+    if (srv.shutting_down().load(std::memory_order_relaxed)) {
+        stop_workers();
+        report_graceful_shutdown();
+        return 0;
+    }
 
     auto probe_listener = [&](uint32_t port, bool tls) {
         if (!port) return true;
@@ -255,8 +269,9 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         }
         (void)unix_listener.release_fd();
     }
-    if (!boot.advance_ready() || !boot.wait_ready(srv.shutting_down()) ||
-        !boot.advance_running()) {
+    if (!boot.advance_ready(srv.shutting_down()) ||
+        !boot.wait_ready(srv.shutting_down()) ||
+        !boot.advance_running(srv.shutting_down())) {
         stop_workers();
         const std::string error = boot.error();
         if (!error.empty()) std::fprintf(stderr, "unified boot failed: %s\n", error.c_str());
@@ -271,18 +286,6 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     std::fflush(stdout);
 
     for (std::thread& worker : pool) worker.join();
-    if (srv.read_local_enabled()) {
-        // All fused readers have joined, so every queued callback is immediately safe. Empty the
-        // bounded lists and disable their store hooks BEFORE atomic teardown: collapse can detach
-        // more than one full list of values, and no joined thread remains to advance a grace tick.
-        for (FusedExLoop& executor : executors) executor.read_local_shutdown_drain();
-        for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-            srv.shard(static_cast<int32_t>(sid)).store().configure_read_local(false, {});
-    }
-    for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
-    for (IoLoop& io : ios) io.reap_atomic_deferred();
-
     report_graceful_shutdown();
     return 0;
 }

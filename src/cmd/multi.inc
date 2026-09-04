@@ -1645,9 +1645,128 @@ void multi_close_entry(IoLoop& loop, Client& client) {
 }
 
 void multi_shutdown_entry(IoLoop& loop) {
-    for (MultiExecState* state : loop.pending_multi_cleanups_)
-        multi_abandon_unpublished(state);
-    loop.pending_multi_cleanups_.clear();
+    (void)multi_shutdown_after_join(loop, nullptr, nullptr);
+}
+
+namespace {
+
+MultiExecState* multi_shutdown_task_state(const Task& task) {
+    if (!multi_task_tagged(task)) return nullptr;
+    const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
+    return reinterpret_cast<MultiExecState*>(tagged & ~kMultiTaskTag);
+}
+
+bool multi_shutdown_destroy_state(MultiExecState* state, ScatterArenaPool* owner_pool,
+                                  uint32_t owner_io, void* release_ctx,
+                                  void (*release_fn)(void*, int32_t, const char*)) {
+    if (!state) return true;
+    multi_shutdown_prepare_state(state);
+    // This is the phase boundary: callers retain their exact owning queue/Op/session when any
+    // shard-local record still names the state.  The coordinator invokes this only after the
+    // FlatStore and WATCH registries have released those references, so the normal result is true.
+    if (!multi_records_done(*state)) return false;
+    if (state->snapshot_registered) {
+        if (!owner_pool || !state->server) return false;
+        owner_pool->unregister_snapshot(*state->server, state, owner_io);
+    }
+    for (const auto& command : state->commands) {
+        if (!command->scatter || !command->op) continue;
+        if (!xshard_shutdown_destroy(command->scatter, *command->op, state->scatter_pool,
+                                     owner_io, release_ctx, release_fn))
+            return false;
+        command->scatter = nullptr;
+    }
+    destroy_multi_state(state);
+    return true;
+}
+
+}  // namespace
+
+void multi_shutdown_prepare_state(MultiExecState* state) {
+    if (!state) return;
+    state->aborted.store(true, std::memory_order_release);
+    aof_abort_group(state->aof_group);
+    for (const auto& command : state->commands)
+        if (command->scatter && command->op)
+            xshard_shutdown_prepare(command->scatter, *command->op);
+}
+
+void multi_shutdown_prepare_op(Op& op) {
+    if (op.has_multi_state())
+        multi_shutdown_prepare_state(static_cast<MultiExecState*>(op.multi_state()));
+}
+
+void multi_shutdown_prepare_session(Client& client) {
+    MultiSession* session = client.multi_session();
+    if (session) multi_shutdown_prepare_state(session->pending);
+}
+
+void multi_shutdown_prepare_task(const Task& task) {
+    multi_shutdown_prepare_state(multi_shutdown_task_state(task));
+}
+
+bool multi_shutdown_op_entry(IoLoop& loop, Client& client, Op& op,
+                             void* release_ctx,
+                             void (*release_fn)(void*, int32_t, const char*)) {
+    auto* state = static_cast<MultiExecState*>(op.multi_state());
+    if (!state) return true;
+    if (!multi_shutdown_destroy_state(state, &loop.scatter_pool_, loop.self_->id(),
+                                      release_ctx, release_fn)) return false;
+    op.detach_scatter_state();
+    if (client.has_atomic_groups_io()) client.atomic_group_finished();
+    return true;
+}
+
+uint32_t multi_shutdown_after_join(IoLoop& loop, void* release_ctx,
+                                   void (*release_fn)(void*, int32_t, const char*)) {
+    for (auto it = loop.pending_multi_cleanups_.begin();
+         it != loop.pending_multi_cleanups_.end();) {
+        if (multi_shutdown_destroy_state(*it, &loop.scatter_pool_, loop.self_->id(),
+                                         release_ctx, release_fn))
+            it = loop.pending_multi_cleanups_.erase(it);
+        else
+            ++it;
+    }
+    for (size_t i = 0; i < loop.multi_deferred_.size();) {
+        if (!multi_shutdown_destroy_state(loop.multi_deferred_[i], &loop.scatter_pool_,
+                                          loop.self_->id(), release_ctx, release_fn)) {
+            i++;
+            continue;
+        }
+        loop.multi_deferred_[i] = loop.multi_deferred_.back();
+        loop.multi_deferred_.pop_back();
+    }
+    return static_cast<uint32_t>(loop.pending_multi_cleanups_.size() +
+                                 loop.multi_deferred_.size());
+}
+
+bool multi_shutdown_session_after_join(IoLoop& loop, Client& client,
+                                       void* release_ctx,
+                                       void (*release_fn)(void*, int32_t, const char*)) {
+    MultiSession* session = client.multi_session();
+    if (!session || !session->pending) return true;
+    MultiExecState* state = session->pending;
+    if (!multi_shutdown_destroy_state(state, &loop.scatter_pool_, loop.self_->id(),
+                                      release_ctx, release_fn)) return false;
+    session->pending = nullptr;
+    return true;
+}
+
+bool multi_shutdown_discard_task(const Task& task, void* release_ctx,
+                                 void (*release_fn)(void*, int32_t, const char*)) {
+    MultiExecState* state = multi_shutdown_task_state(task);
+    if (!state) return true;
+    multi_shutdown_prepare_state(state);
+    uint32_t pending = state->tasks_pending.load(std::memory_order_acquire);
+    while (pending && !state->tasks_pending.compare_exchange_weak(
+            pending, pending - 1, std::memory_order_acq_rel,
+            std::memory_order_acquire)) {}
+    if (!pending) return false;
+    if (pending != 1 || task.client) return true;
+    // Ownerless WATCH-close work has no IoLoop registration: its outstanding Task carriers are
+    // the sole ownership edges, and the last discarded carrier may reclaim it directly.
+    return multi_shutdown_destroy_state(state, nullptr, state->owner_io,
+                                        release_ctx, release_fn);
 }
 
 uint32_t multi_dispatch_count(const MultiExecState* state) {
@@ -2078,6 +2197,28 @@ void Shard::watch_prune_stale(const std::string& key) {
     }
     entries.resize(keep);
     if (entries.empty()) watchers_.erase(found);
+}
+
+void Shard::shutdown_release_watches() {
+    // All shard owners and every connection owner have joined. There is no mutation left whose
+    // decision can make a WATCH observable, so retain neither side of the raw-pointer registry.
+    // Drop the exact reference each entry acquired, but do not run normal finalize/dirty logic:
+    // that path exists to order live writers and may dereference a client after another shutdown
+    // phase has reclaimed it.
+    for (auto& item : watchers_)
+        for (const WatchEntry& entry : item.second)
+            if (entry.client) entry.client->watch_unref();
+    watchers_.clear();
+
+    for (auto& item : watch_reservations_)
+        for (const WatchReservation& reservation : item.second) {
+            if (!reservation.refs) continue;
+            uint32_t refs = reservation.refs->load(std::memory_order_acquire);
+            while (refs && !reservation.refs->compare_exchange_weak(
+                    refs, refs - 1, std::memory_order_acq_rel,
+                    std::memory_order_acquire)) {}
+        }
+    watch_reservations_.clear();
 }
 
 bool Shard::watch_add(Slice key, Client* client, uint64_t generation) {

@@ -269,6 +269,11 @@ public:
         bool blocking = false;
     };
     bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
+    // Coordinator-only teardown after every owner has joined. These registries hold raw Client*
+    // and refcounted command state, so they must surrender those references before clients and
+    // their ROB sidecars are destroyed. No owner-loop work is posted from either method.
+    void shutdown_release_watches();
+    void shutdown_release_blocking();
     bool watch_add(Slice key, Client* client, uint64_t generation);
     void watch_remove(Slice key, Client* client, uint64_t generation);
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,

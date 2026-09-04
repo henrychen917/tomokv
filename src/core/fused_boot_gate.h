@@ -50,13 +50,23 @@ public:
         return true;
     }
 
-    void arrive_ready(uint32_t tid) {
+    bool arrive_ready(uint32_t tid) {
         std::lock_guard<std::mutex> lock(mu_);
         check_tid(tid);
-        if (worker_state_[tid] != WorkerState::Loaded || phase_ != Phase::Ready) std::abort();
+        if (worker_state_[tid] != WorkerState::Loaded) std::abort();
+        // A worker can leave wait_until_ready(), spend time arming its listeners, and return after
+        // main has observed a signal and moved the gate to Stopping. That is an ordinary stop edge,
+        // not an impossible transition.
+        if (phase_ == Phase::Stopping) {
+            mark_gave_up_locked(tid);
+            cv_.notify_all();
+            return false;
+        }
+        if (phase_ != Phase::Ready) std::abort();
         worker_state_[tid] = WorkerState::Ready;
         ready_++;
         cv_.notify_all();
+        return true;
     }
 
     bool wait_until_running(uint32_t tid, const std::atomic<bool>& stop) {
@@ -87,8 +97,13 @@ public:
                !stop.load(std::memory_order_relaxed);
     }
 
-    bool advance_ready() {
+    bool advance_ready(const std::atomic<bool>& stop) {
         std::lock_guard<std::mutex> lock(mu_);
+        if (stop.load(std::memory_order_relaxed)) {
+            phase_ = Phase::Stopping;
+            cv_.notify_all();
+            return false;
+        }
         if (phase_ != Phase::Loaded || loaded_ != workers_ || failed_) return false;
         phase_ = Phase::Ready;
         cv_.notify_all();
@@ -102,8 +117,13 @@ public:
                !stop.load(std::memory_order_relaxed);
     }
 
-    bool advance_running() {
+    bool advance_running(const std::atomic<bool>& stop) {
         std::lock_guard<std::mutex> lock(mu_);
+        if (stop.load(std::memory_order_relaxed)) {
+            phase_ = Phase::Stopping;
+            cv_.notify_all();
+            return false;
+        }
         if (phase_ != Phase::Ready || ready_ != workers_ || failed_) return false;
         phase_ = Phase::Running;
         cv_.notify_all();

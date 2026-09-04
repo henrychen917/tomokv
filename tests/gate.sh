@@ -73,8 +73,10 @@ ROW_T=$(date +%s.%N)
 # existing atomic-on, DEBUG-enabled 2s boot. Full: 251 -> 252.
 # 241 -> 243: B+ adds the counting-fingerprint representation unit plus the deterministic
 # held-group GET/MGET filter battery. Full: 252 -> 254.
-EXPECT_QUICK=243
-EXPECT_FULL=254                 # full without the optional NIC row.
+# 243 -> 245: each fused boot now proves its schema-1 final report is present, clean, and labels
+# itself as fused instead of relying only on the live INFO assertion. Full: 254 -> 256.
+EXPECT_QUICK=245
+EXPECT_FULL=256                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -333,6 +335,12 @@ for AT in 0 1; do
       || bad "fused spinprobe battery (atomic $AT)" \
              "see /tmp/gate-fused-spinprobe-$AT.txt"
   stop
+  FUSED_REPORT_MODE=$(shutdown_value thread_mode)
+  FUSED_REPORT_KIND=$(shutdown_value work.kind)
+  shutdown_clean && [ "$FUSED_REPORT_MODE" = 1s ] && [ "$FUSED_REPORT_KIND" = fused ] \
+      && ok "fused shutdown report (atomic $AT)" \
+      || bad "fused shutdown report (atomic $AT)" \
+             "mode=$FUSED_REPORT_MODE kind=$FUSED_REPORT_KIND; see $SRVLOG"
 done
 
 # ---- B+ pending-atomic filter: negative keys stay local, touched keys lower whole commands -----
@@ -568,19 +576,20 @@ for PERSIST_IO in normal uring; do
 
   RACE_DIR=$(mktemp -d "/tmp/gate-snapshot-race-${PERSIST_IO}.XXXXXX")
   boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
-      --dir "$RACE_DIR" --dbfilename race.tomo \
+      --dir "$RACE_DIR" --dbfilename race.tomo --save '' --enable-debug-command yes \
       || bad "typed snapshot race boot ($PERSIST_IO)"
-  py tests/snap_typed_race.py "$PORT" race \
+  py tests/snap_typed_race.py "$PORT" race "$RACE_DIR/race.tomo" \
       >"/tmp/gate-snapshot-race-${PERSIST_IO}.txt" 2>&1 \
       && grep -q 'PREIMAGE-FIRED PASS' "/tmp/gate-snapshot-race-${PERSIST_IO}.txt" \
+      && grep -q 'SNAPSHOT-TICKET-ORACLE PASS' "/tmp/gate-snapshot-race-${PERSIST_IO}.txt" \
       && ok "typed snapshot preimage race ($PERSIST_IO)" \
       || bad "typed snapshot preimage race ($PERSIST_IO)" \
              "see /tmp/gate-snapshot-race-${PERSIST_IO}.txt"
   stop
   boot ./build/tomokv --protected-mode no --persist-io "$PERSIST_IO" \
-      --dir "$RACE_DIR" --load "$RACE_DIR/race.tomo" \
+      --dir "$RACE_DIR" --load "$RACE_DIR/race.tomo.cut" \
       || bad "typed snapshot race reload boot ($PERSIST_IO)"
-  py tests/snap_typed_race.py "$PORT" verify \
+  py tests/snap_typed_race.py "$PORT" verify "$RACE_DIR/race.tomo.oracle.json" \
       >>"/tmp/gate-snapshot-race-${PERSIST_IO}.txt" 2>&1 \
       && ok "typed snapshot race reload ($PERSIST_IO)" \
       || bad "typed snapshot race reload ($PERSIST_IO)" \
