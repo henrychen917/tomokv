@@ -13,8 +13,8 @@ House rules this module encodes (they are rules, not preferences -- see AUDIT-TE
     is inferred from key names or from the default shard-home map (the hash seed is drawn from the
     kernel at every boot, and --shard-home can move shards).
   * "Owner" means the thread that owns a shard -- the `shard <sid> <owner_tid>` rows of DEBUG
-    LBSIGNALS -- never the `ex` role label. Under --thread-mode 1s every thread is labelled `io`
-    and still owns shards (src/cmd/lbsignals.cc). Every helper here behaves identically in 1s and 2s.
+    LBSIGNALS -- never the `ex` role label. Under --thread-mode 1s every thread is labelled `fused`;
+    ownership still comes from shard rows. Every helper here behaves identically in 1s and 2s.
   * A skip is visible and carries a reason. `Report.skip(..., strict=True)` marks a skip that
     means "the mechanism could not be armed" (a DEBUG hook denied, a knob absent); under
     TOMO_GATE_STRICT=1 -- exported by tests/gate.sh -- such a skip fails the battery, so a gate row
@@ -275,7 +275,7 @@ def lbsignals(conn):
 def topology(conn):
     """Who owns which shard, from the SHARD rows (true in 1s and 2s alike).
 
-    roles:       {tid: 'io'|'ex'}      -- informational; never select owners by it
+    roles:       {tid: 'io'|'ex'|'fused'} -- informational; never select owners by it
     shard_owner: {sid: owner_tid}
     owners:      sorted distinct owner tids (the concurrency units for cross-owner races)
     mode:        '1s' | '2s'
@@ -285,7 +285,10 @@ def topology(conn):
         raise AssertionError("DEBUG LBSIGNALS reported no shard rows")
     roles = {t.tid: t.role for t in snap.threads}
     shard_owner = {s.sid: s.owner for s in snap.shards}
-    return Topology(roles, shard_owner, sorted(set(shard_owner.values())), thread_mode(conn))
+    mode = snap.derived.get("thread_mode")
+    if mode not in ("1s", "2s"):
+        raise AssertionError("DEBUG LBSIGNALS has no derived thread_mode (got %r)" % (mode,))
+    return Topology(roles, shard_owner, sorted(set(shard_owner.values())), mode)
 
 
 def shard_of(conn, key):

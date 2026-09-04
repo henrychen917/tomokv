@@ -27,6 +27,7 @@ static inline double clamp_age(double value) {
 LbSnapshot lbsignals_capture(Server& srv) {
     LbSnapshot snap;
     snap.stamp_ns = now_ns();
+    snap.fused_mode = srv.thread_mode() == ThreadMode::Fused;
     const uint32_t nt = srv.nthreads();
     snap.threads.reserve(nt);
     for (uint32_t tid = 0; tid < nt; tid++) {
@@ -38,8 +39,11 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.tid = tid;
         r.role = role;
         r.domain = t.domain();
-        // clients() is the Ifid role's own vector; its size field is a benign racy gauge.
-        r.clients = role == Role::Ifid ? static_cast<uint32_t>(t.clients().size()) : 0;
+        // clients() belongs to every client-serving thread. Its size field is a benign racy gauge.
+        const bool serves_clients = srv.serves_clients(role);
+        const bool owns_shards = srv.owns_shards(role);
+        r.clients = serves_clients ? static_cast<uint32_t>(t.clients().size()) : 0;
+        snap.client_threads += serves_clients;
         r.iterations = rd(s.iterations);
         r.ops = rd(s.ops);
         r.busy_ns = rd(s.busy_ns);
@@ -67,7 +71,10 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.wakes_sent = rd(s.wakes_sent);
         r.wakes_recv = rd(s.wakes_recv);
         r.spins = rd(s.spins);
-        LbRoleRollup& roll = role == Role::Ifid ? snap.io : snap.ex;
+        // In fused mode both capabilities are true and the one physical loop owns both bodies of
+        // work. Never manufacture separate io/ex service costs from that combined counter set.
+        LbRoleRollup& roll = serves_clients && owns_shards
+            ? snap.fused : role == Role::Ifid ? snap.io : snap.ex;
         roll.threads++;
         roll.ops += r.ops;
         roll.busy_ns += r.busy_ns;
@@ -103,12 +110,17 @@ LbSnapshot lbsignals_capture(Server& srv) {
     }
     const uint32_t ns = srv.nshards();
     snap.shards.reserve(ns);
+    bool owner_seen[kMaxThreads] = {};
     for (uint32_t sid = 0; sid < ns; sid++) {
         Shard& sh = srv.shard(static_cast<int32_t>(sid));
         const Shard::Stats& st = sh.stats();
         LbShardRow r;
         r.sid = sid;
         r.owner_tid = srv.worker_of_shard(static_cast<int32_t>(sid));
+        if (r.owner_tid < nt && !owner_seen[r.owner_tid]) {
+            owner_seen[r.owner_tid] = true;
+            snap.owner_threads++;
+        }
         // home_domain() is a plain read of an owner-written gauge; a stale value is acceptable.
         r.owner_domain = sh.home_domain();
         r.ops = rd(st.ops);
@@ -146,101 +158,160 @@ static void format_rollup(std::string& out, const char* name, const LbRoleRollup
 
 void lbsignals_format(const LbSnapshot& snap, std::string& out) {
     appendf_lb(out, "lbver 1 stamp_ns %" PRIu64 "\n", snap.stamp_ns);
-    for (const auto& r : snap.threads)
+    for (const auto& r : snap.threads) {
+        const char* role = snap.fused_mode ? "fused" : r.role == Role::Ifid ? "io" : "ex";
         appendf_lb(out,
                    "thread %u %s %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
                    " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64
                    " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64 " %.3f %" PRIu64 " %" PRIu64
                    " masked_lane_high_water %u masked_lane_full_events %" PRIu64
                    " masked_arena_occupancy_at_lane_full %.6f\n",
-                   r.tid, r.role == Role::Ifid ? "io" : "ex", r.domain, r.clients, r.iterations,
+                   r.tid, role, r.domain, r.clients, r.iterations,
                    r.ops, r.busy_ns, r.idle_ns, r.cpu_ns, r.depth_sum, r.depth_samples,
                    r.full_events, r.wakes_sent, r.wakes_recv, r.spins, r.queue_delay_samples,
                    r.queue_delay_ewma_us, r.oldest_age_us, r.oldest_age_samples,
                    r.oldest_age_ewma_us, r.oldest_age_min_us, r.oldest_age_max_us,
                    r.masked_lane_high_water, r.masked_lane_full_events,
                    r.masked_arena_occupancy_at_lane_full());
+    }
     for (const auto& r : snap.shards)
         appendf_lb(out,
                    "shard %u %u %u %" PRIu64 " %" PRIu64 " %" PRIu64 " %u %" PRIu64 "\n",
                    r.sid, r.owner_tid, r.owner_domain, r.ops, r.foreign_ops, r.migrations, r.size,
                    r.obj_bytes);
-    format_rollup(out, "io", snap.io);
-    format_rollup(out, "ex", snap.ex);
+    if (snap.fused_mode) {
+        format_rollup(out, "fused", snap.fused);
+    } else {
+        format_rollup(out, "io", snap.io);
+        format_rollup(out, "ex", snap.ex);
+    }
     uint64_t sh_ops = 0, sh_foreign = 0;
     for (const auto& r : snap.shards) { sh_ops += r.ops; sh_foreign += r.foreign_ops; }
+    const double foreign_frac = sh_ops
+        ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
+    if (snap.fused_mode) {
+        appendf_lb(out,
+                   "derived thread_mode 1s fused_threads %u client_threads %u "
+                   "owner_threads %u foreign_frac %.6f\n",
+                   snap.fused.threads, snap.client_threads, snap.owner_threads, foreign_frac);
+        return;
+    }
     const double fstar = snap.ratio_star_io_frac();
     const uint32_t total = snap.io.threads + snap.ex.threads;
     uint32_t nio = total ? static_cast<uint32_t>(fstar * total + 0.5) : 0;
     if (total) { if (nio == 0) nio = 1; if (nio >= total) nio = total - 1; }
     appendf_lb(out, "derived ratio_star_io_frac %.6f ratio_star_io %u ratio_star_ex %u "
-                    "foreign_frac %.6f\n",
-               fstar, nio, total - nio,
-               sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
+                    "foreign_frac %.6f thread_mode 2s client_threads %u owner_threads %u\n",
+               fstar, nio, total - nio, foreign_frac, snap.client_threads, snap.owner_threads);
 }
 
 void lbsignals_info_section(Server& srv, std::string& out) {
     const LbSnapshot snap = lbsignals_capture(srv);
     uint64_t sh_ops = 0, sh_foreign = 0;
     for (const auto& r : snap.shards) { sh_ops += r.ops; sh_foreign += r.foreign_ops; }
-    const uint32_t total = snap.io.threads + snap.ex.threads;
-    double io_occ_min = 0, io_occ_max = 0, ex_occ_min = 0, ex_occ_max = 0;
-    bool io_occ_first = true, ex_occ_first = true;
-    for (const LbThreadRow& row : snap.threads) {
-        const double occupancy = srv.lb_thread_occupancy(row.tid);
-        double& lo = row.role == Role::Ifid ? io_occ_min : ex_occ_min;
-        double& hi = row.role == Role::Ifid ? io_occ_max : ex_occ_max;
-        bool& first = row.role == Role::Ifid ? io_occ_first : ex_occ_first;
-        if (first) lo = hi = occupancy;
-        else { lo = std::min(lo, occupancy); hi = std::max(hi, occupancy); }
-        first = false;
+    const double foreign_frac = sh_ops
+        ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0;
+    if (snap.fused_mode) {
+        double occupancy_min = 0, occupancy_max = 0;
+        bool occupancy_first = true;
+        for (const LbThreadRow& row : snap.threads) {
+            const double occupancy = srv.lb_thread_occupancy(row.tid);
+            if (occupancy_first) occupancy_min = occupancy_max = occupancy;
+            else {
+                occupancy_min = std::min(occupancy_min, occupancy);
+                occupancy_max = std::max(occupancy_max, occupancy);
+            }
+            occupancy_first = false;
+        }
+        appendf_lb(out,
+                   "# LB\r\n"
+                   "lb_thread_mode:1s\r\n"
+                   "lb_fused_threads:%u\r\nlb_client_threads:%u\r\nlb_owner_threads:%u\r\n"
+                   "lb_fused_busy_frac:%.4f\r\nlb_fused_ns_per_op:%.1f\r\n"
+                   "lb_fused_avg_depth:%.3f\r\nlb_fused_full_events:%" PRIu64 "\r\n"
+                   "lb_total_threads:%u\r\nlb_foreign_op_frac:%.4f\r\n",
+                   snap.fused.threads, snap.client_threads, snap.owner_threads,
+                   snap.fused.busy_frac(), snap.fused.ns_per_op(), snap.fused.avg_depth(),
+                   snap.fused.full_events, snap.fused.threads, foreign_frac);
+        appendf_lb(out,
+                   "lb_fused_masked_lane_high_water:%u\r\n"
+                   "lb_fused_masked_lane_full_events:%" PRIu64 "\r\n"
+                   "lb_fused_masked_arena_occupancy_at_lane_full:%.6f\r\n",
+                   snap.fused.masked_lane_high_water, snap.fused.masked_lane_full_events,
+                   snap.fused.masked_arena_occupancy_at_lane_full());
+        appendf_lb(out,
+                   "lb_fused_queue_delay_samples:%" PRIu64 "\r\n"
+                   "lb_fused_queue_delay_ewma_us:%.3f\r\n"
+                   "lb_fused_oldest_age_samples:%" PRIu64 "\r\n"
+                   "lb_fused_oldest_age_min_us:%" PRIu64 "\r\n"
+                   "lb_fused_oldest_age_max_us:%" PRIu64 "\r\n"
+                   "lb_fused_oldest_age_ewma_us:%.3f\r\n",
+                   snap.fused.queue_delay_samples, snap.fused.queue_delay_ewma_us(),
+                   snap.fused.oldest_age_samples, snap.fused.oldest_age_min_us,
+                   snap.fused.oldest_age_max_us, snap.fused.oldest_age_ewma_us());
+        appendf_lb(out,
+                   "lb_fused_occupancy_min:%.4f\r\nlb_fused_occupancy_max:%.4f\r\n",
+                   occupancy_min, occupancy_max);
+    } else {
+        const uint32_t total = snap.io.threads + snap.ex.threads;
+        double io_occ_min = 0, io_occ_max = 0, ex_occ_min = 0, ex_occ_max = 0;
+        bool io_occ_first = true, ex_occ_first = true;
+        for (const LbThreadRow& row : snap.threads) {
+            const double occupancy = srv.lb_thread_occupancy(row.tid);
+            double& lo = row.role == Role::Ifid ? io_occ_min : ex_occ_min;
+            double& hi = row.role == Role::Ifid ? io_occ_max : ex_occ_max;
+            bool& first = row.role == Role::Ifid ? io_occ_first : ex_occ_first;
+            if (first) lo = hi = occupancy;
+            else { lo = std::min(lo, occupancy); hi = std::max(hi, occupancy); }
+            first = false;
+        }
+        appendf_lb(out,
+                   "# LB\r\n"
+                   "lb_io_threads:%u\r\nlb_ex_threads:%u\r\n"
+                   "lb_io_busy_frac:%.4f\r\nlb_ex_busy_frac:%.4f\r\n"
+                   "lb_io_ns_per_op:%.1f\r\nlb_ex_ns_per_op:%.1f\r\n"
+                   "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
+                   "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
+                   "lb_ratio_star_io_frac:%.4f\r\nlb_total_threads:%u\r\n"
+                   "lb_foreign_op_frac:%.4f\r\n",
+                   snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
+                   snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
+                   snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
+                   foreign_frac);
+        appendf_lb(out,
+                   "lb_io_masked_lane_high_water:%u\r\n"
+                   "lb_ex_masked_lane_high_water:%u\r\n"
+                   "lb_io_masked_lane_full_events:%" PRIu64 "\r\n"
+                   "lb_ex_masked_lane_full_events:%" PRIu64 "\r\n"
+                   "lb_io_masked_arena_occupancy_at_lane_full:%.6f\r\n"
+                   "lb_ex_masked_arena_occupancy_at_lane_full:%.6f\r\n",
+                   snap.io.masked_lane_high_water, snap.ex.masked_lane_high_water,
+                   snap.io.masked_lane_full_events, snap.ex.masked_lane_full_events,
+                   snap.io.masked_arena_occupancy_at_lane_full(),
+                   snap.ex.masked_arena_occupancy_at_lane_full());
+        appendf_lb(out,
+                   "lb_io_queue_delay_samples:%" PRIu64 "\r\n"
+                   "lb_ex_queue_delay_samples:%" PRIu64 "\r\n"
+                   "lb_io_queue_delay_ewma_us:%.3f\r\nlb_ex_queue_delay_ewma_us:%.3f\r\n"
+                   "lb_io_oldest_age_samples:%" PRIu64 "\r\n"
+                   "lb_ex_oldest_age_samples:%" PRIu64 "\r\n"
+                   "lb_io_oldest_age_min_us:%" PRIu64 "\r\n"
+                   "lb_io_oldest_age_max_us:%" PRIu64 "\r\n"
+                   "lb_io_oldest_age_ewma_us:%.3f\r\n"
+                   "lb_ex_oldest_age_min_us:%" PRIu64 "\r\n"
+                   "lb_ex_oldest_age_max_us:%" PRIu64 "\r\n"
+                   "lb_ex_oldest_age_ewma_us:%.3f\r\n",
+                   snap.io.queue_delay_samples, snap.ex.queue_delay_samples,
+                   snap.io.queue_delay_ewma_us(), snap.ex.queue_delay_ewma_us(),
+                   snap.io.oldest_age_samples, snap.ex.oldest_age_samples,
+                   snap.io.oldest_age_min_us, snap.io.oldest_age_max_us,
+                   snap.io.oldest_age_ewma_us(), snap.ex.oldest_age_min_us,
+                   snap.ex.oldest_age_max_us, snap.ex.oldest_age_ewma_us());
+        appendf_lb(out,
+                   "lb_io_occupancy_min:%.4f\r\nlb_io_occupancy_max:%.4f\r\n"
+                   "lb_ex_occupancy_min:%.4f\r\nlb_ex_occupancy_max:%.4f\r\n",
+                   io_occ_min, io_occ_max, ex_occ_min, ex_occ_max);
     }
-    appendf_lb(out,
-               "# LB\r\n"
-               "lb_io_threads:%u\r\nlb_ex_threads:%u\r\n"
-               "lb_io_busy_frac:%.4f\r\nlb_ex_busy_frac:%.4f\r\n"
-               "lb_io_ns_per_op:%.1f\r\nlb_ex_ns_per_op:%.1f\r\n"
-               "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
-               "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
-               "lb_ratio_star_io_frac:%.4f\r\nlb_total_threads:%u\r\n"
-               "lb_foreign_op_frac:%.4f\r\n",
-               snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
-               snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
-               snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
-               sh_ops ? static_cast<double>(sh_foreign) / static_cast<double>(sh_ops) : 0.0);
-    appendf_lb(out,
-               "lb_io_masked_lane_high_water:%u\r\n"
-               "lb_ex_masked_lane_high_water:%u\r\n"
-               "lb_io_masked_lane_full_events:%" PRIu64 "\r\n"
-               "lb_ex_masked_lane_full_events:%" PRIu64 "\r\n"
-               "lb_io_masked_arena_occupancy_at_lane_full:%.6f\r\n"
-               "lb_ex_masked_arena_occupancy_at_lane_full:%.6f\r\n",
-               snap.io.masked_lane_high_water, snap.ex.masked_lane_high_water,
-               snap.io.masked_lane_full_events, snap.ex.masked_lane_full_events,
-               snap.io.masked_arena_occupancy_at_lane_full(),
-               snap.ex.masked_arena_occupancy_at_lane_full());
-    appendf_lb(out,
-               "lb_io_queue_delay_samples:%" PRIu64 "\r\n"
-               "lb_ex_queue_delay_samples:%" PRIu64 "\r\n"
-               "lb_io_queue_delay_ewma_us:%.3f\r\nlb_ex_queue_delay_ewma_us:%.3f\r\n"
-               "lb_io_oldest_age_samples:%" PRIu64 "\r\n"
-               "lb_ex_oldest_age_samples:%" PRIu64 "\r\n"
-               "lb_io_oldest_age_min_us:%" PRIu64 "\r\n"
-               "lb_io_oldest_age_max_us:%" PRIu64 "\r\n"
-               "lb_io_oldest_age_ewma_us:%.3f\r\n"
-               "lb_ex_oldest_age_min_us:%" PRIu64 "\r\n"
-               "lb_ex_oldest_age_max_us:%" PRIu64 "\r\n"
-               "lb_ex_oldest_age_ewma_us:%.3f\r\n",
-               snap.io.queue_delay_samples, snap.ex.queue_delay_samples,
-               snap.io.queue_delay_ewma_us(), snap.ex.queue_delay_ewma_us(),
-               snap.io.oldest_age_samples, snap.ex.oldest_age_samples,
-               snap.io.oldest_age_min_us, snap.io.oldest_age_max_us,
-               snap.io.oldest_age_ewma_us(), snap.ex.oldest_age_min_us,
-               snap.ex.oldest_age_max_us, snap.ex.oldest_age_ewma_us());
-    appendf_lb(out,
-               "lb_io_occupancy_min:%.4f\r\nlb_io_occupancy_max:%.4f\r\n"
-               "lb_ex_occupancy_min:%.4f\r\nlb_ex_occupancy_max:%.4f\r\n",
-               io_occ_min, io_occ_max, ex_occ_min, ex_occ_max);
     appendf_lb(out,
                "lb_flip_bucket_weight_spread_before:%.3f\r\n"
                "lb_flip_bucket_weight_spread_after:%.3f\r\n"

@@ -132,10 +132,14 @@ struct LbRoleRollup {
 
 struct LbSnapshot {
     uint64_t stamp_ns = 0;                 // CLOCK_MONOTONIC at capture
+    bool fused_mode = false;
+    uint32_t client_threads = 0;            // threads capable of owning connections
+    uint32_t owner_threads = 0;             // distinct tids named by shard rows
     std::vector<LbThreadRow> threads;
     std::vector<LbShardRow>  shards;
     LbRoleRollup io;                       // Role::Ifid rollup
     LbRoleRollup ex;                       // Role::Ex rollup
+    LbRoleRollup fused;                    // combined 1s loop work; never a synthetic split
 
     // Work-conservation optimum for the current total thread count; 0 threads / 0 ops degrade to
     // an even split rather than a division fault so an idle server still answers.
@@ -152,19 +156,21 @@ LbSnapshot lbsignals_capture(Server& srv);
 // Text renderers. Format is line-oriented, space-separated columns after a row tag — built for
 // the study harness and future tooling to parse without a JSON dependency:
 //   lbver 1 stamp_ns <ns>
-//   thread <tid> <io|ex> <domain> <clients> <iterations> <ops> <busy_ns> <idle_ns> <cpu_ns>
+//   thread <tid> <io|ex|fused> <domain> <clients> <iterations> <ops> <busy_ns> <idle_ns> <cpu_ns>
 //          <depth_sum> <depth_samples> <full_events> <wakes_sent> <wakes_recv> <spins>
 //          <queue_delay_samples> <queue_delay_ewma_us> <oldest_age_us>
 //          <oldest_age_samples> <oldest_age_ewma_us> <oldest_age_min_us> <oldest_age_max_us>
 //          masked_lane_high_water <n> masked_lane_full_events <n>
 //          masked_arena_occupancy_at_lane_full <fraction>
 //   shard <sid> <owner_tid> <owner_domain> <ops> <foreign_ops> <migrations> <size> <obj_bytes>
-//   rollup <io|ex> <threads> <ops> <busy_ns> <idle_ns> <cpu_ns> <busy_frac> <ns_per_op>
+//   rollup <io|ex|fused> <threads> <ops> <busy_ns> <idle_ns> <cpu_ns> <busy_frac> <ns_per_op>
 //          <avg_depth> <full_events> <queue_delay_samples> <queue_delay_ewma_us>
 //          <oldest_age_min_us> <oldest_age_max_us> <oldest_age_ewma_us>
 //          masked_lane_high_water <n> masked_lane_full_events <n>
 //          masked_arena_occupancy_at_lane_full <fraction>
-//   derived ratio_star_io_frac <f> ratio_star_io <n> ratio_star_ex <n> foreign_frac <f>
+// In 2s the derived row retains ratio_star_io_frac/ratio_star_io/ratio_star_ex. In 1s there is no
+// role split to optimize, so it reports thread_mode/fused_threads instead. Both forms include the
+// actual distinct shard-owner and client-serving thread counts.
 void lbsignals_format(const LbSnapshot& snap, std::string& out);
 // The short derived block for INFO's # LB section.
 void lbsignals_info_section(Server& srv, std::string& out);

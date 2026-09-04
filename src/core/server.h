@@ -385,6 +385,7 @@ public:
         return key_lb_signals_enabled() || client_lb_signals_enabled();
     }
 
+    bool flipctl_available() const { return cfg_.thread_mode == ThreadMode::Split; }
     bool flipctl_enabled() const { return flipctl_.enabled(); }
     uint32_t flipctl_tick_ms() const {
         return cfg_.lb_tick_ms ? cfg_.lb_tick_ms : std::max<uint32_t>(1, nthreads());
@@ -396,7 +397,14 @@ public:
     }
     void flipctl_force_trigger() { flipctl_.request_forced_trigger(); }
     FlipctlReport flipctl_report() const { return flipctl_.report(); }
-    std::string flipctl_debug_dump() const { return flipctl_.debug_dump(); }
+    std::string flipctl_debug_dump() const {
+        if (flipctl_available()) return flipctl_.debug_dump();
+        return "state=unavailable\nphase=fused\navailable=0\n"
+               "thread_mode=1s\nreason=threads_are_fused\n"
+               "fused_threads=" + std::to_string(nthreads()) +
+               "\nclient_threads=" + std::to_string(client_serving_thread_count()) +
+               "\nowner_threads=" + std::to_string(shard_owner_count()) + "\n";
+    }
 
     // Client observations are gathered by the connection owner once per second. ROB dispatch
     // deltas are the operation-rate signal; live in-flight depth is a floor so a deep connection
@@ -528,6 +536,43 @@ public:
     AofManager& aof() { return aof_; }
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
+
+    // Role is the split-mode loop state and deliberately remains Ifid/Ex. Capabilities are the
+    // mode-independent truth used by cold control/reporting surfaces: a fused thread serves
+    // clients AND owns shards even though its operational loop role is encoded as Ifid.
+    bool serves_clients(Role role) const {
+        return role != Role::Idle &&
+               (cfg_.thread_mode == ThreadMode::Fused || role == Role::Ifid);
+    }
+    bool owns_shards(Role role) const {
+        return role != Role::Idle &&
+               (cfg_.thread_mode == ThreadMode::Fused || role == Role::Ex);
+    }
+    bool serves_clients(uint32_t tid) const {
+        return tid < nthreads() && serves_clients(thread(tid).role());
+    }
+    bool owns_shards(uint32_t tid) const {
+        return tid < nthreads() && owns_shards(thread(tid).role());
+    }
+    uint32_t client_serving_thread_count() const {
+        uint32_t count = 0;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) count += serves_clients(tid);
+        return count;
+    }
+    // "Owner" is the observable topology term: distinct tids currently named by shard rows. It
+    // can be smaller than the number of owner-capable threads when there are fewer shards.
+    uint32_t shard_owner_count() const {
+        bool seen[kMaxThreads] = {};
+        uint32_t count = 0;
+        for (uint32_t sid = 0; sid < nshards(); sid++) {
+            const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
+            if (owner < nthreads() && !seen[owner]) {
+                seen[owner] = true;
+                count++;
+            }
+        }
+        return count;
+    }
 
     static bool read_local_enabled(const Config& cfg) {
         return cfg.thread_mode == ThreadMode::Fused && cfg.overlap == 0 && cfg.read_local != 0;
@@ -1401,6 +1446,10 @@ public:
 
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error) {
+        if (cfg_.thread_mode == ThreadMode::Fused) {
+            error = "ERR FLIP is unavailable with --thread-mode 1s: threads are fused";
+            return false;
+        }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         const LbStage live_lb_stage = lb_stage();
         if (live_lb_stage == LbStage::ExDrain || live_lb_stage == LbStage::ClientDrain) {
