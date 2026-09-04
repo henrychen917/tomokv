@@ -2203,16 +2203,27 @@ private:
         atomic_version_bytes_ = 0;
     }
 
+    // ---- OWNER-WRITTEN ATOMIC BLOCK. Everything from here to atomic_read_origin_conn_id_ is
+    // written by the owner on the atomic write / group-resolution path, and NOTHING here may be
+    // read by a foreign probe. atomic_pending_ used to be the second word of this block; it is a
+    // foreign read on EVERY read-local probe, so it now lives with the reader's topology words in
+    // flatstore.h and FlatStoreLayoutLock keeps it 64 offset-bytes away. See the block comment
+    // there before adding a field to either side.
     size_t    atomic_version_bytes_ = 0;
-    // Null until the first atomic group reaches this owner. The object stays as a pool after the
-    // list drains; its zero live count is the common ON read test. KvObj remains byte-identical.
-    AtomicPendingState* atomic_pending_ = nullptr;
     std::vector<AtomicCollapseKey> atomic_collapse_keys_;
     std::vector<AtomicCollapseSlot> atomic_collapse_slots_;
     std::vector<KvObj*> atomic_collapse_retire_;
     std::vector<AtomicSeenKey> atomic_seen_keys_;
     uint64_t atomic_read_epoch_ = UINT64_MAX;
+    // LAST owner-written word of the atomic block; FlatStoreLayoutLock::atomic_owner_last names it.
     uint64_t atomic_read_origin_conn_id_ = 0;
+
+    // ---- SEPARATOR. Bind-once counter bindings and the ticket hook: written exactly once by
+    // bind_atomic_state() at boot and read-only afterwards, so a foreign reader sharing a line with
+    // any of it never sees an owner invalidation. Eighty bytes of it stand between the atomic block
+    // above and the reader block in flatstore.h, which is what makes that separation free. Adding
+    // a per-operation counter HERE is the way to silently reintroduce the false sharing: the
+    // atomic_separator_first assert below is what stops it.
     AtomicTicketFn atomic_ticket_fn_ = nullptr;
     void* atomic_ticket_ctx_ = nullptr;
     std::atomic<uint64_t>* atomic_activity_ = nullptr;
