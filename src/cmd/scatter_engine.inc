@@ -2267,15 +2267,12 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
         state.aborted.store(true, std::memory_order_release);
         return ScriptPostResult::Empty;
     }
-    if (phase == ScriptPhase::Apply) {
-        // Script starts in phase 1, so xshard_prepare's completion setup deliberately skipped these
-        // slots. APPLY is its first and only record-installing wave; construct exactly its owner
-        // slots before execute_atomic_apply attaches entries to their `nodes` counters. UNPIN has
-        // completed and no record can reference this state yet, so initializing them here cannot
-        // reset a live owner count.
-        (void)initialize_owner_completion(state);
-    }
-
+    // Script starts in phase 1, so xshard_prepare's completion setup deliberately skipped these
+    // slots. APPLY is its first and only record-installing wave; construct exactly its owner slots
+    // before execute_atomic_apply attaches entries to their `nodes` counters. UNPIN has completed
+    // and no record can reference this state yet, so initializing them here cannot reset a live
+    // owner count. It is also where APPLY's pre-counted sentinels are published, so it must run
+    // exactly once per wave -- the completion count it returns is the same owner count.
     uint32_t task_completions = phase == ScriptPhase::Run ? 1u : state.nsub;
     if (phase == ScriptPhase::Apply)
         task_completions = initialize_owner_completion(state);
