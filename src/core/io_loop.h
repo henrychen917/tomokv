@@ -3810,8 +3810,8 @@ private:
             for (uint32_t i = 0; i < count_; i++) {
                 Op& op = rob.at(storage_->ids[i]);
                 if (storage_->scatter[i]) {
-                    xshard_destroy(storage_->scatter[i], loop_->scatter_pool_,
-                                   loop_->self_->id());
+                    xshard_abandon_unpublished(storage_->scatter[i], loop_->scatter_pool_,
+                                               loop_->self_->id());
                     storage_->scatter[i] = nullptr;
                 }
                 if (read_local_mget(op)) read_local_clear_reply(op);
@@ -4837,7 +4837,7 @@ nonblocking_dispatch:
                 // quiesces. Read-only and single-wave scatters (MGET, MSET/DEL groups, a direct
                 // RENAME) are not barriered and do not pay it -- they post every task from here.
                 if (scatter_dispatch.barrier && rob.in_flight() != 0) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
+                    xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 // Read-only/plain scatters keep the compact V3 dispatch arm. Constructing route and
@@ -4867,7 +4867,8 @@ nonblocking_dispatch:
                     // Restore the zero-on-entry invariant before EVERY exit from this arm.
                     for (uint32_t p = 0; p < nparticipants; p++) needed[participants[p]] = 0;
                     if (!room) {
-                        xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
+                        xshard_abandon_unpublished(
+                            scatter_dispatch.state, scatter_pool_, self_id);
                         break;
                     }
                     const uint64_t op_id = rob.dispatch_id();
@@ -4919,7 +4920,7 @@ nonblocking_dispatch:
                     }
                 }
                 if (!room) {
-                    xshard_destroy(scatter_dispatch.state, scatter_pool_, self_id);
+                    xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
                     break;
                 }
                 const uint64_t op_id = rob.dispatch_id();

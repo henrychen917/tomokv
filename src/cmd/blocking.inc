@@ -1248,7 +1248,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
             const uint32_t owner = participants[i];
             if (blocking_task_free_slots<IofusedPrivateQueue>(
                     server.thread(owner), self.id()) < needed[owner]) {
-                xshard_destroy(dispatch.state, pool, self.id());
+                xshard_abandon_unpublished(dispatch.state, pool, self.id());
                 return false;
             }
         }

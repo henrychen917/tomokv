@@ -277,9 +277,7 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
     }
     store.atomic_finish_group_install(parked_bytes, installed_bytes);
     store.atomic_publish_group(pending_entry);
-    if (*owner_refs == 0)
-        state.record_refs.fetch_add(1, std::memory_order_release);
-    (*owner_refs)++;
+    note_owner_record_install(state, *owner_refs);
     return ScatterTaskResult::Complete;
 }
 

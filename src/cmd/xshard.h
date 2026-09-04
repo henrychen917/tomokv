@@ -148,6 +148,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               Client* origin_client = nullptr);
 int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index);
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
+// Prepared states may already carry pre-counted owner lifetime pins. A caller that proves no task
+// was published must abandon through this arm so those phantom pins cannot enter deferred teardown.
+void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io);
 
 // Called by the connection-owning IO thread immediately before the ROB slot is staged.  It builds
 // final RESP bytes/segments, transfers every gathered borrow to the connection segment queue, and

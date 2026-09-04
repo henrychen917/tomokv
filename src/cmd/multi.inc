@@ -107,6 +107,15 @@ struct MultiSession {
     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
 };
 
+struct MultiOwnerRecordRefs {
+    // `nodes` is also the pointer retained by every AtomicEntry installed on this executor. Writer
+    // owners begin at one so cleanup cannot release the state's pre-count before the owner has run
+    // all of its outer shard tasks through the transaction's final decision.
+    uint32_t nodes = 0;
+    uint32_t remaining = 0;
+    bool completion_sentinel = false;
+};
+
 // EXEC MUST NEVER BE WEAKER THAN THE SAME COMMANDS RUN BARE.  A bare cross-shard read pins a read
 // cut, so a transaction that carries one has to pin a cut too; SnapshotCut is the shared header
 // that lets it do so through the connection-owning IO thread's ScatterArenaPool, which is the one
@@ -155,10 +164,11 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<uint8_t> final_shard_done;
     std::vector<uint8_t> aof_shard_done;
     std::vector<uint8_t> execution_noted;
-    std::vector<uint32_t> owner_record_refs;
+    std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
     std::atomic<uint64_t> epoch{0};
     std::atomic<uint32_t> record_refs{0};
+    bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
     std::atomic<bool> aborted{false};
     std::atomic<bool> watch_failed{false};
@@ -685,7 +695,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->watch_generation = client.watch_generation();
     state->kind = kind;
     try {
-        state->owner_record_refs.assign(server.nthreads(), 0);
+        state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
         state->shard_commands.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);
@@ -698,6 +708,68 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
         return nullptr;
     }
     return state;
+}
+
+void initialize_multi_owner_record_refs(MultiExecState& state) {
+    if (state.kind != MultiStateKind::Execute || state.write_keys.empty()) return;
+    if (state.record_refs.load(std::memory_order_relaxed) != 0 ||
+        state.record_refs_precounted) std::abort();
+
+    // Every outer shard task reaches the post-decision completion boundary even when WATCH or
+    // EXECABORT skips its commands. Count all such tasks per executor so only its last one releases
+    // the sentinel protecting whatever records earlier tasks may have installed.
+    for (int32_t shard : state.shards) {
+        const uint32_t tid = state.server->worker_of_shard(shard);
+        const uint32_t slot = state.server->executor_slot(tid);
+        if (slot >= state.owner_record_refs.size()) std::abort();
+        state.owner_record_refs[slot].remaining++;
+    }
+
+    uint32_t owners = 0;
+    for (const MultiWriteKey& write : state.write_keys) {
+        const uint32_t tid = state.server->worker_of_shard(write.shard);
+        const uint32_t slot = state.server->executor_slot(tid);
+        if (slot >= state.owner_record_refs.size()) std::abort();
+        MultiOwnerRecordRefs& progress = state.owner_record_refs[slot];
+        if (progress.completion_sentinel) continue;
+        if (!progress.remaining || progress.nodes) std::abort();
+        progress.nodes = 1;
+        progress.completion_sentinel = true;
+        owners++;
+    }
+    if (!owners) std::abort();
+    state.record_refs_precounted = true;
+    state.record_refs.store(owners, std::memory_order_release);
+}
+
+void complete_multi_owner_record_refs(MultiExecState& state, uint32_t owner_thread_id) {
+    if (!state.record_refs_precounted) return;
+    const uint32_t slot = state.server->executor_slot(owner_thread_id);
+    if (slot >= state.owner_record_refs.size()) std::abort();
+    MultiOwnerRecordRefs& progress = state.owner_record_refs[slot];
+    if (!progress.remaining) std::abort();
+    if (--progress.remaining != 0 || !progress.completion_sentinel) return;
+
+    progress.completion_sentinel = false;
+    if (!progress.nodes) std::abort();
+    if (--progress.nodes == 0 &&
+        state.record_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+}
+
+void clear_unpublished_multi_record_refs(MultiExecState& state) {
+    if (!state.record_refs_precounted) return;
+    uint32_t owners = 0;
+    for (MultiOwnerRecordRefs& progress : state.owner_record_refs) {
+        if (!progress.completion_sentinel) continue;
+        // The caller proved no task was published, so only the prepare-time sentinel can be present.
+        if (progress.nodes != 1) std::abort();
+        progress.nodes = 0;
+        progress.completion_sentinel = false;
+        owners++;
+    }
+    if (state.record_refs.load(std::memory_order_relaxed) != owners) std::abort();
+    state.record_refs.store(0, std::memory_order_relaxed);
+    state.record_refs_precounted = false;
 }
 
 MultiExecState* prepare_unwatch_state(Server& server, Client& client, uint32_t owner_io,
@@ -809,7 +881,8 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     }
     const uint32_t slot = server.executor_slot(owner_thread_id);
     if (slot >= state.owner_record_refs.size()) std::abort();
-    uint32_t* owner_refs = &state.owner_record_refs[slot];
+    MultiOwnerRecordRefs& owner_progress = state.owner_record_refs[slot];
+    uint32_t* owner_refs = &owner_progress.nodes;
     void* entry = nullptr;
     if (!shard.store().atomic_prepare_transaction(
             key, hash, state.origin_conn_id, &state.epoch, &state.record_refs,
@@ -821,7 +894,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     }
     KvObj* installed = clone;
     shard.store().atomic_install_transaction(hash, key, entry, installed);
-    if (*owner_refs == 0) state.record_refs.fetch_add(1, std::memory_order_release);
+    if (!owner_progress.completion_sentinel || !*owner_refs) std::abort();
     (*owner_refs)++;
     // Keep the transaction overlay selected for the handler and later keys in this command.
     shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
@@ -1506,6 +1579,11 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     for (const auto& command : dispatch->commands)
         if (command->scatter) command->scatter->now_cut_ms = dispatch->now_cut_ms;
 
+    // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
+    // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
+    // first task can become visible, so their slots match the routes used by this publication.
+    initialize_multi_owner_record_refs(*dispatch);
+
     Rob<kRobWindow>& rob = client.rob();
     op.attach_multi_state(dispatch);
     client.atomic_group_started();
@@ -1672,6 +1750,7 @@ void multi_internal_dispatch_started(MultiExecState* state) {
 
 void multi_abandon_unpublished(MultiExecState* state) {
     if (!state || state->published) return;
+    clear_unpublished_multi_record_refs(*state);
     destroy_multi_state(state);
 }
 
@@ -1889,6 +1968,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     }
     if (!state.finalized.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     finalize_reservations(state, shard);
+    complete_multi_owner_record_refs(state, owner_thread_id);
     if (state.tasks_pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return MultiTaskResult::Complete;
 
