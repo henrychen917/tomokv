@@ -2419,7 +2419,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;                     // EMPTY — the only stop
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) return o;
+            if (o && tag_of_word(w) == tag && o->key() == key) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2433,7 +2433,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) { slot = i; return o; }
+            if (o && tag_of_word(w) == tag && o->key() == key) { slot = i; return o; }
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2510,7 +2510,7 @@ private:
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
-            else if (tag_of_word(w) == tag && kvobj_key_equals(cur, key)) {
+            else if (tag_of_word(w) == tag && cur->key() == key) {
                 if (fresh && (cur->flags & KvObjFlags::HasTtl) &&
                     cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
                     (*expired_counter_)++;
@@ -2544,7 +2544,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) {
+            if (o && tag_of_word(w) == tag && o->key() == key) {
                 if (was_expired) {
                     *was_expired = (o->flags & KvObjFlags::HasTtl) &&
                                    o->expire_at_ms() <= cached_now_ms_;

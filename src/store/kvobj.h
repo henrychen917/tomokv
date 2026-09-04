@@ -297,36 +297,6 @@ static_assert(offsetof(KvObj, raw_vlen) == 1 && offsetof(KvObj, flags) == 2 &&
 
 inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc enc);
 
-// Exact byte equality that keeps short keys off the memcmp PLT call (libc dispatch plus prologue
-// cost more than the compare itself at key lengths). Overlapping loads read [0,w) and [n-w,n), so
-// nothing outside either buffer is ever touched -- the request key lives in the connection read
-// buffer, where reading past the end is not an option. Above 16 bytes memcmp is the right tool.
-inline bool kvobj_bytes_equal(const char* a, const char* b, uint32_t n) {
-    if (n <= 16) {
-        if (n >= 8) {
-            uint64_t a0, b0, a1, b1;
-            std::memcpy(&a0, a, 8);         std::memcpy(&b0, b, 8);
-            std::memcpy(&a1, a + n - 8, 8); std::memcpy(&b1, b + n - 8, 8);
-            return ((a0 ^ b0) | (a1 ^ b1)) == 0;
-        }
-        if (n >= 4) {
-            uint32_t a0, b0, a1, b1;
-            std::memcpy(&a0, a, 4);         std::memcpy(&b0, b, 4);
-            std::memcpy(&a1, a + n - 4, 4); std::memcpy(&b1, b + n - 4, 4);
-            return ((a0 ^ b0) | (a1 ^ b1)) == 0;
-        }
-        for (uint32_t i = 0; i < n; i++)
-            if (a[i] != b[i]) return false;
-        return true;
-    }
-    return std::memcmp(a, b, n) == 0;
-}
-
-// The owner-path probe compare: same answer as `o->key() == key`, without the call.
-inline bool kvobj_key_equals(const KvObj* o, Slice key) {
-    return o->klen() == key.n && kvobj_bytes_equal(o->key_ptr(), key.p, key.n);
-}
-
 // Small collections follow this architecture's string-inline precedent while retaining Compact's
 // byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
 // the allocation target; the tail embedding is native to KvObj's single-owner block. This fixed
