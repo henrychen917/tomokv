@@ -1,5 +1,12 @@
 # AUDIT — remaining "small" parity items for TomoKV-cpp
 
+> **Where it landed (2026-09-04).** GEO shipped as `src/cmd/geo.{h,cc}` (not `geohash.cc`/
+> `t_geo.cc`); DUMP/RESTORE tests as `tests/dumprestore.py` (not `dump_roundtrip.py`); hash-field
+> TTL as `src/cmd/t_hash_ttl.{h,cc}` + `tests/hexpire.py` (no `--hash-field-expire` knob);
+> MONITOR/CLIENT as `src/cmd/climon.{cc,inc}` + `tests/climon.py`/`climon2.py` (no
+> `--monitor-buffer`/`--monitor-arg-max` knobs); FUNCTION without a `--function-heap-max` knob.
+> The proposals below are the design record; the shipped knob surface is `tomokv.conf`.
+
 Audit date: 2026-08-26. Read-only. No repository was modified.
 
 **Trees read**

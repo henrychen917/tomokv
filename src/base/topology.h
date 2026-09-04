@@ -40,7 +40,7 @@ public:
     // Discovers L3 domains for the CPUs this process is ALLOWED to run on. Respecting the affinity
     // mask matters: under taskset the machine's full topology is not what we get, and assuming
     // otherwise is how threads end up "placed" onto cpus they can never run on.
-    // OPERATOR-DECLARED TOPOLOGY (--node-cpus). "0-7,8-15" builds two declared domains and
+    // OPERATOR-DECLARED TOPOLOGY (--l3-domains). "0-7,8-15" builds two declared domains and
     // bypasses discovery, so deliberate off-hardware shapes can still build
     // shapes discovery would never produce. The declaration is intersected with the affinity mask:
     // a cpu the process cannot run on is a config error worth failing loudly, not silently pinning.

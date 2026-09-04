@@ -55,12 +55,6 @@ struct SnapshotIoRequest {
 
 thread_local SnapshotIoContext tls_io_context;
 
-int64_t realtime_ms() {
-    timespec ts{};
-    ::clock_gettime(CLOCK_REALTIME, &ts);
-    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
-}
-
 bool write_all(int fd, const uint8_t* p, size_t n) {
     while (n) {
         const ssize_t written = ::write(fd, p, n);
@@ -149,6 +143,11 @@ void snapshot_bind_io(ThreadCtx* thread, Ring* ring) { tls_io_context = {thread,
 SnapshotIoContext snapshot_io_context() { return tls_io_context; }
 
 SnapshotManager::~SnapshotManager() {
+    // Server (the only owner) is mid-destruction here: members declared after snapshot_ -- the
+    // atomic snapshot barrier among them -- are already gone, so the barrier reset abort_file()
+    // performs for a live server must not run (a store into an ended lifetime). abort_file()
+    // tolerates a null server.
+    server_ = nullptr;
     abort_file();
     if (chunk_in_) {
         for (uint32_t p = 0; p < nthreads_; p++) {
@@ -162,7 +161,7 @@ void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executo
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {
     // Redis defines LASTSAVE before the first successful save as the server start time.
-    last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
+    last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     nthreads_ = nthreads;
     nshards_ = nshards;
     executor_count_ = executor_count;
@@ -299,7 +298,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         std::this_thread::yield();
     }
     if (phase() == Phase::Freeze) {
-        cut_ms_.store(realtime_ms(), std::memory_order_release);
+        cut_ms_.store(now_realtime_ms(), std::memory_order_release);
         phase_.store(Phase::Mark, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -636,7 +635,7 @@ bool SnapshotManager::finish_file_metadata(Ring* ring) {
 bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
-    last_save_time_.store(realtime_ms() / 1000, std::memory_order_relaxed);
+    last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);
     server_ = nullptr;
@@ -907,7 +906,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
 
 bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& shard,
                          std::string& error) {
-    const int64_t now = realtime_ms();
+    const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     const std::vector<uint8_t>& section = plan.sections[sid];
     size_t pos = 0;

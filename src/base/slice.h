@@ -33,7 +33,10 @@ struct Slice {
         return n == o.n && (n == 0 || std::memcmp(p, o.p, n) == 0);
     }
 
-    // Case-insensitive compare against a literal — command names arrive in any case.
+    // Case-insensitive compare against a literal — command names arrive in any case. CONTRACT:
+    // the LITERAL must be lowercase. Only the left side is folded (one fold per byte on the verb
+    // path); a capitalised literal never matches. The free eq_icase(Slice, const char*) helpers
+    // in the command files fold both sides and have no such requirement.
     bool eq_icase(std::string_view lit) const {
         if (n != lit.size()) return false;
         for (uint32_t i = 0; i < n; i++) {

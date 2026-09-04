@@ -12,10 +12,8 @@
 // NOTES-MIGRATE.md for the handoff and stale-route forwarding contract.
 #pragma once
 #include <algorithm>
-#include <array>
 #include <atomic>
 #include <cstdint>
-#include <climits>
 #include <ctime>
 #include <memory>
 #include <mutex>
@@ -198,13 +196,13 @@ public:
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
         // loudly: silently falling back to discovery would measure a different layout.
-        if (cfg.place && cfg.node_cpus && *cfg.node_cpus) {
-            std::fprintf(stderr, "fatal: --place and --node-cpus are mutually exclusive\n");
+        if (cfg.place && cfg.l3_domains && *cfg.l3_domains) {
+            std::fprintf(stderr, "fatal: --place and --l3-domains are mutually exclusive\n");
             return false;
         }
-        if (cfg.node_cpus && *cfg.node_cpus) {
-            if (!topo_.declare(cfg.node_cpus)) {
-                std::fprintf(stderr, "fatal: --l3-domains '%s' invalid\n", cfg.node_cpus);
+        if (cfg.l3_domains && *cfg.l3_domains) {
+            if (!topo_.declare(cfg.l3_domains)) {
+                std::fprintf(stderr, "fatal: --l3-domains '%s' invalid\n", cfg.l3_domains);
                 return false;
             }
         } else {
@@ -270,8 +268,10 @@ public:
 
         // ---- threads ---------------------------------------------------------------------------
         // Every front-end has already lowered to dense per-thread entries. Every thread still gets
-        // a channel from every other regardless of role, because a role change must not require
-        // re-wiring the mesh.
+        // a producer lane from every other, because a role change must not require re-wiring
+        // the mesh; the TASK lanes are a role-partitioned masked monolith whose block sizes are
+        // re-derived at each role change (ThreadCtx::remask_quiesced), while the client, release
+        // and transfer channels stay uniform per-thread arrays.
         const uint32_t nthreads = placement_.total_threads();
         if (!flipctl_.init(cfg.thread_mode == ThreadMode::Split && cfg.flip_auto != 0,
                            cfg.flip_auto_band, nthreads)) {
@@ -431,25 +431,6 @@ public:
         const auto found = lb_clients_.find(id);
         return found == lb_clients_.end() ? 0.0 : found->second.weight;
     }
-    uint64_t lb_client_last_move_ms(uint64_t id) const {
-        if (!client_lb_signals_enabled()) return 0;
-        std::lock_guard<std::mutex> lock(lb_signal_mu_);
-        const auto found = lb_clients_.find(id);
-        return found == lb_clients_.end() ? 0 : found->second.last_move_ms;
-    }
-    void lb_note_client_move(uint64_t id, uint32_t owner, uint64_t now_ms) {
-        if (!client_lb_signals_enabled()) return;
-        std::lock_guard<std::mutex> lock(lb_signal_mu_);
-        LbClientSignal& signal = lb_clients_[id];
-        signal.owner = owner;
-        signal.last_move_ms = now_ms;
-    }
-    double lb_client_owner_weight(uint32_t tid) const {
-        return client_lb_signals_enabled() && tid < nthreads()
-            ? static_cast<double>(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
-                  1024.0
-            : 0.0;
-    }
 
     // The controller owns this fold. Every bucket keeps a monotonic sampled counter on its
     // physical shard; EWMA history is indexed by immutable bucket id, never by executor owner.
@@ -487,11 +468,6 @@ public:
                 ? 0.25 * occupancy + 0.75 * lb_thread_occupancy_[tid] : occupancy;
         }
         lb_occupancy_primed_ = true;
-    }
-    double lb_bucket_weight(uint32_t bucket) const {
-        if (!key_lb_signals_enabled() || bucket >= lb_bucket_weight_.size()) return 0.0;
-        std::lock_guard<std::mutex> lock(lb_signal_mu_);
-        return lb_bucket_weight_[bucket];
     }
     double lb_shard_weight(uint32_t sid) const {
         if (sid >= nshards() || !key_lb_signals_enabled()) return 0.0;
@@ -601,9 +577,6 @@ public:
     LbStage lb_stage() const { return lb_stage_.load(std::memory_order_acquire); }
     uint64_t lb_epoch() const { return lb_epoch_.load(std::memory_order_acquire); }
     bool lb_dispatch_paused() const { return lb_stage() == LbStage::ExDrain; }
-    bool placement_dispatch_paused() const {
-        return flip_dispatch_paused() || lb_dispatch_paused();
-    }
     bool placement_transition_active() const {
         return flip_dispatch_paused() || lb_stage() != LbStage::Idle;
     }
@@ -614,7 +587,9 @@ public:
         return false;
     }
     uint32_t lb_coordinator() const { return lb_coordinator_; }
-    const std::vector<LbShardMove>& lb_shard_moves() const { return lb_shard_moves_; }
+    // The io thread that owns the unix listener (UINT32_MAX without --unixsocket). Latched once
+    // in init(); both boot paths and the FLIP candidate filter read this one value.
+    uint32_t unix_owner_tid() const { return unix_owner_tid_; }
     LbClientMove lb_client_move() const { return lb_client_move_; }
     bool lb_should_pause(uint32_t owner, uint64_t id) const {
         const LbStage stage = lb_stage();
@@ -771,10 +746,6 @@ public:
     Role flip_final_role(uint32_t tid) const {
         if (tid >= nthreads()) return Role::Idle;
         return flip_convert_[tid] == Role::Idle ? thread(tid).role() : flip_convert_[tid];
-    }
-    uint32_t flip_surviving_io_count() const { return flip_surviving_io_count_; }
-    uint32_t flip_surviving_io(uint32_t index) const {
-        return index < flip_surviving_io_count_ ? flip_surviving_io_[index] : UINT32_MAX;
     }
     uint32_t flip_incoming_clients(uint32_t tid) const {
         return tid < nthreads()
@@ -1394,11 +1365,6 @@ public:
         return flip_deadline_ns_.load(std::memory_order_acquire) != 0 &&
                now_ns() >= flip_deadline_ns_.load(std::memory_order_acquire);
     }
-    void flip_set_incoming_clients(uint32_t tid, uint32_t count) {
-        if (tid >= nthreads()) std::abort();
-        flip_incoming_clients_[tid].store(count, std::memory_order_release);
-    }
-
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error) {
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
@@ -1484,6 +1450,11 @@ public:
         uint32_t unit_count = 0;
         uint32_t selected = 0;
         if (target_io < live_io) {
+            // LOAD-BEARING exclusions, not tie-breakers: the AOF writer (and, in smt mode, its
+            // sibling) must never be converted io->ex. writer_shutdown() runs only on the io loop's
+            // exit paths; an executor-state ~AofManager closes without an fsync and discard_chunks()
+            // drops buffered records. The unix-listener owner likewise cannot leave the io role
+            // without taking its listener with it.
             const uint32_t aof_writer = aof_.writer_tid();
             for (uint32_t tid : placement_.ifid_threads()) {
                 if (!cfg_.smt_mode) {
@@ -1600,16 +1571,6 @@ public:
     bool flip_all_role_acked(Role role, FlipStage stage) const {
         for (uint32_t tid = 0; tid < nthreads(); tid++)
             if (thread(tid).role() == role && !flip_acked(tid, stage)) return false;
-        return true;
-    }
-    bool flip_all_candidates_acked(FlipStage stage) const {
-        for (uint32_t tid = 0; tid < nthreads(); tid++)
-            if (flip_is_candidate(tid) && !flip_acked(tid, stage)) return false;
-        return true;
-    }
-    bool flip_all_surviving_io_acked(FlipStage stage) const {
-        for (uint32_t i = 0; i < flip_surviving_io_count_; i++)
-            if (!flip_acked(flip_surviving_io_[i], stage)) return false;
         return true;
     }
     void flip_note_failure(const std::string& error) {
@@ -2730,9 +2691,6 @@ public:
     // is what makes the resume observable rather than theoretical.
     void set_debug_barrier_hold(uint32_t armed) {
         debug_barrier_hold_.store(armed, std::memory_order_relaxed);
-    }
-    uint32_t debug_barrier_hold() const {
-        return debug_barrier_hold_.load(std::memory_order_relaxed);
     }
     bool debug_barrier_hold_armed() const {
         return debug_barrier_hold_.load(std::memory_order_relaxed) != 0;

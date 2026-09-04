@@ -11,8 +11,8 @@
 // not an operational act). The complete list, so nothing hides:
 //   kRobWindow        64      net/conn.h      max in-flight ops per connection (ROB size)
 //   kEmbedThreshold   192     store/kvobj.h   value bytes embedded in the key's block
-//   ValueSlot::kInline 1024   cmd/xshard.cc   gather slot capacity; pairs with zc-min as the
-//                                             unified copy-vs-borrow cutover (min of the two)
+//   ValueSlot::kInline 1024   cmd/scatter_engine.inc  gather slot capacity; pairs with zc-min as
+//                                             the unified copy-vs-borrow cutover (min of the two)
 //   kCommonBytes      16KiB   cmd/xshard.h    pooled scatter arena block size
 //   sizeof(Op)==336, sizeof(Client)==1984     footprint locks (static_assert, do not move)
 
@@ -28,9 +28,11 @@
 #include <utility>
 #include <vector>
 
+#include "../base/slice.h"       // Slice (notify flag parsing)
+#include "../cmd/notify.h"       // parse_notify_flags
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
 #include "../store/typeval.h"    // TypeLimits (compact-encoding limits)
-#include "../store/flatstore.h"  // HashKind + g_hash_kind
+#include "../store/flatstore.h"  // HashKind + g_hash_kind (the only symbols needed from it)
 
 namespace tomo {
 
@@ -224,10 +226,10 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 
 struct Config {
     // ---- placement (boot-only) -------------------------------------------------------------
-    const char* node_cpus   = nullptr;   // operator-declared topology; null = self-discover
+    const char* l3_domains  = nullptr;   // --l3-domains: declared L3 locality domains; null = discover
     const char* place       = nullptr;   // complete role@cpu list; null = --ratio / default
-    // Whole-server role counts for even placement (--ratio). All zero = unset. Unlike the per-node
-    // fields above these express any global shape, and they are what a flip controller would vary.
+    // Whole-server role counts for even placement (--ratio). All zero = unset. Unlike --place these
+    // express a global shape without naming cpus, and they are what a flip controller would vary.
     uint32_t even_ifid      = 0;
     uint32_t even_ex        = 0;
     const char* shard_home  = nullptr;   // optional complete shard:ex_tid map
@@ -588,14 +590,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             std::vector<const char*> values;
             values.reserve(words.size());
             for (const std::string& word : words) values.push_back(word.c_str());
-            ClientOutputBufferLimits scratch = cfg.client_output_buffer_limits;
+            // The parser stages internally and commits only on success; no outer copy needed.
             const char* error = nullptr;
             if (!cfg_parse_client_output_buffer_limit(values.data(), values.size(),
-                                                       scratch, error)) {
+                                                       cfg.client_output_buffer_limits, error)) {
                 std::fprintf(stderr, "--client-output-buffer-limit: %s\n", error);
                 return kConfigError;
             }
-            cfg.client_output_buffer_limits = scratch;
             i = end - 1;
         }
         else if (!std::strcmp(a, "--requirepass")) cfg.requirepass = next("");
@@ -758,7 +759,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.even_ifid = a2; cfg.even_ex = b;
         }
-        else if (!std::strcmp(a, "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(a, "--shards")) {
+            // Same grammar as every other numeric knob (a bare atoi accepted "16x" as 16 and
+            // turned "abc"/"-5" into a misleading range message from validate_config).
+            if (!cfg_parse_u32(next(nullptr), cfg.shards) || cfg.shards == 0 || cfg.shards > 256) {
+                std::fprintf(stderr, "--shards must be between 1 and 256\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--smt-mode")) {
             if (!cfg_parse_u32(next(nullptr), cfg.smt_mode) || cfg.smt_mode > 1) {
                 std::fprintf(stderr, "--smt-mode wants 0 or 1\n");
@@ -1103,7 +1111,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             // domains on one CCX -- a shape discovery would never produce, which is the point.
             // (Renamed from --node-cpus 2026-08-25: "nodes" as a server structure died with the
             // fork; this declares L3 LOCALITY DOMAINS for placement spread, nothing more.)
-            cfg.node_cpus = next("");
+            cfg.l3_domains = next("");
         }
         else if (!std::strcmp(a, "--place")) {
             if (st.ratio_source == source) {
@@ -1173,7 +1181,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  observability: --slowlog-log-slower-than US (default 10000; -1 off)\n"
                         "            --slowlog-max-len N (default 128)\n"
                         "            --latency-monitor-threshold MS (default 0 = off)\n"
-                        "  atomics: --atomic 0|1 --atomic-window N (default 256; 0=unlimited)\n"
+                        "  atomics: --atomic 0|1 --atomic-window N (default -1 = auto:\n"
+                        "           min(16*shards, 1024); 0=unlimited)\n"
                         "  scripting: --script-instruction-limit N (default 100000; 0=unlimited)\n"
                         "    --script-crossshard-max-bytes N --script-crossshard-workbench-bytes N\n"
                         "    --script-crossshard-conflict-retries N --script-crossshard-cut-slots N\n"
