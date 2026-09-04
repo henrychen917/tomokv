@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include "kv_block_cache.h"
 #include "kvobj.h"
 
 namespace tomo {
@@ -86,7 +87,7 @@ struct AtomicPendingState {
         FreeValue* next;
         size_t allocation;
     };
-    static constexpr uint32_t kPoolClasses = 48;
+    static constexpr uint32_t kPoolClasses = KvBlockCache::kClasses;
     AtomicEntry* head = nullptr;
     AtomicEntry* tail = nullptr;
     AtomicEntry* conn_heads[64] = {};
@@ -158,14 +159,7 @@ static uint64_t atomic_membership_bit(uint64_t hash) {
     return uint64_t{1} << (hash & 63);
 }
 
-static uint32_t atomic_pool_class(size_t allocation) {
-    if (allocation <= 8) return 0;
-    if (allocation <= 128) return static_cast<uint32_t>(allocation / 16);
-    const int k = 63 - __builtin_clzll(
-        static_cast<unsigned long long>(allocation - 1));
-    const size_t step = size_t{1} << (k - 2);
-    const uint32_t quarter = static_cast<uint32_t>(allocation / step);
-    return 9u + 4u * static_cast<uint32_t>(k - 7) + (quarter - 5u);
-}
+// One definition, shared with the owner's block cache so the two size-class tables cannot drift.
+static uint32_t atomic_pool_class(size_t allocation) { return kv_block_class(allocation); }
 
 }  // namespace tomo

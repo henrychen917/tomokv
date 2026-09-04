@@ -6,27 +6,34 @@
 // grace period.
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include "read_local_settax.h"
 
 namespace tomo {
+
+struct KvBlockCache;
+
+// Capacity of the owner's deferred-retire ring (ReadLocalRetireRing, src/core/read_local.h), which
+// static_asserts that it still equals this number. It lives here because the store side derives a
+// bound from it and cannot include a core/ header: the ring already permits exactly this many
+// retired-but-unreclaimed objects to be resident per owner, so it is the natural ceiling for any
+// cache of blocks that ring produces (see KvBlockCache::kMaxBytes).
+inline constexpr uint32_t kReadLocalRetireRingCapacity = 4096;
 
 struct ReadLocalRetireSink {
     using ReclaimFn = void (*)(const ReadLocalRetireSink& sink, void* owner,
                                void* payload, size_t auxiliary);
     using DeferFn = void (*)(void* context, void* owner, void* payload,
                             size_t auxiliary, ReclaimFn reclaim);
-    using AcquireFn = void* (*)(void* context, size_t allocation);
-    using RecycleFn = bool (*)(void* context, void* allocation, size_t bytes);
-    using TrimFn = void (*)(void* context, size_t target_bytes);
 
     void* context = nullptr;
     DeferFn defer = nullptr;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-    AcquireFn acquire_block = nullptr;
-    RecycleFn recycle_block = nullptr;
-    TrimFn trim_blocks = nullptr;
-#endif
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+    // The owner's post-grace block cache (src/store/kv_block_cache.h). A DIRECT pointer, not a
+    // third function pointer: the armed write path calls into it on every SET, and an indirect
+    // call there would hand back part of the allocator call it exists to remove. Null means the
+    // owner has no cache and every write allocates, which is the pre-cache behaviour.
+    KvBlockCache* block_cache = nullptr;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     ReadLocalSetTaxStats* settax_stats = nullptr;
 #endif
 
@@ -34,69 +41,25 @@ struct ReadLocalRetireSink {
         defer(context, owner, payload, auxiliary, reclaim);
     }
 
-    void bind_recycler(AcquireFn acquire, RecycleFn recycle, TrimFn trim) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-        acquire_block = acquire;
-        recycle_block = recycle;
-        trim_blocks = trim;
-#else
-        (void)acquire;
-        (void)recycle;
-        (void)trim;
-#endif
-    }
-
     void bind_settax_stats(ReadLocalSetTaxStats* stats) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         settax_stats = stats;
 #else
         (void)stats;
 #endif
     }
     ReadLocalSetTaxStats* diagnostics() const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         return settax_stats;
 #else
         return nullptr;
 #endif
     }
-    bool recycler_bound() const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-        return acquire_block && recycle_block && trim_blocks;
-#else
-        return false;
-#endif
-    }
-
-    void* acquire(size_t allocation) const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-        return acquire_block ? acquire_block(context, allocation) : nullptr;
-#else
-        (void)allocation;
-        return nullptr;
-#endif
-    }
-    bool recycle(void* allocation, size_t bytes) const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-        return recycle_block && recycle_block(context, allocation, bytes);
-#else
-        (void)allocation;
-        (void)bytes;
-        return false;
-#endif
-    }
-    void trim(size_t target_bytes) const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
-        if (trim_blocks) trim_blocks(context, target_bytes);
-#else
-        (void)target_bytes;
-#endif
-    }
 };
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 0 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 1
-static_assert(sizeof(ReadLocalRetireSink) == 2 * sizeof(void*),
-              "OFF/legacy-sequence retire sink must retain its original sidecar layout");
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 3
+static_assert(sizeof(ReadLocalRetireSink) == 3 * sizeof(void*),
+              "the shipped retire sink is context + defer + block cache and nothing else");
 #endif
 
 }  // namespace tomo

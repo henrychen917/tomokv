@@ -14,6 +14,7 @@
 #include <type_traits>
 #include "server.h"
 #include "../base/alloc.h"
+#include "../store/kv_block_cache.h"
 #include "../store/read_local_reclaim.h"
 #include "../store/read_local_settax.h"
 
@@ -147,7 +148,7 @@ inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
 // recorded once per sealed batch rather than once per entry. The drain tests one stamp per batch and
 // never scrubs a slot: the owner assigns every field of a slot before it is live again.
 struct ReadLocalRetireRing {
-    static constexpr uint32_t kCapacity = 4096;
+    static constexpr uint32_t kCapacity = kReadLocalRetireRingCapacity;
     static_assert((kCapacity & (kCapacity - 1)) == 0);
     // One batch per owner pass that retired anything. When the batch ring is full the next suffix
     // folds into the NEWEST batch under the newer stamp, which can only delay those entries; QSBR
@@ -243,7 +244,9 @@ class ReadLocalDeferredQueue {
 public:
     static constexpr uint32_t kCapacity = ReadLocalRetireRing::kCapacity;
 
-    ~ReadLocalDeferredQueue() { recycle_pool_.trim(0); }
+    // The owner's block cache dies with the owner; nothing can still reference its blocks by then
+    // (drain_shutdown ran, and a cached block is by construction referenced by nobody).
+    ~ReadLocalDeferredQueue() { block_cache_.release_all(); }
 
     bool init(Server* server, ThreadCtx* owner) {
         server_ = server;
@@ -252,14 +255,12 @@ public:
         if (!entries_) return false;
         sink_.context = this;
         sink_.defer = &ReadLocalDeferredQueue::defer_thunk;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+        // Every store this owner drives shares ONE cache: a single head array that stays hot in
+        // L1 for every armed write, whatever shard the key lands on. See kv_block_cache.h.
+        sink_.block_cache = &block_cache_;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         sink_.bind_settax_stats(&owner_->read_local_stats().settax);
 #endif
-        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
-            sink_.bind_recycler(&ReadLocalDeferredQueue::acquire_thunk,
-                                &ReadLocalDeferredQueue::recycle_thunk,
-                                &ReadLocalDeferredQueue::trim_thunk);
-        }
         return true;
     }
 
@@ -281,7 +282,7 @@ public:
         entry.reclaim = reclaim;
         // The next drain (or rare capacity seal) performs the global epoch RMW after every unlink
         // in this suffix. Sharing that stamp avoids one globally contended RMW per retired object.
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_deferrals++;
         if (auxiliary) stats.qsbr_object_deferrals++;
@@ -300,7 +301,7 @@ public:
         // One participant scan per owner pass, not per retired allocation. Stamps are FIFO and
         // strictly below the returned floor only after every active tick has crossed them; parked
         // participants contribute infinity because they hold no foreign pointer.
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_grace_scans++;
         stats.qsbr_participant_loads += server_->nthreads();
@@ -313,7 +314,7 @@ public:
             server_->read_local_grace_floor(ring_.head_stamp(), grace_hint_);
         const uint32_t drained = ring_.drain_below(
             grace_floor, [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         stats.qsbr_reclaims += drained;
         if (!drained) stats.qsbr_zero_progress_scans++;
         stats.qsbr_depth = ring_.count;
@@ -325,157 +326,18 @@ public:
     uint32_t drain_shutdown() {
         const uint32_t drained = ring_.drain_all(
             [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_reclaims += drained;
         stats.qsbr_depth = 0;
 #endif
-        recycle_pool_.trim(0);
+        // Shutdown returns the cache too: the store destructors that follow free the LIVE objects,
+        // and these blocks are live to nobody.
+        block_cache_.release_all();
         return drained;
     }
 
 private:
-    struct DisabledRecyclePool {
-        void* acquire(size_t, ReadLocalSetTaxStats*) { return nullptr; }
-        bool recycle(void*, size_t, ReadLocalSetTaxStats*) { return false; }
-        void trim(size_t, ReadLocalSetTaxStats* = nullptr) {}
-    };
-
-    // The cache belongs to this physical executor, not to a shard. A shard ownership handoff
-    // therefore changes which pool supplies future SETs without ever making one pool cross-thread.
-    // Only post-grace Raw/Int KvObj blocks reach this type-erased cache.
-    struct RecyclePool {
-        struct FreeBlock {
-            FreeBlock* next;
-            size_t allocation;
-        };
-
-        static constexpr uint32_t kClasses = 69;  // every good_size class through 4 MiB
-        static constexpr uint32_t kNodeLimit = 4096;
-        static constexpr uint32_t kClassLimit = 256;
-        static constexpr size_t kByteLimit = 4 * 1024 * 1024;
-
-        void* acquire(size_t allocation, ReadLocalSetTaxStats* stats) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-            stats->recycle_acquire_attempts++;
-#else
-            (void)stats;
-#endif
-            if (!eligible(allocation)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                stats->recycle_acquire_ineligible++;
-#endif
-                return nullptr;
-            }
-            const uint32_t cls = pool_class(allocation);
-            FreeBlock* block = heads[cls];
-            if (!block) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                stats->recycle_acquire_empty++;
-#endif
-                return nullptr;
-            }
-            if (block->allocation != allocation || !class_counts[cls] || !nodes ||
-                bytes < allocation) std::abort();
-            heads[cls] = block->next;
-            class_counts[cls]--;
-            nodes--;
-            bytes -= allocation;
-            std::destroy_at(block);
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-            stats->recycle_acquire_hits++;
-            stats->recycle_pool_nodes = nodes;
-#endif
-            return block;
-        }
-
-        bool recycle(void* memory, size_t allocation, ReadLocalSetTaxStats* stats) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-            stats->recycle_return_attempts++;
-#else
-            (void)stats;
-#endif
-            if (!memory || !eligible(allocation)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                stats->recycle_return_ineligible++;
-#endif
-                return false;
-            }
-            const uint32_t cls = pool_class(allocation);
-            if (nodes == kNodeLimit || class_counts[cls] == kClassLimit ||
-                allocation > kByteLimit - bytes) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                stats->recycle_return_limited++;
-#endif
-                return false;
-            }
-            auto* block = new (memory) FreeBlock{heads[cls], allocation};
-            heads[cls] = block;
-            class_counts[cls]++;
-            nodes++;
-            bytes += allocation;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-            stats->recycle_return_accepted++;
-            stats->recycle_pool_nodes = nodes;
-            stats->recycle_pool_max_owner_nodes = std::max<uint64_t>(
-                stats->recycle_pool_max_owner_nodes, nodes);
-#endif
-            return true;
-        }
-
-        void trim(size_t target_bytes, ReadLocalSetTaxStats* stats = nullptr) {
-            if (target_bytes >= bytes) return;
-            for (uint32_t cursor = kClasses; cursor && bytes > target_bytes;) {
-                const uint32_t cls = --cursor;
-                while (heads[cls] && bytes > target_bytes) {
-                    FreeBlock* block = heads[cls];
-                    const size_t allocation = block->allocation;
-                    heads[cls] = block->next;
-                    if (!class_counts[cls] || !nodes || bytes < allocation) std::abort();
-                    class_counts[cls]--;
-                    nodes--;
-                    bytes -= allocation;
-                    std::destroy_at(block);
-                    free_sized(block, allocation);
-                }
-            }
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-            if (stats) stats->recycle_pool_nodes = nodes;
-#else
-            (void)stats;
-#endif
-        }
-
-        static bool eligible(size_t allocation) {
-            return allocation >= sizeof(FreeBlock) && allocation <= kByteLimit &&
-                   good_size(allocation) == allocation;
-        }
-
-        static uint32_t pool_class(size_t allocation) {
-            uint32_t cls;
-            if (allocation <= 8) cls = 0;
-            else if (allocation <= 128) cls = static_cast<uint32_t>(allocation / 16);
-            else {
-                const int k = 63 - __builtin_clzll(
-                    static_cast<unsigned long long>(allocation - 1));
-                const size_t step = size_t{1} << (k - 2);
-                const uint32_t quarter = static_cast<uint32_t>(allocation / step);
-                cls = 9u + 4u * static_cast<uint32_t>(k - 7) + (quarter - 5u);
-            }
-            if (cls >= kClasses) std::abort();
-            return cls;
-        }
-
-        FreeBlock* heads[kClasses] = {};
-        uint16_t class_counts[kClasses] = {};
-        uint32_t nodes = 0;
-        size_t bytes = 0;
-    };
-
-    using ActiveRecyclePool = std::conditional_t<
-        kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle,
-        RecyclePool, DisabledRecyclePool>;
-
     // 32 bytes: two entries per cache line. No stamp here -- it belongs to the ring's sealed batch.
     struct Entry {
         void* owner = nullptr;
@@ -491,22 +353,6 @@ private:
             owner, payload, auxiliary, reclaim);
     }
 
-    static void* acquire_thunk(void* context, size_t allocation) {
-        ReadLocalDeferredQueue* queue = static_cast<ReadLocalDeferredQueue*>(context);
-        return queue->recycle_pool_.acquire(allocation, queue->sink_.diagnostics());
-    }
-
-    static bool recycle_thunk(void* context, void* allocation, size_t bytes) {
-        ReadLocalDeferredQueue* queue = static_cast<ReadLocalDeferredQueue*>(context);
-        return queue->recycle_pool_.recycle(
-            allocation, bytes, queue->sink_.diagnostics());
-    }
-
-    static void trim_thunk(void* context, size_t target_bytes) {
-        ReadLocalDeferredQueue* queue = static_cast<ReadLocalDeferredQueue*>(context);
-        queue->recycle_pool_.trim(target_bytes, queue->sink_.diagnostics());
-    }
-
     // A reclaimed slot is not scrubbed: defer() assigns every field before the slot is live again,
     // and nothing reads a slot outside [head_, tail_).
     void reclaim_entry(Entry& entry) {
@@ -520,7 +366,7 @@ private:
         // recorded once, not once per entry.
         [[maybe_unused]] const uint32_t sealed =
             ring_.seal(server_->advance_read_local_epoch());
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_seals++;
         stats.qsbr_sealed_entries += sealed;
@@ -532,14 +378,14 @@ private:
         // copy before owner mutation can reach here, so publishing its current epoch is the safe
         // point that prevents a full list from waiting on itself.
         seal_pending();
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         settax_stats().qsbr_forced_graces++;
 #endif
         while (ring_.full()) {
             // Preserve a permanent/parked publication if shutdown cleanup reaches this path.
             owner_->refresh_read_local_quiescence(server_->read_local_epoch());
             if (!drain_ready()) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                 settax_stats().qsbr_forced_yields++;
 #endif
                 __builtin_ia32_pause();
@@ -548,7 +394,7 @@ private:
         }
     }
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     ReadLocalSetTaxStats& settax_stats() {
         ReadLocalSetTaxStats* stats = sink_.diagnostics();
         if (!stats) std::abort();
@@ -556,11 +402,11 @@ private:
     }
 #endif
 
+    KvBlockCache block_cache_{};
     Server* server_ = nullptr;
     ThreadCtx* owner_ = nullptr;
     std::unique_ptr<Entry[]> entries_;
     ReadLocalRetireSink sink_;
-    ActiveRecyclePool recycle_pool_;
     ReadLocalRetireRing ring_;
     uint32_t grace_hint_ = UINT32_MAX;   // last participant seen blocking the oldest batch
 };

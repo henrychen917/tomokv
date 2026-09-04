@@ -4,8 +4,13 @@
 // unqualified build retain the immutable read-local path (0), while an owner bake-off can select
 // exactly one experimental implementation with
 //   -DTOMO_READ_LOCAL_SET_TAX_VARIANT=1   (shard-sequence in-place overwrite)
-//   -DTOMO_READ_LOCAL_SET_TAX_VARIANT=2   (post-QSBR same-class recycling)
 //   -DTOMO_READ_LOCAL_SET_TAX_VARIANT=3   (per-object-sequence in-place overwrite)
+//
+// Selector 2 (post-QSBR same-class recycling) is RETIRED: it won its bake-off and was hardcoded.
+// Armed writes now draw their block from, and return it to, the shard's own post-grace block cache
+// unconditionally (FlatStore::read_local_cache_take/put, NOTES-RECYCLE.md), so there is no longer a
+// build that recycles and a build that does not. Selecting 2 is a compile error rather than a
+// silent second recycler competing with the shipped one.
 #pragma once
 #include <cstdint>
 
@@ -18,14 +23,14 @@ namespace tomo {
 enum class ReadLocalSetTaxVariant : uint8_t {
     Off = 0,
     SequenceOverwrite = 1,
-    QsbrRecycle = 2,
     ObjectSequenceOverwrite = 3,
 };
 
-static_assert(TOMO_READ_LOCAL_SET_TAX_VARIANT >= 0 &&
-              TOMO_READ_LOCAL_SET_TAX_VARIANT <= 3,
-              "TOMO_READ_LOCAL_SET_TAX_VARIANT must be 0 (off), 1 (shard sequence), "
-              "2 (recycle), or 3 (object sequence)");
+static_assert(TOMO_READ_LOCAL_SET_TAX_VARIANT == 0 ||
+              TOMO_READ_LOCAL_SET_TAX_VARIANT == 1 ||
+              TOMO_READ_LOCAL_SET_TAX_VARIANT == 3,
+              "TOMO_READ_LOCAL_SET_TAX_VARIANT must be 0 (off), 1 (shard sequence), or "
+              "3 (object sequence); selector 2 shipped as the unconditional block cache");
 
 inline constexpr ReadLocalSetTaxVariant kReadLocalSetTaxVariant =
     static_cast<ReadLocalSetTaxVariant>(TOMO_READ_LOCAL_SET_TAX_VARIANT);
@@ -36,7 +41,7 @@ inline constexpr bool kReadLocalSetTaxAtomicRaw =
 
 struct ReadLocalSetTaxStats;
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
 // Temporary owner-local attribution for the armed SET bake-off. These are intentionally plain
 // counters: the owning fused thread is their sole writer and INFO already takes an exceptional
 // cross-thread snapshot of the surrounding read-local telemetry.
