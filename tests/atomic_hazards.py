@@ -226,8 +226,22 @@ if HAVE_DEBUG:
             problem = flush_leak_round(round_id, flush_keys, flush_dest[0], pin_keys)
             if problem:
                 detail.append("round %d: %s" % (round_id, problem))
-        note("S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees "
-             "its own write)", not detail, "rounds=%d %r" % (FLUSH_ROUNDS, detail[:2]))
+        fused = False
+        try:
+            tm = ADMIN.cmd("CONFIG", "GET", "thread-mode")
+            fused = isinstance(tm, list) and len(tm) == 2 and tm[1] == b"1s"
+        except Exception:
+            fused = False
+        only_window = bool(detail) and all("window did not open" in d for d in detail)
+        if fused and only_window:
+            # Fused threads park the pinning fanout on the same thread that must retire the writes, so
+            # ATOMIC-FANOUT-DEFER cannot hold the read floor open here. The S1 defect is mode-independent
+            # and is proven by the 2s gate row; report the arm as skipped, never as a vacuous pass.
+            print("  skip S1 FLUSH read-cut arm: fused mode cannot hold the floor via ATOMIC-FANOUT-DEFER "
+                  "(rounds=%d %r)" % (FLUSH_ROUNDS, detail[:1]))
+        else:
+            note("S1 FLUSH under a pinned floor leaves no finite read cut (RENAME after MSET sees "
+                 "its own write)", not detail, "rounds=%d %r" % (FLUSH_ROUNDS, detail[:2]))
 else:
     note("S1 FLUSH read-cut leak", False, "needs DEBUG")
 
