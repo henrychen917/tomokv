@@ -39,10 +39,11 @@ LbSnapshot lbsignals_capture(Server& srv) {
         r.tid = tid;
         r.role = role;
         r.domain = t.domain();
-        // clients() belongs to every client-serving thread. Its size field is a benign racy gauge.
+        // The owner maintains an atomic publication beside its private client vector. Capture must
+        // never inspect the vector cross-thread: even a size-only read would race reallocation.
         const bool serves_clients = srv.serves_clients(role);
         const bool owns_shards = srv.owns_shards(role);
-        r.clients = serves_clients ? static_cast<uint32_t>(t.clients().size()) : 0;
+        r.clients = serves_clients ? t.client_count() : 0;
         snap.client_threads += serves_clients;
         r.iterations = rd(s.iterations);
         r.ops = rd(s.ops);
@@ -121,8 +122,9 @@ LbSnapshot lbsignals_capture(Server& srv) {
             owner_seen[r.owner_tid] = true;
             snap.owner_threads++;
         }
-        // home_domain() is a plain read of an owner-written gauge; a stale value is acceptable.
-        r.owner_domain = sh.home_domain();
+        // Thread domains are boot-latched. Derive the current owner's domain from the same atomic
+        // owner row instead of racing the shard owner's mutable residency gauge.
+        r.owner_domain = r.owner_tid < nt ? srv.thread(r.owner_tid).domain() : kNoDomain;
         r.ops = rd(st.ops);
         r.foreign_ops = rd(st.foreign_ops);
         r.migrations = rd(st.migrations);
