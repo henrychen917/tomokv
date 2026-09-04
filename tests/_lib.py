@@ -13,8 +13,8 @@ House rules this module encodes (they are rules, not preferences -- see AUDIT-TE
     is inferred from key names or from the default shard-home map (the hash seed is drawn from the
     kernel at every boot, and --shard-home can move shards).
   * "Owner" means the thread that owns a shard -- the `shard <sid> <owner_tid>` rows of DEBUG
-    LBSIGNALS -- never the `ex` role label. Under --thread-mode 1s every thread is labelled `io`
-    and still owns shards (src/cmd/lbsignals.cc). Every helper here behaves identically in 1s and 2s.
+    LBSIGNALS -- never the `ex` role label. Under --thread-mode 1s every thread is labelled `fused`;
+    ownership still comes from shard rows. Every helper here behaves identically in 1s and 2s.
   * A skip is visible and carries a reason. `Report.skip(..., strict=True)` marks a skip that
     means "the mechanism could not be armed" (a DEBUG hook denied, a knob absent); under
     TOMO_GATE_STRICT=1 -- exported by tests/gate.sh -- such a skip fails the battery, so a gate row
@@ -275,7 +275,7 @@ def lbsignals(conn):
 def topology(conn):
     """Who owns which shard, from the SHARD rows (true in 1s and 2s alike).
 
-    roles:       {tid: 'io'|'ex'}      -- informational; never select owners by it
+    roles:       {tid: 'io'|'ex'|'fused'} -- informational; never select owners by it
     shard_owner: {sid: owner_tid}
     owners:      sorted distinct owner tids (the concurrency units for cross-owner races)
     mode:        '1s' | '2s'
@@ -285,7 +285,10 @@ def topology(conn):
         raise AssertionError("DEBUG LBSIGNALS reported no shard rows")
     roles = {t.tid: t.role for t in snap.threads}
     shard_owner = {s.sid: s.owner for s in snap.shards}
-    return Topology(roles, shard_owner, sorted(set(shard_owner.values())), thread_mode(conn))
+    mode = snap.derived.get("thread_mode")
+    if mode not in ("1s", "2s"):
+        raise AssertionError("DEBUG LBSIGNALS has no derived thread_mode (got %r)" % (mode,))
+    return Topology(roles, shard_owner, sorted(set(shard_owner.values())), mode)
 
 
 def shard_of(conn, key):
@@ -296,15 +299,49 @@ def shard_of(conn, key):
     return reply
 
 
-def probe_keys(conn, prefix, topo, limit=8000, width=4):
-    """Yield (key, shard, owner) for `prefix:0000`, `prefix:0001`, ... up to `limit` probes."""
+def shards_of(conn, keys):
+    """[(shard, owner_tid), ...] for keys, preserving input order in one DEBUG reply.
+
+    This is deliberately not a placement transaction: if a FLIP overlaps the command, each row is
+    truthful when read but one reply may span old and new placements. Callers needing a coherent
+    topology must quiesce FLIP and compare owners with a fresh LBSIGNALS shard-row map.
+    """
+    keys = list(keys)
+    if not keys:
+        return []
+    reply = call(conn, "DEBUG", "SHARDS", *keys)
+    if not isinstance(reply, list) or len(reply) != len(keys):
+        raise AssertionError(
+            "DEBUG SHARDS unavailable or malformed for %d keys: %r" % (len(keys), reply))
+    rows = []
+    for index, pair in enumerate(reply):
+        if (not isinstance(pair, list) or len(pair) != 2 or
+                not isinstance(pair[0], int) or not isinstance(pair[1], int)):
+            raise AssertionError("DEBUG SHARDS row %d is not [sid, owner_tid]: %r"
+                                 % (index, pair))
+        rows.append((pair[0], pair[1]))
+    return rows
+
+
+def probe_keys(conn, prefix, topo, limit=8000, width=4, batch_size=256):
+    """Yield (key, shard, owner) for candidates, resolving each batch in one DEBUG reply."""
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
     fmt = "%s:%0" + str(width) + "d"
-    for index in range(limit):
-        key = fmt % (prefix, index)
-        shard = shard_of(conn, key)
-        if shard not in topo.shard_owner:
-            raise AssertionError("DEBUG SHARD returned shard %d that LBSIGNALS did not report" % shard)
-        yield key, shard, topo.shard_owner[shard]
+    for first in range(0, limit, batch_size):
+        keys = [fmt % (prefix, index)
+                for index in range(first, min(limit, first + batch_size))]
+        for key, (shard, owner) in zip(keys, shards_of(conn, keys)):
+            if shard not in topo.shard_owner:
+                raise AssertionError(
+                    "DEBUG SHARDS returned shard %d that LBSIGNALS did not report" % shard)
+            expected_owner = topo.shard_owner[shard]
+            if owner != expected_owner:
+                raise AssertionError(
+                    "DEBUG SHARDS owner %d for shard %d disagrees with LBSIGNALS owner %d; "
+                    "placement may have changed during the probes"
+                    % (owner, shard, expected_owner))
+            yield key, shard, owner
 
 
 def owner_buckets(conn, prefix, want_owners=2, per_owner=1, limit=8000, topo=None):

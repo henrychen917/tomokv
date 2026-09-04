@@ -1279,7 +1279,8 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
         error = "invalid AOF rewrite mark owner";
         return false;
     }
-    for (uint32_t pass = 0; pending_chunks() && pass < 100000; pass++) {
+    for (uint32_t pass = 0;
+         (pending_chunks() || stream_owner_.large_token()) && pass < 100000; pass++) {
         const uint32_t work = writer_pass(writer, ring, true);
         if (engine_ == PersistIoEngine::Uring) {
             ring.submit_and_reap();
@@ -1288,6 +1289,10 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
         if (!work) std::this_thread::yield();
     }
     if (pending_chunks()) { error = "timed out draining AOF at rewrite mark"; return false; }
+    if (stream_owner_.large_token()) {
+        error = "timed out closing AOF large record at rewrite mark";
+        return false;
+    }
     const bool old_synced = engine_ == PersistIoEngine::Normal
         ? ::fdatasync(fd_) == 0 : wait_control_sync(writer, ring, fd_);
     if (!old_synced) { error = "could not sync old AOF increment"; return false; }
@@ -1343,8 +1348,6 @@ bool AofManager::rewrite_mark(ThreadCtx& writer, Ring& ring, uint64_t snapshot_e
     active_incr_sequence_ = new_sequence;
     file_offset_ = new_offset;
     last_good_offset_ = new_offset;
-    large_record_offset_ = 0;
-    locked_producer_ = UINT32_MAX;
     durable_sequence_.store(written_sequence_.load(std::memory_order_acquire),
                             std::memory_order_release);
     current_size_.store(base_size() + new_offset, std::memory_order_relaxed);
@@ -1769,7 +1772,6 @@ bool AofManager::write_frame_normal(const AofChunk& chunk) {
     snapshot_put_u32(header + 20, kFrameHeaderBytes);
     snapshot_put_u64(header + 24, snapshot_checksum(chunk.bytes.data(), chunk.bytes.size()));
     snapshot_put_u64(header + 32, snapshot_checksum(header, 32));
-    const uint64_t frame_begin = file_offset_;
     if (!write_frame_counted(fd_, header, sizeof(header),
                              chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
@@ -1777,9 +1779,8 @@ bool AofManager::write_frame_normal(const AofChunk& chunk) {
         file_offset_ = last_good_offset_;
         return false;
     }
-    if (chunk.flags & AofFrameLargeBegin) large_record_offset_ = frame_begin;
     if (chunk.flags & AofFrameLargeEnd) last_good_offset_ = file_offset_;
-    else if (locked_producer_ == UINT32_MAX) last_good_offset_ = file_offset_;
+    else if (stream_owner_.open_token()) last_good_offset_ = file_offset_;
     records_written_.fetch_add(chunk.records, std::memory_order_relaxed);
     current_size_.store(base_size() + file_offset_, std::memory_order_relaxed);
     return true;
@@ -1812,7 +1813,8 @@ bool AofManager::group_dependencies_ready(const AofGroupDecision& group) const {
     return true;
 }
 
-bool AofManager::prepare_group_commit(AofChunk& chunk, uint8_t* header) {
+bool AofManager::prepare_group_commit(const OpenStreamToken&, AofChunk& chunk,
+                                      uint8_t* header) {
     if (!chunk.group || !group_dependencies_ready(*chunk.group)) return false;
     const uint64_t ticket = chunk.group->ticket.load(std::memory_order_acquire);
     if (!ticket || chunk.group->aborted.load(std::memory_order_acquire)) return false;
@@ -1846,9 +1848,9 @@ bool AofManager::prepare_group_commit(AofChunk& chunk, uint8_t* header) {
     return true;
 }
 
-bool AofManager::write_group_commit_normal(AofChunk& chunk) {
+bool AofManager::write_group_commit_normal(const OpenStreamToken& stream, AofChunk& chunk) {
     uint8_t header[kFrameHeaderBytes] = {};
-    if (!prepare_group_commit(chunk, header)) return false;
+    if (!prepare_group_commit(stream, chunk, header)) return false;
     if (!write_frame_counted(fd_, header, sizeof(header),
                              chunk.bytes.data(), chunk.bytes.size(), file_offset_)) {
         const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(last_good_offset_));
@@ -1863,8 +1865,9 @@ bool AofManager::write_group_commit_normal(AofChunk& chunk) {
     return true;
 }
 
-bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_commit,
-                                    Ring& ring, io_uring_sqe*& last_write) {
+bool AofManager::submit_prepared_frame_uring(std::unique_ptr<AofChunk> chunk,
+                                             const uint8_t* prepared_header, Ring& ring,
+                                             io_uring_sqe*& last_write) {
     (void)ring;
     (void)last_write;
     auto* request = static_cast<AofIoRequest*>(current_uring_write_);
@@ -1884,27 +1887,11 @@ bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_
         current_uring_write_ = request;
     }
     std::array<uint8_t, kFrameHeaderBytes> header{};
-    if (group_commit) {
-        if (!prepare_group_commit(*chunk, header.data())) return false;
-    } else {
-        if (chunk->sid < 0 || static_cast<uint32_t>(chunk->sid) >= nshards_) {
-            return false;
-        }
-        const uint32_t sid = static_cast<uint32_t>(chunk->sid);
-        if (chunk->sequence != next_sequence_[sid]++) return false;
-        snapshot_put_u32(header.data(), kFrameTag);
-        snapshot_put_u32(header.data() + 4, sid);
-        snapshot_put_u32(header.data() + 8, chunk->sequence);
-        snapshot_put_u32(header.data() + 12, chunk->flags);
-        snapshot_put_u32(header.data() + 16, static_cast<uint32_t>(chunk->bytes.size()));
-        snapshot_put_u32(header.data() + 20, kFrameHeaderBytes);
-        snapshot_put_u64(header.data() + 24,
-                         snapshot_checksum(chunk->bytes.data(), chunk->bytes.size()));
-        snapshot_put_u64(header.data() + 32, snapshot_checksum(header.data(), 32));
-    }
+    std::memcpy(header.data(), prepared_header, header.size());
 
     const uint32_t flags = chunk->flags;
     const uint64_t post_sequence = chunk->post_sequence;
+    const bool group_commit = chunk->group_commit;
     const size_t frame_bytes = kFrameHeaderBytes + chunk->bytes.size();
     try {
         request->frame_headers.push_back(header);
@@ -1917,11 +1904,9 @@ bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_
     request->remaining += frame_bytes;
     request->contains_group_commit |= group_commit;
 
-    const uint64_t frame_begin = file_offset_;
     file_offset_ += frame_bytes;
-    if (flags & AofFrameLargeBegin) large_record_offset_ = frame_begin;
     if (flags & AofFrameLargeEnd) last_good_offset_ = file_offset_;
-    else if (locked_producer_ == UINT32_MAX) last_good_offset_ = file_offset_;
+    else if (stream_owner_.open_token()) last_good_offset_ = file_offset_;
     if (group_commit) last_good_offset_ = file_offset_;
     if (!mark_post_submitted(post_sequence)) {
         fail("AOF submitted frontier did not advance");
@@ -1930,35 +1915,53 @@ bool AofManager::submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_
     return true;
 }
 
-uint32_t AofManager::drain_pending_commits(uint32_t& budget, Ring& ring,
-                                           io_uring_sqe*& last_write) {
-    // A control frame must never land between the begin and end frames of a large record. Every
-    // recovery path -- the writer's own short-write rollback to last_good_offset_, the shutdown
-    // ftruncate to large_record_offset_, and the loader's rewind to the large record's first frame
-    // -- discards the file from the large record's first byte onward. Anything written inside that
-    // byte range is discarded with it, and a GCMT is exactly the record that must not be
-    // discardable: it is what makes an already-durable, already-acknowledged group visible on
-    // replay. So the lock a large record takes on the physical stream covers control frames too.
-    // The deferral is bounded: the writer keeps draining the locked producer, which is the only
-    // producer that can close the record.
-    if (locked_producer_ != UINT32_MAX) {
-        if (!pending_commits_.empty()) {
-            for (const std::unique_ptr<AofChunk>& held : pending_commits_) {
-                if (held->group && group_dependencies_ready(*held->group)) {
-                    control_defers_.fetch_add(1, std::memory_order_relaxed);
-                    break;
-                }
-            }
+bool AofManager::submit_data_frame_uring(std::unique_ptr<AofChunk> chunk, Ring& ring,
+                                         io_uring_sqe*& last_write) {
+    if (chunk->sid < 0 || static_cast<uint32_t>(chunk->sid) >= nshards_) return false;
+    const uint32_t sid = static_cast<uint32_t>(chunk->sid);
+    if (chunk->sequence != next_sequence_[sid]++) return false;
+    std::array<uint8_t, kFrameHeaderBytes> header{};
+    snapshot_put_u32(header.data(), kFrameTag);
+    snapshot_put_u32(header.data() + 4, sid);
+    snapshot_put_u32(header.data() + 8, chunk->sequence);
+    snapshot_put_u32(header.data() + 12, chunk->flags);
+    snapshot_put_u32(header.data() + 16, static_cast<uint32_t>(chunk->bytes.size()));
+    snapshot_put_u32(header.data() + 20, kFrameHeaderBytes);
+    snapshot_put_u64(header.data() + 24,
+                     snapshot_checksum(chunk->bytes.data(), chunk->bytes.size()));
+    snapshot_put_u64(header.data() + 32, snapshot_checksum(header.data(), 32));
+    return submit_prepared_frame_uring(std::move(chunk), header.data(), ring, last_write);
+}
+
+bool AofManager::submit_group_commit_uring(const OpenStreamToken& stream,
+                                            std::unique_ptr<AofChunk> chunk, Ring& ring,
+                                            io_uring_sqe*& last_write) {
+    std::array<uint8_t, kFrameHeaderBytes> header{};
+    if (!prepare_group_commit(stream, *chunk, header.data())) return false;
+    return submit_prepared_frame_uring(std::move(chunk), header.data(), ring, last_write);
+}
+
+void AofManager::note_control_deferral(const LargeStreamToken&) {
+    for (const std::unique_ptr<AofChunk>& held : pending_commits_) {
+        if (held->group && group_dependencies_ready(*held->group)) {
+            control_defers_.fetch_add(1, std::memory_order_relaxed);
+            return;
         }
-        return 0;
     }
+}
+
+uint32_t AofManager::drain_pending_commits(const OpenStreamToken& stream, uint32_t& budget,
+                                           Ring& ring, io_uring_sqe*& last_write) {
+    // Only OpenStreamToken can reach either control-frame writer. A large record exchanges that
+    // capability for LargeStreamToken, so no scheduling path in the held state can append a GCMT.
     uint32_t written = 0;
     for (size_t index = 0; index < pending_commits_.size() && budget;) {
         AofChunk& chunk = *pending_commits_[index];
         if (!group_dependencies_ready(*chunk.group)) { index++; continue; }
         const bool ok = engine_ == PersistIoEngine::Normal
-            ? write_group_commit_normal(chunk)
-            : submit_frame_uring(std::move(pending_commits_[index]), true, ring, last_write);
+            ? write_group_commit_normal(stream, chunk)
+            : submit_group_commit_uring(stream, std::move(pending_commits_[index]),
+                                        ring, last_write);
         if (!ok) {
             fail("AOF GCMT write failed");
             return written;
@@ -1997,11 +2000,14 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
         }
         const uint32_t flags = chunk->flags;
         bool valid = true;
-        if (locked_producer_ == UINT32_MAX) {
+        if (const OpenStreamToken* open = stream_owner_.open_token()) {
             if (flags & AofFrameLargeEnd) valid = false;
-            if (flags & AofFrameLargeBegin) locked_producer_ = producer;
+            if (flags & AofFrameLargeBegin)
+                stream_owner_.begin_large(*open, producer, file_offset_);
         } else {
-            if (locked_producer_ != producer || (flags & AofFrameLargeBegin)) valid = false;
+            const LargeStreamToken* large = stream_owner_.large_token();
+            if (!large || large->producer() != producer || (flags & AofFrameLargeBegin))
+                valid = false;
         }
         if (valid && engine_ == PersistIoEngine::Normal) valid = write_frame_normal(*chunk);
         if (valid && engine_ == PersistIoEngine::Normal) note_group_fragment(*chunk);
@@ -2009,10 +2015,14 @@ bool AofManager::drain_producer(uint32_t producer, uint32_t& budget, uint32_t& c
             valid = mark_post_written(chunk->post_sequence);
         if (valid && engine_ == PersistIoEngine::Uring) {
             std::unique_ptr<AofChunk> owned(chunk);
-            valid = submit_frame_uring(std::move(owned), false, ring, last_write);
+            valid = submit_data_frame_uring(std::move(owned), ring, last_write);
             chunk = nullptr;
         }
-        if (valid && (flags & AofFrameLargeEnd)) locked_producer_ = UINT32_MAX;
+        if (valid && (flags & AofFrameLargeEnd)) {
+            const LargeStreamToken* large = stream_owner_.large_token();
+            if (!large || large->producer() != producer) valid = false;
+            else stream_owner_.finish_large(*large);
+        }
         if (engine_ == PersistIoEngine::Normal) delete chunk;
         chunk_in_[producer].retire();
         if (engine_ == PersistIoEngine::Normal || !valid)
@@ -2043,16 +2053,19 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
         ? 256 : kWriterFramesPerPass;
     uint32_t consumed = 0;
     io_uring_sqe* last_write = nullptr;
-    consumed += drain_pending_commits(budget, ring, last_write);
-    if (locked_producer_ != UINT32_MAX) {
-        drain_producer(locked_producer_, budget, consumed, ring, last_write);
+    if (const LargeStreamToken* large = stream_owner_.large_token()) {
+        const uint32_t producer = large->producer();
+        note_control_deferral(*large);
+        drain_producer(producer, budget, consumed, ring, last_write);
         if (written_sequence_.load(std::memory_order_relaxed) != written_before)
             wake_gate_waiters(writer, ring);
         return consumed + maybe_sync(writer, ring, last_write);
     }
+    const OpenStreamToken* open = stream_owner_.open_token();
+    consumed += drain_pending_commits(*open, budget, ring, last_write);
     for (uint32_t word = 0; word < NotifyMask::kWords && budget; word++) {
         uint64_t bits = chunk_notify_.take(word);
-        while (bits && budget && locked_producer_ == UINT32_MAX) {
+        while (bits && budget && stream_owner_.open_token()) {
             const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
             bits &= bits - 1;
             const uint32_t producer = word * 64 + bit;
@@ -2065,14 +2078,19 @@ uint32_t AofManager::writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all) 
             chunk_notify_.set(word * 64 + bit);
         }
     }
-    if (drain_all && consumed == 0 && locked_producer_ == UINT32_MAX) {
+    if (drain_all && consumed == 0 && stream_owner_.open_token()) {
         for (uint32_t visited = 0; visited < nthreads_ && budget; visited++) {
             const uint32_t producer = writer_cursor_++ % nthreads_;
             drain_producer(producer, budget, consumed, ring, last_write);
-            if (locked_producer_ != UINT32_MAX) break;
+            if (!stream_owner_.open_token()) break;
         }
     }
-    if (budget) consumed += drain_pending_commits(budget, ring, last_write);
+    if (budget) {
+        if (const OpenStreamToken* tail_open = stream_owner_.open_token())
+            consumed += drain_pending_commits(*tail_open, budget, ring, last_write);
+        else
+            note_control_deferral(*stream_owner_.large_token());
+    }
     if (written_sequence_.load(std::memory_order_relaxed) != written_before)
         wake_gate_waiters(writer, ring);
     return consumed + maybe_sync(writer, ring, last_write);
@@ -2103,10 +2121,11 @@ void AofManager::writer_shutdown(ThreadCtx& writer, Ring& ring) {
         ring.submit_and_wait(1);
         pump_io_completions(writer, ring);
     }
-    if (locked_producer_ != UINT32_MAX) {
-        const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(large_record_offset_));
+    if (const LargeStreamToken* large = stream_owner_.large_token()) {
+        const uint64_t begin_offset = large->begin_offset();
+        const int truncate_result = ::ftruncate(fd_, static_cast<off_t>(begin_offset));
         (void)truncate_result;
-        file_offset_ = large_record_offset_;
+        file_offset_ = begin_offset;
     }
     if (engine_ == PersistIoEngine::Normal) (void)::fdatasync(fd_);
     else (void)wait_control_sync(writer, ring, fd_);

@@ -176,24 +176,26 @@ def topology(connection):
     if not isinstance(raw, bytes):
         raise AssertionError(
             "DEBUG LBSIGNALS unavailable; boot with --enable-debug-command yes: %r" % raw)
-    executors = set()
+    threads = set()
     shard_owner = {}
     for line in raw.splitlines():
         fields = line.split()
-        if len(fields) >= 3 and fields[0] == b"thread" and fields[2] in (b"ex", b"io"):
-            executors.add(int(fields[1]))
+        # The role token is presentation (`io`, `ex`, or `fused`), not ownership. Thread rows
+        # establish the live tids; shard rows below are the only ownership oracle.
+        if len(fields) >= 3 and fields[0] == b"thread":
+            threads.add(int(fields[1]))
         elif len(fields) >= 3 and fields[0] == b"shard":
             shard_owner[int(fields[1])] = int(fields[2])
-    if len(executors) < 3:
+    if len(threads) < 3:
         raise AssertionError(
             "B+ held-group geometry needs two participating owners and one independent fused "
-            "reader; found executor threads %r" % sorted(executors))
+            "reader; found live threads %r" % sorted(threads))
     if not shard_owner:
         raise AssertionError("DEBUG LBSIGNALS reported no shard ownership")
-    unknown = set(shard_owner.values()) - executors
+    unknown = set(shard_owner.values()) - threads
     if unknown:
-        raise AssertionError("shards name non-executor owners %r" % sorted(unknown))
-    return executors, shard_owner
+        raise AssertionError("shards name non-live owners %r" % sorted(unknown))
+    return threads, shard_owner
 
 
 def debug_shard(connection, key):
@@ -211,7 +213,7 @@ def debug_cell(connection, key):
 
 
 def select_geometry(connection):
-    executors, shard_owner = topology(connection)
+    threads, shard_owner = topology(connection)
     cells_by_shard = {}
     qualified = {}
     for index in range(20000):
@@ -231,7 +233,7 @@ def select_geometry(connection):
                 partner_owner = shard_owner[partner_shard]
                 if source_owner == partner_owner:
                     continue
-                safe = sorted(executors - {source_owner, partner_owner})
+                safe = sorted(threads - {source_owner, partner_owner})
                 if not safe:
                     continue
                 (a_cell, a), (b_cell, b) = source

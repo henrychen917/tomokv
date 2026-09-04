@@ -3,21 +3,22 @@
 #include "genthread.h"
 
 #include <algorithm>
-#include <condition_variable>
 #include <cstdio>
-#include <mutex>
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include <unistd.h>
 
 #include "../base/alloc.h"
 #include "../cmd/acl.h"
 #include "../net/conn.h"
+#include "../net/unix_listener.h"
 #include "../persist/aof.h"
 #include "../snapshot/snapshot.h"
 #include "ex_loop.h"
+#include "fused_boot_gate.h"
 #include "io_loop.h"
 #include "server.h"
 #include "shutdown_report.h"
@@ -70,7 +71,8 @@ void IoLoop::run_fused() {
 int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     int unix_listener) {
+                     LateUnixListener& unix_listener,
+                     ShutdownReportFinalLine& final_report) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
@@ -86,18 +88,36 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    std::mutex boot_mu;
-    std::condition_variable boot_cv;
-    uint32_t loaders_done = 0;
-    uint32_t runners_ready = 0;
-    // Threads that saw shutdown while waiting for the serve gate. They are counted at the gate
-    // like ready runners, because main's wait below needs EVERY thread to report there.
-    uint32_t runners_stopped = 0;
-    bool load_ok = true;
-    bool serve_start = false;
-    bool run_start = false;
-    std::string load_error;
+    // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
+    // counter so a thread that saw shutdown while parked still reported at the gate (without it a
+    // SIGTERM during a long --load hung main forever). FusedBootGate keeps that property as a
+    // first-class `gave_up` arrival, and every wait/advance also takes the stop edge, so the two
+    // predicates cannot disagree.
+    FusedBootGate boot(nthreads);
+    // Identical to placement().ifid_threads().front() whenever a unixsocket is configured, but
+    // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
+    auto report_graceful_shutdown = [&] {
+        if (srv.read_local_enabled()) {
+            // Joined fused readers cannot run another grace callback. Empty their private
+            // retirement queues and disarm every store hook before taking the immutable report;
+            // the subsequent atomic-record drain may detach more than a bounded callback list.
+            for (FusedExLoop& executor : executors) executor.read_local_shutdown_drain();
+            for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+                srv.shard(static_cast<int32_t>(sid)).store().configure_read_local(false, {});
+        }
+        // All owners and readers are quiescent. Release pending-entry references before IoLoop
+        // destruction, then return their deferred ScatterState arenas to the correct IO-owned
+        // pools. Server normally outlives those pools, so leaving this to FlatStore destructors
+        // would leak the retained arenas.
+        for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+            srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
+        for (IoLoop& io : ios) io.reap_atomic_deferred();
+        ShutdownReport report = collect_shutdown_report(srv, ios, executors);
+        print_shutdown_report_human(report);
+        final_report.arm(std::move(report));
+        acl_shutdown();
+    };
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
@@ -120,9 +140,8 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
-            const int unix_fd = tid == unix_owner ? unix_listener : -1;
             if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
+                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
                                    tls_context, true);
             if (ok)
                 self.bind_io_role_hooks(
@@ -197,44 +216,17 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                         });
             }
-            {
-                std::lock_guard<std::mutex> lock(boot_mu);
-                if (!ok) {
-                    load_ok = false;
-                    if (load_error.empty())
-                        load_error = local_error.empty()
-                            ? "unified thread initialization failed" : local_error;
-                }
-                loaders_done++;
-            }
-            boot_cv.notify_all();
-            if (!ok) return;
-            {
-                std::unique_lock<std::mutex> lock(boot_mu);
-                boot_cv.wait(lock, [&] {
-                    return serve_start || self.stop_flag().load(std::memory_order_relaxed);
-                });
-            }
-            if (self.stop_flag().load(std::memory_order_relaxed)) {
-                // Shutdown arrived while this thread waited for the serve gate. It must still
-                // report at the gate: main waits below for every thread, and a thread that leaves
-                // silently parks main in that wait forever. A SIGTERM during a long --load did
-                // exactly this -- the shards that finished decoding first were waiting here.
-                std::lock_guard<std::mutex> lock(boot_mu);
-                runners_stopped++;
-                boot_cv.notify_all();
+            if (!boot.arrive_loaded(tid, ok, local_error)) return;
+            if (!boot.wait_until_ready(tid, self.stop_flag())) return;
+            if (!ios[tid].activate()) {
+                boot.give_up(tid, "unified listener activation failed");
                 return;
             }
-            if (!ios[tid].activate()) std::abort();
-            {
-                std::unique_lock<std::mutex> lock(boot_mu);
-                runners_ready++;
-                boot_cv.notify_all();
-                boot_cv.wait(lock, [&] {
-                    return run_start || self.stop_flag().load(std::memory_order_relaxed);
-                });
-            }
-            if (self.stop_flag().load(std::memory_order_relaxed)) return;
+            // arrive_ready() returns false on the stop edge: a worker can leave wait_until_ready(),
+            // spend time arming its listeners, and come back after main already saw a signal. That
+            // arrival is recorded as gave_up so main's wait still sees every thread report.
+            if (!boot.arrive_ready(tid)) return;
+            if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
             if (srv.read_local_enabled())
@@ -242,28 +234,27 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             self.publish_ready_role(Role::Idle);
         });
 
-    {
-        std::unique_lock<std::mutex> lock(boot_mu);
-        boot_cv.wait(lock, [&] { return loaders_done == nthreads; });
-    }
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
-        {
-            std::lock_guard<std::mutex> lock(boot_mu);
-            serve_start = true;
-            run_start = true;
-        }
-        boot_cv.notify_all();
+        boot.stop();
         for (std::thread& worker : pool)
             if (worker.joinable()) worker.join();
     };
-    if (!load_ok) {
+    if (!boot.wait_loaded(srv.shutting_down())) {
         stop_workers();
-        std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
-        return 1;
+        const std::string error = boot.error();
+        if (!error.empty()) std::fprintf(stderr, "persistence load failed: %s\n", error.c_str());
+        const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
+        if (interrupted) report_graceful_shutdown();
+        return interrupted ? 0 : 1;
     }
     srv.set_loading(false);
+    if (srv.shutting_down().load(std::memory_order_relaxed)) {
+        stop_workers();
+        report_graceful_shutdown();
+        return 0;
+    }
 
     auto probe_listener = [&](uint32_t port, bool tls) {
         if (!port) return true;
@@ -280,65 +271,41 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         stop_workers();
         return 1;
     }
-    {
-        std::lock_guard<std::mutex> lock(boot_mu);
-        serve_start = true;
+    std::string unix_error;
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+        std::fprintf(stderr, "%s\n", unix_error.c_str());
+        stop_workers();
+        return 1;
     }
-    boot_cv.notify_all();
-    bool stopping = false;
-    {
-        std::unique_lock<std::mutex> lock(boot_mu);
-        // Ready OR stopped: both report at the gate. Waiting for "ready == nthreads" alone hung
-        // the process whenever shutdown was requested before every thread reached the gate.
-        boot_cv.wait(lock, [&] { return runners_ready + runners_stopped == nthreads; });
-        stopping = runners_stopped != 0;
-        run_start = true;
+    if (unix_listener.fd() >= 0) {
+        if (!ios[unix_owner].attach_listener(unix_listener.fd())) {
+            std::fprintf(stderr, "unix listener attach failed on t%u\n", unix_owner);
+            stop_workers();
+            return 1;
+        }
+        (void)unix_listener.release_fd();
     }
-    boot_cv.notify_all();
+    if (!boot.advance_ready(srv.shutting_down()) ||
+        !boot.wait_ready(srv.shutting_down()) ||
+        !boot.advance_running(srv.shutting_down())) {
+        stop_workers();
+        const std::string error = boot.error();
+        if (!error.empty()) std::fprintf(stderr, "unified boot failed: %s\n", error.c_str());
+        const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
+        if (interrupted) report_graceful_shutdown();
+        return interrupted ? 0 : 1;
+    }
 
-    if (!stopping) {
-        if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-        if (cfg.tls_port)
-            std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-        if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
-        std::fflush(stdout);
-    }
+    // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
+    // `if (!stopping)` guard around these lines is now the gate's own postcondition.
+    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
+    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
+    std::fflush(stdout);
 
     for (std::thread& worker : pool) worker.join();
-    // The unix socket file is unlinked by main, which owns it for every return path.
-
-    if (srv.read_local_enabled()) {
-        // All fused readers have joined, so every queued callback is immediately safe. Empty the
-        // bounded lists and disable their store hooks BEFORE atomic teardown: collapse can detach
-        // more than one full list of values, and no joined thread remains to advance a grace tick.
-        for (FusedExLoop& executor : executors) executor.read_local_shutdown_drain();
-        for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-            srv.shard(static_cast<int32_t>(sid)).store().configure_read_local(false, {});
-    }
-    for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
-    for (IoLoop& io : ios) io.reap_atomic_deferred();
-
-    uint64_t fused_work = 0;
-    for (uint32_t tid = 0; tid < nthreads; tid++) fused_work += srv.thread(tid).sig().ops;
-    const ShutdownTotals totals = shutdown_totals(srv);
-    shutdown_report_threads(srv);
-    WbEngine::Stats w{};
-    shutdown_accumulate_wb(w, ios);
-    shutdown_accumulate_wb(w, executors);
-    shutdown_report_wb(w);
-    shutdown_report_tls(srv);
-    shutdown_report_stuck(srv);
-    shutdown_report_epoll(srv);
-    std::printf("shutdown: unified_work=%llu accepts=%llu accept_err=%llu rearm=%llu"
-                " sqe_starved=%llu notify_drop=%llu\n",
-                static_cast<unsigned long long>(fused_work),
-                static_cast<unsigned long long>(totals.accepts),
-                static_cast<unsigned long long>(totals.accept_err),
-                static_cast<unsigned long long>(totals.accept_rearm),
-                static_cast<unsigned long long>(totals.sqe_starved),
-                static_cast<unsigned long long>(totals.notify_drop));
-    acl_shutdown();
+    // The unix socket file is unlinked by its RAII owner in main, for every return path.
+    report_graceful_shutdown();
     return 0;
 }
 

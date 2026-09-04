@@ -102,8 +102,9 @@ enum class BarrierOwner : uint8_t {
     Exec     = 1u << 3,  // EXEC fan-out; multi.inc
     PubSub   = 1u << 4,  // (P|S)(UN)SUBSCRIBE transition awaiting its channel homes
     Climon   = 1u << 5,  // CLIENT UNBLOCK (remote owner), CLIENT LIST / CLIENT KILL fan-out
-    // 1u << 6 is the one spare production bit. Client is footprint-locked, so a SEVENTH owner
-    // takes it; an eighth needs a real layout decision, not a wider field.
+    Sleep    = 1u << 6,  // deferred DEBUG SLEEP connection timer
+    // Client is footprint-locked. All seven production bits are now assigned; an eighth owner
+    // needs a real layout decision, not a wider field.
     //
     // Test-only, and deliberately NOT released by the quiescence backstop -- it exists to hold the
     // barrier PAST ROB quiescence, which is the state no production sequence can currently produce

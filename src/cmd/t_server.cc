@@ -8,6 +8,7 @@
 #include "auth.h"
 #include "cmdmeta.h"
 #include "debug.h"
+#include "debug_sleep.h"
 #include "info_stats.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -27,7 +28,6 @@
 
 #include <algorithm>
 #include <arpa/inet.h>
-#include <cerrno>
 #include <cctype>
 #include <cmath>
 #include <cstdarg>
@@ -811,6 +811,11 @@ void cmd_debug_impl(Shard&, Op& op) {
     if (eq_icase(subcommand, "flipctl") && op.argc() == 3 &&
         eq_icase(op.arg(2), "trigger")) {
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server->flipctl_available()) {
+            reply_err(op.sink(),
+                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            return;
+        }
         if (!g_server->flipctl_enabled()) {
             reply_err(op.sink(), "ERR flip controller is disabled; boot with --flip-auto 1");
             return;
@@ -847,20 +852,10 @@ void cmd_debug_impl(Shard&, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
-        // DEBUG SLEEP is redis's one unguarded strtod: it validates nothing, so a word sleeps
-        // for zero seconds and answers OK. The upper bound is ours -- redis will happily sleep a
-        // year, and this server is not going to.
-        double seconds = 0;
-        if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
-        if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
-        if (seconds > 86400.0) {
-            reply_err(op.sink(), "ERR value is not a valid float");
-            return;
-        }
-        const int64_t nanoseconds = static_cast<int64_t>(seconds * 1000000000.0);
-        timespec remaining{nanoseconds / 1000000000ll, nanoseconds % 1000000000ll};
-        while (::nanosleep(&remaining, &remaining) != 0 && errno == EINTR) {}
-        reply_ok(op.sink());
+        // Direct DEBUG SLEEP is intercepted by IoLoop before this handler. Reaching the handler
+        // means it is an IoLocal child of EXEC, where one array element cannot independently park
+        // the enclosing transaction reply. Reject that shape instead of blocking the IO thread.
+        reply_err(op.sink(), "ERR DEBUG SLEEP is not allowed inside MULTI");
         return;
     }
 #ifndef NDEBUG
@@ -945,6 +940,22 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
         return;
     }
+    // Batched geometry oracle. Each pair is truthful at the point it is read and preserves the
+    // caller's key order. Deliberately do not take the placement transition lock: DEBUG remains a
+    // non-obstructing observer, so a reply concurrent with FLIP may contain rows from both the old
+    // and new placements rather than pretending to be one coherent placement snapshot.
+    if (eq_icase(subcommand, "shards") && op.argc() >= 3) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        auto sink = op.sink();
+        reply_array_header(sink, op.argc() - 2);
+        for (uint32_t i = 2; i < op.argc(); i++) {
+            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(op.arg(i)));
+            reply_array_header(sink, 2);
+            reply_int(sink, sid);
+            reply_int(sink, g_server->worker_of_shard(sid));
+        }
+        return;
+    }
     // Geometry oracle for the B+ directed test. The server hash is boot-randomized, so the test
     // cannot manufacture an unrelated same-shard key whose filter cell is provably negative from
     // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
@@ -954,17 +965,18 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
         return;
     }
-    // Window widener for the torn-read regression. Holds a cross-shard group between drawing its
-    // commit ticket and storing that ticket into its shared epoch word -- the hole in which the
-    // sequence already named a commit whose records still answered "undecided". Production 0.
-    if (eq_icase(subcommand, "atomic-commit-delay") && op.argc() == 3) {
+    // One shared DEBUG delay word, with names for its two mode-specific boundaries. Atomic ON
+    // holds a group between ticket draw and publication; atomic OFF parks non-lead mutation
+    // owners at the scatter hop. Last writer wins, and zero through either alias disarms both.
+    if ((eq_icase(subcommand, "atomic-commit-delay") ||
+         eq_icase(subcommand, "atomic-off-hop-delay")) && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 1000000) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
-        g_server->set_debug_atomic_commit_delay(static_cast<uint32_t>(microseconds));
+        g_server->set_debug_hop_delay(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
     }
@@ -1869,7 +1881,6 @@ void cmd_info(Shard&, Op& op) {
 
     if (info_section(op, "SERVER")) {
         const uint64_t uptime = g_started_monotonic_ns ? (now_ns() - g_started_monotonic_ns) / 1000000000ull : 0;
-        const FlipReport flip = g_server ? g_server->flip_report() : FlipReport{};
         // process_id and tcp_port are plain facts about this process, not telemetry that could be
         // stale -- and tooling depends on them. The NIC bench harness identifies the server it just
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
@@ -1877,12 +1888,7 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
                       "thread_mode:%s\r\noverlap:%u\r\nthread_pipeline:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
-                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
-                      "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
-                      "flip_target_ex:%u\r\nflip_smt_mode:%u\r\n"
-                      "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
-                      "flip_client_min:%u\r\nflip_client_max:%u\r\n"
-                      "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
+                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->cfg().overlap : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
@@ -1890,37 +1896,62 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
-                static_cast<unsigned long long>(uptime / 86400),
-                flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
-                flip.smt_mode, flip.unit_threads, flip.bucket_min, flip.bucket_max,
-                flip.client_min, flip.client_max,
-                static_cast<unsigned long long>(flip.last_transfers),
-                flip.moving ? 1u : 0u);
+                static_cast<unsigned long long>(uptime / 86400));
+        if (g_server && g_server->thread_mode() == ThreadMode::Fused) {
+            appendf(body,
+                    "fused_threads:%u\r\nclient_threads:%u\r\nowner_threads:%u\r\n"
+                    "flip_available:0\r\nflip_unavailable_reason:threads_are_fused\r\n",
+                    g_server->nthreads(), g_server->client_serving_thread_count(),
+                    g_server->shard_owner_count());
+        } else {
+            const FlipReport flip = g_server ? g_server->flip_report() : FlipReport{};
+            appendf(body,
+                    "io_threads:%u\r\nex_threads:%u\r\nflip_target_io:%u\r\n"
+                    "flip_target_ex:%u\r\nflip_smt_mode:%u\r\n"
+                    "flip_unit_threads:%u\r\nflip_bucket_min:%u\r\nflip_bucket_max:%u\r\n"
+                    "flip_client_min:%u\r\nflip_client_max:%u\r\n"
+                    "flip_last_transfers:%llu\r\nflip_in_progress:%u\r\n",
+                    flip.live_io, flip.live_ex, flip.target_io, flip.target_ex,
+                    flip.smt_mode, flip.unit_threads, flip.bucket_min, flip.bucket_max,
+                    flip.client_min, flip.client_max,
+                    static_cast<unsigned long long>(flip.last_transfers),
+                    flip.moving ? 1u : 0u);
+        }
     }
     if (info_section(op, "FLIPCTL")) {
-        const FlipctlReport ctl = g_server ? g_server->flipctl_report() : FlipctlReport{};
-        appendf(body,
-                "# Flipctl\r\nflipctl_state:%s\r\nflipctl_phase:%s\r\n"
-                "flipctl_anchor_io:%u\r\nflipctl_anchor_ex:%u\r\n"
-                "flipctl_anchor_rate:%.3f\r\nflipctl_signature_band:%.9f\r\n"
-                "flipctl_rate_band:%.9f\r\nflipctl_triggers:%llu\r\n"
-                "flipctl_boot_triggers:%llu\r\nflipctl_fingerprint_triggers:%llu\r\n"
-                "flipctl_rate_surge_triggers:%llu\r\n"
-                "flipctl_rate_collapse_triggers:%llu\r\n"
-                "flipctl_surge_triggers:%llu\r\nflipctl_collapse_triggers:%llu\r\n"
-                "flipctl_forced_triggers:%llu\r\n"
-                "flipctl_last_trigger:%s\r\n",
-                ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
-                ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
-                static_cast<unsigned long long>(ctl.triggers),
-                static_cast<unsigned long long>(ctl.boot_triggers),
-                static_cast<unsigned long long>(ctl.fingerprint_triggers),
-                static_cast<unsigned long long>(ctl.rate_surge_triggers),
-                static_cast<unsigned long long>(ctl.rate_collapse_triggers),
-                static_cast<unsigned long long>(ctl.rate_surge_triggers),
-                static_cast<unsigned long long>(ctl.rate_collapse_triggers),
-                static_cast<unsigned long long>(ctl.forced_triggers),
-                ctl.last_trigger.c_str());
+        if (g_server && !g_server->flipctl_available()) {
+            appendf(body,
+                    "# Flipctl\r\nflipctl_state:unavailable\r\nflipctl_phase:fused\r\n"
+                    "flipctl_available:0\r\nflipctl_thread_mode:1s\r\n"
+                    "flipctl_reason:threads_are_fused\r\nflipctl_fused_threads:%u\r\n"
+                    "flipctl_client_threads:%u\r\nflipctl_owner_threads:%u\r\n",
+                    g_server->nthreads(), g_server->client_serving_thread_count(),
+                    g_server->shard_owner_count());
+        } else {
+            const FlipctlReport ctl = g_server ? g_server->flipctl_report() : FlipctlReport{};
+            appendf(body,
+                    "# Flipctl\r\nflipctl_state:%s\r\nflipctl_phase:%s\r\n"
+                    "flipctl_anchor_io:%u\r\nflipctl_anchor_ex:%u\r\n"
+                    "flipctl_anchor_rate:%.3f\r\nflipctl_signature_band:%.9f\r\n"
+                    "flipctl_rate_band:%.9f\r\nflipctl_triggers:%llu\r\n"
+                    "flipctl_boot_triggers:%llu\r\nflipctl_fingerprint_triggers:%llu\r\n"
+                    "flipctl_rate_surge_triggers:%llu\r\n"
+                    "flipctl_rate_collapse_triggers:%llu\r\n"
+                    "flipctl_surge_triggers:%llu\r\nflipctl_collapse_triggers:%llu\r\n"
+                    "flipctl_forced_triggers:%llu\r\n"
+                    "flipctl_last_trigger:%s\r\n",
+                    ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
+                    ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
+                    static_cast<unsigned long long>(ctl.triggers),
+                    static_cast<unsigned long long>(ctl.boot_triggers),
+                    static_cast<unsigned long long>(ctl.fingerprint_triggers),
+                    static_cast<unsigned long long>(ctl.rate_surge_triggers),
+                    static_cast<unsigned long long>(ctl.rate_collapse_triggers),
+                    static_cast<unsigned long long>(ctl.rate_surge_triggers),
+                    static_cast<unsigned long long>(ctl.rate_collapse_triggers),
+                    static_cast<unsigned long long>(ctl.forced_triggers),
+                    ctl.last_trigger.c_str());
+        }
     }
     if (info_section(op, "CLIENTS")) {
         appendf(body, "# Clients\r\nconnected_clients:%llu\r\nblocked_clients:%llu\r\n"
@@ -1966,6 +1997,7 @@ void cmd_info(Shard&, Op& op) {
                 "snapshot_preimages:%llu\r\n"
                 "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
                 "snapshot_groups_drained:%llu\r\n"
+                "snapshot_cut_ticket:%llu\r\n"
                 "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
                 "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
                 "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
@@ -1991,6 +2023,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->snapshot().drained_groups() : 0),
+                static_cast<unsigned long long>(
+                    g_server ? g_server->snapshot().cut_ticket() : 0),
                 g_server && g_server->aof().configured() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
@@ -2660,7 +2694,8 @@ static const CommandSpec kTable[] = {
                           CmdFlags::Climon,                                       cmd_monitor,    0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
-    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
+    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute |
+                              CmdFlags::DebugSleep,                                cmd_debug,      0,  0, 0},
     {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
                           CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
                           CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
@@ -2682,8 +2717,39 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
+                                     uint64_t& delay_ms) {
+    if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
+        return DebugSleepResult::NotSleep;
+    if (!debug_command_allowed(server, &client)) {
+        reply_debug_command_denied(op);
+        return DebugSleepResult::Handled;
+    }
+
+    // Preserve DEBUG SLEEP's deliberately lenient Redis-compatible parse: malformed, negative,
+    // NaN and infinity all spell zero. Only a finite positive value can become a timer.
+    double seconds = 0;
+    if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
+    if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
+    const double cap_seconds = static_cast<double>(std::max<uint32_t>(1, server.timeout()));
+    if (seconds > cap_seconds) {
+        reply_err(op.sink(), "ERR value is not a valid float");
+        return DebugSleepResult::Handled;
+    }
+    if (seconds == 0.0) {
+        reply_ok(op.sink());
+        return DebugSleepResult::Handled;
+    }
+
+    // IoLoop deadlines are milliseconds. Round away from zero so every positive request parks at
+    // least once; the timeout-derived cap keeps this conversion far below uint64_t overflow.
+    delay_ms = static_cast<uint64_t>(std::ceil(seconds * 1000.0));
+    if (!delay_ms) delay_ms = 1;
+    return DebugSleepResult::Deferred;
+}
+
 void cmd_flip_unavailable(Shard&, Op& op) {
-    reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode 1s");
+    reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode 1s: threads are fused");
 }
 
 bool debug_command_allowed(const Server& server, const Client* client) {

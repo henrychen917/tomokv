@@ -6,9 +6,8 @@
 #include <sched.h>
 #include <sys/random.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/un.h>
 #include <unistd.h>
+#include <array>
 #include <atomic>
 #include <cerrno>
 #include <chrono>
@@ -23,6 +22,7 @@
 #include <new>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "core/server.h"
@@ -30,52 +30,91 @@
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
 #include "core/genthread.h"
+#include "core/signal_doorbell.h"
 #include "core/shutdown_report.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
+#include "net/unix_listener.h"
 #include "persist/aof.h"
 
 using namespace tomo;
 
 // Signal-handler state. A handler may only touch lock-free atomics, so the thread table is a
-// fixed array published through an atomic count: main fills the slots, then stores the count
-// (release); the handler loads the count (acquire) and walks exactly that many entries. No
-// vector, no reallocation, no torn size/data pair. Both are cleared again before Server is
+// fixed array of atomics published through an atomic count: arm() fills the slots, then stores the
+// count (release); the handler loads the count (acquire) and walks exactly that many entries. No
+// vector, no reallocation, no torn size/data pair. Everything is cleared again before Server is
 // destroyed, so a late signal finds nothing to poke instead of a dead object.
-static std::atomic<Server*>      g_srv{nullptr};
-static ThreadCtx*                g_threads[kMaxThreads] = {};
-static std::atomic<uint32_t>     g_nthreads{0};
-static_assert(std::atomic<uint32_t>::is_always_lock_free &&
-              std::atomic<Server*>::is_always_lock_free,
-              "signal handler state must be lock-free");
+//
+// Publication happens with SIGINT/SIGTERM blocked on this thread and the handlers are installed
+// only afterwards. Until arm() returns, SIGINT/SIGTERM keep the default action (terminate), which
+// is the right answer while Server::init is still allocating tables and no thread exists to stop
+// -- an earlier revision installed the handlers first and a signal in that window was silently
+// swallowed. disarm() restores SIG_IGN, so a signal after teardown cannot re-enter the handler.
+static std::atomic<Server*> g_signal_server{nullptr};
+static std::array<std::atomic<ThreadCtx*>, kMaxThreads> g_signal_threads{};
+static std::atomic<uint32_t> g_signal_thread_count{0};
+static std::atomic<bool> g_signal_armed{false};
+
+static_assert(std::atomic<Server*>::is_always_lock_free);
+static_assert(std::atomic<ThreadCtx*>::is_always_lock_free);
+static_assert(std::atomic<uint32_t>::is_always_lock_free);
+static_assert(std::atomic<bool>::is_always_lock_free);
 
 static void on_signal(int) {
-    if (Server* srv = g_srv.load(std::memory_order_acquire))
-        srv->shutting_down().store(true, std::memory_order_relaxed);
-    const uint32_t n = g_nthreads.load(std::memory_order_acquire);
-    for (uint32_t i = 0; i < n; i++)
-        g_threads[i]->stop_flag().store(true, std::memory_order_relaxed);
+    if (!g_signal_armed.load(std::memory_order_acquire)) return;
+    if (Server* server = g_signal_server.load(std::memory_order_acquire))
+        server->shutting_down().store(true, std::memory_order_relaxed);
+    const uint32_t count = g_signal_thread_count.load(std::memory_order_acquire);
+    for (uint32_t i = 0; i < count; i++) {
+        ThreadCtx* thread = g_signal_threads[i].load(std::memory_order_relaxed);
+        if (thread) thread->stop_flag().store(true, std::memory_order_relaxed);
+    }
+    signal_doorbell_notify();
 }
 
-// Publishes the thread table to the handler and only then installs the handlers. Until this
-// point SIGINT/SIGTERM keep the default action (terminate), which is the right answer while
-// Server::init is still allocating tables and no thread exists to stop -- previously the
-// handlers were installed first and a signal in that window was silently swallowed.
-static void arm_signal_handlers(Server& srv) {
-    const uint32_t n = srv.nthreads();
-    if (n > kMaxThreads) std::abort();
-    for (uint32_t i = 0; i < n; i++) g_threads[i] = &srv.thread(i);
-    g_srv.store(&srv, std::memory_order_release);
-    g_nthreads.store(n, std::memory_order_release);
-    std::signal(SIGINT,  on_signal);
-    std::signal(SIGTERM, on_signal);
-}
+class ScopedSignalHandlers {
+public:
+    bool arm(Server& server) {
+        if (server.nthreads() > kMaxThreads) return false;
+        sigset_t blocked{}, previous{};
+        sigemptyset(&blocked);
+        sigaddset(&blocked, SIGINT);
+        sigaddset(&blocked, SIGTERM);
+        if (::pthread_sigmask(SIG_BLOCK, &blocked, &previous) != 0) return false;
 
-// Scoped disarm: runs before Server's destructor on every return path after arming.
-struct SignalDisarm {
-    ~SignalDisarm() {
-        g_nthreads.store(0, std::memory_order_release);
-        g_srv.store(nullptr, std::memory_order_release);
+        for (uint32_t i = 0; i < server.nthreads(); i++)
+            g_signal_threads[i].store(&server.thread(i), std::memory_order_relaxed);
+        g_signal_server.store(&server, std::memory_order_release);
+        g_signal_thread_count.store(server.nthreads(), std::memory_order_release);
+
+        struct sigaction action{};
+        action.sa_handler = on_signal;
+        sigemptyset(&action.sa_mask);
+        action.sa_flags = SA_RESTART;
+        const bool installed = ::sigaction(SIGINT, &action, nullptr) == 0 &&
+                               ::sigaction(SIGTERM, &action, nullptr) == 0;
+        if (installed) g_signal_armed.store(true, std::memory_order_release);
+        (void)::pthread_sigmask(SIG_SETMASK, &previous, nullptr);
+        if (!installed) disarm();
+        return installed;
+    }
+
+    ~ScopedSignalHandlers() { disarm(); }
+
+private:
+    void disarm() {
+        if (!g_signal_server.load(std::memory_order_relaxed) &&
+            !g_signal_armed.load(std::memory_order_relaxed)) return;
+        struct sigaction ignore{};
+        ignore.sa_handler = SIG_IGN;
+        sigemptyset(&ignore.sa_mask);
+        (void)::sigaction(SIGINT, &ignore, nullptr);
+        (void)::sigaction(SIGTERM, &ignore, nullptr);
+        g_signal_armed.store(false, std::memory_order_release);
+        g_signal_thread_count.store(0, std::memory_order_release);
+        g_signal_server.store(nullptr, std::memory_order_release);
+        for (auto& thread : g_signal_threads)
+            thread.store(nullptr, std::memory_order_relaxed);
     }
 };
 
@@ -91,6 +130,10 @@ static void pin_to(int cpu) {
 }
 
 int main(int argc, char** argv) {
+    // Declared before every other automatic: once armed on a clean runtime shutdown, this emits
+    // only after all later-declared objects (including server/loops/listeners/signals) destruct.
+    ShutdownReportFinalLine final_shutdown_line;
+
     // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
     // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
     // than refusing to boot.
@@ -249,62 +292,28 @@ int main(int argc, char** argv) {
         }
     }
 
-    // TCP/TLS listeners come after the boot load (the probe below, then each io thread's own
-    // SO_REUSEPORT listener), so no TCP client can connect before every owner has decoded its
-    // shard sections. The UNIX listener is the documented exception: it is created here, before
-    // the load, because IoLoop::init consumes the fd per thread ahead of the shared load barrier
-    // in fused mode; unix connects therefore succeed into its backlog during the load and are
-    // accepted only once the owning io thread activates. Main owns the socket FILE for every
-    // return path below (boot failures included); the fd belongs to the owner's IoLoop.
-    struct UnixSocketFile {
-        const char* path = nullptr;
-        ~UnixSocketFile() { if (path) ::unlink(path); }
-    } unix_socket_file;
-    int unix_listener = -1;
-    if (cfg.unixsocket && *cfg.unixsocket) {
-        struct stat st{};
-        if (::lstat(cfg.unixsocket, &st) == 0) {
-            if (!S_ISSOCK(st.st_mode)) {
-                std::fprintf(stderr, "refusing to replace non-socket unix path '%s'\n", cfg.unixsocket);
-                return 1;
-            }
-            sockaddr_un sa{};
-            sa.sun_family = AF_UNIX;
-            if (std::strlen(cfg.unixsocket) >= sizeof(sa.sun_path)) {
-                std::fprintf(stderr, "unixsocket path is too long\n");
-                return 1;
-            }
-            std::memcpy(sa.sun_path, cfg.unixsocket, std::strlen(cfg.unixsocket) + 1);
-            const int probe_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-            if (probe_fd < 0) { std::perror("socket unixsocket probe"); return 1; }
-            if (::connect(probe_fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) == 0) {
-                ::close(probe_fd);
-                std::fprintf(stderr, "unixsocket path '%s' is already accepting connections\n",
-                             cfg.unixsocket);
-                return 1;
-            }
-            const int connect_error = errno;
-            ::close(probe_fd);
-            if (connect_error != ECONNREFUSED && connect_error != ENOENT) {
-                errno = connect_error;
-                std::perror("connect unixsocket probe");
-                return 1;
-            }
-            if (::unlink(cfg.unixsocket) != 0) { std::perror("unlink unixsocket"); return 1; }
-        } else if (errno != ENOENT) {
-            std::perror("stat unixsocket"); return 1;
-        }
-        unix_listener = IoLoop::make_unix_listener(cfg.unixsocket, srv.cfg().tcp_backlog);
-        if (unix_listener < 0) { std::perror("bind unixsocket"); return 1; }
-        unix_socket_file.path = cfg.unixsocket;
+    // ONE RAII owner for the AF_UNIX pathname and its untransferred fd (LateUnixListener also
+    // carries the non-socket / already-accepting probes the inline version used to do here), and
+    // open() is deliberately deferred until after the persistence-load barrier in the selected
+    // runtime below, so no unix client can connect before every owner has decoded its shards.
+    // The pathname and any not-yet-transferred fd have one lifetime owner. open() is deliberately
+    // called only after the persistence-load barrier in the selected runtime below.
+    LateUnixListener unix_listener(cfg.unixsocket);
+    SignalDoorbell signal_doorbell;
+    if (!signal_doorbell.init()) {
+        std::perror("eventfd shutdown doorbell");
+        return 1;
+    }
+    ScopedSignalHandlers signal_handlers;
+    if (!signal_handlers.arm(srv)) {
+        std::perror("install signal handlers");
+        return 1;
     }
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        arm_signal_handlers(srv);
-        SignalDisarm disarm_guard;
         return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
-                                tls_context.get(), unix_listener);
+                                tls_context.get(), unix_listener, final_shutdown_line);
     }
 
     srv.topo().dump(stdout);
@@ -335,11 +344,22 @@ int main(int argc, char** argv) {
     // load_ok (that barrier has passed); it stops every thread and records the failure here so
     // the exit status says what happened instead of a silent 0.
     std::atomic<bool> io_boot_failed{false};
-    arm_signal_handlers(srv);
-    SignalDisarm disarm_guard;
 
     auto pin_for = [&](uint32_t tid) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
+    };
+    auto report_graceful_shutdown = [&] {
+        // All owners and readers are quiescent. Release pending-entry references before IoLoop
+        // destruction, then return their deferred ScatterState arenas to the correct IO-owned
+        // pools. Server normally outlives those pools, so leaving this to FlatStore destructors
+        // would leak the retained arenas.
+        for (uint32_t sid = 0; sid < srv.nshards(); sid++)
+            srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
+        for (IoLoop& io : ios) io.reap_atomic_deferred();
+        ShutdownReport report = collect_shutdown_report(srv, ios, exs);
+        print_shutdown_report_human(report);
+        final_shutdown_line.arm(std::move(report));
+        acl_shutdown();
     };
 
     // Workers and senders BEFORE io: an io thread that dispatches or hands off to a thread whose
@@ -430,10 +450,23 @@ int main(int argc, char** argv) {
     if (!load_ok) {
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         for (auto& thread : pool) thread.join();
+        if (srv.shutting_down().load(std::memory_order_relaxed)) {
+            srv.set_loading(false);
+            report_graceful_shutdown();
+            return 0;
+        }
         std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
         return 1;
     }
     srv.set_loading(false);
+    if (srv.shutting_down().load(std::memory_order_relaxed)) {
+        for (uint32_t i = 0; i < nthreads; i++)
+            srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+        for (auto& thread : pool)
+            if (thread.joinable()) thread.join();
+        report_graceful_shutdown();
+        return 0;
+    }
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
     if (cfg.port) {
@@ -458,6 +491,13 @@ int main(int argc, char** argv) {
         }
         ::close(probe);
     }
+    std::string unix_error;
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+        std::fprintf(stderr, "%s\n", unix_error.c_str());
+        for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        for (auto& thread : pool) thread.join();
+        return 1;
+    }
 
     const uint32_t unix_owner = srv.unix_owner_tid();
     for (uint32_t tid : srv.placement().ifid_threads())
@@ -477,7 +517,6 @@ int main(int argc, char** argv) {
                 boot_failed("task inbox initialization");
                 return;
             }
-            const int unix_fd = tid == unix_owner ? unix_listener : -1;
             // Provision dormant EX first; active IO then republishes its own ring as the current
             // role endpoint. No runtime conversion can fail later for lack of a ring. A failure
             // here must not let the thread vanish silently: the join below waits for it, and the
@@ -486,10 +525,20 @@ int main(int argc, char** argv) {
                 boot_failed("executor loop provisioning");
                 return;
             }
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
-                               tls_context.get())) {
+            // Dormant, exactly like the executor pool above: the SO_REUSEPORT listeners and the
+            // AOF writer binding are opened by activate() in the role loop below instead of here,
+            // which is what leaves the loop cold enough to accept the transferred unix fd.
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
+                               tls_context.get(), true)) {
                 boot_failed("io loop provisioning");
                 return;
+            }
+            if (tid == unix_owner && unix_listener.fd() >= 0) {
+                if (!ios[tid].attach_listener(unix_listener.fd())) {
+                    boot_failed("unix listener attach");
+                    return;
+                }
+                (void)unix_listener.release_fd();
             }
             self.bind_io_role_hooks(
                 &ios[tid],
@@ -528,54 +577,22 @@ int main(int argc, char** argv) {
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
+    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
     // The automatic split controller has exactly one writer: this main/monitor thread. Worker
     // loops only publish owner-local counters and execute the unchanged FLIP stage machine. With
     // the default --flip-auto 0 this block does not run and allocates/schedules nothing.
     if (srv.flipctl_enabled()) {
-        const auto beat = std::chrono::milliseconds(srv.flipctl_tick_ms());
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {
             (void)srv.flipctl_tick(now_ns() / 1000000ull);
-            std::this_thread::sleep_for(beat);
+            if (srv.shutting_down().load(std::memory_order_relaxed)) break;
+            (void)signal_doorbell_wait(srv.flipctl_tick_ms());
         }
     }
 
     for (auto& t : pool) t.join();
-
-    // All owners and readers are quiescent. Release pending-entry references before IoLoop destruction,
-    // then return their deferred ScatterState arenas to the correct IO-owned pools. Server normally
-    // outlives those pools, so leaving this to FlatStore destructors would leak the retained arenas.
-    for (uint32_t sid = 0; sid < srv.nshards(); sid++)
-        srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
-    for (IoLoop& io : ios) io.reap_atomic_deferred();
-
-    // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
-    // evidence of what it did. The report itself is shared with the fused path
-    // (core/shutdown_report.h); only the dispatched/executed split is 2s-specific.
-    uint64_t ops = 0, disp = 0;
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        const LoopSignals& s = srv.thread(i).sig();
-        (srv.thread(i).role() == Role::Ifid ? disp : ops) += s.ops;
-    }
-    const ShutdownTotals totals = shutdown_totals(srv);
-    shutdown_report_threads(srv);
-    WbEngine::Stats w{};
-    shutdown_accumulate_wb(w, ios);
-    shutdown_accumulate_wb(w, exs);
-    shutdown_report_wb(w);
-    shutdown_report_tls(srv);
-    shutdown_report_stuck(srv);
-    shutdown_report_epoll(srv);
-    std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
-                "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
-                static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),
-                static_cast<unsigned long long>(totals.accepts),
-                static_cast<unsigned long long>(totals.accept_err),
-                static_cast<unsigned long long>(totals.accept_rearm),
-                static_cast<unsigned long long>(totals.sqe_starved),
-                static_cast<unsigned long long>(totals.notify_drop));
-    acl_shutdown();
+    report_graceful_shutdown();
     return io_boot_failed.load(std::memory_order_relaxed) ? 1 : 0;
 }
+
