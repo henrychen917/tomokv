@@ -132,6 +132,17 @@ struct ReadLocalServerState {
     std::atomic<uint64_t> epoch{1};
 };
 
+// A snapshot/placement drain is the only reader, while opens and closes happen on unrelated
+// physical threads.  Monotonic halves avoid the false-zero a signed per-thread delta can expose
+// when a scan observes an executor's close before the admitting IO's open.  Cache-line spacing
+// keeps those writers independent.
+struct alignas(64) AtomicApplySlot {
+    std::atomic<uint64_t> opened{0};
+    std::atomic<uint64_t> closed{0};
+};
+static_assert(sizeof(AtomicApplySlot) == 64);
+static_assert(alignof(AtomicApplySlot) == 64);
+
 class Server {
 public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
@@ -2446,9 +2457,10 @@ public:
     // committer that had not would still be holding the count up. Readers load one word exactly
     // as before -- the cost is on the commit side, and it is two RMWs on a line commits already
     // own.
-    uint64_t atomic_commit_reserve() {
+    uint64_t atomic_commit_reserve(uint64_t tickets = 1) {
+        if (!tickets) std::abort();
         atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
-        return commit_seq_.fetch_add(1, std::memory_order_seq_cst) + 1;
+        return commit_seq_.fetch_add(tickets, std::memory_order_seq_cst) + 1;
     }
     void atomic_commit_publish() {
         // Loaded BEFORE the decrement on purpose: it is the value whose publication the count
@@ -2466,21 +2478,31 @@ public:
                !atomic_commit_safe_.compare_exchange_weak(
                    safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
     }
-    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is the
-    // atomic-ON use of DEBUG's shared hop delay: it widens the closed window on demand, is zero in
-    // production, and the load is on an already-cold once-per-group path. `publish_members` lets a
+    // Reserve a consecutive run under ONE commit bracket, then let the caller release-store every
+    // decision word in its completion order before the safe watermark moves. The stall before the
+    // first store is the atomic-ON use of DEBUG's shared hop delay: it widens the closed window on
+    // demand, is zero in production, and the load is on an already-cold group/batch path. For a
+    // one-ticket batch this is exactly the historical reserve/delay/store/publish sequence, while a
+    // larger batch widens one common closed window.
+    template <typename StoreTickets>
+    uint64_t atomic_commit_batch(uint64_t tickets, StoreTickets&& store_tickets) {
+        const uint64_t first = atomic_commit_reserve(tickets);
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        store_tickets(first);
+        atomic_commit_publish();
+        return first;
+    }
+    // The whole two-step for a group whose epoch word is `epoch`. `publish_members` lets a
     // composite group install the SAME ticket into additional decision words before the safe
     // watermark moves. Readers therefore still see either all of the ticket or none of it.
     template <typename PublishMembers>
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
                                  PublishMembers&& publish_members) {
-        const uint64_t ticket = atomic_commit_reserve();
-        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
-        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
-        epoch.store(ticket, std::memory_order_release);
-        publish_members(ticket);
-        atomic_commit_publish();
-        return ticket;
+        return atomic_commit_batch(1, [&](uint64_t ticket) {
+            epoch.store(ticket, std::memory_order_release);
+            publish_members(ticket);
+        });
     }
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
         return atomic_commit_group(epoch, [](uint64_t) {});
@@ -2658,17 +2680,31 @@ public:
     // either at the owner-side completion or at the synchronous pre-dispatch teardown -- never on a
     // thread a snapshot can be occupying.
     uint64_t atomic_apply_inflight() const {
-        return atomic_apply_inflight_.load(std::memory_order_acquire);
+        uint64_t closed = 0;
+        uint64_t opened = 0;
+        // CLOSES FIRST, in a distinct whole pass.  If this scan observes a close, that close
+        // acquired the group's published open flag, so the later load of its opening counter
+        // cannot miss the matching open.  A close racing after this first pass only makes the
+        // answer conservatively high.
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            closed += atomic_apply_slots_[tid].closed.load(std::memory_order_acquire);
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            opened += atomic_apply_slots_[tid].opened.load(std::memory_order_acquire);
+        if (closed > opened) std::abort();
+        return opened - closed;
     }
-    void atomic_apply_open(std::atomic<bool>& flag) {
+    void atomic_apply_open(uint32_t tid, std::atomic<bool>& flag) {
+        if (tid >= nthreads()) std::abort();
+        // Publish the counter before making the close claim available to another thread.
+        atomic_apply_slots_[tid].opened.fetch_add(1, std::memory_order_release);
         flag.store(true, std::memory_order_release);
-        atomic_apply_inflight_.fetch_add(1, std::memory_order_acq_rel);
     }
     // Idempotent by construction: whichever of the two ends reaches the group first closes it.
-    void atomic_apply_close(std::atomic<bool>& flag) {
+    void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
+        if (tid >= nthreads()) std::abort();
         if (__builtin_expect(!flag.load(std::memory_order_acquire), true)) return;
         if (flag.exchange(false, std::memory_order_acq_rel))
-            atomic_apply_inflight_.fetch_sub(1, std::memory_order_acq_rel);
+            atomic_apply_slots_[tid].closed.fetch_add(1, std::memory_order_release);
     }
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
@@ -2685,9 +2721,12 @@ public:
         debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
     }
     // TEST HOOK shared by DEBUG ATOMIC-COMMIT-DELAY and ATOMIC-OFF-HOP-DELAY. Atomic ON stalls a
-    // group between ticket draw and decision publication; atomic OFF parks non-lead owners at the
+    // commit batch between its ticket reservation and the decision stores (read by
+    // atomic_commit_batch(), a cold group/batch path); atomic OFF parks non-lead owners at the
     // first cross-owner mutation wave. Both aliases write this one word, so last writer wins and
-    // zero disarms both. Reads occur only on the cold group/scatter paths, never GET/SET.
+    // zero disarms both. It turns the reserve/publish hole into a window wide enough for a reader
+    // to straddle, which is how the torn MGET is reproduced on demand instead of once per 1.1M
+    // batches. Reads occur only on the cold group/scatter paths, never GET/SET.
     uint32_t debug_hop_delay() const {
         return debug_hop_delay_.load(std::memory_order_relaxed);
     }
@@ -3368,7 +3407,7 @@ private:
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};
-    std::atomic<uint64_t> atomic_apply_inflight_{0};
+    AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
     std::atomic<uint32_t> debug_hop_delay_{0};

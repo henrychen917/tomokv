@@ -1644,24 +1644,25 @@ bool finish_phase1(ScatterState& state, Op& op) {
     }
 }
 
-void finish_phase2(ScatterState& state) {
+bool finish_phase2(ScatterState& state) {
     WorkError error;
     if (first_error(state, error)) {
         if (state.atomic_apply) state.aborted.store(true, std::memory_order_release);
-        state.final_reply = FinalReply::Work; state.final_error = error; return;
+        state.final_reply = FinalReply::Work; state.final_error = error; return false;
     }
-    if (state.atomic_direct && state.final_reply != FinalReply::None) return;
+    if (state.atomic_direct && state.final_reply != FinalReply::None) return false;
+    bool commit_ready = false;
     if (state.atomic_apply) {
         if (state.conditional_failed.load(std::memory_order_acquire)) {
             state.final_reply = FinalReply::Integer;
             state.final_integer = 0;
-            return;
+            return false;
         }
         if (state.aborted.load(std::memory_order_acquire)) {
             state.final_reply = FinalReply::Internal;
-            return;
+            return false;
         }
-        if (!state.multi_child) state.server->atomic_commit_group(state.epoch);
+        commit_ready = !state.multi_child;
     }
     switch (state.kind) {
         case Kind::Msetnx: state.final_reply = FinalReply::Integer; state.final_integer = 1; break;
@@ -1694,6 +1695,7 @@ void finish_phase2(ScatterState& state) {
         case Kind::Sort: state.final_reply = FinalReply::Integer; break;
         default: state.final_reply = FinalReply::Internal; break;
     }
+    return commit_ready;
 }
 
 void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ctx,

@@ -416,6 +416,8 @@ WorkError element_work_error(XshardElementResult result) {
 struct alignas(64) OwnerRecordRefs {
     // A slot is touched only by its executor: every shard mapped to one owner is serialized there.
     // Cache-line spacing prevents cleanup on distinct owners from bouncing a shared counter line.
+    // A pre-counted standalone wave starts nodes at one. That completion sentinel prevents cleanup
+    // of an early-aborted entry from taking the count to zero before the owner's last task runs.
     uint32_t nodes = 0;
     uint32_t remaining = 0;
     uint32_t group_count = 0;
@@ -427,15 +429,12 @@ struct alignas(64) OwnerRecordRefs {
 struct ScatterState : SnapshotCut {
     ~ScatterState() { notify_discard_batch(notify.exchange(nullptr)); }
     std::atomic<uint32_t> pending{0};
-    // Zero means installs are still private. The last owner draws and release-publishes the ticket;
-    // pending group entries may retain this state after reply retirement, hence record_refs.
-    std::atomic<uint64_t> epoch{0};
+    // Pending group entries may retain this state after reply retirement, hence record_refs.
     std::atomic<uint32_t> record_refs{0};
     // A watched-key reservation names the group decision too.  It holds this second lifetime pin
     // until its owner shard consumes the published decision, including groups that install no
     // MVCC record (for example a failed conditional write).
     std::atomic<uint32_t> watch_refs{0};
-    std::atomic<bool> aborted{false};
     std::atomic<bool> conditional_failed{false};
     std::atomic<bool> script_conflict{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
@@ -571,6 +570,14 @@ struct ScatterState : SnapshotCut {
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
     std::atomic<NotifyBatch*> notify{nullptr};
+    // Successful last-owner completions link themselves here until this executor's pass boundary.
+    // The input Task is retired as soon as execute() returns, so retain its stable ROB identity by
+    // value. No allocation is permitted after the group has installed records and reached pending
+    // zero: failure to enqueue at that point would leave an epoch-zero group alive forever.
+    ScatterState* commit_next = nullptr;
+    Client* commit_client = nullptr;
+    uint64_t commit_op_id = 0;
+    int32_t commit_shard = -1;
     // COLD TAIL: only a SORT with an actual `*` dereference carves and constructs this arena object.
     SortDerefState* sort_deref = nullptr;
     // Appended test-only state: do not move any production ScatterState member. The destination
@@ -580,13 +587,35 @@ struct ScatterState : SnapshotCut {
     uint64_t debug_hop_deadline = 0;
     uint32_t debug_hop_lead_owner = std::numeric_limits<uint32_t>::max();
     uint64_t debug_conditional_deadline = 0;
+    // READ-MOSTLY DECISION LINE. Zero means installs are still private; the last owner
+    // release-publishes a ticket here. Resolvers load epoch and aborted for every candidate, so
+    // isolate them from pending/record_refs/watch_refs RMWs and pad the line completely.
+    alignas(64) std::atomic<uint64_t> epoch{0};
+    std::atomic<bool> aborted{false};
+    char decision_line_pad[64 - sizeof(std::atomic<uint64_t>) -
+                           sizeof(std::atomic<bool>)];
 };
 
+static_assert(sizeof(std::atomic<uint64_t>) + sizeof(std::atomic<bool>) <= 64 &&
+              sizeof(std::atomic<uint64_t>) % alignof(std::atomic<bool>) == 0,
+              "ScatterState decision words no longer pack contiguously");
+static_assert(alignof(ScatterState) == 64 && sizeof(ScatterState) % 64 == 0,
+              "ScatterState decision line lost cache-line isolation");
 static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
                                            sizeof(uint32_t) + sizeof(ValueSlot)) <= 16384,
               "MGET-8 ScatterState no longer fits ScatterArenaPool::kCommonBytes");
 
 namespace {
+
+struct XshardCommitBatch {
+    ScatterState* head = nullptr;
+    ScatterState* tail = nullptr;
+    uint64_t count = 0;
+    Server* server = nullptr;
+    uint32_t owner = UINT32_MAX;
+};
+
+thread_local XshardCommitBatch xshard_commit_batch;
 
 ShardGroup* group_for(ScatterState& state, int32_t shard) {
     if (state.shard_groups) {
@@ -681,7 +710,7 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op);
 void finish_pfcount(ScatterState& state);
 bool finish_phase1(ScatterState& state, Op& op);
-void finish_phase2(ScatterState& state);
+bool finish_phase2(ScatterState& state);
 void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
                     void (*release_fn)(void*, int32_t, const char*),
                     void (*suppressed_fn)(void*));
@@ -1060,6 +1089,7 @@ WorkError finish_sort_deref(ScatterState& state) {
 
 uint32_t initialize_owner_completion(ScatterState& state) {
     if (!state.atomic_write && !(state.atomic_apply && state.phase == 2)) return state.nsub;
+    if (state.record_refs.load(std::memory_order_relaxed) != 0) std::abort();
     // Construct and count only the slots this wave actually uses (see init_arena_arrays). A slot
     // that no group maps to keeps whatever the recycled arena held; nobody indexes it.
     bool seen[kMaxThreads] = {};
@@ -1079,6 +1109,10 @@ uint32_t initialize_owner_completion(ScatterState& state) {
     for (uint32_t p = 0; p < owners; p++) {
         OwnerRecordRefs& progress = state.owner_record_refs[participants[p]];
         progress.remaining = progress.group_count;
+        if (!state.multi_child) progress.nodes = 1;  // owner-completion sentinel
+    }
+    if (!state.multi_child) {
+        state.record_refs.store(owners, std::memory_order_release);
     }
     return owners;
 }
@@ -1103,6 +1137,54 @@ void arm_debug_off_hop_delay(ScatterState& state, const Op& op) {
     if (!cross_owner) return;
     state.debug_hop_lead_owner = lead_owner;
     state.debug_hop_deadline = now_ns() + static_cast<uint64_t>(delay_us) * 1000ull;
+}
+
+void note_owner_record_install(ScatterState& state, uint32_t& owner_nodes) {
+    if (!owner_nodes) {
+        // Only a MULTI child is intentionally lazy. Standalone waves published their sentinel before
+        // any task became visible, so zero here would mean their lifetime pin was lost.
+        if (!state.multi_child) std::abort();
+        state.record_refs.fetch_add(1, std::memory_order_release);
+    }
+    owner_nodes++;
+}
+
+bool complete_owner_record_wave(ScatterState& state, uint32_t owner_thread_id) {
+    const uint32_t slot = state.server->executor_slot(owner_thread_id);
+    if (slot >= state.owner_slots) std::abort();
+    OwnerRecordRefs& progress = state.owner_record_refs[slot];
+    if (!progress.remaining) std::abort();
+    if (--progress.remaining != 0) return false;
+    if (!state.multi_child) {
+        if (!progress.nodes) std::abort();
+        if (--progress.nodes == 0 &&
+            state.record_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+    }
+    return true;
+}
+
+void clear_unpublished_owner_record_refs(ScatterState& state) {
+    // Before initialize_owner_completion there are no constructed slots to inspect. Once it has
+    // pre-counted a standalone wave, no unpublished task can have installed a real node, so a
+    // nonzero group count names exactly the per-owner sentinels below.
+    if (state.record_refs.load(std::memory_order_relaxed) == 0) return;
+    if (state.multi_child) std::abort();
+    bool seen[kMaxThreads] = {};
+    uint32_t owners = 0;
+    for (uint32_t i = 0; i < state.nsub; i++) {
+        const uint32_t tid = state.server->worker_of_shard(state.groups[i].shard);
+        const uint32_t slot = state.server->executor_slot(tid);
+        if (slot >= state.owner_slots || slot >= kMaxThreads) std::abort();
+        if (seen[slot]) continue;
+        seen[slot] = true;
+        OwnerRecordRefs& progress = state.owner_record_refs[slot];
+        // With no published task, each owner can hold only its prepare-time completion sentinel.
+        if (progress.nodes != 1) std::abort();
+        progress.nodes = 0;
+        owners++;
+    }
+    if (state.record_refs.load(std::memory_order_relaxed) != owners) std::abort();
+    state.record_refs.store(0, std::memory_order_relaxed);
 }
 
 template <bool IofusedPrivateQueue>
@@ -1796,7 +1878,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // Opened only once state->server is set, so "apply_open is true" always implies xshard_destroy
     // can close it. The two failure arms above return before any ScatterState exists at all, so
     // the window can never be opened on a group with nothing to close it.
-    if (__builtin_expect(admitted, false)) server.atomic_apply_open(state->apply_open);
+    if (__builtin_expect(admitted, false))
+        server.atomic_apply_open(owner_io, state->apply_open);
     state->pooled = pooled;
     state->owner_io = owner_io;
     state->owner_slots = server.nthreads();
@@ -1883,7 +1966,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             KvObj* value = xshard_make_string(op.arg(key.arg), op.arg(key.arg + 1));
             if (!value) {
                 set_oom(op);
-                xshard_destroy(state, pool, owner_io);
+                xshard_abandon_unpublished(state, pool, owner_io);
                 return ScatterPrepare::Error;
             }
             key.stable_object = value;
@@ -1893,7 +1976,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     if (state->snapshot != UINT64_MAX && !pool.register_snapshot(server, state, owner_io)) {
         set_oom(op);
-        xshard_destroy(state, pool, owner_io);
+        xshard_abandon_unpublished(state, pool, owner_io);
         return ScatterPrepare::Error;
     }
 
@@ -1941,7 +2024,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     if (state->atomic_group && !force_atomic &&
         (state->atomic_write || state->atomic_direct) &&
         !aof_prepare_scatter_group(*state)) {
-        xshard_destroy(state, pool, owner_io);
+        xshard_abandon_unpublished(state, pool, owner_io);
         set_oom(op);
         return ScatterPrepare::Error;
     }
@@ -1957,6 +2040,15 @@ int32_t xshard_dispatch_shard(const ScatterDispatch& dispatch, uint32_t index) {
     return index < dispatch.state->nsub ? dispatch.state->groups[index].shard : -1;
 }
 
+void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,
+                                uint32_t owner_io) {
+    if (!state) return;
+    // No task was published, hence no AtomicEntry can name these counts. Clear only the pre-counted
+    // phantom pins; ordinary destruction must leave installed-node lifetime accounting untouched.
+    clear_unpublished_owner_record_refs(*state);
+    xshard_destroy(state, pool, owner_io);
+}
+
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io) {
     if (!state) return;
     if (__builtin_expect(atomic_tripwire_enabled(), false))
@@ -1966,7 +2058,8 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
         pool.unregister_snapshot(*state->server, state, state->owner_io);
     // Ordinary completions closed this on the owner that installed the last record; this arm is the
     // one that matters for a group torn down BEFORE dispatch (no owner ever sees it).
-    if (state->server) state->server->atomic_apply_close(state->apply_open);
+    if (state->server)
+        state->server->atomic_apply_close(owner_io, state->apply_open);
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
@@ -2236,14 +2329,15 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
         state.aborted.store(true, std::memory_order_release);
         return ScriptPostResult::Empty;
     }
-    if (phase == ScriptPhase::Apply) {
-        // Script starts in phase 1, so xshard_prepare's completion setup deliberately skipped these
-        // slots. APPLY is its first and only record-installing wave; construct exactly its owner
-        // slots before execute_atomic_apply attaches entries to their `nodes` counters. UNPIN has
-        // completed and no record can reference this state yet, so initializing them here cannot
-        // reset a live owner count.
-        (void)initialize_owner_completion(state);
-    }
+    // Script starts in phase 1, so xshard_prepare's completion setup deliberately skipped these
+    // slots. APPLY is its first and only record-installing wave; construct exactly its owner slots
+    // before execute_atomic_apply attaches entries to their `nodes` counters. UNPIN has completed
+    // and no record can reference this state yet, so initializing them here cannot reset a live
+    // owner count. It is also where APPLY's pre-counted sentinels are published, so it must run
+    // exactly once per wave -- the completion count it returns is the same owner count.
+    uint32_t task_completions = phase == ScriptPhase::Run ? 1u : state.nsub;
+    if (phase == ScriptPhase::Apply)
+        task_completions = initialize_owner_completion(state);
 
     // THE +1 IS THE POSTER'S OWN REFERENCE and it is load-bearing. Owner tasks become visible one
     // participant at a time, so without it the LAST task could finish and try to advance the wave
@@ -2251,8 +2345,7 @@ ScriptPostResult script_post_phase(Server& server, ThreadCtx& self, Ring& ring,
     // would then rewrite state.groups under a thread already reading it. Two executors inside
     // build_groups() on one arena is exactly how the differ's script leg segfaulted. The poster
     // releases this reference in xshard_complete_script() once publication is complete.
-    state.pending.store((phase == ScriptPhase::Run ? 1u : state.nsub) + 1u,
-                        std::memory_order_release);
+    state.pending.store(task_completions + 1u, std::memory_order_release);
     if (phase == ScriptPhase::Run) {
         ThreadCtx& owner = server.thread(participants[0]);
         const Task post{source.client, source.op_id, one_shard, &state};
@@ -2698,9 +2791,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             if (installed) {
                 shard.store().atomic_finish_group_install(parked_bytes, installed_bytes);
                 shard.store().atomic_publish_group(pending_entry);
-                if (*owner_refs == 0)
-                    state.record_refs.fetch_add(1, std::memory_order_release);
-                (*owner_refs)++;
+                note_owner_record_install(state, *owner_refs);
             } else {
                 shard.store().atomic_discard_group(pending_entry);
             }
@@ -3319,6 +3410,10 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
     // Publishes `next`; returns true when THIS thread still owns the activation afterwards.
     auto launch = [&](ScriptPhase next) -> bool {
+        // A queue-full retry re-enters on a synthetic poster task. Clear its marker before making
+        // any new owner task visible; otherwise a fast peer can mistake itself for that poster,
+        // skip APPLY's owner-sentinel completion, and recursively republish the wave.
+        state.script_resume_post = false;
         const ScriptPostResult result = script_post_phase<IofusedPrivateQueue>(
             server, self, ring, task, state, next);
         if (result == ScriptPostResult::Full) {
@@ -3328,7 +3423,6 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
             outcome = ScatterFinish::Retry;
             return false;
         }
-        state.script_resume_post = false;
         if (result == ScriptPostResult::Empty) return true;   // nothing posted; keep driving
         if (state.pending.fetch_sub(1, std::memory_order_acq_rel) == 1) return true;
         outcome = ScatterFinish::Waiting;
@@ -3551,9 +3645,12 @@ template <bool IofusedPrivateQueue>
 ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
                                    const Task& task, Op& op) {
     ScatterState& state = *task.scatter;
-    if (state.kind == Kind::Script)
+    if (state.kind == Kind::Script) {
+        if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
+            !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
         return xshard_complete_script<IofusedPrivateQueue>(
             server, self, ring, task, op, state);
+    }
     auto final = [&]() {
         if (op.spec->flags & CmdFlags::NotifySelected)
             notify_xshard_finished(server.shard(task.shard), op, state);
@@ -3561,15 +3658,11 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
         // owner, running on an EX thread. That is the instant the group stops being able to
         // straddle a snapshot cut, and it is much earlier than reply retirement, which happens on
         // the admitting IO thread (the very thread a blocking SAVE occupies).
-        server.atomic_apply_close(state.apply_open);
+        server.atomic_apply_close(self.id(), state.apply_open);
         return ScatterFinish::Final;
     };
     if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
-        const uint32_t slot = server.executor_slot(self.id());
-        if (slot >= state.owner_slots) std::abort();
-        uint32_t& remaining = state.owner_record_refs[slot].remaining;
-        if (!remaining) std::abort();
-        if (--remaining != 0) return ScatterFinish::Waiting;
+        if (!complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
@@ -3648,25 +3741,21 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             }
             return final();
         }
-        if (!state.multi_child) {
-            const uint64_t ticket = server.atomic_commit_group(state.epoch);
-            aof_commit_scatter_group(state, self, ring, ticket);
-        }
         if (state.kind == Kind::Msetnx) {
             state.final_reply = FinalReply::Integer;
             state.final_integer = 1;
         }
+        if (!state.multi_child) return ScatterFinish::CommitQueued;
         return final();
     }
     if (state.phase == 2) {
-        finish_phase2(state);
+        const bool commit_ready = finish_phase2(state);
+        const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
+            (state.final_reply == FinalReply::Lmpop ||
+             state.final_reply == FinalReply::Zmpop);
+        if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
         if (state.aof_group) {
-            uint64_t ticket = state.epoch.load(std::memory_order_acquire);
-            if (!ticket && state.atomic_pop &&
-                (state.final_reply == FinalReply::Lmpop ||
-                 state.final_reply == FinalReply::Zmpop)) {
-                ticket = server.atomic_commit_group(state.epoch);
-            }
+            const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
             if (ticket && !state.aborted.load(std::memory_order_acquire))
                 aof_commit_scatter_group(state, self, ring, ticket);
             else
@@ -3703,9 +3792,95 @@ ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& rin
     return xshard_complete_impl<true>(server, self, ring, task, op);
 }
 
+void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task) {
+    if (!task.client || !task.scatter || task.shard < 0) std::abort();
+    ScatterState& state = *task.scatter;
+    if (state.commit_client || state.commit_next ||
+        state.epoch.load(std::memory_order_relaxed) != 0) std::abort();
+
+    XshardCommitBatch& batch = xshard_commit_batch;
+    if (!batch.head) {
+        if (batch.tail || batch.count || batch.server || batch.owner != UINT32_MAX)
+            std::abort();
+        batch.server = &server;
+        batch.owner = self.id();
+        batch.head = &state;
+    } else if (batch.server != &server || batch.owner != self.id() || !batch.tail) {
+        std::abort();
+    } else {
+        batch.tail->commit_next = &state;
+    }
+    batch.tail = &state;
+    batch.count++;
+    state.commit_client = task.client;
+    state.commit_op_id = task.op_id;
+    state.commit_shard = task.shard;
+}
+
+void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
+                          void* notify_context, XshardCommitNotify notify) {
+    if (!notify) std::abort();
+    for (;;) {
+        XshardCommitBatch& pending = xshard_commit_batch;
+        if (!pending.head) {
+            if (pending.tail || pending.count || pending.server ||
+                pending.owner != UINT32_MAX) std::abort();
+            return;
+        }
+        if (!pending.tail || !pending.count || pending.server != &server ||
+            pending.owner != self.id()) std::abort();
+
+        // Detach before any AOF or completion callback can re-enter the fused executor. A nested
+        // completion starts a fresh list, which the outer loop drains under a separate bracket.
+        ScatterState* head = pending.head;
+        const uint64_t count = pending.count;
+        pending = XshardCommitBatch{};
+
+        const uint64_t first = server.atomic_commit_batch(count, [&](uint64_t ticket) {
+            uint64_t stored = 0;
+            for (ScatterState* state = head; state; state = state->commit_next) {
+                if (stored == count || !state->commit_client ||
+                    state->epoch.load(std::memory_order_relaxed) != 0) std::abort();
+                state->epoch.store(ticket + stored, std::memory_order_release);
+                stored++;
+            }
+            if (stored != count) std::abort();
+        });
+
+        uint64_t completed = 0;
+        for (ScatterState* state = head; state;) {
+            ScatterState* next = state->commit_next;
+            Client* client = state->commit_client;
+            Op& op = client->rob().at(state->commit_op_id);
+            const uint64_t ticket = first + completed++;
+
+            if (!state->aborted.load(std::memory_order_acquire))
+                aof_commit_scatter_group(*state, self, ring, ticket);
+            else
+                aof_abort_scatter_group(*state);
+            if (state->phase == 2 &&
+                __builtin_expect(server.blocking_waiters() != 0, false))
+                blocking_atomic_published(server, self, ring, *state);
+            if (op.spec->flags & CmdFlags::NotifySelected)
+                notify_xshard_finished(server.shard(state->commit_shard), op, *state);
+            server.atomic_apply_close(self.id(), state->apply_open);
+
+            // Capture `next` above: a fused self-notification may immediately retire the Op and
+            // destroy this arena state. The release store remains the one reply-visibility edge.
+            op.state.store(OpState::Done, std::memory_order_release);
+            notify(notify_context, client);
+            state = next;
+        }
+        if (completed != count) std::abort();
+    }
+}
+
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };
 
 void xshard_multi_child_bind(ScatterState& state) {
+    // xshard_prepare does not yet know that this state will be driven by an outer EXEC. Undo its
+    // standalone phantom pins before publication; child installs retain lazy first-node accounting.
+    clear_unpublished_owner_record_refs(state);
     state.multi_child = true;
 }
 
@@ -3728,11 +3903,8 @@ bool xshard_multi_child_records_done(const ScatterState& state) {
 MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
                                              uint32_t owner_thread_id) {
     if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
-        const uint32_t slot = state.server->executor_slot(owner_thread_id);
-        if (slot >= state.owner_slots) std::abort();
-        uint32_t& remaining = state.owner_record_refs[slot].remaining;
-        if (!remaining) std::abort();
-        if (--remaining != 0) return MultiChildFinish::Waiting;
+        if (!complete_owner_record_wave(state, owner_thread_id))
+            return MultiChildFinish::Waiting;
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return MultiChildFinish::Waiting;
@@ -3821,11 +3993,6 @@ MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
 
     reset_groups(state);
     build_groups(state, state.hop2, state.hop2_count);
-    if (state.owner_record_refs)
-        for (uint32_t slot = 0; slot < state.owner_slots; slot++) {
-            state.owner_record_refs[slot].remaining = 0;
-            state.owner_record_refs[slot].group_count = 0;
-        }
     state.phase = 2;
     arm_debug_off_hop_delay(state, op);
     state.pending.store(initialize_owner_completion(state), std::memory_order_release);

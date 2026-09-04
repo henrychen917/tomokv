@@ -442,6 +442,7 @@ public:
                         else
                             did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                     }
+                flush_xshard_commits();
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
@@ -477,6 +478,7 @@ public:
                     }
             }
             finish_filler();
+            flush_xshard_commits();
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
                 did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
@@ -645,6 +647,7 @@ public:
                         if (xshard_retries_.empty()) did += service_ordered_deferred();
                         if (xshard_retries_.empty() && ordered_deferred_.empty())
                             did += drain_tasks(true);
+                        flush_xshard_commits();
                         did += aof_flush_pass();
                         did += drain_notify_keyless(sig);
                     }
@@ -664,6 +667,7 @@ public:
                             did += snapshot_owner_state_ == SnapshotOwnerState::None
                                        ? drain_tasks() : drain_tasks_snapshot();
                     }
+                    flush_xshard_commits();
                     if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                         cached_now_ms_ >= blocking_beat_ms_) {
                         did += blocking_owner_cycle(
@@ -1611,7 +1615,8 @@ private:
             !self_->ex_inbound_quiesced() || !stale_tasks_.empty() ||
             !stale_releases_.empty() || !atomic_deferred_.empty() ||
             !multi_retries_.empty() || !xshard_retries_.empty() ||
-            !ordered_deferred_.empty() || notify_keyless_pending_ ||
+            !ordered_deferred_.empty() || xshard_commit_pending_ ||
+            notify_keyless_pending_ ||
             srv_->atomic_inflight() != 0 || srv_->atomic_apply_inflight() != 0) return false;
         for (const auto& queue : snapshot_backlogs_) if (!queue.empty()) return false;
         for (Shard* shard : self_->shards()) {
@@ -1774,6 +1779,7 @@ private:
             if (!owner_work_remains) n += drain_local_read_tail();
             compact_local_read_tombstones();
         }
+        flush_xshard_commits();
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);
         if (__builtin_expect(srv_->blocking_waiters() != 0, false))
@@ -1868,6 +1874,9 @@ private:
             return true;
         };
         auto local_turn = [&] {
+            // A local read must not run between a last-owner install and this batch's epoch
+            // publication. This boundary still batches every group in the preceding owner chunk.
+            flush_xshard_commits();
             for (uint32_t chunk = 0;
                  chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
                 local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
@@ -2408,6 +2417,8 @@ private:
         const SlowlogArm arm = slowlog_arm_;
         const int64_t now_ms = cached_now_ms_;
         slowlog_note_batch_timed();
+        // Earlier service queues in this outer pass are not part of this batch's timing sample.
+        flush_xshard_commits();
 
         if (slowlog_state_.escalate_batches || n == 1) {
             if (slowlog_state_.escalate_batches) slowlog_state_.escalate_batches--;
@@ -2419,6 +2430,9 @@ private:
                     slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
                 const uint64_t started = now_ns();
                 const bool ok = execute<IofusedPrivateQueue>(batch[i]);
+                // Done is deliberately delayed with the commit. Armed per-op timing must include
+                // that commit and publish it before the Done-based one-command attribution test.
+                flush_xshard_commits();
                 const uint64_t elapsed = now_ns() - started;
                 // ONE ENTRY PER COMMAND, not per participating shard. A cross-shard op is handed
                 // to every owner it touches; all but the last return with the op still Issued.
@@ -2446,6 +2460,7 @@ private:
             executed = i;
             break;
         }
+        flush_xshard_commits();
         const uint64_t elapsed = now_ns() - started;
         // The screen is per-op-average, not whole-batch: a full batch of ordinary commands must
         // not look like one slow command just because there were 32 of them.
@@ -2521,6 +2536,7 @@ private:
     // A/D sequence must not put cleanup between E1(D) and E2(D), and consecutive modulo chunks use
     // the same rule. The caller still holds every gathered source prefix unretired here.
     void finish_buffered_exec_pass(uint32_t executable_count) {
+        flush_xshard_commits();
         if (xshard_retries_.empty() && srv_->atomic_work_active() && executable_count) {
             // The legacy entry supplied 256 cleanup records of service for every batch of at most
             // 128 tasks. Preserve that capacity while paying the owned-shard walk only once.
@@ -2698,6 +2714,11 @@ private:
             }();
             if (finished == ScatterFinish::Waiting) return true;
             if (finished == ScatterFinish::Retry) return false;
+            if (finished == ScatterFinish::CommitQueued) {
+                xshard_queue_commit(*srv_, *self_, t);
+                xshard_commit_pending_ = true;
+                return true;
+            }
         } else if (__builtin_expect(op.spec->flags & CmdFlags::DenyOom, false) &&
                    !sh.store().budget_admit(op.arg(static_cast<uint32_t>(op.spec->first_key)))) {
             // Growth gate (wrinkle fix 2026-08-25): collection growth mutates behind a stable
@@ -2954,8 +2975,15 @@ private:
         }
         return work;
     }
-
-
+    void flush_xshard_commits() {
+        if (__builtin_expect(!xshard_commit_pending_, true)) return;
+        xshard_flush_commits(
+            *srv_, *self_, ring_, this,
+            [](void* context, Client* client) {
+                static_cast<ExLoopT*>(context)->notify_sender(client);
+            });
+        xshard_commit_pending_ = false;
+    }
 
     // Tell this client's io thread it has completed ops -- it retires the ROB and writes, so it is
     // what needs waking. Deduplicated: a pipelined burst of N completions on one client must not
@@ -3132,6 +3160,10 @@ private:
     // Both interwoven schedules share the measured 128-task geometry and coalesced N2 boundary.
     bool pipeline_batches_ = false;
     bool iofused_ = false;
+    // Consumes the bool padding this class already carried before notify_batch_n_. Ordinary
+    // commands pay one predicted-true test at an executor boundary and never touch the TLS
+    // commit list.
+    bool xshard_commit_pending_ = false;
     // Per-batch completion notification (DESIGN-NOTIFY.md §2). While a batch is open, the slot
     // path of notify_sender records (io, slot) here instead of fencing and setting per op; the
     // batch end pays ONE seq_cst fence, one ReadyMask::set per recorded client run and one wake
