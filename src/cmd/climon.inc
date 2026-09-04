@@ -77,7 +77,7 @@
     void climon_conn_release(uint64_t id);
     void climon_track_client(Client* client);
     void climon_untrack_client(Client* client);
-    void climon_reset_client(Client* client);
+    void climon_reset_client(Client* client, Op& op);
     bool climon_migration_ready(const Client* client) const;
     bool client_routing_prepare(ClientMigration& migration, std::string& error);
     void client_routing_commit_extract(ClientMigration& migration,

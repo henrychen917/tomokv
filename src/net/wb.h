@@ -260,7 +260,10 @@ public:
     // PER-OP, and that is the point. Suppression cannot be decided per connection: a pipelined
     // `CLIENT REPLY SKIP; PING; PING` retires all three in ONE drain, and a per-connection
     // decision would swallow both PONGs. The mark is made by the io thread's armed gate before
-    // dispatch, so each op carries its own answer here.
+    // dispatch, so each op carries its own answer here. The per-connection reply mode only
+    // SELECTS this variant (climon_reply_suppressed), and the hot serve never reads the mark, so
+    // the mode must outlive every marked op: CLIENT REPLY ON and RESET leave OFF through the
+    // SkipNow drain state (climon.cc) instead of dropping to ON while marked ops are in flight.
     //
     // Special command state MUST still be surrendered through retire_fn_ even when the bytes are
     // dropped, or scatter/blocking/MULTI/notification state leaks and cross-shard groups never

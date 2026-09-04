@@ -425,16 +425,30 @@ void IoLoop::climon_untrack_client(Client* client) {
     climon_refresh_armed();
 }
 
-void IoLoop::climon_reset_client(Client* client) {
+void IoLoop::climon_reset_client(Client* client, Op& op) {
+    // RESET answers +RESET even when it is the command that lifts CLIENT REPLY OFF (redis clears
+    // the reply flags before it replies), so drop the mark the armed gate made for this very op.
+    // Required whenever the connection stays on the suppressing serve below; harmless when the
+    // hot serve, which never reads the mark, takes over.
+    op.clear_reply_skip();
     auto found = climon_conn_.find(client->id());
     if (found == climon_conn_.end()) return;
     ClimonConn& state = found->second;
     if (state.monitor) climon_monitor_stop(client, client->id());
     if (state.tracking_on || state.bcast) tracking_forget_client(client->id(), state);
     if (state.reply_mode != kClimonReplyOn) {
-        state.reply_mode = kClimonReplyOn;
-        if (climon_local_reply_) climon_local_reply_--;
-        srv_->climon_reply_removed();
+        // Same rule as CLIENT REPLY ON below: ops marked while OFF may still be un-retired, and
+        // only the suppressing serve honours the mark. This op is not yet published, so
+        // in_flight() counts exactly the older ops; while any exist, leave through the SkipNow
+        // drain state and let climon_serve_suppressed finish the switch to ON (and the arming
+        // counters) once the ROB has quiesced.
+        if (client->rob().in_flight() != 0) {
+            state.reply_mode = kClimonReplySkipNow;
+        } else {
+            state.reply_mode = kClimonReplyOn;
+            if (climon_local_reply_) climon_local_reply_--;
+            srv_->climon_reply_removed();
+        }
     }
     state.broken_redirect = false;
     client->set_no_touch(false);
@@ -533,6 +547,10 @@ bool IoLoop::climon_reply_suppressed(Client* client) {
     return state && state->reply_mode != kClimonReplyOn;
 }
 
+// SkipNow is the DRAIN state: a marked op may still be un-retired, so the suppressing variant
+// must keep being selected. A one-shot SKIP enters it at the armed gate; CLIENT REPLY ON and RESET
+// enter it when they lift OFF with older ops in flight. It ends -- and the connection leaves the
+// lane's arming counters -- only once the ROB has quiesced after a suppressing drain.
 uint32_t IoLoop::climon_serve_suppressed(Client* client) {
     const bool did = wb_.serve_suppressing(*client);
     ClimonConn* state = climon_conn_find(client->id());
@@ -549,8 +567,9 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
 uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
     const bool did = wb_.prepare_suppressing(*client, submit_allowed);
     ClimonConn* state = climon_conn_find(client->id());
-    // A one-shot SKIP disarms once its marked op has actually retired -- not when it was marked,
-    // or the suppressing variant would stop being selected before the reply reached the drain.
+    // The drain state disarms once every marked op has actually retired -- not when it was
+    // marked, and not when CLIENT REPLY ON ran -- or the suppressing variant would stop being
+    // selected before the suppressed reply reached the drain.
     if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced()) {
         state->reply_mode = kClimonReplyOn;
         if (climon_local_reply_) climon_local_reply_--;
@@ -940,10 +959,22 @@ IoLoop::ClimonStartResult IoLoop::climon_start_client_command(Client* client, Op
         ClimonConn& state = climon_conn_get(client);
         const uint8_t before = state.reply_mode;
         if (op.arg(2).eq_icase("on")) {
-            state.reply_mode = kClimonReplyOn;
             // CLIENT REPLY ON always answers, including the call that lifts OFF -- so undo the
             // mark the armed gate just made for this very op.
             op.clear_reply_skip();
+            // The mark is honoured ONLY by the suppressing serve, and that variant is selected
+            // per connection by reply_mode != ON. Ops marked while OFF may still be un-retired:
+            // a pipelined `REPLY OFF; MGET; REPLY ON` runs this Sync handler while the MGET's
+            // scatter is still in flight, and dropping straight to ON here handed that MGET to
+            // the hot serve, which never reads the mark -- the whole assembled array (header,
+            // borrowed bulks, CRLFs) reached the wire ahead of this +OK. So OFF, like a SKIP
+            // whose marked op is still pending, leaves through the SkipNow drain state; the
+            // armed gate marks nothing there, and climon_serve_suppressed returns the
+            // connection to ON once its ROB has quiesced. This op is not yet published, so
+            // in_flight() counts exactly the older ops: with none, ON is immediate and the hot
+            // serve resumes on the very next drain.
+            state.reply_mode = (before != kClimonReplyOn && client->rob().in_flight() != 0)
+                ? kClimonReplySkipNow : kClimonReplyOn;
             reply_ok(op.sink());
         } else if (op.arg(2).eq_icase("off")) {
             state.reply_mode = kClimonReplyOff;
