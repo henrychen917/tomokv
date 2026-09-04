@@ -402,8 +402,8 @@ public:
     }
 
     bool     has_pending_fill() const { return buf_[fill_].size() > 0; }
-    uint32_t wsent() const { return wsent_; }
-    void     commit_write(uint32_t n) {
+    uint64_t wsent() const { return wsent_; }
+    void     commit_write(size_t n) {
         wsent_ += n;
         if (obuf_tracking_) {
             if (n > obuf_bytes_) std::abort();
@@ -774,8 +774,14 @@ private:
     uint32_t  last_interaction_s_ = 0; // monotonic whole seconds; occupies the rbuf_ alignment hole
     char*     rbuf_ = nullptr;
     size_t    rcap_ = 0;
-    uint32_t  fill_  = 0;         // index of the buffer replies append to
-    uint32_t  wsent_ = 0;         // bytes of the SEND buffer already written
+    // wsent_ accumulates across resubmits of ONE send buffer, and that buffer is bounded only by
+    // client-output-buffer-limit (0 = unlimited by default, as in redis): a client that pipelines
+    // large GETs and never reads grows it past 4GB. A 32-bit cursor then wrapped, write_drained()
+    // never held, and submit_legacy resent from the wrapped offset -- garbage on the wire instead
+    // of memory growth. 64-bit, paid for by fill_ shrinking to the 0/1 index it always was, so the
+    // io-hot line keeps its layout (offsets 32..47 are the same eight-plus-eight bytes).
+    uint64_t  wsent_ = 0;         // bytes of the SEND buffer already written
+    uint8_t   fill_  = 0;         // index of the buffer replies append to
     bool      recv_armed_    = false;
     bool      send_inflight_ = false;
     bool      segmented_send_ = false;
