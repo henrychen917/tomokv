@@ -44,6 +44,7 @@
 #include "../net/wb.h"
 #include "../net/tls.h"
 #include "../cmd/command.h"
+#include "../cmd/debug_sleep.h"
 #include "../cmd/slowlog.h"
 #include "../cmd/blocking.h"
 #include "../cmd/auth.h"
@@ -600,7 +601,7 @@ private:
                 // is milliseconds or seconds.
                 bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
                                         client_lb_signal_armed || lb_controller_armed ||
-                                        !deferred_waits_.empty();
+                                        !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
                     cached_now_ms_ = busy.start_ns() / 1000000ull;
                     cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
@@ -647,14 +648,14 @@ private:
                     did += srv_->aof().writer_pass(*self_, ring_);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
-                if (__builtin_expect(!deferred_waits_.empty(), false)) {
-                    // CQ processing above may have created the first WAIT after the prologue.
+                if (__builtin_expect(!deferred_timers_.empty(), false)) {
+                    // CQ processing above may have created the first timer after the prologue.
                     if (!pass_time_cached) {
                         cached_now_ms_ = busy.start_ns() / 1000000ull;
                         cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                         pass_time_cached = true;
                     }
-                    did += deferred_wait_pass(cached_now_ms_);
+                    did += deferred_timer_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
                 if constexpr (IoPipe) {
@@ -838,7 +839,7 @@ private:
                 Span busy(sig.busy_ns);
                 bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
                                         client_lb_signal_armed || lb_controller_armed ||
-                                        !deferred_waits_.empty();
+                                        !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
                     cached_now_ms_ = busy.start_ns() / 1000000ull;
                     cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
@@ -872,13 +873,13 @@ private:
                     did += srv_->aof().writer_pass(*self_, ring_);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
-                if (__builtin_expect(!deferred_waits_.empty(), false)) {
+                if (__builtin_expect(!deferred_timers_.empty(), false)) {
                     if (!pass_time_cached) {
                         cached_now_ms_ = busy.start_ns() / 1000000ull;
                         cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                         pass_time_cached = true;
                     }
-                    did += deferred_wait_pass(cached_now_ms_);
+                    did += deferred_timer_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
                 if (__builtin_expect(!routing_forward_.empty(), false))
@@ -1445,7 +1446,7 @@ private:
                 Span busy(sig.busy_ns);
                 bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
                                         client_lb_signal_armed || lb_controller_armed ||
-                                        !deferred_waits_.empty();
+                                        !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
                     cached_now_ms_ = busy.start_ns() / 1000000ull;
                     cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
@@ -1479,13 +1480,13 @@ private:
                     did += srv_->aof().writer_pass(*self_, ring_);
                 if (srv_->snapshot().writer_is(self_->id()))
                     did += srv_->snapshot().writer_pass(*self_, ring_);
-                if (__builtin_expect(!deferred_waits_.empty(), false)) {
+                if (__builtin_expect(!deferred_timers_.empty(), false)) {
                     if (!pass_time_cached) {
                         cached_now_ms_ = busy.start_ns() / 1000000ull;
                         cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                         pass_time_cached = true;
                     }
-                    did += deferred_wait_pass(cached_now_ms_);
+                    did += deferred_timer_pass(cached_now_ms_);
                 }
                 did += flush_borrow_releases();
                 if (__builtin_expect(!routing_forward_.empty(), false))
@@ -2817,7 +2818,7 @@ private:
 
     bool flip_io_drained() const {
         if (!pending_serve_.empty() || !pending_ifid_.empty() || !pending_releases_.empty() ||
-            !pending_handoffs_.empty() || !deferred_waits_.empty() ||
+            !pending_handoffs_.empty() || !deferred_timers_.empty() ||
             !client_migrations_.empty() || !epoll_closes_.empty() ||
             !dead_next_.empty() || !dead_ready_.empty() ||
             !multi_deferred_.empty() || !pending_multi_cleanups_.empty() ||
@@ -4608,6 +4609,51 @@ subscriber_checks_done:
                     mark_active_known<TargetedIfid>(c);
                     break;
                 }
+                // DEBUG SLEEP parks only this connection. The unfinished ROB slot preserves
+                // pipeline order while this IO thread continues serving unrelated clients (and,
+                // in 1s, continues owning shards). All other DEBUG forms fall through unchanged.
+                if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
+                    uint64_t delay_ms = 0;
+                    const uint64_t slow_started =
+                        __builtin_expect(slowlog_armed_, false) ? now_ns() : 0;
+                    DebugSleepResult sleep =
+                        debug_sleep_prepare(*srv_, *c, *op, delay_ms);
+                    if (sleep != DebugSleepResult::NotSleep) {
+                        if (sleep == DebugSleepResult::Deferred &&
+                            deferred_timer_start(c, rob.dispatch_id(),
+                                                 DeferredTimerKind::DebugSleepOk, delay_ms,
+                                                 slow_started, slowlog_arm_)) {
+                            conn.advance_parse(consumed);
+                            self_->note_command(spec->id);
+                            flip_fingerprint_note(*spec, *op);
+                            rob.publish();
+                            c->set_blocked(true);
+                            // As with WAIT, retirement releases the barrier only after the timer's
+                            // reply has been staged and the ROB becomes quiescent.
+                            barrier_arm(c, BarrierOwner::Sleep);
+                            mark_active_known<TargetedIfid>(c);
+                            break;
+                        }
+                        if (sleep == DebugSleepResult::Deferred)
+                            reply_err(op->sink(), "ERR out of memory");
+                        if (__builtin_expect(slowlog_armed_, false)) {
+                            timespec wall{};
+                            ::clock_gettime(CLOCK_REALTIME, &wall);
+                            slowlog_record(self_id, c->id(), *op, now_ns() - slow_started,
+                                           static_cast<int64_t>(wall.tv_sec) * 1000 +
+                                               wall.tv_nsec / 1000000,
+                                           slowlog_arm_, true);
+                        }
+                        conn.advance_parse(consumed);
+                        self_->note_command(spec->id);
+                        flip_fingerprint_note(*spec, *op);
+                        op->state.store(OpState::Done, std::memory_order_release);
+                        rob.publish();
+                        enqueue_serve(c);
+                        mark_active_known<TargetedIfid>(c);
+                        continue;
+                    }
+                }
                 // An unsatisfied WAIT has no shard work, but Redis keeps the connection parked
                 // until its deadline (zero means forever). Publish an unfinished ROB slot and let
                 // this connection's IO owner complete it. MULTI does not enter this branch: its
@@ -4616,7 +4662,9 @@ subscriber_checks_done:
                     uint64_t timeout_ms = 0;
                     const WaitCommandResult wait = server_tail_prepare_wait(*op, timeout_ms);
                     if (wait == WaitCommandResult::Unsatisfied) {
-                        if (!deferred_wait_start(c, rob.dispatch_id(), timeout_ms)) {
+                        if (!deferred_timer_start(c, rob.dispatch_id(),
+                                                  DeferredTimerKind::WaitZero, timeout_ms, 0,
+                                                  SlowlogArm{})) {
                             reply_err(op->sink(), "ERR out of memory");
                         } else {
                             conn.advance_parse(consumed);
@@ -4625,7 +4673,7 @@ subscriber_checks_done:
                             rob.publish();
                             c->set_blocked(true);
                             // Released by the quiescence backstop, not here: a parked WAIT's own
-                            // completion (deferred_wait_pass) fires before its op retires, and
+                            // completion (deferred_timer_pass) fires before its op retires, and
                             // dropping the barrier there would let younger frames parse ahead of
                             // the WAIT reply's staging. Owner bit named so the release is
                             // attributable; the release site is deliberately unchanged.
@@ -5188,8 +5236,8 @@ ordinary_dispatch:
     // NOTES-BARRIER.md section 2 argues from the source that no production sequence produces one
     // today; barrier_owner_overlaps is that argument's live assertion, and a validation run that
     // wants the two-owner geometry gates on it rather than trusting the prose. Cold by
-    // construction: the six owners are EXEC, a subscribe, a blocking command, a deferred WAIT, a
-    // barriered scatter and a CLIENT fan-out. GET and SET never reach it.
+    // construction: the seven owners are EXEC, a subscribe, a blocking command, a deferred WAIT,
+    // a deferred DEBUG SLEEP, a barriered scatter and a CLIENT fan-out. GET and SET never reach it.
     void barrier_arm(Client* c, BarrierOwner who) {
         if (__builtin_expect(c->scatter_barrier(), false)) srv_->note_barrier_overlap();
         c->barrier_acquire(who);
@@ -6774,33 +6822,62 @@ ordinary_dispatch:
         else          sig.clear_oldest_age();
     }
 
-    bool deferred_wait_start(Client* client, uint64_t op_id, uint64_t timeout_ms) {
-        const uint64_t deadline_ms = timeout_ms
-            ? now_ns() / 1000000ull + timeout_ms
-            : 0;
-        try { deferred_waits_.push_back(DeferredWait{client, op_id, deadline_ms}); }
+    enum class DeferredTimerKind : uint8_t { WaitZero, DebugSleepOk };
+    struct DeferredTimer {
+        Client* client = nullptr;
+        uint64_t op_id = 0;
+        uint64_t deadline_ms = 0;  // zero is WAIT's wait-forever spelling
+        uint64_t slow_started_ns = 0;
+        SlowlogArm slowlog_arm{};
+        DeferredTimerKind kind = DeferredTimerKind::WaitZero;
+    };
+
+    bool deferred_timer_start(Client* client, uint64_t op_id, DeferredTimerKind kind,
+                              uint64_t delay_ms, uint64_t slow_started_ns,
+                              const SlowlogArm& slowlog_arm) {
+        const uint64_t now_ms = now_ns() / 1000000ull;
+        const uint64_t deadline_ms = !delay_ms ? 0
+            : delay_ms > UINT64_MAX - now_ms ? UINT64_MAX
+                                             : now_ms + delay_ms;
+        try {
+            deferred_timers_.push_back(
+                DeferredTimer{client, op_id, deadline_ms, slow_started_ns, slowlog_arm, kind});
+        }
         catch (const std::bad_alloc&) { return false; }
         srv_->blocking_client_parked();
         return true;
     }
 
-    uint32_t deferred_wait_pass(uint64_t now_ms) {
+    uint32_t deferred_timer_pass(uint64_t now_ms) {
         uint32_t completed = 0;
-        for (size_t i = 0; i < deferred_waits_.size();) {
-            const DeferredWait wait = deferred_waits_[i];
-            if (!wait.deadline_ms || now_ms < wait.deadline_ms) {
+        for (size_t i = 0; i < deferred_timers_.size();) {
+            const DeferredTimer timer = deferred_timers_[i];
+            if (!timer.deadline_ms || now_ms < timer.deadline_ms) {
                 i++;
                 continue;
             }
-            Client* client = wait.client;
-            Op& op = client->rob().at(wait.op_id);
-            reply_int(op.sink(), 0);
+            Client* client = timer.client;
+            Op& op = client->rob().at(timer.op_id);
+            if (timer.kind == DeferredTimerKind::WaitZero) {
+                reply_int(op.sink(), 0);
+            } else {
+                reply_ok(op.sink());
+                if (timer.slowlog_arm.armed()) {
+                    timespec wall{};
+                    ::clock_gettime(CLOCK_REALTIME, &wall);
+                    slowlog_record(self_->id(), client->id(), op,
+                                   now_ns() - timer.slow_started_ns,
+                                   static_cast<int64_t>(wall.tv_sec) * 1000 +
+                                       wall.tv_nsec / 1000000,
+                                   timer.slowlog_arm, true);
+                }
+            }
             op.state.store(OpState::Done, std::memory_order_release);
             client->set_blocked(false);
             client->set_last_interaction_s(cached_now_s_);
             srv_->blocking_client_unparked();
-            deferred_waits_[i] = deferred_waits_.back();
-            deferred_waits_.pop_back();
+            deferred_timers_[i] = deferred_timers_.back();
+            deferred_timers_.pop_back();
             enqueue_serve(client);
             mark_active(client);
             completed++;
@@ -6808,19 +6885,19 @@ ordinary_dispatch:
         return completed;
     }
 
-    bool deferred_wait_cancel(Client* client) {
+    bool deferred_timer_cancel(Client* client) {
         bool cancelled = false;
-        for (size_t i = 0; i < deferred_waits_.size();) {
-            const DeferredWait wait = deferred_waits_[i];
-            if (wait.client != client) {
+        for (size_t i = 0; i < deferred_timers_.size();) {
+            const DeferredTimer timer = deferred_timers_[i];
+            if (timer.client != client) {
                 i++;
                 continue;
             }
-            Op& op = client->rob().at(wait.op_id);
+            Op& op = client->rob().at(timer.op_id);
             op.state.store(OpState::Done, std::memory_order_release);
             srv_->blocking_client_unparked();
-            deferred_waits_[i] = deferred_waits_.back();
-            deferred_waits_.pop_back();
+            deferred_timers_[i] = deferred_timers_.back();
+            deferred_timers_.pop_back();
             cancelled = true;
         }
         if (cancelled) client->set_blocked(false);
@@ -6943,7 +7020,7 @@ ordinary_dispatch:
         if (c->dead()) return;
         if (!c->closing()) {
             c->mark_closing();
-            if (deferred_wait_cancel(c)) enqueue_serve(c);
+            if (deferred_timer_cancel(c)) enqueue_serve(c);
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
                 enqueue_serve(c);
             TlsConn* slot_tls = tls_slot_conn(c);
@@ -7054,12 +7131,8 @@ ordinary_dispatch:
     uint64_t  flip_epoch_local_ = 0;
     uint64_t  flip_prepare_epoch_ = 0;
     uint64_t  flip_pubsub_rehome_epoch_ = 0;
-    struct DeferredWait {
-        Client* client = nullptr;
-        uint64_t op_id = 0;
-        uint64_t deadline_ms = 0;  // zero is Redis's wait-forever spelling
-    };
-    std::vector<DeferredWait> deferred_waits_;  // allocates only after an unsatisfied WAIT
+    // Allocates only for an unsatisfied WAIT or positive DEBUG SLEEP; never on ordinary commands.
+    std::vector<DeferredTimer> deferred_timers_;
     ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;

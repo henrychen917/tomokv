@@ -8,6 +8,7 @@
 #include "auth.h"
 #include "cmdmeta.h"
 #include "debug.h"
+#include "debug_sleep.h"
 #include "info_stats.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -27,7 +28,6 @@
 
 #include <algorithm>
 #include <arpa/inet.h>
-#include <cerrno>
 #include <cctype>
 #include <cmath>
 #include <cstdarg>
@@ -852,20 +852,10 @@ void cmd_debug_impl(Shard&, Op& op) {
         return;
     }
     if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
-        // DEBUG SLEEP is redis's one unguarded strtod: it validates nothing, so a word sleeps
-        // for zero seconds and answers OK. The upper bound is ours -- redis will happily sleep a
-        // year, and this server is not going to.
-        double seconds = 0;
-        if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
-        if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
-        if (seconds > 86400.0) {
-            reply_err(op.sink(), "ERR value is not a valid float");
-            return;
-        }
-        const int64_t nanoseconds = static_cast<int64_t>(seconds * 1000000000.0);
-        timespec remaining{nanoseconds / 1000000000ll, nanoseconds % 1000000000ll};
-        while (::nanosleep(&remaining, &remaining) != 0 && errno == EINTR) {}
-        reply_ok(op.sink());
+        // Direct DEBUG SLEEP is intercepted by IoLoop before this handler. Reaching the handler
+        // means it is an IoLocal child of EXEC, where one array element cannot independently park
+        // the enclosing transaction reply. Reject that shape instead of blocking the IO thread.
+        reply_err(op.sink(), "ERR DEBUG SLEEP is not allowed inside MULTI");
         return;
     }
 #ifndef NDEBUG
@@ -2703,7 +2693,8 @@ static const CommandSpec kTable[] = {
                           CmdFlags::Climon,                                       cmd_monitor,    0,  0, 0},
     {"COMMAND",    1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_command,    0,  0, 0},
     {"CONFIG",     2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_config,     0,  0, 0},
-    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_debug,      0,  0, 0},
+    {"DEBUG",      2, -1, CmdFlags::Admin | CmdFlags::ConfigRoute |
+                              CmdFlags::DebugSleep,                                cmd_debug,      0,  0, 0},
     {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
                           CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
                           CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
@@ -2724,6 +2715,37 @@ static const CommandSpec kTable[] = {
 };
 
 }  // namespace
+
+DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
+                                     uint64_t& delay_ms) {
+    if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
+        return DebugSleepResult::NotSleep;
+    if (!debug_command_allowed(server, &client)) {
+        reply_debug_command_denied(op);
+        return DebugSleepResult::Handled;
+    }
+
+    // Preserve DEBUG SLEEP's deliberately lenient Redis-compatible parse: malformed, negative,
+    // NaN and infinity all spell zero. Only a finite positive value can become a timer.
+    double seconds = 0;
+    if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
+    if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
+    const double cap_seconds = static_cast<double>(std::max<uint32_t>(1, server.timeout()));
+    if (seconds > cap_seconds) {
+        reply_err(op.sink(), "ERR value is not a valid float");
+        return DebugSleepResult::Handled;
+    }
+    if (seconds == 0.0) {
+        reply_ok(op.sink());
+        return DebugSleepResult::Handled;
+    }
+
+    // IoLoop deadlines are milliseconds. Round away from zero so every positive request parks at
+    // least once; the timeout-derived cap keeps this conversion far below uint64_t overflow.
+    delay_ms = static_cast<uint64_t>(std::ceil(seconds * 1000.0));
+    if (!delay_ms) delay_ms = 1;
+    return DebugSleepResult::Deferred;
+}
 
 void cmd_flip_unavailable(Shard&, Op& op) {
     reply_err(op.sink(), "ERR FLIP is unavailable with --thread-mode 1s: threads are fused");
