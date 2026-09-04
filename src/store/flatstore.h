@@ -137,8 +137,8 @@ inline uint64_t mix64(uint64_t h);
 class ExpireIndex {
 public:
     ExpireIndex() = default;
-    ~ExpireIndex() { std::free(hashes_[0]); std::free(states_[0]);
-                     std::free(hashes_[1]); std::free(states_[1]); }
+    ~ExpireIndex() { std::free(hashes_[0]); std::free(sidecars_[0]);
+                     std::free(hashes_[1]); std::free(sidecars_[1]); }
     ExpireIndex(const ExpireIndex&) = delete;
     ExpireIndex& operator=(const ExpireIndex&) = delete;
 
@@ -149,7 +149,8 @@ public:
     bool migrating() const { return cap_[1] != 0; }
     size_t memory_bytes() const {
         return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
-                                   (sizeof(uint64_t) + sizeof(uint8_t)));
+                                   (sizeof(uint64_t) + sizeof(uint8_t) +
+                                    (kTtlDeadlineSidecar ? sizeof(int64_t) : 0)));
     }
     void clear() {
         release(0);
@@ -158,7 +159,7 @@ public:
         migrate_ = 0;
     }
 
-    bool insert(uint64_t hash) {
+    bool insert(uint64_t hash, int64_t deadline = kNoTtlDeadline) {
         if (rehashing()) {
             migrate(kMigrateSlotsPerOp);
             // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
@@ -184,7 +185,7 @@ public:
         // A deadline re-registered while the move is in flight must leave the old table, or live_
         // double-counts it until the migration catches up.
         if (rehashing()) (void)erase_in(0, hash);
-        return insert_raw(rehashing() ? 1 : 0, hash);
+        return insert_raw(rehashing() ? 1 : 0, hash, deadline);
     }
 
     bool erase(uint64_t hash) {
@@ -192,6 +193,16 @@ public:
         if (!removed) removed = erase_in(0, hash);
         if (removed && size() == 0) collapse_empty();
         return removed;
+    }
+
+    // Selector-on prototype: owner-side TTL reads can pay one probe here while ordinary keys pay
+    // none.  The inline slot remains the authoritative fallback because this hash-only index
+    // cannot yet distinguish an exact 64-bit collision or preserve every MVCC version.
+    int64_t deadline(uint64_t hash, int64_t fallback) const {
+        if constexpr (!kTtlDeadlineSidecar) return fallback;
+        int64_t value = fallback;
+        if (deadline_in(1, hash, value) || deadline_in(0, hash, value)) return value;
+        return fallback;
     }
 
     template <typename Fn>
@@ -214,8 +225,8 @@ public:
             checked++;
             if (pos < old_left) {
                 const size_t slot = migrate_ + pos;
-                if (states_[0][slot] == kLive) fn(hashes_[0][slot]);
-            } else if (states_[1][pos - old_left] == kLive) {
+                if (states(0)[slot] == kLive) fn(hashes_[0][slot]);
+            } else if (states(1)[pos - old_left] == kLive) {
                 fn(hashes_[1][pos - old_left]);
             }
         }
@@ -230,7 +241,7 @@ public:
             for (int t = 0; t < 2; t++) {
                 if (!cap_[t] || !live_[t]) continue;
                 const size_t pos = static_cast<size_t>(mix64(random + i * 2 + t)) & (cap_[t] - 1);
-                if (states_[t][pos] == kLive) { out = hashes_[t][pos]; return true; }
+                if (states(t)[pos] == kLive) { out = hashes_[t][pos]; return true; }
             }
         for (uint32_t i = 0; i < attempts; i++) {
             const size_t old_left = cap_[0] - migrate_;
@@ -240,8 +251,8 @@ public:
             const size_t pos = cursor_++;
             if (pos < old_left) {
                 const size_t slot = migrate_ + pos;
-                if (states_[0][slot] == kLive) { out = hashes_[0][slot]; return true; }
-            } else if (states_[1][pos - old_left] == kLive) {
+                if (states(0)[slot] == kLive) { out = hashes_[0][slot]; return true; }
+            } else if (states(1)[pos - old_left] == kLive) {
                 out = hashes_[1][pos - old_left];
                 return true;
             }
@@ -261,11 +272,23 @@ private:
 
     bool rehashing() const { return cap_[1] != 0; }
 
+    uint8_t* states(int t) const {
+        if (!sidecars_[t]) return nullptr;
+        auto* bytes = sidecars_[t];
+        if constexpr (kTtlDeadlineSidecar) bytes += cap_[t] * sizeof(int64_t);
+        return bytes;
+    }
+
+    int64_t* deadlines(int t) const {
+        if constexpr (!kTtlDeadlineSidecar) return nullptr;
+        return reinterpret_cast<int64_t*>(sidecars_[t]);
+    }
+
     void release(int t) {
         std::free(hashes_[t]);
-        std::free(states_[t]);
+        std::free(sidecars_[t]);
         hashes_[t] = nullptr;
-        states_[t] = nullptr;
+        sidecars_[t] = nullptr;
         cap_[t] = 0;
         live_[t] = tombs_[t] = 0;
     }
@@ -275,13 +298,14 @@ private:
     // one operation's critical path -- which is the stall this change exists to remove.
     bool allocate(int t, size_t cap) {
         auto* hashes = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
-        auto* states = static_cast<uint8_t*>(
-            flatstore_table_calloc(cap, sizeof(uint8_t)));  // kEmpty == 0
-        if (!hashes || !states) { std::free(hashes); std::free(states); return false; }
+        const size_t sidecar_width = sizeof(uint8_t) +
+                                     (kTtlDeadlineSidecar ? sizeof(int64_t) : 0);
+        auto* sidecar = static_cast<uint8_t*>(flatstore_table_calloc(cap, sidecar_width));
+        if (!hashes || !sidecar) { std::free(hashes); std::free(sidecar); return false; }
         std::free(hashes_[t]);
-        std::free(states_[t]);
+        std::free(sidecars_[t]);
         hashes_[t] = hashes;
-        states_[t] = states;
+        sidecars_[t] = sidecar;
         cap_[t] = cap;
         live_[t] = tombs_[t] = 0;
         return true;
@@ -290,7 +314,7 @@ private:
     __attribute__((noinline, cold))
     void collapse_empty() {
         if (!rehashing() && cap_[0] <= kMinCap) {
-            std::memset(states_[0], kEmpty, cap_[0]);
+            std::memset(states(0), kEmpty, cap_[0]);
             tombs_[0] = 0;
             cursor_ = 0;
             return;
@@ -315,12 +339,13 @@ private:
         while (slots && migrate_ < cap_[0]) {
             const size_t pos = migrate_++;
             slots--;
-            if (states_[0][pos] != kLive) continue;
-            states_[0][pos] = kTomb;
+            if (states(0)[pos] != kLive) continue;
+            const int64_t deadline = kTtlDeadlineSidecar ? deadlines(0)[pos] : kNoTtlDeadline;
+            states(0)[pos] = kTomb;
             live_[0]--;
             tombs_[0]++;
             // Cannot fail: the destination was sized for every live entry plus headroom.
-            (void)insert_raw(1, hashes_[0][pos]);
+            (void)insert_raw(1, hashes_[0][pos], deadline);
         }
         if (migrate_ >= cap_[0]) finish_migration();
     }
@@ -328,21 +353,22 @@ private:
     void finish_migration() {
         while (migrate_ < cap_[0]) {
             const size_t pos = migrate_++;
-            if (states_[0][pos] != kLive) continue;
-            states_[0][pos] = kTomb;
+            if (states(0)[pos] != kLive) continue;
+            const int64_t deadline = kTtlDeadlineSidecar ? deadlines(0)[pos] : kNoTtlDeadline;
+            states(0)[pos] = kTomb;
             live_[0]--;
             tombs_[0]++;
-            (void)insert_raw(1, hashes_[0][pos]);
+            (void)insert_raw(1, hashes_[0][pos], deadline);
         }
         std::free(hashes_[0]);
-        std::free(states_[0]);
+        std::free(sidecars_[0]);
         hashes_[0] = hashes_[1];
-        states_[0] = states_[1];
+        sidecars_[0] = sidecars_[1];
         cap_[0] = cap_[1];
         live_[0] = live_[1];
         tombs_[0] = tombs_[1];
         hashes_[1] = nullptr;
-        states_[1] = nullptr;
+        sidecars_[1] = nullptr;
         cap_[1] = 0;
         live_[1] = tombs_[1] = 0;
         migrate_ = 0;
@@ -353,22 +379,24 @@ private:
         return static_cast<size_t>(mix64(hash)) & (cap_[t] - 1);
     }
 
-    bool insert_raw(int t, uint64_t hash) {
+    bool insert_raw(int t, uint64_t hash, int64_t deadline) {
         const size_t cap = cap_[t];
         if (!cap) return false;
         size_t pos = start(t, hash);
         size_t first_tomb = cap;
         for (size_t probes = 0; probes < cap; probes++) {
-            if (states_[t][pos] == kEmpty) {
+            if (states(t)[pos] == kEmpty) {
                 if (first_tomb != cap) { pos = first_tomb; tombs_[t]--; }
                 hashes_[t][pos] = hash;
-                states_[t][pos] = kLive;
+                if constexpr (kTtlDeadlineSidecar) deadlines(t)[pos] = deadline;
+                states(t)[pos] = kLive;
                 live_[t]++;
                 return true;
             }
-            if (states_[t][pos] == kTomb) {
+            if (states(t)[pos] == kTomb) {
                 if (first_tomb == cap) first_tomb = pos;
             } else if (hashes_[t][pos] == hash) {
+                if constexpr (kTtlDeadlineSidecar) deadlines(t)[pos] = deadline;
                 return true;
             }
             pos = (pos + 1) & (cap - 1);
@@ -381,9 +409,9 @@ private:
         if (!cap) return false;
         size_t pos = start(t, hash);
         for (size_t probes = 0; probes < cap; probes++) {
-            if (states_[t][pos] == kEmpty) return false;
-            if (states_[t][pos] == kLive && hashes_[t][pos] == hash) {
-                states_[t][pos] = kTomb;
+            if (states(t)[pos] == kEmpty) return false;
+            if (states(t)[pos] == kLive && hashes_[t][pos] == hash) {
+                states(t)[pos] = kTomb;
                 live_[t]--;
                 tombs_[t]++;
                 return true;
@@ -393,14 +421,31 @@ private:
         return false;
     }
 
+    bool deadline_in(int t, uint64_t hash, int64_t& out) const {
+        if constexpr (!kTtlDeadlineSidecar) return false;
+        const size_t cap = cap_[t];
+        if (!cap) return false;
+        size_t pos = start(t, hash);
+        for (size_t probes = 0; probes < cap; probes++) {
+            if (states(t)[pos] == kEmpty) return false;
+            if (states(t)[pos] == kLive && hashes_[t][pos] == hash) {
+                out = deadlines(t)[pos];
+                return true;
+            }
+            pos = (pos + 1) & (cap - 1);
+        }
+        return false;
+    }
+
     uint64_t* hashes_[2] = {nullptr, nullptr};
-    uint8_t*  states_[2] = {nullptr, nullptr};
+    uint8_t*  sidecars_[2] = {nullptr, nullptr};
     size_t    cap_[2]    = {0, 0};
     uint32_t  live_[2]   = {0, 0};
     uint32_t  tombs_[2]  = {0, 0};
     size_t    cursor_ = 0;    // sampling cursor over the concatenation of both tables
     size_t    migrate_ = 0;   // next old-table slot to move while a migration is in flight
 };
+static_assert(sizeof(ExpireIndex) == 80, "ExpireIndex layout drift");
 
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
 // ---- hash hardening ---------------------------------------------------------------------------
@@ -1051,7 +1096,7 @@ public:
         KvObj* object = find_slot_in(1, h, key, slot);
         if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
             return SnapshotWriteResult::Ready;
-        if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
+        if (deadline_elapsed(h, object, snapshot_cut_ms_)) {
             tab_[1][slot] |= kTombBit;             // absent at the cut; traversal must skip it
             return SnapshotWriteResult::Ready;
         }
@@ -1090,8 +1135,7 @@ public:
                 snapshot_pos_++;
                 continue;
             }
-            if ((object->flags & KvObjFlags::HasTtl) &&
-                object->expire_at_ms() <= snapshot_cut_ms_) {
+            if (deadline_elapsed(hash_key(object->key()), object, snapshot_cut_ms_)) {
                 snapshot_pos_++;
                 continue;
             }
@@ -1167,8 +1211,7 @@ public:
     KvObj* find_notify(uint64_t h, Slice key, FlatNotifySink* sink) {
         KvObj* candidate = find_in(0, h, key);
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
-        const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
-                             candidate->expire_at_ms() <= cached_now_ms_ &&
+        const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
         if (expired) notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
@@ -1223,7 +1266,8 @@ public:
 
     // Variant B draws only inline String blocks from the owner-thread QSBR cache. Extern keeps its
     // independent value allocation and therefore stays on the immutable baseline allocator path.
-    KvObj* make_set_string(Slice key, Slice value, int64_t expire_at_ms = -1) {
+    KvObj* make_set_string(Slice key, Slice value, int64_t expire_at_ms = -1,
+                           bool reserve_ttl_slot = false) {
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats* stats = read_local_enabled_ ? &settax_stats() : nullptr;
         if (stats) {
@@ -1235,20 +1279,22 @@ public:
 #endif
         if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
             if (read_local_enabled_ && value.n <= kEmbedThreshold) {
-                const bool has_ttl = expire_at_ms >= 0;
+                const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
                 const size_t allocation = good_size(
-                    kvobj_alloc_size(key.n, value.n, has_ttl, Enc::Raw));
+                    kvobj_alloc_size(key.n, value.n, has_ttl_slot, Enc::Raw));
                 void* memory = acquire_set_block_read_local(allocation);
                 KvObj* object = memory
-                    ? kvobj_init_raw_string(memory, key, value, expire_at_ms) : nullptr;
+                    ? kvobj_init_raw_string(memory, key, value, expire_at_ms,
+                                            reserve_ttl_slot) : nullptr;
                 return object;
             }
         }
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         KvObj* object = kvobj_new_string(
-            key, value, expire_at_ms, stats ? &stats->fresh_allocation_attempts : nullptr);
+            key, value, expire_at_ms, reserve_ttl_slot,
+            stats ? &stats->fresh_allocation_attempts : nullptr);
 #else
-        KvObj* object = kvobj_new_string(key, value, expire_at_ms);
+        KvObj* object = kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
 #endif
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         if (stats && object && value.n <= kEmbedThreshold) {
@@ -1260,16 +1306,18 @@ public:
                 read_local_store_state_required().retire_sink.trim(0);
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2
                 object = kvobj_new_string(
-                    key, value, expire_at_ms, &stats->fresh_allocation_attempts);
+                    key, value, expire_at_ms, reserve_ttl_slot,
+                    &stats->fresh_allocation_attempts);
 #else
-                object = kvobj_new_string(key, value, expire_at_ms);
+                object = kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
 #endif
             }
         }
         return object;
     }
 
-    KvObj* make_set_int(Slice key, int64_t value, int64_t expire_at_ms = -1) {
+    KvObj* make_set_int(Slice key, int64_t value, int64_t expire_at_ms = -1,
+                        bool reserve_ttl_slot = false) {
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats* stats = read_local_enabled_ ? &settax_stats() : nullptr;
         if (stats) {
@@ -1280,18 +1328,20 @@ public:
 #endif
         if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle) {
             if (read_local_enabled_) {
-                const bool has_ttl = expire_at_ms >= 0;
+                const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
                 const size_t allocation = good_size(
-                    kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+                    kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
                 void* memory = acquire_set_block_read_local(allocation);
-                return memory ? kvobj_init_int(memory, key, value, expire_at_ms) : nullptr;
+                return memory ? kvobj_init_int(memory, key, value, expire_at_ms,
+                                               reserve_ttl_slot) : nullptr;
             }
         }
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         return kvobj_new_int(
-            key, value, expire_at_ms, stats ? &stats->fresh_allocation_attempts : nullptr);
+            key, value, expire_at_ms, reserve_ttl_slot,
+            stats ? &stats->fresh_allocation_attempts : nullptr);
 #else
-        return kvobj_new_int(key, value, expire_at_ms);
+        return kvobj_new_int(key, value, expire_at_ms, reserve_ttl_slot);
 #endif
     }
 
@@ -1368,6 +1418,22 @@ public:
         if (KvObj* object = find_in(0, h, key)) return object;
         return rehashing() ? find_in(1, h, key) : nullptr;
     }
+    // Owner-only deadline accessor. With the prototype selector enabled, a physically TTL-capable
+    // object pays one ExpireIndex probe; objects without the slot return before touching sidecar
+    // memory. Atomic/snapshot versions retain their inline transport value and bypass the hash-only
+    // prototype because one index entry cannot describe multiple versions of the same key.
+    int64_t deadline(uint64_t h, const KvObj* object) const {
+        if (!object || !object->has_ttl_slot()) return kNoTtlDeadline;
+        const int64_t inline_deadline = object->expire_at_ms();
+        if constexpr (!kTtlDeadlineSidecar) return inline_deadline;
+        if (snapshot_active_ || (atomic_pending_ && atomic_pending_->live != 0))
+            return inline_deadline;
+        return expires_.deadline(h, inline_deadline);
+    }
+    bool deadline_elapsed(uint64_t h, const KvObj* object, int64_t now_ms) const {
+        const int64_t at = deadline(h, object);
+        return at >= 0 && at <= now_ms;
+    }
     // The deadline WATCH pins on an armed key. Redis probes the key with LOOKUP_NOTOUCH and does
     // not reap it, so an elapsed-but-unreaped key must stay physically counted here too. A key that
     // is ALREADY past its deadline when WATCH runs is redis's `wk->expired`: its later removal is
@@ -1375,7 +1441,7 @@ public:
     int64_t watch_deadline(uint64_t h, Slice key) const {
         const KvObj* object = find_resident(h, key);
         if (!object) return -1;
-        const int64_t at = object->expire_at_ms();
+        const int64_t at = deadline(h, object);
         return at > cached_now_ms_ ? at : -1;
     }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
@@ -1411,9 +1477,9 @@ public:
             return set_expire_read_local(h, key, expire_at_ms);
         KvObj* old = find(h, key);
         if (!old) return TtlResult::Missing;
-        if (old->flags & KvObjFlags::HasTtl) {
+        if (old->has_ttl_slot()) {
             old->set_expire_at_ms(expire_at_ms);
-            expires_.insert(h);
+            expires_.insert(h, expire_at_ms);
             return TtlResult::Updated;
         }
         return rewrite_expire(h, old, expire_at_ms);
@@ -1425,9 +1491,9 @@ public:
             return set_expire_notify_read_local(h, key, expire_at_ms, sink);
         KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
-        if (old->flags & KvObjFlags::HasTtl) {
+        if (old->has_ttl_slot()) {
             old->set_expire_at_ms(expire_at_ms);
-            expires_.insert(h);
+            expires_.insert(h, expire_at_ms);
             return TtlResult::Updated;
         }
         return rewrite_expire(h, old, expire_at_ms);
@@ -1436,15 +1502,23 @@ public:
     TtlResult persist(uint64_t h, Slice key) {
         KvObj* old = find(h, key);
         if (!old) return TtlResult::Missing;
-        if (!(old->flags & KvObjFlags::HasTtl)) return TtlResult::NoChange;
-        return rewrite_expire(h, old, -1);
+        if (deadline(h, old) < 0) return TtlResult::NoChange;
+        if (__builtin_expect(read_local_enabled_, false))
+            return rewrite_expire_read_local(h, old, kNoTtlDeadline);
+        old->set_expire_at_ms(kNoTtlDeadline);
+        expires_.erase(h);
+        return TtlResult::Updated;
     }
 
     TtlResult persist_notify(uint64_t h, Slice key, FlatNotifySink* sink) {
         KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
-        if (!(old->flags & KvObjFlags::HasTtl)) return TtlResult::NoChange;
-        return rewrite_expire(h, old, -1);
+        if (deadline(h, old) < 0) return TtlResult::NoChange;
+        if (__builtin_expect(read_local_enabled_, false))
+            return rewrite_expire_read_local(h, old, kNoTtlDeadline);
+        old->set_expire_at_ms(kNoTtlDeadline);
+        expires_.erase(h);
+        return TtlResult::Updated;
     }
 
     // Returns a WORK count, while `budget` bounds examined expire-index slots. The count is the
@@ -1462,12 +1536,14 @@ public:
         expires_.sample(budget, [&](uint64_t h) {
             KvObj* o = find_hash_in(0, h);
             if (!o && rehashing()) o = find_hash_in(1, h);
-            if (!o || !(o->flags & KvObjFlags::HasTtl)) {
+            if (!o || !o->has_ttl_slot()) {
                 expires_.erase(h);       // stale tracker after a replacement or collision
                 return;
             }
             if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
-            if (o->expire_at_ms() > cached_now_ms_) return;
+            const int64_t at = deadline(h, o);
+            if (at < 0) { expires_.erase(h); return; }
+            if (at > cached_now_ms_) return;
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
             (void)aof_.record_delete(key);
@@ -1601,8 +1677,7 @@ public:
     InsertResult insert_notify(uint64_t h, KvObj* o, FlatNotifySink* sink) {
         KvObj* candidate = find_in(0, h, o->key());
         if (!candidate && rehashing()) candidate = find_in(1, h, o->key());
-        const bool expired = candidate && (candidate->flags & KvObjFlags::HasTtl) &&
-                             candidate->expire_at_ms() <= cached_now_ms_;
+        const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_);
         const bool report_new = !candidate || expired;
         if (expired)
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
@@ -1634,8 +1709,7 @@ public:
         KvObj* candidate = find_in(0, h, key);
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         if (candidate) {
-            const bool expired = (candidate->flags & KvObjFlags::HasTtl) &&
-                                 candidate->expire_at_ms() <= cached_now_ms_;
+            const bool expired = deadline_elapsed(h, candidate, cached_now_ms_);
             if (expired)
                 notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
             else if (event == EraseEvent::Del)
@@ -1728,11 +1802,11 @@ public:
             const uint32_t slot = static_cast<uint32_t>(pos - (t ? cap_[0] : 0));
             KvObj* o = ptr_of(tab_[t][slot]);
             if (!o) continue;
-            if (!(o->flags & KvObjFlags::HasTtl) || o->expire_at_ms() > cached_now_ms_) {
+            const uint64_t h = hash_key(o->key());
+            if (!deadline_elapsed(h, o, cached_now_ms_)) {
                 if (next_random() % ++live_seen == 0) chosen = o;
                 continue;
             }
-            const uint64_t h = hash_key(o->key());
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, o->key());
             (void)aof_.record_delete(o->key());
             erase_in(t, h, o->key());
@@ -2199,6 +2273,7 @@ private:
         if (!expires_.random_hash(next_random(), kSampleProbeAttempts, hash)) return nullptr;
         KvObj* o = find_hash_in(0, hash);
         if (!o && rehashing()) o = find_hash_in(1, hash);
+        if (o && deadline(hash, o) < 0) { expires_.erase(hash); return nullptr; }
         return o;
     }
 
@@ -2245,7 +2320,7 @@ private:
                 }
                 case MaxmemoryPolicy::VolatileTtl:
                     score = std::numeric_limits<uint64_t>::max() -
-                            static_cast<uint64_t>(candidate->expire_at_ms());
+                            static_cast<uint64_t>(deadline(hash_key(candidate->key()), candidate));
                     break;
                 case MaxmemoryPolicy::NoEviction:
                     return nullptr;
@@ -2253,8 +2328,7 @@ private:
             if (!best || score > best_score) { best = candidate; best_score = score; }
         }
         if (best) {
-            const bool expired = (best->flags & KvObjFlags::HasTtl) &&
-                                 best->expire_at_ms() <= cached_now_ms_;
+            const bool expired = deadline_elapsed(hash_key(best->key()), best, cached_now_ms_);
             notify_flat_store_emit(this,
                 expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
                 expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
@@ -2356,7 +2430,7 @@ private:
     template <typename Fn>
     void scan_visit(int t, uint64_t h, KvObj* o, Fn& fn, bool expire_on_visit) {
         if (!expire_on_visit) { fn(o); return; }
-        if ((o->flags & KvObjFlags::HasTtl) && o->expire_at_ms() <= cached_now_ms_) {
+        if (deadline_elapsed(h, o, cached_now_ms_)) {
             // An epoch record, not this physical candidate, owns logical expiry and pointer
             // lifetime. The walker callback resolves it at its registered cut.
             if (atomic_has_record(h, o->key())) { fn(o); return; }
@@ -2410,7 +2484,7 @@ private:
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && hash_key(o->key()) == h &&
-                (o->flags & KvObjFlags::HasTtl)) return o;
+                deadline(h, o) >= 0) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2436,8 +2510,9 @@ private:
     KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
         // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
         // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
-        if (!(o->flags & KvObjFlags::HasTtl)) return o;
-        if (o->expire_at_ms() > cached_now_ms_) return o;
+        if (!o->has_ttl_slot()) return o;
+        const int64_t at = deadline(h, o);
+        if (at < 0 || at > cached_now_ms_) return o;
         if (snapshot_active_ && t == 1) return nullptr;
         (void)aof_.record_delete(key);
         erase_in(t, h, key);
@@ -2460,23 +2535,24 @@ private:
                 live_[t]++;
                 obj_bytes_ += kvobj_size(o);
                 if (track_expire) {
-                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
-                    else                                  expires_.erase(h);
+                    const int64_t at = o->expire_at_ms();
+                    if (at >= 0) expires_.insert(h, at);
+                    else         expires_.erase(h);
                 }
                 return true;
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
-                    cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
+                if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
                 retire_obj(cur);                            // replace in place; live_ unchanged
                 obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
                 if (track_expire) {
-                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
-                    else                                  expires_.erase(h);
+                    const int64_t at = o->expire_at_ms();
+                    if (at >= 0) expires_.insert(h, at);
+                    else         expires_.erase(h);
                 }
                 return true;
             }
@@ -2503,8 +2579,7 @@ private:
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
                 if (was_expired) {
-                    *was_expired = (o->flags & KvObjFlags::HasTtl) &&
-                                   o->expire_at_ms() <= cached_now_ms_;
+                    *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
                 retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
@@ -2674,7 +2749,7 @@ private:
         KvObj* object = find_slot_in(1, h, key, slot);
         if (!object || slot < snapshot_pos_ || (tab_[1][slot] & kTombBit))
             return SnapshotWriteResult::Ready;
-        if ((object->flags & KvObjFlags::HasTtl) && object->expire_at_ms() <= snapshot_cut_ms_) {
+        if (deadline_elapsed(h, object, snapshot_cut_ms_)) {
             read_local_slot_store(&tab_[1][slot], tab_[1][slot] | kTombBit);
             return SnapshotWriteResult::Ready;
         }
@@ -2710,8 +2785,7 @@ private:
                 snapshot_pos_++;
                 continue;
             }
-            if ((object->flags & KvObjFlags::HasTtl) &&
-                object->expire_at_ms() <= snapshot_cut_ms_) {
+            if (deadline_elapsed(hash_key(object->key()), object, snapshot_cut_ms_)) {
                 snapshot_pos_++;
                 continue;
             }
@@ -2952,7 +3026,7 @@ private:
                 }
                 case MaxmemoryPolicy::VolatileTtl:
                     score = std::numeric_limits<uint64_t>::max() -
-                            static_cast<uint64_t>(candidate->expire_at_ms());
+                            static_cast<uint64_t>(deadline(hash_key(candidate->key()), candidate));
                     break;
                 case MaxmemoryPolicy::NoEviction:
                     return nullptr;
@@ -2960,8 +3034,7 @@ private:
             if (!best || score > best_score) { best = candidate; best_score = score; }
         }
         if (best) {
-            const bool expired = (best->flags & KvObjFlags::HasTtl) &&
-                                 best->expire_at_ms() <= cached_now_ms_;
+            const bool expired = deadline_elapsed(hash_key(best->key()), best, cached_now_ms_);
             notify_flat_store_emit(this,
                 expired ? NOTIFY_EXPIRED : NOTIFY_EVICTED,
                 expired ? NotifyEventId::Expired : NotifyEventId::Evicted, best->key());
@@ -3000,7 +3073,8 @@ private:
                 settax_stats().accounting_bytes += added_bytes;
 #endif
                 if (track_expire) {
-                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    const int64_t at = o->expire_at_ms();
+                    if (at >= 0) expires_.insert(h, at);
                     else {
                         expires_.erase(h);
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -3013,8 +3087,7 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
-                    cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
+                if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
                 // An acquiring reader that starts after the retirement stamp must no longer be
                 // able to acquire the displaced pointer.
@@ -3030,7 +3103,8 @@ private:
                 settax_stats().accounting_bytes += added_bytes;
 #endif
                 if (track_expire) {
-                    if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
+                    const int64_t at = o->expire_at_ms();
+                    if (at >= 0) expires_.insert(h, at);
                     else {
                         expires_.erase(h);
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -3055,8 +3129,7 @@ private:
             KvObj* o = ptr_of(w);
             if (o && tag_of_word(w) == tag && o->key() == key) {
                 if (was_expired) {
-                    *was_expired = (o->flags & KvObjFlags::HasTtl) &&
-                                   o->expire_at_ms() <= cached_now_ms_;
+                    *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
                 read_local_slot_store(&tab_[t][i], kTombBit);
                 retire_obj_read_local(o);

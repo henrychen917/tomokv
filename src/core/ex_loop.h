@@ -1064,12 +1064,15 @@ private:
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::Typed};
                 }
-                if ((flags & KvObjFlags::HasTtl) &&
-                    object->read_local_expire_at_ms(flags) <= command_now_ms) {
-                    // Unlike a plain stable miss, expiry-due needs the owner to perform lazy
-                    // expiry and its accounting/notifications, so one such key demotes all MGET.
-                    read_local_clear_reply(op);
-                    return {ReadLocalFallbackReason::Expired};
+                if (flags & KvObjFlags::HasTtl) {
+                    const int64_t deadline = object->read_local_expire_at_ms(flags);
+                    if (deadline >= 0 && deadline <= command_now_ms) {
+                        // Unlike a plain stable miss, expiry-due needs the owner to perform lazy
+                        // expiry and its accounting/notifications, so one such key demotes all
+                        // MGET.
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::Expired};
+                    }
                 }
 
                 const Enc encoding = object->encoding();
@@ -1203,10 +1206,12 @@ private:
                         read_local_clear_reply(op);
                         return {ReadLocalFallbackReason::Typed};
                     }
-                    if ((flags & KvObjFlags::HasTtl) &&
-                        object->read_local_expire_at_ms(flags) <= command_now_ms) {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::Expired};
+                    if (flags & KvObjFlags::HasTtl) {
+                        const int64_t deadline = object->read_local_expire_at_ms(flags);
+                        if (deadline >= 0 && deadline <= command_now_ms) {
+                            read_local_clear_reply(op);
+                            return {ReadLocalFallbackReason::Expired};
+                        }
                     }
 
                     const Enc encoding = object->encoding();
@@ -1324,10 +1329,12 @@ private:
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::Typed};
             }
-            if ((flags & KvObjFlags::HasTtl) &&
-                object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
-                read_local_clear_reply(op);
-                return {ReadLocalFallbackReason::Expired};
+            if (flags & KvObjFlags::HasTtl) {
+                const int64_t deadline = object->read_local_expire_at_ms(flags);
+                if (deadline >= 0 && deadline <= cached_now_ms_) {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Expired};
+                }
             }
 
             read_local_clear_reply(op);

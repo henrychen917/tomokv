@@ -1112,8 +1112,8 @@ private:
 
     KvObj* atomic_live_value(KvObj* value) const {
         if (!value) return nullptr;
-        if ((value->flags & KvObjFlags::HasTtl) && value->expire_at_ms() <= cached_now_ms_)
-            return nullptr;
+        const int64_t deadline = value->expire_at_ms();
+        if (deadline >= 0 && deadline <= cached_now_ms_) return nullptr;
         return value;
     }
 
@@ -1157,8 +1157,9 @@ private:
                     if (replacement && table == 0) {
                         read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
                         obj_bytes_ += kvobj_size(replacement);
-                        if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
-                        else expires_.erase(hash);
+                        const int64_t deadline = replacement->expire_at_ms();
+                        if (deadline >= 0) expires_.insert(hash, deadline);
+                        else               expires_.erase(hash);
                     } else {
                         read_local_slot_store(&tab_[table][slot], kTombBit);
                         live_[table]--; tombs_[table]++;
@@ -1201,8 +1202,9 @@ private:
                     if (replacement && table == 0) {
                         tab_[table][slot] = make_word(tag, replacement);
                         obj_bytes_ += kvobj_size(replacement);
-                        if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
-                        else expires_.erase(hash);
+                        const int64_t deadline = replacement->expire_at_ms();
+                        if (deadline >= 0) expires_.insert(hash, deadline);
+                        else               expires_.erase(hash);
                     } else {
                         tab_[table][slot] = kTombBit;
                         live_[table]--; tombs_[table]++;

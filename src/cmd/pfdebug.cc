@@ -70,10 +70,12 @@ bool store_dense(Shard& shard, Op& op, KvObj* object, const std::string& image) 
     const XshardStringStoreResult result = kNotify
         ? xshard_store_string_notify(shard, op.arg(2), op.hash,
                                      Slice(image.data(), static_cast<uint32_t>(image.size())),
-                                     object->expire_at_ms(), false)
+                                     shard.store().deadline(op.hash, object), false,
+                                     object->has_ttl_slot())
         : xshard_store_string(shard, op.arg(2), op.hash,
                              Slice(image.data(), static_cast<uint32_t>(image.size())),
-                             object->expire_at_ms(), false);
+                             shard.store().deadline(op.hash, object), false,
+                             object->has_ttl_slot());
     switch (result) {
         case XshardStringStoreResult::Stored:
             return true;

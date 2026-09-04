@@ -339,7 +339,7 @@ bool decode_elements(const ObjectImage& image, std::vector<std::string>& out) {
 }
 
 bool encode_elements(const std::vector<std::string>& elements, ObjectImage& image, Type type,
-                     int64_t expire_at_ms) {
+                     int64_t expire_at_ms, bool reserve_ttl_slot = false) {
     uint64_t total = 0;
     for (const std::string& element : elements) total += 4ull + element.size();
     if (total > UINT32_MAX) return false;
@@ -350,6 +350,7 @@ bool encode_elements(const std::vector<std::string>& elements, ObjectImage& imag
         image.encoding = 0;
         image.entries = static_cast<uint32_t>(elements.size());
         image.expire_at_ms = expire_at_ms;
+        image.reserve_ttl_slot = reserve_ttl_slot;
         image.payload.resize(static_cast<size_t>(total));
     } catch (const std::bad_alloc&) {
         return false;
@@ -1073,6 +1074,7 @@ bool compute_pfmerge(ScatterState& state) {
         apply.type = Type::String;
         apply.encoding = static_cast<uint8_t>(Enc::Extern);
         apply.expire_at_ms = destination.present ? destination.expire_at_ms : -1;
+        apply.reserve_ttl_slot = destination.present && destination.reserve_ttl_slot;
         apply.payload.assign(merged.begin(), merged.end());
     } catch (const std::bad_alloc&) {
         state.final_reply = FinalReply::Work;
@@ -1149,7 +1151,12 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 (!state.atomic_apply && state.images[1].present && !state.copy_replace)) {
                 state.final_reply = FinalReply::Integer; state.final_integer = 0; return true;
             }
-            try { state.apply[1] = state.images[0]; }
+            try {
+                state.apply[1] = state.images[0];
+                // COPY creates a new destination lifetime. A live TTL allocates its own slot;
+                // a source that was merely PERSISTed does not donate its historical reservation.
+                state.apply[1].reserve_ttl_slot = false;
+            }
             catch (const std::bad_alloc&) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
@@ -1191,11 +1198,13 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
             if (src.empty()) state.apply[0] = ObjectImage{};
-            else if (!encode_elements(src, state.apply[0], Type::Set, source.expire_at_ms)) {
+            else if (!encode_elements(src, state.apply[0], Type::Set, source.expire_at_ms,
+                                      source.reserve_ttl_slot)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
             if (!encode_elements(dst, state.apply[1], Type::Set,
-                                 dest.present ? dest.expire_at_ms : -1)) {
+                                 dest.present ? dest.expire_at_ms : -1,
+                                 dest.present && dest.reserve_ttl_slot)) {
                 state.final_reply = FinalReply::Work; state.final_error = WorkError::Oom; return true;
             }
             state.final_integer = 1; state.hop2[0] = 0; state.hop2[1] = 1; state.hop2_count = 2;
@@ -1234,17 +1243,21 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 if (same_key(op)) {
                     if (state.to_left) src.insert(src.begin(), result_heap->bulk);
                     else src.push_back(result_heap->bulk);
-                    if (!encode_elements(src, state.apply[0], Type::List, source.expire_at_ms))
+                    if (!encode_elements(src, state.apply[0], Type::List, source.expire_at_ms,
+                                         source.reserve_ttl_slot))
                         throw std::bad_alloc();
                     state.hop2[0] = 0; state.hop2_count = 1;
                 } else {
                     if (state.to_left) dst.insert(dst.begin(), result_heap->bulk);
                     else dst.push_back(result_heap->bulk);
                     if (src.empty()) state.apply[0] = ObjectImage{};
-                    else if (!encode_elements(src, state.apply[0], Type::List, source.expire_at_ms))
+                    else if (!encode_elements(src, state.apply[0], Type::List,
+                                              source.expire_at_ms,
+                                              source.reserve_ttl_slot))
                         throw std::bad_alloc();
                     if (!encode_elements(dst, state.apply[1], Type::List,
-                                         dest.present ? dest.expire_at_ms : -1))
+                                         dest.present ? dest.expire_at_ms : -1,
+                                         dest.present && dest.reserve_ttl_slot))
                         throw std::bad_alloc();
                     state.hop2[0] = 0; state.hop2[1] = 1; state.hop2_count = 2;
                 }
@@ -2075,7 +2088,10 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         bool replace = false;
         for (uint32_t i = 3; i < op.argc(); i++) if (op.arg(i).eq_icase("replace")) replace = true;
         if (!images[1].present || (images[2].present && !replace)) { reply_int(op.sink(), 0); return; }
-        try { apply[2] = images[1]; } catch (const std::bad_alloc&) { set_oom(op); return; }
+        try {
+            apply[2] = images[1];
+            apply[2].reserve_ttl_slot = false;
+        } catch (const std::bad_alloc&) { set_oom(op); return; }
         local_apply<kNotify>(shard, op, apply, {2}, error);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
@@ -2099,8 +2115,11 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         try { erase_member(src, op.arg(3)); if (!contains(dst, op.arg(3))) dst.emplace_back(op.arg(3).p, op.arg(3).n); }
         catch (const std::bad_alloc&) { set_oom(op); return; }
         if (src.empty()) apply[1] = ObjectImage{};
-        else if (!encode_elements(src, apply[1], Type::Set, images[1].expire_at_ms)) { set_oom(op); return; }
-        if (!encode_elements(dst, apply[2], Type::Set, images[2].present ? images[2].expire_at_ms : -1)) {
+        else if (!encode_elements(src, apply[1], Type::Set, images[1].expire_at_ms,
+                                  images[1].reserve_ttl_slot)) { set_oom(op); return; }
+        if (!encode_elements(dst, apply[2], Type::Set,
+                             images[2].present ? images[2].expire_at_ms : -1,
+                             images[2].present && images[2].reserve_ttl_slot)) {
             set_oom(op); return;
         }
         local_apply<kNotify>(shard, op, apply, {1, 2}, error);
@@ -2130,13 +2149,17 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         if (from_left) src.erase(src.begin()); else src.pop_back();
         if (same_key(op)) {
             if (to_left) src.insert(src.begin(), moved); else src.push_back(moved);
-            if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms)) { set_oom(op); return; }
+            if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms,
+                                 images[1].reserve_ttl_slot)) { set_oom(op); return; }
             local_apply<kNotify>(shard, op, apply, {1}, error);
         } else {
             if (to_left) dst.insert(dst.begin(), moved); else dst.push_back(moved);
             if (src.empty()) apply[1] = ObjectImage{};
-            else if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms)) { set_oom(op); return; }
-            if (!encode_elements(dst, apply[2], Type::List, images[2].present ? images[2].expire_at_ms : -1)) {
+            else if (!encode_elements(src, apply[1], Type::List, images[1].expire_at_ms,
+                                      images[1].reserve_ttl_slot)) { set_oom(op); return; }
+            if (!encode_elements(dst, apply[2], Type::List,
+                                 images[2].present ? images[2].expire_at_ms : -1,
+                                 images[2].present && images[2].reserve_ttl_slot)) {
                 set_oom(op); return;
             }
             local_apply<kNotify>(shard, op, apply, {1, 2}, error);

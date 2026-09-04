@@ -743,7 +743,9 @@ bool externalize_hash(Shard& shard, Op& op, KvObj*& object) {
     }
     value->compact_payload_bytes = hash_compact_payload(source);
     value->random_state = hash_random_state(source);
-    KvObj* replacement = kvobj_new_hash(object->key(), value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_hash(object->key(), value,
+                                        shard.store().deadline(op.hash, object),
+                                        object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_err(op.sink(), "ERR out of memory");
