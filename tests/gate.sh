@@ -5,6 +5,16 @@
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
 #                         shutdown invariants, counter-fired assertions, idle-CPU ceiling. Runs on
 #                         any machine.
+# ---- CLIENT REPLY OFF/SKIP + cross-shard MGET on a zero-copy boot: suppressed replies leave nothing on the
+# wire and release their borrows (regression for the partial-array leak fixed on the netwb lane) ------------
+for RA in 0 1; do
+  boot ./build/tomokv --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
+  py tests/replyoff_xshard.py 127.0.0.1 $PORT >/tmp/gate-replyoff-$RA.txt 2>&1 \
+      && ok "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" \
+      || bad "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" "see /tmp/gate-replyoff-$RA.txt"
+  stop
+done
+
 #   tests/gate.sh full    quick + torture-under-ASAN + the Redis 7.4 differential matrix + NIC
 #                         regression cells vs tests/gate_refs.txt (the NIC cells need the 25GbE
 #                         netns rig and its scratchpad binaries/procsafe helper).
@@ -74,7 +84,7 @@ ROW_T=$(date +%s.%N)
 # 241 -> 243: B+ adds the counting-fingerprint representation unit plus the deterministic
 # held-group GET/MGET filter battery. Full: 252 -> 254.
 EXPECT_QUICK=243
-EXPECT_FULL=254                 # full without the optional NIC row.
+EXPECT_FULL=256                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
