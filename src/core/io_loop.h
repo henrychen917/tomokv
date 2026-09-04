@@ -4501,7 +4501,7 @@ private:
                     conn.advance_parse(consumed);
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
-                    climon_reset_client(c);
+                    climon_reset_client(c, *op);
                     pubsub_start_reset(c, *op);
                     sig.ops++;
                     mark_active_known<TargetedIfid>(c);
@@ -4652,7 +4652,7 @@ subscriber_checks_done:
                 // false flag test on a word the dispatcher already holds, on an already-cold
                 // command class -- no name comparison, and nothing on the ordinary path.
                 if (__builtin_expect((spec->flags & CmdFlags::Climon) != 0, false))
-                    climon_reset_client(c);
+                    climon_reset_client(c, *op);
                 conn.advance_parse(consumed);
                 self_->note_command(spec->id);
                 flip_fingerprint_note(*spec, *op);

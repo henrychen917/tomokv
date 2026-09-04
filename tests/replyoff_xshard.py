@@ -11,6 +11,14 @@ Pre-fix only the op's TAIL was dropped: the header and the bulks reached the wir
 the next real reply as the array's missing element, and every later reply on the connection was
 shifted by one.
 
+A second, independent hole leaked the WHOLE array under REPLY OFF even with that fix in place: the
+skip mark is honoured only by the suppressing serve variant, which is selected per connection by
+the live reply mode, and `CLIENT REPLY ON` (RESET likewise) switched the mode back to ON
+synchronously at parse time -- while the marked MGET was still un-retired in the ROB. The MGET then
+retired through the hot serve, which never reads the mark. ON and RESET now leave OFF through the
+same drain state the one-shot SKIP uses (climon.cc), so the pipelined shapes below deliberately run
+the lifting command while the suppressed MGET is still in flight.
+
 Vacuity guards (a run that exercises nothing must FAIL):
   - zero-copy is enabled on this boot (CONFIG GET zc-min > 0): with it every 4KB value in a
     cross-shard MGET is gathered as a BORROW (cutover = min(zc-min, 1024));
@@ -208,6 +216,42 @@ def main():
     got, extra = c.expect_wire(b"+PONG\r\n")
     check(got == b"+PONG\r\n" and not extra,
           "REPLY SKIP: cross-shard MGET leaves NOTHING on the wire", wire_detail(got, extra))
+
+    # ---- SKIP; MGET; ON pipelined: ON runs while the skipped MGET is still in flight -------------
+    zc_sends0, zc_rel0 = stat(admin, "zc_sends"), stat(admin, "zc_releases")
+    c.send("CLIENT", "REPLY", "SKIP")
+    c.send("MGET", *keys)
+    c.send("CLIENT", "REPLY", "ON")
+    c.send("PING")
+    got, extra = c.expect_wire(b"+OK\r\n+PONG\r\n")
+    check(got == b"+OK\r\n+PONG\r\n" and not extra,
+          "REPLY SKIP; MGET; REPLY ON pipelined: the skipped MGET leaves NOTHING on the wire",
+          wire_detail(got, extra))
+    zc_sends1, zc_rel1 = stat(admin, "zc_sends"), stat(admin, "zc_releases")
+    check_zc_evidence(zc_rel1 > zc_rel0,
+                      "SKIP+ON: skipped MGET returned its borrows (zc_releases moved)",
+                      f"{zc_rel0} -> {zc_rel1}")
+    check_zc_evidence(zc_sends1 == zc_sends0,
+                      "SKIP+ON: skipped MGET submitted no borrowed send (zc_sends unchanged)",
+                      f"{zc_sends0} -> {zc_sends1}")
+
+    # ---- OFF; MGET; RESET pipelined: RESET lifts OFF while the MGET is still in flight ----------
+    zc_sends0, zc_rel0 = stat(admin, "zc_sends"), stat(admin, "zc_releases")
+    c.send("CLIENT", "REPLY", "OFF")
+    c.send("MGET", *keys)
+    c.send("RESET")
+    c.send("PING")
+    got, extra = c.expect_wire(b"+RESET\r\n+PONG\r\n")
+    check(got == b"+RESET\r\n+PONG\r\n" and not extra,
+          "REPLY OFF; MGET; RESET pipelined: the suppressed MGET leaves NOTHING on the wire",
+          wire_detail(got, extra))
+    zc_sends1, zc_rel1 = stat(admin, "zc_sends"), stat(admin, "zc_releases")
+    check_zc_evidence(zc_rel1 > zc_rel0,
+                      "OFF+RESET: suppressed MGET returned its borrows (zc_releases moved)",
+                      f"{zc_rel0} -> {zc_rel1}")
+    check_zc_evidence(zc_sends1 == zc_sends0,
+                      "OFF+RESET: suppressed MGET submitted no borrowed send (zc_sends unchanged)",
+                      f"{zc_sends0} -> {zc_sends1}")
 
     # ---- the connection is still in sync afterwards ----------------------------------------------
     sync_check("connection still in sync after suppression",
