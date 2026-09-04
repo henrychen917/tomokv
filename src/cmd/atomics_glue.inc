@@ -9,9 +9,9 @@ namespace {
 
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
+    // Cleanup is owner-pass work: every caller has already made the pass's single promotion
+    // attempt before asking individual keys whether they still need a version.
     FlatStore& store = shard.store();
-    const uint64_t cleanup_cutoff = server.atomic_snapshot();
-    store.atomic_promote_key(hash, key, server.atomic_read_floor(), cleanup_cutoff);
     const bool had_record = store.atomic_has_record(hash, key);
     // A key reserved by a staged cross-owner script carries no MVCC record of its own, so the
     // record test alone sent this write down the untracked physical path -- it mutated the value
@@ -316,21 +316,34 @@ inline Slice op_routed_key(const Op& op) {
 }
 
 template <typename Fn>
-bool for_each_touched_key(Op& op, Fn&& fn) {
+bool with_touched_keys(Op& op, Fn&& fn) {
     Kind kind;
     if (!classify(op, kind)) {
-        if (op.argc() > 1) fn(op.hash, op_routed_key(op));
+        const uint32_t count = op.argc() > 1 ? 1 : 0;
+        fn(count, [&](uint32_t) {
+            return std::pair<uint64_t, Slice>{op.hash, op_routed_key(op)};
+        });
         return true;
     }
     XshardKeyPlan keys;
     if (!classify_keys(op, kind, keys)) return false;
     const uint32_t count = key_count_for(keys);
-    for (uint32_t i = 0; i < count; i++) {
+    fn(count, [&](uint32_t i) {
         const uint32_t arg = key_arg_for(keys, i);
         const Slice key = op.arg(arg);
-        fn(FlatStore::hash_key(key), key);
-    }
+        return std::pair<uint64_t, Slice>{FlatStore::hash_key(key), key};
+    });
     return true;
+}
+
+template <typename Fn>
+bool for_each_touched_key(Op& op, Fn&& fn) {
+    return with_touched_keys(op, [&](uint32_t count, auto&& key_at) {
+        for (uint32_t i = 0; i < count; i++) {
+            const auto [hash, key] = key_at(i);
+            fn(hash, key);
+        }
+    });
 }
 
 uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
@@ -849,7 +862,6 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         bool allocation_failed = false;
         const auto inspect_key = [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
-            store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
             if (!store.atomic_needs_version(hash, key)) return;
             if (!store.atomic_has_record(hash, key) &&
                 (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
@@ -861,10 +873,22 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         };
         bool enumerated = true;
         if (foreign_scope.active && !foreign_scope.poisoned) {
+            store.atomic_promote_keys(
+                static_cast<uint32_t>(foreign_scope.keys.size()), floor, cleanup_cutoff,
+                [&](uint32_t index) {
+                    const PlainForeignReadScope::Key& key = foreign_scope.keys[index];
+                    return std::pair<uint64_t, Slice>{key.hash, key.key};
+                });
             for (const PlainForeignReadScope::Key& key : foreign_scope.keys)
                 inspect_key(key.hash, key.key);
         } else {
-            enumerated = for_each_touched_key(op, inspect_key);
+            enumerated = with_touched_keys(op, [&](uint32_t count, auto&& key_at) {
+                store.atomic_promote_keys(count, floor, cleanup_cutoff, key_at);
+                for (uint32_t i = 0; i < count; i++) {
+                    const auto [hash, key] = key_at(i);
+                    inspect_key(hash, key);
+                }
+            });
         }
         if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }

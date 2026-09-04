@@ -2464,18 +2464,19 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         const uint64_t floor = state.server->atomic_read_floor();
         if (sort_deref_gathering(state)) {
             SortDerefState& sort = *state.sort_deref;
-            for (uint32_t i = 0; i < group.count; i++) {
-                const SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
-                shard.store().atomic_promote_key(
-                    request.hash, sort_deref_key(request), floor, cleanup_cutoff);
-            }
+            shard.store().atomic_promote_keys(
+                group.count, group.membership, floor, cleanup_cutoff, [&](uint32_t i) {
+                    const SortDerefRequest& request =
+                        sort.requests[sort.key_order[group.begin + i]];
+                    return std::pair<uint64_t, Slice>{request.hash, sort_deref_key(request)};
+                });
         } else {
-            for (uint32_t i = 0; i < group.count; i++) {
-                const uint32_t pos = state.key_order[group.begin + i];
-                const KeyRef& key = state.keys[pos];
-                shard.store().atomic_promote_key(
-                    key.hash, op.arg(key.arg), floor, cleanup_cutoff);
-            }
+            shard.store().atomic_promote_keys(
+                group.count, group.membership, floor, cleanup_cutoff, [&](uint32_t i) {
+                    const uint32_t pos = state.key_order[group.begin + i];
+                    const KeyRef& key = state.keys[pos];
+                    return std::pair<uint64_t, Slice>{key.hash, op.arg(key.arg)};
+                });
         }
     }
     struct ReadEpochGuard {

@@ -615,9 +615,43 @@
         return logical < 0 ? 0 : static_cast<uint64_t>(logical);
     }
 
+    // Promotion is task-scoped: prove that any key in the owner span still has a record with one
+    // membership-filtered list walk, then let the key-agnostic collapse reclaim its whole eligible
+    // prefix once. The entry teardown below remains the sole place that closes B+ filter cells.
+    template <typename KeyAt>
+    bool atomic_promote_keys(uint32_t count, uint64_t membership, uint64_t floor,
+                             uint64_t cleanup_cutoff, KeyAt&& key_at) {
+        if (!count || !atomic_pending_ || !atomic_pending_->live) return false;
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!(entry->membership & membership)) continue;
+            for (uint32_t i = 0; i < entry->count; i++) {
+                const uint64_t hash = atomic_entry_hash(*entry, i);
+                if (!(membership & atomic_membership_bit(hash))) continue;
+                const Slice key = atomic_entry_key(*entry, i);
+                for (uint32_t j = 0; j < count; j++) {
+                    const auto [candidate_hash, candidate_key] = key_at(j);
+                    if (candidate_hash == hash && candidate_key == key)
+                        return atomic_collapse(floor, cleanup_cutoff);
+                }
+            }
+        }
+        return false;
+    }
+
+    template <typename KeyAt>
+    bool atomic_promote_keys(uint32_t count, uint64_t floor, uint64_t cleanup_cutoff,
+                             KeyAt&& key_at) {
+        uint64_t membership = 0;
+        for (uint32_t i = 0; i < count; i++)
+            membership |= atomic_membership_bit(key_at(i).first);
+        return atomic_promote_keys(
+            count, membership, floor, cleanup_cutoff, std::forward<KeyAt>(key_at));
+    }
+
     bool atomic_promote_key(uint64_t hash, Slice key, uint64_t floor, uint64_t cleanup_cutoff) {
-        if (!atomic_key_pending(hash, key)) return false;
-        return atomic_collapse(floor, cleanup_cutoff);
+        return atomic_promote_keys(
+            1, atomic_membership_bit(hash), floor, cleanup_cutoff,
+            [&](uint32_t) { return std::pair<uint64_t, Slice>{hash, key}; });
     }
 
     uint32_t atomic_sweep(uint64_t floor, uint64_t cleanup_cutoff, uint32_t budget) {

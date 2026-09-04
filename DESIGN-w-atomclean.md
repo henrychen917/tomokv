@@ -1,7 +1,6 @@
 # Atomic write-path structural diets
 
-This lane implements the owner-approved 7.3, 7.5, and 7.6 changes only. The
-collapse-once-per-pass idea (7.4) remains held and is not changed here.
+This lane implements the owner-approved 7.3, 7.4, 7.5, and 7.6 changes.
 
 ## 7.3: DEL/UNLINK group key storage
 
@@ -18,6 +17,28 @@ The record remains immutable after publication. Its group lifetime pin still
 keeps hashes and the decision words alive; the copied tail keeps only DEL/UNLINK
 key bytes alive. Foreign readers retain the existing pre-exchange safety-filter
 publication and never follow the owner record.
+
+## 7.4: one collapse attempt per owner pass
+
+Replace the per-key `atomic_promote_key` loop with one task-span probe. The
+probe builds or consumes the span's 64-bit membership mask, walks the pending
+record list once, and invokes the key-agnostic `atomic_collapse` at most once
+when any exact key overlaps. Localfast preparation uses the same classified
+touched-key span before making its per-key version decisions. Promotion is no
+longer repeated inside `begin_plain_version`; the standalone blocking wake path
+retains one explicit single-key attempt.
+
+The unit is one executor pass rather than the scatter state's entire lifetime.
+Each call of `xshard_execute` owns one phase-specific key span and samples one
+cleanup cutoff/read floor pair; a later phase can touch a different span at a
+different safe floor. Within a pass, the first old per-key match already
+collapsed the whole eligible prefix, so coalescing the remaining attempts
+cannot change the selected records or their eligibility.
+
+The collapse implementation and floor sampling order are unchanged. In the B+
+path, entry teardown still closes every key occurrence in the fingerprint
+filter before decrementing the owner/group reference that can release its
+record storage. No reader path or visibility rule changes.
 
 ## 7.5: one probe for exchange-or-insert
 
@@ -67,4 +88,7 @@ The coordinator should validate with the atomic gauntlet (`atomic_torn`,
 `atomic_ryow`, `atomic_hazards`, `multi_exec`, `s6` at atomic=1, and `bplus.py`).
 Compare DEL-heavy allocation/instruction counts for 7.3 and MSET-new-key owner
 probes/instructions for 7.5; use the main-command regression cells and the same
-owner-write-path instr/op capture for 7.6.
+owner-write-path instr/op capture for 7.6. No new 7.4 arm is needed:
+`atomic_hazards.py` S1 holds the read floor and asserts that records cannot drain
+early, while `bplus.py`'s held-group and `wait_drained` checkpoints assert filter
+retention through the unsafe window and complete record/filter drain afterward.

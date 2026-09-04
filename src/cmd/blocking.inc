@@ -598,15 +598,20 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     }
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
-        const WorkError prepared = begin_plain_version(
-            *state.server, shard, key_slice, key.hash, state.server->atomic_snapshot(),
-            state.client->id());
-        if (prepared != WorkError::None) {
-            reply_work_error(op, prepared);
-            blocking_publish_completion(state, self, ring);
-            return true;
+        const uint64_t snapshot = state.server->atomic_snapshot();
+        const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
+        shard.store().atomic_promote_key(
+            key.hash, key_slice, state.server->atomic_read_floor(), cleanup_cutoff);
+        if (shard.store().atomic_needs_version(key.hash, key_slice)) {
+            const WorkError prepared = begin_plain_version(
+                *state.server, shard, key_slice, key.hash, snapshot, state.client->id());
+            if (prepared != WorkError::None) {
+                reply_work_error(op, prepared);
+                blocking_publish_completion(state, self, ring);
+                return true;
+            }
+            plain_active = true;
         }
-        plain_active = true;
     }
     std::vector<std::string> members;
     std::vector<double> scores;
