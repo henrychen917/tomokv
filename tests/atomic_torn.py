@@ -7,6 +7,8 @@ import sys
 import threading
 import time
 
+import _lib
+
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 FAIL = 0
@@ -123,29 +125,23 @@ def required_stat(table, name):
 
 
 def gate_geometry():
-    """Resolve physical shards and their live executor owners on this boot."""
+    """Resolve physical shards and their live OWNER threads on this boot.
+
+    Owners come from the `shard <sid> <owner_tid>` rows of DEBUG LBSIGNALS, never from the `ex`
+    role label: under --thread-mode 1s every thread is labelled `io` and still owns shards, so a
+    role-based selection found zero executors and aborted with a false reason. The concurrency
+    unit for every cross-owner race below is the owning THREAD, whatever its label.
+    """
     c = Resp()
     try:
-        raw = c.cmd("DEBUG", "LBSIGNALS")
-        if not isinstance(raw, bytes):
-            raise AssertionError(
-                "DEBUG LBSIGNALS unavailable; boot with --enable-debug-command yes: %r" % raw)
-        executors = set()
-        shard_owner = {}
-        for line in raw.splitlines():
-            fields = line.split()
-            if len(fields) >= 3 and fields[0] == b"thread" and fields[2] == b"ex":
-                executors.add(int(fields[1]))
-            elif len(fields) >= 3 and fields[0] == b"shard":
-                shard_owner[int(fields[1])] = int(fields[2])
+        topo = _lib.topology(c)
+        executors = set(topo.owners)
+        shard_owner = topo.shard_owner
         if len(executors) < 2:
             raise AssertionError(
-                "atomic_torn needs at least two executor threads; found %r" % sorted(executors))
-        if not shard_owner:
-            raise AssertionError("DEBUG LBSIGNALS reported no shard ownership")
-        unknown = set(shard_owner.values()) - executors
-        if unknown:
-            raise AssertionError("DEBUG LBSIGNALS named non-executor shard owners %r" % sorted(unknown))
+                "atomic_torn needs two shard-owning threads for its cross-owner races; this boot "
+                "(thread-mode %s) has %d owner(s) %r over %d shard(s)" %
+                (topo.mode, len(executors), sorted(executors), len(shard_owner)))
 
         by_owner = {owner: [] for owner in executors}
         by_shard = {}

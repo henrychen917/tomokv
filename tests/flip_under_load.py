@@ -17,6 +17,15 @@ Three things run concurrently:
 
 Any of: a wrong value, a generation regression, a dropped connection, an error reply, or a refused
 flip that was not supposed to be refused, fails the run.
+
+Attribution (AUDIT-TESTS F8): a failure names its CLASS -- TIMEOUT (the client's own socket
+timeout expired under saturation), EOF (the server closed), RST, EPIPE, ERROR-REPLY -- and the
+run always prints the server-side connection counters' deltas (rejected connections, output-buffer
+disconnections, flips completed, clients transferred) so a one-in-twenty drop can be attributed to
+the server or to this client on the first occurrence instead of on a rerun.
+
+FLIP is a 2s-only feature (`ERR FLIP is unavailable with --thread-mode 1s`); on a 1s boot the
+battery skips itself with that reason (exit 3, which the gate paints red).
 """
 
 import socket
@@ -24,13 +33,39 @@ import sys
 import threading
 import time
 
+import _lib
+
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 SECONDS = float(sys.argv[3]) if len(sys.argv) > 3 else 30.0
 NWRITERS = 8
 KEYS_PER_WRITER = 400
+CLIENT_TIMEOUT = 15
+COUNTERS = ("connected_clients", "total_connections_received", "rejected_connections",
+            "client_output_buffer_limit_disconnections", "flip_completed",
+            "flip_clients_transferred", "flip_last_transfers", "flip_in_progress")
 
 class Busy(Exception):
     pass
+
+
+def classify(exc):
+    """Name the failure class so the report separates client-side from server-side causes."""
+    if isinstance(exc, socket.timeout):
+        return "TIMEOUT(client %ds)" % CLIENT_TIMEOUT
+    if isinstance(exc, ConnectionResetError):
+        return "RST"
+    if isinstance(exc, BrokenPipeError):
+        return "EPIPE"
+    if isinstance(exc, IOError) and "connection closed" in str(exc):
+        return "EOF(server closed)"
+    if isinstance(exc, IOError) and "error reply" in str(exc):
+        return "ERROR-REPLY"
+    return type(exc).__name__
+
+
+def counters(conn):
+    table = _lib.info(conn)
+    return {key: table.get(key) for key in COUNTERS}
 
 
 stop = threading.Event()
@@ -49,7 +84,7 @@ def fail(msg):
 
 
 def conn():
-    s = socket.create_connection((HOST, PORT), timeout=15)
+    s = socket.create_connection((HOST, PORT), timeout=CLIENT_TIMEOUT)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     return s, s.makefile("rb")
 
@@ -146,10 +181,10 @@ def worker(wid):
             try:
                 s, f = conn()
             except Exception as e:
-                fail("writer %d could not reconnect after BUSY: %r" % (wid, e))
+                fail("writer %d could not reconnect after BUSY: %s: %r" % (wid, classify(e), e))
                 return
         except Exception as e:
-            fail("writer %d: %r" % (wid, e))
+            fail("writer %d: %s: %r (gen %d)" % (wid, classify(e), e, gen))
             return
     s.close()
 
@@ -208,11 +243,21 @@ def flipper():
                 except Exception:
                     return
             else:
-                fail("flipper: %r" % e)
+                fail("flipper: %s: %r" % (classify(e), e))
                 return
         time.sleep(1.0)
     s.close()
 
+
+# Mode probe + counter baseline on a connection that takes no part in the traffic.
+admin = _lib.Conn(HOST, PORT, timeout=CLIENT_TIMEOUT)
+first = admin.cmd("FLIP")
+if isinstance(first, _lib.RespError):
+    if b"thread-mode 1s" in first.message:
+        _lib.skip_all("FLIP is a 2s-only feature and this boot is --thread-mode 1s: %s" % first)
+    print("FAIL: FLIP unavailable on this boot: %s" % first)
+    sys.exit(1)
+before = counters(admin)
 
 threads = [threading.Thread(target=worker, args=(i,)) for i in range(NWRITERS)]
 threads.append(threading.Thread(target=flipper))
@@ -223,8 +268,21 @@ stop.set()
 for t in threads:
     t.join(timeout=30)
 
+after = counters(admin)
+admin.close()
+
+
+def delta(key):
+    if before.get(key) is None or after.get(key) is None:
+        return "n/a"
+    return "%+d" % (int(after[key]) - int(before[key]))
+
+
 print("ops verified: %d   flips applied: %d   flips refused: %d   BUSY retries: %d"
       % (ops[0], flips_ok[0], flips_refused[0], busy[0]))
+print("server counters over the run: " + "  ".join(
+    "%s %s" % (key, delta(key)) for key in COUNTERS if key != "connected_clients")
+    + "  connected_clients %s->%s" % (before.get("connected_clients"), after.get("connected_clients")))
 if errors:
     print("FAIL: %d problem(s)" % len(errors))
     for e in errors:

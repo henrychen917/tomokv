@@ -19,9 +19,21 @@
 #   - the plain-GET arm is a NEGATIVE CONTROL measured in the same loop on the same connection. It
 #     never enters the registry, so it is what "no growth" reads like on this machine;
 #   - the assertion is a RATIO of two per-op costs measured seconds apart, never an absolute time.
+#
+# Drift (AUDIT-TESTS F7). The two arms are INTERLEAVED per round (borrow, plain, borrow, plain ...)
+# so a CPU-state shift lands on both, not on whichever arm happened to be measured second (the
+# observed 567 -> 884 ns "control" flake was exactly that: a shift between the borrow rounds and
+# the plain rounds of one sequential measure()). The plain arm is the environment instrument: if
+# it still moved, the busy pair is re-rolled (holders stay parked, BORROWCOUNT re-checked) and,
+# failing that, a POST baseline (holders released) is measured -- when the plain arm agrees with
+# the post baseline the box shifted between the baselines and the post one is the honest
+# reference. Every assertion below is unchanged; only the reference it is scored against can move,
+# and the row says which one it used.
 import socket
 import sys
 import time
+
+import _lib
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
@@ -121,8 +133,7 @@ class C:
         return (ops // depth * depth) / (time.perf_counter() - t0)
 
     def shard_count(self):
-        body = self.cmd("DEBUG", "LBSIGNALS")
-        return sum(1 for line in body.decode().splitlines() if line.split()[:1] == ["shard"])
+        return len(_lib.topology(self).shard_owner)
 
     def live_borrows(self):
         return self.cmd("DEBUG", "BORROWCOUNT")
@@ -175,9 +186,12 @@ def main():
     probe.rate(fp, rp, DEPTH * 40, DEPTH)
 
     def measure():
-        b = max(probe.rate(fb, rb, OPS, DEPTH) for _ in range(ROUNDS))
-        p = max(probe.rate(fp, rp, OPS, DEPTH) for _ in range(ROUNDS))
-        return 1e9 / b, 1e9 / p
+        # Best (lowest ns/op) of ROUNDS per arm, arms interleaved so drift hits both equally.
+        best_b = best_p = float("inf")
+        for _ in range(ROUNDS):
+            best_b = min(best_b, 1e9 / probe.rate(fb, rb, OPS, DEPTH))
+            best_p = min(best_p, 1e9 / probe.rate(fp, rp, OPS, DEPTH))
+        return best_b, best_p
 
     borrow_idle, plain_idle = measure()
     idle_borrows = wait_borrows(admin, lambda count: count == 0)
@@ -197,7 +211,15 @@ def main():
         issued += PER_HOLDER
         live_borrows = wait_borrows(admin, lambda count: count >= TARGET_BORROWS)
 
-    borrow_busy, plain_busy = measure()
+    # The plain arm is the environment instrument. If it moved, the box moved (CPU state, a
+    # co-tenant) and the pair says nothing about the registry: re-roll the busy pair while the
+    # holders stay parked, up to three times.
+    for attempt in range(1, 4):
+        borrow_busy, plain_busy = measure()
+        if plain_busy / plain_idle <= MAX_GROWTH:
+            break
+        print("  note: control arm moved %.0f -> %.0f ns on attempt %d (environment, not the "
+              "registry); re-rolling the busy pair" % (plain_idle, plain_busy, attempt))
     live_borrows_after = admin.live_borrows()
     check("holders really parked borrows on the shard",
           min(live_borrows, live_borrows_after) >= TARGET_BORROWS // 2,
@@ -205,19 +227,33 @@ def main():
           % (idle_borrows, live_borrows, live_borrows_after))
     for h in holders:
         h.close()
-    probe.close()
     drained_borrows = wait_borrows(admin, lambda count: count == 0)
     check("borrow registry drained after holders", drained_borrows == 0,
           "live-borrows=%d" % drained_borrows)
 
-    growth = borrow_busy / borrow_idle
-    control = plain_busy / plain_idle
+    borrow_ref, plain_ref, reference = borrow_idle, plain_idle, "pre-baseline"
+    if plain_busy / plain_idle > MAX_GROWTH and drained_borrows == 0:
+        # Post baseline: same probe, same server, holders gone. If the plain arm agrees with it,
+        # the box shifted between the two baselines and the post one is the honest reference.
+        borrow_post, plain_post = measure()
+        print("  note: post-baseline borrow %.0f ns, plain %.0f ns (pre-baseline %.0f / %.0f)"
+              % (borrow_post, plain_post, borrow_idle, plain_idle))
+        if plain_busy / plain_post <= MAX_GROWTH:
+            borrow_ref, plain_ref, reference = borrow_post, plain_post, "post-baseline"
+    probe.close()
+
+    growth = borrow_busy / borrow_ref
+    control = plain_busy / plain_ref
     check("borrowed GET per-op cost growth <= %.2f" % MAX_GROWTH, growth <= MAX_GROWTH,
-          "%.0f -> %.0f ns  ratio=%.3f" % (borrow_idle, borrow_busy, growth))
+          "%.0f -> %.0f ns  ratio=%.3f (%s)" % (borrow_ref, borrow_busy, growth, reference))
     check("control (non-borrowed GET) stayed flat", control <= MAX_GROWTH,
-          "%.0f -> %.0f ns  ratio=%.3f" % (plain_idle, plain_busy, control))
-    check("the two arms really took different paths", borrow_idle > plain_idle * 1.5,
-          "borrow %.0f ns vs plain %.0f ns" % (borrow_idle, plain_idle))
+          "%.0f -> %.0f ns  ratio=%.3f (%s)%s" % (
+              plain_ref, plain_busy, control, reference,
+              "" if control <= MAX_GROWTH else
+              " -- the control moved against BOTH baselines: environment shifted mid-row, not a "
+              "registry verdict; rerun"))
+    check("the two arms really took different paths", borrow_ref > plain_ref * 1.5,
+          "borrow %.0f ns vs plain %.0f ns (%s)" % (borrow_ref, plain_ref, reference))
     admin.cmd("FLUSHALL")
     admin.close()
     print("BORROW-REGISTRY %s" % ("PASS" if FAIL == 0 else "FAIL %d" % FAIL))
