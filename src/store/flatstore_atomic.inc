@@ -621,6 +621,16 @@
             return false;
         }
 
+        // atomic_install_plain selects the freshly installed version as the store's read cut,
+        // because its ordinary caller (begin_plain_version) needs the handler that follows to see
+        // the clone it just installed. FLUSH is not that caller: it runs under an unbound read
+        // context and nothing after it restores the cut, so the store was left resolving every
+        // later unbound chain read (a direct RENAME's source lookup, a MULTI child's pop hop) at
+        // FLUSH's ticket with no origin connection -- a newer committed group of the same
+        // connection was then invisible and RENAME answered "no such key" for a key its own MSET
+        // had acknowledged. Preserve whatever context the caller had.
+        const uint64_t saved_epoch = atomic_read_epoch_;
+        const uint64_t saved_origin = atomic_read_origin_conn_id_;
         const uint64_t ticket = atomic_ticket_fn_(atomic_ticket_ctx_);
         for (PreparedClear& item : prepared) {
             Slice key(item.key.data(), static_cast<uint32_t>(item.key.size()));
@@ -628,6 +638,8 @@
             KvObj* tombstone = nullptr;
             atomic_install_plain(item.hash, key, opaque, tombstone, ticket);
         }
+        atomic_read_epoch_ = saved_epoch;
+        atomic_read_origin_conn_id_ = saved_origin;
         return true;
     }
 
