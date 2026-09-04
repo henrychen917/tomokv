@@ -1384,10 +1384,12 @@ private:
         return true;
     }
 
+    // The ring's auxiliary word is the retire-time kvobj_capacity: the sized-free length the
+    // reclaim callback needs, not the accounting footprint (see retire_obj_read_local).
     void retire_detached_obj_read_local(KvObj* object) {
         if (!object) return;
         read_local_store_state_required().retire_sink.retire(
-            this, object, kvobj_size(object), &FlatStore::read_local_reclaim_atomic_object);
+            this, object, kvobj_capacity(object), &FlatStore::read_local_reclaim_atomic_object);
     }
 
     void retire_detached_obj(KvObj* object) {

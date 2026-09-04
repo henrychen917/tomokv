@@ -1340,8 +1340,9 @@ public:
         outstanding_borrows_--;
         if (b.refs) return;
         if (b.retired) {
-            pending_bytes_ -= kvobj_size(b.retired);
-            free_retired_obj_now(b.retired);
+            const size_t capacity = kvobj_capacity(b.retired);
+            pending_bytes_ -= capacity + kvobj_external_bytes(b.retired);
+            free_retired_obj_now(b.retired, capacity);
         }
         borrow_index_dropped(ptr);
         const uint32_t last = static_cast<uint32_t>(borrows_.size() - 1);
@@ -3009,7 +3010,7 @@ private:
                     read_local_slot_store(&tab_[t][i], make_word(tag, o));
                 }
                 live_[t]++;
-                const size_t added_bytes = kvobj_size(o);
+                const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                 settax_stats().accounting_add_calls++;
@@ -3039,7 +3040,7 @@ private:
                 settax_stats().slot_replacements++;
 #endif
                 retire_obj_read_local(cur);
-                const size_t added_bytes = kvobj_size(o);
+                const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                 settax_stats().accounting_add_calls++;
@@ -3113,15 +3114,28 @@ private:
         return TtlResult::Updated;
     }
 
+    // kvobj_external_bytes() is out of line and switches on type. One byte of the header (already
+    // hot: the key compare loaded it) decides whether anything lives outside the block, so test it
+    // here and pay the call only for Enc::Extern. Same value as kvobj_size(o) - kvobj_capacity(o).
+    static size_t read_local_external_bytes(const KvObj* object) {
+        return static_cast<Enc>(object->enc) == Enc::Extern ? kvobj_external_bytes(object) : 0;
+    }
+
+    // Decode the header ONCE, exactly as unarmed retire_obj() does: the size class computed for
+    // accounting is also the sized-free length. It travels to the reclaim callback as the ring's
+    // auxiliary word, so the free after the grace period does not re-derive it from a header that
+    // has gone cold. A published object is immutable (variant 0), and eviction-meta updates keep
+    // the layout bits, so the class cannot change between retire and reclaim.
     void retire_obj_read_local(KvObj* object) {
-        const size_t bytes = kvobj_size(object);
+        const size_t capacity = kvobj_capacity(object);
+        const size_t bytes = capacity + read_local_external_bytes(object);
         obj_bytes_ -= bytes;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         settax_stats().accounting_sub_calls++;
         settax_stats().accounting_bytes += bytes;
 #endif
         read_local_store_state_required().retire_sink.retire(
-            this, object, bytes, &FlatStore::read_local_reclaim_object);
+            this, object, capacity, &FlatStore::read_local_reclaim_object);
     }
 
     bool start_rehash_read_local(uint32_t newcap) {
@@ -3341,16 +3355,17 @@ private:
         std::free(payload);
     }
 
+    // `capacity` is kvobj_capacity(object) as decoded at retire time (the ring's auxiliary word).
     static void read_local_reclaim_object(const ReadLocalRetireSink& sink, void* owner,
-                                          void* payload, size_t bytes) {
+                                          void* payload, size_t capacity) {
         FlatStore* store = static_cast<FlatStore*>(owner);
         KvObj* object = static_cast<KvObj*>(payload);
         if (!store->recycle_set_value_read_local(object, sink))
-            store->destroy_retired_obj(object, bytes);
+            store->destroy_retired_obj(object, capacity);
     }
 
     static void read_local_reclaim_atomic_object(const ReadLocalRetireSink& sink, void* owner,
-                                                 void* payload, size_t bytes) {
+                                                 void* payload, size_t capacity) {
         FlatStore* store = static_cast<FlatStore*>(owner);
         KvObj* object = static_cast<KvObj*>(payload);
         if (store->atomic_recycle_value(object)) {
@@ -3360,7 +3375,7 @@ private:
             return;
         }
         if (!store->recycle_set_value_read_local(object, sink))
-            store->destroy_retired_obj(object, bytes);
+            store->destroy_retired_obj(object, capacity);
     }
 
     void retire_table_read_local(uint64_t* table) {
@@ -3471,13 +3486,13 @@ private:
     // The experiment targets the physical cache lines jemalloc may return from its LIFO tcache to
     // the next SET. Bound hints to the KvObj allocation itself (kvobj_size may include an external
     // value allocation), and issue them only at the point where ownership really passes to free.
-    void free_retired_obj_now(KvObj* object) {
+    // `capacity` is kvobj_capacity(object), decoded by whoever retired it; the sized free needs it.
+    void free_retired_obj_now(KvObj* object, size_t capacity) {
         if constexpr (kReadLocalReclaimPrefetchw) {
             if (read_local_enabled_) {
                 constexpr size_t kLineBytes = 64;
                 constexpr uint32_t kMaxLines = 3;
                 const char* const base = reinterpret_cast<const char*>(object);
-                const size_t capacity = kvobj_capacity(object);
                 __builtin_prefetch(base, 1, 3);
                 size_t offset = kLineBytes -
                     (reinterpret_cast<uintptr_t>(base) & (kLineBytes - 1));
@@ -3486,20 +3501,22 @@ private:
                     __builtin_prefetch(base + offset, 1, 3);
             }
         }
-        kvobj_free(object);
+        kvobj_free_with_capacity(object, capacity);
     }
 
-    void destroy_retired_obj(KvObj* object, size_t bytes) {
-        if (outstanding_borrows_ == 0) { free_retired_obj_now(object); return; }
+    // Post-grace destruction. Only the rare borrowed path needs the full footprint again, and it
+    // rebuilds it from the retire-time capacity plus the external block (== kvobj_size).
+    void destroy_retired_obj(KvObj* object, size_t capacity) {
+        if (outstanding_borrows_ == 0) { free_retired_obj_now(object, capacity); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
                               ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
         if (at != kNoBorrow) {
             borrows_[at].retired = object;
-            pending_bytes_ += bytes;
+            pending_bytes_ += capacity + read_local_external_bytes(object);
             return;
         }
-        free_retired_obj_now(object);
+        free_retired_obj_now(object, capacity);
     }
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
