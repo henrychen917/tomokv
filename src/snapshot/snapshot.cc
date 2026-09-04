@@ -299,6 +299,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         std::this_thread::yield();
     }
     if (phase() == Phase::Freeze) {
+        // All owners are frozen and the atomic-group drain is complete, so this is the stable
+        // commit watermark that defines the snapshot cut.  Keep it latched after the save ends so
+        // INFO can report this exact cut rather than a live watermark that continues to advance.
+        cut_ticket_.store(server.atomic_snapshot(), std::memory_order_relaxed);
         cut_ms_.store(realtime_ms(), std::memory_order_release);
         phase_.store(Phase::Mark, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())

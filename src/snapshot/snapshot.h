@@ -61,6 +61,7 @@ public:
     Phase phase() const { return phase_.load(std::memory_order_acquire); }
     uint64_t epoch() const { return epoch_.load(std::memory_order_acquire); }
     int64_t cut_ms() const { return cut_ms_.load(std::memory_order_acquire); }
+    uint64_t cut_ticket() const { return cut_ticket_.load(std::memory_order_relaxed); }
     bool blocking() const { return blocking_.load(std::memory_order_relaxed); }
     uint32_t save_current_shard() const {
         return save_current_shard_.load(std::memory_order_acquire);
@@ -117,6 +118,7 @@ private:
     std::atomic<Phase> phase_{Phase::Idle};
     std::atomic<uint64_t> epoch_{0};
     std::atomic<int64_t> cut_ms_{0};
+    std::atomic<uint64_t> cut_ticket_{0};
     std::atomic<uint32_t> ready_owners_{0};
     std::atomic<uint32_t> frozen_owners_{0};
     std::atomic<uint32_t> marked_owners_{0};
