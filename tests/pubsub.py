@@ -90,6 +90,31 @@ def expect_no_frame(conn, label, timeout=0.15):
         raise AssertionError(f"{label}: unexpected frame {conn.read()!r}")
 
 
+def drained(admin, channel, label, deadline=5.0):
+    """Wait until `channel` has no regular and no shard subscribers left.
+
+    CLOSING A SUBSCRIBER IS ASYNCHRONOUS. The socket goes away when the client calls close(), but
+    the server drops that connection's registrations when its io thread next reaps the connection,
+    which is a different moment. A row that closes a subscriber and immediately asserts "PUBLISH
+    delivered to 0 receivers" is therefore asserting a race, and it lost that race once on a full
+    gate: PUBLISH answered 1 because the just-closed REGULAR subscriber on the same channel name
+    had not been unregistered yet. Waiting for the registry to drain keeps the assertion exact --
+    still zero receivers, never "0 or 1" -- and removes the race the test itself created.
+    """
+    end = time.monotonic() + deadline
+    while True:
+        regular = admin.command("PUBSUB", "NUMSUB", channel)
+        shard = admin.command("PUBSUB", "SHARDNUMSUB", channel)
+        counts = (regular[1] if isinstance(regular, list) and len(regular) == 2 else None,
+                  shard[1] if isinstance(shard, list) and len(shard) == 2 else None)
+        if counts == (0, 0):
+            return
+        if time.monotonic() >= end:
+            raise AssertionError(f"{label}: channel {channel} still has subscribers {counts} "
+                                 f"after {deadline}s")
+        time.sleep(0.01)
+
+
 def info_stats(conn):
     raw = conn.command("INFO", "STATS")
     if not isinstance(raw, bytes):
@@ -181,6 +206,7 @@ def main():
            "SPUBLISH ignores regular exact")
     expect_no_frame(regular_only, "regular subscriber got shard publish")
     regular_only.close()
+    drained(admin, namespace_channel, "regular namespace subscriber teardown")
 
     shard_only = Conn(host, port)
     expect(shard_only.command("SSUBSCRIBE", namespace_channel),
@@ -189,6 +215,7 @@ def main():
            "PUBLISH ignores shard exact")
     expect_no_frame(shard_only, "shard subscriber got regular publish")
     shard_only.close()
+    drained(admin, namespace_channel, "shard namespace subscriber teardown")
 
     pattern_only = Conn(host, port)
     namespace_pattern = f"{token}:namespace:*"
