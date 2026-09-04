@@ -5,16 +5,6 @@
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
 #                         shutdown invariants, counter-fired assertions, idle-loop ceiling. Runs on
 #                         any machine.
-# ---- CLIENT REPLY OFF/SKIP + cross-shard MGET on a zero-copy boot: suppressed replies leave nothing on the
-# wire and release their borrows (regression for the partial-array leak fixed on the netwb lane) ------------
-for RA in 0 1; do
-  boot ./build/tomokv --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
-  py tests/replyoff_xshard.py 127.0.0.1 $PORT >/tmp/gate-replyoff-$RA.txt 2>&1 \
-      && ok "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" \
-      || bad "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" "see /tmp/gate-replyoff-$RA.txt"
-  stop
-done
-
 #   tests/gate.sh full    quick + torture-under-ASAN + the Redis 7.4 differential matrix + NIC
 #                         regression cells vs tests/gate_refs.txt (the NIC cells need the 25GbE
 #                         netns rig and its scratchpad binaries/procsafe helper).
@@ -1039,6 +1029,16 @@ stop
 if grep -q "ERROR: AddressSanitizer" "$SRVLOG"; then bad "ASAN clean" "see $SRVLOG"
 elif shutdown_present; then ok "ASAN clean"
 else bad "ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
+
+# ---- CLIENT REPLY OFF/SKIP + cross-shard MGET on a zero-copy boot: suppressed replies leave nothing on the
+# wire and release their borrows (regression for the partial-array leak fixed on the netwb lane) ------------
+for RA in 0 1; do
+  boot ./build/tomokv --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
+  py tests/replyoff_xshard.py 127.0.0.1 $PORT >/tmp/gate-replyoff-$RA.txt 2>&1 \
+      && ok "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" \
+      || bad "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" "see /tmp/gate-replyoff-$RA.txt"
+  stop
+done
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
 zcboot(){
