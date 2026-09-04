@@ -299,6 +299,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry) return;
         if (entry->linked || entry->count) std::abort();
+        read_local_pending_unpublish(*entry);
         atomic_free_entry(entry);
         opaque = nullptr;
     }
@@ -457,16 +458,19 @@
         if (!atomic_recycle_value(value)) kvobj_free(value);
     }
 
-    bool atomic_prepare_plain(Slice key, uint64_t origin_conn_id, void*& opaque) {
+    bool atomic_prepare_plain(Slice key, uint64_t hash, uint64_t origin_conn_id,
+                              void*& opaque) {
         if (__builtin_expect(read_local_enabled_, false))
-            return atomic_prepare_plain_read_local(key, origin_conn_id, opaque);
+            return atomic_prepare_plain_read_local(key, hash, origin_conn_id, opaque);
         opaque = nullptr;
         if (!atomic_ensure_pending()) return false;
         AtomicEntry* entry = atomic_alloc_entry(1, key.n);
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
+        entry->membership = atomic_membership_bit(hash);
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
         opaque = entry;
         return true;
@@ -511,11 +515,10 @@
         if (!entry || !entry->plain() || entry->key_len != key.n ||
             Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
         entry->epoch = epoch;
-        entry->plain_hash = hash;
+        if (entry->plain_hash != hash) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
         entry->parked()[0] = old;
         entry->count = 1;
-        entry->membership = atomic_membership_bit(hash);
         if (old) atomic_version_bytes_ += kvobj_size(old);
         if (value) atomic_gauge_sub(kvobj_size(value));
         value = nullptr;
@@ -618,7 +621,7 @@
             atomic_for_each_unique_key([&](uint64_t hash, Slice key) {
                 PreparedClear item{hash, std::string(key.p, key.n), nullptr};
                 void* opaque = nullptr;
-                if (!atomic_prepare_plain(key, 0, opaque)) throw std::bad_alloc();
+                if (!atomic_prepare_plain(key, hash, 0, opaque)) throw std::bad_alloc();
                 item.entry = static_cast<AtomicEntry*>(opaque);
                 prepared.push_back(std::move(item));
             });
@@ -657,6 +660,7 @@ private:
         auto* entry = static_cast<AtomicEntry*>(opaque);
         if (!entry) return;
         if (entry->linked || entry->count) std::abort();
+        read_local_pending_unpublish(*entry);
         atomic_free_entry_read_local(entry);
         opaque = nullptr;
     }
@@ -678,8 +682,8 @@ private:
         entry->begin = begin;
         entry->capacity = capacity;
         entry->membership = membership;
-        // Publish before returning the prepared handle: no caller can perform a physical exchange
-        // until the conservative pending bit is visible to an acquiring read-local probe.
+        // Publish every key occurrence before returning the prepared handle: no caller can perform
+        // a physical exchange until an acquiring read-local probe can see its filter cell.
         read_local_pending_publish(*entry);
         return entry;
     }
@@ -720,14 +724,17 @@ private:
         return true;
     }
 
-    bool atomic_prepare_plain_read_local(Slice key, uint64_t origin_conn_id, void*& opaque) {
+    bool atomic_prepare_plain_read_local(Slice key, uint64_t hash, uint64_t origin_conn_id,
+                                         void*& opaque) {
         opaque = nullptr;
         if (!atomic_ensure_pending()) return false;
         AtomicEntry* entry = atomic_alloc_entry(1, key.n);
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
+        entry->membership = atomic_membership_bit(hash);
         if (key.n) std::memcpy(entry->plain_key_data(), key.p, key.n);
         read_local_pending_publish(*entry);
         opaque = entry;
@@ -824,6 +831,7 @@ private:
 
     void atomic_free_entry(AtomicEntry* entry) {
         if (!entry) return;
+        if (entry->foreign_read_unsafe_published) std::abort();
         const size_t allocation = entry->allocation;
         const uint32_t cls = atomic_pool_class(allocation);
         static constexpr uint32_t kEntryCache = 4096;
@@ -841,23 +849,10 @@ private:
     }
 
     void atomic_free_entry_read_local(AtomicEntry* entry) {
-        // Prepared entries remain conservatively pending through install, linking and collapse.
-        // This is their single final-release point, after any displaced objects were QSBR-retired.
-        read_local_pending_unpublish(*entry);
-        const size_t allocation = entry->allocation;
-        const uint32_t cls = atomic_pool_class(allocation);
-        static constexpr uint32_t kEntryCache = 4096;
-        static constexpr size_t kEntryCacheBytes = 4 * 1024 * 1024;
-        if (atomic_pending_ && cls < AtomicPendingState::kPoolClasses &&
-            atomic_pending_->cached_entries < kEntryCache &&
-            atomic_pending_->cached_entry_bytes + allocation <= kEntryCacheBytes) {
-            entry->pool_next = atomic_pending_->free_entries[cls];
-            atomic_pending_->free_entries[cls] = entry;
-            atomic_pending_->cached_entries++;
-            atomic_pending_->cached_entry_bytes += allocation;
-        } else {
-            free_sized(entry, allocation);
-        }
+        // Filter closure is deliberately separate: grouped key hashes live in ScatterState and
+        // must be consumed before its last owner pin is decremented.
+        if (entry && entry->foreign_read_unsafe_published) std::abort();
+        atomic_free_entry(entry);
     }
 
     void atomic_destroy_pending() {
@@ -1144,9 +1139,11 @@ private:
 
     KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key,
                                                KvObj* replacement) {
-        // Atomic pending excludes local probes, but an old-to-new replacement is still a physical
-        // table move. Its rare two-slot update gets a topology bracket; a stable-table pointer
-        // exchange (or one-slot erase) is already covered by pending and its close generation.
+        // The key filter was release-published before this call. Enclose every possible physical
+        // exchange in the table sequence so a reader that observed the old empty cell cannot
+        // consume an epoch-zero/aborted candidate. The same bracket is what a local MGET compares
+        // on a group-free participant; nested insert/rehash helpers share its owner-local depth.
+        ReadLocalTableGuard atomic_change(*this);
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
@@ -1175,8 +1172,6 @@ private:
         };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
-            const bool moves_from_old = replacement && find_in(1, hash, key) != nullptr;
-            ReadLocalTableGuard table_move(*this, moves_from_old);
             if (KvObj* object = exchange(1)) {
                 if (replacement && !insert_into_read_local(0, hash, replacement, true))
                     std::abort();
@@ -1358,6 +1353,8 @@ private:
                         entry->parked()[i] = nullptr;
                     }
                 }
+                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+                read_local_pending_unpublish(*entry);
                 if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                     entry->group_refs->fetch_sub(1, std::memory_order_release);
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
@@ -1469,6 +1466,8 @@ private:
                     entry->parked()[i] = nullptr;
                     promoted++;
                 }
+                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+                read_local_pending_unpublish(*entry);
                 if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                     entry->group_refs->fetch_sub(1, std::memory_order_release);
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
@@ -1642,6 +1641,8 @@ private:
         uint32_t freed_entries = 0;
         while (entry != first_unselected) {
             AtomicEntry* next = entry->next;
+            // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+            read_local_pending_unpublish(*entry);
             if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                 entry->group_refs->fetch_sub(1, std::memory_order_release);
             if (atomic_records_freed_) (*atomic_records_freed_)++;
@@ -1738,6 +1739,8 @@ private:
                         entry->parked()[i] = nullptr;
                     }
                 }
+                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+                read_local_pending_unpublish(*entry);
                 if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                     entry->group_refs->fetch_sub(1, std::memory_order_release);
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
@@ -1851,6 +1854,8 @@ private:
                     entry->parked()[i] = nullptr;
                     promoted++;
                 }
+                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+                read_local_pending_unpublish(*entry);
                 if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                     entry->group_refs->fetch_sub(1, std::memory_order_release);
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
@@ -2027,6 +2032,8 @@ private:
         uint32_t freed_entries = 0;
         while (entry != first_unselected) {
             AtomicEntry* next = entry->next;
+            // Grouped hashes live in ScatterState; close before its last owner pin can drop.
+            read_local_pending_unpublish(*entry);
             if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
                 entry->group_refs->fetch_sub(1, std::memory_order_release);
             if (atomic_records_freed_) (*atomic_records_freed_)++;

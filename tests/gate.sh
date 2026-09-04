@@ -71,8 +71,10 @@ ROW_T=$(date +%s.%N)
 # it compiled clean but nothing built or ran it (AUDIT-TESTS F15). Full: 250 -> 251.
 # 240 -> 241: atomic_hazards locks the S1 FLUSH read-cut and S2 XREAD touched-key fixes on the
 # existing atomic-on, DEBUG-enabled 2s boot. Full: 251 -> 252.
-EXPECT_QUICK=241
-EXPECT_FULL=252                 # full without the optional NIC row.
+# 241 -> 243: B+ adds the counting-fingerprint representation unit plus the deterministic
+# held-group GET/MGET filter battery. Full: 252 -> 254.
+EXPECT_QUICK=243
+EXPECT_FULL=254                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -177,6 +179,11 @@ g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o /tmp/tomokv-
     && /tmp/tomokv-flipctl-unit >>/tmp/gate-flipctl-unit.txt 2>&1 \
     && ok "flip controller model unit" \
     || bad "flip controller model unit" "see /tmp/gate-flipctl-unit.txt"
+g++ -std=c++20 -O2 -pthread -I. tests/foreign_read_safety_test.cc \
+    -o /tmp/tomokv-foreign-read-safety-test \
+    && /tmp/tomokv-foreign-read-safety-test \
+    && ok "B+ counting-fingerprint filter unit" \
+    || bad "B+ counting-fingerprint filter unit"
 if [ "$ORACLE_OK" = 1 ]; then
   python3 tools/gen_acl_categories.py --redis-root "$REDIS74_ROOT" \
       --check src/cmd/acl_categories_generated.h \
@@ -324,6 +331,18 @@ for AT in 0 1; do
              "see /tmp/gate-fused-spinprobe-$AT.txt"
   stop
 done
+
+# ---- B+ pending-atomic filter: negative keys stay local, touched keys lower whole commands -----
+# DEBUG geometry makes false positives impossible in these arms: A/B share one physical shard but
+# use distinct filter cells, as do P/C on the other participating owner. ATOMIC-COMMIT-DELAY holds
+# A/P after raw install and atomic_commit_holds proves the reserved/unpublished window was sampled.
+boot_fused ./build/tomokv --atomic 1 --read-local 1 --read-local-atomic-filter 1 \
+    --enable-debug-command yes \
+    || bad "B+ read-local purpose boot"
+py tests/bplus.py 127.0.0.1 "$PORT" >/tmp/gate-bplus.txt 2>&1 \
+    && ok "B+ held-group GET/MGET filter battery" \
+    || bad "B+ held-group GET/MGET filter battery" "see /tmp/gate-bplus.txt"
+stop
 
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
 # tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with

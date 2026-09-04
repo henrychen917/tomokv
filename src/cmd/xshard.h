@@ -201,8 +201,15 @@ ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& rin
 // Ordinary one-key operations only enter this path when their key already has an MVCC record.
 // Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed
 // version so collection handlers may continue mutating in place without touching a predecessor.
-bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id);
-void xshard_plain_finish(Shard& shard);
+struct PlainForeignReadScope {
+    struct Key { uint64_t hash; Slice key; };
+    std::vector<Key> keys;
+    bool active = false;
+    bool poisoned = false;
+};
+bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id,
+                          PlainForeignReadScope& foreign_scope);
+void xshard_plain_finish(Shard& shard, PlainForeignReadScope& foreign_scope);
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget = 8);
 uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
                                  uint32_t budget = 8);

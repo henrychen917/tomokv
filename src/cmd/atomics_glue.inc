@@ -50,7 +50,7 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     }
 
     void* prepared = nullptr;
-    if (!store.atomic_prepare_plain(key, origin_conn_id, prepared) ||
+    if (!store.atomic_prepare_plain(key, hash, origin_conn_id, prepared) ||
         !store.atomic_prepare_capacity(1) || !store.atomic_admit(key, clone)) {
         if (prepared) store.atomic_discard_plain(prepared);
         if (clone) kvobj_free(clone);
@@ -316,20 +316,20 @@ inline Slice op_routed_key(const Op& op) {
 }
 
 template <typename Fn>
-void for_each_touched_key(Op& op, Fn&& fn) {
+bool for_each_touched_key(Op& op, Fn&& fn) {
     if (op.spec->flags & CmdFlags::ScriptRoute) {
         uint32_t first = 0, count = 0;
-        if (!command_script_key_range(op, first, count)) return;
+        if (!command_script_key_range(op, first, count)) return false;
         for (uint32_t i = 0; i < count; i++) {
             const Slice key = op.arg(first + i);
             fn(FlatStore::hash_key(key), key);
         }
-        return;
+        return true;
     }
     Kind kind;
     if (!classify(op, kind)) {
         if (op.argc() > 1) fn(op.hash, op_routed_key(op));
-        return;
+        return true;
     }
     // THE STREAM READS NAME THEIR KEYS BEHIND AN OPTION LIST, so the positional table below cannot
     // place them and used to be handed xread_count == 0: a localfast XREAD/XREADGROUP touched no
@@ -343,12 +343,12 @@ void for_each_touched_key(Op& op, Fn&& fn) {
         uint32_t first = 0, count = 0;
         if (kind == Kind::Xread) {
             StreamXreadArgs parsed;
-            if (!stream_parse_xread(op, parsed)) return;
+            if (!stream_parse_xread(op, parsed)) return false;
             first = parsed.first_key;
             count = parsed.key_count;
         } else {
             StreamXreadGroupArgs parsed;
-            if (!stream_parse_xreadgroup(op, parsed)) return;
+            if (!stream_parse_xreadgroup(op, parsed)) return false;
             first = parsed.key_arg;
             count = 1;
         }
@@ -356,7 +356,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             const Slice key = op.arg(first + i);
             fn(FlatStore::hash_key(key), key);
         }
-        return;
+        return true;
     }
     uint32_t sinter_count = 0;
     uint32_t mpop_count = 0;
@@ -374,19 +374,18 @@ void for_each_touched_key(Op& op, Fn&& fn) {
             mpop_count = static_cast<uint32_t>(parsed);
     } else if (kind == Kind::Sort) {
         SortOptions options;
-        if (parse_sort_options(op, options)) {
-            sort_store = options.store;
-            sort_store_arg = options.store_arg;
-        }
+        if (!parse_sort_options(op, options)) return false;
+        sort_store = options.store;
+        sort_store_arg = options.store_arg;
     } else if (is_any_zsetop(kind)) {
         uint64_t limit = 0;
         std::vector<double> weights;
         ZAggregate aggregate = ZAggregate::Sum;
         bool withscores = false;
         if (!parse_zset_operation(op, kind, zset_count, weights, aggregate, withscores, limit))
-            return;
+            return false;
     } else if (is_geo_kind(kind)) {
-        if (!geo_prepare_route(op, geo_route)) return;
+        if (!geo_prepare_route(op, geo_route)) return false;
     }
     const uint32_t count = key_count_for(kind, op, sinter_count, mpop_count, sort_store, 0,
                                          zset_count, geo_route.store);
@@ -397,6 +396,7 @@ void for_each_touched_key(Op& op, Fn&& fn) {
         const Slice key = op.arg(arg);
         fn(FlatStore::hash_key(key), key);
     }
+    return true;
 }
 
 uint64_t snapshot_exclusive_floor(uint64_t snapshot) {
@@ -927,8 +927,39 @@ uint64_t plain_read_cut(Server& server, const Op& op, uint64_t now) {
     return cut;
 }
 
-bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id) {
+bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id,
+                          PlainForeignReadScope& foreign_scope) {
     FlatStore& store = shard.store();
+    const bool scoped_foreign_write = store.read_local_enabled() &&
+        (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+        (op.local_xshard() || (op.spec->flags & CmdFlags::ScriptRoute));
+    if (scoped_foreign_write) {
+        bool allocation_failed = false;
+        const bool enumerated = for_each_touched_key(op, [&](uint64_t hash, Slice key) {
+            if (allocation_failed) return;
+            try { foreign_scope.keys.push_back({hash, key}); }
+            catch (const std::bad_alloc&) { allocation_failed = true; }
+        });
+        foreign_scope.active = true;
+        if (!enumerated || allocation_failed) {
+            // Optional safety metadata must never make an otherwise-valid write fail. A write whose
+            // complete key set cannot be retained runs under the fixed-size shard poison instead;
+            // if MVCC records below independently require exact keys, their established preparation
+            // may still reject the handler for its own parse/allocation failure.
+            foreign_scope.keys.clear();
+            foreign_scope.poisoned = true;
+            store.foreign_read_unenumerable_open();
+            // The shared route parsers install their precise syntax/OOM reply before returning
+            // false. Do not run the handler a second time over that reply. A failure only in this
+            // optional retained vector has no reply and safely continues under the poison.
+            if (!enumerated) return false;
+        } else {
+            store.foreign_read_scope_open_span(
+                static_cast<uint32_t>(foreign_scope.keys.size()), [&](uint32_t index) {
+                    return foreign_scope.keys[index].hash;
+                });
+        }
+    }
     if (!store.atomic_has_records()) return true;
     const uint32_t read_stall = server.debug_atomic_read_delay();
     if (__builtin_expect(read_stall != 0, false) &&
@@ -940,7 +971,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         struct RecordedKey { uint64_t hash; Slice key; };
         std::vector<RecordedKey> recorded;
         bool allocation_failed = false;
-        for_each_touched_key(op, [&](uint64_t hash, Slice key) {
+        const auto inspect_key = [&](uint64_t hash, Slice key) {
             if (allocation_failed) return;
             store.atomic_promote_key(hash, key, floor, cleanup_cutoff);
             if (!store.atomic_needs_version(hash, key)) return;
@@ -951,7 +982,15 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
             catch (const std::bad_alloc&) { allocation_failed = true; }
-        });
+        };
+        bool enumerated = true;
+        if (foreign_scope.active && !foreign_scope.poisoned) {
+            for (const PlainForeignReadScope::Key& key : foreign_scope.keys)
+                inspect_key(key.hash, key.key);
+        } else {
+            enumerated = for_each_touched_key(op, inspect_key);
+        }
+        if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }
         if (recorded.empty()) return true;
 
@@ -999,7 +1038,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                     break;
                 }
             }
-            if (!store.atomic_prepare_plain(item.key, origin_conn_id, next.entry)) {
+            if (!store.atomic_prepare_plain(
+                    item.key, item.hash, origin_conn_id, next.entry)) {
                 if (next.clone) kvobj_free(next.clone);
                 failure = WorkError::Oom;
                 break;
@@ -1063,8 +1103,19 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     return false;
 }
 
-void xshard_plain_finish(Shard& shard) {
+void xshard_plain_finish(Shard& shard, PlainForeignReadScope& foreign_scope) {
     shard.store().atomic_finish_plain();
+    FlatStore& store = shard.store();
+    if (!foreign_scope.active) return;
+    if (foreign_scope.poisoned) {
+        store.foreign_read_unenumerable_close();
+    } else {
+        store.foreign_read_scope_close_span(
+            static_cast<uint32_t>(foreign_scope.keys.size()), [&](uint32_t index) {
+                return foreign_scope.keys[index].hash;
+            });
+    }
+    foreign_scope.active = false;
 }
 
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {

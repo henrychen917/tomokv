@@ -213,7 +213,9 @@ public:
         for (Shard* shard : self_->shards()) {
             shard->bind_notify_pending(&notify_keyless_pending_);
             if (read_local_enabled())
-                shard->store().configure_read_local(true, *read_local_impl().deferred.sink());
+                shard->store().configure_read_local(
+                    true, *read_local_impl().deferred.sink(),
+                    srv_->cfg().read_local_atomic_filter != 0);
         }
     }
 
@@ -888,61 +890,157 @@ private:
         lane.lane_demotion_demand -= demand;
     }
 
-    PreparedLocalRead prepare_local_mget(Op& op) {
-        static constexpr uint32_t kRetries = 3;
-        static constexpr uint32_t kMaxReadLocalShards = 256;
-        const uint32_t key_count = op.argc() - 1;
-        if (!key_count || srv_->nshards() > kMaxReadLocalShards) std::abort();
+    // Command-wide window validator for a local MGET. A touched shard whose table word has no
+    // pending bit is validated by the table generation, which every group install and topology
+    // change advances and no plain immutable publication does. With the per-key filter armed, a
+    // pending shard is instead validated per queried key by the touch epoch of that key's filter
+    // cell, so unrelated group installs on the same shard cannot invalidate the window. With the
+    // filter OFF (the A/B control) there are no epochs and every shard keeps the generation rule.
+    // Nothing beyond the table word (already loaded by every probe) is touched when no participant
+    // has an open group.
+    struct LocalMgetWindow {
+        static constexpr uint32_t kMaxShards = 256;
+        static constexpr uint32_t kMaxEpochKeys = 128;
+        uint64_t states[kMaxShards];
+        uint32_t epochs[kMaxEpochKeys];
+        bool any_pending = false;
+        bool use_epochs = false;
 
-        uint64_t hashes[kReadLocalPrefetchKeys];
-        int32_t shards[kReadLocalPrefetchKeys];
-        const bool cached_routes = key_count <= kReadLocalPrefetchKeys;
-        if (cached_routes) {
-            for (uint32_t key = 0; key < key_count; key++) {
-                hashes[key] = FlatStore::hash_key(op.arg(key + 1));
-                shards[key] = srv_->router().shard_of(hashes[key]);
-                srv_->shard(shards[key]).store().read_local_prefetch(hashes[key]);
+        bool epoch_validated(uint32_t sid) const {
+            return use_epochs && FlatStore::read_local_pending(states[sid]);
+        }
+    };
+
+    static bool local_mget_touched(const uint64_t* touched, uint32_t sid) {
+        return (touched[sid >> 6] & (uint64_t{1} << (sid & 63))) != 0;
+    }
+
+    // All window loads precede every value load. Returns None when the window is open.
+    ReadLocalFallbackReason local_mget_window_open(
+            LocalMgetWindow& window, const uint64_t* touched, const uint64_t* hashes,
+            const int32_t* shards, uint32_t key_count, bool cached_routes) const {
+        window.any_pending = false;
+        window.use_epochs = cached_routes && srv_->cfg().read_local_atomic_filter != 0;
+        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+            if (!local_mget_touched(touched, sid)) continue;
+            const uint64_t state = srv_->shard(static_cast<int32_t>(sid))
+                                       .store()
+                                       .read_local_state_acquire();
+            if (FlatStore::read_local_generation_poisoned(state))
+                return ReadLocalFallbackReason::Generation;
+            window.states[sid] = state;
+            if (FlatStore::read_local_pending(state)) window.any_pending = true;
+            // A generation-validated shard must be even now so that an equal even word later
+            // proves no bracket ran in between. An epoch-validated shard needs no such witness.
+            if (!window.epoch_validated(sid) && FlatStore::read_local_table_mutating(state))
+                return ReadLocalFallbackReason::SeqChurn;
+        }
+        if (!window.any_pending || !window.use_epochs) return ReadLocalFallbackReason::None;
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint32_t sid = static_cast<uint32_t>(shards[key]);
+            if (!window.epoch_validated(sid)) continue;
+            window.epochs[key] = srv_->shard(shards[key]).store().foreign_read_cell_epoch(
+                hashes[key]);
+        }
+        return ReadLocalFallbackReason::None;
+    }
+
+    // All window loads follow every value load. Returns None when every participant is unchanged.
+    ReadLocalFallbackReason local_mget_window_close(
+            const LocalMgetWindow& window, const uint64_t* touched, const uint64_t* hashes,
+            const int32_t* shards, uint32_t key_count) const {
+        // Formal seqlock hygiene: keep the value loads above on the near side of the re-reads
+        // below. Free on x86.
+        std::atomic_thread_fence(std::memory_order_acquire);
+        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+            if (!local_mget_touched(touched, sid) || window.epoch_validated(sid)) continue;
+            const uint64_t after = srv_->shard(static_cast<int32_t>(sid))
+                                       .store()
+                                       .read_local_state_acquire();
+            if (!FlatStore::read_local_state_eligible(after))
+                return ReadLocalFallbackReason::SeqChurn;
+            // A group that published its filter but installed nothing leaves the generation
+            // equal and only raises the pending bit; the command linearizes before it.
+            if (!FlatStore::read_local_generation_equal(window.states[sid], after))
+                return ReadLocalFallbackReason::Generation;
+        }
+        if (!window.any_pending || !window.use_epochs) return ReadLocalFallbackReason::None;
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint32_t sid = static_cast<uint32_t>(shards[key]);
+            if (!window.epoch_validated(sid)) continue;
+            if (srv_->shard(shards[key]).store().foreign_read_cell_epoch(hashes[key]) !=
+                window.epochs[key])
+                return ReadLocalFallbackReason::Generation;
+        }
+        return ReadLocalFallbackReason::None;
+    }
+
+    // After the bounded attempts, prefer the actionable atomic reason if one queried key won the
+    // final race; otherwise report the last transient reason observed.
+    ReadLocalFallbackReason local_mget_final_reason(
+            const Op& op, const uint64_t* hashes, const int32_t* shards, uint32_t key_count,
+            bool cached_routes, ReadLocalFallbackReason transient) const {
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint64_t hash = cached_routes
+                ? hashes[key] : FlatStore::hash_key(op.arg(key + 1));
+            const int32_t shard_id = cached_routes
+                ? shards[key] : srv_->router().shard_of(hash);
+            const FlatStore& store = srv_->shard(shard_id).store();
+            const uint64_t state = store.read_local_state_acquire();
+            if (store.foreign_read_key_unsafe(state, hash))
+                return ReadLocalFallbackReason::AtomicPending;
+        }
+        return transient;
+    }
+
+    PreparedLocalRead prepare_local_mget(Op& op) {
+        static constexpr uint32_t kAttempts = 2;
+        const uint32_t key_count = op.argc() - 1;
+        if (!key_count || srv_->nshards() > LocalMgetWindow::kMaxShards) std::abort();
+
+        uint64_t hashes[LocalMgetWindow::kMaxEpochKeys];
+        int32_t shards[LocalMgetWindow::kMaxEpochKeys];
+        const bool cached_routes = key_count <= LocalMgetWindow::kMaxEpochKeys;
+        uint64_t touched[LocalMgetWindow::kMaxShards / 64] = {};
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint64_t hash = FlatStore::hash_key(op.arg(key + 1));
+            const int32_t shard_id = srv_->router().shard_of(hash);
+            touched[static_cast<uint32_t>(shard_id) >> 6] |=
+                uint64_t{1} << (static_cast<uint32_t>(shard_id) & 63);
+            if (cached_routes) {
+                hashes[key] = hash;
+                shards[key] = shard_id;
             }
         }
+        const int64_t command_now_ms = cached_now_ms_;
 
-        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
-            uint64_t states[kMaxReadLocalShards];
-            uint64_t touched[kMaxReadLocalShards / 64] = {};
+        ReadLocalFallbackReason transient = ReadLocalFallbackReason::Generation;
+        for (uint32_t attempt = 0; attempt < kAttempts; attempt++) {
+            LocalMgetWindow window;
             PreparedLocalRead prepared;
-            bool retry = false;
             read_local_clear_reply(op);
-            reply_array_header(op.sink(), key_count);
 
-            for (uint32_t key = 0; key < key_count; key++) {
+            // Capture every participant before touching any value. The close below is after every
+            // copy, giving all stable participant intervals one command-wide intersection.
+            transient = local_mget_window_open(
+                window, touched, hashes, shards, key_count, cached_routes);
+            bool retry = transient != ReadLocalFallbackReason::None;
+            if (!retry) reply_array_header(op.sink(), key_count);
+
+            for (uint32_t key = 0; key < key_count && !retry; key++) {
                 const Slice name = op.arg(key + 1);
                 const uint64_t hash = cached_routes ? hashes[key] : FlatStore::hash_key(name);
                 const int32_t shard_id = cached_routes
                     ? shards[key] : srv_->router().shard_of(hash);
                 FlatStore& store = srv_->shard(shard_id).store();
-                const uint32_t sid = static_cast<uint32_t>(shard_id);
-                const uint64_t bit = uint64_t{1} << (sid & 63);
-                uint64_t& word = touched[sid >> 6];
-                if (!(word & bit)) {
-                    const uint64_t state = store.read_local_state_acquire();
-                    if (FlatStore::read_local_pending(state)) {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::AtomicPending};
-                    }
-                    if (!FlatStore::read_local_state_eligible(state)) {
-                        retry = true;
-                        break;
-                    }
-                    states[sid] = state;
-                    word |= bit;
-                }
-
+                store.read_local_prefetch(hash);
                 const FlatStore::ReadLocalProbe probe = store.read_local_probe(hash, name);
                 if (probe.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::AtomicPending};
                 }
-                if (probe.result == FlatStore::ReadLocalProbeResult::Churn ||
-                    probe.state != states[sid]) {
+                if (probe.result == FlatStore::ReadLocalProbeResult::Churn) {
+                    transient = ReadLocalFallbackReason::SeqChurn;
                     retry = true;
                     break;
                 }
@@ -952,6 +1050,10 @@ private:
                     // lazy-expiry side effect and is an ordinary array nil element.
                     reply_null(op.sink(), op.resp3());
                     prepared.keyspace_misses++;
+                    if (!store.read_local_validate(probe.state)) {
+                        transient = ReadLocalFallbackReason::SeqChurn;
+                        retry = true;
+                    }
                     continue;
                 }
 
@@ -963,7 +1065,7 @@ private:
                     return {ReadLocalFallbackReason::Typed};
                 }
                 if ((flags & KvObjFlags::HasTtl) &&
-                    object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
+                    object->read_local_expire_at_ms(flags) <= command_now_ms) {
                     // Unlike a plain stable miss, expiry-due needs the owner to perform lazy
                     // expiry and its accounting/notifications, so one such key demotes all MGET.
                     read_local_clear_reply(op);
@@ -981,6 +1083,7 @@ private:
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                         self_->read_local_stats().settax.object_sequence_retries++;
 #endif
+                        transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
                         break;
                     }
@@ -989,55 +1092,59 @@ private:
                     return {ReadLocalFallbackReason::Typed};
                 }
                 prepared.keyspace_hits++;
+                if (!store.read_local_validate(probe.state)) {
+                    transient = ReadLocalFallbackReason::SeqChurn;
+                    retry = true;
+                }
             }
 
-            // Atomic 0 intentionally promises only per-key independence, so different shard
-            // snapshots may include interleaved plain SETs. At atomic 1, every group touching one
-            // of these shards publishes a pending record before mutation and holds it through
-            // release. Requiring pending==0 on every touched shard, then validating every captured
-            // state after the last copy, makes a torn group observation fail closed. The later B+
-            // per-key filter is deliberately not part of this shard-conservative gate.
+            // The complete reply is still private. Accept only if every participant is unchanged
+            // under its own rule since before the first value load.
             if (!retry) {
-                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
-                    if (!(touched[sid >> 6] & (uint64_t{1} << (sid & 63)))) continue;
-                    if (!srv_->shard(static_cast<int32_t>(sid))
-                             .store().read_local_validate(states[sid])) {
-                        retry = true;
-                        break;
-                    }
-                }
+                transient = local_mget_window_close(
+                    window, touched, hashes, shards, key_count);
+                retry = transient != ReadLocalFallbackReason::None;
             }
             if (!retry) return prepared;
             read_local_clear_reply(op);
+            if (attempt + 1 < kAttempts)
+                self_->read_local_stats().mget_generation_retries++;
         }
-
-        // Prefer the actionable atomic reason if a pending record won the final retry race.
-        for (uint32_t key = 0; key < key_count; key++) {
-            const uint64_t hash = cached_routes
-                ? hashes[key] : FlatStore::hash_key(op.arg(key + 1));
-            const int32_t shard_id = cached_routes
-                ? shards[key] : srv_->router().shard_of(hash);
-            const uint64_t state =
-                srv_->shard(shard_id).store().read_local_state_acquire();
-            if (FlatStore::read_local_pending(state))
-                return {ReadLocalFallbackReason::AtomicPending};
-        }
-        return {ReadLocalFallbackReason::SeqChurn};
+        return {local_mget_final_reason(
+            op, hashes, shards, key_count, cached_routes, transient)};
     }
 
     PreparedLocalRead prepare_captured_local_mget(Op& op) {
-        static constexpr uint32_t kRetries = 3;
-        static constexpr uint32_t kMaxReadLocalShards = 256;
+        static constexpr uint32_t kAttempts = 2;
         const uint32_t key_count = op.argc() - 1;
-        if (!key_count || srv_->nshards() > kMaxReadLocalShards) std::abort();
+        if (!key_count || srv_->nshards() > LocalMgetWindow::kMaxShards) std::abort();
 
-        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
-            uint64_t states[kMaxReadLocalShards];
-            uint64_t touched[kMaxReadLocalShards / 64] = {};
+        uint64_t route_hashes[LocalMgetWindow::kMaxEpochKeys];
+        int32_t route_shards[LocalMgetWindow::kMaxEpochKeys];
+        const bool cached_routes = key_count <= LocalMgetWindow::kMaxEpochKeys;
+        uint64_t touched[LocalMgetWindow::kMaxShards / 64] = {};
+        for (uint32_t key = 0; key < key_count; key++) {
+            const uint64_t hash = FlatStore::hash_key(op.arg(key + 1));
+            const int32_t shard_id = srv_->router().shard_of(hash);
+            touched[static_cast<uint32_t>(shard_id) >> 6] |=
+                uint64_t{1} << (static_cast<uint32_t>(shard_id) & 63);
+            if (cached_routes) {
+                route_hashes[key] = hash;
+                route_shards[key] = shard_id;
+            }
+        }
+        const int64_t command_now_ms = cached_now_ms_;
+
+        ReadLocalFallbackReason transient = ReadLocalFallbackReason::Generation;
+        for (uint32_t attempt = 0; attempt < kAttempts; attempt++) {
+            LocalMgetWindow window;
             PreparedLocalRead prepared;
-            bool retry = false;
             read_local_clear_reply(op);
-            reply_array_header(op.sink(), key_count);
+
+            transient = local_mget_window_open(
+                window, touched, route_hashes, route_shards, key_count, cached_routes);
+            bool retry = transient != ReadLocalFallbackReason::None;
+            if (!retry) reply_array_header(op.sink(), key_count);
 
             for (uint32_t first = 0; first < key_count && !retry;
                  first += kReadLocalPrefetchKeys) {
@@ -1050,9 +1157,13 @@ private:
                 // I0 warms every home word in this bounded window. C0 then performs the complete
                 // key-verified walk and prefetches the exact object's value before E0 copies it.
                 for (uint32_t offset = 0; offset < count; offset++) {
-                    const Slice name = op.arg(first + offset + 1);
-                    hashes[offset] = FlatStore::hash_key(name);
-                    shards[offset] = srv_->router().shard_of(hashes[offset]);
+                    if (cached_routes) {
+                        hashes[offset] = route_hashes[first + offset];
+                        shards[offset] = route_shards[first + offset];
+                    } else {
+                        hashes[offset] = FlatStore::hash_key(op.arg(first + offset + 1));
+                        shards[offset] = srv_->router().shard_of(hashes[offset]);
+                    }
                     srv_->shard(shards[offset]).store().read_local_prefetch(hashes[offset]);
                 }
                 for (uint32_t offset = 0; offset < count; offset++) {
@@ -1061,12 +1172,9 @@ private:
                             hashes[offset], op.arg(first + offset + 1));
                 }
 
-                for (uint32_t offset = 0; offset < count; offset++) {
+                for (uint32_t offset = 0; offset < count && !retry; offset++) {
                     const int32_t shard_id = shards[offset];
                     FlatStore& store = srv_->shard(shard_id).store();
-                    const uint32_t sid = static_cast<uint32_t>(shard_id);
-                    const uint64_t bit = uint64_t{1} << (sid & 63);
-                    uint64_t& word = touched[sid >> 6];
                     const FlatStore::ReadLocalPrefetchCapture& capture =
                         captures.entries[offset];
                     if (capture.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
@@ -1074,19 +1182,17 @@ private:
                         return {ReadLocalFallbackReason::AtomicPending};
                     }
                     if (capture.result == FlatStore::ReadLocalProbeResult::Churn) {
-                        retry = true;
-                        break;
-                    }
-                    if (!(word & bit)) {
-                        states[sid] = capture.state;
-                        word |= bit;
-                    } else if (capture.state != states[sid]) {
+                        transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
                         break;
                     }
                     if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
                         reply_null(op.sink(), op.resp3());
                         prepared.keyspace_misses++;
+                        if (!store.read_local_validate(capture.state)) {
+                            transient = ReadLocalFallbackReason::SeqChurn;
+                            retry = true;
+                        }
                         continue;
                     }
 
@@ -1098,7 +1204,7 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     if ((flags & KvObjFlags::HasTtl) &&
-                        object->read_local_expire_at_ms(flags) <= cached_now_ms_) {
+                        object->read_local_expire_at_ms(flags) <= command_now_ms) {
                         read_local_clear_reply(op);
                         return {ReadLocalFallbackReason::Expired};
                     }
@@ -1114,6 +1220,7 @@ private:
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                             self_->read_local_stats().settax.object_sequence_retries++;
 #endif
+                            transient = ReadLocalFallbackReason::SeqChurn;
                             retry = true;
                             break;
                         }
@@ -1122,34 +1229,28 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     prepared.keyspace_hits++;
-                }
-            }
-
-            // A pending interval or table/ownership generation change anywhere across the windowed
-            // copies fails the whole MGET closed, preserving the existing atomic-1 torn-read gate.
-            if (!retry) {
-                for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
-                    if (!(touched[sid >> 6] & (uint64_t{1} << (sid & 63)))) continue;
-                    if (!srv_->shard(static_cast<int32_t>(sid))
-                             .store().read_local_validate(states[sid])) {
+                    if (!store.read_local_validate(capture.state)) {
+                        transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
-                        break;
                     }
                 }
             }
+
+            // C0 captures stay point-validated inside each bounded window; this outer close detects
+            // any group touching a queried key, or any table bracket on a group-free participant,
+            // across the complete multi-shard command.
+            if (!retry) {
+                transient = local_mget_window_close(
+                    window, touched, route_hashes, route_shards, key_count);
+                retry = transient != ReadLocalFallbackReason::None;
+            }
             if (!retry) return prepared;
             read_local_clear_reply(op);
+            if (attempt + 1 < kAttempts)
+                self_->read_local_stats().mget_generation_retries++;
         }
-
-        for (uint32_t key = 0; key < key_count; key++) {
-            const uint64_t hash = FlatStore::hash_key(op.arg(key + 1));
-            const int32_t shard_id = srv_->router().shard_of(hash);
-            const uint64_t state =
-                srv_->shard(shard_id).store().read_local_state_acquire();
-            if (FlatStore::read_local_pending(state))
-                return {ReadLocalFallbackReason::AtomicPending};
-        }
-        return {ReadLocalFallbackReason::SeqChurn};
+        return {local_mget_final_reason(
+            op, route_hashes, route_shards, key_count, cached_routes, transient)};
     }
 
     // Build one local reply but do not publish Done. `fallback == None` means the bytes are
@@ -1259,7 +1360,7 @@ private:
 
         read_local_clear_reply(op);
         const uint64_t state = store.read_local_state_acquire();
-        if (FlatStore::read_local_pending(state))
+        if (store.foreign_read_key_unsafe(state, op.hash))
             return {ReadLocalFallbackReason::AtomicPending};
         return {ReadLocalFallbackReason::SeqChurn};
     }
@@ -2567,13 +2668,19 @@ private:
         } else {
             // A null pending-entry list is the sole common-path branch. With no cross-shard window,
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
-            if (__builtin_expect(sh.store().atomic_has_records(), false)) {
-                const bool execute_handler = xshard_plain_prepare(*srv_, sh, op, t.client->id());
+            const bool scoped_foreign_write = read_local_enabled() &&
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+                (op.local_xshard() || (op.spec->flags & CmdFlags::ScriptRoute));
+            if (__builtin_expect(
+                    sh.store().atomic_has_records() || scoped_foreign_write, false)) {
+                PlainForeignReadScope foreign_scope;
+                const bool execute_handler = xshard_plain_prepare(
+                    *srv_, sh, op, t.client->id(), foreign_scope);
                 const bool defer_blocking =
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
-                xshard_plain_finish(sh);
+                xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);
                     if (execute_handler) blocking_plain_mutation_published(sh, op);

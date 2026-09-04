@@ -3961,6 +3961,8 @@ private:
             // below so live-vs-target remains observable while the dispatch barrier is active.
             if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
+            if constexpr (Fused)
+                if (read_local_enabled && rob.local_mget_fence_pending()) break;
             Op* op;
             if constexpr (Fused) {
                 op = read_local_enabled
@@ -4253,6 +4255,13 @@ private:
                     } else if ((spec->flags & CmdFlags::ReadLocalEligible) != 0) {
                         const bool mget = command_is_read_local_mget(*spec);
                         read_local_mget_candidate = mget;
+                        // MGET owns a one-command latest-read boundary in both outcomes: local
+                        // success publishes its freshly copied vector, while demotion resolves the
+                        // whole command at this pass's pinned cut. Do not let an older local GET
+                        // from the same pass complete at a newer world and then follow it with an
+                        // MGET fallback at the older cut. Leave this frame unconsumed; after the
+                        // existing local lane resolves, reparsing samples a fresh pass cut.
+                        if (mget && rob.has_pending_read_local()) break;
                         if (!mget && !point_route) std::abort();
                         if (mget) {
                             op->hash = FlatStore::hash_key(op->arg(1));
@@ -4264,8 +4273,13 @@ private:
                             ReadLocalFallbackReason::None;
                         bool write_conflict = false;
                         bool mget_atomic_pending = false;
-                        bool mget_seq_churn = false;
                         if (mget) {
+                            // Sample only the pending-key filter here. An open group outlives the
+                            // parse-to-execute gap, so that sample predicts the executor's answer;
+                            // the table-mutation bit is one ~200 ns exchange bracket that has
+                            // closed long before the executor reads, and sampling it on every
+                            // touched shard rejected about 11% of MGETs for nothing the executor's
+                            // own probe/validate would not have caught (mget_fallback_seq_churn).
                             for (uint32_t arg = 1; arg < op->argc(); arg++) {
                                 const uint64_t hash = arg == 1
                                     ? op->hash : FlatStore::hash_key(op->arg(arg));
@@ -4274,13 +4288,8 @@ private:
                                 read_local_pending_keys.add(hash);
                                 write_conflict |= rob.read_local_write_conflicts(
                                     hash, read_local_command_touches_hash);
-                                const uint64_t state = srv_->shard(shard)
-                                                           .store()
-                                                           .read_local_state_acquire();
                                 mget_atomic_pending |=
-                                    FlatStore::read_local_pending(state) != 0;
-                                mget_seq_churn |=
-                                    !FlatStore::read_local_state_eligible(state);
+                                    srv_->shard(shard).store().foreign_read_key_unsafe(hash);
                             }
                         } else {
                             write_conflict = rob.read_local_write_conflicts(
@@ -4329,13 +4338,15 @@ private:
                                 read_local_eligible = false;
                             } else {
                                 bool atomic_pending = mget_atomic_pending;
-                                bool seq_churn = mget_seq_churn;
+                                bool seq_churn = false;
                                 if (!mget) {
                                     const uint64_t state = srv_->shard(op->shard)
                                                                .store()
                                                                .read_local_state_acquire();
                                     atomic_pending =
-                                        FlatStore::read_local_pending(state) != 0;
+                                        srv_->shard(op->shard)
+                                            .store()
+                                            .foreign_read_key_unsafe(state, op->hash);
                                     seq_churn = !FlatStore::read_local_state_eligible(state);
                                 }
                                 if (atomic_pending) {
@@ -5001,6 +5012,8 @@ ordinary_dispatch:
                         // the pending filter here (GET: op->hash; MGET: the keys hashed above).
                         if (!read_local_mget_candidate) read_local_pending_keys.add(op->hash);
                         rob.mark_current_read_local(read_local_pending_keys);
+                        if (read_local_mget_candidate)
+                            rob.arm_current_local_mget_fence();
                         rob.publish();
                         if (!fused_executor_->enqueue_local_read(
                                 Task{c, op_id, -1, nullptr}))
@@ -5011,7 +5024,9 @@ ordinary_dispatch:
                         mark_active_known<TargetedIfid>(c);
                         read_local_batch = !read_local_mget_candidate;
                         // Fill at most the existing fused IFID quantum; intervening ordinary frames
-                        // simply end this run and do not stop the parser.
+                        // simply end this run. MGET holds a one-command cut fence until local
+                        // validation or irrevocable owner demotion, so stop this parse pass now.
+                        if (read_local_mget_candidate) break;
                         continue;
                     }
                 }

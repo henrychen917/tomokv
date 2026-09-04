@@ -329,6 +329,9 @@ void init_config(const Config& cfg) {
     g_config.push_back({"read-local-prefetch-capture", ConfigKind::Unsigned,
                         std::to_string(static_cast<uint32_t>(
                             cfg.read_local_prefetch_capture)), true});
+    g_config.push_back({"read-local-atomic-filter", ConfigKind::Unsigned,
+                        std::to_string(static_cast<uint32_t>(
+                            cfg.read_local_atomic_filter)), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,
@@ -942,6 +945,15 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
         return;
     }
+    // Geometry oracle for the B+ directed test. The server hash is boot-randomized, so the test
+    // cannot manufacture an unrelated same-shard key whose filter cell is provably negative from
+    // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
+    // the actual GET/MGET result and read-local counters remain the mechanism oracle.
+    if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
+        const uint64_t hash = FlatStore::hash_key(op.arg(2));
+        reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
+        return;
+    }
     // Window widener for the torn-read regression. Holds a cross-shard group between drawing its
     // commit ticket and storing that ticket into its shared epoch word -- the hole in which the
     // sequence already named a commit whose records still answered "undecided". Production 0.
@@ -1502,6 +1514,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_typed += local.fallback_typed;
     total.fallback_expired += local.fallback_expired;
     total.fallback_seq_churn += local.fallback_seq_churn;
+    total.fallback_generation += local.fallback_generation;
     total.fallback_lane_full += local.fallback_lane_full;
     total.mget_local_hits += local.mget_local_hits;
     total.mget_fallback_multi += local.mget_fallback_multi;
@@ -1518,6 +1531,8 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_typed += local.mget_fallback_typed;
     total.mget_fallback_expired += local.mget_fallback_expired;
     total.mget_fallback_seq_churn += local.mget_fallback_seq_churn;
+    total.mget_generation_retries += local.mget_generation_retries;
+    total.mget_fallback_generation += local.mget_fallback_generation;
     total.mget_fallback_lane_full += local.mget_fallback_lane_full;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     total.settax.add(local.settax);
@@ -1646,6 +1661,9 @@ void cmd_info(Shard&, Op& op) {
              watch_reservation_waits = 0, watch_reservation_coexist = 0,
              watch_reservation_precommit_aborts = 0;
     uint64_t hash_field_expires = 0, expired_hash_fields = 0;
+    uint64_t foreign_read_unsafe_refs = 0, foreign_read_occupied_cells = 0,
+             foreign_read_wildcard_cells = 0, foreign_read_saturated_cells = 0,
+             foreign_read_poisoned_shards = 0;
     uint64_t plain_accepts = 0, tls_accepts = 0, tls_handshakes_started = 0,
              tls_handshakes_completed = 0, tls_handshakes_failed = 0,
              tls_connections_freed = 0, tls_want_read = 0, tls_want_write = 0,
@@ -1681,6 +1699,11 @@ void cmd_info(Shard&, Op& op) {
             atomic_pending_entries += sh.store().atomic_pending_entries();
             atomic_cleanup_fast += sh.store().atomic_cleanup_fast();
             atomic_cleanup_slow += sh.store().atomic_cleanup_slow();
+            foreign_read_unsafe_refs += sh.store().foreign_read_unsafe_refs();
+            foreign_read_occupied_cells += sh.store().foreign_read_occupied_cells();
+            foreign_read_wildcard_cells += sh.store().foreign_read_wildcard_cells();
+            foreign_read_saturated_cells += sh.store().foreign_read_saturated_cells();
+            foreign_read_poisoned_shards += sh.store().foreign_read_poisoned();
             blocking_waiters += sh.blocking_waiters();
         }
         for (uint32_t t = 0; t < g_server->nthreads(); t++) {
@@ -1795,6 +1818,8 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_expired, baseline.read_local.fallback_expired);
         read_local.fallback_seq_churn = minus_baseline(
             read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
+        read_local.fallback_generation = minus_baseline(
+            read_local.fallback_generation, baseline.read_local.fallback_generation);
         read_local.fallback_lane_full = minus_baseline(
             read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
         read_local.mget_local_hits = minus_baseline(
@@ -1830,6 +1855,12 @@ void cmd_info(Shard&, Op& op) {
         read_local.mget_fallback_seq_churn = minus_baseline(
             read_local.mget_fallback_seq_churn,
             baseline.read_local.mget_fallback_seq_churn);
+        read_local.mget_generation_retries = minus_baseline(
+            read_local.mget_generation_retries,
+            baseline.read_local.mget_generation_retries);
+        read_local.mget_fallback_generation = minus_baseline(
+            read_local.mget_fallback_generation,
+            baseline.read_local.mget_fallback_generation);
         read_local.mget_fallback_lane_full = minus_baseline(
             read_local.mget_fallback_lane_full,
             baseline.read_local.mget_fallback_lane_full);
@@ -2254,6 +2285,17 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     g_server ? g_server->flip_conservation_violations() : 0));
         appendf(body,
+                "foreign_read_unsafe_refs:%llu\r\n"
+                "foreign_read_occupied_cells:%llu\r\n"
+                "foreign_read_wildcard_cells:%llu\r\n"
+                "foreign_read_saturated_cells:%llu\r\n"
+                "foreign_read_poisoned_shards:%llu\r\n",
+                static_cast<unsigned long long>(foreign_read_unsafe_refs),
+                static_cast<unsigned long long>(foreign_read_occupied_cells),
+                static_cast<unsigned long long>(foreign_read_wildcard_cells),
+                static_cast<unsigned long long>(foreign_read_saturated_cells),
+                static_cast<unsigned long long>(foreign_read_poisoned_shards));
+        appendf(body,
                 "read_local_hits:%llu\r\n"
                 "read_local_keyspace_hits:%llu\r\n"
                 "read_local_keyspace_misses:%llu\r\n"
@@ -2271,6 +2313,7 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_typed:%llu\r\n"
                 "read_local_fallback_expired:%llu\r\n"
                 "read_local_fallback_seq_churn:%llu\r\n"
+                "read_local_fallback_generation:%llu\r\n"
                 "read_local_fallback_lane_full:%llu\r\n",
                 static_cast<unsigned long long>(read_local.hits),
                 static_cast<unsigned long long>(read_local.keyspace_hits),
@@ -2289,6 +2332,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_typed),
                 static_cast<unsigned long long>(read_local.fallback_expired),
                 static_cast<unsigned long long>(read_local.fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.fallback_generation),
                 static_cast<unsigned long long>(read_local.fallback_lane_full));
         appendf(body,
                 "read_local_mget_local_hits:%llu\r\n"
@@ -2305,6 +2349,8 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_typed:%llu\r\n"
                 "read_local_mget_fallback_expired:%llu\r\n"
                 "read_local_mget_fallback_seq_churn:%llu\r\n"
+                "read_local_mget_generation_retries:%llu\r\n"
+                "read_local_mget_fallback_generation:%llu\r\n"
                 "read_local_mget_fallback_lane_full:%llu\r\n",
                 static_cast<unsigned long long>(read_local.mget_local_hits),
                 static_cast<unsigned long long>(read_local.mget_fallbacks()),
@@ -2322,6 +2368,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_typed),
                 static_cast<unsigned long long>(read_local.mget_fallback_expired),
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
+                static_cast<unsigned long long>(read_local.mget_generation_retries),
+                static_cast<unsigned long long>(read_local.mget_fallback_generation),
                 static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         // Temporary experiment telemetry is lifetime-scoped (unlike Redis compatibility stats,

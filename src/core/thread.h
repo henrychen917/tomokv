@@ -122,6 +122,7 @@ enum class ReadLocalFallbackReason : uint8_t {
     Typed,
     Expired,
     SeqChurn,
+    Generation,
     LaneFull,
 };
 
@@ -150,6 +151,7 @@ struct ReadLocalStats {
     uint64_t fallback_typed = 0;
     uint64_t fallback_expired = 0;
     uint64_t fallback_seq_churn = 0;
+    uint64_t fallback_generation = 0;
     uint64_t fallback_lane_full = 0;
 
     // Command-level MGET telemetry. A local MGET is one hit regardless of its key count. The
@@ -168,6 +170,8 @@ struct ReadLocalStats {
     uint64_t mget_fallback_typed = 0;
     uint64_t mget_fallback_expired = 0;
     uint64_t mget_fallback_seq_churn = 0;
+    uint64_t mget_generation_retries = 0;
+    uint64_t mget_fallback_generation = 0;
     uint64_t mget_fallback_lane_full = 0;
 
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -178,14 +182,15 @@ struct ReadLocalStats {
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
                fallback_inflight_write + fallback_atomic_pending + fallback_missing +
-               fallback_typed + fallback_expired + fallback_seq_churn + fallback_lane_full;
+               fallback_typed + fallback_expired + fallback_seq_churn +
+               fallback_generation + fallback_lane_full;
     }
 
     uint64_t mget_fallbacks() const {
         return mget_fallback_multi + mget_fallback_watch + mget_fallback_context +
                mget_fallback_inflight_write + mget_fallback_atomic_pending +
                mget_fallback_typed + mget_fallback_expired + mget_fallback_seq_churn +
-               mget_fallback_lane_full;
+               mget_fallback_generation + mget_fallback_lane_full;
     }
 
     void note_fallback(ReadLocalFallbackReason reason, bool mget = false) {
@@ -214,6 +219,7 @@ struct ReadLocalStats {
             case ReadLocalFallbackReason::Typed: fallback_typed++; break;
             case ReadLocalFallbackReason::Expired: fallback_expired++; break;
             case ReadLocalFallbackReason::SeqChurn: fallback_seq_churn++; break;
+            case ReadLocalFallbackReason::Generation: fallback_generation++; break;
             case ReadLocalFallbackReason::LaneFull: fallback_lane_full++; break;
             case ReadLocalFallbackReason::None: std::abort();
         }
@@ -246,6 +252,7 @@ struct ReadLocalStats {
             case ReadLocalFallbackReason::Typed: mget_fallback_typed++; break;
             case ReadLocalFallbackReason::Expired: mget_fallback_expired++; break;
             case ReadLocalFallbackReason::SeqChurn: mget_fallback_seq_churn++; break;
+            case ReadLocalFallbackReason::Generation: mget_fallback_generation++; break;
             case ReadLocalFallbackReason::LaneFull: mget_fallback_lane_full++; break;
             // A local MGET miss is an invariant success. Keep a hard edge here so a future caller
             // cannot silently turn it into a reasoned MGET fallback counter.
