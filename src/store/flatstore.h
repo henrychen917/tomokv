@@ -76,6 +76,7 @@
 #include "../core/atomic_tripwire.h"
 #include "eviction.h"
 #include "../cmd/notify.h"
+#include "expire_wheel.h"
 #include "kvobj.h"
 #include "atomic_mvcc.h"
 #include "foreign_read_safety.h"
@@ -446,6 +447,80 @@ private:
     size_t    migrate_ = 0;   // next old-table slot to move while a migration is in flight
 };
 static_assert(sizeof(ExpireIndex) == 80, "ExpireIndex layout drift");
+using KeyExpireTracker = std::conditional_t<kExpireWheelEnabled, ExpireWheel, ExpireIndex>;
+static_assert(sizeof(KeyExpireTracker) == 80, "key expiry selector must preserve FlatStore layout");
+
+inline bool key_expire_track(ExpireIndex& tracker, uint64_t hash, KvObj*, int64_t deadline,
+                             int64_t) {
+    if (deadline >= 0) return tracker.insert(hash, deadline);
+    tracker.erase(hash);
+    return true;
+}
+inline bool key_expire_track(ExpireWheel& tracker, uint64_t hash, KvObj* object,
+                             int64_t deadline, int64_t now_ms) {
+    if (deadline < 0) return true;  // zero-TTL insertion never touches nullable wheel state
+    return tracker.schedule(hash, object, deadline, now_ms);
+}
+inline void key_expire_cancel(ExpireIndex& tracker, uint64_t hash, KvObj*) {
+    tracker.erase(hash);
+}
+inline void key_expire_cancel(ExpireWheel& tracker, uint64_t hash, KvObj* object) {
+    (void)tracker.cancel(hash, object);
+}
+inline int64_t key_expire_deadline(const ExpireIndex& tracker, uint64_t hash,
+                                   const KvObj*, int64_t fallback) {
+    return tracker.deadline(hash, fallback);
+}
+inline int64_t key_expire_deadline(const ExpireWheel&, uint64_t, const KvObj*, int64_t fallback) {
+    return fallback;
+}
+inline bool key_expire_due(const ExpireIndex&, int64_t) { return false; }
+inline bool key_expire_due(const ExpireWheel& tracker, int64_t now_ms) {
+    return tracker.has_work_at(now_ms);
+}
+inline bool key_expire_migrating(const ExpireIndex& tracker) { return tracker.migrating(); }
+inline bool key_expire_migrating(const ExpireWheel&) { return false; }
+
+using KeyExpireItem = ExpireWheel::Item;
+using KeyExpireDecision = ExpireWheel::DueDecision;
+
+struct KeyExpireCycleResult {
+    uint32_t structural_work = 0;
+    bool add_reaped = false;
+
+    uint32_t reported_work(uint32_t reaped) const {
+        return structural_work + (add_reaped ? reaped : 0);
+    }
+};
+
+template <typename Fn>
+KeyExpireCycleResult key_expire_cycle(ExpireIndex& tracker, int64_t, uint32_t budget,
+                                      Fn&& fn) {
+    tracker.sample(budget, [&](uint64_t hash) {
+        (void)fn(KeyExpireItem{hash, nullptr, kNoTtlDeadline});
+    });
+    return {0, true};
+}
+
+template <typename Fn>
+KeyExpireCycleResult key_expire_cycle(ExpireWheel& tracker, int64_t now_ms, uint32_t budget,
+                                      Fn&& fn) {
+    const ExpireWheel::AdvanceResult result =
+        tracker.advance(now_ms, budget, std::forward<Fn>(fn));
+    return {result.work, false};
+}
+
+inline bool key_expire_random(ExpireIndex& tracker, uint64_t entropy, uint32_t attempts,
+                              KeyExpireItem& out) {
+    uint64_t hash = 0;
+    if (!tracker.random_hash(entropy, attempts, hash)) return false;
+    out = {hash, nullptr, kNoTtlDeadline};
+    return true;
+}
+inline bool key_expire_random(ExpireWheel& tracker, uint64_t entropy, uint32_t,
+                              KeyExpireItem& out) {
+    return tracker.random(entropy, out);
+}
 
 // 64-bit finalizer (murmur3 fmix64). Cheap, and it decorrelates the index bits from the router's.
 // ---- hash hardening ---------------------------------------------------------------------------
@@ -700,6 +775,7 @@ public:
         // table destructor below remains the unique owner of each promoted winner.
         read_local_enabled_ = false;  // shutdown promotion/free is direct; no callback may outlive us
         atomic_promote_all_for_shutdown();
+        expires_.clear();
         if (snapshot_new_tab_) std::free(snapshot_new_tab_);
         for (int t = 0; t < 2; t++)
             if (tab_[t]) {
@@ -981,6 +1057,7 @@ public:
     uint64_t capacity() const { return static_cast<uint64_t>(cap_[0]) + cap_[1]; }
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
+    bool active_expire_due() const { return key_expire_due(expires_, cached_now_ms_); }
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
     // one predicted-false test, with all field-TTL machinery out of line behind it.
@@ -1398,6 +1475,21 @@ public:
 
     void set_cached_now_ms(int64_t now_ms) { cached_now_ms_ = now_ms; }
     void set_cached_lru_clock(uint8_t clock) { cached_lru_clock_ = clock; }
+    // Lifetime high-water mark for successful active reaps.  The deadline is known logical here;
+    // still reject a negative value defensively so a retained-but-persisted slot cannot report a
+    // multi-billion-millisecond lag.  Four bytes are enough for almost 50 days and larger stalls
+    // saturate instead of wrapping.
+    void note_active_expire_reap(int64_t deadline_ms) {
+        if (deadline_ms < 0 || cached_now_ms_ <= deadline_ms) return;
+        const uint64_t lag = static_cast<uint64_t>(cached_now_ms_ - deadline_ms);
+        const uint32_t bounded = lag > std::numeric_limits<uint32_t>::max()
+            ? std::numeric_limits<uint32_t>::max() : static_cast<uint32_t>(lag);
+        if (bounded > active_expire_reap_lag_ms_max_)
+            active_expire_reap_lag_ms_max_ = bounded;
+    }
+    uint32_t active_expire_reap_lag_ms_max() const {
+        return active_expire_reap_lag_ms_max_;
+    }
     // Owner-thread scratch: the current task's CLIENT NO-TOUCH answer. Written only when
     // maxmemory is enabled, so it costs nothing in the default configuration.
     void set_no_touch(bool value) { no_touch_ = value; }
@@ -1425,10 +1517,12 @@ public:
     int64_t deadline(uint64_t h, const KvObj* object) const {
         if (!object || !object->has_ttl_slot()) return kNoTtlDeadline;
         const int64_t inline_deadline = object->expire_at_ms();
-        if constexpr (!kTtlDeadlineSidecar) return inline_deadline;
-        if (snapshot_active_ || (atomic_pending_ && atomic_pending_->live != 0))
-            return inline_deadline;
-        return expires_.deadline(h, inline_deadline);
+        if constexpr (kTtlDeadlineSidecar && !kExpireWheelEnabled) {
+            if (snapshot_active_ || (atomic_pending_ && atomic_pending_->live != 0))
+                return inline_deadline;
+            return key_expire_deadline(expires_, h, object, inline_deadline);
+        }
+        return inline_deadline;
     }
     bool deadline_elapsed(uint64_t h, const KvObj* object, int64_t now_ms) const {
         const int64_t at = deadline(h, object);
@@ -1478,8 +1572,16 @@ public:
         KvObj* old = find(h, key);
         if (!old) return TtlResult::Missing;
         if (old->has_ttl_slot()) {
-            old->set_expire_at_ms(expire_at_ms);
-            expires_.insert(h, expire_at_ms);
+            if constexpr (kExpireWheelEnabled) {
+                if (expire_at_ms >= 0 &&
+                    !key_expire_track(expires_, h, old, expire_at_ms, cached_now_ms_))
+                    return TtlResult::Oom;
+                if (expire_at_ms < 0) untrack_expire(h, old);
+                old->set_expire_at_ms(expire_at_ms);
+            } else {
+                old->set_expire_at_ms(expire_at_ms);
+                (void)track_expire(h, old);
+            }
             return TtlResult::Updated;
         }
         return rewrite_expire(h, old, expire_at_ms);
@@ -1492,8 +1594,16 @@ public:
         KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
         if (old->has_ttl_slot()) {
-            old->set_expire_at_ms(expire_at_ms);
-            expires_.insert(h, expire_at_ms);
+            if constexpr (kExpireWheelEnabled) {
+                if (expire_at_ms >= 0 &&
+                    !key_expire_track(expires_, h, old, expire_at_ms, cached_now_ms_))
+                    return TtlResult::Oom;
+                if (expire_at_ms < 0) untrack_expire(h, old);
+                old->set_expire_at_ms(expire_at_ms);
+            } else {
+                old->set_expire_at_ms(expire_at_ms);
+                (void)track_expire(h, old);
+            }
             return TtlResult::Updated;
         }
         return rewrite_expire(h, old, expire_at_ms);
@@ -1506,7 +1616,7 @@ public:
         if (__builtin_expect(read_local_enabled_, false))
             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
         old->set_expire_at_ms(kNoTtlDeadline);
-        expires_.erase(h);
+        untrack_expire(h, old);
         return TtlResult::Updated;
     }
 
@@ -1517,45 +1627,63 @@ public:
         if (__builtin_expect(read_local_enabled_, false))
             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
         old->set_expire_at_ms(kNoTtlDeadline);
-        expires_.erase(h);
+        untrack_expire(h, old);
         return TtlResult::Updated;
     }
 
-    // Returns a WORK count, while `budget` bounds examined expire-index slots. The count is the
-    // number of expired keys removed, plus one while a sidecar move is still in flight: half the
-    // index is then parked in the old table, and an owner that treats a barren sampling pass as
-    // "nothing to do" parks with those deadlines unsampled until the next command wakes it.
-    // Finding an object from its full hash follows only that hash's FlatStore probe run; it never
-    // scans the table or keyspace.
-    uint32_t active_expire(uint32_t budget) {
+    // Returns charged KEY work. The sampler reports successful reaps; the full sampler cycle adds
+    // its shared key/field migration debt after both passes. The wheel reports every cascade/due
+    // callback, so one wheel cycle cannot exceed its key budget.
+    // Finding an object from its full hash follows only that hash's probe run, never the table or
+    // keyspace. The busy-loop wheel hook calls this key-only entry point; hash-field sampling keeps
+    // its existing idle-cycle schedule and independent budget.
+    uint32_t active_expire_keys(uint32_t budget) {
         // Expiry after the cut is a post-cut deletion.  Leaving the object physically present lets
         // traversal serialize its absolute deadline; find() still reports it logically absent.
         if (snapshot_active_) return 0;
         if (rehashing()) rehash_step();
         uint32_t removed = 0;
-        expires_.sample(budget, [&](uint64_t h) {
-            KvObj* o = find_hash_in(0, h);
-            if (!o && rehashing()) o = find_hash_in(1, h);
+        const KeyExpireCycleResult key_cycle = key_expire_cycle(
+            expires_, cached_now_ms_, budget, [&](const KeyExpireItem& item) {
+            const uint64_t h = item.hash;
+            KvObj* o = find_expire_item_in(0, item);
+            if (!o && rehashing()) o = find_expire_item_in(1, item);
             if (!o || !o->has_ttl_slot()) {
-                expires_.erase(h);       // stale tracker after a replacement or collision
-                return;
+                untrack_expire(h, item.object);  // stale sampler hash or exact wheel version
+                return KeyExpireDecision::consume();
             }
-            if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
+            // An exact wheel node must leave the due bucket while an undecided atomic record owns
+            // visibility. Retry strictly after this tick; the sampler entry simply remains live.
+            if (atomic_has_record(h, o->key()))
+                return KeyExpireDecision::retry_at(cached_now_ms_);
             const int64_t at = deadline(h, o);
-            if (at < 0) { expires_.erase(h); return; }
-            if (at > cached_now_ms_) return;
+            if (at < 0) {
+                untrack_expire(h, o);
+                return KeyExpireDecision::consume();
+            }
+            if (at > cached_now_ms_) return KeyExpireDecision::reschedule_at(at);
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
             (void)aof_.record_delete(key);
             if (erase_in(0, h, key) || (rehashing() && erase_in(1, h, key))) {
                 removed++;
+                note_active_expire_reap(at);
                 if (expired_counter_) (*expired_counter_)++;
             }
+            return KeyExpireDecision::consume();
         });
+        return key_cycle.reported_work(removed);
+    }
+
+    uint32_t active_expire(uint32_t budget) {
+        const uint32_t key_work = active_expire_keys(budget);
+        if (snapshot_active_) return key_work;
+        uint32_t field_work = 0;
         if (__builtin_expect(field_expires_.size() != 0, false))
-            removed += active_expire_fields(budget);
-        if (__builtin_expect(expires_.migrating() || field_expires_.migrating(), false)) removed++;
-        return removed;
+            field_work = active_expire_fields(budget);
+        if (__builtin_expect(key_expire_migrating(expires_) || field_expires_.migrating(), false))
+            field_work++;
+        return key_work + field_work;
     }
 
     // Hash-field deadlines ride the SAME attention mechanism as key deadlines: a per-shard index of
@@ -1664,6 +1792,10 @@ public:
             if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
             if (o->eviction_meta() == 0) initialize_meta(o);
         }
+        // The exact wheel may allocate for this object identity. Prepare it before evicting an old
+        // table copy so OOM leaves both the table and its old timer untouched. The sampler keeps
+        // its historical post-publication registration order.
+        if (!prepare_expire_install(h, o)) return InsertResult::Failed;
         // Evict any copy still in the old table FIRST, or it outlives a later delete of the new one
         // and the key resurrects — see the header.
         if (rehashing()) {
@@ -1671,7 +1803,9 @@ public:
             if (erase_in(1, h, o->key(), &expired) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
-        return insert_into(0, h, o, true) ? InsertResult::Inserted : InsertResult::Failed;
+        if (insert_into(0, h, o, true)) return InsertResult::Inserted;
+        cancel_prepared_expire_install(h, o);
+        return InsertResult::Failed;
     }
 
     InsertResult insert_notify(uint64_t h, KvObj* o, FlatNotifySink* sink) {
@@ -1739,6 +1873,8 @@ public:
         // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
         // table and never exposes a half-demoted state.
         uint64_t* fresh = allocate_table(1024);
+        // Exact wheel identities must disappear before any object can enter retirement.
+        expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++)
@@ -1753,7 +1889,6 @@ public:
             tab_[t] = nullptr;
             cap_[t] = mask_[t] = live_[t] = tombs_[t] = 0;
         }
-        expires_.clear();
         field_expires_.clear();
         field_ttl_gate_ = 0;
         rehash_pos_ = 0;
@@ -1768,6 +1903,7 @@ public:
             clear_during_snapshot_read_local();
             return;
         }
+        expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
@@ -1779,7 +1915,6 @@ public:
                 }
             }
         }
-        expires_.clear();
         field_expires_.clear();
         field_ttl_gate_ = 0;
     }
@@ -1902,6 +2037,52 @@ public:
 private:
     static constexpr uint32_t kSnapshotRecordTag = 0x44434552;  // "RECD", little endian
     static constexpr uint32_t kSnapshotRecordHeader = 32;
+
+    // Key-expiry tracker adaptation. The sampler is hash-only; the wheel is exact to an immutable
+    // object version. Keeping the distinction here makes every lifecycle site state its old/new
+    // pointer explicitly, and compiles the unselected implementation away.
+    bool track_expire(uint64_t hash, KvObj* object) {
+        if (!object) return true;
+        const int64_t at = object->expire_at_ms();
+        return key_expire_track(expires_, hash, object, at, cached_now_ms_);
+    }
+
+    void untrack_expire(uint64_t hash, KvObj* object) {
+        key_expire_cancel(expires_, hash, object);
+    }
+
+    bool prepare_expire_install(uint64_t hash, KvObj* object) {
+        if constexpr (kExpireWheelEnabled) return track_expire(hash, object);
+        (void)hash;
+        (void)object;
+        return true;
+    }
+
+    void cancel_prepared_expire_install(uint64_t hash, KvObj* object) {
+        if constexpr (kExpireWheelEnabled) untrack_expire(hash, object);
+        else {
+            (void)hash;
+            (void)object;
+        }
+    }
+
+    void replace_expire_tracking(uint64_t hash, KvObj* old_object, KvObj* new_object) {
+        if constexpr (kExpireWheelEnabled) {
+            if (old_object == new_object) {
+                (void)track_expire(hash, new_object);
+                return;
+            }
+            // Ordinary publication paths pre-schedule a volatile replacement, so this repeat is
+            // allocation-free. Atomic collapse may instead restore a parked predecessor; if its
+            // first fresh wheel allocation fails, preserve key visibility and lazy-expiry
+            // correctness rather than turning metadata pressure into a process abort.
+            (void)track_expire(hash, new_object);
+            untrack_expire(hash, old_object);
+        } else {
+            (void)old_object;
+            (void)track_expire(hash, new_object);
+        }
+    }
 
     struct SnapshotRecordState {
         bool active = false;
@@ -2269,11 +2450,19 @@ private:
     }
 
     KvObj* random_volatile_candidate() {
-        uint64_t hash = 0;
-        if (!expires_.random_hash(next_random(), kSampleProbeAttempts, hash)) return nullptr;
-        KvObj* o = find_hash_in(0, hash);
-        if (!o && rehashing()) o = find_hash_in(1, hash);
-        if (o && deadline(hash, o) < 0) { expires_.erase(hash); return nullptr; }
+        KeyExpireItem item;
+        if (!key_expire_random(expires_, next_random(), kSampleProbeAttempts, item))
+            return nullptr;
+        KvObj* o = find_expire_item_in(0, item);
+        if (!o && rehashing()) o = find_expire_item_in(1, item);
+        if (item.object && !o) {
+            untrack_expire(item.hash, item.object);
+            return nullptr;
+        }
+        if (o && deadline(item.hash, o) < 0) {
+            untrack_expire(item.hash, o);
+            return nullptr;
+        }
         return o;
     }
 
@@ -2490,6 +2679,24 @@ private:
         return nullptr;
     }
 
+    // The sampler owns only a full hash and intentionally retains its historical first-match
+    // lookup. A wheel node owns an exact immutable object identity: scan the same bounded probe
+    // run for that pointer so a genuine 64-bit hash collision cannot consume another key's timer.
+    KvObj* find_expire_item_in(int t, const KeyExpireItem& item) const {
+        if (!item.object) return find_hash_in(t, item.hash);
+        if (!tab_[t]) return nullptr;
+        const uint16_t tag = tag_of(item.hash);
+        uint32_t slot = slot_start(t, item.hash);
+        for (uint32_t probes = 0; probes <= cap_[t]; probes++) {
+            const uint64_t word = tab_[t][slot];
+            if (word == 0) return nullptr;
+            KvObj* object = ptr_of(word);
+            if (object == item.object && tag_of_word(word) == tag) return object;
+            slot = (slot + 1) & mask_[t];
+        }
+        return nullptr;
+    }
+
     // Same probe as find_hash_in, minus its key-TTL filter. The field-TTL index tracks hashes that
     // usually carry NO key-level deadline, so reusing find_hash_in there silently found nothing and
     // the cycle deregistered every hash it visited (caught by hash_field_expires falling to 0).
@@ -2534,11 +2741,7 @@ private:
                 else                 { tab_[t][i] = make_word(tag, o); }
                 live_[t]++;
                 obj_bytes_ += kvobj_size(o);
-                if (track_expire) {
-                    const int64_t at = o->expire_at_ms();
-                    if (at >= 0) expires_.insert(h, at);
-                    else         expires_.erase(h);
-                }
+                if (track_expire) (void)this->track_expire(h, o);
                 return true;
             }
             KvObj* cur = ptr_of(w);
@@ -2546,14 +2749,10 @@ private:
             else if (tag_of_word(w) == tag && cur->key() == key) {
                 if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
+                if (track_expire) replace_expire_tracking(h, cur, o);
                 retire_obj(cur);                            // replace in place; live_ unchanged
                 obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
-                if (track_expire) {
-                    const int64_t at = o->expire_at_ms();
-                    if (at >= 0) expires_.insert(h, at);
-                    else         expires_.erase(h);
-                }
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -2581,10 +2780,10 @@ private:
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
+                untrack_expire(h, o);
                 retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
                 live_[t]--; tombs_[t]++;
-                expires_.erase(h);
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -2882,6 +3081,7 @@ private:
             if (!make_room_for(o->key(), kvobj_size(o))) return InsertResult::MaxmemoryOom;
             if (o->eviction_meta() == 0) initialize_meta_read_local(o);
         }
+        if (!prepare_expire_install(h, o)) return InsertResult::Failed;
         const bool moves_from_old = rehashing() && find_in(1, h, o->key()) != nullptr;
         ReadLocalTableGuard table_move(*this, moves_from_old);
         if (rehashing()) {
@@ -2889,8 +3089,9 @@ private:
             if (erase_in_read_local(1, h, o->key(), &expired) && expired && expired_counter_)
                 (*expired_counter_)++;
         }
-        return insert_into_read_local(0, h, o, true)
-            ? InsertResult::Inserted : InsertResult::Failed;
+        if (insert_into_read_local(0, h, o, true)) return InsertResult::Inserted;
+        cancel_prepared_expire_install(h, o);
+        return InsertResult::Failed;
     }
 
     bool erase_read_local(uint64_t h, Slice key) {
@@ -2916,6 +3117,7 @@ private:
         // opens before the first slot store and closes after the table bracket below.
         ForeignReadPoisonGuard broad_change(*this);
         ReadLocalTableGuard table_change(*this);
+        expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
@@ -2937,7 +3139,6 @@ private:
             live_[t] = tombs_[t] = 0;
             retire_table_read_local(retired);
         }
-        expires_.clear();
         field_expires_.clear();
         field_ttl_gate_ = 0;
         rehash_pos_ = 0;
@@ -2947,6 +3148,7 @@ private:
     void clear_during_snapshot_read_local() {
         ForeignReadPoisonGuard broad_change(*this);
         ReadLocalTableGuard table_change(*this);
+        expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
             for (uint32_t i = 0; i < cap_[t]; i++) {
@@ -2958,7 +3160,6 @@ private:
                 }
             }
         }
-        expires_.clear();
         field_expires_.clear();
         field_ttl_gate_ = 0;
     }
@@ -3073,10 +3274,8 @@ private:
                 settax_stats().accounting_bytes += added_bytes;
 #endif
                 if (track_expire) {
-                    const int64_t at = o->expire_at_ms();
-                    if (at >= 0) expires_.insert(h, at);
-                    else {
-                        expires_.erase(h);
+                    (void)this->track_expire(h, o);
+                    if (o->expire_at_ms() < 0) {
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                         settax_stats().expire_erases++;
 #endif
@@ -3091,6 +3290,7 @@ private:
                     (*expired_counter_)++;
                 // An acquiring reader that starts after the retirement stamp must no longer be
                 // able to acquire the displaced pointer.
+                if (track_expire) replace_expire_tracking(h, cur, o);
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
                 settax_stats().slot_replacements++;
@@ -3102,15 +3302,10 @@ private:
                 settax_stats().accounting_add_calls++;
                 settax_stats().accounting_bytes += added_bytes;
 #endif
-                if (track_expire) {
-                    const int64_t at = o->expire_at_ms();
-                    if (at >= 0) expires_.insert(h, at);
-                    else {
-                        expires_.erase(h);
+                if (track_expire && o->expire_at_ms() < 0) {
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                        settax_stats().expire_erases++;
+                    settax_stats().expire_erases++;
 #endif
-                    }
                 }
                 return true;
             }
@@ -3131,10 +3326,10 @@ private:
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
+                untrack_expire(h, o);
                 read_local_slot_store(&tab_[t][i], kTombBit);
                 retire_obj_read_local(o);
                 live_[t]--; tombs_[t]++;
-                expires_.erase(h);
                 return true;
             }
             i = (i + 1) & mask_[t];
@@ -3171,6 +3366,8 @@ private:
     }
 
     void retire_obj_read_local(KvObj* object) {
+        if constexpr (kExpireWheelEnabled)
+            untrack_expire(hash_key(object->key()), object);
         const size_t bytes = kvobj_size(object);
         obj_bytes_ -= bytes;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -3541,6 +3738,7 @@ private:
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
     void retire_obj(KvObj* o) {
+        if constexpr (kExpireWheelEnabled) untrack_expire(hash_key(o->key()), o);
         const size_t bytes = kvobj_size(o);
         obj_bytes_ -= bytes;
         if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
@@ -3650,10 +3848,12 @@ private:
     std::vector<Borrow> borrows_;
     std::vector<uint32_t> borrow_idx_;   // empty == scan mode; see kBorrowIndexMin
     uint32_t  borrow_tombs_ = 0;
-    ExpireIndex expires_;
+    KeyExpireTracker expires_;
     int64_t     cached_now_ms_ = 0;
     uint8_t     cached_lru_clock_ = 0;
     bool        no_touch_ = false;      // per-task, owner-written; see set_no_touch
+    // Occupies four of the six padding bytes before the pointer-aligned counter bindings.
+    uint32_t    active_expire_reap_lag_ms_max_ = 0;
     uint64_t*   expired_counter_ = nullptr;
     uint64_t*   evicted_counter_ = nullptr;
     uint64_t*   rehash_counter_ = nullptr;

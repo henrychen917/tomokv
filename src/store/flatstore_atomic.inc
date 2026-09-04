@@ -397,15 +397,23 @@
 
     bool atomic_admit(Slice protected_key, const KvObj* incoming) {
         const size_t bytes = incoming ? kvobj_size(incoming) : 0;
-        if (!__builtin_expect(maxmemory_enabled_, false) || snapshot_active_) {
+        auto finish = [&] {
+            if constexpr (kExpireWheelEnabled) {
+                KvObj* object = const_cast<KvObj*>(incoming);
+                if (object && !prepare_expire_install(hash_key(protected_key), object))
+                    return false;
+            }
             atomic_version_bytes_ += bytes;
             return true;
+        };
+        if (!__builtin_expect(maxmemory_enabled_, false) || snapshot_active_) {
+            return finish();
         }
         auto fits = [&] {
             const size_t used = accounted_bytes();
             return bytes <= maxmemory_limit_ && used <= maxmemory_limit_ - bytes;
         };
-        if (fits()) { atomic_version_bytes_ += bytes; return true; }
+        if (fits()) return finish();
         if (maxmemory_policy_ == MaxmemoryPolicy::NoEviction) return false;
         uint32_t budget = kEvictionsPerOp;
         while (budget-- && !fits()) {
@@ -422,11 +430,14 @@
             if (live && evicted_counter_) (*evicted_counter_)++;
         }
         if (!fits()) return false;
-        atomic_version_bytes_ += bytes;
-        return true;
+        return finish();
     }
 
     void atomic_unadmit(const KvObj* incoming) {
+        if constexpr (kExpireWheelEnabled) {
+            KvObj* object = const_cast<KvObj*>(incoming);
+            if (object) cancel_prepared_expire_install(hash_key(object->key()), object);
+        }
         if (incoming) atomic_gauge_sub(kvobj_size(incoming));
     }
 
@@ -455,6 +466,9 @@
     }
 
     void atomic_discard_value(KvObj* value) {
+        if constexpr (kExpireWheelEnabled) {
+            if (value) untrack_expire(hash_key(value->key()), value);
+        }
         if (!atomic_recycle_value(value)) kvobj_free(value);
     }
 
@@ -1155,15 +1169,13 @@ private:
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        replace_expire_tracking(hash, object, replacement);
                         read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
                         obj_bytes_ += kvobj_size(replacement);
-                        const int64_t deadline = replacement->expire_at_ms();
-                        if (deadline >= 0) expires_.insert(hash, deadline);
-                        else               expires_.erase(hash);
                     } else {
+                        untrack_expire(hash, object);
                         read_local_slot_store(&tab_[table][slot], kTombBit);
                         live_[table]--; tombs_[table]++;
-                        expires_.erase(hash);
                     }
                     return object;
                 }
@@ -1200,15 +1212,13 @@ private:
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        replace_expire_tracking(hash, object, replacement);
                         tab_[table][slot] = make_word(tag, replacement);
                         obj_bytes_ += kvobj_size(replacement);
-                        const int64_t deadline = replacement->expire_at_ms();
-                        if (deadline >= 0) expires_.insert(hash, deadline);
-                        else               expires_.erase(hash);
                     } else {
+                        untrack_expire(hash, object);
                         tab_[table][slot] = kTombBit;
                         live_[table]--; tombs_[table]++;
-                        expires_.erase(hash);
                     }
                     return object;
                 }
@@ -1257,12 +1267,16 @@ private:
 
     void retire_detached_obj_read_local(KvObj* object) {
         if (!object) return;
+        if constexpr (kExpireWheelEnabled)
+            untrack_expire(hash_key(object->key()), object);
         read_local_store_state_required().retire_sink.retire(
             this, object, kvobj_size(object), &FlatStore::read_local_reclaim_atomic_object);
     }
 
     void retire_detached_obj(KvObj* object) {
         if (!object) return;
+        if constexpr (kExpireWheelEnabled)
+            untrack_expire(hash_key(object->key()), object);
         if (atomic_recycle_value(object)) return;
         if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
@@ -1274,6 +1288,78 @@ private:
             return;
         }
         kvobj_free(object);
+    }
+
+    void atomic_cancel_prepared_expire_scratch() {
+        for (KvObj* object : atomic_collapse_retire_)
+            cancel_prepared_expire_install(hash_key(object->key()), object);
+        atomic_collapse_retire_.clear();
+    }
+
+    // An aborted record may restore a detached predecessor to the physical table. Pre-schedule
+    // every such exact identity before the cleanup mutates or frees anything, so wheel OOM leaves
+    // the MVCC prefix wholly retryable. `overlap == false` guarantees one selected occurrence per
+    // key; a later boundary receives a parked pointer and therefore needs no physical timer yet.
+    bool atomic_prepare_aborted_expire_restores(AtomicEntry* first_unselected,
+                                                 uint64_t occurrences) {
+        if (occurrences > atomic_collapse_retire_.max_size()) return false;
+        try {
+            atomic_collapse_retire_.clear();
+            atomic_collapse_retire_.reserve(static_cast<size_t>(occurrences));
+        } catch (const std::bad_alloc&) {
+            return false;
+        }
+        for (AtomicEntry* entry = atomic_pending_->head; entry != first_unselected;
+             entry = entry->next) {
+            const bool aborted = entry->group_epoch && entry->group_aborted &&
+                entry->group_aborted->load(std::memory_order_acquire);
+            if (!aborted) continue;
+            for (uint32_t i = 0; i < entry->count; i++) {
+                const uint64_t hash = atomic_entry_hash(*entry, i);
+                KvObj* replacement = atomic_live_value(entry->parked()[i]);
+                if (!replacement || replacement->expire_at_ms() < 0) continue;
+                const Slice key = atomic_entry_key(*entry, i);
+                const uint64_t bit = atomic_membership_bit(hash);
+                bool boundary = false;
+                for (AtomicEntry* scan = first_unselected; scan && !boundary;
+                     scan = scan->next) {
+                    if (!(scan->membership & bit)) continue;
+                    for (uint32_t j = 0; j < scan->count; j++) {
+                        if (atomic_entry_hash(*scan, j) == hash &&
+                            atomic_entry_key(*scan, j) == key) {
+                            boundary = true;
+                            break;
+                        }
+                    }
+                }
+                if (boundary || atomic_find_physical(hash, key) == replacement) continue;
+                if (!prepare_expire_install(hash, replacement)) {
+                    atomic_cancel_prepared_expire_scratch();
+                    return false;
+                }
+                atomic_collapse_retire_.push_back(replacement);
+            }
+        }
+        atomic_collapse_retire_.clear();  // identities remain scheduled; scratch does not own them
+        return true;
+    }
+
+    bool atomic_prepare_collapse_expire_winners() {
+        atomic_collapse_retire_.clear();
+        for (AtomicCollapseKey& key : atomic_collapse_keys_) {
+            if (key.boundary || key.physical == key.winner || !key.winner ||
+                key.winner->expire_at_ms() < 0)
+                continue;
+            if (!prepare_expire_install(key.hash, key.winner)) {
+                atomic_cancel_prepared_expire_scratch();
+                return false;
+            }
+            // The slow-path setup reserved at least one retire slot per occurrence, hence enough
+            // capacity for this at-most-one-per-key rollback list without a throwing push.
+            atomic_collapse_retire_.push_back(key.winner);
+        }
+        atomic_collapse_retire_.clear();
+        return true;
     }
 
     bool atomic_collapse(uint64_t floor, uint64_t cleanup_cutoff) {
@@ -1408,6 +1494,10 @@ private:
             }
         }
         if (!overlap) {
+            if constexpr (kExpireWheelEnabled) {
+                if (!atomic_prepare_aborted_expire_restores(first_unselected, occurrences))
+                    return false;
+            }
             atomic_pending_->cleanup_slow += occurrences;
             uint64_t promoted = 0;
             AtomicEntry* entry = atomic_pending_->head;
@@ -1595,6 +1685,9 @@ private:
             if (!key.boundary && key.winner && !key.physical) restore++;
         }
         if (restore && !atomic_prepare_capacity(restore)) return false;
+        if constexpr (kExpireWheelEnabled) {
+            if (!atomic_prepare_collapse_expire_winners()) return false;
+        }
 
         for (AtomicCollapseKey& key : atomic_collapse_keys_) {
             if (key.boundary) {
@@ -1794,6 +1887,10 @@ private:
             }
         }
         if (!overlap) {
+            if constexpr (kExpireWheelEnabled) {
+                if (!atomic_prepare_aborted_expire_restores(first_unselected, occurrences))
+                    return false;
+            }
             atomic_pending_->cleanup_slow += occurrences;
             uint64_t promoted = 0;
             AtomicEntry* entry = atomic_pending_->head;
@@ -1983,6 +2080,9 @@ private:
             if (!key.boundary && key.winner && !key.physical) restore++;
         }
         if (restore && !atomic_prepare_capacity(restore)) return false;
+        if constexpr (kExpireWheelEnabled) {
+            if (!atomic_prepare_collapse_expire_winners()) return false;
+        }
 
         for (AtomicCollapseKey& key : atomic_collapse_keys_) {
             if (key.boundary) {

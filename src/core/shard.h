@@ -137,7 +137,17 @@ public:
                                  &stats_.atomic_entries,
                                  &stats_.atomic_gauge_underflows);
     }
-    uint32_t active_expire(uint32_t budget) { return store_.active_expire(budget); }
+    uint32_t active_expire(uint32_t budget) {
+        const uint32_t work = store_.active_expire(budget);
+        if (work) publish_active_expire_reap_lag();
+        return work;
+    }
+    uint32_t active_expire_keys(uint32_t budget) {
+        const uint32_t work = store_.active_expire_keys(budget);
+        if (work) publish_active_expire_reap_lag();
+        return work;
+    }
+    bool active_expire_due() const { return store_.active_expire_due(); }
 
     // Refreshed once per executor pass through the existing live-config seqlock.  A null store
     // sink is the complete off state: no notification allocation or callback is reachable.
@@ -311,6 +321,9 @@ public:
     uint32_t published_expires() const {
         return published_expires_.load(std::memory_order_relaxed);
     }
+    uint32_t published_active_expire_reap_lag_ms_max() const {
+        return published_active_expire_reap_lag_ms_max_.load(std::memory_order_relaxed);
+    }
     uint64_t published_evicted() const {
         return published_evicted_.load(std::memory_order_relaxed);
     }
@@ -450,6 +463,12 @@ public:
     }
 
 private:
+    void publish_active_expire_reap_lag() {
+        const uint32_t value = store_.active_expire_reap_lag_ms_max();
+        if (value > published_active_expire_reap_lag_ms_max_.load(std::memory_order_relaxed))
+            published_active_expire_reap_lag_ms_max_.store(value, std::memory_order_relaxed);
+    }
+
     friend struct ShardLayoutLock;
     int32_t   id_ = -1;
     uint32_t  bucket_begin_ = 0;
@@ -460,6 +479,8 @@ private:
     std::atomic<uint32_t> published_size_{0};
     std::atomic<uint64_t> published_obj_bytes_{0};
     std::atomic<uint32_t> published_expires_{0};
+    // Fills the existing four-byte alignment hole before published_evicted_.
+    std::atomic<uint32_t> published_active_expire_reap_lag_ms_max_{0};
     std::atomic<uint64_t> published_evicted_{0};
     FlatStore store_;
     Stats     stats_;

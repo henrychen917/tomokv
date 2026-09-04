@@ -79,20 +79,23 @@ same bounded cycle budget as reaped nodes, preventing one clustered upper bucket
 unbounded owner stall.  A due node is detached before the callback; stale entries are consumed,
 and an object protected by an undecided atomic record is requeued instead of dropped or left at a
 busy-spinning head.  Snapshot suppression and the existing notification -> AOF delete -> erase
-order remain unchanged.  Volatile eviction continues to use the existing active index for bounded
-random candidates.
+order remain unchanged.  Volatile eviction uses the selected tracker for bounded random candidates;
+the wheel keeps an O(1) owner-local random vector alongside its exact nodes.
 
 The split executor currently samples only in its idle sweep, so a wheel there would still starve
 under continuous work.  Wheel builds therefore perform a bounded, millisecond-gated due pass from
-the busy batch loop as well.  Sampler builds retain their exact scheduling path.  An empty wheel is
-checked through its null state before walking shards, keeping the no-TTL command cell free of wheel
-work.
+the busy outer-pass boundary as well.  Sampler builds retain their exact scheduling path.  The busy
+hook is compiled out in sampler builds; in wheel builds it runs at most once per observed
+millisecond, and each shard's empty wheel returns from its null state before any bucket inspection.
+The hook drains key-wheel work only, leaving hash-field sampling on its existing idle schedule.
 
 INFO adds `active_expire_reap_lag_ms_max`: the saturating maximum of `now - deadline` observed on a
 successful active reap.  It is updated only on the cold reap path, published in existing alignment
 holes, and aggregated as a maximum.  Comparing it with `expired_keys` and a known elapsed test
 population measures sampler backlog without maintaining a shadow ordered structure that would
-contaminate the A/B.  CONFIG RESETSTAT baselines the counter like other cumulative statistics.
+contaminate the A/B.  This is an absolute lifetime high-water gauge, not a cumulative event count,
+so CONFIG RESETSTAT deliberately leaves it intact.  Publication occurs only from an active-expiry
+cycle; ordinary command-batch publication gains no store or branch.
 
 ## I-8: maxmemory-only eviction metadata
 
@@ -135,4 +138,3 @@ configuration refresh may retry.  Disabling maxmemory releases every metadata ar
   traffic.
 - For every commit compare GET/SET instructions per operation on non-TTL keys with
   `maxmemory=0`.  The required result is null: no sidecar allocation or access and no new clock read.
-

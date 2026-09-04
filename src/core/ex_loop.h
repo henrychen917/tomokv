@@ -470,6 +470,12 @@ public:
                     }
             }
             finish_filler();
+#if TOMO_EXPIRE_WHEEL
+            // The sampler remains idle-sweep-only.  An exact wheel also needs service while a
+            // continuously busy owner never reaches sweep(); cap that service to one pass per
+            // observed millisecond and charge cascades and due callbacks to the same fixed budget.
+            if (did) did += active_expire_busy_cycle();
+#endif
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
                 did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
@@ -657,6 +663,9 @@ public:
                             did += snapshot_owner_state_ == SnapshotOwnerState::None
                                        ? drain_tasks() : drain_tasks_snapshot();
                     }
+#if TOMO_EXPIRE_WHEEL
+                    if (did) did += active_expire_busy_cycle();
+#endif
                     if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                         cached_now_ms_ >= blocking_beat_ms_) {
                         did += blocking_owner_cycle(
@@ -1794,6 +1803,36 @@ private:
         }
         return removed;
     }
+
+#if TOMO_EXPIRE_WHEEL
+    // Busy-loop wheel service.  The static is per ExLoopT specialization and per executor thread;
+    // an executor thread owns one loop instance, so this preserves the class layout lock without
+    // sharing a gate between owners.  A backwards wall-clock step waits for the previous tick,
+    // matching the wheel's no-early-expiry rule.
+    uint32_t active_expire_busy_cycle() {
+        if (!srv_->active_expire_enabled() || snapshot_blocks_tasks()) return 0;
+        static thread_local int64_t last_cycle_ms = -1;
+        if (cached_now_ms_ <= last_cycle_ms) return 0;
+        last_cycle_ms = cached_now_ms_;
+
+        auto& shards = self_->shards();
+        if (shards.empty()) return 0;
+        uint32_t work = 0;
+        for (size_t visited = 0; visited < shards.size() && work < kActiveExpireChecks;
+             visited++) {
+            if (expire_shard_cursor_ >= shards.size()) expire_shard_cursor_ = 0;
+            Shard* shard = shards[expire_shard_cursor_++];
+            shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            // FlatStore checks the nullable wheel before inspecting any bucket state.  Thus an
+            // owned-shard scan in a zero-TTL workload performs no wheel walk or allocation.
+            if (!shard->active_expire_due()) continue;
+            const uint32_t done = shard->active_expire_keys(kActiveExpireChecks - work);
+            if (done) shard->publish_size();
+            work += done;
+        }
+        return work;
+    }
+#endif
 
     uint32_t atomic_cleanup_cycle(uint32_t budget) {
         auto& shards = self_->shards();
