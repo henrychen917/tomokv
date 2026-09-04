@@ -41,9 +41,25 @@ MAX_IDLE_EX_SPIN_CYCLES = (math.ceil(IDLE_SECONDS * 1000 / RING_PARK_MS) +
                            MAX_IDLE_WAKES + 4)
 MAX_IDLE_EX_SPINS = EX_SPIN_BUDGET * MAX_IDLE_EX_SPIN_CYCLES
 MAX_IDLE_EX_ITERATIONS = MAX_IDLE_EX_SPINS + MAX_IDLE_ITERATIONS
-MAX_EXTRA_ITERATIONS = 8
+# THE PARKED-FRAME CEILINGS ARE NOT ALL THE SAME KIND OF NUMBER.
+# What this row exists to catch is a partial frame that makes its owner thread SPIN or trade wakes
+# instead of parking, and those two counters were +0 in all 36 measured runs below. Loop iterations
+# are different: they price the observation window itself, and the window costs a whole number of
+# passes that the sampler's own two DEBUG round trips can shift by one. Measured on this box, six
+# runs each of three binaries -- including the SHIPPED one, which is the point -- gave extra
+# iterations of 0, 7 or 9 with no other value in between and no separation between binaries:
+#   train4  9 9 0 9 9 7   train3  9 9 9 7 7 9   shipped  7 9 0 9 0 9
+# A ceiling of 8 therefore failed a correct server about half the time, which is what it did on two
+# gate runs. 24 is three times the largest observed value and still two orders of magnitude below a
+# real spin, which shows up as thousands of iterations.
+MAX_EXTRA_ITERATIONS = 24
 MAX_EXTRA_SPINS = 8
 MAX_EXTRA_WAKES = 8
+# ATTEMPTS. Wake accounting is a race against whatever else the box is doing: a gate sharing the
+# machine with two compiling agents saw +15/+16 wakes on a server that measured +0/+0 alone. A
+# thread that really spins or really trades wakes on a parked frame does it on every attempt, so
+# retrying costs a defect nothing and costs a busy box a red row it did not earn.
+PARKED_ATTEMPTS = 3
 
 
 def arguments():
@@ -222,50 +238,57 @@ if idle_only:
 
 # Baseline has the same retained admin connection and the same two DEBUG samples as the partial
 # window, so its target-thread delta prices the observation itself without process-wide noise.
-_base_before, _base_after, baseline = measure(admin, admin_file)
+for attempt in range(1, PARKED_ATTEMPTS + 1):
+  _base_before, _base_after, baseline = measure(admin, admin_file)
 
-partial, partial_file = connect()
-target_tid = command(partial, partial_file, "DEBUG", "IO-THREAD")
-if not isinstance(target_tid, int) or target_tid not in baseline:
-    raise SystemExit("spinprobe: invalid connection owner %r" % (target_tid,))
-partial.sendall(b"*3\r\n$3\r\nSE")
-time.sleep(LAND_SECONDS)               # let the incomplete frame reach its parked parser state
-partial_before, _partial_after, parked = measure(admin, admin_file)
-target = parked[target_tid]
-base_target = baseline[target_tid]
-extra = {name: target[name] - base_target[name] for name in COUNTERS}
+  partial, partial_file = connect()
+  target_tid = command(partial, partial_file, "DEBUG", "IO-THREAD")
+  if not isinstance(target_tid, int) or target_tid not in baseline:
+      raise SystemExit("spinprobe: invalid connection owner %r" % (target_tid,))
+  partial.sendall(b"*3\r\n$3\r\nSE")
+  time.sleep(LAND_SECONDS)               # let the incomplete frame reach its parked parser state
+  partial_before, _partial_after, parked = measure(admin, admin_file)
+  target = parked[target_tid]
+  base_target = baseline[target_tid]
+  extra = {name: target[name] - base_target[name] for name in COUNTERS}
 
-# Mechanism proof: the rest of the very same frame must complete into one SET and answer +OK.
-partial.sendall(b"T\r\n$8\r\nsp:probe\r\n$1\r\nv\r\n")
-try:
-    reply = read_resp(partial_file)
-except (OSError, RuntimeError) as exc:
-    reply = b"<%s>" % type(exc).__name__.encode()
-held = reply == b"OK"
-owner_after = None
-if held:
-    owner_after = command(partial, partial_file, "DEBUG", "IO-THREAD")
-    command(partial, partial_file, "DEL", "sp:probe")
-stable_owner = owner_after == target_tid
+  # Mechanism proof: the rest of the very same frame must complete into one SET and answer +OK.
+  partial.sendall(b"T\r\n$8\r\nsp:probe\r\n$1\r\nv\r\n")
+  try:
+      reply = read_resp(partial_file)
+  except (OSError, RuntimeError) as exc:
+      reply = b"<%s>" % type(exc).__name__.encode()
+  held = reply == b"OK"
+  owner_after = None
+  if held:
+      owner_after = command(partial, partial_file, "DEBUG", "IO-THREAD")
+      command(partial, partial_file, "DEL", "sp:probe")
+  stable_owner = owner_after == target_tid
 
-sampling_fired = admin_tid in baseline and baseline[admin_tid]["iterations"] > 0
-sampling_fired = (sampling_fired and admin_tid in parked and
-                  parked[admin_tid]["iterations"] > 0)
-within_ceiling = (extra["iterations"] <= MAX_EXTRA_ITERATIONS and
-                  extra["spins"] <= MAX_EXTRA_SPINS and
-                  extra["wakes_sent"] <= MAX_EXTRA_WAKES and
-                  extra["wakes_recv"] <= MAX_EXTRA_WAKES)
+  sampling_fired = admin_tid in baseline and baseline[admin_tid]["iterations"] > 0
+  sampling_fired = (sampling_fired and admin_tid in parked and
+                    parked[admin_tid]["iterations"] > 0)
+  within_ceiling = (extra["iterations"] <= MAX_EXTRA_ITERATIONS and
+                    extra["spins"] <= MAX_EXTRA_SPINS and
+                    extra["wakes_sent"] <= MAX_EXTRA_WAKES and
+                    extra["wakes_recv"] <= MAX_EXTRA_WAKES)
 
-print("pid %d idle %.0fs target tid=%d role=%s: baseline {%s}; partial {%s}; "
-      "extra iterations=%+d spins=%+d wakes=%+d/%+d; frame completion -> %r; "
-      "owner after=%r (%s)"
-      % (srv, IDLE_SECONDS, target_tid, partial_before[target_tid]["role"],
-         describe({target_tid: base_target}), describe({target_tid: target}),
-         extra["iterations"], extra["spins"], extra["wakes_sent"], extra["wakes_recv"],
-         reply, owner_after, "stable" if stable_owner else "CHANGED"))
+  print("pid %d idle %.0fs%s target tid=%d role=%s: baseline {%s}; partial {%s}; "
+        "extra iterations=%+d spins=%+d wakes=%+d/%+d; frame completion -> %r; "
+        "owner after=%r (%s)"
+        % (srv, IDLE_SECONDS, "" if attempt == 1 else " (retry %d)" % (attempt - 1),
+           target_tid, partial_before[target_tid]["role"],
+           describe({target_tid: base_target}), describe({target_tid: target}),
+           extra["iterations"], extra["spins"], extra["wakes_sent"], extra["wakes_recv"],
+           reply, owner_after, "stable" if stable_owner else "CHANGED"))
 
-partial_file.close()
-partial.close()
+  # One connection per attempt: the parked frame is the state under test, so a retry has to start
+  # from a fresh unparked connection rather than reuse the one already completed above.
+  partial_file.close()
+  partial.close()
+  if within_ceiling and held and stable_owner and sampling_fired:
+      break
+
 admin_file.close()
 admin.close()
 sys.exit(0 if within_ceiling and held and stable_owner and sampling_fired else 1)
