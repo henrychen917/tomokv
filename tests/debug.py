@@ -81,6 +81,33 @@ expect(client.command("DEBUG", "JMAP"),
        "ERR unknown subcommand or wrong number of arguments for 'debug' command",
        "DEBUG JMAP intentionally absent")
 
+# DEBUG SHARDS preserves input order and reports the live owner, not a sid-derived guess. This
+# purpose-boot has no concurrent FLIP; the command intentionally does not promise cross-row
+# coherence if placement changes while a batch is being read.
+signals = client.command("DEBUG", "LBSIGNALS")
+if not isinstance(signals, bytes):
+    raise AssertionError("DEBUG LBSIGNALS geometry reply: %r" % (signals,))
+shard_owners = {}
+for line in signals.splitlines():
+    fields = line.split()
+    if fields and fields[0] == b"shard":
+        if len(fields) < 3:
+            raise AssertionError("short LBSIGNALS shard row: %r" % (line,))
+        shard_owners[int(fields[1])] = int(fields[2])
+if not shard_owners:
+    raise AssertionError("DEBUG LBSIGNALS reported no shard ownership rows")
+geometry_keys = [b"debug:shards:a", b"debug:shards:b", b"debug:shards:a",
+                 b"debug:shards:c"]
+geometry = client.command("DEBUG", "SHARDS", *geometry_keys)
+if not isinstance(geometry, list) or len(geometry) != len(geometry_keys):
+    raise AssertionError("DEBUG SHARDS outer reply: %r" % (geometry,))
+for index, (key, pair) in enumerate(zip(geometry_keys, geometry)):
+    if (not isinstance(pair, list) or len(pair) != 2 or
+            not isinstance(pair[0], int) or not isinstance(pair[1], int)):
+        raise AssertionError("DEBUG SHARDS row %d: %r" % (index, pair))
+    sid = client.command("DEBUG", "SHARD", key)
+    expect(pair, [sid, shard_owners[sid]], "DEBUG SHARDS row %d" % index)
+
 # This is deliberately non-vacuous: assert both toggle replies, then prove the expired counter is
 # stationary while off and advances after the second toggle.
 expect(client.command("DEBUG", "SET-ACTIVE-EXPIRE", "0"), b"OK", "expire toggle off reply")
@@ -124,4 +151,5 @@ for atomic in (0, 1):
 
 client.file.close()
 client.sock.close()
-print("debug: PASS (toggle fired, LOADAOF off guard, mixed snapshot RELOAD atomic=0/1)")
+print("debug: PASS (toggle fired, batched shard ownership, LOADAOF off guard, "
+      "mixed snapshot RELOAD atomic=0/1)")

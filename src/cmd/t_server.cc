@@ -950,6 +950,22 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
         return;
     }
+    // Batched geometry oracle. Each pair is truthful at the point it is read and preserves the
+    // caller's key order. Deliberately do not take the placement transition lock: DEBUG remains a
+    // non-obstructing observer, so a reply concurrent with FLIP may contain rows from both the old
+    // and new placements rather than pretending to be one coherent placement snapshot.
+    if (eq_icase(subcommand, "shards") && op.argc() >= 3) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        auto sink = op.sink();
+        reply_array_header(sink, op.argc() - 2);
+        for (uint32_t i = 2; i < op.argc(); i++) {
+            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(op.arg(i)));
+            reply_array_header(sink, 2);
+            reply_int(sink, sid);
+            reply_int(sink, g_server->worker_of_shard(sid));
+        }
+        return;
+    }
     // Geometry oracle for the B+ directed test. The server hash is boot-randomized, so the test
     // cannot manufacture an unrelated same-shard key whose filter cell is provably negative from
     // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
