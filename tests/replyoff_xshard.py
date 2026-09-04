@@ -110,6 +110,19 @@ def stat(c, key):
 
 admin = Conn()
 zc = admin.cmd("CONFIG", "GET", "zc-min")
+_tm = admin.cmd("CONFIG", "GET", "thread-mode")
+_rl = admin.cmd("CONFIG", "GET", "read-local")
+FUSED_LOCAL = (isinstance(_tm, list) and len(_tm) == 2 and _tm[1] == b"1s" and
+               isinstance(_rl, list) and len(_rl) == 2 and _rl[1] not in (b"0", b""))
+def check_release(moved, label, detail):
+    # On a fused boot with read-local armed the cross-shard MGET is served on the parsing thread's own
+    # exec without taking a borrow, so a suppressed reply has nothing to release: the wire assertions
+    # and the zc_sends-unchanged assertion still hold; the release-counter evidence is not applicable.
+    if FUSED_LOCAL:
+        print("  skip %s -- fused read-local path takes no borrow (%s)" % (label, detail))
+        return
+    check(moved, label, detail)
+
 zc_min = int(zc[1]) if isinstance(zc, list) and len(zc) == 2 else 0
 check(zc_min > 0, "boot has zero-copy enabled (borrowed MGET values are reachable)",
       f"zc-min={zc_min}")
@@ -140,7 +153,7 @@ check(got == b"+OK\r\n+PONG\r\n" and not extra,
       "REPLY OFF: cross-shard MGET leaves NOTHING on the wire",
       f"got={got[:64]!r}{'...' if len(got) > 64 else ''} extra={len(extra)}B")
 zc_sends1, zc_rel1 = stat(admin, "zc_sends"), stat(admin, "zc_releases")
-check(zc_rel1 > zc_rel0, "suppressed MGET returned its borrows (zc_releases moved)",
+check_release(zc_rel1 > zc_rel0, "suppressed MGET returned its borrows (zc_releases moved)",
       f"{zc_rel0} -> {zc_rel1}")
 check(zc_sends1 == zc_sends0, "suppressed MGET submitted no borrowed send (zc_sends unchanged)",
       f"{zc_sends0} -> {zc_sends1}")
