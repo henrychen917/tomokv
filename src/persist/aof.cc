@@ -149,12 +149,8 @@ std::string aof_base_name(const std::string& basename, uint64_t sequence) {
     return basename + "." + std::to_string(sequence) + ".base.tomo";
 }
 
-int64_t realtime_ms() {
-    timespec ts{};
-    ::clock_gettime(CLOCK_REALTIME, &ts);
-    return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
-}
-
+// Wall-clock milliseconds come from core/signal.h's now_realtime_ms(): one definition tree-wide,
+// because anything compared against a key deadline must share its clock.
 int64_t monotonic_ms() {
     timespec ts{};
     ::clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -736,7 +732,7 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
                                SnapshotSaveCursor* cursor, AofOwnerContext* context) {
     if (!manager_ || manager_->failed()) return false;
     if (kind != AofRecordKind::Timestamp && manager_->timestamp_enabled() &&
-        !maybe_timestamp(realtime_ms(), context)) return false;
+        !maybe_timestamp(now_realtime_ms(), context)) return false;
     if (payload_len > UINT32_MAX ||
         payload_len > UINT64_MAX - kRecordHeaderBytes - key.n) {
         manager_->fail("AOF record is too large");
@@ -990,7 +986,7 @@ bool AofManager::write_header_normal() {
     snapshot_put_u32(header + 12, kFileHeaderBytes);
     snapshot_put_u32(header + 16, nshards_);
     snapshot_put_u32(header + 20, static_cast<uint32_t>(g_hash_kind));
-    snapshot_put_u64(header + 24, static_cast<uint64_t>(realtime_ms()));
+    snapshot_put_u64(header + 24, static_cast<uint64_t>(now_realtime_ms()));
     snapshot_put_u64(header + 32, g_hash_seed);
     snapshot_put_u64(header + 40, g_sip_k0);
     snapshot_put_u64(header + 48, g_sip_k1);
@@ -1029,7 +1025,7 @@ bool AofManager::write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint6
     snapshot_put_u32(header + 12, kFileHeaderBytes);
     snapshot_put_u32(header + 16, nshards_);
     snapshot_put_u32(header + 20, static_cast<uint32_t>(g_hash_kind));
-    snapshot_put_u64(header + 24, static_cast<uint64_t>(realtime_ms()));
+    snapshot_put_u64(header + 24, static_cast<uint64_t>(now_realtime_ms()));
     snapshot_put_u64(header + 32, g_hash_seed);
     snapshot_put_u64(header + 40, g_sip_k0);
     snapshot_put_u64(header + 48, g_sip_k1);
@@ -2444,7 +2440,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                     std::string& error) {
     const uint32_t sid = static_cast<uint32_t>(shard.id());
     if (sid >= plan.sections.size()) { error = "AOF shard section is missing"; return false; }
-    const int64_t now = realtime_ms();
+    const int64_t now = now_realtime_ms();
     shard.set_cached_now_ms(now);
     const std::vector<uint8_t>& section = plan.sections[sid];
     size_t pos = 0;
