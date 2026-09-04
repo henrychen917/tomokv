@@ -332,7 +332,6 @@ public:
             return false;
         }
     }
-    bool lb_signals_enabled() const { return lb_bucket_samples_ != nullptr; }
     void note_lb_sample(uint64_t hash) {
         const uint32_t bucket = bucket_of(hash);
         if (!lb_bucket_samples_ || !owns(bucket)) return;

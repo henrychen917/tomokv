@@ -126,12 +126,9 @@ public:
     void anchor();
 
     bool anchored() const { return anchored_; }
-    bool has_signature() const { return smoothed_.valid; }
     double band() const { return band_; }
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
-    const FlipSignature& smoothed() const { return smoothed_; }
-    const FlipSignature& anchored_signature() const { return anchored_signature_; }
 
 private:
     void update_band();
