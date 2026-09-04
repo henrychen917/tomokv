@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
 #include <initializer_list>
 #include <string>
 #include <unistd.h>
@@ -14,6 +15,25 @@ namespace {
     std::fprintf(stderr, "config parser test: %s\n", message);
     std::exit(1);
 }
+
+// Negative probes deliberately trip the parser's own error messages; those belong to the parser,
+// not to the gate log, so the probes run with stderr parked on /dev/null.
+struct StderrSilencer {
+    int saved = -1;
+    StderrSilencer() {
+        std::fflush(stderr);
+        saved = ::dup(STDERR_FILENO);
+        const int null_fd = ::open("/dev/null", O_WRONLY);
+        if (saved < 0 || null_fd < 0 || ::dup2(null_fd, STDERR_FILENO) < 0)
+            fail("silencing stderr failed");
+        ::close(null_fd);
+    }
+    ~StderrSilencer() {
+        std::fflush(stderr);
+        ::dup2(saved, STDERR_FILENO);
+        ::close(saved);
+    }
+};
 
 std::string rejection_text(std::initializer_list<const char*> values,
                            bool validate = false) {
@@ -113,6 +133,7 @@ int main() {
         fail("TLS knob values were not preserved byte-exactly");
 
     auto rejects = [](std::initializer_list<const char*> values) {
+        StderrSilencer quiet;
         tomo::Config cfg;
         tomo::ConfigParseState state;
         const std::vector<const char*> args(values);
@@ -123,6 +144,26 @@ int main() {
         !rejects({"--tls-auth-clients", "true"}) ||
         !rejects({"--tls-prefer-server-ciphers", "1"}))
         fail("invalid TLS grammar was accepted");
+
+    // --shards follows the same numeric grammar as every other knob: the range is enforced at
+    // parse time and garbage is rejected rather than atoi'd into a misleading range message.
+    tomo::Config shards;
+    tomo::ConfigParseState shards_state;
+    const std::vector<const char*> shards_args = {"--shards", "256"};
+    if (tomo::parse_config_args(shards_args, shards, shards_state, 2, "test") !=
+            tomo::kConfigParsed ||
+        shards.shards != 256 ||
+        !rejects({"--shards", "0"}) ||
+        !rejects({"--shards", "257"}) ||
+        !rejects({"--shards", "abc"}) ||
+        !rejects({"--shards", "-5"}) ||
+        !rejects({"--shards", "16x"}) ||
+        !rejects({"--shards", ""}))
+        fail("shards boot grammar differs");
+    if (rejection_text({"--shards", "16x"}) != "--shards must be between 1 and 256\n")
+        fail("shards rejection text is not canonical");
+    tomo::Config shards_default;
+    if (shards_default.shards != 16) fail("shards default is not 16");
 
     tomo::Config persistence;
     tomo::ConfigParseState persistence_state;
@@ -203,10 +244,13 @@ int main() {
     const std::vector<const char*> invalid_split_deep_args = {
         "--overlap", "2", "--thread-mode", "2s",
     };
-    if (tomo::parse_config_args(invalid_split_deep_args, invalid_split_deep,
-                                invalid_split_deep_state, 2, "test") != tomo::kConfigParsed ||
-        tomo::validate_config(invalid_split_deep) != tomo::kConfigError)
-        fail("2s plus overlap 2 was not rejected after order-independent parsing");
+    {
+        StderrSilencer quiet;
+        if (tomo::parse_config_args(invalid_split_deep_args, invalid_split_deep,
+                                    invalid_split_deep_state, 2, "test") != tomo::kConfigParsed ||
+            tomo::validate_config(invalid_split_deep) != tomo::kConfigError)
+            fail("2s plus overlap 2 was not rejected after order-independent parsing");
+    }
     if (rejection_text({"--overlap", "2", "--thread-mode", "2s"}, true) !=
             "--overlap 2 is only available with --thread-mode 1s; "
             "2s has no deep unified-stream schedule\n" ||
@@ -412,10 +456,13 @@ int main() {
         "--tls-port", "7953", "--tls-cert-file", "/cert.pem",
         "--tls-key-file", "/key.pem", "--tls-auth-clients", "yes",
     };
-    if (tomo::parse_config_args(missing_ca_args, missing_ca, missing_ca_state, 2, "test") !=
-            tomo::kConfigParsed ||
-        tomo::validate_config(missing_ca) != tomo::kConfigError)
-        fail("client-auth TLS boot without a CA was accepted");
+    {
+        StderrSilencer quiet;
+        if (tomo::parse_config_args(missing_ca_args, missing_ca, missing_ca_state, 2, "test") !=
+                tomo::kConfigParsed ||
+            tomo::validate_config(missing_ca) != tomo::kConfigError)
+            fail("client-auth TLS boot without a CA was accepted");
+    }
 
     return 0;
 }

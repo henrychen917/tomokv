@@ -585,14 +585,13 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             std::vector<const char*> values;
             values.reserve(words.size());
             for (const std::string& word : words) values.push_back(word.c_str());
-            ClientOutputBufferLimits scratch = cfg.client_output_buffer_limits;
+            // The parser stages internally and commits only on success; no outer copy needed.
             const char* error = nullptr;
             if (!cfg_parse_client_output_buffer_limit(values.data(), values.size(),
-                                                       scratch, error)) {
+                                                       cfg.client_output_buffer_limits, error)) {
                 std::fprintf(stderr, "--client-output-buffer-limit: %s\n", error);
                 return kConfigError;
             }
-            cfg.client_output_buffer_limits = scratch;
             i = end - 1;
         }
         else if (!std::strcmp(a, "--requirepass")) cfg.requirepass = next("");
@@ -747,7 +746,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.even_ifid = a2; cfg.even_ex = b;
         }
-        else if (!std::strcmp(a, "--shards"))     cfg.shards = static_cast<uint32_t>(std::atoi(next("16")));
+        else if (!std::strcmp(a, "--shards")) {
+            // Same grammar as every other numeric knob (a bare atoi accepted "16x" as 16 and
+            // turned "abc"/"-5" into a misleading range message from validate_config).
+            if (!cfg_parse_u32(next(nullptr), cfg.shards) || cfg.shards == 0 || cfg.shards > 256) {
+                std::fprintf(stderr, "--shards must be between 1 and 256\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--smt-mode")) {
             if (!cfg_parse_u32(next(nullptr), cfg.smt_mode) || cfg.smt_mode > 1) {
                 std::fprintf(stderr, "--smt-mode wants 0 or 1\n");
