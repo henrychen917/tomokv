@@ -536,6 +536,14 @@ struct ScatterState : SnapshotCut {
     // context remains independently refcounted while this ordinary scatter owns the Op marker.
     BlockingState* blocking_origin = nullptr;
     std::atomic<NotifyBatch*> notify{nullptr};
+    // Successful last-owner completions link themselves here until this executor's pass boundary.
+    // The input Task is retired as soon as execute() returns, so retain its stable ROB identity by
+    // value. No allocation is permitted after the group has installed records and reached pending
+    // zero: failure to enqueue at that point would leave an epoch-zero group alive forever.
+    ScatterState* commit_next = nullptr;
+    Client* commit_client = nullptr;
+    uint64_t commit_op_id = 0;
+    int32_t commit_shard = -1;
     // COLD TAIL: only a SORT with an actual `*` dereference carves and constructs this arena object.
     SortDerefState* sort_deref = nullptr;
     // Appended test-only state: do not move any production ScatterState member. The destination
@@ -548,6 +556,16 @@ static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
               "MGET-8 ScatterState no longer fits ScatterArenaPool::kCommonBytes");
 
 namespace {
+
+struct XshardCommitBatch {
+    ScatterState* head = nullptr;
+    ScatterState* tail = nullptr;
+    uint64_t count = 0;
+    Server* server = nullptr;
+    uint32_t owner = UINT32_MAX;
+};
+
+thread_local XshardCommitBatch xshard_commit_batch;
 
 ShardGroup* group_for(ScatterState& state, int32_t shard) {
     if (state.shard_groups) {
@@ -641,7 +659,7 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
                                                uint32_t owner_thread_id);
 void finish_pfcount(ScatterState& state);
 bool finish_phase1(ScatterState& state, Op& op);
-void finish_phase2(ScatterState& state);
+bool finish_phase2(ScatterState& state);
 void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
                     void (*release_fn)(void*, int32_t, const char*),
                     void (*suppressed_fn)(void*));
@@ -3586,25 +3604,21 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             }
             return final();
         }
-        if (!state.multi_child) {
-            const uint64_t ticket = server.atomic_commit_group(state.epoch);
-            aof_commit_scatter_group(state, self, ring, ticket);
-        }
         if (state.kind == Kind::Msetnx) {
             state.final_reply = FinalReply::Integer;
             state.final_integer = 1;
         }
+        if (!state.multi_child) return ScatterFinish::CommitQueued;
         return final();
     }
     if (state.phase == 2) {
-        finish_phase2(state);
+        const bool commit_ready = finish_phase2(state);
+        const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
+            (state.final_reply == FinalReply::Lmpop ||
+             state.final_reply == FinalReply::Zmpop);
+        if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
         if (state.aof_group) {
-            uint64_t ticket = state.epoch.load(std::memory_order_acquire);
-            if (!ticket && state.atomic_pop &&
-                (state.final_reply == FinalReply::Lmpop ||
-                 state.final_reply == FinalReply::Zmpop)) {
-                ticket = server.atomic_commit_group(state.epoch);
-            }
+            const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
             if (ticket && !state.aborted.load(std::memory_order_acquire))
                 aof_commit_scatter_group(state, self, ring, ticket);
             else
@@ -3639,6 +3653,89 @@ ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
 ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring,
                                       const Task& task, Op& op) {
     return xshard_complete_impl<true>(server, self, ring, task, op);
+}
+
+void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task) {
+    if (!task.client || !task.scatter || task.shard < 0) std::abort();
+    ScatterState& state = *task.scatter;
+    if (state.commit_client || state.commit_next ||
+        state.epoch.load(std::memory_order_relaxed) != 0) std::abort();
+
+    XshardCommitBatch& batch = xshard_commit_batch;
+    if (!batch.head) {
+        if (batch.tail || batch.count || batch.server || batch.owner != UINT32_MAX)
+            std::abort();
+        batch.server = &server;
+        batch.owner = self.id();
+        batch.head = &state;
+    } else if (batch.server != &server || batch.owner != self.id() || !batch.tail) {
+        std::abort();
+    } else {
+        batch.tail->commit_next = &state;
+    }
+    batch.tail = &state;
+    batch.count++;
+    state.commit_client = task.client;
+    state.commit_op_id = task.op_id;
+    state.commit_shard = task.shard;
+}
+
+void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
+                          void* notify_context, XshardCommitNotify notify) {
+    if (!notify) std::abort();
+    for (;;) {
+        XshardCommitBatch& pending = xshard_commit_batch;
+        if (!pending.head) {
+            if (pending.tail || pending.count || pending.server ||
+                pending.owner != UINT32_MAX) std::abort();
+            return;
+        }
+        if (!pending.tail || !pending.count || pending.server != &server ||
+            pending.owner != self.id()) std::abort();
+
+        // Detach before any AOF or completion callback can re-enter the fused executor. A nested
+        // completion starts a fresh list, which the outer loop drains under a separate bracket.
+        ScatterState* head = pending.head;
+        const uint64_t count = pending.count;
+        pending = XshardCommitBatch{};
+
+        const uint64_t first = server.atomic_commit_batch(count, [&](uint64_t ticket) {
+            uint64_t stored = 0;
+            for (ScatterState* state = head; state; state = state->commit_next) {
+                if (stored == count || !state->commit_client ||
+                    state->epoch.load(std::memory_order_relaxed) != 0) std::abort();
+                state->epoch.store(ticket + stored, std::memory_order_release);
+                stored++;
+            }
+            if (stored != count) std::abort();
+        });
+
+        uint64_t completed = 0;
+        for (ScatterState* state = head; state;) {
+            ScatterState* next = state->commit_next;
+            Client* client = state->commit_client;
+            Op& op = client->rob().at(state->commit_op_id);
+            const uint64_t ticket = first + completed++;
+
+            if (!state->aborted.load(std::memory_order_acquire))
+                aof_commit_scatter_group(*state, self, ring, ticket);
+            else
+                aof_abort_scatter_group(*state);
+            if (state->phase == 2 &&
+                __builtin_expect(server.blocking_waiters() != 0, false))
+                blocking_atomic_published(server, self, ring, *state);
+            if (op.spec->flags & CmdFlags::NotifySelected)
+                notify_xshard_finished(server.shard(state->commit_shard), op, *state);
+            server.atomic_apply_close(self.id(), state->apply_open);
+
+            // Capture `next` above: a fused self-notification may immediately retire the Op and
+            // destroy this arena state. The release store remains the one reply-visibility edge.
+            op.state.store(OpState::Done, std::memory_order_release);
+            notify(notify_context, client);
+            state = next;
+        }
+        if (completed != count) std::abort();
+    }
 }
 
 enum class MultiChildFinish : uint8_t { Waiting, PhaseAdvanced, Final };

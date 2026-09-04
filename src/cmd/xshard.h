@@ -68,7 +68,7 @@ XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t 
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
 enum class ScatterTaskResult : uint8_t { Complete, Retry };
-enum class ScatterFinish : uint8_t { Waiting, Retry, Final };
+enum class ScatterFinish : uint8_t { Waiting, Retry, CommitQueued, Final };
 
 // ONE PUBLISHED READ CUT, whoever holds it.  A read that resolves its fragments on several owners
 // needs the versions its cut names to survive until the last fragment has answered, and the only
@@ -191,12 +191,18 @@ bool xshard_tasks_share_key(const Task& older, Op& older_op,
 // older same-connection task on the same shard.
 bool xshard_task_is_whole_owner(const Task& task);
 
-// Counts a completed owner and, for the last owner, either serializes the final reply or publishes
-// a fully-preflighted second hop.  Final means the caller must publish OpState::Done and notify IO.
+// Counts a completed owner and, for the last owner, either serializes the final reply, queues the
+// completed group for this executor pass's commit batch, or publishes a fully-preflighted second
+// hop. Final means the caller must publish OpState::Done and notify IO; CommitQueued means the
+// caller must append the task to the allocation-free executor-local batch and leave the Op issued.
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,
                               const Task& task, Op& op);
 ScatterFinish xshard_complete_iofused(Server& server, ThreadCtx& self, Ring& ring,
                                       const Task& task, Op& op);
+void xshard_queue_commit(Server& server, ThreadCtx& self, const Task& task);
+using XshardCommitNotify = void (*)(void*, Client*);
+void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
+                          void* notify_context, XshardCommitNotify notify);
 
 // Ordinary one-key operations only enter this path when their key already has an MVCC record.
 // Reads bind the current committed cut; writes first install a deep-cloned, freshly-ticketed

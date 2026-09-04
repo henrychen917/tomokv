@@ -2387,9 +2387,10 @@ public:
     // committer that had not would still be holding the count up. Readers load one word exactly
     // as before -- the cost is on the commit side, and it is two RMWs on a line commits already
     // own.
-    uint64_t atomic_commit_reserve() {
+    uint64_t atomic_commit_reserve(uint64_t tickets = 1) {
+        if (!tickets) std::abort();
         atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
-        return commit_seq_.fetch_add(1, std::memory_order_seq_cst) + 1;
+        return commit_seq_.fetch_add(tickets, std::memory_order_seq_cst) + 1;
     }
     void atomic_commit_publish() {
         // Loaded BEFORE the decrement on purpose: it is the value whose publication the count
@@ -2407,21 +2408,29 @@ public:
                !atomic_commit_safe_.compare_exchange_weak(
                    safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
     }
-    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
-    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
-    // in production and the load is on an already-cold once-per-group path. `publish_members`
-    // lets a composite group install the SAME ticket into additional decision words before the
-    // safe watermark moves. Readers therefore still see either all of the ticket or none of it.
+    // Reserve a consecutive run under ONE commit bracket, then let the caller release-store every
+    // decision word in its completion order before the safe watermark moves. The test delay is
+    // paid once before the first store: for a one-ticket batch this is exactly the historical
+    // reserve/delay/store/publish sequence, while a larger batch widens one common closed window.
+    template <typename StoreTickets>
+    uint64_t atomic_commit_batch(uint64_t tickets, StoreTickets&& store_tickets) {
+        const uint64_t first = atomic_commit_reserve(tickets);
+        const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        store_tickets(first);
+        atomic_commit_publish();
+        return first;
+    }
+    // The whole two-step for a group whose epoch word is `epoch`. `publish_members` lets a
+    // composite group install the SAME ticket into additional decision words before the safe
+    // watermark moves. Readers therefore still see either all of the ticket or none of it.
     template <typename PublishMembers>
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
                                  PublishMembers&& publish_members) {
-        const uint64_t ticket = atomic_commit_reserve();
-        const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
-        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
-        epoch.store(ticket, std::memory_order_release);
-        publish_members(ticket);
-        atomic_commit_publish();
-        return ticket;
+        return atomic_commit_batch(1, [&](uint64_t ticket) {
+            epoch.store(ticket, std::memory_order_release);
+            publish_members(ticket);
+        });
     }
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
         return atomic_commit_group(epoch, [](uint64_t) {});
@@ -2641,8 +2650,8 @@ public:
     }
     // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY). Microseconds a group commit is held between drawing
     // its ticket and storing that ticket into the shared epoch word. Zero in production; read only
-    // by atomic_commit_group(), a once-per-group cold path. It turns the reserve/publish hole into
-    // a window wide enough for a reader to straddle, which is how the torn MGET is reproduced on
+    // by atomic_commit_batch(), a cold group/batch path. It turns the reserve/publish hole into a
+    // window wide enough for a reader to straddle, which is how the torn MGET is reproduced on
     // demand instead of once per 1.1M batches.
     void set_debug_atomic_commit_delay(uint32_t microseconds) {
         debug_atomic_commit_delay_.store(microseconds, std::memory_order_relaxed);
