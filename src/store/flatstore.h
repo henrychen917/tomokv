@@ -3347,8 +3347,13 @@ private:
             rehash_step_read_local();
             return;
         }
-        uint32_t budget = kRehashSlotsPerOp;
-        while (budget && rehash_pos_ < cap_[1]) {
+        // The window's slot words share a cache line; the objects behind them do not, and every
+        // move needs one (hash_key(o->key()) -- the hash is not stored). Warm them together so the
+        // misses overlap instead of serializing, eight deep, inside one operation.
+        const uint32_t end = std::min(rehash_pos_ + kRehashSlotsPerOp, cap_[1]);
+        for (uint32_t i = rehash_pos_; i < end; i++)
+            if (const KvObj* o = ptr_of(tab_[1][i])) __builtin_prefetch(o, 0, 1);
+        while (rehash_pos_ < end) {
             const uint64_t w = tab_[1][rehash_pos_];
             if (KvObj* o = ptr_of(w)) {
                 // TOMBSTONE, not EMPTY. Writing 0 here would terminate any probe run passing
@@ -3357,10 +3362,11 @@ private:
                 tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
                 // Already charged and already indexed: fresh=false moves only the slot word.
-                insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
+                // A failure here would lose the key silently (its old slot is already a tomb);
+                // the load bound makes it unreachable, so fail loud, as the atomic exchange does.
+                if (!insert_into(0, hash_key(o->key()), o, false)) std::abort();
             }
             rehash_pos_++;
-            budget--;
         }
         if (rehash_pos_ >= cap_[1]) {
             std::free(tab_[1]);
