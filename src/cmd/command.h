@@ -23,8 +23,9 @@ class Shard;
 class Op;
 
 // Static executor scheduling cost. This is deliberately coarse: the policy needs a cheap verb
-// class, not a runtime estimate from argv or clocks. Point includes GET and SET; SmallMulti is the
-// simple fanout/vector family; Long covers combining, range, scan, and other whole-value work.
+// class, not a runtime estimate from argv or clocks. Point includes GET and unarmed SET; the armed
+// registry promotes writes by one saturated class. SmallMulti is the simple fanout/vector family;
+// Long covers combining, range, scan, and other whole-value work.
 enum class CommandLengthClass : uint8_t {
     Point = 0,
     SmallMulti = 1,
@@ -223,7 +224,8 @@ CommandTable pfdebug_command_table();
 
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
-bool command_registry_init(bool tls_enabled, bool fused_mode = false);
+bool command_registry_init(bool tls_enabled, bool fused_mode = false,
+                           bool read_local_armed = false);
 
 // Clean registry rows for the verbs command_lookup resolves inline. command_registry_init stamps
 // them from the same rows the hash table indexes and re-checks the two against each other; they

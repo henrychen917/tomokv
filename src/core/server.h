@@ -529,10 +529,10 @@ public:
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
 
-    bool read_local_enabled() const {
-        return cfg_.thread_mode == ThreadMode::Fused && cfg_.overlap == 0 &&
-               cfg_.read_local != 0;
+    static bool read_local_enabled(const Config& cfg) {
+        return cfg.thread_mode == ThreadMode::Fused && cfg.overlap == 0 && cfg.read_local != 0;
     }
+    bool read_local_enabled() const { return read_local_enabled(cfg_); }
     uint64_t read_local_epoch() const {
         if (!read_local_state_) std::abort();
         return read_local_state_->epoch.load(std::memory_order_seq_cst);
