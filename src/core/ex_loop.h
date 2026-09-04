@@ -2972,6 +2972,7 @@ private:
         if (ur_kind(cqe->user_data) == UrKind::Wake) self_->sig().wakes_recv++;
         else if (ur_kind(cqe->user_data) == UrKind::SnapshotStart)
             begin_snapshot(ur_ptr<SnapshotManager>(cqe->user_data));
+        else if (ur_kind(cqe->user_data) == UrKind::Shutdown) return;
     }
 
     Server*    srv_  = nullptr;

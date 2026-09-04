@@ -393,7 +393,9 @@ public:
         // The cross-thread doorbell exists for the lifetime of the physical thread. Role-tenure
         // listeners are added by activate() and removed by close() in deactivate().
         if (ring_.wake_fd() < 0) return false;
-        return ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr));
+        if (!ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr))) return false;
+        return ring_.shutdown_fd() < 0 ||
+               ep_.add(ring_.shutdown_fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr));
     }
 
     bool register_epoll_listeners() {
@@ -2129,6 +2131,11 @@ private:
                     self_->sig().wakes_recv++;
                     work++;
                     break;
+                case UrKind::Shutdown:
+                    // Sticky and shared: never drain it, or this loop could steal the terminal
+                    // edge from another ring/epoll set. The signal handler published stop first.
+                    work++;
+                    break;
                 case UrKind::Recv: {
                     Client* c = ur_ptr<Client>(ev.data.u64);
                     // During FLIP preflight the fd may already be registered here while source
@@ -2219,6 +2226,7 @@ private:
                     on_plain_send_cqe<kEp, ImmediateSendProgress,
                                       Fused && Pipeline == 1>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::Shutdown: break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(
@@ -2265,6 +2273,7 @@ private:
                     on_tls_socket_poll<kEp, Fused, Pipeline>(
                         ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::Shutdown: break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(

@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <csignal>
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cerrno>
 #include <condition_variable>
@@ -26,6 +28,7 @@
 #include "core/io_loop.h"
 #include "core/ex_loop.h"
 #include "core/genthread.h"
+#include "core/signal_doorbell.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
 #include "net/unix_listener.h"
@@ -33,13 +36,73 @@
 
 using namespace tomo;
 
-static Server*                   g_srv = nullptr;
-static std::vector<ThreadCtx*>   g_threads;
+static std::atomic<Server*> g_signal_server{nullptr};
+static std::array<std::atomic<ThreadCtx*>, kMaxThreads> g_signal_threads{};
+static std::atomic<uint32_t> g_signal_thread_count{0};
+static std::atomic<bool> g_signal_armed{false};
+
+static_assert(std::atomic<Server*>::is_always_lock_free);
+static_assert(std::atomic<ThreadCtx*>::is_always_lock_free);
+static_assert(std::atomic<uint32_t>::is_always_lock_free);
+static_assert(std::atomic<bool>::is_always_lock_free);
 
 static void on_signal(int) {
-    if (g_srv) g_srv->shutting_down().store(true, std::memory_order_relaxed);
-    for (auto* t : g_threads) t->stop_flag().store(true, std::memory_order_relaxed);
+    if (!g_signal_armed.load(std::memory_order_acquire)) return;
+    if (Server* server = g_signal_server.load(std::memory_order_acquire))
+        server->shutting_down().store(true, std::memory_order_relaxed);
+    const uint32_t count = g_signal_thread_count.load(std::memory_order_acquire);
+    for (uint32_t i = 0; i < count; i++) {
+        ThreadCtx* thread = g_signal_threads[i].load(std::memory_order_relaxed);
+        if (thread) thread->stop_flag().store(true, std::memory_order_relaxed);
+    }
+    signal_doorbell_notify();
 }
+
+class ScopedSignalHandlers {
+public:
+    bool arm(Server& server) {
+        if (server.nthreads() > kMaxThreads) return false;
+        sigset_t blocked{}, previous{};
+        sigemptyset(&blocked);
+        sigaddset(&blocked, SIGINT);
+        sigaddset(&blocked, SIGTERM);
+        if (::pthread_sigmask(SIG_BLOCK, &blocked, &previous) != 0) return false;
+
+        for (uint32_t i = 0; i < server.nthreads(); i++)
+            g_signal_threads[i].store(&server.thread(i), std::memory_order_relaxed);
+        g_signal_server.store(&server, std::memory_order_release);
+        g_signal_thread_count.store(server.nthreads(), std::memory_order_release);
+
+        struct sigaction action{};
+        action.sa_handler = on_signal;
+        sigemptyset(&action.sa_mask);
+        action.sa_flags = SA_RESTART;
+        const bool installed = ::sigaction(SIGINT, &action, nullptr) == 0 &&
+                               ::sigaction(SIGTERM, &action, nullptr) == 0;
+        if (installed) g_signal_armed.store(true, std::memory_order_release);
+        (void)::pthread_sigmask(SIG_SETMASK, &previous, nullptr);
+        if (!installed) disarm();
+        return installed;
+    }
+
+    ~ScopedSignalHandlers() { disarm(); }
+
+private:
+    void disarm() {
+        if (!g_signal_server.load(std::memory_order_relaxed) &&
+            !g_signal_armed.load(std::memory_order_relaxed)) return;
+        struct sigaction ignore{};
+        ignore.sa_handler = SIG_IGN;
+        sigemptyset(&ignore.sa_mask);
+        (void)::sigaction(SIGINT, &ignore, nullptr);
+        (void)::sigaction(SIGTERM, &ignore, nullptr);
+        g_signal_armed.store(false, std::memory_order_release);
+        g_signal_thread_count.store(0, std::memory_order_release);
+        g_signal_server.store(nullptr, std::memory_order_release);
+        for (auto& thread : g_signal_threads)
+            thread.store(nullptr, std::memory_order_relaxed);
+    }
+};
 
 // Pins to one cpu. Relative to the process's ALLOWED set by construction, because the caller takes
 // the cpu from Topology, which intersects with sched_getaffinity. A pin to a cpu outside the mask
@@ -177,8 +240,6 @@ int main(int argc, char** argv) {
         g_sip_k1 = load_plan->sip_k1;
     }
 
-    std::signal(SIGINT,  on_signal);
-    std::signal(SIGTERM, on_signal);
     std::signal(SIGPIPE, SIG_IGN);      // send() errors arrive as -EPIPE on the CQE instead
 
     if (!good_size_matches_allocator()) {
@@ -203,7 +264,6 @@ int main(int argc, char** argv) {
         return 1;
     }
     srv.set_loading(true);
-    g_srv = &srv;
     command_bind_server(&srv);
     {
         std::string acl_error;
@@ -216,10 +276,19 @@ int main(int argc, char** argv) {
     // The pathname and any not-yet-transferred fd have one lifetime owner. open() is deliberately
     // called only after the persistence-load barrier in the selected runtime below.
     LateUnixListener unix_listener(cfg.unixsocket);
+    SignalDoorbell signal_doorbell;
+    if (!signal_doorbell.init()) {
+        std::perror("eventfd shutdown doorbell");
+        return 1;
+    }
+    ScopedSignalHandlers signal_handlers;
+    if (!signal_handlers.arm(srv)) {
+        std::perror("install signal handlers");
+        return 1;
+    }
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        for (uint32_t i = 0; i < srv.nthreads(); i++) g_threads.push_back(&srv.thread(i));
         return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
                                 tls_context.get(), unix_listener);
     }
@@ -249,8 +318,6 @@ int main(int argc, char** argv) {
     uint32_t loaders_done = 0;
     bool load_ok = true;
     std::string load_error;
-    for (uint32_t i = 0; i < nthreads; i++) g_threads.push_back(&srv.thread(i));
-
     auto pin_for = [&](uint32_t tid) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };

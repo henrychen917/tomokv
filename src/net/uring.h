@@ -48,6 +48,8 @@
 #include <mutex>
 #include <vector>
 
+#include "../core/signal_doorbell.h"
+
 namespace tomo {
 
 // BOOT-LATCHED, WRITTEN ONCE, before any thread that reads it exists (main.cc, before the pool is
@@ -63,6 +65,7 @@ enum class UrKind : uint8_t {
     Wake   = 5,   // cross-ring notification via msg_ring
     UnixAccept = 6,
     SnapshotStart = 7,  // epoch barrier request; pointer is SnapshotManager
+    Shutdown = 8,       // process signal doorbell; no pointer payload
     TlsAccept = 9,
     TlsRecv = 10,
     TlsSend = 11,
@@ -91,6 +94,7 @@ public:
     Ring& operator=(const Ring&) = delete;
 
     bool init(unsigned entries) {
+        shutdown_fd_ = signal_doorbell_fd();
         if (g_ring_epoll_mode) {
             // EFD_NONBLOCK so a spurious drain of an already-empty counter cannot park the loop.
             wake_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
@@ -116,6 +120,13 @@ public:
             deferred_ = false;
         }
         inited_ = true;
+        if (shutdown_fd_ >= 0) {
+            io_uring_sqe* shutdown = io_uring_get_sqe(&r_);
+            if (!shutdown) return false;
+            io_uring_prep_poll_add(shutdown, shutdown_fd_, POLLIN);
+            shutdown->user_data = ur_tag(UrKind::Shutdown, nullptr);
+            if (io_uring_submit(&r_) < 1) return false;
+        }
         return true;
     }
 
@@ -125,6 +136,7 @@ public:
     // >= 0 exactly in epoll mode. The io loop registers it in its epoll set; that is what turns a
     // peer's msg_to() into a return from epoll_wait.
     int wake_fd() const { return wake_fd_; }
+    int shutdown_fd() const { return shutdown_fd_; }
 
     // Drain the doorbell counter. Level-triggered registration plus this read is deliberate: an
     // edge-triggered eventfd that we forgot to read would go quiet forever, and the price of
@@ -197,9 +209,10 @@ public:
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
-            pollfd p{wake_fd_, POLLIN, 0};
-            const int n = ::poll(&p, 1, static_cast<int>(timeout_ms));
-            if (n > 0) drain_wake_fd();
+            pollfd waits[2] = {{wake_fd_, POLLIN, 0}, {shutdown_fd_, POLLIN, 0}};
+            const nfds_t count = shutdown_fd_ >= 0 ? 2 : 1;
+            const int n = ::poll(waits, count, static_cast<int>(timeout_ms));
+            if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
             return n < 0 ? 0 : n;
         }
         __kernel_timespec ts{};
@@ -363,6 +376,7 @@ private:
     // Epoll-mode doorbell state. -1 in uring mode, which is the single test every method above
     // branches on; the vector and mutex are never constructed into use there.
     int wake_fd_ = -1;
+    int shutdown_fd_ = -1;  // borrowed from main; never drained or closed by a Ring
     std::mutex mail_mu_;
     std::vector<uint64_t> mail_;
 };
