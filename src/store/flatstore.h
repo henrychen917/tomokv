@@ -2252,8 +2252,10 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && hash_key(o->key()) == h &&
-                (o->flags & KvObjFlags::HasTtl)) return o;
+            // The flag is a byte on the object line the hash would read anyway; testing it first
+            // spares a full key hash on every non-TTL key that merely shares the 15-bit tag.
+            if (o && tag_of_word(w) == tag && (o->flags & KvObjFlags::HasTtl) &&
+                hash_key(o->key()) == h) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
