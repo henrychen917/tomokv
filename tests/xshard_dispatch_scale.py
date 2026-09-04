@@ -15,6 +15,8 @@ import statistics
 import sys
 import time
 
+import _lib
+
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 OPS = int(sys.argv[3]) if len(sys.argv) > 3 else 300000
 DEPTH = int(sys.argv[4]) if len(sys.argv) > 4 else 32
@@ -69,17 +71,12 @@ class C:
         return (ops // depth * depth) / (time.perf_counter() - t0)
 
     def threads(self):
-        body = self.cmd("DEBUG", "LBSIGNALS")
-        return sum(1 for line in body.decode().splitlines() if line.split()[:1] == ["thread"])
+        return len(_lib.lbsignals(self).threads)
 
     def shard_owners(self):
-        body = self.cmd("DEBUG", "LBSIGNALS")
-        owners = {}
-        for line in body.decode().splitlines():
-            f = line.split()
-            if f[:1] == ["shard"]:
-                owners[int(f[1])] = int(f[2])
-        return owners
+        # Owner THREADS from the shard rows: the fan-out the guard holds fixed is "two owners",
+        # which is a statement about threads, not shard ids (and holds in 1s and 2s alike).
+        return _lib.topology(self).shard_owner
 
 
 def main():

@@ -23,6 +23,8 @@ import socket
 import sys
 import time
 
+import _lib
+
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
 HOLD_BYTES = 8192
@@ -121,8 +123,7 @@ class C:
         return (ops // depth * depth) / (time.perf_counter() - t0)
 
     def shard_count(self):
-        body = self.cmd("DEBUG", "LBSIGNALS")
-        return sum(1 for line in body.decode().splitlines() if line.split()[:1] == ["shard"])
+        return len(_lib.topology(self).shard_owner)
 
     def live_borrows(self):
         return self.cmd("DEBUG", "BORROWCOUNT")
