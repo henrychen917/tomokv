@@ -851,13 +851,13 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    if (eq_icase(subcommand, "sleep") && op.argc() == 3) {
-        // Direct DEBUG SLEEP is intercepted by IoLoop before this handler. Reaching the handler
-        // means it is an IoLocal child of EXEC, where one array element cannot independently park
-        // the enclosing transaction reply. Reject that shape instead of blocking the IO thread.
-        reply_err(op.sink(), "ERR DEBUG SLEEP is not allowed inside MULTI");
-        return;
-    }
+    // NO DEBUG SLEEP BRANCH HERE, AND THAT IS THE POINT. Direct DEBUG SLEEP is intercepted by
+    // IoLoop before this handler, and an EXEC child never arrives either: MULTI execution has no
+    // MultiCommandKind for it, so assemble_cross_reply answers "command is not supported by MULTI
+    // execution" first. Measured on all three geometries (--shards 1, 2s 16 shards, 1s read-local
+    // 64 shards) -- every one returns the generic rejection, so a guard here only ever pretended to
+    // reject a shape that cannot reach it. Falling through to the unknown-subcommand reply is the
+    // honest behaviour if a future route does deliver one; nothing here can block an IO thread.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
