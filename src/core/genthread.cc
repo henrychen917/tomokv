@@ -89,6 +89,9 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     std::condition_variable boot_cv;
     uint32_t loaders_done = 0;
     uint32_t runners_ready = 0;
+    // Threads that saw shutdown while waiting for the serve gate. They are counted at the gate
+    // like ready runners, because main's wait below needs EVERY thread to report there.
+    uint32_t runners_stopped = 0;
     bool load_ok = true;
     bool serve_start = false;
     bool run_start = false;
@@ -211,7 +214,16 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                     return serve_start || self.stop_flag().load(std::memory_order_relaxed);
                 });
             }
-            if (self.stop_flag().load(std::memory_order_relaxed)) return;
+            if (self.stop_flag().load(std::memory_order_relaxed)) {
+                // Shutdown arrived while this thread waited for the serve gate. It must still
+                // report at the gate: main waits below for every thread, and a thread that leaves
+                // silently parks main in that wait forever. A SIGTERM during a long --load did
+                // exactly this -- the shards that finished decoding first were waiting here.
+                std::lock_guard<std::mutex> lock(boot_mu);
+                runners_stopped++;
+                boot_cv.notify_all();
+                return;
+            }
             if (!ios[tid].activate()) std::abort();
             {
                 std::unique_lock<std::mutex> lock(boot_mu);
@@ -272,17 +284,24 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         serve_start = true;
     }
     boot_cv.notify_all();
+    bool stopping = false;
     {
         std::unique_lock<std::mutex> lock(boot_mu);
-        boot_cv.wait(lock, [&] { return runners_ready == nthreads; });
+        // Ready OR stopped: both report at the gate. Waiting for "ready == nthreads" alone hung
+        // the process whenever shutdown was requested before every thread reached the gate.
+        boot_cv.wait(lock, [&] { return runners_ready + runners_stopped == nthreads; });
+        stopping = runners_stopped != 0;
         run_start = true;
     }
     boot_cv.notify_all();
 
-    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
-    std::fflush(stdout);
+    if (!stopping) {
+        if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
+        if (cfg.tls_port)
+            std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
+        if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
+        std::fflush(stdout);
+    }
 
     for (std::thread& worker : pool) worker.join();
     if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
