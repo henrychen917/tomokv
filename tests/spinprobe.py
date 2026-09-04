@@ -18,6 +18,7 @@
 #   * after the idle window the frame is COMPLETED and must answer +OK: the parser held the partial
 #     frame for the whole window. A server that dropped the half-frame connection idles just as
 #     quietly and used to pass.
+import math
 import os
 import re
 import socket
@@ -31,6 +32,15 @@ LAND_SECONDS = 0.2
 MAX_IDLE_ITERATIONS = 64
 MAX_IDLE_SPINS = 64
 MAX_IDLE_WAKES = 64
+# Split executors deliberately run kExSpinBudget pause iterations before each Ring park. Price
+# that fixed policy plus the same bounded wake allowance instead of applying the IO/fused ceiling
+# to a different loop shape. A true unbounded spin still exceeds this by orders of magnitude.
+EX_SPIN_BUDGET = 2048
+RING_PARK_MS = 50
+MAX_IDLE_EX_SPIN_CYCLES = (math.ceil(IDLE_SECONDS * 1000 / RING_PARK_MS) +
+                           MAX_IDLE_WAKES + 4)
+MAX_IDLE_EX_SPINS = EX_SPIN_BUDGET * MAX_IDLE_EX_SPIN_CYCLES
+MAX_IDLE_EX_ITERATIONS = MAX_IDLE_EX_SPINS + MAX_IDLE_ITERATIONS
 MAX_EXTRA_ITERATIONS = 8
 MAX_EXTRA_SPINS = 8
 MAX_EXTRA_WAKES = 8
@@ -195,11 +205,14 @@ if not isinstance(admin_tid, int):
 if idle_only:
     _before, _after, quiet = measure(admin, admin_file)
     sampling_fired = admin_tid in quiet and quiet[admin_tid]["iterations"] > 0
-    offenders = {
-        tid: row for tid, row in quiet.items()
-        if row["iterations"] > MAX_IDLE_ITERATIONS or row["spins"] > MAX_IDLE_SPINS or
-           row["wakes_sent"] + row["wakes_recv"] > MAX_IDLE_WAKES
-    }
+    offenders = {}
+    for tid, row in quiet.items():
+        ex = row["role"] == "ex"
+        iteration_ceiling = MAX_IDLE_EX_ITERATIONS if ex else MAX_IDLE_ITERATIONS
+        spin_ceiling = MAX_IDLE_EX_SPINS if ex else MAX_IDLE_SPINS
+        if (row["iterations"] > iteration_ceiling or row["spins"] > spin_ceiling or
+                row["wakes_sent"] + row["wakes_recv"] > MAX_IDLE_WAKES):
+            offenders[tid] = row
     print("pid %d idle %.0fs LBSIGNALS delta: %s; sampler tid=%d mechanism=%s"
           % (srv, IDLE_SECONDS, describe(quiet), admin_tid,
              "fired" if sampling_fired else "FAIL: no sampling iteration"))
