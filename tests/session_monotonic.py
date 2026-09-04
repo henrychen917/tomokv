@@ -256,52 +256,74 @@ def main():
             return False
         return True
 
+    # ATTEMPTS, not one shot. The armed arms assert that the guard they claim to test really
+    # opened (atomic_read_cuts_held / atomic_commit_holds advanced), because a clean result from a
+    # window that never opened proves nothing. But a held read cut is a RACE, not a certainty: a
+    # 20us read delay over a ~5s window produced 6, 11, 12, 31, 273 and 672 held cuts across six
+    # measured runs of the same binary, so a run landing on zero is ordinary variance and not a
+    # defect. Retrying the whole arm with a wider window keeps the assertion falsifiable -- a build
+    # whose guard truly never opens still fails, after every attempt -- while a build that merely
+    # got an unlucky interleaving gets to show the counter moving. Fail only if every attempt is
+    # empty.
+    ARM_ATTEMPTS = 3
+
     def run_arm(label, seconds, commit_delay=0, read_delay=0, expect_counter=None):
-        armed = True
-        if commit_delay or read_delay or have_debug:
-            armed = arm("ATOMIC-COMMIT-DELAY", commit_delay) and \
-                    arm("ATOMIC-READ-DELAY", read_delay)
-        if (commit_delay or read_delay) and not armed:
-            notes.append("%s skipped: DEBUG window hooks unavailable" % label)
-            return
-        before = stats(admin)
-        run = hammer(seconds)
-        after = stats(admin)
-        arm("ATOMIC-COMMIT-DELAY", 0)
-        arm("ATOMIC-READ-DELAY", 0)
+        checked = bool(expect_counter) and atomic_on
+        attempts = ARM_ATTEMPTS if checked else 1
+        for attempt in range(1, attempts + 1):
+            armed = True
+            if commit_delay or read_delay or have_debug:
+                armed = arm("ATOMIC-COMMIT-DELAY", commit_delay) and \
+                        arm("ATOMIC-READ-DELAY", read_delay)
+            if (commit_delay or read_delay) and not armed:
+                notes.append("%s skipped: DEBUG window hooks unavailable" % label)
+                return
+            window = seconds * attempt
+            before = stats(admin)
+            run = hammer(window)
+            after = stats(admin)
+            arm("ATOMIC-COMMIT-DELAY", 0)
+            arm("ATOMIC-READ-DELAY", 0)
 
-        def delta(name):
-            return int(after.get(name, "0")) - int(before.get(name, "0"))
+            def delta(name):
+                return int(after.get(name, "0")) - int(before.get(name, "0"))
 
-        print("%-22s batches=%-9d writes=%-8d violations=%-7d torn=%-7d "
-              "[groups+%d read_cuts_held+%d commit_holds+%d]" %
-              (label, run.batches, run.writes, run.violations, run.torn,
-               delta("atomic_groups"), delta("atomic_read_cuts_held"),
-               delta("atomic_commit_holds")))
-        if run.lags:
-            print("      lag histogram (get_a - mget_a): %s" % dict(sorted(run.lags.items())))
-        for kind, batch, ga, values in run.samples[:4]:
-            print("      %s batch=%d get_a=%d mget=%s" % (kind, batch, ga, values))
-        if run.violations:
-            failures.append("%s: %d session-monotonicity violation(s) -- a later reply answered "
-                            "with an older world than an earlier one on the same connection"
-                            % (label, run.violations))
-        if run.torn:
-            message = "%s: %d torn read(s) -- one reply carried two generations of an atomic write"
-            if atomic_on:
-                failures.append(message % (label, run.torn))
-            else:
-                notes.append((message % (label, run.torn)) +
-                             " (expected with --atomic 0: cross-shard atomicity is the feature "
-                             "that is switched off)")
-        if not atomic_on:
-            return
-        if delta("atomic_groups") == 0:
-            failures.append("%s: no cross-shard atomic group committed, so the run never entered "
-                            "the window it claims to close" % label)
-        if expect_counter and delta(expect_counter) == 0:
-            failures.append("%s: %s did not advance -- the guard never opened and the clean "
-                            "result is vacuous" % (label, expect_counter))
+            tag = label if attempt == 1 else "%s (retry %d)" % (label, attempt - 1)
+            print("%-22s batches=%-9d writes=%-8d violations=%-7d torn=%-7d "
+                  "[groups+%d read_cuts_held+%d commit_holds+%d]" %
+                  (tag, run.batches, run.writes, run.violations, run.torn,
+                   delta("atomic_groups"), delta("atomic_read_cuts_held"),
+                   delta("atomic_commit_holds")))
+            if run.lags:
+                print("      lag histogram (get_a - mget_a): %s" % dict(sorted(run.lags.items())))
+            for kind, batch, ga, values in run.samples[:4]:
+                print("      %s batch=%d get_a=%d mget=%s" % (kind, batch, ga, values))
+            if run.violations:
+                failures.append("%s: %d session-monotonicity violation(s) -- a later reply answered "
+                                "with an older world than an earlier one on the same connection"
+                                % (tag, run.violations))
+            if run.torn:
+                message = "%s: %d torn read(s) -- one reply carried two generations of an atomic write"
+                if atomic_on:
+                    failures.append(message % (tag, run.torn))
+                else:
+                    notes.append((message % (tag, run.torn)) +
+                                 " (expected with --atomic 0: cross-shard atomicity is the feature "
+                                 "that is switched off)")
+            if not atomic_on:
+                return
+            if delta("atomic_groups") == 0:
+                failures.append("%s: no cross-shard atomic group committed, so the run never entered "
+                                "the window it claims to close" % tag)
+            if not checked:
+                return
+            if delta(expect_counter) > 0:
+                return
+            if attempt < attempts:
+                notes.append("%s: %s did not advance on attempt %d; retrying with a %.1fs window"
+                             % (label, expect_counter, attempt, seconds * (attempt + 1)))
+        failures.append("%s: %s did not advance in %d attempts -- the guard never opened and the "
+                        "clean result is vacuous" % (label, expect_counter, attempts))
 
     case_freshness_floor(failures)
     short = max(4.0, SECONDS / 4.0)
