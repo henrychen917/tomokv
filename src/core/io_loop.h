@@ -3505,31 +3505,33 @@ private:
                      const uint64_t* fallback_ids = nullptr,
                      const ReadLocalFallbackReason* fallback_reasons = nullptr,
                      uint32_t fallback_count = 0,
-                     const Op* intersect_command = nullptr) {
+                     const Op* intersect_command = nullptr,
+                     bool intersect_filter_miss = false) {
             if (loop_ || !client) std::abort();
             if (reason == ReadLocalFallbackReason::None) std::abort();
             if ((fallback_ids == nullptr) != (fallback_reasons == nullptr) ||
                 (fallback_count != 0) != (fallback_ids != nullptr) ||
-                (fallback_count && intersect_command)) std::abort();
+                (fallback_count && intersect_command) ||
+                (intersect_filter_miss && !intersect_command)) std::abort();
             Rob<kRobWindow>& rob = client->rob();
             const bool reserve_current =
                 reserve_current_without_reads && reserve_shard >= 0;
-            if (!rob.has_pending_read_local() && !reserve_current) return true;
+            // A caller that already walked a complete precise keyset may pass its authoritative
+            // pending-filter miss. Consume it before reloading the same filter; hit/unknown remains
+            // false and takes the unchanged exact-selection path below.
+            if (!reserve_current && !fallback_count && intersect_filter_miss) return true;
+            // Current intersect callers also passed a known hit when they reach the exact path.
+            // Unknown remains safe without this shortcut: collecting an empty set returns below.
+            if (!intersect_command && !rob.has_pending_read_local() && !reserve_current)
+                return true;
             // Superset pre-check (ReadLocalPendingFilter, rob.h): the filter holds every key hash
             // any still-pending local read of this connection can touch, so a miss PROVES that no
             // pending read shares the point hash / any declared key of the exact command. The
             // ordinary disjoint write returns here without allocating or walking anything; a hit
             // runs the unchanged exact plan below. EX seeds are selected by id, and a reserved
             // current op needs the plan regardless of reads, so neither consults the filter.
-            if (!reserve_current && !fallback_count) {
-                if (intersect_command) {
-                    if (!read_local_pending_filter_may_touch_command(
-                            rob.read_local_pending_filter(), *intersect_command))
-                        return true;
-                } else if (require_hash_match && !rob.read_local_pending_may_touch(hash)) {
-                    return true;
-                }
-            }
+            if (!reserve_current && !fallback_count && !intersect_command &&
+                require_hash_match && !rob.read_local_pending_may_touch(hash)) return true;
             // Select on the stack; Storage is only paid for once a read is actually demoted or
             // the current op must be reserved.
             uint64_t ids[kRobWindow];
@@ -4233,11 +4235,21 @@ private:
                         } else if (read_local_command_is_precise_mset(*op) &&
                                    fused_executor_->read_local_point_writes_precise()) {
                             const uint32_t key_count = (op->argc() - 1) / 2;
+                            bool intersect_filter_miss = false;
                             uint64_t filter = 0;
-                            if (key_count <= ReadLocalRobState::kMaxPreciseKeysetKeys)
-                                for (uint32_t arg = 1; arg < op->argc(); arg += 2)
-                                    filter |= ReadLocalRobState::keyset_filter(
-                                        FlatStore::hash_key(op->arg(arg)));
+                            if (key_count <= ReadLocalRobState::kMaxPreciseKeysetKeys) {
+                                const bool pending_reads = rob.has_pending_read_local();
+                                bool pending_filter_hit = false;
+                                for (uint32_t arg = 1; arg < op->argc(); arg += 2) {
+                                    const uint64_t hash = FlatStore::hash_key(op->arg(arg));
+                                    filter |= ReadLocalRobState::keyset_filter(hash);
+                                    if (pending_reads && !pending_filter_hit)
+                                        pending_filter_hit =
+                                            rob.read_local_pending_may_touch(hash);
+                                }
+                                intersect_filter_miss =
+                                    !pending_reads || !pending_filter_hit;
+                            }
                             const bool keyset_precise =
                                 rob.refine_current_write_keyset(filter, key_count);
                             if (keyset_precise) op->mark_read_local_precise_write();
@@ -4245,7 +4257,8 @@ private:
                                     *this, c, 0, false, -1,
                                     ReadLocalFallbackReason::InflightWrite, false,
                                     nullptr, nullptr, 0,
-                                    keyset_precise ? op : nullptr))
+                                    keyset_precise ? op : nullptr,
+                                    keyset_precise && intersect_filter_miss))
                                 break;
                             read_local_commit_before_lowering = true;
                         } else if (!read_local_demotion.prepare(
@@ -4378,10 +4391,12 @@ private:
                             // Disjoint reads may execute locally; ROB retirement orders replies.
                             rob.extend_current_read_local_owner();
                             if (mget) {
+                                // The MGET admission fence above reparses instead of reaching here
+                                // with any older pending local read, so the intersect set is empty.
                                 if (!read_local_demotion.prepare(
                                         *this, c, 0, false, -1,
                                         ReadLocalFallbackReason::ContextOwnerKey,
-                                        false, nullptr, nullptr, 0, op))
+                                        false, nullptr, nullptr, 0, op, true))
                                     break;
                                 read_local_commit_before_lowering = true;
                             } else {

@@ -897,25 +897,19 @@ private:
         lane.lane_demotion_demand -= demand;
     }
 
-    // Command-wide window validator for a local MGET. A touched shard whose table word has no
-    // pending bit is validated by the table generation, which every group install and topology
-    // change advances and no plain immutable publication does. With the per-key filter armed, a
-    // pending shard is instead validated per queried key by the touch epoch of that key's filter
-    // cell, so unrelated group installs on the same shard cannot invalidate the window. With the
-    // filter OFF (the A/B control) there are no epochs and every shard keeps the generation rule.
-    // Nothing beyond the table word (already loaded by every probe) is touched when no participant
-    // has an open group.
+    // Command-wide window validator for a local MGET. With the per-key filter armed, every queried
+    // cell is snapshotted before the first value load and re-read exactly once after the complete
+    // reply is private. Atomic exchanges still bracket the table word for point GET, but an exchange
+    // of an unrelated key cannot move this key's epoch. Each probe retains its stable-topology
+    // handshake; immutable replacement plus rotation QSBR then makes a second per-key table-word
+    // validation redundant. With the filter OFF (the A/B control), or above the bounded route cache,
+    // every shard keeps the legacy generation rule and per-key validation.
     struct LocalMgetWindow {
         static constexpr uint32_t kMaxShards = 256;
         static constexpr uint32_t kMaxEpochKeys = 128;
         uint64_t states[kMaxShards];
         uint32_t epochs[kMaxEpochKeys];
-        bool any_pending = false;
         bool use_epochs = false;
-
-        bool epoch_validated(uint32_t sid) const {
-            return use_epochs && FlatStore::read_local_pending(states[sid]);
-        }
     };
 
     static bool local_mget_touched(const uint64_t* touched, uint32_t sid) {
@@ -926,7 +920,6 @@ private:
     ReadLocalFallbackReason local_mget_window_open(
             LocalMgetWindow& window, const uint64_t* touched, const uint64_t* hashes,
             const int32_t* shards, uint32_t key_count, bool cached_routes) const {
-        window.any_pending = false;
         window.use_epochs = cached_routes && srv_->cfg().read_local_atomic_filter != 0;
         for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
             if (!local_mget_touched(touched, sid)) continue;
@@ -936,16 +929,13 @@ private:
             if (FlatStore::read_local_generation_poisoned(state))
                 return ReadLocalFallbackReason::Generation;
             window.states[sid] = state;
-            if (FlatStore::read_local_pending(state)) window.any_pending = true;
-            // A generation-validated shard must be even now so that an equal even word later
-            // proves no bracket ran in between. An epoch-validated shard needs no such witness.
-            if (!window.epoch_validated(sid) && FlatStore::read_local_table_mutating(state))
+            // The filter-on path lets each probe perform the topology handshake. The generation
+            // control must be even now so an equal even word later proves no bracket ran between.
+            if (!window.use_epochs && FlatStore::read_local_table_mutating(state))
                 return ReadLocalFallbackReason::SeqChurn;
         }
-        if (!window.any_pending || !window.use_epochs) return ReadLocalFallbackReason::None;
+        if (!window.use_epochs) return ReadLocalFallbackReason::None;
         for (uint32_t key = 0; key < key_count; key++) {
-            const uint32_t sid = static_cast<uint32_t>(shards[key]);
-            if (!window.epoch_validated(sid)) continue;
             window.epochs[key] = srv_->shard(shards[key]).store().foreign_read_cell_epoch(
                 hashes[key]);
         }
@@ -959,22 +949,22 @@ private:
         // Formal seqlock hygiene: keep the value loads above on the near side of the re-reads
         // below. Free on x86.
         std::atomic_thread_fence(std::memory_order_acquire);
-        for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
-            if (!local_mget_touched(touched, sid) || window.epoch_validated(sid)) continue;
-            const uint64_t after = srv_->shard(static_cast<int32_t>(sid))
-                                       .store()
-                                       .read_local_state_acquire();
-            if (!FlatStore::read_local_state_eligible(after))
-                return ReadLocalFallbackReason::SeqChurn;
-            // A group that published its filter but installed nothing leaves the generation
-            // equal and only raises the pending bit; the command linearizes before it.
-            if (!FlatStore::read_local_generation_equal(window.states[sid], after))
-                return ReadLocalFallbackReason::Generation;
+        if (!window.use_epochs) {
+            for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
+                if (!local_mget_touched(touched, sid)) continue;
+                const uint64_t after = srv_->shard(static_cast<int32_t>(sid))
+                                           .store()
+                                           .read_local_state_acquire();
+                if (!FlatStore::read_local_state_eligible(after))
+                    return ReadLocalFallbackReason::SeqChurn;
+                // A group that published its filter but installed nothing leaves the generation
+                // equal and only raises the pending bit; the command linearizes before it.
+                if (!FlatStore::read_local_generation_equal(window.states[sid], after))
+                    return ReadLocalFallbackReason::Generation;
+            }
+            return ReadLocalFallbackReason::None;
         }
-        if (!window.any_pending || !window.use_epochs) return ReadLocalFallbackReason::None;
         for (uint32_t key = 0; key < key_count; key++) {
-            const uint32_t sid = static_cast<uint32_t>(shards[key]);
-            if (!window.epoch_validated(sid)) continue;
             if (srv_->shard(shards[key]).store().foreign_read_cell_epoch(hashes[key]) !=
                 window.epochs[key])
                 return ReadLocalFallbackReason::Generation;
@@ -1057,7 +1047,7 @@ private:
                     // lazy-expiry side effect and is an ordinary array nil element.
                     reply_null(op.sink(), op.resp3());
                     prepared.keyspace_misses++;
-                    if (!store.read_local_validate(probe.state)) {
+                    if (!window.use_epochs && !store.read_local_validate(probe.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
                     }
@@ -1099,7 +1089,7 @@ private:
                     return {ReadLocalFallbackReason::Typed};
                 }
                 prepared.keyspace_hits++;
-                if (!store.read_local_validate(probe.state)) {
+                if (!window.use_epochs && !store.read_local_validate(probe.state)) {
                     transient = ReadLocalFallbackReason::SeqChurn;
                     retry = true;
                 }
@@ -1196,7 +1186,7 @@ private:
                     if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
                         reply_null(op.sink(), op.resp3());
                         prepared.keyspace_misses++;
-                        if (!store.read_local_validate(capture.state)) {
+                        if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                             transient = ReadLocalFallbackReason::SeqChurn;
                             retry = true;
                         }
@@ -1236,16 +1226,15 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     prepared.keyspace_hits++;
-                    if (!store.read_local_validate(capture.state)) {
+                    if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
                     }
                 }
             }
 
-            // C0 captures stay point-validated inside each bounded window; this outer close detects
-            // any group touching a queried key, or any table bracket on a group-free participant,
-            // across the complete multi-shard command.
+            // C0 performs each probe's topology validation. This one outer close then validates
+            // every queried cell across the complete multi-shard capture/copy interval.
             if (!retry) {
                 transient = local_mget_window_close(
                     window, touched, route_hashes, route_shards, key_count);
