@@ -1,5 +1,26 @@
 # Complexity audit
 
+> **Status note (2026-09-04, t-night-cleanup).** This audit describes commit `b187b7edf`
+> (2026-08-24) and is kept as history; its `file:line` cites are stale by offset (the file names
+> are not). Re-verified against `775aeea48`:
+> - **FIXED:** the CRITICAL load-factor overflow ("invalid above 61.36M slots": every product is
+>   now `uint64_t` and an undoublable capacity is rejected, `flatstore.h:3288-3299`); the
+>   accepted-but-unarmed first-recv stall; the no-progress busy poll; the stale-argv read after
+>   `Op::reset`; the linear command lookup (open-addressed now, `commands.cc:252-284`); the
+>   deferred-free lifetime holes (`conn.h:680-686`); the fully-sent write buffer that evaded
+>   shrink; boot-failure stranding of a routed worker.
+> - **STILL OPEN (same shape):** the `Θ(A)` `flush_ready` active pass on the default 2s
+>   schedule (`io_loop.h:6403`) with its 64-pass backstop and 16-client count-only serve FIFO;
+>   unbounded ROB drain; `O(A+C_i)` close; park-path `Θ(T)` arm/clear and unmasked sweeps;
+>   all-owned-shard publication per ordered/atomic batch (`ex_loop.h:2371`); high-water memory
+>   retention (rbuf ≤1 MiB, wbuf ≤64 KiB, reply heaps ≤4 KiB per ROB slot, ROB chunks, untrimmed
+>   vectors); `wsent_` still 32-bit; `INCR` allocates per update; no reply-byte budget anywhere;
+>   live connections leaked to the OS at exit; `DBSIZE`/`INFO` `Θ(shards)`.
+> - **Numbers that moved:** `Client` is 1984 B (not 1408); `Task` is 32 B (not 16) and `TaskChan`
+>   no longer exists (tasks ride the masked monolith, `DESIGN.md`); "no periodic expiry scan" is
+>   false — bounded active expiry exists (`flatstore.h:1294`, `ex_loop.h:1669-1688`).
+> The per-finding status table (49 rows) is in `AUDIT-CLEANUP.md` §4b.
+
 Audit date: 2026-08-24. Scope: commit `b187b7edf3005a4e70132340438b2f8e204497f3` in the checked-out C++20 tree, read-only except for this report. No benchmark was run. Structural sizes below were measured with this tree's compiler/ABI; default-jemalloc size-class estimates use the build's `JE=1` backend.
 
 ## Verdict and notation

@@ -1,5 +1,10 @@
 # AUDIT-TLS — TLS integration for TomoKV-cpp (perthread / pure 2s)
 
+> **Where it landed (2026-09-04).** The feature shipped as `src/net/tls.{h,cc}` (this document
+> proposes `src/net/tls_ctx.h` + `src/net/tls_conn.h`); the test is `tests/tls.py` (no
+> `tests/gen-certs.sh`); no `tls-bio-size` knob exists. Defaults: AES-128-GCM-first cipher lists
+> and `tls-ktls yes` (`tomokv.conf`, NETWORK).
+
 Governing audit. Read before writing any TLS code in `/home/user/Projects/tomokv-cpp-perthread`.
 No repository was modified in producing this.
 

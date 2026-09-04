@@ -1,5 +1,12 @@
 # Baseline-quality inspiration study
 
+> **Status note (2026-09-04).** Written against the 2026-08-24 tree. The following "there is no …"
+> statements below are no longer true, and the corresponding ADOPTs shipped: max-client and memory
+> gates (`maxclients`, `maxmemory`/`maxmemory-policy`/`maxmemory-samples`, `store/eviction.h`);
+> AUTH state and the idle `timeout`; borrowed large-value replies (`zc-min`, default on); the
+> per-client output-buffer ledger and `client-output-buffer-limit`; and multi-key commands (MGET,
+> MSET, … through the scatter engine). Kept as the record of why those were ranked as they were.
+
 Scope: connection/memory hygiene, overload, large replies, protocol/DoS limits, event-loop hygiene, and allocation only. Commands, clustering, and replication are deliberately excluded. References use `D:` for DragonflyDB, `R:` for the optimized Redis 8.6 fork, and `T:` for tomokv-cpp-perthread. Line numbers describe the inspected trees on 2026-08-24.
 
 ## Executive result: ranked ADOPTs

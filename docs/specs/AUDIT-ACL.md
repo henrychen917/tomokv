@@ -1,5 +1,9 @@
 # AUDIT-ACL — the ACL family for TomoKV-cpp (perthread / pure 2s)
 
+> **Where it landed (2026-09-04).** The feature shipped as `src/cmd/acl.{h,cc,inc}` (this document
+> proposes `src/core/acl.h`). The probe `scratchpad/aclprobe/probe.cc` cited in §0.8/§2.9 is not
+> in the tree (only `scratchpad/aclprobe/holes.cc` is). Everything else here is the design record.
+
 Governing audit. Read before writing any ACL code in `/home/user/Projects/tomokv-cpp-perthread`.
 No repository was modified in producing this. Two measurements below were made by compiling probes
 against this tree rather than asserted from memory (§0.8, §2.9); sources and binaries are in

@@ -7,7 +7,8 @@ At boot the main thread reads and validates the file, after which the real execu
 their owned shard sections in parallel before any listener is opened.
 
 The direct reference is Dragonfly's `server/snapshot.cc` plus `server/serializer_base.{h,cc}` and
-`docs/shard-serialization.md`: version a physical region, serialize that region from the mutation
+its `docs/shard-serialization.md` (a path in the Dragonfly tree, not a file here): version a
+physical region, serialize that region from the mutation
 callback before it changes, and let traversal skip regions already side-saved.  Dragonfly also has
 to coordinate multiple fibers, DashTable displacement, tiered reads, journal ordering, overlapping
 snapshots, and per-bucket dependency latches.  TomoKV has none of those ownership ambiguities.  One

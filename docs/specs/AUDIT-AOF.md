@@ -1,5 +1,12 @@
 # AUDIT-AOF — implementation audit governing an AOF/journal lane for TomoKV-cpp
 
+> **Where it landed (2026-09-04).** The feature shipped as `src/persist/aof.{h,cc}` (this document
+> proposes `src/journal/{format.h,journal.h,journal.cc,replay.cc}`); tests are `tests/aof.py`,
+> `aof_frames.py`, `aof_frame_order.py`, `aof_fsync.py`, `aof_rewrite*.py`, `aof_torn_group.py`
+> (not `tests/aof_replay.py`). The proposed `--aof-image-max` and `--aof-writer-tid` knobs were not
+> added: the writer is the last ifid thread (`Server::init`, `aof_.init(..., ifid_threads().back())`)
+> and FLIP never converts it. The shipped knob set is the Redis one (`tomokv.conf`, PERSISTENCE).
+
 Target tree: `/home/user/Projects/tomokv-cpp-perthread` (pure 2s, single-owner-per-shard).
 References read in source: `/home/user/Projects/redis/src/{aof.c,rio.c,bio.c,server.c,server.h,config.c,expire.c,t_string.c,debug.c}`,
 `/home/user/Projects/dragonfly/src/server/journal/*` plus `snapshot.{h,cc}`, `transaction.cc`, `replica.cc`,
