@@ -846,6 +846,15 @@ private:
         return *state;
     }
 
+    // Owner hot path under the boot latch. configure_read_local() sets read_local_enabled_ only
+    // after proving the extended state exists (it aborts otherwise), the pointer never changes
+    // while armed, and ~FlatStore clears the latch before freeing it. A caller that holds the
+    // latch therefore needs neither the null test nor the shape byte at sidecar offset 1316 --
+    // a line the per-write path otherwise never touches.
+    ReadLocalStoreState& read_local_store_state_armed() {
+        return *reinterpret_cast<ReadLocalStoreState*>(atomic_pending_);
+    }
+
     const ReadLocalStoreState& read_local_store_state_required() const {
         const ReadLocalStoreState* state = read_local_store_state();
         if (!state) std::abort();

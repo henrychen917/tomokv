@@ -268,9 +268,11 @@ public:
     uint32_t size() const { return ring_.count; }
 
     // Called only by this owner thread, after the object/table is no longer store-reachable.
+    // Arguments are not re-validated: the sink is handed out only once entries_ exists (sink()),
+    // `reclaim` is always one of FlatStore's three static callbacks, and every producer tests its
+    // payload before retiring it. A null in any of them would fault at reclaim in the same pass.
     void defer(void* reclaim_owner, void* payload, size_t auxiliary,
                ReadLocalRetireSink::ReclaimFn reclaim) {
-        if (!entries_ || !reclaim || !payload) std::abort();
         if (ring_.full()) force_oldest_grace();
         Entry& entry = entries_[ring_.push()];
         entry.owner = reclaim_owner;

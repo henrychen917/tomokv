@@ -3134,7 +3134,7 @@ private:
         settax_stats().accounting_sub_calls++;
         settax_stats().accounting_bytes += bytes;
 #endif
-        read_local_store_state_required().retire_sink.retire(
+        read_local_store_state_armed().retire_sink.retire(
             this, object, capacity, &FlatStore::read_local_reclaim_object);
     }
 
@@ -3186,10 +3186,11 @@ private:
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
-    void read_local_slot_store(uint64_t* location, uint64_t value) {
-        // Slot words publish immutable objects. A release swap plus QSBR lifetime is sufficient;
-        // only a multi-slot/table move needs the topology bracket above.
-        if (!read_local_enabled_) std::abort();
+    // Slot words publish immutable objects. A release store plus QSBR lifetime is sufficient; only a
+    // multi-slot/table move needs the topology bracket above. Every caller is an *_read_local body
+    // reached through a read_local_enabled_ dispatch, so the latch is not re-tested here (it was one
+    // load + branch per publication, and a release store on an unarmed table would be harmless).
+    static void read_local_slot_store(uint64_t* location, uint64_t value) {
         __atomic_store_n(location, value, __ATOMIC_RELEASE);
     }
 
