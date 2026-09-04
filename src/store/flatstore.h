@@ -1026,8 +1026,17 @@ public:
         if (o->encoding() != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
         if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
-        const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
-        if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
+
+        // Same key, same encoding, no TTL on either side: the request size is a function of the
+        // value length alone, so an equal length IS the same class and the class arithmetic below
+        // would only prove a tautology. The fixed-value-size SET cell takes this branch every time;
+        // it pays no kvobj_alloc_size, no good_size and no kvobj_size (that last one was 7.7% of
+        // SET-cell cycles before it was dropped from this path).
+        const bool same_length = val.n == kvobj_read_local_raw_length(o);
+        if (!same_length) {
+            const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
+            if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
+        }
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
@@ -1035,22 +1044,18 @@ public:
             return OverwriteResult::NotPossible;
 
         // The entire disabled-feature write tax is this branch. When enabled, the target key is
-        // protected while make_room_for() evicts other candidates.
+        // protected while make_room_for() evicts other candidates. The incoming class equals the
+        // resident one (by equality of length or by the test above), so the resident footprint is
+        // exactly the ask.
         if (__builtin_expect(maxmemory_enabled_, false)) {
-            if (!make_room_for(key, good_size(want))) return OverwriteResult::MaxmemoryOom;
+            if (!make_room_for(key, kvobj_capacity(o))) return OverwriteResult::MaxmemoryOom;
             touch(o);
         }
 
-        // Same length means the same class and the same footprint: the accounting delta is exactly
-        // zero, so do not compute it (kvobj_size was 7.7% of SET-cell cycles before this).
-        if (val.n == kvobj_read_local_raw_length(o)) {
-            std::memcpy(o->val_ptr(), val.p, val.n);
-            return OverwriteResult::Updated;
-        }
-        obj_bytes_ -= kvobj_size(o);
-        o->store_raw_length_relaxed(val.n);
+        // A Raw object's footprint IS its class and the class does not change, so obj_bytes_ is
+        // exactly unchanged on both branches: no accounting write, no kvobj_size.
+        if (!same_length) o->store_raw_length_relaxed(val.n);
         std::memcpy(o->val_ptr(), val.p, val.n);
-        obj_bytes_ += kvobj_size(o);
         return OverwriteResult::Updated;
     }
 
