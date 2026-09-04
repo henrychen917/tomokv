@@ -9,7 +9,7 @@ formats, ownership, or reader synchronization.
 | Item | State |
 | --- | --- |
 | I-4 retained deadline slot | BUILT, default behaviour (no selector) |
-| I-7 hierarchical expiry wheel | BUILT, `TOMO_EXPIRE_WHEEL=0` (sampler) by default |
+| I-7 hierarchical expiry wheel | DELETED -- lost its own A/B; the sampler is the only key-expiry arm |
 | I-4b deadline sidecar prototype | BUILT, `TOMO_TTL_DEADLINE_SIDECAR=0` by default |
 | I-8 eviction-metadata sidecar | DESIGNED ONLY -- not implemented here |
 
@@ -28,7 +28,6 @@ The selectors are `-D` defines on `CXXFLAGS`; each defaults to `0` in its own he
 
 ```sh
 make                                                                    # sampler (shipped)
-make CXXFLAGS="-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_EXPIRE_WHEEL=1"
 make CXXFLAGS="-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_TTL_DEADLINE_SIDECAR=1"
 ```
 
@@ -38,7 +37,7 @@ object, so `make -B` (or a `build/` wipe) between arms.
 
 ## Laws and layout
 
-- A shard owner is the only writer of every new index, wheel, and metadata byte.
+- A shard owner is the only writer of every new index and metadata byte.
 - Published `KvObj` and table-pointer replacement remains immutable when read-local is armed;
   retirement remains QSBR.  No reader retry, lock, or new sequence is introduced.
 - The unaligned in-object deadline is changed in place only while read-local is unarmed.
@@ -53,7 +52,6 @@ The feature implementations live in one dedicated header apiece, with only integ
 the existing owner, executor, and INFO files:
 
 - `store_ttl.h`: TTL selector and retained-slot helpers;
-- `expire_wheel.h`: key-level hierarchical timing wheel;
 - `eviction_sidecar.h`: maxmemory-only slot metadata (designed, not in this tree).
 
 ## I-4: retained deadline slot
@@ -95,40 +93,32 @@ prototype must show an allocator/cache win before that wider contract is pursued
 narrower deadline encodings are deferred: retained slots already eliminate the hot copy, while the
 candidate sidecar does not currently leave bytes to spend.
 
-## I-7: hierarchical timing-wheel selector
+## I-7: hierarchical expiry wheel -- DELETED
 
-`TOMO_EXPIRE_WHEEL`, default `0`, selects a per-`FlatStore` key-expiry wheel; `0` retains the sampler
-for a clean A/B.  Hash-field TTL attention remains on its current sampler because one hash object
-can contain many independent field deadlines.
+Built as `expire_wheel.h` behind `TOMO_EXPIRE_WHEEL` (11 levels x 64 buckets at 1 ms, nullable
+state, exact `(hash, KvObj*)` nodes, plus a millisecond-gated busy-pass hook because the split
+executor only samples in its idle sweep).  It lost its own A/B and was removed rather than kept as
+a selector, per the hardcode-or-delete rule:
 
-The wheel has 11 levels of 64 buckets at one-millisecond base resolution.  Six bits per level cover
-all positive signed 64-bit millisecond deltas.  A nullable heap state contains the bucket heads,
-non-empty scheduling state, and intrusive nodes keyed by `(hash, KvObj*)`.  It is allocated by the
-first logical TTL and released with the last, so a shard with zero volatile keys owns no wheel
-allocation.  Rehashing moves slot words but not nodes because object identity is stable.
+| Load | Wheel | Sampler (shipped) | Delta | Reap lag |
+| --- | --- | --- | --- | --- |
+| SET with TTL(1-30s) + GET, 1:1 | 15.59M ops/s | 21.28M ops/s | -26% | 38 ms vs 0 ms |
+| Plain SET + GET, 1:1 (no TTL) | 23.14M ops/s | 23.02M ops/s | +0.5% (null) | -- |
 
-Schedule, reschedule, cancel, cascade, and due-pop are owner-only.  Cascaded nodes count against the
-same bounded cycle budget as reaped nodes, preventing one clustered upper bucket from becoming an
-unbounded owner stall.  A due node is detached before the callback; stale entries are consumed,
-and an object protected by an undecided atomic record is requeued instead of dropped or left at a
-busy-spinning head.  Snapshot suppression and the existing notification -> AOF delete -> erase
-order remain unchanged.  Volatile eviction uses the selected tracker for bounded random candidates;
-the wheel keeps an O(1) owner-local random vector alongside its exact nodes.
+It was slower exactly where it was supposed to win and a null everywhere else, and it cost an
+allocating owner-local structure plus an exact-identity contract through every publication,
+retirement, and MVCC-collapse path.  Key expiry is therefore the sampler alone.  What the wheel
+commit added and this tree KEEPS: retained TTL deadline slots, logical-volatility-driven index
+registration (`track_expire`/`untrack_expire`), and the reap-lag gauge below.  Hash-field TTL
+attention was never on the wheel and is unchanged.
 
-The split executor currently samples only in its idle sweep, so a wheel there would still starve
-under continuous work.  Wheel builds therefore perform a bounded, millisecond-gated due pass from
-the busy outer-pass boundary as well.  Sampler builds retain their exact scheduling path.  The busy
-hook is compiled out in sampler builds; in wheel builds it runs at most once per observed
-millisecond, and each shard's empty wheel returns from its null state before any bucket inspection.
-The hook drains key-wheel work only, leaving hash-field sampling on its existing idle schedule.
-
-INFO adds `active_expire_reap_lag_ms_max`: the saturating maximum of `now - deadline` observed on a
+INFO keeps `active_expire_reap_lag_ms_max`: the saturating maximum of `now - deadline` observed on a
 successful active reap.  It is updated only on the cold reap path, published in existing alignment
 holes, and aggregated as a maximum.  Comparing it with `expired_keys` and a known elapsed test
-population measures sampler backlog without maintaining a shadow ordered structure that would
-contaminate the A/B.  This is an absolute lifetime high-water gauge, not a cumulative event count,
-so CONFIG RESETSTAT deliberately leaves it intact.  Publication occurs only from an active-expiry
-cycle; ordinary command-batch publication gains no store or branch.
+population measures sampler backlog without maintaining a shadow ordered structure.  This is an
+absolute lifetime high-water gauge, not a cumulative event count, so CONFIG RESETSTAT deliberately
+leaves it intact.  Publication occurs only from an active-expiry cycle; ordinary command-batch
+publication gains no store or branch.
 
 ## I-8: maxmemory-only eviction metadata
 
@@ -162,10 +152,9 @@ configuration refresh may retry.  Disabling maxmemory releases every metadata ar
   confusing slot presence with a live TTL, or failing to carry slot history through a preserving
   rewrite.  Measure `expireindex.py` at one shard, `expwide.py`, `edgetime.py`, notify, s6/differ,
   and allocation/instruction counts for PERSIST -> EXPIRE loops.
-- I-7 replaces empty-slot sampling with bounded work proportional to scheduled/cascaded keys and
-  should sharply reduce expiry lag under large simultaneous populations.  Risks are clustered
-  cascade debt, wall-clock jumps, missed cancellation, and atomic deferral.  Compare selector 0/1
-  using the expire batteries plus `expired_keys` and `active_expire_reap_lag_ms_max`.
+- I-7 was measured with the expire batteries plus `expired_keys` and
+  `active_expire_reap_lag_ms_max` and lost its own regime (see above); its arm is gone, so the
+  remaining key-expiry measurement is the sampler's own reap lag under the same batteries.
 - I-8 extends the LRU window eightfold and moves owner touch writes off the acquired object line.
   Risks are a missed topology mirror and enabled-mode cache cost.  Run all `evict_battery.py`
   sections, OBJECT IDLETIME/FREQ, notify, snapshot/atomic eviction cases, and armed foreign-reader

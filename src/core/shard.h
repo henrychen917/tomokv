@@ -142,12 +142,6 @@ public:
         if (work) publish_active_expire_reap_lag();
         return work;
     }
-    uint32_t active_expire_keys(uint32_t budget) {
-        const uint32_t work = store_.active_expire_keys(budget);
-        if (work) publish_active_expire_reap_lag();
-        return work;
-    }
-    bool active_expire_due() const { return store_.active_expire_due(); }
 
     // Refreshed once per executor pass through the existing live-config seqlock.  A null store
     // sink is the complete off state: no notification allocation or callback is reachable.
