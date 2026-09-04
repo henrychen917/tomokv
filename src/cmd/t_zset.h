@@ -59,9 +59,11 @@ inline bool zset_resolve_limit_offset(int64_t offset, uint64_t available, bool e
 // shard, and replacement is built completely before the live key is relinked.
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
                                 bool read_stats,
-                                std::vector<ZsetEntry>& entries, int64_t& expire_at_ms);
+                                std::vector<ZsetEntry>& entries, int64_t& expire_at_ms,
+                                bool* reserve_ttl_slot = nullptr);
 ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
-                                   const std::vector<ZsetEntry>& entries, int64_t expire_at_ms);
+                                   const std::vector<ZsetEntry>& entries, int64_t expire_at_ms,
+                                   bool reserve_ttl_slot = false);
 
 // SORT converts a zset source to the expanded encoding on the oracle and never converts back:
 // SORT, SORT_RO and even a BY-nosort SORT all do it, because sorting wants indexed access. It

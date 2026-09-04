@@ -138,30 +138,32 @@ StoreResult map_insert(FlatStore& store, uint64_t hash, KvObj* replacement) {
 }
 
 StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64_t expire_at_ms,
-                         bool integer_encode) {
+                         bool integer_encode, bool reserve_ttl_slot) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer)) {
-        KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
+        KvObj* replacement = sh.store().make_set_int(
+            key, integer, expire_at_ms, reserve_ttl_slot);
         if (!replacement) return StoreResult::Oom;
         return map_insert(sh.store(), hash, replacement);
     }
 
     // try_overwrite is the only in-place raw mutation. It rejects TTL-bearing and borrowed values;
     // the replacement path below then lets FlatStore retain any borrowed old allocation.
-    if (expire_at_ms == -1) {
+    if (expire_at_ms < 0 && !reserve_ttl_slot) {
         const FlatStore::OverwriteResult overwritten = sh.store().try_overwrite(hash, key, value);
         if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom) return StoreResult::MaxmemoryOom;
     }
 
-    KvObj* replacement = sh.store().make_set_string(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_string(
+        key, value, expire_at_ms, reserve_ttl_slot);
     if (!replacement) return StoreResult::Oom;
     return map_insert(sh.store(), hash, replacement);
 }
 
 StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
-                          int64_t expire_at_ms) {
-    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
+                          int64_t expire_at_ms, bool reserve_ttl_slot) {
+    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms, reserve_ttl_slot);
     if (!replacement) return StoreResult::Oom;
     return map_insert(sh.store(), hash, replacement);
 }
@@ -176,21 +178,24 @@ StoreResult map_insert_notify(Shard& sh, uint64_t hash, KvObj* replacement) {
 }
 
 StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value,
-                                int64_t expire_at_ms, bool integer_encode) {
+                                int64_t expire_at_ms, bool integer_encode,
+                                bool reserve_ttl_slot) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer)) {
-        KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
+        KvObj* replacement = sh.store().make_set_int(
+            key, integer, expire_at_ms, reserve_ttl_slot);
         if (!replacement) return StoreResult::Oom;
         return map_insert_notify(sh, hash, replacement);
     }
-    if (expire_at_ms == -1) {
+    if (expire_at_ms < 0 && !reserve_ttl_slot) {
         const FlatStore::OverwriteResult overwritten =
             sh.store_try_overwrite<true>(hash, key, value);
         if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom)
             return StoreResult::MaxmemoryOom;
     }
-    KvObj* replacement = sh.store().make_set_string(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_string(
+        key, value, expire_at_ms, reserve_ttl_slot);
     if (!replacement) return StoreResult::Oom;
     return map_insert_notify(sh, hash, replacement);
 }
@@ -198,23 +203,26 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
 
 template <bool kNotify>
 StoreResult store_string_for(Shard& sh, Slice key, uint64_t hash, Slice value,
-                             int64_t expire_at_ms, bool integer_encode) {
+                             int64_t expire_at_ms, bool integer_encode,
+                             bool reserve_ttl_slot) {
     if constexpr (kNotify) {
 #ifdef TOMO_STRING_NOTIFY_TU
-        return store_string_notify(sh, key, hash, value, expire_at_ms, integer_encode);
+        return store_string_notify(
+            sh, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot);
 #else
         static_assert(!kNotify, "armed string handler instantiated in the clean translation unit");
 #endif
     }
-    return store_string(sh, key, hash, value, expire_at_ms, integer_encode);
+    return store_string(sh, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot);
 }
 
 template <bool kNotify>
 StoreResult store_integer_for(Shard& sh, Slice key, uint64_t hash, int64_t value,
-                              int64_t expire_at_ms) {
-    if constexpr (!kNotify) return store_integer(sh, key, hash, value, expire_at_ms);
+                              int64_t expire_at_ms, bool reserve_ttl_slot) {
+    if constexpr (!kNotify)
+        return store_integer(sh, key, hash, value, expire_at_ms, reserve_ttl_slot);
 #ifdef TOMO_STRING_NOTIFY_TU
-    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
+    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms, reserve_ttl_slot);
     if (!replacement) return StoreResult::Oom;
     return map_insert_notify(sh, hash, replacement);
 #else
@@ -254,8 +262,10 @@ void clear_reply(Op& op) {
 
 #ifndef TOMO_STRING_NOTIFY_TU
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
-                                             int64_t expire_at_ms, bool integer_encode) {
-    switch (store_string(shard, key, hash, value, expire_at_ms, integer_encode)) {
+                                             int64_t expire_at_ms, bool integer_encode,
+                                             bool reserve_ttl_slot) {
+    switch (store_string(
+        shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot)) {
         case StoreResult::Stored: return XshardStringStoreResult::Stored;
         case StoreResult::Oom: return XshardStringStoreResult::Oom;
         case StoreResult::InsertFailed: return XshardStringStoreResult::InsertFailed;
@@ -268,8 +278,10 @@ XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t ha
 #ifdef TOMO_STRING_NOTIFY_TU
 XshardStringStoreResult xshard_store_string_notify(Shard& shard, Slice key, uint64_t hash,
                                                    Slice value, int64_t expire_at_ms,
-                                                   bool integer_encode) {
-    switch (store_string_notify(shard, key, hash, value, expire_at_ms, integer_encode)) {
+                                                   bool integer_encode,
+                                                   bool reserve_ttl_slot) {
+    switch (store_string_notify(
+        shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot)) {
         case StoreResult::Stored: return XshardStringStoreResult::Stored;
         case StoreResult::Oom: return XshardStringStoreResult::Oom;
         case StoreResult::InsertFailed: return XshardStringStoreResult::InsertFailed;
@@ -280,28 +292,31 @@ XshardStringStoreResult xshard_store_string_notify(Shard& shard, Slice key, uint
 #endif
 
 #ifndef TOMO_STRING_NOTIFY_TU
-KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms, bool integer_encode) {
+KvObj* xshard_make_string(Slice key, Slice value, int64_t expire_at_ms, bool integer_encode,
+                          bool reserve_ttl_slot) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer))
-        return kvobj_new_int(key, integer, expire_at_ms);
-    return kvobj_new_string(key, value, expire_at_ms);
+        return kvobj_new_int(key, integer, expire_at_ms, reserve_ttl_slot);
+    return kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
 }
 
 KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,
-                                 int64_t expire_at_ms, bool integer_encode) {
+                                 int64_t expire_at_ms, bool integer_encode,
+                                 bool reserve_ttl_slot) {
     int64_t integer = 0;
-    const bool has_ttl = expire_at_ms >= 0;
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     if (integer_encode && parse_i64(value, integer)) {
         const size_t allocation = good_size(
-            kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+            kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
         void* memory = shard.store().atomic_acquire_value_block(allocation);
-        return kvobj_init_int(memory, key, integer, expire_at_ms);
+        return kvobj_init_int(memory, key, integer, expire_at_ms, reserve_ttl_slot);
     }
-    if (value.n > kEmbedThreshold) return kvobj_new_string(key, value, expire_at_ms);
+    if (value.n > kEmbedThreshold)
+        return kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
     const size_t allocation = good_size(
-        kvobj_alloc_size(key.n, value.n, has_ttl, Enc::Raw));
+        kvobj_alloc_size(key.n, value.n, has_ttl_slot, Enc::Raw));
     void* memory = shard.store().atomic_acquire_value_block(allocation);
-    return kvobj_init_raw_string(memory, key, value, expire_at_ms);
+    return kvobj_init_raw_string(memory, key, value, expire_at_ms, reserve_ttl_slot);
 }
 
 // tomo:: linkage: every type family replies this exact text on admission failure.
@@ -478,7 +493,7 @@ void cmd_set(Shard& sh, Op& op) {
     // Preserve the allocation-free raw fast path while still applying Redis integer encoding.
     if (op.argc() == 3) {
         const StoreResult result =
-            store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true);
+            store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true, false);
         if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
         if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -500,12 +515,12 @@ void cmd_set(Shard& sh, Op& op) {
     }
 
     int64_t expire = options.expire_at_ms;
-    if (options.keep_ttl && old && (old->flags & KvObjFlags::HasTtl))
-        expire = old->expire_at_ms();
+    const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
+    if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
     // Redis treats an already elapsed absolute SET deadline as set-then-expire: the old value is
     // removed, no dead replacement is left for DBSIZE/active expiry, and GET (if requested) keeps
     // the reply copied above. Relative EX/PX cannot reach here with a non-future deadline.
-    if (expire != -1 && expire <= sh.now_ms()) {
+    if (expire >= 0 && expire <= sh.now_ms()) {
         if (old) sh.store_erase<kNotify>(op.hash, op.key());
         else if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
@@ -513,7 +528,8 @@ void cmd_set(Shard& sh, Op& op) {
         return;
     }
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), expire, true);
+        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), expire, true,
+                                  reserve_ttl_slot);
     if (result != StoreResult::Stored) { reply_store_error(op, result, options.get); return; }
     if constexpr (kNotify) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -530,7 +546,8 @@ void cmd_set(Shard& sh, Op& op) {
 template <>
 void cmd_set<false>(Shard& sh, Op& op) {
     if (op.argc() == 3) {
-        const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), -1, true);
+        const StoreResult result = store_string(
+            sh, op.key(), op.hash, op.arg(2), -1, true, false);
         if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
         reply_ok(op.sink());
         return;
@@ -550,14 +567,15 @@ void cmd_set<false>(Shard& sh, Op& op) {
     }
 
     int64_t expire = options.expire_at_ms;
-    if (options.keep_ttl && old && (old->flags & KvObjFlags::HasTtl))
-        expire = old->expire_at_ms();
-    if (expire != -1 && expire <= sh.now_ms()) {
+    const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
+    if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
+    if (expire >= 0 && expire <= sh.now_ms()) {
         if (old) sh.store().erase(op.hash, op.key());
         if (!options.get) reply_ok(op.sink());
         return;
     }
-    const StoreResult result = store_string(sh, op.key(), op.hash, op.arg(2), expire, true);
+    const StoreResult result = store_string(
+        sh, op.key(), op.hash, op.arg(2), expire, true, reserve_ttl_slot);
     if (result != StoreResult::Stored) { reply_store_error(op, result, options.get); return; }
     if (!options.get) reply_ok(op.sink());
 }
@@ -663,7 +681,7 @@ void cmd_append(Shard& sh, Op& op) {
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
     if (!o) {
         const StoreResult result =
-            store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true);
+            store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true, false);
         if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
         if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Append, op.key());
@@ -692,9 +710,10 @@ void cmd_append(Shard& sh, Op& op) {
     if (!merged) { reply_err(op.sink(), "ERR out of memory"); return; }
     std::memcpy(merged, old.p, old.n);
     std::memcpy(merged + old.n, op.arg(2).p, op.arg(2).n);
-    const int64_t expire = o->expire_at_ms();
+    const int64_t expire = sh.store().deadline(op.hash, o);
     const StoreResult result = store_string_for<kNotify>(
-        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire, false);
+        sh, op.key(), op.hash, Slice(merged, static_cast<uint32_t>(total)), expire, false,
+        o->has_ttl_slot());
     std::free(merged);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -779,9 +798,10 @@ void cmd_setrange(Shard& sh, Op& op) {
     std::memcpy(changed, old.p, old.n);
     if (new_length > old.n) std::memset(changed + old.n, 0, new_length - old.n);
     std::memcpy(changed + offset, op.arg(3).p, op.arg(3).n);
-    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false);
+        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
+                                  o && o->has_ttl_slot());
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -839,9 +859,10 @@ void cmd_setbit(Shard& sh, Op& op) {
     uint8_t& selected = reinterpret_cast<uint8_t*>(changed)[byte];
     selected = bit_value ? static_cast<uint8_t>(selected | mask)
                          : static_cast<uint8_t>(selected & ~mask);
-    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false);
+        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(changed, new_length), expire, false,
+                                  o && o->has_ttl_slot());
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
@@ -1046,7 +1067,7 @@ void cmd_getset(Shard& sh, Op& op) {
     if (!obj_type_check(old, Type::String, sink)) return;
     reply_string_bulk(op, old);
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true);
+        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true, false);
     if (result != StoreResult::Stored) { reply_store_error(op, result, true); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -1056,7 +1077,7 @@ template <bool kNotify>
 void cmd_setnx(Shard& sh, Op& op) {
     if (sh.store_find<kNotify>(op.hash, op.key())) { reply_int(op.sink(), 0); return; }
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true);
+        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(2), -1, true, false);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -1068,7 +1089,7 @@ void setex_generic(Shard& sh, Op& op, ExpireKind kind, const char* command) {
     int64_t expire = -1;
     if (!apply_expiry_arg(sh, op, op.arg(2), kind, expire, command)) return;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(3), expire, true);
+        store_string_for<kNotify>(sh, op.key(), op.hash, op.arg(3), expire, true, false);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -1098,14 +1119,15 @@ void incr_decr(Shard& sh, Op& op, int64_t increment) {
                 return;
             }
         }
-        expire = o->expire_at_ms();
+        expire = sh.store().deadline(op.hash, o);
     }
     int64_t value = 0;
     if (__builtin_add_overflow(old, increment, &value)) {
         reply_err(op.sink(), "ERR increment or decrement would overflow");
         return;
     }
-    const StoreResult result = store_integer_for<kNotify>(sh, op.key(), op.hash, value, expire);
+    const StoreResult result = store_integer_for<kNotify>(
+        sh, op.key(), op.hash, value, expire, o && o->has_ttl_slot());
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Incrby, op.key());
@@ -1174,9 +1196,10 @@ void cmd_incrbyfloat(Shard& sh, Op& op) {
     char text[kLongDoubleChars];
     const uint32_t length = format_long_double(text, sizeof(text), value);
     if (length == 0) { reply_err(op.sink(), "ERR out of memory"); return; }
-    const int64_t expire = o ? o->expire_at_ms() : -1;
+    const int64_t expire = o ? sh.store().deadline(op.hash, o) : -1;
     const StoreResult result =
-        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(text, length), expire, false);
+        store_string_for<kNotify>(sh, op.key(), op.hash, Slice(text, length), expire, false,
+                                  o && o->has_ttl_slot());
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Incrbyfloat, op.key());
@@ -1237,10 +1260,10 @@ void cmd_pfadd(Shard& sh, Op& op) {
     if (!updated) { reply_int(op.sink(), 0); return; }
 
     hll::invalidate_cache(image);
-    const int64_t expire_at_ms = object ? object->expire_at_ms() : -1;
+    const int64_t expire_at_ms = object ? sh.store().deadline(op.hash, object) : -1;
     const StoreResult stored = store_string_for<kNotify>(
         sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
-        expire_at_ms, false);
+        expire_at_ms, false, object && object->has_ttl_slot());
     if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
     if constexpr (kNotify)
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Pfadd, op.key());
@@ -1278,7 +1301,7 @@ void cmd_pfcount(Shard& sh, Op& op) {
     hll::set_cached_count(image, cardinality);
     const StoreResult stored = store_string_for<kNotify>(
         sh, op.key(), op.hash, Slice(image.data(), static_cast<uint32_t>(image.size())),
-        object->expire_at_ms(), false);
+        sh.store().deadline(op.hash, object), false, object->has_ttl_slot());
     if (stored != StoreResult::Stored) { reply_store_error(op, stored); return; }
     reply_int(op.sink(), static_cast<long long>(cardinality));
 }
@@ -1345,11 +1368,11 @@ void expire_generic(Shard& sh, Op& op, bool absolute, bool seconds, const char* 
 
     KvObj* o = sh.store_find<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), 0); return; }
-    const int64_t current = o->expire_at_ms();
-    if ((conditions.nx && current != -1) ||
-        (conditions.xx && current == -1) ||
-        (conditions.gt && (current == -1 || when <= current)) ||
-        (conditions.lt && current != -1 && when >= current)) {
+    const int64_t current = sh.store().deadline(op.hash, o);
+    if ((conditions.nx && current >= 0) ||
+        (conditions.xx && current < 0) ||
+        (conditions.gt && (current < 0 || when <= current)) ||
+        (conditions.lt && current >= 0 && when >= current)) {
         reply_int(op.sink(), 0);
         return;
     }
@@ -1386,8 +1409,8 @@ template <bool kNotify>
 void ttl_generic(Shard& sh, Op& op, bool milliseconds, bool absolute) {
     KvObj* o = sh.store_find_read<kNotify>(op.hash, op.key());
     if (!o) { reply_int(op.sink(), -2); return; }
-    const int64_t expire = o->expire_at_ms();
-    if (expire == -1) { reply_int(op.sink(), -1); return; }
+    const int64_t expire = sh.store().deadline(op.hash, o);
+    if (expire < 0) { reply_int(op.sink(), -1); return; }
     int64_t value = absolute ? expire : expire - sh.now_ms();
     if (value < 0) value = 0;
     reply_int(op.sink(), milliseconds ? value : rounded_seconds(value));

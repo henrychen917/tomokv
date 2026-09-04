@@ -36,6 +36,9 @@ enum class ValueKind : uint8_t { Nil, Inline, Borrow };
 
 struct ObjectImage {
     bool present = false;
+    // In-memory rewrites carry the physical deadline reservation separately from logical TTL.
+    // Persistence/reload starts a new lifetime and does not serialize this field.
+    bool reserve_ttl_slot = false;
     // Collections only: the source key was in the EXPANDED (skiplist/hashtable/deque) encoding
     // rather than the compact one. Carried because ZRANGESTORE's negative-LIMIT-offset rule is
     // encoding-selected on the oracle (see zset_resolve_limit_offset in t_zset.h) and the payload
@@ -287,6 +290,7 @@ bool serialize_object(KvObj* object, ObjectImage& image) {
         image.expanded = ref.encoding() != CollectionEncoding::Compact;
     }
     image.expire_at_ms = object->expire_at_ms();
+    image.reserve_ttl_slot = object->has_ttl_slot();
     const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
     SnapshotSaveCursor cursor;
     if (!hooks.begin_save || !hooks.read_save ||
@@ -306,6 +310,36 @@ bool serialize_object(KvObj* object, ObjectImage& image) {
     return true;
 }
 
+SnapshotHookStatus load_object_image(Slice key, const ObjectImage& image,
+                                     const TypeLimits& limits, KvObj*& object) {
+    object = nullptr;
+    const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
+    if (!hooks.load) return SnapshotHookStatus::Corrupt;
+    const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
+                        static_cast<uint32_t>(image.payload.size()));
+
+    // Snapshot hooks intentionally know only logical deadlines because persistence starts a new
+    // in-memory lifetime. Internal images additionally need to retain a PERSISTed physical slot.
+    // Give those loaders a private, immediately-expired deadline to allocate the slot, then clear
+    // it before publication. A hash loader may replace 0 with its own expired-key marker when all
+    // field TTLs elapsed; preserve that marker instead of resurrecting an empty hash.
+    constexpr int64_t kReserveSlotDeadline = 0;
+    const bool materialize_slot = image.reserve_ttl_slot && image.expire_at_ms < 0;
+    const int64_t construction_deadline =
+        materialize_slot ? kReserveSlotDeadline : image.expire_at_ms;
+    const SnapshotHookStatus loaded = hooks.load(
+        key, image.encoding, construction_deadline, payload, limits, object);
+    if (loaded != SnapshotHookStatus::Ok || !object || !materialize_slot) return loaded;
+    if (!object->has_ttl_slot()) {
+        kvobj_free(object);
+        object = nullptr;
+        return SnapshotHookStatus::Corrupt;
+    }
+    if (object->expire_at_ms() == kReserveSlotDeadline)
+        object->set_expire_at_ms(kNoTtlDeadline);
+    return SnapshotHookStatus::Ok;
+}
+
 template <bool kNotify>
 WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage& image,
                       bool suppress_del = false) {
@@ -314,13 +348,8 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
                                                            : FlatStore::EraseEvent::Del);
         return WorkError::None;
     }
-    const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
     KvObj* object = nullptr;
-    const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
-                        static_cast<uint32_t>(image.payload.size()));
-    if (!hooks.load) return WorkError::Corrupt;
-    const SnapshotHookStatus loaded = hooks.load(key, image.encoding, image.expire_at_ms, payload,
-                                                 shard.type_limits(), object);
+    const SnapshotHookStatus loaded = load_object_image(key, image, shard.type_limits(), object);
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
     if (loaded != SnapshotHookStatus::Ok || !object) return WorkError::Corrupt;
     const FlatStore::InsertResult result = shard.store_insert<kNotify>(hash, object);
@@ -335,10 +364,13 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
 
 template <bool kNotify>
 WorkError store_xstring(Shard& shard, Slice key, uint64_t hash, Slice value,
-                        int64_t expire_at_ms = -1, bool integer_encode = true) {
+                        int64_t expire_at_ms = -1, bool integer_encode = true,
+                        bool reserve_ttl_slot = false) {
     const XshardStringStoreResult stored = kNotify
-        ? xshard_store_string_notify(shard, key, hash, value, expire_at_ms, integer_encode)
-        : xshard_store_string(shard, key, hash, value, expire_at_ms, integer_encode);
+        ? xshard_store_string_notify(
+              shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot)
+        : xshard_store_string(
+              shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot);
     switch (stored) {
         case XshardStringStoreResult::Stored: return WorkError::None;
         case XshardStringStoreResult::Oom: return WorkError::Oom;
@@ -355,9 +387,12 @@ WorkError apply_image_selected(bool notify, Shard& shard, Slice key, uint64_t ha
 }
 
 WorkError store_xstring_selected(bool notify, Shard& shard, Slice key, uint64_t hash, Slice value,
-                                 int64_t expire_at_ms = -1, bool integer_encode = true) {
-    return notify ? store_xstring<true>(shard, key, hash, value, expire_at_ms, integer_encode)
-                  : store_xstring<false>(shard, key, hash, value, expire_at_ms, integer_encode);
+                                 int64_t expire_at_ms = -1, bool integer_encode = true,
+                                 bool reserve_ttl_slot = false) {
+    return notify ? store_xstring<true>(
+                        shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot)
+                  : store_xstring<false>(
+                        shard, key, hash, value, expire_at_ms, integer_encode, reserve_ttl_slot);
 }
 
 bool is_element_mover(Kind kind) {
@@ -2957,7 +2992,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     // installs through the same string funnel as SET and preserves destination TTL.
                     result = store_xstring_selected(
                         notify, shard, op.arg(key.arg), key.hash, value,
-                        image.expire_at_ms, false);
+                        image.expire_at_ms, false, image.reserve_ttl_slot);
                 } else {
                     const bool suppress_del =
                         ((state.kind == Kind::Rename || state.kind == Kind::Renamenx) && pos == 0) ||
@@ -3148,12 +3183,14 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         }
                         KeyRef& destination = state.keys[1];
                         KvObjRawReadBuffer raw;
+                        const bool reserve_ttl_slot =
+                            state.kind != Kind::Copy && object->has_ttl_slot();
                         KvObj* clone = object->is_int()
                             ? kvobj_new_int(op.arg(destination.arg), object->int_value(),
-                                            image.expire_at_ms)
+                                            image.expire_at_ms, reserve_ttl_slot)
                             : xshard_make_string(op.arg(destination.arg),
                                                  kvobj_string_value(object, raw),
-                                                 image.expire_at_ms, false);
+                                                 image.expire_at_ms, false, reserve_ttl_slot);
                         if (!clone) {
                             state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
                             continue;

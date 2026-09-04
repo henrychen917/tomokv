@@ -280,7 +280,9 @@ bool externalize_list(Shard& shard, Op& op, KvObj*& object) {
             return false;
         }
     }
-    KvObj* replacement = kvobj_new_list(object->key(), value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_list(object->key(), value,
+                                        shard.store().deadline(op.hash, object),
+                                        object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_oom(op);
@@ -1044,7 +1046,8 @@ XshardElementResult xshard_externalize_list(Shard& shard, Slice key, uint64_t ha
             return XshardElementResult::Oom;
         }
     }
-    KvObj* replacement = kvobj_new_list(key, value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_list(key, value, shard.store().deadline(hash, object),
+                                        object->has_ttl_slot());
     if (!replacement) {
         delete value;
         return XshardElementResult::Oom;

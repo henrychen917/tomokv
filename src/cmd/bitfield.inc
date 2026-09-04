@@ -346,12 +346,14 @@ void bitfield_generic(Shard& shard, Op& op, bool ro_variant) {
         }
     }
 
-    const int64_t expire_at_ms = object ? object->expire_at_ms() : -1;
+    const int64_t expire_at_ms = object ? shard.store().deadline(op.hash, object) : -1;
     const Slice replacement(reinterpret_cast<const char*>(image), new_length);
     const XshardStringStoreResult stored = kNotify
         ? xshard_store_string_notify(shard, op.key(), op.hash, replacement,
-                                     expire_at_ms, false)
-        : xshard_store_string(shard, op.key(), op.hash, replacement, expire_at_ms, false);
+                                     expire_at_ms, false,
+                                     object && object->has_ttl_slot())
+        : xshard_store_string(shard, op.key(), op.hash, replacement, expire_at_ms, false,
+                              object && object->has_ttl_slot());
     std::free(image);
     if (stored != XshardStringStoreResult::Stored) {
         reply_bitfield_store_error(op, stored);

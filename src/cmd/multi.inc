@@ -755,12 +755,8 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
     if (!visible) return true;
     ObjectImage image;
     if (!serialize_object(visible, image)) return false;
-    const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
-    if (!hooks.load) return false;
-    const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
-                        static_cast<uint32_t>(image.payload.size()));
-    return hooks.load(key, image.encoding, image.expire_at_ms, payload,
-                      shard.type_limits(), clone) == SnapshotHookStatus::Ok && clone;
+    return load_object_image(key, image, shard.type_limits(), clone) ==
+               SnapshotHookStatus::Ok && clone;
 }
 
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
