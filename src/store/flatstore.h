@@ -3700,7 +3700,7 @@ private:
     friend struct FlatStoreLayoutLock;
 
     // ============================================================================================
-    // READER TOPOLOGY vs OWNER COUNTERS — TWO BLOCKS THAT MUST NOT SHARE A 64-BYTE LINE.
+    // THE READER BLOCK vs TWO SETS OF OWNER WRITES — NONE OF WHICH MAY SHARE A 64-BYTE LINE.
     //
     // Under --read-local every FOREIGN GET loads tab_/cap_/mask_ (both tables) and the two
     // boot-latched gates below straight out of this object, while the OWNER writes live_, tombs_,
@@ -3710,6 +3710,20 @@ private:
     // a write obstructing reads in a store whose entire premise is that it never does. Nothing in
     // the source showed it; only the byte offsets did.
     //
+    // atomic_pending_ is the SECOND half of the same defect, on the atomic side. Every foreign
+    // probe dereferences it — read_local_state_acquire() reaches probe_sequence through it, and it
+    // is reloaded at each acquire because that load stops the compiler reusing the previous one:
+    // seven static sites in read_local_probe alone — yet it was declared as the second word of the
+    // atomic block, eight bytes past atomic_version_bytes_ (owner-written by
+    // every atomic_admit / atomic_gauge_sub / atomic_install_plain) and immediately ahead of the
+    // three collapse scratch vectors, whose control blocks the owner rewrites on every collapse
+    // pass. The vectors were the live collision: at +16/+40/+64 against a foreign read at +8 they
+    // shared one line at EVERY alignment the allocator can return. atomic_version_bytes_ at +0 was
+    // the latent one, separated from +8 only by ShardLayoutLock::store_offset landing on 56 and by
+    // the Shard happening to be 64-byte aligned — with plain 16-byte-aligned storage three of the
+    // four possible alignments put them back on one line. Same accident class, same fix: the read
+    // moved out, and the distance is now stated in offsets.
+    //
     // The separation is expressed in OFFSETS, not addresses (see FlatStoreLayoutLock below). Two
     // bytes whose offsets differ by >= 64 cannot share a line for ANY base address, so the property
     // survives whatever alignment the allocator hands `new Shard` (operator new promises 16, not
@@ -3717,7 +3731,17 @@ private:
     // because store_offset happened to be 56 and the allocator happened to over-align the Shard.
     // ============================================================================================
 
-    // ---- READER BLOCK. Loaded by every foreign probe; written only by a topology move. ---------
+    // ---- READER BLOCK. Loaded by every foreign probe; written only by a topology move (tab_/cap_/
+    // mask_) or by arming the store (atomic_pending_, the read-local gates). Co-locating the whole
+    // foreign read here is the point: one FlatStore line per probe, not two. -------------------
+    //
+    // Null until the first atomic group reaches this owner. The object stays as a pool after the
+    // list drains; its zero live count is the common ON read test. KvObj remains byte-identical.
+    // It belongs to the READER, not to the atomic block it is declared beside in
+    // flatstore_atomic.inc: every foreign probe loads it before it can reach probe_sequence, while
+    // the owner writes it only in atomic_ensure_pending / ensure_read_local_store_state /
+    // atomic_destroy_pending — arming and teardown, never a per-operation write.
+    AtomicPendingState* atomic_pending_ = nullptr;
     uint64_t* tab_[2]   = {nullptr, nullptr};
     // Capacities are power-of-two and intentionally stop at 2^31: slot/probe indices are uint32_t
     // and insert_into's tombstone sentinel is int32_t. A requested next doubling (2^32 slots,
@@ -3813,21 +3837,36 @@ private:
 // this guarantee that a static_assert can actually make.
 struct FlatStoreLayoutLock {
     // Every byte a foreign reader loads out of FlatStore on the GET path, and nothing else.
-    static constexpr size_t reader_first = offsetof(FlatStore, tab_);
+    // atomic_pending_ is the FIRST of them: read_local_probe() cannot reach probe_sequence, the
+    // read-local filter or the retire sink without loading it.
+    static constexpr size_t reader_first = offsetof(FlatStore, atomic_pending_);
     static constexpr size_t reader_last  = offsetof(FlatStore, read_local_atomic_filter_);
     // Every byte the owner writes on the ordinary insert-a-new-key / DEL path.
     static constexpr size_t owner_first  = offsetof(FlatStore, live_);
     static constexpr size_t owner_last   = offsetof(FlatStore, borrow_tombs_) + 3;
+    // Every byte the owner writes on the ATOMIC path, declared ahead of the reader block:
+    // atomic_version_bytes_ is the first word of the object, the three collapse scratch vectors and
+    // the seen-key vector follow, and the per-operation read context closes the range.
+    static constexpr size_t atomic_owner_first = offsetof(FlatStore, atomic_version_bytes_);
+    static constexpr size_t atomic_owner_last  =
+        offsetof(FlatStore, atomic_read_origin_conn_id_) + 7;
+    // First word of the bind-once separator that buys the distance below it.
+    static constexpr size_t atomic_separator_first = offsetof(FlatStore, atomic_ticket_fn_);
     static constexpr size_t line         = 64;
     static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_);
 };
 
-// THE INVARIANT: no owner counter can ever share a cache line with a word a foreign GET reads,
-// for any Shard base address. Adding a per-operation counter above the separator, or a foreign
-// read below it, breaks this build rather than quietly reintroducing the false sharing.
+// THE INVARIANT, STATED TWICE BECAUSE THE READER BLOCK HAS OWNER WRITES ON BOTH SIDES OF IT: no
+// word the owner writes per operation may share a cache line with a word a foreign GET reads, for
+// any Shard base address. Adding a per-operation counter above or below the separators, or a
+// foreign read inside either owner block, breaks this build rather than quietly reintroducing the
+// false sharing.
 static_assert(FlatStoreLayoutLock::owner_first - FlatStoreLayoutLock::reader_last >=
                   FlatStoreLayoutLock::line,
               "owner-written counters may share a cache line with the reader topology words");
+static_assert(FlatStoreLayoutLock::reader_first - FlatStoreLayoutLock::atomic_owner_last >=
+                  FlatStoreLayoutLock::line,
+              "atomic accounting words may share a cache line with the reader's probe words");
 // Both blocks stay compact enough to be one line each when the Shard is 64-byte aligned, which is
 // what the allocator does today: the reader pays one line per foreign GET, the owner one line per
 // insert. These are the budgets the split was bought with.
@@ -3835,6 +3874,13 @@ static_assert(FlatStoreLayoutLock::reader_last - FlatStoreLayoutLock::reader_fir
                   FlatStoreLayoutLock::line, "reader topology block no longer fits one line");
 static_assert(FlatStoreLayoutLock::owner_last - FlatStoreLayoutLock::owner_first <
                   FlatStoreLayoutLock::line, "owner counter block no longer fits one line");
+// The distance above is bought entirely by the bind-once bindings, which start where the atomic
+// owner block ends. An owner-written field appended to that block would extend it PAST the assert's
+// named last word and stay invisible to it; this is what refuses that edit. Widening the separator
+// with more bind-once state is fine — move atomic_separator_first onto the new first field.
+static_assert(FlatStoreLayoutLock::atomic_separator_first ==
+                  FlatStoreLayoutLock::atomic_owner_last + 1,
+              "a field slipped in between the atomic owner block and its read-mostly separator");
 // The gap is padding on purpose; if a future field shrinks it below the line, say so here.
 static_assert(FlatStoreLayoutLock::gap_bytes == 28);
 
