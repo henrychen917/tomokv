@@ -319,7 +319,16 @@ public:
 
     // Consumer side. Takes and clears one word's worth of flags. Acquire pairs with the producer's
     // release so the queue contents behind the bit are visible.
+    //
+    // Load-first, for the same reason ReadyMask::take is: an exchange is a locked RMW that takes
+    // the line exclusive even when the word is zero, and every consumer pass takes every word of
+    // every mask it drains -- four locked RMWs per io pass and four per ex pass, ~100 cycles that
+    // at p1 are paid per OP because a pass is one op. A zero word is the common case and the
+    // relaxed read costs a shared-line load. A bit set between the load and the skipped exchange
+    // is not lost: it is still set, the next pass takes it, and the park path re-checks masks AND
+    // queue depths behind a seq_cst fence (ThreadCtx::arm_blocked) so no wake can be missed.
     uint64_t take(uint32_t word) {
+        if (!words_[word].load(std::memory_order_relaxed)) return 0;
         return words_[word].exchange(0, std::memory_order_acquire);
     }
 
