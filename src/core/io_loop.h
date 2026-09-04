@@ -3502,14 +3502,14 @@ private:
                      ReadLocalFallbackReason reason =
                          ReadLocalFallbackReason::ContextOwnerKey,
                      bool reserve_current_without_reads = false,
-                     const Task* fallback_tasks = nullptr,
+                     const uint64_t* fallback_ids = nullptr,
                      const ReadLocalFallbackReason* fallback_reasons = nullptr,
                      uint32_t fallback_count = 0,
                      const Op* intersect_command = nullptr) {
             if (loop_ || !client) std::abort();
             if (reason == ReadLocalFallbackReason::None) std::abort();
-            if ((fallback_tasks == nullptr) != (fallback_reasons == nullptr) ||
-                (fallback_count != 0) != (fallback_tasks != nullptr) ||
+            if ((fallback_ids == nullptr) != (fallback_reasons == nullptr) ||
+                (fallback_count != 0) != (fallback_ids != nullptr) ||
                 (fallback_count && intersect_command)) std::abort();
             Rob<kRobWindow>& rob = client->rob();
             const bool reserve_current =
@@ -3550,7 +3550,7 @@ private:
                     if (fallback_reasons[seed] == ReadLocalFallbackReason::None) continue;
                     bool found = false;
                     for (uint32_t i = 0; i < pending; i++) {
-                        if (ids[i] != fallback_tasks[seed].op_id) continue;
+                        if (ids[i] != fallback_ids[seed]) continue;
                         selected[i] = true;
                         any_selected = true;
                         reasons[i] = fallback_reasons[seed];
@@ -3851,7 +3851,7 @@ private:
     };
 
 public:
-    bool fused_demote_local_read_batch(Client* client, const Task* probed,
+    bool fused_demote_local_read_batch(Client* client, const uint64_t* probed,
                                        const ReadLocalFallbackReason* fallbacks,
                                        uint32_t probed_count, uint32_t& demoted) {
         ReadLocalDemotionPlan plan;
@@ -3991,6 +3991,9 @@ private:
             // Keys a local read hands to Rob::mark_current_read_local: the point hash, or every
             // MGET key hashed by the eligibility walk below (no second hashing pass).
             [[maybe_unused]] ReadLocalPendingFilter read_local_pending_keys{};
+            // Owner-task demand this read would need if demoted: GET one, MGET its touched-shard
+            // bound. Computed once here; the lane room gate and the lane append both consume it.
+            [[maybe_unused]] uint32_t read_local_lane_demand = 1;
             uint32_t pos = conn.rpos();
             const char* err = nullptr;
             op->rbuf_off = pos;
@@ -4267,6 +4270,8 @@ private:
                             op->hash = FlatStore::hash_key(op->arg(1));
                             op->shard = srv_->router().shard_of(op->hash);
                             read_local_point_prehashed = true;
+                            read_local_lane_demand =
+                                std::min<uint32_t>(op->argc() - 1, srv_->nshards());
                         }
                         read_local_owner_conflict_reason = owner_conflict_for_command();
                         read_local_owner_conflict = read_local_owner_conflict_reason !=
@@ -4358,8 +4363,7 @@ private:
                                         ReadLocalFallbackReason::SeqChurn;
                                     read_local_eligible = false;
                                 } else if (!fused_executor_->local_read_lane_has_room(
-                                               mget ? std::min<uint32_t>(
-                                                   op->argc() - 1, srv_->nshards()) : 1)) {
+                                               read_local_lane_demand)) {
                                     read_local_fallback_reason =
                                         ReadLocalFallbackReason::LaneFull;
                                     read_local_eligible = false;
@@ -5015,9 +5019,10 @@ ordinary_dispatch:
                         if (read_local_mget_candidate)
                             rob.arm_current_local_mget_fence();
                         rob.publish();
-                        if (!fused_executor_->enqueue_local_read(
-                                Task{c, op_id, -1, nullptr}))
-                            std::abort();
+                        // Room was proved by local_read_lane_has_room(read_local_lane_demand)
+                        // above for this very op (run extension at the top of the frame, run head
+                        // in the gate chain); nothing between there and here consumes lane room.
+                        fused_executor_->enqueue_local_read(c, op_id, read_local_lane_demand);
                         conn.advance_parse(consumed);
                         sig.ops++;
                         flip_fingerprint_note(*spec, *op);

@@ -226,6 +226,27 @@ public:
 
     bool has_pending_read_local() const { return read_local_pending_slots_ != 0; }
 
+    // Chunk forms for the fused local drain. One dispatch/flush snapshot serves a whole same-client
+    // chunk: flush can only pass Done ops and no lane op is Done before this thread publishes it,
+    // while dispatch only grows and every lane op published below it, so a snapshot taken once per
+    // chunk classifies each entry exactly as a fresh pair would. The mask clear retires the chunk's
+    // completed prefix with one store; the ids of in-flight ops are distinct modulo the window.
+    bool pending_read_local(uint64_t op_id, uint64_t dispatch, uint64_t flush) const {
+        return read_local_id_active(op_id, dispatch, flush) &&
+               (read_local_pending_slots_ &
+                (uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask))) != 0;
+    }
+    static uint64_t read_local_slot_bit(uint64_t op_id) {
+        return uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
+    }
+    void complete_pending_read_local_mask(uint64_t bits) {
+        if ((read_local_pending_slots_ & bits) != bits) std::abort();
+        read_local_pending_slots_ &= ~bits;
+    }
+    // Owner-map emptiness is chunk-stable inside the drain: only this thread's parser and
+    // demotion add owner slots and neither runs while a chunk executes.
+    bool has_read_local_owner() const { return read_local_owner_slots_ != 0; }
+
     uint32_t collect_pending_read_local(uint64_t hash, bool hash_only, uint64_t* ids,
                                         uint32_t capacity) const {
         if (!read_local_pending_slots_) return 0;
