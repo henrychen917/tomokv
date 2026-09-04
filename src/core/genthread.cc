@@ -7,6 +7,7 @@
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include <unistd.h>
 
@@ -20,6 +21,7 @@
 #include "fused_boot_gate.h"
 #include "io_loop.h"
 #include "server.h"
+#include "shutdown_report.h"
 
 namespace tomo {
 namespace {
@@ -69,7 +71,8 @@ void IoLoop::run_fused() {
 int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     LateUnixListener& unix_listener) {
+                     LateUnixListener& unix_listener,
+                     ShutdownReportFinalLine& final_report) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
@@ -87,6 +90,12 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     std::vector<FusedExLoop> executors(nthreads);
     FusedBootGate boot(nthreads);
     const uint32_t unix_owner = srv.placement().ifid_threads().front();
+    auto report_graceful_shutdown = [&] {
+        ShutdownReport report = collect_shutdown_report(srv, ios, executors);
+        print_shutdown_report_human(report);
+        final_report.arm(std::move(report));
+        acl_shutdown();
+    };
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
@@ -211,7 +220,9 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         stop_workers();
         const std::string error = boot.error();
         if (!error.empty()) std::fprintf(stderr, "persistence load failed: %s\n", error.c_str());
-        return srv.shutting_down().load(std::memory_order_relaxed) ? 0 : 1;
+        const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
+        if (interrupted) report_graceful_shutdown();
+        return interrupted ? 0 : 1;
     }
     srv.set_loading(false);
 
@@ -249,7 +260,9 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         stop_workers();
         const std::string error = boot.error();
         if (!error.empty()) std::fprintf(stderr, "unified boot failed: %s\n", error.c_str());
-        return srv.shutting_down().load(std::memory_order_relaxed) ? 0 : 1;
+        const bool interrupted = srv.shutting_down().load(std::memory_order_relaxed);
+        if (interrupted) report_graceful_shutdown();
+        return interrupted ? 0 : 1;
     }
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
@@ -270,41 +283,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
     for (IoLoop& io : ios) io.reap_atomic_deferred();
 
-    uint64_t fused_work = 0;
-    for (uint32_t tid = 0; tid < nthreads; tid++) fused_work += srv.thread(tid).sig().ops;
-    uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
-    uint64_t st_done = 0, st_issued = 0, st_free = 0, st_flag = 0;
-    for (uint32_t tid = 0; tid < nthreads; tid++) {
-        for (Client* client : srv.thread(tid).clients()) {
-            if (!client) continue;
-            live++;
-            if (!client->rob().quiesced()) {
-                stuck_rob++;
-                if (client->retire_queued().load(std::memory_order_acquire)) st_flag++;
-                for (uint64_t id = client->rob().flush_id(), end = client->rob().dispatch_id();
-                     id != end; id++) {
-                    switch (client->rob().at(id).state.load(std::memory_order_acquire)) {
-                        case OpState::Done: st_done++; break;
-                        case OpState::Issued: st_issued++; break;
-                        default: st_free++; break;
-                    }
-                }
-            }
-            if (!client->nothing_to_write()) stuck_wr++;
-        }
-    }
-    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
-                " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
-                static_cast<unsigned long long>(live),
-                static_cast<unsigned long long>(stuck_rob),
-                static_cast<unsigned long long>(stuck_wr),
-                static_cast<unsigned long long>(st_done),
-                static_cast<unsigned long long>(st_issued),
-                static_cast<unsigned long long>(st_free),
-                static_cast<unsigned long long>(st_flag));
-    std::printf("shutdown: unified_work=%llu\n",
-                static_cast<unsigned long long>(fused_work));
-    acl_shutdown();
+    report_graceful_shutdown();
     return 0;
 }
 

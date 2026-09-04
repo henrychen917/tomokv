@@ -21,6 +21,7 @@
 #include <mutex>
 #include <new>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "core/server.h"
@@ -29,6 +30,7 @@
 #include "core/ex_loop.h"
 #include "core/genthread.h"
 #include "core/signal_doorbell.h"
+#include "core/shutdown_report.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
 #include "net/unix_listener.h"
@@ -116,6 +118,10 @@ static void pin_to(int cpu) {
 }
 
 int main(int argc, char** argv) {
+    // Declared before every other automatic: once armed on a clean runtime shutdown, this emits
+    // only after all later-declared objects (including server/loops/listeners/signals) destruct.
+    ShutdownReportFinalLine final_shutdown_line;
+
     // Hash key material, before anything hashes. getrandom never fails for 24 bytes on any kernel
     // we run; if it somehow does, a zero seed degrades to the old deterministic behavior rather
     // than refusing to boot.
@@ -290,7 +296,7 @@ int main(int argc, char** argv) {
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
         return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
-                                tls_context.get(), unix_listener);
+                                tls_context.get(), unix_listener, final_shutdown_line);
     }
 
     srv.topo().dump(stdout);
@@ -532,152 +538,9 @@ int main(int argc, char** argv) {
         srv.shard(static_cast<int32_t>(sid)).store().atomic_shutdown_release_records();
     for (IoLoop& io : ios) io.reap_atomic_deferred();
 
-    // One line of accounting on the way out. Cheap, and the absence of it is how a run ends with no
-    // evidence of what it did.
-    uint64_t ops = 0, disp = 0;
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        const LoopSignals& s = srv.thread(i).sig();
-        (srv.thread(i).role() == Role::Ifid ? disp : ops) += s.ops;
-    }
-    uint64_t acc = 0, aerr = 0, arearm = 0, starved = 0, ndrop = 0;
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        const LoopSignals& s = srv.thread(i).sig();
-        acc += s.accepts; aerr += s.accept_err; arearm += s.accept_rearm; starved += s.sqe_starved;
-        ndrop += s.notify_drop;
-    }
-    // Per-thread breakdown. The aggregate hides the thing you actually need: whether a stage is
-    // saturated, starved, or spending its life in the kernel waiting to be told there is work.
-    std::printf("\n%-6s %-4s %12s %10s %9s %9s %9s %9s %8s\n",
-                "thread","role","ops","iters","busy_ms","idle_ms","cpu_ms","wake_tx","wake_rx");
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        const LoopSignals& s = srv.thread(i).sig();
-        const Role r = srv.thread(i).role();
-        std::printf("t%-5u %-4s %12llu %10llu %9.1f %9.1f %9.1f %9llu %8llu\n", i,
-                    r == Role::Ifid ? "io" : "ex",
-                    (unsigned long long)s.ops, (unsigned long long)s.iterations,
-                    s.busy_ns / 1e6, s.idle_ns / 1e6, s.cpu_ns / 1e6,
-                    (unsigned long long)s.wakes_sent, (unsigned long long)s.wakes_recv);
-    }
-    // WHERE DID THE REPLIES GO. dispatched==executed only proves the STORE finished its work; it
-    // says nothing about whether the answer reached the socket. These three levels localise a stall
-    // to one hop: retired < executed means replies are stranded in the ROB (the sender was never
-    // told). retired == executed with bytes_sent short means they are staged but unsent (the pump
-    // was never re-triggered). Both looked identical from outside before this existed.
-    WbEngine::Stats w{};
-    auto addw = [&](const WbEngine::Stats& x) {
-        w.sends_submitted += x.sends_submitted; w.sends_completed += x.sends_completed;
-        w.short_writes    += x.short_writes;    w.send_errors     += x.send_errors;
-        w.peer_aborts     += x.peer_aborts;
-        w.bytes_sent      += x.bytes_sent;      w.retired         += x.retired;
-        w.direct          += x.direct;
-        w.zc_sends        += x.zc_sends;        w.zc_bytes        += x.zc_bytes;
-        w.zc_releases     += x.zc_releases;
-        w.serves          += x.serves;          w.serves_empty    += x.serves_empty;
-    };
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        addw(ios[i].engine().stats()); addw(exs[i].engine().stats());
-    }
-    uint64_t tls_accepts = 0, tls_started = 0, tls_completed = 0, tls_failed = 0,
-             tls_freed = 0, tls_want_read = 0, tls_want_write = 0,
-             tls_cipher_in = 0, tls_plain_in = 0, tls_cipher_out = 0,
-             tls_plain_out = 0, tls_zc_suppressed = 0, tls_ktls_active = 0,
-             tls_ktls_fallback = 0;
-    for (uint32_t i = 0; i < srv.nthreads(); i++) {
-        const LoopSignals& s = srv.thread(i).sig();
-        tls_accepts += s.tls_accepts;
-        tls_started += s.tls_handshakes_started;
-        tls_completed += s.tls_handshakes_completed;
-        tls_failed += s.tls_handshakes_failed;
-        tls_freed += s.tls_connections_freed;
-        tls_want_read += s.tls_want_read;
-        tls_want_write += s.tls_want_write;
-        tls_cipher_in += s.tls_ciphertext_input_bytes;
-        tls_plain_in += s.tls_plaintext_input_bytes;
-        tls_cipher_out += s.tls_ciphertext_output_bytes;
-        tls_plain_out += s.tls_plaintext_output_bytes;
-        tls_zc_suppressed += s.tls_zc_suppressed;
-        tls_ktls_active += s.tls_ktls_active;
-        tls_ktls_fallback += s.tls_ktls_fallback;
-    }
-    // And the smoking gun: connections still holding work at shutdown, by WHICH kind.
-    uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
-    uint64_t st_done = 0, st_issued = 0, st_free = 0, st_flag = 0;
-    for (uint32_t i = 0; i < srv.nthreads(); i++)
-        for (Client* c : srv.thread(i).clients()) {
-            if (!c) continue;
-            live++;
-            if (!c->rob().quiesced()) {
-                stuck_rob++;
-                // THE DEDUP FLAG ON A STRANDED CLIENT. retire_queued is the whole notification
-                // protocol: a worker claims the client by CASing it false->true and then posts it to
-                // the sender, and the sender clears it before serving. So on a client whose replies
-                // are Done and unretired there are exactly two stories, and this bit tells them apart:
-                //   true  -> someone claimed it and the post never took effect (claim leaked)
-                //   false -> nobody was holding a claim, so the notification was simply never made
-                if (c->retire_queued().load(std::memory_order_acquire)) st_flag++;
-#ifdef TOMO_WEDGE_FORENSICS
-                std::printf("  stranded conn: claims=%u defers=%u serves=%u inflight=%u flag=%d\n",
-                            c->n_claims.load(std::memory_order_relaxed),
-                            c->n_defers.load(std::memory_order_relaxed),
-                            c->n_serves.load(std::memory_order_relaxed),
-                            c->rob().in_flight(),
-                            (int)c->retire_queued().load(std::memory_order_acquire));
-#endif
-                // WHICH KIND OF STRANDED. The counts above prove ops were dispatched and never
-                // retired; they cannot say why. The state of each un-retired slot does:
-                //   Done   -> it executed and the sender was never told  (a lost-notification bug)
-                //   Issued -> it never executed at all                   (a lost-dispatch bug)
-                // Those need opposite fixes, so guessing between them is how you fix the wrong one.
-                for (uint64_t i = c->rob().flush_id(), d = c->rob().dispatch_id(); i != d; i++) {
-                    switch (c->rob().at(i).state.load(std::memory_order_acquire)) {
-                        case OpState::Done:   st_done++;   break;
-                        case OpState::Issued: st_issued++; break;
-                        default:              st_free++;   break;
-                    }
-                }
-            }
-            if (!c->nothing_to_write()) stuck_wr++;        }
-    std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu"
-                " peer_aborts=%llu bytes=%llu"
-                " zc_sends=%llu zc_bytes=%llu zc_releases=%llu serves=%llu empty=%llu\n",
-                (unsigned long long)w.retired, (unsigned long long)w.direct, (unsigned long long)w.sends_completed,
-                (unsigned long long)w.sends_submitted, (unsigned long long)w.short_writes,
-                (unsigned long long)w.send_errors, (unsigned long long)w.peer_aborts,
-                (unsigned long long)w.bytes_sent,
-                (unsigned long long)w.zc_sends, (unsigned long long)w.zc_bytes,
-                (unsigned long long)w.zc_releases,
-                (unsigned long long)w.serves, (unsigned long long)w.serves_empty);
-    std::printf("tls: accepts=%llu handshakes=%llu/%llu failed=%llu freed=%llu"
-                " want_read=%llu want_write=%llu cipher_in=%llu plain_in=%llu"
-                " cipher_out=%llu plain_out=%llu zc_suppressed=%llu"
-                " ktls_active=%llu ktls_fallback=%llu\n",
-                (unsigned long long)tls_accepts, (unsigned long long)tls_completed,
-                (unsigned long long)tls_started, (unsigned long long)tls_failed,
-                (unsigned long long)tls_freed, (unsigned long long)tls_want_read,
-                (unsigned long long)tls_want_write, (unsigned long long)tls_cipher_in,
-                (unsigned long long)tls_plain_in, (unsigned long long)tls_cipher_out,
-                (unsigned long long)tls_plain_out, (unsigned long long)tls_zc_suppressed,
-                (unsigned long long)tls_ktls_active, (unsigned long long)tls_ktls_fallback);
-    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
-                " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
-                (unsigned long long)live, (unsigned long long)stuck_rob, (unsigned long long)stuck_wr,
-                (unsigned long long)st_done, (unsigned long long)st_issued, (unsigned long long)st_free,
-                (unsigned long long)st_flag);
-    if (cfg.net_io == NetIoEngine::Epoll) {
-        uint64_t epoll_events = 0, epoll_recvs = 0;
-        for (uint32_t i = 0; i < srv.nthreads(); i++) {
-            epoll_events += srv.thread(i).sig().epoll_events;
-            epoll_recvs += srv.thread(i).sig().epoll_recvs;
-        }
-        std::printf("epoll: events=%llu recvs=%llu\n",
-                    (unsigned long long)epoll_events, (unsigned long long)epoll_recvs);
-    }
-    std::printf("shutdown: dispatched=%llu executed=%llu accepts=%llu accept_err=%llu "
-                "rearm=%llu sqe_starved=%llu notify_drop=%llu\n",
-                static_cast<unsigned long long>(disp), static_cast<unsigned long long>(ops),
-                static_cast<unsigned long long>(acc), static_cast<unsigned long long>(aerr),
-                static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved),
-                static_cast<unsigned long long>(ndrop));
+    ShutdownReport report = collect_shutdown_report(srv, ios, exs);
+    print_shutdown_report_human(report);
+    final_shutdown_line.arm(std::move(report));
     acl_shutdown();
     return 0;
 }

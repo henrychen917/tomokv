@@ -245,6 +245,9 @@ boot(){ local bin=$1; shift; launch main "$bin" --ratio $GATE_RATIO "$@"; }
 boot_fused(){ # deliberately omits --ratio, which fused mode rejects
   local bin=$1; shift; launch fused "$bin" --thread-mode fused "$@"; }
 stop(){ kill -TERM $SRV 2>/dev/null; wait $SRV 2>/dev/null; settle; }
+shutdown_clean(){ python3 tests/shutdown_report.py "$SRVLOG" clean; }
+shutdown_present(){ python3 tests/shutdown_report.py "$SRVLOG" present; }
+shutdown_value(){ python3 tests/shutdown_report.py "$SRVLOG" get "$1"; }
 
 # A registered command with no generated metadata row makes command_metadata_init fail, and the
 # server then refuses to boot at all -- every row below goes red at once with no indication which
@@ -271,12 +274,12 @@ py tests/spinprobe.py "$PORT" "$SRV" --idle-only >/tmp/gate-idle-signals.txt 2>&
     || bad "idle loop ceiling" "see /tmp/gate-idle-signals.txt"
 stop
 # shutdown invariants + fired counters, from the TERM dump
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "shutdown invariants (nothing stuck)" || bad "shutdown invariants"
-D=$(grep -oE "direct=[0-9]+" "$SRVLOG" | head -1 | cut -d= -f2)
+D=$(shutdown_value wb.direct)
 [ -n "$D" ] && [ "$D" -gt 0 ] && ok "direct-reply fired (direct=$D)" || bad "direct-reply fired"
-R=$(grep -oE "dispatched=[0-9]+" "$SRVLOG" | cut -d= -f2)
-E=$(grep -oE "executed=[0-9]+"  "$SRVLOG" | cut -d= -f2)
+R=$(shutdown_value work.dispatched)
+E=$(shutdown_value work.executed)
 [ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
 
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
@@ -290,7 +293,7 @@ py tests/atomic_hazards.py 127.0.0.1 $PORT >/tmp/gate-atomic-hazards.txt 2>&1 \
     && ok "atomic owner-local hazard battery" \
     || bad "atomic owner-local hazard battery" "see /tmp/gate-atomic-hazards.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
 
 # ---- feature batteries: every shipped feature's directed test, BOTH atomic settings -----------
@@ -304,16 +307,19 @@ for AT in 0 1; do
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
   stop
-  grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+  shutdown_clean \
       && ok "feature shutdown invariants (atomic $AT)" || bad "feature shutdown invariants (atomic $AT)"
 done
 
 # ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
 for AT in 0 1; do
   if boot_fused ./build/tomokv --atomic "$AT" --enable-debug-command yes; then
-    grep -q "thread-mode=1s, overlap=0" "$SRVLOG" \
+    FUSED_INFO=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO server 2>/dev/null | tr -d '\r')
+    FUSED_MODE=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^thread_mode://p')
+    FUSED_OVERLAP=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^overlap://p')
+    [ "$FUSED_MODE" = 1s ] && [ "$FUSED_OVERLAP" = 0 ] \
         && ok "fused boot line (atomic $AT)" \
-        || bad "fused boot line (atomic $AT)" "see $SRVLOG"
+        || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE overlap=$FUSED_OVERLAP"
   else
     bad "fused boot line (atomic $AT)" "server did not boot; see $SRVLOG"
   fi
@@ -449,7 +455,7 @@ py tests/dumprestore.py 127.0.0.1 $PORT verify_restart \
     && ok "DUMP/RESTORE cross-restart round-trip" \
     || bad "DUMP/RESTORE cross-restart round-trip" "see /tmp/gate-dumprestore-restart.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "DUMP/RESTORE restart shutdown invariants" \
     || bad "DUMP/RESTORE restart shutdown invariants"
 
@@ -599,7 +605,7 @@ py tests/notify.py 127.0.0.1 $PORT >/tmp/gate-notify.txt 2>&1 \
     && ok "keyspace notification battery (atomic 0/1)" \
     || bad "keyspace notification battery" "see /tmp/gate-notify.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "feature battery shutdown invariants" || bad "feature battery shutdown invariants"
 
 # ---- FLIP lane: runtime thread reshaping is a shipped feature and gates like one ---------------
@@ -661,7 +667,7 @@ stop
 # invariant line lands a beat after stop returns. Poll instead of racing it.
 FLIPSHUT=0
 for _ in $(seq 50); do
-  grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+  shutdown_clean \
       && { FLIPSHUT=1; break; }
   sleep 0.1
 done
@@ -776,7 +782,7 @@ py tests/aof_torn_group.py 127.0.0.1 $PORT verify "$AOF_GROUP_STATE" \
     && ok "AOF atomic-group recovery + writer order" \
     || bad "AOF atomic-group recovery + writer order" "see /tmp/gate-aof-group.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "AOF group shutdown invariants" || bad "AOF group shutdown invariants"
 
 # ---- AOF sync policies, reply gate, idle sync, and durability-window recovery ----------------
@@ -939,7 +945,7 @@ py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" yes --plain-port "$PORT" \
     >/tmp/gate-tls-yes.txt 2>&1 \
     && ok "TLS client-auth yes matrix" || bad "TLS client-auth yes matrix" "see /tmp/gate-tls-yes.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "TLS yes shutdown invariants" || bad "TLS yes shutdown invariants"
 # (tls_ktls_active is a GAUGE — 0 at clean shutdown by design — so kTLS engagement is asserted
 # live below, on the optional-mode boot, not from this shutdown dump.)
@@ -966,7 +972,7 @@ assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
 print("KTLS_LIVE_OK", line[0])
 PYEOF
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
 
 # The full battery runs FORCED-FALLBACK so the userspace arm's mechanisms (zc suppression, memory
@@ -979,13 +985,13 @@ py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" no --plain-port "$PORT" --full 
     && ok "TLS pipeline/torn-record/coexistence battery" \
     || bad "TLS correctness battery" "see /tmp/gate-tls-full.txt"
 stop
-grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \
+shutdown_clean \
     && ok "TLS shutdown invariants" || bad "TLS shutdown invariants"
-grep -qE "wb: .* err=0 " "$SRVLOG" \
+[ "$(shutdown_value wb.send_errors)" = 0 ] \
     && ok "TLS application send path error-free" || bad "TLS send errors"
-TLS_ACCEPTS=$(sed -n 's/^tls: accepts=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
-TLS_FREED=$(sed -n 's/^tls: .* freed=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
-TLS_ZC=$(sed -n 's/^tls: .* zc_suppressed=\([0-9][0-9]*\).*/\1/p' "$SRVLOG")
+TLS_ACCEPTS=$(shutdown_value tls.accepts)
+TLS_FREED=$(shutdown_value tls.connections_freed)
+TLS_ZC=$(shutdown_value tls.zc_suppressed)
 [ -n "$TLS_ACCEPTS" ] && [ "$TLS_ACCEPTS" -gt 0 ] && [ "$TLS_ACCEPTS" = "$TLS_FREED" ] \
     && ok "TLS connection slots all freed ($TLS_FREED/$TLS_ACCEPTS)" \
     || bad "TLS connection-slot cleanup" "$TLS_FREED/$TLS_ACCEPTS"
@@ -1011,7 +1017,7 @@ stop
 # "No ASAN report" is a finding only if the ASAN server actually ran to its shutdown dump; an
 # empty log (boot failed) has no ASAN text either and used to pass this row vacuously.
 if grep -q "ERROR: AddressSanitizer" "$SRVLOG"; then bad "ASAN clean" "see $SRVLOG"
-elif grep -q "stuck: live_conns=" "$SRVLOG"; then ok "ASAN clean"
+elif shutdown_present; then ok "ASAN clean"
 else bad "ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
 
 # ---- 4b. full tier: zero-copy borrow lifetime (release+ASAN) ----------------------------------
@@ -1035,13 +1041,13 @@ zcboot(){
 zcboot ./build/tomokv || bad "zc boot"
 py tests/zc.py 127.0.0.1 $PORT >/tmp/gate-zc.txt 2>&1     && ok "zc borrow battery" || bad "zc borrow battery" "see /tmp/gate-zc.txt"
 stop
-ZS=$(grep -oE "zc_sends=[0-9]+" "$SRVLOG" | cut -d= -f2)
+ZS=$(shutdown_value wb.zc_sends)
 [ -n "$ZS" ] && [ "$ZS" -gt 0 ] && ok "zc fired (zc_sends=$ZS)" || bad "zc fired"
 zcboot $ASAN || bad "zc ASAN boot"
 py tests/zc.py 127.0.0.1 $PORT >/tmp/gate-zc-asan.txt 2>&1     && ok "zc borrow battery under ASAN" || bad "zc borrow battery under ASAN"
 stop
 if grep -q "ERROR: AddressSanitizer" "$SRVLOG"; then bad "zc ASAN clean" "see $SRVLOG"
-elif grep -q "stuck: live_conns=" "$SRVLOG"; then ok "zc ASAN clean"
+elif shutdown_present; then ok "zc ASAN clean"
 else bad "zc ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
 
 # ---- 4c. full tier: byte-exact differential matrix against pinned vanilla Redis 7.4 ----------
