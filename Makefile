@@ -48,7 +48,6 @@ build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_p
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -c $< -o $@
 
 asan: CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -O1
-asan: BIN := build/tomokv-asan
 asan:
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
@@ -66,6 +65,27 @@ noreserve:
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_XSCRIPT_NO_RESERVE -I. $(SRC) \
 	  -o build/tomokv-noreserve $(JELIBS) $(LDLIBS) -lm
 
+# Server-less unit binaries: the config parser and the flip controller. `make unit` builds and
+# runs both (neither boots a server). tests/gate.sh's parser row is the same program.
+build/config-parser-test: tests/config_parser_test.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
+build/flipctl-unit: tests/flipctl_unit.cc src/core/flipctl.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $@
+unit: build/config-parser-test build/flipctl-unit
+	./build/config-parser-test
+	./build/flipctl-unit
+
+# Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
+build/benchtxn: tools/benchtxn.cc Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. tools/benchtxn.cc -o $@
+build/broaden-bench: tests/broaden_bench.cc Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. tests/broaden_bench.cc -o $@
+tools: build/benchtxn build/broaden-bench
+
 clean:
 	rm -rf build
-.PHONY: all asan tsan noreserve clean
+.PHONY: all asan tsan noreserve clean unit tools
