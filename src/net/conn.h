@@ -210,6 +210,26 @@ public:
         head_ = size_ = offset_ = 0;
     }
 
+    // Drop segments from the TAIL back to `keep` entries; returns the bytes removed. Only ever
+    // applied to segments appended since the last pump: the iovec window is built from the head
+    // at pump time and pump never runs while a send is in flight, so nothing appended afterwards
+    // can be named by the kernel. A partially sent head is by definition older than any such
+    // segment -- the abort is the invariant, not a code path.
+    template <typename ReleaseFn>
+    uint64_t truncate(uint32_t keep, ReleaseFn&& release) {
+        uint64_t bytes = 0;
+        while (size_ > keep) {
+            ReplySegment& s = segs_[head_ + size_ - 1];
+            if (size_ == 1 && offset_) std::abort();
+            bytes += s.len;
+            if (s.kind == SegmentKind::Borrow) release(s.shard, s.ptr);
+            else if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
+            size_--;
+        }
+        if (!size_) head_ = offset_ = 0;
+        return bytes;
+    }
+
 private:
     void push(const ReplySegment& s) {
         if (head_ + size_ == cap_) make_tail_room();
@@ -498,6 +518,16 @@ public:
     void release_all_segments(ReleaseFn&& release) {
         segments_.release_all(std::forward<ReleaseFn>(release));
         obuf_bytes_ = 0;
+    }
+    // Take back segments a retire hook staged for an op whose reply is being suppressed. See
+    // SegmentQueue::truncate for why only just-appended segments may ever be removed.
+    template <typename ReleaseFn>
+    void truncate_segments(uint32_t keep, ReleaseFn&& release) {
+        const uint64_t bytes = segments_.truncate(keep, std::forward<ReleaseFn>(release));
+        if (obuf_tracking_) {
+            if (bytes > obuf_bytes_) std::abort();
+            obuf_bytes_ -= bytes;
+        }
     }
 
     uint64_t obuf_bytes() const { return obuf_bytes_; }

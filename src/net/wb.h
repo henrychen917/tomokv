@@ -293,12 +293,24 @@ private:
         conn.start_obuf_tracking();
         draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            // A retire hook may stage THIS op's own bytes before the skip is consulted: cross-
+            // shard MGET assembly seals the fill buffer, then appends the array header, every
+            // borrowed bulk and its CRLF to the segment queue. Record the queue frontier first so
+            // a suppressed op can take exactly those back instead of leaking a partial array.
+            const uint32_t segments_before = conn.output_list_length();
+            const bool fill_was_staged = conn.has_pending_fill();
             if (op.zc_ptr) {
                 if (retire_fn_) retire_fn_(retire_ctx_, conn, op);
             }
             if (op.reply_skip()) {
-                if (op.zc_ptr && op.zc_shard >= 0 && release_fn_)
-                    release_fn_(release_ctx_, op.zc_shard, op.zc_ptr);
+                if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
+                // Everything past the frontier is this op's reply -- except the seal, which moved
+                // OLDER fill bytes into the queue and must stay. It exists iff the fill buffer
+                // went from staged to empty across the hook; nothing else empties it mid-drain.
+                const uint32_t keep = segments_before +
+                    ((fill_was_staged && !conn.has_pending_fill()) ? 1u : 0u);
+                conn.truncate_segments(keep,
+                    [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 return;
             }
             if (op.zc_ptr) {
