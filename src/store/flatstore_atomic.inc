@@ -1172,18 +1172,35 @@ private:
     KvObj* atomic_exchange_physical_read_local(uint64_t hash, Slice key,
                                                KvObj* replacement) {
         // The key filter was release-published before this call. Enclose every possible physical
-        // exchange in the table sequence so a reader that observed the old empty cell cannot
-        // consume an epoch-zero/aborted candidate. The same bracket is what a local MGET compares
-        // on a group-free participant; nested insert/rehash helpers share its owner-local depth.
+        // exchange or direct insertion in the table sequence so a reader that observed the old
+        // empty cell cannot consume an epoch-zero/aborted candidate. The same bracket is what a
+        // local MGET compares on a group-free participant.
         ReadLocalTableGuard atomic_change(*this);
+        uint32_t insertion_slot = 0;
+        bool have_insertion_slot = false;
+        bool insertion_reuses_tomb = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
             uint32_t slot = slot_start(table, hash);
+            uint32_t first_tomb = 0;
+            bool have_first_tomb = false;
+            const bool retain_insertion = replacement && table == 0;
             for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
                 const uint64_t word = tab_[table][slot];
-                if (word == 0) return nullptr;
+                if (word == 0) {
+                    if (retain_insertion) {
+                        insertion_slot = have_first_tomb ? first_tomb : slot;
+                        insertion_reuses_tomb = have_first_tomb;
+                        have_insertion_slot = true;
+                    }
+                    return nullptr;
+                }
                 KvObj* object = ptr_of(word);
+                if (retain_insertion && !object && !have_first_tomb) {
+                    first_tomb = slot;
+                    have_first_tomb = true;
+                }
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
@@ -1202,32 +1219,70 @@ private:
             }
             return nullptr;
         };
+        auto insert_replacement = [&] {
+            if (!replacement) return;
+            if (!have_insertion_slot) std::abort();
+            read_local_slot_store(
+                &tab_[0][insertion_slot], make_word(tag_of(hash), replacement));
+            if (insertion_reuses_tomb) tombs_[0]--;
+            live_[0]++;
+            const size_t added_bytes = kvobj_size(replacement);
+            obj_bytes_ += added_bytes;
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+            settax_stats().accounting_add_calls++;
+            settax_stats().accounting_bytes += added_bytes;
+#endif
+            if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
+            else {
+                expires_.erase(hash);
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+                settax_stats().expire_erases++;
+#endif
+            }
+        };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into_read_local(0, hash, replacement, true))
-                    std::abort();
+                insert_replacement();
                 return object;
             }
         }
-        if (replacement && !insert_into_read_local(0, hash, replacement, true)) std::abort();
+        insert_replacement();
         return nullptr;
     }
 
-    // Swap a key's physical representation in its existing probe slot. The old detach+attach pair
-    // searched the table twice and manufactured a tombstone for every promotion; atomic ownership
-    // needs the displaced pointer, so insert_into's ordinary retire-in-place path is not usable.
+    // Swap a key in its existing slot, or retain the first tombstone and terminal empty while
+    // proving it absent so a new replacement installs without repeating the current-table probe.
+    // Atomic ownership needs the displaced pointer, so insert_into's ordinary retire-in-place path
+    // is not usable.
     KvObj* atomic_exchange_physical(uint64_t hash, Slice key, KvObj* replacement) {
         if (__builtin_expect(read_local_enabled_, false))
             return atomic_exchange_physical_read_local(hash, key, replacement);
+        uint32_t insertion_slot = 0;
+        bool have_insertion_slot = false;
+        bool insertion_reuses_tomb = false;
         auto exchange = [&](int table) -> KvObj* {
             if (!tab_[table]) return nullptr;
             const uint16_t tag = tag_of(hash);
             uint32_t slot = slot_start(table, hash);
+            uint32_t first_tomb = 0;
+            bool have_first_tomb = false;
+            const bool retain_insertion = replacement && table == 0;
             for (uint32_t probes = 0; probes <= cap_[table]; probes++) {
                 const uint64_t word = tab_[table][slot];
-                if (word == 0) return nullptr;
+                if (word == 0) {
+                    if (retain_insertion) {
+                        insertion_slot = have_first_tomb ? first_tomb : slot;
+                        insertion_reuses_tomb = have_first_tomb;
+                        have_insertion_slot = true;
+                    }
+                    return nullptr;
+                }
                 KvObj* object = ptr_of(word);
+                if (retain_insertion && !object && !have_first_tomb) {
+                    first_tomb = slot;
+                    have_first_tomb = true;
+                }
                 if (object && tag_of_word(word) == tag && object->key() == key) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
@@ -1246,14 +1301,24 @@ private:
             }
             return nullptr;
         };
+        auto insert_replacement = [&] {
+            if (!replacement) return;
+            if (!have_insertion_slot) std::abort();
+            tab_[0][insertion_slot] = make_word(tag_of(hash), replacement);
+            if (insertion_reuses_tomb) tombs_[0]--;
+            live_[0]++;
+            obj_bytes_ += kvobj_size(replacement);
+            if (replacement->flags & KvObjFlags::HasTtl) expires_.insert(hash);
+            else expires_.erase(hash);
+        };
         if (KvObj* object = exchange(0)) return object;
         if (rehashing()) {
             if (KvObj* object = exchange(1)) {
-                if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+                insert_replacement();
                 return object;
             }
         }
-        if (replacement && !insert_into(0, hash, replacement, true)) std::abort();
+        insert_replacement();
         return nullptr;
     }
 
