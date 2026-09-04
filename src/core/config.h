@@ -28,9 +28,11 @@
 #include <utility>
 #include <vector>
 
+#include "../base/slice.h"       // Slice (notify flag parsing)
+#include "../cmd/notify.h"       // parse_notify_flags
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
 #include "../store/typeval.h"    // TypeLimits (compact-encoding limits)
-#include "../store/flatstore.h"  // HashKind + g_hash_kind
+#include "../store/flatstore.h"  // HashKind + g_hash_kind (the only symbols needed from it)
 
 namespace tomo {
 

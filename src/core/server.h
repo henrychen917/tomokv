@@ -12,10 +12,8 @@
 // NOTES-MIGRATE.md for the handoff and stale-route forwarding contract.
 #pragma once
 #include <algorithm>
-#include <array>
 #include <atomic>
 #include <cstdint>
-#include <climits>
 #include <ctime>
 #include <memory>
 #include <mutex>

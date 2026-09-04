@@ -2,25 +2,26 @@
 //
 // Split mode keeps the pure 2s design. Fused startup is isolated in genthread.cc so boot mode
 // selection cannot change the split loop translation unit's optimization or object code.
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
+#include <pthread.h>
+#include <sched.h>
+#include <sys/random.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <atomic>
-#include <csignal>
-#include <chrono>
 #include <cerrno>
+#include <chrono>
 #include <condition_variable>
+#include <csignal>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <sys/random.h>
-#include <string>
+#include <memory>
 #include <mutex>
 #include <new>
+#include <string>
 #include <thread>
 #include <vector>
 
