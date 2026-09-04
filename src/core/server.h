@@ -198,13 +198,13 @@ public:
         // Declared topology is a legacy lowering input and therefore cannot accompany --place.
         // A declaration that fails to parse or names cpus outside the affinity mask fails the BOOT,
         // loudly: silently falling back to discovery would measure a different layout.
-        if (cfg.place && cfg.node_cpus && *cfg.node_cpus) {
-            std::fprintf(stderr, "fatal: --place and --node-cpus are mutually exclusive\n");
+        if (cfg.place && cfg.l3_domains && *cfg.l3_domains) {
+            std::fprintf(stderr, "fatal: --place and --l3-domains are mutually exclusive\n");
             return false;
         }
-        if (cfg.node_cpus && *cfg.node_cpus) {
-            if (!topo_.declare(cfg.node_cpus)) {
-                std::fprintf(stderr, "fatal: --l3-domains '%s' invalid\n", cfg.node_cpus);
+        if (cfg.l3_domains && *cfg.l3_domains) {
+            if (!topo_.declare(cfg.l3_domains)) {
+                std::fprintf(stderr, "fatal: --l3-domains '%s' invalid\n", cfg.l3_domains);
                 return false;
             }
         } else {
@@ -270,8 +270,10 @@ public:
 
         // ---- threads ---------------------------------------------------------------------------
         // Every front-end has already lowered to dense per-thread entries. Every thread still gets
-        // a channel from every other regardless of role, because a role change must not require
-        // re-wiring the mesh.
+        // a producer lane from every other, because a role change must not require re-wiring
+        // the mesh; the TASK lanes are a role-partitioned masked monolith whose block sizes are
+        // re-derived at each role change (ThreadCtx::remask_quiesced), while the client, release
+        // and transfer channels stay uniform per-thread arrays.
         const uint32_t nthreads = placement_.total_threads();
         if (!flipctl_.init(cfg.thread_mode == ThreadMode::Split && cfg.flip_auto != 0,
                            cfg.flip_auto_band, nthreads)) {
@@ -1484,6 +1486,11 @@ public:
         uint32_t unit_count = 0;
         uint32_t selected = 0;
         if (target_io < live_io) {
+            // LOAD-BEARING exclusions, not tie-breakers: the AOF writer (and, in smt mode, its
+            // sibling) must never be converted io->ex. writer_shutdown() runs only on the io loop's
+            // exit paths; an executor-state ~AofManager closes without an fsync and discard_chunks()
+            // drops buffered records. The unix-listener owner likewise cannot leave the io role
+            // without taking its listener with it.
             const uint32_t aof_writer = aof_.writer_tid();
             for (uint32_t tid : placement_.ifid_threads()) {
                 if (!cfg_.smt_mode) {
