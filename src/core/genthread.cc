@@ -3,9 +3,7 @@
 #include "genthread.h"
 
 #include <algorithm>
-#include <condition_variable>
 #include <cstdio>
-#include <mutex>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -19,6 +17,7 @@
 #include "../persist/aof.h"
 #include "../snapshot/snapshot.h"
 #include "ex_loop.h"
+#include "fused_boot_gate.h"
 #include "io_loop.h"
 #include "server.h"
 
@@ -86,14 +85,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    std::mutex boot_mu;
-    std::condition_variable boot_cv;
-    uint32_t loaders_done = 0;
-    uint32_t runners_ready = 0;
-    bool load_ok = true;
-    bool serve_start = false;
-    bool run_start = false;
-    std::string load_error;
+    FusedBootGate boot(nthreads);
     const uint32_t unix_owner = srv.placement().ifid_threads().front();
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
@@ -193,35 +185,14 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                         });
             }
-            {
-                std::lock_guard<std::mutex> lock(boot_mu);
-                if (!ok) {
-                    load_ok = false;
-                    if (load_error.empty())
-                        load_error = local_error.empty()
-                            ? "unified thread initialization failed" : local_error;
-                }
-                loaders_done++;
+            if (!boot.arrive_loaded(tid, ok, local_error)) return;
+            if (!boot.wait_until_ready(tid, self.stop_flag())) return;
+            if (!ios[tid].activate()) {
+                boot.give_up(tid, "unified listener activation failed");
+                return;
             }
-            boot_cv.notify_all();
-            if (!ok) return;
-            {
-                std::unique_lock<std::mutex> lock(boot_mu);
-                boot_cv.wait(lock, [&] {
-                    return serve_start || self.stop_flag().load(std::memory_order_relaxed);
-                });
-            }
-            if (self.stop_flag().load(std::memory_order_relaxed)) return;
-            if (!ios[tid].activate()) std::abort();
-            {
-                std::unique_lock<std::mutex> lock(boot_mu);
-                runners_ready++;
-                boot_cv.notify_all();
-                boot_cv.wait(lock, [&] {
-                    return run_start || self.stop_flag().load(std::memory_order_relaxed);
-                });
-            }
-            if (self.stop_flag().load(std::memory_order_relaxed)) return;
+            boot.arrive_ready(tid);
+            if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
             ios[tid].run_fused();
             if (srv.read_local_enabled())
@@ -229,26 +200,18 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             self.publish_ready_role(Role::Idle);
         });
 
-    {
-        std::unique_lock<std::mutex> lock(boot_mu);
-        boot_cv.wait(lock, [&] { return loaders_done == nthreads; });
-    }
     auto stop_workers = [&] {
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
-        {
-            std::lock_guard<std::mutex> lock(boot_mu);
-            serve_start = true;
-            run_start = true;
-        }
-        boot_cv.notify_all();
+        boot.stop();
         for (std::thread& worker : pool)
             if (worker.joinable()) worker.join();
     };
-    if (!load_ok) {
+    if (!boot.wait_loaded(srv.shutting_down())) {
         stop_workers();
-        std::fprintf(stderr, "persistence load failed: %s\n", load_error.c_str());
-        return 1;
+        const std::string error = boot.error();
+        if (!error.empty()) std::fprintf(stderr, "persistence load failed: %s\n", error.c_str());
+        return srv.shutting_down().load(std::memory_order_relaxed) ? 0 : 1;
     }
     srv.set_loading(false);
 
@@ -281,17 +244,13 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         }
         (void)unix_listener.release_fd();
     }
-    {
-        std::lock_guard<std::mutex> lock(boot_mu);
-        serve_start = true;
+    if (!boot.advance_ready() || !boot.wait_ready(srv.shutting_down()) ||
+        !boot.advance_running()) {
+        stop_workers();
+        const std::string error = boot.error();
+        if (!error.empty()) std::fprintf(stderr, "unified boot failed: %s\n", error.c_str());
+        return srv.shutting_down().load(std::memory_order_relaxed) ? 0 : 1;
     }
-    boot_cv.notify_all();
-    {
-        std::unique_lock<std::mutex> lock(boot_mu);
-        boot_cv.wait(lock, [&] { return runners_ready == nthreads; });
-        run_start = true;
-    }
-    boot_cv.notify_all();
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
