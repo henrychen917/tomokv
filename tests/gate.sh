@@ -3,7 +3,7 @@
 #
 #   tests/gate.sh quick   loopback only, ~3 min: build (release+ASAN), footprint locks, boot
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
-#                         shutdown invariants, counter-fired assertions, idle-CPU ceiling. Runs on
+#                         shutdown invariants, counter-fired assertions, idle-loop ceiling. Runs on
 #                         any machine.
 #   tests/gate.sh full    quick + torture-under-ASAN + the Redis 7.4 differential matrix + NIC
 #                         regression cells vs tests/gate_refs.txt (the NIC cells need the 25GbE
@@ -254,7 +254,7 @@ py tests/cmdmeta_coverage.py >/tmp/gate-cmdmeta-coverage.txt 2>&1 \
     || bad "cmdmeta covers every registered command" "see /tmp/gate-cmdmeta-coverage.txt"
 
 # ---- 3. correctness: smoke + torture + RYOW on the release build ------------------------------
-boot ./build/tomokv || bad "release boot"
+boot ./build/tomokv --enable-debug-command yes || bad "release boot"
 py tests/torture.py 127.0.0.1 $PORT >/tmp/gate-tort.txt 2>&1 \
     && ok "torture battery" || bad "torture battery" "see /tmp/gate-tort.txt"
 py tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow.txt 2>&1 \
@@ -263,15 +263,12 @@ py tests/acl_categories.py 127.0.0.1 $PORT >/tmp/gate-acl-categories.txt 2>&1 \
     && ok "ACL category runtime table" || bad "ACL category runtime table" "see /tmp/gate-acl-categories.txt"
 py tests/acl.py 127.0.0.1 $PORT - >/tmp/gate-acl-nofile.txt 2>&1 \
     && ok "ACL LOAD/SAVE no-file errors" || bad "ACL LOAD/SAVE no-file errors" "see /tmp/gate-acl-nofile.txt"
-# idle-CPU ceiling: after the batteries, an idle server must not burn cores
-C0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); sleep 5
-C1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null)
-J=
-[ -n "$C0" ] && [ -n "$C1" ] && J=$((C1-C0))
-# J must exist: a missing process sample is not a zero-jiffy measurement.
-[ -n "$J" ] && [ "$J" -lt 200 ] \
-    && ok "idle CPU ceiling ($J jiffies/5s)" \
-    || bad "idle CPU ceiling" "${J:-measurement missing} jiffies/5s"
+# Idle-loop ceiling: owner-written counters remove scheduler/jiffy noise and name a spinning
+# thread. The helper requires two fresh LBSIGNALS captures and a sampling iteration, so a missing
+# DEBUG surface or cached/empty dump cannot turn this row green.
+py tests/spinprobe.py "$PORT" "$SRV" --idle-only >/tmp/gate-idle-signals.txt 2>&1 \
+    && ok "idle loop ceiling (LBSIGNALS, 1s)" \
+    || bad "idle loop ceiling" "see /tmp/gate-idle-signals.txt"
 stop
 # shutdown invariants + fired counters, from the TERM dump
 grep -q "stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0" "$SRVLOG" \

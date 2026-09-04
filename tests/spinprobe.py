@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # L2 partial-frame spin probe. A connection that has sent an INCOMPLETE RESP frame and then goes
 # quiet must not make its io thread spin: the parser returns Incomplete without advancing, and if
-# the loop counts that as progress it never parks.   usage: spinprobe.py PORT [server_pid]
+# the loop counts that as progress it never parks.
 #
-# Scored as a DELTA over the same server's zero-conn idle burn: background timers (cron, climon,
-# lb census, the age sampler) legitimately tick the loop and drift across binaries, so an
-# absolute threshold rots. The defect this guards against costs ~1000 ticks/6s; wakeup-only
-# parking costs ~0 over baseline.
+# Usage: spinprobe.py PORT [server_pid] [--idle-only]
+#
+# Scored from DEBUG LBSIGNALS' owner-written loop counters, never process CPU jiffies.  The partial
+# arm is a delta over the same server's quiet baseline; this removes scheduler/CPU-frequency noise
+# and, on failure, identifies the exact connection-owning thread.  --idle-only is the gate's
+# one-second process-wide quiet-loop ceiling and checks every reported thread in either role model.
 #
 # Two things make the row non-vacuous (AUDIT-TESTS F1):
 #   * the PID is the server that OWNS PORT: given by the caller (the gate passes $SRV) or resolved
 #     from the listening socket with `ss`, refusing ambiguity. The old probe took the first
-#     /proc/*/comm containing "tomokv", which on a shared box is another lane's server.
+#     process named "tomokv", which on a shared box can be another lane's server. LBSIGNALS itself
+#     is fetched from PORT, so the measured counters cannot come from that foreign process.
 #   * after the idle window the frame is COMPLETED and must answer +OK: the parser held the partial
 #     frame for the whole window. A server that dropped the half-frame connection idles just as
 #     quietly and used to pass.
@@ -23,8 +26,30 @@ import sys
 import time
 
 PORT = int(sys.argv[1])
-IDLE_SECONDS = 6
-MAX_EXTRA_TICKS = 40
+IDLE_SECONDS = 1.0
+LAND_SECONDS = 0.2
+MAX_IDLE_ITERATIONS = 64
+MAX_IDLE_SPINS = 64
+MAX_IDLE_WAKES = 64
+MAX_EXTRA_ITERATIONS = 8
+MAX_EXTRA_SPINS = 8
+MAX_EXTRA_WAKES = 8
+
+
+def arguments():
+    pid = None
+    idle_only = False
+    for arg in sys.argv[2:]:
+        if arg == "--idle-only":
+            idle_only = True
+        elif pid is None:
+            try:
+                pid = int(arg)
+            except ValueError:
+                raise SystemExit("spinprobe: unexpected argument %r" % arg)
+        else:
+            raise SystemExit("spinprobe: unexpected argument %r" % arg)
+    return pid, idle_only
 
 
 def listener_pids(port):
@@ -36,9 +61,9 @@ def listener_pids(port):
     return sorted({int(m.group(1)) for m in re.finditer(r"pid=(\d+)", out)})
 
 
-def find_srv():
-    if len(sys.argv) > 2:
-        pid = int(sys.argv[2])
+def find_srv(given_pid):
+    if given_pid is not None:
+        pid = given_pid
         if not os.path.exists("/proc/%d" % pid):
             raise SystemExit("spinprobe: server pid %d is not alive" % pid)
         return pid
@@ -51,42 +76,183 @@ def find_srv():
                      % (len(pids), PORT, pids))
 
 
-srv = find_srv()
+def read_resp(stream):
+    line = stream.readline()
+    if not line.endswith(b"\r\n"):
+        raise RuntimeError("truncated RESP reply: %r" % line)
+    kind, value = line[:1], line[1:-2]
+    if kind == b"+":
+        return value
+    if kind == b":":
+        return int(value)
+    if kind == b"-":
+        raise RuntimeError("server error: %s" % value.decode("utf-8", "replace"))
+    if kind == b"$":
+        length = int(value)
+        if length < 0:
+            return None
+        payload = stream.read(length)
+        trailer = stream.read(2)
+        if len(payload) != length or trailer != b"\r\n":
+            raise RuntimeError("truncated bulk RESP reply")
+        return payload
+    raise RuntimeError("unsupported RESP reply: %r" % line)
 
 
-def ticks():
-    # utime + stime; split after the ')' so a comm with spaces cannot shift the fields.
-    fields = open("/proc/%d/stat" % srv).read().rsplit(")", 1)[1].split()
-    return int(fields[11]) + int(fields[12])
+def command(sock, stream, *args):
+    encoded = [arg if isinstance(arg, bytes) else str(arg).encode() for arg in args]
+    request = [b"*%d\r\n" % len(encoded)]
+    for arg in encoded:
+        request.extend((b"$%d\r\n" % len(arg), arg, b"\r\n"))
+    sock.sendall(b"".join(request))
+    return read_resp(stream)
 
 
-t0 = ticks()
-time.sleep(IDLE_SECONDS)
-base = ticks() - t0
+def connect():
+    sock = socket.create_connection(("127.0.0.1", PORT), timeout=10)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    return sock, sock.makefile("rb")
 
-s = socket.create_connection(("127.0.0.1", PORT), timeout=10)
-s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-s.sendall(b"*3\r\n$3\r\nSE")
-time.sleep(0.5)                       # let the frame land and the conn reach its parked state
-t0 = ticks()
-time.sleep(IDLE_SECONDS)
-d = ticks() - t0
+
+def lbsignals(sock, stream):
+    raw = command(sock, stream, "DEBUG", "LBSIGNALS")
+    if not isinstance(raw, bytes) or not raw.startswith(b"lbver 1 "):
+        raise RuntimeError("DEBUG LBSIGNALS returned %r" % (raw,))
+    stamp = None
+    threads = {}
+    for line in raw.decode("utf-8", "replace").splitlines():
+        fields = line.split()
+        if fields[:2] == ["lbver", "1"]:
+            if len(fields) < 4 or fields[2] != "stamp_ns":
+                raise RuntimeError("malformed LBSIGNALS header: %r" % line)
+            stamp = int(fields[3])
+        elif fields and fields[0] == "thread":
+            if len(fields) < 16:
+                raise RuntimeError("short LBSIGNALS thread row: %r" % line)
+            tid = int(fields[1])
+            if tid in threads:
+                raise RuntimeError("duplicate LBSIGNALS thread %d" % tid)
+            threads[tid] = {
+                "role": fields[2],
+                "clients": int(fields[4]),
+                "iterations": int(fields[5]),
+                "wakes_sent": int(fields[13]),
+                "wakes_recv": int(fields[14]),
+                "spins": int(fields[15]),
+            }
+    if stamp is None or not threads:
+        raise RuntimeError("DEBUG LBSIGNALS omitted its stamp or thread rows")
+    return stamp, threads
+
+
+COUNTERS = ("iterations", "spins", "wakes_sent", "wakes_recv")
+
+
+def deltas(before, after):
+    if set(before) != set(after):
+        raise RuntimeError("LBSIGNALS thread set changed during quiet window: %s -> %s"
+                           % (sorted(before), sorted(after)))
+    out = {}
+    for tid in sorted(before):
+        if before[tid]["role"] != after[tid]["role"]:
+            raise RuntimeError("thread %d changed role during quiet window: %s -> %s"
+                               % (tid, before[tid]["role"], after[tid]["role"]))
+        row = {"role": after[tid]["role"]}
+        for name in COUNTERS:
+            if after[tid][name] < before[tid][name]:
+                raise RuntimeError("thread %d counter %s regressed: %d -> %d"
+                                   % (tid, name, before[tid][name], after[tid][name]))
+            row[name] = after[tid][name] - before[tid][name]
+        out[tid] = row
+    return out
+
+
+def measure(sock, stream):
+    stamp0, before = lbsignals(sock, stream)
+    time.sleep(IDLE_SECONDS)
+    stamp1, after = lbsignals(sock, stream)
+    if stamp1 - stamp0 < int(IDLE_SECONDS * 900_000_000):
+        raise RuntimeError("LBSIGNALS capture was not fresh over the idle window: %d ns"
+                           % (stamp1 - stamp0))
+    return before, after, deltas(before, after)
+
+
+def describe(rows):
+    return "; ".join(
+        "tid=%d role=%s iterations=%d spins=%d wakes=%d/%d"
+        % (tid, row["role"], row["iterations"], row["spins"],
+           row["wakes_sent"], row["wakes_recv"])
+        for tid, row in sorted(rows.items()))
+
+
+given_pid, idle_only = arguments()
+srv = find_srv(given_pid)
+admin, admin_file = connect()
+admin_tid = command(admin, admin_file, "DEBUG", "IO-THREAD")
+if not isinstance(admin_tid, int):
+    raise SystemExit("spinprobe: DEBUG IO-THREAD returned %r" % (admin_tid,))
+
+if idle_only:
+    _before, _after, quiet = measure(admin, admin_file)
+    sampling_fired = admin_tid in quiet and quiet[admin_tid]["iterations"] > 0
+    offenders = {
+        tid: row for tid, row in quiet.items()
+        if row["iterations"] > MAX_IDLE_ITERATIONS or row["spins"] > MAX_IDLE_SPINS or
+           row["wakes_sent"] + row["wakes_recv"] > MAX_IDLE_WAKES
+    }
+    print("pid %d idle %.0fs LBSIGNALS delta: %s; sampler tid=%d mechanism=%s"
+          % (srv, IDLE_SECONDS, describe(quiet), admin_tid,
+             "fired" if sampling_fired else "FAIL: no sampling iteration"))
+    admin_file.close()
+    admin.close()
+    sys.exit(0 if sampling_fired and not offenders else 1)
+
+# Baseline has the same retained admin connection and the same two DEBUG samples as the partial
+# window, so its target-thread delta prices the observation itself without process-wide noise.
+_base_before, _base_after, baseline = measure(admin, admin_file)
+
+partial, partial_file = connect()
+target_tid = command(partial, partial_file, "DEBUG", "IO-THREAD")
+if not isinstance(target_tid, int) or target_tid not in baseline:
+    raise SystemExit("spinprobe: invalid connection owner %r" % (target_tid,))
+partial.sendall(b"*3\r\n$3\r\nSE")
+time.sleep(LAND_SECONDS)               # let the incomplete frame reach its parked parser state
+partial_before, _partial_after, parked = measure(admin, admin_file)
+target = parked[target_tid]
+base_target = baseline[target_tid]
+extra = {name: target[name] - base_target[name] for name in COUNTERS}
 
 # Mechanism proof: the rest of the very same frame must complete into one SET and answer +OK.
-s.sendall(b"T\r\n$8\r\nsp:probe\r\n$1\r\nv\r\n")
-f = s.makefile("rb")
+partial.sendall(b"T\r\n$8\r\nsp:probe\r\n$1\r\nv\r\n")
 try:
-    reply = f.readline()
-except OSError as exc:
+    reply = read_resp(partial_file)
+except (OSError, RuntimeError) as exc:
     reply = b"<%s>" % type(exc).__name__.encode()
-held = reply == b"+OK\r\n"
+held = reply == b"OK"
+owner_after = None
 if held:
-    s.sendall(b"*2\r\n$3\r\nDEL\r\n$8\r\nsp:probe\r\n")
-    f.readline()
-s.close()
+    owner_after = command(partial, partial_file, "DEBUG", "IO-THREAD")
+    command(partial, partial_file, "DEL", "sp:probe")
+stable_owner = owner_after == target_tid
 
-print("pid %d idle %ds: baseline %d ticks, with partial-frame conn %d ticks (delta %+d); "
-      "frame completion -> %r (%s)"
-      % (srv, IDLE_SECONDS, base, d, d - base, reply,
-         "parser held the partial frame" if held else "FAIL: partial frame was NOT held"))
-sys.exit(0 if (d - base <= MAX_EXTRA_TICKS and held) else 1)
+sampling_fired = admin_tid in baseline and baseline[admin_tid]["iterations"] > 0
+sampling_fired = (sampling_fired and admin_tid in parked and
+                  parked[admin_tid]["iterations"] > 0)
+within_ceiling = (extra["iterations"] <= MAX_EXTRA_ITERATIONS and
+                  extra["spins"] <= MAX_EXTRA_SPINS and
+                  extra["wakes_sent"] <= MAX_EXTRA_WAKES and
+                  extra["wakes_recv"] <= MAX_EXTRA_WAKES)
+
+print("pid %d idle %.0fs target tid=%d role=%s: baseline {%s}; partial {%s}; "
+      "extra iterations=%+d spins=%+d wakes=%+d/%+d; frame completion -> %r; "
+      "owner after=%r (%s)"
+      % (srv, IDLE_SECONDS, target_tid, partial_before[target_tid]["role"],
+         describe({target_tid: base_target}), describe({target_tid: target}),
+         extra["iterations"], extra["spins"], extra["wakes_sent"], extra["wakes_recv"],
+         reply, owner_after, "stable" if stable_owner else "CHANGED"))
+
+partial_file.close()
+partial.close()
+admin_file.close()
+admin.close()
+sys.exit(0 if within_ceiling and held and stable_owner and sampling_fired else 1)
