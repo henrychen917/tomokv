@@ -61,3 +61,30 @@ Run the coordinator's quoted mm11/mm91/mm991 atomic-1 cells, the full atomic gau
 `tests/atomic_hazards.py` and `tests/bplus.py`, and the s6 differ.  The intended result is higher
 mm11 throughput with mm91/mm991, ordinary commands, protocol replies, persistence, and migration
 unchanged.
+
+## Landed scope (rebase onto f40469ea3)
+
+Changes 1-4 are landed. Changes 5 and 6 are NOT:
+
+- **5, executor-major posting** existed only as an unverified WIP commit
+  (eb116399c) written against the pre-train `ScatterState` and dropped here. It
+  added `ShardGroup::task_next/task_head/task_done`, a `task_count` chain plan
+  applied at every publication point, `xshard_task_repartition()` and an
+  `execute_executor_major()` fragment loop in `ExLoopT`. It also carried an
+  unrelated widening of `for_each_task_key()`'s whole-owner overlap answer.
+  Nothing in it was measured.
+- **6, single-owner fallback MGET** was never implemented and is rejected: it
+  optimizes a shape that is not the target regime.
+
+Two defects were repaired on the way in.
+
+- `script_post_phase()` initialized APPLY's owner completion twice, because
+  mainline's 9b5a4be82 had independently added the same call. Change 3 makes
+  that call publish the wave's pre-counted sentinels, so the second one aborted.
+- Change 3 derived a transaction's per-executor sentinels from
+  `MultiExecState::write_keys`. That list is the prepare-time registry key
+  range, and a lowered LMPOP/ZMPOP has none, so the key it selects at phase two
+  installed against an executor with no pin and aborted the server
+  (`tests/multi_exec.py`, heterogeneous_ryow). Sentinels are now derived from
+  `state.shards`, the outer task set actually published, which is exactly the
+  set of executors that can install.
