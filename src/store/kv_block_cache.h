@@ -1,0 +1,136 @@
+// kv_block_cache.h — the fused owner's post-grace KvObj block cache.
+//
+// WHY IT EXISTS. While read-local is armed a published object is immutable: readers hold no lock,
+// so a write may never overwrite one in place. Every armed write therefore builds a FRESH object,
+// publishes it, and retires the displaced one through QSBR — one mallocx and one sdallocx per
+// write that the unarmed in-place path does not pay at all.
+//
+// WHY REUSE IS SAFE. Once the QSBR grace floor has passed a retired object's stamp, no reader can
+// still hold a pointer to it, and by the single-owner law no thread but its shard's owner may
+// touch it. That is exactly the licence the code already used to call free() at that point. This
+// cache is fed at precisely that call site and drained only by the same owner thread, so:
+//   * single-owner writes are preserved — the cache is owner-private, never shared, never locked;
+//   * readers are never obstructed — nothing is recycled before the grace floor has released it;
+//   * immutable replacement is preserved — a reused block becomes a DIFFERENT object than any
+//     reader can be holding, because the block only returns here after every such reader is gone.
+// Recycling reuses provably unreachable memory. It does not shorten any object's lifetime.
+//
+// WHY PER OWNER AND NOT PER SHARD. Measured, not assumed. A per-shard variant of this cache was
+// built first and lost 2-4% of armed SET throughput at 8 and 64 shards while winning at 1 shard:
+// its head array and byte gauge are two extra cache lines PER SHARD on a path whose allocator
+// alternative (jemalloc's tcache) is per-THREAD and always hot. One cache per fused owner restores
+// that property — a single head array, hot in L1 for every write regardless of which shard the key
+// lands on — and a shard ownership handoff simply changes which owner's cache serves it next,
+// without any cache ever becoming cross-thread.
+#pragma once
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include "../base/alloc.h"
+#include "kvobj.h"
+#include "read_local_reclaim.h"
+
+namespace tomo {
+
+// Size-class index for a good_size()-rounded allocation. Injective over good_size outputs, which
+// is what lets a class head hold exactly one request size and a take() skip any header decode.
+// This is the table AtomicPendingState's value/entry pools have always used; atomic_pool_class()
+// forwards here so the two can never drift apart.
+inline uint32_t kv_block_class(size_t allocation) {
+    if (allocation <= 8) return 0;
+    if (allocation <= 128) return static_cast<uint32_t>(allocation / 16);
+    const int k = 63 - __builtin_clzll(static_cast<unsigned long long>(allocation - 1));
+    const size_t step = size_t{1} << (k - 2);
+    const uint32_t quarter = static_cast<uint32_t>(allocation / step);
+    return 9u + 4u * static_cast<uint32_t>(k - 7) + (quarter - 5u);
+}
+
+struct KvBlockCache {
+    // The list node is written OVER the retired object; a block is either a live KvObj or a node,
+    // never both. 16 bytes, so any class this cache accepts can hold one.
+    struct FreeBlock {
+        FreeBlock* next;
+        size_t allocation;
+    };
+
+    // Classes through ~112 KiB, the same span the shard pools accept. Larger blocks fall straight
+    // through to the allocator: they are collection or huge-key objects, not what a SET builds.
+    static constexpr uint32_t kClasses = 48;
+
+    // THE BOUND, derived rather than tuned.
+    //
+    //  * kMaxNodesPerClass — one grace drain's worth. A drain releases at most one retire ring of
+    //    objects, so a class that refuses blocks below that number is refusing memory the very
+    //    next owner pass will ask for again. Measured: with a 32-node cap the reuse rate collapses
+    //    to a few percent and the whole mechanism stops paying (see NOTES-RECYCLE.md).
+    //  * kMaxBytes — one grace drain of maximum-inline-value objects. The retire ring ALREADY
+    //    permits kReadLocalRetireRingCapacity retired-but-unreclaimed objects per owner to be
+    //    resident, and kEmbedThreshold is the largest value an eligible block can carry, so this
+    //    cache adds at most the transient the QSBR machinery already tolerates: 768 KiB per fused
+    //    owner thread, and nothing per thread that is not one.
+    //
+    // Callers additionally pass a per-put ceiling (the writing shard's own live object footprint),
+    // so an empty or shrinking keyspace shrinks the cache instead of pinning its high-water mark.
+    static constexpr uint32_t kMaxNodesPerClass = kReadLocalRetireRingCapacity;
+    static constexpr size_t kMaxBytes =
+        static_cast<size_t>(kReadLocalRetireRingCapacity) * kEmbedThreshold;
+
+    static bool eligible(size_t allocation) { return allocation >= sizeof(FreeBlock); }
+
+    // `allocation` is already good_size()-rounded by the caller, so the class identifies exactly
+    // one request size and the returned block needs no header decode. Returns null on a miss; the
+    // caller then allocates, which is the unchanged baseline path.
+    void* take(size_t allocation) {
+        const uint32_t cls = kv_block_class(allocation);
+        if (cls >= kClasses) return nullptr;
+        FreeBlock* block = heads[cls];
+        if (!block) return nullptr;
+        if (block->allocation != allocation || !class_nodes[cls] || bytes < allocation)
+            std::abort();
+        heads[cls] = block->next;
+        class_nodes[cls]--;
+        bytes -= allocation;
+        return block;
+    }
+
+    // Post-grace return. `ceiling` is the caller's own admission clause (see kMaxBytes above);
+    // false means "not cached", and the caller must free the block on its unchanged path.
+    bool put(void* memory, size_t allocation, size_t ceiling) {
+        if (!eligible(allocation)) return false;
+        const uint32_t cls = kv_block_class(allocation);
+        if (cls >= kClasses || class_nodes[cls] == kMaxNodesPerClass) return false;
+        const size_t limit = ceiling < kMaxBytes ? ceiling : kMaxBytes;
+        if (allocation > limit - (bytes < limit ? bytes : limit)) return false;
+        // An immediate double-return would splice the list into a self-loop, which take() would
+        // only notice much later (when class_nodes hits 0 with a non-null head). The allocator's
+        // own double-free detector is what caught this class of bug before the cache existed; say
+        // so at the same instant instead. One predicted-false compare, on the reclaim path only.
+        if (heads[cls] == memory) std::abort();
+        auto* block = reinterpret_cast<FreeBlock*>(memory);
+        block->next = heads[cls];
+        block->allocation = allocation;
+        heads[cls] = block;
+        class_nodes[cls]++;
+        bytes += allocation;
+        return true;
+    }
+
+    // Hand every cached block back to the allocator. Owner-thread only, like everything here.
+    void release_all() {
+        if (!bytes) return;
+        for (uint32_t cls = 0; cls < kClasses; cls++) {
+            while (FreeBlock* block = heads[cls]) {
+                heads[cls] = block->next;
+                free_sized(block, block->allocation);
+            }
+            class_nodes[cls] = 0;
+        }
+        bytes = 0;
+    }
+
+    FreeBlock* heads[kClasses] = {};
+    uint32_t class_nodes[kClasses] = {};
+    size_t bytes = 0;
+};
+
+}  // namespace tomo

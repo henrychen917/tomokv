@@ -887,7 +887,7 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
 
 inline KvObj* kvobj_new_string(
     Slice key, Slice val, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     , uint64_t* allocation_attempts = nullptr
 #endif
 ) {
@@ -899,7 +899,7 @@ inline KvObj* kvobj_new_string(
     // made that write a heap overflow -- a 3-byte corruption the gate's RYOW-under-ASAN caught.
     const size_t n = good_size(kvobj_alloc_size(key.n, val.n, has_ttl_slot, enc));
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
 #endif
     void* mem = alloc_raw(n);
@@ -923,7 +923,7 @@ inline KvObj* kvobj_new_string(
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
 #endif
     void* ext = alloc_raw(good_size(val.n));   // same contract as the main block
@@ -935,13 +935,13 @@ inline KvObj* kvobj_new_string(
 
 inline KvObj* kvobj_new_int(
     Slice key, int64_t value, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     , uint64_t* allocation_attempts = nullptr
 #endif
 ) {
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     const size_t n = good_size(kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
 #endif
     void* mem = alloc_raw(n);

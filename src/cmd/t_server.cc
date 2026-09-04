@@ -1546,7 +1546,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_generation_retries += local.mget_generation_retries;
     total.mget_fallback_generation += local.mget_fallback_generation;
     total.mget_fallback_lane_full += local.mget_fallback_lane_full;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     total.settax.add(local.settax);
 #endif
 }
@@ -1980,15 +1980,25 @@ void cmd_info(Shard&, Op& op) {
         size_t sz = sizeof(allocated); mallctl("stats.allocated", &allocated, &sz, nullptr, 0);
         sz = sizeof(resident); mallctl("stats.resident", &resident, &sz, nullptr, 0);
 #endif
+        // Armed writes recycle their retired blocks through a per-owner cache. Those bytes are
+        // allocated but hold no key, so they are reported here and deliberately left out of
+        // used_memory / used_memory_dataset / the maxmemory budget: every figure above keeps the
+        // same basis it had before the cache existed.
+        uint64_t block_cache = 0;
+        if (g_server)
+            for (uint32_t t = 0; t < g_server->nthreads(); t++)
+                block_cache += g_server->thread(t).read_local_block_cache_bytes();
         appendf(body, "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
                       "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
-                      "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n",
+                      "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n"
+                      "mem_block_cache:%llu\r\n",
                 static_cast<unsigned long long>(used_memory),
                 static_cast<unsigned long long>(obj_bytes),
                 static_cast<unsigned long long>(resident),
                 static_cast<unsigned long long>(used_memory_peak),
                 alloc_backend(), static_cast<unsigned long long>(allocated),
-                static_cast<unsigned long long>(resident));
+                static_cast<unsigned long long>(resident),
+                static_cast<unsigned long long>(block_cache));
     }
     if (info_section(op, "PERSISTENCE")) {
         uint64_t preimages = 0;
@@ -2412,7 +2422,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_generation_retries),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation),
                 static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         // Temporary experiment telemetry is lifetime-scoped (unlike Redis compatibility stats,
         // CONFIG RESETSTAT does not rebase it) so queue/pool gauges and their traffic stay coherent.
         const ReadLocalSetTaxStats& settax = read_local.settax;

@@ -1270,7 +1270,7 @@ private:
             live_[0]++;
             const size_t added_bytes = kvobj_size(replacement);
             obj_bytes_ += added_bytes;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
             settax_stats().accounting_add_calls++;
             settax_stats().accounting_bytes += added_bytes;
 #endif
@@ -1279,7 +1279,7 @@ private:
             // register a PERSISTed key that merely RETAINS its slot, and would hand the sidecar
             // prototype an entry with no deadline payload.
             (void)track_expire(hash, replacement);
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
             if (replacement->expire_at_ms() < 0) settax_stats().expire_erases++;
 #endif
         };
@@ -1391,6 +1391,53 @@ private:
         atomic_pending_->cached_value_bytes += allocation;
         return true;
     }
+
+    // ---- armed-write block cache (src/store/kv_block_cache.h, NOTES-RECYCLE.md) ---------------
+    //
+    // The cache itself belongs to the fused OWNER and is reached through the retire sink this store
+    // is already bound to; the store contributes only the eligibility a shard can judge (object
+    // shape and the borrow registry) and its own live footprint as the admission ceiling. The sink
+    // pointer is boot-latched with `read_local_enabled_`, so the armed path needs no null test.
+
+    // Post-grace return. `capacity` is the retire-time kvobj_capacity: the exact class this block
+    // was requested at. Returns false when the block was not cached and the caller must free it.
+    bool read_local_cache_put(KvObj* object, size_t capacity) {
+        KvBlockCache* cache = read_local_store_state_armed().retire_sink.block_cache;
+        if (!cache) return false;
+        // Only inline String blocks take part. An Extern object owns a second allocation whose
+        // class is independent of this one, and a collection's block is not what a SET builds.
+        if (static_cast<Type>(object->type) != Type::String) return false;
+        const Enc encoding = static_cast<Enc>(object->enc);
+        if (encoding != Enc::Raw && encoding != Enc::Int) return false;
+        // A borrowed value is still being handed to the kernel by an io thread. destroy_retired_obj
+        // owns that retention; the cache must not take the block out from under it.
+        if (encoding == Enc::Raw && outstanding_borrows_ && is_borrowed(object->str_data()))
+            return false;
+        // Retirement already subtracted these bytes from obj_bytes_. The cache is deliberately
+        // OUTSIDE logical accounting; a later write accounts the reinitialised block exactly once,
+        // exactly as a fresh allocation would. obj_bytes_ is also the per-put ceiling: this shard
+        // may not push the owner's cache above its own live object footprint, so an emptied
+        // keyspace (FLUSHALL, a delete sweep) admits nothing at all.
+        return cache->put(object, capacity, obj_bytes_);
+    }
+
+    // Armed write path. `allocation` is already good_size()-rounded.
+    void* read_local_cache_take(size_t allocation) {
+        KvBlockCache* cache = read_local_store_state_armed().retire_sink.block_cache;
+        return cache ? cache->take(allocation) : nullptr;
+    }
+
+    // Hand every cached block back to the allocator: maxmemory pressure (return cached memory
+    // before evicting user data) and FLUSH. Not an accounting event -- these bytes were never in
+    // obj_bytes_. The cache is the owner's, so this also releases blocks its sibling shards
+    // contributed; that is correct for both callers, which are whole-server events.
+    void read_local_cache_release_all() {
+        if (!read_local_enabled_) return;
+        if (KvBlockCache* cache = read_local_store_state_armed().retire_sink.block_cache)
+            cache->release_all();
+    }
+
+    void read_local_cache_trim_on_pressure() { read_local_cache_release_all(); }
 
     // The ring's auxiliary word is the retire-time kvobj_capacity: the sized-free length the
     // reclaim callback needs, not the accounting footprint (see retire_obj_read_local).

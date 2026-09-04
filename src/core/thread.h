@@ -174,7 +174,7 @@ struct ReadLocalStats {
     uint64_t mget_fallback_generation = 0;
     uint64_t mget_fallback_lane_full = 0;
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
+#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     // Keep temporary SET attribution off the remotely scanned quiescence-publication cache line.
     alignas(64) ReadLocalSetTaxStats settax{};
 #endif
@@ -930,6 +930,16 @@ public:
     ReadLocalRetireSink read_local_retire_sink() const {
         if (!read_local_state_ || !read_local_state_->retire_sink.defer) std::abort();
         return read_local_state_->retire_sink;
+    }
+    // Bytes this owner is holding in its armed-write block cache: allocated from the allocator's
+    // point of view, free from the keyspace's. Deliberately NOT in used_memory / MEMORY STATS /
+    // the maxmemory budget, so INFO reports it on its own line. Read by INFO from another thread
+    // under the same exception the read-local telemetry already takes: an owner-written plain
+    // counter, sampled for a statistic that is allowed to be one owner pass stale.
+    size_t read_local_block_cache_bytes() const {
+        if (!read_local_state_) return 0;
+        const KvBlockCache* cache = read_local_state_->retire_sink.block_cache;
+        return cache ? cache->bytes : 0;
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
     // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
