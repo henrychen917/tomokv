@@ -239,9 +239,13 @@ public:
     static uint64_t read_local_slot_bit(uint64_t op_id) {
         return uint64_t{1} << (static_cast<uint32_t>(op_id) & kMask);
     }
+    // Retires through the same clear-on-empty rule as the per-op form: when the drained chunk was
+    // the whole pending set the summary restarts from zero (the contract stated in fcab80884; the
+    // chunk form had dropped it, so the filter only ever grew in read-heavy streams and the first
+    // write of every batch paid the exact walk — AUDIT-MARKDIET.md section 4).
     void complete_pending_read_local_mask(uint64_t bits) {
         if ((read_local_pending_slots_ & bits) != bits) std::abort();
-        read_local_pending_slots_ &= ~bits;
+        read_local_retire_pending_bit(bits);
     }
     // Owner-map emptiness is chunk-stable inside the drain: only this thread's parser and
     // demotion add owner slots and neither runs while a chunk executes.
