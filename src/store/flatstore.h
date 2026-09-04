@@ -83,7 +83,17 @@
 #include "../snapshot/format.h"
 #include "../persist/aof.h"
 
+#ifndef TOMO_READ_LOCAL_RECLAIM_PREFETCHW
+#define TOMO_READ_LOCAL_RECLAIM_PREFETCHW 0
+#endif
+
 namespace tomo {
+
+static_assert(TOMO_READ_LOCAL_RECLAIM_PREFETCHW == 0 ||
+              TOMO_READ_LOCAL_RECLAIM_PREFETCHW == 1,
+              "TOMO_READ_LOCAL_RECLAIM_PREFETCHW must be 0 (off) or 1 (on)");
+inline constexpr bool kReadLocalReclaimPrefetchw =
+    TOMO_READ_LOCAL_RECLAIM_PREFETCHW != 0;
 
 // DEBUG-only fault injection for the cold table-allocation paths. The command surface is compiled
 // out when assertions are disabled; production allocation remains a direct calloc with no
@@ -1330,7 +1340,7 @@ public:
         if (b.refs) return;
         if (b.retired) {
             pending_bytes_ -= kvobj_size(b.retired);
-            kvobj_free(b.retired);
+            free_retired_obj_now(b.retired);
         }
         borrow_index_dropped(ptr);
         const uint32_t last = static_cast<uint32_t>(borrows_.size() - 1);
@@ -3452,8 +3462,29 @@ private:
 
     bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
 
+    // The experiment targets the physical cache lines jemalloc may return from its LIFO tcache to
+    // the next SET. Bound hints to the KvObj allocation itself (kvobj_size may include an external
+    // value allocation), and issue them only at the point where ownership really passes to free.
+    void free_retired_obj_now(KvObj* object) {
+        if constexpr (kReadLocalReclaimPrefetchw) {
+            if (read_local_enabled_) {
+                constexpr size_t kLineBytes = 64;
+                constexpr uint32_t kMaxLines = 3;
+                const char* const base = reinterpret_cast<const char*>(object);
+                const size_t capacity = kvobj_capacity(object);
+                __builtin_prefetch(base, 1, 3);
+                size_t offset = kLineBytes -
+                    (reinterpret_cast<uintptr_t>(base) & (kLineBytes - 1));
+                for (uint32_t line = 1; line < kMaxLines && offset < capacity;
+                     line++, offset += kLineBytes)
+                    __builtin_prefetch(base + offset, 1, 3);
+            }
+        }
+        kvobj_free(object);
+    }
+
     void destroy_retired_obj(KvObj* object, size_t bytes) {
-        if (outstanding_borrows_ == 0) { kvobj_free(object); return; }
+        if (outstanding_borrows_ == 0) { free_retired_obj_now(object); return; }
         const char* ptr = (static_cast<Type>(object->type) == Type::String && !object->is_int())
                               ? object->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
@@ -3462,7 +3493,7 @@ private:
             pending_bytes_ += bytes;
             return;
         }
-        kvobj_free(object);
+        free_retired_obj_now(object);
     }
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
