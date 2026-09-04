@@ -565,6 +565,15 @@
         return !atomic_key_pending(hash, key) || atomic_resolve(hash, key, snapshot) != nullptr;
     }
 
+    // Does the table hold a physical slot for this key, ignoring every pending version? This is
+    // exactly the question the conditional movers' NX validator asks when the destination carries
+    // a foreign undecided record: a physical candidate means the reservation may still materialize
+    // and the validation must be re-run once that group decides. It used to be answered with a
+    // full for_each walk of both tables on every retry; the probe visits the same two tables.
+    bool atomic_has_physical(uint64_t hash, Slice key) const {
+        return atomic_find_physical(hash, key) != nullptr;
+    }
+
     template <typename Fn>
     void atomic_for_each_side_key(uint64_t snapshot, Fn&& fn) {
         if (!atomic_pending_) return;

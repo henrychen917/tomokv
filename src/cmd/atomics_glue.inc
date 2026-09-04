@@ -159,13 +159,11 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
                 // A foreign undecided value is deliberately invisible to ordinary reads. For an
                 // NX validator it is a reservation: let its group decide, then re-run validation.
-                // Raw table iteration is reached only on this uncommon collision arm and avoids
-                // adding a query to the frozen MVCC engine.
-                bool physical_candidate = false;
-                store.for_each([&](KvObj* object) {
-                    physical_candidate |= object->key() == op.arg(key.arg);
-                });
-                if (physical_candidate) return ScatterTaskResult::Retry;
+                // One hash probe of both tables answers "is there a physical candidate"; the
+                // previous full for_each walk of the shard ran on every Retry of this arm and
+                // stalled the owner for the whole table while the foreign group was undecided.
+                if (store.atomic_has_physical(key.hash, op.arg(key.arg)))
+                    return ScatterTaskResult::Retry;
             }
         }
     }
