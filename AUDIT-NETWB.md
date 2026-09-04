@@ -308,6 +308,23 @@ Risk table: (1) new code on a cold path with a directed test; (2) type widening 
 relayout under static_asserts; (4) protocol-preserving by the same argument already shipped for
 ReadyMask; (5) deletions of unused code and comments.
 
+Commit ledger (branch `t-night-netwb`, base 775aeea48; each built pinned with zero new
+warnings — the one warning in every build is the pre-existing unused `store` in ex_loop.h:1066):
+
+| # | commit | change |
+|---|--------|--------|
+| 0 | 737ac9b0b | this audit |
+| 1 | adbfb0366 | wb.h/conn.h: suppressed serve discards hook-staged segments + tests/replyoff_xshard.py |
+| 2 | c17d31e7f | conn.h: 64-bit `wsent_` (layout-neutral) |
+| 3 | 4c933844f | conn.h: executor-facing line consolidation + coherence static_asserts |
+| 4 | f91e3504e | signal.h: `NotifyMask::take` load-first |
+| 5 | 799d45cdc | cleanliness (conn.h, wb.h, uring.h) |
+
+Files touched: AUDIT-NETWB.md, src/net/conn.h, src/net/wb.h, src/net/uring.h,
+src/core/signal.h (NotifyMask only — the notify path thread.h consumes), tests/replyoff_xshard.py.
+tests/gate.sh was deliberately NOT edited: its EXPECT_QUICK ledger is shared across lanes; the
+coordinator wires the new battery (one row per atomic mode on a zero-copy boot) at merge time.
+
 ---
 
 ## 6. ARCHITECTURAL / ALGORITHMIC IDEAS (not implemented)
