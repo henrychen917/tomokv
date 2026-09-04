@@ -2288,9 +2288,12 @@ private:
         return nullptr;
     }
 
-    bool insert_into(int t, uint64_t h, KvObj* o, bool track_expire) {
+    // `fresh` means a newly published object: charge its bytes and (re)register its deadline.
+    // The one false caller is rehash_step(), moving an object that is already charged and already
+    // indexed -- the slot word moves, nothing else does.
+    bool insert_into(int t, uint64_t h, KvObj* o, bool fresh) {
         if (__builtin_expect(read_local_enabled_, false))
-            return insert_into_read_local(t, h, o, track_expire);
+            return insert_into_read_local(t, h, o, fresh);
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -2301,8 +2304,8 @@ private:
                 if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
                 else                 { tab_[t][i] = make_word(tag, o); }
                 live_[t]++;
-                obj_bytes_ += kvobj_size(o);
-                if (track_expire) {
+                if (fresh) {
+                    obj_bytes_ += kvobj_size(o);
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
                     else                                  expires_.erase(h);
                 }
@@ -2311,13 +2314,13 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
+                if (fresh && (cur->flags & KvObjFlags::HasTtl) &&
                     cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
                     (*expired_counter_)++;
                 retire_obj(cur);                            // replace in place; live_ unchanged
-                obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
-                if (track_expire) {
+                if (fresh) {
+                    obj_bytes_ += kvobj_size(o);
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
                     else                                  expires_.erase(h);
                 }
@@ -3273,10 +3276,12 @@ private:
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
+    // The header is decoded once: the class computed for accounting is the sized-free length.
     void retire_obj(KvObj* o) {
-        const size_t bytes = kvobj_size(o);
+        const size_t capacity = kvobj_capacity(o);
+        const size_t bytes = capacity + kvobj_external_bytes(o);
         obj_bytes_ -= bytes;
-        if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
+        if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
                               ? o->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
@@ -3285,7 +3290,7 @@ private:
             pending_bytes_ += bytes;
             return;
         }
-        kvobj_free(o);
+        kvobj_free_with_capacity(o, capacity);
     }
 
     // ---- incremental resize -----------------------------------------------------------------
@@ -3349,7 +3354,7 @@ private:
                 // table for the rest of the rehash — a silent, transient, load-dependent miss.
                 tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
-                obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
+                // Already charged and already indexed: fresh=false moves only the slot word.
                 insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
             }
             rehash_pos_++;

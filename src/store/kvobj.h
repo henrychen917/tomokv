@@ -1195,42 +1195,41 @@ inline void kvobj_prepare_read_local_raw_cells(KvObj* object) {
     }
 }
 
-// Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
-// external value block.
-inline size_t kvobj_size(const KvObj* o) {
-    size_t n = kvobj_capacity(o);
-    if (static_cast<Enc>(o->enc) != Enc::Extern) return n;
+// Bytes this object holds OUTSIDE its own block: the external string block or the collection's
+// backing structures. Zero for every inline encoding.
+inline size_t kvobj_external_bytes(const KvObj* o) {
+    if (static_cast<Enc>(o->enc) != Enc::Extern) return 0;
     switch (static_cast<Type>(o->type)) {
-        case Type::String: n += good_size(o->vlen); break;
+        case Type::String: return good_size(o->vlen);
         case Type::Hash:
-            n += static_cast<HashVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(HashVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<HashVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(HashVal)) - sizeof(CompactValue);
         case Type::List:
-            n += static_cast<ListVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(ListVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<ListVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(ListVal)) - sizeof(CompactValue);
         case Type::Set:
-            n += static_cast<SetVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(SetVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<SetVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(SetVal)) - sizeof(CompactValue);
         case Type::Zset:
-            n += static_cast<ZsetVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(ZsetVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<ZsetVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(ZsetVal)) - sizeof(CompactValue);
         case Type::Stream:
-            n += static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(StreamVal)) - sizeof(CompactValue) +
-                 stream_groups_allocation_bytes(
-                     static_cast<StreamVal*>(o->external_ptr())->groups);
-            break;
+            return static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(StreamVal)) - sizeof(CompactValue) +
+                   stream_groups_allocation_bytes(
+                       static_cast<StreamVal*>(o->external_ptr())->groups);
     }
-    return n;
+    return 0;
 }
 
-inline void kvobj_free(KvObj* o) {
-    if (!o) return;
-    const size_t n = good_size(kvobj_request_size(o));   // compute BEFORE the value block is released
+// Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
+// external value block.
+inline size_t kvobj_size(const KvObj* o) { return kvobj_capacity(o) + kvobj_external_bytes(o); }
+
+// `capacity` is kvobj_capacity(o), the class this block was requested at. The store computes it
+// for accounting on every retire; handing it back here saves decoding the header a second time on
+// the replace/delete path. A caller that has not already computed it uses kvobj_free().
+inline void kvobj_free_with_capacity(KvObj* o, size_t capacity) {
     if (static_cast<Enc>(o->enc) == Enc::Extern && (o->flags & KvObjFlags::OwnsExtern)) {
         void* ext = o->external_ptr();
         switch (static_cast<Type>(o->type)) {
@@ -1243,7 +1242,12 @@ inline void kvobj_free(KvObj* o) {
         }
     }
     // Sized free: ordinary free() has to look up how big the block was; we already know.
-    free_sized(o, n);
+    free_sized(o, capacity);
+}
+
+inline void kvobj_free(KvObj* o) {
+    if (!o) return;
+    kvobj_free_with_capacity(o, kvobj_capacity(o));   // compute BEFORE the value block is released
 }
 
 template <typename Sink>
