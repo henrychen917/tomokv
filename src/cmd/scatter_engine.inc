@@ -394,15 +394,12 @@ struct alignas(64) OwnerRecordRefs {
 struct ScatterState : SnapshotCut {
     ~ScatterState() { notify_discard_batch(notify.exchange(nullptr)); }
     std::atomic<uint32_t> pending{0};
-    // Zero means installs are still private. The last owner draws and release-publishes the ticket;
-    // pending group entries may retain this state after reply retirement, hence record_refs.
-    std::atomic<uint64_t> epoch{0};
+    // Pending group entries may retain this state after reply retirement, hence record_refs.
     std::atomic<uint32_t> record_refs{0};
     // A watched-key reservation names the group decision too.  It holds this second lifetime pin
     // until its owner shard consumes the published decision, including groups that install no
     // MVCC record (for example a failed conditional write).
     std::atomic<uint32_t> watch_refs{0};
-    std::atomic<bool> aborted{false};
     std::atomic<bool> conditional_failed{false};
     std::atomic<bool> script_conflict{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
@@ -551,8 +548,20 @@ struct ScatterState : SnapshotCut {
     // Appended test-only state: do not move any production ScatterState member. The destination
     // shard is keys[1].shard; parking that phase-one validation leaves its executor available.
     uint64_t debug_conditional_deadline = 0;
+    // READ-MOSTLY DECISION LINE. Zero means installs are still private; the last owner
+    // release-publishes a ticket here. Resolvers load epoch and aborted for every candidate, so
+    // isolate them from pending/record_refs/watch_refs RMWs and pad the line completely.
+    alignas(64) std::atomic<uint64_t> epoch{0};
+    std::atomic<bool> aborted{false};
+    char decision_line_pad[64 - sizeof(std::atomic<uint64_t>) -
+                           sizeof(std::atomic<bool>)];
 };
 
+static_assert(sizeof(std::atomic<uint64_t>) + sizeof(std::atomic<bool>) <= 64 &&
+              sizeof(std::atomic<uint64_t>) % alignof(std::atomic<bool>) == 0,
+              "ScatterState decision words no longer pack contiguously");
+static_assert(alignof(ScatterState) == 64 && sizeof(ScatterState) % 64 == 0,
+              "ScatterState decision line lost cache-line isolation");
 static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
                                            sizeof(uint32_t) + sizeof(ValueSlot)) <= 16384,
               "MGET-8 ScatterState no longer fits ScatterArenaPool::kCommonBytes");
