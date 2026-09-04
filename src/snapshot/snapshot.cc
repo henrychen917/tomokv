@@ -149,6 +149,11 @@ void snapshot_bind_io(ThreadCtx* thread, Ring* ring) { tls_io_context = {thread,
 SnapshotIoContext snapshot_io_context() { return tls_io_context; }
 
 SnapshotManager::~SnapshotManager() {
+    // Server (the only owner) is mid-destruction here: members declared after snapshot_ -- the
+    // atomic snapshot barrier among them -- are already gone, so the barrier reset abort_file()
+    // performs for a live server must not run (a store into an ended lifetime). abort_file()
+    // tolerates a null server.
+    server_ = nullptr;
     abort_file();
     if (chunk_in_) {
         for (uint32_t p = 0; p < nthreads_; p++) {

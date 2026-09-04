@@ -357,7 +357,10 @@ private:
     std::atomic<uint32_t> auto_rewrite_percentage_{100};
     std::atomic<uint64_t> auto_rewrite_min_size_{64ull * 1024 * 1024};
     std::atomic<bool> timestamp_enabled_{false};
-    std::atomic<AppendFsyncPolicy> fsync_policy_;
+    // Value-initialised (= Always, the strictest policy; the enum is opaque here) until init()
+    // latches the configured one. Every reader is gated behind recording(), so this only makes
+    // an otherwise indeterminate byte determinate.
+    std::atomic<AppendFsyncPolicy> fsync_policy_{};
     std::atomic<uint64_t> debug_stop_after_fragments_{0};
     std::atomic<AofRewriteDebugStage> debug_rewrite_pause_{AofRewriteDebugStage::None};
     std::string directory_path_;
