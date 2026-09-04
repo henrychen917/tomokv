@@ -54,7 +54,7 @@
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
             if (intent->hash == hash && intent->key_len == key.n &&
-                (!key.n || std::memcmp(intent->key_data(), key.p, key.n) == 0)) return true;
+                bytes_equal(intent->key_data(), key.p, key.n)) return true;
         }
         return false;
     }
@@ -84,7 +84,7 @@
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++) {
-                if (atomic_entry_hash(*entry, i) != hash || atomic_entry_key(*entry, i) != key)
+                if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
                     continue;
                 const uint64_t candidate = atomic_epoch(*entry);
                 if (candidate && (!ticket || candidate < ticket)) ticket = candidate;
@@ -102,7 +102,7 @@
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
             if (intent->hash != hash || intent->key_len != key.n ||
-                (key.n && std::memcmp(intent->key_data(), key.p, key.n) != 0)) continue;
+                !bytes_equal(intent->key_data(), key.p, key.n)) continue;
             intent->refs++;
             return true;
         }
@@ -132,7 +132,7 @@
         while (*link) {
             AtomicScriptIntent* intent = *link;
             if (intent->hash != hash || intent->key_len != key.n ||
-                (key.n && std::memcmp(intent->key_data(), key.p, key.n) != 0)) {
+                !bytes_equal(intent->key_data(), key.p, key.n)) {
                 link = &intent->next;
                 continue;
             }
@@ -172,7 +172,7 @@
                 entry->group_aborted->load(std::memory_order_acquire)) continue;
             for (uint32_t i = 0; i < entry->count; i++) {
                 if (atomic_entry_hash(*entry, i) != hash ||
-                    atomic_entry_key(*entry, i) != key) continue;
+                    !atomic_entry_key(*entry, i).key_eq(key)) continue;
                 const uint64_t epoch = atomic_epoch(*entry);
                 if (!epoch || epoch > cut) return true;
             }
@@ -204,7 +204,7 @@
                 continue;
             for (uint32_t i = 0; i < entry->count; i++)
                 if (atomic_entry_hash(*entry, i) == hash &&
-                    atomic_entry_key(*entry, i) == key) return true;
+                    atomic_entry_key(*entry, i).key_eq(key)) return true;
         }
         return false;
     }
@@ -229,7 +229,7 @@
                 if (!(entry->membership & atomic_membership_bit(hash))) continue;
                 for (uint32_t j = 0; j < entry->count; j++)
                     if (atomic_entry_hash(*entry, j) == hash &&
-                        atomic_entry_key(*entry, j) == key) return true;
+                        atomic_entry_key(*entry, j).key_eq(key)) return true;
             }
         }
         return false;
@@ -630,7 +630,7 @@
                 const Slice key = atomic_entry_key(*entry, i);
                 for (uint32_t j = 0; j < count; j++) {
                     const auto [candidate_hash, candidate_key] = key_at(j);
-                    if (candidate_hash == hash && candidate_key == key)
+                    if (candidate_hash == hash && candidate_key.key_eq(key))
                         return atomic_collapse(floor, cleanup_cutoff);
                 }
             }
@@ -970,7 +970,7 @@ private:
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++)
-                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i) == key)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
                     return true;
         }
         return false;
@@ -1105,7 +1105,7 @@ private:
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
             if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; i++) {
-                if (atomic_entry_hash(*entry, i) != hash || atomic_entry_key(*entry, i) != key)
+                if (atomic_entry_hash(*entry, i) != hash || !atomic_entry_key(*entry, i).key_eq(key))
                     continue;
                 if (!matched) base = entry->parked()[i];
                 else consider(*previous, entry->parked()[i], false);
@@ -1151,7 +1151,7 @@ private:
                 const bool walked = (entry->membership & bit) != 0;
                 for (uint32_t i = 0; i < entry->count; i++) {
                     if (atomic_entry_hash(*entry, i) != hash ||
-                        atomic_entry_key(*entry, i) != key)
+                        !atomic_entry_key(*entry, i).key_eq(key))
                         continue;
                     if (!entry->group_epoch ||
                         (entry->group_aborted &&
@@ -1205,7 +1205,7 @@ private:
                     if (!(scan->membership & atomic_membership_bit(hash))) continue;
                     for (uint32_t j = first; j < scan->count; j++)
                         if (atomic_entry_hash(*scan, j) == hash &&
-                            atomic_entry_key(*scan, j) == key) { later = true; break; }
+                            atomic_entry_key(*scan, j).key_eq(key)) { later = true; break; }
                 }
                 if (!later) fn(hash, key);
             }
@@ -1244,7 +1244,7 @@ private:
                     first_tomb = slot;
                     have_first_tomb = true;
                 }
-                if (object && tag_of_word(word) == tag && object->key() == key) {
+                if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
                         (void)track_expire(hash, replacement);
@@ -1326,7 +1326,7 @@ private:
                     first_tomb = slot;
                     have_first_tomb = true;
                 }
-                if (object && tag_of_word(word) == tag && object->key() == key) {
+                if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
                         (void)track_expire(hash, replacement);
@@ -1472,7 +1472,7 @@ private:
                         const Slice key = atomic_entry_key(*earlier, i);
                         for (uint32_t j = 0; j < later->count; j++) {
                             if (atomic_entry_hash(*later, j) == hash &&
-                                atomic_entry_key(*later, j) == key) {
+                                atomic_entry_key(*later, j).key_eq(key)) {
                                 direct = false;
                                 break;
                             }
@@ -1535,7 +1535,7 @@ private:
                 const uint64_t bit = atomic_membership_bit(hash);
                 if (seen_bits & bit) {
                     for (const AtomicSeenKey& seen : atomic_seen_keys_) {
-                        if (seen.hash == hash && seen.key == key) {
+                        if (seen.hash == hash && seen.key.key_eq(key)) {
                             overlap = true;
                             break;
                         }
@@ -1568,7 +1568,7 @@ private:
                             if (!(scan->membership & bit)) continue;
                             for (uint32_t j = 0; j < scan->count; j++) {
                                 if (atomic_entry_hash(*scan, j) == hash &&
-                                    atomic_entry_key(*scan, j) == key) {
+                                    atomic_entry_key(*scan, j).key_eq(key)) {
                                     boundary = scan;
                                     boundary_index = j;
                                     break;
@@ -1664,7 +1664,7 @@ private:
                     return item.index - 1;
                 }
                 AtomicCollapseKey& found = atomic_collapse_keys_[item.index - 1];
-                if (item.hash == hash && found.key == key) return item.index - 1;
+                if (item.hash == hash && found.key.key_eq(key)) return item.index - 1;
                 slot = (slot + 1) & table_mask;
             }
         };
@@ -1719,7 +1719,7 @@ private:
                 if (!(scan->membership & bit)) continue;
                 for (uint32_t i = 0; i < scan->count; i++) {
                     if (atomic_entry_hash(*scan, i) == key.hash &&
-                        atomic_entry_key(*scan, i) == key.key) {
+                        atomic_entry_key(*scan, i).key_eq(key.key)) {
                         key.boundary = scan;
                         key.boundary_index = i;
                         break;
@@ -1858,7 +1858,7 @@ private:
                         const Slice key = atomic_entry_key(*earlier, i);
                         for (uint32_t j = 0; j < later->count; j++) {
                             if (atomic_entry_hash(*later, j) == hash &&
-                                atomic_entry_key(*later, j) == key) {
+                                atomic_entry_key(*later, j).key_eq(key)) {
                                 direct = false;
                                 break;
                             }
@@ -1921,7 +1921,7 @@ private:
                 const uint64_t bit = atomic_membership_bit(hash);
                 if (seen_bits & bit) {
                     for (const AtomicSeenKey& seen : atomic_seen_keys_) {
-                        if (seen.hash == hash && seen.key == key) {
+                        if (seen.hash == hash && seen.key.key_eq(key)) {
                             overlap = true;
                             break;
                         }
@@ -1954,7 +1954,7 @@ private:
                             if (!(scan->membership & bit)) continue;
                             for (uint32_t j = 0; j < scan->count; j++) {
                                 if (atomic_entry_hash(*scan, j) == hash &&
-                                    atomic_entry_key(*scan, j) == key) {
+                                    atomic_entry_key(*scan, j).key_eq(key)) {
                                     boundary = scan;
                                     boundary_index = j;
                                     break;
@@ -2052,7 +2052,7 @@ private:
                     return item.index - 1;
                 }
                 AtomicCollapseKey& found = atomic_collapse_keys_[item.index - 1];
-                if (item.hash == hash && found.key == key) return item.index - 1;
+                if (item.hash == hash && found.key.key_eq(key)) return item.index - 1;
                 slot = (slot + 1) & table_mask;
             }
         };
@@ -2107,7 +2107,7 @@ private:
                 if (!(scan->membership & bit)) continue;
                 for (uint32_t i = 0; i < scan->count; i++) {
                     if (atomic_entry_hash(*scan, i) == key.hash &&
-                        atomic_entry_key(*scan, i) == key.key) {
+                        atomic_entry_key(*scan, i).key_eq(key.key)) {
                         key.boundary = scan;
                         key.boundary_index = i;
                         break;

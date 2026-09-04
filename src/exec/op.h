@@ -229,8 +229,38 @@ public:
             if (last_direct_) op_.direct_len += static_cast<uint32_t>(n);
             else              op_.reply.advance(n);
         }
-        void append(const char* s, size_t n) { char* p = reserve(n); std::memcpy(p, s, n); advance(n); }
+        // Runtime-length append: values, members, error texts -- every reply a handler builds from
+        // bytes whose length it did not know at compile time. reserve() returns either the
+        // connection's direct region or op.reply's storage, and neither can alias a handler's
+        // source bytes, so the no-overlap contract holds. The fixed replies take the literal
+        // overload below instead; reverting THIS line to the plain library call once the literals
+        // had moved was measured anyway and is much worse -- SET overwrite falls from -55
+        // instructions to -4 -- so the inline copy earns its place here too.
+        void append(const char* s, size_t n) {
+            char* p = reserve(n);
+            if (__builtin_expect(n > kInlineByteCopyMax, false)) std::memcpy(p, s, n);
+            else bytes_copy(p, s, n);
+            advance(n);
+        }
         void append(std::string_view s) { append(s.data(), s.size()); }
+        // RESP LITERALS. "+OK\r\n" and "$-1\r\n" are the reply of every SET and every GET miss,
+        // and their length is a compile-time constant -- but this append is out of line with 225
+        // callers, so the constant never reached the copy and each reply paid a call to get here
+        // and a second one to memcpy five bytes. Taken as an array the length survives, and a
+        // reply that fits in one machine word becomes one store at the call site with no call at
+        // all. Bounded at 16 bytes so the 68-byte WRONGTYPE text and its like stay out of line;
+        // the semantics are exactly the string_view overload's, NUL excluded.
+        template <size_t N>
+        void append(const char (&lit)[N]) {
+            static_assert(N >= 1, "append() takes a string literal");
+            if constexpr (N - 1 <= 16) {
+                char* p = reserve(N - 1);
+                __builtin_memcpy(p, lit, N - 1);
+                advance(N - 1);
+            } else {
+                append(static_cast<const char*>(lit), N - 1);
+            }
+        }
         void push_back(char ch) { char* p = reserve(1); *p = ch; advance(1); }
     private:
         Op&  op_;
