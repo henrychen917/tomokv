@@ -130,28 +130,6 @@ public:
             ? thread_siblings_[cpu] : empty;
     }
 
-    // A physical shared-L3 set is this machine's CCX boundary. This deliberately bypasses a
-    // declared placement domain: --l3-domains may split or glue hardware groups for experiments,
-    // while a distance policy still needs the actual cache topology. The lowest global CPU id in
-    // the shared set is a stable boot identity because level-3 sharing groups do not overlap.
-    bool ccx_id(int cpu, uint32_t& identity) const {
-        std::vector<int> peers;
-        if (!read_l3_peers(cpu, peers)) return false;
-        identity = static_cast<uint32_t>(*std::min_element(peers.begin(), peers.end()));
-        return true;
-    }
-
-    // Linux exposes this machine's CCD boundary as a die id scoped to a physical package. Keep
-    // the identity opaque and read it only for boot-built policies: Topology itself stays the same
-    // size, and modes which do not need CCD distance perform no additional sysfs work.
-    bool ccd_id(int cpu, uint64_t& identity) const {
-        uint32_t package = 0, die = 0;
-        if (!read_topology_id(cpu, "physical_package_id", package) ||
-            !read_topology_id(cpu, "die_id", die)) return false;
-        identity = (static_cast<uint64_t>(package) << 32) | die;
-        return true;
-    }
-
     void dump(FILE* f) const {
         std::fprintf(f, "topology: %u L3 domain(s)\n", ndomains());
         for (uint32_t d = 0; d < ndomains(); d++) {
@@ -163,20 +141,6 @@ public:
     }
 
 private:
-    static bool read_topology_id(int cpu, const char* name, uint32_t& value) {
-        char path[128];
-        std::snprintf(path, sizeof(path),
-                      "/sys/devices/system/cpu/cpu%d/topology/%s", cpu, name);
-        FILE* f = std::fopen(path, "r");
-        if (!f) return false;
-        long parsed = -1;
-        const bool read = std::fscanf(f, "%ld", &parsed) == 1 && parsed >= 0 &&
-                          static_cast<unsigned long>(parsed) <= UINT32_MAX;
-        std::fclose(f);
-        if (read) value = static_cast<uint32_t>(parsed);
-        return read;
-    }
-
     static bool read_thread_siblings(int cpu, std::vector<int>& out) {
         char path[128];
         std::snprintf(path, sizeof(path),
@@ -191,25 +155,8 @@ private:
         return !out.empty();
     }
 
-    // Unfiltered physical shared-L3 discovery for the mode-2 scheduler. Unlike ordinary topology
-    // discovery, this keeps siblings outside the process affinity mask so restricted benchmark
-    // cells still assign the same identity to each surviving member of a CCX.
-    static bool read_l3_peers(int cpu, std::vector<int>& out) {
-        char buf[512] = {0};
-        if (!read_l3_cpu_list(cpu, buf)) return false;
-        parse_cpu_list(buf, out);
-        return !out.empty();
-    }
-
     // Reads the CPUs sharing this cpu's level-3 cache, intersected with the allowed set.
     static bool read_l3_peers(int cpu, const cpu_set_t& allowed, std::vector<int>& out) {
-        char buf[512] = {0};
-        if (!read_l3_cpu_list(cpu, buf)) return false;
-        parse_cpu_list(buf, allowed, out);
-        return !out.empty();
-    }
-
-    static bool read_l3_cpu_list(int cpu, char (&buf)[512]) {
         for (int idx = 0; idx < 8; idx++) {
             char path[128];
             std::snprintf(path, sizeof(path),
@@ -225,9 +172,11 @@ private:
                           "/sys/devices/system/cpu/cpu%d/cache/index%d/shared_cpu_list", cpu, idx);
             f = std::fopen(path, "r");
             if (!f) continue;
+            char buf[512] = {0};
             if (!std::fgets(buf, sizeof(buf), f)) { std::fclose(f); continue; }
             std::fclose(f);
-            return true;
+            parse_cpu_list(buf, allowed, out);
+            return !out.empty();
         }
         return false;
     }

@@ -373,8 +373,7 @@ struct Config {
     // values are loaded directly in executor code. Empty flag string = notifications off.
     uint32_t notify_events = 0;
     // Owner EX batch scheduler. Boot-only: 0 preserves the FIFO drain, 1 enables head-rank /
-    // static-length buckets, 2 additionally demotes work blocked behind a cross-CCD predecessor.
-    // This consumes the existing alignment hole before the uint64_t below.
+    // static-length buckets. This consumes the existing alignment hole before the uint64_t below.
     uint32_t ex_sched = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
@@ -756,8 +755,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--ex-sched")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.ex_sched) || cfg.ex_sched > 2) {
-                std::fprintf(stderr, "--ex-sched wants 0, 1 or 2\n");
+            if (!cfg_parse_u32(next(nullptr), cfg.ex_sched) || cfg.ex_sched > 1) {
+                std::fprintf(stderr, "--ex-sched wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1124,8 +1123,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shard-home shard:tid,...  complete shard-to-executor map\n"
                         "    --smt-mode 0|1             sibling-pair placement/FLIP units "
                         "(boot-only; default 0)\n"
-                        "  execution: --ex-sched 0|1|2 EX batch owner policy "
-                        "(boot-only; 0=FIFO, 1=rank/class, 2=+far blocked-inherit)\n"
+                        "  execution: --ex-sched 0|1   EX batch owner policy "
+                        "(boot-only; default 0/FIFO)\n"
                         "  weighted placement: --key-lb 0|1 --client-lb 0|1 (default on)\n"
                         "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
