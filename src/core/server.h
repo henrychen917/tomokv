@@ -2484,16 +2484,16 @@ public:
                !atomic_commit_safe_.compare_exchange_weak(
                    safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
     }
-    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
-    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
-    // in production and the load is on an already-cold once-per-group path. `publish_members`
-    // lets a composite group install the SAME ticket into additional decision words before the
-    // safe watermark moves. Readers therefore still see either all of the ticket or none of it.
+    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is the
+    // atomic-ON use of DEBUG's shared hop delay: it widens the closed window on demand, is zero in
+    // production, and the load is on an already-cold once-per-group path. `publish_members` lets a
+    // composite group install the SAME ticket into additional decision words before the safe
+    // watermark moves. Readers therefore still see either all of the ticket or none of it.
     template <typename PublishMembers>
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
                                  PublishMembers&& publish_members) {
         const uint64_t ticket = atomic_commit_reserve();
-        const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
         if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
         epoch.store(ticket, std::memory_order_release);
         publish_members(ticket);
@@ -2702,13 +2702,15 @@ public:
     void set_debug_atomic_direct_defer(uint32_t passes) {
         debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
     }
-    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY). Microseconds a group commit is held between drawing
-    // its ticket and storing that ticket into the shared epoch word. Zero in production; read only
-    // by atomic_commit_group(), a once-per-group cold path. It turns the reserve/publish hole into
-    // a window wide enough for a reader to straddle, which is how the torn MGET is reproduced on
-    // demand instead of once per 1.1M batches.
-    void set_debug_atomic_commit_delay(uint32_t microseconds) {
-        debug_atomic_commit_delay_.store(microseconds, std::memory_order_relaxed);
+    // TEST HOOK shared by DEBUG ATOMIC-COMMIT-DELAY and ATOMIC-OFF-HOP-DELAY. Atomic ON stalls a
+    // group between ticket draw and decision publication; atomic OFF parks non-lead owners at the
+    // first cross-owner mutation wave. Both aliases write this one word, so last writer wins and
+    // zero disarms both. Reads occur only on the cold group/scatter paths, never GET/SET.
+    uint32_t debug_hop_delay() const {
+        return debug_hop_delay_.load(std::memory_order_relaxed);
+    }
+    void set_debug_hop_delay(uint32_t microseconds) {
+        debug_hop_delay_.store(microseconds, std::memory_order_relaxed);
     }
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER). Microseconds every fragment of a cross-shard READ
     // except the one on its lead shard is PARKED -- re-queued, not spun -- after the command is
@@ -3390,7 +3392,7 @@ private:
     std::atomic<uint64_t> atomic_apply_inflight_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
-    std::atomic<uint32_t> debug_atomic_commit_delay_{0};
+    std::atomic<uint32_t> debug_hop_delay_{0};
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
     std::atomic<uint32_t> debug_script_stage_defer_{0};

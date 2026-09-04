@@ -965,17 +965,18 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
         return;
     }
-    // Window widener for the torn-read regression. Holds a cross-shard group between drawing its
-    // commit ticket and storing that ticket into its shared epoch word -- the hole in which the
-    // sequence already named a commit whose records still answered "undecided". Production 0.
-    if (eq_icase(subcommand, "atomic-commit-delay") && op.argc() == 3) {
+    // One shared DEBUG delay word, with names for its two mode-specific boundaries. Atomic ON
+    // holds a group between ticket draw and publication; atomic OFF parks non-lead mutation
+    // owners at the scatter hop. Last writer wins, and zero through either alias disarms both.
+    if ((eq_icase(subcommand, "atomic-commit-delay") ||
+         eq_icase(subcommand, "atomic-off-hop-delay")) && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 1000000) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
-        g_server->set_debug_atomic_commit_delay(static_cast<uint32_t>(microseconds));
+        g_server->set_debug_hop_delay(static_cast<uint32_t>(microseconds));
         reply_ok(op.sink());
         return;
     }

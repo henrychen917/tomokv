@@ -688,7 +688,6 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
 }
 
 bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op& op) {
-    (void)server;
     if (!task.client) return false;
     // A tagged MULTI fragment carries a MultiExecState; the scatter reads below would be garbage.
     // Its program order is enforced by has_parked_predecessor alone, and its own-undecided
@@ -697,6 +696,16 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     if (multi_task_tagged(task)) return false;
     if (task.scatter) {
         ScatterState& state = *task.scatter;
+        // TEST HOOK (DEBUG ATOMIC-OFF-HOP-DELAY): the lead owner publishes its mutation wave while
+        // every other participating owner parks here. Returning true feeds the task back through
+        // atomic_deferred_, so the executor remains available to run the readers that observe the
+        // deliberately widened physical tear. The state word is zero unless prepare classified a
+        // non-atomic cross-owner mutation; GET/SET and read/probe waves never reach this branch.
+        if (__builtin_expect(state.debug_hop_deadline != 0, false) &&
+            xshard_owner_mutation_phase(state, op) &&
+            server.worker_of_shard(shard.id()) != state.debug_hop_lead_owner &&
+            now_ns() < state.debug_hop_deadline)
+            return true;
         // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
         // destination check. Both contenders' destination tasks then reach this deferred queue
         // before either newly posted phase-two task can install its result.
