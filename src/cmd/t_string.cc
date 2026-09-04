@@ -137,25 +137,14 @@ StoreResult map_insert(FlatStore& store, uint64_t hash, KvObj* replacement) {
                                                              : StoreResult::InsertFailed;
 }
 
-// The integer twin of try_overwrite: a resident integer carrying exactly this deadline is
-// rewritten in place and nothing is allocated (the INCR family passes the deadline it read; SET
-// passes -1 and so qualifies only on a TTL-free integer). Anything else is a replacement.
-StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
-                          int64_t expire_at_ms) {
-    const FlatStore::OverwriteResult overwritten =
-        sh.store().try_overwrite_int(hash, key, value, expire_at_ms);
-    if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
-    if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom) return StoreResult::MaxmemoryOom;
-    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
-    if (!replacement) return StoreResult::Oom;
-    return map_insert(sh.store(), hash, replacement);
-}
-
 StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64_t expire_at_ms,
                          bool integer_encode) {
     int64_t integer = 0;
-    if (integer_encode && parse_i64(value, integer))
-        return store_integer(sh, key, hash, integer, expire_at_ms);
+    if (integer_encode && parse_i64(value, integer)) {
+        KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
+        if (!replacement) return StoreResult::Oom;
+        return map_insert(sh.store(), hash, replacement);
+    }
 
     // try_overwrite is the only in-place raw mutation. It rejects TTL-bearing and borrowed values;
     // the replacement path below then lets FlatStore retain any borrowed old allocation.
@@ -166,6 +155,13 @@ StoreResult store_string(Shard& sh, Slice key, uint64_t hash, Slice value, int64
     }
 
     KvObj* replacement = sh.store().make_set_string(key, value, expire_at_ms);
+    if (!replacement) return StoreResult::Oom;
+    return map_insert(sh.store(), hash, replacement);
+}
+
+StoreResult store_integer(Shard& sh, Slice key, uint64_t hash, int64_t value,
+                          int64_t expire_at_ms) {
+    KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert(sh.store(), hash, replacement);
 }
@@ -183,8 +179,6 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
                                 int64_t expire_at_ms, bool integer_encode) {
     int64_t integer = 0;
     if (integer_encode && parse_i64(value, integer)) {
-        // Replacement, not the in-place integer path: an armed SET has not probed yet, and
-        // insert_notify is what reports an elapsed resident key (expired) before the new one.
         KvObj* replacement = sh.store().make_set_int(key, integer, expire_at_ms);
         if (!replacement) return StoreResult::Oom;
         return map_insert_notify(sh, hash, replacement);
@@ -220,12 +214,6 @@ StoreResult store_integer_for(Shard& sh, Slice key, uint64_t hash, int64_t value
                               int64_t expire_at_ms) {
     if constexpr (!kNotify) return store_integer(sh, key, hash, value, expire_at_ms);
 #ifdef TOMO_STRING_NOTIFY_TU
-    // The armed INCR family reaches here through find_notify, which has already reported and
-    // reaped an elapsed key, so the in-place integer path changes no event sequence.
-    const FlatStore::OverwriteResult overwritten =
-        sh.store().try_overwrite_int(hash, key, value, expire_at_ms);
-    if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
-    if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom) return StoreResult::MaxmemoryOom;
     KvObj* replacement = sh.store().make_set_int(key, value, expire_at_ms);
     if (!replacement) return StoreResult::Oom;
     return map_insert_notify(sh, hash, replacement);
