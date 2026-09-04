@@ -73,9 +73,14 @@ build/config-parser-test: tests/config_parser_test.cc $(wildcard src/*/*.h) Make
 build/flipctl-unit: tests/flipctl_unit.cc src/core/flipctl.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $@
-unit: build/config-parser-test build/flipctl-unit
+# The fused owner's deferred-reclaim ring (QSBR batches) against a per-entry reference model.
+build/read-local-ring-unit: tests/read_local_ring_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. tests/read_local_ring_unit.cc -o $@
+unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit
 	./build/config-parser-test
 	./build/flipctl-unit
+	./build/read-local-ring-unit
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile

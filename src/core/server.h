@@ -564,14 +564,35 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->epoch.fetch_add(1, std::memory_order_seq_cst);
     }
-    uint64_t read_local_grace_floor() const {
-        uint64_t floor = UINT64_MAX;
-        for (const auto& thread : threads_) {
-            const uint64_t publication = thread->read_local_publication();
+    // Grace floor for a QSBR drain, bounded by what the caller needs. `stamp` is the oldest sealed
+    // retirement stamp; the drain releases an entry only when the floor is STRICTLY above its stamp.
+    // Returns the exact floor (minimum tick over active participants) when that floor is above
+    // `stamp`; otherwise returns a value <= `stamp` as soon as one active participant with
+    // tick <= `stamp` is found. Both answers produce exactly the decision a full scan would: with a
+    // blocking participant the true floor is <= its tick <= stamp, so nothing is releasable and the
+    // caller stops at its first batch either way. What changes is the cost of the not-ready case:
+    // one or two foreign tick lines instead of one per thread. `hint` remembers the blocking
+    // participant so the next pass tests it first; it is caller-owned scratch and never read for
+    // anything else. Parked participants contribute infinity because they hold no foreign pointer.
+    uint64_t read_local_grace_floor(uint64_t stamp, uint32_t& hint) const {
+        const uint32_t participants = static_cast<uint32_t>(threads_.size());
+        if (hint < participants) {
+            const uint64_t publication = threads_[hint]->read_local_publication();
             if (!ThreadCtx::read_local_publication_parked(publication)) {
-                floor = std::min(
-                    floor, ThreadCtx::read_local_publication_tick(publication));
+                const uint64_t tick = ThreadCtx::read_local_publication_tick(publication);
+                if (tick <= stamp) return tick;
             }
+        }
+        uint64_t floor = UINT64_MAX;
+        for (uint32_t i = 0; i < participants; i++) {
+            const uint64_t publication = threads_[i]->read_local_publication();
+            if (ThreadCtx::read_local_publication_parked(publication)) continue;
+            const uint64_t tick = ThreadCtx::read_local_publication_tick(publication);
+            if (tick <= stamp) {
+                hint = i;
+                return tick;
+            }
+            floor = std::min(floor, tick);
         }
         return floor;
     }

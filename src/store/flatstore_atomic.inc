@@ -846,6 +846,15 @@ private:
         return *state;
     }
 
+    // Owner hot path under the boot latch. configure_read_local() sets read_local_enabled_ only
+    // after proving the extended state exists (it aborts otherwise), the pointer never changes
+    // while armed, and ~FlatStore clears the latch before freeing it. A caller that holds the
+    // latch therefore needs neither the null test nor the shape byte at sidecar offset 1316 --
+    // a line the per-write path otherwise never touches.
+    ReadLocalStoreState& read_local_store_state_armed() {
+        return *reinterpret_cast<ReadLocalStoreState*>(atomic_pending_);
+    }
+
     const ReadLocalStoreState& read_local_store_state_required() const {
         const ReadLocalStoreState* state = read_local_store_state();
         if (!state) std::abort();
@@ -1383,10 +1392,12 @@ private:
         return true;
     }
 
+    // The ring's auxiliary word is the retire-time kvobj_capacity: the sized-free length the
+    // reclaim callback needs, not the accounting footprint (see retire_obj_read_local).
     void retire_detached_obj_read_local(KvObj* object) {
         if (!object) return;
         read_local_store_state_required().retire_sink.retire(
-            this, object, kvobj_size(object), &FlatStore::read_local_reclaim_atomic_object);
+            this, object, kvobj_capacity(object), &FlatStore::read_local_reclaim_atomic_object);
     }
 
     void retire_detached_obj(KvObj* object) {

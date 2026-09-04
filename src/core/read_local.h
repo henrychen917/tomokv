@@ -141,10 +141,107 @@ inline bool read_local_commands_overlap(const Op& read, const Op& owner) {
     return false;
 }
 
-class ReadLocalDeferredQueue {
-public:
+// Index bookkeeping for the owner's deferred-reclaim ring, kept free of Server/ThreadCtx so it can
+// be exercised without a booted process (tests/read_local_ring_unit.cc). Entry slots form a FIFO;
+// every entry retired since the previous seal shares ONE stamp (the epoch that seal advanced past),
+// recorded once per sealed batch rather than once per entry. The drain tests one stamp per batch and
+// never scrubs a slot: the owner assigns every field of a slot before it is live again.
+struct ReadLocalRetireRing {
     static constexpr uint32_t kCapacity = 4096;
     static_assert((kCapacity & (kCapacity - 1)) == 0);
+    // One batch per owner pass that retired anything. When the batch ring is full the next suffix
+    // folds into the NEWEST batch under the newer stamp, which can only delay those entries; QSBR
+    // always permits reclaiming later, never earlier.
+    static constexpr uint32_t kBatchCapacity = 256;
+    static_assert((kBatchCapacity & (kBatchCapacity - 1)) == 0);
+
+    struct Batch {
+        uint64_t stamp;   // the OLD epoch value returned by the seal's fetch_add
+        uint32_t count;   // entries in this batch, contiguous from the drain head
+    };
+
+    bool empty() const { return count == 0; }
+    bool full() const { return count == kCapacity; }
+    bool has_sealed() const { return batch_count != 0; }
+    // Stamp of the oldest sealed batch. Requires has_sealed().
+    uint64_t head_stamp() const { return batches[batch_head].stamp; }
+
+    // Claims the next slot for the caller to fill. Requires !full().
+    uint32_t push() {
+        const uint32_t slot = tail;
+        tail = (tail + 1) & (kCapacity - 1);
+        count++;
+        unsealed++;
+        return slot;
+    }
+
+    // Covers every unsealed entry with `stamp` as one batch. Returns how many were sealed.
+    uint32_t seal(uint64_t stamp) {
+        const uint32_t sealed = unsealed;
+        if (!sealed) return 0;
+        if (batch_count == kBatchCapacity) {
+            Batch& newest = batches[(batch_head + batch_count - 1) & (kBatchCapacity - 1)];
+            newest.stamp = stamp;
+            newest.count += sealed;
+        } else {
+            Batch& batch = batches[(batch_head + batch_count) & (kBatchCapacity - 1)];
+            batch.stamp = stamp;
+            batch.count = sealed;
+            batch_count++;
+        }
+        unsealed = 0;
+        return sealed;
+    }
+
+    // Pops every sealed batch whose stamp is below `floor`, oldest first, handing each entry slot
+    // to `fn` in retirement order. Batches are FIFO with non-decreasing stamps, so the first batch
+    // at or above the floor ends the drain exactly where a per-entry test would. Unsealed entries
+    // are never popped here.
+    template <typename Fn>
+    uint32_t drain_below(uint64_t floor, Fn&& fn) {
+        uint32_t drained = 0;
+        while (batch_count) {
+            const Batch& batch = batches[batch_head];
+            if (batch.stamp >= floor) break;
+            for (uint32_t remaining = batch.count; remaining; remaining--) {
+                fn(head);
+                head = (head + 1) & (kCapacity - 1);
+            }
+            count -= batch.count;
+            drained += batch.count;
+            batch_head = (batch_head + 1) & (kBatchCapacity - 1);
+            batch_count--;
+        }
+        return drained;
+    }
+
+    // Pops everything, sealed or not. Only valid once no reader can retain a pointer (shutdown).
+    template <typename Fn>
+    uint32_t drain_all(Fn&& fn) {
+        const uint32_t drained = count;
+        while (count) {
+            fn(head);
+            head = (head + 1) & (kCapacity - 1);
+            count--;
+        }
+        unsealed = 0;
+        batch_head = 0;
+        batch_count = 0;
+        return drained;
+    }
+
+    Batch batches[kBatchCapacity] = {};
+    uint32_t head = 0;
+    uint32_t tail = 0;
+    uint32_t count = 0;
+    uint32_t unsealed = 0;      // entries at the tail not yet covered by a batch
+    uint32_t batch_head = 0;
+    uint32_t batch_count = 0;
+};
+
+class ReadLocalDeferredQueue {
+public:
+    static constexpr uint32_t kCapacity = ReadLocalRetireRing::kCapacity;
 
     ~ReadLocalDeferredQueue() { recycle_pool_.trim(0); }
 
@@ -167,41 +264,39 @@ public:
     }
 
     ReadLocalRetireSink* sink() { return entries_ ? &sink_ : nullptr; }
-    bool empty() const { return count_ == 0; }
-    uint32_t size() const { return count_; }
+    bool empty() const { return ring_.empty(); }
+    uint32_t size() const { return ring_.count; }
 
     // Called only by this owner thread, after the object/table is no longer store-reachable.
+    // Arguments are not re-validated: the sink is handed out only once entries_ exists (sink()),
+    // `reclaim` is always one of FlatStore's three static callbacks, and every producer tests its
+    // payload before retiring it. A null in any of them would fault at reclaim in the same pass.
     void defer(void* reclaim_owner, void* payload, size_t auxiliary,
                ReadLocalRetireSink::ReclaimFn reclaim) {
-        if (!entries_ || !reclaim || !payload) std::abort();
-        if (count_ == kCapacity) force_oldest_grace();
-        Entry& entry = entries_[tail_];
+        if (ring_.full()) force_oldest_grace();
+        Entry& entry = entries_[ring_.push()];
         entry.owner = reclaim_owner;
         entry.payload = payload;
         entry.auxiliary = auxiliary;
         entry.reclaim = reclaim;
         // The next drain (or rare capacity seal) performs the global epoch RMW after every unlink
         // in this suffix. Sharing that stamp avoids one globally contended RMW per retired object.
-        tail_ = (tail_ + 1) & (kCapacity - 1);
-        count_++;
-        unsealed_++;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_deferrals++;
         if (auxiliary) stats.qsbr_object_deferrals++;
         else stats.qsbr_table_deferrals++;
-        stats.qsbr_depth = count_;
+        stats.qsbr_depth = ring_.count;
         stats.qsbr_max_owner_depth = std::max<uint64_t>(
-            stats.qsbr_max_owner_depth, count_);
+            stats.qsbr_max_owner_depth, ring_.count);
         stats.qsbr_depth_samples++;
-        stats.qsbr_depth_sum += count_;
+        stats.qsbr_depth_sum += ring_.count;
 #endif
     }
 
     uint32_t drain_ready() {
-        if (!count_) return 0;
+        if (ring_.empty()) return 0;
         seal_pending();
-        uint32_t drained = 0;
         // One participant scan per owner pass, not per retired allocation. Stamps are FIFO and
         // strictly below the returned floor only after every active tick has crossed them; parked
         // participants contribute infinity because they hold no foreign pointer.
@@ -210,34 +305,26 @@ public:
         stats.qsbr_grace_scans++;
         stats.qsbr_participant_loads += server_->nthreads();
 #endif
-        const uint64_t grace_floor = server_->read_local_grace_floor();
-        while (count_) {
-            Entry& entry = entries_[head_];
-            if (entry.stamp >= grace_floor) break;
-            reclaim_entry(entry);
-            head_ = (head_ + 1) & (kCapacity - 1);
-            count_--;
-            drained++;
-        }
+        // Ask only whether the OLDEST sealed stamp has been crossed. Nothing is releasable until it
+        // has, so the scan may stop at the first participant still below it (and re-test that one
+        // first next pass) instead of loading every participant's tick line each pass. The ring is
+        // non-empty here and seal_pending() just ran, so a sealed batch exists.
+        const uint64_t grace_floor =
+            server_->read_local_grace_floor(ring_.head_stamp(), grace_hint_);
+        const uint32_t drained = ring_.drain_below(
+            grace_floor, [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         stats.qsbr_reclaims += drained;
         if (!drained) stats.qsbr_zero_progress_scans++;
-        stats.qsbr_depth = count_;
+        stats.qsbr_depth = ring_.count;
 #endif
         return drained;
     }
 
     // All fused threads have joined; no epoch test is needed and no reader can retain a pointer.
     uint32_t drain_shutdown() {
-        uint32_t drained = 0;
-        unsealed_ = 0;
-        while (count_) {
-            Entry& entry = entries_[head_];
-            reclaim_entry(entry);
-            head_ = (head_ + 1) & (kCapacity - 1);
-            count_--;
-            drained++;
-        }
+        const uint32_t drained = ring_.drain_all(
+            [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_reclaims += drained;
@@ -389,13 +476,14 @@ private:
         kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::QsbrRecycle,
         RecyclePool, DisabledRecyclePool>;
 
+    // 32 bytes: two entries per cache line. No stamp here -- it belongs to the ring's sealed batch.
     struct Entry {
         void* owner = nullptr;
         void* payload = nullptr;
         size_t auxiliary = 0;
         ReadLocalRetireSink::ReclaimFn reclaim = nullptr;
-        uint64_t stamp = 0;
     };
+    static_assert(sizeof(Entry) == 32);
 
     static void defer_thunk(void* context, void* owner, void* payload,
                             size_t auxiliary, ReadLocalRetireSink::ReclaimFn reclaim) {
@@ -419,23 +507,19 @@ private:
         queue->recycle_pool_.trim(target_bytes, queue->sink_.diagnostics());
     }
 
+    // A reclaimed slot is not scrubbed: defer() assigns every field before the slot is live again,
+    // and nothing reads a slot outside [head_, tail_).
     void reclaim_entry(Entry& entry) {
         entry.reclaim(sink_, entry.owner, entry.payload, entry.auxiliary);
-        entry = {};
     }
 
     void seal_pending() {
-        if (!unsealed_) return;
+        if (!ring_.unsealed) return;
         // Every object/table in the suffix was unlinked before this seq-cst RMW. The returned old
-        // epoch is therefore a valid common retirement stamp for the entire owner-pass batch.
-        [[maybe_unused]] const uint32_t sealed = unsealed_;
-        const uint64_t stamp = server_->advance_read_local_epoch();
-        uint32_t at = (tail_ + kCapacity - unsealed_) & (kCapacity - 1);
-        for (uint32_t i = 0; i < unsealed_; i++) {
-            entries_[at].stamp = stamp;
-            at = (at + 1) & (kCapacity - 1);
-        }
-        unsealed_ = 0;
+        // epoch is therefore a valid common retirement stamp for the entire owner-pass batch --
+        // recorded once, not once per entry.
+        [[maybe_unused]] const uint32_t sealed =
+            ring_.seal(server_->advance_read_local_epoch());
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         ReadLocalSetTaxStats& stats = settax_stats();
         stats.qsbr_seals++;
@@ -451,7 +535,7 @@ private:
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
         settax_stats().qsbr_forced_graces++;
 #endif
-        while (count_ == kCapacity) {
+        while (ring_.full()) {
             // Preserve a permanent/parked publication if shutdown cleanup reaches this path.
             owner_->refresh_read_local_quiescence(server_->read_local_epoch());
             if (!drain_ready()) {
@@ -477,10 +561,8 @@ private:
     std::unique_ptr<Entry[]> entries_;
     ReadLocalRetireSink sink_;
     ActiveRecyclePool recycle_pool_;
-    uint32_t head_ = 0;
-    uint32_t tail_ = 0;
-    uint32_t count_ = 0;
-    uint32_t unsealed_ = 0;
+    ReadLocalRetireRing ring_;
+    uint32_t grace_hint_ = UINT32_MAX;   // last participant seen blocking the oldest batch
 };
 
 }  // namespace tomo
