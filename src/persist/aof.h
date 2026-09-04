@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "aof_stream_owner.h"
 #include "../core/signal.h"
 #include "../snapshot/format.h"
 
@@ -282,13 +283,22 @@ public:
 
 private:
     using ChunkChan = Channel<AofChunk*, 64>;
+    using OpenStreamToken = AofStreamOwner::OpenToken;
+    using LargeStreamToken = AofStreamOwner::LargeToken;
     bool write_header_normal();
     bool write_header_uring(ThreadCtx& writer, Ring& ring, int fd, uint64_t& offset);
     bool write_frame_normal(const AofChunk& chunk);
-    bool write_group_commit_normal(AofChunk& chunk);
-    bool prepare_group_commit(AofChunk& chunk, uint8_t* header);
-    bool submit_frame_uring(std::unique_ptr<AofChunk> chunk, bool group_commit,
-                            Ring& ring, io_uring_sqe*& last_write);
+    bool write_group_commit_normal(const OpenStreamToken& stream, AofChunk& chunk);
+    bool prepare_group_commit(const OpenStreamToken& stream, AofChunk& chunk,
+                              uint8_t* header);
+    bool submit_prepared_frame_uring(std::unique_ptr<AofChunk> chunk,
+                                    const uint8_t* header, Ring& ring,
+                                    io_uring_sqe*& last_write);
+    bool submit_data_frame_uring(std::unique_ptr<AofChunk> chunk, Ring& ring,
+                                 io_uring_sqe*& last_write);
+    bool submit_group_commit_uring(const OpenStreamToken& stream,
+                                   std::unique_ptr<AofChunk> chunk, Ring& ring,
+                                   io_uring_sqe*& last_write);
     bool mark_post_written(uint64_t sequence);
     bool mark_post_submitted(uint64_t sequence);
     bool mark_post_durable(uint64_t sequence);
@@ -296,7 +306,9 @@ private:
     void wake_gate_waiters(ThreadCtx& writer, Ring& ring);
     bool group_dependencies_ready(const AofGroupDecision& group) const;
     void note_group_fragment(const AofChunk& chunk);
-    uint32_t drain_pending_commits(uint32_t& budget, Ring& ring, io_uring_sqe*& last_write);
+    void note_control_deferral(const LargeStreamToken& stream);
+    uint32_t drain_pending_commits(const OpenStreamToken& stream, uint32_t& budget,
+                                   Ring& ring, io_uring_sqe*& last_write);
     bool drain_producer(uint32_t producer, uint32_t& budget, uint32_t& consumed,
                         Ring& ring, io_uring_sqe*& last_write);
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
@@ -368,9 +380,8 @@ private:
     int fd_ = -1;
     uint64_t file_offset_ = 0;
     uint64_t last_good_offset_ = 0;
-    uint64_t large_record_offset_ = 0;
     uint64_t failed_write_offset_ = UINT64_MAX;
-    uint32_t locked_producer_ = UINT32_MAX;
+    AofStreamOwner stream_owner_;
     uint32_t writer_cursor_ = 0;
     uint32_t io_inflight_ = 0;
     uint32_t fsync_inflight_ = 0;
