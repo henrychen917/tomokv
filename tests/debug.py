@@ -137,10 +137,13 @@ expect(client.command("DEBUG", "SLEEP", str(sleep_cap + 1)),
        "ERR value is not a valid float", "DEBUG SLEEP timeout-derived ceiling")
 expect(client.command("MULTI"), b"OK", "MULTI before DEBUG SLEEP")
 expect(client.command("DEBUG", "SLEEP", ".01"), b"QUEUED", "queue DEBUG SLEEP")
+# The rejection is the engine's generic one: MULTI execution has no kind for DEBUG SLEEP, so the
+# cross-reply assembler answers before any DEBUG handler runs. What this row pins is that the
+# transaction still gets an error element for it rather than an IO thread sleeping inside EXEC.
 sleep_exec = client.command("EXEC")
 if (not isinstance(sleep_exec, list) or len(sleep_exec) != 1 or
         not isinstance(sleep_exec[0], RespError) or
-        str(sleep_exec[0]) != "ERR DEBUG SLEEP is not allowed inside MULTI"):
+        str(sleep_exec[0]) != "ERR command is not supported by MULTI execution"):
     raise AssertionError("DEBUG SLEEP inside EXEC was not rejected: %r" % (sleep_exec,))
 sleep_client.file.close()
 sleep_client.sock.close()

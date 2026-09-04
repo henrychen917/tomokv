@@ -360,7 +360,11 @@ def verify(oracle_path):
             mismatch("witness %s" % witness["key"], wanted, actual)
 
     # An untouched sample keeps the typed serializer baseline in this focused oracle too.
-    for index in range(1, N, 401):
+    # STRIDE PARITY MATTERS. MUTATED is every even index, so a stride of 401 -- an odd number --
+    # alternates parity and walks straight into keys this test mutated itself (402, 1204, 2006 ...),
+    # which then read back as their last pre-cut write and look like snapshot corruption. Step by an
+    # even stride from an odd start so every sampled key really is one nothing ever wrote.
+    for index in range(1, N, 402):
         h = client.cmd("HGET", "H%d" % index, "f1")
         z = client.cmd("ZSCORE", "Z%d" % index, "m" + "C" * 200)
         length = client.cmd("LLEN", "L%d" % index)
