@@ -54,6 +54,7 @@ file, owner decision, or needs a battery this lane may not run).
 | S12 | `src/core/server.h:2506,2516` vs `t_server.cc:2039-2040,2162,2164` | `note_sort_deref_refusal()`/`note_sort_deref_escape()` are never called, so INFO's `sort_deref_refusals`/`sort_deref_escapes` can only ever print 0 — the "literal placeholder" class the previous audit removed, in disguise. Either the SORT engine (scatter_engine.inc, other lane) forgot to count refusals/escapes (the constant-return-is-the-defect rule) or the rows should go. | LISTED for the SORT owner (needs the engine's intent) |
 | S13 | `src/core/server.h:856` | `uint32_t lanes[kMaxThreads][kMaxThreads] = {}` — a 64 KiB stack object zeroed on every FLIP client-plan build to hold at most `nthreads²` counters. Not UB (8 MiB stacks); a smell on the FLIP path. | LISTED (FLIP owner) |
 | S14 | `src/core/server.h:1489-1499` | The FLIP io→ex candidate filter excluding `aof_.writer_tid()` (and its SMT peer) is LOAD-BEARING: without it a role flip would strand the AOF writer in Ex state, where `~AofManager` closes without fsync and `discard_chunks()` drops buffered records. The code is right; nothing says why. | FIXED — comment (C6) |
+| V1 | `src/cmd/t_server.cc:1557-1561,1730-1732` vs `src/core/thread.h:131,263,402`; writers `ex_loop.h:991,1124,1419`, `io_loop.h:4417,4743,4828,5035` | **Checked at the coordinator's request — NOT a finding at 775aeea48.** The `read_local_*` INFO rows are folded from `ThreadCtx::read_local_stats()` (per-thread, written only by the owning thread, `ReadLocalStats` in thread.h:131) — not from live clients. No hit/miss/fallback counter lives on `Client` (grep `read_local` in conn.h: none) and no INFO row is summed over `clients()` (the only `clients()` walks are CLIENT LIST/KILL in climon.cc:203,514,1037). Disconnects lose nothing; nothing to fold on close. | verified non-finding |
 
 ### 1b. Docs / comments that contradict the code
 
@@ -120,7 +121,7 @@ file, owner decision, or needs a battery this lane may not run).
 | H2 | `src/core/config.h:31-33` | uses `Slice` and `parse_notify_flags` (`cmd/notify.h:66`) only through `store/flatstore.h`. `notify.h` depends on nothing but `base/slice.h`. | FIXED — direct includes (C9) |
 | H3 | `src/core/config.h:33` | pulls all of `store/flatstore.h` (3457 lines) for `HashKind`/`g_hash_kind` (flatstore.h:414-417). | LISTED (idea I4: `store/hash_kind.h`) |
 | H4 | `src/core/server.h:15,18` | `<array>`, `<climits>` — zero uses (`UINT32_MAX` is `<cstdint>`). | FIXED (C9) |
-| H5 | `tools/benchtxn.cc:26,38` | `<arpa/inet.h>`, `<cstring>` — zero uses. | FIXED (C9) |
+| H5 | `tools/benchtxn.cc:26,38` | `<arpa/inet.h>` — zero uses. (`<cstring>` was ALSO flagged by the sweep; the compile proved it wrong — `memchr` at :89 — and it stays. Every include claim in this audit was compile-checked before landing.) | FIXED (C9) |
 | H6 | `src/store/atomic_mvcc.h:137,142,146` | `static` (not `inline`) functions in a header reaching every TU via flatstore.h → config.h → server.h: a private copy per TU. | LISTED (atomics lane's neighbourhood tonight) |
 | H7 | `src/core/pubsub.inc`, `src/cmd/climon.inc` | included inside `class IoLoop` from io_loop.h and therefore reach 6 TUs; safe only because every line is a member (implicitly inline). Neither file says so. | LISTED (io_loop.h) |
 
@@ -149,26 +150,27 @@ file, owner decision, or needs a battery this lane may not run).
 
 ---
 
-## 2. COMMITS (one category each; `taskset -c 48-55,176-183 make -j8` green after every one)
+## 2. COMMITS (one category each; `taskset -c 48-55,176-183 make -j8` green after every one, warning count unchanged at the one pre-existing ex_loop.h line; `make unit` green wherever headers moved)
 
-| # | category | what |
-|---|---|---|
-| C1 | docs(audit) | this file (findings) |
-| C2 | core(genthread) | fused boot gate: stopped threads report at the gate; main's wait counts them (S1) |
-| C3 | main(signals/boot) | signal-handler safety + install-after-populate + disarm before teardown (S2); io-thread init failure stops the server instead of hanging the join (S3) |
-| C4 | persist/snapshot | `~SnapshotManager` does not reach into a mid-destruction Server (S5); `fsync_policy_` initialised (S6) |
-| C5 | config(parser) | `--shards` via `cfg_parse_u32` (S4); redundant obuf scratch (C2); parser test: shards grammar + silent rejects (B8) |
-| C6 | config/server(text) | stale text (D6-D11, D8), `node_cpus`→`l3_domains` (D9), AOF-writer exclusion comment (S14), `Slice::eq_icase` contract (C6) |
-| C7 | conf | tomokv.conf: D1-D5, D7 |
-| C8 | core(shutdown report) | `src/core/shutdown_report.h` shared by split and fused (S7, F3); `unix_owner_tid()` (C1); "idle" role, `send=` vestige (D12); listener comment truth (S8); unix socket RAII (S9) |
-| C9 | includes | H1, H2, H4, H5 |
-| C10 | docs | status prefaces: COMPLEXITY-AUDIT, INSPIRATION, specs (D13-D16) |
-| C11 | dedup | `realtime_ms` forks → `now_realtime_ms()` (C3) |
-| C12 | dead code | zero-caller accessors (X3, X4, X5) |
-| C13 | build | `make unit`, `make tools`, asan var (B1, B2) |
-| C14 | docs(audit) | ledger + ideas closed out |
+| # | commit | category | what |
+|---|---|---|---|
+| C1 | `1fe0d1667` | docs(audit) | this file (findings), committed first |
+| C2 | `ac41125f5` | core(genthread) | fused boot gate: stopped threads report at the gate; main's wait counts them (S1) |
+| C3 | `6a9e91d92` | main(signals/boot) | lock-free handler state, armed after the thread table exists, scoped disarm before teardown (S2); io-thread provisioning failure stops the server and exits 1 instead of hanging the join (S3) |
+| C4 | `eed584377` | persist/snapshot | `~SnapshotManager` does not store into a destroyed Server member (S5); `fsync_policy_` determinate (S6) |
+| C5 | `a2ca6c342` | config(parser) | `--shards` via `cfg_parse_u32` (S4); redundant obuf scratch (C2); parser test: shards grammar rows + silent negative probes (B8) |
+| C6 | `53032e634` | config/server(text) | stale text (D6-D11), `node_cpus`→`l3_domains` (D9), AOF-writer exclusion comment (S14), `Slice::eq_icase` contract (C6), topology.h banner |
+| C7 | `a6eab7198` | conf | tomokv.conf: D1-D5, D7, prose reflow; every knob line probed through the real loader/parser/validator (96 lines, 202 tokens, values match the code defaults) |
+| C8 | `d3e0b2b33` | core(shutdown report) | `src/core/shutdown_report.h` shared by split and fused (S7, F3); `unix_owner_tid()` (C1); "idle" role + `send=` vestige (D12); listener comment truth (S8); unix socket file RAII (S9) |
+| C9 | `de4dfa7aa` | includes | H1, H2, H4, H5 |
+| C10 | `ad2b9ff89` | docs | dated status prefaces: COMPLEXITY-AUDIT, INSPIRATION, four specs, DESIGN-SNAPSHOT (D13-D16) |
+| C11 | `f07763128` | dedup | `realtime_ms` forks → `now_realtime_ms()` (C3) |
+| C12 | `e7b849f9d` | dead code | zero-caller accessors on Server/FlipShiftDetector/Shard (X3, X4, X5) |
+| C13 | `9dc24ad78` | build | `make unit`, `make tools`, unread asan var (B1, B2) |
+| C14 | (this) | docs(audit) | ledger, §4b, verified non-finding V1 |
 
-(The table is updated as commits land; see `git log --oneline 775aeea48..t-night-cleanup`.)
+Net: 12 code/doc commits; no hot-path function edited; every layout lock unchanged; `Config` still 624.
+Not pushed (lane rule). Merge: `git merge --no-ff t-night-cleanup`, then delete the worktree.
 
 ---
 
@@ -176,7 +178,7 @@ file, owner decision, or needs a battery this lane may not run).
 
 | # | defect | status | repro idea (not run tonight) |
 |---|---|---|---|
-| S1 | fused boot gate hang on SIGTERM during/after load | FIXED | `--thread-mode 1s --load <multi-GB dump>` with uneven shard sizes; `kill -TERM` at ~half the load time. Pre-fix: after "persistence load" finishes, the process never prints `stuck:` and never exits; `gdb -p` shows main in `boot_cv.wait` at genthread.cc:277 with `runners_ready < nthreads`. Deterministic variant: `sleep` injected between `:234` and `:272` |
+| S1 | fused boot gate hang on SIGTERM during/after load | FIXED (`ac41125f5`) | `--thread-mode 1s --load <multi-GB dump>` with uneven shard sizes; `kill -TERM` at ~half the load time. Pre-fix: after "persistence load" finishes, the process never prints `stuck:` and never exits; `gdb -p` shows main in `boot_cv.wait` at genthread.cc:277 with `runners_ready < nthreads`. Deterministic variant: `sleep` injected between `:234` and `:272` |
 | S2 | signal handler vs boot population / teardown | FIXED | TSAN build; `for i in $(seq 200); do ./build/tomokv-tsan --shards 256 & sleep 0.0$RANDOM; kill -INT $!; wait; done` — pre-fix TSAN reports the `g_threads` race when the signal lands inside `push_back`; a SIGINT during `Server::init` was silently swallowed (second Ctrl-C needed) |
 | S3 | io-thread init failure hangs the join | FIXED | force `ios[tid].init` to fail (e.g. `ulimit -n 40` with `--maxclients 10000` after the rlimit adjust, or a bind failure on a per-thread reuseport listener); pre-fix: one thread returns silently, the rest serve, SIGTERM then exits — but main never printed why |
 | S4 | `--shards` grammar | FIXED | `./build/tomokv --shards 16x` boots with 16 shards silently (pre-fix); `--shards abc` reports the range message |
@@ -216,8 +218,77 @@ feature.
 | I12 | **NDEBUG policy.** Decide once whether release defines `NDEBUG`. Today every "compiled out when assertions are disabled" comment (flatstore.h:86-88,107; t_server.cc:862) is false for every binary ever benchmarked; only 2 `assert`s exist (both cold), so the perf effect is nil — the point is that comments and builds should agree. | D17. | Hardcode-or-delete: either define it and keep the DEBUG surface behind `--enable-debug-command`, or drop the `#ifndef NDEBUG` wrappers. |
 | I13 | **`docs/notes/` with a redirect policy** for the 89 root NOTES (F1): move, then leave a one-line `NOTES-X.md → docs/notes/X.md` stub for the 55 code references until the referencing lanes update their comments. | The root is the first thing a reader sees; today it is a lane ledger. | One file per feature applies to docs too; zero code effect. |
 
-(§4b — status of the 2026-08-24 complexity findings and which of its recommendations remain
-open — is appended in the closing commit once the re-verification against today's code lands.)
+Ideas that follow from the complexity re-verification (§4b), each still an implementation-level
+change to a single owner's data:
+
+| # | idea | rationale | philosophy fit |
+|---|---|---|---|
+| I14 | **Make the targeted ready queue the default 2s schedule.** `flush_ready` on the shipped default (`--thread-mode 2s --overlap 0`) still walks every active connection per pass (`io_loop.h:6403`) with a 64-pass "enqueue everyone" backstop; the fused/overlap schedules already drain a `pending_ifid_` queue fed by `mark_active_known` (`io_loop.h:5186-5196, 5371-5386`). | The audit's #1 finding, proven fixable in-tree; the default path is the one every gate cell measures. Needs the three-regime A/B (it is a scheduling change, so it is an idea here, not a night-lane edit). | Single owner (the io thread's own queue); reads untouched; main commands zero-regression is the bar it must clear. |
+| I15 | **Byte budgets where only counts exist:** ROB drain (`rob.h:362-374`), serve FIFO (`kServeBudget=16` clients/pass), `wsent_` (`uint32_t`, `conn.h:748`). | A single pipelined client with large replies can monopolise a pass; `wsent_` caps one staged reply run at 4 GiB. | Owner-local counters; no shared writer; a knob only if 0=off/-1=auto self-derives from `kRobWindow × zc-min`. |
+| I16 | **O(1) close:** `PtrSet::erase` is linear (`io_loop.h:7076`) and `ThreadCtx::remove_client` is `std::find` (`thread.h:784`); store an index in the Client (there is padding) and swap-erase. | Close is `O(A + C_i)` per connection; a 10k-connection churn storm is quadratic. | Single-owner structures; no hot-path read change. |
+| I17 | **Per-touched-shard publication on the ordered/atomic batch path** (`ex_loop.h:2371` still publishes every owned shard per batch; the plain path already publishes only touched shards). | Same shape as the fixed finding #24, one path left. | Owner publishes only its own shards; readers unaffected. |
+| I18 | **Recycle-in-place for `INCR`/`INCRBY` under read-local rules:** the integer object is replaced per update (`flatstore.h:1128-1132`); the read-local recycle pool exists only when armed (`flatstore.h:1119-1126`). | One allocation per counter update on the most common counter workload. | Must stay immutable-replacement + QSBR while read-local is armed (no in-place overwrite — owner law); when disarmed the recycle pool is safe. |
+| I19 | **High-water shedding on a maintenance tick, not on the hot path:** rbuf ≤1 MiB, wbuf ≤64 KiB, reply heaps ≤4 KiB/slot, ROB chunks and vectors are retained until close. | The "no stale byte" rule from the complexity audit is still violated in five places; a per-owner cron (the client cron already exists) can shed idle capacity. | LB-style: zero cost when stable (only runs when the cron is armed), owner-local, no reader impact. |
+
+### 4b. Status of docs/COMPLEXITY-AUDIT.md (2026-08-24) findings, re-verified against 775aeea48
+
+| # | finding | status | current evidence |
+|---|---|---|---|
+| 1 | SQE-starved first recv after accept → permanent stall | FIXED | `io_loop.h:3252` `mark_active_known` ends `adopt_client` |
+| 2 | no-progress busy poll (`work++` unconditional) | FIXED | `io_loop.h:6533` counts only non-NeedInput dispatch |
+| 3 | stale-argv heap read after `Op::reset` | FIXED | `op.h:84` |
+| 4 | RESP re-parse from command start, O(B²/chunk) | OPEN | no resume cursor in `resp.h`; re-entered from `conn.rpos()` (`io_loop.h:6499`) |
+| 5 | full task channel → unpublish + reparse | OPEN (mitigated) | `io_loop.h:5018-5027`; pipeline modes pre-reserve credit |
+| 6 | linear command lookup | FIXED | `commands.cc:267-284` open-addressed + hot-verb fast path |
+| 7 | `flush_ready` Θ(A) active pass ("primary law violation") | OPEN by default / FIXED in fused-overlap | `io_loop.h:6403` vs targeted `pending_ifid_` (`:5371-5386`) |
+| 8 | 64-pass backstop flags every active client | OPEN | `io_loop.h:6408`, `kFlushBackstopEvery=64` |
+| 9 | serve FIFO 16 clients/pass, no byte budget | OPEN | `io_loop.h:6620-6624` |
+| 10 | ROB drain unbounded | OPEN | `rob.h:362-374` |
+| 11 | active-erase + unregister O(A+C_i) | OPEN | `io_loop.h:7076`, `thread.h:784` |
+| 12 | deferred-free lifetime unproven | FIXED | `conn.h:680-686`, `io_loop.h:6944-6947` |
+| 13 | reply double copy | CHANGED | zero-copy borrow/segments; copy path still stages |
+| 14 | `sample_depth` Θ(T) per iteration | FIXED | 100 µs gate `thread.h:810-813` |
+| 15 | 3 clock reads per iteration | MOSTLY FIXED | `ex_loop.h:671` still reads cpu time per iteration |
+| 16 | ready-word take = 16 words | CHANGED | load-first, RMW only on nonzero (`signal.h:278-281`) |
+| 17 | `ReadyMask::any` 16 loads on sleep path | OPEN | `signal.h:289-293` |
+| 18 | ready-slot cap 1024 never re-adopted | OPEN | `thread.h:988-993` |
+| 19 | masked drain 2-word discovery | OPEN (cheap) | `signal.h:301-302` |
+| 20 | channel drain without per-producer budget | PARTIAL | quantum path exists only for read-local interleave (`thread.h:593-635`) |
+| 21 | pre-park unmasked all-channel sweep | OPEN (intentional backstop) | `thread.h:944-978` |
+| 22 | `arm_blocked`/`clear_blocked` Θ(T) | OPEN (reduced) | `thread.h:855-874` |
+| 23 | `any_inbound` 2T loads | OPEN | `thread.h:1028-1048` |
+| 24 | all-shard publication per batch | MOSTLY FIXED | per-touched-shard except `ex_loop.h:2371` |
+| 25 | store teardown Θ(M) scans | OPEN | `flatstore.h:606-612, 1488-1492` |
+| 26 | "no periodic expiry" | CHANGED | bounded active expiry `ex_loop.h:1669-1688` |
+| 27 | executor idle spin 2048 | OPEN | `ex_loop.h:42` |
+| 28 | DBSIZE/INFO Θ(shards) | OPEN | `t_server.cc:2479` |
+| 29 | INCR allocates per update | OPEN | `flatstore.h:1128-1132` |
+| 30 | **load-factor 32-bit overflow (CRITICAL)** | **FIXED** | `flatstore.h:3288-3299` |
+| 31 | shrink trigger overflow / one pending shrink | FIXED / OPEN | widened; no re-target at completion |
+| 32 | `start_rehash` calloc failure unchecked | PARTIAL | failure handled (`:3320`); single calloc |
+| 33 | `rehash_step` bounds slots not bytes | OPEN | `kRehashSlotsPerOp=8` |
+| 34 | find/insert worst Θ(M·K) | OPEN (by design) | `flatstore.h:2177…` |
+| 35 | empty shard = 1024 zeroed slots | OPEN | `flatstore.h:597-600` |
+| 36 | fully-sent wbuf evades shrink | FIXED | `conn.h:396-399` |
+| 37 | wbuf ≤64 KiB retained | OPEN | `conn.h:347` |
+| 38 | rbuf ≤1 MiB retained | OPEN | `conn.h:352` |
+| 39 | reply heap ≤4 KiB/slot retained | OPEN | `op.h:107-112` |
+| 40 | ROB chunks never freed before close | OPEN | `rob.h:386-387` |
+| 41 | channel mesh Θ(T²) eager | CHANGED | task lanes consolidated; 3 other channel arrays still eager |
+| 42 | `wsent_` 32-bit | OPEN | `conn.h:748` |
+| 43 | no output-byte budget | PARTIAL | obuf limits (`io_loop.h:6757-6786`), not a serve budget |
+| 44 | vectors never trimmed | OPEN | `thread.h:1006-1011`, `io_loop.h:7068-7080` |
+| 45 | init failure strands a routed dead worker | FIXED | `main.cc` load barrier; this lane closed the io-thread half (S3) |
+| 46 | no graceful close of live connections at stop | OPEN | S11 |
+| 47 | shutdown diagnostics Θ(T+C+C·P) | OPEN (shutdown-only) | `shutdown_report.h` |
+| 48 | `msg_to` failure counted as a wake | PARTIAL | `io_loop.h:2846` fixed; `signal.h:400,538`, `thread.h:1020` not |
+| 49 | full completion channel → poll-backstop recovery | OPEN | `ex_loop.h:2857-2860` |
+
+Adoption of the audit's ranked recommendations: #1 partial (targeted queue exists, not default);
+#2 partial; #3 partial (depth sampling gated, park path intact); #4 partial (task lanes only);
+#5 mostly (arithmetic/allocation fixed; segmented tables not); #6 minimal; #7 partial; #8 mostly;
+#9 partial; #10 partial. The CRITICAL verdict (#5, 100M-key bound) is closed; the top-ranked
+shape (#1, Θ(A) active pass on the default schedule) is not.
 
 ---
 
