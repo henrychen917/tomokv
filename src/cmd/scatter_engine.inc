@@ -1733,7 +1733,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // Opened only once state->server is set, so "apply_open is true" always implies xshard_destroy
     // can close it. The two failure arms above return before any ScatterState exists at all, so
     // the window can never be opened on a group with nothing to close it.
-    if (__builtin_expect(admitted, false)) server.atomic_apply_open(state->apply_open);
+    if (__builtin_expect(admitted, false))
+        server.atomic_apply_open(owner_io, state->apply_open);
     state->pooled = pooled;
     state->owner_io = owner_io;
     state->owner_slots = server.nthreads();
@@ -1902,7 +1903,8 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
         pool.unregister_snapshot(*state->server, state, state->owner_io);
     // Ordinary completions closed this on the owner that installed the last record; this arm is the
     // one that matters for a group torn down BEFORE dispatch (no owner ever sees it).
-    if (state->server) state->server->atomic_apply_close(state->apply_open);
+    if (state->server)
+        state->server->atomic_apply_close(owner_io, state->apply_open);
     if (state->admitted && state->server) {
         state->server->atomic_retire_group(state->owner_io, state->admission_generation);
         state->admitted = false;
@@ -3497,7 +3499,7 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
         // owner, running on an EX thread. That is the instant the group stops being able to
         // straddle a snapshot cut, and it is much earlier than reply retirement, which happens on
         // the admitting IO thread (the very thread a blocking SAVE occupies).
-        server.atomic_apply_close(state.apply_open);
+        server.atomic_apply_close(self.id(), state.apply_open);
         return ScatterFinish::Final;
     };
     if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {

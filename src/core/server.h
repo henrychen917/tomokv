@@ -132,6 +132,17 @@ struct ReadLocalServerState {
     std::atomic<uint64_t> epoch{1};
 };
 
+// A snapshot/placement drain is the only reader, while opens and closes happen on unrelated
+// physical threads.  Monotonic halves avoid the false-zero a signed per-thread delta can expose
+// when a scan observes an executor's close before the admitting IO's open.  Cache-line spacing
+// keeps those writers independent.
+struct alignas(64) AtomicApplySlot {
+    std::atomic<uint64_t> opened{0};
+    std::atomic<uint64_t> closed{0};
+};
+static_assert(sizeof(AtomicApplySlot) == 64);
+static_assert(alignof(AtomicApplySlot) == 64);
+
 class Server {
 public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
@@ -2588,17 +2599,31 @@ public:
     // either at the owner-side completion or at the synchronous pre-dispatch teardown -- never on a
     // thread a snapshot can be occupying.
     uint64_t atomic_apply_inflight() const {
-        return atomic_apply_inflight_.load(std::memory_order_acquire);
+        uint64_t closed = 0;
+        uint64_t opened = 0;
+        // CLOSES FIRST, in a distinct whole pass.  If this scan observes a close, that close
+        // acquired the group's published open flag, so the later load of its opening counter
+        // cannot miss the matching open.  A close racing after this first pass only makes the
+        // answer conservatively high.
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            closed += atomic_apply_slots_[tid].closed.load(std::memory_order_acquire);
+        for (uint32_t tid = 0; tid < nthreads(); tid++)
+            opened += atomic_apply_slots_[tid].opened.load(std::memory_order_acquire);
+        if (closed > opened) std::abort();
+        return opened - closed;
     }
-    void atomic_apply_open(std::atomic<bool>& flag) {
+    void atomic_apply_open(uint32_t tid, std::atomic<bool>& flag) {
+        if (tid >= nthreads()) std::abort();
+        // Publish the counter before making the close claim available to another thread.
+        atomic_apply_slots_[tid].opened.fetch_add(1, std::memory_order_release);
         flag.store(true, std::memory_order_release);
-        atomic_apply_inflight_.fetch_add(1, std::memory_order_acq_rel);
     }
     // Idempotent by construction: whichever of the two ends reaches the group first closes it.
-    void atomic_apply_close(std::atomic<bool>& flag) {
+    void atomic_apply_close(uint32_t tid, std::atomic<bool>& flag) {
+        if (tid >= nthreads()) std::abort();
         if (__builtin_expect(!flag.load(std::memory_order_acquire), true)) return;
         if (flag.exchange(false, std::memory_order_acq_rel))
-            atomic_apply_inflight_.fetch_sub(1, std::memory_order_acq_rel);
+            atomic_apply_slots_[tid].closed.fetch_add(1, std::memory_order_release);
     }
     uint64_t atomic_window_stalls() const {
         return atomic_window_stalls_.load(std::memory_order_relaxed);
@@ -3296,7 +3321,7 @@ private:
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
     std::atomic<bool> snapshot_atomic_barrier_{false};
-    std::atomic<uint64_t> atomic_apply_inflight_{0};
+    AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
     std::atomic<uint32_t> debug_atomic_commit_delay_{0};

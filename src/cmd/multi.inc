@@ -190,7 +190,8 @@ MultiSession* ensure_multi_session(Client& client) {
 }
 
 void release_admission(MultiExecState& state) {
-    if (state.server) state.server->atomic_apply_close(state.apply_open);
+    if (state.server)
+        state.server->atomic_apply_close(state.owner_io, state.apply_open);
     if (!state.admitted) return;
     state.server->atomic_retire_group(state.owner_io, state.admission_generation);
     state.admitted = false;
@@ -1313,7 +1314,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             return MultiIoAction::LocalDone;
         }
         state->admitted = true;
-        server.atomic_apply_open(state->apply_open);
+        server.atomic_apply_open(owner_io, state->apply_open);
         state->admission_generation = generation;
         state->reset_watch = true;
         state->watched = std::move(session->watched);
@@ -1882,7 +1883,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
-                server.atomic_apply_close(state.apply_open);
+                server.atomic_apply_close(owner_thread_id, state.apply_open);
             }
         }
     }
