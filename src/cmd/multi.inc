@@ -710,29 +710,39 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     return state;
 }
 
+// WRITE_KEYS IS NOT THE SET OF EXECUTORS THAT INSTALL. It is the prepare-time registry key list,
+// and a lowered LMPOP/ZMPOP has none: command_key_args() returns nothing for their numkeys form, so
+// classify_multi_command() sends them down the Xshard arm and multi_execute_task() calls
+// prepare_write_key() at phase two for a key SELECTED THEN, on whichever shard held a non-empty
+// list. Deriving sentinels from write_keys therefore left that executor -- and, for a transaction
+// whose only write is such a command, EVERY executor -- with no pin, which the install then
+// aborted on. The outer task set is the exact and cheaper predicate: every executor that installs
+// anything for this transaction must first have been given one of its shard tasks.
+bool multi_state_may_install(const MultiExecState& state) {
+    for (const auto& command : state.commands) {
+        if (!command_has_owner_work(*command)) continue;
+        if (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+            return true;
+    }
+    return false;
+}
+
 void initialize_multi_owner_record_refs(MultiExecState& state) {
-    if (state.kind != MultiStateKind::Execute || state.write_keys.empty()) return;
+    if (state.kind != MultiStateKind::Execute || !multi_state_may_install(state)) return;
     if (state.record_refs.load(std::memory_order_relaxed) != 0 ||
         state.record_refs_precounted) std::abort();
 
     // Every outer shard task reaches the post-decision completion boundary even when WATCH or
     // EXECABORT skips its commands. Count all such tasks per executor so only its last one releases
     // the sentinel protecting whatever records earlier tasks may have installed.
+    uint32_t owners = 0;
     for (int32_t shard : state.shards) {
         const uint32_t tid = state.server->worker_of_shard(shard);
         const uint32_t slot = state.server->executor_slot(tid);
         if (slot >= state.owner_record_refs.size()) std::abort();
-        state.owner_record_refs[slot].remaining++;
-    }
-
-    uint32_t owners = 0;
-    for (const MultiWriteKey& write : state.write_keys) {
-        const uint32_t tid = state.server->worker_of_shard(write.shard);
-        const uint32_t slot = state.server->executor_slot(tid);
-        if (slot >= state.owner_record_refs.size()) std::abort();
         MultiOwnerRecordRefs& progress = state.owner_record_refs[slot];
-        if (progress.completion_sentinel) continue;
-        if (!progress.remaining || progress.nodes) std::abort();
+        if (progress.remaining++) continue;
+        if (progress.nodes || progress.completion_sentinel) std::abort();
         progress.nodes = 1;
         progress.completion_sentinel = true;
         owners++;
@@ -894,6 +904,10 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     }
     KvObj* installed = clone;
     shard.store().atomic_install_transaction(hash, key, entry, installed);
+    // INVARIANT, not a hope: initialize_multi_owner_record_refs() gave every executor holding an
+    // outer task of an installing transaction its sentinel before the first task became visible,
+    // and this executor is running one of those tasks. A missing pin here would mean cleanup could
+    // release the state's last reference between two of this owner's own installs.
     if (!owner_progress.completion_sentinel || !*owner_refs) std::abort();
     (*owner_refs)++;
     // Keep the transaction overlay selected for the handler and later keys in this command.
