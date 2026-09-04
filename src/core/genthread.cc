@@ -20,6 +20,7 @@
 #include "ex_loop.h"
 #include "io_loop.h"
 #include "server.h"
+#include "shutdown_report.h"
 
 namespace tomo {
 namespace {
@@ -96,7 +97,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     bool serve_start = false;
     bool run_start = false;
     std::string load_error;
-    const uint32_t unix_owner = srv.placement().ifid_threads().front();
+    const uint32_t unix_owner = srv.unix_owner_tid();
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
@@ -304,7 +305,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     }
 
     for (std::thread& worker : pool) worker.join();
-    if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
+    // The unix socket file is unlinked by main, which owns it for every return path.
 
     if (srv.read_local_enabled()) {
         // All fused readers have joined, so every queued callback is immediately safe. Empty the
@@ -320,38 +321,23 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
 
     uint64_t fused_work = 0;
     for (uint32_t tid = 0; tid < nthreads; tid++) fused_work += srv.thread(tid).sig().ops;
-    uint64_t stuck_rob = 0, stuck_wr = 0, live = 0;
-    uint64_t st_done = 0, st_issued = 0, st_free = 0, st_flag = 0;
-    for (uint32_t tid = 0; tid < nthreads; tid++) {
-        for (Client* client : srv.thread(tid).clients()) {
-            if (!client) continue;
-            live++;
-            if (!client->rob().quiesced()) {
-                stuck_rob++;
-                if (client->retire_queued().load(std::memory_order_acquire)) st_flag++;
-                for (uint64_t id = client->rob().flush_id(), end = client->rob().dispatch_id();
-                     id != end; id++) {
-                    switch (client->rob().at(id).state.load(std::memory_order_acquire)) {
-                        case OpState::Done: st_done++; break;
-                        case OpState::Issued: st_issued++; break;
-                        default: st_free++; break;
-                    }
-                }
-            }
-            if (!client->nothing_to_write()) stuck_wr++;
-        }
-    }
-    std::printf("stuck: live_conns=%llu rob_not_quiesced=%llu unsent_bytes_pending=%llu"
-                " | slots done=%llu issued=%llu free=%llu flag_set=%llu\n",
-                static_cast<unsigned long long>(live),
-                static_cast<unsigned long long>(stuck_rob),
-                static_cast<unsigned long long>(stuck_wr),
-                static_cast<unsigned long long>(st_done),
-                static_cast<unsigned long long>(st_issued),
-                static_cast<unsigned long long>(st_free),
-                static_cast<unsigned long long>(st_flag));
-    std::printf("shutdown: unified_work=%llu\n",
-                static_cast<unsigned long long>(fused_work));
+    const ShutdownTotals totals = shutdown_totals(srv);
+    shutdown_report_threads(srv);
+    WbEngine::Stats w{};
+    shutdown_accumulate_wb(w, ios);
+    shutdown_accumulate_wb(w, executors);
+    shutdown_report_wb(w);
+    shutdown_report_tls(srv);
+    shutdown_report_stuck(srv);
+    shutdown_report_epoll(srv);
+    std::printf("shutdown: unified_work=%llu accepts=%llu accept_err=%llu rearm=%llu"
+                " sqe_starved=%llu notify_drop=%llu\n",
+                static_cast<unsigned long long>(fused_work),
+                static_cast<unsigned long long>(totals.accepts),
+                static_cast<unsigned long long>(totals.accept_err),
+                static_cast<unsigned long long>(totals.accept_rearm),
+                static_cast<unsigned long long>(totals.sqe_starved),
+                static_cast<unsigned long long>(totals.notify_drop));
     acl_shutdown();
     return 0;
 }

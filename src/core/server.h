@@ -616,6 +616,9 @@ public:
         return false;
     }
     uint32_t lb_coordinator() const { return lb_coordinator_; }
+    // The io thread that owns the unix listener (UINT32_MAX without --unixsocket). Latched once
+    // in init(); both boot paths and the FLIP candidate filter read this one value.
+    uint32_t unix_owner_tid() const { return unix_owner_tid_; }
     const std::vector<LbShardMove>& lb_shard_moves() const { return lb_shard_moves_; }
     LbClientMove lb_client_move() const { return lb_client_move_; }
     bool lb_should_pause(uint32_t owner, uint64_t id) const {
