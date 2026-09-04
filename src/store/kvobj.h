@@ -15,10 +15,10 @@
 //  3. NOTHING STORED THAT THE TABLE ALREADY HAS. FlatStore's slot carries a 15-bit tag, so no hash
 //     is kept here. Optional LRU/LFU state steals proven-spare header bits; it adds no field.
 //
-// BUDGET (this is a test, not an aspiration — see bench/kvobj_footprint):
+// BUDGET (an aspiration with no test behind it yet; there is no bench/kvobj_footprint in the tree):
 //   16-byte key + 64-byte value, no TTL  ->  target < 85 B all-in.
-//   Today: 8 + 16 + 64 = 88 B before the allocator's size class. Getting under the bar needs the
-//   varint header noted at TODO(density); doing it before the data path works would be premature.
+//   Today: 8 + 16 + 64 = 88 B before the allocator's size class (a 96 B class). Getting under the
+//   bar needs a narrower header (varint lengths); nothing in the tree tracks that yet.
 #pragma once
 #include <algorithm>
 #include <array>

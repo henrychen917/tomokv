@@ -83,9 +83,10 @@
 
 namespace tomo {
 
-// DEBUG-only fault injection for the cold table-allocation paths. The command surface is compiled
-// out when assertions are disabled; production allocation remains a direct calloc with no
-// request-path tax.
+// Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
+// defined -- which is every build the Makefile produces, release included -- and costs one relaxed
+// load per table allocation, never anything on the request path. Defining NDEBUG removes this
+// surface (and every assert() in the tree) as a build-system decision.
 #ifndef NDEBUG
 inline std::atomic<uint32_t> g_flatstore_table_alloc_failures{0};
 
