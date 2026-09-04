@@ -85,8 +85,9 @@ returned not raised, `must()` raises), `info()`, `thread_mode()`, `lbsignals()` 
 hook arm/disarm context), `Report` (ok/bad/skip/finish with the `TOMO_GATE_STRICT` rule),
 `skip_all()` (exit 3 — the gate paints that red, see `py()`). Migrated this lane: `atomic_torn.py`
 (topology), `contarity.py` (topology), `borrow_registry.py` (shard count), `xshard_dispatch_scale.py`
-(owner map, thread count), `lbsignals.py` (whole client + parser), `flip_under_load.py` (mode probe),
-`spinprobe.py` (frame helper). Next candidates, in order of divergence risk: `pipeorder.py`
+(owner map, thread count), `lbsignals.py` (whole client + parser), `flip_under_load.py` (mode probe,
+INFO counters). `spinprobe.py` stays dependency-free (raw socket) by design: it is run on the
+fused rows too and must not gain a failure mode of its own. Next candidates, in order of divergence risk: `pipeorder.py`
 (RESP3-blind reader), the seven `Resp` classes that RAISE on `-ERR` (`atomic_*`, `aof_*`,
 `blocking`, `execatomic`, `execiso`, `watchlive`) because a raised error inside a reader thread is
 recorded as a generic exception and loses the server's text.
@@ -207,6 +208,22 @@ behind `--enable-debug-command`; `src/cmd/t_server.cc:940-1030` is the pattern).
 6. **`DEBUG LBSIGNALS` in 1s** — not a new hook, a request: emit the role as `io` (as now) but ALSO
    emit `derived thread_mode 1s|2s` so a test can tell fused from split without a second `INFO
    server` round-trip (`_lib.thread_mode` uses INFO today).
+7. **`read_local_*` totals must survive client close** (owner's finding, 2026-09-03 night). INFO
+   folds `read_local` at read time from `g_server->thread(t).read_local_stats()`
+   (`src/cmd/t_server.cc:1557-1561`), and those per-thread figures are summed from LIVE clients:
+   after memtier disconnects every `read_local_*` reads 0. Any battery asserting on them must
+   sample MID-RUN (while the load connections are open), or the server must fold each client's
+   totals into its thread's cumulative counters on client close (the same shape as
+   `client_output_buffer_limit_disconnections`: a monotonic per-thread total, not a live-set sum).
+   No battery in this tree asserts `read_local_*` yet (grep is empty); `bplus.py` on its own branch
+   does, and is the first consumer of the fold. Request: per-thread cumulative `read_local_*`
+   folded on client close (or an explicit `read_local_*_total` alongside the live gauges).
+
+Cross-check requested with the `bplus.py` fix (LBSIGNALS parsing accepting `io`-role threads in
+1s): the same assumption existed in `atomic_torn.py:137` and `contarity.py:128` (fixed here, owners
+from shard rows), `lbsignals.py:94-98` (fixed, mode-aware), and survives in `sort.py:112-120,141,
+152,167` (owner := `shard % lb_ex_threads`, divides by zero in 1s) and `barrier.py:213-251`
+(shards == executors) -- both gate-pinned to 2s boots and both listed in B.2 for conversion.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -283,15 +300,22 @@ netio.py push_tear_repro.py replyschema.py ryow_sort_repro.py spscmask_flip.py s
 torn_mset.py wiredump.py writer_atomic.py writer_atomic_campaign.py` (24; `config_parser_test.cc` is
 built by the gate itself).
 
-## F. Commit plan for this lane (each small, each keeps or adds a mechanism-fired check)
+## F. Commits on `t-night-tests` (each keeps or adds a mechanism-fired check; none weakens one)
 
-1. this audit
-2. `tests/_lib.py` + topology fix in atomic_torn/contarity/borrow_registry/xshard_dispatch_scale (F4)
-3. `lbsignals.py`: real parser, mode-aware (F3, F4)
-4. `borrow_registry.py`: interleaved arms, drift re-roll, post baseline (F7)
-5. `spinprobe.py`: pid resolution + frame-completion proof; gate passes `$SRV` (F1)
-6. `flip_under_load.py`: failure classification, INFO deltas, 1s self-skip (F8)
-7. `gate.sh`: trap, ss guard, `py()` timeout wrapper, build logs, preflights (F2, F11, F14)
-8. `gate.sh`: ledger with elapsed + diff, comment history, ASAN-clean strengthening (F13, F16)
-9. `gate.sh`: `stop()`/`settle`, boot dedup, `--help` loop removal (F10)
-10. `gate.sh` + `gate_refs.txt`: flipctl_unit row (EXPECT 240/251), kernel pin WARN (F15, F12)
+| commit | what it converts / fixes | finding |
+|---|---|---|
+| `AUDIT-TESTS` | this document | — |
+| `WIP: helper dedup` | `tests/_lib.py` (RESP client, LBSIGNALS parser, owner-from-shard-rows topology, geometry helpers, `armed()`, `Report`, `skip_all`) + owner selection from shard rows in `atomic_torn.py`, `contarity.py`, `borrow_registry.py`, `xshard_dispatch_scale.py` | F4, F18 |
+| `tests/lbsignals.py` | real RESP reader; ex legs skip WITH reason on 1s and the ex rollup's emptiness is asserted; fixed settle sleeps became bounded polls | F3, F4 |
+| `tests/spinprobe.py` | pid from the caller or the port's listener (refuses ambiguity); frame completion must answer `+OK` | F1 |
+| `tests/flip_under_load.py` | failure class (TIMEOUT/EOF/RST/EPIPE/ERROR-REPLY); server counter deltas printed every run; exit 3 self-skip on a 1s boot | F8 |
+| `tests/borrow_registry.py` | arms interleaved per round; re-roll on control drift; post baseline when the pre one is stale; assertions unchanged, reference named | F7 |
+| `tests/gate.sh` + `gate_refs.txt` | EXIT/INT/TERM cleanup; `ss` port guard naming the pid; `py()` timeout wrapper (timeout / exit 3 stay red); build logs kept; tool + oracle preflight with one clear message; per-row ledger with elapsed and name-diff on drift; `settle` replaces 55 x `sleep 5`; boot dedup, `--help` spawn loop gone; `flipctl_unit` static row (EXPECT 240/251); ASAN-clean requires the shutdown line; kernel pin WARN; `TOMO_GATE_STRICT=1` | F2, F10-F16 |
+
+What this lane did NOT do, deliberately: run anything (the first gate run is the verification of
+`flipctl_unit`, of the 1 s `settle`, and of the `py()` wrapper); convert the F5 shard-vs-owner
+helpers (needs a run per test to confirm counters still fire on a forced cross-OWNER pair); wire
+the 24 unwired files (changes the ledger); re-pin the NIC refs (owner action on the box).
+
+Verification done: `python3 -m py_compile tests/*.py` clean; `bash -n tests/gate.sh` clean; both
+C++ unit tests compile pinned (`taskset -c 40-47,168-175`); the static ledger recount is 240/251.
