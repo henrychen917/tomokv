@@ -85,9 +85,10 @@
 
 namespace tomo {
 
-// DEBUG-only fault injection for the cold table-allocation paths. The command surface is compiled
-// out when assertions are disabled; production allocation remains a direct calloc with no
-// request-path tax.
+// Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
+// defined -- which is every build the Makefile produces, release included -- and costs one relaxed
+// load per table allocation, never anything on the request path. Defining NDEBUG removes this
+// surface (and every assert() in the tree) as a build-system decision.
 #ifndef NDEBUG
 inline std::atomic<uint32_t> g_flatstore_table_alloc_failures{0};
 
@@ -1188,8 +1189,17 @@ public:
         if (o->encoding() != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
         if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
-        const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
-        if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
+
+        // Same key, same encoding, no TTL on either side: the request size is a function of the
+        // value length alone, so an equal length IS the same class and the class arithmetic below
+        // would only prove a tautology. The fixed-value-size SET cell takes this branch every time;
+        // it pays no kvobj_alloc_size, no good_size and no kvobj_size (that last one was 7.7% of
+        // SET-cell cycles before it was dropped from this path).
+        const bool same_length = val.n == kvobj_read_local_raw_length(o);
+        if (!same_length) {
+            const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
+            if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
+        }
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
         // allocation. With no outstanding borrows this is one predicted branch and no lookup.
@@ -1197,28 +1207,46 @@ public:
             return OverwriteResult::NotPossible;
 
         // The entire disabled-feature write tax is this branch. When enabled, the target key is
-        // protected while make_room_for() evicts other candidates.
+        // protected while make_room_for() evicts other candidates. The incoming class equals the
+        // resident one (by equality of length or by the test above), so the resident footprint is
+        // exactly the ask.
         if (__builtin_expect(maxmemory_enabled_, false)) {
-            if (!make_room_for(key, good_size(want))) return OverwriteResult::MaxmemoryOom;
+            if (!make_room_for(key, kvobj_capacity(o))) return OverwriteResult::MaxmemoryOom;
             touch(o);
         }
 
-        // Same length means the same class and the same footprint: the accounting delta is exactly
-        // zero, so do not compute it (kvobj_size was 7.7% of SET-cell cycles before this).
-        if (val.n == kvobj_read_local_raw_length(o)) {
-            std::memcpy(o->val_ptr(), val.p, val.n);
-            return OverwriteResult::Updated;
-        }
-        obj_bytes_ -= kvobj_size(o);
-        o->store_raw_length_relaxed(val.n);
+        // A Raw object's footprint IS its class and the class does not change, so obj_bytes_ is
+        // exactly unchanged on both branches: no accounting write, no kvobj_size.
+        if (!same_length) o->store_raw_length_relaxed(val.n);
         std::memcpy(o->val_ptr(), val.p, val.n);
-        obj_bytes_ += kvobj_size(o);
         return OverwriteResult::Updated;
     }
 
     OverwriteResult try_overwrite_notify(uint64_t h, Slice key, Slice val,
                                          FlatNotifySink*) {
         return try_overwrite(h, key, val);
+    }
+
+    // Same-object rewrite of an integer-encoded string, allocation-free. An Enc::Int value has a
+    // fixed footprint and is never borrowed (GET copies integers), so beyond the key being present
+    // the only eligibility is that its deadline does not change: the INCR family passes the
+    // deadline it read, SET passes -1 and so requires a TTL-free key (SET clears TTL). Armed
+    // stores keep immutable replacement -- the same law as try_overwrite -- so this is the
+    // unarmed owner path only.
+    OverwriteResult try_overwrite_int(uint64_t h, Slice key, int64_t value, int64_t expire_at_ms) {
+        if (__builtin_expect(read_local_enabled_, false)) return OverwriteResult::NotPossible;
+        KvObj* o = find_without_touch(h, key);
+        if (!o) return OverwriteResult::NotPossible;
+        if (o->encoding() != Enc::Int || static_cast<Type>(o->type) != Type::String)
+            return OverwriteResult::NotPossible;
+        if (o->expire_at_ms() != expire_at_ms) return OverwriteResult::NotPossible;
+        // The incoming footprint is the resident one; the disabled-feature tax is this branch.
+        if (__builtin_expect(maxmemory_enabled_, false)) {
+            if (!make_room_for(key, kvobj_size(o))) return OverwriteResult::MaxmemoryOom;
+            touch(o);
+        }
+        o->set_int_value(value);
+        return OverwriteResult::Updated;
     }
 
     // Variant B draws only inline String blocks from the owner-thread QSBR cache. Extern keeps its
@@ -2381,7 +2409,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;                     // EMPTY — the only stop
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) return o;
+            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2395,7 +2423,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) { slot = i; return o; }
+            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) { slot = i; return o; }
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2409,8 +2437,10 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return nullptr;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && hash_key(o->key()) == h &&
-                (o->flags & KvObjFlags::HasTtl)) return o;
+            // The flag is a byte on the object line the hash would read anyway; testing it first
+            // spares a full key hash on every non-TTL key that merely shares the 15-bit tag.
+            if (o && tag_of_word(w) == tag && (o->flags & KvObjFlags::HasTtl) &&
+                hash_key(o->key()) == h) return o;
             i = (i + 1) & mask_[t];
         }
         return nullptr;
@@ -2445,9 +2475,12 @@ private:
         return nullptr;
     }
 
-    bool insert_into(int t, uint64_t h, KvObj* o, bool track_expire) {
+    // `fresh` means a newly published object: charge its bytes and (re)register its deadline.
+    // The one false caller is rehash_step(), moving an object that is already charged and already
+    // indexed -- the slot word moves, nothing else does.
+    bool insert_into(int t, uint64_t h, KvObj* o, bool fresh) {
         if (__builtin_expect(read_local_enabled_, false))
-            return insert_into_read_local(t, h, o, track_expire);
+            return insert_into_read_local(t, h, o, fresh);
         const uint16_t tag = tag_of(h);
         const Slice    key = o->key();
         uint32_t i = slot_start(t, h);
@@ -2458,8 +2491,8 @@ private:
                 if (first_tomb >= 0) { tab_[t][first_tomb] = make_word(tag, o); tombs_[t]--; }
                 else                 { tab_[t][i] = make_word(tag, o); }
                 live_[t]++;
-                obj_bytes_ += kvobj_size(o);
-                if (track_expire) {
+                if (fresh) {
+                    obj_bytes_ += kvobj_size(o);
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
                     else                                  expires_.erase(h);
                 }
@@ -2467,14 +2500,14 @@ private:
             }
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
-            else if (tag_of_word(w) == tag && cur->key() == key) {
-                if (track_expire && (cur->flags & KvObjFlags::HasTtl) &&
+            else if (tag_of_word(w) == tag && kvobj_key_equals(cur, key)) {
+                if (fresh && (cur->flags & KvObjFlags::HasTtl) &&
                     cur->expire_at_ms() <= cached_now_ms_ && expired_counter_)
                     (*expired_counter_)++;
                 retire_obj(cur);                            // replace in place; live_ unchanged
-                obj_bytes_ += kvobj_size(o);
                 tab_[t][i] = make_word(tag, o);
-                if (track_expire) {
+                if (fresh) {
+                    obj_bytes_ += kvobj_size(o);
                     if (o->flags & KvObjFlags::HasTtl) expires_.insert(h);
                     else                                  expires_.erase(h);
                 }
@@ -2501,7 +2534,7 @@ private:
             const uint64_t w = tab_[t][i];
             if (w == 0) return false;
             KvObj* o = ptr_of(w);
-            if (o && tag_of_word(w) == tag && o->key() == key) {
+            if (o && tag_of_word(w) == tag && kvobj_key_equals(o, key)) {
                 if (was_expired) {
                     *was_expired = (o->flags & KvObjFlags::HasTtl) &&
                                    o->expire_at_ms() <= cached_now_ms_;
@@ -3467,10 +3500,12 @@ private:
 
     // Logical removal updates the live-store footprint immediately. Physical destruction is the
     // common case and pays one branch; registry work exists only while some wire borrow is live.
+    // The header is decoded once: the class computed for accounting is the sized-free length.
     void retire_obj(KvObj* o) {
-        const size_t bytes = kvobj_size(o);
+        const size_t capacity = kvobj_capacity(o);
+        const size_t bytes = capacity + kvobj_external_bytes(o);
         obj_bytes_ -= bytes;
-        if (outstanding_borrows_ == 0) { kvobj_free(o); return; }
+        if (outstanding_borrows_ == 0) { kvobj_free_with_capacity(o, capacity); return; }
         const char* ptr = (static_cast<Type>(o->type) == Type::String && !o->is_int())
                               ? o->str_data() : nullptr;
         const uint32_t at = ptr ? borrow_find(ptr) : kNoBorrow;
@@ -3479,7 +3514,7 @@ private:
             pending_bytes_ += bytes;
             return;
         }
-        kvobj_free(o);
+        kvobj_free_with_capacity(o, capacity);
     }
 
     // ---- incremental resize -----------------------------------------------------------------
@@ -3534,8 +3569,13 @@ private:
             rehash_step_read_local();
             return;
         }
-        uint32_t budget = kRehashSlotsPerOp;
-        while (budget && rehash_pos_ < cap_[1]) {
+        // The window's slot words share a cache line; the objects behind them do not, and every
+        // move needs one (hash_key(o->key()) -- the hash is not stored). Warm them together so the
+        // misses overlap instead of serializing, eight deep, inside one operation.
+        const uint32_t end = std::min(rehash_pos_ + kRehashSlotsPerOp, cap_[1]);
+        for (uint32_t i = rehash_pos_; i < end; i++)
+            if (const KvObj* o = ptr_of(tab_[1][i])) __builtin_prefetch(o, 0, 1);
+        while (rehash_pos_ < end) {
             const uint64_t w = tab_[1][rehash_pos_];
             if (KvObj* o = ptr_of(w)) {
                 // TOMBSTONE, not EMPTY. Writing 0 here would terminate any probe run passing
@@ -3543,11 +3583,12 @@ private:
                 // table for the rest of the rehash — a silent, transient, load-dependent miss.
                 tab_[1][rehash_pos_] = kTombBit;
                 live_[1]--; tombs_[1]++;
-                obj_bytes_ -= kvobj_size(o);                // insert_into adds it back
-                insert_into(0, hash_key(o->key()), o, false); // rehash from key: hash is not stored
+                // Already charged and already indexed: fresh=false moves only the slot word.
+                // A failure here would lose the key silently (its old slot is already a tomb);
+                // the load bound makes it unreachable, so fail loud, as the atomic exchange does.
+                if (!insert_into(0, hash_key(o->key()), o, false)) std::abort();
             }
             rehash_pos_++;
-            budget--;
         }
         if (rehash_pos_ >= cap_[1]) {
             std::free(tab_[1]);

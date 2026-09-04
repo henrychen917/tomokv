@@ -15,10 +15,10 @@
 //  3. NOTHING STORED THAT THE TABLE ALREADY HAS. FlatStore's slot carries a 15-bit tag, so no hash
 //     is kept here. Optional LRU/LFU state steals proven-spare header bits; it adds no field.
 //
-// BUDGET (this is a test, not an aspiration — see bench/kvobj_footprint):
+// BUDGET (an aspiration with no test behind it yet; there is no bench/kvobj_footprint in the tree):
 //   16-byte key + 64-byte value, no TTL  ->  target < 85 B all-in.
-//   Today: 8 + 16 + 64 = 88 B before the allocator's size class. Getting under the bar needs the
-//   varint header noted at TODO(density); doing it before the data path works would be premature.
+//   Today: 8 + 16 + 64 = 88 B before the allocator's size class (a 96 B class). Getting under the
+//   bar needs a narrower header (varint lengths); nothing in the tree tracks that yet.
 #pragma once
 #include <algorithm>
 #include <array>
@@ -296,6 +296,36 @@ static_assert(offsetof(KvObj, raw_vlen) == 1 && offsetof(KvObj, flags) == 2 &&
 #endif
 
 inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc enc);
+
+// Exact byte equality that keeps short keys off the memcmp PLT call (libc dispatch plus prologue
+// cost more than the compare itself at key lengths). Overlapping loads read [0,w) and [n-w,n), so
+// nothing outside either buffer is ever touched -- the request key lives in the connection read
+// buffer, where reading past the end is not an option. Above 16 bytes memcmp is the right tool.
+inline bool kvobj_bytes_equal(const char* a, const char* b, uint32_t n) {
+    if (n <= 16) {
+        if (n >= 8) {
+            uint64_t a0, b0, a1, b1;
+            std::memcpy(&a0, a, 8);         std::memcpy(&b0, b, 8);
+            std::memcpy(&a1, a + n - 8, 8); std::memcpy(&b1, b + n - 8, 8);
+            return ((a0 ^ b0) | (a1 ^ b1)) == 0;
+        }
+        if (n >= 4) {
+            uint32_t a0, b0, a1, b1;
+            std::memcpy(&a0, a, 4);         std::memcpy(&b0, b, 4);
+            std::memcpy(&a1, a + n - 4, 4); std::memcpy(&b1, b + n - 4, 4);
+            return ((a0 ^ b0) | (a1 ^ b1)) == 0;
+        }
+        for (uint32_t i = 0; i < n; i++)
+            if (a[i] != b[i]) return false;
+        return true;
+    }
+    return std::memcmp(a, b, n) == 0;
+}
+
+// The owner-path probe compare: same answer as `o->key() == key`, without the call.
+inline bool kvobj_key_equals(const KvObj* o, Slice key) {
+    return o->klen() == key.n && kvobj_bytes_equal(o->key_ptr(), key.p, key.n);
+}
 
 // Small collections follow this architecture's string-inline precedent while retaining Compact's
 // byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
@@ -1195,42 +1225,41 @@ inline void kvobj_prepare_read_local_raw_cells(KvObj* object) {
     }
 }
 
-// Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
-// external value block.
-inline size_t kvobj_size(const KvObj* o) {
-    size_t n = kvobj_capacity(o);
-    if (static_cast<Enc>(o->enc) != Enc::Extern) return n;
+// Bytes this object holds OUTSIDE its own block: the external string block or the collection's
+// backing structures. Zero for every inline encoding.
+inline size_t kvobj_external_bytes(const KvObj* o) {
+    if (static_cast<Enc>(o->enc) != Enc::Extern) return 0;
     switch (static_cast<Type>(o->type)) {
-        case Type::String: n += good_size(o->vlen); break;
+        case Type::String: return good_size(o->vlen);
         case Type::Hash:
-            n += static_cast<HashVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(HashVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<HashVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(HashVal)) - sizeof(CompactValue);
         case Type::List:
-            n += static_cast<ListVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(ListVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<ListVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(ListVal)) - sizeof(CompactValue);
         case Type::Set:
-            n += static_cast<SetVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(SetVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<SetVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(SetVal)) - sizeof(CompactValue);
         case Type::Zset:
-            n += static_cast<ZsetVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(ZsetVal)) - sizeof(CompactValue);
-            break;
+            return static_cast<ZsetVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(ZsetVal)) - sizeof(CompactValue);
         case Type::Stream:
-            n += static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
-                 good_size(sizeof(StreamVal)) - sizeof(CompactValue) +
-                 stream_groups_allocation_bytes(
-                     static_cast<StreamVal*>(o->external_ptr())->groups);
-            break;
+            return static_cast<StreamVal*>(o->external_ptr())->allocation_bytes() +
+                   good_size(sizeof(StreamVal)) - sizeof(CompactValue) +
+                   stream_groups_allocation_bytes(
+                       static_cast<StreamVal*>(o->external_ptr())->groups);
     }
-    return n;
+    return 0;
 }
 
-inline void kvobj_free(KvObj* o) {
-    if (!o) return;
-    const size_t n = good_size(kvobj_request_size(o));   // compute BEFORE the value block is released
+// Real footprint, for the store's resident estimate: the size CLASS, not the request, plus any
+// external value block.
+inline size_t kvobj_size(const KvObj* o) { return kvobj_capacity(o) + kvobj_external_bytes(o); }
+
+// `capacity` is kvobj_capacity(o), the class this block was requested at. The store computes it
+// for accounting on every retire; handing it back here saves decoding the header a second time on
+// the replace/delete path. A caller that has not already computed it uses kvobj_free().
+inline void kvobj_free_with_capacity(KvObj* o, size_t capacity) {
     if (static_cast<Enc>(o->enc) == Enc::Extern && (o->flags & KvObjFlags::OwnsExtern)) {
         void* ext = o->external_ptr();
         switch (static_cast<Type>(o->type)) {
@@ -1243,7 +1272,12 @@ inline void kvobj_free(KvObj* o) {
         }
     }
     // Sized free: ordinary free() has to look up how big the block was; we already know.
-    free_sized(o, n);
+    free_sized(o, capacity);
+}
+
+inline void kvobj_free(KvObj* o) {
+    if (!o) return;
+    kvobj_free_with_capacity(o, kvobj_capacity(o));   // compute BEFORE the value block is released
 }
 
 template <typename Sink>
