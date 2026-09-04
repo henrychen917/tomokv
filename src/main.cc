@@ -6,8 +6,6 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/un.h>
 #include <unistd.h>
 #include <csignal>
 #include <chrono>
@@ -30,6 +28,7 @@
 #include "core/genthread.h"
 #include "cmd/command.h"
 #include "cmd/acl.h"
+#include "net/unix_listener.h"
 #include "persist/aof.h"
 
 using namespace tomo;
@@ -214,45 +213,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    // The bind probe moved AFTER the boot load: no listener may exist until every owner has
-    // decoded its shard sections (see the post-load probe below).
-    int unix_listener = -1;
-    if (cfg.unixsocket && *cfg.unixsocket) {
-        struct stat st{};
-        if (::lstat(cfg.unixsocket, &st) == 0) {
-            if (!S_ISSOCK(st.st_mode)) {
-                std::fprintf(stderr, "refusing to replace non-socket unix path '%s'\n", cfg.unixsocket);
-                return 1;
-            }
-            sockaddr_un sa{};
-            sa.sun_family = AF_UNIX;
-            if (std::strlen(cfg.unixsocket) >= sizeof(sa.sun_path)) {
-                std::fprintf(stderr, "unixsocket path is too long\n");
-                return 1;
-            }
-            std::memcpy(sa.sun_path, cfg.unixsocket, std::strlen(cfg.unixsocket) + 1);
-            const int probe_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-            if (probe_fd < 0) { std::perror("socket unixsocket probe"); return 1; }
-            if (::connect(probe_fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) == 0) {
-                ::close(probe_fd);
-                std::fprintf(stderr, "unixsocket path '%s' is already accepting connections\n",
-                             cfg.unixsocket);
-                return 1;
-            }
-            const int connect_error = errno;
-            ::close(probe_fd);
-            if (connect_error != ECONNREFUSED && connect_error != ENOENT) {
-                errno = connect_error;
-                std::perror("connect unixsocket probe");
-                return 1;
-            }
-            if (::unlink(cfg.unixsocket) != 0) { std::perror("unlink unixsocket"); return 1; }
-        } else if (errno != ENOENT) {
-            std::perror("stat unixsocket"); return 1;
-        }
-        unix_listener = IoLoop::make_unix_listener(cfg.unixsocket, srv.cfg().tcp_backlog);
-        if (unix_listener < 0) { std::perror("bind unixsocket"); return 1; }
-    }
+    // The pathname and any not-yet-transferred fd have one lifetime owner. open() is deliberately
+    // called only after the persistence-load barrier in the selected runtime below.
+    LateUnixListener unix_listener(cfg.unixsocket);
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
@@ -408,6 +371,13 @@ int main(int argc, char** argv) {
         }
         ::close(probe);
     }
+    std::string unix_error;
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+        std::fprintf(stderr, "%s\n", unix_error.c_str());
+        for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        for (auto& thread : pool) thread.join();
+        return 1;
+    }
 
     const uint32_t unix_owner = srv.placement().ifid_threads().front();
     for (uint32_t tid : srv.placement().ifid_threads())
@@ -423,12 +393,19 @@ int main(int argc, char** argv) {
                     srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
                 return;
             }
-            const int unix_fd = tid == unix_owner ? unix_listener : -1;
             // Provision dormant EX first; active IO then republishes its own ring as the current
             // role endpoint. No runtime conversion can fail later for lack of a ring.
             if (!exs[tid].init(&srv, &self, true)) return;
-            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
-                               tls_context.get())) return;
+            if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
+                               tls_context.get(), true)) return;
+            if (tid == unix_owner && unix_listener.fd() >= 0) {
+                if (!ios[tid].attach_listener(unix_listener.fd())) {
+                    for (uint32_t i = 0; i < nthreads; i++)
+                        srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+                    return;
+                }
+                (void)unix_listener.release_fd();
+            }
             self.bind_io_role_hooks(
                 &ios[tid],
                 [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
@@ -466,7 +443,7 @@ int main(int argc, char** argv) {
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
+    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
     // The automatic split controller has exactly one writer: this main/monitor thread. Worker
@@ -481,8 +458,6 @@ int main(int argc, char** argv) {
     }
 
     for (auto& t : pool) t.join();
-    if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
-
     // All owners and readers are quiescent. Release pending-entry references before IoLoop destruction,
     // then return their deferred ScatterState arenas to the correct IO-owned pools. Server normally
     // outlives those pools, so leaving this to FlatStore destructors would leak the retained arenas.

@@ -8,6 +8,7 @@
 namespace tomo {
 
 class AofReplayPlan;
+class LateUnixListener;
 class Server;
 class SnapshotLoadPlan;
 class TlsContext;
@@ -15,6 +16,6 @@ class TlsContext;
 int run_fused_server(Server& server, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     int unix_listener);
+                     LateUnixListener& unix_listener);
 
 }  // namespace tomo

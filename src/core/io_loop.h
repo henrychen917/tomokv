@@ -195,6 +195,16 @@ public:
 
     Ring& ring() { return ring_; }
 
+    // Boot-only listener transfer. Persistence loading and IoLoop allocation/init can therefore
+    // complete before the AF_UNIX pathname starts accepting. The caller retains fd ownership on
+    // failure and releases it only after this method succeeds.
+    bool attach_listener(int fd) {
+        if (fd < 0 || !initialized_ || active_role_ || prepared_role_ || unix_listen_fd_ >= 0)
+            return false;
+        unix_listen_fd_ = fd;
+        return true;
+    }
+
     // Epoll can allocate kernel registration state. Reserve the actual destination registration
     // while the source still owns the connection; destination readiness events are owner-checked
     // and ignored until commit. io_uring has no per-fd destination registration to reserve.

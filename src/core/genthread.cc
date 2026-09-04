@@ -15,6 +15,7 @@
 #include "../base/alloc.h"
 #include "../cmd/acl.h"
 #include "../net/conn.h"
+#include "../net/unix_listener.h"
 #include "../persist/aof.h"
 #include "../snapshot/snapshot.h"
 #include "ex_loop.h"
@@ -69,7 +70,7 @@ void IoLoop::run_fused() {
 int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,
-                     int unix_listener) {
+                     LateUnixListener& unix_listener) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
@@ -116,9 +117,8 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             } else if (ok && load_plan) {
                 ok = snapshot_load_owned(*load_plan, srv, self, local_error);
             }
-            const int unix_fd = tid == unix_owner ? unix_listener : -1;
             if (ok)
-                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
+                ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
                                    tls_context, true);
             if (ok)
                 self.bind_io_role_hooks(
@@ -267,6 +267,20 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         stop_workers();
         return 1;
     }
+    std::string unix_error;
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+        std::fprintf(stderr, "%s\n", unix_error.c_str());
+        stop_workers();
+        return 1;
+    }
+    if (unix_listener.fd() >= 0) {
+        if (!ios[unix_owner].attach_listener(unix_listener.fd())) {
+            std::fprintf(stderr, "unix listener attach failed on t%u\n", unix_owner);
+            stop_workers();
+            return 1;
+        }
+        (void)unix_listener.release_fd();
+    }
     {
         std::lock_guard<std::mutex> lock(boot_mu);
         serve_start = true;
@@ -281,12 +295,10 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
 
     if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
     if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener >= 0) std::printf("listening on unix:%s\n", cfg.unixsocket);
+    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
     for (std::thread& worker : pool) worker.join();
-    if (cfg.unixsocket && *cfg.unixsocket) ::unlink(cfg.unixsocket);
-
     if (srv.read_local_enabled()) {
         // All fused readers have joined, so every queued callback is immediately safe. Empty the
         // bounded lists and disable their store hooks BEFORE atomic teardown: collapse can detach
