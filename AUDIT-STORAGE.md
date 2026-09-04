@@ -47,8 +47,11 @@ on, and one fewer hazard: an `Enc::Int` value is never borrowed (`cmd_get` copie
 unchanged (INCR preserves TTL; SET requires none). Added `try_overwrite_int`, gated
 `!read_local_enabled_` exactly like the in-place raw path (armed keeps immutable replacement).
 Expected: INCR family becomes allocation-free (−1 `mallocx`, −1 `sdallocx`, −1 probe, −2
-`kvobj_size`); SET of a numeric value on an existing numeric key likewise. Wire-identical; the one
-observable nuance is under `maxmemory-policy *lfu`: the old path RESET the LFU counter to 5 for
+`kvobj_size`); SET of a numeric value on an existing numeric key likewise in the clean TU. The
+notify TU keeps SET-of-integer on the replacement path, because there `insert_notify` is what
+reports `expired` before `new` and an armed SET has not probed yet (F18); its INCR family takes
+the in-place path, since the handler's `find_notify` already reported and reaped. Wire-identical;
+the one observable nuance is under `maxmemory-policy *lfu`: the old path RESET the LFU counter to 5 for
 every INCR (a fresh object gets `initialize_meta`, `:1427`), the new path increments it like redis
 `lookupKeyWrite` does. No test pins OBJECT FREQ after INCR (grepped `tests/`).
 
@@ -156,6 +159,17 @@ but the allocation-under-pressure is worth knowing.
 
 ### F17  Cleanliness (see §5)
 
+### F18  Armed SET reaps an elapsed key silently — LISTED (notify lane; pre-existing)
+In the notify TU `store_string_notify` (`t_string.cc:178-196`) calls `store_try_overwrite<true>`
+→ `try_overwrite_notify` (`flatstore.h:1057-1060`, which ignores its sink) → `try_overwrite` →
+`find_without_touch` → `live_or_expire`, which reaps an expired resident key with no event; the
+later `insert_notify` then finds no candidate and reports `new` without the `expired` redis emits
+first. `notify_execute_handler` (`notify.inc:290-299`) does not pre-expire. Untested
+(`tests/notify.py:474-479` drives lazy expiry through GET). Tonight's F2 deliberately keeps
+SET-of-integer on the replacement path in that TU so as not to widen this. Repro: `CONFIG SET
+notify-keyspace-events KEA`, `SET k v PX 20`, sleep 30 ms, `SET k w`; redis emits `expired` then
+`set`. Fix belongs to the notify lane: a sink-aware probe in `try_overwrite_notify`.
+
 ---------------------------------------------------------------------------------------------------
 
 ## 2. RESIZE / REHASH / MIGRATION — audit answers
@@ -208,7 +222,8 @@ Fixed tonight: F6 (silent key loss on an unreachable rehash failure → abort, m
 Listed with repro ideas: F12 (snapshot-prepare 100% load: 1 shard at 69% load, `DEBUG`-triggered
 prepare held open, then insert until `keyspace insert failed`; measure GET miss latency), F13
 (RANDOMKEY O(cap)), F15 (sidecar OOM undercount: `tests/flatstore_alloc_fail.py` shape aimed at the
-sidecar), F14 (`assert` live in release).
+sidecar), F14 (`assert` live in release), F18 (armed SET over an elapsed key drops the `expired`
+event; repro under F18).
 
 Checked and sound: size math — `kvobj_alloc_size` (`kvobj.h:720-732`) is `size_t` over inputs
 bounded by `kProtoMaxBulkLen` (`t_string.cc:60`); APPEND (`:686-690`), SETRANGE (`:768-772`),
@@ -254,26 +269,41 @@ is well-formed for an implicit-lifetime aggregate under C++20; every unaligned f
 
 ## 6. COMMITS (this branch, in order)
 
-1. `docs: AUDIT-STORAGE.md` — this file.
-2. `store: test SET same-length before size-class arithmetic; drop the zero-delta accounting pair`
-   (F1). Risk: none — identical end state; the memtier fixed-size SET cell is the beneficiary.
-3. `store: single header decode per retire/free; rehash accounting no longer nets a −=/+=` (F3, F4).
-   Risk: low — `kvobj_free_with_capacity` receives exactly the value `kvobj_free` recomputed.
-4. `store: TTL flag before key hash in find_hash_in` (F7). Risk: none.
-5. `store: rehash_step prefetches the window's objects and aborts on a lost key` (F5, F6). Risk:
-   low; the abort is unreachable by proof and matches the atomic path. Measure p99.99 during a
-   forced grow (`DEBUG RELOAD`-free: 1 shard, insert past 70% of cap) — the prefetch either shows
-   there or is deleted.
-6. `store: allocation-free in-place INCR/DECR/INCRBY/DECRBY and numeric SET on numeric keys
-   (unarmed)` (F2). Risk: moderate (new path); gated exactly like `try_overwrite`; LFU nuance
-   documented above. Differ (s6/differ.py exercise INCR/INCRBY/INCRBYFLOAT) is the wire check.
-7. `store: inline short-key compare in the owner probes` (F9). Risk: low on correctness, unknown
-   on measurement — own commit so it can be dropped alone.
-8. `docs: correct stale comments (NDEBUG, bench/kvobj_footprint, TODO(density))` (§5).
+Every commit was built pinned (`taskset -c 32-39,160-167 make -j8`) with the baseline's single
+pre-existing warning (`ex_loop.h:1066`) and no new one; the layout static_asserts (FlatStore 944,
+Shard 1440, Op 336, Client 1984, AtomicEntry 144, ThreadCtx 1408, Config 624) are compile-time and
+held on each (no field was added anywhere). No knob was added. Nothing was pushed.
 
-Every commit builds pinned with the baseline's one warning and no new one; the static_asserts
-(FlatStore 944, Shard 1440, Op 336, Client 1984, AtomicEntry 144, ThreadCtx 1408, Config 624) are
-compile-time and hold on every commit (no field added anywhere).
+1. 89c67b043 `docs: AUDIT-STORAGE.md` — first cut of this file.
+2. a0a2e0be9 `store: SET in-place overwrite tests same-length before the size-class arithmetic;
+   drop the zero-delta accounting pair` (F1). Risk: none — identical end state; the memtier
+   fixed-size SET cell is the beneficiary. Expected −40..110 instr on SET-overwrite.
+3. 0e60c84ed `store: decode the object header once per retire/free; rehash moves stop paying a
+   -=/+= that nets to zero` (F3, F4). Risk: low — `kvobj_free_with_capacity` receives exactly the
+   value `kvobj_free` recomputed; `fresh=false` has one caller. ~25 instr per replace/erase, ~50
+   per moved live slot.
+4. 4e42753fd `store: find_hash_in tests the TTL flag before recomputing the key hash` (F7).
+   Risk: none; cold path.
+5. d39db1cec `store: rehash_step warms the window's objects before moving them, and fails loud on
+   a lost key` (F5, F6). Risk: low; the abort is unreachable by the load-bound proof and matches
+   `flatstore_atomic.inc:1204`. Measure the write tail during a forced grow (1 shard, insert past
+   70% of capacity); the prefetch either shows on p99.99 or is deleted.
+6. c6a34fedc `store: allocation-free INCR/DECR/INCRBY/DECRBY and numeric SET over a numeric key
+   (unarmed owner path)` (F2). Risk: moderate (new path), gated `!read_local_enabled_` exactly
+   like `try_overwrite`; maxmemory admission mirrored; LFU nuance documented; notify-TU SET
+   deliberately left on replacement (F18). s6/differ.py exercise INCR/INCRBY/INCRBYFLOAT and
+   SET-of-integer; the evict battery covers maxmemory.
+7. b19d88e42 `store: owner probes compare short keys inline instead of through memcmp@PLT` (F9).
+   Verified exhaustively against memcmp behind PROT_NONE guard pages (lengths 0..40, every
+   differing byte position, two bit patterns: 1681 checks, 0 failures, no fault ⇒ no overread;
+   harness in the session scratchpad, not committed). Effect is a measurement question: instr/op
+   at matched rate on GET p32 / SET p32; drop this commit alone if it does not show.
+8. `docs: correct stale storage comments` (§5) — comments only.
+9. `docs: AUDIT-STORAGE.md final` — hashes, F18, evidence.
+
+Suggested gate order for the parent: build (release + ASAN), s6 differ vs the redis oracle,
+`tests/expireindex.py` (1 shard), `tests/evict_battery.py`, `tests/borrow_registry.py`,
+`tests/notify.py`, then the instr/op ladder on GET/SET p32 per commit (7 is the one to A/B alone).
 
 ---------------------------------------------------------------------------------------------------
 
