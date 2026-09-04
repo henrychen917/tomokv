@@ -1657,7 +1657,7 @@ void cmd_flip(Shard&, Op& op) {
 void cmd_info(Shard&, Op& op) {
     std::string body;
     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
-             evicted = 0, keyspace_rehashes = 0;
+             evicted = 0, keyspace_rehashes = 0, active_expire_reap_lag_ms_max = 0;
     uint64_t total_ops = 0, sampled_ops = 0, connections = 0, rejected = 0;
     uint64_t net_input_bytes = 0, net_output_bytes = 0, auth_failures = 0;
     uint64_t sends_submitted = 0, short_writes = 0, bytes_sent = 0,
@@ -1697,6 +1697,9 @@ void cmd_info(Shard&, Op& op) {
             hits += sh.stats().hits; misses += sh.stats().misses; expired += sh.stats().expired;
             evicted += sh.published_evicted();
             keyspace_rehashes += sh.stats().rehashes;
+            active_expire_reap_lag_ms_max = std::max(
+                active_expire_reap_lag_ms_max,
+                static_cast<uint64_t>(sh.published_active_expire_reap_lag_ms_max()));
             atomic_predecessor_reads += sh.stats().atomic_predecessor_reads;
             atomic_chain_max = std::max(atomic_chain_max, sh.stats().atomic_chain_max);
             atomic_promotions += sh.stats().atomic_promotions;
@@ -1775,7 +1778,9 @@ void cmd_info(Shard&, Op& op) {
         hits += read_local.keyspace_hits;
         misses += read_local.keyspace_misses;
     }
-    // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes.
+    // Apply the CONFIG RESETSTAT baseline to exactly the counters redis's RESETSTAT zeroes. The
+    // active-expiry lag value is an absolute lifetime high-water gauge, so it is deliberately not
+    // rebased: subtracting two maxima would no longer be a duration in milliseconds.
     StatBaseline baseline;
     {
         std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
@@ -2056,7 +2061,8 @@ void cmd_info(Shard&, Op& op) {
         const uint64_t sampled_rate = info_stats_sample_ops(sampled_ops);
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
-                      "expired_keys:%llu\r\nevicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
+                      "expired_keys:%llu\r\nactive_expire_reap_lag_ms_max:%llu\r\n"
+                      "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
                       "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
@@ -2143,6 +2149,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(connections), static_cast<unsigned long long>(rejected),
                 static_cast<unsigned long long>(total_ops), static_cast<unsigned long long>(hits),
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
+                static_cast<unsigned long long>(active_expire_reap_lag_ms_max),
                 static_cast<unsigned long long>(evicted),
                 static_cast<unsigned long long>(sampled_rate),
                 static_cast<unsigned long long>(expired_hash_fields),

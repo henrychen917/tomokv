@@ -612,7 +612,9 @@ bool externalize_set(Shard& shard, Op& op, KvObj*& object) {
     value->small_encoding = set_small_encoding(source);
     value->int_width = set_int_width(source);
     value->max_member_bytes = set_max_member_bytes(source);
-    KvObj* replacement = kvobj_new_set(object->key(), value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_set(object->key(), value,
+                                       shard.store().deadline(op.hash, object),
+                                       object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_err(op.sink(), "ERR out of memory");
@@ -1140,7 +1142,8 @@ XshardElementResult xshard_externalize_set(Shard& shard, Slice key, uint64_t has
     value->small_encoding = set_small_encoding(source);
     value->int_width = set_int_width(source);
     value->max_member_bytes = set_max_member_bytes(source);
-    KvObj* replacement = kvobj_new_set(key, value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_set(key, value, shard.store().deadline(hash, object),
+                                       object->has_ttl_slot());
     if (!replacement) {
         delete value;
         return XshardElementResult::Oom;

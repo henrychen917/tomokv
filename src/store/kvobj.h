@@ -33,6 +33,7 @@
 #include "../base/alloc.h"
 #include "../net/resp.h"
 #include "read_local_settax.h"
+#include "store_ttl.h"
 #include "typeval.h"
 
 namespace tomo {
@@ -56,6 +57,8 @@ static_assert(static_cast<uint8_t>(Enc::Compact) < (1u << 2),
               "selector 3 reserves two header bits for Enc");
 
 struct KvObjFlags {
+    // Physical layout bit: an eight-byte deadline slot follows klen_ext.  PERSIST writes -1 into
+    // that slot; logical volatility is KvObj::has_ttl(), not this bit alone.
     static constexpr uint8_t HasTtl = 1u << 0;
     static constexpr uint8_t KeyExt = 1u << 1;   // klen did not fit in 8 bits; u32 follows the hdr
     // Re-headering a collection moves this ownership bit to the replacement before FlatStore
@@ -156,6 +159,8 @@ struct KvObj {
 #endif
     }
 
+    bool has_ttl_slot() const { return (flags & KvObjFlags::HasTtl) != 0; }
+
     uint8_t eviction_meta() const { return static_cast<uint8_t>(flags >> 3); }
     void set_eviction_meta(uint8_t meta) {
         flags = static_cast<uint8_t>((flags & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
@@ -214,11 +219,13 @@ struct KvObj {
     const char* val_ptr() const { return key_ptr() + klen(); }
 
     int64_t expire_at_ms() const {
-        if (!(flags & KvObjFlags::HasTtl)) return -1;
+        if (!has_ttl_slot()) return -1;
         int64_t t;
         std::memcpy(&t, tail() + klen_ext_bytes(), 8);
         return t;
     }
+    bool has_ttl() const { return expire_at_ms() >= 0; }
+    TtlState ttl_state() const { return TtlState{expire_at_ms(), has_ttl_slot()}; }
     int64_t read_local_expire_at_ms(uint8_t stable_flags) const {
         if (!(stable_flags & KvObjFlags::HasTtl)) return -1;
         int64_t t;
@@ -295,7 +302,7 @@ static_assert(offsetof(KvObj, raw_vlen) == 1 && offsetof(KvObj, flags) == 2 &&
               "selector 3 must pack Raw length + sequence into the existing 8-byte header");
 #endif
 
-inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc enc);
+inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl_slot, Enc enc);
 
 // Small collections follow this architecture's string-inline precedent while retaining Compact's
 // byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
@@ -717,10 +724,10 @@ private:
 // Values at or below this live in the same block as the key. 192 was validated on the fork, but
 // against Redis's allocation shape rather than this one, so it is a starting point to re-measure —
 // it trades RSS against SET throughput.
-inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl, Enc enc) {
+inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl_slot, Enc enc) {
     size_t n = sizeof(KvObj);
     if (klen >= 255) n += 4;
-    if (has_ttl)     n += 8;
+    if (has_ttl_slot) n += 8;
     n += klen;
     switch (enc) {
         case Enc::Int:    n += 8; break;
@@ -832,9 +839,10 @@ inline Slice kvobj_string_value(const KvObj* object, KvObjRawReadBuffer& buffer)
 // holds it and this one keeps the pointer. Returns nullptr on OOM rather than throwing: the worker
 // loop reports an error reply instead of unwinding.
 inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
-                                    int64_t expire_at_ms = -1) {
+                                    int64_t expire_at_ms = -1,
+                                    bool reserve_ttl_slot = false) {
     if (!mem || val.n > kEmbedThreshold) return nullptr;
-    const bool has_ttl = expire_at_ms >= 0;
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     auto* o = ::new (mem) KvObj;
 #else
@@ -842,12 +850,12 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
 #endif
     o->type = static_cast<uint8_t>(Type::String);
     o->enc = static_cast<uint8_t>(Enc::Raw);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+    o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                     (key.n >= 255 ? KvObjFlags::KeyExt : 0));
     o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
     o->init_raw_length(val.n);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
     if (val.n) std::memcpy(o->val_ptr(), val.p, val.n);
     kvobj_prepare_read_local_raw_cells(o);
@@ -855,9 +863,10 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
 }
 
 inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
-                             int64_t expire_at_ms = -1) {
+                             int64_t expire_at_ms = -1,
+                             bool reserve_ttl_slot = false) {
     if (!mem) return nullptr;
-    const bool has_ttl = expire_at_ms >= 0;
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     auto* o = ::new (mem) KvObj;
 #else
@@ -865,30 +874,30 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
 #endif
     o->type = static_cast<uint8_t>(Type::String);
     o->enc = static_cast<uint8_t>(Enc::Int);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+    o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                     (key.n >= 255 ? KvObjFlags::KeyExt : 0));
     o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
     o->init_nonraw_length(0);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
     o->set_int_value(value);
     return o;
 }
 
 inline KvObj* kvobj_new_string(
-    Slice key, Slice val, int64_t expire_at_ms = -1
+    Slice key, Slice val, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     , uint64_t* allocation_attempts = nullptr
 #endif
 ) {
-    const bool  has_ttl = expire_at_ms >= 0;
+    const bool  has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     const Enc   enc     = (val.n <= kEmbedThreshold) ? Enc::Raw : Enc::Extern;
     // Request the CLASS-ROUNDED size explicitly. try_overwrite writes up to good_size(request),
     // which is only within the allocation if the allocation asked for it: on jemalloc the class
     // rounds up anyway (zero cost), on an exact allocator (ASAN, glibc) requesting the raw size
     // made that write a heap overflow -- a 3-byte corruption the gate's RYOW-under-ASAN caught.
-    const size_t n      = good_size(kvobj_alloc_size(key.n, val.n, has_ttl, enc));
+    const size_t n = good_size(kvobj_alloc_size(key.n, val.n, has_ttl_slot, enc));
 
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
@@ -897,7 +906,7 @@ inline KvObj* kvobj_new_string(
     if (!mem) return nullptr;
 
     if (enc == Enc::Raw) {
-        return kvobj_init_raw_string(mem, key, val, expire_at_ms);
+        return kvobj_init_raw_string(mem, key, val, expire_at_ms, reserve_ttl_slot);
     }
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     auto* o = ::new (mem) KvObj;
@@ -906,13 +915,13 @@ inline KvObj* kvobj_new_string(
 #endif
     o->type  = static_cast<uint8_t>(Type::String);
     o->enc   = static_cast<uint8_t>(enc);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+    o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                     (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
                                     KvObjFlags::OwnsExtern);
     o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
     o->init_nonraw_length(val.n);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(o->key_ptr(), key.p, key.n);
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
@@ -925,27 +934,28 @@ inline KvObj* kvobj_new_string(
 }
 
 inline KvObj* kvobj_new_int(
-    Slice key, int64_t value, int64_t expire_at_ms = -1
+    Slice key, int64_t value, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     , uint64_t* allocation_attempts = nullptr
 #endif
 ) {
-    const bool has_ttl = expire_at_ms >= 0;
-    const size_t n = good_size(kvobj_alloc_size(key.n, 0, has_ttl, Enc::Int));
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
+    const size_t n = good_size(kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     if (allocation_attempts) (*allocation_attempts)++;
 #endif
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
-    return kvobj_init_int(mem, key, value, expire_at_ms);
+    return kvobj_init_int(mem, key, value, expire_at_ms, reserve_ttl_slot);
 }
 
 inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t value_size,
-                                int64_t expire_at_ms = -1, bool owns = true) {
+                                int64_t expire_at_ms = -1, bool owns = true,
+                                bool reserve_ttl_slot = false) {
     if (type == Type::String || !value) return nullptr;
-    const bool has_ttl = expire_at_ms >= 0;
-    const size_t n = good_size(kvobj_alloc_size(key.n, value_size, has_ttl, Enc::Extern));
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
+    const size_t n = good_size(kvobj_alloc_size(key.n, value_size, has_ttl_slot, Enc::Extern));
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
@@ -956,13 +966,13 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
 #endif
     o->type = static_cast<uint8_t>(type);
     o->enc = static_cast<uint8_t>(Enc::Extern);
-    o->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+    o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                     (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
                                     (owns ? KvObjFlags::OwnsExtern : 0));
     o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
     o->init_nonraw_length(value_size);
     if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
-    if (has_ttl) o->set_expire_at_ms(expire_at_ms);
+    if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     std::memcpy(o->key_ptr(), key.p, key.n);
     o->set_external_ptr(value);
     return o;
@@ -970,12 +980,13 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
 
 inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& compact,
                                          uint64_t aux0 = 0, uint64_t aux1 = 0,
-                                         int64_t expire_at_ms = -1) {
+                                         int64_t expire_at_ms = -1,
+                                         bool reserve_ttl_slot = false) {
     if (type == Type::String || compact.encoded_bytes() > kCollectionEmbedMax) return nullptr;
-    const bool has_ttl = expire_at_ms >= 0;
+    const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     const uint32_t tail_bytes = static_cast<uint32_t>(sizeof(EmbeddedCompact) +
                                                        compact.encoded_bytes());
-    const size_t n = good_size(kvobj_alloc_size(key.n, tail_bytes, has_ttl, Enc::Compact));
+    const size_t n = good_size(kvobj_alloc_size(key.n, tail_bytes, has_ttl_slot, Enc::Compact));
     void* memory = alloc_raw(n);
     if (!memory) return nullptr;
 
@@ -986,12 +997,12 @@ inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& co
 #endif
     object->type = static_cast<uint8_t>(type);
     object->enc = static_cast<uint8_t>(Enc::Compact);
-    object->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+    object->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                          (key.n >= 255 ? KvObjFlags::KeyExt : 0));
     object->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
     object->init_nonraw_length(tail_bytes);
     if (key.n >= 255) { uint32_t length = key.n; std::memcpy(object->tail(), &length, 4); }
-    if (has_ttl) object->set_expire_at_ms(expire_at_ms);
+    if (has_ttl_slot) object->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(object->key_ptr(), key.p, key.n);
 
     EmbeddedCompact* embedded = embedded_compact(object);
@@ -1005,42 +1016,56 @@ inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& co
     return object;
 }
 
-inline KvObj* kvobj_new_hash(Slice key, HashVal* value, int64_t expire_at_ms = -1) {
-    return kvobj_new_typeval(key, Type::Hash, value, sizeof(*value), expire_at_ms);
+inline KvObj* kvobj_new_hash(Slice key, HashVal* value, int64_t expire_at_ms = -1,
+                             bool reserve_ttl_slot = false) {
+    return kvobj_new_typeval(key, Type::Hash, value, sizeof(*value), expire_at_ms, true,
+                             reserve_ttl_slot);
 }
-inline KvObj* kvobj_new_list(Slice key, ListVal* value, int64_t expire_at_ms = -1) {
-    return kvobj_new_typeval(key, Type::List, value, sizeof(*value), expire_at_ms);
+inline KvObj* kvobj_new_list(Slice key, ListVal* value, int64_t expire_at_ms = -1,
+                             bool reserve_ttl_slot = false) {
+    return kvobj_new_typeval(key, Type::List, value, sizeof(*value), expire_at_ms, true,
+                             reserve_ttl_slot);
 }
-inline KvObj* kvobj_new_set(Slice key, SetVal* value, int64_t expire_at_ms = -1) {
-    return kvobj_new_typeval(key, Type::Set, value, sizeof(*value), expire_at_ms);
+inline KvObj* kvobj_new_set(Slice key, SetVal* value, int64_t expire_at_ms = -1,
+                            bool reserve_ttl_slot = false) {
+    return kvobj_new_typeval(key, Type::Set, value, sizeof(*value), expire_at_ms, true,
+                             reserve_ttl_slot);
 }
-inline KvObj* kvobj_new_zset(Slice key, ZsetVal* value, int64_t expire_at_ms = -1) {
-    return kvobj_new_typeval(key, Type::Zset, value, sizeof(*value), expire_at_ms);
+inline KvObj* kvobj_new_zset(Slice key, ZsetVal* value, int64_t expire_at_ms = -1,
+                             bool reserve_ttl_slot = false) {
+    return kvobj_new_typeval(key, Type::Zset, value, sizeof(*value), expire_at_ms, true,
+                             reserve_ttl_slot);
 }
-inline KvObj* kvobj_new_stream(Slice key, StreamVal* value, int64_t expire_at_ms = -1) {
-    return kvobj_new_typeval(key, Type::Stream, value, sizeof(*value), expire_at_ms);
+inline KvObj* kvobj_new_stream(Slice key, StreamVal* value, int64_t expire_at_ms = -1,
+                               bool reserve_ttl_slot = false) {
+    return kvobj_new_typeval(key, Type::Stream, value, sizeof(*value), expire_at_ms, true,
+                             reserve_ttl_slot);
 }
 
 // Adopt helpers select the one-allocation compact form. On success ownership is consumed and the
 // caller's pointer is nulled; on failure it remains with the caller. This mirrors the old wrapper
 // ownership contract while making the representation choice explicit at the only attach point.
-inline KvObj* kvobj_adopt_hash(Slice key, HashVal*& value, int64_t expire_at_ms = -1) {
+inline KvObj* kvobj_adopt_hash(Slice key, HashVal*& value, int64_t expire_at_ms = -1,
+                               bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
         ? kvobj_new_embedded_typeval(key, Type::Hash, value->compact(),
-                                    value->compact_payload_bytes, value->random_state, expire_at_ms)
-        : kvobj_new_hash(key, value, expire_at_ms);
+                                    value->compact_payload_bytes, value->random_state, expire_at_ms,
+                                    reserve_ttl_slot)
+        : kvobj_new_hash(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
     return object;
 }
 
-inline KvObj* kvobj_adopt_list(Slice key, ListVal*& value, int64_t expire_at_ms = -1) {
+inline KvObj* kvobj_adopt_list(Slice key, ListVal*& value, int64_t expire_at_ms = -1,
+                               bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
-        ? kvobj_new_embedded_typeval(key, Type::List, value->compact(), 0, 0, expire_at_ms)
-        : kvobj_new_list(key, value, expire_at_ms);
+        ? kvobj_new_embedded_typeval(key, Type::List, value->compact(), 0, 0, expire_at_ms,
+                                     reserve_ttl_slot)
+        : kvobj_new_list(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
@@ -1053,60 +1078,69 @@ inline uint64_t pack_embedded_set_metadata(const SetVal& value) {
            (static_cast<uint64_t>(value.small_encoding) << 40);
 }
 
-inline KvObj* kvobj_adopt_set(Slice key, SetVal*& value, int64_t expire_at_ms = -1) {
+inline KvObj* kvobj_adopt_set(Slice key, SetVal*& value, int64_t expire_at_ms = -1,
+                              bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
         ? kvobj_new_embedded_typeval(key, Type::Set, value->compact(),
-                                    pack_embedded_set_metadata(*value), 0, expire_at_ms)
-        : kvobj_new_set(key, value, expire_at_ms);
+                                    pack_embedded_set_metadata(*value), 0, expire_at_ms,
+                                    reserve_ttl_slot)
+        : kvobj_new_set(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
     return object;
 }
 
-inline KvObj* kvobj_adopt_zset(Slice key, ZsetVal*& value, int64_t expire_at_ms = -1) {
+inline KvObj* kvobj_adopt_zset(Slice key, ZsetVal*& value, int64_t expire_at_ms = -1,
+                               bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
-        ? kvobj_new_embedded_typeval(key, Type::Zset, value->compact(), 0, 0, expire_at_ms)
-        : kvobj_new_zset(key, value, expire_at_ms);
+        ? kvobj_new_embedded_typeval(key, Type::Zset, value->compact(), 0, 0, expire_at_ms,
+                                     reserve_ttl_slot)
+        : kvobj_new_zset(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
     return object;
 }
 
-inline KvObj* kvobj_adopt_stream(Slice key, StreamVal*& value, int64_t expire_at_ms = -1) {
+inline KvObj* kvobj_adopt_stream(Slice key, StreamVal*& value, int64_t expire_at_ms = -1,
+                                 bool reserve_ttl_slot = false) {
     KvObj* object = value->encoding() == CollectionEncoding::Compact &&
                             value->compact().encoded_bytes() <= kCollectionEmbedMax
         ? kvobj_new_embedded_typeval(key, Type::Stream, value->compact(),
                                     value->header.last_id.ms, value->header.last_id.seq,
-                                    expire_at_ms)
-        : kvobj_new_stream(key, value, expire_at_ms);
+                                    expire_at_ms, reserve_ttl_slot)
+        : kvobj_new_stream(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) return nullptr;
     if (static_cast<Enc>(object->enc) == Enc::Compact) delete value;
     value = nullptr;
     return object;
 }
 
-// Creates the replacement header needed when HasTtl changes the positional layout. Strings are
-// copied because their bytes may be borrowed by a zero-copy send. Collections are single-owner and
-// move their external ownership in FlatStore::rewrite_expire().
+// Creates the immutable replacement needed by armed TTL changes. A first TTL adds the positional
+// slot; later changes retain it even when the logical deadline becomes -1. Strings are copied
+// because their bytes may be borrowed by a zero-copy send. Collections are single-owner and move
+// their external ownership in FlatStore::rewrite_expire().
 inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
     const Type type = static_cast<Type>(src->type);
+    const bool reserve_ttl_slot = src->has_ttl_slot();
     KvObj* replacement = nullptr;
     if (type == Type::String) {
         KvObjRawReadBuffer raw;
         replacement = src->is_int()
-            ? kvobj_new_int(src->key(), src->int_value(), expire_at_ms)
-            : kvobj_new_string(src->key(), kvobj_string_value(src, raw), expire_at_ms);
+            ? kvobj_new_int(src->key(), src->int_value(), expire_at_ms, reserve_ttl_slot)
+            : kvobj_new_string(src->key(), kvobj_string_value(src, raw), expire_at_ms,
+                               reserve_ttl_slot);
     } else if (static_cast<Enc>(src->enc) == Enc::Compact) {
         const EmbeddedCompact* embedded = embedded_compact(src);
         const Slice key = src->key();
-        const bool has_ttl = expire_at_ms >= 0;
+        const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
         const uint32_t tail_bytes = static_cast<uint32_t>(sizeof(EmbeddedCompact)) +
                                     embedded->encoded_bytes();
-        const size_t bytes = good_size(kvobj_alloc_size(key.n, tail_bytes, has_ttl, Enc::Compact));
+        const size_t bytes = good_size(
+            kvobj_alloc_size(key.n, tail_bytes, has_ttl_slot, Enc::Compact));
         void* memory = alloc_raw(bytes);
         if (!memory) return nullptr;
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -1116,7 +1150,7 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
 #endif
         replacement->type = src->type;
         replacement->enc = static_cast<uint8_t>(Enc::Compact);
-        replacement->flags = static_cast<uint8_t>((has_ttl ? KvObjFlags::HasTtl : 0) |
+        replacement->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
                                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
         replacement->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
         replacement->init_nonraw_length(tail_bytes);
@@ -1124,12 +1158,12 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
             const uint32_t length = key.n;
             std::memcpy(replacement->tail(), &length, sizeof(length));
         }
-        if (has_ttl) replacement->set_expire_at_ms(expire_at_ms);
+        if (has_ttl_slot) replacement->set_expire_at_ms(expire_at_ms);
         if (key.n) std::memcpy(replacement->key_ptr(), key.p, key.n);
         std::memcpy(embedded_compact(replacement), embedded, tail_bytes);
     } else {
         replacement = kvobj_new_typeval(src->key(), type, src->external_ptr(), src->vlen,
-                                        expire_at_ms, false);
+                                        expire_at_ms, false, reserve_ttl_slot);
     }
     return replacement;
 }

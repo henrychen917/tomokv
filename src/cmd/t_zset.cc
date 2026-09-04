@@ -1064,7 +1064,9 @@ bool externalize_zset(Shard& shard, Op& op, KvObj*& object) {
             return false;
         }
     }
-    KvObj* replacement = kvobj_new_zset(object->key(), value, object->expire_at_ms());
+    KvObj* replacement = kvobj_new_zset(object->key(), value,
+                                        shard.store().deadline(op.hash, object),
+                                        object->has_ttl_slot());
     if (!replacement) {
         delete value;
         reply_oom(op);
@@ -2448,7 +2450,9 @@ bool zset_sort_promote_one(Shard& shard, uint64_t hash, Slice key) {
         if (!moved) return false;
         for (const Compact::Entry entry : CollectionRef(object).compact())
             if (!moved->append(entry.value)) { delete moved; return false; }
-        KvObj* replacement = kvobj_new_zset(object->key(), moved, object->expire_at_ms());
+        KvObj* replacement = kvobj_new_zset(object->key(), moved,
+                                            shard.store().deadline(hash, object),
+                                            object->has_ttl_slot());
         if (!replacement) { delete moved; return false; }
         replacement->set_eviction_meta(object->eviction_meta());
         if (shard.store_insert<kNotify>(hash, replacement) != FlatStore::InsertResult::Inserted) {
@@ -2471,15 +2475,17 @@ void zset_sort_promote(Shard& shard, uint64_t hash, Slice key, bool notify) {
 
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
                                 bool read_stats, std::vector<ZsetEntry>& entries,
-                                int64_t& expire_at_ms) {
+                                int64_t& expire_at_ms, bool* reserve_ttl_slot) {
     entries.clear();
+    if (reserve_ttl_slot) *reserve_ttl_slot = false;
     KvObj* object = read_stats
         ? (notify ? shard.store_find_read<true>(hash, key)
                   : shard.store_find_read<false>(hash, key))
         : (notify ? shard.store_find<true>(hash, key) : shard.store().find(hash, key));
     if (!object) { expire_at_ms = -1; return ZsetOwnerResult::Missing; }
     if (static_cast<Type>(object->type) != Type::Zset) return ZsetOwnerResult::WrongType;
-    expire_at_ms = object->expire_at_ms();
+    expire_at_ms = shard.store().deadline(hash, object);
+    if (reserve_ttl_slot) *reserve_ttl_slot = object->has_ttl_slot();
     try {
         entries.reserve(CollectionRef(object).entries());
         if (!zset_walk(zset_value(object), [&](double score, Slice member) {
@@ -2494,7 +2500,8 @@ ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool not
 }
 
 ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
-                                   const std::vector<ZsetEntry>& entries, int64_t expire_at_ms) {
+                                   const std::vector<ZsetEntry>& entries, int64_t expire_at_ms,
+                                   bool reserve_ttl_slot) {
     if (entries.empty()) {
         if (notify) shard.store_erase<true>(hash, key, FlatStore::EraseEvent::None);
         else shard.store().erase(hash, key);
@@ -2514,7 +2521,7 @@ ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool 
             return ZsetOwnerResult::Oom;
         }
     }
-    KvObj* object = kvobj_adopt_zset(key, value, expire_at_ms);
+    KvObj* object = kvobj_adopt_zset(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) { delete value; return ZsetOwnerResult::Oom; }
     const FlatStore::InsertResult inserted = notify
         ? shard.store_insert<true>(hash, object)

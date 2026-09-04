@@ -34,15 +34,8 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
             store.atomic_clear_read_epoch();
             return WorkError::Oom;
         }
-        const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
-        const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
-                            static_cast<uint32_t>(image.payload.size()));
-        if (!hooks.load) {
-            store.atomic_clear_read_epoch();
-            return WorkError::Corrupt;
-        }
-        const SnapshotHookStatus loaded = hooks.load(key, image.encoding, image.expire_at_ms,
-                                                     payload, shard.type_limits(), clone);
+        const SnapshotHookStatus loaded = load_object_image(
+            key, image, shard.type_limits(), clone);
         if (loaded != SnapshotHookStatus::Ok || !clone) {
             store.atomic_clear_read_epoch();
             return loaded == SnapshotHookStatus::Oom ? WorkError::Oom : WorkError::Corrupt;
@@ -97,27 +90,20 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
         KvObjRawReadBuffer raw;
         clone = source->is_int()
             ? kvobj_new_int(op.arg(destination_key.arg), source->int_value(),
-                            destination.expire_at_ms)
+                            destination.expire_at_ms, source->has_ttl_slot())
             : xshard_make_string(op.arg(destination_key.arg),
                                  kvobj_string_value(source, raw),
-                                 destination.expire_at_ms, false);
+                                 destination.expire_at_ms, false,
+                                 source->has_ttl_slot());
     } else {
         if (!serialize_object(source, destination)) {
             group.error = WorkError::Oom;
         } else {
-            const SnapshotTypeHooks& hooks = snapshot_type_hooks(destination.type);
-            const Slice payload(reinterpret_cast<const char*>(destination.payload.data()),
-                                static_cast<uint32_t>(destination.payload.size()));
-            if (!hooks.load) {
-                group.error = WorkError::Corrupt;
-            } else {
-                const SnapshotHookStatus loaded = hooks.load(
-                    op.arg(destination_key.arg), destination.encoding,
-                    destination.expire_at_ms, payload, shard.type_limits(), clone);
-                if (loaded != SnapshotHookStatus::Ok || !clone)
-                    group.error = loaded == SnapshotHookStatus::Oom
-                        ? WorkError::Oom : WorkError::Corrupt;
-            }
+            const SnapshotHookStatus loaded = load_object_image(
+                op.arg(destination_key.arg), destination, shard.type_limits(), clone);
+            if (loaded != SnapshotHookStatus::Ok || !clone)
+                group.error = loaded == SnapshotHookStatus::Oom
+                    ? WorkError::Oom : WorkError::Corrupt;
         }
     }
     if (!clone || group.error != WorkError::None) {
@@ -189,17 +175,8 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
         if (key.stable_object) continue;
         KvObj* value = nullptr;
         if (image.present) {
-            const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
-            const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
-                                static_cast<uint32_t>(image.payload.size()));
-            if (!hooks.load) {
-                group.error = WorkError::Corrupt;
-                state.aborted.store(true, std::memory_order_release);
-                return ScatterTaskResult::Complete;
-            }
-            const SnapshotHookStatus loaded = hooks.load(
-                key_slice, image.encoding, image.expire_at_ms, payload,
-                shard.type_limits(), value);
+            const SnapshotHookStatus loaded = load_object_image(
+                key_slice, image, shard.type_limits(), value);
             if (loaded != SnapshotHookStatus::Ok || !value) {
                 group.error = loaded == SnapshotHookStatus::Oom
                     ? WorkError::Oom : WorkError::Corrupt;
@@ -931,16 +908,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
                     failure = WorkError::Oom;
                     break;
                 }
-                const SnapshotTypeHooks& hooks = snapshot_type_hooks(image.type);
-                const Slice payload(reinterpret_cast<const char*>(image.payload.data()),
-                                    static_cast<uint32_t>(image.payload.size()));
-                if (!hooks.load) {
-                    failure = WorkError::Corrupt;
-                    break;
-                }
-                const SnapshotHookStatus loaded = hooks.load(
-                    item.key, image.encoding, image.expire_at_ms, payload,
-                    shard.type_limits(), next.clone);
+                const SnapshotHookStatus loaded = load_object_image(
+                    item.key, image, shard.type_limits(), next.clone);
                 if (loaded != SnapshotHookStatus::Ok || !next.clone) {
                     failure = loaded == SnapshotHookStatus::Oom
                         ? WorkError::Oom : WorkError::Corrupt;

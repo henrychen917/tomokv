@@ -498,8 +498,9 @@ void cmd_geoadd(Shard& shard, Op& op) {
 
     std::vector<ZsetEntry> entries;
     int64_t expire_at_ms = -1;
+    bool reserve_ttl_slot = false;
     const ZsetOwnerResult read = zset_owner_read(shard, op.key(), op.hash, kNotify, false,
-                                                 entries, expire_at_ms);
+                                                 entries, expire_at_ms, &reserve_ttl_slot);
     if (read != ZsetOwnerResult::Ok && read != ZsetOwnerResult::Missing) {
         reply_owner_error(op, read); return;
     }
@@ -528,7 +529,8 @@ void cmd_geoadd(Shard& shard, Op& op) {
     } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
     if (added || changed) {
         const ZsetOwnerResult stored = zset_owner_replace(shard, op.key(), op.hash, kNotify,
-                                                          entries, expire_at_ms);
+                                                          entries, expire_at_ms,
+                                                          reserve_ttl_slot);
         if (stored != ZsetOwnerResult::Ok) { reply_owner_error(op, stored); return; }
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zadd, op.key());
