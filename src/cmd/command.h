@@ -107,6 +107,10 @@ struct CmdFlags {
     // narrower than Readonly: it admits only plain GET and MGET, then applies the remaining
     // connection/store gates to every routed key before either command enters the lane.
     static constexpr uint32_t ReadLocalEligible = 1u << 26;
+    // DEBUG SLEEP alone publishes a connection-local unfinished ROB slot and completes it from
+    // IoLoop's cold timer list. This bit does not make DEBUG generally deferred: all other DEBUG
+    // subcommands retain their synchronous control-plane path.
+    static constexpr uint32_t DebugSleep = 1u << 27;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

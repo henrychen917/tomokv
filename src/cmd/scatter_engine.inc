@@ -540,6 +540,10 @@ struct ScatterState : SnapshotCut {
     SortDerefState* sort_deref = nullptr;
     // Appended test-only state: do not move any production ScatterState member. The destination
     // shard is keys[1].shard; parking that phase-one validation leaves its executor available.
+    // The hop delay is armed only for the first non-atomic mutation wave spanning multiple owners.
+    // Every group on the lead owner may publish; other owners park in the existing deferred queue.
+    uint64_t debug_hop_deadline = 0;
+    uint32_t debug_hop_lead_owner = std::numeric_limits<uint32_t>::max();
     uint64_t debug_conditional_deadline = 0;
 };
 
@@ -639,6 +643,7 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                                        uint32_t owner_thread_id);
 ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, Op& op,
                                                uint32_t owner_thread_id);
+bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op);
 void finish_pfcount(ScatterState& state);
 bool finish_phase1(ScatterState& state, Op& op);
 void finish_phase2(ScatterState& state);
@@ -1043,6 +1048,28 @@ uint32_t initialize_owner_completion(ScatterState& state) {
     return owners;
 }
 
+// DEBUG's atomic-OFF half widens an already non-atomic physical publication gap; it must never
+// turn a read/probe wave into a delay. Classify the actual routed owners first, then load the shared
+// knob only for a mutation wave that spans more than one owner. A zero setting does no clock read
+// and installs no per-task deadline. The arena is published to tasks only after this returns.
+void arm_debug_off_hop_delay(ScatterState& state, const Op& op) {
+    // Forced children inside EXEC are atomic_group too: they must reach the parent's one-ticket
+    // atomic_commit_group boundary, where the same Server word supplies the ON delay.
+    if (state.atomic_group || !xshard_owner_mutation_phase(state, op) || state.nsub < 2) return;
+    const uint32_t delay_us = state.server->debug_hop_delay();
+    if (__builtin_expect(delay_us == 0, true)) return;
+    const uint32_t lead_owner = state.server->worker_of_shard(state.groups[0].shard);
+    bool cross_owner = false;
+    for (uint32_t i = 1; i < state.nsub; i++)
+        if (state.server->worker_of_shard(state.groups[i].shard) != lead_owner) {
+            cross_owner = true;
+            break;
+        }
+    if (!cross_owner) return;
+    state.debug_hop_lead_owner = lead_owner;
+    state.debug_hop_deadline = now_ns() + static_cast<uint64_t>(delay_us) * 1000ull;
+}
+
 template <bool IofusedPrivateQueue>
 uint32_t scatter_task_free_slots(ThreadCtx& owner, uint32_t producer) {
     if constexpr (IofusedPrivateQueue)
@@ -1117,7 +1144,7 @@ bool publish_sort_deref(Server& server, ThreadCtx& self, Ring& ring, const Task&
 }
 
 template <bool IofusedPrivateQueue>
-bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& task,
+bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& task, Op& op,
                     ScatterState& state) {
     reset_groups(state);
     build_groups(state, state.hop2, state.hop2_count);
@@ -1145,6 +1172,7 @@ bool publish_phase2(Server& server, ThreadCtx& self, Ring& ring, const Task& tas
         state.final_error = WorkError::Oom;
         return false;
     }
+    arm_debug_off_hop_delay(state, op);
     state.pending.store(initialize_owner_completion(state), std::memory_order_release);
     Task posts[256];
     uint16_t participant_begin[kMaxThreads];
@@ -1845,6 +1873,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     } else {
         build_initial_groups(*state);
     }
+    arm_debug_off_hop_delay(*state, op);
     // Only the deliberately non-atomic conditional controls arm this window. Atomic-ON movers use
     // destination reservation/revalidation and must retain their unmodified scheduling semantics.
     if (__builtin_expect(state->nsub > 1 && !state->atomic_apply &&
@@ -1931,8 +1960,6 @@ void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_
 }
 
 bool xshard_is_local(const Op& op) { return op.local_xshard(); }
-
-namespace { bool xshard_owner_mutation_phase(const ScatterState&, const Op&); }
 
 void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& context) {
     ScatterState& state = *task.scatter;
@@ -3624,7 +3651,7 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
     if (finish_phase1(state, op)) {
         return final();
     }
-    if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, state))
+    if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, op, state))
         return ScatterFinish::Waiting;
     return final();
 }
@@ -3763,6 +3790,7 @@ MultiChildFinish xshard_multi_child_complete(ScatterState& state, Op& op,
             state.owner_record_refs[slot].group_count = 0;
         }
     state.phase = 2;
+    arm_debug_off_hop_delay(state, op);
     state.pending.store(initialize_owner_completion(state), std::memory_order_release);
     return MultiChildFinish::PhaseAdvanced;
 }

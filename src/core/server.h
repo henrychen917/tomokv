@@ -385,6 +385,7 @@ public:
         return key_lb_signals_enabled() || client_lb_signals_enabled();
     }
 
+    bool flipctl_available() const { return cfg_.thread_mode == ThreadMode::Split; }
     bool flipctl_enabled() const { return flipctl_.enabled(); }
     uint32_t flipctl_tick_ms() const {
         return cfg_.lb_tick_ms ? cfg_.lb_tick_ms : std::max<uint32_t>(1, nthreads());
@@ -396,7 +397,14 @@ public:
     }
     void flipctl_force_trigger() { flipctl_.request_forced_trigger(); }
     FlipctlReport flipctl_report() const { return flipctl_.report(); }
-    std::string flipctl_debug_dump() const { return flipctl_.debug_dump(); }
+    std::string flipctl_debug_dump() const {
+        if (flipctl_available()) return flipctl_.debug_dump();
+        return "state=unavailable\nphase=fused\navailable=0\n"
+               "thread_mode=1s\nreason=threads_are_fused\n"
+               "fused_threads=" + std::to_string(nthreads()) +
+               "\nclient_threads=" + std::to_string(client_serving_thread_count()) +
+               "\nowner_threads=" + std::to_string(shard_owner_count()) + "\n";
+    }
 
     // Client observations are gathered by the connection owner once per second. ROB dispatch
     // deltas are the operation-rate signal; live in-flight depth is a floor so a deep connection
@@ -504,6 +512,43 @@ public:
     AofManager& aof() { return aof_; }
     const AofManager& aof() const { return aof_; }
     const ThreadCtx& thread(uint32_t i) const { return *threads_[i]; }
+
+    // Role is the split-mode loop state and deliberately remains Ifid/Ex. Capabilities are the
+    // mode-independent truth used by cold control/reporting surfaces: a fused thread serves
+    // clients AND owns shards even though its operational loop role is encoded as Ifid.
+    bool serves_clients(Role role) const {
+        return role != Role::Idle &&
+               (cfg_.thread_mode == ThreadMode::Fused || role == Role::Ifid);
+    }
+    bool owns_shards(Role role) const {
+        return role != Role::Idle &&
+               (cfg_.thread_mode == ThreadMode::Fused || role == Role::Ex);
+    }
+    bool serves_clients(uint32_t tid) const {
+        return tid < nthreads() && serves_clients(thread(tid).role());
+    }
+    bool owns_shards(uint32_t tid) const {
+        return tid < nthreads() && owns_shards(thread(tid).role());
+    }
+    uint32_t client_serving_thread_count() const {
+        uint32_t count = 0;
+        for (uint32_t tid = 0; tid < nthreads(); tid++) count += serves_clients(tid);
+        return count;
+    }
+    // "Owner" is the observable topology term: distinct tids currently named by shard rows. It
+    // can be smaller than the number of owner-capable threads when there are fewer shards.
+    uint32_t shard_owner_count() const {
+        bool seen[kMaxThreads] = {};
+        uint32_t count = 0;
+        for (uint32_t sid = 0; sid < nshards(); sid++) {
+            const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
+            if (owner < nthreads() && !seen[owner]) {
+                seen[owner] = true;
+                count++;
+            }
+        }
+        return count;
+    }
 
     static bool read_local_enabled(const Config& cfg) {
         return cfg.thread_mode == ThreadMode::Fused && cfg.overlap == 0 && cfg.read_local != 0;
@@ -1367,6 +1412,10 @@ public:
     }
     bool flip_begin(uint32_t target_io, uint32_t target_ex, uint32_t coordinator,
                     std::string& error) {
+        if (cfg_.thread_mode == ThreadMode::Fused) {
+            error = "ERR FLIP is unavailable with --thread-mode 1s: threads are fused";
+            return false;
+        }
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         const LbStage live_lb_stage = lb_stage();
         if (live_lb_stage == LbStage::ExDrain || live_lb_stage == LbStage::ClientDrain) {
@@ -2396,16 +2445,16 @@ public:
                !atomic_commit_safe_.compare_exchange_weak(
                    safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
     }
-    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is a
-    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY) that widens the closed window on demand; it is zero
-    // in production and the load is on an already-cold once-per-group path. `publish_members`
-    // lets a composite group install the SAME ticket into additional decision words before the
-    // safe watermark moves. Readers therefore still see either all of the ticket or none of it.
+    // The whole two-step for a group whose epoch word is `epoch`. The stall between the two is the
+    // atomic-ON use of DEBUG's shared hop delay: it widens the closed window on demand, is zero in
+    // production, and the load is on an already-cold once-per-group path. `publish_members` lets a
+    // composite group install the SAME ticket into additional decision words before the safe
+    // watermark moves. Readers therefore still see either all of the ticket or none of it.
     template <typename PublishMembers>
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch,
                                  PublishMembers&& publish_members) {
         const uint64_t ticket = atomic_commit_reserve();
-        const uint32_t stall = debug_atomic_commit_delay_.load(std::memory_order_relaxed);
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
         if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
         epoch.store(ticket, std::memory_order_release);
         publish_members(ticket);
@@ -2614,13 +2663,15 @@ public:
     void set_debug_atomic_direct_defer(uint32_t passes) {
         debug_atomic_direct_defer_.store(passes, std::memory_order_relaxed);
     }
-    // TEST HOOK (DEBUG ATOMIC-COMMIT-DELAY). Microseconds a group commit is held between drawing
-    // its ticket and storing that ticket into the shared epoch word. Zero in production; read only
-    // by atomic_commit_group(), a once-per-group cold path. It turns the reserve/publish hole into
-    // a window wide enough for a reader to straddle, which is how the torn MGET is reproduced on
-    // demand instead of once per 1.1M batches.
-    void set_debug_atomic_commit_delay(uint32_t microseconds) {
-        debug_atomic_commit_delay_.store(microseconds, std::memory_order_relaxed);
+    // TEST HOOK shared by DEBUG ATOMIC-COMMIT-DELAY and ATOMIC-OFF-HOP-DELAY. Atomic ON stalls a
+    // group between ticket draw and decision publication; atomic OFF parks non-lead owners at the
+    // first cross-owner mutation wave. Both aliases write this one word, so last writer wins and
+    // zero disarms both. Reads occur only on the cold group/scatter paths, never GET/SET.
+    uint32_t debug_hop_delay() const {
+        return debug_hop_delay_.load(std::memory_order_relaxed);
+    }
+    void set_debug_hop_delay(uint32_t microseconds) {
+        debug_hop_delay_.store(microseconds, std::memory_order_relaxed);
     }
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER). Microseconds every fragment of a cross-shard READ
     // except the one on its lead shard is PARKED -- re-queued, not spun -- after the command is
@@ -3299,7 +3350,7 @@ private:
     std::atomic<uint64_t> atomic_apply_inflight_{0};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
-    std::atomic<uint32_t> debug_atomic_commit_delay_{0};
+    std::atomic<uint32_t> debug_hop_delay_{0};
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};
     std::atomic<uint32_t> debug_script_stage_defer_{0};

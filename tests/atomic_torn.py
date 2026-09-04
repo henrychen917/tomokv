@@ -650,17 +650,19 @@ note("DEBUG SHARD/LBSIGNALS geometry resolved", True,
      "same_shard=%d source_owner=%d destination_owner=%d" %
      (geometry["source_shard"], geometry["source_owner"], geometry["destination_owner"]))
 
-# Gate-open proof: the test must actually catch the old first-hop physical tear.
-off_torn, off_reads, off_errors, _, _, off_threads_still_alive = hammer(
-    "at:off", 0, seconds=3.0, writers=4, readers=8, keys=wide_keys)
-if off_torn == 0 and not off_errors and not off_threads_still_alive:
-    skip("OFF control exposes torn MSET-8",
-         "clean run, no tear manifested in %d reads (kernel-timing geometry)" % off_reads)
-else:
-    note("OFF control exposes torn MSET-8",
-         off_torn > 0 and not off_errors and not off_threads_still_alive,
-         "torn=%d reads=%d errors=%r threads_still_alive=%r" %
-         (off_torn, off_reads, off_errors, off_threads_still_alive))
+# Gate-open proof: the OFF alias parks non-lead mutation owners, turning the former kernel-timing
+# lottery into one directed publication window. Always disarm because this is the same word used by
+# the ON commit-boundary hook below.
+debug("ATOMIC-OFF-HOP-DELAY", 100000)
+try:
+    off_torn, off_reads, off_errors, _, _, off_threads_still_alive = hammer(
+        "at:off", 0, seconds=1.0, writers=2, readers=4, keys=wide_keys)
+finally:
+    debug("ATOMIC-OFF-HOP-DELAY", 0)
+note("OFF control exposes torn MSET-8",
+     off_torn > 0 and off_reads > 0 and not off_errors and not off_threads_still_alive,
+     "torn=%d reads=%d errors=%r threads_still_alive=%r" %
+     (off_torn, off_reads, off_errors, off_threads_still_alive))
 
 # Main atomic arm. Hold ticket publication open on demand: this makes both the safe-cut hold and
 # predecessor lookup deterministic instead of asking ordinary cleanup timing to expose them.
@@ -723,24 +725,20 @@ note("promotion leaves one exact final group",
      "final=%r completed=%d threads_still_alive=%r" %
      (ov_final, len(ov_completed), ov_threads_still_alive))
 
-# Broadened movers: RENAME publishes the source tombstone and destination image with one ticket.
-# The pair is independently proved cross-owner; OFF tearing validates only the detector.
-rename_off = None
-for _roll in range(4):
+# Broadened movers: RENAME publishes source and destination on distinct owners. Widen exactly that
+# OFF mutation wave once; no reroll or scheduling skip is permitted.
+debug("ATOMIC-OFF-HOP-DELAY", 100000)
+try:
     rename_off = rename_hammer("at:rename-off", 0, mover_pair, seconds=1.0)
-    if rename_off[0] > 0 or rename_off[2] or rename_off[4]:
-        break
+finally:
+    debug("ATOMIC-OFF-HOP-DELAY", 0)
 rename_on = None
 if not rename_off[2] and not rename_off[4]:
     rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
-if rename_off[0] == 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4]:
-    skip("OFF control exposes torn RENAME",
-         "clean run, no torn image in %d reads (kernel-timing geometry)" % rename_off[1])
-else:
-    note("OFF control exposes torn RENAME",
-         rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4],
-         "invalid=%d reads=%d errors=%r threads_still_alive=%r" %
-         (rename_off[0], rename_off[1], rename_off[2], rename_off[4]))
+note("OFF control exposes torn RENAME",
+     rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2] and not rename_off[4],
+     "invalid=%d reads=%d errors=%r threads_still_alive=%r" %
+     (rename_off[0], rename_off[1], rename_off[2], rename_off[4]))
 if rename_on is None:
     skip("ON RENAME/MGET has exactly one live image", "OFF discovery did not complete cleanly")
 else:
