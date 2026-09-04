@@ -268,6 +268,11 @@ physical (uncharged) at that time. Nothing found that could drive `atomic_gauge_
 
 ## 5. Changes made tonight (each its own commit; what / why / expected effect / risk)
 
+Commit order on `t-night-atomics`: 1 audit doc, 2 S1 fix, 3 S2 fix, 4 regression test
+`tests/atomic_hazards.py` (both sections; run against `--atomic 1 --enable-debug-command yes`, not
+yet registered in tests/gate.sh — gate.sh is shared infrastructure, left for the owner), 5 E1 fix,
+6 D1+D2 diet, 7 this document's ideas re-rank.
+
 1. **AUDIT-ATOMICS.md** (this file).
 2. **S1 fix — `atomic_tombstone_all` restores the read context.** What: save
    `atomic_read_epoch_/atomic_read_origin_conn_id_` before the tombstone install loop, restore after.
@@ -275,7 +280,7 @@ physical (uncharged) at that time. Nothing found that could drive `atomic_gauge_
    the fresh clone visible to the handler) and FLUSH inherited that side effect. Effect: no
    behaviour change on any bracketed path; unbound reads after FLUSH/DEBUG RELOAD resolve at
    "latest" again. Risk: nil — two scalar saves/restores on a cold path (FLUSH with live records).
-   Test: `tests/atomic_hazards.py` §1.
+   Test: `tests/atomic_hazards.py` S1 section.
 3. **S2 fix — XREAD/XREADGROUP key enumeration.** What: `for_each_touched_key` parses XREAD
    (`stream_parse_xread`) / XREADGROUP (`stream_parse_xreadgroup`) key ranges instead of passing
    `xread_count = 0`; `xshard_local_snapshot_prepare` gates XREADGROUP's stream key. Why: the
@@ -285,7 +290,7 @@ physical (uncharged) at that time. Nothing found that could drive `atomic_gauge_
    its origin conn (RYOW restored); XREADGROUP during BGSAVE takes a pre-image like XADD does.
    Risk: low — the parser already succeeded on IO for every op that can reach these functions; the
    cost is one option-word scan per XREAD on shards that have records (or carry a hazard).
-   Test: `tests/atomic_hazards.py` §2.
+   Test: `tests/atomic_hazards.py` S2 section (DEL and EXEC{XADD} shapes, armed + unarmed control).
 4. **E1 fix — NX validator probes instead of scanning.** What: new public
    `FlatStore::atomic_has_physical(hash, key)` (wraps the existing private `atomic_find_physical`,
    which probes both tables exactly as `for_each` visits both), used in `execute_atomic_apply`.
@@ -324,66 +329,123 @@ atomic_mvcc.h:54; `ScatterState` arena fit asserted at scatter_engine.inc:519).
 
 ## 7. ARCHITECTURAL / ALGORITHMIC IDEAS (not implemented)
 
-Each idea: what, why it might pay, and one line on how it respects the owner's design philosophy
-(single-owner writes / no shared-writer index; reads never obstructed — immutable replacement +
-QSBR, no reader retries or seqlocks; no in-place overwrite while read-local is armed; numeric knobs
-0=off/-1=auto with self-derived thresholds; main commands zero-regression; hardcode-or-delete;
-one file per feature).
+Owner's measured fact (2026-09-03): at atomic 1 an 8-key MSET/MGET 9:1 mix is
+GROUP-LATENCY-BOUND — off ≈ on at 2.43M cmds/s even with 97% of MGETs served locally. The
+cross-shard commit round-trip × in-order reply retirement pins each connection's pipe, so the
+lever is a cheaper / shorter group commit. The ideas below are therefore ranked by how much of
+the group's critical path they remove, not by instruction count.
 
-7.1 **Pre-counted `record_refs` (drop one contended RMW per owner per group).** Today every
-    installing executor does `record_refs.fetch_add(1)` (2582, glue 283, multi.inc:823) on the
-    ScatterState header line that all owners are also `pending.fetch_sub`-ing, and cleanup later
-    `fetch_sub`s it. Pre-setting `record_refs = participating executors` at prepare (IO side, plain
-    store before publication) turns the install-time add into nothing and requires only that an
-    executor which installs NOTHING (abort/MSETNX-fail/zero installed) decrements once. Saves ~1 of
-    ~3 header-line transfers per owner per MSET; needs the never-dispatched teardown arm
-    (`xshard_destroy` before any owner ran) to zero it so `defer_destroy` cannot leak. Philosophy:
-    pure accounting on the single-owner path; readers untouched; no knob; zero-regression by
-    construction on non-atomic commands (they carry no records).
+The critical path of one MSET-8 today, from the code: IO prepare + 8 task posts → each owner:
+dequeue, install, `remaining--`, `pending.fetch_sub` (ScatterState header line, all 8 owners)
+→ LAST owner: `atomic_commit_group` = `atomic_commit_inflight_.fetch_add` +
+`commit_seq_.fetch_add` (two server-global seq_cst RMWs) + `epoch.store` + `commit_seq_.load` +
+`inflight_.fetch_sub` + CAS loop on `atomic_commit_safe_` (server.h:2418-2441) → `final()`:
+`apply_open.exchange` + `atomic_apply_inflight_.fetch_sub` (server-global, server.h:2637-2641)
+→ Done → IO wake → ROB-ordered retire. That is six RMWs on three server-global lines per group,
+four of them on the last owner's critical path, plus the group-open
+`atomic_apply_inflight_.fetch_add` on IO (xshard_prepare 1738) and the per-IO lease accounting
+(`atomic_try_admit` 2318-2373 / `atomic_retire_group` 2375). Every global line is shared by every
+committing executor on the box, so their cost scales with the commit rate, not with the group.
 
-7.2 **Split the ScatterState hot header.** `pending`, `epoch`, `record_refs`, `watch_refs`,
-    `aborted` (367-376) share one line. Every resolver on every owner loads `epoch` through
+What is NOT the lever: the per-key owner work (§1.1) is the inherent materialize/probe/account
+triple, and the IO diets landed tonight (D1/D2) shave instructions off a stage that is not the
+long pole — they should show up in IO instr/op, not in the 9:1 number. The in-order ROB is a
+RESP constraint (one slow group holds p−1 cheap MGET replies); "reads never obstructed" is a
+store rule, not a wire rule, so out-of-order retirement is not an option and shortening the group
+is the only wire-side lever.
+
+Each idea: what / why it pays / one line on how it respects the owner's design philosophy
+(single-owner writes, no shared-writer index — "no garnet 2.0"; reads never obstructed —
+immutable replacement + QSBR, no reader retries or seqlocks; no in-place overwrite while
+read-local is armed; numeric knobs 0=off/-1=auto with self-derived thresholds; main commands
+zero-regression; hardcode-or-delete; one file per feature).
+
+7.1 [commit path: −2 server-global RMWs per group, one of them on the last owner]
+    **Per-thread `atomic_apply_inflight_`.** `atomic_apply_open/close` exist only so the BGSAVE
+    cut can wait for in-flight applies (`atomic_apply_inflight()`, server.h:2629), a cold reader.
+    Keep the per-group `apply_open` flag but count opens/closes in per-thread slots (the read
+    floors and snapshot completions are already per-thread arrays, server.h:334-336) and let the
+    snapshot barrier sum them under its existing generation handshake. Open lands on the IO's own
+    line, close on the last owner's own line; the global line disappears from the commit path.
+    Philosophy: accounting only, readers untouched, no knob, zero-regression (non-atomic commands
+    never touch it), lives in server.h/scatter_engine.inc (one feature, one file each).
+
+7.2 [commit path: −(k−1)×4 server-global RMWs per k groups committed in one owner pass]
+    **Executor-pass commit batching.** An executor that is the last owner of k groups inside one
+    EX pass (buffered E2 batches make this the common case under pipelining) runs k full brackets.
+    Reserve k tickets with one `commit_seq_.fetch_add(k)` under one `inflight_` bracket, store the
+    epochs in completion order, publish once. Readers are unchanged: each group still flips
+    0→ticket individually and the safe watermark moves once to the highest published ticket; AOF
+    still receives one ticket per group. Needs a per-pass "commit intent" list flushed at pass end
+    (`xshard_complete_impl` + ex_loop.h pass boundary, the latter is the ex-sched lane).
+    Philosophy: last-owner-only work; visibility rules identical; batch size is whatever the pass
+    produced (no knob, nothing to tune); zero-regression for single-group passes (k=1 is today).
+
+7.3 [commit path: fewer cross-core hops and completion RMWs when shards > executors]
+    **One task per executor per group (executor-major posting).** Groups are per shard, so an
+    executor owning three of a group's shards receives three posts, three dequeues, three
+    `remaining--` and three `pending.fetch_sub`. Posting one task per participating executor with
+    its shard list (the arena already carries `shard_groups[]`) collapses those to one each. On
+    64 shards / 64 threads it is 1:1 today and changes nothing; on 16c nodes (8 executors, more
+    shards) it removes real hops from the critical path — and applies to MGET fan-out equally.
+    Touches io_loop.h posting and ex_loop.h execute (other lanes). Philosophy: single-owner writes
+    untouched (still exactly one executor per shard); hardcoded shape; zero-regression at 1:1.
+
+7.4 [commit path: single-executor groups only]
+    **Single-owner fast arm.** When every shard of a group is owned by one executor (2-key groups
+    on 16-shard / 8-executor placements often are), the two-level completion (3436-3443) and the
+    full bracket still run although no other thread can observe an intermediate state; a
+    single-owner arm can complete with plain stores and one release `epoch.store` (the global
+    ticket draw remains — it is the serialization point). Philosophy: single-owner writes made
+    explicit; readers see the same 0→ticket flip; no knob.
+
+7.5 [owner path: −1 contended state-line RMW per owner per group]
+    **Pre-counted `record_refs`.** Every installing executor does `record_refs.fetch_add(1)`
+    (2582, glue 283, multi.inc:823) on the header line all owners are also `pending.fetch_sub`-ing,
+    and cleanup later `fetch_sub`s it. Pre-setting `record_refs = participating executors` at
+    prepare (plain store before publication) removes the install-time RMW; an executor that
+    installs nothing (abort / MSETNX miss / zero installed) decrements once instead, and the
+    never-dispatched teardown arm of `xshard_destroy` must zero it so `defer_destroy` cannot leak.
+    Not on the last owner's serial path, hence ranked below 7.1-7.4. Philosophy: pure accounting
+    on the single-owner path; readers untouched; no knob.
+
+7.6 [read path, not latency]
+    **Split the ScatterState hot header.** `pending`, `epoch`, `record_refs`, `watch_refs`,
+    `aborted` (367-376) share one line; every resolver on every owner loads `epoch` through
     `group_epoch` (atomic_mvcc.h:138) while completing owners RMW `pending`/`record_refs` on the
-    same line; moving `epoch`+`aborted` (read-mostly) to their own line makes the read side a
-    shared-state hit instead of a bouncing line. Arena-only layout change (ScatterState is not in
-    the lock set; the 16 KiB MGET-8 fit assert at 519 must hold). Philosophy: reads never
-    obstructed — this removes a write-side line bounce from the read path without touching
-    visibility.
+    same line. Moving the read-mostly pair (`epoch`, `aborted`) to their own line turns resolver
+    loads into shared-state hits. Arena-only layout (ScatterState is not in the lock set; the
+    16 KiB MGET-8 fit at 519 must hold). Philosophy: reads never obstructed — removes a
+    write-side line bounce from the read path without touching visibility.
 
-7.3 **DEL groups without a per-key anchor allocation.** DEL/UNLINK allocate one `KvObj` per key
-    (2638) whose only job is to own the key bytes for `xshard_atomic_key_slice`. Alternatives:
-    (a) give group entries a variable-length key-bytes tail like plain entries (`plain_key_data`),
-    sized at `atomic_prepare_group` from the span's total key bytes — one allocation per owner span
-    instead of one per key; (b) arena-carve the anchors in `xshard_prepare` (IO side, one block).
-    Both keep the record immutable and owner-written. Philosophy: single-owner writes preserved;
-    hardcode (one layout), no knob; MGET/MSET unaffected (zero-regression on main commands).
+7.7 [owner path, DEL/UNLINK only]
+    **DEL groups without a per-key anchor allocation.** DEL/UNLINK allocate one `KvObj` per key
+    (2638) only to own the key bytes for `xshard_atomic_key_slice`. Either give group entries a
+    variable-length key-bytes tail like plain entries (`plain_key_data`), sized at
+    `atomic_prepare_group` from the span's total key bytes (one allocation per owner span), or
+    arena-carve the anchors on IO in `xshard_prepare` (one block). Philosophy: record stays
+    immutable and owner-written; one layout, no knob; MGET/MSET unaffected.
 
-7.4 **One collapse attempt per owner pass instead of one `atomic_promote_key` per key.**
-    `xshard_execute` calls `atomic_promote_key` per key (2514-2532) and `xshard_plain_prepare` per
-    touched key (913, 1019); each is a membership-filtered list walk plus a prefix scan, but
-    `atomic_collapse` is key-agnostic (it reclaims the whole eligible prefix regardless of which key
-    asked). Hoisting to "walk once, collapse once if anything is eligible" per owner task would cut
-    k-1 list walks for a k-key group on a tracked shard. Read-side adjacent (touches the promotion
-    trigger next to B+'s filter), so an idea only. Philosophy: cleanup stays owner-local and
-    off the reader's critical path; no semantics change (same prefix reclaimed).
+7.8 [cleanup, owner-local]
+    **One collapse attempt per owner pass instead of one `atomic_promote_key` per key.**
+    `xshard_execute` (2514-2532) and `xshard_plain_prepare` (913, 1019) promote per key, each a
+    membership-filtered walk plus a prefix scan, but `atomic_collapse` is key-agnostic — it
+    reclaims the whole eligible prefix whoever asks. "Walk once, collapse once if anything is
+    eligible" per owner task cuts k−1 walks for a k-key group on a tracked shard. Adjacent to the
+    read-side filter (B+), so an idea only. Philosophy: cleanup stays owner-local and off the
+    reader's critical path; same prefix reclaimed.
 
-7.5 **Exchange-or-insert in one probe run.** For a NEW key `atomic_exchange_physical` probes to an
-    empty slot, returns nullptr, and `insert_into` (1209) probes again from the start remembering
-    the first tombstone. A single run that records first-tombstone and terminal-empty and inserts
-    directly halves probe work on new-key installs. Touches the table insert discipline that the
-    read-local twin mirrors, so it belongs with B+ or after B+ lands. Philosophy: no reader impact;
-    identical table state; zero-regression on SET (which uses `insert()`, not this path).
+7.9 [table insert]
+    **Exchange-or-insert in one probe run.** For a NEW key `atomic_exchange_physical` probes to an
+    empty slot, returns nullptr, and `insert_into` (1209) probes again remembering the first
+    tombstone; one run that records first-tombstone and terminal-empty halves probe work on
+    new-key installs. The read-local twin mirrors this discipline, so it belongs with or after B+.
+    Philosophy: identical table state; no reader impact; SET (`insert()`) untouched.
 
-7.6 **One key-position oracle.** `for_each_touched_key`, `xshard_local_snapshot_prepare` and
-    `key_count_for/key_arg_for` each re-derive "which argv are keys" per Kind. S2 is the drift they
-    permit. A single `classify_keys(op) -> span list` consumed by all three (routing on IO, fence and
-    COW on owners) removes the class of bug. It changes `classify()` ownership (command registry
-    adjacent), hence not tonight. Philosophy: one file per feature (the oracle lives with classify),
-    hardcode-or-delete (no per-command tables in three places).
-
-7.7 **Cheaper group commit for single-executor groups.** When every shard of a group is owned by
-    one executor (16-shard/8-executor placements make this common for 2-key groups), the
-    `pending`/`remaining` two-level completion (3436-3443) and the commit bracket still run their
-    atomics although no other thread can observe the intermediate state; a "single owner" fast arm
-    could commit with plain stores plus one release store of `epoch`. Philosophy: single-owner
-    writes made explicit; readers unchanged (they still see epoch 0 -> ticket); no knob.
+7.10 [robustness]
+    **One key-position oracle.** `for_each_touched_key`, `xshard_local_snapshot_prepare` and
+    `key_count_for/key_arg_for` each re-derive "which argv are keys" per Kind; S2 is the drift
+    they permit. A single `classify_keys(op) -> spans` consumed by routing (IO), the fence and the
+    COW gate (owners) removes the bug class; it moves `classify()` ownership (command registry
+    adjacent), hence not tonight. Philosophy: one file per feature; hardcode-or-delete (no
+    per-command tables in three places).
