@@ -2480,17 +2480,24 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch here,
-        // once per batch of up to kExecBatch ops. No clock is read and the recorder is not linked
-        // into this loop at all. The armed body is out of line in exec_batch_timed().
-        if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed<IofusedPrivateQueue>(batch, n);
-        } else {
-            for (uint32_t i = 0; i < n; i++) {
-                if (execute<IofusedPrivateQueue>(batch[i])) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                break;
+        {
+            // Completion notification is coalesced over this loop and flushed when the scope
+            // closes -- before the publish and reclamation work below, so the io is not made to
+            // wait on either.
+            NotifyBatchScope notify_batch(this);
+            // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch
+            // here, once per batch of up to kExecBatch ops. No clock is read and the recorder is
+            // not linked into this loop at all. The armed body is out of line in
+            // exec_batch_timed().
+            if (__builtin_expect(slowlog_armed_, false)) {
+                exec_batch_timed<IofusedPrivateQueue>(batch, n);
+            } else {
+                for (uint32_t i = 0; i < n; i++) {
+                    if (execute<IofusedPrivateQueue>(batch[i])) continue;
+                    xshard_retries_.push_back(batch[i]);
+                    for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
+                    break;
+                }
             }
         }
         // One publish per batch, covering every shard this batch touched. Cheaper than tracking
@@ -2523,6 +2530,7 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
+        NotifyBatchScope notify_batch(this);
         if (__builtin_expect(slowlog_armed_, false)) {
             exec_batch_timed(batch, n);
         } else {
@@ -2956,13 +2964,22 @@ private:
                 return;
             }
         }
-        ThreadCtx& snd = srv_->thread(target);
         // THE READY-MASK PATH (#19/#20 ported): once the sender has assigned this connection a
         // slot, completion signalling is one idempotent bit -- no claim, no channel entry, no
         // pointer in flight. The empty->flagged RMW is the fence; whoever performs it owes the
         // park-wake.
         const uint32_t slot = c->wb_slot();
         if (slot != Client::kNoWbSlot) {
+            // INSIDE AN EXECUTOR BATCH: record and return. The fence, the read-first set and the
+            // wake decision are paid once per batch in flush_notify_batch() (DESIGN-NOTIFY.md
+            // §2, §4). A batch of one op degrades to exactly the sequence below it.
+            if (__builtin_expect(notify_batch_open_, true)) {
+                if (__builtin_expect(notify_batch_n_ == kNotifyBatchMax, false))
+                    flush_notify_batch();
+                notify_batch_[notify_batch_n_++] = NotifyEntry{target, slot};
+                return;
+            }
+            ThreadCtx& snd = srv_->thread(target);
             // FENCE BEFORE THE READ-FIRST CHECK -- defect 5's exact shape, third appearance. Our
             // caller stored Done; ReadyMask::set() begins with a relaxed LOAD of the word, and TSO
             // lets that load run ahead of the store draining. Unfenced, it can read a stale 1 from
@@ -2992,6 +3009,58 @@ private:
             c->retire_queued().store(false, std::memory_order_release);   // retry on a later pass
         }
     }
+
+    // Batch end (or a full record): ONE fence covering every Done store of the batch, then the
+    // same read-first set per recorded client run that the per-op path performs, then one wake
+    // decision per io that saw an empty->flagged edge. Deciding the wake once per io AFTER all of
+    // its RMWs is equivalent to deciding it per edge: every RMW is a full barrier ahead of the
+    // parked_ load, so the Dekker pair with ThreadCtx::arm_blocked closes for each edge on its
+    // own (DESIGN-NOTIFY.md §4.4). The wake is never memoised across flushes -- a cached "already
+    // woke this io" could straddle a park/unpark cycle of the consumer and miss its second park.
+    void flush_notify_batch() {
+        const uint32_t n = notify_batch_n_;
+        if (!n) return;
+        notify_batch_n_ = 0;
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+        constexpr uint32_t kEdgeWords = (kMaxThreads + 63) / 64;
+        uint64_t edged[kEdgeWords] = {};
+        uint32_t prev_io = UINT32_MAX;
+        uint32_t prev_slot = UINT32_MAX;
+        for (uint32_t i = 0; i < n; i++) {
+            const NotifyEntry e = notify_batch_[i];
+            // A connection's completions arrive in runs, so the adjacent skip removes nearly
+            // every repeat; a non-adjacent repeat costs one L1-hit load and is idempotent.
+            if (e.io == prev_io && e.slot == prev_slot) continue;
+            prev_io = e.io;
+            prev_slot = e.slot;
+            if (srv_->thread(e.io).ready().set(e.slot))
+                edged[e.io >> 6] |= uint64_t{1} << (e.io & 63);
+        }
+        for (uint32_t w = 0; w < kEdgeWords; w++) {
+            uint64_t bits = edged[w];
+            while (bits) {
+                const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
+                bits &= bits - 1;
+                srv_->thread(w * 64 + b).wake_if_parked(handoff_ring(), self_->sig());
+            }
+        }
+    }
+
+    // Opens the record for one executor batch and flushes it at scope exit. Nest-safe: an inner
+    // scope restores the outer state and flushes early, which is always allowed.
+    struct NotifyBatchScope {
+        ExLoopT* loop;
+        bool was_open;
+        explicit NotifyBatchScope(ExLoopT* l) : loop(l), was_open(l->notify_batch_open_) {
+            loop->notify_batch_open_ = true;
+        }
+        ~NotifyBatchScope() {
+            loop->notify_batch_open_ = was_open;
+            loop->flush_notify_batch();
+        }
+        NotifyBatchScope(const NotifyBatchScope&) = delete;
+        NotifyBatchScope& operator=(const NotifyBatchScope&) = delete;
+    };
 
     void on_cqe(io_uring_cqe* cqe) {
         // Executors issue no sends; the ring exists for wakes.
@@ -3055,13 +3124,28 @@ private:
     // Both interwoven schedules share the measured 128-task geometry and coalesced N2 boundary.
     bool pipeline_batches_ = false;
     bool iofused_ = false;
+    // Per-batch completion notification (DESIGN-NOTIFY.md §2). While a batch is open, the slot
+    // path of notify_sender records (io, slot) here instead of fencing and setting per op; the
+    // batch end pays ONE seq_cst fence, one ReadyMask::set per recorded client run and one wake
+    // decision per io that saw an empty->flagged edge. Sized to this loop's largest batch; the
+    // record never holds more than one entry per executed task, and a full record flushes in
+    // place regardless. (io, slot), never Client*: the flush may run a whole batch after the Done
+    // store, and a connection is only guaranteed allocated until the io's second reap prologue
+    // after close.
+    struct NotifyEntry { uint32_t io; uint32_t slot; };
+    static constexpr uint32_t kNotifyBatchMax =
+        Fused ? kGenthreadPipelineExBatchOps : kGenthreadExBatchOps;
+    bool notify_batch_open_ = false;
+    uint32_t notify_batch_n_ = 0;
+    NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
 };
 
 using ExLoop = ExLoopT<false>;
 using FusedExLoop = ExLoopT<true>;
 
-// Disabled split executors retain the exact pre-read-local allocation stride.
-static_assert(sizeof(ExLoop) == 5848);
+// Disabled split executors retain the exact pre-read-local allocation stride plus the 264-byte
+// per-batch notification record (DESIGN-NOTIFY.md §2): 5848 + 8 + 32 * sizeof(NotifyEntry).
+static_assert(sizeof(ExLoop) == 6104);
 
 }  // namespace tomo
