@@ -150,20 +150,14 @@ public:
         return true;
     }
 
-    // THE WHOLE REPLY SIDE, in one call, run by whichever stage owns sending for this client.
-    //
-    // Retire completed ops IN ORDER, stage their bytes, and write. All three belong together and all
-    // three belong to the sender: if the io thread retired and merely handed bytes over, only the
-    // send syscall would move between modes and an "ex-wb" measured that way would not be ex-wb.
-    //
-    // WHO MAY CALL. In Io mode, only the owning io thread -- no lock exists or is needed. In Wb mode,
-    // only the connection's dedicated sender. In EX MODE, ANYONE: the executor that just completed
-    // the head flushes it inline, and the owning io thread sweeps as the backstop -- so the whole
-    // serve (drain + stage + send) is one io-thread-local pass. The
-    // ROB stays SPSC because the lock makes "exactly one consumer at any instant" true dynamically,
-    // Retire completed ops IN ORDER, stage their bytes, and write. Owned and run only by the
-    // connection's io thread. Returns true if it did anything, so a caller can tell progress from
-    // an empty poll.
+    // THE WHOLE REPLY SIDE, in one call: retire completed ops IN ORDER, stage their bytes, and
+    // write. All three belong together and all three belong to the sender -- if the io thread
+    // retired and merely handed bytes over, only the send syscall would move between modes, and
+    // an "ex-wb" measured that way would not be ex-wb. In pure 2s the sender is the connection's
+    // io thread and nobody else (the Wb-thread and EX-mode callers this comment once listed were
+    // deleted with those postures; see the head of this file), so no lock exists or is needed and
+    // the ROB stays SPSC by construction. Returns true if it did anything, so a caller can tell
+    // progress from an empty poll.
     template <bool kEp = false, bool ClassifySend = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
@@ -873,8 +867,7 @@ private:
     bool submit_legacy(Client& c, size_t total, size_t sent) {
       if constexpr (kEp) { bool did = false; (void)write_legacy_epoll(c, total, sent, did); return did; }
       else {
-        static constexpr size_t kMaxSendBytes = 0x7ffff000u;
-        const size_t request = std::min(total - sent, kMaxSendBytes);
+        const size_t request = std::min<size_t>(total - sent, kMaxSendBytes);
         io_uring_sqe* s = ring_->sqe();
         if (!s) return false;
         io_uring_prep_send(s, c.fd(), c.send_buf().data() + sent, request, MSG_NOSIGNAL);
@@ -892,8 +885,7 @@ private:
     // One legacy-buffer write. `did` is only raised when bytes actually moved; the bool return says
     // "keep going" so the caller's loop can distinguish a short write (retry) from a stop.
     bool write_legacy_epoll(Client& c, size_t total, size_t sent, bool& did) {
-        static constexpr size_t kMaxSendBytes = 0x7ffff000u;
-        const size_t request = std::min(total - sent, kMaxSendBytes);
+        const size_t request = std::min<size_t>(total - sent, kMaxSendBytes);
         c.set_segmented_send(false);
         c.set_send_requested(static_cast<uint32_t>(request));
         stats_.sends_submitted++;

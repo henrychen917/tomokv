@@ -74,6 +74,9 @@ inline constexpr size_t   kRbufHardCap  = 512ull * 1024 * 1024 + kRbufFrameSlack
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
 inline constexpr size_t   kWbufInline   = 512;
 inline constexpr size_t   kWbufShed     = 64 * 1024;   // reply staging above this is a burst; shed it
+// Largest single send the kernel accepts (Linux MAX_RW_COUNT); a CQE res is an int. Caps every
+// legacy send request and the segment iovec window alike.
+inline constexpr uint32_t kMaxSendBytes = 0x7ffff000u;
 
 // Item 6: connection-lived execution-side state -- the third lifetime. Session-mutating commands
 // are ConnLocal and run on the io thread, single-threaded per connection; handlers never see it,
@@ -267,13 +270,6 @@ private:
             if (s.kind == SegmentKind::Buf) std::free(const_cast<char*>(s.ptr));
         }
         head_ = size_ = offset_ = 0;
-    }
-
-public:
-    uint64_t pending_bytes() const {
-        uint64_t bytes = 0;
-        for (uint32_t i = 0; i < size_; i++) bytes += segs_[head_ + i].len;
-        return bytes - offset_;
     }
 
 private:
@@ -536,7 +532,7 @@ public:
     void start_obuf_tracking() {
         if (obuf_tracking_) return;
         obuf_bytes_ = fill_buf().size() + (send_buf().size() - wsent_) +
-                      segments_.pending_bytes();
+                      segments_.byte_size();
         obuf_tracking_ = true;
     }
     void stop_obuf_tracking() {
@@ -676,7 +672,6 @@ public:
         if (value) connection_flags_ |= kIfidPending;
         else connection_flags_ &= static_cast<uint8_t>(~kIfidPending);
     }
-    bool has_atomic_groups_io() const { return atomic_groups_io_ != 0; }
 
     // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
     // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
@@ -837,7 +832,6 @@ private:
 
     // sendmsg reads both the iovec array and msghdr asynchronously, so both live with the Client.
     static constexpr uint32_t kMaxSendIov = 16;
-    static constexpr uint32_t kMaxSendBytes = 0x7ffff000u;  // Linux MAX_RW_COUNT; CQE res is int
     SegmentQueue<8> segments_;
     iovec           send_iov_[kMaxSendIov] = {};
     msghdr          send_msg_ = {};
