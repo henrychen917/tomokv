@@ -303,7 +303,12 @@ public:
         stats.qsbr_grace_scans++;
         stats.qsbr_participant_loads += server_->nthreads();
 #endif
-        const uint64_t grace_floor = server_->read_local_grace_floor();
+        // Ask only whether the OLDEST sealed stamp has been crossed. Nothing is releasable until it
+        // has, so the scan may stop at the first participant still below it (and re-test that one
+        // first next pass) instead of loading every participant's tick line each pass. The ring is
+        // non-empty here and seal_pending() just ran, so a sealed batch exists.
+        const uint64_t grace_floor =
+            server_->read_local_grace_floor(ring_.head_stamp(), grace_hint_);
         const uint32_t drained = ring_.drain_below(
             grace_floor, [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 2 || TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -555,6 +560,7 @@ private:
     ReadLocalRetireSink sink_;
     ActiveRecyclePool recycle_pool_;
     ReadLocalRetireRing ring_;
+    uint32_t grace_hint_ = UINT32_MAX;   // last participant seen blocking the oldest batch
 };
 
 }  // namespace tomo
