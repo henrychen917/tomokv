@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <atomic>
 #include <csignal>
 #include <chrono>
 #include <cerrno>
@@ -34,13 +35,47 @@
 
 using namespace tomo;
 
-static Server*                   g_srv = nullptr;
-static std::vector<ThreadCtx*>   g_threads;
+// Signal-handler state. A handler may only touch lock-free atomics, so the thread table is a
+// fixed array published through an atomic count: main fills the slots, then stores the count
+// (release); the handler loads the count (acquire) and walks exactly that many entries. No
+// vector, no reallocation, no torn size/data pair. Both are cleared again before Server is
+// destroyed, so a late signal finds nothing to poke instead of a dead object.
+static std::atomic<Server*>      g_srv{nullptr};
+static ThreadCtx*                g_threads[kMaxThreads] = {};
+static std::atomic<uint32_t>     g_nthreads{0};
+static_assert(std::atomic<uint32_t>::is_always_lock_free &&
+              std::atomic<Server*>::is_always_lock_free,
+              "signal handler state must be lock-free");
 
 static void on_signal(int) {
-    if (g_srv) g_srv->shutting_down().store(true, std::memory_order_relaxed);
-    for (auto* t : g_threads) t->stop_flag().store(true, std::memory_order_relaxed);
+    if (Server* srv = g_srv.load(std::memory_order_acquire))
+        srv->shutting_down().store(true, std::memory_order_relaxed);
+    const uint32_t n = g_nthreads.load(std::memory_order_acquire);
+    for (uint32_t i = 0; i < n; i++)
+        g_threads[i]->stop_flag().store(true, std::memory_order_relaxed);
 }
+
+// Publishes the thread table to the handler and only then installs the handlers. Until this
+// point SIGINT/SIGTERM keep the default action (terminate), which is the right answer while
+// Server::init is still allocating tables and no thread exists to stop -- previously the
+// handlers were installed first and a signal in that window was silently swallowed.
+static void arm_signal_handlers(Server& srv) {
+    const uint32_t n = srv.nthreads();
+    if (n > kMaxThreads) std::abort();
+    for (uint32_t i = 0; i < n; i++) g_threads[i] = &srv.thread(i);
+    g_srv.store(&srv, std::memory_order_release);
+    g_nthreads.store(n, std::memory_order_release);
+    std::signal(SIGINT,  on_signal);
+    std::signal(SIGTERM, on_signal);
+}
+
+// Scoped disarm: runs before Server's destructor on every return path after arming.
+struct SignalDisarm {
+    ~SignalDisarm() {
+        g_nthreads.store(0, std::memory_order_release);
+        g_srv.store(nullptr, std::memory_order_release);
+    }
+};
 
 // Pins to one cpu. Relative to the process's ALLOWED set by construction, because the caller takes
 // the cpu from Topology, which intersects with sched_getaffinity. A pin to a cpu outside the mask
@@ -177,9 +212,8 @@ int main(int argc, char** argv) {
         g_sip_k1 = load_plan->sip_k1;
     }
 
-    std::signal(SIGINT,  on_signal);
-    std::signal(SIGTERM, on_signal);
     std::signal(SIGPIPE, SIG_IGN);      // send() errors arrive as -EPIPE on the CQE instead
+    // SIGINT/SIGTERM handlers are armed later, once the threads they stop exist.
 
     if (!good_size_matches_allocator()) {
         std::fprintf(stderr, "good_size() disagrees with the allocator's size classes\n");
@@ -203,7 +237,6 @@ int main(int argc, char** argv) {
         return 1;
     }
     srv.set_loading(true);
-    g_srv = &srv;
     command_bind_server(&srv);
     {
         std::string acl_error;
@@ -255,7 +288,8 @@ int main(int argc, char** argv) {
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        for (uint32_t i = 0; i < srv.nthreads(); i++) g_threads.push_back(&srv.thread(i));
+        arm_signal_handlers(srv);
+        SignalDisarm disarm_guard;
         return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
                                 tls_context.get(), unix_listener);
     }
@@ -285,7 +319,12 @@ int main(int argc, char** argv) {
     uint32_t loaders_done = 0;
     bool load_ok = true;
     std::string load_error;
-    for (uint32_t i = 0; i < nthreads; i++) g_threads.push_back(&srv.thread(i));
+    // An io thread that fails to provision after the listeners were probed cannot report through
+    // load_ok (that barrier has passed); it stops every thread and records the failure here so
+    // the exit status says what happened instead of a silent 0.
+    std::atomic<bool> io_boot_failed{false};
+    arm_signal_handlers(srv);
+    SignalDisarm disarm_guard;
 
     auto pin_for = [&](uint32_t tid) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
@@ -415,19 +454,31 @@ int main(int argc, char** argv) {
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             bind_thread_arena();
-            if (!self.init_task_inbox_local(srv.placement().ifid_threads(),
-                                            srv.placement().ex_threads())) {
-                std::fprintf(stderr, "task inbox initialization failed on t%u\n", tid);
+            auto boot_failed = [&](const char* what) {
+                std::fprintf(stderr, "%s failed on t%u\n", what, tid);
+                io_boot_failed.store(true, std::memory_order_relaxed);
                 for (uint32_t i = 0; i < nthreads; i++)
                     srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
+            };
+            if (!self.init_task_inbox_local(srv.placement().ifid_threads(),
+                                            srv.placement().ex_threads())) {
+                boot_failed("task inbox initialization");
                 return;
             }
             const int unix_fd = tid == unix_owner ? unix_listener : -1;
             // Provision dormant EX first; active IO then republishes its own ring as the current
-            // role endpoint. No runtime conversion can fail later for lack of a ring.
-            if (!exs[tid].init(&srv, &self, true)) return;
+            // role endpoint. No runtime conversion can fail later for lack of a ring. A failure
+            // here must not let the thread vanish silently: the join below waits for it, and the
+            // other threads would keep serving with one reuseport listener missing.
+            if (!exs[tid].init(&srv, &self, true)) {
+                boot_failed("executor loop provisioning");
+                return;
+            }
             if (!ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, unix_fd,
-                               tls_context.get())) return;
+                               tls_context.get())) {
+                boot_failed("io loop provisioning");
+                return;
+            }
             self.bind_io_role_hooks(
                 &ios[tid],
                 [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
@@ -636,5 +687,5 @@ int main(int argc, char** argv) {
                 static_cast<unsigned long long>(arearm), static_cast<unsigned long long>(starved),
                 static_cast<unsigned long long>(ndrop));
     acl_shutdown();
-    return 0;
+    return io_boot_failed.load(std::memory_order_relaxed) ? 1 : 0;
 }
