@@ -45,6 +45,36 @@ inline constexpr uint32_t kInlineArgv = 8;
 // footprint is the price of everything.
 inline constexpr size_t kInlineReply = 96;
 
+// REPLY CODES -- the executor's side of the owner's split: "the executor writes only bytes it
+// alone knows; everything else it returns as a result, and the connection's owner formats."
+//
+// A read's reply is bytes the executor is holding (the value), so it writes them. A WRITE's reply
+// is either predetermined (+OK for every SET/MSET) or a NUMBER the executor computed (the count
+// from DEL, the new value from INCR) -- neither is a byte string the executor is uniquely
+// positioned to produce. Carrying a code plus an integer instead of five formatted bytes removes
+// the executor's store AND the owner's copy-back, and in split mode it removes a cross-core
+// transfer per write: the reply line was written by the executor and read by the io thread on
+// every single write, and now it is written and read by the owner alone.
+//
+// Codes are materialised by format_reply_code() in ../net/resp.h, at retire, by the thread that
+// owns the connection. The bytes on the wire are the same bytes, in the same order.
+enum class ReplyCode : uint8_t {
+    None      = 0,
+    Ok        = 1,   // "+OK\r\n"
+    Nil       = 2,   // "$-1\r\n"      RESP2 null bulk
+    Pong      = 3,   // "+PONG\r\n"
+    NullArray = 4,   // "*-1\r\n"      RESP2 null array
+    EmptyStr  = 5,   // "$0\r\n\r\n"
+    NullResp3 = 6,   // "_\r\n"        RESP3 null
+    True      = 7,   // "#t\r\n"
+    False     = 8,   // "#f\r\n"
+    Int       = 9,   // ":<reply_ival_>\r\n"
+};
+
+// Longest coded reply: ":-2147483648\r\n" is 14. Reserving one constant keeps the owner's
+// materialise to a single capacity test with no per-code arithmetic.
+inline constexpr uint32_t kReplyCodeMax = 16;
+
 class Op {
 public:
     static constexpr int32_t kScatterStateMarker = -2;
@@ -63,6 +93,8 @@ public:
         shard = -1;
         read_cut_lo = 0;
         route_flags_ = route_flags;
+        reply_code_ = 0;
+        reply_ival_ = 0;
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -185,6 +217,23 @@ public:
     bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;
 
+    // THE CODED REPLY. Free real estate: rbuf_off ends at 28 and SmallBuf's pointer forces the
+    // next field to 32, so bytes 29..31 were pure padding. Op stays 336 bytes (asserted below).
+    // Non-zero means "this op's whole reply is this code"; the owner formats it at retire.
+    uint8_t reply_code_ = 0;
+
+    // WHO MAY CARRY A CODE. Only an Op the ROB handed out, because only those retire through
+    // WbEngine::serve, which is the one place that knows how to turn a code back into bytes.
+    //
+    // The tree has Ops that never go near that path and whose reply bytes are read back by other
+    // code: MULTI builds a heap child Op per queued command and splices its reply into the public
+    // op's buffer (multi.inc make_child_op / set_state_reply), and redis.call() runs into a
+    // stack-local Op whose bytes Lua parses back into a Lua value (scripting.cc). Those are
+    // reset() but never acquired, so they default to unarmed and keep the byte path exactly as
+    // before -- the split is structural rather than a list of sites to remember. reset() must NOT
+    // touch this: a ROB slot is armed once and is a ROB slot forever.
+    uint8_t reply_code_ok_ = 0;
+
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
 
     // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
@@ -210,6 +259,13 @@ public:
 
     // The only cross-thread field. Acquire/release on this orders everything else.
     std::atomic<OpState> state{OpState::Free};
+
+    // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
+    // `state` is one byte at offset 184 and argv_inline_ needs 8-byte alignment at 192, so 185..191
+    // was padding; this lands at the 4-aligned 188 and costs nothing. int32 rather than int64
+    // because that is what the hole holds: a count or a counter outside +/-2^31 simply keeps the
+    // byte path, which emits the identical digits.
+    int32_t reply_ival_ = 0;
 
     // The handler-facing reply sink: prefers the direct region while the whole reply fits, spills
     // to op.reply otherwise. Same interface as SmallBuf, so the resp.h helpers take either.
@@ -262,6 +318,27 @@ public:
             }
         }
         void push_back(char ch) { char* p = reserve(1); *p = ch; advance(1); }
+
+        // CODED REPLY. Records "the reply is this" instead of writing its bytes. Returns false
+        // when this sink is not empty, and then the caller formats bytes exactly as before -- that
+        // is what keeps composition safe: EXEC writes its array header first, so every element
+        // reply inside it sees a non-empty sink and takes the byte path, and the coded form can
+        // only ever stand for a WHOLE reply.
+        //
+        // Setting a code DISARMS the direct region. A code is materialised at the fill buffer's
+        // frontier at retire, and direct bytes live at that same offset; disarming means any
+        // append that follows spills to op.reply, which retire emits AFTER the coded bytes. So
+        // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
+        // loses nothing -- the owner is writing into that very buffer either way.
+        bool code(ReplyCode c, int32_t v = 0) {
+            if (__builtin_expect(!op_.reply_code_ok_ || op_.reply_code_ != 0 ||
+                                 op_.direct_len != 0 || !op_.reply.empty(), false))
+                return false;
+            op_.reply_code_ = static_cast<uint8_t>(c);
+            op_.reply_ival_ = v;
+            op_.direct = nullptr;
+            return true;
+        }
     private:
         Op&  op_;
         bool last_direct_ = false;
@@ -273,7 +350,17 @@ public:
     // "nothing written yet" and a caller that then emits its own fallback error puts TWO replies
     // on the wire, permanently shifting every later reply on that connection. XTRIM's option
     // errors did exactly that on an unpipelined connection.
-    bool replied() const { return !reply.empty() || direct_len != 0; }
+    bool replied() const { return !reply.empty() || direct_len != 0 || reply_code_ != 0; }
+
+    // THE reply reset. Every caller that discards a half-written reply to put an error in its
+    // place must drop the code too, or the discarded reply survives as five bytes the handler
+    // no longer believes it wrote. One method so a future reset site cannot forget the field.
+    void clear_reply() {
+        reply.clear();
+        direct_len = 0;
+        reply_code_ = 0;
+        reply_ival_ = 0;
+    }
 
     bool has_scatter_state() const {
         return zc_ptr != nullptr && zc_shard == kScatterStateMarker;

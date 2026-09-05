@@ -139,6 +139,7 @@ public:
         if (full()) return nullptr;
         Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
         op->reset(route_flags);
+        op->reply_code_ok_ = 1;     // a ROB op retires through WbEngine, so it may carry a code
         return op;
     }
 
@@ -164,6 +165,7 @@ public:
         read_local_owner_slots_ &= keep;
         Op* op = slot(index, true);
         op->reset_read_local(route_flags);
+        op->reply_code_ok_ = 1;     // as acquire(): ROB ops retire through WbEngine
         return op;
     }
 

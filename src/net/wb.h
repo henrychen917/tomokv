@@ -64,11 +64,28 @@
 #include <unordered_map>
 #include "conn.h"
 #include "epoll.h"
+#include "resp.h"       // format_reply_code: the owner's half of the coded reply
 #include "tls.h"
 #include "uring.h"
 #include "../core/signal.h"
 
 namespace tomo {
+
+// THE OWNER'S HALF of the coded reply (see ReplyCode in src/exec/op.h). A retiring op contributes
+// "head" bytes that are either the direct region the executor formatted into, or -- for a fixed or
+// integer reply -- the bytes THIS thread renders right here out of the code the executor left
+// behind. Rendering on the connection's own thread, into the connection's own storage, is the
+// whole point: the five bytes of a "+OK" no longer travel from the executor's core to this one,
+// and the runtime-length memcpy that used to copy them out of op.reply becomes a constant store.
+struct ReplyHead {
+    const char* ptr;
+    size_t      len;
+};
+inline ReplyHead reply_head(Op& op, char (&scratch)[kReplyCodeMax]) {
+    if (op.reply_code_)
+        return {scratch, format_reply_code(scratch, op.reply_code_, op.reply_ival_)};
+    return {op.direct, op.direct_len};
+}
 
 // THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
 // (exwb, then 3s). In pure 2s exactly one thread -- the connection's io thread -- ever touches the
@@ -310,9 +327,11 @@ private:
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 return;
             }
+            char code_scratch[kReplyCodeMax];
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
                 conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
                 conn.append_static_segment(kCrlf, sizeof(kCrlf));
@@ -322,10 +341,16 @@ private:
             // fill frontier; this op's direct region was handed out at the same offset only if
             // nothing was staged, so committing here stays correct.
             if (conn.has_pending_segments()) {
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
             } else {
-                if (op.direct_len) conn.commit_fill(op.direct_len);
+                // A coded reply is rendered straight into the fill frontier: no temporary, and a
+                // compile-time length instead of the runtime-length memcpy op.reply needed.
+                if (op.reply_code_)
+                    conn.commit_fill(format_reply_code(conn.reserve_fill(kReplyCodeMax),
+                                                       op.reply_code_, op.reply_ival_));
+                else if (op.direct_len) conn.commit_fill(op.direct_len);
                 if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
             }
         });
@@ -741,6 +766,7 @@ private:
         if constexpr (TrackOutput) conn.start_obuf_tracking();
         draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            char code_scratch[kReplyCodeMax];
             if constexpr (TlsNoBorrow) {
                 if (op.no_borrow()) note_zc_suppressed_tls();
             }
@@ -758,7 +784,8 @@ private:
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a
                 // borrowed value that is only partially written.
                 conn.seal_fill_segment();
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
                 if constexpr (TlsNoBorrow) {
                     conn.append_buf_segment(op.zc_ptr, op.zc_len);
@@ -776,11 +803,20 @@ private:
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
             // direct part so the RESP stream stays in order.
             if (conn.has_pending_segments()) {
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
-                if (op.direct_len) {
+                // Coded reply: render at the fill frontier. One constant-length store by the
+                // thread that owns the buffer, replacing the executor's store plus this thread's
+                // runtime-length memcpy out of op.reply.
+                if (op.reply_code_) {
+                    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
+                                                         op.reply_code_, op.reply_ival_);
+                    if constexpr (TrackOutput) conn.commit_fill(n);
+                    else conn.fill_buf().commit_raw(n);
+                } else if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
                     stats_.direct++;
@@ -819,11 +855,13 @@ private:
         if constexpr (TrackOutput) conn.start_obuf_tracking();
         draining_ = &c;
         const uint32_t retired = c.rob().drain([&](Op& op) {
+            char code_scratch[kReplyCodeMax];
             if (op.no_borrow()) note_zc_suppressed_tls();
             if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
                 conn.append_buf_segment(op.zc_ptr, op.zc_len);
                 conn.append_static_segment(kCrlf, sizeof(kCrlf));
@@ -833,11 +871,20 @@ private:
                 return;
             }
             if (conn.has_pending_segments()) {
-                conn.append_buf_segment(op.direct, op.direct_len,
+                const ReplyHead head = reply_head(op, code_scratch);
+                conn.append_buf_segment(head.ptr, head.len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
-                if (op.direct_len) {
+                // Coded reply: render at the fill frontier. One constant-length store by the
+                // thread that owns the buffer, replacing the executor's store plus this thread's
+                // runtime-length memcpy out of op.reply.
+                if (op.reply_code_) {
+                    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
+                                                         op.reply_code_, op.reply_ival_);
+                    if constexpr (TrackOutput) conn.commit_fill(n);
+                    else conn.fill_buf().commit_raw(n);
+                } else if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
                     stats_.direct++;

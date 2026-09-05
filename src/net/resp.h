@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstring>
 #include <charconv>
+#include <cstdlib>
 #include <cmath>
 #include "../base/numeric.h"
 #include "../base/slice.h"
@@ -155,11 +156,38 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 // instead of a call to the out-of-line append plus a call to memcpy. Same bytes as before, NUL
 // excluded. Only replies that fit in a machine word or two are written this way; the longer error
 // texts below keep the explicit length and the out-of-line path.
-template <typename Buf> inline void reply_ok(Buf&& b)   { b.append("+OK\r\n"); }
-template <typename Buf> inline void reply_nil(Buf&& b)  { b.append("$-1\r\n"); }
-template <typename Buf> inline void reply_pong(Buf&& b) { b.append("+PONG\r\n"); }
-template <typename Buf> inline void reply_null_array(Buf&& b) { b.append("*-1\r\n"); }
-template <typename Buf> inline void reply_emptystr(Buf&& b) { b.append("$0\r\n\r\n"); }
+//
+// CODED REPLIES. Where the sink is an Op::Sink (the executor's), a fixed reply records a ReplyCode
+// and writes NO bytes; the connection's owner formats it at retire. Where it is a plain SmallBuf
+// (pub/sub frames, MONITOR lines, script sub-buffers -- all already owner-side) there is no code
+// to set and the literal append below is used unchanged. The `requires` test is what makes one
+// helper serve both, so no call site changes and no reply text is written twice.
+//
+// b.code() returns false on a non-empty sink, which is how a fixed reply nested inside a larger
+// one (an EXEC element after its array header) falls back to bytes and stays in order.
+#define TOMO_CODED_REPLY(sink, codeexpr)                                          \
+    if constexpr (requires { sink.code(codeexpr); }) { if (sink.code(codeexpr)) return; }
+
+template <typename Buf> inline void reply_ok(Buf&& b)   {
+    TOMO_CODED_REPLY(b, ReplyCode::Ok)
+    b.append("+OK\r\n");
+}
+template <typename Buf> inline void reply_nil(Buf&& b)  {
+    TOMO_CODED_REPLY(b, ReplyCode::Nil)
+    b.append("$-1\r\n");
+}
+template <typename Buf> inline void reply_pong(Buf&& b) {
+    TOMO_CODED_REPLY(b, ReplyCode::Pong)
+    b.append("+PONG\r\n");
+}
+template <typename Buf> inline void reply_null_array(Buf&& b) {
+    TOMO_CODED_REPLY(b, ReplyCode::NullArray)
+    b.append("*-1\r\n");
+}
+template <typename Buf> inline void reply_emptystr(Buf&& b) {
+    TOMO_CODED_REPLY(b, ReplyCode::EmptyStr)
+    b.append("$0\r\n\r\n");
+}
 template <typename Buf> inline void reply_wrongtype(Buf&& b) {
     b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
@@ -181,7 +209,16 @@ template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
 template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {
     b.push_back('+'); b.append(msg, std::strlen(msg)); b.append("\r\n", 2);
 }
+// AN INTEGER IS A VALUE, NOT A FORMAT. DEL's count, EXISTS's count, SETNX's 0/1, INCR's new
+// value, LPUSH/SADD/HSET's length -- the executor computes the number, the owner renders the
+// digits. Outside int32 the code path is declined (the hole in Op holds four bytes, not eight) and
+// the digits are formatted here exactly as before; the wire bytes are identical either way.
 template <typename Buf> inline void reply_int(Buf&& b, long long v) {
+    if constexpr (requires { b.code(ReplyCode::Int, int32_t{0}); }) {
+        if (__builtin_expect(v >= -2147483648LL && v <= 2147483647LL, true) &&
+            b.code(ReplyCode::Int, static_cast<int32_t>(v)))
+            return;
+    }
     char* p = b.reserve(24);
     char* q = p;
     *q++ = ':';
@@ -225,6 +262,76 @@ template <typename Buf> inline void reply_bulk(Buf&& b, Slice s) {
 // THE canonical double text lives in src/base/numeric.h: redis renders the RESP2 bulk score and
 // the RESP3 "," from one d2string, and the parsers that must accept exactly what it can produce
 // belong beside it. This header keeps only the RESP framing.
+
+// THE OWNER'S SIDE. Renders a coded reply into dst, which must have kReplyCodeMax writable bytes.
+// Runs on the connection's own thread at retire, writing into that thread's own fill buffer -- so
+// these bytes are produced and consumed by one core, which is the point of the code.
+//
+// SHAPE MATTERS HERE, and the obvious shape was wrong. Written as a switch over ReplyCode this
+// became an out-of-line call with a jump table (`notrack jmp *%rax`) and a stack canary -- an
+// indirect branch and a frame, to replace a five-byte memcpy. That is not a saving. A fixed reply
+// is a CONSTANT, so it is a table: one 16-byte load-store at a computed index, no branch, no call,
+// and the length comes from the same cache line as the bytes. Writing all 16 bytes is safe and
+// deliberate -- every caller reserves kReplyCodeMax -- and it keeps the store width constant.
+struct FixedReply {
+    char     bytes[16];
+    uint32_t len;
+};
+
+// Indexed by ReplyCode. Slot 0 (None) is unreachable: every caller tests reply_code_ != 0 first,
+// which inlining folds away. Its zero length is a fail-quiet, not a design.
+inline constexpr FixedReply kFixedReplies[] = {
+    {{0},                 0},   // None -- unreachable
+    {"+OK\r\n",           5},
+    {"$-1\r\n",           5},
+    {"+PONG\r\n",         7},
+    {"*-1\r\n",           5},
+    {"$0\r\n\r\n",        6},
+    {"_\r\n",             3},
+    {"#t\r\n",            4},
+    {"#f\r\n",            4},
+    {{0},                 0},   // Int -- handled below, never read from this table
+};
+
+// Digits straight into the destination, no scratch array -- an array here is what pulled a stack
+// protector into the hot path. Two passes over at most ten digits, both branch-predictable.
+inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
+    uint32_t n = 1;
+    for (uint32_t t = v; t >= 10; t /= 10) n++;
+    for (uint32_t i = n; i-- > 0; ) { dst[i] = static_cast<char>('0' + v % 10); v /= 10; }
+    return n;
+}
+
+// always_inline, and measured: left to its own judgement GCC emitted a CALL at all twenty-odd
+// retire call sites, so a five-byte reply paid a call to avoid a five-byte memcpy. The fixed path
+// inlines to a 16-byte load-store pair and a length load.
+__attribute__((always_inline))
+inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
+    if (code != static_cast<uint8_t>(ReplyCode::Int)) {
+        const FixedReply& f = kFixedReplies[code];
+        __builtin_memcpy(dst, f.bytes, sizeof(f.bytes));
+        return f.len;
+    }
+    // ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
+    char* q = dst;
+    *q++ = ':';
+    uint32_t mag;
+    if (ival < 0) { *q++ = '-'; mag = static_cast<uint32_t>(-static_cast<int64_t>(ival)); }
+    else          { mag = static_cast<uint32_t>(ival); }
+    q += u32_to_dec_direct(q, mag);
+    *q++ = '\r'; *q++ = '\n';
+    return static_cast<uint32_t>(q - dst);
+}
+
+// For the few paths that SPLICE an op's reply bytes mid-flight instead of retiring them (the
+// borrowed-value flush inside assemble_mget). Turns a code back into the bytes it stands for, in
+// order, so the splice sees a normal byte buffer. A no-op for the ordinary reply.
+inline void op_materialise_code(Op& op) {
+    if (__builtin_expect(op.reply_code_ == 0, true)) return;
+    char* p = op.reply.reserve(kReplyCodeMax);
+    op.reply.advance(format_reply_code(p, op.reply_code_, op.reply_ival_));
+    op.reply_code_ = 0;
+}
 
 // RESP2 has no native double: redis sends this same text as a bulk string.
 template <typename Buf> inline void reply_double(Buf&& b, double value) {

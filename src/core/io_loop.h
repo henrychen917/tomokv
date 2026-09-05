@@ -3466,8 +3466,7 @@ private:
     }
 
     static void read_local_clear_reply(Op& op) {
-        op.reply.clear();
-        op.direct_len = 0;
+        op.clear_reply();       // bytes AND the reply code
         op.zc_ptr = nullptr;
         op.zc_len = 0;
         op.zc_shard = -1;

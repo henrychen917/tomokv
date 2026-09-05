@@ -1268,7 +1268,7 @@ void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
         client.acl_user_idx(), *op.spec, op.argc(),
         [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
     if (denied == AclDeniedReason::None) return;
-    op.reply.clear();
+    op.clear_reply();   // direct bytes and the reply code too, or the denial is a SECOND reply
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, thread);
 }
 
