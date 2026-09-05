@@ -422,3 +422,36 @@ threads is decided at boot. This is why the verdict is read from a *set* of boot
 one, and why POST's ten consecutive zeros are the load-bearing half of the comparison.
 
 `--read-local 1` remains not part of the mechanism (§2): both geometries leak on PRE.
+
+## 12. Containment results, 2026-09-05 allocation
+
+All rows on the POST binary built at 19:47 from `0a35f3aa1` (verified: no source file newer than
+the binary; INFO reports both counters).
+
+| Row | Result |
+|---|---|
+| Release build `make -j8`, `-Wall -Wextra` | **0 errors, 0 warnings** |
+| `tests/multirace.py` POST, fused `--read-local 1` | **PASS** (12 ok / 0 FAIL) |
+| `tests/multirace.py` POST, 2s `--ratio 2:4` | **PASS** (12 ok / 0 FAIL) |
+| `tests/multirace.py` PRE, both geometries | **FAIL** — `leaked=108/200`, `bad_exec=108` |
+| Armed debug-surface list, 13 batteries × 2 atomic modes | **26 pass / 0 fail** |
+| `batteries.sh 1s` (s6, ryow, atomic_hazards, multi_exec, blocking, blockmulti, xscript, expwide, session_monotonic, bplus) | 9 pass / 1 fail — `expwide`, **identical on PRE** |
+| `batteries.sh 2s` (the same plus flip, flip_under_load) | **11 pass / 0 fail** |
+| Differential matrix, canonical split geometry | **164 pass / 4 fail**, 5m59s — all 4 are `sort` (below) |
+| Differential matrix, armed-fused geometry | pending: the box went busy mid-run |
+
+**The `slowlog` rows now pass.** §1 recorded them as a pre-existing PRE-and-POST failure; on this
+allocation all 26 armed rows are green in both atomic modes.
+
+**`expwide` fails identically on PRE and POST** (`S1 MGET: the hook really widened the fan-out
+(elapsed=0.000s)`), in the 1s geometry only — it passes 2s on POST. A timing probe that measures
+zero elapsed on a 6-thread fused boot; not this lane's, and not touched here.
+
+**The four `sort` failures are the suite refusing the geometry, not a divergence.** `sort` asserts
+its thread split out of INFO and aborts on anything else: `sort differ requires --shards 16 --ratio
+6:2, got {lb_io_threads: 2, lb_ex_threads: 4}`. `--ratio 6:2` is 8 threads and the server here has
+6, because the load generator must not share a physical core. It is the same constraint the
+armed-fused row already states and skips for; the difference is that in the split row it arrives as
+a FAIL rather than a SKIP, since differ_gate.sh only special-cases it under `armed-fused`. The
+other **164 legs pass**, and `sort` is re-run separately at its required ratio rather than being
+waved through.
