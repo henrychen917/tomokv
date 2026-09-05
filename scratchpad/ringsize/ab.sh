@@ -20,18 +20,18 @@ mkdir -p "$TMP"
 visit(){ # visit <bin> <arm> <round> <visitIndex>
   local bin="$1" arm="$2" round="$3" vi="$4"
   boot_srv "$bin" "$TMP/srv-$arm-$round-$vi.log" --atomic 0 --enable-debug-command yes || return 1
-  taskset -c "$CLICORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  run_cli "$TMP/preload.txt" -s 127.0.0.1 -p "$PORT" --hide-histogram \
       --key-maximum=$KEYMAX --key-minimum=1 --data-size=32 --key-pattern=P:P --ratio=1:0 \
-      -t 4 -c 4 --pipeline=32 -n $((KEYMAX/16)) > "$TMP/preload.txt" 2>&1
+      -t 4 -c 4 --pipeline=32 -n $((KEYMAX/16))
   for spec in "r41:3:2" "r61:2:3" "w100:1:0" "r100:0:1"; do
     local cell="${spec%%:*}" ratio="${spec#*:}"
     local h0 f0 a0
     h0=$(info_field read_local_hits); f0=$(info_field read_local_fallback_inflight_write)
     a0=$(info_field read_local_fallbacks)
     local rf="$TMP/$arm-$round-$vi-$cell.txt"
-    taskset -c "$CLICORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+    run_cli "$rf" -s 127.0.0.1 -p "$PORT" --hide-histogram \
         --key-maximum=$KEYMAX --key-minimum=1 --data-size=32 --key-pattern=R:R \
-        --ratio="$ratio" -t $THREADS -c $CONNS --pipeline=$PIPE --test-time=$SECS > "$rf" 2>&1
+        --ratio="$ratio" -t $THREADS -c $CONNS --pipeline=$PIPE --test-time=$SECS
     local rate p99 h1 f1 a1
     rate=$(grep -E '^Totals' "$rf" | awk '{print $2}')
     p99=$(grep -E '^Totals' "$rf" | awk '{print $(NF-1)}')

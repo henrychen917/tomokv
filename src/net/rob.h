@@ -112,6 +112,14 @@ static_assert(alignof(ReadLocalRobState) >= 4, "read-local sidecar pointer uses 
 static_assert(ReadLocalRobState::kWriteRingCapacity <=
                   static_cast<uint32_t>(UINT8_MAX),
               "write_head/write_count are uint8_t");
+// THE PER-CONNECTION BILL, LOCKED LIKE EVERY OTHER LAYOUT IN THIS TREE. A read-local server
+// allocates one of these per connection at accept, so this number is what sizing the ring to the
+// ROB window costs: 1216 bytes against the sixteen-slot sidecar's 296, which jemalloc rounds to
+// the 1280-byte class against 320, and which measures as +965 bytes of RSS per armed connection
+// (scratchpad/ringsize section 3). Locked so that a later field cannot quietly add another size
+// class to every armed connection without someone re-measuring that number.
+static_assert(sizeof(ReadLocalRobState) == 1216,
+              "the armed read-local sidecar grew: re-measure RSS per armed connection");
 
 // Superset summary of every key hash that one connection's still-pending local reads may touch.
 // The armed parser ORs a read's keyset in when it marks the slot pending; the words are cleared
@@ -516,24 +524,46 @@ public:
         const uint16_t* tags = reinterpret_cast<const ReadLocalRobState*>(
             state_word & ~kReadLocalStateTagBits)->write_tags;
         const uint16_t tag = static_cast<uint16_t>(hash);
-        // SIXTEEN LANES AT A TIME, AND ONLY OVER GROUPS THAT HOLD SOMETHING. Written this way
-        // because it is the only shape the compiler turns into vector code: the straight
+        // SIXTEEN LANES AT A TIME, AND ONLY OVER THE GROUPS THAT HOLD SOMETHING.
+        //
+        // THE LANE WIDTH IS A CODEGEN FACT, NOT A STYLE CHOICE. The straight
         // `for (i < 64) hits |= (tags[i] == tag) << i` that mirrored the old sixteen-slot filter
-        // one-for-one leaves GCC 13.3 emitting a scalar seven-instruction body sixty-four times --
-        // about 450 instructions on the hot reject path, against roughly twenty for the sixteen-lane
-        // form it vectorises through a constant bit-weight vector and an OR-reduction (verified by
-        // objdump; scratchpad/ringsize). Grouping restores that form, and skipping empty groups
-        // then costs a live run only the groups it actually spans -- one or two, since the FIFO
-        // keeps its live entries contiguous and the measured run is nine to nineteen.
-        for (uint32_t g = 0; g < ReadLocalRobState::kWriteRingCapacity / kTagLanes; g++) {
-            const uint32_t live_g =
-                static_cast<uint32_t>(live >> (g * kTagLanes)) & 0xFFFFu;
-            if (!live_g) continue;
+        // one-for-one does not vectorise: GCC 13.3 leaves it a scalar eight-instruction loop run
+        // sixty-four times, and it measures 599 instructions and 145 cycles on the reject path a
+        // disjoint read takes every time (scratchpad/ringsize/probe_cost.sh). Sixteen lanes is the
+        // group size GCC turns into a vpcmpeqw against a constant bit-weight vector and an
+        // OR-reduction. A first draft of this lane shipped the flat shape into a rate A/B and read
+        // -8% at 61% reads before anyone disassembled it.
+        //
+        // THE GROUP WALK IS DRIVEN BY live, NOT BY THE CAPACITY. The lowest set bit names the first
+        // group holding a live slot, and clearing that group's whole mask walks straight to the
+        // next: an empty group costs nothing at all, so a connection carrying nine live writes pays
+        // for one group whether the ring has sixteen slots or sixty-four. That is what makes the
+        // bigger ring affordable for the shallow connection, which is the common one -- the
+        // measured mean is six at 61% reads and nine at 41%. Measured per rejected probe against
+        // the sixteen-slot filter this replaces (probe_cost.sh, one connection, 20M probes):
+        //
+        //     live writes      1..15        19          40        63
+        //     sixteen-slot   32 instr   88 instr*      n/a       n/a     * conservative generation:
+        //     this sweep     49 instr   73 instr   97 instr  121 instr     the ring is FULL, and
+        //     sixteen-slot    5.1 cyc   15.1 cyc       n/a       n/a       every one of those 88
+        //     this sweep      8.1 cyc   11.7 cyc  16.2 cyc  19.5 cyc       instructions ends in a
+        //                                                                  false conflict.
+        // Seventeen instructions and three cycles more while the old ring could still hold the run,
+        // and fifteen fewer once it could not -- while returning the right answer instead of
+        // fencing every read. That is the whole trade, and it is why the walk is bounded by live.
+        uint64_t rest = live;
+        do {
+            const uint32_t g =
+                static_cast<uint32_t>(__builtin_ctzll(rest)) / kTagLanes;
+            const uint32_t shift = g * kTagLanes;
+            const uint32_t live_g = static_cast<uint32_t>(rest >> shift) & 0xFFFFu;
             uint32_t hits = 0;
             for (uint32_t i = 0; i < kTagLanes; i++)
-                hits |= static_cast<uint32_t>(tags[g * kTagLanes + i] == tag) << i;
+                hits |= static_cast<uint32_t>(tags[shift + i] == tag) << i;
             if (hits & live_g) return true;
-        }
+            rest &= ~(uint64_t{0xFFFF} << shift);
+        } while (rest);
         return false;
     }
 

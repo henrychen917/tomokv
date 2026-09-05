@@ -6,7 +6,7 @@
 set -u
 PRE="$1"; POST="$2"; OUT="$3"; REPS="${4:-3}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-export PORT=${PORT:-8093} SRVCORE=${SRVCORE:-48} CLICORE=${CLICORE:-184}
+export PORT=${PORT:-8093} SRVCORE=${SRVCORE:-48} CLICORE=${CLICORE:-52}
 [ -x "$ROOT/scratchpad/rlbatch/replay" ] || (cd "$ROOT/scratchpad/rlbatch" && ./build.sh)
 : > "$OUT"
 for r in $(seq 1 "$REPS"); do

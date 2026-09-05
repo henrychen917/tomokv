@@ -29,15 +29,21 @@
 // write that never refines: a wide multi-key write, or a point write under an evicting maxmemory
 // policy), and cases 7, 8 and 11 drive it there, case 11 for four ring capacities in a row.
 //
-// DELIBERATELY BROKEN VARIANTS MUST FAIL THIS TEST (scratchpad/ringsize/mutate.sh runs all four):
-//   shrinking the ring back to sixteen slots           -> refused at compile time by the Rob's
-//                                                         structural static_assert; with that
-//                                                         assert also removed, cases 2, 10 and 12
-//   truncating the tag sweep to the first sixteen slots -> cases 10, 12 and both precise soaks,
-//                                                         the soaks reporting "missed live write"
-//   a conservative generation that stops forcing the walk -> cases 7, 8, 11 and the soak
-//   dropping the tag store on ring insert (the base lane's own mutation) -> cases 1, 4, 5, 10, 12
-//                                                         and both precise soaks
+// DELIBERATELY BROKEN VARIANTS MUST FAIL THIS TEST, AND THE UNMUTATED TREE MUST PASS IT. A table
+// where every mutation fails proves nothing unless the control passes, so scratchpad/ringsize/
+// mutate.sh runs the unmutated tree first and then these six, and each line below is what it
+// actually prints:
+//   M1  ring back to sixteen slots            -> refused at compile time, by BOTH the sidecar
+//                                                sizeof lock and the Rob's structural assert
+//   M1b same, sizeof lock removed             -> still refused, by the structural assert alone
+//   M1c same, both locks removed              -> cases 2, 10 and 12
+//   M2  sweep stops after the first live group-> cases 10, 12 and both precise soaks, the soaks
+//                                                reporting "missed live write"
+//   M2b group walk skips every other group    -> case 10 and both precise soaks
+//   M3  a conservative generation stops
+//       forcing the exact walk                -> cases 7, 8, 11 and the conservative soak
+//   M4  tag store dropped on ring insert
+//       (the base lane's own mutation)        -> cases 1, 4, 5, 10, 12 and both precise soaks
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>

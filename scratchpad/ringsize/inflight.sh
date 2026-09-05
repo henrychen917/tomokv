@@ -16,15 +16,15 @@ cell(){ # cell <ratio> <pipeline> <label>
   local ratio="$1" pl="$2" label="$3"
   local log="$OUT/srv-$label.log"
   boot_srv "$BIN" "$log" --atomic 0 --enable-debug-command yes || return 1
-  taskset -c "$CLICORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  run_cli "$OUT/$label-preload.txt" -s 127.0.0.1 -p "$PORT" --hide-histogram \
       --key-maximum=$KEYMAX --key-minimum=1 --data-size=32 --key-pattern=P:P --ratio=1:0 \
-      -t 4 -c 4 --pipeline=32 -n $((KEYMAX/16)) > "$OUT/$label-preload.txt" 2>&1
+      -t 4 -c 4 --pipeline=32 -n $((KEYMAX/16))
   $CLI -p "$PORT" dbsize > "$OUT/$label-dbsize.txt" 2>&1
   local b_probe b_commit
   b_probe=$(info_field rl_inflight_at_probe); b_commit=$(info_field rl_inflight_at_commit)
-  taskset -c "$CLICORES" memtier_benchmark -s 127.0.0.1 -p "$PORT" --hide-histogram \
+  run_cli "$OUT/$label.txt" -s 127.0.0.1 -p "$PORT" --hide-histogram \
       --key-maximum=$KEYMAX --key-minimum=1 --data-size=32 --key-pattern=R:R --ratio="$ratio" \
-      -t $THREADS -c $CONNS --pipeline="$pl" --test-time=$SECS > "$OUT/$label.txt" 2>&1
+      -t $THREADS -c $CONNS --pipeline="$pl" --test-time=$SECS
   local a_probe a_commit
   a_probe=$(info_field rl_inflight_at_probe); a_commit=$(info_field rl_inflight_at_commit)
   {
