@@ -15,7 +15,7 @@ sleep $((SECS/3)); echo "t=$((2*SECS/3)) FLIP 2 2 -> $(redis-cli -p "$PORT_SIG" 
 wait $LOAD
 info=$(redis-cli -p "$PORT_SIG" info stats | tr -d '\r')
 echo "$TAG: rate=$(awk '/^Totals/{print $2}' "$SP/fd-$TAG-mt.txt") p99=$(awk '/^Totals/{print $8}' "$SP/fd-$TAG-mt.txt") flip_completed=$(infog "$info" flip_completed) transferred=$(infog "$info" flip_clients_transferred)"
-# memtier per-second progress lines (carriage-return separated): ops/sec and latency per second
-tr '\r' '\n' < "$SP/fd-$TAG-mt.txt" | grep -E "^\[RUN" | awk '{ for (i=1;i<=NF;i++) if ($i ~ /secs/) s=$(i-1); for (i=1;i<=NF;i++) if ($i=="ops/sec,") o=$(i-1); for (i=1;i<=NF;i++) if ($i ~ /msec/) l=$(i-1); print s, o, l }' | uniq | awk 'NR%1==0' > "$SP/fd-$TAG-persec.txt"
-echo "per-second (secs ops/sec latency) around the flips:"; awk -v a=$((SECS/3)) -v b=$((2*SECS/3)) '{ s=$1+0; if ((s>=a-3 && s<=a+6) || (s>=b-3 && s<=b+6)) print }' "$SP/fd-$TAG-persec.txt"
+echo "per-second around the flips (secs ops/s ms):"
+python3 ./scratch/cellview.py "$SP/fd-$TAG-mt.txt" --all | awk -v a=$((SECS/3)) -v b=$((2*SECS/3)) '{ s=$1+0; if ((s>=a-2 && s<=a+8) || (s>=b-2 && s<=b+8)) print }'
+python3 ./scratch/cellview.py "$SP/fd-$TAG-mt.txt" | head -1
 stop "$PID" "$PORT_SIG"
