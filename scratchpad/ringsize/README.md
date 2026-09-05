@@ -883,3 +883,46 @@ What the cell can say about the pure cost is bounded rather than sharp: **at 1:1
 overflows, the rate moves +0.40% and +0.04% and the instructions move less than this cell can
 resolve.** So the change is not visibly expensive where it does nothing — but "not visibly" means
 against a 6-8% instruction floor, and that is the honest statement rather than a claim of free.
+
+
+## What read-local ITSELF is worth in this geometry — and it is the whole explanation
+
+One binary (`tomokv-pre`), one geometry, one knob. `--read-local 0` against `--read-local 1`:
+
+| shape | read-local | M ops/s | instr/op | p99 ms | p99.9 ms | local share |
+|---|---|---|---|---|---|---|
+| 1:1 alternating (ring never fills) | **off** | **4.602** | **2446** | 4.09 | 8.2 | 0% |
+| 1:1 alternating | on | 2.491 | 4980 | 35.33 | 614 | 99.9% |
+| | **on vs off** | **−45.9%** | **+103.6%** | | | |
+| 55:45 blocked (ring gives up) | **off** | **4.619** | **2451** | 4.05 | 7.8 | 0% |
+| 55:45 blocked | on | 2.579 | 4678 | 41.98 | 83 | 81.9% |
+| | **on vs off** | **−44.2%** | **+90.8%** | | | |
+
+Checked before believing: both arms report **zero misses**, the preload pins dbsize to keymax, and
+the blocked cell's SET/GET split is 2,465,241 / 2,016,293 — exactly 55:45. The workload is the same
+in both arms. Writes speed up as much as reads, because `--read-local 0` takes the whole apparatus
+away: no sidecar, no write ring, no RYOW tracking, not merely no local reads.
+
+**This explains every number this lane has produced, and it does so without any of them being
+wrong.** In this geometry a read served locally costs about twice a read demoted to its owner. PRE's
+overflowing ring demotes two to three million reads per cell; POST's correctly sized ring converts
+almost every one of them into a local read. So POST does more of the expensive thing and less of the
+cheap thing, and its instruction count rises by exactly the shape the two-term model found:
+**+43 per write (ring bookkeeping) and +4, +97, +180 per read as more reads get converted.**
+
+The lane did what it set out to do. What it bought is worth less than nothing here.
+
+### The caveat that has to travel with this, and it is a large one
+
+**Two shards on two cores is a small geometry**, and read-local's cost is a coherence cost: an io
+thread serving a read locally pulls the owning shard's lines into its own cache. With two shards
+that is a coin flip per read, and the two cores fight over one working set. The owner's box runs
+sixteen. **This lane's every cell was measured at two shards, because that is the geometry in which
+the null passes on the cores this lane owns**, and the read-local tax may be a different size, or a
+different sign, at sixteen. That is the first thing to check on a bigger box, and it is a question
+about read-local rather than about the ring.
+
+What does NOT depend on shard count: the ring's own bookkeeping (+43 instructions per write, from
+the pure-write cell), the overflow arithmetic (a 32-deep pipeline cannot put more than 31 writes in
+a window, and 16 slots cannot hold them), the RSS (+972.8 bytes per armed connection) and the whole
+correctness column.

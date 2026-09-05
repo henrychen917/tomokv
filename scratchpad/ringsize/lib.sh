@@ -81,20 +81,48 @@ info_field(){ $CLI -p "$PORT" info all 2>/dev/null | tr -d '\r' | sed -n "s/^$1:
 : "${CLICORES:?CLICORES must be set before any load generator starts}"
 : "${SRVCORES:?SRVCORES must be set before any server starts}"
 
+# POLL UNTIL THE MASK MATCHES, NOT UNTIL IT IS READABLE. `taskset -c LIST cmd` forks, sets its OWN
+# affinity, and only then execs -- so between the fork and the sched_setaffinity call the pid's mask
+# is still the inherited one, and a check that accepts the FIRST readable value can read [0-255] from
+# a process that is about to be pinned correctly. That is exactly what happened to the MSET phase at
+# 04:16:34 ("PIN FAIL: load generator is on [0-255]"), which killed a phase over a race rather than
+# over a real unpinned generator. The check now waits for the mask it wants and only calls it a
+# failure when it never arrives -- which is still a refusal, because a generator that is genuinely
+# unpinned never converges.
 assert_pinned(){ # assert_pinned <pid> <expected-cpu-list> [label]
-  local pid="$1" want="$2" label="${3:-process $1}" got=""
-  for _ in $(seq 60); do
+  local pid="$1" want="$2" label="${3:-process $1}" got="" last_seen=""
+  for _ in $(seq 100); do
     got=$(sed -n 's/^Cpus_allowed_list:[[:space:]]*//p' "/proc/$pid/status" 2>/dev/null)
-    [ -n "$got" ] && break
+    # Keep the last mask we actually saw: a process that exits during the wait must be reported with
+    # the mask it HAD, not as "could not be read", or a genuinely wrong pin that ends quickly is
+    # excused by the same branch that excuses a process that was never there.
+    [ -n "$got" ] && last_seen="$got"
+    if [ -n "$got" ] && python3 -c '
+import sys
+def ex(s):
+    o=set()
+    for p in s.split(","):
+        p=p.strip()
+        if not p: continue
+        if "-" in p:
+            a,b=p.split("-",1); o.update(range(int(a),int(b)+1))
+        else: o.add(int(p))
+    return o
+sys.exit(0 if ex(sys.argv[1])==ex(sys.argv[2]) else 1)' "$got" "$want"; then
+      return 0
+    fi
+    kill -0 "$pid" 2>/dev/null || break
     sleep 0.05
   done
+  [ -z "$got" ] && got="$last_seen"
   if [ -z "$got" ]; then
     echo "PIN CHECK: $label (pid $pid) exited before its mask could be read" >&2
     return 0                       # it is gone; it cannot be on anyone's cores
   fi
   # COMPARE SETS, NOT STRINGS. The kernel prints its own normalisation of the mask, so "60-63,188-191"
   # and a differently-spelled but identical set are the same pin and must not fail the check --
-  # while a genuinely different set must, whatever it looks like.
+  # while a genuinely different set must, whatever it looks like. (Reached only after the wait above
+  # gave up, so this is the failure path: it reports what the mask settled at.)
   if ! python3 -c '
 import sys
 def ex(s):
