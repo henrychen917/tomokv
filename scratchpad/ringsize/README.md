@@ -992,3 +992,82 @@ read lane and "the ordinary owner-task path" — the same path split mode uses �
 disabling a correctness guarantee or short-cutting the workload. The 2x measured above is the price
 of the feature against the ordinary path, in this geometry, not an artefact of comparing two
 different servers.
+
+
+## The MSET bound, measured rather than flagged
+
+1:1 MSET-against-GET at depth 8, 8 keys against 32, `kMaxPreciseKeysetKeys = 16`:
+
+| arm | 8 keys | 32 keys | local share 8 → 32 | reads demoted 8 → 32 |
+|---|---|---|---|---|
+| PRE | 0.868 M/s | 0.484 M/s | 99.9% → **0.0%** | 795 → **3,632,340** |
+| POST | 0.874 M/s | 0.491 M/s | 99.9% → **0.0%** | 757 → **3,681,176** |
+| PRE vs POST | +0.70% | +1.34% | identical | identical |
+
+**Crossing the bound costs the entire read-local hit share** — 99.9% to zero — and fences 3.6 million
+reads. It is the largest single effect this lane has measured, and this lane's change does nothing
+about it in either direction, exactly as the code says it must: a blind MSET naming more than sixteen
+keys never refines in either arm.
+
+**Recommendation: the literal 16 stays**, and now for a measured reason rather than a cautious one.
+Raising it to the ring capacity would convert those 3.6 million demotions into local reads — and the
+read-local comparison above says a local read costs about twice a demoted one in this geometry, so
+recovering that share would make this cell *slower*, not faster. It is the same question as the
+read-local tax and it must be answered on a bigger box before the bound is touched.
+
+---
+
+# VERDICT — SHELVE, with the grow-on-demand redesign answered No
+
+**The change works completely and costs consistently more than it earns in every regime this lane
+could measure.**
+
+| | |
+|---|---|
+| does it fix the defect | **yes, totally** — ring overflows 388,594 / 618,816 / 750,156 / 1,902,381 → **0**, in every cell of three separate runs; write-demotions 1.5-3.0 M → 0-217; read-local hit share 82-87% → 94-100% |
+| is it correct | **yes** — 14/14 unit including three 200k soaks, every layout lock, the full mutation table with a passing control, the D1 derivation refusing to compile when the window moves, 2s batteries 11/11, differ 0 diffs |
+| what it costs, saturated | **+0.43% / +1.44% / +1.96%** instructions per operation on the three regimes and **+1.27%** on pure SET, against a **0.34%** null floor. Rate moves less than its own 4.2% floor |
+| what it costs, at matched load | **+5.4% / +6.8% / +6.1%** server CPU for the same delivered work, **+2.1%** pure SET, **+7.6% pure GET**, fills/op +3-10% |
+| what it costs, in memory | **+972.8 bytes** on every armed connection, measured at 2000 connections against +960 predicted |
+| is it a consistent win | **no.** It is a consistent, resolvable cost with a benefit that never appears in throughput |
+
+**Hardcode-or-delete says shelve.** The branch `t-ringsize` keeps the work and the notes; nothing
+merges.
+
+### Why it costs, in one line each — all three measured, none inferred
+
+1. **The old ring is cheap because it gives up.** Entering a conservative generation zeroes
+   `write_head` and `write_count`: no inserts, no tags, no pruning, and every read short-circuits.
+   PRE lives there above 55% writes. The ring bookkeeping this lane restores is **+43 instructions
+   per write**, identical across three runs.
+2. **A local read costs about twice a demoted one here.** `--read-local 0` against `1` on one
+   binary: **−45.9% rate, +103.6% instructions** for turning the feature on. PRE demotes millions of
+   reads; POST converts them into local reads; POST therefore does more of the expensive thing.
+3. **The footprint is paid by connections that never use it.** At matched load, pure GET — which
+   never touches the ring — costs **+7.6% CPU per operation**. That is the sidecar allocated at
+   accept, not the ring logic.
+
+### The redesign question, answered No
+
+**The ring should not grow on demand.** DRAM fills per operation do not grow with connection count
+(−0.371 fills/op at 512 connections, +0.045 at 2048), so static sizing to the ROB window is not what
+costs. And the bookkeeping term is a function of **live writes**, not of capacity — the sweep walks
+live groups only, so a 32-slot ring at depth 32 executes exactly the same instructions as a 64-slot
+one. No re-sizing, dynamic or static, recovers a single instruction of the cost.
+
+The one variant the data would support is different from the one that was asked about: **allocate
+the sidecar lazily, on a connection's first write rather than at accept.** That is what the pure-GET
+row is asking for, and it is one measurement, not a design.
+
+### The caveat that governs the verdict, and the acceptance cells that could overturn it
+
+**Every cell here was measured at two shards on two cores**, because that is the geometry in which
+the null passes on the six cores this lane owns. It is also a geometry in which **read-local itself
+is a 45% rate loss** — an io thread serving a read locally pulls the owning shard's lines into its
+own cache, and with two shards that is a coin flip per read with two cores fighting over one working
+set. The owner's box runs sixteen. If read-local wins at sixteen shards (and it must, or the feature
+would not exist), then converting demoted reads into local reads is converting cheap work into
+*cheaper* work, and **this lane's sign could flip**.
+
+So the verdict is: **shelve on this evidence**, and one bigger-box measurement decides whether to
+reopen it.
