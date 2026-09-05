@@ -144,6 +144,14 @@ public:
     // pipeline-1 classifier as a template argument.
     void set_cold_send_classification(bool enabled) { classify_cold_sends_ = enabled; }
 
+    // CODED REPLIES ARE FUSED-ONLY, and this latch is what makes that free rather than merely
+    // unreachable. serve_impl/serve_tls_impl dispatch ONCE per serve on this bool into a body
+    // templated on `Coded`; with Coded=false every coded block is deleted by `if constexpr`, so a
+    // 2s retire lambda is byte-for-byte the code it was before reply codes existed -- not the same
+    // code with an untakeable branch in it. Latched at IoLoop init from cfg().thread_mode, so the
+    // per-serve branch tests a value that never changes after boot.
+    void set_reply_codes(bool enabled) { reply_codes_ = enabled; }
+
     // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
     // A retire callback calls back into the loop: cross-shard assembly (assemble_mget stages
@@ -773,6 +781,16 @@ private:
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit,
               bool ClassifySend = false>
     bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
+        if (reply_codes_)
+            return serve_body<TrackOutput, TlsNoBorrow, kEp, Submit, ClassifySend, true>(
+                c, submit_allowed);
+        return serve_body<TrackOutput, TlsNoBorrow, kEp, Submit, ClassifySend, false>(
+            c, submit_allowed);
+    }
+
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
+              bool Coded>
+    bool serve_body(Client& c, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -820,12 +838,21 @@ private:
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
-                // Coded reply: render at the fill frontier. One constant-length store by the
-                // thread that owns the buffer, replacing the executor's store plus this thread's
-                // runtime-length memcpy out of op.reply.
-                if (op.reply_code_) {
-                    stage_coded_reply<TrackOutput>(conn, op);
-                } else if (op.direct_len) {
+                // Coded reply: render at the fill frontier, one constant-length store by the
+                // thread that owns the buffer. The whole block is deleted for Coded=false, and
+                // what remains below is the pre-reply-code text, instruction for instruction.
+                if constexpr (Coded) {
+                    if (op.reply_code_) {
+                        stage_coded_reply<TrackOutput>(conn, op);
+                        if (!op.reply.empty()) {
+                            if constexpr (TrackOutput)
+                                conn.append_fill(op.reply.data(), op.reply.size());
+                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                        }
+                        return;
+                    }
+                }
+                if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
                     stats_.direct++;
@@ -858,6 +885,15 @@ private:
 
     template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false>
     bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
+        if (reply_codes_)
+            return serve_tls_body<TrackOutput, kEp, Submit, ClassifySend, true>(
+                c, tls, submit_allowed);
+        return serve_tls_body<TrackOutput, kEp, Submit, ClassifySend, false>(
+            c, tls, submit_allowed);
+    }
+
+    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
+    bool serve_tls_body(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -884,12 +920,21 @@ private:
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
-                // Coded reply: render at the fill frontier. One constant-length store by the
-                // thread that owns the buffer, replacing the executor's store plus this thread's
-                // runtime-length memcpy out of op.reply.
-                if (op.reply_code_) {
-                    stage_coded_reply<TrackOutput>(conn, op);
-                } else if (op.direct_len) {
+                // Coded reply: render at the fill frontier, one constant-length store by the
+                // thread that owns the buffer. The whole block is deleted for Coded=false, and
+                // what remains below is the pre-reply-code text, instruction for instruction.
+                if constexpr (Coded) {
+                    if (op.reply_code_) {
+                        stage_coded_reply<TrackOutput>(conn, op);
+                        if (!op.reply.empty()) {
+                            if constexpr (TrackOutput)
+                                conn.append_fill(op.reply.data(), op.reply.size());
+                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                        }
+                        return;
+                    }
+                }
+                if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
                     stats_.direct++;
@@ -1023,6 +1068,7 @@ private:
     ReleaseFn release_fn_ = nullptr;
     void*  retire_ctx_ = nullptr;
     RetireFn retire_fn_ = nullptr;
+    bool reply_codes_ = false;
     const std::atomic<bool>* limit_armed_ = nullptr;
     void*  limit_ctx_ = nullptr;
     LimitFn limit_fn_ = nullptr;

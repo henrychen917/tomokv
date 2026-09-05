@@ -143,6 +143,10 @@ public:
         wb_.set_cold_send_classification(
             srv_->cfg().thread_mode == ThreadMode::Fused &&
             srv_->cfg().overlap != 0);
+        // Coded replies are armed in fused mode only (see Rob::acquire<Codes>). Telling the send
+        // engine as well lets it instantiate the split retire path with the coded blocks REMOVED
+        // rather than merely unreachable.
+        wb_.set_reply_codes(srv_->cfg().thread_mode == ThreadMode::Fused);
         initialized_ = true;
         return dormant || activate();
     }
