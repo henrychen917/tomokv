@@ -31,11 +31,10 @@ for wl in wls:
         trig = sum(i(r["trig"]) for r in rs); hold = sum(i(r["hold"]) for r in rs); rt = sum(i(r.get("rt","0")) for r in rs)
         anchors = ",".join(sorted(set(r["anchor"] for r in rs)))
         busy = {}
+        import re
         for r in rs:
-            for kv in r["busy"].split(";"):
-                for part in kv.split(","):
-                    if "=" in part:
-                        k,v = part.split("="); busy.setdefault(k,[]).append(f(v))
+            for k, v in re.findall(r"([a-z]+)=([0-9.]+)", r["busy"]):
+                busy.setdefault(k, []).append(f(v))
         busy_s = " ".join("%s=%.2f" % (k, st.mean(v)) for k,v in sorted(busy.items()))
         rel = (m/off_mean-1)*100 if off_mean else 0
         print("%-6s %-7s %2d %10.0f %+6.1f%% %7.1f%% %5d %6d %5d %5d %4d %-14s %s" % (wl,arm,len(rs),m,rel,spread*100,comp,xfer,trig,hold,rt,anchors,busy_s))

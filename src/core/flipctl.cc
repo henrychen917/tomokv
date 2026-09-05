@@ -662,10 +662,13 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, doub
     model_gain_high_ = choice.gain_high;
     model_target_io_ = choice.target_units * unit;
 
-    // SATURATION GATE. Throughput is bounded by whichever role has no headroom. When BOTH roles'
-    // busiest threads idle more than the noise band, the bound is outside the server -- the
-    // clients, the network, a paced driver -- and no re-split can raise it: any flip is pure cost.
-    // Read from the idle_ns the loops already account, once per reading, off the hot path.
+    // SATURATION GATE. The capacity model above is a statement about CPU-bound roles: throughput
+    // ~ min(io capacity, ex capacity) holds only while one role's busiest thread has no headroom.
+    // When BOTH roles idle more than the noise band, the rate is set by something the split does
+    // not touch -- a paced driver, the network, or the closed loop's own wake-up latency (measured
+    // here: memtier at 27% of its cores, io 86% / ex 93% busy, and neither side waiting on the
+    // other's capacity) -- and a flip can only cost. Read from the idle_ns the loops already
+    // account, once per reading, off the hot path.
     const bool externally_bound = io_headroom > band && ex_headroom > band;
 
     const bool capped = model_readings_ >= model_readings_cap_;

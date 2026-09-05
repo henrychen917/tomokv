@@ -15,18 +15,18 @@ cell() { # cell ROUND LABEL BIN FA
   require_gate || exit 3
   pid=$(boot "$bin" "$PORT" "ab-$label" --ratio "$SRV_RATIO" --shards 64 --atomic 1 --flip-auto "$fa") || exit 2
   preload "$PORT"
-  lbsnap "$PORT" >"$SP/fd-lb0.txt"
+  lbsnap "$PORT" >"$SP/fd-lb0-$label-$WL-$round.txt"
   # flip timeline: one line per 2 s so moves AFTER stabilization can be told from the boot search
-  ( t0=$(date +%s); while :; do echo "$(( $(date +%s) - t0 )) $(redis-cli -p "$PORT" info flipctl 2>/dev/null | tr -d '\r' | grep -E '^flipctl_(state|phase|anchor_io|triggers|model_holds|round_trips|model_margin):' | tr '\n' ' ') $(redis-cli -p "$PORT" info stats 2>/dev/null | tr -d '\r' | grep -E '^flip_(completed|clients_transferred):' | tr '\n' ' ')"; sleep 2; done ) >"$SP/fd-tl-$label-$WL-$round.txt" 2>&1 &
+  ( t0=$(date +%s); while :; do echo "$(( $(date +%s) - t0 )) $(redis-cli -p "$PORT" info flipctl 2>/dev/null | tr -d '\r' | grep -E '^flipctl_(state|phase|anchor_io|triggers|model_holds|round_trips|model_margin):' | tr '\n' ' ') $(redis-cli -p "$PORT" info stats 2>/dev/null | tr -d '\r' | grep -E '^flip_(completed|clients_transferred):' | tr '\n' ' ') foreign=$(ps -eo pid,psr,comm --no-headers | awk -v me="$MY_PIDS" '($2==52||$2==53||$2==54||$2==55||$2==56||$2==57||$2==180||$2==181||$2==182||$2==183||$2==184||$2==185) && $3!="tomokv" && $3!="memtier_benchma" && $3!="redis-cli" && $3!="ps" && $3!="awk" {printf "%s/%s@%s ", $1, $3, $2}')"; sleep 2; done ) >"$SP/fd-tl-$label-$WL-$round.txt" 2>&1 &
   local tl=$!
-  out=$(load 2>/dev/null)
+  load >"$SP/fd-mt-$label-$WL-$round.txt" 2>&1; out=$(tr '\r' '\n' <"$SP/fd-mt-$label-$WL-$round.txt")
   kill "$tl" 2>/dev/null; wait "$tl" 2>/dev/null
-  lbsnap "$PORT" >"$SP/fd-lb1.txt"
+  lbsnap "$PORT" >"$SP/fd-lb1-$label-$WL-$round.txt"
   rate=$(echo "$out" | awk '/^Totals/{print $2}'); p50=$(echo "$out" | awk '/^Totals/{print $6}'); p99=$(echo "$out" | awk '/^Totals/{print $8}')
   info=$(redis-cli -p "$PORT" info all 2>/dev/null | tr -d '\r')
   redis-cli -p "$PORT" debug flipctl 2>/dev/null >"$SP/fd-dbg-$label-$WL-$round.txt"
   g() { infog "$info" "$1"; }
-  echo "$round,$label,$WL,$fa,${rate:-MISSING},${p50:-},${p99:-},$(g flip_completed),$(g flip_clients_transferred),$(g flipctl_triggers),$(g flipctl_boot_triggers),$(g flipctl_fingerprint_triggers),$(g flipctl_rate_surge_triggers),$(g flipctl_rate_collapse_triggers),$(g flipctl_forced_triggers),$(g flipctl_null_maneuvers),$(g flipctl_model_holds),$(g flipctl_anchor_io):$(g flipctl_anchor_ex),$(g flipctl_round_trips),$(g flipctl_model_margin),$(g io_threads):$(g ex_threads),$(lbbusy "$SP/fd-lb0.txt" "$SP/fd-lb1.txt"),$(g tomokv_keylb_client_moves),$(g tomokv_keylb_bucket_moves)" | tee -a "$OUT"
+  echo "$round,$label,$WL,$fa,${rate:-MISSING},${p50:-},${p99:-},$(g flip_completed),$(g flip_clients_transferred),$(g flipctl_triggers),$(g flipctl_boot_triggers),$(g flipctl_fingerprint_triggers),$(g flipctl_rate_surge_triggers),$(g flipctl_rate_collapse_triggers),$(g flipctl_forced_triggers),$(g flipctl_null_maneuvers),$(g flipctl_model_holds),$(g flipctl_anchor_io):$(g flipctl_anchor_ex),$(g flipctl_round_trips),$(g flipctl_model_margin),$(g io_threads):$(g ex_threads),$(lbbusy "$SP/fd-lb0-$label-$WL-$round.txt" "$SP/fd-lb1-$label-$WL-$round.txt"),$(g tomokv_keylb_client_moves),$(g tomokv_keylb_bucket_moves)" | tee -a "$OUT"
   stop "$pid" "$PORT"
 }
 for r in $(seq "$ROUNDS"); do
