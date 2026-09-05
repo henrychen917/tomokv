@@ -21,10 +21,23 @@
 // argument, and case 3 below is its adversarial half: two different keys whose tags collide must
 // still resolve correctly through the exact walk.
 //
-// A DELIBERATELY BROKEN VARIANT MUST FAIL THIS TEST. Dropping the tag store in
-// Rob::read_local_resolve_pending (`read_local_write_tags_[tail] = ...`) leaves the filter unable
-// to see the write it just committed; cases 1, 4, 5 and the soak then report "missed live write"
-// and the binary exits 1. Verified by building exactly that mutation.
+// THE RING IS SIZED TO THE ROB WINDOW, so capacity overflow is unreachable: the live entries name
+// distinct ids inside a window at most kRobWindow wide, and both insert sites prune to that set
+// immediately before testing capacity. Case 10 is the assertion of that -- a reorder buffer
+// saturated with precise writes, every one of which must keep an exact ring slot. The conservative
+// generation that a full ring used to start is still ordinary traffic through the other door (a
+// write that never refines: a wide multi-key write, or a point write under an evicting maxmemory
+// policy), and cases 7, 8 and 11 drive it there, case 11 for four ring capacities in a row.
+//
+// DELIBERATELY BROKEN VARIANTS MUST FAIL THIS TEST (scratchpad/ringsize/mutate.sh runs all four):
+//   shrinking the ring back to sixteen slots           -> refused at compile time by the Rob's
+//                                                         structural static_assert; with that
+//                                                         assert also removed, cases 2, 10 and 12
+//   truncating the tag sweep to the first sixteen slots -> cases 10, 12 and both precise soaks,
+//                                                         the soaks reporting "missed live write"
+//   a conservative generation that stops forcing the walk -> cases 7, 8, 11 and the soak
+//   dropping the tag store on ring insert (the base lane's own mutation) -> cases 1, 4, 5, 10, 12
+//                                                         and both precise soaks
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -65,6 +78,21 @@ public:
         const uint64_t id = rob_.dispatch_id();
         rob_.mark_current_write();
         precise_.push_back(rob_.refine_current_write_hash(hash));
+        rob_.publish();
+        live_.push_back({id, hash});
+    }
+
+    // A write frame that stages a hazard and never refines it: the parser's wide multi-key write,
+    // and its ordinary point write under an evicting maxmemory policy. It takes no ring slot and no
+    // tag can describe it, so it must become a conservative generation that fences every later read
+    // until it retires. Since the ring now covers the whole ROB window this is the ONLY door left
+    // to that machinery, which is exactly why the tests below drive it through here.
+    void write_conservative(uint64_t hash) {
+        Op* op = rob_.acquire_read_local(0);
+        if (!op) std::abort();
+        op->hash = hash;
+        const uint64_t id = rob_.dispatch_id();
+        rob_.mark_current_write();
         rob_.publish();
         live_.push_back({id, hash});
     }
@@ -137,7 +165,7 @@ constexpr uint64_t kKeyB      = 0x0000'0003'0F0F'9999ull;
 // ---- 1. RYOW: a read of a key with a live write to it must be fenced, at every ring position ---
 void test_ryow_same_key() {
     bool ok = true;
-    for (uint32_t ahead = 0; ahead < ReadLocalRobState::kWriteRingCapacity; ahead++) {
+    for (uint32_t ahead = 0; ahead + 2 <= kRobWindow; ahead++) {
         Frames f;
         f.write(kKeyA);
         // Bury it under `ahead` further live writes to unrelated keys, so the entry under test
@@ -146,14 +174,14 @@ void test_ryow_same_key() {
         if (!f.live_write(kKeyA)) std::abort();
         if (!f.read(kKeyA)) { ok = false; break; }
     }
-    note("RYOW: live same-key write fences the read at every ring depth", ok);
+    note("RYOW: live same-key write fences the read at every ring depth (to the ROB window)", ok);
 }
 
 // ---- 2. HOIST: a read of a key no live write touches must NOT be fenced -----------------------
 void test_hoist_different_key() {
     Frames f;
     bool ok = true;
-    for (uint32_t i = 0; i < ReadLocalRobState::kWriteRingCapacity; i++)
+    for (uint32_t i = 0; i + 1 < kRobWindow; i++)
         f.write(0x7000'0000'0000'0000ull + i);
     if (!f.all_precise()) ok = false;                 // the ring recorded exact hashes, not a wall
     if (f.read(kKeyB)) ok = false;                    // disjoint key: free to execute out of order
@@ -210,12 +238,11 @@ void test_abandoned_write() {
 // ---- 7. overflow stays conservative, and recovers ---------------------------------------------
 void test_overflow_conservative() {
     Frames f;
-    for (uint32_t i = 0; i <= ReadLocalRobState::kWriteRingCapacity; i++)
-        f.write(0x9000'0000'0000'0000ull + i);
-    bool ok = f.read(kKeyB);            // ring overflowed: every read is fenced, by design
+    f.write_conservative(0x9000'0000'0000'0000ull);
+    bool ok = f.read(kKeyB);            // conservative generation: every read is fenced, by design
     f.retire_all();
     ok = ok && !f.read(kKeyB);          // generation drained: precision comes back
-    note("ring overflow fences conservatively and recovers on retirement", ok);
+    note("a conservative generation fences every read and recovers on retirement", ok);
 }
 
 // ---- 8. an abandoned write must not cancel a live conservative generation -------------------
@@ -224,18 +251,76 @@ void test_overflow_conservative() {
 // published -- silently telling every later read that the overflow generation was gone.
 void test_overflow_survives_abandoned_write() {
     Frames f;
-    for (uint32_t i = 0; i <= ReadLocalRobState::kWriteRingCapacity; i++)
-        f.write(0xA000'0000'0000'0000ull + i);      // ring overflows: hashes are discarded
+    f.write_conservative(0xA000'0000'0000'0000ull); // a hazard no tag can describe
     f.write_abandoned(kKeyA);                       // staged, then never published
     bool ok = f.read(kKeyB);                        // the generation is still live: still fenced
-    note("an abandoned write does not cancel a live overflow generation", ok);
+    note("an abandoned write does not cancel a live conservative generation", ok);
+}
+
+// ---- 10. the ring covers the whole ROB window, so capacity overflow never happens -------------
+// THE CASE THIS LANE EXISTS FOR. Saturate the reorder buffer with precise point writes -- one per
+// window position but the one the probing read needs -- and require that EVERY one of them kept an
+// exact ring slot. refine_current_write_hash() refusing even once would show up here twice over: as
+// a false from all_precise(), and as the disjoint read being fenced by the conservative generation
+// that refusal starts. Against a sixteen-slot ring this case fails on both counts.
+void test_ring_covers_the_rob_window() {
+    Frames f;
+    bool ok = true;
+    const uint32_t writes = kRobWindow - 1;             // the read below needs the last position
+    for (uint32_t i = 0; i < writes; i++)
+        f.write(0xF000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+    if (!f.all_precise()) ok = false;                   // no write was ever refused for capacity
+    if (f.read(kKeyB)) ok = false;                      // and so no read is fenced by a wall
+    // RYOW still holds for every one of them, at every distance from the ring head. These probes
+    // take no window position of their own, which is why they can all run against a full ROB.
+    for (uint32_t i = 0; i < writes && ok; i++)
+        if (!f.probe_without_acquire(0xF000'0000'0000'0000ull | (uint64_t{i} << 24) | i))
+            ok = false;
+    char extra[64];
+    std::snprintf(extra, sizeof extra, "(%u live writes)", writes);
+    note("a ROB saturated with precise writes never overflows the ring", ok, extra);
+}
+
+// ---- 11. drive far past the ring capacity through the door that is still open ------------------
+// Capacity overflow is unreachable now, but the conservative generation it used to start is not
+// dead code: every write that cannot refine -- a wide multi-key write, or a point write under an
+// evicting maxmemory policy -- is one. Run four ring capacities of them, with precise writes and
+// retirements interleaved so the FIFO wraps repeatedly, and require the fence to hold throughout
+// and to lift once the last one drains.
+void test_conservative_run_past_capacity() {
+    Frames f;
+    bool ok = true;
+    for (uint32_t i = 0; i < 4 * ReadLocalRobState::kWriteRingCapacity && ok; i++) {
+        f.write_conservative(0xB000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+        if (i % 3 == 0) f.write(0xC000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+        if (!f.read(kKeyB)) ok = false;                 // a generation is live: fenced
+        if (f.in_flight() > kRobWindow - 8) f.retire(f.in_flight() / 2);
+    }
+    f.retire_all();
+    ok = ok && !f.read(kKeyB);                          // fully drained: precision comes back
+    note("a conservative run four times the ring capacity fences throughout and recovers", ok);
+}
+
+// ---- 12. the tag mirror describes every window position, not just the first sixteen ------------
+void test_tag_collision_deep_in_the_ring() {
+    Frames f;
+    for (uint32_t i = 0; i < 40; i++) f.write(0xD000'0000'0000'0000ull | (uint64_t{i} << 20));
+    f.write(kTagTwinA);                                 // decoy past the old capacity
+    f.write(kKeyA);                                     // and the real write past it too
+    for (uint32_t i = 0; i < 8; i++) f.write(0xE000'0000'0000'0000ull | (uint64_t{i} << 20));
+    const bool ok = f.read(kKeyA) && !f.read(kKeyB);
+    note("a same-key write past the old sixteen-slot ring is still found, its tag twin still not",
+         ok);
 }
 
 // ---- 9. randomised soak against the live-write reference model --------------------------------
-// `depth_cap` decides which regime the soak runs in: below the ring capacity every write keeps its
-// own precise entry and both verdicts must occur, while a cap above it drives the conservative
-// overflow generation, where the invariant still holds but nothing is expected to be hoisted.
-void test_soak(uint32_t depth_cap, bool expect_hoists, const char* label) {
+// `depth_cap` sets how deep the ROB is allowed to run and `conservative_pct` how often a write
+// arrives through the door that takes no ring slot. With none of those every write keeps its own
+// precise entry and both verdicts must occur -- at any depth now, which is the point of running one
+// arm at the full window. With most of them the connection lives inside a conservative generation,
+// where the invariant still holds but nothing is expected to be hoisted.
+void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists,
+               const char* label) {
     std::mt19937_64 rng(20260905);
     // A small key space with many low-16-bit collisions: every key is 0x1000...0000 + (i<<48) + i,
     // so keys i and j collide in the tag whenever (i & 0xFFFF) == (j & 0xFFFF) -- and half the
@@ -253,7 +338,9 @@ void test_soak(uint32_t depth_cap, bool expect_hoists, const char* label) {
             continue;
         }
         if (roll < 40) {
-            f.write(key(static_cast<uint32_t>(rng() % 48)));
+            const uint64_t h = key(static_cast<uint32_t>(rng() % 48));
+            if (rng() % 100 < conservative_pct) f.write_conservative(h);
+            else f.write(h);
         } else if (roll < 90) {
             const uint64_t h = key(static_cast<uint32_t>(rng() % 48));
             const bool conflict = f.read(h);
@@ -297,9 +384,14 @@ int main() {
     test_abandoned_write();
     test_overflow_conservative();
     test_overflow_survives_abandoned_write();
-    test_soak(12, true, "soak precise ring: 200k frames, no live same-key write ever missed");
-    test_soak(kRobWindow - 2, false,
-              "soak overflow regime: 200k frames, no live same-key write ever missed");
+    test_ring_covers_the_rob_window();
+    test_conservative_run_past_capacity();
+    test_tag_collision_deep_in_the_ring();
+    test_soak(12, 0, true, "soak shallow precise ring: 200k frames, no live write ever missed");
+    test_soak(kRobWindow - 2, 0, true,
+              "soak precise ring at the full ROB window: 200k frames, no live write ever missed");
+    test_soak(kRobWindow - 2, 70, false,
+              "soak conservative regime: 200k frames, no live same-key write ever missed");
     std::printf("read_local write ring unit: %s\n", failures ? "FAIL" : "ok");
     return failures ? 1 : 0;
 }
