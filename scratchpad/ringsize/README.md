@@ -740,3 +740,40 @@ rest pay for it?"**
 The soak line worth keeping: at the full ROB window the precise ring **hoisted 50,691 of 87,251
 reads** where the conservative regime hoists 0. The mechanism works. Everything below is about what
 it costs.
+
+
+## Refinement: at a saturated server with fixed duty, cycles/op IS the rate column
+
+Switching perf to the server process fixed a real defect — `-C` was counting the idle task's cycles
+too — but it did not make cycles/op a second measurement, and the corrected run says so plainly.
+Six same-binary rows, cells whose rates range from 2.51 to 4.02 M ops/s:
+
+| cell | rate M/s | instr/op | cyc/op | fills/op | srv cores | Gcycles/s |
+|---|---|---|---|---|---|---|
+| 41% writes | 2.515 | 4675 | 2452 | 8.65 | 1.85 | **5.750** |
+| 55% writes | 2.506 | 4680 | 2464 | 8.99 | 1.86 | **5.758** |
+| 70% writes | 2.728 | 4295 | 2264 | 8.75 | 1.86 | **5.754** |
+| pure SET | 4.017 | 3395 | 1531 | 8.36 | 1.85 | **5.741** |
+| pure GET | 2.577 | 4829 | 2394 | 6.75 | 1.86 | **5.752** |
+
+**The last column is flat to three tenths of a percent** while the workload changes completely,
+because the server sits at 1.85-1.86 cores of its two at 3.09-3.11 GHz whatever it is doing. Cycles
+per second is therefore a constant of this geometry, and
+
+    cycles/op = 5.75e9 / rate
+
+exactly. IPC = instructions / cycles is then instructions-per-op times rate over the same constant,
+so it is derived twice over. **Three of the four columns in the original table were one measurement
+wearing three hats**, and correcting the perf target changed which constant they share rather than
+making them independent.
+
+What is genuinely independent, and what this lane's verdict must therefore be argued from:
+
+* **rate** — and cycles/op is the same number, so the owner's "judge by cycles/op" is satisfied by
+  judging by rate here, not violated by it. Cycles/op only becomes a second measurement when the
+  two arms sit at DIFFERENT duty, and the srv-cores column is what says whether they do;
+* **instructions per operation** — the quiet column, 0.08-0.61% null floor against rate's 2-5%;
+* **DRAM fills per operation** — now real rather than a cpu-window artifact, and the only column
+  that can tell a bigger working set from more work. It runs 8.4-9.0 per operation on the write
+  cells and 6.75 on pure GET, which is a great deal of memory traffic and exactly the term the
+  +972.8 bytes per armed connection could move.

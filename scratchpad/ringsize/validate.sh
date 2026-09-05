@@ -72,6 +72,16 @@ load_geometry(){
   fi
 }
 
+# ROWS ACCUMULATE ACROSS ATTEMPTS, because on a contested box a phase that restarts from zero every
+# time the owner takes the box back never finishes. Between 01:01 and 02:47 this lane got two
+# windows, of four minutes and of fifty-two seconds, against a null that needs twenty. Each cell
+# writes its own csv row the moment it completes, so an interrupted attempt leaves whole, valid
+# cells behind and the next attempt adds to them. Set RESET=1 to start a phase's csv clean.
+# WHAT THIS COSTS: the ABBA visit order cancels drift WITHIN a round, and rows gathered an hour
+# apart are not protected that way. So every report prints its visit count per arm and its per-cell
+# spread, and a table built from lopsided or widely separated attempts says so on its face.
+keep_or_reset(){ [ "${RESET:-0}" = 1 ] && rm -f "$1"; return 0; }
+
 for phase in $PHASES; do
 case "$phase" in
 build)
@@ -136,7 +146,7 @@ null)
   guard null
   load_geometry
   stamp "same-binary null (PRE vs PRE)"
-  rm -f "$OUT/ab_null.csv"
+  keep_or_reset "$OUT/ab_null.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-pre "$OUT/ab_null.csv" \
       "${NULL_ROUNDS:-1}" 2>&1 | tail -3
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_null.csv" | tee "$OUT/ab_null.txt"
@@ -145,7 +155,7 @@ rate)
   guard rate
   load_geometry
   stamp "saturated ABBA rate + triad + counters"
-  rm -f "$OUT/ab_triad.csv"
+  keep_or_reset "$OUT/ab_triad.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-post "$OUT/ab_triad.csv" \
       "${ROUNDS:-3}" 2>&1 | tail -6
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_triad.csv" | tee "$OUT/ab_triad.txt"
@@ -176,7 +186,7 @@ PYEOF
   fi
   : "${MATCHED_RATE:?set MATCHED_RATE (per-connection ops/s) from the saturated run first}"
   stamp "matched-rate A/B at ${MATCHED_RATE} ops/s/conn"
-  rm -f "$OUT/ab_matched.csv"
+  keep_or_reset "$OUT/ab_matched.csv"
   RATELIMIT="$MATCHED_RATE" "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-post \
       "$OUT/ab_matched.csv" "${MATCHED_ROUNDS:-2}" 2>&1 | tail -4
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_matched.csv" | tee "$OUT/ab_matched.txt"
@@ -201,7 +211,7 @@ conn)
   guard conn
   load_geometry
   stamp "connection scaling 512 vs 2048, with DRAM fills"
-  rm -f "$OUT/regimes_conn.csv"
+  keep_or_reset "$OUT/regimes_conn.csv"
   "$HERE/regimes.sh" conn ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_conn.csv" \
       "${CONN_ROUNDS:-2}" 2>&1 | tail -4
   python3 "$HERE/regimes_report.py" "$OUT/regimes_conn.csv" | tee "$OUT/regimes_conn.txt"
@@ -211,7 +221,7 @@ mset)
   guard mset
   load_geometry
   stamp "MSET width 8 vs 32 keys at depth 8"
-  rm -f "$OUT/regimes_mset.csv"
+  keep_or_reset "$OUT/regimes_mset.csv"
   "$HERE/regimes.sh" mset ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_mset.csv" \
       "${MSET_ROUNDS:-2}" 2>&1 | tail -4
   python3 "$HERE/regimes_report.py" "$OUT/regimes_mset.csv" | tee "$OUT/regimes_mset.txt"
@@ -226,7 +236,7 @@ rlvalue)
   guard rlvalue
   load_geometry
   stamp "read-local value: --read-local 0 vs 1 on the base arm"
-  rm -f "$OUT/rl_value.csv"
+  keep_or_reset "$OUT/rl_value.csv"
   "$HERE/rl_value.sh" ./build/tomokv-pre "$OUT/rl_value.csv" "${RLV_ROUNDS:-2}" 2>&1 \
     | tee "$OUT/rl_value.txt" | tail -14
   ;;
@@ -237,7 +247,7 @@ ovf)
   guard ovf
   load_geometry
   stamp "ring overflows per arm (instrumented binaries)"
-  rm -f "$OUT/ab_ovf.csv"
+  keep_or_reset "$OUT/ab_ovf.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre-ovf ./build/tomokv-post-ovf "$OUT/ab_ovf.csv" \
       "${OVF_ROUNDS:-1}" 2>&1 | tail -3
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_ovf.csv" | tee "$OUT/ab_ovf.txt"
