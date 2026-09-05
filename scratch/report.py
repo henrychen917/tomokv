@@ -145,13 +145,25 @@ def perf_mean(prefix, key):
     vals = [float(d[key]) for d in perf if d["tag"].startswith(prefix) and key in d]
     return st.mean(vals) if vals else 0
 
-final_log = "".join(open(f"{SP}/{name}").read() for name in
-                    ("fd-final.log", "fd-final2.log", "fd-ver.log")
-                    if os.path.exists(f"{SP}/{name}"))
-def grab(pattern):
-    m = re.findall(pattern, final_log, re.M)
-    return m
-hold_lines = grab(r"^HOLD .*$"); bat_lines = grab(r"^(flip\S*\.py rc=.*)$"); mode_lines = grab(r"^(.*--flip-auto 1 boots:.*)$"); differ = grab(r"^DIFFER .*$")
+# The run log is a CHAIN (final.sh aborted on the box marker, finalw.sh resumed it, ver.sh/ver2.sh
+# finished the night) and the two generations PREFIX their lines differently -- ver.sh timestamps
+# every line, so patterns anchored at "HOLD"/"DIFFER" silently kept showing the previous night's
+# rows. Read tonight's logs first and fall back to the older ones only when a category is missing.
+def read_logs(*names):
+    return "".join(open(f"{SP}/{n}").read() for n in names if os.path.exists(f"{SP}/{n}"))
+ver_log = read_logs("fd-ver.log", "fd-ver2.log")
+old_log = read_logs("fd-final.log", "fd-final2.log")
+TS = r"^(?:\d\d:\d\d:\d\d )?"
+def grab_in(pattern, text, width=200):
+    return [re.sub(r"^\d\d:\d\d:\d\d ", "", m)[:width] for m in re.findall(pattern, text, re.M)]
+def grab(pattern, width=200):
+    return grab_in(pattern, ver_log, width) or grab_in(pattern, old_log, width)
+hold_lines = grab(TS + r"HOLD .*$")
+bat_lines = [l for l in grab(TS + r"(?:BAT |SPINPROBE |UNIT )[^\n]*$", 170)
+             if "unexpected argument" not in l]  # ver.sh handed spinprobe a path; ver2.sh re-ran it with the pid
+mode_lines = grab(TS + r"(?:MODES: |.*--flip-auto 1 boots:)[^\n]*$")
+differ = grab(TS + r"DIFFER [^\n]*$")
+arms_line = (grab_in(TS + r"ARMS [^\n]*$", ver_log) or [""])[0]
 
 # explicit-flip probe per-second trace (policy binary)
 rx = re.compile(r"\[RUN #\d+ +\d+%, +(\d+) secs\].*?(\d+) \(avg: +(\d+)\) ops/sec")
@@ -274,7 +286,7 @@ doc = f"""<title>Flip Thrash Fix</title>
 <main>
 <div class="eyebrow">TomoKV · lane t-flipdamp · 2026-09-05/06 · commit {COMMIT} (PRE = {BASE})</div>
 <h1>Flip thrash fix: the controller stops moving what it cannot improve</h1>
-<p>Defect under test: <code>--flip-auto 1</code> in split mode lost 19.5% on multi-key with three flips, 993 connections moved and the io:ex target unchanged. This page is the PRE/POST evidence from the lane rig (four server threads, io:ex 2:2, the closest 4-thread analogue of 18:14), the mechanism, and the exact recipe for acceptance on the quiet box.</p>
+<p>Defect under test: <code>--flip-auto 1</code> in split mode lost 19.5% on multi-key with three flips, 993 connections moved and the io:ex target unchanged. Two nights of work: the placement policy that stops the thrash, and the verification that it is not a silent <code>--flip-auto 0</code>. This page is the PRE/POST evidence from the lane rig (four server threads, io:ex 2:2, the closest 4-thread analogue of 18:14), the mechanism, and the exact recipe for acceptance on the quiet box.</p>
 
 <div class="verdict">
 <div><div class="k">multi-key, POST flips / clients moved</div><div class="v">{kv(mk_post,'comp')} / {kv(mk_post,'xfer')}</div><div class="s">PRE: {kv(mk_pre,'comp')} flips / {kv(mk_pre,'xfer')} clients in {kv(mk_pre,'n')} cells</div></div>
@@ -285,7 +297,7 @@ doc = f"""<title>Flip Thrash Fix</title>
 
 <h2>1. PRE / POST matrix</h2>
 <p>Four arms interleaved ABBA, 40 s cells, three rounds each, one server boot per cell (so every controller cell includes its boot maneuver). <b>OFF (a)/(b)</b> are the same binary with the same flags: their spread is the rig's noise floor for that regime. Rates are memtier totals; flips and clients moved are the server's own counters; <i>after anchor</i> counts flips completed after the controller first reported <code>anchored</code> — the owner's definition of thrash.</p>
-{table(summ2, "matrix2 — 4 server threads on cpus 52,53,180,181 (2:2), memtier 8×32 conns on 54-57,182-185, 200k keys, 32 B values, --shards 64 --atomic 1", ["base1","pol1","pol0a","pol0b"])}
+{table(summ2, "4 regimes x 3 rounds x 4 arms, 40 s cells — 4 server threads on cpus 52,53,180,181 (2:2), memtier 8x32 conns on 54-57,182-185, 200k keys, 32 B values, --shards 64 --atomic 1", ["base1","pol1","pol0a","pol0b"])}
 <p class="muted">Noise floor (OFF pair spread): {"; ".join(f"{wl} {n:.1f}%" for wl, n in nulls)}. Rate differences inside the floor are not verdicts; the counters are.</p>
 
 <h3>The guard alone was not enough</h3>
@@ -297,7 +309,7 @@ doc = f"""<title>Flip Thrash Fix</title>
 <div>{spark(probe)}<p class="muted">Policy binary, controller off, multi-key load; explicit <code>FLIP 3 1</code> at 15 s and <code>FLIP 2 2</code> at 30 s. Ops/s per second from memtier.</p></div>
 <div>
 <p>At 2:2 the rig runs <b>{pre22/1000:,.0f}k</b> ops/s; at 3:1 it runs <b>{at31/1000:,.0f}k</b> ({(at31/pre22-1)*100 if pre22 else 0:+.0f}%), and it is back to <b>{post22/1000:,.0f}k</b> the second after the return flip. The base binary measures the same ({pre22b/1000:,.0f}k → {at31b/1000:,.0f}k). The flip itself — quiesce, transfer of ~180 connections, re-plan of client weights — costs about one second each way.</p>
-<p>So the price of a wrong move is the <i>time spent at the wrong split</i>, not the flip mechanics. The old seek paid it three times over: jump past the model's optimum, measure at the bad split for two stabilized windows, step back, measure again, settle. The policy pays it at most once (one stabilized reading, then straight back), and on a stationary workload it does not pay it at all.</p>
+<p>Tonight's non-vacuity probe measures the same thing on the binary this page describes and without any explicit FLIP: 530k at 2:2 against 236k booted at 3:1 (&minus;55%), 60 s cells. So the price of a wrong move is the <i>time spent at the wrong split</i>, not the flip mechanics. The old seek paid it three times over: jump past the model's optimum, measure at the bad split for two stabilized windows, step back, measure again, settle. The policy pays it at most once (one stabilized reading, then straight back), and on a stationary workload it does not pay it at all.</p>
 </div></div>
 
 <h2>3. Mechanism: three biases, all pointing the same way</h2>
@@ -305,6 +317,7 @@ doc = f"""<title>Flip Thrash Fix</title>
 <li><b>Demand divided by the wrong count.</b> The placement model divided each role's busy time by its <i>own</i> op counter; the executor counts one op per shard task — 7.6 per MGET8 — so ex looked cheap and the model wanted io ≈ 82%. On 8 threads: 5:3 → 7:1 (0.29M vs 0.95M) → back. That is the 3 flips / 993 clients / unchanged target. Fixed by using busy-time <i>share</i> (the command count cancels). Single-key is exact (one command = one task), which is why the defect was 40× workload-dependent.</li>
 <li><b>A trigger the actuator moves.</b> The fingerprint's parse-pass-depth family moved 0.048 on one io step while the mix families moved 4e-7: the controller re-fired on its own last move (sweep-abandon law). Removed from the trigger distance; still dumped for diagnosis.</li>
 <li><b>Spin "correction" that treated an empty pass like a task batch.</b> Found today from the controller's own trail: <code>model_io_frac=0.73</code> with <code>model_headroom_ex=0.75</code> on a workload whose measured busy shares were io 0.87 / ex 0.97. The executor enters its busy span on every pass and spins up to 2048 empty passes between batches; <code>busy × (1 − spins/iterations)</code> cut the ex share to a quarter and would have projected 3:1 as +35% — the probe above measures it at −60%. The ex loop now books a pass that found nothing as idle (one local, one branch per pass; counters stay monotone), and the sampler uses raw busy/idle.</li>
+<li><b>A confirmation the baseline could outrun.</b> Found tonight, by the gate's own row: the seek confirmed its move by comparing one rate window before the flip with one after, which is only meaningful if the baseline held still in between. Section 5 has the trail and the fix.</li>
 </ul>
 
 <h3>The policy (src/core/flip_policy.h, one file)</h3>
@@ -319,7 +332,7 @@ doc = f"""<title>Flip Thrash Fix</title>
 
 <h2>4. Directed test, batteries, differ</h2>
 <ul>{li(hold_lines)}</ul>
-<p class="muted">tests/flip_multikey_hold.py: negative phase holds the mix constant while parse-pass occupancy sweeps (must not move the controller); positive phase changes the mix for real (must re-maneuver). Expected: policy passes twice, base fails on the first stationary batch.</p>
+<p class="muted">tests/flip_multikey_hold.py: negative phase holds the mix constant while parse-pass occupancy sweeps (must not move the controller); positive phase changes the mix for real (must re-maneuver). Measured: the policy binary passes both runs with zero flips and zero transfers; the base binary fails on the first stationary batch, having already moved the split (got 1 flip, live 3:1, want 0).</p>
 <ul>{li(bat_lines)}{li(mode_lines)}{li(differ)}</ul>
 <p class="muted">Batteries ran on 8 server threads (cpus 52-55 + siblings) so the gate's <code>--ratio 6:2</code> flipctl row keeps its geometry. Unit test <code>build/flipctl-unit</code> carries the defect's own numbers (io = 0.82 at 5:3 → 6:2, never 7:1; io = 0.63 at 2:2 of 4 holds; a 0.20-wide window stays undecided).</p>
 
@@ -342,21 +355,30 @@ boot_rate_slope=0.022869547   boot_rate_slope_threshold=0.029664539</pre>
 <h2>8. Acceptance on the quiet box</h2>
 <pre>worktree  /home/user/Projects/wt-flipdamp   branch t-flipdamp   commit {COMMIT}   (PRE {BASE})
 server    ./build/tomokv --port &lt;p&gt; --save '' --ratio 18:14 --shards 64 --atomic 1 --flip-auto 1 --enable-debug-command yes
-load      MSET8+MGET8 1:1, 512 conns, p32 (the 2026-09-05 defect cell), ABBA x6 against --flip-auto 0
-expect    flip_completed 0, flip_clients_transferred 0 after boot, flipctl_model_holds ≥ 1, flipctl_round_trips 0,
-          rate within the --flip-auto 0 pair's spread; DEBUG FLIPCTL shows model_io_frac near the roles' busy
-          shares and model_last_decision = hold-optimum (or move → moved-delivered if 18:14 is not the optimum)
-also      single-key 1:1 / 9:1 / GET at p32: same counters, rate inside the noise floor</pre>
+
+A  DEFECT CELL      MSET8+MGET8 1:1, 512 conns, p32, --ratio 18:14, ABBA x6 against --flip-auto 0
+                    expect flip_completed 0 and flip_clients_transferred 0 after the boot anchor,
+                    flipctl_model_holds &ge; 1, flipctl_round_trips 0, rate inside the --flip-auto 0 pair's spread
+B  BREADTH          single-key SET:GET 1:1 and 9:1, and pure GET, same geometry: same counters, rate in the floor
+C  NON-VACUITY      boot the SAME load at a deliberately wrong split (e.g. --ratio 28:4) with --flip-auto 1:
+                    the controller MUST move (1 flip, anchor at its target, live == anchor) and MUST beat
+                    the --flip-auto 0 control at 28:4. A zero-flip result here is a FAIL, not a pass
+D  GATE ROW         tests/gate.sh (or just: --ratio 6:2 --atomic 0 --flip-auto 1 --flip-auto-band 2
+                    --lb-age-sample-rate 1024 + tests/flipctl.py --stable-seconds 30) -- this is the row the
+                    branch broke and the baseline-band floor fixes; it must anchor OFF-RAIL
+E  ALWAYS-ON COST   the A cell at a matched offered rate (memtier --rate-limiting) with perf stat on the
+                    server: --flip-auto 1 against --flip-auto 0, same binary. Budget 3%</pre>
 <p>If 18:14 is <i>not</i> the throughput optimum for that load, the correct outcome is one flip to the model's target that then stays (<code>model_last_decision=moved-delivered</code>, <code>round_trips=0</code>) — a move that pays for itself is the feature working, not thrash.</p>
 
-<h2>9. Caveats</h2>
+<h2>9. Caveats and what is still open</h2>
 <ul>
-<li>Lane rig: 2 physical cores + SMT siblings for the server, 4 threads at 2:2; the owner's cell is 32 real cores at 18:14. Direction, not magnitude.</li>
-<li>The rig's multi-key cell is latency-bound rather than CPU-bound (memtier 27% busy, io 86% / ex 93%), so on this rig the policy's hold is the saturation gate's; on the owner's saturated cell the hold is the model's (<code>hold-optimum</code>) or a delivered move. Both paths are exercised by the unit test; the model path with live counters is what the acceptance run should confirm.</li>
-<li>Noise: the box carried other lanes (load ≈ 20, a lane on my L3 CCX). The OFF pair spread per regime is printed under the table; the 30 s first run saw up to 17% intra-arm spread, the 40 s run is tighter.</li>
-<li>The guard binary's whole-cell stalls (p99 = 30 s in 2 of 3 cells) were not reproduced by explicit flips on base or policy; the guard is superseded and the observation is recorded, not explained.</li>
+<li>Lane rig: 2 physical cores + SMT siblings for the server, 4 threads at 2:2; the owner's cell is 32 real cores at 18:14. Direction and counters transfer, magnitudes do not.</li>
+<li>One POST cell out of twelve moved: single-key 1:1 round 3 flipped out, did not deliver, reverted, and doubled its own bar (<code>round_trips=1</code>, <code>model_margin=2</code>) — the outcome loop working, at a cost of 5.7% in that one 40 s cell. PRE did the same thing four times per cell in every cell of that regime.</li>
+<li>The multi-key hold on this rig is the <i>saturation gate's</i> (memtier at 27% of its cores, io 86% / ex 93%, neither side waiting on the other's capacity), not the model's. On the owner's saturated cell the hold must come from the model — <code>model_last_decision=hold-optimum</code> — or be a delivered move. Acceptance cell A is what distinguishes them.</li>
+<li>The box carried other lanes all night (load 0.2 to 64, marker held for 100 of the 230 minutes). Every cell re-checked the gate and paused rather than measuring through someone else's run; the OFF-pair spread printed under the table is the resulting noise floor per regime.</li>
+<li>Not chased, by instruction: <code>expwide</code>, <code>climon2</code> and <code>evict-lfu</code> under fused+armed (another lane owns them). Not attempted, by instruction: the client-weight actuator redesign.</li>
 </ul>
-<div class="foot">Files: scratch/NOTES.md (lane memory), scratch/ab.sh / matrix / final.sh (harness), $SP/fd-matrix2.csv, fd-tl-*.txt (timelines), fd-mt-*.txt (memtier per-second), fd-dbg-*.txt (DEBUG FLIPCTL per cell). Memory corrected: tomokv-flip-accuracy-design (the role-flip round trip, not the client-weight actuator).</div>
+<div class="foot">Binaries: {html.escape(arms_line)}. Files: scratch/NOTES.md (lane memory), scratch/ab.sh, abw.sh, ver.sh (harness), $SP/fd-matrix3.csv, fd-tl-*.txt (timelines), fd-mt-*.txt (memtier per-second), fd-dbg-*.txt (DEBUG FLIPCTL per cell). Memory corrected: tomokv-flip-accuracy-design (the role-flip round trip, not the client-weight actuator).</div>
 </main>
 """
 open(OUT, "w").write(doc)

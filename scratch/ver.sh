@@ -171,9 +171,9 @@ if [ ! -s "$SP/fd-bat3-flipttl.txt" ]; then
       taskset -c "$LG8" python3 tests/$t.py 127.0.0.1 "$PORT_BAT" $a >"$SP/fd-bat3-${t//_/}.txt" 2>&1
       LG "BAT 2s $t.py rc=$? :: $(tail -1 "$SP/fd-bat3-${t//_/}.txt" | cut -c1-140)"
     done
-    taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$FIX_BIN" >"$SP/fd-bat3-spin.txt" 2>&1
+    taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$pid" >"$SP/fd-bat3-spin.txt" 2>&1
     LG "BAT 2s spinprobe rc=$? :: $(tail -1 "$SP/fd-bat3-spin.txt" | cut -c1-140)"
-    taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$FIX_BIN" --idle-only >"$SP/fd-bat3-idle.txt" 2>&1
+    taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$pid" --idle-only >"$SP/fd-bat3-idle.txt" 2>&1
     LG "BAT 2s idle-ceiling rc=$? :: $(tail -1 "$SP/fd-bat3-idle.txt" | cut -c1-140)"
     stop "$pid" "$PORT_BAT"; }
 else LG "2s batteries: on file"; fi
@@ -186,7 +186,7 @@ if [ ! -s "$SP/fd-fused-done.txt" ]; then
         taskset -c "$LG8" python3 tests/$t.py 127.0.0.1 "$PORT_BAT" >"$SP/fd-fused-$t-$AT.txt" 2>&1
         LG "BAT 1s $t.py (atomic $AT) rc=$? :: $(tail -1 "$SP/fd-fused-$t-$AT.txt" | cut -c1-120)"
       done
-      taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$FIX_BIN" >"$SP/fd-fused-spin-$AT.txt" 2>&1
+      taskset -c "$LG8" python3 tests/spinprobe.py "$PORT_BAT" "$pid" >"$SP/fd-fused-spin-$AT.txt" 2>&1
       LG "BAT 1s spinprobe (atomic $AT) rc=$? :: $(tail -1 "$SP/fd-fused-spin-$AT.txt" | cut -c1-120)"
       stop "$pid" "$PORT_BAT"; }
   done
