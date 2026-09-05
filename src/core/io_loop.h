@@ -3971,9 +3971,9 @@ private:
             if constexpr (Fused) {
                 op = read_local_enabled
                     ? rob.acquire_read_local(conn.op_route_flags())
-                    : rob.acquire(conn.op_route_flags());
+                    : rob.acquire<true>(conn.op_route_flags());   // coded replies: fused only
             } else {
-                op = rob.acquire(conn.op_route_flags());
+                op = rob.acquire<false>(conn.op_route_flags());   // 2s keeps the byte path
             }
             if (!op) break;                    // window full: backpressure; let replies drain first
             using DemotionPlan = std::conditional_t<

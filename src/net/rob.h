@@ -135,11 +135,24 @@ public:
     // without reading, and dropping it is how a server OOMs on one misbehaving connection.
     // Materialization happens HERE and only here — the parser is the sole allocator, so workers
     // and the sender only ever dereference slots that a publish made real.
+    // `Codes` GATES THE CODED REPLY BY THREAD MODE, at compile time. Both call sites (io_loop's
+    // parse loop) sit inside an `if constexpr (Fused)` arm, so this is a constant store of 1 or 0,
+    // not a branch.
+    //
+    // WHY 2s IS OFF. Coded replies are a measured win in fused (SET -2.4%, DEL -3.2% cycles/op on
+    // the quiet box) and a measured LOSS on the split GET cell (-1.4%, reproduced on both runs of
+    // an ABBA pair), which is a main command and therefore blocks a both-modes merge under the
+    // zero-regression rule. With Codes=false no 2s op is ever armed, Sink::code() always declines,
+    // op.reply_code_ stays 0 for the life of every 2s op, and the split path executes exactly the
+    // bytes it executed before -- the retire guards are all `if (op.reply_code_)` and none can be
+    // taken. The coded blocks remain in the shared machine code (WbEngine is not templated on
+    // thread mode); they are unreachable in 2s rather than absent.
+    template <bool Codes = false>
     Op* acquire(uint8_t route_flags = 0) {
         if (full()) return nullptr;
         Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
         op->reset(route_flags);
-        op->reply_code_ok_ = 1;     // a ROB op retires through WbEngine, so it may carry a code
+        op->reply_code_ok_ = Codes ? 1 : 0;
         return op;
     }
 
@@ -165,7 +178,9 @@ public:
         read_local_owner_slots_ &= keep;
         Op* op = slot(index, true);
         op->reset_read_local(route_flags);
-        op->reply_code_ok_ = 1;     // as acquire(): ROB ops retire through WbEngine
+        // Read-local is a FUSED-only path, so this arm is unconditional for the same reason
+        // acquire<true>() is: only 1s reaches here.
+        op->reply_code_ok_ = 1;
         return op;
     }
 
