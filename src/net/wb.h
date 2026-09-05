@@ -1068,7 +1068,6 @@ private:
     ReleaseFn release_fn_ = nullptr;
     void*  retire_ctx_ = nullptr;
     RetireFn retire_fn_ = nullptr;
-    bool reply_codes_ = false;
     const std::atomic<bool>* limit_armed_ = nullptr;
     void*  limit_ctx_ = nullptr;
     LimitFn limit_fn_ = nullptr;
@@ -1078,6 +1077,10 @@ private:
     bool   epoll_ = false;
     bool   send_failed_ = false;
     bool   classify_cold_sends_ = false;
+    // Packed with the three bools above, in the padding before draining_. ExLoop embeds a WbEngine
+    // purely to keep the stats plumbing uniform, so growing this class trips
+    // static_assert(sizeof(ExLoop) == 6104) -- which is exactly what a fourth 8-byte slot did.
+    bool   reply_codes_ = false;
     // The connection whose retire drain is running right now, or null. defer_oob() uses it to make
     // parking unconditional across the partial-reply staging window.
     const Client* draining_ = nullptr;
