@@ -977,3 +977,18 @@ the cost landing on connections that write *nothing* and would therefore never g
 A ring that grows on demand from zero would help exactly this row; a ring that grows on demand from
 the base sixteen would not. That is a different change from the one this lane built, and it is worth
 one measurement before it is worth any code.
+
+
+## Two facts about the knob that frame everything above
+
+**`--read-local` defaults to 0** (`src/core/config.h:317`). Everything this lane changes lives
+behind an opt-in flag, so every cost measured here is paid only by a server that has switched the
+feature on — and the +972.8 bytes per connection are allocated only on such a server. That is the
+difference between a regression and a tuning choice, and it is worth stating plainly before the
+verdict.
+
+**`--read-local 0` is a fair control.** `src/main.cc:183` shows the flag selecting between the local
+read lane and "the ordinary owner-task path" — the same path split mode uses — rather than
+disabling a correctness guarantee or short-cutting the workload. The 2x measured above is the price
+of the feature against the ordinary path, in this geometry, not an artefact of comparing two
+different servers.
