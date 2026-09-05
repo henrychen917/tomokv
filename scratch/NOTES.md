@@ -93,3 +93,17 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
   the bad rounds). Test when gate reopens: diag1 (pol0/pol1 alternation 40s x2 + flipprobe) with
   per-second traces -> cellview.py (rate by controller phase).
 - 20:04 gate CLOSED (owner measuring). gatewait running.
+- 20:46-20:55 diag2 (gate-then-run): pol0 470/479/478k vs pol1 502/478/493k (+3%, ZERO flips in 3/3,
+  6 triggers all held) => the earlier -20% was rig noise/ordering, per-phase means flat.
+  flipprobe (explicit 2:2->3:1->2:2 under mk): pol 386k mean, base 387k; 3:1 runs 180-230k vs
+  480-520k at 2:2 (-60%); the flip transient is ONE second each way; 360-384 clients per round
+  trip. => cost of a move = time at the wrong split, not the flip mechanics.
+  BIAS FOUND: model_io_frac 0.66-0.73 with headroom_ex 0.47-0.75 on a workload whose busy shares
+  are io 0.87/ex 0.97: sample_role_demand's spin correction busy*(1-spins/iterations) treated an
+  empty spin pass like a task batch (ex loop enters the busy span every pass, spins outside it).
+  The saturation gate held ONLY because the same wrong number inflated ex headroom; the model would
+  have projected 3:1 +35%. FIX (4d8261d99): ex loop books an empty pass (did==0) as idle via a local
+  pass_ns (monotone counters, 1 branch); controller uses raw busy/idle; ThreadMeasure = ops,busy,idle.
+  guard binary stall (p99 30s in 2/3 mk cells) NOT reproduced on base or policy flip probes.
+- 20:56 final.sh launched via gaterun: matrix2 (pol0a pol0b pol1 base1 x mk sk1:1 sk9:1 get, 40s x3)
+  -> hold x2 pol + base -> batteries (8 srv threads 52-55+sib, 6:2) -> modes -> differ. Logs fd-final.log.
