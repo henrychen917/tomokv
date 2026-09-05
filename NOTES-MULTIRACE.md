@@ -384,3 +384,41 @@ Both geometries (`1s` = fused + `--read-local 1`, `2s` = `--ratio 6:10`), `--ato
 Every cell prints wall time and rate alongside instr/op: a busy-spinning server inflates instr/op
 when the arms' durations diverge, so a cell whose two arms did not take comparable wall time is not
 a matched-rate comparison and must not be read as one.
+
+---
+
+## 11. Re-verification on the 2026-09-05 allocation (4 physical cores)
+
+### 11a. A capacity constraint that first read as a non-reproduction
+
+`--ratio 6:10` asks for **16 threads**; the server on this session's allocation has 4 (`48,49` +
+SMT) and refuses to boot: `--ratio: 16 threads but only 4 allowed cpus`. The first 2s attempt
+therefore ran with the *default* ratio, whose shutdown report shows two executors sharing the work
+**1808 ops to 8** — one executor effectively idle. The reproducer needs the blocker's owner and a
+victim's owner on *different* executor threads for the install-then-veto interleaving to exist at
+all, so that boot could not open the window and reported `0/200`.
+
+That is a property of the harness, not of the store, and it is exactly the shape
+`tomokv-nonreproduction-needs-geometry` warns about: **naming the geometry is what separates "the
+defect is absent" from "this boot could not host it".** Re-run with four executors it reproduces
+immediately.
+
+Correctness runs on this allocation therefore use: server `48,49,50,176,177,178` (6 threads),
+load generator `51,179` — still never the same physical core — and `--ratio 2:4` for the 2s arm.
+
+### 11b. Directed reproduction, 200 rounds per boot, 2 victims
+
+| Arm | Geometry | Boots | Rounds leaked |
+|---|---|---|---|
+| **PRE** `e902c67d5` | fused `--read-local 1` | 5 | **96, 0, 200, 67, 0** — 3/5 boots leak |
+| **PRE** `e902c67d5` | 2s `--ratio 2:4` | 5 | **0, 196, 8, 154, 64** — 4/5 boots leak |
+| **POST** | fused `--read-local 1` | 5 | **0 ×5** |
+| **POST** | 2s `--ratio 2:4` | 5 | **0 ×5** |
+
+PRE leaks in **7 of 10** boots and reaches 200/200; POST is clean in **10 of 10**. The boots where
+PRE reads 0 are the same per-boot owner-assignment lottery §2 describes — `DEBUG SHARD` picks one
+key per owner, and whether the blocker's owner and the victims' owners land on distinct executor
+threads is decided at boot. This is why the verdict is read from a *set* of boots and never from
+one, and why POST's ten consecutive zeros are the load-bearing half of the comparison.
+
+`--read-local 1` remains not part of the mechanism (§2): both geometries leak on PRE.
