@@ -81,7 +81,7 @@ struct ReadLocalRobState {
     // Keep the pure/short-ring controls and the first common entries on the leading cache lines.
     WriteKey write_ring[kWriteRingCapacity]{};
 };
-static_assert(alignof(ReadLocalRobState) >= 2, "read-local sidecar pointer uses its low bit");
+static_assert(alignof(ReadLocalRobState) >= 4, "read-local sidecar pointer uses its two low bits");
 
 // Superset summary of every key hash that one connection's still-pending local reads may touch.
 // The armed parser ORs a read's keyset in when it marks the slot pending; the words are cleared
@@ -151,8 +151,17 @@ public:
     // parse loop -- so every armed frame paid a call and a register-allocation barrier to discover
     // that no write generation was live. acquire() next door, which is the same shape minus that
     // machinery, inlines at every one of its call sites.
+    //
+    // THE GATE IS "a write is staged", NOT "a write generation is live". Only mark_current_write()
+    // ever stages a candidate and only read_local_resolve_pending() ever clears one, so the STAGED
+    // tag bit on the sidecar pointer is exactly the predicate "resolve_read_local_write() has work
+    // to do". Gating on armedness instead made every frame of an interleaved connection call out of
+    // line, deref the heap sidecar and run the deactivation test only to find PendingWrite::None --
+    // a read frame between two writes can never have a candidate of its own to commit. The frame
+    // that stages is still the frame BEFORE the resolve, so the commit point ("dispatch advanced =>
+    // it published") and the ring's age order are bit-for-bit what they were.
     __attribute__((always_inline)) Op* acquire_read_local(uint8_t route_flags = 0) {
-        if (__builtin_expect(read_local_state_active(), false)) resolve_read_local_write();
+        if (__builtin_expect(read_local_state_staged(), false)) resolve_read_local_write();
         // One dispatch load serves the window test and the slot index. Only this connection's io
         // thread stores dispatch_ (see the header note), and nothing between the two uses stores
         // it, so the second load the previous shape performed could only return the same value.
@@ -167,9 +176,8 @@ public:
         return op;
     }
 
-    // Cold half of acquire_read_local: a write generation is live, so the staged candidate from the
-    // previous frame must be resolved into the ring (or into an overflow generation) before this
-    // position is recycled.
+    // Cold half of acquire_read_local: the previous frame staged a write candidate, so it must be
+    // resolved into the ring (or into an overflow generation) before this position is recycled.
     __attribute__((noinline)) void resolve_read_local_write() {
         ReadLocalRobState& state = read_local_state_required();
         read_local_resolve_pending(state);
@@ -386,6 +394,7 @@ public:
         state.pending_op_id = dispatch_id();
         state.pending_hash = 0;
         state.pending_write = ReadLocalRobState::PendingWrite::Overflow;
+        read_local_state_ |= kReadLocalStateStaged;
     }
 
     bool refine_current_write_hash(uint64_t hash) {
@@ -425,12 +434,38 @@ public:
     // flush frontier load -- and that emptiness test is this shell, which stays inline. It was
     // already the merged function's first line, but the merged function was 612 bytes and out of
     // line, so a pure GET paid a call to be told that nothing was pending.
+    //
+    // THE SECOND TEST IS FOR THE INTERLEAVED CONNECTION. A connection that carries writes keeps a
+    // write generation live permanently -- the previous batch's writes are still in flight while
+    // this batch's reads parse -- so the armedness test above stops rejecting anything and every
+    // read paid the full exact path: a call, the heap sidecar, the retired-prefix prune and a walk
+    // of up to sixteen descriptors, to learn that its key is not one of them. The tag filter
+    // answers that same question from words the parser already has in L1, and only a tag hit (or a
+    // keyset/overflow/staged slot, which tag equality cannot speak for) pays the walk.
     template <typename KeysetTouchesHash>
     __attribute__((always_inline)) bool read_local_write_conflicts(
             uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
-        if (!read_local_state_active()) return false;
+        // One load of the sidecar word answers both hazards it names. A staged candidate is
+        // consulted directly by the exact walk and no ring slot describes it, so it is read off
+        // the same word rather than costing the write frame a store into the filter.
+        const uintptr_t state_word = read_local_state_;
+        if (state_word == 0 || (state_word & kReadLocalStateInactive) != 0) return false;
+        if ((state_word & kReadLocalStateStaged) == 0 &&
+            !read_local_write_tag_may_match(hash)) return false;
         return read_local_write_conflicts_pending(
             hash, static_cast<KeysetTouchesHash&&>(keyset_touches_hash));
+    }
+
+    // False PROVES that no live write descriptor holds `hash`; true means "run the exact walk".
+    __attribute__((always_inline)) bool read_local_write_tag_may_match(uint64_t hash) const {
+        const uint32_t live = read_local_write_valid_;
+        if (!live) return false;
+        if (live & kReadLocalWriteForceExact) return true;
+        const uint16_t tag = static_cast<uint16_t>(hash);
+        uint32_t hits = 0;
+        for (uint32_t i = 0; i < ReadLocalRobState::kWriteRingCapacity; i++)
+            hits |= static_cast<uint32_t>(read_local_write_tags_[i] == tag) << i;
+        return ((hits | read_local_write_wide_) & live) != 0;
     }
 
     // A write generation is live: prune the retired FIFO prefix, then scan at most sixteen write
@@ -488,7 +523,7 @@ public:
         ReadLocalRobState* state = new (std::nothrow) ReadLocalRobState;
         if (!state) return false;
         const uintptr_t ptr = reinterpret_cast<uintptr_t>(state);
-        if (ptr & kReadLocalStateInactive) std::abort();
+        if (ptr & kReadLocalStateTagBits) std::abort();
         read_local_state_ = ptr | kReadLocalStateInactive;
         return true;
     }
@@ -555,15 +590,32 @@ private:
         return mask & capacity_slots_mask();
     }
 
+    // valid_ bit 16: a live conservative generation, which has no ring slot and so no tag that
+    // could reject it. See read_local_write_enter_overflow() for the rule that owns this bit.
+    static constexpr uint32_t kReadLocalWriteForceExact = 1u << 16;
+    static_assert(ReadLocalRobState::kWriteRingCapacity <= 16, "valid_/wide_ slot bitmap width");
+
+    // Two tag bits on the sidecar pointer, both owned by the connection's io thread.
+    //   Inactive  no write generation is live at all: pure-GET traffic never dereferences the heap.
+    //   Staged    mark_current_write() has parked a candidate that no resolve has committed yet.
+    // Staged is a strict subset of "active": staging activates first, and deactivation is refused
+    // while a candidate is parked (read_local_try_deactivate tests pending_write == None).
     static constexpr uintptr_t kReadLocalStateInactive = 1;
+    static constexpr uintptr_t kReadLocalStateStaged   = 2;
+    static constexpr uintptr_t kReadLocalStateTagBits =
+        kReadLocalStateInactive | kReadLocalStateStaged;
 
     ReadLocalRobState* read_local_state_ptr() const {
         return reinterpret_cast<ReadLocalRobState*>(
-            read_local_state_ & ~kReadLocalStateInactive);
+            read_local_state_ & ~kReadLocalStateTagBits);
     }
     bool read_local_state_active() const {
         return read_local_state_ != 0 &&
                (read_local_state_ & kReadLocalStateInactive) == 0;
+    }
+    // "resolve_read_local_write() has work": exactly mark_current_write()'s parked candidate.
+    bool read_local_state_staged() const {
+        return (read_local_state_ & kReadLocalStateStaged) != 0;
     }
     void read_local_state_activate() {
         if (!read_local_state_) std::abort();
@@ -610,20 +662,26 @@ private:
         read_local_prune(state, dispatch_id(), flush_id());
     }
 
-    static void read_local_prune(ReadLocalRobState& state, uint64_t dispatch, uint64_t flush) {
+    // Retirement is the ring's only removal fence, and it is also the filter's: a slot leaves
+    // valid_ in the same statement that leaves the FIFO, so the filter can never claim absence
+    // for a descriptor the exact walk would still consult.
+    void read_local_prune(ReadLocalRobState& state, uint64_t dispatch, uint64_t flush) {
         if (state.overflow) {
             if (read_local_id_active(state.overflow_through, dispatch, flush)) return;
             state.overflow = false;
             state.write_head = 0;
             state.write_count = 0;
             state.write_keyset_slots = 0;
+            read_local_write_leave_overflow();
             return;
         }
+        uint32_t retired_slots = 0;
         while (state.write_count &&
                !read_local_id_active(
                    state.write_ring[state.write_head].op_id, dispatch, flush)) {
             state.write_keyset_slots &=
                 static_cast<uint16_t>(~(uint16_t{1} << state.write_head));
+            retired_slots |= uint32_t{1} << state.write_head;
             state.write_head = static_cast<uint8_t>(
                 (state.write_head + 1) & (ReadLocalRobState::kWriteRingCapacity - 1));
             state.write_count--;
@@ -631,10 +689,50 @@ private:
         if (!state.write_count) {
             state.write_head = 0;
             state.write_keyset_slots = 0;
+            read_local_write_reset_slots();      // overflow is false here, so the bit is already 0
+            return;
+        }
+        // One pair of stores for the whole retired prefix rather than a pair per slot: the loop
+        // above is the only producer of these bits and it pops a contiguous run.
+        if (retired_slots) {
+            read_local_write_valid_ &= ~retired_slots;
+            read_local_write_wide_ &= ~retired_slots;
         }
     }
 
+    // Drop every per-slot bit. The force bit is not a slot; the two helpers below own it.
+    void read_local_write_reset_slots() {
+        read_local_write_valid_ &= kReadLocalWriteForceExact;
+        read_local_write_wide_ = 0;
+    }
+
+    // THE FILTER'S COMPLETENESS RULE: the force bit is set exactly while a conservative generation
+    // is live. That generation is the one hazard with no ring slot and therefore no tag that could
+    // reject it -- its member hashes were discarded when the ring overflowed. (The other slotless
+    // hazard, a staged candidate, is read straight off the sidecar word by the probe shell, so it
+    // never touches this bit.) The bit therefore moves ONLY where state.overflow itself moves: the
+    // two entry points below and the one exit in read_local_prune, and nowhere else. An earlier
+    // draft cleared it speculatively at the top of every resolve and re-set it per branch, which
+    // let an abandoned write cancel a still-live generation and hand a read a false "no conflict"
+    // (tests/read_local_write_ring_unit.cc case 8).
+    void read_local_write_enter_overflow() {
+        read_local_write_reset_slots();
+        read_local_write_valid_ |= kReadLocalWriteForceExact;
+    }
+    void read_local_write_leave_overflow() {
+        read_local_write_reset_slots();
+        read_local_write_valid_ &= ~kReadLocalWriteForceExact;
+    }
+
+    // The ONLY consumer of a staged candidate, and therefore the only place the Staged tag is
+    // cleared. Every early return below leaves pending_write == None, so tag and field stay in
+    // lockstep on all paths (the invariant acquire_read_local's gate rests on).
     void read_local_resolve_pending(ReadLocalRobState& state) {
+        read_local_state_ &= ~kReadLocalStateStaged;
+        read_local_resolve_pending_body(state);
+    }
+
+    void read_local_resolve_pending_body(ReadLocalRobState& state) {
         using PendingWrite = ReadLocalRobState::PendingWrite;
         if (state.pending_write == PendingWrite::None) return;
         const uint64_t dispatch = dispatch_id();
@@ -650,11 +748,13 @@ private:
 
         read_local_prune(state, dispatch, flush);
         if (state.overflow || pending == PendingWrite::Overflow) {
+            const bool entering = !state.overflow;
             state.overflow = true;
             state.overflow_through = op_id;
             state.write_head = 0;
             state.write_count = 0;
             state.write_keyset_slots = 0;
+            if (entering) read_local_write_enter_overflow();
             return;
         }
 
@@ -664,16 +764,25 @@ private:
             state.write_head = 0;
             state.write_count = 0;
             state.write_keyset_slots = 0;
+            read_local_write_enter_overflow();
             return;
         }
         const uint32_t tail =
             (static_cast<uint32_t>(state.write_head) + state.write_count) &
             (ReadLocalRobState::kWriteRingCapacity - 1);
         state.write_ring[tail] = ReadLocalRobState::WriteKey{hash, op_id};
-        if (pending == PendingWrite::Keyset)
+        // The filter slot is written in the same breath as the ring slot. A Keyset descriptor
+        // stores a key FILTER, not a hash, so tag equality cannot speak for it: it joins wide_
+        // and every probe walks it, exactly as before this change.
+        read_local_write_tags_[tail] = static_cast<uint16_t>(hash);
+        read_local_write_valid_ |= uint32_t{1} << tail;
+        if (pending == PendingWrite::Keyset) {
             state.write_keyset_slots |= uint16_t{1} << tail;
-        else
+            read_local_write_wide_ |= uint32_t{1} << tail;
+        } else {
             state.write_keyset_slots &= static_cast<uint16_t>(~(uint16_t{1} << tail));
+            read_local_write_wide_ &= ~(uint32_t{1} << tail);
+        }
         state.write_count++;
     }
 
@@ -681,6 +790,20 @@ private:
     // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
     // sharing a line would make every publish invalidate the consumer's copy and vice versa.
     alignas(64) std::atomic<uint64_t> dispatch_{0};
+    // INLINE REJECTION FILTER for the armed RYOW write ring, mirroring it slot for slot.
+    // tags_[i] is the low 16 bits of the hash in ring slot i; valid_ bit i says slot i holds a
+    // descriptor a probe must consider; wide_ bit i says slot i cannot be rejected by tag
+    // equality (a precise-keyset entry, whose stored word is a key filter, not a hash). Bit 16 of
+    // valid_ forces the exact path outright and covers the two states with no slot of their own:
+    // a staged-but-unresolved candidate, and a live conservative overflow generation.
+    // Equal hashes have equal tags, so a miss over the valid non-wide slots PROVES no ring entry
+    // holds this hash -- the no-false-negative half of the RYOW contract. Everything else is
+    // one-sided: stale bits and tag collisions only send a probe down the exact path it used to
+    // take unconditionally. These words live in the padding dispatch_ already owned, so the
+    // 192-byte lock is untouched and the parser that probes them owns that line either way.
+    uint16_t read_local_write_tags_[ReadLocalRobState::kWriteRingCapacity] = {};
+    uint32_t read_local_write_valid_ = 0;
+    uint32_t read_local_write_wide_ = 0;
     alignas(64) std::atomic<uint64_t> flush_{0};
     // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
     // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit

@@ -4226,12 +4226,34 @@ private:
                             // An evicting maxmemory policy makes the write conservative, but it is
                             // still an ordinary one-owner route. Reserve that current append along
                             // with the demoted reads so the post-climon sequence remains infallible.
-                            const bool hash_precise =
-                                fused_executor_->read_local_point_writes_precise() &&
-                                rob.refine_current_write_hash(op->hash);
-                            if (hash_precise) op->mark_read_local_precise_write();
+                            //
+                            // TWO DIFFERENT QUESTIONS, ONE ANSWER USED FOR BOTH UNTIL NOW.
+                            // "Which keys does this write touch" is answered by the eviction
+                            // policy alone: with eviction off, an ordinary point write touches
+                            // op->hash and nothing else, whatever the ROB's RYOW ring can hold.
+                            // "Can the ring record this hash for LATER reads to be checked
+                            // against" is a capacity question, and refine_current_write_hash
+                            // answers no once sixteen writes are already in flight. Conjoining
+                            // them made a full ring turn every further write into a demote-EVERY-
+                            // pending-read wave: at 59% writes and pipeline 32 the ring overflows
+                            // permanently and every single read on the connection is lowered to
+                            // the owner queue (measured: 164000 of 164000 reads, INFO
+                            // read_local_fallback_inflight_write). The selection below now asks
+                            // only the keys question, which is the owner's rule verbatim -- a read
+                            // is held back on explicit key conflict and on nothing else. Nothing
+                            // is weakened: require_hash_match=true is already what an unfilled
+                            // ring passes here on every ordinary point write.
+                            const bool point_write_exact =
+                                fused_executor_->read_local_point_writes_precise();
+                            // Still gated: with an evicting policy the write may touch keys it
+                            // never names, so it must stay a conservative ring generation and no
+                            // later read may be cleared against its hash alone.
+                            if (point_write_exact) {
+                                (void)rob.refine_current_write_hash(op->hash);
+                                op->mark_read_local_precise_write();
+                            }
                             if (!read_local_demotion.prepare(
-                                    *this, c, op->hash, hash_precise, op->shard,
+                                    *this, c, op->hash, point_write_exact, op->shard,
                                     ReadLocalFallbackReason::InflightWrite,
                                     reserve_owner_fenced_current))
                                 break;
