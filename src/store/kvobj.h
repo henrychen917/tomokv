@@ -175,6 +175,17 @@ struct KvObj {
         __atomic_store_n(&flags, updated, __ATOMIC_RELEASE);
     }
     void store_flags_atomic(uint8_t value) { __atomic_store_n(&flags, value, __ATOMIC_RELEASE); }
+    // Access accounting by a FOREIGN reader (the fused read-local lane): one CAS from the flags
+    // byte that reader already observed. Layout bits are immutable for a published read-local
+    // string, so the only concurrent writers are the owner's meta stores above and other readers'
+    // touches, and losing the race to either loses one approximate touch -- which LRU/LFU tolerate
+    // by construction. Never retried, so a contended byte costs one failed CAS and no spin.
+    void touch_eviction_meta_foreign(uint8_t observed, uint8_t meta) {
+        const uint8_t updated = static_cast<uint8_t>(
+            (observed & KvObjFlags::LayoutMask) | ((meta & 0x1f) << 3));
+        __atomic_compare_exchange_n(&flags, &observed, updated, false,
+                                    __ATOMIC_RELEASE, __ATOMIC_RELAXED);
+    }
 
     // ---- layout arithmetic -------------------------------------------------------------------
     // Everything after the header is optional and positional, so all offsets are computed rather

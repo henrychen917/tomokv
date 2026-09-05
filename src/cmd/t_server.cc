@@ -1890,13 +1890,16 @@ void cmd_info(Shard&, Op& op) {
         // stale -- and tooling depends on them. The NIC bench harness identifies the server it just
         // booted by reading process_id out of INFO, so its absence made every NIC cell fail with an
         // opaque "boot/cell FAIL" long before any measurement was taken.
+        // read_local is the EFFECTIVE lane state (fused, overlap 0, knob on) -- what a gate row
+        // must assert. CONFIG GET read-local echoes the knob even on a split boot where it is inert.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\noverlap:%u\r\nthread_pipeline:%u\r\n"
+                      "thread_mode:%s\r\noverlap:%u\r\nthread_pipeline:%u\r\nread_local:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:io_uring\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->cfg().overlap : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
+                g_server && g_server->read_local_enabled() ? 1u : 0u,
                 sizeof(void*) * 8,
                 static_cast<long long>(::getpid()),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),

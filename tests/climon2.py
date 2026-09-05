@@ -8,6 +8,9 @@ Every check proves its MECHANISM FIRED, not merely that nothing broke:
   * CLIENT PAUSE asserts timing in both directions AND the client_pause_holds
     counter moving -- a pause that never held anything proves nothing.
   * CLIENT UNBLOCK asserts the exact reply the blocked client received.
+  * CLIENT NO-TOUCH asserts the client_no_touch_ops counter moving for an owner-served read under
+    every thread mode, and accounts for every GET on a fused read-local boot as either owner-
+    consulted or lane-served (read_local_keyspace_hits) -- never neither.
 Negative controls are included for every one of them.
 """
 
@@ -165,6 +168,17 @@ def clients_info():
     return out
 
 
+def info_server():
+    raw = admin.command("INFO", "SERVER")
+    out = {}
+    for line in raw.decode().splitlines():
+        if ":" not in line or line.startswith("#"):
+            continue
+        key, value = line.split(":", 1)
+        out[key] = value
+    return out
+
+
 def check(label, fn):
     global checks
     fn()
@@ -201,30 +215,60 @@ try:
                "NO-TOUCH garbage")   # negative control
     expect_err(admin.command("CLIENT", "NO-TOUCH"),
                "ERR wrong number of arguments for 'client|no-touch' command", "NO-TOUCH arity")
-    # MECHANISM: the flag must actually reach an executor. It is only consulted (and only
-    # counted) while maxmemory is enabled, so arm maxmemory, run reads with the flag on, and
-    # require the counter to move -- then require it NOT to move with the flag off.
+    # MECHANISM: the flag must actually reach an owner. It is only consulted (and only counted)
+    # while maxmemory is enabled, so arm maxmemory, run reads with the flag on, and require the
+    # counter to move -- then require it NOT to move with the flag off.
+    #
+    # Two read shapes, because the fused read-local lane changes who serves a GET. A GET admitted
+    # to that lane is answered on the connection's own thread straight from the owner's table and
+    # never writes eviction metadata (a foreign reader stores nothing into an owner's lines), so
+    # it has nothing for NO-TOUCH to suppress and nothing to count; it shows up in
+    # read_local_keyspace_hits instead. Every GET therefore lands on exactly one of the two
+    # counters and their SUM is the mode-independent floor -- 20 GETs that moved neither would be
+    # reads that touched with the flag unread. STRLEN is not read-local eligible (t_string.cc:
+    # only GET and the MGET class are), so it reaches the owner under every thread mode and is
+    # the arm that proves the flag is consulted there. INFO server read_local is the effective
+    # lane state; it only labels the printed split, the assertions hold either way.
     maxmem_before = admin.command("CONFIG", "GET", "maxmemory")[1]
     expect(admin.command("CONFIG", "SET", "maxmemory", "268435456"), b"OK", "arm maxmemory")
+    read_local = info_server().get("read_local") == "1"
     nt = new()
     nt.command("SET", "cl2:nt", "1")
     base = stats()["client_no_touch_ops"]
     for _ in range(20):
         nt.command("GET", "cl2:nt")
+        nt.command("STRLEN", "cl2:nt")
     expect(stats()["client_no_touch_ops"], base, "no-touch counted while OFF")  # negative control
     expect(nt.command("CLIENT", "NO-TOUCH", "ON"), b"OK", "NO-TOUCH ON for the mechanism check")
+    st = stats()
+    base, local_base = st["client_no_touch_ops"], st.get("read_local_keyspace_hits", 0)
     for _ in range(20):
         nt.command("GET", "cl2:nt")
-    moved = stats()["client_no_touch_ops"] - base
-    assert moved >= 20, f"NO-TOUCH never reached an executor (counter moved {moved})"
+    st = stats()
+    moved = st["client_no_touch_ops"] - base
+    local = st.get("read_local_keyspace_hits", 0) - local_base
+    assert moved + local >= 20, (
+        f"NO-TOUCH GETs neither reached an owner nor the read-local lane "
+        f"(owner-consulted {moved} + lane-served {local} < 20, read_local={read_local})")
+    if not read_local:
+        assert moved >= 20, f"NO-TOUCH never reached an executor (counter moved {moved})"
+    base = stats()["client_no_touch_ops"]
+    for _ in range(20):
+        nt.command("STRLEN", "cl2:nt")
+    owner_moved = stats()["client_no_touch_ops"] - base
+    assert owner_moved >= 20, (
+        f"NO-TOUCH never reached an executor for an owner-served read (counter moved {owner_moved})")
     expect(nt.command("CLIENT", "NO-TOUCH", "OFF"), b"OK", "NO-TOUCH OFF")
     settled = stats()["client_no_touch_ops"]
     for _ in range(20):
         nt.command("GET", "cl2:nt")
+        nt.command("STRLEN", "cl2:nt")
     expect(stats()["client_no_touch_ops"], settled, "flag still set after OFF")  # negative control
     nt.close()
     admin.command("CONFIG", "SET", "maxmemory", maxmem_before.decode())
-    checks += 10
+    print(f"  no-touch: read_local={'1' if read_local else '0'} GET owner-consulted={moved} "
+          f"lane-served={local}; STRLEN owner-consulted={owner_moved}")
+    checks += 13
 
     # ---- 3. CLIENT REPLY: exact wire bytes, including absence --------------------------------
     r = new()

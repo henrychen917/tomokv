@@ -162,6 +162,7 @@ public:
         srv_ = srv; self_ = self;
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
         lru_clock_shift_ = static_cast<uint8_t>(srv->cfg().lru_clock_shift);
+        foreign_touch_random_ ^= (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
         lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->cfg().lb_sample_rate : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
@@ -994,6 +995,49 @@ private:
         return transient;
     }
 
+    // Eviction accounting for a lane-served read, taken only while maxmemory is on with an LRU or
+    // LFU policy. The owner touches every key it serves; a key kept hot purely by lane-served reads
+    // was never touched, so the victim chooser saw it as idle/cold and evicted it FIRST -- the
+    // inverse of the policy (tests/evict_battery.py lfu, lruclock). Same arithmetic as
+    // FlatStore::touch(), but store-rare by construction: LRU writes only when the key's bucket is
+    // stale (once per 1<<lru-clock-shift seconds per key, 256 s by default) and LFU only when the
+    // logarithmic increment fires, so the foreign RFO into the owner's line is the exception, never
+    // the per-read rule, and it is one unretried CAS (KvObj::touch_eviction_meta_foreign). CLIENT
+    // NO-TOUCH is honoured by the caller exactly as on the owner. The object is const to the read
+    // path; its five metadata bits are mutable by design (the owner writes them in place too).
+    __attribute__((noinline, cold)) void foreign_touch(const KvObj* object, uint8_t flags) {
+        KvObj* touched = const_cast<KvObj*>(object);
+        const uint8_t meta = static_cast<uint8_t>(flags >> 3);
+        if (foreign_touch_policy_ == 1) {
+            if (meta != cached_lru_clock_)
+                touched->touch_eviction_meta_foreign(flags, cached_lru_clock_);
+            return;
+        }
+        uint8_t count = meta ? meta : 5;
+        const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
+        const uint32_t denominator = base * 10 + 1;
+        uint64_t x = foreign_touch_random_;
+        x ^= x >> 12; x ^= x << 25; x ^= x >> 27;
+        foreign_touch_random_ = x;
+        if (count < 31 && (x * 2685821657736338717ULL) % denominator == 0) count++;
+        if (count != meta) touched->touch_eviction_meta_foreign(flags, count);
+    }
+
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the read-local half. A fused read-local MGET never
+    // enters the scatter engine, so the fan-out park there widens nothing for it and the one
+    // expiry-cut invariant expwide.py S1 polices went unexercised on the path that serves every
+    // clean MGET in the armed posture. This is the same window on that path: the cut
+    // (command_now_ms) is already pinned, no value has been loaded, and the hook holds the lane
+    // open between the two. It STALLS rather than parks because the local lane is synchronous --
+    // there is no fragment to re-queue and nothing else can run on this thread meanwhile -- and the
+    // stall is the point: every key is then read after the wall clock has passed a deadline the
+    // pinned cut still says is ahead, which is exactly the tear a per-key clock would produce.
+    // Cold and out of line; the caller's test is one thread-private word latched per pass, so an
+    // unarmed MGET pays a predicted-not-taken branch and no atomic load (see LiveConfigSnapshot).
+    __attribute__((noinline, cold)) void debug_fanout_stall_local() {
+        Server::debug_stall_us(debug_fanout_defer_us_);
+    }
+
     PreparedLocalRead prepare_local_mget(Op& op) {
         static constexpr uint32_t kAttempts = 2;
         const uint32_t key_count = op.argc() - 1;
@@ -1014,6 +1058,7 @@ private:
             }
         }
         const int64_t command_now_ms = cached_now_ms_;
+        if (__builtin_expect(debug_fanout_defer_us_ != 0, false)) debug_fanout_stall_local();
 
         ReadLocalFallbackReason transient = ReadLocalFallbackReason::Generation;
         for (uint32_t attempt = 0; attempt < kAttempts; attempt++) {
@@ -1096,6 +1141,8 @@ private:
                     return {ReadLocalFallbackReason::Typed};
                 }
                 prepared.keyspace_hits++;
+                if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
+                    foreign_touch(object, flags);
                 if (!window.use_epochs && !store.read_local_validate(probe.state)) {
                     transient = ReadLocalFallbackReason::SeqChurn;
                     retry = true;
@@ -1138,6 +1185,7 @@ private:
             }
         }
         const int64_t command_now_ms = cached_now_ms_;
+        if (__builtin_expect(debug_fanout_defer_us_ != 0, false)) debug_fanout_stall_local();
 
         ReadLocalFallbackReason transient = ReadLocalFallbackReason::Generation;
         for (uint32_t attempt = 0; attempt < kAttempts; attempt++) {
@@ -1235,6 +1283,8 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     prepared.keyspace_hits++;
+                    if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
+                        foreign_touch(object, flags);
                     if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
@@ -1360,6 +1410,10 @@ private:
                 if constexpr (CapturePrefetch) break;
                 else continue;
             }
+            // One predicted-not-taken test on a per-pass byte, like maxmemory_enabled_ on the
+            // owner path; the no-touch byte is loaded only once eviction is live (&& order).
+            if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
+                foreign_touch(object, flags);
             return {ReadLocalFallbackReason::None, 1, 0};
         }
 
@@ -1721,9 +1775,13 @@ private:
                                 (snapshot.save_armed ? NOTIFY_SAVE : 0u));
         }
         maxmemory_enabled_ = enabled;
+        foreign_touch_policy_ = static_cast<uint8_t>(
+            !enabled ? 0 : maxmemory_policy_is_lru(snapshot.policy) ? 1
+                         : maxmemory_policy_is_lfu(snapshot.policy) ? 2 : 0);
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
+        debug_fanout_defer_us_ = snapshot.debug_fanout_defer_us;
         live_config_version_ = snapshot.version;
     }
 
@@ -3119,9 +3177,17 @@ private:
     bool       ex_sched_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
+    // Eviction accounting for lane-served reads: 0 = none (maxmemory off, or a policy that keys on
+    // nothing a read changes), 1 = LRU, 2 = LFU. Latched per pass from the live-config snapshot,
+    // like maxmemory_enabled_ on the owner path. See foreign_touch().
+    uint8_t    foreign_touch_policy_ = 0;
+    uint64_t   foreign_touch_random_ = 0x9e3779b97f4a7c15ULL;   // LFU increment dice, per thread
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
     uint32_t   age_sample_rate_cached_ = 0;
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), read-local half: latched per pass from the live-config
+    // snapshot like maxmemory_enabled_; production 0. See debug_fanout_stall_local().
+    uint32_t   debug_fanout_defer_us_ = 0;
     bool       lb_controller_armed_ = false;
     bool       lb_ack_wake_pending_ = false;
     bool       lb_rebind_pending_ = false;   // set at ExDrain ack; rebind owned shards after stage

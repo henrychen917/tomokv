@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 # Eviction scenario battery. One SECTION per fresh server boot (the lane has no FLUSHALL, and
-# cross-section residue poisons verdicts). Driver: evict_drive.sh.
+# cross-section residue poisons verdicts). tests/gate.sh boots lfu and lruclock on the split and
+# the fused+read-local boots; the other sections are the original driver's scenario set.
 #   python3 evict_battery.py <port> <section>
-# Sections: off noev lru vlru vttl lfu config
-import socket, sys
+# Sections: off noev lru vlru vttl lfu lruclock growth config
+#   lfu       hot-set survival under pressure PLUS the mechanism: OBJECT FREQ rises for ordinary
+#             reads and stays put for CLIENT NO-TOUCH reads, whoever serves the read.
+#   lruclock  the LRU twin on a 1 s bucket (boot with --lru-clock-shift 0): OBJECT IDLETIME
+#             resets on a read, keeps aging under NO-TOUCH, and re-touched old keys outlive
+#             untouched ones under pressure. The default 256 s bucket makes every key in a short
+#             test the same age, which is why the lru section above cannot see a touch at all.
+# On a fused boot with the read-local lane armed (INFO server read_local:1) both sections also
+# assert the reads they measure were LANE-served: before the lane learned to touch, a key kept hot
+# only by such reads was never counted as accessed and was evicted FIRST -- the policy inverted.
+import socket, sys, time
 
 HOST, PORT, SECTION = "127.0.0.1", int(sys.argv[1]), sys.argv[2]
 s = socket.create_connection((HOST, PORT), timeout=20)
@@ -16,17 +26,29 @@ def enc(a):
         o += b"$%d\r\n" % len(x) + x + b"\r\n"
     return o
 
-def rr():
-    line = f.readline()
+def rr_on(fh):
+    line = fh.readline()
     if not line: raise EOFError
     t = line[:1]
     if t in b"+-:": return line.strip()
     if t == b"$":
-        n = int(line[1:-2]); return None if n == -1 else f.read(n + 2)[:-2]
-    n = int(line[1:-2]); return [rr() for _ in range(n)]
+        n = int(line[1:-2]); return None if n == -1 else fh.read(n + 2)[:-2]
+    n = int(line[1:-2]); return [rr_on(fh) for _ in range(n)]
+
+def rr(): return rr_on(f)
 
 def cmd(*a):
     s.sendall(enc(list(a))); return rr()
+
+def open_conn():
+    c = socket.create_connection((HOST, PORT), timeout=20)
+    return c, c.makefile("rb")
+
+def cmd_on(c, fh, *a):
+    c.sendall(enc(list(a))); return rr_on(fh)
+
+def as_int(reply):
+    return int(reply[1:]) if isinstance(reply, bytes) and reply[:1] == b":" else None
 
 def must(*a):
     r = cmd(*a)
@@ -118,16 +140,91 @@ elif SECTION == "vttl":
 
 elif SECTION == "lfu":
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+    lane_armed = info_num("read_local") == 1
     fill("lfuhot", 20)
+    lane0 = info_num("read_local_keyspace_hits") or 0
     for r in range(6):
         for _ in range(5):
             for i in range(20):
                 s.sendall(enc(["GET", "lfuhot:%d" % i])); rr()
         fill("lfucold", 3000, start=r * 3000)
+    lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane0
     ev = info_num("evicted_keys")
     hot = alive("lfuhot", range(20))
     check("allkeys-lfu: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     check("allkeys-lfu: hot 20 mostly survive", hot >= 15, hot)
+    if lane_armed:
+        check("allkeys-lfu: the hot reads were lane-served (read_local_keyspace_hits)",
+              lane_hot >= 500, "lane hits %d of 600 reads" % lane_hot)
+    # MECHANISM, on a key nothing else samples: a fresh key starts at 5; the first ordinary read
+    # raises it for certain (the logarithmic increment has probability 1 below 6), while reads
+    # from a CLIENT NO-TOUCH connection must leave it exactly where the write put it.
+    must("SET", "lfunt", "v")
+    check("allkeys-lfu: fresh key starts at OBJECT FREQ 5", as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5,
+          cmd("OBJECT", "FREQ", "lfunt"))
+    nt, ntf = open_conn()
+    check("allkeys-lfu: CLIENT NO-TOUCH ON", cmd_on(nt, ntf, "CLIENT", "NO-TOUCH", "ON") == b"+OK")
+    lane1 = info_num("read_local_keyspace_hits") or 0
+    for _ in range(20):
+        cmd_on(nt, ntf, "GET", "lfunt")
+    lane_nt = (info_num("read_local_keyspace_hits") or 0) - lane1
+    check("allkeys-lfu: 20 NO-TOUCH reads leave OBJECT FREQ at 5",
+          as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5, cmd("OBJECT", "FREQ", "lfunt"))
+    lane2 = info_num("read_local_keyspace_hits") or 0
+    for _ in range(20):
+        cmd("GET", "lfunt")
+    lane_plain = (info_num("read_local_keyspace_hits") or 0) - lane2
+    freq = as_int(cmd("OBJECT", "FREQ", "lfunt"))
+    check("allkeys-lfu: 20 ordinary reads raise OBJECT FREQ above 5", freq is not None and freq > 5, freq)
+    if lane_armed:
+        check("allkeys-lfu: both probes were lane-served", lane_nt >= 15 and lane_plain >= 15,
+              "no-touch %d/20 plain %d/20" % (lane_nt, lane_plain))
+    nt.close()
+
+elif SECTION == "lruclock":
+    # Boot with --lru-clock-shift 0: one-second buckets, so a 1.6 s dwell is a visible age.
+    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+    lane_armed = info_num("read_local") == 1
+    must("SET", "lruc:probe", "v")
+    time.sleep(1.6)
+    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:probe"))
+    check("lruclock: bucket advanced over a 1.6 s dwell (needs --lru-clock-shift 0)",
+          idle is not None and idle >= 1, idle)
+    lane0 = info_num("read_local_keyspace_hits") or 0
+    cmd("GET", "lruc:probe")
+    lane_probe = (info_num("read_local_keyspace_hits") or 0) - lane0
+    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:probe"))
+    check("lruclock: one ordinary read resets OBJECT IDLETIME to 0", idle == 0, idle)
+    time.sleep(1.6)
+    nt, ntf = open_conn()
+    check("lruclock: CLIENT NO-TOUCH ON", cmd_on(nt, ntf, "CLIENT", "NO-TOUCH", "ON") == b"+OK")
+    lane1 = info_num("read_local_keyspace_hits") or 0
+    for _ in range(20):
+        cmd_on(nt, ntf, "GET", "lruc:probe")
+    lane_nt = (info_num("read_local_keyspace_hits") or 0) - lane1
+    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:probe"))
+    check("lruclock: 20 NO-TOUCH reads leave IDLETIME aging", idle is not None and idle >= 1, idle)
+    nt.close()
+    if lane_armed:
+        check("lruclock: the probe reads were lane-served", lane_probe >= 1 and lane_nt >= 15,
+              "plain %d/1 no-touch %d/20" % (lane_probe, lane_nt))
+    # Discrimination under pressure: 3000 old keys age one bucket, 50 of them are re-read, then
+    # 8000 new keys push far past the ceiling. LRU must spend the untouched old bucket first.
+    fill("lruold", 3000)
+    time.sleep(1.6)
+    lane2 = info_num("read_local_keyspace_hits") or 0
+    for i in range(50):
+        cmd("GET", "lruold:%d" % i)
+    lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
+    fill("lrunew", 8000, tolerate_oom=True)
+    ev = info_num("evicted_keys")
+    hot = alive("lruold", range(50))
+    cold = alive("lruold", range(50, 3000, 59))
+    check("lruclock: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
+    check("lruclock: the 50 re-read old keys mostly survive (>=40)", hot >= 40, hot)
+    check("lruclock: untouched old keys went first", cold < hot, "untouched %d/50 alive, re-read %d/50" % (cold, hot))
+    if lane_armed:
+        check("lruclock: the re-reads were lane-served", lane_hot >= 40, "lane hits %d of 50" % lane_hot)
 
 elif SECTION == "growth":
     # wrinkle fix: collection growth must respect maxmemory (pre-exec DENYOOM gate).
