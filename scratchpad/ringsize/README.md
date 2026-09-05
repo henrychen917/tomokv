@@ -295,3 +295,37 @@ before the measurement phases. Nothing was measured on top of the owner's own nu
 measurement phases -- `null rate ovf slope mem probe` -- are re-armed and will start on their own
 once `quiet.done` is back and older than three minutes, this lane's cores are clear, and its ports
 are free.
+
+## The expwide S1 MGET row — static diagnosis, ahead of the reproduction
+
+`DEBUG ATOMIC-FANOUT-DEFER` is implemented in the **scatter engine** (`src/cmd/scatter_engine.inc`
+~2009) and the MULTI half (`src/cmd/multi.inc` ~1574). It widens a **cross-shard fan-out**. Under
+`--thread-mode fused --read-local 1`, an MGET whose keys are all clean is served by the **read-local
+path** instead — `enqueue_local_read` → the executor's local drain — which never enters the scatter
+engine, so the hook cannot widen anything and S1's own vacuity guard fires: `elapsed=0.000s`.
+
+Two facts already point at geometry rather than branch:
+
+* this lane's batteries pass `expwide` under **2s** and fail it under **fused+armed**, on the same
+  binary — the canonical gate boots split with read-local off, where MGET has no local path to take;
+* `command_is_read_local_mget` is present in t-merge14, t-rlbatch and this lane alike, so the local
+  MGET path is not something the base lane introduced.
+
+**And the invariant itself appears to hold on the local path.** `src/core/ex_loop.h`:
+
+```
+1016:  const int64_t command_now_ms = cached_now_ms_;     // ONE snapshot, before the retry loop
+1070:  if (deadline >= 0 && deadline <= command_now_ms)   // every key compared to that one instant
+1212:  if (deadline >= 0 && deadline <= command_now_ms)
+```
+
+The snapshot is taken outside `for (attempt …)`, so it survives a generation retry, and a key found
+past its deadline does not get served locally at all — it returns
+`ReadLocalFallbackReason::Expired` and the command goes to the owner. So the local MGET is one
+expiry cut per logical operation, which is exactly what S1 exists to police.
+
+If the reproduction confirms this, the row is a **coverage hole, not a wrong answer**: the path that
+now serves most MGETs is the one path S1 cannot widen, and the gate on t-merge14 never entered the
+combination because it boots read-local off. The fix is then to make the invariant testable where
+the command is actually served — a defer point inside the local MGET window — rather than to change
+what the local path computes. **Confirmed by measurement before anything is written.**
