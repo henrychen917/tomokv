@@ -166,10 +166,14 @@ def holds(conn):
 
 def late(conn):
     """INFO atomic_exec_order_late -- the install-time ordering violations the dispatch park is
-    supposed to make impossible. A BUG counter: it must read zero at every point in every mode."""
+    supposed to make impossible. A BUG counter: it must read zero at every point in every mode.
+
+    Returns None on a build that predates the counter. This battery is also run against the PRE
+    binary to show the defect, and there the question cannot be asked at all -- which must be
+    reported as its own distinct row rather than being allowed to look like the leak."""
     table = stats(conn)
     if "atomic_exec_order_late" not in table:
-        raise AssertionError("INFO STATS has no atomic_exec_order_late counter")
+        return None
     return int(table["atomic_exec_order_late"])
 
 
@@ -484,7 +488,13 @@ def run_mode(admin, mode, blocker, victims):
     # to take at dispatch at all. This is asserted as an absolute rather than a delta because the
     # honest value is zero forever, not merely unchanged across this battery.
     violations = late(admin)
-    if violations:
+    if violations is None:
+        failures += 1
+        print("  FAIL INFO STATS has no atomic_exec_order_late counter, so this build cannot show "
+              "whether the hold ran BEFORE the install; the placement claim is unfalsifiable "
+              "here. Expected on a pre-fix binary, where the rows above carry the verdict",
+              flush=True)
+    elif violations:
         failures += 1
         print(f"  FAIL atomic_exec_order_late={violations}: an EXEC write reached its install "
               "with an undecided same-connection unit still on this owner. The dispatch-time park "
