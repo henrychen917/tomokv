@@ -777,3 +777,43 @@ What is genuinely independent, and what this lane's verdict must therefore be ar
   that can tell a bigger working set from more work. It runs 8.4-9.0 per operation on the write
   cells and 6.75 on pure GET, which is a great deal of memory traffic and exactly the term the
   +972.8 bytes per armed connection could move.
+
+
+## THE NULL, on the corrected instrument — it passes, and it says which column may be read
+
+Same binary in both arms (`tomokv-pre` against itself), server 58-59 with two shards, eight
+generator threads on 60-63,188-191 one per hardware thread, 512 connections at depth 32, nine to ten
+visits per cell.
+
+| cell | rate delta | instr/op delta | **rate floor** | **instr/op floor** | fills/op floor |
+|---|---|---|---|---|---|
+| 41% writes | **−0.05%** | **−0.06%** | 4.21% | **0.24%** | 8.99% |
+| 55% writes | **+1.34%** | **−0.11%** | 2.84% | **0.34%** | 6.89% |
+| 70% writes | **+0.45%** | **+0.13%** | 3.49% | **0.30%** | 6.87% |
+| pure SET | **+0.56%** | **+0.01%** | 3.23% | **0.06%** | 8.98% |
+| pure GET | +2.78% | −1.05% | 12.68% | 9.11% | 23.90% |
+
+("floor" is that cell's max-to-min spread across every visit of the run — what the instrument does
+to one binary measured against itself.)
+
+**Four of five cells come back inside a tenth of a percent on instructions per operation and inside
+1.4% on rate.** The instrument works, and the stated floors for the rest of this lane are:
+
+* **instructions per operation: 0.34%** — the worst of the four usable cells;
+* **rate: 4.2%** — so a rate delta under four percent is not a result here, however many rounds it
+  is averaged over;
+* **DRAM fills per operation: 9.0%** — real now, but far too coarse to price a working-set change
+  of the size this lane makes.
+
+**The pure-GET cell is excluded, on its own evidence rather than on inconvenience**: 12.68% rate and
+**9.11% instructions per operation** on one binary against itself. A cell that cannot reproduce its
+own instruction count to a tenth of that of its neighbours is not measuring the server, and nothing
+is claimed from it in either direction.
+
+And cycles/op mirrors rate exactly, as the fixed-duty arithmetic said it must: −0.05/+1.34/+0.45/
++0.56/+2.78 against +0.05/−1.35/−0.46/−0.58/−2.72. It is the same column with its sign flipped.
+
+**Consequence for the verdict**: this lane's effect must be argued in instructions per operation,
+where the floor is 0.34% and the earlier A/B measured +0.48%, +2.00%, +2.41% and +1.28% — every one
+of them resolvable. It cannot be argued in rate, where the floor is 4.2% and the largest effect
+measured was −3.4%.
