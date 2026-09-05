@@ -104,4 +104,33 @@ print("READ IT THIS WAY: the first rung on which the rate STOPS rising while the
 print("growing is the first rung on which the server is the bottleneck. Measure there or above it.")
 print("If the rate is still climbing at the last rung, this lane has no server-bound geometry inside")
 print("its allocation and no rate number from it may be quoted -- only instructions per operation.")
+
+# THE LADDER PICKS THE GEOMETRY, and the rest of the run reads it out of a file rather than out of
+# a decision somebody made from the table by eye at two in the morning. The chosen rung is the
+# FIRST one within 2% of the best rate any rung reached -- the start of the plateau, because more
+# generator past that point buys nothing and only adds threads to schedule. A ladder that is still
+# climbing at its last rung has no plateau, and says so: PLATEAU=no means every rate in this run is
+# a measurement of memtier and only instructions per operation may be read.
+import statistics, os
+best_rung, plateau = None, True
+per = {}
+for r in rows:
+    per.setdefault(r['rung'], {})[r['cell']] = float(r['rate'])
+rungs = sorted(per, key=int)
+score = {k: statistics.mean(v.values()) for k, v in per.items()}
+top = max(score.values())
+for k in rungs:
+    if score[k] >= 0.98 * top:
+        best_rung = k
+        break
+if best_rung == rungs[-1] and len(rungs) > 1 and score[rungs[-1]] > 1.02 * score[rungs[-2]]:
+    plateau = False
+row = next(r for r in rows if r['rung'] == best_rung)
+env = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), 'satcheck.env')
+with open(env, 'w') as f:
+    f.write(f"CLICORES={row['cores']}\nTHREADS={row['threads']}\n"
+            f"CONNS={int(row['conns'])//int(row['threads'])}\nPLATEAU={'yes' if plateau else 'no'}\n")
+print(f"\nCHOSEN RUNG {best_rung}: cpus {row['cores']}, {row['threads']} threads x "
+      f"{int(row['conns'])//int(row['threads'])} connections; plateau={'yes' if plateau else 'no'}")
+print(f"written to {env}; every rate phase in this run reads its geometry from there.")
 PY

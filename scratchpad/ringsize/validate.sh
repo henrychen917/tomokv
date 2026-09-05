@@ -54,6 +54,22 @@ check_restored(){
 }
 PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck null rate matched ovf conn mset slope mem batt differ}"
 
+# THE SATURATION LADDER CHOOSES THE LOAD GEOMETRY FOR EVERY RATE PHASE, and they read it out of a
+# file rather than out of a decision taken by eye from a table. If satcheck has run in this OUT
+# directory, its chosen rung is in force; if it has not, the defaults in lib.sh and ab_triad.sh
+# apply and the run says so once.
+load_geometry(){
+  if [ -s "$OUT/satcheck.env" ]; then
+    # shellcheck disable=SC1090
+    . "$OUT/satcheck.env"
+    export CLICORES THREADS CONNS
+    echo "geometry from satcheck: cpus $CLICORES, $THREADS threads x $CONNS conns, plateau=$PLATEAU"
+    [ "${PLATEAU:-yes}" = yes ] || echo "!! PLATEAU=no -- the ladder was still climbing at its last rung. Every RATE in this run is the load generator's limit; read instructions/op and the counters only."
+  else
+    echo "geometry: lane defaults (satcheck has not run in $OUT)"
+  fi
+}
+
 for phase in $PHASES; do
 case "$phase" in
 build)
@@ -103,6 +119,7 @@ null)
   # reports here is its own noise -- and a rate delta smaller than that is not a result no matter
   # how it is averaged. It is cheap (one round) and it is the only honest floor for section 4.
   guard null
+  load_geometry
   stamp "same-binary null (PRE vs PRE)"
   rm -f "$OUT/ab_null.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-pre "$OUT/ab_null.csv" \
@@ -111,6 +128,7 @@ null)
   ;;
 rate)
   guard rate
+  load_geometry
   stamp "saturated ABBA rate + triad + counters"
   rm -f "$OUT/ab_triad.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-post "$OUT/ab_triad.csv" \
@@ -123,6 +141,24 @@ matched)
   # or the limit does not bind and this is just the saturated run again. The rate phase above
   # prints both arms' maxima; MATCHED_RATE is set from them.
   guard matched
+  load_geometry
+  # DERIVED FROM THE SATURATED RUN THAT JUST RAN, not typed in. One rate limit is applied to every
+  # cell, so it has to sit below the SLOWEST cell of the SLOWER arm or it does not bind there and
+  # that cell is simply the saturated run again -- which is the failure mode this phase exists to
+  # avoid. 85% of that minimum, per connection, over this run's 512.
+  if [ -z "${MATCHED_RATE:-}" ] && [ -s "$OUT/ab_triad.csv" ]; then
+    MATCHED_RATE=$(python3 - "$OUT/ab_triad.csv" <<'PYEOF'
+import csv, statistics, sys
+rows = list(csv.DictReader(open(sys.argv[1])))
+per = {}
+for r in rows:
+    per.setdefault((r['cell'], r['arm']), []).append(float(r['rate']))
+worst = min(statistics.median(v) for v in per.values())
+print(int(0.85 * worst / 512))
+PYEOF
+)
+    echo "MATCHED_RATE derived from ab_triad.csv: $MATCHED_RATE ops/s/connection"
+  fi
   : "${MATCHED_RATE:?set MATCHED_RATE (per-connection ops/s) from the saturated run first}"
   stamp "matched-rate A/B at ${MATCHED_RATE} ops/s/conn"
   rm -f "$OUT/ab_matched.csv"
@@ -148,6 +184,7 @@ conn)
   # The connection-footprint regime: does +960 bytes per armed connection cost more than the
   # demotion fix earns once there are 2048 of them?
   guard conn
+  load_geometry
   stamp "connection scaling 512 vs 2048, with DRAM fills"
   rm -f "$OUT/regimes_conn.csv"
   "$HERE/regimes.sh" conn ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_conn.csv" \
@@ -157,6 +194,7 @@ conn)
 mset)
   # The other fixed sixteen: kMaxPreciseKeysetKeys, measured rather than flagged.
   guard mset
+  load_geometry
   stamp "MSET width 8 vs 32 keys at depth 8"
   rm -f "$OUT/regimes_mset.csv"
   "$HERE/regimes.sh" mset ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_mset.csv" \
@@ -168,6 +206,7 @@ ovf)
   # this is the run in which it is asked, on the same three regimes, with the same counter grafted
   # onto both arms. A non-zero POST count here would end this lane.
   guard ovf
+  load_geometry
   stamp "ring overflows per arm (instrumented binaries)"
   rm -f "$OUT/ab_ovf.csv"
   "$HERE/ab_triad.sh" ./build/tomokv-pre-ovf ./build/tomokv-post-ovf "$OUT/ab_ovf.csv" \

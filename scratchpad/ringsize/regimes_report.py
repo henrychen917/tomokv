@@ -12,6 +12,7 @@ import csv, statistics as st, sys
 rows = list(csv.DictReader(open(sys.argv[1])))
 NUM = ('rate', 'p50', 'p99', 'cmds', 'instr', 'cycles', 'fills', 'read_local_hits',
        'read_local_fallback_inflight_write', 'read_local_fallbacks', 'srv_cores', 'mux')
+SHAPE = {}
 for r in rows:
     for k in NUM:
         r[k] = float(r[k])
@@ -20,6 +21,9 @@ for r in rows:
     r['cyc_op'] = r['cycles'] / c
     r['fills_op'] = r['fills'] / c
     r['ipc'] = r['instr'] / r['cycles'] if r['cycles'] else float('nan')
+    if r.get('threads') and r.get('conns'):
+        t = int(float(r['threads'])); n = int(float(r['conns']))
+        SHAPE[r['cell']] = f"{t} thr x {n // t}"
 
 low = [r for r in rows if r['mux'] < 99.5]
 if low:
@@ -33,9 +37,14 @@ for r in rows:
 # Totals are what the footprint term depends on; the per-thread shape is recorded because it is
 # NOT the shape the owner's rig uses (32 threads x 16 / x 64). Three load cores cannot hold 32
 # generator threads cleanly, so the same totals are reached with eight threads.
-LABEL = {'c512': '512 conns (8 thr x 64)', 'c2048': '2048 conns (8 thr x 256)',
+LABEL = {'c512': '512 conns', 'c2048': '2048 conns',
          'm8': 'MSET 8 keys  (under the 16 bound)',
          'm32': 'MSET 32 keys (over it)'}
+
+def label(c):
+    base = LABEL.get(c, c)
+    sh = SHAPE.get(c)
+    return f"{base} ({sh})" if sh and c.startswith('c') else base
 
 def med(cell, arm, field):
     v = [r[field] for r in rows if r['cell'] == cell and r['arm'] == arm]
@@ -51,7 +60,7 @@ for c in cells:
         allf = med(c, arm, 'read_local_fallbacks')
         tot = h + allf
         pct = (100.0 * h / tot) if tot else float('nan')
-        print(f"{LABEL.get(c, c):<34}{arm:<6}{med(c,arm,'rate')/1e6:>9.3f}"
+        print(f"{label(c):<34}{arm:<6}{med(c,arm,'rate')/1e6:>9.3f}"
               f"{med(c,arm,'instr_op'):>10.1f}{med(c,arm,'cyc_op'):>9.1f}{med(c,arm,'ipc'):>7.3f}"
               f"{med(c,arm,'fills_op'):>10.3f}{med(c,arm,'p99'):>8.2f}"
               f"{(('%8.1f%%' % pct) if tot else '       --'):>9}"

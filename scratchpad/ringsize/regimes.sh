@@ -32,22 +32,31 @@ mkdir -p "$TMP"
 FILLS=${FILLS:-ls_any_fills_from_sys.dram_io_all}
 perf stat -e "$FILLS" -x, -o /dev/null -- true 2>/dev/null || FILLS=cache-misses
 
-[ -s "$OUT" ] || echo "round,visit,arm,cell,rate,p50,p99,cmds,instr,cycles,fills,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,srv_cores,mux" > "$OUT"
+[ -s "$OUT" ] || echo "round,visit,arm,cell,threads,conns,rate,p50,p99,cmds,instr,cycles,fills,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,srv_cores,mux" > "$OUT"
 
 cells_for(){
   if [ "$MODE" = conn ]; then echo "c512 c2048"; else echo "m8 m32"; fi
 }
 
+# THE CONNECTION TOTALS ARE THE POINT OF THE conn REGIME, so they are held at exactly 512 and 2048
+# whatever thread count the saturation ladder chose; the thread count is stepped DOWN to the nearest
+# divisor of both rather than letting the totals drift to whatever divides evenly. A cell labelled
+# 512 that actually ran 516 connections would quietly break the only comparison this regime makes.
+CT=${THREADS:-8}
+while [ "$CT" -gt 1 ] && { [ $((512 % CT)) -ne 0 ] || [ $((2048 % CT)) -ne 0 ]; }; do CT=$((CT-1)); done
+[ "$CT" = "${THREADS:-8}" ] || echo "conn regime: thread count $CT (stepped down from ${THREADS:-8} so 512 and 2048 divide exactly)"
+
 cli_args_for(){ # -> prints the memtier arguments for a cell
   local cell="$1"
   case "$cell" in
-    c512)  echo "--ratio=1:1 --key-pattern=R:R -t 8 -c 64  --pipeline=32";;
-    c2048) echo "--ratio=1:1 --key-pattern=R:R -t 8 -c 256 --pipeline=32";;
+    c512)  echo "--ratio=1:1 --key-pattern=R:R -t $CT -c $((512/CT))  --pipeline=32";;
+    c2048) echo "--ratio=1:1 --key-pattern=R:R -t $CT -c $((2048/CT)) --pipeline=32";;
     m8|m32)
       local n=${cell#m} pairs=""
       for _ in $(seq 1 "$n"); do pairs="$pairs __key__ __data__"; done
-      # One MSET of n keys against one GET, 1:1, depth 8.
-      echo "--command=MSET$pairs --command-ratio=1 --command-key-pattern=R --command=GET __key__ --command-ratio=1 --command-key-pattern=R --command-is-read --pipeline=8 -t 8 -c 32";;
+      # One MSET of n keys against one GET, 1:1, depth 8. Depth 8 because deep pipes collapse
+      # multi-key throughput (tomokv-multikey-congestion-collapse) and would hide the effect.
+      echo "--command=MSET$pairs --command-ratio=1 --command-key-pattern=R --command=GET __key__ --command-ratio=1 --command-key-pattern=R --command-is-read --pipeline=8 -t $CT -c $((256/CT))";;
   esac
 }
 
@@ -60,6 +69,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
   local size; size=$($CLI -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
   [ "$size" = "$KEYMAX" ] || echo "WARN dbsize=$size keymax=$KEYMAX ($arm r$round v$vi)" >&2
   for cell in $(cells_for); do
+    local cellconns
+    case "$cell" in c512) cellconns=512;; c2048) cellconns=2048;; *) cellconns=256;; esac
     local h0 f0 a0 c0 j0 t0
     h0=$(info_field read_local_hits); f0=$(info_field read_local_fallback_inflight_write)
     a0=$(info_field read_local_fallbacks); c0=$(info_field total_commands_processed)
@@ -89,7 +100,7 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     cyc=$(grep -m1 ',cycles,'       "$pf" | cut -d, -f1)
     fil=$(grep -m1 ",$FILLS," "$pf" | cut -d, -f1)
     mux=$(awk -F, 'NF>4 && $5 ~ /^[0-9]/ {print $5}' "$pf" | sort -n | head -1)
-    echo "$round,$vi,$arm,$cell,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},${fil:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),${srvcpu:-0},${mux:-100}" >> "$OUT"
+    echo "$round,$vi,$arm,$cell,$CT,$cellconns,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},${fil:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),${srvcpu:-0},${mux:-100}" >> "$OUT"
   done
   stop_srv
   sleep 3
