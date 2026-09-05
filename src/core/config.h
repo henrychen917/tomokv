@@ -250,6 +250,12 @@ struct Config {
     // Boot-latched B+ selector. 1 uses the exact per-key atomic safety filter; 0 preserves the
     // former whole-shard pending refusal while leaving the read-local customer itself armed.
     uint8_t  read_local_atomic_filter = 1;
+    // Armed local-read LANE-FULL policy. 0 (default) demotes the refused read to the owner path
+    // and counts ReadLocalFallbackReason::LaneFull; 1 leaves the frame unconsumed, queues the
+    // connection on pending_ifid_, and the next IFID pass re-parses it FIRST, after this thread's
+    // own EX pass has drained the lane. Takes the last byte of the bool run's alignment padding,
+    // so Config's locked footprint is unchanged. See P128.md.
+    uint8_t  read_local_lane_full = 0;
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
     // The two feature gates independently remove their counters, EWMA/census and autonomous
@@ -740,6 +746,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.read_local_atomic_filter = static_cast<uint8_t>(value);
         }
+        else if (!std::strcmp(a, "--read-local-lane-full")) {
+            uint32_t value = 0;
+            if (!cfg_parse_u32(next(nullptr), value) || value > 1) {
+                std::fprintf(stderr, "--read-local-lane-full wants 0 or 1\n");
+                return kConfigError;
+            }
+            cfg.read_local_lane_full = static_cast<uint8_t>(value);
+        }
         // WHOLE-SERVER role counts, evenly spread across L3 domains by the server itself.
         // This is the runtime replacement for authoring --place strings offline, and the knob a
         // flip controller will drive: counts in, placement out, no per-node arithmetic.
@@ -1133,6 +1147,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "             --read-local-interleave 0|1 (boot-only; default 1)\n"
                         "             --read-local-prefetch-capture 0|1 (boot-only; default 1)\n"
                         "             --read-local-atomic-filter 0|1 (boot-only; default 1)\n"
+                        "             --read-local-lane-full 0|1 (boot-only; default 0 = demote\n"
+                        "             the refused read to its owner, 1 = defer the frame)\n"
                         "             (--thread-pipeline is an overlap alias)\n"
                         "             (split/fused are mode aliases)\n"
                         "             (read-local is active only with 1s overlap 0)\n"

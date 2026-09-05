@@ -332,6 +332,9 @@ void init_config(const Config& cfg) {
     g_config.push_back({"read-local-atomic-filter", ConfigKind::Unsigned,
                         std::to_string(static_cast<uint32_t>(
                             cfg.read_local_atomic_filter)), true});
+    g_config.push_back({"read-local-lane-full", ConfigKind::Unsigned,
+                        std::to_string(static_cast<uint32_t>(
+                            cfg.read_local_lane_full)), true});
     g_config.push_back({"smt-mode", ConfigKind::Unsigned,
                         std::to_string(cfg.smt_mode), true});
     g_config.push_back({"ex-sched", ConfigKind::Unsigned,
@@ -1528,6 +1531,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_seq_churn += local.fallback_seq_churn;
     total.fallback_generation += local.fallback_generation;
     total.fallback_lane_full += local.fallback_lane_full;
+    total.lane_deferrals += local.lane_deferrals;
     total.mget_local_hits += local.mget_local_hits;
     total.mget_fallback_multi += local.mget_fallback_multi;
     total.mget_fallback_watch += local.mget_fallback_watch;
@@ -1839,6 +1843,8 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_generation, baseline.read_local.fallback_generation);
         read_local.fallback_lane_full = minus_baseline(
             read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
+        read_local.lane_deferrals = minus_baseline(
+            read_local.lane_deferrals, baseline.read_local.lane_deferrals);
         read_local.mget_local_hits = minus_baseline(
             read_local.mget_local_hits, baseline.read_local.mget_local_hits);
         read_local.mget_fallback_multi = minus_baseline(
@@ -2365,7 +2371,8 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_expired:%llu\r\n"
                 "read_local_fallback_seq_churn:%llu\r\n"
                 "read_local_fallback_generation:%llu\r\n"
-                "read_local_fallback_lane_full:%llu\r\n",
+                "read_local_fallback_lane_full:%llu\r\n"
+                "read_local_lane_deferrals:%llu\r\n",
                 static_cast<unsigned long long>(read_local.hits),
                 static_cast<unsigned long long>(read_local.keyspace_hits),
                 static_cast<unsigned long long>(read_local.keyspace_misses),
@@ -2384,7 +2391,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_expired),
                 static_cast<unsigned long long>(read_local.fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.fallback_generation),
-                static_cast<unsigned long long>(read_local.fallback_lane_full));
+                static_cast<unsigned long long>(read_local.fallback_lane_full),
+                static_cast<unsigned long long>(read_local.lane_deferrals));
         appendf(body,
                 "read_local_mget_local_hits:%llu\r\n"
                 "read_local_mget_fallbacks:%llu\r\n"

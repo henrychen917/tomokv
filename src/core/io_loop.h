@@ -4381,6 +4381,21 @@ private:
                                     read_local_eligible = false;
                                 } else if (!fused_executor_->local_read_lane_has_room(
                                                read_local_lane_demand)) {
+                                    // --read-local-lane-full 1: DEFER, do not demote. Nothing
+                                    // about this frame has been published -- the ROB slot is
+                                    // acquired but not published, no lane entry, no pending
+                                    // bit, no owner slot -- so leaving the bytes at rpos and
+                                    // ending the pass is the same shape as the MGET admission
+                                    // fence above. The connection joins pending_ifid_ so the
+                                    // next IFID pass (flush_ready PHASE 1) re-parses it FIRST,
+                                    // after this thread's EX pass drained the lane: no
+                                    // starvation of the walk's tail, and no cross-thread owner
+                                    // task for a read whose data is right here (P128.md).
+                                    if (srv_->cfg().read_local_lane_full != 0) {
+                                        self_->read_local_stats().lane_deferrals++;
+                                        enqueue_ifid(c);
+                                        break;
+                                    }
                                     read_local_fallback_reason =
                                         ReadLocalFallbackReason::LaneFull;
                                     read_local_eligible = false;

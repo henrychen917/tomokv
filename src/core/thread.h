@@ -153,6 +153,9 @@ struct ReadLocalStats {
     uint64_t fallback_seq_churn = 0;
     uint64_t fallback_generation = 0;
     uint64_t fallback_lane_full = 0;
+    // --read-local-lane-full 1: frames the armed parser left unconsumed because the lane was
+    // full; re-parsed by the next IFID pass. Not a fallback -- the read still completes locally.
+    uint64_t lane_deferrals = 0;
 
     // Command-level MGET telemetry. A local MGET is one hit regardless of its key count. The
     // reason counters are a subset of the aggregate fallback counters above; Missing is absent
