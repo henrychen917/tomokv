@@ -9,7 +9,8 @@
 //
 // COMPILE-TIME tunables live elsewhere on purpose (changing them is a rebuild + re-validation,
 // not an operational act). The complete list, so nothing hides:
-//   kRobWindow        64      net/conn.h      max in-flight ops per connection (ROB size)
+//   kRobWindow        64      net/rob.h       max in-flight ops per connection (ROB size);
+//                                             the read-local write ring is sized FROM it
 //   kEmbedThreshold   192     store/kvobj.h   value bytes embedded in the key's block
 //   ValueSlot::kInline 1024   cmd/scatter_engine.inc  gather slot capacity; pairs with zc-min as
 //                                             the unified copy-vs-borrow cutover (min of the two)

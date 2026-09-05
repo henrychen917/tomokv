@@ -244,3 +244,20 @@ this shell's own command line, which contains those strings; the kill that follo
 shell (exit 144) and, the second time, very nearly a neighbouring lane's compiler. Match on `comm`,
 never on args, and confirm ownership with `readlink /proc/PID/cwd` before killing anything — the
 `make` that looked like a leftover of ours was `wt-multirace`'s.
+
+**19:52 — a second lane arrived on this lane's cores.** `./build/tomokv --port 8079 --thread-mode
+2s --shards 4` (pid 1833363) is pinned to **60-63,188-191**, which overlaps the load-generator half
+of even the reduced allocation. With `tkv-base` still on 190-191, the only part of 58-63/186-191
+that no other lane can reach is **58-59 and 186-187** — two physical cores, which cannot hold a
+server and a load generator on different physical cores at the same time.
+
+Consequence, and it is the owner's to arbitrate: the correctness phases (unit, layout, mutation,
+codegen, batteries, differ) are pass/fail and run anyway under `guard_soft`. The number phases
+refuse under `guard`, and are held until the cores clear. Four arms are built and waiting:
+
+    tomokv-pre      a5906e93547614a42067c7da9931f93b
+    tomokv-post     5764edfb188073474bb613683af0b1fd
+    tomokv-pre-ovf  4838b32eb2da3ce4bc50c0dc0b9709f5
+    tomokv-post-ovf 5d0955230f641d3c8ba4ea47dce99af0
+
+all four at zero warnings and zero errors, PRE and POST verified byte-different.
