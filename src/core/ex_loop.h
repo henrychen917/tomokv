@@ -295,6 +295,28 @@ public:
             1, kInboxSlots / static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
     }
 
+    // Is the lane-admission pressure window armed? ONE BYTE on the Impl's first cache line -- the
+    // same line (lane_head/lane_tail/lane_count/lane_demotion_demand at offsets 16..31, and
+    // lane_pressure at 32) that local_read_lane_has_room() already reads for every eligible read of
+    // the same pass -- so asking costs no cache line the pass did not already own.
+    //
+    // The parser MUST ask this before it evaluates read_local_lane_quota's argument. C++ evaluates
+    // arguments eagerly, so `read_local_lane_quota(active_.size())` loaded active_ on EVERY parse
+    // pass even though the callee returns UINT32_MAX immediately when the window is not armed --
+    // and IoLoop::active_ sits at offset 7728, on a line (7680-7743, shared only with unix_rr_,
+    // random_state_ and aof_gate_target_) that the parse pass never otherwise touches, while the
+    // IoLoop fields it does read live on two other lines entirely (notify_armed_ 7864,
+    // proto_max_bulk_len_ 7872). That made always-on machinery cost one cold-line demand fill per
+    // parse pass while every counter it owns still read zero -- measured on the owner's 32-core box
+    // at 512 connections as +11% DRAM and +3.4% same-CCX fills per op with instructions flat
+    // (P128.md 9.5). A hint must never be load-bearing, and machinery that has not fired must be
+    // free: gate the argument, not just the answer.
+    bool read_local_lane_under_pressure() const {
+        static_assert(Fused);
+        if (!read_local_enabled()) return false;
+        return read_local_.impl->lane_pressure != 0;
+    }
+
     // A lane-full deferral arms the pressure window; fused_pass_impl decays it once per rotation.
     void note_local_read_lane_full() {
         static_assert(Fused);

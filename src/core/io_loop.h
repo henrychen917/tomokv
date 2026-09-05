@@ -3955,11 +3955,15 @@ private:
         // LANE ADMISSION (P128.md): how many lane slots (pending local reads) this connection may
         // hold during this pass. UINT32_MAX unless the thread's local-read lane is under pressure,
         // in which case it is the lane divided among the active connections
-        // (ExLoop::read_local_lane_quota). One byte test per pass; the per-op compare below is a
-        // popcount against a register.
+        // (ExLoop::read_local_lane_quota). The pressure byte is tested FIRST and on its own,
+        // because active_.size() would otherwise be evaluated eagerly on every pass and active_
+        // lives on an IoLoop cache line this pass never otherwise touches -- see
+        // read_local_lane_under_pressure(). Steady state: one byte test per pass on a line the pass
+        // already owns; the per-op compare below is a popcount against a register.
         [[maybe_unused]] uint32_t read_local_quota = UINT32_MAX;
         if constexpr (Fused)
-            if (read_local_enabled)
+            if (read_local_enabled &&
+                __builtin_expect(fused_executor_->read_local_lane_under_pressure(), false))
                 read_local_quota = fused_executor_->read_local_lane_quota(active_.size());
         if constexpr (BatchOps != 0) batch_start_ops = sig.ops;
         [[maybe_unused]] uint64_t batch_dispatch_start = 0;
