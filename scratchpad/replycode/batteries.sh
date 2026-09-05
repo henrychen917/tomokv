@@ -3,8 +3,8 @@
 set -u
 cd /home/user/Projects/wt-replycode
 S=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad
-PORT=8079
-CORES=60-63,188-191
+PORT=8420
+CORES=136-143
 BIN=${BIN:-./build/tomokv}
 DIR=$(mktemp -d $S/bat.XXXXXX)
 PASS=0; FAIL=0; FAILED=""
