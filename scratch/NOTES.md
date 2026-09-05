@@ -57,3 +57,13 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
 ## Log
 - 19:3x: resumed; box busy (owner memtier on 64-127 -> port 8034); quiet.done MISSING; scripts
   rewritten for new geometry; waiting on gate.
+- 19:45 gate opened. Built guard binary copy -> $SP/fd-tomokv-guard (66d4c13a3). Wrote policy:
+  src/core/flip_policy.h (pure: FlipDemandWindow Welford, flip_projected_rate = min(s/f,(N-s)/(1-f)),
+  flip_choose_split sequential MOVE/HOLD/keep-sampling) + flipctl.cc decide_placement (saturation
+  gate: both roles headroom > band => hold-unsaturated; cap = deferral/tick/2 readings) +
+  seek_after_reading verify-or-revert + anchor() round_trips_/model_margin_ (x2 on round trip,
+  /2 on delivered, cap where band*margin >= 1). Unit test extended (defect numbers). Commit: see git.
+  Unit test caught: "optimum at the mean" is NOT a hold when the interval admits a paying split ->
+  hold only when no split clears the bar optimistically.
+- 19:52 matrix launched detached: $SP/fd-matrix.csv (30s cells, 3 rounds, arms pol0a pol0b pol1
+  guard1 base1; wl mk sk1:1 sk9:1 get). Timelines: $SP/fd-tl-<arm>-<wl>-<round>.txt. Log fd-matrix.log.
