@@ -73,6 +73,32 @@ for c in cells:
           f"{d('cyc_op'):>+8.2f}%{d('ipc'):>+6.2f}%{d('fills_op'):>+9.2f}%")
     print()
 
+# THE MSET REGIME'S QUESTION IS WITHIN AN ARM, NOT BETWEEN THEM. A blind MSET naming more than
+# kMaxPreciseKeysetKeys keys never refines, in either arm: it stays PendingWrite::Overflow and
+# fences every pending read on the connection (src/net/rob.h:477). Both arms therefore go
+# conservative at 32 keys and both stay precise at 8, so a PRE/POST delta here is expected to be
+# nothing and would say nothing if it were not. What prices the bound is the drop from 8 keys to 32
+# INSIDE one arm: that is what a connection loses by crossing it, and therefore what raising it to
+# the ring capacity would buy.
+if 'm8' in cells and 'm32' in cells:
+    print("WHAT THE 16-KEY BOUND COSTS, within each arm (8 keys -> 32 keys):")
+    print(f"{'arm':<6}{'M ops/s 8':>11}{'M ops/s 32':>12}{'rate':>9}"
+          f"{'local% 8':>10}{'local% 32':>11}{'share lost':>12}{'demoted 8':>12}{'demoted 32':>13}")
+    for arm in ('PRE', 'POST'):
+        def share(c):
+            h = med(c, arm, 'read_local_hits'); a = med(c, arm, 'read_local_fallbacks')
+            return 100.0 * h / (h + a) if (h + a) else float('nan')
+        r8, r32 = med('m8', arm, 'rate') / 1e6, med('m32', arm, 'rate') / 1e6
+        s8, s32 = share('m8'), share('m32')
+        print(f"{arm:<6}{r8:>11.3f}{r32:>12.3f}{100*(r32/r8-1):>+8.2f}%"
+              f"{s8:>9.1f}%{s32:>10.1f}%{s32-s8:>+11.1f}pp"
+              f"{med('m8',arm,'read_local_fallback_inflight_write'):>12.0f}"
+              f"{med('m32',arm,'read_local_fallback_inflight_write'):>13.0f}")
+    print("A share that barely moves means the bound is not what limits wide writes here and the")
+    print("literal 16 stays; a share that collapses means the walk length should derive from the")
+    print("ring capacity like everything else in this lane.")
+    print()
+
 # The question the connection regime was built to answer, stated as arithmetic rather than left to
 # the reader: does the extra footprint cost more at the high connection count than at the low one?
 if 'c512' in cells and 'c2048' in cells:
