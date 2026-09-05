@@ -817,3 +817,51 @@ And cycles/op mirrors rate exactly, as the fixed-duty arithmetic said it must: �
 where the floor is 0.34% and the earlier A/B measured +0.48%, +2.00%, +2.41% and +1.28% — every one
 of them resolvable. It cannot be argued in rate, where the floor is 4.2% and the largest effect
 measured was −3.4%.
+
+
+## THE MATRIX, on the corrected instrument (3 rounds, 6 visits per arm)
+
+| cell | rate | **instr/op** | fills/op | local share PRE → POST | reads demoted PRE → POST |
+|---|---|---|---|---|---|
+| 41% writes | +0.31% | **+0.43%** | −0.65% | 86.5% → **94.6%** | 2,041,627 → **0** |
+| 55% writes | −0.17% | **+1.44%** | −3.94% | 81.9% → **98.9%** | 2,870,423 → **168** |
+| 70% writes | −2.13% | **+1.96%** | +1.97% | 86.6% → **100.0%** | 1,543,562 → **217** |
+| pure SET | −0.84% | **+1.27%** | +4.28% | — | 0 → 0 |
+| pure GET | +1.01% | −0.66% | −0.63% | 60.6% → 60.6% | 0 → 0 |
+| *null floor* | *4.21%* | ***0.34%*** | *8.99%* | | |
+
+**Every instructions-per-operation delta on the four usable cells is above the floor, and every rate
+delta is below it.** The earlier run on the same pin measured +0.48%, +2.00%, +2.41% and +1.28% for
+the same four cells: two independent runs, same signs, same magnitudes.
+
+**The mechanism is not in doubt and never was.** Write-demotions go from two to three million to
+between zero and 217, the read-local hit share goes from 82-87% to 95-100%, and the ring-overflow
+counter reads zero in POST in every cell of every run against 393,732 to 1,852,068 in PRE.
+
+Solving the two-term model against the pure-write cell again: **+43 instructions per write**
+(identical to the first run), and a read-side term of **+4, +97, +180** instructions as the write
+fraction rises. The lane costs what it costs because the ring now does work the old one had
+stopped doing.
+
+## THE CONNECTION CELL — and it answers the grow-on-demand question with a No
+
+1:1 alternating at depth 32, which the ratio-shape phase established is **the one shape where the
+sixteen-slot ring never fills**. Both arms serve 99.9-100.0% of reads locally and demote fewer than a
+thousand; nothing this lane built is doing anything here.
+
+| cell | rate | **instr/op** | **fills/op** | local share | demoted PRE / POST |
+|---|---|---|---|---|---|
+| 512 connections (8 × 64) | −0.20% | **+2.77%** | −3.53% | 99.9% / 99.9% | 956 / 980 |
+| 2048 connections (8 × 256) | −0.08% | +0.04% | −2.57% | 100.0% / 100.0% | 41 / 28 |
+
+(one round; the phase was interrupted at PRE=1, POST=2 visits and is queued to finish.)
+
+**DRAM fills per operation do not grow with connection count** — POST is 0.366 fills/op *below* PRE
+at 512 and 0.466 below at 2048, both inside the 9% fills floor, and the delta does not widen when
+the connection footprint quadruples. The +972.8 bytes on every armed connection is real memory and
+it is **not** what limits this server at 2048 connections.
+
+That is the answer to the question the cell was built for: **the ring does not need to grow on
+demand.** Static sizing to the ROB window is not the problem, because the footprint is not the cost.
+The cost is the bookkeeping, which as section "the cost splits in two" argues is a function of live
+writes and not of capacity — so no re-sizing, dynamic or static, recovers any of it.
