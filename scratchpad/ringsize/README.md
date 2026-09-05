@@ -849,12 +849,25 @@ stopped doing.
 sixteen-slot ring never fills**. Both arms serve 99.9-100.0% of reads locally and demote fewer than a
 thousand; nothing this lane built is doing anything here.
 
-| cell | rate | **instr/op** | **fills/op** | local share | demoted PRE / POST |
+| cell | rate | instr/op | **fills/op** | local share | demoted PRE / POST |
 |---|---|---|---|---|---|
-| 512 connections (8 × 64) | −0.20% | **+2.77%** | −3.53% | 99.9% / 99.9% | 956 / 980 |
-| 2048 connections (8 × 256) | −0.08% | +0.04% | −2.57% | 100.0% / 100.0% | 41 / 28 |
+| 512 connections (8 × 64) | +0.40% | −0.44% | −3.60% | 99.9% / 99.9% | 907 / 934 |
+| 2048 connections (8 × 256) | +0.04% | −0.63% | +0.25% | 100.0% / 100.0% | 27 / 14 |
 
-(one round; the phase was interrupted at PRE=1, POST=2 visits and is queued to finish.)
+**and this cell cannot resolve instructions per operation at all.** Its own per-visit spread is
+**5.8-8.2%**, twenty times the matrix's 0.34% floor — 4951, 5186, 5009, 5115, 5370 for the identical
+PRE configuration. The one-round render of this same phase said +2.77% at 512 connections; three
+rounds later it says −0.44%. **A number that changes sign when the data doubles is noise, and the
++2.77% is withdrawn.**
+
+The pattern in which cells are quiet is worth keeping: the four cells that resolve to a tenth of a
+percent (41/55/70% writes, pure SET) are the ones where reads are mostly *demoted* or absent, and
+the two that will not resolve at all are **pure GET (60.6% local, 9.11% spread)** and **1:1
+alternating (99.9% local, 5.8-8.2% spread)** — the two cells where the read-local path carries the
+most traffic. Whatever varies from boot to boot in that path — most likely how a connection's keys
+fall across the two shards — varies the instruction count with it. That is a property of read-local,
+not of this lane, and it is the reason the pure-cost question below cannot be answered as sharply as
+the benefit question.
 
 **DRAM fills per operation do not grow with connection count** — POST is 0.366 fills/op *below* PRE
 at 512 and 0.466 below at 2048, both inside the 9% fills floor, and the delta does not widen when
@@ -865,3 +878,8 @@ That is the answer to the question the cell was built for: **the ring does not n
 demand.** Static sizing to the ROB window is not the problem, because the footprint is not the cost.
 The cost is the bookkeeping, which as section "the cost splits in two" argues is a function of live
 writes and not of capacity — so no re-sizing, dynamic or static, recovers any of it.
+
+What the cell can say about the pure cost is bounded rather than sharp: **at 1:1, where neither ring
+overflows, the rate moves +0.40% and +0.04% and the instructions move less than this cell can
+resolve.** So the change is not visibly expensive where it does nothing — but "not visibly" means
+against a 6-8% instruction floor, and that is the honest statement rather than a claim of free.
