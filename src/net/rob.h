@@ -252,6 +252,13 @@ public:
     }
 
     bool has_pending_read_local() const { return read_local_pending_slots_ != 0; }
+    // Lane slots this connection holds right now: local reads published and not yet executed (or
+    // demoted). The parser's fair-share admission (P128.md) compares THIS, not in_flight(): a
+    // reply that PHASE 2's bounded serve has not flushed yet holds no lane slot and must not
+    // count against the connection's share (measured: it halved ops per rotation).
+    uint32_t pending_read_local_count() const {
+        return static_cast<uint32_t>(__builtin_popcountll(read_local_pending_slots_));
+    }
 
     // Chunk forms for the fused local drain. One dispatch/flush snapshot serves a whole same-client
     // chunk: flush can only pass Done ops and no lane op is Done before this thread publishes it,

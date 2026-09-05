@@ -69,7 +69,8 @@ def main():
         ctl.must("SET", key, value)
     before_clients = {t.tid: t.clients for t in threads}
 
-    conns = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S) for _ in range(nconns)]
+    conns = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S, buffering=1 << 16)
+             for _ in range(nconns)]
     for i, c in enumerate(conns):
         c.must("SET", "rl:lane:own:%d" % i, b"init")
     after = _lib.lbsignals(ctl).threads
