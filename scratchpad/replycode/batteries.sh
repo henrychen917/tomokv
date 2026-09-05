@@ -39,9 +39,9 @@ run(){ # MODE TEST
 }
 
 echo "=== 1s (armed) ==="
-for t in s6 ryow bplus atomic_hazards multi_exec edgeproto edgeenc resp3 dumprestore pubsub; do run 1s $t; done
+for t in s6 ryow bplus atomic_hazards multi_exec edgeproto edgeenc resp3 dumprestore pubsub aclreply; do run 1s $t; done
 echo "=== 2s ==="
-for t in s6 ryow atomic_hazards multi_exec edgeproto edgeenc resp3 dumprestore pubsub flip; do run 2s $t; done
+for t in s6 ryow atomic_hazards multi_exec edgeproto edgeenc resp3 dumprestore pubsub flip aclreply; do run 2s $t; done
 echo "=== TOTAL pass=$PASS fail=$FAIL ==="
 [ -n "$FAILED" ] && echo "FAILED:$FAILED"
 exit 0
