@@ -283,7 +283,11 @@ public:
     // that arm the window. No knob.
     uint32_t read_local_lane_quota(size_t live_connections) const {
         static_assert(Fused);
-        const auto& state = read_local_impl();
+        // Same disabled-state shape as local_read_lane_has_room(): no impl means no lane and no
+        // bound (the parser only asks when the server's read-local is on, which is what creates
+        // the impl at init; this is the one test that call already paid, not a second one).
+        if (!read_local_enabled()) return UINT32_MAX;
+        const auto& state = *read_local_.impl;
         if (__builtin_expect(state.lane_pressure == 0, true)) return UINT32_MAX;
         return std::max<uint32_t>(
             1, kInboxSlots / static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
@@ -292,7 +296,8 @@ public:
     // A deferral of either kind re-arms the pressure window; fused_pass_impl decays it per rotation.
     void note_local_read_deferred() {
         static_assert(Fused);
-        read_local_impl().lane_pressure = kReadLocalLanePressureRotations;
+        if (!read_local_enabled()) return;
+        read_local_.impl->lane_pressure = kReadLocalLanePressureRotations;
     }
 
     void note_local_read_demoted(const Op& op) {
