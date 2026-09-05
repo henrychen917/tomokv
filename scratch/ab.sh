@@ -1,28 +1,33 @@
 #!/bin/bash
-# ab.sh BIN LABEL WORKLOAD SECS ROUNDS -- ABBA flip-auto 0 vs 1, flip counters reported per cell.
-set -u
-cd /home/user/Projects/wt-flipdamp
-BIN=$1; LABEL=$2; WL=$3; SECS=$4; ROUNDS=${5:-3}
-cell() {
-  local fa=$1 rate comp xfer trig anch
-  if ss -lntH 2>/dev/null | grep -q ":8087 "; then echo "PORT 8087 BUSY -- ABORT"; return 1; fi
-  taskset -c 40-47 "$BIN" --port 8087 --save '' --enable-debug-command yes --ratio 5:3 \
-      --shards 64 --atomic 1 --flip-auto "$fa" >/dev/null 2>&1 &
-  local pid=$!
-  for _ in $(seq 150); do redis-cli -p 8087 ping 2>/dev/null | grep -q PONG && break; sleep 0.1; done
-  taskset -c 176-191 memtier_benchmark -s 127.0.0.1 -p 8087 --protocol=redis -t 8 -c 8 \
-      --pipeline=32 --ratio=1:0 --key-pattern=P:P -d 32 --key-minimum=1 --key-maximum=200000 \
-      -n 3125 --hide-histogram >/dev/null 2>&1
-  rate=$(./scratch/$WL.sh 8087 "$SECS" 32 2>/dev/null | awk '/^Totals/{print $2}')
-  if [ -z "$rate" ]; then echo "$LABEL|$WL|flip-auto=$fa|RATE-MISSING(loadgen died)|retrying"; rate=$(./scratch/$WL.sh 8087 "$SECS" 32 2>/dev/null | awk '/^Totals/{print $2}'); fi
-  comp=$(redis-cli -p 8087 info stats 2>/dev/null | tr -d '\r' | sed -n 's/^flip_completed://p')
-  xfer=$(redis-cli -p 8087 info stats 2>/dev/null | tr -d '\r' | sed -n 's/^flip_clients_transferred://p')
-  trig=$(redis-cli -p 8087 info 2>/dev/null | tr -d '\r' | sed -n 's/^flipctl_triggers://p')
-  anch=$(redis-cli -p 8087 flip 2>/dev/null | paste - - | awk '/live_io/{a=$2} /live_ex/{b=$2} END{print a":"b}')
-  echo "$LABEL|$WL|flip-auto=$fa|rate=$rate|flip_completed=${comp:-0}|flip_clients_transferred=${xfer:-0}|triggers=${trig:-0}|split=$anch"
-  kill -9 "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
-  for _ in $(seq 100); do ss -lntH 2>/dev/null | grep -q ":8087 " || break; sleep 0.1; done
+# ab.sh OUT.csv SECS ROUNDS WORKLOAD ARM... -- interleaved A/B matrix on the lane cores.
+#   WORKLOAD: mk | sk1:1 | sk9:1 | get
+#   ARM:      label=BIN:FLIPAUTO  e.g. base0=$BASE_BIN:0 fix1=$FIX_BIN:1
+#   Cells run round-robin over the arms, arm order reversed on even rounds (ABBA). Every cell
+#   re-checks the box gate and stops the run if the owner started measuring. One CSV row per cell:
+#   flips, clients moved, triggers by kind, holds, anchor, live split, per-role busy over the window.
+source /home/user/Projects/wt-flipdamp/scratch/lib.sh
+OUT=$1; SECS=$2; ROUNDS=$3; WL=$4; shift 4; ARMS=("$@")
+PORT=$PORT_AB
+[ -f "$OUT" ] || echo "round,arm,wl,fa,rate,p50,p99,comp,xfer,trig,boot,fp,surge,coll,forced,null,hold,anchor,live,busy,lbcli,lbbkt" >"$OUT"
+load() { case "$WL" in mk) ./scratch/mk.sh "$PORT" "$SECS";; sk*) ./scratch/sk.sh "$PORT" "$SECS" "${WL#sk}";; get) ./scratch/sk.sh "$PORT" "$SECS" 0:1;; esac; }
+cell() { # cell ROUND LABEL BIN FA
+  local round=$1 label=$2 bin=$3 fa=$4 pid rate p50 p99 info out
+  require_gate || exit 3
+  pid=$(boot "$bin" "$PORT" "ab-$label" --ratio "$SRV_RATIO" --shards 64 --atomic 1 --flip-auto "$fa") || exit 2
+  preload "$PORT"
+  lbsnap "$PORT" >"$SP/fd-lb0.txt"
+  out=$(load 2>/dev/null)
+  lbsnap "$PORT" >"$SP/fd-lb1.txt"
+  rate=$(echo "$out" | awk '/^Totals/{print $2}'); p50=$(echo "$out" | awk '/^Totals/{print $6}'); p99=$(echo "$out" | awk '/^Totals/{print $8}')
+  info=$(redis-cli -p "$PORT" info all 2>/dev/null | tr -d '\r')
+  g() { infog "$info" "$1"; }
+  echo "$round,$label,$WL,$fa,${rate:-MISSING},${p50:-},${p99:-},$(g flip_completed),$(g flip_clients_transferred),$(g flipctl_triggers),$(g flipctl_boot_triggers),$(g flipctl_fingerprint_triggers),$(g flipctl_rate_surge_triggers),$(g flipctl_rate_collapse_triggers),$(g flipctl_forced_triggers),$(g flipctl_null_maneuvers),$(g flipctl_model_holds),$(g flipctl_anchor_io):$(g flipctl_anchor_ex),$(g io_threads):$(g ex_threads),$(lbbusy "$SP/fd-lb0.txt" "$SP/fd-lb1.txt" | tr -d ' '),$(g tomokv_keylb_client_moves),$(g tomokv_keylb_bucket_moves)" | tee -a "$OUT"
+  stop "$pid" "$PORT"
 }
 for r in $(seq "$ROUNDS"); do
-  if [ $((r % 2)) = 1 ]; then cell 0; cell 1; cell 1; cell 0; else cell 1; cell 0; cell 0; cell 1; fi
+  if [ $((r % 2)) = 1 ]; then order=("${ARMS[@]}"); else order=(); for ((i=${#ARMS[@]}-1; i>=0; i--)); do order+=("${ARMS[$i]}"); done; fi
+  for arm in "${order[@]}"; do
+    label=${arm%%=*}; spec=${arm#*=}; bin=${spec%:*}; fa=${spec##*:}
+    cell "$r" "$label" "$bin" "$fa"
+  done
 done

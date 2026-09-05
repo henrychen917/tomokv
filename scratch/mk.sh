@@ -1,12 +1,11 @@
 #!/bin/bash
-# mk.sh PORT SECONDS PIPELINE [threads] [conns] -- 8-key MSET/MGET even mix on loadgen cores.
-set -u
-PORT=$1; SECS=$2; PIPE=$3; TH=${4:-8}; CN=${5:-32}
+# mk.sh PORT SECS -- 8-key MSET/MGET 1:1 (the defect regime), pinned to the loadgen cores.
+source /home/user/Projects/wt-flipdamp/scratch/lib.sh
 K8="__key__ __key__ __key__ __key__ __key__ __key__ __key__ __key__"
 M8="__key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__ __key__ __data__"
-taskset -c 176-191 memtier_benchmark -s 127.0.0.1 -p "$PORT" --protocol=redis \
-  -t "$TH" -c "$CN" --pipeline="$PIPE" \
+taskset -c "$LG_CPUS" memtier_benchmark -s 127.0.0.1 -p "$1" --protocol=redis \
+  -t "$LG_THREADS" -c "$LG_CONNS" --pipeline="$LG_PIPE" \
   --command="MGET $K8" --command-ratio=1 --command-key-pattern=R \
   --command="MSET $M8" --command-ratio=1 --command-key-pattern=R \
-  -d 32 --key-minimum=1 --key-maximum=200000 --test-time="$SECS" \
+  -d 32 --key-minimum=1 --key-maximum=$KEYMAX --test-time="$2" \
   --distinct-client-seed --hide-histogram
