@@ -3208,22 +3208,26 @@ private:
     bool       ex_sched_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
-    // What a lane-served read records, latched per pass with the rest of the live-config
-    // snapshot. Read ONLY from note_local_read_access(), which is cold: the hot path gates on
-    // maxmemory_enabled_ and never loads either of these.
-    uint8_t    foreign_touch_policy_ = kForeignTouchNone;
-    uint64_t   foreign_touch_random_ = 0x9e3779b97f4a7c15ULL;   // LFU increment dice, per thread
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
     uint32_t   age_sample_rate_cached_ = 0;
-    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), read-local half: latched per pass from the live-config
-    // snapshot like maxmemory_enabled_; production 0. See debug_fanout_stall_local().
-    uint32_t   debug_fanout_defer_us_ = 0;
     bool       lb_controller_armed_ = false;
     bool       lb_ack_wake_pending_ = false;
     bool       lb_rebind_pending_ = false;   // set at ExDrain ack; rebind owned shards after stage
+    // The next two live in the five bytes of padding this run already had between the bools above
+    // and the 8-aligned int64 below, so neither costs the object anything. Both are latched per
+    // pass with the rest of the live-config snapshot and read ONLY from cold code -- the hot path
+    // gates on maxmemory_enabled_ / a zero test and never loads either.
+    uint8_t    foreign_touch_policy_ = kForeignTouchNone;   // see note_local_read_access()
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), read-local half; production 0. See
+    // debug_fanout_stall_local().
+    uint32_t   debug_fanout_defer_us_ = 0;
     int64_t    lb_bytes_next_ms_ = 0;
     size_t     lb_bytes_shard_cursor_ = 0;
+    // LFU logarithmic-increment dice for a lane-served read, per thread: the store's PRNG belongs
+    // to its owner and must not be advanced from here. The only field in this class the read-local
+    // eviction accounting actually adds (see the sizeof lock at the bottom of the file).
+    uint64_t   foreign_touch_random_ = 0x9e3779b97f4a7c15ULL;
     SnapshotManager* snapshot_manager_ = nullptr;
     SnapshotOwnerState snapshot_owner_state_ = SnapshotOwnerState::None;
     uint64_t snapshot_epoch_ = 0;
@@ -3283,6 +3287,11 @@ using FusedExLoop = ExLoopT<true>;
 
 // Disabled split executors retain the exact pre-read-local allocation stride plus the 264-byte
 // per-batch notification record (DESIGN-NOTIFY.md §2): 5848 + 8 + 32 * sizeof(NotifyEntry).
-static_assert(sizeof(ExLoop) == 6104);
+// 6104 -> 6112: read-local eviction accounting adds exactly ONE word, the per-thread LFU dice
+// (foreign_touch_random_). Its two companions -- the latched policy byte and the fan-out defer
+// hook -- went into padding the lb bool run already carried and cost nothing. This is a per-
+// EXECUTOR object, one per thread, not a per-op or per-connection footprint: Op, Client,
+// ThreadCtx, Shard and Config are the locks that may not move, and none of them did.
+static_assert(sizeof(ExLoop) == 6112);
 
 }  // namespace tomo

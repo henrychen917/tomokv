@@ -476,7 +476,8 @@ done
 # reads, plus hot-set survival under pressure; lruclock is the LRU twin on a 1 s bucket
 # (--lru-clock-shift 0: the default 256 s bucket cannot tell two keys apart inside one gate row).
 # On the armed boot both sections also assert the reads they measure were LANE-served -- a key
-# kept hot only by lane reads was never touched before ExLoopT::foreign_touch and was evicted first.
+# kept hot only by lane reads was never touched before ExLoopT::note_local_read_access and so was
+# evicted FIRST, which is the inverse of the policy the boot asked for.
 for AT in 0 1; do
   for EVSEC in lfu lruclock; do
     boot ./build/tomokv --atomic $AT --lru-clock-shift 0 \

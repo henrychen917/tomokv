@@ -290,4 +290,10 @@ elif SECTION == "config":
     check("multi-pair CONFIG SET coherent", multi == b"+OK" and b"4194304" in g2 and b"volatile-ttl" in g2)
 
 print("SECTION %s: %d ok, %d FAIL" % (SECTION, P, F))
+# A section name this file does not implement falls through every branch above and would otherwise
+# report "0 ok, 0 FAIL" and exit 0 -- a gate row that turns green having tested nothing. A driver
+# typo is a gate defect, so say so and go red.
+if P + F == 0:
+    print("SECTION %s ran no checks -- unknown section name?" % SECTION)
+    sys.exit(1)
 sys.exit(1 if F else 0)
