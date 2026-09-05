@@ -31,8 +31,12 @@ THE TEST.  Two phases against one anchored controller.
   than the sub-percent band the controller learns on a paced stream.  Asserting on it would measure
   the load driver.  Its response is still bounded by the same evidence rules and is reported below.
 
-Boot the server separately, in split mode, with the controller on:
-  taskset -c 40-47 ./build/tomokv --port 8087 --save '' --ratio 5:3 --shards 64 --atomic 1 \
+  POLICY.  Since the placement policy landed (src/core/flip_policy.h) a maneuver on a workload the
+  server is not CPU-bound on -- such as this battery's paced stream -- holds without a flip, so the
+  negative phase also asserts the policy's own hold path.
+
+Boot the server separately, in split mode, with the controller on, e.g.:
+  taskset -c <cores> ./build/tomokv --port <port> --save '' --ratio 2:2 --shards 64 --atomic 1 \
       --flip-auto 1 --enable-debug-command yes
 """
 
