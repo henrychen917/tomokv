@@ -9,7 +9,7 @@
 # instructions/op and cycles/op are exact ratios of two measured quantities rather than a rate in
 # disguise. IPC is instructions/cycles from that same window.
 #
-# The server is saturated here (4 server cores, 4 memtier threads x 64 connections at depth 32),
+# The server is saturated here (2 server cores, 4 memtier threads x 64 connections at depth 32),
 # which is what makes IPC mean occupancy instead of idle spin -- the opposite geometry to
 # measure_triad.sh, and the reason both are reported.
 #
@@ -33,7 +33,7 @@ THREADS=${THREADS:-4}
 CONNS=${CONNS:-64}
 # One shard per server core. 8 shards on 4 cores oversubscribes the fused threads and adds a
 # scheduler to the measurement.
-SHARDS=${SHARDS:-4}
+SHARDS=${SHARDS:-2}
 # MATCHED-RATE MODE. Unset, every cell runs saturated and each arm reports its own maximum. That
 # is the right way to read rate and IPC, and the WRONG way to read instructions/op: a fused server
 # polls when it has nothing to do, those spin instructions land in the same window, and the faster
@@ -65,8 +65,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     local o0; o0=$(info_field read_local_write_ring_overflows); o0=${o0:-0}
     local rf="$TMP/$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$arm-$round-$vi-$cell.txt"
     # IS THE SERVER THE BOTTLENECK? utime+stime over the cell, divided by its wall time, is how
-    # many cores the server actually burned. With four server cores, a cell that reads well under
-    # 4.0 was limited by something that is not the server -- the load generator, most likely -- and
+    # many cores the server actually burned. With two server cores, a cell that reads well under
+    # 2.0 was limited by something that is not the server -- the load generator, most likely -- and
     # a rate A/B measured there compares two load generators (thredis-saturated-benching-rule).
     local j0 j1 t0 t1 srvcpu
     j0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t0=$(date +%s.%N)

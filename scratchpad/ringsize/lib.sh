@@ -3,8 +3,16 @@
 # CORES (re-allocated 2026-09-05: the old 48-55/176-183 pin collided with another lane through SMT
 # siblings, so every number taken under it is void). This lane owns physical 58-63 and their SMT
 # siblings 186-191, and nothing else:
-#     server           58-61   (siblings 186-189 deliberately left IDLE)
-#     load generators  62-63   plus their siblings 190-191
+#     server           58-59   (siblings 186-187 deliberately left IDLE)
+#     load generators  60-61   plus their siblings 188-189
+#
+# THE LANE IS USING HALF ITS ALLOCATION ON PURPOSE. Physical 62-63 (and so 190-191) are owned by
+# this lane, but at 19:28 another lane's server -- wt-cyclemap's tkv-base, pid 1813128, parked and
+# idle since 18:50 -- was pinned to 190-191, which is physical 62-63. Idle is not a guarantee: the
+# moment that lane benches, its server and this lane's load generator share execution units and
+# both sets of numbers are wrong. Waiting for a parked process to leave produces nothing, so the
+# lane confines itself to 58-61 and 186-189 instead, where no foreign process can run. Every cell
+# in this lane's tables is taken on this geometry; expanding it later would make them incomparable.
 # Server and load generator are on different PHYSICAL cores, so no arm of an A/B is ever measured
 # against a load generator sharing its execution units. The server's siblings are left idle rather
 # than reclaimed: a server measured with its own SMT siblings loaded reports an IPC that is a
@@ -14,8 +22,8 @@
 # Every boot is pgrep/ss-guarded: a leaked co-binding server splits traffic through SO_REUSEPORT and
 # turns a real defect into a pass. Every stop kills by PID -- never a pattern that matches this shell.
 PORT=${PORT:-8300}
-SRVCORES=${SRVCORES:-58-61}
-CLICORES=${CLICORES:-62-63,190-191}
+SRVCORES=${SRVCORES:-58-59}
+CLICORES=${CLICORES:-60-61,188-189}
 CLI=${CLI:-/tmp/claude-1000/redis74/src/redis-cli}
 
 port_owners(){ ss -H -ltnp "sport = :$1" 2>/dev/null | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | sort -u | paste -sd, -; }

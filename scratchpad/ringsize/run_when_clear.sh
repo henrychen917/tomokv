@@ -15,6 +15,19 @@
 #   run_when_clear.sh [phase ...]      phases are validate.sh's
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
+
+# ONE RUN AT A TIME, ENFORCED. Two of these in the same worktree is not a slow build, it is a
+# CORRUPT one: both drive make against the same build/ tree while build_arms.sh swaps src/net/rob.h
+# under them, so an object file can be compiled from one arm's header and linked into the other's
+# binary. That happened once (19:44 and 19:47 on 2026-09-05, after a waiter was killed but its
+# setsid'd child was not) and cost a full rebuild. flock holds for the life of this script.
+LOCK=/tmp/ringsize-run.lock
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "REFUSING: another run_when_clear.sh holds $LOCK (pid $(cat "$LOCK" 2>/dev/null))"
+  exit 1
+fi
+echo $$ >&9
 QUIET=${QUIET:-/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/quiet.done}
 DEADLINE=$(( $(date +%s) + ${WAIT_S:-14400} ))
 

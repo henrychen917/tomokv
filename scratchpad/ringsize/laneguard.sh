@@ -2,8 +2,10 @@
 # REFUSE TO MEASURE ON A SHARED ALLOCATION.
 #
 # THIS LANE OWNS physical cores 58-63 and their SMT siblings 186-191, and nothing else:
-#     server           58-61   (siblings 186-189 deliberately left idle)
-#     load generators  62-63   plus their siblings 190-191
+#     server           58-59   (siblings 186-187 deliberately left idle)
+#     load generators  60-61   plus their siblings 188-189
+# and it guards only the half it uses (58-61,186-189), because another lane's server was found
+# parked on 190-191 -- physical 62-63, this lane's own cores. See lib.sh.
 # Re-allocated 2026-09-05. The previous pin (48-55 with load generators reaching 184-191) put this
 # lane's generators on the SMT siblings of another lane's physical cores 56-63: two lanes sharing
 # execution units, which is invisible in both lanes' logs and fatal to both lanes' numbers. Every
@@ -19,7 +21,7 @@
 #
 #   laneguard.sh            -> exit 0 if clear, 1 and a report if not
 set -u
-MINE="${LANE_CPUS:-58-63,186-191}"
+MINE="${LANE_CPUS:-58-61,186-189}"
 python3 - "$MINE" "$PPID" <<'PY'
 import os, sys
 

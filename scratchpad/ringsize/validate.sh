@@ -57,7 +57,7 @@ build)
   ;;
 unit)
   stamp "make unit"
-  taskset -c 58-63,186-191 make unit 2>&1 | tee "$OUT/unit.txt"
+  taskset -c 58-61,186-189 make unit 2>&1 | tee "$OUT/unit.txt"
   ;;
 sizes)
   stamp "layout / per-connection cost"
@@ -159,10 +159,10 @@ differ)
   guard_soft differ
   stamp "differ canonical (split, read-local off)"
   GATE_DIFFER_OUT="$OUT/differ-canon" timeout 3000 \
-    tests/differ_gate.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
+    tests/differ_gate.sh ./build/tomokv 8300 8301 58-61,186-189 6:2 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
   stamp "differ fused + read-local armed"
   GATE_DIFFER_OUT="$OUT/differ-fused" timeout 3000 \
-    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 \
+    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8300 8301 58-61,186-189 6:2 2>&1 \
     | tee "$OUT/differ-fused.txt" | tail -8
   ;;
 *) echo "unknown phase: $phase"; exit 2;;
