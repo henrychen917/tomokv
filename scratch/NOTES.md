@@ -79,3 +79,17 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
   memtier output captured; rate verdict needs the owner's quiet box -- counters are the evidence here.
 - io idle span = arm_blocked + submit_and_wait(1) only after a sweep found nothing => idle_ns is a
   fair "nothing to do" measure; the saturation gate is sound.
+- 20:04 matrix mk (15 valid cells, 30s, 2:2/4 thr): pol0a 480k pol0b 514k (same-binary null 7%
+  apart, 17% intra-arm spread) | pol1 394k (-21%) ZERO flips 4 trig 4 holds | guard1 281k, 6 flips
+  1020 clients, 2 cells p99=30s STALL | base1 440k (-11%) 8 flips 1316 clients, twice ended live 3:1.
+  16th row = artifact of editing ab.sh while running (bash re-read at shifted offset) -> NEVER edit a
+  running script. Self-match trap hit once (pgrep -f pattern in my own cmdline + cwd check) -> use
+  `pgrep -f` only from a shell whose cmdline does not contain the pattern (a script file).
+- satprobe mk p32 c32 t8: 525k, server io=0.86 ex=0.935 busy, memtier 27% of 8 HW threads =>
+  neither side CPU-saturated: closed loop is latency/wake-up bound. Saturation gate = "capacity
+  model valid only when a role is CPU-saturated"; hold otherwise (comment fixed). pol0 cell with
+  fixed parser: io 0.90 ex 0.97.
+- OPEN: pol1 zero-flip loss (-8/-28/-31%, always the middle cell, after a stalled guard1 cell in
+  the bad rounds). Test when gate reopens: diag1 (pol0/pol1 alternation 40s x2 + flipprobe) with
+  per-second traces -> cellview.py (rate by controller phase).
+- 20:04 gate CLOSED (owner measuring). gatewait running.
