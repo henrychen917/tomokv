@@ -1138,3 +1138,56 @@ Anything that labelled a `--ratio` sweep a "write-fraction sweep" — the amorti
 earlier overflow finding among them — was sweeping run length. The consequence is not cosmetic: a
 cell chosen as "41% writes, safely under the cliff" is **over** it, and a cell chosen as "50% writes"
 is on one side or the other depending only on how the generator was spelled.
+
+
+## 2026-09-06 — the owner ran the cell at 16 shards and it could not price the fix: my geometry again
+
+Means of two visits, server 0-15, client 64-95:
+
+| shape | PRE | POST | RL0 | server cores (of 16) |
+|---|---|---|---|---|
+| 1:1 | 7.711 M | 7.904 M | 7.946 M | 10.8-11.2 armed |
+| 5:5 | 7.970 M | 7.984 M | 7.794 M | 12.0-12.2 unarmed |
+| 10:10 | 8.063 M | 8.061 M | 7.856 M | |
+
+Demotions at 10:10: **PRE 1,595,398 and 1,343,616 at 97.4-97.7% local; POST 3,936 and 4,096 at
+100.0%.** The mechanism gate passes — the demote wave is real and the fix erases it — **and the rate
+does not move, because nothing was saturated.** The server drew **10.8-11.2 of its 16 cores**, so
+every rate in that run is the load generator's number.
+
+**That is my bug, twice in the same shape.** I hard-coded `-t 8`, which is what a two-core server
+needs and nowhere near what sixteen shards need; the owner's own saturated control reached 20-24 M
+against this run's 8. A cell whose whole purpose is to decide a verdict shipped with the generator
+geometry written down instead of measured — the exact failure this lane spent a night building
+`satcheck.sh` to prevent, and then did not carry across to the script it handed over.
+
+### What the unsaturated run does establish, and it is not nothing
+
+The owner's reading is right and is now a first-class column in the report: **CPU per unit work**,
+core-seconds per million operations, divides what the server spent by what the server *did* rather
+than by how long the wall clock ran, so it survives an unsaturated cell.
+
+* **POST 1.353 against PRE 1.377 core-seconds per Mop at 10:10 — about 1.7% cheaper**, with
+  instructions/op 4812 against 4853. The sized ring is not merely harmless there; it is cheaper.
+* **RL0 burns a full core more than either armed arm for the same delivered rate**, so read-local is
+  roughly 9-12% cheaper in CPU here even where it cannot show a rate win. That is the same fact the
+  saturated control reported as +14% throughput, seen through the other end: at saturation a CPU
+  saving becomes throughput, and below saturation it becomes idle.
+
+### The fix to the cell: the geometry is found, not written down
+
+`owner_cell.py` now runs a **load ladder** before it measures anything — POST arm, 10:10 shape,
+rungs `8x64, 16x32, 32x16, 32x32, 32x64` at fixed pipeline depth 32 (the depth is never laddered:
+the shape arithmetic depends on it) — and escalates until **both** conditions hold: the rate stops
+rising (a rung buys under 1.5%) **and** the server is within 2% of its core allocation. The first
+rung satisfying both is where the three arms are measured. Connections stay at 512 for the first
+three rungs so only generator parallelism changes; `32x16` is the owner's own rig shape, the one
+that reached 20-24 M.
+
+If no rung saturates, the run writes `saturated=no` and **the report refuses to read a rate from
+it**, printing the CPU-per-work column instead — which is what it does when fed this run's numbers.
+
+**Acceptance is now dual, because the owner named both outcomes**: a saturated cell where POST beats
+both PRE and the unarmed line at 10:10 and is flat at 1:1 is a **throughput win** and merges; a
+saturated cell where the rate does not separate but POST's CPU per Mop is lower is an **efficiency
+change**, and must be reported as one rather than dressed as a throughput win.

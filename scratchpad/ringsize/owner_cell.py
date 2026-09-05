@@ -54,7 +54,30 @@ ARMS = {
     'POST': (os.path.join(ROOT, 'build', 'tomokv-post'), '5764edfb188073474bb613683af0b1fd', 1),
     'RL0':  (os.path.join(ROOT, 'build', 'tomokv-pre'),  'a5906e93547614a42067c7da9931f93b', 0),
 }
-SHAPES = ['1:1', '5:5', '10:10']
+SHAPES = ['10:10', '1:1', '5:5']
+
+# THE LOAD LADDER, because the first run of this cell measured the load generator.
+#
+# Eight generator threads is what a two-core server needs and nowhere near what sixteen shards need.
+# The first run drew 10.8-11.2 of 16 cores armed and 12.0-12.2 unarmed at 7.7-8.1 M ops/s, against
+# 20-24 M in the owner's own saturated control -- so nothing was saturated, every rate was the
+# generator's number, and PRE against POST came back a null that could not mean anything. A cell
+# that cannot saturate must say so instead of reporting the null.
+#
+# So the geometry is no longer written down: it is found. The ladder holds the server fixed and
+# grows the generator until BOTH conditions hold -- the rate stops rising (a rung buys less than
+# GAIN_STOP) and the server is genuinely busy (idle under IDLE_MAX of its allocation). The first
+# rung that satisfies both is where the three arms are measured. If no rung does, the run says
+# NOT SATURATED and the report refuses to read a rate from it.
+#
+# Connections stay at 512 through the first three rungs so that only generator PARALLELISM changes
+# -- 32 x 16 is the owner's own rig shape and reached 20-24 M there -- and only then does the
+# connection count grow. Pipeline depth is never laddered: the shape arithmetic depends on it
+# (a 10:10 block puts about twenty-two live writes in a 32-deep window), so moving it would change
+# the experiment rather than the load.
+LADDER = [(8, 64), (16, 32), (32, 16), (32, 32), (32, 64)]
+GAIN_STOP = 0.015      # a rung that buys less than 1.5% is the plateau
+IDLE_MAX = 0.02        # server must be within 2% of its core allocation
 # Visit order within a round: three arms, balanced against drift in both directions.
 ORDER = ['PRE', 'POST', 'RL0', 'RL0', 'POST', 'PRE']
 
@@ -235,12 +258,82 @@ def run_cell(srv, arm, read_local, shape, clicpus, args, out, rnd, vi, fills_ev)
                fills=perf_vals.get(fills_ev, 0),
                hits=ctr['read_local_hits'], demoted=ctr['read_local_fallback_inflight_write'],
                fallbacks=ctr['read_local_fallbacks'],
-               srv_cores=(j1 - j0) / os.sysconf('SC_CLK_TCK') / wall, wall=wall, mux=mux)
+               srv_cores=(j1 - j0) / os.sysconf('SC_CLK_TCK') / wall, srv_cpus=NSRV,
+               threads=args.threads, conns=args.threads * args.conns, wall=wall, mux=mux)
     tot = row['hits'] + row['fallbacks']
+    row['cpu_per_mop'] = row['srv_cores'] / (rate / 1e6) if rate else float('nan')
     print(f"  {arm:<5} rl={read_local} {shape:<6} rate={rate/1e6:8.3f}M  "
           f"instr/op={row['instr']/cmds:7.0f}  demoted={row['demoted']:12,.0f}  "
-          f"local={100*row['hits']/tot if tot else 0:5.1f}%  srv={row['srv_cores']:.2f} cores")
+          f"local={100*row['hits']/tot if tot else 0:5.1f}%  "
+          f"srv={row['srv_cores']:5.2f}/{NSRV} cores  cpu/Mop={row['cpu_per_mop']:.3f}")
     return row
+
+
+NSRV = 0        # size of the server's cpu allocation; set in main(), carried into every row
+
+
+def run_ladder(args, fills_ev):
+    """Grow the generator until the server is the thing being measured, and say so if it never is.
+
+    Escalates on the POST arm at the 10:10 shape -- the arm under test, in the regime the fix bites.
+    Returns (threads, conns_per_thread, saturated, rows).
+    """
+    print('\n=== LOAD LADDER: growing the generator until the server is the bottleneck ===')
+    binary, _, rl = ARMS['POST']
+    rows, best = [], 0.0
+    chosen = None
+    for i, (th, cn) in enumerate(LADDER):
+        args.threads, args.conns = th, cn
+        srv = Server(binary, rl, args.srvcpus, args.port, args.shards,
+                     os.path.join(args.out, f'srv-ladder-{th}x{cn}.log'))
+        try:
+            preload(srv, args)
+            row = run_cell(srv, 'LADDER', rl, '10:10', args.clicpus, args, args.out,
+                           0, i + 1, fills_ev)
+        finally:
+            srv.stop(); time.sleep(2)
+        rows.append(row)
+        idle = 1.0 - row['srv_cores'] / NSRV
+        gain = (row['rate'] - best) / best if best else 1.0
+        print(f"    rung {i+1}: {th}x{cn} = {th*cn} conns   {row['rate']/1e6:.3f} M ops/s   "
+              f"gain {gain*100:+.1f}%   server idle {idle*100:.1f}%")
+        best = max(best, row['rate'])
+        # BOTH conditions, and in this order: a rung that stopped gaining while the server is still
+        # idle is a generator that ran out of capacity, not a server that ran out of headroom.
+        if idle <= IDLE_MAX and gain < GAIN_STOP and i > 0:
+            chosen = (th, cn)
+            print(f"    -> SATURATED at rung {i+1}: idle {idle*100:.1f}% <= {IDLE_MAX*100:.0f}% "
+                  f"and the last rung bought {gain*100:+.1f}%")
+            break
+        if idle <= IDLE_MAX and i == len(LADDER) - 1:
+            chosen = (th, cn)
+            print(f"    -> SATURATED at the last rung: idle {idle*100:.1f}%")
+            break
+    if chosen is None:
+        last = rows[-1]
+        idle = 1.0 - last['srv_cores'] / NSRV
+        print(f"    -> NOT SATURATED: the ladder ran out at {LADDER[-1]} with the server "
+              f"{idle*100:.1f}% idle. The generator is the wall, not the server.")
+        print("       Rates from this run are the generator's; only CPU per unit work may be read.")
+        chosen = LADDER[-1]
+    return chosen[0], chosen[1], chosen is not None and (1.0 - rows[-1]['srv_cores'] / NSRV) <= IDLE_MAX, rows
+
+
+def preload(srv, args):
+    """dbsize pinned to keymax: a GET mix on an unpopulated keyspace is a MISS mix."""
+    pre = subprocess.Popen(
+        ['taskset', '-c', args.clicpus, 'memtier_benchmark', '-s', '127.0.0.1',
+         '-p', str(args.port), '--hide-histogram', f'--key-maximum={args.keymax}',
+         '--key-minimum=1', '--data-size=32', '--key-pattern=P:P', '--ratio=1:0',
+         '-t', '8', '-c', '8', '--pipeline=32', '-n', str(args.keymax // 64)],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if not wait_pinned(pre.pid, args.clicpus, 'preload'):
+        raise RuntimeError('preload pin failed')
+    pre.wait()
+    size = sh([CLI, '-p', str(args.port), 'dbsize']).stdout.strip()
+    if size != str(args.keymax):
+        raise RuntimeError(f'dbsize={size} keymax={args.keymax}: a GET mix on an unpopulated '
+                           f'keyspace measures a different server')
 
 
 def main():
@@ -255,9 +348,16 @@ def main():
     ap.add_argument('--keymax', type=int, default=200000)
     ap.add_argument('--port', type=int, default=8300)
     ap.add_argument('--out', default='/tmp/ringsize-owner-cell')
+    ap.add_argument('--shapes', default=','.join(SHAPES),
+                    help='comma-separated memtier ratios; these are write RUN LENGTHS, not fractions')
+    ap.add_argument('--no-ladder', action='store_true',
+                    help='trust --threads/--conns instead of finding saturation (not recommended: '
+                         'the first run of this cell measured the load generator)')
     args = ap.parse_args()
 
+    global NSRV
     os.makedirs(args.out, exist_ok=True)
+    NSRV = len(cpus(args.srvcpus))
     if cpus(args.srvcpus) & cpus(args.clicpus):
         sys.exit('REFUSING: server and load generator share cpus')
     if len(cpus(args.srvcpus)) < args.shards:
@@ -276,8 +376,20 @@ def main():
         sys.exit('REFUSING: the two arms are byte-identical -- one of them did not rebuild')
 
     fills_ev = pick_fills_event()
-    print(f'fills event: {fills_ev}\nshapes: {" ".join(SHAPES)}   '
-          f'{args.threads}x{args.conns} = {args.threads*args.conns} connections at p{args.pipeline}')
+    shapes = [x.strip() for x in args.shapes.split(',') if x.strip()]
+    print(f'fills event: {fills_ev}   shapes: {" ".join(shapes)}   '
+          f'server {NSRV} cpus [{args.srvcpus}], generator [{args.clicpus}]')
+
+    saturated = True
+    if not args.no_ladder:
+        th, cn, saturated, _ = run_ladder(args, fills_ev)
+        args.threads, args.conns = th, cn
+    print(f'\n=== MEASURING at {args.threads}x{args.conns} = {args.threads*args.conns} '
+          f'connections, p{args.pipeline}, saturated={saturated} ===')
+    with open(os.path.join(args.out, 'geometry.txt'), 'w') as g:
+        g.write(f'threads={args.threads}\nconns={args.conns}\n'
+                f'total_conns={args.threads*args.conns}\npipeline={args.pipeline}\n'
+                f'srv_cpus={NSRV}\nsaturated={"yes" if saturated else "no"}\n')
 
     csv_path = os.path.join(args.out, 'owner_cell.csv')
     new = not os.path.exists(csv_path)
@@ -289,22 +401,8 @@ def main():
             srv = Server(binary, rl, args.srvcpus, args.port, args.shards,
                          os.path.join(args.out, f'srv-{arm}-{rnd}-{vi}.log'))
             try:
-                # dbsize is pinned to keymax: a GET mix on an unpopulated keyspace is a MISS mix and
-                # measures a different server.
-                pre = subprocess.Popen(
-                    ['taskset', '-c', args.clicpus, 'memtier_benchmark', '-s', '127.0.0.1',
-                     '-p', str(args.port), '--hide-histogram', f'--key-maximum={args.keymax}',
-                     '--key-minimum=1', '--data-size=32', '--key-pattern=P:P', '--ratio=1:0',
-                     '-t', '8', '-c', '8', '--pipeline=32', '-n', str(args.keymax // 64)],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if not wait_pinned(pre.pid, args.clicpus, 'preload'):
-                    raise RuntimeError('preload pin failed')
-                pre.wait()
-                size = sh([CLI, '-p', str(args.port), 'dbsize']).stdout.strip()
-                if size != str(args.keymax):
-                    raise RuntimeError(f'dbsize={size} keymax={args.keymax}: a GET mix on an '
-                                       f'unpopulated keyspace measures a different server')
-                for shape in SHAPES:
+                preload(srv, args)
+                for shape in shapes:
                     row = run_cell(srv, arm, rl, shape, args.clicpus, args, args.out,
                                    rnd, vi, fills_ev)
                     if writer is None:
