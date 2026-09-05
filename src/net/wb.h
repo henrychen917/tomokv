@@ -814,7 +814,7 @@ private:
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a
                 // borrowed value that is only partially written.
                 conn.seal_fill_segment();
-                if (op.reply_code_) op_materialise_code(op);
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if constexpr (TlsNoBorrow) {
@@ -833,7 +833,7 @@ private:
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
             // direct part so the RESP stream stays in order.
             if (conn.has_pending_segments()) {
-                if (op.reply_code_) op_materialise_code(op);
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
@@ -904,7 +904,7 @@ private:
             if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
-                if (op.reply_code_) op_materialise_code(op);
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 conn.append_buf_segment(op.zc_ptr, op.zc_len);
@@ -915,7 +915,7 @@ private:
                 return;
             }
             if (conn.has_pending_segments()) {
-                if (op.reply_code_) op_materialise_code(op);
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
