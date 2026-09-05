@@ -7,7 +7,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 cd "$ROOT"
 source "$HERE/lib.sh"
-SRVCORES=${SRVCORES:-58}
+SRVCORES=${SRVCORES:-58-60}
 for rep in 1 2; do
   for arm in pre post; do
     boot_srv "./build/tomokv-$arm" /tmp/ringsize-expw-$arm.log \

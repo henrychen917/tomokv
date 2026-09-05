@@ -21,8 +21,8 @@ BIN="$1"; TAG="$2"; OUT="$3"; REPS="${4:-1}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 # Server and driver on two different physical cores of this lane's own allocation (58 server,
-# 59 load); their SMT siblings 186 and 187 are left idle so neither is measured against a sharer.
-export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-59}
+# 61 load); their SMT siblings 186 and 189 are left idle so neither is measured against a sharer.
+export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-61}
 source "$ROOT/scratchpad/rlbatch/lib.sh"
 N1=${N1:-1000000}
 N2=${N2:-3000000}

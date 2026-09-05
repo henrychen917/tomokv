@@ -15,6 +15,9 @@
 #   matched the same A/B with both arms rate-limited to the same delivered load, which is the only
 #           geometry in which instructions/op is a work measure rather than a spin measure
 #   ovf     ring overflows per arm, from the two instrumented binaries
+#   expwide the S1 MGET reproduction across m14 / pre / post -- the red row that blocks the merge
+#   conn    512 vs 2048 connections with DRAM fills: what the per-connection footprint costs
+#   mset    MSET 8 vs 32 keys: what the OTHER fixed sixteen costs
 #   slope   the single-connection slope triad, the instrument that survives a co-tenanted box
 #   mem     RSS with 2000 armed connections, both arms
 #   batt    the 1s armed and 2s batteries
@@ -47,7 +50,7 @@ check_restored(){
     && echo "tree restored: lane source digests unchanged" \
     || { echo "REFUSING TO CONTINUE: $1 left a lane source file modified"; exit 1; }
 }
-PHASES="${*:-build unit sizes mutate codegen probe null rate matched ovf slope mem batt differ}"
+PHASES="${*:-build unit sizes mutate codegen expwide probe null rate matched ovf conn mset slope mem batt differ}"
 
 for phase in $PHASES; do
 case "$phase" in
@@ -57,7 +60,7 @@ build)
   ;;
 unit)
   stamp "make unit"
-  taskset -c 58-59,186-187 make unit 2>&1 | tee "$OUT/unit.txt"
+  taskset -c 58-63,186-191 make unit 2>&1 | tee "$OUT/unit.txt"
   ;;
 sizes)
   stamp "layout / per-connection cost"
@@ -112,6 +115,33 @@ matched)
       "$OUT/ab_matched.csv" "${MATCHED_ROUNDS:-2}" 2>&1 | tail -4
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_matched.csv" | tee "$OUT/ab_matched.txt"
   ;;
+expwide)
+  # THE RED ROW COMES FIRST, because nothing merges while it is red. Correctness, so it reports a
+  # co-tenant and continues rather than refusing.
+  guard_soft expwide
+  stamp "expwide S1 reproduction: m14 vs pre vs post"
+  "$HERE/expwide_bisect.sh" 2>&1 | tee "$OUT/expwide_bisect.txt" | grep -vE "^\s*$"
+  check_restored expwide_bisect.sh
+  ;;
+conn)
+  # The connection-footprint regime: does +960 bytes per armed connection cost more than the
+  # demotion fix earns once there are 2048 of them?
+  guard conn
+  stamp "connection scaling 512 vs 2048, with DRAM fills"
+  rm -f "$OUT/regimes_conn.csv"
+  "$HERE/regimes.sh" conn ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_conn.csv" \
+      "${CONN_ROUNDS:-2}" 2>&1 | tail -4
+  python3 "$HERE/regimes_report.py" "$OUT/regimes_conn.csv" | tee "$OUT/regimes_conn.txt"
+  ;;
+mset)
+  # The other fixed sixteen: kMaxPreciseKeysetKeys, measured rather than flagged.
+  guard mset
+  stamp "MSET width 8 vs 32 keys at depth 8"
+  rm -f "$OUT/regimes_mset.csv"
+  "$HERE/regimes.sh" mset ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_mset.csv" \
+      "${MSET_ROUNDS:-2}" 2>&1 | tail -4
+  python3 "$HERE/regimes_report.py" "$OUT/regimes_mset.csv" | tee "$OUT/regimes_mset.txt"
+  ;;
 ovf)
   # THE COUNTER THAT COULD HAVE FALSIFIED THE CLAIM. POST asserts capacity overflow is unreachable;
   # this is the run in which it is asked, on the same three regimes, with the same counter grafted
@@ -159,10 +189,10 @@ differ)
   guard_soft differ
   stamp "differ canonical (split, read-local off)"
   GATE_DIFFER_OUT="$OUT/differ-canon" timeout 3000 \
-    tests/differ_gate.sh ./build/tomokv 8300 8301 58-59,186-187 1:1 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
+    tests/differ_gate.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
   stamp "differ fused + read-local armed"
   GATE_DIFFER_OUT="$OUT/differ-fused" timeout 3000 \
-    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8300 8301 58-59,186-187 1:1 2>&1 \
+    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 \
     | tee "$OUT/differ-fused.txt" | tail -8
   ;;
 *) echo "unknown phase: $phase"; exit 2;;

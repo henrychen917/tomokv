@@ -3,34 +3,24 @@
 # CORES (re-allocated 2026-09-05: the old 48-55/176-183 pin collided with another lane through SMT
 # siblings, so every number taken under it is void). This lane owns physical 58-63 and their SMT
 # siblings 186-191, and nothing else:
-#     server           58      (sibling 186 deliberately left IDLE)
-#     load generator   59      plus its sibling 187
+#     server           58-60   (siblings 186-188 deliberately left IDLE)
+#     load generators  61-63   (siblings 189-191 deliberately left IDLE)
 #
-# THE LANE IS DOWN TO ONE SERVER CORE, AND IT IS NOT BY CHOICE. Physical 58-63 and siblings 186-191
-# are this lane's, but three other lanes arrived on them in forty minutes: wt-cyclemap's tkv-base
-# parked on 190-191 (physical 62-63) since 18:50, a 2s tomokv on 60-63,188-191 at 19:52, and a
-# differ oracle redis-server on 60-63,188-191 at 19:57. Each overlap is invisible in both lanes'
-# logs and fatal to both lanes' numbers, and waiting for them produces nothing. What no one else
-# has touched is 58-59 and 186-187, so that is what the lane measures on: ONE server core, one
-# load-generator core, their siblings idle, one shard.
+# FULL ALLOCATION, RESTORED 2026-09-05 20:11. Between 19:28 and 19:57 three foreign processes sat
+# inside this lane's cores and the lane narrowed twice to stay honest. The owner has since
+# accounted for all three -- the 60-63/188-191 occupants were the reply-code lane, handed those
+# cores by mistake and since finished, and the tkv-base parked on 190-191 was a leftover of the
+# killed cycle-map lane, since killed -- so 58-63 and 186-191 are this lane's alone again.
 #
-# What this costs and what it does not. Absolute throughput here is a one-core number and must
-# never be quoted as this server's rate. Everything the verdict actually rests on is unharmed:
-# instructions per operation is per-operation, the read-local hit share and the ring-overflow count
-# are INFO counters, and the A/B is the same binary pair on the same core in the same minute. The
-# owner's brief says direction on this lane's cores, acceptance on the quiet box -- this is the
-# direction, taken where it could be taken honestly.
-# Server and load generator are on different PHYSICAL cores, so no arm of an A/B is ever measured
-# against a load generator sharing its execution units. The server's siblings are left idle rather
-# than reclaimed: a server measured with its own SMT siblings loaded reports an IPC that is a
-# property of the co-tenant, not of the change. The load generator may use its siblings -- nothing
-# reports the generator's IPC. See laneguard.sh.
-#
+# Server and load generators are on DIFFERENT PHYSICAL CORES and every sibling is left idle: a
+# server measured with its own SMT sibling loaded reports an IPC that is a property of the
+# co-tenant. Three cores each, six threads of hardware left unused on purpose, because the thing
+# being measured is cycles and fills per operation and neither survives a shared pipeline.
 # Every boot is pgrep/ss-guarded: a leaked co-binding server splits traffic through SO_REUSEPORT and
 # turns a real defect into a pass. Every stop kills by PID -- never a pattern that matches this shell.
 PORT=${PORT:-8300}
-SRVCORES=${SRVCORES:-58}
-CLICORES=${CLICORES:-59,187}
+SRVCORES=${SRVCORES:-58-60}
+CLICORES=${CLICORES:-61-63}
 CLI=${CLI:-/tmp/claude-1000/redis74/src/redis-cli}
 
 port_owners(){ ss -H -ltnp "sport = :$1" 2>/dev/null | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | sort -u | paste -sd, -; }

@@ -9,7 +9,7 @@ BIN="${1:-./build/tomokv}"
 MODE="${2:-1s}"
 OUT="${3:-/tmp/ringsize-batteries-$MODE.txt}"
 PORT=8300
-CORES=58-59,186-187
+CORES=58-63,186-191
 CLI=/tmp/claude-1000/redis74/src/redis-cli
 # THE 2s RATIO IS DERIVED FROM THE MASK, NOT WRITTEN DOWN. --ratio io:ex asks for io+ex threads and
 # the server refuses to start more threads than it has allowed cpus ("--ratio: 16 threads but only
