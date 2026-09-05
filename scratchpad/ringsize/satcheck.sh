@@ -113,16 +113,31 @@ print("its allocation and no rate number from it may be quoted -- only instructi
 # a measurement of memtier and only instructions per operation may be read.
 import statistics, os
 best_rung, plateau = None, True
-per = {}
+per, shape = {}, {}
 for r in rows:
     per.setdefault(r['rung'], {})[r['cell']] = float(r['rate'])
+    shape[r['rung']] = r
 rungs = sorted(per, key=int)
 score = {k: statistics.mean(v.values()) for k, v in per.items()}
 top = max(score.values())
-for k in rungs:
-    if score[k] >= 0.98 * top:
-        best_rung = k
-        break
+
+def cpus(spec):
+    n = 0
+    for part in spec.split(','):
+        if '-' in part:
+            a, b = part.split('-', 1); n += int(b) - int(a) + 1
+        elif part.strip():
+            n += 1
+    return n
+
+# AMONG RUNGS THAT ARE THE SAME SPEED, TAKE THE LEAST OVERSUBSCRIBED ONE. Rate alone would happily
+# choose the rung where eight generator threads time-slice four logical cpus, because its MEAN can
+# match while its variance is the thing that broke the last null: two memtier threads sharing one
+# hardware thread are rationed by the scheduler, and the scheduler's decisions land in the rate as
+# visit-to-visit swing. Threads per logical cpu is that ratio, and the smallest one wins the tie.
+cands = [k for k in rungs if score[k] >= 0.98 * top]
+best_rung = min(cands, key=lambda k: (float(shape[k]['threads']) / max(1, cpus(shape[k]['cores'])),
+                                      -score[k]))
 if best_rung == rungs[-1] and len(rungs) > 1 and score[rungs[-1]] > 1.02 * score[rungs[-2]]:
     plateau = False
 row = next(r for r in rows if r['rung'] == best_rung)
