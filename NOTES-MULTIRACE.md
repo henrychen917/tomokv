@@ -326,3 +326,61 @@ older group … do not retry". The prohibition is correct *for the place it was 
 is at dispatch, before any install on this owner, with the own-unit test done by epoch word
 including the lowered children; §5 of this file is the argument for why that placement is
 acyclic. §5(a) has been annotated to point here.
+
+---
+
+## 9. Resumption state (2026-09-05, after the 19:20 usage-limit kill)
+
+**Resources CHANGED this session.** The allocation in the header (cores 32-39,160-167; ports
+8083-8086) is the *previous* one and is dead. Current: physical **48-51** + SMT siblings
+**176-179**, ports **8240-8249** only. Every harness script under `scratchpad/mr/` was re-pointed:
+
+| Role | Cores | Why |
+|---|---|---|
+| server (target under test) | `48,49,176,177` | `SRVC` in every script |
+| load generator / oracle | `50,51,178,179` | `GENC`; never the server's physical cores |
+
+Ports: differ target `8240`, differ oracle `8241`, batteries `8242`, session_monotonic `8243`,
+target-only repro `8244`, PRE batteries `8245`, perf cells `8246`.
+
+`tests/differ_gate.sh` pins differ.py to `TARGET_CORES` by its own design; that is a shipped gate
+script and is not edited for this lane's convenience, so in the differ rows the client shares the
+target's cores. Those rows take no measurement, so nothing is read off them but pass/fail. The
+perf cells (§10) keep server and driver on disjoint physical cores.
+
+### Done
+* §5's counter split — `atomic_exec_order_late` is now its own namespace-scope counter, INFO-
+  exposed, asserted `== 0` by `tests/multirace.py` (both modes) and `tests/multires.py`.
+  Commit `286e72265`. This is the "counter-honesty issue in prepare_write_key" the lane was on.
+
+### Pending (blocked on the box: `scratchpad/quiet.done` absent = owner measuring)
+1. Rebuild POST (`build/tomokv` is from 14:45, older than the counter split).
+2. Differ matrix, both geometries: `GATE_DIFFER_GEOMETRY=split` and `=armed-fused`.
+3. Batteries `1s` and `2s` (`mr/batteries.sh`), armed battery list (`mr/armed.sh`).
+4. Directed repro still red on PRE / green on POST (`mr/tonly.sh` + `mr/repro.py`).
+5. PRE/POST instr/op table (§10).
+
+### 10. The perf question this fix has to answer
+
+The hold is at *dispatch*, inside `ExLoop::execute()`'s `multi_task_tagged()` branch, so:
+
+* **plain SET/MSET never reach it** — the branch is not on the ordinary write path at all, and the
+  main-command zero-regression claim should therefore be a *null*, not a small loss;
+* **MULTI/EXEC fragments pay one `atomic_has_records()` load** when no cross-shard atomic window is
+  open (predictable-false branch), and pay a walk of this connection's pending bucket when one is;
+* nothing was added to `prepare_write_key()` — its probe existed on PRE and merely changed which
+  predicate it calls and which counter it raises.
+
+`mr/pcell.sh` measures it with a FIXED op count (matched rate by construction), server and driver
+on disjoint physical cores, `perf stat -p <server>` over the measured phase only:
+
+| cell | shape | isolates |
+|---|---|---|
+| `set` | `drv2`, pipelined SET | the main-command null |
+| `multi` | `drvm plain`: `MULTI;SET;SET;EXEC` | the added branch, window shut |
+| `multiarmed` | `drvm armed`: cross-shard `MSET` then the same transaction | the added branch, window OPEN — the walk |
+
+Both geometries (`1s` = fused + `--read-local 1`, `2s` = `--ratio 6:10`), `--atomic 1` throughout.
+Every cell prints wall time and rate alongside instr/op: a busy-spinning server inflates instr/op
+when the arms' durations diverge, so a cell whose two arms did not take comparable wall time is not
+a matched-rate comparison and must not be read as one.
