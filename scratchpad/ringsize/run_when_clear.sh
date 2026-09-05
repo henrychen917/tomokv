@@ -58,9 +58,12 @@ done
 echo "=== all three gates open at $(date +%T); running: $* ==="
 
 # Own process group, so the watchdog can stop the whole run by id.
+# setsid so the whole run is one process group the watchdog can stop by id. The EXIT trap is the
+# half that was missing: killing this script used to leave its setsid'd child running, and a second
+# run then started beside it against the same build tree. Every exit path now takes the run with it.
 setsid "$HERE/validate.sh" "$@" &
 VP=$!
-trap 'kill -TERM -"$VP" 2>/dev/null' INT TERM
+trap 'kill -TERM -"$VP" 2>/dev/null' INT TERM EXIT
 
 while kill -0 "$VP" 2>/dev/null; do
   if ! quiet_ok; then
@@ -72,7 +75,7 @@ while kill -0 "$VP" 2>/dev/null; do
     echo "stopped; the box is the owner's"
     exit 2
   fi
-  sleep 15
+  sleep 3
 done
 wait "$VP"; rc=$?
 echo "=== run finished rc=$rc at $(date +%T) ==="
