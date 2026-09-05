@@ -865,9 +865,11 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
 // undecided same-connection unit asserts it is EXACTLY zero, in both atomic modes. Namespace scope
 // rather than Shard::Stats because Shard's layout is locked (sizeof(Shard) == 1440) and because a
 // counter that is never incremented needs no per-shard line of its own.
+// Internal linkage is right for the counter itself -- prepare_write_key() below is its only
+// writer, and it lives in this file's anonymous namespace with the rest of the transaction
+// helpers. The READER that INFO calls cannot: it is declared in multi.h and defined out beyond
+// this anonymous namespace, next to multi_task_owns_epoch().
 std::atomic<uint64_t> g_exec_order_late{0};
-
-uint64_t multi_exec_order_late() { return g_exec_order_late.load(std::memory_order_relaxed); }
 
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 
@@ -1816,6 +1818,11 @@ bool multi_task_owns_epoch(const Task& task, const void* group_epoch) {
     const auto* state = reinterpret_cast<const MultiExecState*>(tagged & ~kMultiTaskTag);
     return state && multi_state_owns_epoch(*state, group_epoch);
 }
+
+// INFO atomic_exec_order_late. Defined HERE, outside this file's anonymous namespace, because
+// t_server.cc calls it through multi.h: inside, it would be internal-linkage and the reference
+// from the other translation unit would not resolve.
+uint64_t multi_exec_order_late() { return g_exec_order_late.load(std::memory_order_relaxed); }
 
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state) {
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(state) | kMultiTaskTag;
