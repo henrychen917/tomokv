@@ -492,3 +492,105 @@ each rung, so a shard imbalance cannot hide inside a plausible total.
 `ab_triad_report.py` now states the floor **per cell and per column** rather than borrowing the
 read-only cell's rate spread for everything: instructions/op is a far quieter quantity than rate on
 the same runs, and holding it to the rate's floor would discard the one column able to resolve this.
+
+
+## What the 2/4 run already settled, once the right column is read
+
+Three runs exist on the 2/4 pin — a same-binary null, a three-round A/B and a one-round A/B on the
+overflow-instrumented pair. Their cycles/op and IPC columns are withdrawn (see above: they were
+1/rate). Their **instructions per operation** and their **counters** are not, and read per visit
+rather than as a median they answer more than the rate ever did.
+
+### The instrument is quiet in instructions and loud in rate — by a factor of ten
+
+Max-to-min spread across every visit of the SAME-BINARY null:
+
+| cell | instr/op spread | rate spread |
+|---|---|---|
+| 41% writes | **0.59%** | 1.98% |
+| 55% writes | **0.61%** | 3.47% |
+| 70% writes | **0.37%** | 5.25% |
+| pure SET | **0.08%** | 3.66% |
+| pure GET | 11.40% | 14.17% |
+
+Four of the five cells resolve instructions per operation to better than a percent while their rate
+is three to five times noisier. That is the ordinary shape of this instrument
+(`thredis-instr-per-op-spin-inflation` warns about the opposite failure, and the matched-rate phase
+exists for it) — and it means the verdict has to be argued in instructions and cycles, with rate as
+corroboration, not the other way round.
+
+**The pure-GET cell is broken and is not usable as a null.** An 11.4% swing in instructions per
+operation on one binary is not scheduling noise; the server is doing materially different amounts of
+work per GET from visit to visit, at a local hit share of 60.7% and a p99 of 51 ms. It is re-run on
+the new geometry before anything is claimed from it.
+
+### And in instructions, the A/B does not overlap at all
+
+The A/B's visits run PRE POST POST PRE inside each round. At 70% writes, three rounds:
+
+    PRE 4317   POST 4422   POST 4431   PRE 4335
+    PRE 4336   POST 4425   POST 4429   PRE 4313
+    PRE 4328   POST 4428   POST 4433   PRE 4320
+
+Six PRE visits span 4313-4336, six POST visits span 4422-4433, and **no PRE visit is within
+eighty-six instructions of any POST visit** against a null floor of 0.37%. The same clean
+separation holds at 55% writes and at pure SET. This is a result, and its sign is the wrong one:
+
+| cell | PRE instr/op | POST instr/op | delta | null floor |
+|---|---|---|---|---|
+| 41% writes | 4695 | 4718 | **+23  (+0.5%)** | 0.59% |
+| 55% writes | 4675 | 4768 | **+94  (+2.0%)** | 0.61% |
+| 70% writes | 4324 | 4429 | **+105 (+2.4%)** | 0.37% |
+| pure SET | 3395 | 3438 | **+43  (+1.3%)** | 0.08% |
+| pure GET | — | — | unusable | 11.40% |
+
+Solve the two-term model (`w` per write, `r` per read) against the pure-write cell: `w = +43`
+instructions per write, and then `r` is **+9 at 41% writes, +156 at 55%, +249 at 70%**. The read-side
+term is not a constant probe cost — it climbs with how many writes are live, which is what the ring
+was built to do.
+
+### Why the old ring is cheap, and it is the same reason it is wrong
+
+`read_local_resolve_pending_body` sets `write_head = 0; write_count = 0` when it enters a
+conservative generation. **A ring that has given up does no work at all**: nothing to insert into,
+nothing to tag, nothing to prune, and every read short-circuits to a demotion without walking
+anything. PRE spends most of its time there at 55% writes and above, so the machinery this lane
+grew is machinery PRE was mostly not running. Sizing the ring to the window does not add a walk to
+a server that was doing a shorter walk — it adds a walk to a server that had stopped walking.
+
+**PRE's defect is also PRE's optimisation, and that is the whole trade this lane has to price.**
+
+### The premise that 41% writes never overflows is false, and the arithmetic says so
+
+The cell was chosen as the one where a sixteen-slot ring is never full. At a pipeline depth of 32,
+a connection's live writes are a binomial draw from its in-flight window, so:
+
+| write fraction | P(16 or more of 32 in flight are writes) | measured overflow entries | cadence |
+|---|---|---|---|
+| 41% | **0.196** | 393,732 | 1 per 39 writes |
+| 55% | 0.773 | 618,788 | 1 per 33 writes |
+| 70% | 0.995 | 765,228 | 1 per 36 writes |
+| 100% | 1.000 | 1,852,068 | 1 per 31 writes |
+
+A one-in-five window is not "never". **The sixteen-slot ring overflows in every regime this lane
+measured, including the control**, and the near-constant cadence of one entry per thirty-odd writes
+across four very different write fractions is the signature of a connection that re-enters a
+conservative generation about as often as one pipeline window drains. POST records **zero** in every
+cell of every run.
+
+Zero in POST is also what proves the counter is measuring capacity. `read_local_write_enter_overflow`
+has two callers — a capacity-full ring, and a write that can never refine (a wide multi-key write, a
+point write under an evicting maxmemory policy). Both increment the graft. POST reads zero, so the
+second door never fired in these workloads; therefore every one of PRE's counts came through the
+first. The claim that capacity overflow is unreachable at the full window is not merely un-falsified
+here, it is measured against a counter that fires 3.6 million times in the arm that can reach it.
+
+### RSS per armed connection, measured
+
+    PRE   2000 connections   delta 20,224 kB   10,354.7 B/connection
+    POST  2000 connections   delta 22,124 kB   11,327.5 B/connection
+    ---------------------------------------------------------------
+    POST - PRE                                    +972.8 B/connection
+
+Against +960 predicted from `good_size(1216) - good_size(296)` = 1280 - 320. The allocator table and
+the resident cost agree to 1.3%, so the footprint term is exactly the size the layout lock says.
