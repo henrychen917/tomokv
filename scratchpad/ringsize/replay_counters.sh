@@ -5,7 +5,7 @@
 set -u
 BIN="$1"; LABEL="$2"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-60}
+export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-59}
 CLI=${CLI:-/tmp/claude-1000/redis74/src/redis-cli}
 source "$ROOT/scratchpad/rlbatch/lib.sh"
 boot_srv "$BIN" /tmp/ringsize-rc-$LABEL.log --enable-debug-command yes || exit 1
