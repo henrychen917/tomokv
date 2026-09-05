@@ -220,3 +220,27 @@ delivered load, which is the geometry in which that column is a work measure.
 `build → unit → sizes → mutate → codegen → probe → null → rate → matched → ovf → slope → mem →
 batt → differ`, strictly sequential (`validate.sh`), gated on `laneguard.sh` and on the owner's
 `quiet.done` being older than three minutes.
+
+### 19:45-19:55 — two incidents worth keeping
+
+**A neighbouring lane is parked on this lane's cores.** `wt-cyclemap/scratchpad/cyclemap/tkv-base`
+(pid 1813128, up since 18:50, measured at 0.000 cores over three seconds) is pinned to 190-191,
+which are the SMT siblings of physical 62-63 — this lane's own. It is idle, but idle is not a
+guarantee, and the whole point of the re-pin was to stop two lanes sharing execution units. The
+lane therefore uses only 58-61 and 186-189, where nothing foreign can run: **server 58-59, load
+generators 60-61 plus siblings 188-189, two shards**. Every number in section 4 onward is taken on
+that geometry; expanding it later would make the cells incomparable.
+
+**Two runs shared one build tree for about three minutes.** A waiter was killed at 19:46 while the
+`validate.sh` it had `setsid`'d kept running, and a second waiter started beside it. Two `make`s
+then drove the same `build/` while `build_arms.sh` swapped `src/net/rob.h` under both — which can
+compile an object from one arm's header into the other arm's binary, the exact shape of
+`tomokv-pinned-source-is-not-pinned-binary`. `build/` was deleted rather than trusted and both arms
+rebuilt from nothing. Two guards now exist: an `flock` held for the life of `run_when_clear.sh`, and
+an EXIT trap so killing the waiter takes its run with it.
+
+**And a self-match, twice.** `pgrep -f run_when_clear` and an `awk` over `ps` *args* both matched
+this shell's own command line, which contains those strings; the kill that followed killed the tool
+shell (exit 144) and, the second time, very nearly a neighbouring lane's compiler. Match on `comm`,
+never on args, and confirm ownership with `readlink /proc/PID/cwd` before killing anything — the
+`make` that looked like a leftover of ours was `wt-multirace`'s.
