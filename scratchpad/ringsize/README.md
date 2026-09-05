@@ -926,3 +926,54 @@ What does NOT depend on shard count: the ring's own bookkeeping (+43 instruction
 the pure-write cell), the overflow arithmetic (a 32-deep pipeline cannot put more than 31 writes in
 a window, and 16 slots cannot hold them), the RSS (+972.8 bytes per armed connection) and the whole
 correctness column.
+
+
+## The overflow counter, on the instrumented pair (2 rounds) — the falsifiable claim, tested
+
+| cell | **PRE ring overflows** | **POST** | PRE reads demoted | POST | local share PRE → POST | instr/op |
+|---|---|---|---|---|---|---|
+| 41% writes | 388,594 | **0** | 2,075,766 | **0** | 86.6% → 94.3% | +0.49% |
+| 55% writes | 618,816 | **0** | 3,012,506 | 162 | 82.0% → 98.9% | +1.40% |
+| 70% writes | 750,156 | **0** | 1,621,672 | 188 | 86.6% → 100.0% | +2.08% |
+| pure SET | 1,902,381 | **0** | 0 | 0 | — | +1.26% |
+| pure GET | 0 | 0 | 0 | 0 | 60.4% → 60.2% | (excluded cell) |
+
+Against the earlier instrumented run's 393,732 / 618,788 / 765,228 / 1,852,068 — the counters
+reproduce to within 2%. **POST's assertion that capacity overflow is unreachable at the full window
+survives a counter that fires 3.66 million times in the arm that can reach it**, across three
+separate runs.
+
+And the instructions column agrees with itself across three independent runs: +0.43/+1.44/+1.96/
++1.27 (clean pair), +0.49/+1.40/+2.08/+1.26 (instrumented pair), +0.48/+2.00/+2.41/+1.28 (the
+earlier pin). This is not a noisy measurement.
+
+## At MATCHED delivered load — where the cost is largest, and where it reaches cells the ring never touches
+
+Both arms rate-limited to 3,991 ops/s per connection; delivered rate matched to **0.03%** in every
+cell, so cycles per operation is a work measure and not a restatement of the rate, and the server
+runs at about half of its two cores rather than at saturation.
+
+| cell | rate | **server CPU per unit work** | instr/op | cyc/op | **fills/op** |
+|---|---|---|---|---|---|
+| 41% writes | +0.03% | 1.200 → 1.265 cores **(+5.4%)** | +3.69% | +5.15% | **+9.96%** |
+| 55% writes | +0.00% | 1.110 → 1.185 **(+6.8%)** | +5.82% | +6.70% | **+8.29%** |
+| 70% writes | +0.00% | 1.075 → 1.140 **(+6.1%)** | +3.90% | +6.13% | **+5.74%** |
+| pure SET | −0.00% | 0.950 → 0.970 **(+2.1%)** | +0.79% | +1.95% | **+7.79%** |
+| pure GET | +0.01% | 0.990 → 1.065 **(+7.6%)** | +5.69% | +7.54% | **+3.09%** |
+
+**The pure-GET row is the one to read twice.** A connection that never writes never touches the ring
+— and it still costs 7.6% more CPU per operation, with fills up 3.1%. Whatever that is, it is not
+the ring logic; it is the **+972.8 bytes allocated on every armed connection at accept**, paid by
+connections that will never use them.
+
+So the footprint does cost, but only where there is slack to see it. At saturation (the conn cell at
+2048 connections) fills per operation did not grow at all; at half load every cell's fills rise
+3-10%. A saturated server is already missing on everything; a half-loaded one is not, and that is
+where an extra fifteen cache lines per connection shows up.
+
+**This is the cell that most nearly rescues the grow-on-demand design** — and it still does not,
+because grow-on-demand would only help connections that write little, while the pure-GET row shows
+the cost landing on connections that write *nothing* and would therefore never grow their ring.
+A ring that grows on demand from zero would help exactly this row; a ring that grows on demand from
+the base sixteen would not. That is a different change from the one this lane built, and it is worth
+one measurement before it is worth any code.
