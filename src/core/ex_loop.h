@@ -136,6 +136,16 @@ struct ReadLocalExState<true> {
         bool keymiss_notify_armed = false;
         bool interleave_owner_tasks = true;
         bool prefetch_capture = true;
+        // EFFECTIVE lane capacity for ADMISSION. The physical ring is always kInboxSlots entries
+        // and its index arithmetic still masks with kInboxSlots - 1; this only decides when the
+        // parser stops admitting, so lowering it can never overrun the ring. It derives to
+        // kInboxSlots and stays there unless DEBUG READ-LOCAL-LANE-CAP sets a test value, which
+        // fused_pass_impl copies here once per rotation. It occupies the two padding bytes that
+        // already sat at offset 38 between prefetch_capture and demote_context, on the same first
+        // cache line as lane_head/lane_tail/lane_count that every admission test already reads, so
+        // the struct does not grow, nothing moves, and reading it costs no line the caller did not
+        // already own. See P128.md section 8.
+        uint16_t lane_admit_cap = static_cast<uint16_t>(kInboxSlots);
         void* demote_context = nullptr;
         DemoteFn demote = nullptr;
         ReadLocalDeferredQueue deferred;
@@ -270,7 +280,10 @@ public:
         static_assert(Fused);
         if (!read_local_enabled()) return false;
         const auto& state = read_local_impl();
-        return state.lane_count != kInboxSlots &&
+        // `<` rather than `!=` because lane_admit_cap may be below the ring size under a test
+        // cap; with the production value (kInboxSlots) the two are identical, since lane_count is
+        // never allowed past it.
+        return state.lane_count < state.lane_admit_cap &&
                demotion_demand <=
                    kReadLocalDemotionBudget - state.lane_demotion_demand;
     }
@@ -292,7 +305,8 @@ public:
         const auto& state = *read_local_.impl;
         if (__builtin_expect(state.lane_pressure == 0, true)) return UINT32_MAX;
         return std::max<uint32_t>(
-            1, kInboxSlots / static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
+            1, state.lane_admit_cap /
+                   static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
     }
 
     // Is the lane-admission pressure window armed? ONE BYTE on the Impl's first cache line -- the
@@ -559,6 +573,17 @@ public:
             // One rotation of the lane-admission pressure window has elapsed (P128.md).
             if (__builtin_expect(read_local_impl().lane_pressure != 0, false))
                 read_local_impl().lane_pressure--;
+            // Adopt the test lane cap, if one is set. ONE relaxed load per ROTATION of a
+            // read-mostly word that production never writes (so it stays shared-clean in every
+            // core's L1), against ~1000 ops per rotation, and the store happens only when the
+            // value actually changes -- the admission path itself keeps reading a plain uint16 on
+            // a line it already owns. 0 means derive, which is what production always sees.
+            const uint32_t cap = srv_->debug_read_local_lane_cap();
+            const uint16_t want = cap == 0 ? static_cast<uint16_t>(kInboxSlots)
+                                           : static_cast<uint16_t>(std::min<uint32_t>(
+                                                 cap, kInboxSlots));
+            if (__builtin_expect(read_local_impl().lane_admit_cap != want, false))
+                read_local_impl().lane_admit_cap = want;
         }
         if (did) {
             did += drain_notify_keyless(self_->sig());

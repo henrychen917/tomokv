@@ -55,6 +55,9 @@ struct ScatterState;
 
 inline constexpr uint32_t kMaxThreads = 128;
 inline constexpr uint32_t kInboxSlots = 1024;
+// ReadLocalExState<true>::Impl::lane_admit_cap holds the effective lane capacity in a uint16 that
+// fits the struct's existing padding; keep the lane inside that range.
+static_assert(kInboxSlots <= UINT16_MAX, "lane_admit_cap is a uint16");
 
 enum class Role : uint8_t { Idle = 0, Ifid = 1, Ex = 2 };
 
