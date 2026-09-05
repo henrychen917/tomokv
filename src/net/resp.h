@@ -302,17 +302,12 @@ inline uint32_t u32_to_dec_direct(char* dst, uint32_t v) {
     return n;
 }
 
-// always_inline, and measured: left to its own judgement GCC emitted a CALL at all twenty-odd
-// retire call sites, so a five-byte reply paid a call to avoid a five-byte memcpy. The fixed path
-// inlines to a 16-byte load-store pair and a length load.
-__attribute__((always_inline))
-inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
-    if (code != static_cast<uint8_t>(ReplyCode::Int)) {
-        const FixedReply& f = kFixedReplies[code];
-        __builtin_memcpy(dst, f.bytes, sizeof(f.bytes));
-        return f.len;
-    }
-    // ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
+// The digits, deliberately OUT OF LINE. Inlined, this loop put 30-odd instructions into the per-op
+// retire lambda at every one of its twenty-odd instantiations; the lambda is the io thread's
+// hottest code and every op walks past those bytes whether or not it formats an integer.
+// ":-2147483648\r\n" is 14 bytes, inside kReplyCodeMax.
+__attribute__((noinline))
+inline uint32_t format_reply_code_int(char* dst, int32_t ival) {
     char* q = dst;
     *q++ = ':';
     uint32_t mag;
@@ -321,6 +316,22 @@ inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
     q += u32_to_dec_direct(q, mag);
     *q++ = '\r'; *q++ = '\n';
     return static_cast<uint32_t>(q - dst);
+}
+
+// always_inline, and measured both ways. Left to its own judgement GCC emitted a CALL at all
+// twenty-odd retire sites, so a five-byte reply paid a call to avoid a five-byte memcpy. Inlined
+// WITH the digits it bloated the retire lambda instead. This shape is the one that is small: the
+// fixed reply -- which is every SET, the reply this change exists for -- becomes a table index, a
+// 16-byte load-store and a length load, and an integer reply pays one call, exactly as it paid one
+// memcpy call before.
+__attribute__((always_inline))
+inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
+    if (code != static_cast<uint8_t>(ReplyCode::Int)) {
+        const FixedReply& f = kFixedReplies[code];
+        __builtin_memcpy(dst, f.bytes, sizeof(f.bytes));
+        return f.len;
+    }
+    return format_reply_code_int(dst, ival);
 }
 
 // For the few paths that SPLICE an op's reply bytes mid-flight instead of retiring them (the

@@ -83,6 +83,12 @@ int main(int argc, char** argv){
                     ki += 8;
                 }
                 else if (!strcmp(cell, "ping"))     {                                      hdr('*',1); arg("PING",4); }
+                else if (!strcmp(cell, "mix"))      {   /* 1:1 GET/SET on a hot 1000-key window */
+                    long k = seed + ((ki + 1 - seed) % 1000); ki = k;
+                    mkkey(key, keylen, k);
+                    if (sent & 1) { hdr('*',3); arg("SET",3); arg(key,keylen); arg(val,32); }
+                    else          { hdr('*',2); arg("GET",3); arg(key,keylen); }
+                }
                 else { fprintf(stderr, "unknown cell %s\n", cell); return 2; }
                 batch++; sent++;
             }
