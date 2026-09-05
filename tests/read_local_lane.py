@@ -12,6 +12,13 @@ thread's active connections so that no connection can crowd out the ones the rot
 The former rule demoted the excess to the shard owner as an ordinary task; 7/8 of those tasks were
 cross-thread, and they were the seed of the p128 / 2048-connection pure-read collapse.
 
+Oversubscribing the lane is a RACE against the drain, so the battery drives it deterministically
+rather than hoping: a round's bursts are written by a pool of writer threads (a serial writer lets
+the server drain the lane between sockets -- that alone was the difference between firing 17 times
+and never firing at all), and if the lane still never fills the battery ESCALATES by doubling the
+connection count, up to ESCALATIONS times, before it will call the mechanism unfired. That keeps
+the anti-vacuity check honest on a fast boot instead of turning it into a coin flip.
+
 Every check here is a counter delta over this battery's own traffic (vacuous-validation rule):
   geometry   the thinnest-guarded claim first: some thread owns > 1024/64 = 16 of our connections
              (SO_REUSEPORT hashes accepts, so we open 32 x threads and read the per-thread
@@ -27,7 +34,7 @@ Every check here is a counter delta over this battery's own traffic (vacuous-val
              the frame order and read-your-own-write survive a deferral
   liveness   every round completes (a deferred frame must be re-parsed without an external wake)
 """
-import sys
+import threading
 import time
 
 import _lib
@@ -35,6 +42,7 @@ import _lib
 DEPTH = 64          # GETs per connection per round == kRobWindow: the per-connection lane pressure
 CONNS_PER_THREAD = 32
 ROUNDS = 12
+ESCALATIONS = 3     # if the lane never filled, double the connections and drive another phase
 ROUND_DEADLINE_S = 20.0
 COUNTERS = ("read_local_hits", "read_local_fallbacks", "read_local_fallback_lane_full",
             "read_local_defer_lane_full", "read_local_defer_quota")
@@ -51,6 +59,64 @@ def counters(conn):
     return out
 
 
+def open_conns(host, port, first, count):
+    """Open count connections and seed each one's own key. Returns the new connections."""
+    made = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S, buffering=1 << 16)
+            for _ in range(count)]
+    for j, c in enumerate(made):
+        c.must("SET", "rl:lane:own:%d" % (first + j), b"init")
+    return made
+
+
+def send_parallel(conns, frames, nworkers):
+    """Write every burst from nworkers threads so a round's frames reach the server inside one
+    fused rotation. Writing them one socket at a time lets the drain keep up and the lane never
+    fills -- which is exactly the vacuity this battery must not report as a pass."""
+    errs = []
+
+    def work(lo, hi):
+        try:
+            for j in range(lo, hi):
+                conns[j].sock.sendall(frames[j])
+        except Exception as exc:              # noqa: BLE001 - reported through errs
+            errs.append(exc)
+
+    n = len(conns)
+    step = max(1, (n + nworkers - 1) // nworkers)
+    workers = [threading.Thread(target=work, args=(i, min(i + step, n)))
+               for i in range(0, n, step)]
+    for t in workers:
+        t.start()
+    for t in workers:
+        t.join()
+    if errs:
+        raise errs[0]
+
+
+def burst_round(conns, shared, values, r, writers):
+    """One round: every connection pipelines DEPTH shared GETs + SET own-key + GET own-key in a
+    single write. Returns (ok, detail, elapsed)."""
+    frames = []
+    for i in range(len(conns)):
+        payload = b"".join(_lib.encode("GET", k) for k in shared)
+        payload += _lib.encode("SET", "rl:lane:own:%d" % i, "r%d" % r)
+        payload += _lib.encode("GET", "rl:lane:own:%d" % i)
+        frames.append(payload)
+    want = values + [b"OK", b"r%d" % r]
+    t0 = time.monotonic()
+    send_parallel(conns, frames, writers)
+    for i, c in enumerate(conns):
+        try:
+            got = [c.read() for _ in range(DEPTH + 2)]
+        except Exception as exc:   # a hang here is a deferred frame nobody re-parsed
+            return False, "round %d conn %d: %r" % (r, i, exc), time.monotonic() - t0
+        if got != want:
+            bad = next(j for j in range(len(want)) if got[j] != want[j])
+            return False, "round %d conn %d reply %d: got %r want %r" % (
+                r, i, bad, got[bad], want[bad]), time.monotonic() - t0
+    return True, "", time.monotonic() - t0
+
+
 def main():
     host, port = _lib.host_port()
     ctl = _lib.Conn(host, port)
@@ -62,67 +128,59 @@ def main():
     rep = _lib.Report("read_local_lane")
 
     threads = _lib.lbsignals(ctl).threads
-    nconns = CONNS_PER_THREAD * len(threads)
+    writers = max(2, len(threads))
     shared = ["rl:lane:k%d" % i for i in range(DEPTH)]
     values = [b"v%d" % i for i in range(DEPTH)]
     for key, value in zip(shared, values):
         ctl.must("SET", key, value)
     before_clients = {t.tid: t.clients for t in threads}
 
-    conns = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S, buffering=1 << 16)
-             for _ in range(nconns)]
-    for i, c in enumerate(conns):
-        c.must("SET", "rl:lane:own:%d" % i, b"init")
+    conns = open_conns(host, port, 0, CONNS_PER_THREAD * len(threads))
     after = _lib.lbsignals(ctl).threads
     accepted = {t.tid: t.clients - before_clients.get(t.tid, 0) for t in after}
     top = max(accepted.values())
     rep.check("geometry: some thread owns > lane/window of our connections",
               top * DEPTH > 1024,
               "threads=%d conns=%d accepted per thread min=%d max=%d (x%d deep = %d > 1024)"
-              % (len(threads), nconns, min(accepted.values()), top, DEPTH, top * DEPTH))
+              % (len(threads), len(conns), min(accepted.values()), top, DEPTH, top * DEPTH))
 
     base = counters(ctl)
     slow = 0.0
     order_ok = True
     order_detail = ""
-    for r in range(ROUNDS):
-        frames = []
-        for i in range(nconns):
-            payload = b"".join(_lib.encode("GET", k) for k in shared)
-            payload += _lib.encode("SET", "rl:lane:own:%d" % i, "r%d" % r)
-            payload += _lib.encode("GET", "rl:lane:own:%d" % i)
-            frames.append(payload)
-        t0 = time.monotonic()
-        for c, payload in zip(conns, frames):
-            c.sock.sendall(payload)
-        for i, c in enumerate(conns):
-            try:
-                got = [c.read() for _ in range(DEPTH + 2)]
-            except Exception as exc:   # a hang here is a deferred frame nobody re-parsed
-                order_ok = False
-                order_detail = "round %d conn %d: %r" % (r, i, exc)
+    shared_gets = 0
+    fired = 0
+    phases = 0
+    r = 0
+    while True:
+        for _ in range(ROUNDS):
+            ok, detail, elapsed = burst_round(conns, shared, values, r, writers)
+            shared_gets += DEPTH * len(conns)
+            slow = max(slow, elapsed)
+            r += 1
+            if not ok:
+                order_ok, order_detail = False, detail
                 break
-            want = values + [b"OK", b"r%d" % r]
-            if got != want:
-                order_ok = False
-                bad = next(j for j in range(len(want)) if got[j] != want[j])
-                order_detail = "round %d conn %d reply %d: got %r want %r" % (
-                    r, i, bad, got[bad], want[bad])
-                break
-        slow = max(slow, time.monotonic() - t0)
         if not order_ok:
             break
+        fired = counters(ctl)["read_local_defer_lane_full"] - base["read_local_defer_lane_full"]
+        if fired > 0 or phases >= ESCALATIONS:
+            break
+        phases += 1                       # the lane out-drained us: double the pressure and retry
+        conns.extend(open_conns(host, port, len(conns), len(conns)))
+
     rep.check("order + RYOW across deferral: every reply, in order, expected value",
-              order_ok, order_detail or "%d rounds x %d conns x %d frames" % (
-                  ROUNDS, nconns, DEPTH + 2))
+              order_ok, order_detail or "%d rounds x up to %d conns x %d frames" % (
+                  r, len(conns), DEPTH + 2))
     rep.check("liveness: slowest round under %.0fs" % ROUND_DEADLINE_S,
               order_ok and slow < ROUND_DEADLINE_S, "slowest round %.3fs" % slow)
 
     now = counters(ctl)
     d = {k: now[k] - base[k] for k in COUNTERS}
-    shared_gets = DEPTH * nconns * ROUNDS
     rep.check("lane oversubscribed: read_local_defer_lane_full > 0",
-              d["read_local_defer_lane_full"] > 0, "delta=%d" % d["read_local_defer_lane_full"])
+              d["read_local_defer_lane_full"] > 0,
+              "delta=%d after %d escalation(s), %d conns, %d rounds"
+              % (d["read_local_defer_lane_full"], phases, len(conns), r))
     rep.check("no capacity demotion: read_local_fallback_lane_full == 0",
               d["read_local_fallback_lane_full"] == 0,
               "delta=%d" % d["read_local_fallback_lane_full"])
