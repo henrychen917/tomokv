@@ -90,6 +90,19 @@ namespace tomo {
 // op paid, GETs included, for a benefit only coded replies receive. That is the whole of the split
 // GET regression. No array on this path, ever.
 
+// The coded reply's ONLY appearance in the per-op retire lambda is a call to this. Rendering it
+// inline meant inlining reserve_fill -> SmallBuf::reserve -> grow(), i.e. malloc/memcpy/free, into
+// the hottest function the io thread runs -- paid in code size and register pressure by every op,
+// including the GETs that never carry a code. Base reached its reply through an out-of-line
+// SmallBuf::append call too, so this trades like for like.
+template <bool TrackOutput>
+__attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
+    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
+                                         op.reply_code_, op.reply_ival_);
+    if constexpr (TrackOutput) conn.commit_fill(n);
+    else                       conn.fill_buf().commit_raw(n);
+}
+
 // THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
 // (exwb, then 3s). In pure 2s exactly one thread -- the connection's io thread -- ever touches the
 // send side, so there is nothing to lock and no object to re-derive. If a future flip ever puts
@@ -332,7 +345,7 @@ private:
             }
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
@@ -343,15 +356,13 @@ private:
             // fill frontier; this op's direct region was handed out at the same offset only if
             // nothing was staged, so committing here stays correct.
             if (conn.has_pending_segments()) {
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
             } else {
                 // A coded reply is rendered straight into the fill frontier: no temporary, and a
                 // compile-time length instead of the runtime-length memcpy op.reply needed.
-                if (op.reply_code_)
-                    conn.commit_fill(format_reply_code(conn.reserve_fill(kReplyCodeMax),
-                                                       op.reply_code_, op.reply_ival_));
+                if (op.reply_code_) stage_coded_reply<true>(conn, op);
                 else if (op.direct_len) conn.commit_fill(op.direct_len);
                 if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
             }
@@ -785,7 +796,7 @@ private:
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a
                 // borrowed value that is only partially written.
                 conn.seal_fill_segment();
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if constexpr (TlsNoBorrow) {
@@ -804,7 +815,7 @@ private:
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
             // direct part so the RESP stream stays in order.
             if (conn.has_pending_segments()) {
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
@@ -813,10 +824,7 @@ private:
                 // thread that owns the buffer, replacing the executor's store plus this thread's
                 // runtime-length memcpy out of op.reply.
                 if (op.reply_code_) {
-                    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
-                                                         op.reply_code_, op.reply_ival_);
-                    if constexpr (TrackOutput) conn.commit_fill(n);
-                    else conn.fill_buf().commit_raw(n);
+                    stage_coded_reply<TrackOutput>(conn, op);
                 } else if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
@@ -860,7 +868,7 @@ private:
             if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 conn.append_buf_segment(op.zc_ptr, op.zc_len);
@@ -871,7 +879,7 @@ private:
                 return;
             }
             if (conn.has_pending_segments()) {
-                op_materialise_code(op);
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
@@ -880,10 +888,7 @@ private:
                 // thread that owns the buffer, replacing the executor's store plus this thread's
                 // runtime-length memcpy out of op.reply.
                 if (op.reply_code_) {
-                    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
-                                                         op.reply_code_, op.reply_ival_);
-                    if constexpr (TrackOutput) conn.commit_fill(n);
-                    else conn.fill_buf().commit_raw(n);
+                    stage_coded_reply<TrackOutput>(conn, op);
                 } else if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);

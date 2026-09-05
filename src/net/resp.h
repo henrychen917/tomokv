@@ -337,8 +337,13 @@ inline uint32_t format_reply_code(char* dst, uint8_t code, int32_t ival) {
 // For the few paths that SPLICE an op's reply bytes mid-flight instead of retiring them (the
 // borrowed-value flush inside assemble_mget). Turns a code back into the bytes it stands for, in
 // order, so the splice sees a normal byte buffer. A no-op for the ordinary reply.
+// NOINLINE, and callers guard it with op.reply_code_ themselves. Inlined it dragged
+// SmallBuf::reserve's grow path -- malloc, memcpy, free -- into WbEngine's per-op retire lambda,
+// which is the io thread's hottest code; the lambda went 186 -> 263 instructions and the split GET
+// cell paid for all of it while using none of it.
+__attribute__((noinline))
 inline void op_materialise_code(Op& op) {
-    if (__builtin_expect(op.reply_code_ == 0, true)) return;
+    if (op.reply_code_ == 0) return;
     char* p = op.reply.reserve(kReplyCodeMax);
     op.reply.advance(format_reply_code(p, op.reply_code_, op.reply_ival_));
     op.reply_code_ = 0;
