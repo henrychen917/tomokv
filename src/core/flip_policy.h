@@ -63,6 +63,19 @@ struct FlipDemandWindow {
     }
 };
 
+// The band a MEASURED gain has to beat before the outcome loop may believe it. A maneuver
+// compares a rate window taken before its flip with one taken after, so the comparison can only
+// resolve a difference larger than the baseline's own movement between those two windows: `lo`
+// and `hi` bracket the stabilized readings the controller took at the origin split while it was
+// deciding. Twice the spread, the same 2x-the-observed-jitter convention every other band in the
+// controller uses. Zero readings, one reading, or a flat baseline give zero, and the caller's
+// learned/typed band stands.
+inline double flip_baseline_band(double lo, double hi) {
+    if (!(lo > 0) || !(hi >= lo)) return 0;
+    const double mid = 0.5 * (lo + hi);
+    return mid > 0 ? 2.0 * (hi - lo) / mid : 0;
+}
+
 // Relative throughput of a split under work conservation. Units, not threads, so an SMT pair
 // counts once. Zero for an impossible split.
 inline double flip_projected_rate(uint32_t io_units, uint32_t total_units, double io_frac) {

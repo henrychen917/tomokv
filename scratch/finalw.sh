@@ -7,7 +7,11 @@ wait_gate() { while ! gate_ok; do echo "paused $(date +%T): box marker held"; sl
 CSV=$SP/fd-matrix2.csv
 echo "=== RESUME $(date +%T)"
 for wl in mk sk1:1 sk9:1 get; do
-  have=$(grep -c ",$wl," "$CSV" 2>/dev/null || echo 0)
+  # grep -c prints 0 AND exits 1 on no match, so `|| echo 0` used to append a SECOND 0 and the
+  # arithmetic below died ("0\n0"): every workload after mk was silently skipped. Count the
+  # rows from the CSV shape instead, which also cannot be fooled by a colon in the label.
+  have=$(awk -F, -v w="$wl" 'NR>1 && $3==w {n++} END{print n+0}' "$CSV" 2>/dev/null)
+  have=${have:-0}
   full=$((have / 4)); [ $((have % 4)) -ne 0 ] && echo "note: $wl has a partial round ($have rows); completing by full rounds"
   need=$((3 - full)); [ "$need" -le 0 ] && { echo "$wl complete ($have rows)"; continue; }
   echo "$wl: $have rows, running $need more round(s)"

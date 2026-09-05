@@ -94,13 +94,20 @@ def table(summ, caption, arms):
     return "\n".join(h)
 
 # ---- data --------------------------------------------------------------------------------------
-m2 = load(f"{SP}/fd-matrix2.csv")
+# matrix3 is the matrix taken with the binary this report describes; matrix2 was taken before
+# the baseline-band fix and is kept only as raw history (fd-matrix2-prev.csv).
+m2 = load(f"{SP}/fd-matrix3.csv") or load(f"{SP}/fd-matrix2.csv")
 summ2 = summarize(m2, ["base1", "pol1", "pol0a", "pol0b"])
 mk15 = load(f"{SP}/fd-matrix-mk15.csv")
 summ1 = summarize(mk15, ["base1", "guard1", "pol1", "pol0a", "pol0b"])
 nulls = sorted(set((s["wl"], s["null"]) for s in summ2))
 
-final_log = open(f"{SP}/fd-final.log").read() if os.path.exists(f"{SP}/fd-final.log") else ""
+# The run log is a CHAIN of logs (final.sh aborted on the box marker, finalw.sh resumed it, ver.sh
+# finished the night). Reading only the first one is why the first report showed 0 hold/battery/
+# differ lines while all three had run.
+final_log = "".join(open(f"{SP}/{name}").read() for name in
+                    ("fd-final.log", "fd-final2.log", "fd-ver.log")
+                    if os.path.exists(f"{SP}/{name}"))
 def grab(pattern):
     m = re.findall(pattern, final_log, re.M)
     return m

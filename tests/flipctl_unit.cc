@@ -128,6 +128,16 @@ int main() {
         const FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.21, 3);
         if (!c.decided || c.move) fail("+20% cleared a 21% bar");
     }
+    // BASELINE WANDER. The gate's ramping driver produced origin readings of 4899 and 6001 ops/s
+    // at one split, and the boot maneuver then read a rail's +22% as "delivered" and anchored
+    // there. Twice that 20% spread is the floor under the maneuver's bands, so the same +22%
+    // cannot clear it and the seek reverts to the origin. A still baseline costs nothing.
+    if (!(flip_baseline_band(4898.601, 6000.916) > 0.22))
+        fail("a 20% baseline spread did not floor the band above the gain it produced");
+    if (flip_baseline_band(500000, 500000) != 0) fail("a flat baseline moved the band");
+    if (flip_baseline_band(0, 0) != 0) fail("an empty baseline moved the band");
+    if (flip_baseline_band(500000, 505000) > 0.021)
+        fail("a 1% baseline spread floored the band above 2%");
     // The estimator noise falls as 1/sqrt(n): the same three draws twice over halve nothing, but
     // the half-width shrinks by sqrt(2).
     {

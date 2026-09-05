@@ -257,6 +257,7 @@ private:
     bool sample_role_demand(Server& server, double& io_frac, double& io_headroom,
                             double& ex_headroom);
     double verification_band(double rate) const;
+    double baseline_band() const;
     bool decide_placement(Server& server, uint32_t coordinator, double rate);
     bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
                     Phase after_flip);
@@ -350,6 +351,14 @@ private:
     Seek seek_ = Seek::None;
     uint32_t seek_target_io_ = 0;
     double origin_rate_ = 0;
+    // The ORIGIN's own movement while the model was deciding: min/max of the stabilized readings
+    // taken at the origin split during Measuring. A gain smaller than this spread is not a gain,
+    // it is the baseline moving -- the gate's ramping driver produced a +22% "delivered" on a
+    // still-trending load and anchored the boot maneuver on a rail. Bracket, not variance: two
+    // readings already bound a comparison of two readings.
+    double origin_rate_min_ = 0;
+    double origin_rate_max_ = 0;
+    uint32_t origin_rate_samples_ = 0;
 
     uint64_t rate_window_ms_ = 0;
     uint64_t rate_window_commands_ = 0;

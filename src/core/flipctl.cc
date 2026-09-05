@@ -479,6 +479,9 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     seek_ = Seek::None;
     seek_target_io_ = 0;
     origin_rate_ = 0;
+    origin_rate_min_ = 0;
+    origin_rate_max_ = 0;
+    origin_rate_samples_ = 0;
     surge_streak_ = 0;
     collapse_streak_ = 0;
     shift_detector_.reset();
@@ -627,9 +630,18 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac, double&
 // The throughput noise a projected gain has to beat before a flip could be VERIFIED: the band the
 // last anchor learned, if any, or the maneuver's own stabilized-pair jitter -- never a typed
 // number unless the operator typed --flip-auto-band.
+// The spread the ORIGIN split's own stabilized readings showed while the model was deciding. It
+// is a floor under every band this maneuver uses -- including an operator-typed --flip-auto-band,
+// which says how small a gain is worth chasing, not how still the workload is holding.
+double FlipController::baseline_band() const {
+    return origin_rate_samples_ >= 2 ? flip_baseline_band(origin_rate_min_, origin_rate_max_) : 0;
+}
+
 double FlipController::verification_band(double rate) const {
-    if (configured_band_ > 0) return static_cast<double>(configured_band_) / 100.0;
-    return std::max(anchor_rate_band_, automatic_rate_band(maneuver_rate_jitter_, rate));
+    const double floor = baseline_band();
+    if (configured_band_ > 0)
+        return std::max(static_cast<double>(configured_band_) / 100.0, floor);
+    return std::max({anchor_rate_band_, automatic_rate_band(maneuver_rate_jitter_, rate), floor});
 }
 
 // The Measuring phase (flip_policy.h): one demand draw per stabilized reading into the policy
@@ -640,6 +652,14 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, doub
     double io_frac = 0, io_headroom = 0, ex_headroom = 0;
     if (!sample_role_demand(server, io_frac, io_headroom, ex_headroom)) return false;
     demand_window_.add(io_frac);
+    // Measuring never moves the split, so every reading here is a reading of the ORIGIN.
+    if (rate > 0) {
+        if (!origin_rate_samples_++) origin_rate_min_ = origin_rate_max_ = rate;
+        else {
+            origin_rate_min_ = std::min(origin_rate_min_, rate);
+            origin_rate_max_ = std::max(origin_rate_max_, rate);
+        }
+    }
     model_readings_++;
     model_io_frac_ = demand_window_.mean;
     model_io_headroom_ = io_headroom;
@@ -1041,7 +1061,8 @@ std::string FlipController::debug_dump() const {
         "shift_streak=%u null_maneuvers=%llu maneuver_origin_io=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
-        "pending_io=%u seek=%s seek_target_io=%u origin_rate=%.3f\n",
+        "pending_io=%u seek=%s seek_target_io=%u origin_rate=%.3f\n"
+        "origin_rate_readings=%u origin_rate_min=%.3f origin_rate_max=%.3f baseline_band=%.4f\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
@@ -1065,7 +1086,8 @@ std::string FlipController::debug_dump() const {
         static_cast<unsigned long long>(rate_collapse_triggers_),
         static_cast<unsigned long long>(forced_triggers_), pending_target_io_,
         seek_ == Seek::AtTarget ? "at-target" : seek_ == Seek::Returning ? "returning" : "none",
-        seek_target_io_, origin_rate_);
+        seek_target_io_, origin_rate_,
+        origin_rate_samples_, origin_rate_min_, origin_rate_max_, baseline_band());
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way
