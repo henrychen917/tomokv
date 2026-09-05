@@ -56,6 +56,14 @@ inline constexpr uint32_t kReadLocalMaxChunksBetweenOwnerBatches = 1;
 // Leave that credit outside the pending-read fanout budget so the combined reservation can always
 // fit an empty producer lane and therefore cannot retry forever.
 inline constexpr uint32_t kReadLocalDemotionBudget = kInboxSlots - 1;
+// Lane ADMISSION pressure window (P128.md). A LANE-FULL deferral arms this many fused rotations
+// during which the parser bounds every connection to kInboxSlots / active connections in flight.
+// It decays by one per rotation and is re-armed only by the next lane-full event -- never by the
+// quota's own deferrals (the actuator must not police itself) -- so under sustained oversubscription
+// one rotation in (this + 1) lets the lane prove the pressure again, and once aggregate demand has
+// stayed under the lane for this many rotations the bound is UINT32_MAX and the steady state pays
+// one predicted byte test per parse pass and nothing per op.
+inline constexpr uint8_t kReadLocalLanePressureRotations = 8;
 inline constexpr uint32_t kExSchedClasses =
     static_cast<uint32_t>(CommandLengthClass::Count);
 inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
@@ -121,6 +129,8 @@ struct ReadLocalExState<true> {
         // Keeping the sum within the demotion budget makes every task-capacity plan reservable
         // (snapshot pressure may still split it into waves).
         uint32_t lane_demotion_demand = 0;
+        // Rotations left in the lane-admission pressure window; see kReadLocalLanePressureRotations.
+        uint8_t lane_pressure = 0;
         bool lane_has_tombstones = false;
         bool point_writes_precise = true;
         bool keymiss_notify_armed = false;
@@ -263,6 +273,55 @@ public:
         return state.lane_count != kInboxSlots &&
                demotion_demand <=
                    kReadLocalDemotionBudget - state.lane_demotion_demand;
+    }
+
+    // LANE ADMISSION (P128.md). The parser asks once per parse pass how many lane slots (pending
+    // local reads) one connection may hold. Unbounded while the lane is not under pressure -- below
+    // kInboxSlots of aggregate demand per rotation. Under pressure it is the lane divided among the
+    // connections competing for it, which by construction keeps the sum of admitted local reads
+    // within the lane, so the lane-full deferral -- whose victims are whichever connections the
+    // rotation parsed last -- stops firing and every connection progresses every rotation. Both
+    // terms self-derive: live connections from the active set, observed depth from the lane-full
+    // events that arm the window. No knob.
+    uint32_t read_local_lane_quota(size_t live_connections) const {
+        static_assert(Fused);
+        // Same disabled-state shape as local_read_lane_has_room(): no impl means no lane and no
+        // bound (the parser only asks when the server's read-local is on, which is what creates
+        // the impl at init; this is the one test that call already paid, not a second one).
+        if (!read_local_enabled()) return UINT32_MAX;
+        const auto& state = *read_local_.impl;
+        if (__builtin_expect(state.lane_pressure == 0, true)) return UINT32_MAX;
+        return std::max<uint32_t>(
+            1, kInboxSlots / static_cast<uint32_t>(std::max<size_t>(1, live_connections)));
+    }
+
+    // Is the lane-admission pressure window armed? ONE BYTE on the Impl's first cache line -- the
+    // same line (lane_head/lane_tail/lane_count/lane_demotion_demand at offsets 16..31, and
+    // lane_pressure at 32) that local_read_lane_has_room() already reads for every eligible read of
+    // the same pass -- so asking costs no cache line the pass did not already own.
+    //
+    // The parser MUST ask this before it evaluates read_local_lane_quota's argument. C++ evaluates
+    // arguments eagerly, so `read_local_lane_quota(active_.size())` loaded active_ on EVERY parse
+    // pass even though the callee returns UINT32_MAX immediately when the window is not armed --
+    // and IoLoop::active_ sits at offset 7728, on a line (7680-7743, shared only with unix_rr_,
+    // random_state_ and aof_gate_target_) that the parse pass never otherwise touches, while the
+    // IoLoop fields it does read live on two other lines entirely (notify_armed_ 7864,
+    // proto_max_bulk_len_ 7872). That made always-on machinery cost one cold-line demand fill per
+    // parse pass while every counter it owns still read zero -- measured on the owner's 32-core box
+    // at 512 connections as +11% DRAM and +3.4% same-CCX fills per op with instructions flat
+    // (P128.md 9.5). A hint must never be load-bearing, and machinery that has not fired must be
+    // free: gate the argument, not just the answer.
+    bool read_local_lane_under_pressure() const {
+        static_assert(Fused);
+        if (!read_local_enabled()) return false;
+        return read_local_.impl->lane_pressure != 0;
+    }
+
+    // A lane-full deferral arms the pressure window; fused_pass_impl decays it once per rotation.
+    void note_local_read_lane_full() {
+        static_assert(Fused);
+        if (!read_local_enabled()) return;
+        read_local_.impl->lane_pressure = kReadLocalLanePressureRotations;
     }
 
     void note_local_read_demoted(const Op& op) {
@@ -495,7 +554,12 @@ public:
             // Parser-created tombstones must not cross the WB corpse-grace boundary.
             compact_local_read_tombstones();
         }
-        if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
+        if (read_local_enabled()) {
+            did += read_local_impl().deferred.drain_ready();
+            // One rotation of the lane-admission pressure window has elapsed (P128.md).
+            if (__builtin_expect(read_local_impl().lane_pressure != 0, false))
+                read_local_impl().lane_pressure--;
+        }
         if (did) {
             did += drain_notify_keyless(self_->sig());
             fused_submit_boundary<CoalesceSubmit>();

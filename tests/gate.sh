@@ -76,8 +76,10 @@ ROW_T=$(date +%s.%N)
 # 243 -> 245 quick: each fused boot now proves its schema-1 final report is present, clean, and
 # labels itself as fused instead of relying only on the live INFO assertion. Full: 254 -> 256.
 # 256 -> 258 full: the CLIENT REPLY OFF/SKIP cross-shard MGET zero-copy rows (both atomic modes).
-EXPECT_QUICK=245
-EXPECT_FULL=258                 # full without the optional NIC row.
+# 245 -> 246 quick, 258 -> 259 full: the armed local-read lane-admission battery on the B+ boot
+# (deferral, never demotion, when connections x window exceed the 1024-entry lane; P128.md).
+EXPECT_QUICK=246
+EXPECT_FULL=259                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -354,6 +356,12 @@ boot_fused ./build/tomokv --atomic 1 --read-local 1 --read-local-atomic-filter 1
 py tests/bplus.py 127.0.0.1 "$PORT" >/tmp/gate-bplus.txt 2>&1 \
     && ok "B+ held-group GET/MGET filter battery" \
     || bad "B+ held-group GET/MGET filter battery" "see /tmp/gate-bplus.txt"
+# Lane admission on the same armed boot: 32 connections per fused thread each pipelining 64 GETs
+# oversubscribe the 1024-entry lane; the excess must be deferred and re-parsed locally (counters
+# fire), never demoted to an owner task (fallback_lane_full stays 0), with order/RYOW intact.
+py tests/read_local_lane.py 127.0.0.1 "$PORT" >/tmp/gate-read-local-lane.txt 2>&1 \
+    && ok "read-local lane admission battery" \
+    || bad "read-local lane admission battery" "see /tmp/gate-read-local-lane.txt"
 stop
 
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------

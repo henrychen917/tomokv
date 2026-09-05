@@ -3952,6 +3952,19 @@ private:
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
+        // LANE ADMISSION (P128.md): how many lane slots (pending local reads) this connection may
+        // hold during this pass. UINT32_MAX unless the thread's local-read lane is under pressure,
+        // in which case it is the lane divided among the active connections
+        // (ExLoop::read_local_lane_quota). The pressure byte is tested FIRST and on its own,
+        // because active_.size() would otherwise be evaluated eagerly on every pass and active_
+        // lives on an IoLoop cache line this pass never otherwise touches -- see
+        // read_local_lane_under_pressure(). Steady state: one byte test per pass on a line the pass
+        // already owns; the per-op compare below is a popcount against a register.
+        [[maybe_unused]] uint32_t read_local_quota = UINT32_MAX;
+        if constexpr (Fused)
+            if (read_local_enabled &&
+                __builtin_expect(fused_executor_->read_local_lane_under_pressure(), false))
+                read_local_quota = fused_executor_->read_local_lane_quota(active_.size());
         if constexpr (BatchOps != 0) batch_start_ops = sig.ops;
         [[maybe_unused]] uint64_t batch_dispatch_start = 0;
         if constexpr (IoPipe) batch_dispatch_start = rob.dispatch_id();
@@ -4123,6 +4136,7 @@ private:
                         (spec->flags & CmdFlags::ReadLocalEligible) &&
                         !command_is_read_local_mget(*spec) &&
                         conn.multi_session() == nullptr &&
+                        rob.pending_read_local_count() < read_local_quota &&
                         fused_executor_->local_read_lane_has_room();
                     if (!extend_read_local_batch) read_local_batch = false;
                 }
@@ -4379,11 +4393,45 @@ private:
                                     read_local_fallback_reason =
                                         ReadLocalFallbackReason::SeqChurn;
                                     read_local_eligible = false;
+                                } else if (rob.pending_read_local_count() >= read_local_quota) {
+                                    // LANE ADMISSION, fair share (P128.md): the lane is under
+                                    // pressure and this connection already holds its share of
+                                    // it. DEFER -- see the lane-full arm below for the shape.
+                                    // Deliberately does NOT re-arm the pressure window: a signal
+                                    // the actuator itself produces cannot police the actuator
+                                    // (measured: at the lane boundary the window fed by its own
+                                    // quota deferrals stayed armed forever and deferred 0.8% of
+                                    // reads where the lane itself refused 0.00008%). Only a real
+                                    // lane-full event arms it, so the lane proves pressure again
+                                    // every kReadLocalLanePressureRotations rotations.
+                                    self_->read_local_stats().defer_quota++;
+                                    break;
                                 } else if (!fused_executor_->local_read_lane_has_room(
                                                read_local_lane_demand)) {
-                                    read_local_fallback_reason =
-                                        ReadLocalFallbackReason::LaneFull;
-                                    read_local_eligible = false;
+                                    // LANE ADMISSION, lane full (P128.md): DEFER, never demote.
+                                    // Nothing about this frame has been published -- the ROB
+                                    // slot is acquired but not published, no lane entry, no
+                                    // pending bit, no owner slot -- so leaving the bytes at rpos
+                                    // and ending the pass is the same shape as the MGET
+                                    // admission fence above. The pass reports Progress, so
+                                    // more_input keeps the connection in active_ and the next
+                                    // flush_ready re-parses it after this thread's own EX pass
+                                    // has drained the lane. (This arm exists only in the coarse
+                                    // Fused parser, whose IFID is that walk; pending_ifid_ is
+                                    // never consumed there, so it must not be touched here.)
+                                    // The former alternative, demoting the read to its shard
+                                    // owner as an ordinary task, was the seed of the p128 and
+                                    // 2048-connection pure-read collapse: 7/8 of those tasks
+                                    // were cross-thread, every pending owner task suppresses the
+                                    // receiving thread's lane tail-drain, its lane keeps a
+                                    // residue and fills sooner, and the demotions feed back. A
+                                    // read whose data is right here now waits one rotation
+                                    // instead. The deferral arms the pressure window, so the
+                                    // next rotation divides the lane fairly (quota arm above)
+                                    // instead of refusing whichever connections it parses last.
+                                    self_->read_local_stats().defer_lane_full++;
+                                    fused_executor_->note_local_read_lane_full();
+                                    break;
                                 }
                             }
                         }
