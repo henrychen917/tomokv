@@ -504,3 +504,91 @@ failure.
 fan-out (elapsed=0.000s)` — a timing probe reading zero elapsed on a fused boot) and passes 2s on
 POST. It is one of the known fused+armed gate holes that fail on mainline too and belongs to the
 lane that owns that hole; it is recorded here and not chased.
+
+---
+
+## 14. What the fix costs, measured against a same-binary null
+
+A correctness fix that quietly taxes the hot path is not a correctness fix, so this is measured
+rather than argued — but a sub-percent number on this box means nothing without a noise floor, so
+**the null comes first**. `nullA` and `nullB` are the SAME POST binary under two labels, run in the
+same alternation and at the same separation as the pre/post pair; a pre→post difference no larger
+than the nullA→nullB difference is noise and is reported as noise.
+
+Fixed op count on every arm (matched rate by construction). Server on physical 48,49 (+SMT
+176,177); driver on 50,51 (+SMT 178,179), never sharing a physical core. `perf stat -p <server>`
+over the measured phase only, with the idle instruction and cycle rates measured at no load and
+subtracted. Medians of 2 reps. **`cycles/op` carries the verdict; `instr/op` and `IPC` are its two
+factors — cyc/op = instr/op ÷ IPC — and are printed so a move can be attributed rather than merely
+noticed.** Harness: `scratchpad/mr/pcell2.sh`, `perfrun.sh`, `ptable.py`; raw rows in
+`run/perfmatrix.csv`.
+
+### 14a. `1s` = fused + `--read-local 1` + `--atomic 1` — the geometry the defect lived in
+
+| cell | metric | nullA→nullB | PRE | POST | POST−PRE | verdict |
+|---|---|---|---|---|---|---|
+| **set** (plain pipelined SET) | cyc/op | +1.69% | 4597.6 | 4524.7 | **−1.58%** | null |
+| | instr/op | +1.00% | 6493.4 | 6466.6 | −0.41% | null |
+| | IPC | −0.31% | 1.413 | 1.429 | +1.17% | null |
+| | writes/s | −0.05% | 981,134 | 996,789 | +1.60% | null |
+| **multi** (MULTI;SET;SET;EXEC, window SHUT) | cyc/op | +0.44% | 40519 | 41250 | **+1.80%** | moved |
+| | instr/op | −0.06% | 58599 | 58688 | +0.15% | null |
+| | IPC | −0.45% | 1.446 | 1.422 | −1.66% | moved |
+| | writes/s | −0.14% | 113,880 | 112,132 | −1.94% | moved |
+| **multiarmed** (cross-shard MSET then the same transaction, window OPEN) | cyc/op | +0.08% | 54503 | 56002 | **+2.75%** | moved |
+| | instr/op | +0.09% | 72384 | 74382 | +2.76% | moved |
+| | IPC | +0.00% | 1.328 | 1.328 | +0.00% | null |
+| | writes/s | +0.08% | 89,327 | 88,315 | −1.13% | moved |
+
+**Counters, which is what makes each cell mean what it says.**
+
+| cell | PRE holds | POST holds | POST late |
+|---|---|---|---|
+| set | 0 | **0** | 0 |
+| multi | 0 | **0** | 0 |
+| multiarmed | 0 | **229,114 / 244,084** per 400,000 rounds | 0 |
+
+* **`set`: the main-command null is structural, not statistical.** `holds` is zero on every arm
+  because the hold lives inside `ExLoop::execute()`'s `if (multi_task_tagged(t))` → `if (t.client)`
+  branch, which an ordinary SET task never enters. The measurement agrees (POST is 1.6% *faster*,
+  inside a ±1.7% null band), but the structure is the argument: there is no code on the plain write
+  path to be slower.
+* **`multi`: instructions flat, IPC down.** The window is shut — no cross-shard group is open —
+  and `holds` confirms the park never fired, so this cell prices the *added branch* and nothing
+  else. instr/op is a clean null (+0.15% against a −0.06% null): one predictable-false
+  `atomic_has_records()` load is invisible against 58k instructions. The cycles moved because IPC
+  did, which a branch that is never taken cannot cause: it is code placement in the tagged-MULTI
+  dispatch path. The earlier hand run measured the same cell at +2.0% cyc/op independently, so it
+  reproduces, and the honest reading is *this is the size of a layout effect on this box*, not a
+  path cost. A pad control settles it, and that is one of the two cells worth a run on the owner's
+  128-core box, where the layout question is asked at the real geometry.
+* **`multiarmed`: this is the price of the fix, and it is where the hazard is.** The park fires on
+  ~60% of rounds (229k–244k per 400k). instr/op and cyc/op move together by +2.8% with IPC exactly
+  flat: the cost is *instructions* — the pending-list walk, the re-queue, the second dispatch — and
+  nothing about how well the machine runs them. This cell is pathological by construction (every
+  single round opens a cross-shard `MSET` and then runs a transaction on the same connection), so
+  +2.8% here is an upper bound reached only when the hazard is continuous. The alternative price is
+  a store that commits withdrawn values.
+* `atomic_exec_order_late` is **0 on every POST arm under load**, which is the falsifier of §5's
+  acyclicity argument holding at 88k writes/s and not merely in a battery.
+
+### 14b. `2s` = `--thread-mode 2s --ratio 2:2` — the geometry the hazard cannot reach
+
+The null-controlled 2s matrix was still gated behind the shared quiet flag when this was written
+(the box went busy at 01:01 and stayed busy; the runner paused itself between cells exactly as
+designed, `run/perfrun2.log`). What exists is the earlier hand run: 3 reps, PRE vs POST, **no null
+arm**, and it is reported as that and not as more.
+
+| cell | cyc/op PRE→POST | instr/op | IPC | rate |
+|---|---|---|---|---|
+| set | +0.11% | +0.43% | +0.00% | +0.03% |
+| multi | −0.47% | −0.78% | +0.00% | +0.45% |
+| multiarmed | −0.03% | −0.14% | +0.00% | +0.12% |
+
+Every 2s cell is a null on every metric, in both directions, including the armed one — and that is
+the expected shape rather than a lucky one. In the split geometry the IO and executor roles are
+separate threads, so a pipelined `MSET` is decided by its owner before the following `EXEC`'s
+fragment is dispatched; the window is closed by scheduling and the park has nothing to hold. This
+is the same asymmetry that made the defect visible only in the fused armed boot (§2): the fused
+role runs the connection's units back-to-back, which both opens the hazard and pays for closing it.
+The cost appears exactly where the hazard is and nowhere else.
