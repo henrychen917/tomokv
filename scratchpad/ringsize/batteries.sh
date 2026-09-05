@@ -11,6 +11,22 @@ OUT="${3:-/tmp/ringsize-batteries-$MODE.txt}"
 PORT=8300
 CORES=58-61,186-189
 CLI=/tmp/claude-1000/redis74/src/redis-cli
+# THE 2s RATIO IS DERIVED FROM THE MASK, NOT WRITTEN DOWN. --ratio io:ex asks for io+ex threads and
+# the server refuses to start more threads than it has allowed cpus ("--ratio: 16 threads but only
+# 8 allowed cpus", which is exactly how the 2s battery died at 19:55 once this lane was confined to
+# eight logical cpus). Keeping the base lane's 6:10 SHAPE and scaling it to whatever mask this lane
+# actually holds means the battery follows the pin instead of contradicting it.
+ncpus(){ python3 -c "
+import sys
+n=0
+for part in sys.argv[1].split(','):
+    a,_,b = part.partition('-')
+    n += int(b)-int(a)+1 if b else 1
+print(n)" "$1"; }
+NCPU=$(ncpus "$CORES")
+RIO=$(( NCPU * 6 / 16 )); [ "$RIO" -lt 1 ] && RIO=1
+REX=$(( NCPU - RIO ));    [ "$REX" -lt 1 ] && REX=1
+RATIO=${RATIO:-$RIO:$REX}
 PASS=0; FAIL=0
 : > "$OUT"
 
@@ -54,7 +70,7 @@ if [ "$MODE" = 1s ]; then
        --enable-debug-command yes || exit 1
   run bplus; halt
 else
-  ARM=(--thread-mode 2s --ratio 6:10 --enable-debug-command yes)
+  ARM=(--thread-mode 2s --ratio "$RATIO" --enable-debug-command yes)
   for t in s6 ryow atomic_hazards multi_exec blocking blockmulti xscript expwide flip; do
     boot "${ARM[@]}" || exit 1; run "$t"; halt
   done
