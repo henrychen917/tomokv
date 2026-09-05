@@ -860,6 +860,15 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
                SnapshotHookStatus::Ok && clone;
 }
 
+// Violations of the install-time ordering invariant asserted in prepare_write_key() below. It is a
+// bug counter, not a workload counter: every battery that exercises a transaction behind an
+// undecided same-connection unit asserts it is EXACTLY zero, in both atomic modes. Namespace scope
+// rather than Shard::Stats because Shard's layout is locked (sizeof(Shard) == 1440) and because a
+// counter that is never incremented needs no per-shard line of its own.
+std::atomic<uint64_t> g_exec_order_late{0};
+
+uint64_t multi_exec_order_late() { return g_exec_order_late.load(std::memory_order_relaxed); }
+
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 
 MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard,
@@ -868,25 +877,37 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
     if (!watch_refs) watch_refs = &state.watch_refs;
-    // OBSERVABILITY ONLY -- deliberately not a gate, and it asks EXACTLY the question the
-    // dispatch-time park in ExLoop::execute() asks: does this owner still hold an undecided record
-    // belonging to a DIFFERENT logical unit of this connection? The park normally forecloses it,
-    // so this must be able to read zero; a non-zero reading means a record became visible on this
-    // owner between dispatch and install, which single-owner writes are supposed to make
-    // impossible. Holding the transaction HERE instead of counting was tried and is WRONG -- it
-    // deadlocks, NOTES-MULTIRES.md §5(a); the park is safe only because it happens before the
-    // fragment has installed anything on this owner (NOTES-MULTIRACE.md §4).
+    // THE FALSIFIER, and it must read ZERO. It asks EXACTLY the question the dispatch-time park in
+    // ExLoop::execute() asks -- does this owner still hold an undecided record belonging to a
+    // DIFFERENT logical unit of this connection? -- but asks it one step later, at install time.
+    // The park is supposed to foreclose it completely, because only this owner thread may publish
+    // into this owner's pending list, so nothing can appear between the dispatch check and these
+    // installs. A non-zero reading is therefore not a statistic: it is proof that the park's
+    // safety argument (NOTES-MULTIRACE.md §5) is false on this build, and that a transaction could
+    // again clone a withdrawable candidate into an acknowledged write.
+    //
+    // It counts into its OWN counter, deliberately. Sharing atomic_exec_order_holds with the park
+    // would make this arm unreadable: the park is non-zero BY DESIGN in exactly the runs that open
+    // the window, so a sum can never be checked against zero and the falsifier would be inert --
+    // the safety argument would break with no test going red. Split, each counter answers one
+    // question: holds > 0 proves the hold fired, late == 0 proves it fired EARLY ENOUGH.
+    // Not a Shard::Stats field because Shard's layout is locked at 1440 bytes; a namespace-scope
+    // atomic costs nothing here, since the increment is on a path that is never taken.
+    //
+    // Holding the transaction HERE instead of counting was tried and is WRONG -- it deadlocks,
+    // NOTES-MULTIRES.md §5(a); the park is safe only because it happens before the fragment has
+    // installed anything on this owner.
     // The exclusion is BY EPOCH WORD and must cover the transaction's lowered children as well as
     // its own: a cross-shard child installs through the scatter path with its own ScatterState,
-    // and counting that would let a run satisfy the batteries' non-vacuity assertion without the
-    // cross-unit window ever opening.
+    // and counting that would report a violation every time a transaction merely met its own
+    // RENAME/LMPOP child.
     if (__builtin_expect(shard.store().atomic_has_records(), false) &&
         shard.store().atomic_has_foreign_unit_undecided(
             state.origin_conn_id,
             [&state](const void* group_epoch) {
                 return multi_state_owns_epoch(state, group_epoch);
             }))
-        shard.stats().atomic_exec_order_holds++;
+        g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
     if (!shard.watch_write_ready(key, watch_token)) return MultiPrepareWrite::Retry;
     shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
                               &state.epoch, &state.aborted, watch_refs);

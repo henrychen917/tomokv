@@ -420,19 +420,18 @@ public:
         // Times a transaction met an OLDER, still-UNDECIDED unit of the SAME connection on this
         // owner -- the window in which those two units' commit tickets can invert AND in which
         // the older unit's installed-but-withdrawable candidate is exposed to the transaction
-        // through the store's connection-scoped RYOW overlay. Two sites raise it, both cold and
-        // both on paths that already walk the owner's pending list:
-        //   * ExLoop::execute(), where a transaction FRAGMENT is parked behind such a unit before
-        //     it installs anything here. This is the ordinary one now, and it is a real hold: it
-        //     is what stops an aborted MSETNX's candidate from being cloned into an acknowledged
-        //     transaction write (tests/multirace.py).
-        //   * multi.inc's prepare_write_key(), which OBSERVES -- never holds -- the identical
-        //     question at install time. Only this owner thread may publish into this owner's
-        //     pending list, so the park should foreclose it completely and this arm should stay at
-        //     zero. It is kept as the falsifier of exactly that argument, which is the argument
-        //     the park's safety rests on (NOTES-MULTIRACE.md §4).
+        // through the store's connection-scoped RYOW overlay. ONE site raises it: ExLoop::execute(),
+        // where the transaction FRAGMENT is parked behind such a unit before it installs anything
+        // here. It is a real hold, and it is what stops an aborted MSETNX's candidate from being
+        // cloned into an acknowledged transaction write (tests/multirace.py). Cold, and on a path
+        // that already walks the owner's pending list.
         // It must be able to read zero -- a transaction with no such predecessor never touches it
         // -- so a non-zero reading is proof the window opened rather than proof the test ran.
+        // The question "did the park fire EARLY ENOUGH" is a different one and deliberately does
+        // NOT share this counter: multi.inc's prepare_write_key() re-asks it at install time and
+        // reports violations through INFO atomic_exec_order_late (multi_exec_order_late()), which
+        // must read zero. Summing the two would hide a violation inside a number that is non-zero
+        // by design, leaving the park's safety argument with no falsifier (NOTES-MULTIRACE.md §5).
         uint64_t atomic_exec_order_holds = 0;
         // Times watch_finalize_reservation() answered "not ready" because the reservation's epoch
         // was still 0, i.e. a unit was turned into a Retry by an undecided WATCH reservation. It

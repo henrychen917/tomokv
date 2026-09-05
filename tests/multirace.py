@@ -46,6 +46,13 @@ run never entered the window and its pass proves nothing. Under atomic 0 MSETNX 
 decides before it installs, so the window cannot open and the counter must read exactly zero;
 that arm asserts zero rather than merely tolerating it.
 
+Correctness of the fix's PLACEMENT is a second, separate claim with its own counter.
+`atomic_exec_order_late` counts the same question re-asked at install time, and must read zero in
+both modes: the park is only safe at dispatch because nothing can appear on this owner between the
+dispatch check and the installs. The two counters are deliberately NOT summed -- `holds` is
+non-zero by design in exactly the runs that matter, so a shared counter could never be checked
+against zero and a violation would hide inside it.
+
 BOTH MODES RUN FROM ONE BOOT, driven by this battery through CONFIG SET (restored at exit). The
 armed debug-surface boot it joins is shared with scriptatomic/execatomic/execiso/execfix, each of
 which flips `atomic` itself and leaves it flipped, so the boot flag does not decide the mode a
@@ -155,6 +162,15 @@ def holds(conn):
     if "atomic_exec_order_holds" not in table:
         raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
     return int(table["atomic_exec_order_holds"])
+
+
+def late(conn):
+    """INFO atomic_exec_order_late -- the install-time ordering violations the dispatch park is
+    supposed to make impossible. A BUG counter: it must read zero at every point in every mode."""
+    table = stats(conn)
+    if "atomic_exec_order_late" not in table:
+        raise AssertionError("INFO STATS has no atomic_exec_order_late counter")
+    return int(table["atomic_exec_order_late"])
 
 
 def atomic_setting(conn):
@@ -458,6 +474,24 @@ def run_mode(admin, mode, blocker, victims):
               "owner in this mode", flush=True)
     else:
         ok("atomic 0: MSETNX is two-hop and installs nothing before it decides, window shut")
+
+    # THE PARK FIRED EARLY ENOUGH. Separate counter, separate claim: `holds` above proves the
+    # transaction was held, this proves it was held BEFORE it installed. prepare_write_key() re-asks
+    # the park's question at install time, and only the owner thread may publish into its own
+    # pending list, so the answer must be no -- in BOTH modes, unconditionally, from boot. A
+    # non-zero reading means a record became visible between dispatch and install, which is the
+    # premise of the acyclicity argument in NOTES-MULTIRACE.md §5 and the reason the hold is safe
+    # to take at dispatch at all. This is asserted as an absolute rather than a delta because the
+    # honest value is zero forever, not merely unchanged across this battery.
+    violations = late(admin)
+    if violations:
+        failures += 1
+        print(f"  FAIL atomic_exec_order_late={violations}: an EXEC write reached its install "
+              "with an undecided same-connection unit still on this owner. The dispatch-time park "
+              "did not foreclose the window, so the transaction could clone a withdrawable "
+              "candidate -- the defect this battery exists to close, one step later", flush=True)
+    else:
+        ok("no install-time ordering violation: the park fired before every install")
     return failures
 
 

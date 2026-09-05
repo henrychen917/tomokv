@@ -207,15 +207,47 @@ modes are covered; no struct changed, so `Op=336 / Client=1984 / ThreadCtx=1408 
 FlatStore=944 / Rob<64>=192 / AtomicEntry=144 / Config=624` are untouched and their static asserts
 compiled.
 
-### One counter, one meaning
+### One counter, one meaning — and why the falsifier needed a second one
 
-`atomic_exec_order_holds` is now raised at two sites that ask the *same* question. The
-`prepare_write_key()` site previously excluded only `state.epoch`, so it also counted a
-transaction meeting **its own** cross-shard child — a reading that satisfies the batteries'
-non-vacuity assertion without the cross-unit window ever opening. It now uses the same
-`multi_state_owns_epoch()` predicate. `atomic_has_own_undecided()`'s `ignore_epoch` parameter had
-no other caller and is removed; one epoch pointer cannot name a transaction's several words, which
-is the whole reason the predicate exists.
+Two different claims are being made, and they need two counters:
+
+* **`atomic_exec_order_holds`** (`ExLoop::execute()`, dispatch) — *the hold fired*. Non-zero by
+  design in every armed run; `tests/multirace.py` and `tests/multires.py` fail a run in which it
+  never advances, because such a run never entered the window.
+* **`atomic_exec_order_late`** (`prepare_write_key()`, install) — *the hold fired **early
+  enough***. Must read **zero**, in both atomic modes, from boot.
+
+The install-time site asks the identical question one step later. Only the owner thread publishes
+into its own pending list, so the park should foreclose it completely — and that foreclosure is
+the whole acyclicity argument above. Keeping the probe is what makes that argument falsifiable.
+
+The refinement this lane closes: those two sites were briefly **merged onto one counter**, which
+made the falsifier inert. `holds` is non-zero *by design* in exactly the runs that open the window,
+so a summed counter can never be checked against zero — the safety argument could have broken with
+no test going red, and the batteries' non-vacuity assertion would have been satisfied by park
+increments regardless. Split, each number answers exactly one question and both are asserted:
+`holds > 0` (armed) and `late == 0` (always).
+
+`atomic_exec_order_late` is a namespace-scope `std::atomic<uint64_t>` in `multi.inc`, not a
+`Shard::Stats` field, because `sizeof(Shard)` is locked at 1440 and `Stats` is a by-value member —
+a 20th counter would have grown it. Nothing is lost by the placement: the increment sits on a path
+that is never taken, so there is no per-shard line to contend for. There is precedent for the
+shape (`scripting.cc`, `slowlog.cc`, `functions.cc` all keep INFO counters this way).
+
+The `prepare_write_key()` probe also previously excluded only `state.epoch`, so it counted a
+transaction meeting **its own** cross-shard child. It now uses `multi_state_owns_epoch()`, the same
+predicate as the park — without that, `late` would report a violation on every EXEC containing a
+`RENAME`/`LMPOP` and the zero assertion could never hold.
+`atomic_has_own_undecided()`'s `ignore_epoch` parameter had no other caller and is removed; one
+epoch pointer cannot name a transaction's several words, which is the whole reason the predicate
+exists.
+
+**Effect on `tests/multires.py`.** That battery locks the same hazard window and used this counter
+as its non-vacuity discriminator. The fix moves where the window is closed — from install to
+dispatch — so its counter now advances at the park; its docstring said "and where an EXEC write
+installs against one" and no longer does, because that arm is gone. Its three negative controls
+still read zero: a foreign connection is excluded by `origin_conn_id`, a single-key `DEL` carries
+no `group_epoch`, and "no predecessor" has nothing undecided. It asserts `late == 0` as well.
 
 ---
 
@@ -279,13 +311,14 @@ merely tolerating whatever it finds.
 |---|---|
 | `src/core/ex_loop.h` | the dispatch-time hold in `execute()`'s tagged-MULTI branch |
 | `src/store/flatstore_atomic.inc` | `atomic_has_foreign_unit_undecided()`; `ignore_epoch` removed from `atomic_has_own_undecided()` |
-| `src/cmd/multi.inc` | `multi_state_owns_epoch()` / `multi_task_owns_epoch()`; `prepare_write_key()`'s probe now asks the same question as the park |
-| `src/cmd/multi.h` | `multi_task_owns_epoch()` declaration |
-| `src/core/shard.h` | comment only: what `atomic_exec_order_holds` counts, at which two sites |
+| `src/cmd/multi.inc` | `multi_state_owns_epoch()` / `multi_task_owns_epoch()`; `prepare_write_key()`'s probe now asks the same question as the park and reports into its own counter, `g_exec_order_late` |
+| `src/cmd/multi.h` | `multi_task_owns_epoch()` and `multi_exec_order_late()` declarations |
+| `src/cmd/t_server.cc` | INFO STATS emits `atomic_exec_order_late` |
+| `src/core/shard.h` | comment only: `atomic_exec_order_holds` has ONE site again, and why the install-time probe does not share it |
 | `tests/multirace.py` | new battery: abort case, commit (RYOW) control, foreign-connection control, liveness case, both atomic modes, non-vacuity both ways |
 | `tests/gate.sh` | `multirace` in the armed loop; the armed-fused differ row; EXPECT arithmetic |
 | `tests/differ_gate.sh` | `GATE_DIFFER_GEOMETRY`; the `read_local_hits` non-vacuity row; the stated `sort` skip |
-| `tests/multires.py` | comment only: the counter now has two sites |
+| `tests/multires.py` | docstring: the counter has one site and the window now closes at dispatch; asserts `atomic_exec_order_late == 0` |
 
 **Correction to NOTES-MULTIRES.md §5(a).** That file says "hold the EXEC write behind its own
 older group … do not retry". The prohibition is correct *for the place it was tried* — inside

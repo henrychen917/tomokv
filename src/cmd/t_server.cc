@@ -2091,6 +2091,7 @@ void cmd_info(Shard&, Op& op) {
                       "atomic_gauge_underflows:%llu\r\n"
                       "atomic_pending_entries:%llu\r\natomic_localfast:%llu\r\n"
                       "atomic_scan_order_holds:%llu\r\natomic_exec_order_holds:%llu\r\n"
+                      "atomic_exec_order_late:%llu\r\n"
                       "watch_reservation_waits:%llu\r\n"
                       "watch_reservation_coexist:%llu\r\n"
                       "watch_reservation_precommit_aborts:%llu\r\n"
@@ -2198,6 +2199,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(atomic_localfast),
                 static_cast<unsigned long long>(atomic_scan_holds),
                 static_cast<unsigned long long>(atomic_exec_order_holds),
+                static_cast<unsigned long long>(multi_exec_order_late()),
                 static_cast<unsigned long long>(watch_reservation_waits),
                 static_cast<unsigned long long>(watch_reservation_coexist),
                 static_cast<unsigned long long>(watch_reservation_precommit_aborts),
