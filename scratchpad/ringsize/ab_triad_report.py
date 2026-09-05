@@ -23,8 +23,10 @@ for r in rows:
               'read_local_fallback_inflight_write', 'read_local_fallbacks', 'ring_overflows',
               'srv_cores'):
         r[k] = float(r[k])
+    r['fills'] = float(r.get('fills') or 0)
     r['instr_op'] = r['instr'] / r['cmds'] if r['cmds'] else float('nan')
     r['cyc_op'] = r['cycles'] / r['cmds'] if r['cmds'] else float('nan')
+    r['fills_op'] = r['fills'] / r['cmds'] if r['cmds'] else float('nan')
     r['ipc'] = r['instr'] / r['cycles'] if r['cycles'] else float('nan')
 
 low = [r for r in rows if r['mux'] < 99.5]
@@ -46,7 +48,7 @@ label = {'w41': '41% writes  (under)', 'w55': '55% writes  (edge)',
          'w100': 'pure SET (1:0) NULL', 'r100': 'pure GET (0:1) NULL'}
 
 hdr = (f"{'cell':<22}{'arm':<6}{'M ops/s':>9}{'instr/op':>10}{'cyc/op':>9}{'IPC':>7}"
-       f"{'p99 ms':>8}{'local hits':>14}{'write-demoted':>15}{'local %':>9}"
+       f"{'fills/op':>10}{'p99 ms':>8}{'local hits':>14}{'write-demoted':>15}{'local %':>9}"
        f"{'ring ovf':>11}{'srv cores':>11}")
 print(hdr)
 print('-' * len(hdr))
@@ -64,12 +66,13 @@ for c in cells:
         pct = (100.0 * h / tot) if tot else float('nan')
         print(f"{label.get(c, c):<22}{arm:<6}{med(c,arm,'rate')/1e6:>9.3f}"
               f"{med(c,arm,'instr_op'):>10.1f}{med(c,arm,'cyc_op'):>9.1f}{med(c,arm,'ipc'):>7.3f}"
+              f"{med(c,arm,'fills_op'):>10.2f}"
               f"{med(c,arm,'p99'):>8.2f}{h:>14.0f}{f:>19.0f}"
               f"{('%8.1f%%' % pct) if tot else '       --':>9}"
               f"{med(c,arm,'ring_overflows'):>11.0f}{med(c,arm,'srv_cores'):>11.2f}")
     d = lambda fld: (med(c, 'POST', fld) - med(c, 'PRE', fld)) / med(c, 'PRE', fld) * 100.0
     print(f"{'':<22}{'delta':<6}{d('rate'):>+8.2f}%{d('instr_op'):>+9.2f}%{d('cyc_op'):>+8.2f}%"
-          f"{d('ipc'):>+6.2f}%")
+          f"{d('ipc'):>+6.2f}%{d('fills_op'):>+9.2f}%")
     print()
 
 print("per-visit rates (drift check, M ops/s) -- visits run PRE POST POST PRE within each round")
@@ -90,9 +93,20 @@ if unsat:
         print(f"    {label.get(c,c):<22}{a:<6}{v:>6.2f} cores")
     print()
 
-null = [r['rate'] for r in rows if r['cell'] == 'r100']
-if null:
-    spread = 100.0 * (max(null) - min(null)) / statistics.median(null)
-    print(f"\nNULL CONTROL SPREAD: the read-only cell moved {spread:.2f}% across all visits.")
-    print("Any rate delta below that number is inside the instrument's own noise, and the")
-    print("instructions/op column is the one that can still be read.")
+# THE FLOOR IS PER CELL AND PER COLUMN, and it is stated before any delta is believed.
+# A single spread taken from the read-only cell is the wrong instrument twice over: it prices only
+# one cell's stability, and it prices only the rate. Instructions per operation is a far quieter
+# quantity than rate on the same runs -- that is the whole reason it is reported -- so holding it to
+# the rate's floor would throw away the column that can actually resolve this lane's question.
+print("\nSTABILITY, per cell, across every visit of this run -- max-to-min spread as a percentage")
+print("of the median. In a NULL run (same binary both arms) these ARE the noise floor: no delta")
+print("smaller than its own cell's spread may be called a result.")
+print(f"{'cell':<22}{'rate':>9}{'instr/op':>10}{'cyc/op':>9}{'fills/op':>10}{'visits':>8}")
+for c in cells:
+    vals = [r for r in rows if r['cell'] == c]
+    def spread(fld):
+        v = [x[fld] for x in vals if x[fld] == x[fld]]
+        m = statistics.median(v) if v else 0
+        return 100.0 * (max(v) - min(v)) / m if v and m else float('nan')
+    print(f"{label.get(c,c):<22}{spread('rate'):>8.2f}%{spread('instr_op'):>9.2f}%"
+          f"{spread('cyc_op'):>8.2f}%{spread('fills_op'):>9.2f}%{len(vals):>8}")

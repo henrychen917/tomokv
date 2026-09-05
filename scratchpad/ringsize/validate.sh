@@ -10,6 +10,8 @@
 #   mutate  the falsification table: the control passes, every mutation fails
 #   codegen is the tag sweep still vectorised, and what does the rejected shape compile to
 #   probe   instructions and cycles per REJECTED read probe, by ring shape and live-write count
+#   satcheck the saturation ladder: is the server the bottleneck, or is the load generator? No rate
+#           A/B is run until this says the rate belongs to the server
 #   null    the same-binary null: what this rate instrument calls zero, measured first
 #   rate    the saturated ABBA A/B: rate + instr/op + cycles/op + IPC + both counters
 #   matched the same A/B with both arms rate-limited to the same delivered load, which is the only
@@ -50,7 +52,7 @@ check_restored(){
     && echo "tree restored: lane source digests unchanged" \
     || { echo "REFUSING TO CONTINUE: $1 left a lane source file modified"; exit 1; }
 }
-PHASES="${*:-build unit sizes mutate codegen expwide probe null rate matched ovf conn mset slope mem batt differ}"
+PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck null rate matched ovf conn mset slope mem batt differ}"
 
 for phase in $PHASES; do
 case "$phase" in
@@ -82,6 +84,19 @@ probe)
   stamp "instructions per rejected read probe"
   "$HERE/probe_cost.sh" 2>&1 | tee "$OUT/probe_cost.txt"
   check_restored probe_cost.sh
+  ;;
+satcheck)
+  # THE INSTRUMENT CHECK THAT COMES BEFORE THE NULL. A null proves the two arms are the same binary;
+  # it cannot prove the rate it reports is a property of the server. Two nulls were thrown away for
+  # exactly that -- the first moved -12.14% on one binary against itself, the second came back tight
+  # in the median but with a read-only control swinging 14% and the server idle an eighth of every
+  # core in every cell. This ladder holds the server fixed and grows the load generator until the
+  # rate stops climbing. Where it stops is where the server is the limit, and that is the only place
+  # a rate A/B in this lane may be run.
+  guard satcheck
+  stamp "saturation ladder (is the server the bottleneck?)"
+  rm -f "$OUT/satcheck.csv"
+  "$HERE/satcheck.sh" ./build/tomokv-pre "$OUT/satcheck.csv" 2>&1 | tee "$OUT/satcheck.txt"
   ;;
 null)
   # SAME-BINARY NULL, RUN FIRST. Both arms are the PRE binary, so every delta this instrument

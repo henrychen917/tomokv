@@ -433,3 +433,62 @@ physical cores is nearly three to a core.
 Corrected, from the data rather than by guess: **server 58-59** (two cores, two shards — which is
 what this workload actually delivers), **load generators 60-63** (four cores, so eight threads sit
 two to a core). Siblings 186-191 stay idle. No rate from the 3/3 geometry is quoted anywhere.
+
+
+## 2026-09-06 00:30 — the instrument, rebuilt: what the corrected geometry actually showed
+
+The 2/4 re-pin ran, and it half-worked. Its medians came back honest where the 3/3 pin's had not
+(PRE against PRE: −0.03% at 41% writes, +0.14% at 55%, +0.57% at 70%, +0.01% pure SET), but two
+things in the same output say the instrument was still not fit to answer a 2-4% question:
+
+* **the read-only control swung 14.17% visit to visit** — 2.42, 2.77, 2.45, 2.66 M ops/s on one
+  binary — so a −3.4% at 70% writes had no floor to be measured against;
+* **the server burned 1.75 of its 2 cores in every cell of every visit**, at rates ranging from
+  2.48M to 3.95M. A duty cycle that does not move when the work per operation moves by 50% is not
+  a saturated server, and core burn alone cannot say which way.
+
+### The cycles column was 1/rate wearing a disguise
+
+`perf stat -C 58-59` counts every cycle those two cpus spend in C0 — the idle task's included. Read
+the null's raw cycle counts across cells whose rates differ by half:
+
+    92,418,280,288   92,501,115,865   92,536,430,971   92,489,865,776   …
+
+Sixteen visits, five cells, four rounds, and the count is the same to a fifth of a percent every
+time, because it is wall time × frequency × two cores and nothing else. **Cycles/op computed from
+it is algebraically 1/rate, and IPC is instructions divided by a constant.** Three of the four
+reported columns were two independent quantities, and one of them silently restated the column it
+existed to explain. Every cycles/op and IPC number taken before this fix is withdrawn; rate,
+instructions/op and the counters stand.
+
+`perf` now attaches to the **server process** (`-p $SRV`), so cycles/op is work per operation and
+IPC is the server's own occupancy. perf refuses to take a pid and a command together — it counts
+the command and reports `<not counted>` for the pid, *silently* — so the window is opened by
+attaching before load and closed with SIGINT when the generator exits.
+
+**DRAM fills now ride in every window, not only the connection regime.** Instructions and cycles
+cannot tell a bigger working set from more work, and a bigger working set is precisely what this
+lane spends: +960 bytes on every armed connection. Fills per operation is the column that prices it.
+This is the lesson the connection-side allocation lane paid for tonight — 57 instructions saved per
+armed SET and 0.6% rate lost, because the record then migrated between cores twice per lifecycle.
+
+### The generator was rationed by the scheduler, not by the hardware
+
+Eight memtier threads were pinned to **four logical cpus** (60-63) while 188-191 — the other
+hardware thread of those same four physical cores, inside this lane's own allocation — sat idle by
+a choice that had been made for the server's siblings and copied to the generator's without the
+reason coming with it. The reason is a law only for the server: nothing may run on 186-187, because
+a server sharing execution units reports an IPC that belongs to its co-tenant. Nobody reports
+generator IPC. The generator now gets one hardware thread per memtier thread.
+
+### And the saturation claim is now tested rather than asserted
+
+`satcheck.sh` holds the server fixed and grows the generator — 8 threads on 4 logical cpus, then on
+8, then 12 threads, then 16, connections held at 512 — and watches the rate. The first rung on
+which the rate stops climbing while the generator is still growing is the first rung on which the
+server is the bottleneck, and no rate A/B runs below it. It prints per-thread server cpu beside
+each rung, so a shard imbalance cannot hide inside a plausible total.
+
+`ab_triad_report.py` now states the floor **per cell and per column** rather than borrowing the
+read-only cell's rate spread for everything: instructions/op is a far quieter quantity than rate on
+the same runs, and holding it to the rate's floor would discard the one column able to resolve this.

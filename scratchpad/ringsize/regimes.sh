@@ -66,12 +66,17 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     j0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t0=$(date +%s.%N)
     local rf="$TMP/$MODE-$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$MODE-$arm-$round-$vi-$cell.txt"
     # shellcheck disable=SC2046
+    # PERF FOLLOWS THE SERVER PROCESS, NOT ITS CPUS. `-C` counts every cycle the cpu spends in C0,
+    # idle task included, which makes cycles/op algebraically 1/rate and IPC instructions/constant.
+    # It also makes fills/op meaningless in the same way. perf cannot take a pid AND a command, so
+    # it is attached to the server and stopped with SIGINT when the load generator exits.
+    perf stat -e instructions,cycles,"$FILLS" -x, -o "$pf" -p "$SRV" 2>/dev/null &
+    local PERF=$!
     start_cli "$rf" -s 127.0.0.1 -p "$PORT" --hide-histogram --key-maximum=$KEYMAX \
         --key-minimum=1 --data-size=32 --test-time=$SECS $(cli_args_for "$cell") \
-      || { stop_srv; return 1; }
-    perf stat -e instructions,cycles,"$FILLS" -x, -o "$pf" -C "$SRVCORES" -- \
-      tail --pid="$MEMTIER_PID" -f /dev/null
+      || { kill -INT "$PERF" 2>/dev/null; stop_srv; return 1; }
     wait "$MEMTIER_PID" 2>/dev/null
+    kill -INT "$PERF" 2>/dev/null; wait "$PERF" 2>/dev/null
     local j1 t1 srvcpu rate p50 p99 h1 f1 a1 c1 ins cyc fil mux
     j1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t1=$(date +%s.%N)
     srvcpu=$(python3 -c "print(f'{(($j1-$j0)/100.0)/max(0.001,$t1-$t0):.2f}')" 2>/dev/null)
