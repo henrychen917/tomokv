@@ -154,8 +154,11 @@ elif SECTION == "lfu":
     check("allkeys-lfu: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     check("allkeys-lfu: hot 20 mostly survive", hot >= 15, hot)
     if lane_armed:
+        # Not 600: a read of an already-evicted hot key probes Missing and demotes to the owner,
+        # so the floor has to survive the eviction this section is deliberately causing. 400 of
+        # 600 still leaves no doubt about which path answered.
         check("allkeys-lfu: the hot reads were lane-served (read_local_keyspace_hits)",
-              lane_hot >= 500, "lane hits %d of 600 reads" % lane_hot)
+              lane_hot >= 400, "lane hits %d of 600 reads" % lane_hot)
     # MECHANISM, on a key nothing else samples: a fresh key starts at 5; the first ordinary read
     # raises it for certain (the logarithmic increment has probability 1 below 6), while reads
     # from a CLIENT NO-TOUCH connection must leave it exactly where the write put it.
@@ -190,10 +193,19 @@ elif SECTION == "lruclock":
     idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:probe"))
     check("lruclock: bucket advanced over a 1.6 s dwell (needs --lru-clock-shift 0)",
           idle is not None and idle >= 1, idle)
+    # Read then probe, twice if need be: on a 1 s bucket a second boundary falling between the
+    # GET and the OBJECT IDLETIME reports 1 for a read that did reset the clock, and a gate row
+    # must not be decided by which side of a tick it landed on. Three reads per attempt also give
+    # the lane more than one chance to admit the command on a freshly opened connection.
+    def read_then_idle(key):
+        for _ in range(3):
+            cmd("GET", key)
+        return as_int(cmd("OBJECT", "IDLETIME", key))
     lane0 = info_num("read_local_keyspace_hits") or 0
-    cmd("GET", "lruc:probe")
+    idle = read_then_idle("lruc:probe")
+    if idle != 0:
+        idle = read_then_idle("lruc:probe")
     lane_probe = (info_num("read_local_keyspace_hits") or 0) - lane0
-    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:probe"))
     check("lruclock: one ordinary read resets OBJECT IDLETIME to 0", idle == 0, idle)
     time.sleep(1.6)
     nt, ntf = open_conn()
@@ -206,17 +218,23 @@ elif SECTION == "lruclock":
     check("lruclock: 20 NO-TOUCH reads leave IDLETIME aging", idle is not None and idle >= 1, idle)
     nt.close()
     if lane_armed:
-        check("lruclock: the probe reads were lane-served", lane_probe >= 1 and lane_nt >= 15,
-              "plain %d/1 no-touch %d/20" % (lane_probe, lane_nt))
+        check("lruclock: the probe reads were lane-served", lane_probe >= 3 and lane_nt >= 15,
+              "plain %d/3+ no-touch %d/20" % (lane_probe, lane_nt))
     # Discrimination under pressure: 3000 old keys age one bucket, 50 of them are re-read, then
-    # 8000 new keys push far past the ceiling. LRU must spend the untouched old bucket first.
+    # 6800 new keys push past the ceiling. The pressure is deliberately sized so that the eviction
+    # it forces (~1.4k) is roughly HALF the untouched old bucket (2950) rather than nearly all of
+    # it: the ceiling is per SHARD, and a run that has to consume ~90% of the average shard's old
+    # keys will exhaust the unlucky shards and start spending re-read ones for reasons that have
+    # nothing to do with the policy. At half, the re-read 50 survive on their bucket alone and the
+    # untouched sample halves -- and on a server whose lane does not touch, the re-read 50 are just
+    # 50 more untouched keys and "mostly survive" fails, which is the whole point of the row.
     fill("lruold", 3000)
     time.sleep(1.6)
     lane2 = info_num("read_local_keyspace_hits") or 0
     for i in range(50):
         cmd("GET", "lruold:%d" % i)
     lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
-    fill("lrunew", 8000, tolerate_oom=True)
+    fill("lrunew", 6800, tolerate_oom=True)
     ev = info_num("evicted_keys")
     hot = alive("lruold", range(50))
     cold = alive("lruold", range(50, 3000, 59))

@@ -995,24 +995,50 @@ private:
         return transient;
     }
 
-    // Eviction accounting for a lane-served read, taken only while maxmemory is on with an LRU or
-    // LFU policy. The owner touches every key it serves; a key kept hot purely by lane-served reads
-    // was never touched, so the victim chooser saw it as idle/cold and evicted it FIRST -- the
-    // inverse of the policy (tests/evict_battery.py lfu, lruclock). Same arithmetic as
-    // FlatStore::touch(), but store-rare by construction: LRU writes only when the key's bucket is
+    // What note_local_read_access() records for a lane-served read. Not the MaxmemoryPolicy enum:
+    // every policy that keys on nothing a read changes collapses to None here, so the cold helper
+    // dispatches on one byte instead of re-deriving the classification per key.
+    static constexpr uint8_t kForeignTouchNone = 0;
+    static constexpr uint8_t kForeignTouchLru  = 1;
+    static constexpr uint8_t kForeignTouchLfu  = 2;
+
+    // Eviction accounting for one key served on the read-local lane, and the CLIENT NO-TOUCH
+    // answer for it. The owner does both for every key it serves (FlatStore::find -> touch(), and
+    // the per-task climon_note_no_touch() in execute_task); a lane-served read that did neither
+    // made the two paths disagree about what a read MEANS:
+    //   * LFU/LRU: a key kept hot purely by lane-served reads was never counted as accessed, so
+    //     the victim chooser saw it as the coldest thing in the shard and evicted it FIRST -- the
+    //     policy inverted (tests/evict_battery.py lfu, lruclock).
+    //   * CLIENT NO-TOUCH: the flag was never consulted here, so "suppressed" and "never looked"
+    //     were indistinguishable on the wire (tests/climon2.py, client_no_touch_ops).
+    // The call sites gate on maxmemory_enabled_ -- the SAME per-pass byte the owner path tests --
+    // so the default posture pays one predicted-not-taken branch per key and never loads the
+    // policy, the no-touch bit, or the LRU clock. Out of line and cold: reaching it at all means
+    // maxmemory is armed, and then this is a cache-cold decision on a path whose whole point is to
+    // stay inside this thread's own lines.
+    //
+    // The arithmetic below is FlatStore::touch()'s, with the two differences foreignness forces:
+    // the logarithmic-increment dice are this thread's own (the store's PRNG belongs to its owner
+    // and is not safe to advance from here), and the meta write is one unretried CAS
+    // (KvObj::touch_eviction_meta_foreign) rather than the owner's load/store pair, so a lost race
+    // costs one approximate touch -- which LRU and LFU tolerate by construction -- and can never
+    // corrupt a layout bit. Store-rare by construction: LRU writes only when the key's bucket is
     // stale (once per 1<<lru-clock-shift seconds per key, 256 s by default) and LFU only when the
-    // logarithmic increment fires, so the foreign RFO into the owner's line is the exception, never
-    // the per-read rule, and it is one unretried CAS (KvObj::touch_eviction_meta_foreign). CLIENT
-    // NO-TOUCH is honoured by the caller exactly as on the owner. The object is const to the read
-    // path; its five metadata bits are mutable by design (the owner writes them in place too).
-    __attribute__((noinline, cold)) void foreign_touch(const KvObj* object, uint8_t flags) {
+    // increment actually fires, so the foreign RFO into the owner's line is the exception rather
+    // than the per-read rule.
+    __attribute__((noinline, cold))
+    void note_local_read_access(const Op& op, const KvObj* object, uint8_t flags) {
+        if (op.no_touch()) { srv_->climon_note_no_touch(); return; }
         KvObj* touched = const_cast<KvObj*>(object);
         const uint8_t meta = static_cast<uint8_t>(flags >> 3);
-        if (foreign_touch_policy_ == 1) {
+        if (foreign_touch_policy_ == kForeignTouchLru) {
             if (meta != cached_lru_clock_)
                 touched->touch_eviction_meta_foreign(flags, cached_lru_clock_);
             return;
         }
+        // Random/TTL/noeviction key on nothing a read changes, so there is nothing to record --
+        // but the NO-TOUCH count above still has to happen, exactly as it does on the owner.
+        if (foreign_touch_policy_ != kForeignTouchLfu) return;
         uint8_t count = meta ? meta : 5;
         const uint32_t base = count > 5 ? static_cast<uint32_t>(count - 5) : 0;
         const uint32_t denominator = base * 10 + 1;
@@ -1141,11 +1167,13 @@ private:
                     return {ReadLocalFallbackReason::Typed};
                 }
                 prepared.keyspace_hits++;
-                if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
-                    foreign_touch(object, flags);
+                // Account only for a key this pass actually accepted, so a churned read that is
+                // about to be retried or demoted never records an access it did not serve.
                 if (!window.use_epochs && !store.read_local_validate(probe.state)) {
                     transient = ReadLocalFallbackReason::SeqChurn;
                     retry = true;
+                } else if (__builtin_expect(maxmemory_enabled_, false)) {
+                    note_local_read_access(op, object, flags);
                 }
             }
 
@@ -1283,11 +1311,12 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     prepared.keyspace_hits++;
-                    if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
-                        foreign_touch(object, flags);
+                    // See prepare_local_mget: accept first, then account.
                     if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
                         retry = true;
+                    } else if (__builtin_expect(maxmemory_enabled_, false)) {
+                        note_local_read_access(op, object, flags);
                     }
                 }
             }
@@ -1410,10 +1439,10 @@ private:
                 if constexpr (CapturePrefetch) break;
                 else continue;
             }
-            // One predicted-not-taken test on a per-pass byte, like maxmemory_enabled_ on the
-            // owner path; the no-touch byte is loaded only once eviction is live (&& order).
-            if (__builtin_expect(foreign_touch_policy_ != 0, false) && !op.no_touch())
-                foreign_touch(object, flags);
+            // One predicted-not-taken test on the same per-pass byte the owner path tests, after
+            // the validate that makes this read final. See note_local_read_access().
+            if (__builtin_expect(maxmemory_enabled_, false))
+                note_local_read_access(op, object, flags);
             return {ReadLocalFallbackReason::None, 1, 0};
         }
 
@@ -1775,9 +1804,11 @@ private:
                                 (snapshot.save_armed ? NOTIFY_SAVE : 0u));
         }
         maxmemory_enabled_ = enabled;
-        foreign_touch_policy_ = static_cast<uint8_t>(
-            !enabled ? 0 : maxmemory_policy_is_lru(snapshot.policy) ? 1
-                         : maxmemory_policy_is_lfu(snapshot.policy) ? 2 : 0);
+        foreign_touch_policy_ =
+            !enabled                                    ? kForeignTouchNone
+            : maxmemory_policy_is_lru(snapshot.policy)  ? kForeignTouchLru
+            : maxmemory_policy_is_lfu(snapshot.policy)  ? kForeignTouchLfu
+                                                        : kForeignTouchNone;
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
         slowlog_arm_.latency_ms = snapshot.latency_monitor_threshold;
         slowlog_armed_ = slowlog_arm_.armed();
@@ -3177,10 +3208,10 @@ private:
     bool       ex_sched_enabled_ = false;
     uint8_t    cached_lru_clock_ = 0;
     uint8_t    lru_clock_shift_ = 8;   // latched from cfg at loop start; 1<<N seconds per bucket
-    // Eviction accounting for lane-served reads: 0 = none (maxmemory off, or a policy that keys on
-    // nothing a read changes), 1 = LRU, 2 = LFU. Latched per pass from the live-config snapshot,
-    // like maxmemory_enabled_ on the owner path. See foreign_touch().
-    uint8_t    foreign_touch_policy_ = 0;
+    // What a lane-served read records, latched per pass with the rest of the live-config
+    // snapshot. Read ONLY from note_local_read_access(), which is cold: the hot path gates on
+    // maxmemory_enabled_ and never loads either of these.
+    uint8_t    foreign_touch_policy_ = kForeignTouchNone;
     uint64_t   foreign_touch_random_ = 0x9e3779b97f4a7c15ULL;   // LFU increment dice, per thread
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;

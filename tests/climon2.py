@@ -8,9 +8,10 @@ Every check proves its MECHANISM FIRED, not merely that nothing broke:
   * CLIENT PAUSE asserts timing in both directions AND the client_pause_holds
     counter moving -- a pause that never held anything proves nothing.
   * CLIENT UNBLOCK asserts the exact reply the blocked client received.
-  * CLIENT NO-TOUCH asserts the client_no_touch_ops counter moving for an owner-served read under
-    every thread mode, and accounts for every GET on a fused read-local boot as either owner-
-    consulted or lane-served (read_local_keyspace_hits) -- never neither.
+  * CLIENT NO-TOUCH asserts the client_no_touch_ops counter moving under every thread mode, and
+    on a fused read-local boot also asserts the reads it counted were LANE-served
+    (read_local_keyspace_hits) -- a row that passed by demotion would prove nothing about the
+    lane, which is the only path that serves a clean GET in that posture.
 Negative controls are included for every one of them.
 """
 
@@ -215,20 +216,20 @@ try:
                "NO-TOUCH garbage")   # negative control
     expect_err(admin.command("CLIENT", "NO-TOUCH"),
                "ERR wrong number of arguments for 'client|no-touch' command", "NO-TOUCH arity")
-    # MECHANISM: the flag must actually reach an owner. It is only consulted (and only counted)
-    # while maxmemory is enabled, so arm maxmemory, run reads with the flag on, and require the
-    # counter to move -- then require it NOT to move with the flag off.
+    # MECHANISM: the flag must actually be CONSULTED by whoever serves the read. It is only
+    # consulted (and only counted) while maxmemory is enabled, so arm maxmemory, run reads with the
+    # flag on, and require client_no_touch_ops to move -- then require it NOT to move with the flag
+    # off. The counter is mode-independent by construction: a fused read-local GET is answered on
+    # the connection's own thread without ever reaching an owner, and that lane counts the flag
+    # itself (ex_loop.h note_local_read_access) precisely because it now also TOUCHES eviction
+    # metadata, which is what NO-TOUCH exists to suppress. Before it did either, this row failed
+    # here on a fused+read-local boot with "counter moved 0".
     #
-    # Two read shapes, because the fused read-local lane changes who serves a GET. A GET admitted
-    # to that lane is answered on the connection's own thread straight from the owner's table and
-    # never writes eviction metadata (a foreign reader stores nothing into an owner's lines), so
-    # it has nothing for NO-TOUCH to suppress and nothing to count; it shows up in
-    # read_local_keyspace_hits instead. Every GET therefore lands on exactly one of the two
-    # counters and their SUM is the mode-independent floor -- 20 GETs that moved neither would be
-    # reads that touched with the flag unread. STRLEN is not read-local eligible (t_string.cc:
-    # only GET and the MGET class are), so it reaches the owner under every thread mode and is
-    # the arm that proves the flag is consulted there. INFO server read_local is the effective
-    # lane state; it only labels the printed split, the assertions hold either way.
+    # On such a boot the row additionally requires the 20 GETs to have been LANE-served
+    # (read_local_keyspace_hits), so it cannot pass by the lane quietly demoting them to the owner
+    # and proving nothing about the armed path. INFO server read_local is the EFFECTIVE lane state
+    # -- fused, and the knob on -- which CONFIG GET read-local cannot report, since it echoes the
+    # knob even on a split boot where the lane is inert.
     maxmem_before = admin.command("CONFIG", "GET", "maxmemory")[1]
     expect(admin.command("CONFIG", "SET", "maxmemory", "268435456"), b"OK", "arm maxmemory")
     read_local = info_server().get("read_local") == "1"
@@ -237,7 +238,6 @@ try:
     base = stats()["client_no_touch_ops"]
     for _ in range(20):
         nt.command("GET", "cl2:nt")
-        nt.command("STRLEN", "cl2:nt")
     expect(stats()["client_no_touch_ops"], base, "no-touch counted while OFF")  # negative control
     expect(nt.command("CLIENT", "NO-TOUCH", "ON"), b"OK", "NO-TOUCH ON for the mechanism check")
     st = stats()
@@ -247,28 +247,23 @@ try:
     st = stats()
     moved = st["client_no_touch_ops"] - base
     local = st.get("read_local_keyspace_hits", 0) - local_base
-    assert moved + local >= 20, (
-        f"NO-TOUCH GETs neither reached an owner nor the read-local lane "
-        f"(owner-consulted {moved} + lane-served {local} < 20, read_local={read_local})")
-    if not read_local:
-        assert moved >= 20, f"NO-TOUCH never reached an executor (counter moved {moved})"
-    base = stats()["client_no_touch_ops"]
-    for _ in range(20):
-        nt.command("STRLEN", "cl2:nt")
-    owner_moved = stats()["client_no_touch_ops"] - base
-    assert owner_moved >= 20, (
-        f"NO-TOUCH never reached an executor for an owner-served read (counter moved {owner_moved})")
+    assert moved >= 20, (
+        f"NO-TOUCH never reached whoever served the read (counter moved {moved}, "
+        f"read_local={read_local}, lane-served {local}/20)")
+    if read_local:
+        assert local >= 20, (
+            f"the armed lane did not serve these GETs, so the row proves nothing about it "
+            f"(read_local_keyspace_hits moved {local} of 20)")
     expect(nt.command("CLIENT", "NO-TOUCH", "OFF"), b"OK", "NO-TOUCH OFF")
     settled = stats()["client_no_touch_ops"]
     for _ in range(20):
         nt.command("GET", "cl2:nt")
-        nt.command("STRLEN", "cl2:nt")
     expect(stats()["client_no_touch_ops"], settled, "flag still set after OFF")  # negative control
     nt.close()
     admin.command("CONFIG", "SET", "maxmemory", maxmem_before.decode())
-    print(f"  no-touch: read_local={'1' if read_local else '0'} GET owner-consulted={moved} "
-          f"lane-served={local}; STRLEN owner-consulted={owner_moved}")
-    checks += 13
+    print(f"  no-touch: read_local={'1' if read_local else '0'} consulted={moved}/20 "
+          f"lane-served={local}/20")
+    checks += 11
 
     # ---- 3. CLIENT REPLY: exact wire bytes, including absence --------------------------------
     r = new()

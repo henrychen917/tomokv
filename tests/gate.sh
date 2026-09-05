@@ -318,9 +318,19 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
   # them. A generous deadline costs nothing when the server is quick — the loop exits on connect.
   for _ in $(seq 150); do
-    if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
+    if ! kill -0 "$SRV" 2>/dev/null; then
+      wait "$SRV" 2>/dev/null; boot_log_tail "$tag" "exited before it listened"; return 1
+    fi
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done
+  boot_log_tail "$tag" "never accepted on $PORT within 30s"
   return 1
+}
+boot_log_tail(){ # a boot that failed is a defect report, not a filename: SHOW the server's words.
+                 # Tonight three boot failures were triaged twice over because the row said only
+                 # "see $SRVLOG" and the log was rotated by the next row's mktemp before anyone
+                 # opened it.
+  printf 'GATE: boot (%s) %s -- last 25 lines of %s:\n' "$1" "$2" "$SRVLOG" >&2
+  tail -n 25 "$SRVLOG" 2>/dev/null | sed 's/^/GATE|   /' >&2
 }
 boot(){ local bin=$1; shift; launch main "$bin" --ratio $GATE_RATIO "$@"; }
 boot_fused(){ # deliberately omits --ratio, which fused mode rejects
