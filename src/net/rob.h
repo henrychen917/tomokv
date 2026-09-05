@@ -45,6 +45,12 @@
 
 namespace tomo {
 
+// THE ROB WINDOW: the maximum number of ops one connection may have in flight. It lives here,
+// in the ROB's own header, because it is the ROB's bound and because the read-local write ring
+// below is sized FROM it -- one number, so the ring can never drift out of step with the window
+// its unreachability proof is written against. net/conn.h re-exports it by including this file.
+inline constexpr uint32_t kRobWindow = 64;   // max in-flight ops per connection
+
 // Allocated only for connections served by the boot-armed fused read-local lane. The connection's
 // IO owner is the sole reader/writer; the ROB ids carried beside hashes are generations, not
 // cross-thread publications. Retirement is therefore lazy: flush_id advancing past an entry is
@@ -58,7 +64,7 @@ struct alignas(64) ReadLocalRobState {
     // which is the whole argument. Measured against the instrument that does not depend on it
     // (scratchpad/ringsize): a client pipelining 64 deep at 100% writes tops out at exactly 63
     // live writes, one short of the window, and 41% reads at depth 32 tops out at 19.
-    static constexpr uint32_t kWriteRingCapacity = 64;
+    static constexpr uint32_t kWriteRingCapacity = kRobWindow;
     // A POLICY BOUND, NOT THE RING'S. How many keys a single blind MSET may name and still take a
     // precise ring slot instead of a conservative generation: every probe that hits that slot walks
     // the op's argv, so this trades demotions against walk length and has nothing to do with how

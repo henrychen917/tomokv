@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
-"""PRE vs POST from ab_triad.sh: the rate, the two read-local counters that say whether the
-mechanism fired at all, and the instructions/op, cycles/op and IPC measured in the same window.
+"""PRE vs POST from ab_triad.sh: the rate, the counters that say whether the mechanism fired at
+all, the ring-overflow count, and instructions/op, cycles/op and IPC measured in the same window.
+
+"local %" is the read-local HIT SHARE -- hits / (hits + writes-in-flight demotions) -- which is the
+number the defect moves: an overflowed connection is disarmed, so every read on it is demoted and
+that share collapses toward zero however few keys actually conflicted.
+
+"ring ovf" is populated only by the instrumented binaries (validate.sh ovf phase); it reads 0 in
+the clean runs because the counter is not compiled into them, which is not the same as zero
+overflows. Read it only from the ovf table.
 
 The read-only cell is the NULL CONTROL: a connection that never writes never activates the write
 sidecar, so this change provably cannot reach it. Whatever that row reads is the resolution floor
@@ -12,7 +20,7 @@ for r in rows:
     for k in ('rate', 'p50', 'p99', 'mux'):
         r[k] = float(r[k])
     for k in ('cmds', 'instr', 'cycles', 'read_local_hits',
-              'read_local_fallback_inflight_write', 'read_local_fallbacks'):
+              'read_local_fallback_inflight_write', 'read_local_fallbacks', 'ring_overflows'):
         r[k] = float(r[k])
     r['instr_op'] = r['instr'] / r['cmds'] if r['cmds'] else float('nan')
     r['cyc_op'] = r['cycles'] / r['cmds'] if r['cmds'] else float('nan')
@@ -31,11 +39,14 @@ def med(cell, arm, field):
     v = [r[field] for r in rows if r['cell'] == cell and r['arm'] == arm]
     return statistics.median(v) if v else float('nan')
 
-label = {'r41': '41% reads (3:2)', 'r61': '61% reads (2:3)',
-         'w100': 'write-only (1:0)', 'r100': 'read-only (0:1) NULL'}
+# Named by WRITE fraction: the ring is a write structure and the defect is a write-ratio cliff.
+label = {'w41': '41% writes  (under)', 'w55': '55% writes  (edge)',
+         'w70': '70% writes  (over)',
+         'w100': 'pure SET (1:0) NULL', 'r100': 'pure GET (0:1) NULL'}
 
 hdr = (f"{'cell':<22}{'arm':<6}{'M ops/s':>9}{'instr/op':>10}{'cyc/op':>9}{'IPC':>7}"
-       f"{'p99 ms':>8}{'local hits':>14}{'inflight fallback':>19}{'local %':>9}")
+       f"{'p99 ms':>8}{'local hits':>14}{'inflight fallback':>19}{'local %':>9}"
+       f"{'ring ovf':>11}")
 print(hdr)
 print('-' * len(hdr))
 for c in cells:
@@ -46,7 +57,8 @@ for c in cells:
         print(f"{label.get(c, c):<22}{arm:<6}{med(c,arm,'rate')/1e6:>9.3f}"
               f"{med(c,arm,'instr_op'):>10.1f}{med(c,arm,'cyc_op'):>9.1f}{med(c,arm,'ipc'):>7.3f}"
               f"{med(c,arm,'p99'):>8.2f}{h:>14.0f}{f:>19.0f}"
-              f"{('%8.1f%%' % pct) if tot else '       --':>9}")
+              f"{('%8.1f%%' % pct) if tot else '       --':>9}"
+              f"{med(c,arm,'ring_overflows'):>11.0f}")
     d = lambda fld: (med(c, 'POST', fld) - med(c, 'PRE', fld)) / med(c, 'PRE', fld) * 100.0
     print(f"{'':<22}{'delta':<6}{d('rate'):>+8.2f}%{d('instr_op'):>+9.2f}%{d('cyc_op'):>+8.2f}%"
           f"{d('ipc'):>+6.2f}%")

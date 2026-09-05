@@ -20,13 +20,13 @@ set -u
 BIN="$1"; TAG="$2"; OUT="$3"; REPS="${4:-1}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-# Server and driver on two different physical cores of this lane's own allocation (48-51 server,
-# 52-55 load); their SMT siblings are left idle so neither is measured against a sharer.
-export PORT=${PORT:-8093} SRVCORE=${SRVCORE:-48} CLICORE=${CLICORE:-52}
+# Server and driver on two different physical cores of this lane's own allocation (58 server,
+# 62 load); their SMT siblings 186 and 190 are left idle so neither is measured against a sharer.
+export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-62}
 source "$ROOT/scratchpad/rlbatch/lib.sh"
 N1=${N1:-1000000}
 N2=${N2:-3000000}
-READPCTS=${READPCTS:-"41 61 71"}
+READPCTS=${READPCTS:-"59 45 30"}
 PIPES=${PIPES:-"32 8"}
 KEYLEN=${KEYLEN:-16}
 RING=${RING:-4096}

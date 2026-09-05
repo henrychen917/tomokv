@@ -1,16 +1,21 @@
-# Boot/guard helpers for the ringsize lane. Ports 8091-8094.
+# Boot/guard helpers for the ringsize lane. Ports 8300-8309.
 #
-# CORES. This lane owns physical 48-55 and their SMT siblings 176-183, and nothing else. The server
-# takes 48-51 and the load generators take 52-55 -- different PHYSICAL cores, so no arm of an A/B is
-# ever measured against a load generator sharing its execution units -- and the siblings 176-183 are
-# deliberately left idle rather than reclaimed. 184-191 are the siblings of 56-63 and belong to
-# whoever owns those; nothing of this lane's ever goes there. See laneguard.sh.
+# CORES (re-allocated 2026-09-05: the old 48-55/176-183 pin collided with another lane through SMT
+# siblings, so every number taken under it is void). This lane owns physical 58-63 and their SMT
+# siblings 186-191, and nothing else:
+#     server           58-61   (siblings 186-189 deliberately left IDLE)
+#     load generators  62-63   plus their siblings 190-191
+# Server and load generator are on different PHYSICAL cores, so no arm of an A/B is ever measured
+# against a load generator sharing its execution units. The server's siblings are left idle rather
+# than reclaimed: a server measured with its own SMT siblings loaded reports an IPC that is a
+# property of the co-tenant, not of the change. The load generator may use its siblings -- nothing
+# reports the generator's IPC. See laneguard.sh.
 #
 # Every boot is pgrep/ss-guarded: a leaked co-binding server splits traffic through SO_REUSEPORT and
 # turns a real defect into a pass. Every stop kills by PID -- never a pattern that matches this shell.
-PORT=${PORT:-8091}
-SRVCORES=${SRVCORES:-48-51}
-CLICORES=${CLICORES:-52-55}
+PORT=${PORT:-8300}
+SRVCORES=${SRVCORES:-58-61}
+CLICORES=${CLICORES:-62-63,190-191}
 CLI=${CLI:-/tmp/claude-1000/redis74/src/redis-cli}
 
 port_owners(){ ss -H -ltnp "sport = :$1" 2>/dev/null | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | sort -u | paste -sd, -; }

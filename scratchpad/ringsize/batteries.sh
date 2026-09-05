@@ -1,13 +1,14 @@
 #!/bin/bash
-# One boot per battery, port 8075, cores 32-47,160-175. Kills by PID and guards the port before
-# every boot: a leaked co-binding server would split traffic through SO_REUSEPORT and quietly turn
-# a real defect into a pass.
+# One boot per battery on port 8300, cores 58-63,186-191 (this lane's whole allocation -- a
+# correctness battery is not a timing measurement, so the server may use every core it owns).
+# Kills by PID and guards the port before every boot: a leaked co-binding server would split
+# traffic through SO_REUSEPORT and quietly turn a real defect into a pass.
 set -u
 BIN="${1:-./build/tomokv}"
 MODE="${2:-1s}"
 OUT="${3:-/tmp/ringsize-batteries-$MODE.txt}"
-PORT=8091
-CORES=48-55,176-183
+PORT=8300
+CORES=58-63,186-191
 CLI=/tmp/claude-1000/redis74/src/redis-cli
 PASS=0; FAIL=0
 : > "$OUT"

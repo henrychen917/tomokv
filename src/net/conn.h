@@ -58,7 +58,7 @@ class Client;
 struct MultiSession;
 void multi_session_destroy(MultiSession* session);
 
-inline constexpr uint32_t kRobWindow    = 64;          // max in-flight ops per connection
+// kRobWindow is defined by net/rob.h (included above), beside the ring that is sized from it.
 inline constexpr size_t   kRbufInitial  = 16 * 1024;
 inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
 // The parser accepts redis-compatible bulks (512MB). A single command must therefore be allowed to

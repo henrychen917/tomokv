@@ -9,9 +9,15 @@
 # instructions/op and cycles/op are exact ratios of two measured quantities rather than a rate in
 # disguise. IPC is instructions/cycles from that same window.
 #
-# The server is saturated here (8 cores, 8 memtier threads x 32 connections at depth 32), which is
-# what makes IPC mean occupancy instead of idle spin -- the opposite geometry to measure_triad.sh,
-# and the reason both are reported.
+# The server is saturated here (4 server cores, 4 memtier threads x 64 connections at depth 32),
+# which is what makes IPC mean occupancy instead of idle spin -- the opposite geometry to
+# measure_triad.sh, and the reason both are reported.
+#
+# THE CELLS ARE NAMED BY WRITE FRACTION, because the ring is a write structure and the defect is a
+# write-ratio cliff. w41 never fills a sixteen-slot ring, w55 is the edge the base lane measured the
+# cliff at, and w70 is over it -- the regime this lane exists for. w100 and r100 are the two nulls:
+# pure SET has no local read to demote and pure GET has no write to overflow anything, so neither
+# may move, and a change that moves them is doing something other than what it claims.
 #
 #   ab_triad.sh <preBin> <postBin> <outCsv> [rounds]
 set -u
@@ -25,10 +31,21 @@ PIPE=${PIPE:-32}
 # connections, the same count the eight-thread shape carried, without oversubscribing the cores.
 THREADS=${THREADS:-4}
 CONNS=${CONNS:-64}
-SHARDS=${SHARDS:-8}
+# One shard per server core. 8 shards on 4 cores oversubscribes the fused threads and adds a
+# scheduler to the measurement.
+SHARDS=${SHARDS:-4}
+# MATCHED-RATE MODE. Unset, every cell runs saturated and each arm reports its own maximum. That
+# is the right way to read rate and IPC, and the WRONG way to read instructions/op: a fused server
+# polls when it has nothing to do, those spin instructions land in the same window, and the faster
+# arm therefore books fewer of them per operation for a reason that has nothing to do with its work
+# (thredis-instr-per-op-spin-inflation). Set RATELIMIT to a per-connection ops/s below the SLOWER
+# arm's saturation and both arms then do the same work in the same wall time, so the instructions
+# they spend on it can be subtracted.
+RATELIMIT=${RATELIMIT:-}
+RL_ARGS=(); [ -n "$RATELIMIT" ] && RL_ARGS=(--rate-limiting="$RATELIMIT")
 TMP=${TMP:-/tmp/ringsize-abt}
 mkdir -p "$TMP"
-[ -s "$OUT" ] || echo "round,visit,arm,cell,ratio,rate,p50,p99,cmds,instr,cycles,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,mux" > "$OUT"
+[ -s "$OUT" ] || echo "round,visit,arm,cell,ratio,rate,p50,p99,cmds,instr,cycles,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,ring_overflows,mux" > "$OUT"
 
 visit(){ # visit <bin> <arm> <round> <visitIndex>
   local bin="$1" arm="$2" round="$3" vi="$4"
@@ -40,11 +57,12 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
       -t 4 -c 4 --pipeline=32 -n $((KEYMAX/16)) || { stop_srv; return 1; }
   local size; size=$($CLI -p "$PORT" dbsize 2>/dev/null | tr -d '\r')
   [ "$size" = "$KEYMAX" ] || echo "WARN dbsize=$size keymax=$KEYMAX ($arm r$round v$vi)" >&2
-  for spec in "r41:3:2" "r61:2:3" "w100:1:0" "r100:0:1"; do
+  for spec in "w41:41:59" "w55:55:45" "w70:70:30" "w100:1:0" "r100:0:1"; do
     local cell="${spec%%:*}" ratio="${spec#*:}"
     local h0 f0 a0 c0
     h0=$(info_field read_local_hits); f0=$(info_field read_local_fallback_inflight_write)
     a0=$(info_field read_local_fallbacks); c0=$(info_field total_commands_processed)
+    local o0; o0=$(info_field read_local_write_ring_overflows); o0=${o0:-0}
     local rf="$TMP/$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$arm-$round-$vi-$cell.txt"
     # THE LOAD GENERATOR IS STARTED FIRST AND ITS MASK IS PROVEN, then perf opens a window over
     # the server cores that lasts exactly as long as that process does. The older shape --
@@ -53,6 +71,7 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     start_cli "$rf" -s 127.0.0.1 -p "$PORT" --hide-histogram \
         --key-maximum=$KEYMAX --key-minimum=1 --data-size=32 --key-pattern=R:R \
         --ratio="$ratio" -t $THREADS -c $CONNS --pipeline=$PIPE --test-time=$SECS \
+        "${RL_ARGS[@]+"${RL_ARGS[@]}"}" \
       || { stop_srv; return 1; }
     perf stat -e instructions,cycles -x, -o "$pf" -C "$SRVCORES" -- \
       tail --pid="$MEMTIER_PID" -f /dev/null
@@ -63,10 +82,11 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     p99=$(grep -E '^Totals'  "$rf" | awk '{print $7}')
     h1=$(info_field read_local_hits); f1=$(info_field read_local_fallback_inflight_write)
     a1=$(info_field read_local_fallbacks); c1=$(info_field total_commands_processed)
+    local o1; o1=$(info_field read_local_write_ring_overflows); o1=${o1:-0}
     ins=$(grep -m1 ',instructions,' "$pf" | cut -d, -f1)
     cyc=$(grep -m1 ',cycles,'       "$pf" | cut -d, -f1)
     mux=$(awk -F, 'NF>4 && $5 ~ /^[0-9]/ {print $5}' "$pf" | sort -n | head -1)
-    echo "$round,$vi,$arm,$cell,$ratio,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),${mux:-100}" >> "$OUT"
+    echo "$round,$vi,$arm,$cell,$ratio,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),$((o1-o0)),${mux:-100}" >> "$OUT"
   done
   stop_srv
   sleep 3

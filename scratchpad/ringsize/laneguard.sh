@@ -1,14 +1,17 @@
 #!/bin/bash
 # REFUSE TO MEASURE ON A SHARED ALLOCATION.
 #
-# THIS LANE OWNS physical cores 48-55 and their SMT siblings 176-183, and nothing else:
-#     server           48-51   (siblings 176-179 deliberately left idle)
-#     load generators  52-55   (siblings 180-183 deliberately left idle)
-# Two rules produced that split. A lane owns its physical cores AND their siblings (n and n+128) --
-# 184-191 are the siblings of 56-63 and belong to whoever owns those, never to us. And within our
-# own allocation, server and load generator are kept on DIFFERENT PHYSICAL CORES rather than on two
-# threads of the same one, so no arm of an A/B is measured against a load generator sharing its
-# execution units. The idle siblings are the price of that and are not reclaimed.
+# THIS LANE OWNS physical cores 58-63 and their SMT siblings 186-191, and nothing else:
+#     server           58-61   (siblings 186-189 deliberately left idle)
+#     load generators  62-63   plus their siblings 190-191
+# Re-allocated 2026-09-05. The previous pin (48-55 with load generators reaching 184-191) put this
+# lane's generators on the SMT siblings of another lane's physical cores 56-63: two lanes sharing
+# execution units, which is invisible in both lanes' logs and fatal to both lanes' numbers. Every
+# number taken under that pin is void.
+# Two rules produce the split above. A lane owns its physical cores AND their siblings (n and
+# n+128), and nothing outside that set. And within the allocation, server and load generator are
+# kept on DIFFERENT PHYSICAL CORES rather than on two threads of the same one, so no arm of an A/B
+# is measured against a load generator sharing its execution units.
 #
 # This script is a refusal, not a warning. A neighbouring lane's server or load generator whose
 # affinity mask touches any of our sixteen logical CPUs makes every number a two-lane measurement,
@@ -16,7 +19,7 @@
 #
 #   laneguard.sh            -> exit 0 if clear, 1 and a report if not
 set -u
-MINE="${LANE_CPUS:-48-55,176-183}"
+MINE="${LANE_CPUS:-58-63,186-191}"
 python3 - "$MINE" "$PPID" <<'PY'
 import os, sys
 

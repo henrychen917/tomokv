@@ -164,3 +164,59 @@ BATT_DIFFER
 * `batteries.sh`, `expwide_preexisting.sh` — section 6.
 * `validate.sh` — runs everything that needs the box, in sequence, so nothing overlaps.
 * `build_arms.sh` — both arms from one tree; nothing is ever stashed.
+
+---
+
+## 2026-09-05 19:30 — resumed after the 19:20 usage-limit kill
+
+**The pin changed, and every number taken under the old one is void.** The lane was on physical
+48-55 with load generators reaching 184-191, which are the SMT siblings of physical 56-63 — another
+lane's cores. Two lanes were sharing execution units. New allocation, and nothing outside it:
+
+| | logical CPUs | physical | note |
+|---|---|---|---|
+| server | 58-61 | 58-61 | siblings 186-189 left IDLE, so server IPC has no co-tenant |
+| load generators | 62-63,190-191 | 62-63 | may use its own siblings; nobody reports generator IPC |
+| ports | 8300-8309 | | 8300 batteries/differ-A, 8301 differ-B, 8302 slope/instr |
+
+Sections 1-3 above survive the re-pin: they are structural (in-flight histogram max = window − 1),
+static (layout, size classes) or single-core (probe cost), and none of them is a shared-box rate.
+Section 4 was never measured, and is measured on the new pin.
+
+### The sizing policy now self-derives, by construction
+
+`kWriteRingCapacity` was a literal `64` that happened to equal the window, with a one-way assert.
+It is now `= kRobWindow`, and `kRobWindow` moved from `net/conn.h` into `net/rob.h` — the ROB's own
+header, beside the ring sized from it, and re-exported to conn.h by inclusion. There is no second
+number to forget and no knob: move the window and the ring follows.
+
+`mutate.sh` gained **D1**, which is the check that the derivation is real rather than decorative:
+shrink `kRobWindow` to 32 and the sidecar's `sizeof` lock and the Rob's structural assert must BOTH
+fire. If the ring still carried its own literal, neither would.
+
+`mutate.sh` also gained a vacuity guard. Three of its mutations used `str.replace` with no assert,
+so when the capacity stopped being a literal they would have silently patched nothing, compiled the
+unmutated tree, passed, and printed a row that reads as a survived mutation. Every mutation is now
+digested before and after, and a patch that matched nothing says so.
+
+### Ring overflows are counted in BOTH arms, from binaries that are not the measured ones
+
+`ovf_patch.py` grafts a relaxed counter onto `read_local_write_enter_overflow()`; its three anchors
+are textually identical in the base header and in this lane's, so one patch instruments both arms
+and the counts are comparable (round-trip verified byte-identical on both). It is a separate pair of
+binaries because PRE enters a conservative generation constantly at high write ratios — leaving the
+counter in the measured build would put the diagnostic inside the arm it exists to describe.
+
+### Cells are named by WRITE fraction now
+
+w41 (41% writes, under the cliff — must not regress), w55 (the edge), w70 (over it — the target),
+plus pure SET and pure GET nulls. `measure_triad.sh` follows with `READPCTS="59 45 30"`.
+
+`ab_triad.sh` gained `RATELIMIT`: instructions/op at saturation is partly a spin measure, because
+the faster arm polls less per operation. The `matched` phase rate-limits both arms to the same
+delivered load, which is the geometry in which that column is a work measure.
+
+### Order of the remaining work
+`build → unit → sizes → mutate → codegen → probe → null → rate → matched → ovf → slope → mem →
+batt → differ`, strictly sequential (`validate.sh`), gated on `laneguard.sh` and on the owner's
+`quiet.done` being older than three minutes.

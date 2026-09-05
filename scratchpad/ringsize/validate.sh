@@ -12,6 +12,9 @@
 #   probe   instructions and cycles per REJECTED read probe, by ring shape and live-write count
 #   null    the same-binary null: what this rate instrument calls zero, measured first
 #   rate    the saturated ABBA A/B: rate + instr/op + cycles/op + IPC + both counters
+#   matched the same A/B with both arms rate-limited to the same delivered load, which is the only
+#           geometry in which instructions/op is a work measure rather than a spin measure
+#   ovf     ring overflows per arm, from the two instrumented binaries
 #   slope   the single-connection slope triad, the instrument that survives a co-tenanted box
 #   mem     RSS with 2000 armed connections, both arms
 #   batt    the 1s armed and 2s batteries
@@ -35,13 +38,16 @@ guard(){ "$HERE/laneguard.sh" || { echo "phase '$1' NOT STARTED: lane cores are 
 # but sharing cannot make a wrong reply look right, so they report the co-tenancy and continue
 # instead of refusing. Only the phases that produce numbers refuse.
 guard_soft(){ "$HERE/laneguard.sh" || echo "phase '$1' running anyway: correctness, not timing"; }
-ROBSUM=$(md5sum src/net/rob.h | cut -d" " -f1)
+# Every src file any phase here writes: rob.h (mutate/codegen/probe), conn.h and config.h (the PRE
+# arm of build_arms.sh) and t_server.cc (the overflow graft). Digesting only rob.h would have let a
+# leaked graft in t_server.cc ride into a commit.
+SRCSUM=$(md5sum src/net/rob.h src/net/conn.h src/core/config.h src/cmd/t_server.cc | md5sum)
 check_restored(){
-  [ "$(md5sum src/net/rob.h | cut -d" " -f1)" = "$ROBSUM" ] \
-    && echo "tree restored: src/net/rob.h digest unchanged" \
-    || { echo "REFUSING TO CONTINUE: $1 left src/net/rob.h modified"; exit 1; }
+  [ "$(md5sum src/net/rob.h src/net/conn.h src/core/config.h src/cmd/t_server.cc | md5sum)" = "$SRCSUM" ] \
+    && echo "tree restored: lane source digests unchanged" \
+    || { echo "REFUSING TO CONTINUE: $1 left a lane source file modified"; exit 1; }
 }
-PHASES="${*:-build unit sizes mutate codegen probe null slope rate mem batt differ}"
+PHASES="${*:-build unit sizes mutate codegen probe null rate matched ovf slope mem batt differ}"
 
 for phase in $PHASES; do
 case "$phase" in
@@ -51,7 +57,7 @@ build)
   ;;
 unit)
   stamp "make unit"
-  taskset -c 48-55 make unit 2>&1 | tee "$OUT/unit.txt"
+  taskset -c 58-63,186-191 make unit 2>&1 | tee "$OUT/unit.txt"
   ;;
 sizes)
   stamp "layout / per-connection cost"
@@ -93,6 +99,30 @@ rate)
       "${ROUNDS:-3}" 2>&1 | tail -6
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_triad.csv" | tee "$OUT/ab_triad.txt"
   ;;
+matched)
+  # INSTRUCTIONS/OP, WITH THE SPIN HELD EQUAL. RATE is per CONNECTION ops/s; with 4 threads x 64
+  # connections the delivered load is 256x that, and it must sit below the SLOWER arm's saturation
+  # or the limit does not bind and this is just the saturated run again. The rate phase above
+  # prints both arms' maxima; MATCHED_RATE is set from them.
+  guard matched
+  : "${MATCHED_RATE:?set MATCHED_RATE (per-connection ops/s) from the saturated run first}"
+  stamp "matched-rate A/B at ${MATCHED_RATE} ops/s/conn"
+  rm -f "$OUT/ab_matched.csv"
+  RATELIMIT="$MATCHED_RATE" "$HERE/ab_triad.sh" ./build/tomokv-pre ./build/tomokv-post \
+      "$OUT/ab_matched.csv" "${MATCHED_ROUNDS:-2}" 2>&1 | tail -4
+  python3 "$HERE/ab_triad_report.py" "$OUT/ab_matched.csv" | tee "$OUT/ab_matched.txt"
+  ;;
+ovf)
+  # THE COUNTER THAT COULD HAVE FALSIFIED THE CLAIM. POST asserts capacity overflow is unreachable;
+  # this is the run in which it is asked, on the same three regimes, with the same counter grafted
+  # onto both arms. A non-zero POST count here would end this lane.
+  guard ovf
+  stamp "ring overflows per arm (instrumented binaries)"
+  rm -f "$OUT/ab_ovf.csv"
+  "$HERE/ab_triad.sh" ./build/tomokv-pre-ovf ./build/tomokv-post-ovf "$OUT/ab_ovf.csv" \
+      "${OVF_ROUNDS:-1}" 2>&1 | tail -3
+  python3 "$HERE/ab_triad_report.py" "$OUT/ab_ovf.csv" | tee "$OUT/ab_ovf.txt"
+  ;;
 slope)
   guard slope
   stamp "single-connection slope triad (ABBA)"
@@ -129,10 +159,10 @@ differ)
   guard_soft differ
   stamp "differ canonical (split, read-local off)"
   GATE_DIFFER_OUT="$OUT/differ-canon" timeout 3000 \
-    tests/differ_gate.sh ./build/tomokv 8091 8092 48-55 6:2 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
+    tests/differ_gate.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 | tee "$OUT/differ-canon.txt" | tail -6
   stamp "differ fused + read-local armed"
   GATE_DIFFER_OUT="$OUT/differ-fused" timeout 3000 \
-    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8091 8092 48-55 6:2 2>&1 \
+    scratchpad/rlbatch/differ_gate_fused.sh ./build/tomokv 8300 8301 58-63,186-191 6:2 2>&1 \
     | tee "$OUT/differ-fused.txt" | tail -8
   ;;
 *) echo "unknown phase: $phase"; exit 2;;

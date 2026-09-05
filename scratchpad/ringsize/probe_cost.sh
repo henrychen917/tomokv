@@ -15,7 +15,7 @@ set -eu
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 HERE="$ROOT/scratchpad/ringsize"
 BASE="${BASE:-479922c0a}"
-CORE="${CORE:-48}"
+CORE="${CORE:-58}"
 ITERS="${ITERS:-20000000}"
 CXXF="-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -I."
 cd "$ROOT"
