@@ -455,3 +455,52 @@ armed-fused row already states and skips for; the difference is that in the spli
 a FAIL rather than a SKIP, since differ_gate.sh only special-cases it under `armed-fused`. The
 other **164 legs pass**, and `sort` is re-run separately at its required ratio rather than being
 waved through.
+
+---
+
+## 13. The armed-fused differential matrix — the leg the gate never covered
+
+This is the row the lane exists for. The defect shipped because the gate's differential matrix
+boots the target **one way only** (§7), and the geometry it cannot reach is the one the brief's
+failure was seen in. Running the whole matrix in that geometry is therefore not a formality: it is
+the only run that covers the surface the escape came through.
+
+| Matrix | Geometry | Legs | Result |
+|---|---|---|---|
+| canonical split | `--ratio 2:4`, read-local disarmed | 164 (41 suites × atomic{0,1} × seed{7,19}) | **164 pass / 4 fail**, 5m59s — all four are `sort` refusing the ratio (below) |
+| `sort` re-run at its required ratio | `--shards 16 --ratio 6:2` | 4 | **4 pass / 0 fail** — `0 diffs` on every leg |
+| **armed-fused (new gate row)** | `--thread-mode fused --read-local 1` | 164 + 2 non-vacuity | **166 pass / 0 fail**, 6m00s |
+| — read-local non-vacuity, atomic 0 | | | `hits=909 fallbacks=260` |
+| — read-local non-vacuity, atomic 1 | | | `hits=984 fallbacks=1225` |
+| — `sort` under fused | | 4 | **SKIP**, stated in the output, not counted as a pass |
+
+**The two non-vacuity rows are the point.** An armed-fused row that boots disarmed is a row that
+re-runs the canonical matrix under a different name, and it would have been green on the shipped
+binary that carried this defect. `differ_gate.sh` reads `read_local_hits` out of the live target
+before stopping it and fails the leg when it is zero or missing; both modes report four-figure hit
+counts, so the read-local lane demonstrably carried traffic in the run that returned the passes.
+
+**The four split-matrix `sort` failures are the suite refusing the geometry, not a divergence.**
+`tests/differ.py`'s sort generator asserts its thread split out of INFO and aborts on anything else
+(`sort differ requires --shards 16 --ratio 6:2, got {lb_io_threads: 2, lb_ex_threads: 4}`). `6:2`
+is 8 threads; the split matrix here runs a 6-thread server because the load generator must keep its
+own physical core. `scratchpad/mr/sortleg.sh` re-runs exactly those four legs at `--ratio 6:2` with
+the target on all four physical cores and the differ client sharing them — which is what
+`differ_gate.sh` itself does with `TARGET_CORES` in every leg, and costs nothing here because no
+measurement is read off a differ leg, only pass/fail. All four pass with `0 diffs`. The armed-fused
+matrix reaches the same constraint one step earlier and reports it as a **SKIP** with the reason
+printed, which is the honest disposition: a suite that cannot be hosted is neither a pass nor a
+failure.
+
+### Batteries, both thread modes
+
+| Battery set | Result |
+|---|---|
+| `batteries.sh 1s` (s6, ryow, atomic_hazards, multi_exec, blocking, blockmulti, xscript, expwide, session_monotonic, bplus) | 9 pass / 1 fail — `expwide`, **identical on PRE** |
+| `batteries.sh 2s` (the same plus flip, flip_under_load) | **11 pass / 0 fail** |
+| armed debug-surface list, 13 batteries × 2 atomic modes | **26 pass / 0 fail** |
+
+`expwide` fails on PRE and POST alike in the 1s geometry (`S1 MGET: the hook really widened the
+fan-out (elapsed=0.000s)` — a timing probe reading zero elapsed on a fused boot) and passes 2s on
+POST. It is one of the known fused+armed gate holes that fail on mainline too and belongs to the
+lane that owns that hole; it is recorded here and not chased.
