@@ -77,7 +77,11 @@ for rung in $RUNGS; do
     read -r srvcpu ghz wall <<<"$(python3 -c "
 w=$t1-$t0
 print(f'{(($j1-$j0)/100.0)/max(0.001,w):.3f} {${cyc:-0}/1e9/max(0.001,w):.3f} {w:.2f}')")"
-    echo "$n,$cores,$th,$((th*cn)),$cell,${rate:-0},${p99:-0},$((c1-c0)),${ins:-0},${cyc:-0},$srvcpu,$ghz,$wall" >> "$OUT"
+    # THE CPU LIST GOES IN WITH PLUSES, NOT COMMAS. "60-63,188-191" written raw into a csv is two
+    # fields, so every column after it shifts by one and the reader reports `could not convert
+    # string to float: 'w55'` -- which is what happened, after the whole ladder had been measured.
+    # Only rung 1 survived, because it is the one rung whose cpu list has no comma in it.
+    echo "$n,${cores//,/+},$th,$((th*cn)),$cell,${rate:-0},${p99:-0},$((c1-c0)),${ins:-0},${cyc:-0},$srvcpu,$ghz,$wall" >> "$OUT"
     printf 'rung %s  %-16s t=%-3s conns=%-5s %-5s  rate=%10.0f  srv=%s cores  %s Gcyc/s\n' \
       "$n" "$cores" "$th" "$((th*cn))" "$cell" "${rate:-0}" "$srvcpu" "$ghz"
     # per-thread delta, printed so an imbalance cannot hide inside the total
@@ -97,7 +101,7 @@ for cell in ('w55', 'r100'):
         if r['cell'] != cell: continue
         rate = float(r['rate']) / 1e6
         if base is None: base = rate
-        print(f"{cell:<6}{r['rung']:<6}{r['cores']:<16}{r['threads']:>4}{r['conns']:>7}"
+        print(f"{cell:<6}{r['rung']:<6}{r['cores'].replace('+', ','):<16}{r['threads']:>4}{r['conns']:>7}"
               f"{rate:>10.3f}{100*(rate/base-1):>+9.2f}%{float(r['srv_cores']):>11.2f}{float(r['p99']):>9.2f}")
     print()
 print("READ IT THIS WAY: the first rung on which the rate STOPS rising while the generator is still")
@@ -123,7 +127,7 @@ top = max(score.values())
 
 def cpus(spec):
     n = 0
-    for part in spec.split(','):
+    for part in spec.replace('+', ',').split(','):
         if '-' in part:
             a, b = part.split('-', 1); n += int(b) - int(a) + 1
         elif part.strip():
@@ -143,9 +147,9 @@ if best_rung == rungs[-1] and len(rungs) > 1 and score[rungs[-1]] > 1.02 * score
 row = next(r for r in rows if r['rung'] == best_rung)
 env = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), 'satcheck.env')
 with open(env, 'w') as f:
-    f.write(f"CLICORES={row['cores']}\nTHREADS={row['threads']}\n"
+    f.write(f"CLICORES={row['cores'].replace('+', ',')}\nTHREADS={row['threads']}\n"
             f"CONNS={int(row['conns'])//int(row['threads'])}\nPLATEAU={'yes' if plateau else 'no'}\n")
-print(f"\nCHOSEN RUNG {best_rung}: cpus {row['cores']}, {row['threads']} threads x "
+print(f"\nCHOSEN RUNG {best_rung}: cpus {row['cores'].replace('+', ',')}, {row['threads']} threads x "
       f"{int(row['conns'])//int(row['threads'])} connections; plateau={'yes' if plateau else 'no'}")
 print(f"written to {env}; every rate phase in this run reads its geometry from there.")
 PY
