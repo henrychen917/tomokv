@@ -207,6 +207,24 @@ void release_admission(MultiExecState& state) {
     state.admitted = false;
 }
 
+// Does `group_epoch` name a word THIS transaction publishes through? A transaction is one logical
+// unit spread over several epoch words: the plain per-key installs publish through `state.epoch`,
+// and every cross-shard command lowered inside the same EXEC keeps its own ScatterState and
+// publishes through that one. Anything asking "is there an undecided record here that is not mine"
+// has to accept all of them, or the transaction answers yes against its own RENAME/LMPOP child.
+// `commands` and their scatter pointers are written by IO in prepare_commands() before the first
+// fragment is posted, and cleared only by destroy_multi_children() at retirement, which cannot run
+// while a fragment is still executing -- so this walk is stable on an owner thread.
+bool multi_state_owns_epoch(const MultiExecState& state, const void* group_epoch) {
+    if (!group_epoch) return false;
+    if (group_epoch == static_cast<const void*>(&state.epoch)) return true;
+    for (const auto& command : state.commands)
+        if (command && command->scatter &&
+            group_epoch == static_cast<const void*>(&command->scatter->epoch))
+            return true;
+    return false;
+}
+
 bool multi_records_done(const MultiExecState& state) {
     if (state.record_refs.load(std::memory_order_acquire) != 0 ||
         state.watch_refs.load(std::memory_order_acquire) != 0) return false;
@@ -850,20 +868,24 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
     if (!watch_refs) watch_refs = &state.watch_refs;
-    // OBSERVABILITY ONLY -- deliberately not a gate. This counts the hazard window: an EXEC
-    // write installing its candidate for `key` while an OLDER cross-shard group from the SAME
-    // connection is still undecided on this owner. It is the discriminator that isolated the
-    // write loss NOTES-MULTIRES.md describes, and every test of that defect asserts it moved,
-    // so a green run cannot be a vacuous one. &state.epoch excludes THIS transaction's own
-    // records; that exclusion must be by the epoch word rather than the group pointer, because
-    // a cross-shard child command inside this same EXEC installs through the scatter path and
-    // carries a NON-null group pointer.
-    // Holding the transaction here instead of counting was tried and is WRONG: it deadlocks
-    // (NOTES-MULTIRES.md, "two fixes that were wrong and why"). The install order this counter
-    // observes is already correct -- the group is present, which is why the counter can see it.
+    // OBSERVABILITY ONLY -- deliberately not a gate, and it asks EXACTLY the question the
+    // dispatch-time park in ExLoop::execute() asks: does this owner still hold an undecided record
+    // belonging to a DIFFERENT logical unit of this connection? The park normally forecloses it,
+    // so this must be able to read zero; a non-zero reading means a record became visible on this
+    // owner between dispatch and install, which single-owner writes are supposed to make
+    // impossible. Holding the transaction HERE instead of counting was tried and is WRONG -- it
+    // deadlocks, NOTES-MULTIRES.md §5(a); the park is safe only because it happens before the
+    // fragment has installed anything on this owner (NOTES-MULTIRACE.md §4).
+    // The exclusion is BY EPOCH WORD and must cover the transaction's lowered children as well as
+    // its own: a cross-shard child installs through the scatter path with its own ScatterState,
+    // and counting that would let a run satisfy the batteries' non-vacuity assertion without the
+    // cross-unit window ever opening.
     if (__builtin_expect(shard.store().atomic_has_records(), false) &&
-        shard.store().atomic_has_own_undecided(hash, key, state.origin_conn_id, nullptr,
-                                               &state.epoch))
+        shard.store().atomic_has_foreign_unit_undecided(
+            state.origin_conn_id,
+            [&state](const void* group_epoch) {
+                return multi_state_owns_epoch(state, group_epoch);
+            }))
         shard.stats().atomic_exec_order_holds++;
     if (!shard.watch_write_ready(key, watch_token)) return MultiPrepareWrite::Retry;
     shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
@@ -1769,20 +1791,9 @@ bool multi_task_tagged(const Task& task) {
 }
 
 bool multi_task_owns_epoch(const Task& task, const void* group_epoch) {
-    if (!group_epoch) return false;
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
     const auto* state = reinterpret_cast<const MultiExecState*>(tagged & ~kMultiTaskTag);
-    if (!state) return false;
-    if (group_epoch == static_cast<const void*>(&state->epoch)) return true;
-    // The lowered children. `commands` is built by IO before the first fragment is posted and its
-    // scatter pointers are cleared only at retirement, which cannot run while a fragment of this
-    // transaction is still executing, so this walk is stable. It is a handful of pointers on a
-    // path already gated by "this owner holds pending records".
-    for (const auto& command : state->commands)
-        if (command && command->scatter &&
-            group_epoch == static_cast<const void*>(&command->scatter->epoch))
-            return true;
-    return false;
+    return state && multi_state_owns_epoch(*state, group_epoch);
 }
 
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state) {

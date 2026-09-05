@@ -181,23 +181,19 @@
     }
     // Same-connection program order is the only ordering dependency between pipelined commands.
     // Foreign undecided nodes never block: resolution simply skips them.
-    // `ignore_epoch` excludes every record belonging to the caller's OWN logical unit, which the
-    // group pointer cannot do for a transaction: an EXEC's plain per-key installs carry a null
-    // group pointer, while a cross-shard child command inside that same EXEC installs through the
-    // scatter path and carries a non-null one. Both publish through the transaction's single
-    // epoch word, so that word -- not the group pointer -- is what identifies "mine". Callers that
-    // pass nothing keep the previous behaviour exactly.
+    // A caller that has to exclude its OWN logical unit cannot do it here: a transaction spreads
+    // over several epoch words (its own plus one per lowered cross-shard child) and one
+    // `ignore_group` pointer names none of them. That question has its own probe --
+    // atomic_has_foreign_unit_undecided(), below, which takes the predicate.
     bool atomic_has_own_undecided(uint64_t hash, Slice key, uint64_t origin_conn_id,
-                                  const ScatterState* ignore_group = nullptr,
-                                  const std::atomic<uint64_t>* ignore_epoch = nullptr) const {
+                                  const ScatterState* ignore_group = nullptr) const {
         if (!atomic_pending_) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
         for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
              entry = entry->conn_next) {
             if (!(entry->membership & bit) || !entry->group_epoch ||
-                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group ||
-                entry->group_epoch == ignore_epoch)
+                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group)
                 continue;
             if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
             if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))

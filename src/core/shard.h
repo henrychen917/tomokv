@@ -426,9 +426,11 @@ public:
         //     it installs anything here. This is the ordinary one now, and it is a real hold: it
         //     is what stops an aborted MSETNX's candidate from being cloned into an acknowledged
         //     transaction write (tests/multirace.py).
-        //   * multi.inc's prepare_write_key(), which OBSERVES the same window per key at install
-        //     time. The park above normally forecloses it, so it rarely fires any more; it is kept
-        //     because a record can be published on this owner between the two points.
+        //   * multi.inc's prepare_write_key(), which OBSERVES -- never holds -- the identical
+        //     question at install time. Only this owner thread may publish into this owner's
+        //     pending list, so the park should foreclose it completely and this arm should stay at
+        //     zero. It is kept as the falsifier of exactly that argument, which is the argument
+        //     the park's safety rests on (NOTES-MULTIRACE.md §4).
         // It must be able to read zero -- a transaction with no such predecessor never touches it
         // -- so a non-zero reading is proof the window opened rather than proof the test ran.
         uint64_t atomic_exec_order_holds = 0;

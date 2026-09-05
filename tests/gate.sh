@@ -83,6 +83,11 @@ ROW_T=$(date +%s.%N)
 # 260 -> 261 full: a SECOND differential matrix in the armed-fused geometry (--thread-mode fused
 # --read-local 1). The canonical row boots split with the read-local lane disarmed, so it cannot
 # reach that lane at all; the armed run carries its own non-vacuity check on read_local_hits.
+# ARITHMETIC FOR THE MERGE. This lane (t-multirace) contributes +2 quick and +3 full: two
+# multirace battery rows (one per atomic mode, quick and full alike) and one full-only armed-fused
+# differ row. It branched from 245/258. A sibling lane (t-replycode) contributes +2 FULL-only from
+# the same base, i.e. 245/260. Whichever lands second resolves this hunk by ADDING both lanes'
+# deltas to the shared base rather than by taking one side: 245+2 / 258+2+3 = 247/263.
 EXPECT_QUICK=247
 EXPECT_FULL=261                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }

@@ -161,7 +161,11 @@ pays nothing.
 
 Both were built, measured, and rejected. They are recorded because each looks obviously right.
 
-**(a) Hold the EXEC write behind its own older group.** Every other write path already takes this
+**(a) Hold the EXEC write behind its own older group — *in `prepare_write_key()`*.**
+(SUPERSEDED IN PART: a hold at the other end of the path, in `ExLoop::execute()`'s tagged-
+MULTI dispatch *before* the fragment has installed anything on that owner, is acyclic and
+shipped in `t-multirace`; see NOTES-MULTIRACE.md §5. What follows remains true of the
+mid-command placement, and of any own-unit test that names only one epoch word.) Every other write path already takes this
 hold: `ex_loop.h::execute()` runs `has_parked_predecessor()` / `xshard_task_should_defer()` ahead
 of ordinary and scatter tasks, but it dispatches a `multi_task_tagged()` task at the top of the
 function and returns, so a transaction passes **no** such check. Adding the check in

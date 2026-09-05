@@ -40,11 +40,16 @@ The COMMIT control is what stops the fix from degenerating into "make the group 
 same shape with no blocker must let the EXEC see the MSETNX's value, i.e. read-your-own-writes
 across two units of one connection still holds.
 
-Non-vacuity: `atomic_exec_order_holds` counts a transaction fragment meeting an undecided
-same-connection unit on an owner -- exactly this window. Under --atomic 1 the armed cases must
-advance it, or the run never entered the window and its pass proves nothing. Under --atomic 0
-MSETNX is two-hop and installs nothing before it decides, so the window cannot open and 0 is
-correct there.
+Non-vacuity: `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
+unit on an owner -- exactly this window. Under atomic 1 the armed cases must advance it, or the
+run never entered the window and its pass proves nothing. Under atomic 0 MSETNX is two-hop and
+decides before it installs, so the window cannot open and the counter must read exactly zero;
+that arm asserts zero rather than merely tolerating it.
+
+BOTH MODES RUN FROM ONE BOOT, driven by this battery through CONFIG SET (restored at exit). The
+armed debug-surface boot it joins is shared with scriptatomic/execatomic/execiso/execfix, each of
+which flips `atomic` itself and leaves it flipped, so the boot flag does not decide the mode a
+later battery runs under -- measured: the gate's "multirace (atomic 0)" row reported atomic=1.
 
 Boot requirement: --enable-debug-command yes for DEBUG SHARD, so the key set provably spans
 distinct owners.
@@ -152,11 +157,26 @@ def holds(conn):
     return int(table["atomic_exec_order_holds"])
 
 
-def atomic_enabled(conn):
+def atomic_setting(conn):
     reply = conn.command("CONFIG", "GET", "atomic")
-    if isinstance(reply, list) and len(reply) == 2:
-        return reply[1] not in (b"0", "0")
-    return False
+    if not isinstance(reply, list) or len(reply) != 2:
+        raise AssertionError(f"CONFIG GET atomic returned {reply!r}")
+    value = reply[1]
+    return value.decode() if isinstance(value, bytes) else str(value)
+
+
+def set_atomic(conn, value):
+    """Both modes are driven from ONE boot, on purpose. The armed debug-surface boot this battery
+    joins is shared with scriptatomic/execatomic/execiso/execfix, every one of which flips `atomic`
+    itself and leaves it flipped -- so the boot's --atomic flag says nothing about the mode a later
+    battery actually runs under, and the gate's "(atomic 0)" row was in fact running atomic 1.
+    Setting the mode here is what makes each arm's claim true rather than merely labelled."""
+    reply = conn.command("CONFIG", "SET", "atomic", value)
+    if isinstance(reply, RespError):
+        raise AssertionError(f"CONFIG SET atomic {value} refused: {reply}")
+    live = atomic_setting(conn)
+    if live != value:
+        raise AssertionError(f"CONFIG SET atomic {value} did not take (reads {live})")
 
 
 def owner_spread(admin, wanted):
@@ -323,64 +343,146 @@ def case_commit(admin, label, blocker, victims, seen=None):
     return delta
 
 
+def case_liveness(admin, label, keys, rounds=150):
+    """LIVENESS, and the one case that is about the FIX rather than the defect.
+
+    The repair makes a transaction fragment WAIT on an older same-connection unit. A wait can
+    deadlock, and NOTES-MULTIRES.md §5(a) records an earlier attempt that did. The shape that
+    could still close a cycle is a TWO-PHASE cross-shard unit -- RENAME, LMPOP, SMOVE -- whose
+    second-phase fragment lands on an owner where the younger transaction has already installed:
+    the unit would then be waiting on the transaction through atomic_group_has_own_undecided()
+    while the transaction waits on the unit through the new park.
+
+    So: send all three of those, cross-owner, with a MULTI/EXEC touching each of their
+    destinations, in ONE pipelined write, and require the whole round to ANSWER. The replies are
+    fully determined, so this is a correctness assertion too -- but its job is that a wedge shows
+    up as a red row in seconds rather than as a hung gate."""
+    before = holds(admin)
+    src, dst, list_a, list_b, set_a, set_b = keys[:6]
+    conn = Conn(timeout=20)
+    pipe = [("DEL", src, dst, list_a, list_b, set_a, set_b),
+            ("SET", src, "1"), ("RENAME", src, dst),
+            ("RPUSH", list_a, "x"), ("RPUSH", list_b, "y"),
+            ("LMPOP", "2", list_a, list_b, "LEFT"),
+            ("SADD", set_a, "m"), ("SMOVE", set_a, set_b, "m"),
+            ("MULTI",), ("INCR", dst), ("RPUSH", list_b, "z"), ("SADD", set_b, "q"), ("EXEC",)]
+    payload = b"".join(encode(*command) for command in pipe)
+    want = [2, 2, 1]
+    try:
+        conn.command("FLUSHALL")
+        for round_index in range(1, rounds + 1):
+            conn.send_raw(payload)
+            try:
+                replies = [conn.read() for _ in pipe]
+            except (socket.timeout, TimeoutError) as timed_out:
+                raise AssertionError(
+                    f"{label}: round {round_index} never answered ({timed_out}); a transaction "
+                    "fragment and an older same-connection two-phase unit are waiting on each "
+                    "other") from None
+            for position, reply in enumerate(replies):
+                if isinstance(reply, RespError):
+                    raise AssertionError(
+                        f"{label}: round {round_index} answered {reply} to {pipe[position]}")
+            if replies[-1] != want:
+                raise AssertionError(
+                    f"{label}: round {round_index} EXEC answered {replies[-1]!r}, want {want!r}")
+    finally:
+        conn.close()
+    delta = holds(admin) - before
+    ok(f"{label}: rounds={rounds} holds+{delta}")
+    return delta
+
+
+def run_mode(admin, mode, blocker, victims):
+    """The three cases plus the vacuity gate, under ONE value of `atomic`. Returns a failure
+    count; never raises for a case failure, so the other mode still runs."""
+    failures = 0
+    armed_deltas = []
+    print(f"multirace: atomic={mode}", flush=True)
+
+    try:
+        case_abort(admin, "aborted MSETNX then EXEC write on the same connection",
+                   blocker, victims, seen=armed_deltas)
+    except AssertionError as failure:
+        failures += 1
+        print(f"  FAIL {failure}", flush=True)
+
+    try:
+        case_commit(admin, "control: committed MSETNX then EXEC write (RYOW must hold)",
+                    blocker, victims, seen=armed_deltas)
+    except AssertionError as failure:
+        failures += 1
+        print(f"  FAIL {failure}", flush=True)
+
+    # NEGATIVE CONTROL. A foreign connection is never answered from another connection's RYOW
+    # overlay, so it must be clean before AND after the fix, and it must leave the hazard
+    # counter alone -- a control that opened the window would not be controlling for anything.
+    try:
+        delta = case_abort(admin, "control: aborted MSETNX, transaction on a second connection",
+                           blocker, victims, second_conn=True)
+        if delta:
+            raise AssertionError(
+                f"control: second connection opened the hazard window {delta}x; it is meant "
+                "to stay outside it")
+    except AssertionError as failure:
+        failures += 1
+        print(f"  FAIL {failure}", flush=True)
+
+    # Its holds are reported but deliberately kept OUT of the vacuity sum below: this case exists
+    # to prove the fix cannot wedge, and its counter reading is a by-product, not its claim.
+    try:
+        case_liveness(admin, "liveness: two-phase RENAME/LMPOP/SMOVE then EXEC on their targets",
+                      [blocker] + list(victims))
+    except AssertionError as failure:
+        failures += 1
+        print(f"  FAIL {failure}", flush=True)
+
+    # VACUOUS-VALIDATION GATE, and under atomic 0 its mirror image. Under atomic 1 the armed cases
+    # MUST have met an undecided same-connection unit or the run never entered the window this
+    # battery exists to close. Under atomic 0 MSETNX is two-hop -- it decides before it installs --
+    # so no unit of this shape is ever undecided on an owner and the counter MUST stay at zero;
+    # a non-zero reading there would mean the two-hop path had grown an install-then-decide window
+    # of its own, which is the same defect in the other mode.
+    window_holds = sum(armed_deltas)
+    if mode == "1" and window_holds == 0:
+        failures += 1
+        print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no transaction "
+              "fragment ever met an undecided same-connection unit, so this run never "
+              "entered the window it exists to close and its pass is vacuous", flush=True)
+    elif mode == "1":
+        ok(f"hazard window opened {window_holds}x across the armed cases")
+    elif window_holds:
+        failures += 1
+        print(f"  FAIL atomic 0 opened the hazard window {window_holds}x: a two-hop MSETNX must "
+              "decide before it installs, so no same-connection unit can be undecided on an "
+              "owner in this mode", flush=True)
+    else:
+        ok("atomic 0: MSETNX is two-hop and installs nothing before it decides, window shut")
+    return failures
+
+
 def main():
     if len(sys.argv) != 3:
         print("usage: tests/multirace.py HOST PORT", file=sys.stderr)
         return 2
     admin = Conn()
     failures = 0
-    armed_deltas = []
+    booted = None
     try:
-        atomic_on = atomic_enabled(admin)
-        print(f"multirace: atomic={'1' if atomic_on else '0'}", flush=True)
+        booted = atomic_setting(admin)
         blocker, victims = owner_spread(admin, VICTIMS + 1)
         victims = victims[:VICTIMS]
         print(f"  note blocker + {len(victims)} victims, each on its own owner", flush=True)
-
-        try:
-            case_abort(admin, "aborted MSETNX then EXEC write on the same connection",
-                       blocker, victims, seen=armed_deltas)
-        except AssertionError as failure:
-            failures += 1
-            print(f"  FAIL {failure}", flush=True)
-
-        try:
-            case_commit(admin, "control: committed MSETNX then EXEC write (RYOW must hold)",
-                        blocker, victims, seen=armed_deltas)
-        except AssertionError as failure:
-            failures += 1
-            print(f"  FAIL {failure}", flush=True)
-
-        # NEGATIVE CONTROL. A foreign connection is never answered from another connection's RYOW
-        # overlay, so it must be clean before AND after the fix, and it must leave the hazard
-        # counter alone -- a control that opened the window would not be controlling for anything.
-        try:
-            delta = case_abort(admin, "control: aborted MSETNX, transaction on a second connection",
-                               blocker, victims, second_conn=True)
-            if delta:
-                raise AssertionError(
-                    f"control: second connection opened the hazard window {delta}x; it is meant "
-                    "to stay outside it")
-        except AssertionError as failure:
-            failures += 1
-            print(f"  FAIL {failure}", flush=True)
-
-        # VACUOUS-VALIDATION GATE.
-        window_holds = sum(armed_deltas)
-        if atomic_on and window_holds == 0:
-            failures += 1
-            print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no transaction "
-                  "fragment ever met an undecided same-connection unit, so this run never "
-                  "entered the window it exists to close and its pass is vacuous", flush=True)
-        elif atomic_on:
-            ok(f"hazard window opened {window_holds}x across the armed cases")
-        else:
-            ok("atomic 0: MSETNX is two-hop and installs nothing before it decides, window shut")
+        for mode in ("1", "0"):
+            set_atomic(admin, mode)
+            failures += run_mode(admin, mode, blocker, victims)
     except (AssertionError, EOFError, OSError) as failure:
         failures += 1
         print(f"  FAIL {failure}", flush=True)
     finally:
         try:
+            if booted is not None:
+                admin.command("CONFIG", "SET", "atomic", booted)
             admin.command("FLUSHALL")
         except (EOFError, OSError, AssertionError):
             pass
