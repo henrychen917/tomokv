@@ -500,8 +500,7 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
         std::memory_order_release);
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
-        maneuver_start_[tid] = ThreadMeasure{
-            signal.ops, signal.busy_ns, signal.iterations, signal.spins, signal.idle_ns};
+        maneuver_start_[tid] = ThreadMeasure{signal.ops, signal.busy_ns, signal.idle_ns};
         maneuver_mark_[tid] = maneuver_start_[tid];
     }
     rate_window_ms_ = now_ms;
@@ -567,28 +566,26 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac, double&
         const LoopSignals& signal = server.thread(tid).sig();
         const ThreadMeasure& start = maneuver_mark_[tid];
         const uint64_t ops = signal.ops - start.ops;
-        const uint64_t busy = signal.busy_ns - start.busy_ns;
-        const uint64_t idle = signal.idle_ns - start.idle_ns;
-        const uint64_t iterations = signal.iterations - start.iterations;
-        const uint64_t spins = signal.spins - start.spins;
-        const double spin_fraction = iterations
-            ? std::min(1.0, static_cast<double>(spins) / iterations) : 0;
-        const double corrected_busy = static_cast<double>(busy) * (1.0 - spin_fraction);
+        // busy_ns is WORK: the loops book a pass that found nothing as idle (ex_loop.h), so no
+        // spin correction is applied here. The former busy x (1 - spins/iterations) treated an
+        // empty 2048-budget spin pass as costing what a task batch costs and cut the ex share to
+        // a quarter of itself -- io = 0.73 read on a 0.47 workload, a bias toward "more io" in
+        // exactly the direction of the round trip this lane exists to stop.
+        const double busy = static_cast<double>(signal.busy_ns - start.busy_ns);
+        const double idle = static_cast<double>(signal.idle_ns - start.idle_ns);
         const Role role = server.thread(tid).role();
         if (role != Role::Ifid && role != Role::Ex) continue;
         const size_t index = role == Role::Ifid ? 0 : 1;
         role_ops[index] += static_cast<double>(ops);
-        role_busy[index] += corrected_busy;
-        busiest[index] = std::max(busiest[index], corrected_busy);
-        const double wall = static_cast<double>(busy) + static_cast<double>(idle);
+        role_busy[index] += busy;
+        busiest[index] = std::max(busiest[index], busy);
+        const double wall = busy + idle;
         if (wall > 0)
-            headroom[index] = std::min(
-                headroom[index], std::clamp(1.0 - corrected_busy / wall, 0.0, 1.0));
+            headroom[index] = std::min(headroom[index], std::clamp(idle / wall, 0.0, 1.0));
     }
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
-        maneuver_mark_[tid] = ThreadMeasure{
-            signal.ops, signal.busy_ns, signal.iterations, signal.spins, signal.idle_ns};
+        maneuver_mark_[tid] = ThreadMeasure{signal.ops, signal.busy_ns, signal.idle_ns};
     }
     // Capacity is unidentifiable without observed work on both sides. Keep measuring instead of
     // inventing a workload prior. The constraint guard deliberately examines each role's busiest

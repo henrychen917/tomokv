@@ -225,8 +225,6 @@ private:
     struct ThreadMeasure {
         uint64_t ops = 0;
         uint64_t busy_ns = 0;
-        uint64_t iterations = 0;
-        uint64_t spins = 0;
         uint64_t idle_ns = 0;
     };
 
