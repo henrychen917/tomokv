@@ -721,3 +721,22 @@ change may be default-on.
 The question the verdict has to answer is therefore not "is 64 better than 16 at 70% writes" but
 **"how much of the world writes in runs longer than sixteen per connection-window, and what does the
 rest pay for it?"**
+
+
+## Correctness, as it stands on this tree (unchanged by tonight's instrument work)
+
+| instrument | result |
+|---|---|
+| `tests/read_local_write_ring_unit.cc` | **14 of 14 ok**, including three 200k-frame soaks |
+| layout locks | `Rob<64>` 192, sidecar 1216 / align 64, ring 64, keyset bound 16 — all held |
+| mutation table | control **passes**; M1, M1b refused at compile time; M1c, M2, M2b, M3, **M4** each fail their named cases |
+| **D1 derivation** | shrinking `kRobWindow` to 32 does not compile: **both** the sidecar `sizeof` lock and the Rob's structural assert fire |
+| codegen | shipped sweep 54 instructions with **1 vector compare**; the flat form 36 instructions with **0** |
+| battery 1s (fused, armed) | 9 pass, 1 fail — `expwide`, which is mainline's (owner-confirmed on e902c67d5) and excused |
+| battery 2s | **11 pass, 0 fail** |
+| differ canonical | every matrix reached passed with **0 diffs** (string, list, set, zset, hash, hexpire, edgetime, xshard, xmove, bitmap) before the phase was deliberately stopped |
+| `expwide` attribution | m14, PRE and POST all fail identically under fused+armed and all pass in split — not this lane's, not t-rlbatch's |
+
+The soak line worth keeping: at the full ROB window the precise ring **hoisted 50,691 of 87,251
+reads** where the conservative regime hoists 0. The mechanism works. Everything below is about what
+it costs.
