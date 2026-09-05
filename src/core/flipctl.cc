@@ -627,16 +627,17 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac, double&
     return true;
 }
 
-// The throughput noise a projected gain has to beat before a flip could be VERIFIED: the band the
-// last anchor learned, if any, or the maneuver's own stabilized-pair jitter -- never a typed
-// number unless the operator typed --flip-auto-band.
-// The spread the ORIGIN split's own stabilized readings showed while the model was deciding. It
-// is a floor under every band this maneuver uses -- including an operator-typed --flip-auto-band,
-// which says how small a gain is worth chasing, not how still the workload is holding.
+// The spread the ORIGIN split's own stabilized readings showed while the model was deciding: the
+// baseline's movement between the two windows the outcome loop compares. It is a floor under every
+// band this maneuver uses, an operator-typed --flip-auto-band included, because that knob says how
+// small a gain is worth chasing, not how still the workload is holding.
 double FlipController::baseline_band() const {
     return origin_rate_samples_ >= 2 ? flip_baseline_band(origin_rate_min_, origin_rate_max_) : 0;
 }
 
+// The throughput noise a projected gain has to beat before a flip could be VERIFIED: the band the
+// last anchor learned, if any, or the maneuver's own stabilized-pair jitter, and never below what
+// the baseline itself moved. A typed --flip-auto-band replaces the learned pair, not the floor.
 double FlipController::verification_band(double rate) const {
     const double floor = baseline_band();
     if (configured_band_ > 0)

@@ -116,3 +116,46 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
   matrix2 mk so far: OFF 504/498/510/517/521/524k; POST 488/498k (0 flips, 4 triggers held);
   PRE 460/435k (2+4 flips, 371+660 clients). If killed: rerun `scratch/finalw.sh` (idempotent),
   then publish fd-report.html as the artifact and send the single report message.
+
+## 2026-09-06 night: VERIFICATION lane (owner: verification only, no actuator redesign)
+State at resume 00:29: HEAD 4e8edf37a, tree clean, box gate CLOSED (quiet.done missing, load 40,
+other lanes on 64-127 + a tomokv-post on 8260). Nothing of mine was running.
+
+### What the killed session left behind (read from files, not memory)
+- fd-matrix2.csv had ONLY the mk regime: finalw.sh line 11 counted rows with
+  `grep -c ",$wl," || echo 0`, and grep -c prints "0" AND exits 1 on no match, so the substitution
+  produced "0\n0" and the arithmetic died -- sk1:1, sk9:1 and get were silently skipped. FIXED
+  (awk over the CSV shape). LAW for this harness: never count with `grep -c || echo 0`.
+- report.py read only fd-final.log while finalw.sh logged to fd-final2.log -> "0 hold lines,
+  0 battery lines, 0 differ lines" in the report. FIXED (reads the whole chain).
+- differ was run as `differ_gate.sh ... 2:2`; its sort suite REQUIRES --shards 16 --ratio 6:2, so
+  4 of the 4 "failures" were my invocation (pass=164 fail=4, all four `differ sort`). Re-run at 6:2.
+- `--thread-mode 1s --flip-auto 1` is REFUSED by config (flip needs 2s). The mode row has to be
+  1s-plain + 2s-with-flip-auto, not the combination.
+
+### THE REAL FINDING: tests/flipctl.py (a GATE row) fails on this branch
+Rail anchor 1:7 on 8 threads. DEBUG FLIPCTL: model_io_frac=0.0061, headroom_io=0.994,
+headroom_ex=0.0000, origin_rate=4898.601, anchor_rate=6000.916, boot_rate_slope=0.0229 against its
+own threshold 0.0297. So: (a) the driver is 3 connections of BITCOUNT over 4 MB bitmaps -- ex IS
+saturated and io IS idle, the saturation gate opened correctly and work conservation really does
+rate 1:7 at 3.5x; (b) the +22.5% that CONFIRMED the move was the driver's own ramp, still trending
+under the deferral threshold. Base does not rail because it random-walks with halving steps and
+settles on the best of several readings; my verify-or-revert takes ONE probe and compares it to a
+single pre-flip reading.
+FIX (4802ba52d): Measuring never moves the split, so its readings are readings of the ORIGIN.
+Bracket them (min/max) and floor every band of the maneuver at 2x that spread -- the same
+2x-observed-jitter convention as band_, the signature band and the rate band. Ramping driver =>
+floor 0.40, the ramp's 0.225 confirms nothing, seek reverts to 6:2, anchors off-rail. Still
+baseline => floor ~0, nothing changes. Pure helper flip_baseline_band() + unit rows; DEBUG FLIPCTL
+dumps origin_rate_readings/min/max/baseline_band.
+NOTE the binary changed => matrix2 rows are a different server. Kept as fd-matrix2-prev.csv; the
+report reads fd-matrix3.csv.
+
+### Tonight's chain: scratch/ver.sh (detached, pid in $SP/fd-ver.pid, log fd-ver.log)
+Pauses on the box marker at every step, skips any step whose output is on file, touches
+$SP/fd-ver.done at the end. S1 build+unit, S2 flipctl.py base x2 vs fix x2, S3 matrix3
+(mk/sk1:1/sk9:1/get x 3 rounds x pol0a/pol0b/pol1/base1, 40 s), S4 hold test, S5 NON-VACUITY
+(boot at 3:1 -- ~190k vs ~500k at 2:2 -- and require fa=1 to still move; fa=0 must not),
+S6 instr/op + cycles/op at a matched rate via memtier --rate-limiting (base fa0 = hot path,
+fix fa0, fix fa1 = always-on cost), S7 batteries 2s + fused both atomic, S8 differ at 6:2,
+S9 report. Re-running `scratch/ver.sh` after any kill resumes it.
