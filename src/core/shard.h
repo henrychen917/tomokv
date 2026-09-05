@@ -417,13 +417,20 @@ public:
         // than it charged, which is a real accounting fault worth a test assertion but not worth
         // killing the process for. Must read 0; tests/execfix.py asserts it in both atomic modes.
         uint64_t atomic_gauge_underflows = 0;
-        // Times an EXEC write installed its candidate for a key while an OLDER cross-shard group
-        // from the SAME connection was still undecided on this owner -- the window in which those
-        // two units' commit tickets can invert. It OBSERVES that window; nothing waits on it (a
-        // hold there deadlocks, NOTES-MULTIRES.md). Cold: written only from the transaction
-        // write-prepare path, which already walks the owner's pending list. It must be able to
-        // read zero -- a transaction with no such predecessor never touches it -- so a non-zero
-        // reading is proof the window opened rather than proof the test ran.
+        // Times a transaction met an OLDER, still-UNDECIDED unit of the SAME connection on this
+        // owner -- the window in which those two units' commit tickets can invert AND in which
+        // the older unit's installed-but-withdrawable candidate is exposed to the transaction
+        // through the store's connection-scoped RYOW overlay. Two sites raise it, both cold and
+        // both on paths that already walk the owner's pending list:
+        //   * ExLoop::execute(), where a transaction FRAGMENT is parked behind such a unit before
+        //     it installs anything here. This is the ordinary one now, and it is a real hold: it
+        //     is what stops an aborted MSETNX's candidate from being cloned into an acknowledged
+        //     transaction write (tests/multirace.py).
+        //   * multi.inc's prepare_write_key(), which OBSERVES the same window per key at install
+        //     time. The park above normally forecloses it, so it rarely fires any more; it is kept
+        //     because a record can be published on this owner between the two points.
+        // It must be able to read zero -- a transaction with no such predecessor never touches it
+        // -- so a non-zero reading is proof the window opened rather than proof the test ran.
         uint64_t atomic_exec_order_holds = 0;
         // Times watch_finalize_reservation() answered "not ready" because the reservation's epoch
         // was still 0, i.e. a unit was turned into a Retry by an undecided WATCH reservation. It

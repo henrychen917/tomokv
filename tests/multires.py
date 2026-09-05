@@ -24,9 +24,10 @@ Both are RACES, so every case runs many rounds and reports a hit count rather th
 pre-fix rates on this box were roughly 22% of rounds for (1) and 37% for (2). A single clean
 round means nothing, which is why nothing here concludes from one.
 
-Every case also proves its mechanism FIRED: `atomic_exec_order_holds` counts EXEC writes that
-installed while an older same-connection group was still undecided on that owner, which is
-exactly the hazard window. A run in which it never advances never entered the window, and is
+Every case also proves its mechanism FIRED: `atomic_exec_order_holds` counts a transaction
+meeting an older same-connection unit that is still undecided on that owner, which is exactly the
+hazard window (raised where the transaction fragment is parked behind that unit, and where an EXEC
+write installs against one). A run in which it never advances never entered the window, and is
 reported as vacuous rather than as a pass. Negative controls (no group; a single-key non-group
 predecessor; the transaction on a second connection) must record no loss AND are expected to
 leave the counter alone.

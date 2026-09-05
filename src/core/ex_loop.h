@@ -2602,6 +2602,33 @@ private:
                     atomic_deferred_.push_back(t);
                     return true;
                 }
+                // PROGRAM ORDER, THE OTHER HALF: an older same-connection cross-shard unit that
+                // has already INSTALLED here but has not yet DECIDED. Nothing is parked, so the
+                // check above cannot see it, yet its physically installed candidate may still be
+                // withdrawn -- MSETNX under --atomic 1 installs first and only then discovers an
+                // existing key on another owner, and any group can still fail on OOM/maxmemory.
+                // A transaction fragment reads through the store's own-connection RYOW overlay
+                // (atomic_resolve_internal's own_private arm), which is keyed on the CONNECTION
+                // and therefore also exposes that other unit's undecided candidate. Running here
+                // let an EXEC clone a value that was never committed and install it as its own
+                // candidate, which then committed with a real ticket: a withdrawn MSETNX value
+                // laundered into an acknowledged transaction write, visible to every connection
+                // and permanent (tests/multirace.py).
+                // Deferring here rather than in prepare_write_key() is what makes it safe. This
+                // fragment has installed nothing yet on this owner, so parking it cannot hold a
+                // half-applied command; and the predecessor can never wait on it, because on
+                // every shard the older unit's fragment is drained first and, if it is itself
+                // parked, parked_predecessor_in() holds this younger fragment behind it. That is
+                // the acyclicity NOTES-MULTIRES.md §5(a) found missing when the same hold was
+                // attempted mid-command against an order-blind key probe.
+                if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+                    shard.store().atomic_has_foreign_unit_undecided(
+                        t.client->id(),
+                        [&t](const void* epoch) { return multi_task_owns_epoch(t, epoch); })) {
+                    shard.stats().atomic_exec_order_holds++;
+                    atomic_deferred_.push_back(t);
+                    return true;
+                }
             }
             // The no-touch answer is PER TASK; a MULTI body inherits the transaction owner's.
             if (__builtin_expect(maxmemory_enabled_, false)) {

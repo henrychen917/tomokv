@@ -4,6 +4,7 @@
 // exposes only opaque state and the narrow IO/executor hooks needed by the single-TU core.
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <vector>
 
@@ -59,6 +60,12 @@ void multi_abandon_unpublished(MultiExecState* state);
 
 // Low-bit tagging reuses Task::scatter without changing the 32-byte queue item.
 bool multi_task_tagged(const Task& task);
+// Does `group_epoch` belong to this fragment's OWN logical unit? The transaction's plain per-key
+// installs publish through its own epoch word; every cross-shard command lowered inside the same
+// EXEC keeps its own ScatterState and publishes through that one. A caller asking "is there an
+// undecided record here that is not mine" has to accept both, or a transaction holds against its
+// own child (NOTES-MULTIRES.md §5(a)).
+bool multi_task_owns_epoch(const Task& task, const void* group_epoch);
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state);
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,

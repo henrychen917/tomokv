@@ -1768,6 +1768,23 @@ bool multi_task_tagged(const Task& task) {
     return (reinterpret_cast<uintptr_t>(task.scatter) & kMultiTaskTag) != 0;
 }
 
+bool multi_task_owns_epoch(const Task& task, const void* group_epoch) {
+    if (!group_epoch) return false;
+    const uintptr_t tagged = reinterpret_cast<uintptr_t>(task.scatter);
+    const auto* state = reinterpret_cast<const MultiExecState*>(tagged & ~kMultiTaskTag);
+    if (!state) return false;
+    if (group_epoch == static_cast<const void*>(&state->epoch)) return true;
+    // The lowered children. `commands` is built by IO before the first fragment is posted and its
+    // scatter pointers are cleared only at retirement, which cannot run while a fragment of this
+    // transaction is still executing, so this walk is stable. It is a handful of pointers on a
+    // path already gated by "this owner holds pending records".
+    for (const auto& command : state->commands)
+        if (command && command->scatter &&
+            group_epoch == static_cast<const void*>(&command->scatter->epoch))
+            return true;
+    return false;
+}
+
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state) {
     const uintptr_t tagged = reinterpret_cast<uintptr_t>(state) | kMultiTaskTag;
     return Task{client, op_id, shard, reinterpret_cast<ScatterState*>(tagged)};

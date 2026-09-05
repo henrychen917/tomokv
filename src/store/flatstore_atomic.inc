@@ -234,6 +234,36 @@
         }
         return false;
     }
+    // Does this owner still hold an UNDECIDED record belonging to a DIFFERENT logical unit of
+    // the same connection? A cross-shard atomic group installs its candidate physically before it
+    // knows its own verdict -- MSETNX discovers an existing key on another owner, and any group
+    // can still fail on OOM/maxmemory -- so such a record may yet be withdrawn. Program order
+    // makes it this connection's business alone: foreign connections never see an epoch-zero
+    // record at all, and a same-connection reader must not run past it.
+    // `is_own` names the caller's OWN unit BY EPOCH WORD, and it must recognise every word that
+    // unit publishes through, not just one: an EXEC's plain per-key installs use the transaction's
+    // epoch, while each cross-shard child command lowered inside that EXEC keeps its own
+    // ScatterState and therefore its own. Answering with only the transaction's word makes a
+    // transaction hold against its own RENAME/LMPOP child and hang -- the same self-hold
+    // NOTES-MULTIRES.md §5(a) hit from the other direction. Plain single-command pseudo-entries
+    // carry no group_epoch at all: they draw their ticket in the same owner turn that installs
+    // them, so they are never undecided and are skipped here.
+    template <typename IsOwnUnit>
+    bool atomic_has_foreign_unit_undecided(uint64_t origin_conn_id, IsOwnUnit&& is_own) const {
+        if (!atomic_pending_ || !atomic_pending_->live) return false;
+        const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
+        for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
+             entry = entry->conn_next) {
+            if (!entry->group_epoch || entry->origin_conn_id != origin_conn_id ||
+                is_own(entry->group_epoch))
+                continue;
+            if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
+            if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
+                continue;
+            return true;
+        }
+        return false;
+    }
     bool atomic_has_any_own_undecided(uint64_t origin_conn_id,
                                       const ScatterState* ignore_group = nullptr) const {
         if (!atomic_pending_) return false;

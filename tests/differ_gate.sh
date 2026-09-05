@@ -9,6 +9,18 @@ TARGET_PORT=${2:-${GATE_PORT:-7899}}
 ORACLE_PORT=${3:-${GATE_DIFFER_ORACLE_PORT:-$((TARGET_PORT+1))}}
 TARGET_CORES=${4:-${GATE_CORES:-0-7}}
 TARGET_RATIO=${5:-${GATE_DIFFER_RATIO:-6:2}}
+# TARGET GEOMETRY. `split` is the canonical production shape this matrix has always used: two
+# thread roles at TARGET_RATIO with the read-local lane disarmed. `armed-fused` boots the same
+# binary the other way -- one fused role, --read-local 1 -- because the whole read-local parse and
+# resolve arm is UNREACHABLE from the split boot, so a green canonical matrix says nothing about
+# it. The armed run adds a non-vacuity row for exactly that reason (see below) and skips the one
+# suite that requires the split geometry to mean anything.
+TARGET_GEOMETRY=${GATE_DIFFER_GEOMETRY:-split}
+case "$TARGET_GEOMETRY" in
+  split)       TARGET_SHAPE=(--ratio "$TARGET_RATIO");;
+  armed-fused) TARGET_SHAPE=(--thread-mode fused --read-local 1);;
+  *) echo "unknown GATE_DIFFER_GEOMETRY: $TARGET_GEOMETRY (want split|armed-fused)" >&2; exit 2;;
+esac
 ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$TARGET_CORES}
 REDIS_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 ORACLE_BIN=${GATE_DIFFER_ORACLE_BIN:-$REDIS_ROOT/src/redis-server}
@@ -153,6 +165,7 @@ if [ "${#SUITES[@]}" -eq 0 ]; then
   exit 2
 fi
 printf 'DIFFER suites (%d): %s\n' "${#SUITES[@]}" "${SUITES[*]}"
+printf 'DIFFER geometry: %s (%s)\n' "$TARGET_GEOMETRY" "${TARGET_SHAPE[*]}"
 printf 'DIFFER matrix: atomic={0,1} seeds={%s,%s} legs=%d logs=%s\n' \
     "${SEEDS[0]}" "${SEEDS[1]}" "$((2 * ${#SEEDS[@]} * ${#SUITES[@]}))" "$OUT"
 
@@ -186,7 +199,7 @@ for ATOMIC in 0 1; do
   # remains part of the differential surface instead of diverging by harness construction.
   if ! boot_owned "target atomic=$ATOMIC" "$TARGET_PORT" "$TARGET_CORES" "$TARGET_LOG" \
       "$TARGET_BIN" --port "$TARGET_PORT" --bind 127.0.0.1 --shards 16 \
-      --ratio "$TARGET_RATIO" --atomic "$ATOMIC" --save '' \
+      "${TARGET_SHAPE[@]}" --atomic "$ATOMIC" --save '' \
       --enable-debug-command yes; then
     FAIL=$((FAIL+1))
     break
@@ -195,6 +208,14 @@ for ATOMIC in 0 1; do
 
   for SEED in "${SEEDS[@]}"; do
     for SUITE in "${SUITES[@]}"; do
+      # The cross-owner SORT suite asserts the 6:2 thread split out of INFO and refuses any other
+      # geometry, so under the fused boot it can only self-abort. It is fully covered by the split
+      # run above; skipping it here is a harness constraint, stated rather than hidden, and it is
+      # deliberately NOT counted as a pass.
+      if [ "$TARGET_GEOMETRY" = armed-fused ] && [ "$SUITE" = sort ]; then
+        say "differ sort (atomic=$ATOMIC seed=$SEED)" "SKIP (suite requires the split 6:2 geometry)"
+        continue
+      fi
       LEG="differ $SUITE (atomic=$ATOMIC seed=$SEED)"
       LEG_LOG="$OUT/$SUITE-a$ATOMIC-s$SEED.txt"
       if taskset -c "$TARGET_CORES" timeout 900 python3 tests/differ.py \
@@ -229,6 +250,23 @@ for ATOMIC in 0 1; do
         FAIL=$((FAIL+1))
       fi
     done
+  fi
+
+  # NON-VACUITY, armed-fused only. This geometry exists to drive the matrix THROUGH the armed
+  # read-local lane; a run in which that lane never served a single read proved nothing about it
+  # and must not be reported as a pass. Read the counter out of the live target before it is
+  # stopped and fail the leg when it is zero or missing.
+  if [ "$TARGET_GEOMETRY" = armed-fused ]; then
+    RL_INFO=$("$REDIS_CLI" -h 127.0.0.1 -p "$TARGET_PORT" --raw INFO all 2>/dev/null | tr -d '\r')
+    RL_HITS=$(sed -n 's/^read_local_hits://p' <<<"$RL_INFO" | head -1)
+    RL_FB=$(sed -n 's/^read_local_fallbacks://p' <<<"$RL_INFO" | head -1)
+    if [ "${RL_HITS:-0}" -gt 0 ] 2>/dev/null; then
+      say "read-local lane fired (atomic=$ATOMIC)" "ok (hits=$RL_HITS fallbacks=${RL_FB:-?})"
+      PASS=$((PASS+1))
+    else
+      say "read-local lane fired (atomic=$ATOMIC)" "FAIL (hits=${RL_HITS:-unset}) -- vacuous run"
+      FAIL=$((FAIL+1))
+    fi
   fi
 
   stop_owned "target atomic=$ATOMIC" "$TARGET_PID" "$TARGET_PORT" || FAIL=$((FAIL+1))
