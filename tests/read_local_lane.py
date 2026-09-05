@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Armed local-read LANE ADMISSION battery (P128.md).
 
-Usage: read_local_lane.py HOST PORT      boot: --thread-mode 1s --read-local 1 --enable-debug-command yes
+Usage: read_local_lane.py HOST PORT
+  boot: --thread-mode 1s --read-local 1 --enable-debug-command yes
 
 The fused thread's local-read lane holds kInboxSlots (1024) entries. A connection may pipeline up
 to kRobWindow (64) ops, so a thread that has accepted more than 16 deep-pipelining connections can
@@ -12,37 +13,45 @@ thread's active connections so that no connection can crowd out the ones the rot
 The former rule demoted the excess to the shard owner as an ordinary task; 7/8 of those tasks were
 cross-thread, and they were the seed of the p128 / 2048-connection pure-read collapse.
 
-Oversubscribing the lane is a RACE against the drain, so the battery drives it deterministically
-rather than hoping: a round's bursts are written by a pool of writer threads (a serial writer lets
-the server drain the lane between sockets -- that alone was the difference between firing 17 times
-and never firing at all), and if the lane still never fills the battery ESCALATES by doubling the
-connection count, up to ESCALATIONS times, before it will call the mechanism unfired. That keeps
-the anti-vacuity check honest on a fast boot instead of turning it into a coin flip.
+WHY THIS BATTERY DRIVES A CAP INSTEAD OF LOAD. Oversubscribing a 1024-entry lane by traffic is a
+RATE RACE against the drain, and a test client cannot win it: the fused thread empties the lane
+every rotation, far faster than one Python process can fill it. Piling on connections does not
+help -- the gate measured 256 connections x 64 deep = 2624 pipelined frames producing ZERO lane
+events, because the frames were never in flight at once. So the anti-vacuity checks below could
+only fire on a saturated rig, and a row that fires only on its author's rig is not a gate row.
 
-Every check here is a counter delta over this battery's own traffic (vacuous-validation rule):
-  geometry   the thinnest-guarded claim first: some thread owns > 1024/64 = 16 of our connections
-             (SO_REUSEPORT hashes accepts, so we open 32 x threads and read the per-thread
-             accepted counts back from DEBUG LBSIGNALS; the max is >= the mean by construction)
+Instead, DEBUG READ-LOCAL-LANE-CAP lowers the ADMISSION threshold (the ring keeps its kInboxSlots
+entries and its masking; only the parser's "has room" test moves). One connection pipelining more
+than the cap in a single write then oversubscribes the lane INSIDE ONE PARSE PASS -- before any
+drain can run -- so the mechanism fires deterministically with a handful of connections, on any
+box, at any speed. The cap derives to kInboxSlots whenever it is unset, which is what production
+always runs; phase 1 below measures the uncapped behaviour precisely so the capped result has a
+control to be compared against.
+
+Checks (all counter deltas over this battery's own traffic -- the vacuous-validation rule):
+  control    with the cap unset, record the same traffic's lane deltas; the capped phase must
+             produce strictly more, which is what proves the CAP is the reason it fires
   lane full  read_local_defer_lane_full  > 0   the lane WAS oversubscribed -- otherwise every
-                                                other check below would be vacuous
+                                                other check here would be vacuous
   no demote  read_local_fallback_lane_full == 0  capacity never creates an owner task
   fair share read_local_defer_quota      > 0   the pressure window armed and divided the lane
   local      read_local_hits delta >= 95% of the shared GETs (the rest may fall back for reasons
              unrelated to capacity, e.g. sequence churn from the RYOW writes below)
   order      every connection receives every reply, in order, with the expected value; the SET
              that follows the deferred GETs on the same connection and the GET behind it prove
-             the frame order and read-your-own-write survive a deferral
+             frame order and read-your-own-write survive a deferral
   liveness   every round completes (a deferred frame must be re-parsed without an external wake)
+  restore    setting the cap back to 0 restores the derived lane and the traffic still completes
+             locally and in order -- the production path is not left altered by the test hook
 """
-import threading
 import time
 
 import _lib
 
-DEPTH = 64          # GETs per connection per round == kRobWindow: the per-connection lane pressure
-CONNS_PER_THREAD = 32
-ROUNDS = 12
-ESCALATIONS = 3     # if the lane never filled, double the connections and drive another phase
+DEPTH = 64          # GETs per connection per round == kRobWindow
+CONNS = 16          # small and deterministic: the cap, not the load, creates the pressure
+ROUNDS = 6
+CAP = 8             # effective lane capacity while the mechanism is under test
 ROUND_DEADLINE_S = 20.0
 COUNTERS = ("read_local_hits", "read_local_fallbacks", "read_local_fallback_lane_full",
             "read_local_defer_lane_full", "read_local_defer_quota")
@@ -59,52 +68,17 @@ def counters(conn):
     return out
 
 
-def open_conns(host, port, first, count):
-    """Open count connections and seed each one's own key. Returns the new connections."""
-    made = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S, buffering=1 << 16)
-            for _ in range(count)]
-    for j, c in enumerate(made):
-        c.must("SET", "rl:lane:own:%d" % (first + j), b"init")
-    return made
-
-
-def send_parallel(conns, frames, nworkers):
-    """Write every burst from nworkers threads so a round's frames reach the server inside one
-    fused rotation. Writing them one socket at a time lets the drain keep up and the lane never
-    fills -- which is exactly the vacuity this battery must not report as a pass."""
-    errs = []
-
-    def work(lo, hi):
-        try:
-            for j in range(lo, hi):
-                conns[j].sock.sendall(frames[j])
-        except Exception as exc:              # noqa: BLE001 - reported through errs
-            errs.append(exc)
-
-    n = len(conns)
-    step = max(1, (n + nworkers - 1) // nworkers)
-    workers = [threading.Thread(target=work, args=(i, min(i + step, n)))
-               for i in range(0, n, step)]
-    for t in workers:
-        t.start()
-    for t in workers:
-        t.join()
-    if errs:
-        raise errs[0]
-
-
-def burst_round(conns, shared, values, r, writers):
+def burst_round(conns, shared, values, r):
     """One round: every connection pipelines DEPTH shared GETs + SET own-key + GET own-key in a
-    single write. Returns (ok, detail, elapsed)."""
-    frames = []
-    for i in range(len(conns)):
+    single write, so a connection's whole window reaches the parser in one pass. Returns
+    (ok, detail, elapsed)."""
+    want = values + [b"OK", b"r%d" % r]
+    t0 = time.monotonic()
+    for i, c in enumerate(conns):
         payload = b"".join(_lib.encode("GET", k) for k in shared)
         payload += _lib.encode("SET", "rl:lane:own:%d" % i, "r%d" % r)
         payload += _lib.encode("GET", "rl:lane:own:%d" % i)
-        frames.append(payload)
-    want = values + [b"OK", b"r%d" % r]
-    t0 = time.monotonic()
-    send_parallel(conns, frames, writers)
+        c.sock.sendall(payload)
     for i, c in enumerate(conns):
         try:
             got = [c.read() for _ in range(DEPTH + 2)]
@@ -117,6 +91,17 @@ def burst_round(conns, shared, values, r, writers):
     return True, "", time.monotonic() - t0
 
 
+def drive(conns, shared, values, first_round, rounds):
+    """rounds rounds of burst traffic. Returns (ok, detail, slowest, shared_gets)."""
+    slow = 0.0
+    for r in range(first_round, first_round + rounds):
+        ok, detail, elapsed = burst_round(conns, shared, values, r)
+        slow = max(slow, elapsed)
+        if not ok:
+            return False, detail, slow, 0
+    return True, "", slow, DEPTH * len(conns) * rounds
+
+
 def main():
     host, port = _lib.host_port()
     ctl = _lib.Conn(host, port)
@@ -125,62 +110,50 @@ def main():
     cfg = ctl.cmd("CONFIG", "GET", "read-local")
     if not (isinstance(cfg, list) and len(cfg) == 2 and cfg[1] == b"1"):
         _lib.skip_all("needs --read-local 1 (CONFIG GET read-local -> %r)" % (cfg,))
+    probe = ctl.cmd("DEBUG", "READ-LOCAL-LANE-CAP", "0")
+    if isinstance(probe, Exception) or probe != b"OK":
+        _lib.skip_all("needs DEBUG READ-LOCAL-LANE-CAP (--enable-debug-command yes) -> %r"
+                      % (probe,))
     rep = _lib.Report("read_local_lane")
 
-    threads = _lib.lbsignals(ctl).threads
-    writers = max(2, len(threads))
     shared = ["rl:lane:k%d" % i for i in range(DEPTH)]
     values = [b"v%d" % i for i in range(DEPTH)]
     for key, value in zip(shared, values):
         ctl.must("SET", key, value)
-    before_clients = {t.tid: t.clients for t in threads}
+    conns = [_lib.Conn(host, port, timeout=ROUND_DEADLINE_S, buffering=1 << 16)
+             for _ in range(CONNS)]
+    for i, c in enumerate(conns):
+        c.must("SET", "rl:lane:own:%d" % i, b"init")
 
-    conns = open_conns(host, port, 0, CONNS_PER_THREAD * len(threads))
-    after = _lib.lbsignals(ctl).threads
-    accepted = {t.tid: t.clients - before_clients.get(t.tid, 0) for t in after}
-    top = max(accepted.values())
-    rep.check("geometry: some thread owns > lane/window of our connections",
-              top * DEPTH > 1024,
-              "threads=%d conns=%d accepted per thread min=%d max=%d (x%d deep = %d > 1024)"
-              % (len(threads), len(conns), min(accepted.values()), top, DEPTH, top * DEPTH))
-
+    # PHASE 1 -- CONTROL. Same traffic, cap derived (production geometry). Whatever this produces
+    # is the baseline the capped phase must beat; on a gate-sized box it is zero.
     base = counters(ctl)
-    slow = 0.0
-    order_ok = True
-    order_detail = ""
-    shared_gets = 0
-    fired = 0
-    phases = 0
-    r = 0
-    while True:
-        for _ in range(ROUNDS):
-            ok, detail, elapsed = burst_round(conns, shared, values, r, writers)
-            shared_gets += DEPTH * len(conns)
-            slow = max(slow, elapsed)
-            r += 1
-            if not ok:
-                order_ok, order_detail = False, detail
-                break
-        if not order_ok:
-            break
-        fired = counters(ctl)["read_local_defer_lane_full"] - base["read_local_defer_lane_full"]
-        if fired > 0 or phases >= ESCALATIONS:
-            break
-        phases += 1                       # the lane out-drained us: double the pressure and retry
-        conns.extend(open_conns(host, port, len(conns), len(conns)))
+    ok, detail, slow_ctl, _ = drive(conns, shared, values, 0, 1)
+    ctl_d = {k: counters(ctl)[k] - base[k] for k in COUNTERS}
+    if not ok:
+        rep.check("control round completes with the derived lane", False, detail)
 
-    rep.check("order + RYOW across deferral: every reply, in order, expected value",
-              order_ok, order_detail or "%d rounds x up to %d conns x %d frames" % (
-                  r, len(conns), DEPTH + 2))
-    rep.check("liveness: slowest round under %.0fs" % ROUND_DEADLINE_S,
-              order_ok and slow < ROUND_DEADLINE_S, "slowest round %.3fs" % slow)
-
+    # PHASE 2 -- CAPPED. The lane admits CAP entries, so one connection's DEPTH-deep write
+    # oversubscribes it inside a single parse pass, before any drain can run.
+    ctl.must("DEBUG", "READ-LOCAL-LANE-CAP", str(CAP))
+    base = counters(ctl)
+    ok, detail, slow, shared_gets = drive(conns, shared, values, 1, ROUNDS)
     now = counters(ctl)
     d = {k: now[k] - base[k] for k in COUNTERS}
+
+    rep.check("order + RYOW across deferral: every reply, in order, expected value",
+              ok, detail or "%d rounds x %d conns x %d frames at lane cap %d"
+              % (ROUNDS, CONNS, DEPTH + 2, CAP))
+    rep.check("liveness: slowest round under %.0fs" % ROUND_DEADLINE_S,
+              ok and slow < ROUND_DEADLINE_S, "slowest round %.3fs" % slow)
     rep.check("lane oversubscribed: read_local_defer_lane_full > 0",
               d["read_local_defer_lane_full"] > 0,
-              "delta=%d after %d escalation(s), %d conns, %d rounds"
-              % (d["read_local_defer_lane_full"], phases, len(conns), r))
+              "delta=%d at cap %d (%d conns x %d deep in one write)"
+              % (d["read_local_defer_lane_full"], CAP, CONNS, DEPTH))
+    rep.check("the CAP is why it fired: capped deferrals > uncapped deferrals",
+              d["read_local_defer_lane_full"] > ctl_d["read_local_defer_lane_full"],
+              "capped=%d vs derived-lane control=%d over the same traffic shape"
+              % (d["read_local_defer_lane_full"], ctl_d["read_local_defer_lane_full"]))
     rep.check("no capacity demotion: read_local_fallback_lane_full == 0",
               d["read_local_fallback_lane_full"] == 0,
               "delta=%d" % d["read_local_fallback_lane_full"])
@@ -191,6 +164,19 @@ def main():
               "hits=%d of %d shared GETs (%.2f%%); fallbacks=%d" % (
                   d["read_local_hits"], shared_gets, 100.0 * d["read_local_hits"] / shared_gets,
                   d["read_local_fallbacks"]))
+
+    # PHASE 3 -- RESTORE. The hook must leave nothing behind: back to the derived lane, traffic
+    # still completes in order and locally.
+    ctl.must("DEBUG", "READ-LOCAL-LANE-CAP", "0")
+    base = counters(ctl)
+    ok, detail, _, restored_gets = drive(conns, shared, values, ROUNDS + 1, 1)
+    d2 = {k: counters(ctl)[k] - base[k] for k in COUNTERS}
+    rep.check("cap 0 restores the derived lane: traffic still local and in order",
+              ok and d2["read_local_fallback_lane_full"] == 0
+              and d2["read_local_hits"] >= 0.95 * restored_gets,
+              detail or "hits=%d of %d; fallback_lane_full=%d; deferrals back to %d"
+              % (d2["read_local_hits"], restored_gets, d2["read_local_fallback_lane_full"],
+                 d2["read_local_defer_lane_full"]))
     for c in conns:
         c.close()
     rep.finish()

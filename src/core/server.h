@@ -2714,6 +2714,22 @@ public:
     // is xshard_prepare()'s already-cold direct-RENAME arm, so the disabled cost is nothing on any
     // other command. It widens -- deterministically -- the window in which a younger whole-owner
     // walker could overtake an older same-connection group on the destination shard.
+    // TEST HOOK (P128.md section 8): effective local-read LANE CAPACITY for admission. 0 means
+    // derive, which is kInboxSlots and is what production always runs. A non-zero value only makes
+    // the armed parser stop admitting sooner; the physical ring keeps its kInboxSlots entries and
+    // its masking, so this can never overrun anything. It exists because lane oversubscription is
+    // otherwise a RATE RACE the gate cannot win -- a test client cannot push 1024 frames into one
+    // fused thread faster than that thread drains them, so the anti-vacuity row of the lane battery
+    // could only fire on a saturated rig. With a cap, a single connection pipelining more than the
+    // cap in ONE parse pass fills the lane inside that pass, before any drain can run, which makes
+    // the row deterministic at gate scale. Read once per rotation by each fused thread, never per
+    // op. Reachable only through the already-gated DEBUG command.
+    uint32_t debug_read_local_lane_cap() const {
+        return debug_read_local_lane_cap_.load(std::memory_order_relaxed);
+    }
+    void set_debug_read_local_lane_cap(uint32_t cap) {
+        debug_read_local_lane_cap_.store(cap, std::memory_order_relaxed);
+    }
     uint32_t debug_atomic_direct_defer() const {
         return debug_atomic_direct_defer_.load(std::memory_order_relaxed);
     }
@@ -3410,6 +3426,7 @@ private:
     AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
+    std::atomic<uint32_t> debug_read_local_lane_cap_{0};   // 0 = derive (kInboxSlots)
     std::atomic<uint32_t> debug_hop_delay_{0};
     std::atomic<uint32_t> debug_atomic_read_delay_{0};
     std::atomic<uint32_t> debug_atomic_fanout_defer_{0};

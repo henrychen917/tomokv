@@ -886,6 +886,23 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // LANE CAP for the armed local-read lane-admission battery. Lowers only the ADMISSION
+    // threshold of the fused local-read lane (the ring keeps its kInboxSlots entries), so a single
+    // connection pipelining more than the cap in one parse pass oversubscribes the lane inside
+    // that pass. That is what makes the battery's anti-vacuity checks deterministic at gate scale
+    // instead of a rate race against the drain that only a saturated rig can win. 0 restores the
+    // derived value, which is what production always runs. See P128.md section 8.
+    if (eq_icase(subcommand, "read-local-lane-cap") && op.argc() == 3) {
+        uint64_t cap = 0;
+        if (!parse_u64(op.arg(2), cap) || cap > kInboxSlots) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_read_local_lane_cap(static_cast<uint32_t>(cap));
+        reply_ok(op.sink());
+        return;
+    }
     // GEOMETRY INJECTOR for the parse-barrier ownership regression. While armed, every blocking
     // dispatch pins a SECOND owner on its connection's parse barrier, so the blocking command's
     // retirement releases a barrier it does not solely own. That two-owner state is unreachable on
