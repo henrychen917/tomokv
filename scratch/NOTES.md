@@ -107,3 +107,12 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
   guard binary stall (p99 30s in 2/3 mk cells) NOT reproduced on base or policy flip probes.
 - 20:56 final.sh launched via gaterun: matrix2 (pol0a pol0b pol1 base1 x mk sk1:1 sk9:1 get, 40s x3)
   -> hold x2 pol + base -> batteries (8 srv threads 52-55+sib, 6:2) -> modes -> differ. Logs fd-final.log.
+- 21:04 COORDINATOR: no per-cell reports (each wake costs the shared budget); ONE message at the end
+  with full PRE/POST matrix (rate, flips, clients moved, p99 per regime) + verdict + commit hash.
+  Owner holds the box marker ~1 h (acceptance window). final.sh aborted on the marker at mk r3
+  (10 mk rows). Continuation = finalw.sh (pid 1929685, via chain.sh): PAUSES on the marker, resumes;
+  runs missing rounds (ROUND_OFFSET, abw.sh), hold x3, batteries, modes, differ, report.py ->
+  $SP/fd-report.html, touches fd-final2.done. Monitor b17mdlkwl notifies once (done or pid gone).
+  matrix2 mk so far: OFF 504/498/510/517/521/524k; POST 488/498k (0 flips, 4 triggers held);
+  PRE 460/435k (2+4 flips, 371+660 clients). If killed: rerun `scratch/finalw.sh` (idempotent),
+  then publish fd-report.html as the artifact and send the single report message.
