@@ -329,3 +329,35 @@ now serves most MGETs is the one path S1 cannot widen, and the gate on t-merge14
 combination because it boots read-local off. The fix is then to make the invariant testable where
 the command is actually served — a defer point inside the local MGET window — rather than to change
 what the local path computes. **Confirmed by measurement before anything is written.**
+
+## 2026-09-05 20:2x — armed and waiting on the marker
+
+The owner accounted for all three foreign occupants (the 60-63/188-191 pair was the reply-code lane,
+handed those cores by mistake and since finished; the parked `tkv-base` was the killed cycle-map
+lane's leftover, since killed), so the lane is back on its **whole allocation**:
+
+    server 58-60      load generators 61-63      siblings 186-191 idle      ports 8300-8309
+
+`run_when_clear.sh expwide null rate ovf conn mset slope mem probe` is armed (pid 1874323) behind
+the three gates and starts itself when `quiet.done` returns and is three minutes old. Where each
+answer will appear:
+
+| phase | file | the question it settles |
+|---|---|---|
+| `expwide` | `expwide_bisect.txt`, `s1repro-<arm>-<geom>.txt` | is the red row t-rlbatch's regression, or a coverage hole that opens only when read-local is armed? Three arms × two geometries, one tree, identical flags |
+| `null` | `ab_null.txt` | what this rate instrument calls zero |
+| `rate` | `ab_triad.txt` | w41 / w55 / w70 + pure SET + pure GET, rate, instr/op, cyc/op, IPC, hit share, srv cores |
+| `ovf` | `ab_ovf.txt` | ring overflows per arm, both arms instrumented by one patch |
+| `conn` | `regimes_conn.txt` | 512 vs 2048 connections with **DRAM fills/op** — does the +960 B footprint cost more than the demotion fix earns? |
+| `mset` | `regimes_mset.txt` | MSET 8 vs 32 keys at p8 — what the OTHER fixed sixteen costs |
+| `slope` | `triad.txt` | instr/op at matched work, the column that survives a co-tenanted box |
+| `mem` | `mem.txt` | measured RSS per armed connection (section 3's `MEASURED_RSS_TABLE`) |
+
+Pre-repin measurements are quarantined in `void-old-pin/` and must not be quoted: their load
+generators sat on another lane's SMT siblings. Their **counters** are still indicative, because
+core contention does not change whether a read was demoted — at 59% writes PRE demoted 4,621,326
+reads (13.6% of them) and POST demoted 2,718 (~0.0%), and at 39% writes both demoted ~2,500. That
+is the defect and the fix; it is not a verdict, because it never covered 70% writes and the rate
+and IPC columns from that run are void.
+
+**Nothing merges while the expwide row is red** — that is the owner's rule and this lane holds to it.
