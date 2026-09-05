@@ -671,3 +671,48 @@ file in this run's output directory**. The `void-old-pin/` copy contains an olde
 phase is re-run on this pin before the table is quoted; the argument it supports — that the walk is
 bounded by live writes and not by capacity — is separately visible in the disassembly
 (`codegen.txt`) and in the shipped code, but the numbers need their own run.
+
+
+## MEASURED: the matrix is a write RUN-LENGTH sweep, not a write-fraction sweep
+
+`ratio_shape.sh`, one binary, one boot, four cells, 512 connections at depth 32:
+
+| memtier ratio | write fraction | block | read-local share | reads demoted for an in-flight write | M ops/s |
+|---|---|---|---|---|---|
+| `1:1` | 0.500 | 1 | **99.9%** | **738** | 2.456 |
+| `50:50` | 0.500 | 50 | 85.7% | **2,072,492** | 2.555 |
+| `11:9` | 0.550 | 11 | 79.4% | 2,385,758 | 2.156 |
+| `55:45` | 0.550 | 55 | 81.8% | 2,428,006 | 2.528 |
+
+**At the identical 50% write fraction, alternating writes demote 738 reads and blocked writes demote
+2,072,492 — a factor of two thousand eight hundred.** At 55%, a block of eleven demotes as much as a
+block of fifty-five. The write fraction is not the variable; the run length is, and it has a
+threshold rather than a slope.
+
+The threshold is the ring, and the arithmetic is exact. A connection's live writes are those
+published and unretired inside its 32-deep pipeline window. Alternating puts at most sixteen writes
+in that window — the capacity, never past it. A block of eleven can put twenty-two there (two blocks
+with nine reads between them), which is over. A block of fifty puts thirty-one. So:
+
+* `1:1` — **the only cell in this entire run in which the sixteen-slot ring does not overflow**;
+* every other cell, including the control chosen as the one that would not overflow, is over the
+  threshold and stays there.
+
+### What that does to this lane's labels, and to its case
+
+The three-regime matrix's cells all sit **above** the threshold, so they are three samples of one
+regime rather than three points on a curve — which is exactly why their overflow cadence was
+near-constant at one entry per thirty-odd writes and why their instructions/op deltas cluster. The
+label "41% writes (under the cliff)" was wrong twice over: it is not under the cliff, and the cliff
+is not made of write fraction.
+
+**And the 1:1 connection regime is the most useful cell in the run precisely because nothing
+happens in it.** Both arms serve 99.9% of reads locally there and neither ring overflows, so its
+deltas — +1.01% instructions/op at 512 connections and +1.76% at 2048 — are the **pure price of
+carrying the bigger ring where it buys nothing at all**. That is the number a workload of
+alternating readers and writers pays for this change, and it is the number that decides whether the
+change may be default-on.
+
+The question the verdict has to answer is therefore not "is 64 better than 16 at 70% writes" but
+**"how much of the world writes in runs longer than sixteen per connection-window, and what does the
+rest pay for it?"**
