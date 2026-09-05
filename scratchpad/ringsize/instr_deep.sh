@@ -4,7 +4,7 @@
 set -u
 PRE="$1"; POST="$2"; OUT="$3"; REPS="${4:-3}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-61}
+export PORT=${PORT:-8302} SRVCORE=${SRVCORE:-58} CLICORE=${CLICORE:-60}
 export READPCTS="10 25 41" PIPES="64"
 : > "$OUT"
 for r in $(seq 1 "$REPS"); do

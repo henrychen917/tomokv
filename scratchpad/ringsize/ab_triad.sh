@@ -9,7 +9,7 @@
 # instructions/op and cycles/op are exact ratios of two measured quantities rather than a rate in
 # disguise. IPC is instructions/cycles from that same window.
 #
-# The server is saturated here (3 server cores, 8 memtier threads x 64 connections at depth 32),
+# The server is saturated here (2 server cores, 8 memtier threads x 64 connections at depth 32),
 # which is what makes IPC mean occupancy instead of idle spin -- the opposite geometry to
 # measure_triad.sh, and the reason both are reported.
 #
@@ -27,12 +27,12 @@ source "$HERE/lib.sh"
 KEYMAX=${KEYMAX:-200000}
 SECS=${SECS:-15}
 PIPE=${PIPE:-32}
-# Eight generator threads across this lane's three load cores, sixty-four connections each: 512.
+# Eight generator threads across this lane's four load cores, sixty-four connections each: 512.
 THREADS=${THREADS:-8}
 CONNS=${CONNS:-64}
 # One shard per server core. 8 shards on 4 cores oversubscribes the fused threads and adds a
 # scheduler to the measurement.
-SHARDS=${SHARDS:-3}
+SHARDS=${SHARDS:-2}
 # MATCHED-RATE MODE. Unset, every cell runs saturated and each arm reports its own maximum. That
 # is the right way to read rate and IPC, and the WRONG way to read instructions/op: a fused server
 # polls when it has nothing to do, those spin instructions land in the same window, and the faster
@@ -64,8 +64,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     local o0; o0=$(info_field read_local_write_ring_overflows); o0=${o0:-0}
     local rf="$TMP/$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$arm-$round-$vi-$cell.txt"
     # IS THE SERVER THE BOTTLENECK? utime+stime over the cell, divided by its wall time, is how
-    # many cores the server actually burned. With three server cores, a cell well under
-    # 3.0 was limited by something that is not the server -- the load generator, most likely -- and
+    # many cores the server actually burned. With two server cores, a cell well under
+    # 2.0 was limited by something that is not the server -- the load generator, most likely -- and
     # a rate A/B measured there compares two load generators (thredis-saturated-benching-rule).
     local j0 j1 t0 t1 srvcpu
     j0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t0=$(date +%s.%N)

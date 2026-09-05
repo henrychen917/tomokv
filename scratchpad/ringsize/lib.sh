@@ -3,8 +3,15 @@
 # CORES (re-allocated 2026-09-05: the old 48-55/176-183 pin collided with another lane through SMT
 # siblings, so every number taken under it is void). This lane owns physical 58-63 and their SMT
 # siblings 186-191, and nothing else:
-#     server           58-60   (siblings 186-188 deliberately left IDLE)
-#     load generators  61-63   (siblings 189-191 deliberately left IDLE)
+#     server           58-59   (siblings 186-187 deliberately left IDLE)
+#     load generators  60-63   (siblings 188-191 deliberately left IDLE)
+#
+# WHY TWO SERVER CORES AND FOUR LOAD CORES. The first null on a 3/3 split failed its own control:
+# the same binary against itself moved -12.14% at 55% writes, and every cell reported the server
+# burning only 1.8-2.0 of its three cores. A server with spare capacity is not the thing being
+# measured -- the rate was the load generator's limit, and its visit-to-visit swing was that limit
+# moving. Two cores is what this workload actually delivers, so the server saturates on them, and
+# eight generator threads sit two to a core instead of nearly three.
 #
 # FULL ALLOCATION, RESTORED 2026-09-05 20:11. Between 19:28 and 19:57 three foreign processes sat
 # inside this lane's cores and the lane narrowed twice to stay honest. The owner has since
@@ -19,8 +26,8 @@
 # Every boot is pgrep/ss-guarded: a leaked co-binding server splits traffic through SO_REUSEPORT and
 # turns a real defect into a pass. Every stop kills by PID -- never a pattern that matches this shell.
 PORT=${PORT:-8300}
-SRVCORES=${SRVCORES:-58-60}
-CLICORES=${CLICORES:-61-63}
+SRVCORES=${SRVCORES:-58-59}
+CLICORES=${CLICORES:-60-63}
 CLI=${CLI:-/tmp/claude-1000/redis74/src/redis-cli}
 
 port_owners(){ ss -H -ltnp "sport = :$1" 2>/dev/null | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | sort -u | paste -sd, -; }

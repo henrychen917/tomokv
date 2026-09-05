@@ -24,7 +24,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/lib.sh"
 KEYMAX=${KEYMAX:-200000}
 SECS=${SECS:-15}
-SHARDS=${SHARDS:-3}
+SHARDS=${SHARDS:-2}
 TMP=${TMP:-/tmp/ringsize-regimes}
 mkdir -p "$TMP"
 # Any data-cache fill from DRAM or MMIO, either NUMA node. This is the counter the connection

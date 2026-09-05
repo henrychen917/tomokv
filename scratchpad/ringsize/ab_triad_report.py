@@ -82,9 +82,9 @@ for c in cells:
     print(f"{label.get(c,c):<22}" + "".join(f"{r['rate']/1e6:>8.2f}" for r in seq))
 
 unsat = [(c, a, med(c, a, 'srv_cores')) for c in cells for a in ('PRE', 'POST')
-         if med(c, a, 'srv_cores') < 2.5]
+         if med(c, a, 'srv_cores') < 1.7]
 if unsat:
-    print("NOT SERVER-BOUND -- these cells burned well under the three server cores they were")
+    print("NOT SERVER-BOUND -- these cells burned well under the two server cores they were")
     print("given, so their rate is somebody else's limit and only instructions/op can be read:")
     for c, a, v in unsat:
         print(f"    {label.get(c,c):<22}{a:<6}{v:>6.2f} cores")

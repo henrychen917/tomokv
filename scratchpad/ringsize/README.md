@@ -386,3 +386,50 @@ Also noted: the connection regime reaches 512 and 2048 connections as **8 thread
 **8 threads x 256**, not the owner's rig shape of 32 x 16 and 32 x 64. Totals are what the
 footprint term depends on, and the owner has accepted the shape; it is recorded in the table's own
 row labels so nobody has to take that on trust.
+
+## expwide S1: REPRODUCED, and it is mainline's — not this lane's, not t-rlbatch's
+
+Three arms, two geometries, one tree, identical flags, same box, same minute
+(`expwide_bisect.sh`, `s1_mget_repro.py`). `m14` is every src file that differs from t-merge14,
+taken from t-merge14 (md5 33ba9bc3…).
+
+| arm | geometry | MGET elapsed | mget_local_hits | verdict | S1 |
+|---|---|---|---|---|---|
+| m14 | fused + read-local 1 | **0.000 s** | **1** | SERVED LOCALLY, hook bypassed | **FAIL** |
+| m14 | 2s + read-local 0 | 0.400 s | 0 | entered the deferred fan-out | pass |
+| pre (t-rlbatch) | fused + read-local 1 | **0.000 s** | **1** | SERVED LOCALLY, hook bypassed | **FAIL** |
+| pre | 2s + read-local 0 | 0.400 s | 0 | entered the deferred fan-out | pass |
+| post (this lane) | fused + read-local 1 | **0.000 s** | **1** | SERVED LOCALLY, hook bypassed | **FAIL** |
+| post | 2s + read-local 0 | 0.400 s | 0 | entered the deferred fan-out | pass |
+
+EXISTS is the in-test control and enters the deferred fan-out in **every** row, both geometries,
+all three arms — so the hook itself works and the 400 ms window really opens.
+
+The counter settles what elapsed time alone could not: `read_local_mget_local_hits` moves by
+exactly **1** on the MGET in fused+armed and by **0** in split. The command is served by the
+read-local path, which the scatter engine's `ATOMIC-FANOUT-DEFER` hook does not cover, so S1 cannot
+widen the window it is asked to prove opened — and it fails rather than pass vacuously, which is the
+test being right. **All three arms behave identically**, which exonerates t-rlbatch and this lane
+both. Matches the owner's independent finding on e902c67d5 exactly.
+
+## The first null FAILED ITS OWN CONTROL, and the geometry is why
+
+Same binary against itself (PRE vs PRE), 3 server / 3 load cores:
+
+| cell | rate delta (same binary!) | server cores burned (of 3) |
+|---|---|---|
+| 41% writes | **−4.60%** | 1.83 / 1.96 |
+| 55% writes | **−12.14%** | 1.88 / 2.00 |
+| 70% writes | **−5.62%** | 2.02 / 1.99 |
+| pure SET | −2.52% | 2.01 / 2.04 |
+| pure GET | +0.32% | 1.54 / 1.41 |
+
+Per-visit at 55% writes: 3.60 → 2.88 → 3.50 → 3.66. A twelve percent "delta" between two runs of
+one binary is not a measurement, and the reason is in the last column: **the server burned about
+two of the three cores it was given in every cell**, so it was never the bottleneck. The rate was
+the load generator's limit, and the swing is that limit moving — eight generator threads on three
+physical cores is nearly three to a core.
+
+Corrected, from the data rather than by guess: **server 58-59** (two cores, two shards — which is
+what this workload actually delivers), **load generators 60-63** (four cores, so eight threads sit
+two to a core). Siblings 186-191 stay idle. No rate from the 3/3 geometry is quoted anywhere.
