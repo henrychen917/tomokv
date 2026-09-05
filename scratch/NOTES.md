@@ -159,3 +159,31 @@ $SP/fd-ver.done at the end. S1 build+unit, S2 flipctl.py base x2 vs fix x2, S3 m
 S6 instr/op + cycles/op at a matched rate via memtier --rate-limiting (base fa0 = hot path,
 fix fa0, fix fa1 = always-on cost), S7 batteries 2s + fused both atomic, S8 differ at 6:2,
 S9 report. Re-running `scratch/ver.sh` after any kill resumes it.
+
+### RESULTS 2026-09-06 (ver.sh 00:43 -> 04:35, box marker held for ~100 of 230 min)
+Binaries: fix sha 7c78940416c87e24 (build 00:57), base sha 692984a8c786998b (e902c67d5).
+MATRIX3 (4 regimes x 3 rounds x 4 arms, 40 s cells, ABBA), ops/s mean | flips | clients | p99 med:
+  mk     OFF 522k/520k (floor 3.2%) | POST 520k -0.3% 0 flips 4 trig 4 holds p99 63 | PRE 475k -8.9% 7 flips 1464 p99 80
+  sk1:1  OFF 5175k/5150k (3.2%)     | POST 5103k -1.2% 2 flips 1 rt p99 3.1        | PRE 4508k -12.7% 12 flips 2052 p99 8.8
+  sk9:1  OFF 5101k/5114k (0.4%)     | POST 5125k +0.3% 0 flips 4 holds p99 3.5     | PRE 4390k -14.1% 12 flips 2072 p99 6.5
+  get    OFF 5303k/5297k (0.9%)     | POST 5308k +0.1% 0 flips 3 holds p99 3.8     | PRE 4818k  -9.1% 10 flips 1720 p99 5.4
+THRASH (flips AFTER first anchor): POST 0 in all 4 regimes; PRE 1/6/5/4 (mk/sk1:1/sk9:1/get).
+The single POST move: sk1:1 round 3 -- moved, did not deliver, reverted, round_trips=1, margin 1->2.
+NON-VACUITY (boot at 3:1, mk, 60 s): fa=0 base 245k / fix 236k, live 3:1. fa=1 base 307k, 2 flips,
+293 clients, ended STILL MANEUVERING at live 3:1 (round trip). fa=1 fix 442k, ONE flip, 154 clients,
+anchored 2:2 at anchor_rate 516k and held; its second trigger (the rate surge its own flip caused)
+was held as hold-unsaturated. Reference fix at 2:2 fa=0 = 530k.
+GATE ROW tests/flipctl.py: PRE-FIX policy binary FAILED (rail 1:7). base 2/2 PASS, fix 2/2 PASS,
+all four anchored off-rail at 6:2 on a 6000 ops/s driver.
+INSTR/OP at matched rate (307.24k +-0.02% all six cells, 35 s perf window, mk 2:2):
+  base fa0 32449 instr/op 26317 cyc/op | fix fa0 32025 (-1.31%) 26381 | fix fa1 32423 (+1.24% vs fix fa0) 26491
+  same-arm spread 0.42-0.49%, so hot path is unchanged-to-cheaper and the always-on controller is
+  +1.2% instr / +0.4% cycles -- inside the 3% budget.
+HOLD directed test: pol 2/2 PASS (0 flips, 0 transfers); base FAILS (1 flip, live 3:1).
+BATTERIES: flip/flip_under_load/flip_ttl PASS; fused s6/multi_exec/edgeproto/atomfix PASS both
+atomic; spinprobe + idle-ceiling PASS 2s, 1s(atomic 0/1) and on BASE (ver2.sh -- spinprobe takes the
+server PID, gate.sh passes $SRV; ver.sh had handed it the binary path).
+MODES: 1s refuses --flip-auto 1 by config; 2s boots awaiting-load-stability.
+DIFFER: 168/168 at --ratio 6:2 (the sort suite REQUIRES 6:2 + --shards 16; last night's 4 "fails"
+were the 2:2 invocation).
+Artifact: https://claude.ai/code/artifact/f01d7b82-5685-4f10-bf3f-e89010857b35
