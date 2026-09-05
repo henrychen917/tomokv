@@ -250,11 +250,14 @@ struct Config {
     // Boot-latched B+ selector. 1 uses the exact per-key atomic safety filter; 0 preserves the
     // former whole-shard pending refusal while leaving the read-local customer itself armed.
     uint8_t  read_local_atomic_filter = 1;
-    // Armed local-read LANE-FULL policy. 0 (default) demotes the refused read to the owner path
-    // and counts ReadLocalFallbackReason::LaneFull; 1 leaves the frame unconsumed, queues the
-    // connection on pending_ifid_, and the next IFID pass re-parses it FIRST, after this thread's
-    // own EX pass has drained the lane. Takes the last byte of the bool run's alignment padding,
-    // so Config's locked footprint is unchanged. See P128.md.
+    // Armed local-read LANE-FULL policy (P128.md). 0 (default) demotes the refused read to the
+    // owner path and counts ReadLocalFallbackReason::LaneFull. 1 DEFERS: the frame stays
+    // unconsumed at rpos and the connection's parse pass ends; it stays active and the next
+    // flush_ready re-parses it after this thread's own EX pass has drained the lane. 2 = 1 plus
+    // a per-connection quota: a connection whose ROB in-flight count has reached
+    // lane / active_connections defers as well, so a walk whose head could fill the lane cannot
+    // starve its tail. Takes the last byte of the bool run's alignment padding, so Config's
+    // locked footprint is unchanged.
     uint8_t  read_local_lane_full = 0;
 
     // ---- weighted placement (boot-latched) -------------------------------------------------
@@ -748,8 +751,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--read-local-lane-full")) {
             uint32_t value = 0;
-            if (!cfg_parse_u32(next(nullptr), value) || value > 1) {
-                std::fprintf(stderr, "--read-local-lane-full wants 0 or 1\n");
+            if (!cfg_parse_u32(next(nullptr), value) || value > 2) {
+                std::fprintf(stderr, "--read-local-lane-full wants 0, 1 or 2\n");
                 return kConfigError;
             }
             cfg.read_local_lane_full = static_cast<uint8_t>(value);
@@ -1147,8 +1150,9 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "             --read-local-interleave 0|1 (boot-only; default 1)\n"
                         "             --read-local-prefetch-capture 0|1 (boot-only; default 1)\n"
                         "             --read-local-atomic-filter 0|1 (boot-only; default 1)\n"
-                        "             --read-local-lane-full 0|1 (boot-only; default 0 = demote\n"
-                        "             the refused read to its owner, 1 = defer the frame)\n"
+                        "             --read-local-lane-full 0|1|2 (boot-only; default 0 = demote\n"
+                        "             the refused read to its owner, 1 = defer the frame,\n"
+                        "             2 = defer + per-connection lane quota)\n"
                         "             (--thread-pipeline is an overlap alias)\n"
                         "             (split/fused are mode aliases)\n"
                         "             (read-local is active only with 1s overlap 0)\n"

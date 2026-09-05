@@ -3952,6 +3952,16 @@ private:
         const uint64_t pass_read_cut = atomic_tracking ? srv_->atomic_snapshot() : 0;
         uint64_t batch_start_ops = 0;
         [[maybe_unused]] bool read_local_batch = false;
+        // --read-local-lane-full 2: this connection's local-read in-flight quota, the lane divided
+        // among the thread's active connections, evaluated once per parse pass against
+        // rob.in_flight(). UINT32_MAX under 0 and 1, so the accept arm's compare never fires.
+        [[maybe_unused]] uint32_t read_local_quota = UINT32_MAX;
+        if constexpr (Fused)
+            if (read_local_enabled &&
+                __builtin_expect(srv_->cfg().read_local_lane_full == 2, false))
+                read_local_quota = std::max<uint32_t>(
+                    1, kInboxSlots /
+                           static_cast<uint32_t>(std::max<size_t>(1, active_.size())));
         if constexpr (BatchOps != 0) batch_start_ops = sig.ops;
         [[maybe_unused]] uint64_t batch_dispatch_start = 0;
         if constexpr (IoPipe) batch_dispatch_start = rob.dispatch_id();
@@ -4123,6 +4133,7 @@ private:
                         (spec->flags & CmdFlags::ReadLocalEligible) &&
                         !command_is_read_local_mget(*spec) &&
                         conn.multi_session() == nullptr &&
+                        rob.in_flight() < read_local_quota &&
                         fused_executor_->local_read_lane_has_room();
                     if (!extend_read_local_batch) read_local_batch = false;
                 }
@@ -4379,21 +4390,27 @@ private:
                                     read_local_fallback_reason =
                                         ReadLocalFallbackReason::SeqChurn;
                                     read_local_eligible = false;
-                                } else if (!fused_executor_->local_read_lane_has_room(
+                                } else if (rob.in_flight() >= read_local_quota ||
+                                           !fused_executor_->local_read_lane_has_room(
                                                read_local_lane_demand)) {
-                                    // --read-local-lane-full 1: DEFER, do not demote. Nothing
+                                    // --read-local-lane-full 1|2: DEFER, do not demote. Nothing
                                     // about this frame has been published -- the ROB slot is
                                     // acquired but not published, no lane entry, no pending
                                     // bit, no owner slot -- so leaving the bytes at rpos and
                                     // ending the pass is the same shape as the MGET admission
-                                    // fence above. The connection joins pending_ifid_ so the
-                                    // next IFID pass (flush_ready PHASE 1) re-parses it FIRST,
-                                    // after this thread's EX pass drained the lane: no
-                                    // starvation of the walk's tail, and no cross-thread owner
-                                    // task for a read whose data is right here (P128.md).
+                                    // fence above. The pass reports Progress, so more_input
+                                    // keeps the connection in active_ and the next flush_ready
+                                    // re-parses it after this thread's own EX pass has drained
+                                    // the lane. (This arm exists only in the coarse Fused
+                                    // parser, whose IFID is that walk; pending_ifid_ is never
+                                    // consumed there, so it must not be touched here.) The read
+                                    // whose data is right here never becomes a cross-thread
+                                    // owner task -- which is what seeded the collapse (P128.md).
+                                    // The quota term is UINT32_MAX except under policy 2, where
+                                    // a connection past its share of the lane defers too, so a
+                                    // walk whose head could fill the lane cannot starve its tail.
                                     if (srv_->cfg().read_local_lane_full != 0) {
                                         self_->read_local_stats().lane_deferrals++;
-                                        enqueue_ifid(c);
                                         break;
                                     }
                                     read_local_fallback_reason =
