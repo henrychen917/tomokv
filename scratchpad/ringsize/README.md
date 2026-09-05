@@ -694,7 +694,12 @@ published and unretired inside its 32-deep pipeline window. Alternating puts at 
 in that window — the capacity, never past it. A block of eleven can put twenty-two there (two blocks
 with nine reads between them), which is over. A block of fifty puts thirty-one. So:
 
-* `1:1` — **the only cell in this entire run in which the sixteen-slot ring does not overflow**;
+* `1:1` — **the only cell in this entire run in which the sixteen-slot ring does not overflow**, and
+  the fit is exact rather than approximate: alternating tops out at fifteen live writes plus the one
+  being committed, because the committing write holds a window position no ring entry can (the same
+  arithmetic section 1 measured as "one short of the window"). Fifteen is under sixteen, so the ring
+  never fills, and the 738 demotions that remain are genuine same-key conflicts rather than
+  conservative generations;
 * every other cell, including the control chosen as the one that would not overflow, is over the
   threshold and stays there.
 
