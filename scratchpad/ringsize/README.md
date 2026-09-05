@@ -261,3 +261,37 @@ refuse under `guard`, and are held until the cores clear. Four arms are built an
     tomokv-post-ovf 5d0955230f641d3c8ba4ea47dce99af0
 
 all four at zero warnings and zero errors, PRE and POST verified byte-different.
+
+## Correctness, on the re-pinned tree (2026-09-05 19:47-20:04)
+
+Four arms, all zero warnings and zero errors, PRE and POST verified byte-different:
+
+    tomokv-pre      a5906e93547614a42067c7da9931f93b     (base 479922c0a)
+    tomokv-post     5764edfb188073474bb613683af0b1fd     (this lane)
+    tomokv-pre-ovf  4838b32eb2da3ce4bc50c0dc0b9709f5     (base + overflow counter)
+    tomokv-post-ovf 5d0955230f641d3c8ba4ea47dce99af0     (lane + overflow counter)
+
+| instrument | result |
+|---|---|
+| `tests/read_local_write_ring_unit.cc` | **14 of 14 ok**, including three 200k-frame soaks |
+| layout locks | `Rob<64>` 192, sidecar 1216 / align 64, ring 64, keyset bound 16 — all held |
+| mutation table | control **passes**; M1, M1b refused at compile time; M1c, M2, M2b, M3, M4 each fail their named cases |
+| **D1 derivation** | window → 32 fires **both** the sidecar `sizeof` lock and the Rob structural assert |
+| codegen | shipped sweep: 54 instructions, **1 vector compare**; flat form: 36 instructions, **0** |
+| battery 1s (fused, armed) | **9 pass, 1 fail** — `expwide` |
+| battery 2s | **11 pass, 0 fail** |
+| `expwide` attribution | **PRE fails it identically** (`S1 MGET: the hook really widened the fan-out`, elapsed=0.000s, both arms, both reps) — the base branch's row, not this lane's, and it passes in 2s, so it is fused-mode-specific |
+| differ canonical (partial) | every matrix reached passed with 0 diffs (hexpire, edgetime, xshard, xmove, bitmap …) before the phase was deliberately stopped |
+
+The soak line worth keeping: at the full ROB window the precise ring **hoisted 50,691 of 87,251
+reads** where the conservative regime hoists 0 — that is the mechanism this lane exists to buy.
+
+**The 2s battery needed a harness fix, not a code fix.** It died at boot with "`--ratio`: 16 threads
+but only 8 allowed cpus" because it still asked for the base lane's 6:10 after the pin shrank. The
+ratio now scales that same shape to whatever mask it is given. The server was right to refuse.
+
+**The owner reclaimed the box at 20:03:55** (`quiet.done` removed) and the watchdog stopped the run
+before the measurement phases. Nothing was measured on top of the owner's own numbers. The
+measurement phases -- `null rate ovf slope mem probe` -- are re-armed and will start on their own
+once `quiet.done` is back and older than three minutes, this lane's cores are clear, and its ports
+are free.
