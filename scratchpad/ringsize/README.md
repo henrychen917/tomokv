@@ -594,3 +594,38 @@ here, it is measured against a counter that fires 3.6 million times in the arm t
 
 Against +960 predicted from `good_size(1216) - good_size(296)` = 1280 - 320. The allocator table and
 the resident cost agree to 1.3%, so the footprint term is exactly the size the layout lock says.
+
+
+## The cost splits in two, and only one half is about the ring's SIZE
+
+This matters for what the verdict can recommend, so it is worth stating before the numbers land.
+
+**The bookkeeping term is a function of LIVE writes, not of capacity.** The sweep walks live groups
+only — the lowest set bit of `live` names the first group holding a live slot and clearing that
+group's mask walks straight to the next — so a connection carrying nine live writes pays for one
+group whether the ring has sixteen slots or sixty-four (section 2). Insert, tag write and prune are
+each per write. At a pipeline depth of 32 a connection can hold at most 31 live writes, which is two
+groups, **and a 32-slot ring would execute exactly the same instructions as the 64-slot one.**
+
+**The footprint term is a function of capacity, and only of capacity**: +972.8 measured bytes on
+every armed connection, whether it writes or not, because the sidecar is allocated at accept.
+
+So the two candidate redesigns fix different halves and neither fixes both:
+
+| | bookkeeping (+43/write, +9…249/read) | footprint (+973 B/conn) | overflow at deep pipes |
+|---|---|---|---|
+| ring 64 = window (this lane) | paid in full | paid in full | impossible by construction |
+| ring 32 (a policy cap at p32) | **paid in full, unchanged** | +320 B instead of +973 | returns above p32 |
+| grow on demand from live writes | **paid in full, plus the growth check** | ~0 for light connections | impossible, if it grows to 64 |
+| ring 16 (base) | not paid — it gives up | not paid | constant, in every regime measured |
+
+**The only design that avoids the bookkeeping is the one that gives up**, because the bookkeeping IS
+the tracking. That is the shape of the decision the connection cell now has to settle:
+
+* if POST's DRAM fills per operation grow with connection count — worse at 2048 than at 512 — the
+  regression is the footprint, and **grow-on-demand is the recommendation**: it keeps the whole
+  demotion fix and returns almost all of the memory;
+* if the regression is the same size at 512 and 2048, the footprint is not the lever, the cost is
+  bookkeeping, and no amount of re-sizing recovers it. The question is then whether a precise local
+  read is worth what it costs to know it is safe — a question about the read-local design, not about
+  this lane's constant, and the honest answer to it may be to shelve.
