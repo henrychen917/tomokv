@@ -30,7 +30,10 @@ for r in rows:
     if r['cell'] not in cells:
         cells.append(r['cell'])
 
-LABEL = {'c512': '512 connections', 'c2048': '2048 connections',
+# Totals are what the footprint term depends on; the per-thread shape is recorded because it is
+# NOT the shape the owner's rig uses (32 threads x 16 / x 64). Three load cores cannot hold 32
+# generator threads cleanly, so the same totals are reached with eight threads.
+LABEL = {'c512': '512 conns (8 thr x 64)', 'c2048': '2048 conns (8 thr x 256)',
          'm8': 'MSET 8 keys  (under the 16 bound)',
          'm32': 'MSET 32 keys (over it)'}
 

@@ -361,3 +361,28 @@ is the defect and the fix; it is not a verdict, because it never covered 70% wri
 and IPC columns from that run are void.
 
 **Nothing merges while the expwide row is red** — that is the owner's rule and this lane holds to it.
+
+## The expwide row is NOT this lane's, and no longer gates it (owner ruling, 2026-09-05)
+
+The owner reproduced it on the frozen train-9 mainline binary **e902c67d5**: under
+`--thread-mode fused --read-local 1` it fails identically — `FAIL S1 MGET: the hook really widened
+the fan-out (elapsed=0.000s)`, 1 of 101 checks — and passes with read-local off and in split mode.
+Running all 32 gate feature batteries under fused+armed on mainline gives **30 pass, expwide and
+climon2 fail**. The cause is exactly the coverage hole the static diagnosis predicted: the gate's
+feature loop only ever boots split, and its fused section runs four batteries with read-local off,
+so the fused+armed combination was never covered by anything.
+
+Consequences for this lane, and they are narrow:
+
+* **t-rlbatch is exonerated.** The row predates it; the base lane did not regress it.
+* **A separate lane** off `t-merge14` adds the fused+armed feature leg to the gate and fixes both
+  holes. **This lane does not write that fix** — duplicate work, by the owner's instruction.
+* The `expwide` phase here still runs and still reports, because its counter columns are the
+  evidence for *why* the hook cannot see the command. It is evidence, not a gate.
+* **Merge bar for this lane:** `expwide` under fused+armed is excused until that lane lands.
+  **Every other row must be green.**
+
+Also noted: the connection regime reaches 512 and 2048 connections as **8 threads x 64** and
+**8 threads x 256**, not the owner's rig shape of 32 x 16 and 32 x 64. Totals are what the
+footprint term depends on, and the owner has accepted the shape; it is recorded in the table's own
+row labels so nobody has to take that on trust.

@@ -116,8 +116,14 @@ matched)
   python3 "$HERE/ab_triad_report.py" "$OUT/ab_matched.csv" | tee "$OUT/ab_matched.txt"
   ;;
 expwide)
-  # THE RED ROW COMES FIRST, because nothing merges while it is red. Correctness, so it reports a
-  # co-tenant and continues rather than refusing.
+  # EVIDENCE ONLY -- THIS ROW NO LONGER GATES THIS LANE. The owner reproduced the same failure on
+  # the frozen train-9 mainline binary (e902c67d5) under --thread-mode fused --read-local 1, and it
+  # passes there with read-local off and in split mode: the gate's feature loop only ever boots
+  # split, and its fused section runs four batteries with read-local off, so fused+armed was never
+  # covered (expwide and climon2 both fall in that hole). A separate lane off t-merge14 adds the
+  # fused+armed feature leg and fixes both. This phase still runs, because the counters are the
+  # evidence for WHY, but expwide under fused+armed is excused for this lane's merge bar and every
+  # other row must still be green.
   guard_soft expwide
   stamp "expwide S1 reproduction: m14 vs pre vs post"
   "$HERE/expwide_bisect.sh" 2>&1 | tee "$OUT/expwide_bisect.txt" | grep -vE "^\s*$"
