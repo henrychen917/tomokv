@@ -105,6 +105,46 @@ nulls = sorted(set((s["wl"], s["null"]) for s in summ2))
 # The run log is a CHAIN of logs (final.sh aborted on the box marker, finalw.sh resumed it, ver.sh
 # finished the night). Reading only the first one is why the first report showed 0 hold/battery/
 # differ lines while all three had run.
+
+# ---- tonight's verification evidence ------------------------------------------------------------
+import glob as _glob
+
+def ctl_rows():
+    """tests/flipctl.py, the gate row that failed on this branch: (tag, verdict, detail)."""
+    out = []
+    for path in sorted(_glob.glob(f"{SP}/fd-ctl-*.txt")):
+        tag = os.path.basename(path)[7:-4]
+        text = open(path, errors="replace").read()
+        rc = re.search(r"^RC=(\d+)$", text, re.M)
+        if "ok: flipctl functional acceptance" in text:
+            verdict, detail = "PASS", next((l for l in text.splitlines() if l.startswith("anchored off-rail") or "anchored off-rail" in l), "")
+        else:
+            verdict = "FAIL"
+            detail = next((l.strip() for l in text.splitlines() if "AssertionError" in l), "")
+        anchor_line = re.search(r"^anchor=(\d+):(\d+)$", text, re.M)
+        out.append((tag, verdict, (rc.group(1) if rc else "?"), detail[:200], anchor_line.group(0) if anchor_line else ""))
+    return out
+
+def kvline(path):
+    """One-line `k=v k=v` result file -> dict, first field is the tag."""
+    if not os.path.exists(path): return None
+    parts = open(path).read().split()
+    if not parts: return None
+    d = {"tag": parts[0]}
+    for token in parts[1:]:
+        if "=" in token:
+            k, v = token.split("=", 1); d[k] = v
+    return d
+
+fire = [d for d in (kvline(f"{SP}/fd-fire-{t}.txt") for t in
+                    ("fix-22-off", "base-31-off", "base-31-on", "fix-31-off", "fix-31-on")) if d]
+perf = [d for d in (kvline(f"{SP}/fd-perf-{t}.txt") for t in
+                    ("base0-1", "base0-2", "fix0-1", "fix0-2", "fix1-1", "fix1-2")) if d]
+
+def perf_mean(prefix, key):
+    vals = [float(d[key]) for d in perf if d["tag"].startswith(prefix) and key in d]
+    return st.mean(vals) if vals else 0
+
 final_log = "".join(open(f"{SP}/{name}").read() for name in
                     ("fd-final.log", "fd-final2.log", "fd-ver.log")
                     if os.path.exists(f"{SP}/{name}"))
@@ -182,11 +222,57 @@ mk_pre = next((s for s in summ2 if s["wl"] == "mk" and s["arm"] == "base1"), Non
 def kv(s, key, fmt="{}"):
     return fmt.format(s[key]) if s else "—"
 
+
+def simple_table(caption, headers, rows, classes=None):
+    h = [f'<figure class="tbl"><figcaption>{caption}</figcaption><div class="scroll"><table><thead><tr>']
+    h += [f'<th class=n>{c}</th>' if i else f'<th>{c}</th>' for i, c in enumerate(headers)]
+    h.append("</tr></thead><tbody>")
+    for n, row in enumerate(rows):
+        cls = f' class="{classes[n]}"' if classes else ""
+        h.append(f"<tr{cls}>" + "".join(f'<td class=n>{c}</td>' if i else f'<td class="arm">{c}</td>'
+                                        for i, c in enumerate(row)) + "</tr>")
+    h.append("</tbody></table></div></figure>")
+    return "\n".join(h)
+
+_ctl = ctl_rows()
+ctl_table = simple_table(
+    "tests/flipctl.py (the gate's own invocation: --ratio 6:2 --atomic 0 --flip-auto 1 --flip-auto-band 2 "
+    "--lb-age-sample-rate 1024, 8 server threads on cpus 52-55 + siblings)",
+    ["run", "verdict", "rc", "what the row said"],
+    [(f"<code>{html.escape(t)}</code>", v, rc, html.escape(d or a or "")) for t, v, rc, d, a in _ctl],
+    ["post" if v == "PASS" else "pre" for _, v, _, _, _ in _ctl]) if _ctl else "<p class=muted>(flipctl.py rows not on file)</p>"
+
+fire_table = simple_table(
+    "non-vacuity probe — same multi-key load, 60 s, server booted at the split named in the row",
+    ["arm", "booted", "flip-auto", "ops/s", "p99 ms", "flips", "clients moved", "triggers", "holds", "anchor", "live at end"],
+    [(f"<code>{html.escape(d['tag'])}</code>", d.get("boot", ""), d.get("fa", ""),
+      f"<b>{f(d.get('rate', 0))/1000:,.0f}k</b>", f"{f(d.get('p99', 0)):.0f}", d.get("flips", ""),
+      d.get("xfer", ""), d.get("trig", ""), d.get("holds", ""), d.get("anchor", ""), d.get("live", ""))
+     for d in fire],
+    ["post" if d.get("fa") == "1" else "off" for d in fire]) if fire else "<p class=muted>(non-vacuity probe not on file)</p>"
+
+perf_table = simple_table(
+    "instructions and cycles per command at a matched offered rate (memtier --rate-limiting), "
+    "35 s perf window on the server's own pids after 12 s of warm-up",
+    ["arm", "flip-auto", "ops/s", "commands in window", "instr/op", "cycles/op", "IPC", "server cpu-s"],
+    [(f"<code>{html.escape(d['tag'])}</code>", d.get("fa", ""), f"{f(d.get('rate', 0))/1000:,.0f}k",
+      f"{i(d.get('window_cmds', 0)):,}", f"{f(d.get('instr/op', 0)):.1f}", f"{f(d.get('cycles/op', 0)):.1f}",
+      f"{f(d.get('IPC', 0)):.3f}", f"{f(d.get('srv_cpu_s', 0)):.1f}") for d in perf],
+    ["pre" if d["tag"].startswith("base") else ("post" if d.get("fa") == "1" else "off") for d in perf]) \
+    if perf else "<p class=muted>(instr/op rows not on file)</p>"
+if perf:
+    _b, _f0, _f1 = perf_mean("base0", "instr/op"), perf_mean("fix0", "instr/op"), perf_mean("fix1", "instr/op")
+    perf_table += ("<p>Hot path, controller off: <b>%+.2f%%</b> instr/op (%.1f → %.1f). "
+                   "Controller running and holding: <b>%+.2f%%</b> against the same binary with it off "
+                   "(%.1f → %.1f). The 3%% always-on budget is the second number.</p>" % (
+                       (_f0 / _b - 1) * 100 if _b else 0, _b, _f0,
+                       (_f1 / _f0 - 1) * 100 if _f0 else 0, _f0, _f1))
+
 doc = f"""<title>Flip Thrash Fix</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>{css}</style>
 <main>
-<div class="eyebrow">TomoKV · lane t-flipdamp · 2026-09-05 · commit {COMMIT} (PRE = {BASE})</div>
+<div class="eyebrow">TomoKV · lane t-flipdamp · 2026-09-05/06 · commit {COMMIT} (PRE = {BASE})</div>
 <h1>Flip thrash fix: the controller stops moving what it cannot improve</h1>
 <p>Defect under test: <code>--flip-auto 1</code> in split mode lost 19.5% on multi-key with three flips, 993 connections moved and the io:ex target unchanged. This page is the PRE/POST evidence from the lane rig (four server threads, io:ex 2:2, the closest 4-thread analogue of 18:14), the mechanism, and the exact recipe for acceptance on the quiet box.</p>
 
@@ -237,7 +323,23 @@ doc = f"""<title>Flip Thrash Fix</title>
 <ul>{li(bat_lines)}{li(mode_lines)}{li(differ)}</ul>
 <p class="muted">Batteries ran on 8 server threads (cpus 52-55 + siblings) so the gate's <code>--ratio 6:2</code> flipctl row keeps its geometry. Unit test <code>build/flipctl-unit</code> carries the defect's own numbers (io = 0.82 at 5:3 → 6:2, never 7:1; io = 0.63 at 2:2 of 4 holds; a 0.20-wide window stays undecided).</p>
 
-<h2>5. Acceptance on the quiet box</h2>
+<h2>5. The gate row this branch broke, and the fix</h2>
+<p><code>tests/gate.sh</code> runs <code>tests/flipctl.py</code> — "flip controller: ramp gate, hold, surge + mix re-maneuvers". On the first policy binary it FAILED with a <b>rail anchor</b>: the boot maneuver moved 6:2 → 1:7 and stayed. The move itself is the model doing its job (the driver is three connections of <code>BITCOUNT</code> over 4 MB bitmaps, so the busiest executor thread has zero headroom and io is 99% idle: the saturation gate opens and work conservation really does rate 1:7 at 3.5×). What was wrong is the <i>confirmation</i>. <code>DEBUG FLIPCTL</code> at the failure:</p>
+<pre>origin_rate=4898.601   anchor_rate=6000.916   model_last_decision=moved-delivered
+boot_rate_slope=0.022869547   boot_rate_slope_threshold=0.029664539</pre>
+<p>The load was still trending — just under the controller's own deferral threshold — so the "+22.5% delivered" that confirmed the flip was the driver's ramp, not the flip's doing. Base does not rail here because it random-walks with halving steps and settles on the best of several readings; the verify-or-revert seek takes one probe and compares it with one pre-flip reading, which is only as good as the baseline's own stillness.</p>
+<p><b>Fix:</b> the Measuring phase never moves the split, so the readings the model already takes while deciding <i>are</i> readings of the origin. Bracket them and floor every band of the maneuver at twice that spread — the same 2× observed-jitter convention as the signature band, the rate band and <code>band_</code>. On the gate's ramping driver the floor becomes 40%, the ramp's 22.5% confirms nothing, the seek reverts to 6:2 and anchors off-rail. On a still baseline the floor is ≈0 and nothing changes. The floor applies under an explicit <code>--flip-auto-band</code> too: that knob says how small a gain is worth chasing, not how still the workload is holding.</p>
+{ctl_table}
+
+<h2>6. Non-vacuity: the guard must not be a silent <code>--flip-auto 0</code></h2>
+<p>Every zero-flip row above is worthless if the controller can no longer move at all. This probe boots the server at the <b>wrong</b> split for the load — 3:1, which the explicit-flip trace measures at about a third of 2:2 — and runs the same multi-key workload. <code>--flip-auto 1</code> has to find the split and pay for the flip; <code>--flip-auto 0</code> must stay where it was booted.</p>
+{fire_table}
+
+<h2>7. What the machinery costs when it is not moving</h2>
+<p>Rate-limited so every arm offers the same load (<code>memtier --rate-limiting</code>): instructions and cycles per command are only comparable at a matched rate, because a spinning loop inflates both. <b>base fa=0 → fix fa=0</b> is the hot-path cost of the ex-loop accounting change (one local, one branch per pass); <b>fix fa=0 → fix fa=1</b> is the always-on cost of running the controller while it holds.</p>
+{perf_table}
+
+<h2>8. Acceptance on the quiet box</h2>
 <pre>worktree  /home/user/Projects/wt-flipdamp   branch t-flipdamp   commit {COMMIT}   (PRE {BASE})
 server    ./build/tomokv --port &lt;p&gt; --save '' --ratio 18:14 --shards 64 --atomic 1 --flip-auto 1 --enable-debug-command yes
 load      MSET8+MGET8 1:1, 512 conns, p32 (the 2026-09-05 defect cell), ABBA x6 against --flip-auto 0
@@ -247,7 +349,7 @@ expect    flip_completed 0, flip_clients_transferred 0 after boot, flipctl_model
 also      single-key 1:1 / 9:1 / GET at p32: same counters, rate inside the noise floor</pre>
 <p>If 18:14 is <i>not</i> the throughput optimum for that load, the correct outcome is one flip to the model's target that then stays (<code>model_last_decision=moved-delivered</code>, <code>round_trips=0</code>) — a move that pays for itself is the feature working, not thrash.</p>
 
-<h2>6. Caveats</h2>
+<h2>9. Caveats</h2>
 <ul>
 <li>Lane rig: 2 physical cores + SMT siblings for the server, 4 threads at 2:2; the owner's cell is 32 real cores at 18:14. Direction, not magnitude.</li>
 <li>The rig's multi-key cell is latency-bound rather than CPU-bound (memtier 27% busy, io 86% / ex 93%), so on this rig the policy's hold is the saturation gate's; on the owner's saturated cell the hold is the model's (<code>hold-optimum</code>) or a delivered move. Both paths are exercised by the unit test; the model path with live counters is what the acceptance run should confirm.</li>
