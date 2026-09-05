@@ -64,20 +64,39 @@ FlipSignature flip_signature(const FlipFingerprintWindow& sample) {
 
 double flip_signature_distance(const FlipSignature& left, const FlipSignature& right) {
     if (!left.valid || !right.valid) return 0;
-    double pass_l1 = 0, class_l1 = 0;
-    for (size_t i = 0; i < left.pass_depth.size(); i++)
-        pass_l1 += std::abs(left.pass_depth[i] - right.pass_depth[i]);
+    double class_l1 = 0;
     for (size_t i = 0; i < left.command_class.size(); i++)
         class_l1 += std::abs(left.command_class[i] - right.command_class[i]);
-    // Each probability-vector L1 is in [0,2], while each relative scalar distance is in [0,1].
-    // Dividing by the four feature families keeps the complete distance normalized to [0,1].
-    return (pass_l1 * 0.5 + class_l1 * 0.5 +
+    // Three families, all of them properties of WHAT THE CLIENTS ASKED FOR: the command-class mix,
+    // the keys each multi-key command names, and the value bytes each command carries. The
+    // probability-vector L1 is in [0,2] and each relative scalar distance is in [0,1], so dividing
+    // by the family count keeps the distance normalized to [0,1].
+    //
+    // pass_depth is NOT here. Measured on the multi-key regime this defect was found in: one
+    // controller step from io=5 to io=7 moved the pass-depth distance by 0.0476 -- eight to forty
+    // times its own learned trigger band -- while the three mix families moved by 4.2e-7, 0 and
+    // 5.4e-7 across the same seconds. Parse-pass occupancy describes how the io threads happened
+    // to batch arrivals, which is exactly what the actuator changes when it moves connections
+    // between owners. Judging placement with it is the sweep-abandon livelock: the controller
+    // re-fires on its own last move. Pipeline-depth changes that matter still reach the controller
+    // through the rate detector, which owns volume.
+    return (class_l1 * 0.5 +
             unit_normalized_distance(left.keys_per_multikey, right.keys_per_multikey) +
             unit_normalized_distance(left.value_bytes_per_command,
-                                     right.value_bytes_per_command)) * 0.25;
+                                     right.value_bytes_per_command)) / 3.0;
+}
+
+double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right) {
+    if (!left.valid || !right.valid) return 0;
+    double pass_l1 = 0;
+    for (size_t i = 0; i < left.pass_depth.size(); i++)
+        pass_l1 += std::abs(left.pass_depth[i] - right.pass_depth[i]);
+    return pass_l1 * 0.5;
 }
 
 void FlipShiftDetector::reset() {
+    // band_floor_ is deliberately NOT cleared: it is what the controller learned about this
+    // workload across maneuvers, not state belonging to the maneuver being restarted.
     smoothed_ = {};
     previous_ = {};
     learning_origin_ = {};
@@ -90,25 +109,36 @@ void FlipShiftDetector::reset() {
     anchored_ = false;
 }
 
+void FlipShiftDetector::raise_band_floor(double floor) {
+    if (!(floor > band_floor_)) return;
+    band_floor_ = floor;
+    update_band();
+}
+
 void FlipShiftDetector::update_band() {
     if (configured_band_ == 0) {
         band_ = 0;
         return;
     }
     if (configured_band_ > 0) {
+        // An explicit numeric band is the operator's word; the learned floor never overrides it.
         band_ = static_cast<double>(configured_band_) / 100.0;
         return;
     }
-    // One rare command can move each of the four normalized feature families. Use that vector
-    // dimensionality as the sampling quantum; otherwise an INFO poll amid a zero-value GET stream
-    // is numerically larger than the one-command floor and the detector triggers on observability.
-    // A window that observed no commands supplies no evidence: saturate the quantum at one
-    // command (band 8.0) instead of collapsing to zero, or an anchor cut from an idle window
-    // freezes a zero band and judges the first busy wobble as a mix shift. Rate triggers, not
-    // fingerprints, own the idle->busy transition.
+    // SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
+    // per-command mean estimated from the N commands this window observed, so two windows drawn
+    // from one stationary workload differ by the ESTIMATOR'S OWN NOISE, which falls as 1/sqrt(N)
+    // -- never as 1/N. A Bernoulli proportion's standard error is at most 0.5/sqrt(N) and the
+    // difference of two independent estimates at most sqrt(2) of that, so 1/sqrt(N) bounds the
+    // per-family noise with room for the few terms an L1 sums. The old 1/N quantum understated it
+    // by sqrt(N) -- twentyfold at 13.5k commands a window -- which is how a window that merely
+    // drew 60 MSETs where the last one drew 50 could read as a workload change. A window that
+    // observed no commands supplies no evidence: saturate at one command (quantum 1.0) instead of
+    // collapsing to zero, or an anchor cut from an idle window freezes a zero band and judges the
+    // first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
     const double quantum =
-        4.0 / static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1));
-    band_ = 2.0 * std::max(jitter_, quantum);
+        1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
+    band_ = std::max(band_floor_, 2.0 * std::max(jitter_, quantum));
 }
 
 bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
@@ -184,6 +214,7 @@ bool FlipController::init(bool enabled, int32_t configured_band, uint32_t nthrea
     try {
         fingerprint_last_.resize(nthreads);
         maneuver_start_.resize(nthreads);
+        maneuver_mark_.resize(nthreads);
         // At most one observation per split is needed for the seek itself, followed by up to one
         // thread-count-derived set of final anchor readings. Reserve both cold phases up front.
         readings_.reserve(static_cast<size_t>(nthreads) * 2);
@@ -433,6 +464,11 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     else if (reason == FlipctlTriggerReason::Forced) forced_triggers_++;
 
     phase_ = Phase::Measuring;
+    // Where this maneuver started. If the search comes back here, the trigger that started it
+    // demanded a move and the measurements refused one: that excursion carries no placement
+    // information and anchor() turns it into a band floor.
+    maneuver_origin_io_ = server.role_count(Role::Ifid);
+    shift_streak_ = 0;
     readings_.clear();
     direction_ = 0;
     step_units_ = 0;
@@ -456,10 +492,14 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
         server.cfg().lb_age_sample_rate ? server.cfg().lb_age_sample_rate
                                         : std::max<uint32_t>(1, server.nthreads()),
         std::memory_order_release);
+    model_io_frac_history_.fill(0);
+    model_io_frac_samples_ = 0;
+    model_io_frac_noise_ = 0;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
         maneuver_start_[tid] = ThreadMeasure{
             signal.ops, signal.busy_ns, signal.iterations, signal.spins};
+        maneuver_mark_[tid] = maneuver_start_[tid];
     }
     rate_window_ms_ = now_ms;
     rate_window_commands_ = total_commands(server);
@@ -479,8 +519,31 @@ bool FlipController::visited(uint32_t split) const {
     return false;
 }
 
+// Every path that stops seeking lands here: leave the split alone, forget the maneuver's learning
+// state, and let Settling cut a fresh anchor from wherever the server is now.
+void FlipController::enter_settling() {
+    phase_ = Phase::Settling;
+    shift_detector_.reset();
+    anchor_signature_samples_ = 0;
+    maneuver_signature_samples_ = 0;
+    anchor_learning_rate_jitter_ = 0;
+    anchor_learning_rate_sum_ = 0;
+    anchor_learning_rate_min_ = 0;
+    anchor_learning_rate_max_ = 0;
+    anchor_learning_rate_samples_ = 0;
+    rate_window_ms_ = 0;
+    previous_subwindow_valid_ = false;
+}
+
 bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
                                 Phase after_flip) {
+    // A flip onto the live split is a no-op that flip_begin nevertheless counts as completed, and
+    // issue_flip would then report failure because the stage never left Idle -- an ownership
+    // transaction in the counters that the controller does not believe it made. The seek arithmetic
+    // does not produce one today (every wall case reverses direction first), so this is a guard,
+    // not the cause of the multi-key thrash; but the controller must be structurally incapable of
+    // spending a FLIP on the split it is already running.
+    if (target_io == server.role_count(Role::Ifid)) return false;
     std::string error;
     pending_completed_ = server.flip_completed();
     pending_refused_ = server.flip_refused();
@@ -492,13 +555,15 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     return server.flip_stage() != FlipStage::Idle;
 }
 
-bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, double rate) {
+// One windowed observation of how the two roles split the server's real work. Returns false while
+// the window carries no evidence; the caller keeps measuring rather than inventing a prior.
+bool FlipController::sample_role_demand(Server& server, double& io_frac) {
     double role_ops[2] = {};
     double role_busy[2] = {};
     double busiest[2] = {};
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
-        const ThreadMeasure& start = maneuver_start_[tid];
+        const ThreadMeasure& start = maneuver_mark_[tid];
         const uint64_t ops = signal.ops - start.ops;
         const uint64_t busy = signal.busy_ns - start.busy_ns;
         const uint64_t iterations = signal.iterations - start.iterations;
@@ -513,6 +578,11 @@ bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, do
         role_busy[index] += corrected_busy;
         busiest[index] = std::max(busiest[index], corrected_busy);
     }
+    for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
+        const LoopSignals& signal = server.thread(tid).sig();
+        maneuver_mark_[tid] = ThreadMeasure{
+            signal.ops, signal.busy_ns, signal.iterations, signal.spins};
+    }
     // Capacity is unidentifiable without observed work on both sides. Keep measuring instead of
     // inventing a workload prior. The constraint guard deliberately examines each role's busiest
     // thread; idle peers therefore cannot veto a move demanded by the loaded owner.
@@ -520,23 +590,83 @@ bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, do
         role_busy[0] <= 0 || role_busy[1] <= 0 ||
         busiest[0] <= 0 || busiest[1] <= 0) return false;
 
-    const double cap_io = role_ops[0] / role_busy[0];
-    const double cap_ex = role_ops[1] / role_busy[1];
-    const double demand_io = 1.0 / cap_io;
-    const double demand_ex = 1.0 / cap_ex;
+    // WORK CONSERVATION, WITH BOTH OPERANDS THE SAME QUANTITY. The throughput-optimal split gives
+    // each role the thread fraction its PER-COMMAND service cost demands,
+    //     n_io* / N = c_io / (c_io + c_ex),   c_role = (busy ns that role spent) / (commands run),
+    // and the command count is the same divisor on both sides, so it cancels: the estimator is the
+    // corrected busy-time share, and it never has to name what an "op" is.
+    //
+    // It used to divide each role's busy time by that role's OWN op counter, and an op is not the
+    // same object on the two sides. The io loop counts one per parsed command -- io_loop.h says so
+    // where it scatters: "one public command, not one count per shard task" -- while the ex loop
+    // adds one per shard task it executes. Measured here on 8-key MGET/MSET at pipeline 32, live
+    // split 5:3 on eight threads: the ex role logged 7.576 ops per command, so its per-op cost read
+    // 397ns against io's 1762ns and the model concluded io deserved 82% of the pool. The same
+    // window's per-COMMAND costs were io 1762ns and ex 3010ns -- ex does the MORE work -- so io
+    // deserves 37%. The controller duly flipped 5:3 to 7:1, which measures 0.29M ops/s against
+    // 0.95M at 5:3 and 1.32M at 4:4, found it worse, and walked back to the split it started from:
+    // the round trip the operator saw as three flips, 993 moved connections and an unchanged
+    // target. On single-key traffic both forms give 0.3293 to four decimals, because there one
+    // command is exactly one ex task -- which is why this is a forty-fold multi-key defect and a
+    // half-percent single-key one.
+    const double demand_io = role_busy[0];
+    const double demand_ex = role_busy[1];
     if (!std::isfinite(demand_io) || !std::isfinite(demand_ex) ||
         demand_io + demand_ex <= 0) return false;
+
+    io_frac = demand_io / (demand_io + demand_ex);
+    return true;
+}
+
+bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, double rate) {
+    double io_frac = 0;
+    if (!sample_role_demand(server, io_frac)) return false;
+    // ACCURACY FROM THE WINDOW, NOT FROM ONE SAMPLE. One demand observation is not an estimate, it
+    // is a draw, and a draw taken while connections are still arriving reads almost pure io. Hold a
+    // sliding window of three and judge the mean against the window's own spread; the server keeps
+    // serving at its current split while the window fills.
+    model_io_frac_history_[model_io_frac_samples_ % kModelWindow] = io_frac;
+    model_io_frac_samples_++;
+    if (model_io_frac_samples_ < kModelWindow) return false;
+    double sum = 0, low = model_io_frac_history_[0], high = model_io_frac_history_[0];
+    for (double sample : model_io_frac_history_) {
+        sum += sample;
+        low = std::min(low, sample);
+        high = std::max(high, sample);
+    }
+    const double mean_frac = sum / kModelWindow;
+    const double noise = high - low;
+    model_io_frac_ = mean_frac;
+    model_io_frac_noise_ = noise;
 
     const uint32_t unit = server.cfg().smt_mode ? 2u : 1u;
     const uint32_t total_units = server.nthreads() / unit;
     const uint32_t now_units = server.role_count(Role::Ifid) / unit;
+    const double now_frac = static_cast<double>(now_units) / total_units;
     uint32_t equal_units = static_cast<uint32_t>(std::llround(
-        static_cast<double>(total_units) * demand_io / (demand_io + demand_ex)));
+        static_cast<double>(total_units) * mean_frac));
     equal_units = std::clamp(equal_units, 1u, total_units - 1);
-    int direction = equal_units > now_units ? 1 : equal_units < now_units ? -1
-                                                                    : demand_io >= demand_ex ? 1 : -1;
-    if ((now_units == 1 && direction < 0) ||
-        (now_units + 1 == total_units && direction > 0)) direction = -direction;
+    model_equal_io_ = equal_units * unit;
+    // Move only when the windowed demand estimate separates from the live split by more than the
+    // window's own spread. Six boots of one stationary 8-key workload measured single-draw io
+    // fractions of 0.549, 0.579, 0.605, 0.613, 0.679 and 0.750 -- a 0.20 range where an eighth of
+    // the pool is 0.125, so one draw can name three different splits, and a draw taken during the
+    // connection ramp reads 0.95. Acting on one draw is how a controller pays two quiesces and a
+    // full connection reshuffle for a difference it cannot resolve. This is the same evidence rule
+    // the rate and mix triggers already use, applied to the placement model.
+    if (equal_units == now_units || std::abs(mean_frac - now_frac) <= noise) {
+        // The measured optimum IS the split we are running, or is indistinguishable from it. There
+        // is nothing to search for, and the probe the seek would otherwise take is a guaranteed
+        // round trip -- one flip out to a split the model has already rejected and one flip back.
+        // Record the reading and anchor here; the rate and mix detectors keep watching.
+        model_holds_++;
+        record(now_units * unit, rate);
+        enter_settling();
+        return false;
+    }
+    // equal_units is inside the walls and differs from now_units, so the direction points from the
+    // live split toward the measured optimum and every step below stays in range.
+    const int direction = equal_units > now_units ? 1 : -1;
     const uint32_t move = equal_units > now_units ? equal_units - now_units
                                                    : now_units - equal_units;
     const uint32_t overshoot = std::max<uint32_t>(1, move / 2);
@@ -553,17 +683,7 @@ bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, do
     step_units_ = overshoot;
     if (!issue_flip(server, coordinator, static_cast<uint32_t>(target_units) * unit,
                     Phase::Seeking)) {
-        phase_ = Phase::Settling;
-        shift_detector_.reset();
-        anchor_signature_samples_ = 0;
-        maneuver_signature_samples_ = 0;
-        anchor_learning_rate_jitter_ = 0;
-        anchor_learning_rate_sum_ = 0;
-        anchor_learning_rate_min_ = 0;
-        anchor_learning_rate_max_ = 0;
-        anchor_learning_rate_samples_ = 0;
-        rate_window_ms_ = 0;
-        previous_subwindow_valid_ = false;
+        enter_settling();
         return false;
     }
     return true;
@@ -571,17 +691,7 @@ bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, do
 
 bool FlipController::settle(Server& server, uint32_t coordinator) {
     if (readings_.empty()) {
-        phase_ = Phase::Settling;
-        shift_detector_.reset();
-        anchor_signature_samples_ = 0;
-        maneuver_signature_samples_ = 0;
-        anchor_learning_rate_jitter_ = 0;
-        anchor_learning_rate_sum_ = 0;
-        anchor_learning_rate_min_ = 0;
-        anchor_learning_rate_max_ = 0;
-        anchor_learning_rate_samples_ = 0;
-        rate_window_ms_ = 0;
-        previous_subwindow_valid_ = false;
+        enter_settling();
         return false;
     }
     const Reading* best = &readings_.front();
@@ -591,17 +701,7 @@ bool FlipController::settle(Server& server, uint32_t coordinator) {
     if (current != best->split) {
         if (issue_flip(server, coordinator, best->split, Phase::Settling)) return true;
     }
-    phase_ = Phase::Settling;
-    shift_detector_.reset();
-    anchor_signature_samples_ = 0;
-    maneuver_signature_samples_ = 0;
-    anchor_learning_rate_jitter_ = 0;
-    anchor_learning_rate_sum_ = 0;
-    anchor_learning_rate_min_ = 0;
-    anchor_learning_rate_max_ = 0;
-    anchor_learning_rate_samples_ = 0;
-    rate_window_ms_ = 0;
-    previous_subwindow_valid_ = false;
+    enter_settling();
     return false;
 }
 
@@ -650,10 +750,34 @@ void FlipController::anchor(Server& server, double rate) {
             relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
     }
     anchor_rate_jitter_ = anchor_learning_rate_jitter_;
+    // THE NULL-MANEUVER RULE. A maneuver that ends on the split it started from moved ownership,
+    // paid every quiesce, and changed nothing -- thrash by this project's own definition. The
+    // excursion that triggered it therefore carries no placement information AT THAT SIZE, and
+    // must not be allowed to trigger the identical round trip again. Widen the floor of whichever
+    // band judged it to twice that excursion -- the same factor of two the automatic bands already
+    // use over their own jitter -- so the controller learns from its own null result instead of
+    // repeating it. Nothing here is a tunable: the floor is the size of the excursion the server
+    // just proved uninformative. A maneuver that DOES move the split leaves both floors alone, so
+    // real rebalancing keeps its full sensitivity.
+    const bool null_maneuver = current == maneuver_origin_io_ &&
+        (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
+         last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
+         last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse);
+    if (null_maneuver) {
+        null_maneuvers_++;
+        if (last_trigger_ == FlipctlTriggerReason::FingerprintShift)
+            shift_detector_.raise_band_floor(2.0 * last_shift_distance_);
+        else
+            learned_rate_band_floor_ =
+                std::max(learned_rate_band_floor_, 2.0 * pending_excursion_);
+    }
     anchor_rate_band_ = configured_band_ > 0
         ? static_cast<double>(configured_band_) / 100.0
-        : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
+        : std::max(learned_rate_band_floor_,
+                   automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
     anchor_rate_band_floor_ = anchor_rate_band_;
+    pending_excursion_ = 0;
+    shift_streak_ = 0;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
     surge_streak_ = 0;
@@ -776,8 +900,15 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         return false;
     }
     if (phase_ == Phase::Anchored) {
+        // A fingerprint shift asks for the same evidence a rate trigger already asks for: TWO
+        // consecutive out-of-band observations. One window can sit outside the band on ordinary
+        // sampling luck; a workload that actually changed keeps presenting the new mix. Only
+        // windows that closed real work vote -- a tick where no owner published is not evidence
+        // either way, so it neither adds to the streak nor clears it.
+        if (fingerprint_sampled_this_tick_) shift_streak_ = shifted ? shift_streak_ + 1 : 0;
+        const bool sustained_shift = shift_streak_ >= 2;
         if (!sample_anchored_rate(server, now_ms, rate)) {
-            if (shifted) {
+            if (sustained_shift) {
                 last_shift_distance_ = shift_detector_.last_distance();
                 last_shift_band_ = shift_detector_.band();
                 start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
@@ -790,13 +921,16 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             rate > reference * (1.0 + band)) {
             surge_streak_++;
             collapse_streak_ = 0;
+            pending_excursion_ = std::max(pending_excursion_, rate / reference - 1.0);
         } else if (configured_band_ != 0 && reference > 0 &&
                    rate < reference * (1.0 - band)) {
             collapse_streak_++;
             surge_streak_ = 0;
+            pending_excursion_ = std::max(pending_excursion_, 1.0 - rate / reference);
         } else {
             surge_streak_ = 0;
             collapse_streak_ = 0;
+            pending_excursion_ = 0;
         }
         // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
         if (surge_streak_ >= 2 || collapse_streak_ >= 2) {
@@ -811,7 +945,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         // first tick. Preserve that first rate observation until the required second one instead
         // of letting the fingerprint preempt it and re-anchor at the new rate. A pure mix shift,
         // with no pending rate evidence, still starts immediately.
-        if (shifted && !surge_streak_ && !collapse_streak_) {
+        if (sustained_shift && !surge_streak_ && !collapse_streak_) {
             last_shift_distance_ = shift_detector_.last_distance();
             last_shift_band_ = shift_detector_.band();
             start_maneuver(server, FlipctlTriggerReason::FingerprintShift, now_ms);
@@ -861,6 +995,8 @@ FlipctlReport FlipController::report() const {
     report.rate_surge_triggers = rate_surge_triggers_;
     report.rate_collapse_triggers = rate_collapse_triggers_;
     report.forced_triggers = forced_triggers_;
+    report.null_maneuvers = null_maneuvers_;
+    report.model_holds = model_holds_;
     return report;
 }
 
@@ -875,15 +1011,23 @@ std::string FlipController::debug_dump() const {
         "last_shift_distance=%.9f\nlast_shift_band=%.9f\n"
         "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_slope=%.9f\n"
         "boot_rate_slope_threshold=%.9f\nboot_nonidle_ticks=%u\n"
+        "model_io_frac=%.6f\nmodel_io_frac_noise=%.6f\nmodel_equal_io=%u\n"
+        "model_holds=%llu\n"
+        "signature_band_floor=%.9f\nrate_band_floor=%.9f\n"
+        "shift_streak=%u null_maneuvers=%llu maneuver_origin_io=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
-        "pending_io=%u direction=%d step_units=%u\nvisited=",
+        "pending_io=%u direction=%d step_units=%u\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
         shift_detector_.last_distance(), shift_detector_.jitter(), anchor_rate_band_,
         anchor_rate_jitter_, last_shift_distance_, last_shift_band_, boot_rate_ewma_,
         boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
+        model_io_frac_, model_io_frac_noise_, model_equal_io_,
+        static_cast<unsigned long long>(model_holds_),
+        shift_detector_.band_floor(), learned_rate_band_floor_, shift_streak_,
+        static_cast<unsigned long long>(null_maneuvers_), maneuver_origin_io_,
         reason_name(last_trigger_),
         static_cast<unsigned long long>(triggers_),
         static_cast<unsigned long long>(boot_triggers_),
@@ -893,6 +1037,47 @@ std::string FlipController::debug_dump() const {
         static_cast<unsigned long long>(forced_triggers_), pending_target_io_, direction_,
         step_units_);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
+    // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
+    // two vectors and the four family contributions say WHICH input moved, which is the only way
+    // to tell a real mix change from one feature family's own quantization noise.
+    const auto emit_signature = [&out](const char* tag, const FlipSignature& sig) {
+        char line[512];
+        const int m = std::snprintf(
+            line, sizeof(line),
+            "%s valid=%d cmds=%llu pass=%.6f,%.6f,%.6f,%.6f "
+            "class=%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f kpm=%.6f vbpc=%.6f\n",
+            tag, sig.valid ? 1 : 0, static_cast<unsigned long long>(sig.commands),
+            sig.pass_depth[0], sig.pass_depth[1], sig.pass_depth[2], sig.pass_depth[3],
+            sig.command_class[0], sig.command_class[1], sig.command_class[2],
+            sig.command_class[3], sig.command_class[4], sig.command_class[5],
+            sig.command_class[6], sig.keys_per_multikey, sig.value_bytes_per_command);
+        out.append(line, m > 0 ? static_cast<size_t>(m) : 0);
+    };
+    emit_signature("sig_now", shift_detector_.smoothed());
+    emit_signature("sig_anchor", shift_detector_.anchored_signature());
+    {
+        const FlipSignature& now = shift_detector_.smoothed();
+        const FlipSignature& anc = shift_detector_.anchored_signature();
+        double pass_l1 = 0, class_l1 = 0;
+        if (now.valid && anc.valid) {
+            for (size_t i = 0; i < now.pass_depth.size(); i++)
+                pass_l1 += std::abs(now.pass_depth[i] - anc.pass_depth[i]);
+            for (size_t i = 0; i < now.command_class.size(); i++)
+                class_l1 += std::abs(now.command_class[i] - anc.command_class[i]);
+        }
+        const double kpm = (now.valid && anc.valid)
+            ? unit_normalized_distance(now.keys_per_multikey, anc.keys_per_multikey) : 0;
+        const double vbpc = (now.valid && anc.valid)
+            ? unit_normalized_distance(now.value_bytes_per_command,
+                                       anc.value_bytes_per_command) : 0;
+        char line[256];
+        const int m = std::snprintf(
+            line, sizeof(line),
+            "dist_parts pass=%.9f class=%.9f kpm=%.9f vbpc=%.9f\n",
+            pass_l1 * 0.5, class_l1 * 0.5 / 3.0, kpm / 3.0, vbpc / 3.0);
+        out.append(line, m > 0 ? static_cast<size_t>(m) : 0);
+    }
+    out += "visited=";
     for (size_t i = 0; i < readings_.size(); i++) {
         if (i) out.push_back(',');
         out += std::to_string(readings_[i].split);

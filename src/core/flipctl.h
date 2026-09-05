@@ -111,7 +111,14 @@ struct FlipSignature {
 };
 
 FlipSignature flip_signature(const FlipFingerprintWindow& sample);
+// The workload-mix distance. It deliberately EXCLUDES pass_depth: parse-pass occupancy is an
+// arrival-batching observation the controller's own actuator moves (a measured io 5->7 step moved
+// it by 0.048 while the mix families moved by 4e-7), and the sweep-abandon law says a signal the
+// actuator moves cannot police the actuator. pass_depth stays measured, published and dumped for
+// diagnosis; it is simply not trigger evidence.
 double flip_signature_distance(const FlipSignature& left, const FlipSignature& right);
+// Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
+double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
 
 // Small, deterministic detector used by both the controller and the unit test. In auto mode its
 // band is twice the signature's own adjacent-window EWMA jitter, with one observed-command quantum
@@ -124,8 +131,17 @@ public:
     void reset();
     bool observe(const FlipFingerprintWindow& sample);
     void anchor();
+    // A floor the automatic band may never fall below, learned by the controller from a maneuver
+    // that proved an excursion of this size carries no placement information. reset() deliberately
+    // preserves it: it is knowledge about the workload, not state of one maneuver.
+    void raise_band_floor(double floor);
+    double band_floor() const { return band_floor_; }
 
     bool anchored() const { return anchored_; }
+    // Cold diagnostic readers (DEBUG FLIPCTL only): the two vectors whose distance is the
+    // fingerprint trigger, so an operator can see WHICH feature family moved.
+    const FlipSignature& smoothed() const { return smoothed_; }
+    const FlipSignature& anchored_signature() const { return anchored_signature_; }
     double band() const { return band_; }
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
@@ -140,6 +156,7 @@ private:
     FlipSignature anchored_signature_{};
     double jitter_ = 0;
     double band_ = 0;
+    double band_floor_ = 0;
     double last_distance_ = 0;
     bool have_previous_ = false;
     bool have_jitter_ = false;
@@ -170,6 +187,8 @@ struct FlipctlReport {
     uint64_t rate_surge_triggers = 0;
     uint64_t rate_collapse_triggers = 0;
     uint64_t forced_triggers = 0;
+    uint64_t null_maneuvers = 0;
+    uint64_t model_holds = 0;
 };
 
 class FlipController {
@@ -235,6 +254,8 @@ private:
     bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
+    void enter_settling();
+    bool sample_role_demand(Server& server, double& io_frac);
     bool issue_initial_jump(Server& server, uint32_t coordinator, double rate);
     bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
                     Phase after_flip);
@@ -257,6 +278,7 @@ private:
     std::vector<FlipFingerprintWindow> fingerprint_last_;
     FlipShiftDetector shift_detector_{};
     std::vector<ThreadMeasure> maneuver_start_;
+    std::vector<ThreadMeasure> maneuver_mark_;
     std::vector<Reading> readings_;
 
     uint64_t triggers_ = 0;
@@ -275,6 +297,20 @@ private:
     uint32_t surge_streak_ = 0;
     uint32_t collapse_streak_ = 0;
 
+    uint32_t maneuver_origin_io_ = 0;
+    // The placement model's own observation window. Three demand estimates give a mean and the
+    // spread that says how much of that mean is estimator noise.
+    static constexpr uint32_t kModelWindow = 3;
+    std::array<double, kModelWindow> model_io_frac_history_{};
+    uint32_t model_io_frac_samples_ = 0;
+    double model_io_frac_ = 0;
+    double model_io_frac_noise_ = 0;
+    uint64_t model_holds_ = 0;
+    uint32_t model_equal_io_ = 0;
+    double pending_excursion_ = 0;
+    double learned_rate_band_floor_ = 0;
+    uint64_t null_maneuvers_ = 0;
+    uint32_t shift_streak_ = 0;
     uint32_t pending_target_io_ = 0;
     uint64_t pending_completed_ = 0;
     uint64_t pending_refused_ = 0;
