@@ -45,7 +45,7 @@ RATELIMIT=${RATELIMIT:-}
 RL_ARGS=(); [ -n "$RATELIMIT" ] && RL_ARGS=(--rate-limiting="$RATELIMIT")
 TMP=${TMP:-/tmp/ringsize-abt}
 mkdir -p "$TMP"
-[ -s "$OUT" ] || echo "round,visit,arm,cell,ratio,rate,p50,p99,cmds,instr,cycles,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,ring_overflows,mux" > "$OUT"
+[ -s "$OUT" ] || echo "round,visit,arm,cell,ratio,rate,p50,p99,cmds,instr,cycles,read_local_hits,read_local_fallback_inflight_write,read_local_fallbacks,ring_overflows,srv_cores,mux" > "$OUT"
 
 visit(){ # visit <bin> <arm> <round> <visitIndex>
   local bin="$1" arm="$2" round="$3" vi="$4"
@@ -64,6 +64,12 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     a0=$(info_field read_local_fallbacks); c0=$(info_field total_commands_processed)
     local o0; o0=$(info_field read_local_write_ring_overflows); o0=${o0:-0}
     local rf="$TMP/$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$arm-$round-$vi-$cell.txt"
+    # IS THE SERVER THE BOTTLENECK? utime+stime over the cell, divided by its wall time, is how
+    # many cores the server actually burned. With four server cores, a cell that reads well under
+    # 4.0 was limited by something that is not the server -- the load generator, most likely -- and
+    # a rate A/B measured there compares two load generators (thredis-saturated-benching-rule).
+    local j0 j1 t0 t1 srvcpu
+    j0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t0=$(date +%s.%N)
     # THE LOAD GENERATOR IS STARTED FIRST AND ITS MASK IS PROVEN, then perf opens a window over
     # the server cores that lasts exactly as long as that process does. The older shape --
     # `perf ... -- taskset -c ... memtier` -- made perf the parent of the pinning, so there was no
@@ -76,6 +82,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     perf stat -e instructions,cycles -x, -o "$pf" -C "$SRVCORES" -- \
       tail --pid="$MEMTIER_PID" -f /dev/null
     wait "$MEMTIER_PID" 2>/dev/null
+    j1=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t1=$(date +%s.%N)
+    srvcpu=$(python3 -c "print(f'{(($j1-$j0)/100.0)/max(0.001,$t1-$t0):.2f}')" 2>/dev/null)
     local rate p50 p99 h1 f1 a1 c1 ins cyc mux
     rate=$(grep -E '^Totals' "$rf" | awk '{print $2}')
     p50=$(grep -E '^Totals'  "$rf" | awk '{print $6}')
@@ -86,7 +94,7 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     ins=$(grep -m1 ',instructions,' "$pf" | cut -d, -f1)
     cyc=$(grep -m1 ',cycles,'       "$pf" | cut -d, -f1)
     mux=$(awk -F, 'NF>4 && $5 ~ /^[0-9]/ {print $5}' "$pf" | sort -n | head -1)
-    echo "$round,$vi,$arm,$cell,$ratio,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),$((o1-o0)),${mux:-100}" >> "$OUT"
+    echo "$round,$vi,$arm,$cell,$ratio,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),$((o1-o0)),${srvcpu:-0},${mux:-100}" >> "$OUT"
   done
   stop_srv
   sleep 3

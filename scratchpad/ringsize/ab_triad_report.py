@@ -20,7 +20,8 @@ for r in rows:
     for k in ('rate', 'p50', 'p99', 'mux'):
         r[k] = float(r[k])
     for k in ('cmds', 'instr', 'cycles', 'read_local_hits',
-              'read_local_fallback_inflight_write', 'read_local_fallbacks', 'ring_overflows'):
+              'read_local_fallback_inflight_write', 'read_local_fallbacks', 'ring_overflows',
+              'srv_cores'):
         r[k] = float(r[k])
     r['instr_op'] = r['instr'] / r['cmds'] if r['cmds'] else float('nan')
     r['cyc_op'] = r['cycles'] / r['cmds'] if r['cmds'] else float('nan')
@@ -46,7 +47,7 @@ label = {'w41': '41% writes  (under)', 'w55': '55% writes  (edge)',
 
 hdr = (f"{'cell':<22}{'arm':<6}{'M ops/s':>9}{'instr/op':>10}{'cyc/op':>9}{'IPC':>7}"
        f"{'p99 ms':>8}{'local hits':>14}{'inflight fallback':>19}{'local %':>9}"
-       f"{'ring ovf':>11}")
+       f"{'ring ovf':>11}{'srv cores':>11}")
 print(hdr)
 print('-' * len(hdr))
 for c in cells:
@@ -58,7 +59,7 @@ for c in cells:
               f"{med(c,arm,'instr_op'):>10.1f}{med(c,arm,'cyc_op'):>9.1f}{med(c,arm,'ipc'):>7.3f}"
               f"{med(c,arm,'p99'):>8.2f}{h:>14.0f}{f:>19.0f}"
               f"{('%8.1f%%' % pct) if tot else '       --':>9}"
-              f"{med(c,arm,'ring_overflows'):>11.0f}")
+              f"{med(c,arm,'ring_overflows'):>11.0f}{med(c,arm,'srv_cores'):>11.2f}")
     d = lambda fld: (med(c, 'POST', fld) - med(c, 'PRE', fld)) / med(c, 'PRE', fld) * 100.0
     print(f"{'':<22}{'delta':<6}{d('rate'):>+8.2f}%{d('instr_op'):>+9.2f}%{d('cyc_op'):>+8.2f}%"
           f"{d('ipc'):>+6.2f}%")
@@ -72,6 +73,15 @@ for c in cells:
     seq = sorted((r for r in rows if r['cell'] == c),
                  key=lambda r: (int(r['round']), int(r['visit'])))
     print(f"{label.get(c,c):<22}" + "".join(f"{r['rate']/1e6:>8.2f}" for r in seq))
+
+unsat = [(c, a, med(c, a, 'srv_cores')) for c in cells for a in ('PRE', 'POST')
+         if med(c, a, 'srv_cores') < 3.4]
+if unsat:
+    print("NOT SERVER-BOUND -- these cells burned well under the four server cores they were")
+    print("given, so their rate is somebody else's limit and only instructions/op can be read:")
+    for c, a, v in unsat:
+        print(f"    {label.get(c,c):<22}{a:<6}{v:>6.2f} cores")
+    print()
 
 null = [r['rate'] for r in rows if r['cell'] == 'r100']
 if null:
