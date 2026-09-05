@@ -12,6 +12,7 @@
 #   probe   instructions and cycles per REJECTED read probe, by ring shape and live-write count
 #   satcheck the saturation ladder: is the server the bottleneck, or is the load generator? No rate
 #           A/B is run until this says the rate belongs to the server
+#   ratioshape whether the matrix's cells measure write fraction or write run length
 #   null    the same-binary null: what this rate instrument calls zero, measured first
 #   rate    the saturated ABBA A/B: rate + instr/op + cycles/op + IPC + both counters
 #   matched the same A/B with both arms rate-limited to the same delivered load, which is the only
@@ -52,7 +53,7 @@ check_restored(){
     && echo "tree restored: lane source digests unchanged" \
     || { echo "REFUSING TO CONTINUE: $1 left a lane source file modified"; exit 1; }
 }
-PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck null rate matched ovf conn mset slope mem batt differ}"
+PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck ratioshape null rate matched ovf conn mset slope mem batt differ}"
 
 # THE SATURATION LADDER CHOOSES THE LOAD GEOMETRY FOR EVERY RATE PHASE, and they read it out of a
 # file rather than out of a decision taken by eye from a table. If satcheck has run in this OUT
@@ -113,6 +114,19 @@ satcheck)
   stamp "saturation ladder (is the server the bottleneck?)"
   rm -f "$OUT/satcheck.csv"
   "$HERE/satcheck.sh" ./build/tomokv-pre "$OUT/satcheck.csv" 2>&1 | tee "$OUT/satcheck.txt"
+  ;;
+ratioshape)
+  # WHAT DOES A "55% WRITES" CELL ACTUALLY DELIVER? The connection regime demoted 902 reads at
+  # --ratio=1:1 and 3,007,793 at --ratio=55:45 on the same arm, same 512 connections, same depth.
+  # A five-point move in write fraction cannot do that; a change in the SHAPE of the stream can.
+  # Two pairs hold the fraction constant and move the block length (1:1 against 50:50, 11:9 against
+  # 55:45), which is the only arrangement that can tell them apart -- and it decides how every row
+  # of this lane's matrix has to be LABELLED.
+  guard ratioshape
+  load_geometry
+  stamp "ratio shape: is the matrix a write-fraction sweep or a run-length sweep?"
+  rm -f "$OUT/ratio_shape.csv"
+  "$HERE/ratio_shape.sh" ./build/tomokv-pre "$OUT/ratio_shape.csv" 2>&1 | tee "$OUT/ratio_shape.txt"
   ;;
 null)
   # SAME-BINARY NULL, RUN FIRST. Both arms are the PRE binary, so every delta this instrument

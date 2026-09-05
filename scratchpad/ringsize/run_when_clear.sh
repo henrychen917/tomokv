@@ -21,6 +21,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # under them, so an object file can be compiled from one arm's header and linked into the other's
 # binary. That happened once (19:44 and 19:47 on 2026-09-05, after a waiter was killed but its
 # setsid'd child was not) and cost a full rebuild. flock holds for the life of this script.
+# THE LOCK FD IS CLOSED IN EVERY CHILD (`9>&-` below). fd 9 carries the flock, and a child that
+# inherits it holds the lock as long as it lives -- so killing this script left its `sleep 20`
+# orphaned, and the orphan kept the lock for the whole of its remaining twenty seconds while
+# /proc/locks named a pid that no longer existed. The next run then refused to start against a
+# holder nobody could find. Children have no use for the fd; they do not get it.
 LOCK=/tmp/ringsize-run.lock
 exec 9>"$LOCK"
 if ! flock -n 9; then
@@ -53,7 +58,7 @@ until state > /tmp/ringsize-wait.msg 2>&1; do
   if [ "$(date +%s)" -ge "$DEADLINE" ]; then
     echo "GAVE UP waiting at $(date +%T)"; exit 1
   fi
-  sleep 20
+  sleep 20 9>&-
 done
 echo "=== all three gates open at $(date +%T); running: $* ==="
 
@@ -61,7 +66,7 @@ echo "=== all three gates open at $(date +%T); running: $* ==="
 # setsid so the whole run is one process group the watchdog can stop by id. The EXIT trap is the
 # half that was missing: killing this script used to leave its setsid'd child running, and a second
 # run then started beside it against the same build tree. Every exit path now takes the run with it.
-setsid "$HERE/validate.sh" "$@" &
+setsid "$HERE/validate.sh" "$@" 9>&- &
 VP=$!
 trap 'kill -TERM -"$VP" 2>/dev/null' INT TERM EXIT
 
@@ -69,13 +74,13 @@ while kill -0 "$VP" 2>/dev/null; do
   if ! quiet_ok; then
     echo "!! quiet.done went away at $(date +%T) -- the owner is measuring. Stopping this run."
     kill -TERM -"$VP" 2>/dev/null
-    sleep 5
+    sleep 5 9>&-
     kill -KILL -"$VP" 2>/dev/null
     wait "$VP" 2>/dev/null
     echo "stopped; the box is the owner's"
     exit 2
   fi
-  sleep 3
+  sleep 3 9>&-
 done
 wait "$VP"; rc=$?
 echo "=== run finished rc=$rc at $(date +%T) ==="

@@ -578,6 +578,24 @@ across four very different write fractions is the signature of a connection that
 conservative generation about as often as one pipeline window drains. POST records **zero** in every
 cell of every run.
 
+**The binomial column above is the wrong model, and the connection regime is what says so.** On the
+same arm, the same 512 connections and the same depth, `--ratio=1:1` demoted **902** reads for an
+in-flight write and served 99.9% of its reads locally, while `--ratio=55:45` demoted **3,007,793**
+and served 82.1%. Five points of write fraction cannot do that. A change in the SHAPE of the stream
+can: a ring overflows on a RUN of writes, not on their long-run average, and a load generator that
+emits its ratio as repeating blocks makes "55:45" a fifty-five-write run while "1:1" is an
+alternation that never puts more than sixteen writes in a thirty-two-deep window. Read that way the
+observed cadence fits far better than the binomial does — a block longer than the window re-enters
+conservatism about once per window, which is one entry per ~32 writes against the 33 and 36
+measured at 55% and 70%, where the binomial predicts one per 55 and one per 70.
+
+`ratio_shape.sh` decides it, by holding the fraction constant and moving the block: **1:1 against
+50:50** (both 50% writes, block 1 against 50) and **11:9 against 55:45** (both 55% writes, block ~11
+against 55). If the demotions track the fraction, the matrix's labels are right. If they track the
+block, this lane's matrix is a write RUN-LENGTH sweep wearing a write-fraction label, and every row
+of the verdict has to say so. Until that phase reports, the overflow-probability column above is
+withdrawn and only the measured counts stand.
+
 Zero in POST is also what proves the counter is measuring capacity. `read_local_write_enter_overflow`
 has two callers — a capacity-full ring, and a write that can never refine (a wide multi-key write, a
 point write under an evicting maxmemory policy). Both increment the graft. POST reads zero, so the
