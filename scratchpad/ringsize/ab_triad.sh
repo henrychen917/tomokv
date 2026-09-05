@@ -117,6 +117,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     fil=$(grep -m1 ",$FILLS,"       "$pf" | cut -d, -f1)
     mux=$(awk -F, 'NF>4 && $5 ~ /^[0-9]/ {print $5}' "$pf" | sort -n | head -1)
     wall=$(python3 -c "print(f'{$t1-$t0:.3f}')" 2>/dev/null)
+    assert_cell_did_work "$rate" "$((c1-c0))" "$t0" "$t1" "$cell $arm r$round v$vi" "$rf" \
+      || { stop_srv; return 1; }
     echo "$round,$vi,$arm,$cell,$ratio,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},${fil:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),$((o1-o0)),${srvcpu:-0},${wall:-0},${mux:-100}" >> "$OUT"
   done
   stop_srv

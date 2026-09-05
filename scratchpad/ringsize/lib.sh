@@ -128,3 +128,30 @@ run_cli(){ # run_cli <outfile> <memtier args...>
   start_cli "$@" || return 1
   wait "$MEMTIER_PID"
 }
+
+# DID THE CELL ACTUALLY MEASURE ANYTHING? A rate is not evidence that work happened: memtier counts
+# an error reply as an operation, so a cell whose every command was rejected reports a perfectly
+# plausible throughput. That is not a hypothetical -- the MSET regime ran a full two rounds at
+# ~730k ops/s while the server answered "-ERR wrong number of arguments for 'mset' command" to all
+# of it, and total_commands_processed moved by FOUR over the whole cell (the harness's own INFO
+# calls). Two reports were rendered from it before anyone looked at a memtier log.
+#
+# The check is the two-quantities rule (thredis-wrong-two-quantities): the server's own command
+# counter must account for most of what the load generator claims to have sent. Below half, the two
+# numbers are describing different things and one of them is a fiction.
+assert_cell_did_work(){ # assert_cell_did_work <rate> <cmds> <t0> <t1> <label> <memtierOut>
+  local rate="$1" cmds="$2" t0="$3" t1="$4" label="$5" out="$6"
+  local verdict
+  verdict=$(python3 -c "
+rate=float('${rate:-0}' or 0); cmds=float('${cmds:-0}' or 0); w=max(0.001, $t1-$t0)
+claimed = rate*w
+print('EMPTY' if cmds < 1000 else ('SHORT %.3f' % (cmds/claimed) if claimed and cmds < 0.5*claimed else 'ok %.3f' % (cmds/claimed if claimed else 0)))" 2>/dev/null)
+  case "$verdict" in
+    ok*) return 0;;
+  esac
+  echo "VACUOUS CELL -- $label: memtier claims ${rate} ops/s but the server's own"          >&2
+  echo "  total_commands_processed moved by only ${cmds} ($verdict of what was claimed)."   >&2
+  echo "  A rate with no commands behind it is error replies. First lines of $out:"         >&2
+  grep -m6 -iE 'error|ERR |refused|denied' "$out" 2>/dev/null | sed 's/^/    /'             >&2
+  return 1
+}

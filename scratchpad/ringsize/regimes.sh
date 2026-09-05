@@ -46,17 +46,28 @@ CT=${THREADS:-8}
 while [ "$CT" -gt 1 ] && { [ $((512 % CT)) -ne 0 ] || [ $((2048 % CT)) -ne 0 ]; }; do CT=$((CT-1)); done
 [ "$CT" = "${THREADS:-8}" ] || echo "conn regime: thread count $CT (stepped down from ${THREADS:-8} so 512 and 2048 divide exactly)"
 
-cli_args_for(){ # -> prints the memtier arguments for a cell
-  local cell="$1"
+# THE ARGUMENTS ARE AN ARRAY, NOT A STRING, and that is not a style preference -- it is the fix for
+# a cell that ran green and measured nothing. Returned as a string and substituted unquoted, the
+# shell split `--command=MSET __key__ __data__ ...` into `--command=MSET` plus loose words, so
+# memtier sent a bare MSET and the server answered every one of them with "-ERR wrong number of
+# arguments for 'mset' command". memtier still reported 722k ops/s -- error replies are replies --
+# while total_commands_processed moved by FOUR across the whole cell, which was the four INFO calls
+# the harness itself made. A regime table was rendered from that.
+# One --command must arrive as ONE argv entry, which only an array can do.
+set_cli_args(){ # -> fills CLI_ARGS
+  local cell="$1" n mset
+  CLI_ARGS=()
   case "$cell" in
-    c512)  echo "--ratio=1:1 --key-pattern=R:R -t $CT -c $((512/CT))  --pipeline=32";;
-    c2048) echo "--ratio=1:1 --key-pattern=R:R -t $CT -c $((2048/CT)) --pipeline=32";;
+    c512)  CLI_ARGS=(--ratio=1:1 --key-pattern=R:R -t "$CT" -c "$((512/CT))"  --pipeline=32);;
+    c2048) CLI_ARGS=(--ratio=1:1 --key-pattern=R:R -t "$CT" -c "$((2048/CT))" --pipeline=32);;
     m8|m32)
-      local n=${cell#m} pairs=""
-      for _ in $(seq 1 "$n"); do pairs="$pairs __key__ __data__"; done
+      n=${cell#m}; mset="MSET"
+      for _ in $(seq 1 "$n"); do mset="$mset __key__ __data__"; done
       # One MSET of n keys against one GET, 1:1, depth 8. Depth 8 because deep pipes collapse
       # multi-key throughput (tomokv-multikey-congestion-collapse) and would hide the effect.
-      echo "--command=MSET$pairs --command-ratio=1 --command-key-pattern=R --command=GET __key__ --command-ratio=1 --command-key-pattern=R --command-is-read --pipeline=8 -t $CT -c $((256/CT))";;
+      CLI_ARGS=("--command=$mset" --command-ratio=1 --command-key-pattern=R
+                "--command=GET __key__" --command-ratio=1 --command-key-pattern=R --command-is-read
+                --pipeline=8 -t "$CT" -c "$((256/CT))");;
   esac
 }
 
@@ -76,7 +87,7 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     a0=$(info_field read_local_fallbacks); c0=$(info_field total_commands_processed)
     j0=$(awk '{print $14+$15}' /proc/$SRV/stat 2>/dev/null); t0=$(date +%s.%N)
     local rf="$TMP/$MODE-$arm-$round-$vi-$cell.txt" pf="$TMP/perf-$MODE-$arm-$round-$vi-$cell.txt"
-    # shellcheck disable=SC2046
+    set_cli_args "$cell"
     # PERF FOLLOWS THE SERVER PROCESS, NOT ITS CPUS. `-C` counts every cycle the cpu spends in C0,
     # idle task included, which makes cycles/op algebraically 1/rate and IPC instructions/constant.
     # It also makes fills/op meaningless in the same way. perf cannot take a pid AND a command, so
@@ -84,7 +95,7 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     perf stat -e instructions,cycles,"$FILLS" -x, -o "$pf" -p "$SRV" 2>/dev/null &
     local PERF=$!
     start_cli "$rf" -s 127.0.0.1 -p "$PORT" --hide-histogram --key-maximum=$KEYMAX \
-        --key-minimum=1 --data-size=32 --test-time=$SECS $(cli_args_for "$cell") \
+        --key-minimum=1 --data-size=32 --test-time=$SECS "${CLI_ARGS[@]}" \
       || { kill -INT "$PERF" 2>/dev/null; stop_srv; return 1; }
     wait "$MEMTIER_PID" 2>/dev/null
     kill -INT "$PERF" 2>/dev/null; wait "$PERF" 2>/dev/null
@@ -100,6 +111,8 @@ visit(){ # visit <bin> <arm> <round> <visitIndex>
     cyc=$(grep -m1 ',cycles,'       "$pf" | cut -d, -f1)
     fil=$(grep -m1 ",$FILLS," "$pf" | cut -d, -f1)
     mux=$(awk -F, 'NF>4 && $5 ~ /^[0-9]/ {print $5}' "$pf" | sort -n | head -1)
+    assert_cell_did_work "$rate" "$((c1-c0))" "$t0" "$t1" "$MODE $cell $arm r$round v$vi" "$rf" \
+      || { stop_srv; return 1; }
     echo "$round,$vi,$arm,$cell,$CT,$cellconns,$rate,$p50,$p99,$((c1-c0)),${ins:-0},${cyc:-0},${fil:-0},$((h1-h0)),$((f1-f0)),$((a1-a0)),${srvcpu:-0},${mux:-100}" >> "$OUT"
   done
   stop_srv
