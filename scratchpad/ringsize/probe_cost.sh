@@ -19,11 +19,24 @@ CORE="${CORE:-58}"
 ITERS="${ITERS:-20000000}"
 CXXF="-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -I."
 cd "$ROOT"
-KEEP=$(mktemp /tmp/ringsize-rob-keep.XXXXXX.h)
-cp src/net/rob.h "$KEEP"
-trap 'cp "$KEEP" src/net/rob.h; rm -f "$KEEP"' EXIT INT TERM
+# EVERY LANE FILE IS SWAPPED FOR THE BASE ARM, NOT JUST rob.h -- the same lesson build_arms.sh
+# already carries, and this script did not. This lane moved kRobWindow out of src/net/conn.h into
+# src/net/rob.h, so a base rob.h beside this tree's conn.h defines that constant nowhere: the
+# base16 arm stopped compiling the moment the constant moved, and printed a compiler error where a
+# table row belonged. The list is COMPUTED from the diff for the same reason it is there -- a
+# hand-written one goes stale exactly when the tree changes shape.
+LANE_SRC=$(git diff --name-only "$BASE" -- src/)
+[ -n "$LANE_SRC" ] || { echo "REFUSING: no src/ file differs from $BASE"; exit 1; }
+KEEP=$(mktemp -d /tmp/ringsize-pc-src.XXXXXX)
+for f in $LANE_SRC; do mkdir -p "$KEEP/$(dirname "$f")"; cp "$f" "$KEEP/$f"; done
+restore_src(){ local f; for f in $LANE_SRC; do cp "$KEEP/$f" "$f"; done; }
+trap 'restore_src; rm -rf "$KEEP"' EXIT INT TERM
 
-build(){ g++ $CXXF "$HERE/probe_cost.cc" -o "/tmp/ringsize-pc-$1"; }
+# A FAILED BUILD IS A FAILED PHASE, not a row of compiler output where a measurement belonged. The
+# base16 arm printed sixty lines of errors into the results file and the script carried on to the
+# next arm, so the table read as two arms out of three with no line saying the third had died.
+build(){ g++ $CXXF "$HERE/probe_cost.cc" -o "/tmp/ringsize-pc-$1" || {
+    echo "BUILD FAILED for arm '$1' -- this phase produces no table"; exit 1; }; }
 
 measure(){ # measure <arm> <live>
   local arm="$1" live="$2" pf out ins cyc
@@ -40,9 +53,9 @@ print(f'  {\"$arm\":<10} live={$live:<3} {$ins/$ITERS:7.2f} instr/probe  {$cyc/$
 }
 
 echo "== base16 (the base branch's sixteen-slot ring) =="
-git show "$BASE:src/net/rob.h" > src/net/rob.h
+for f in $LANE_SRC; do git show "$BASE:$f" > "$f"; done
 build base16
-cp "$KEEP" src/net/rob.h
+restore_src
 for n in 1 4 9 15 19; do measure base16 "$n"; done
 
 echo "== flat64 (this lane's ring, flat sixty-four-lane sweep -- REJECTED) =="
@@ -58,7 +71,7 @@ naive = '''        uint64_t hits = 0;
 open('src/net/rob.h', 'w').write(s[:start] + naive + s[end:])
 PY
 build flat64
-cp "$KEEP" src/net/rob.h
+restore_src
 for n in 1 4 9 15 19 40 63; do measure flat64 "$n"; done
 
 echo "== grouped64 (SHIPPED) =="

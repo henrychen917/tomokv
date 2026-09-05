@@ -647,3 +647,27 @@ the tracking. That is the shape of the decision the connection cell now has to s
   bookkeeping, and no amount of re-sizing recovers it. The question is then whether a precise local
   read is worth what it costs to know it is safe — a question about the read-local design, not about
   this lane's constant, and the honest answer to it may be to shelve.
+
+
+## The probe-cost phase had been dead since the derivation landed, and printed errors where rows go
+
+`probe_cost.sh` built its `base16` arm by swapping **only** `src/net/rob.h` for the base branch's
+copy. That worked until this lane moved `kRobWindow` out of `src/net/conn.h` into `src/net/rob.h`:
+after that, a base `rob.h` beside this tree's `conn.h` defines the constant nowhere, and the arm
+stopped compiling. The 22:02 run produced **no rows at all** — sixty lines of compiler error into
+the results file, and the script carried on to the next arm without a word.
+
+Two fixes, and both are lessons this tree had already learned somewhere else:
+
+* the file list is **computed from the diff** (`git diff --name-only $BASE -- src/`), exactly as
+  `build_arms.sh` does and for exactly the reason its comment gives — a hand-written list goes stale
+  when the tree changes shape, which is the one moment it matters;
+* **a failed build fails the phase.** A build error is not a table row, and a script that prints one
+  where a measurement belongs has published a result it does not have.
+
+Consequence for section 2: its instructions-per-rejected-probe table is **not currently backed by a
+file in this run's output directory**. The `void-old-pin/` copy contains an older sweep shape
+(the always-four-groups form, 68.1/84.1/100.1/116.1) rather than the shipped live-group walk. The
+phase is re-run on this pin before the table is quoted; the argument it supports — that the walk is
+bounded by live writes and not by capacity — is separately visible in the disassembly
+(`codegen.txt`) and in the shipped code, but the numbers need their own run.
