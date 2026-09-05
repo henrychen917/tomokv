@@ -17,6 +17,7 @@
 #   rate    the saturated ABBA A/B: rate + instr/op + cycles/op + IPC + both counters
 #   matched the same A/B with both arms rate-limited to the same delivered load, which is the only
 #           geometry in which instructions/op is a work measure rather than a spin measure
+#   rlvalue is read-local itself worth anything in this geometry: --read-local 0 vs 1, base arm
 #   ovf     ring overflows per arm, from the two instrumented binaries
 #   expwide the S1 MGET reproduction across m14 / pre / post -- the red row that blocks the merge
 #   conn    512 vs 2048 connections with DRAM fills: what the per-connection footprint costs
@@ -53,7 +54,7 @@ check_restored(){
     && echo "tree restored: lane source digests unchanged" \
     || { echo "REFUSING TO CONTINUE: $1 left a lane source file modified"; exit 1; }
 }
-PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck ratioshape null rate matched ovf conn mset slope mem batt differ}"
+PHASES="${*:-build unit sizes mutate codegen expwide probe satcheck ratioshape null rate matched rlvalue ovf conn mset slope mem batt differ}"
 
 # THE SATURATION LADDER CHOOSES THE LOAD GEOMETRY FOR EVERY RATE PHASE, and they read it out of a
 # file rather than out of a decision taken by eye from a table. If satcheck has run in this OUT
@@ -214,6 +215,20 @@ mset)
   "$HERE/regimes.sh" mset ./build/tomokv-pre ./build/tomokv-post "$OUT/regimes_mset.csv" \
       "${MSET_ROUNDS:-2}" 2>&1 | tail -4
   python3 "$HERE/regimes_report.py" "$OUT/regimes_mset.csv" | tee "$OUT/regimes_mset.txt"
+  ;;
+rlvalue)
+  # WHAT IS READ-LOCAL WORTH HERE AT ALL? This lane's cost is +43 instructions per write and, at 70%
+  # writes, +249 per read -- and the tag sweep's own microbenchmark cannot account for more than +90
+  # of that. The remainder is the difference between SERVING a read locally and DEMOTING it, and
+  # until it is measured the lane cannot say whether it bought the wrong thing or the right thing
+  # badly. One binary, one knob: --read-local 0 against 1 on the BASE arm, at 1:1 (where the ring
+  # never fills, so the feature runs with nothing in its way) and at 55:45 (where it gives up).
+  guard rlvalue
+  load_geometry
+  stamp "read-local value: --read-local 0 vs 1 on the base arm"
+  rm -f "$OUT/rl_value.csv"
+  "$HERE/rl_value.sh" ./build/tomokv-pre "$OUT/rl_value.csv" "${RLV_ROUNDS:-2}" 2>&1 \
+    | tee "$OUT/rl_value.txt" | tail -14
   ;;
 ovf)
   # THE COUNTER THAT COULD HAVE FALSIFIED THE CLAIM. POST asserts capacity overflow is unreachable;

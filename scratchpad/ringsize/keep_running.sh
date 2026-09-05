@@ -23,6 +23,7 @@ artifact_for(){
     ovf)     echo "$OUT/ab_ovf.txt";;
     conn)    echo "$OUT/regimes_conn.txt";;
     mset)    echo "$OUT/regimes_mset.txt";;
+    rlvalue) echo "$OUT/rl_value.txt";;
     probe)   echo "$OUT/probe_cost.txt";;
     *)       echo "";;
   esac
