@@ -19,6 +19,7 @@ mkdir -p "$OUT"
 cd "$ROOT"
 source "$HERE/lib.sh"
 SHARDS=16
+SRVCORES="58-63,186-191"
 BASE_M14="${BASE_M14:-t-merge14}"
 JOBS="${JOBS:-12}"
 CORES="${CORES:-58-63,186-191}"
@@ -43,22 +44,50 @@ fi
 # and put the lane's own binary back under build/tomokv
 [ -x build/tomokv-post ] && cp build/tomokv-post build/tomokv
 
-run_arm(){ # run_arm <label> <binary>
-  local label="$1" bin="$2"
+# TWO GEOMETRIES PER ARM, WHICH IS THE ACTUAL QUESTION. This lane's own batteries already show the
+# row failing under fused+armed and PASSING under 2s on the SAME binary, so "which branch" may be
+# the wrong axis entirely: the canonical gate boots split with read-local off, which is a geometry
+# where MGET has no local path to take and the fan-out hook is reached by construction. If m14
+# fails under fused+armed too, the row is not t-rlbatch's regression -- it is a coverage hole that
+# opens whenever read-local is armed, and t-merge14's 258/258 never entered that combination.
+run_arm(){ # run_arm <label> <binary> <geometry>
+  local label="$1" bin="$2" geom="$3"
   [ -x "$bin" ] || { echo "$label: MISSING BINARY $bin"; return 1; }
-  echo "=============== $label ($(md5sum "$bin" | cut -d' ' -f1)) ==============="
-  boot_srv "$bin" "$OUT/expw-$label-srv.log" \
-      --atomic 0 --enable-debug-command yes || return 1
+  local tag="$label-$geom"
+  case "$geom" in
+    fused_armed) TM=fused RL=1;;
+    split_off)   TM=2s    RL=0;;
+    *) echo "unknown geometry $geom"; return 1;;
+  esac
+  export TM RL
+  echo "=============== $label / $geom ($(md5sum "$bin" | cut -d' ' -f1)) ==============="
+  local extra=()
+  [ "$geom" = split_off ] && extra=(--ratio "$RATIO2S")
+  boot_srv "$bin" "$OUT/expw-$tag-srv.log" \
+      --atomic 0 --enable-debug-command yes "${extra[@]+"${extra[@]}"}" || return 1
   echo "--- directed reproduction ---"
-  python3 "$HERE/s1_mget_repro.py" 127.0.0.1 "$PORT" 2>&1 | tee "$OUT/s1repro-$label.txt"
+  python3 "$HERE/s1_mget_repro.py" 127.0.0.1 "$PORT" 2>&1 | tee "$OUT/s1repro-$tag.txt"
   echo "--- expwide battery, S1 rows ---"
-  timeout 900 python3 tests/expwide.py 127.0.0.1 "$PORT" > "$OUT/expwide-$label.txt" 2>&1
-  grep -E "^  (ok|FAIL) +S1|^expwide:" "$OUT/expwide-$label.txt" | sed 's/^/    /'
+  timeout 900 python3 tests/expwide.py 127.0.0.1 "$PORT" > "$OUT/expwide-$tag.txt" 2>&1
+  grep -E "^  (ok|FAIL) +S1|^expwide:" "$OUT/expwide-$tag.txt" | sed 's/^/    /'
   stop_srv
   sleep 2
 }
 
+# 2s needs io+ex threads to fit the mask, exactly as the battery does.
+NCPU=$(python3 -c "
+import sys
+n=0
+for part in sys.argv[1].split(','):
+    a,_,b=part.partition('-')
+    n += int(b)-int(a)+1 if b else 1
+print(n)" "$SRVCORES")
+RIO=$(( NCPU * 6 / 16 )); [ "$RIO" -lt 1 ] && RIO=1
+RATIO2S="$RIO:$(( NCPU - RIO < 1 ? 1 : NCPU - RIO ))"
+
 for spec in "m14:build/tomokv-m14" "pre:build/tomokv-pre" "post:build/tomokv-post"; do
-  run_arm "${spec%%:*}" "${spec#*:}"
+  for geom in fused_armed split_off; do
+    run_arm "${spec%%:*}" "${spec#*:}" "$geom"
+  done
 done
 echo "=== done; full outputs in $OUT/expwide-{m14,pre,post}.txt ==="
