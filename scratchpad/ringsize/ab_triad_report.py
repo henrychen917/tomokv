@@ -46,14 +46,21 @@ label = {'w41': '41% writes  (under)', 'w55': '55% writes  (edge)',
          'w100': 'pure SET (1:0) NULL', 'r100': 'pure GET (0:1) NULL'}
 
 hdr = (f"{'cell':<22}{'arm':<6}{'M ops/s':>9}{'instr/op':>10}{'cyc/op':>9}{'IPC':>7}"
-       f"{'p99 ms':>8}{'local hits':>14}{'inflight fallback':>19}{'local %':>9}"
+       f"{'p99 ms':>8}{'local hits':>14}{'write-demoted':>15}{'local %':>9}"
        f"{'ring ovf':>11}{'srv cores':>11}")
 print(hdr)
 print('-' * len(hdr))
 for c in cells:
     for arm in ('PRE', 'POST'):
-        h, f = med(c, arm, 'read_local_hits'), med(c, arm, 'read_local_fallback_inflight_write')
-        tot = h + f
+        h = med(c, arm, 'read_local_hits')
+        f = med(c, arm, 'read_local_fallback_inflight_write')
+        # THE DENOMINATOR IS EVERY READ THAT WANTED TO BE LOCAL, not just the ones a write stopped.
+        # Dividing by hits + write-demotions alone reports a share that cannot fall below what the
+        # OTHER fallback reasons already took, and would read as 100% on a connection that lost
+        # every read to something else. They coincide whenever in-flight writes dominate -- which is
+        # exactly the regime this lane is about -- and that coincidence has to be shown, not assumed.
+        allf = med(c, arm, 'read_local_fallbacks')
+        tot = h + allf
         pct = (100.0 * h / tot) if tot else float('nan')
         print(f"{label.get(c, c):<22}{arm:<6}{med(c,arm,'rate')/1e6:>9.3f}"
               f"{med(c,arm,'instr_op'):>10.1f}{med(c,arm,'cyc_op'):>9.1f}{med(c,arm,'ipc'):>7.3f}"
