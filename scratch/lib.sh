@@ -61,7 +61,8 @@ preload() { # preload PORT -- fill KEYMAX keys so GET/MGET hit (dbsize == keymax
 # Per-role busy fraction over a window: lbsnap PORT > file; lbbusy FILE_BEFORE FILE_AFTER -> "io=0.97 ex=0.99"
 lbsnap() { redis-cli -p "$1" debug lbsignals 2>/dev/null; }
 lbbusy() {
-  awk '$1=="thread"{ key=$3; b=$7; i=$8; if (FILENAME==ARGV[1]) {B0[key]+=b; I0[key]+=i} else {B1[key]+=b; I1[key]+=i} }
-       END{ for (k in B1) { db=B1[k]-B0[k]; di=I1[k]-I0[k]; if (db+di>0) printf "%s=%.3f ", k, db/(db+di) } }' "$1" "$2"
+  # debug lbsignals: thread TID ROLE DOMAIN CLIENTS ITERATIONS OPS BUSY_NS IDLE_NS ...
+  awk '$1=="thread"{ key=$3; b=$8; i=$9; if (FILENAME==ARGV[1]) {B0[key]+=b; I0[key]+=i} else {B1[key]+=b; I1[key]+=i} }
+       END{ for (k in B1) { db=B1[k]-B0[k]; di=I1[k]-I0[k]; if (db+di>0) printf "%s=%.3f;", k, db/(db+di) } }' "$1" "$2"
 }
 infog() { echo "$1" | sed -n "s/^$2://p" | head -1; }

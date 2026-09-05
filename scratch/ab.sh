@@ -24,8 +24,9 @@ cell() { # cell ROUND LABEL BIN FA
   lbsnap "$PORT" >"$SP/fd-lb1.txt"
   rate=$(echo "$out" | awk '/^Totals/{print $2}'); p50=$(echo "$out" | awk '/^Totals/{print $6}'); p99=$(echo "$out" | awk '/^Totals/{print $8}')
   info=$(redis-cli -p "$PORT" info all 2>/dev/null | tr -d '\r')
+  redis-cli -p "$PORT" debug flipctl 2>/dev/null >"$SP/fd-dbg-$label-$WL-$round.txt"
   g() { infog "$info" "$1"; }
-  echo "$round,$label,$WL,$fa,${rate:-MISSING},${p50:-},${p99:-},$(g flip_completed),$(g flip_clients_transferred),$(g flipctl_triggers),$(g flipctl_boot_triggers),$(g flipctl_fingerprint_triggers),$(g flipctl_rate_surge_triggers),$(g flipctl_rate_collapse_triggers),$(g flipctl_forced_triggers),$(g flipctl_null_maneuvers),$(g flipctl_model_holds),$(g flipctl_anchor_io):$(g flipctl_anchor_ex),$(g flipctl_round_trips),$(g flipctl_model_margin),$(g io_threads):$(g ex_threads),$(lbbusy "$SP/fd-lb0.txt" "$SP/fd-lb1.txt" | tr -d ' '),$(g tomokv_keylb_client_moves),$(g tomokv_keylb_bucket_moves)" | tee -a "$OUT"
+  echo "$round,$label,$WL,$fa,${rate:-MISSING},${p50:-},${p99:-},$(g flip_completed),$(g flip_clients_transferred),$(g flipctl_triggers),$(g flipctl_boot_triggers),$(g flipctl_fingerprint_triggers),$(g flipctl_rate_surge_triggers),$(g flipctl_rate_collapse_triggers),$(g flipctl_forced_triggers),$(g flipctl_null_maneuvers),$(g flipctl_model_holds),$(g flipctl_anchor_io):$(g flipctl_anchor_ex),$(g flipctl_round_trips),$(g flipctl_model_margin),$(g io_threads):$(g ex_threads),$(lbbusy "$SP/fd-lb0.txt" "$SP/fd-lb1.txt"),$(g tomokv_keylb_client_moves),$(g tomokv_keylb_bucket_moves)" | tee -a "$OUT"
   stop "$pid" "$PORT"
 }
 for r in $(seq "$ROUNDS"); do

@@ -67,3 +67,15 @@ triggers on a stationary paced load also start maneuvers. Each non-held maneuver
   hold only when no split clears the bar optimistically.
 - 19:52 matrix launched detached: $SP/fd-matrix.csv (30s cells, 3 rounds, arms pol0a pol0b pol1
   guard1 base1; wl mk sk1:1 sk9:1 get). Timelines: $SP/fd-tl-<arm>-<wl>-<round>.txt. Log fd-matrix.log.
+- 19:58 mk rounds 1-2 (30s cells, 2:2 of 4 threads, 256 conns p32): pol1 = ZERO flips both cells
+  (model hold at first reading => saturation gate: both roles had headroom > band => this rig is
+  LOADGEN-BOUND for mk with 8 memtier HW threads vs 4 server HW threads). guard1 2 flips/363-372
+  clients each cell; base1 2-3 flips/370-548 clients, one cell ended LIVE 3:1. Rates unusable:
+  same-binary null pair differs 13% within a round (pol0a 447k vs pol0b 516k); box load 21, another
+  lane on 48-50 (my L3 CCX). guard1 r2: p99 = 30015 ms = connections stalled the whole cell (rate
+  184k). pol0b r2 (fa=0, no flips) p99 1003 ms -> 1 s stalls happen without flips too. Cause unknown;
+  server logs clean. NEXT: kill matrix after mk r3; satprobe (find server-bound loadgen params);
+  flipprobe (explicit FLIP cost/stall with memtier per-second lines); relaunch 60s cells with
+  memtier output captured; rate verdict needs the owner's quiet box -- counters are the evidence here.
+- io idle span = arm_blocked + submit_and_wait(1) only after a sweep found nothing => idle_ns is a
+  fair "nothing to do" measure; the saturation gate is sound.
