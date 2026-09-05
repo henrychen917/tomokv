@@ -461,9 +461,24 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     maneuver_origin_io_ = server.role_count(Role::Ifid);
     shift_streak_ = 0;
     readings_.clear();
-    direction_ = 0;
-    step_units_ = 0;
-    step_one_reversals_ = 0;
+    demand_window_.reset();
+    model_readings_ = 0;
+    // Readings, not ticks: each stabilized reading spans at least two ticks, and the deferral
+    // bound is the one wall-clock allowance this controller already grants a boot.
+    {
+        const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
+        model_readings_cap_ = static_cast<uint32_t>(std::max<uint64_t>(
+            kMinModelSamples, (kBootMaxDeferralMs / tick_ms) / 2));
+    }
+    model_gain_mean_ = model_gain_low_ = model_gain_high_ = 0;
+    model_required_gain_ = 0;
+    model_target_io_ = 0;
+    model_last_decision_ = "measuring";
+    maneuver_flips_ = 0;
+    maneuver_rate_jitter_ = 0;
+    seek_ = Seek::None;
+    seek_target_io_ = 0;
+    origin_rate_ = 0;
     surge_streak_ = 0;
     collapse_streak_ = 0;
     shift_detector_.reset();
@@ -483,13 +498,10 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
         server.cfg().lb_age_sample_rate ? server.cfg().lb_age_sample_rate
                                         : std::max<uint32_t>(1, server.nthreads()),
         std::memory_order_release);
-    model_io_frac_history_.fill(0);
-    model_io_frac_samples_ = 0;
-    model_io_frac_noise_ = 0;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
         maneuver_start_[tid] = ThreadMeasure{
-            signal.ops, signal.busy_ns, signal.iterations, signal.spins};
+            signal.ops, signal.busy_ns, signal.iterations, signal.spins, signal.idle_ns};
         maneuver_mark_[tid] = maneuver_start_[tid];
     }
     rate_window_ms_ = now_ms;
@@ -499,15 +511,9 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
 }
 
 void FlipController::record(uint32_t split, double rate) {
-    // Preserve every stabilized observation. visited() deliberately treats this as a set when
-    // testing termination, while settle() retains the complete evidence for its argmax.
+    // Preserve every stabilized observation: settle() takes its argmax over the complete evidence
+    // and DEBUG FLIPCTL dumps the trail.
     readings_.push_back(Reading{split, rate});
-}
-
-bool FlipController::visited(uint32_t split) const {
-    for (const Reading& reading : readings_)
-        if (reading.split == split) return true;
-    return false;
 }
 
 // Every path that stops seeking lands here: leave the split alone, forget the maneuver's learning
@@ -543,20 +549,26 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     if (!server.flip_begin(target_io, server.nthreads() - target_io, coordinator, error))
         return false;
     phase_ = Phase::WaitingFlip;
-    return server.flip_stage() != FlipStage::Idle;
+    const bool issued = server.flip_stage() != FlipStage::Idle;
+    if (issued) maneuver_flips_++;
+    return issued;
 }
 
-// One windowed observation of how the two roles split the server's real work. Returns false while
-// the window carries no evidence; the caller keeps measuring rather than inventing a prior.
-bool FlipController::sample_role_demand(Server& server, double& io_frac) {
+// One windowed observation of how the two roles split the server's real work, plus each role's
+// HEADROOM: the idle share of its busiest thread. Returns false while the window carries no
+// evidence; the caller keeps measuring rather than inventing a prior.
+bool FlipController::sample_role_demand(Server& server, double& io_frac, double& io_headroom,
+                                        double& ex_headroom) {
     double role_ops[2] = {};
     double role_busy[2] = {};
     double busiest[2] = {};
+    double headroom[2] = {1.0, 1.0};
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
         const ThreadMeasure& start = maneuver_mark_[tid];
         const uint64_t ops = signal.ops - start.ops;
         const uint64_t busy = signal.busy_ns - start.busy_ns;
+        const uint64_t idle = signal.idle_ns - start.idle_ns;
         const uint64_t iterations = signal.iterations - start.iterations;
         const uint64_t spins = signal.spins - start.spins;
         const double spin_fraction = iterations
@@ -568,11 +580,15 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac) {
         role_ops[index] += static_cast<double>(ops);
         role_busy[index] += corrected_busy;
         busiest[index] = std::max(busiest[index], corrected_busy);
+        const double wall = static_cast<double>(busy) + static_cast<double>(idle);
+        if (wall > 0)
+            headroom[index] = std::min(
+                headroom[index], std::clamp(1.0 - corrected_busy / wall, 0.0, 1.0));
     }
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
         maneuver_mark_[tid] = ThreadMeasure{
-            signal.ops, signal.busy_ns, signal.iterations, signal.spins};
+            signal.ops, signal.busy_ns, signal.iterations, signal.spins, signal.idle_ns};
     }
     // Capacity is unidentifiable without observed work on both sides. Keep measuring instead of
     // inventing a workload prior. The constraint guard deliberately examines each role's busiest
@@ -606,74 +622,70 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac) {
         demand_io + demand_ex <= 0) return false;
 
     io_frac = demand_io / (demand_io + demand_ex);
+    io_headroom = headroom[0];
+    ex_headroom = headroom[1];
     return true;
 }
 
-bool FlipController::issue_initial_jump(Server& server, uint32_t coordinator, double rate) {
-    double io_frac = 0;
-    if (!sample_role_demand(server, io_frac)) return false;
-    // ACCURACY FROM THE WINDOW, NOT FROM ONE SAMPLE. One demand observation is not an estimate, it
-    // is a draw, and a draw taken while connections are still arriving reads almost pure io. Hold a
-    // sliding window of three and judge the mean against the window's own spread; the server keeps
-    // serving at its current split while the window fills.
-    model_io_frac_history_[model_io_frac_samples_ % kModelWindow] = io_frac;
-    model_io_frac_samples_++;
-    if (model_io_frac_samples_ < kModelWindow) return false;
-    double sum = 0, low = model_io_frac_history_[0], high = model_io_frac_history_[0];
-    for (double sample : model_io_frac_history_) {
-        sum += sample;
-        low = std::min(low, sample);
-        high = std::max(high, sample);
-    }
-    const double mean_frac = sum / kModelWindow;
-    const double noise = high - low;
-    model_io_frac_ = mean_frac;
-    model_io_frac_noise_ = noise;
+// The throughput noise a projected gain has to beat before a flip could be VERIFIED: the band the
+// last anchor learned, if any, or the maneuver's own stabilized-pair jitter -- never a typed
+// number unless the operator typed --flip-auto-band.
+double FlipController::verification_band(double rate) const {
+    if (configured_band_ > 0) return static_cast<double>(configured_band_) / 100.0;
+    return std::max(anchor_rate_band_, automatic_rate_band(maneuver_rate_jitter_, rate));
+}
+
+// The Measuring phase (flip_policy.h): one demand draw per stabilized reading into the policy
+// window, then decide or keep measuring. The server serves at its live split throughout, so time
+// spent here costs nothing but the maneuver's own sampling arm.
+bool FlipController::decide_placement(Server& server, uint32_t coordinator, double rate) {
+    maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
+    double io_frac = 0, io_headroom = 0, ex_headroom = 0;
+    if (!sample_role_demand(server, io_frac, io_headroom, ex_headroom)) return false;
+    demand_window_.add(io_frac);
+    model_readings_++;
+    model_io_frac_ = demand_window_.mean;
+    model_io_headroom_ = io_headroom;
+    model_ex_headroom_ = ex_headroom;
 
     const uint32_t unit = server.cfg().smt_mode ? 2u : 1u;
     const uint32_t total_units = server.nthreads() / unit;
     const uint32_t now_units = server.role_count(Role::Ifid) / unit;
-    const double now_frac = static_cast<double>(now_units) / total_units;
-    uint32_t equal_units = static_cast<uint32_t>(std::llround(
-        static_cast<double>(total_units) * mean_frac));
-    equal_units = std::clamp(equal_units, 1u, total_units - 1);
-    model_equal_io_ = equal_units * unit;
-    // Move only when the windowed demand estimate separates from the live split by more than the
-    // window's own spread. Six boots of one stationary 8-key workload measured single-draw io
-    // fractions of 0.549, 0.579, 0.605, 0.613, 0.679 and 0.750 -- a 0.20 range where an eighth of
-    // the pool is 0.125, so one draw can name three different splits, and a draw taken during the
-    // connection ramp reads 0.95. Acting on one draw is how a controller pays two quiesces and a
-    // full connection reshuffle for a difference it cannot resolve. This is the same evidence rule
-    // the rate and mix triggers already use, applied to the placement model.
-    if (equal_units == now_units || std::abs(mean_frac - now_frac) <= noise) {
-        // The measured optimum IS the split we are running, or is indistinguishable from it. There
-        // is nothing to search for, and the probe the seek would otherwise take is a guaranteed
-        // round trip -- one flip out to a split the model has already rejected and one flip back.
-        // Record the reading and anchor here; the rate and mix detectors keep watching.
+    const double band = verification_band(rate);
+    model_required_gain_ = std::min(1.0, band * static_cast<double>(model_margin_));
+    const FlipPlacementChoice choice = flip_choose_split(
+        now_units, total_units, demand_window_, model_required_gain_, kMinModelSamples);
+    model_io_frac_low_ = choice.io_frac_low;
+    model_io_frac_high_ = choice.io_frac_high;
+    model_gain_mean_ = choice.gain_mean;
+    model_gain_low_ = choice.gain_low;
+    model_gain_high_ = choice.gain_high;
+    model_target_io_ = choice.target_units * unit;
+
+    // SATURATION GATE. Throughput is bounded by whichever role has no headroom. When BOTH roles'
+    // busiest threads idle more than the noise band, the bound is outside the server -- the
+    // clients, the network, a paced driver -- and no re-split can raise it: any flip is pure cost.
+    // Read from the idle_ns the loops already account, once per reading, off the hot path.
+    const bool externally_bound = io_headroom > band && ex_headroom > band;
+
+    const bool capped = model_readings_ >= model_readings_cap_;
+    if (!choice.decided && !capped && !externally_bound) return false;  // keep measuring
+
+    record(now_units * unit, rate);
+    if (externally_bound || !choice.decided || !choice.move) {
+        model_last_decision_ = externally_bound ? "hold-unsaturated"
+            : !choice.decided ? "hold-unresolved"
+            : choice.target_units == now_units ? "hold-optimum" : "hold-below-bar";
         model_holds_++;
-        record(now_units * unit, rate);
         enter_settling();
         return false;
     }
-    // equal_units is inside the walls and differs from now_units, so the direction points from the
-    // live split toward the measured optimum and every step below stays in range.
-    const int direction = equal_units > now_units ? 1 : -1;
-    const uint32_t move = equal_units > now_units ? equal_units - now_units
-                                                   : now_units - equal_units;
-    const uint32_t overshoot = std::max<uint32_t>(1, move / 2);
-    int64_t target_units = static_cast<int64_t>(equal_units) + direction * overshoot;
-    target_units = std::clamp<int64_t>(target_units, 1, total_units - 1);
-    if (static_cast<uint32_t>(target_units) == now_units) {
-        target_units = static_cast<int64_t>(now_units) + direction;
-        target_units = std::clamp<int64_t>(target_units, 1, total_units - 1);
-    }
-
-    record(now_units * unit, rate);
-    previous_rate_ = rate;
-    direction_ = direction;
-    step_units_ = overshoot;
-    if (!issue_flip(server, coordinator, static_cast<uint32_t>(target_units) * unit,
-                    Phase::Seeking)) {
+    model_last_decision_ = "move";
+    origin_rate_ = rate;
+    seek_target_io_ = model_target_io_;
+    seek_ = Seek::AtTarget;
+    if (!issue_flip(server, coordinator, seek_target_io_, Phase::Seeking)) {
+        seek_ = Seek::None;
         enter_settling();
         return false;
     }
@@ -696,37 +708,33 @@ bool FlipController::settle(Server& server, uint32_t coordinator) {
     return false;
 }
 
+// The Seeking phase: the one stabilized reading at the model's target, judged against the
+// origin's. Better by the band => anchor here. Not => straight back to the origin, where anchor()
+// books the round trip and raises the model's bar. No walk, no overshoot, no second probe: every
+// extra visit is a flip plus a measurement window at a split the model already rated lower, and
+// that walk -- out to an overshot split, back through the origin -- is what cost 19.5% on
+// multi-key with the target unchanged.
 bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, double rate) {
-    const uint32_t unit = server.cfg().smt_mode ? 2u : 1u;
-    const uint32_t total_units = server.nthreads() / unit;
+    maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
     const uint32_t current = server.role_count(Role::Ifid);
-    const uint32_t current_units = current / unit;
     record(current, rate);
-
-    const bool improved = rate > previous_rate_;
-    if (!improved) {
-        direction_ = -direction_;
-        if (step_units_ == 1) step_one_reversals_++;
+    if (seek_ == Seek::AtTarget && current == seek_target_io_) {
+        const double band = verification_band(rate);
+        const bool delivered = rate > origin_rate_ * (1.0 + band);
+        if (delivered) {
+            model_last_decision_ = "moved-delivered";
+            seek_ = Seek::None;
+            enter_settling();
+            return false;
+        }
+        model_last_decision_ = "moved-reverted";
+        seek_ = Seek::Returning;
+        if (issue_flip(server, coordinator, maneuver_origin_io_, Phase::Settling)) return true;
     }
-    step_units_ = std::max<uint32_t>(1, step_units_ / 2);
-    if (step_units_ == 1 && step_one_reversals_ >= 2)
-        return settle(server, coordinator);
-
-    int64_t next_units = static_cast<int64_t>(current_units) + direction_ * step_units_;
-    next_units = std::clamp<int64_t>(next_units, 1, total_units - 1);
-    if (static_cast<uint32_t>(next_units) == current_units) {
-        direction_ = -direction_;
-        if (step_units_ == 1) step_one_reversals_++;
-        next_units = static_cast<int64_t>(current_units) + direction_ * step_units_;
-        next_units = std::clamp<int64_t>(next_units, 1, total_units - 1);
-    }
-    const uint32_t next = static_cast<uint32_t>(next_units) * unit;
-    if (step_units_ == 1 && visited(next)) return settle(server, coordinator);
-
-    previous_rate_ = rate;
-    if (!issue_flip(server, coordinator, next, Phase::Seeking))
-        return settle(server, coordinator);
-    return true;
+    // A refused return, or a reading at a split this seek did not ask for: stop on the best
+    // evidence in hand.
+    seek_ = Seek::None;
+    return settle(server, coordinator);
 }
 
 void FlipController::anchor(Server& server, double rate) {
@@ -777,6 +785,16 @@ void FlipController::anchor(Server& server, double rate) {
         ? static_cast<double>(configured_band_) / 100.0
         : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
     anchor_rate_band_floor_ = anchor_rate_band_;
+    // The placement model's own outcome loop (flip_policy.h, rule 3): a maneuver that FLIPPED and
+    // still ended where it began is a projection that did not deliver, so the bar rises; a move
+    // that stuck lowers it again. A hold (no flip) is neither.
+    const bool round_trip = current == maneuver_origin_io_ && maneuver_flips_ > 0;
+    if (round_trip) {
+        round_trips_++;
+        if (anchor_rate_band_ * static_cast<double>(model_margin_) < 1.0) model_margin_ *= 2;
+    } else if (moved_split) {
+        model_margin_ = std::max<uint32_t>(1, model_margin_ / 2);
+    }
     shift_streak_ = 0;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
@@ -857,7 +875,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     double rate = 0;
     if (phase_ == Phase::Measuring) {
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
-        return issue_initial_jump(server, coordinator, rate);
+        return decide_placement(server, coordinator, rate);
     }
     if (phase_ == Phase::Seeking) {
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
@@ -997,12 +1015,14 @@ FlipctlReport FlipController::report() const {
     report.model_holds = model_holds_;
     report.shift_confirmations = shift_confirmations_;
     report.rate_confirmations = rate_confirmations_;
+    report.round_trips = round_trips_;
+    report.model_margin = model_margin_;
     return report;
 }
 
 std::string FlipController::debug_dump() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    char head[1024];
+    char head[2048];
     const int n = std::snprintf(
         head, sizeof(head),
         "state=%s\nphase=%s\nanchor=%u:%u\nanchor_rate=%.3f\n"
@@ -1011,21 +1031,30 @@ std::string FlipController::debug_dump() const {
         "last_shift_distance=%.9f\nlast_shift_band=%.9f\n"
         "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_slope=%.9f\n"
         "boot_rate_slope_threshold=%.9f\nboot_nonidle_ticks=%u\n"
-        "model_io_frac=%.6f\nmodel_io_frac_noise=%.6f\nmodel_equal_io=%u\n"
-        "model_holds=%llu\n"
+        "model_io_frac=%.6f\nmodel_io_frac_low=%.6f\nmodel_io_frac_high=%.6f\n"
+        "model_samples=%u model_readings_cap=%u\n"
+        "model_headroom_io=%.4f model_headroom_ex=%.4f\n"
+        "model_target_io=%u model_gain_mean=%.4f model_gain_low=%.4f model_gain_high=%.4f\n"
+        "model_required_gain=%.4f model_margin=%u model_last_decision=%s\n"
+        "model_holds=%llu round_trips=%llu maneuver_flips=%u\n"
         "shift_confirmations=%u rate_confirmations=%u\n"
         "shift_streak=%u null_maneuvers=%llu maneuver_origin_io=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
-        "pending_io=%u direction=%d step_units=%u\n",
+        "pending_io=%u seek=%s seek_target_io=%u origin_rate=%.3f\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
         shift_detector_.last_distance(), shift_detector_.jitter(), anchor_rate_band_,
         anchor_rate_jitter_, last_shift_distance_, last_shift_band_, boot_rate_ewma_,
         boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
-        model_io_frac_, model_io_frac_noise_, model_equal_io_,
+        model_io_frac_, model_io_frac_low_, model_io_frac_high_,
+        demand_window_.samples, model_readings_cap_,
+        model_io_headroom_, model_ex_headroom_,
+        model_target_io_, model_gain_mean_, model_gain_low_, model_gain_high_,
+        model_required_gain_, model_margin_, model_last_decision_,
         static_cast<unsigned long long>(model_holds_),
+        static_cast<unsigned long long>(round_trips_), maneuver_flips_,
         shift_confirmations_, rate_confirmations_, shift_streak_,
         static_cast<unsigned long long>(null_maneuvers_), maneuver_origin_io_,
         reason_name(last_trigger_),
@@ -1034,8 +1063,9 @@ std::string FlipController::debug_dump() const {
         static_cast<unsigned long long>(fingerprint_triggers_),
         static_cast<unsigned long long>(rate_surge_triggers_),
         static_cast<unsigned long long>(rate_collapse_triggers_),
-        static_cast<unsigned long long>(forced_triggers_), pending_target_io_, direction_,
-        step_units_);
+        static_cast<unsigned long long>(forced_triggers_), pending_target_io_,
+        seek_ == Seek::AtTarget ? "at-target" : seek_ == Seek::Returning ? "returning" : "none",
+        seek_target_io_, origin_rate_);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way

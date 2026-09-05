@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "flip_policy.h"
+
 namespace tomo {
 
 class Server;
@@ -185,6 +187,8 @@ struct FlipctlReport {
     uint64_t model_holds = 0;
     uint32_t shift_confirmations = 0;
     uint32_t rate_confirmations = 0;
+    uint64_t round_trips = 0;
+    uint32_t model_margin = 0;
 };
 
 class FlipController {
@@ -223,6 +227,7 @@ private:
         uint64_t busy_ns = 0;
         uint64_t iterations = 0;
         uint64_t spins = 0;
+        uint64_t idle_ns = 0;
     };
 
     struct Reading {
@@ -251,15 +256,16 @@ private:
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
     void enter_settling();
-    bool sample_role_demand(Server& server, double& io_frac);
-    bool issue_initial_jump(Server& server, uint32_t coordinator, double rate);
+    bool sample_role_demand(Server& server, double& io_frac, double& io_headroom,
+                            double& ex_headroom);
+    double verification_band(double rate) const;
+    bool decide_placement(Server& server, uint32_t coordinator, double rate);
     bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
                     Phase after_flip);
     bool seek_after_reading(Server& server, uint32_t coordinator, double rate);
     bool settle(Server& server, uint32_t coordinator);
     void anchor(Server& server, double rate);
     void record(uint32_t split, double rate);
-    bool visited(uint32_t split) const;
     double automatic_rate_band(double pair_delta, double rate) const;
 
     mutable std::mutex mutex_;
@@ -294,15 +300,35 @@ private:
     uint32_t collapse_streak_ = 0;
 
     uint32_t maneuver_origin_io_ = 0;
-    // The placement model's own observation window. Three demand estimates give a mean and the
-    // spread that says how much of that mean is estimator noise.
-    static constexpr uint32_t kModelWindow = 3;
-    std::array<double, kModelWindow> model_io_frac_history_{};
-    uint32_t model_io_frac_samples_ = 0;
+    // PLACEMENT POLICY STATE (flip_policy.h). The demand window accumulates one io-share draw per
+    // stabilized reading; the choice is re-evaluated on every draw until it is decided, or the
+    // reading cap -- the boot deferral bound expressed in two-tick readings -- forces a hold.
+    // Three draws are the fewest that carry a variance worth the name.
+    static constexpr uint32_t kMinModelSamples = 3;
+    FlipDemandWindow demand_window_{};
+    uint32_t model_readings_ = 0;
+    uint32_t model_readings_cap_ = 0;
     double model_io_frac_ = 0;
-    double model_io_frac_noise_ = 0;
+    double model_io_frac_low_ = 0;
+    double model_io_frac_high_ = 0;
+    double model_io_headroom_ = 0;
+    double model_ex_headroom_ = 0;
+    double model_gain_mean_ = 0;
+    double model_gain_low_ = 0;
+    double model_gain_high_ = 0;
+    double model_required_gain_ = 0;
+    uint32_t model_target_io_ = 0;
     uint64_t model_holds_ = 0;
-    uint32_t model_equal_io_ = 0;
+    const char* model_last_decision_ = "none";
+    // OUTCOME MARGIN: how many throughput bands of projected gain the model must clear. Doubles
+    // when a maneuver moved and came back (the projection did not deliver -- a biased estimator
+    // does not get less biased with more samples, so the BAR rises), halves when a move delivered,
+    // and never grows past the point where the required gain would exceed 100%, which would
+    // retire the model for good. Derived at both ends: the band is learned, the cap is arithmetic.
+    uint32_t model_margin_ = 1;
+    uint64_t round_trips_ = 0;
+    uint32_t maneuver_flips_ = 0;
+    double maneuver_rate_jitter_ = 0;
     uint64_t null_maneuvers_ = 0;
     // OUTCOME BACKOFF. Every trigger already demands consecutive confirming control passes before
     // it starts a maneuver. When a maneuver ends on the split it started from it delivered nothing,
@@ -320,10 +346,12 @@ private:
     uint32_t pending_target_io_ = 0;
     uint64_t pending_completed_ = 0;
     uint64_t pending_refused_ = 0;
-    int direction_ = 0;
-    uint32_t step_units_ = 0;
-    uint32_t step_one_reversals_ = 0;
-    double previous_rate_ = 0;
+    // VERIFY-OR-REVERT SEEK: one model-directed flip, one stabilized reading judged against the
+    // origin's stabilized reading, then anchor there or flip straight back.
+    enum class Seek : uint8_t { None = 0, AtTarget, Returning };
+    Seek seek_ = Seek::None;
+    uint32_t seek_target_io_ = 0;
+    double origin_rate_ = 0;
 
     uint64_t rate_window_ms_ = 0;
     uint64_t rate_window_commands_ = 0;
