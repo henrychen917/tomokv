@@ -337,25 +337,6 @@ int main() {
         !rejects({"--read-local-atomic-filter", "-1"}) ||
         !rejects({"--read-local-atomic-filter", ""}))
         fail("read-local-atomic-filter boot grammar differs");
-    tomo::Config lane_full_default;
-    if (lane_full_default.read_local_lane_full != 0)
-        fail("read-local-lane-full default is not demote");
-    auto parses_read_local_lane_full = [](const char* value, uint32_t expected) {
-        tomo::Config cfg;
-        tomo::ConfigParseState state;
-        const std::vector<const char*> args = {"--read-local-lane-full", value};
-        return tomo::parse_config_args(args, cfg, state, 2, "test") ==
-                   tomo::kConfigParsed &&
-               cfg.read_local == 0 && cfg.read_local_lane_full == expected;
-    };
-    if (!parses_read_local_lane_full("0", 0) ||
-        !parses_read_local_lane_full("1", 1) ||
-        !parses_read_local_lane_full("2", 2) ||
-        !rejects({"--read-local-lane-full", "3"}) ||
-        !rejects({"--read-local-lane-full", "yes"}) ||
-        !rejects({"--read-local-lane-full", "-1"}) ||
-        !rejects({"--read-local-lane-full", ""}))
-        fail("read-local-lane-full boot grammar differs");
     tomo::Config read_local_split;
     tomo::ConfigParseState read_local_split_state;
     const std::vector<const char*> read_local_split_args = {"--read-local", "1"};
