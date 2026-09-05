@@ -48,7 +48,8 @@ fi
 # settles on the best of several readings, so it is expected to pass. Two runs each: one pass and
 # one fail is a flaky row, and that verdict changes what the failure means.
 ctlrun(){ # ctlrun TAG BIN
-  local tag=$1 bin=$2 out=$SP/fd-ctl-$tag.txt pid rc
+  local tag=$1 bin=$2 pid rc out
+  out=$SP/fd-ctl-$tag.txt   # NOT in the `local` above: local expands its args before assigning them
   [ -s "$out" ] && { LG "CTL $tag: on file :: $(grep -E '^ok:|AssertionError|^RC=' "$out" | tail -2 | tr '\n' ' ' | cut -c1-200)"; return 0; }
   wait_gate
   pid=$(boot8 "$bin" "$PORT_BAT" "ctl-$tag" --ratio 6:2 --atomic 0 --flip-auto 1 \
@@ -88,7 +89,8 @@ done
 # this rig, and run the same mk load: --flip-auto 1 has to find the split and pay for the flip,
 # --flip-auto 0 stays where it was booted.
 firecell(){ # firecell TAG BIN FA RATIO SECS
-  local tag=$1 bin=$2 fa=$3 ratio=$4 secs=$5 out=$SP/fd-fire-$tag.txt pid info
+  local tag=$1 bin=$2 fa=$3 ratio=$4 secs=$5 pid info out
+  out=$SP/fd-fire-$tag.txt
   [ -s "$out" ] && { LG "FIRE $tag: on file :: $(cat "$out")"; return 0; }
   wait_gate
   pid=$(boot "$bin" "$PORT_SIG" "fire-$tag" --ratio "$ratio" --shards 64 --atomic 1 --flip-auto "$fa") || return 1
@@ -117,7 +119,8 @@ firecell fix-22-off  "$FIX_BIN"  0 2:2 60
 # printed with the counts: a row whose rates do not match is not a comparison.
 RL=${RL:-1200}
 perfcell(){ # perfcell TAG BIN FA
-  local tag=$1 bin=$2 fa=$3 out=$SP/fd-perf-$tag.txt pid c0 c1 secs=55 win=35
+  local tag=$1 bin=$2 fa=$3 pid c0 c1 out secs=55 win=35
+  out=$SP/fd-perf-$tag.txt
   [ -s "$out" ] && { LG "PERF $tag: on file :: $(cat "$out")"; return 0; }
   wait_gate
   pid=$(boot "$bin" "$PORT_AB" "perf-$tag" --ratio 2:2 --shards 64 --atomic 1 --flip-auto "$fa") || return 1
