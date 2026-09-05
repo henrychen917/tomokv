@@ -1017,7 +1017,9 @@ read-local tax and it must be answered on a bigger box before the bound is touch
 
 ---
 
-# VERDICT — SHELVE, with the grow-on-demand redesign answered No
+# VERDICT (SUPERSEDED 2026-09-06 by the owner's 16-shard control — see the section after it)
+
+# ~~SHELVE~~, with the grow-on-demand redesign answered No
 
 **The change works completely and costs consistently more than it earns in every regime this lane
 could measure.**
@@ -1071,3 +1073,68 @@ would not exist), then converting demoted reads into local reads is converting c
 
 So the verdict is: **shelve on this evidence**, and one bigger-box measurement decides whether to
 reopen it.
+
+
+---
+
+# THE VERDICT IS WITHDRAWN. The owner ran the governing control at sixteen shards and the sign flipped.
+
+Mainline t9final, 32 cores, **16 shards**, fused, 512 connections, p32, ABBA, 2 reps per arm:
+
+| shape | read-local 0 | read-local 1 | | instr/op | IPC |
+|---|---|---|---|---|---|
+| **1:1 alternating** | 21.42 / 20.99 → **21.21 M** | 24.46 / 23.88 → **24.17 M** | **read-local WINS +14.0%** | 3201 → 3657 (**+14%**) | 0.705 → **0.906 (+28%)** |
+| **5:5 blocked** | 20.99 / 21.20 → **21.10 M** | 20.32 / 20.09 → **20.21 M** | **read-local LOSES 4.2%** | | |
+
+On this lane's two-core rig the same control read **−45.9%** for the alternating shape. The caveat
+was the right one and it was load-bearing: **two shards on two cores inverted the sign of the very
+quantity the verdict rested on.**
+
+### What the owner's two rows actually say about this lane
+
+They say the defect is real and expensive, and they locate it exactly where this lane aimed:
+
+* on the shape where **the ring never fills**, arming read-local is worth **+14.0%**;
+* on the shape where **the ring fills and the connection disarms**, it is worth **−4.2%**.
+
+That gap is not read-local being bad at blocked writes. It is a connection that has **paid the armed
+cost and been denied the benefit** — which is the sentence this lane was written to delete. If POST
+keeps the ring from filling at 5:5, the blocked shape should stop behaving like the −4.2% row and
+start behaving like the +14.0% one. **That is a falsifiable prediction with a wide target**: POST at
+5:5 should clear RL0's 21.10M, and its ceiling is the alternating shape's +14% line.
+
+### And the methodological finding, which is the reason my verdict cannot stand
+
+**Instructions per operation has the wrong sign here.** Read-local ON at sixteen shards costs
+**14% MORE instructions** and delivers **14% MORE throughput**, because IPC rises 28%. My matrix
+leaned on instructions/op precisely because it was the only column whose null floor (0.34%) was
+tight enough to resolve anything — the rate floor was 4.21% — and the owner's control shows that
+column pointing the opposite way to throughput across exactly the knob this lane makes fire more
+often. An instruction-diet argument would have condemned read-local itself at sixteen shards, and it
+would have been wrong.
+
+So the honest status of every cost number in this document is: **the +43 instructions per write of
+ring bookkeeping is geometry-independent and stands. The read-side conversion term (+4, +97, +180
+instructions) was priced where a local read costs twice a demoted one, and at sixteen shards a local
+read is *cheaper per unit of throughput*, so the same conversion should pay rather than cost.** The
+memory figure (+972.8 bytes per armed connection) and the whole correctness column are unaffected.
+
+### Status: VERDICT DEFERRED, not shelved
+
+`t-ringsize` still merges into nothing and the branch keeps the work. The decision now rests on one
+cell, specified and scripted at `scratchpad/ringsize/owner_cell.py`, to be run on the owner's box.
+
+## The correction to the program's memory, since it is now more than this lane's business
+
+**A memtier `--ratio` is a write RUN LENGTH, not a write fraction.** At the identical 50% write
+fraction, `--ratio=1:1` demoted 738 reads and `--ratio=50:50` demoted 2,072,492 — a factor of 2,800
+from the shape of the stream alone; and at 55%, a block of eleven demotes as much as a block of
+fifty-five. The threshold is exact rather than statistical: alternating tops out at fifteen live
+writes in a 32-deep window (the committing write holds a window position no ring entry can), which
+is under a sixteen-slot ring, while a block of five puts about seventeen there and a block of ten
+about twenty-two.
+
+Anything that labelled a `--ratio` sweep a "write-fraction sweep" — the amortization study and the
+earlier overflow finding among them — was sweeping run length. The consequence is not cosmetic: a
+cell chosen as "41% writes, safely under the cliff" is **over** it, and a cell chosen as "50% writes"
+is on one side or the other depending only on how the generator was spelled.
