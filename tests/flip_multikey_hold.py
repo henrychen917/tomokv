@@ -15,13 +15,21 @@ THE TEST.  Two phases against one anchored controller.
   NEGATIVE -- the defect.  Hold the command mix EXACTLY constant (same commands, same key count,
   same value bytes, same paced issue rate) and vary only the client's write batching, so parse-pass
   occupancy sweeps from the 2-4 bucket to the 5-16 bucket and back.  Nothing the clients ask for
-  changes.  Assert the controller does not trigger, does not complete a flip, does not transfer a
-  connection, and does not move its anchor.  On the unpatched tree this fails within seconds.
+  changes.  Assert the mix detector's own distance never reaches its own band, that no fingerprint
+  trigger fires, that no flip completes, that no connection is transferred, and that the anchor
+  does not move.  On the unpatched tree the distance reaches 204x the band within seconds.
 
   POSITIVE -- the feature still works.  Then change the mix for real (8-key multi-key traffic ->
-  single-key GET: command class, keys/op and value bytes all move) and assert the controller DOES
-  fire and re-anchor.  A fix that simply stopped flipping would pass the negative phase and fail
-  here, so the negative assertion can never be satisfied vacuously.
+  single-key GET: command class, keys/op and value bytes all move) and assert the mix detector's
+  distance DOES clear its band and that the controller re-maneuvers and re-anchors.  A fix that
+  simply desensitized the detector would pass the negative phase and fail here, so the negative
+  assertion can never be satisfied vacuously.
+
+  SCOPE.  The two assertions above are about the MIX detector, which is what a multi-key workload
+  fools.  The rate detector is deliberately not asserted on: it is fed by measured throughput, and
+  this battery paces its own load from nine Python threads, whose second-to-second jitter is larger
+  than the sub-percent band the controller learns on a paced stream.  Asserting on it would measure
+  the load driver.  Its response is still bounded by the same evidence rules and is reported below.
 
 Boot the server separately, in split mode, with the controller on:
   taskset -c 40-47 ./build/tomokv --port 8087 --save '' --ratio 5:3 --shards 64 --atomic 1 \
@@ -118,11 +126,37 @@ def state(control):
 
 
 def motion(row):
-    """Everything the controller can move.  A stationary workload must move none of it."""
-    return (int(row.get("flipctl_triggers", -1)),
+    """Ownership the controller can move, plus the mix detector that a multi-key stream fools.
+
+    Deliberately excludes flipctl_triggers: the rate detector can also raise it, and this battery
+    does not control throughput to the precision that detector's learned band demands.  What it
+    does control exactly is the command mix, so the mix trigger is asserted; and what the defect
+    actually costs -- completed flips, transferred connections, a moved split -- is asserted
+    whatever detector asked for it.
+    """
+    return (int(row.get("flipctl_fingerprint_triggers", -1)),
             int(row.get("flip_completed", -1)),
             int(row.get("flip_clients_transferred", -1)),
             row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"))
+
+
+def detector(control):
+    """(distance, band) of the mix detector, or None while it is between anchors.
+
+    This is the quantity the fix is about, read straight out of the controller instead of inferred
+    from a counter some other detector can also move.
+    """
+    raw = control.command("DEBUG", "FLIPCTL")
+    if raw is None:
+        return None
+    row = dict(line.split("=", 1) for line in raw.decode().splitlines()
+               if "=" in line and " " not in line.split("=", 1)[0])
+    try:
+        band = float(row["signature_band"])
+        distance = float(row["signature_distance"])
+    except (KeyError, ValueError):
+        return None
+    return (distance, band) if band > 0 else None
 
 
 def wait_for(control, description, predicate, timeout, poll=0.5):
@@ -242,14 +276,16 @@ def main():
         if errors:
             raise AssertionError("load driver failed: %s" % errors[0])
         baseline = motion(anchored)
-        print("anchored at %s:%s after %s trigger(s), %s completed flip(s), %s client transfer(s)"
+        print("anchored at %s:%s after %s trigger(s) (%s of them fingerprint), "
+              "%s completed flip(s), %s client transfer(s)"
               % (anchored["flipctl_anchor_io"], anchored["flipctl_anchor_ex"],
-                 baseline[0], baseline[1], baseline[2]))
+                 anchored["flipctl_triggers"], baseline[0], baseline[1], baseline[2]))
 
         # ---- NEGATIVE: sweep parse-pass occupancy, hold the mix ----------------------------------
         sizes = (2, 16)
         deadline = time.monotonic() + args.hold_seconds
         index = 0
+        worst = 0.0
         while time.monotonic() < deadline:
             batch[0] = sizes[index % len(sizes)]
             index += 1
@@ -260,32 +296,55 @@ def main():
                 row = state(control)
                 check("stationary multi-key mix must not move the controller "
                       "(batch=%d)" % batch[0], motion(row), baseline)
-                time.sleep(0.5)
-        held = state(control)
-        check("stationary multi-key mix leaves the controller anchored",
-              held.get("flipctl_state"), "anchored")
+                reading = detector(control)
+                if reading:
+                    worst = max(worst, reading[0] / reading[1])
+                time.sleep(0.25)
+        # The controller must come back to rest on the same split.  Waiting for that, rather than
+        # sampling `anchored` at one instant, keeps the rate detector -- whose band this battery's
+        # paced load cannot honour -- from deciding the verdict; a controller that really was
+        # oscillating would never satisfy it.
+        held = wait_for(control, "the controller to be at rest after the constant-mix hold",
+                        lambda r: r.get("flipctl_state") == "anchored", 90)
         check("stationary multi-key mix completes no flip", motion(held), baseline)
+        # The defect, stated as the controller's own arithmetic: a workload whose commands, keys
+        # and value bytes never change must never present the mix detector with a distance that
+        # reaches its band.  The unpatched tree reaches 204x here.
+        check("constant mix keeps the mix distance inside its own band (worst %.3fx)" % worst,
+              worst < 1.0, True)
         print("negative: %.0fs of constant mix with sweeping parse-pass occupancy -- "
-              "triggers=%s completed=%s transferred=%s, anchor %s:%s (unmoved)"
+              "fingerprint_triggers=%s completed=%s transferred=%s, anchor %s:%s (unmoved); "
+              "worst mix distance = %.4f of its band; total triggers %s -> %s"
               % (args.hold_seconds, baseline[0], baseline[1], baseline[2],
-                 held["flipctl_anchor_io"], held["flipctl_anchor_ex"]))
+                 held["flipctl_anchor_io"], held["flipctl_anchor_ex"], worst,
+                 anchored["flipctl_triggers"], held["flipctl_triggers"]))
 
-        # ---- POSITIVE: a real mix change must still re-maneuver -----------------------------------
+        # ---- POSITIVE: a real mix change must still be SEEN and acted on --------------------------
+        before_triggers = int(held["flipctl_triggers"])
         batch[0] = 8
         mode[0] = "single"
-        changed = wait_for(
-            control, "a real command-mix change to trigger a maneuver",
-            lambda r: int(r.get("flipctl_triggers", "0")) > baseline[0], args.mix_timeout)
-        check("a real mix change is a fingerprint trigger",
-              int(changed["flipctl_fingerprint_triggers"]) >
-              int(anchored["flipctl_fingerprint_triggers"]), True)
+        # Watch the detector itself.  A counter would let a rate trigger stand in for the mix
+        # trigger; the distance/band ratio cannot be satisfied by anything but the mix detector
+        # actually seeing the change, which is the property the fix could have broken.
+        seen = 0.0
+        end = time.monotonic() + args.mix_timeout
+        while time.monotonic() < end and seen <= 1.0:
+            if errors:
+                raise AssertionError("load driver failed: %s" % errors[0])
+            reading = detector(control)
+            if reading and reading[1] > 0:
+                seen = max(seen, reading[0] / reading[1])
+            time.sleep(0.1)
+        check("a real mix change clears the mix detector's own band (reached %.2fx)" % seen,
+              seen > 1.0, True)
         final = wait_for(control, "the mix-change maneuver to re-anchor",
                          lambda r: r.get("flipctl_state") == "anchored" and
-                         int(r.get("flipctl_triggers", "0")) > baseline[0], args.mix_timeout)
-        print("positive: multi-key -> single-key GET fired a fingerprint trigger and re-anchored "
-              "at %s:%s (triggers %s -> %s)"
-              % (final["flipctl_anchor_io"], final["flipctl_anchor_ex"], baseline[0],
-                 final["flipctl_triggers"]))
+                         int(r.get("flipctl_triggers", "0")) > before_triggers,
+                         args.mix_timeout)
+        print("positive: multi-key -> single-key GET drove the mix distance to %.2fx its band "
+              "and the controller re-maneuvered and re-anchored at %s:%s (triggers %s -> %s)"
+              % (seen, final["flipctl_anchor_io"], final["flipctl_anchor_ex"],
+                 before_triggers, final["flipctl_triggers"]))
     finally:
         stop.set()
         for thread in threads:

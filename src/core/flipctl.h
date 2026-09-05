@@ -131,11 +131,6 @@ public:
     void reset();
     bool observe(const FlipFingerprintWindow& sample);
     void anchor();
-    // A floor the automatic band may never fall below, learned by the controller from a maneuver
-    // that proved an excursion of this size carries no placement information. reset() deliberately
-    // preserves it: it is knowledge about the workload, not state of one maneuver.
-    void raise_band_floor(double floor);
-    double band_floor() const { return band_floor_; }
 
     bool anchored() const { return anchored_; }
     // Cold diagnostic readers (DEBUG FLIPCTL only): the two vectors whose distance is the
@@ -156,7 +151,6 @@ private:
     FlipSignature anchored_signature_{};
     double jitter_ = 0;
     double band_ = 0;
-    double band_floor_ = 0;
     double last_distance_ = 0;
     bool have_previous_ = false;
     bool have_jitter_ = false;
@@ -189,6 +183,8 @@ struct FlipctlReport {
     uint64_t forced_triggers = 0;
     uint64_t null_maneuvers = 0;
     uint64_t model_holds = 0;
+    uint32_t shift_confirmations = 0;
+    uint32_t rate_confirmations = 0;
 };
 
 class FlipController {
@@ -307,9 +303,19 @@ private:
     double model_io_frac_noise_ = 0;
     uint64_t model_holds_ = 0;
     uint32_t model_equal_io_ = 0;
-    double pending_excursion_ = 0;
-    double learned_rate_band_floor_ = 0;
     uint64_t null_maneuvers_ = 0;
+    // OUTCOME BACKOFF. Every trigger already demands consecutive confirming control passes before
+    // it starts a maneuver. When a maneuver ends on the split it started from it delivered nothing,
+    // so the next excursion of that kind must present MORE passes of evidence, not clear a wider
+    // threshold: widening a threshold on a distance normalized to [0,1] can put it out of reach of
+    // any workload change at all and silently retire the detector, while a longer window keeps full
+    // sensitivity and only costs time. Doubling per null result, halving back to the floor when a
+    // maneuver actually moves the split, bounded by the window the controller already needs to
+    // learn an anchor -- past that it would take longer to NOTICE a change than to characterize
+    // one. Not a knob: both ends are derived.
+    static constexpr uint32_t kMinConfirmations = 2;
+    uint32_t shift_confirmations_ = kMinConfirmations;
+    uint32_t rate_confirmations_ = kMinConfirmations;
     uint32_t shift_streak_ = 0;
     uint32_t pending_target_io_ = 0;
     uint64_t pending_completed_ = 0;

@@ -95,8 +95,6 @@ double flip_signature_pass_distance(const FlipSignature& left, const FlipSignatu
 }
 
 void FlipShiftDetector::reset() {
-    // band_floor_ is deliberately NOT cleared: it is what the controller learned about this
-    // workload across maneuvers, not state belonging to the maneuver being restarted.
     smoothed_ = {};
     previous_ = {};
     learning_origin_ = {};
@@ -109,19 +107,12 @@ void FlipShiftDetector::reset() {
     anchored_ = false;
 }
 
-void FlipShiftDetector::raise_band_floor(double floor) {
-    if (!(floor > band_floor_)) return;
-    band_floor_ = floor;
-    update_band();
-}
-
 void FlipShiftDetector::update_band() {
     if (configured_band_ == 0) {
         band_ = 0;
         return;
     }
     if (configured_band_ > 0) {
-        // An explicit numeric band is the operator's word; the learned floor never overrides it.
         band_ = static_cast<double>(configured_band_) / 100.0;
         return;
     }
@@ -138,7 +129,7 @@ void FlipShiftDetector::update_band() {
     // first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
     const double quantum =
         1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
-    band_ = std::max(band_floor_, 2.0 * std::max(jitter_, quantum));
+    band_ = 2.0 * std::max(jitter_, quantum);
 }
 
 bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
@@ -750,33 +741,42 @@ void FlipController::anchor(Server& server, double rate) {
             relative_distance(anchor_learning_rate_min_, anchor_learning_rate_max_));
     }
     anchor_rate_jitter_ = anchor_learning_rate_jitter_;
-    // THE NULL-MANEUVER RULE. A maneuver that ends on the split it started from moved ownership,
-    // paid every quiesce, and changed nothing -- thrash by this project's own definition. The
-    // excursion that triggered it therefore carries no placement information AT THAT SIZE, and
-    // must not be allowed to trigger the identical round trip again. Widen the floor of whichever
-    // band judged it to twice that excursion -- the same factor of two the automatic bands already
-    // use over their own jitter -- so the controller learns from its own null result instead of
-    // repeating it. Nothing here is a tunable: the floor is the size of the excursion the server
-    // just proved uninformative. A maneuver that DOES move the split leaves both floors alone, so
-    // real rebalancing keeps its full sensitivity.
+    // THE NULL-MANEUVER RULE, CLOSED ON THE OUTCOME. A maneuver that ends on the split it started
+    // from moved ownership, paid every quiesce and changed nothing -- thrash by this project's own
+    // definition. The trigger that started it was therefore not wrong about the workload, it was
+    // wrong that the workload's move was worth a maneuver, so what has to grow is the EVIDENCE the
+    // next such excursion must present, not the size it must reach. Double the confirming control
+    // passes the responsible detector needs; halve back toward the floor whenever a maneuver
+    // actually moves the split, so a workload that really is drifting stays cheap to follow.
+    //
+    // The rejected alternative was widening that detector's band by twice the excursion it just
+    // proved uninformative. Measured: a paced 8-key -> single-key change scores distance 0.630 on
+    // a metric whose maximum is 1.0, so one null result set a floor of 1.26 and the fingerprint
+    // detector could never fire again at any workload -- a self-inflicted `--flip-auto-band 0`.
+    // A threshold learned from an excursion can exceed every excursion; a window cannot.
     const bool null_maneuver = current == maneuver_origin_io_ &&
         (last_trigger_ == FlipctlTriggerReason::FingerprintShift ||
          last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
          last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse);
-    if (null_maneuver) {
-        null_maneuvers_++;
-        if (last_trigger_ == FlipctlTriggerReason::FingerprintShift)
-            shift_detector_.raise_band_floor(2.0 * last_shift_distance_);
-        else
-            learned_rate_band_floor_ =
-                std::max(learned_rate_band_floor_, 2.0 * pending_excursion_);
+    const bool moved_split = current != maneuver_origin_io_;
+    const uint32_t confirmation_cap =
+        std::max(kMinConfirmations, signature_learning_windows_);
+    uint32_t* responsible = last_trigger_ == FlipctlTriggerReason::FingerprintShift
+        ? &shift_confirmations_
+        : (last_trigger_ == FlipctlTriggerReason::AnchorRateSurge ||
+           last_trigger_ == FlipctlTriggerReason::AnchorRateCollapse)
+              ? &rate_confirmations_ : nullptr;
+    if (null_maneuver) null_maneuvers_++;
+    if (responsible) {
+        if (null_maneuver)
+            *responsible = std::min(confirmation_cap, *responsible * 2);
+        else if (moved_split)
+            *responsible = std::max(kMinConfirmations, *responsible / 2);
     }
     anchor_rate_band_ = configured_band_ > 0
         ? static_cast<double>(configured_band_) / 100.0
-        : std::max(learned_rate_band_floor_,
-                   automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
+        : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
     anchor_rate_band_floor_ = anchor_rate_band_;
-    pending_excursion_ = 0;
     shift_streak_ = 0;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
@@ -906,7 +906,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         // windows that closed real work vote -- a tick where no owner published is not evidence
         // either way, so it neither adds to the streak nor clears it.
         if (fingerprint_sampled_this_tick_) shift_streak_ = shifted ? shift_streak_ + 1 : 0;
-        const bool sustained_shift = shift_streak_ >= 2;
+        const bool sustained_shift = shift_streak_ >= shift_confirmations_;
         if (!sample_anchored_rate(server, now_ms, rate)) {
             if (sustained_shift) {
                 last_shift_distance_ = shift_detector_.last_distance();
@@ -921,19 +921,17 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             rate > reference * (1.0 + band)) {
             surge_streak_++;
             collapse_streak_ = 0;
-            pending_excursion_ = std::max(pending_excursion_, rate / reference - 1.0);
         } else if (configured_band_ != 0 && reference > 0 &&
                    rate < reference * (1.0 - band)) {
             collapse_streak_++;
             surge_streak_ = 0;
-            pending_excursion_ = std::max(pending_excursion_, 1.0 - rate / reference);
         } else {
             surge_streak_ = 0;
             collapse_streak_ = 0;
-            pending_excursion_ = 0;
         }
         // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
-        if (surge_streak_ >= 2 || collapse_streak_ >= 2) {
+        if (surge_streak_ >= rate_confirmations_ ||
+            collapse_streak_ >= rate_confirmations_) {
             const FlipctlTriggerReason reason = surge_streak_ >= 2
                 ? FlipctlTriggerReason::AnchorRateSurge
                 : FlipctlTriggerReason::AnchorRateCollapse;
@@ -997,6 +995,8 @@ FlipctlReport FlipController::report() const {
     report.forced_triggers = forced_triggers_;
     report.null_maneuvers = null_maneuvers_;
     report.model_holds = model_holds_;
+    report.shift_confirmations = shift_confirmations_;
+    report.rate_confirmations = rate_confirmations_;
     return report;
 }
 
@@ -1013,7 +1013,7 @@ std::string FlipController::debug_dump() const {
         "boot_rate_slope_threshold=%.9f\nboot_nonidle_ticks=%u\n"
         "model_io_frac=%.6f\nmodel_io_frac_noise=%.6f\nmodel_equal_io=%u\n"
         "model_holds=%llu\n"
-        "signature_band_floor=%.9f\nrate_band_floor=%.9f\n"
+        "shift_confirmations=%u rate_confirmations=%u\n"
         "shift_streak=%u null_maneuvers=%llu maneuver_origin_io=%u\n"
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
@@ -1026,7 +1026,7 @@ std::string FlipController::debug_dump() const {
         boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
         model_io_frac_, model_io_frac_noise_, model_equal_io_,
         static_cast<unsigned long long>(model_holds_),
-        shift_detector_.band_floor(), learned_rate_band_floor_, shift_streak_,
+        shift_confirmations_, rate_confirmations_, shift_streak_,
         static_cast<unsigned long long>(null_maneuvers_), maneuver_origin_io_,
         reason_name(last_trigger_),
         static_cast<unsigned long long>(triggers_),

@@ -1945,6 +1945,8 @@ void cmd_info(Shard&, Op& op) {
                     "flipctl_surge_triggers:%llu\r\nflipctl_collapse_triggers:%llu\r\n"
                     "flipctl_forced_triggers:%llu\r\n"
                     "flipctl_null_maneuvers:%llu\r\nflipctl_model_holds:%llu\r\n"
+                    "flipctl_shift_confirmations:%u\r\n"
+                    "flipctl_rate_confirmations:%u\r\n"
                     "flipctl_last_trigger:%s\r\n",
                     ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
                     ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
@@ -1958,6 +1960,7 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(ctl.forced_triggers),
                     static_cast<unsigned long long>(ctl.null_maneuvers),
                     static_cast<unsigned long long>(ctl.model_holds),
+                    ctl.shift_confirmations, ctl.rate_confirmations,
                     ctl.last_trigger.c_str());
         }
     }
