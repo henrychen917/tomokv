@@ -240,3 +240,61 @@ baseline:
 Idle, read-only and write-only connections each stop paying the sidecar — about 1300 bytes, the
 1280-byte jemalloc class plus its page share. A connection that both reads and writes pays exactly
 what it paid before, which is the design: the ring is for connections that have both.
+
+---
+
+# Gate
+
+`tests/gate.sh full` on lane cores 40-43,168-171, port 8431, with the Redis 7.4 oracle present:
+**324 ok, 20 FAIL**. Every layout lock held (`Op` 336, `Client` 1984, `ThreadCtx` 1408, `Shard` 1440,
+`Rob<64>` 192, `ReadLocalRobState` 1216 — the "release build (+footprint locks)" row), both
+differential matrices passed (**Redis 7.4 differential matrix** and **Redis 7.4 differential matrix
+(armed fused + read-local)**, the second being this lane's own geometry), glob/scan parity passed,
+the new **read-local write ring + arming transient unit** row passed, and the
+**read-local lane admission battery** — the one that requires ≥95% of a 32-connection ×
+64-deep GET load to be served locally — passed.
+
+## The 20 failures are three environment clusters, and the control says so
+
+Another lane ran an unpinned `make -j8` and a second server on cores 40-43/168-171 throughout this
+run; the gate's own preflight caught it by name twice.
+
+| cluster | rows | what the log says |
+|---|---|---|
+| one poisoned fused+armed atomic-1 boot | 12 | that server logged `Client id=773/819/820/823/825 scheduled to be closed ASAP for overcoming of output buffer limits` — the Python battery client stopped draining. Every battery after it on that one boot failed downstream, and the boot's `hits=0` shutdown row with it. |
+| gate preflight refused to boot | 4 | `boot preflight: cores/port not quiet: 3092661 137 82.7 tomokv` — twice, which is also why the ledger counted 343 against 341: a failed `boot` prints a row a successful one does not, so 341 + 2 = 343 and the EXPECT arithmetic in this file is correct. |
+| load-sensitive assertions | 4 | `multirace`: every correctness assertion passed (leaked=0, stale=0, bad_exec=0) and the row failed its own **vacuity** check — the timing window it exists to close never opened. `flipctl`: "controller moved during stable hold", `last_trigger: fingerprint-shift` — the controller reacted to a workload shift that a shared box produces. `atomic RYOW under ASAN`: a THROUGHPUT ratio, pipe=2840/s against serial=14328/s. |
+
+**Three of the four clusters cannot involve this lane at all**: `multirace`, `flipctl` and the ASAN
+rows all boot through `boot`, which is `--ratio 6:2` — **split mode, no `--read-local`**. On those
+boots `read_local_enabled()` is false, no `ReadLocalRobState` is ever allocated, and every line this
+lane touches is unreachable.
+
+**The one cluster that does run this code was controlled directly.** Same batteries, same boot
+geometry (`--thread-mode fused --atomic 1 --read-local 1 --enable-debug-command yes`), mainline
+`ceb6b02f8` against `t-ringdiet`, on a quiet box:
+
+| battery | mainline ceb6b02f8 | t-ringdiet |
+|---|---|---|
+| concur, edgeproto, edgeenc, arity, contarity, cmdgap, aclsel, expwide, infofix, pushtear | **all ok** | **all ok** |
+| multirace (atomic 1) | ok | ok |
+
+Both arms pass every one of them. The gate rows are the box, not the binary.
+
+And the flipctl row was controlled the same way, on its own `--ratio 6:2 --flip-auto 1` boot:
+
+| battery | mainline ceb6b02f8 | t-ringdiet |
+|---|---|---|
+| flipctl | **FAIL** ("controller moved during stable hold") | FAIL ("surge response did not settle and hold") |
+
+**It fails on mainline too**, on a different assertion each time — the signature of a controller
+reacting to a workload another lane is perturbing, not of a defect either binary carries.
+
+## The 20, accounted for
+
+12 (one poisoned boot, both arms pass the batteries when quiet) + 4 (gate preflight refused to boot,
+naming the offending pid) + 1 (multirace vacuity, passes on both arms when quiet, and its boot has
+no read-local lane) + 1 (flipctl, fails on mainline too) + 1 (atomic RYOW under ASAN, a throughput
+ratio on a boot with no read-local lane) + 1 (PROGRAM-STATE 343/341, which is 341 + the two rows the
+failed boots add) = **20**. None is attributable to this lane, and the cluster that could have been
+was controlled against mainline directly rather than argued away.
