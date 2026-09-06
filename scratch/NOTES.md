@@ -274,3 +274,33 @@ cost <cmds/client> are the directed-test hooks (cold, debug-gated). Knobs: none 
   733c6d842: re-judge the delivered gain against the re-measured origin (flip_corrected_gain);
   void the miss only if the corrected gain would have PASSED. Rebuilt 450630169ea1411e, re-running.
   Also seen: the model's induced-hypothesis projection for 3:1 was -48.6% vs -47.9% delivered.
+
+## 2026-09-06 pm: COORDINATOR CORRECTION folded in (owner-box acceptance of the guard)
+Owner box: on 64 shards + 8-key multi-key, 18:14 is FAR from optimal (more executors win: guard
+moved to 11:21 = +89%, one run to 10:22 = +25x). So the guard's real cost is TIME-TO-FIRST-MOVE
+(it moved once, late, still 'maneuvering' at 40s) and ONE hold-on-a-terrible-split (held 28:4 at
+0.53M, model_holds 1). BASE-auto (t9final) is now the bar (gets there fast, then thrashes back).
+=> The cost gate must be ASYMMETRIC. Changes (commit 62d85d3d8):
+  1. flip_cost_gate blackout miss-cost = P_miss*R0*T_black (was P_miss*gain_mean*R0*T_black). The
+     blackout risks the WHOLE origin throughput on a miss, not the gain -- so benefit/cost ~ gain and
+     the stationarity a move needs FALLS as the gain rises: +2400% pays at ~1.0 T_black, +5% needs
+     ~44s. No constant; the wait is the distance's consequence.
+  2. kMinModelSamples 3->2: two draws admit a variance and the sequential 2-SE interval IS the
+     distance-derived wait (wildly-wrong split's pessimistic gain clears the bar at 2 readings,
+     marginal doesn't). Outcome loop, not a long pre-move window, catches a 2-draw miss.
+  Unit rows carry the owner-box numbers; UNIT green (asymmetric). Directed test 26 checks green on
+  the PRE-asymmetric binary (a19f4fba); re-queued on the new binary.
+Harness v2 (commit 41d216ab9): scratch/red2.sh -- arms OFF / BASE-auto(t9final) / guard(flipguard) /
+redesign; S3 = 120s TIME-TO-FIRST-MOVE cells with a 1 Hz trace (scratch/ttfm.py parses
+time-to-first-move / moves-after-stab / steady-state as 3 numbers) at boots 2:2 (matched here),
+3:1, 7:1(8thr); 40s matrix (fd-matrix5.csv) kept as thrash-count only; perf; gate row; batteries;
+differ; report2.py -> fd-report2.html. Shared bins: $SP/bin/tomokv-t9final, $SP/bin/tomokv-flipguard.
+Report artifact (redesign): https://claude.ai/code/artifact/fce9ba91-db6b-4e62-815f-9e2cc533a1fa
+STATE at handoff: box held by the owner's full gate since 09:53 (5x tests/gate.sh full on the box);
+red2.sh is DETACHED + gate-waiting (setsid, pid in fd-red2.log's process; log fd-red2.log). It builds
+the asymmetric binary, runs S2-S7 and regenerates fd-report2.html when the box frees. TO RESUME after
+a kill: `scratch/red2.sh` (idempotent). The published artifact must be RE-PUBLISHED from the local
+fd-report2.html once the chain fills it (a bash chain cannot republish an Artifact).
+COMMITS this session (t-flipdamp): cc22ca4ab notes, 601d65d4a redesign, 73fc439c3 unit+report,
+733c6d842 + d764d1958 invalidation rule, aa4b82083 unit tol, 62d85d3d8 asymmetric gate,
+41d216ab9 harness v2, 0bf757612 report banner. Base of the lane: d84031d2f (verified guard).
