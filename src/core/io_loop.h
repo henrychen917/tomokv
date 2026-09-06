@@ -2715,8 +2715,7 @@ private:
         const ClientTransfer transfer{client, catalog, routing, self_->id()};
         // Last source-side touch before the owner store, so the moved connection's cold arm
         // counters land on the thread that will actually be doing the arming from here on.
-        client->rob().set_read_local_arm_stats(
-            srv_->thread(destination).read_local_arm_stats_or_null());
+        client->rob().set_read_local_arm_stats(target.read_local_arm_stats_or_null());
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_move(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();

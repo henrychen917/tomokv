@@ -108,3 +108,135 @@ Every increment sits behind a `noinline` call the unarmed stream never makes, so
 always on rather than diagnostic-only. The block is per IO thread; the ROB holds a pointer to it,
 installed at `adopt_client` and re-pointed at the migration ownership edge, and **nullable** —
 `adopt_client` runs in split mode too, where a thread has no read-local state at all.
+
+---
+
+# Results
+
+**Geometry.** Lane cores: server on physical 40,41; load generator on 42,43 + SMT siblings 170,171.
+`--thread-mode fused --read-local 1 --shards 64`, memtier `--pipeline=32`, 512 connections
+(`-t 4 -c 128`) or 2048 (`-c 512`), 64-byte values, keyspace pinned to dbsize (200k) so GET hit rate
+is 100%. Three rounds, visits interleaved **A B B A** within each round, one fresh boot and preload
+per visit. Instructions, cycles and fills come from `perf stat -C` over a 9-second window starting
+4 s into each 14-second run; operations in that window come from the server's own
+`total_commands_processed` delta, so instructions-per-op is a ratio of two quantities measured over
+the same window rather than a rate multiplied by a duration.
+
+**The same-binary null ran first, on the same cells**, and it is printed under every row. It is what
+says which of these numbers are real. It also condemned two cells outright: on pure GET and on split
+SET the two-core server was **not saturated** — its cores idled down to a 2.40 GHz-equivalent
+against 3.05 on the saturated cells, and the same binary against itself moved 28% on GET. Those two
+cells were re-run in a geometry that saturates (server shrunk to ONE physical core, load generator
+given three), where the GET null is +0.07% / −0.19% / +0.03%. The GET row below is that re-run; the
+split row is the original, whose instruction null is the tighter of the two.
+
+**Interference.** Another lane ran an UNPINNED `make -j8` during these runs and its `cc1plus`
+children landed on cores 40-43 and 168-171. Visits that lost their cores mid-window measure the
+interference, not the binary, so one objective rule was applied identically to both arms and is
+reported: a visit whose rate collapsed below 60% of its cell's two-arm median is dropped (6 of 72 in
+the main pass, 6 of 24 in the supplementary). The `n=` counts below are the survivors. Note that
+**instructions per op is immune to this**: a stolen core scales the instruction count and the op
+count together, and the pure-SET arms read 3054/3055/3054/3057/3055 against 2900/2902/2901/2903
+across every round, corrupted visits included.
+
+    PRE = mainline ceb6b02f8 | POST = t-ringdiet | median of the valid ABBA visits
+    cell                                  M ops/s   instr/op    cyc/op      IPC   ccx/kop  dram/kop
+    -----------------------------------------------------------------------------------------------
+    pure SET  p32 512c  fused armed         2.690     3055.0    2242.5    1.362     16.51  13900.43
+                                            2.713     2901.4    2224.7    1.304     18.16  13530.95
+                                           +0.83%     -5.03%    -0.79%   -4.27%   +10.00%    -2.66%   <- delta
+                                           +0.09%     -0.03%    +0.33%   -0.34%    +0.52%    -0.73%   <- SAME-BINARY NULL (n=6/6)
+    
+    pure GET  p32 512c  fused armed         1.228     3004.9    2489.6    1.207     18.87  13917.78
+                                            1.270     2972.8    2396.5    1.237     17.05  13825.09
+                                           +3.46%     -1.07%    -3.74%   +2.53%    -9.65%    -0.67%   <- delta
+                                           +0.07%     -0.19%    +0.03%   -0.15%    +6.23%    -0.18%   <- SAME-BINARY NULL (n=5/6)
+    
+    1:1 alternating p32 512c                2.196     4526.5    2766.0    1.642     21.78  12366.74
+                                            2.215     4582.8    2740.3    1.679     21.36  12288.63
+                                           +0.85%     +1.24%    -0.93%   +2.23%    -1.92%    -0.63%   <- delta
+                                           -0.29%     +2.92%    +0.26%   +1.12%    +2.14%    -2.06%   <- SAME-BINARY NULL (n=6/6)
+    
+    blocked 10:10  p32 512c                 2.179     4712.7    2775.6    1.693     18.75  11776.70
+                                            2.171     4714.0    2788.8    1.690     18.43  11773.31
+                                           -0.38%     +0.03%    +0.47%   -0.17%    -1.70%    -0.03%   <- delta
+                                           +0.69%     +0.65%    -1.08%   +1.00%   -23.46%    +0.80%   <- SAME-BINARY NULL (n=5/5)
+    
+    1:1 p32 2048c (footprint)               1.026    10063.2    5662.5    1.780     37.10  20984.38
+                                            1.032     9938.4    5614.8    1.766     48.15  20179.91
+                                           +0.55%     -1.24%    -0.84%   -0.79%   +29.76%    -3.83%   <- delta
+                                           +0.25%     -0.26%    -0.07%   +0.23%    +0.24%    -1.80%   <- SAME-BINARY NULL (n=5/6)
+    
+    pure SET p32 512c SPLIT (off path)      2.922     2652.6    1989.9    1.330     12.12   8545.40
+                                            2.913     2654.4    1981.8    1.333     20.48   8442.51
+                                           -0.32%     +0.07%    -0.41%   +0.26%   +68.88%    -1.20%   <- delta
+                                           -5.62%     -1.82%    +7.01%   -8.77%   -33.02%   +19.87%   <- SAME-BINARY NULL (n=5/4)
+    
+    
+    INDEPENDENT CONFIRMATION on the FINAL rebuilt binary (1 round ABBA, quieter box)
+    cell                                  M ops/s   instr/op    cyc/op
+    ------------------------------------------------------------------
+    pure SET  p32 512c  fused armed        +1.04%    3055.2->2901.5    -1.07%
+    pure GET p32 512c fused armed          +0.12%    2389.0->2329.0    -1.39%
+    1:1 alternating p32 512c               +1.21%    4503.4->4481.2    -1.05%
+    blocked 10:10 p32 512c                 +1.20%    4730.3->4773.7    -1.12%
+    1:1 p32 2048c                          +0.97%    9990.3->9868.9    -0.35%
+
+## Verdict per cell
+
+| cell | requirement | result |
+|---|---|---|
+| pure SET, fused armed | recover the −1.32% / +87 instr | **−153.6 instr/op (−5.03%), −0.79% cyc/op, +0.83% rate**, against an instruction null of ±0.03%. Not merely recovered: the ring's per-write bookkeeping is gone from the stream entirely, which is more than the sizing merge had added. |
+| pure GET, fused armed | flat | **−1.07% instr/op, −3.74% cyc/op, +3.46% rate** (null +0.07/−0.19/+0.03). Better than flat — a pure-read connection now allocates no sidecar at all. |
+| 1:1 alternating | flat | −0.93% cyc/op, +0.85% rate; instr/op +1.24% inside a null of +2.92%. Flat. |
+| blocked 10:10 | keep the ring win, demotions near zero | **+0.03% instr/op, +0.47% cyc/op, −0.38% rate — every one inside the null.** Local service 99.94% (POST) vs 99.93% (PRE); write-conflict demotions 716 vs 708 out of 9.8M reads. The ring win is kept exactly. |
+| 1:1 at 2048 connections | footprint | −1.24% instr/op, −0.84% cyc/op, +0.55% rate. Flat-to-better. |
+| pure SET, SPLIT | an exact instruction null (off path) | **+0.07% instr/op.** Nothing on the split path moved. |
+
+## The proof obligations
+
+**Pure SET does ZERO ring bookkeeping.** Over a 25,036,702-operation window the armed server
+reports `read_local_write_ring_records:0`, `read_local_write_ring_sidecars:0`, `read_local_arms:0`.
+Pure GET the same. The 1:1 and blocked shapes report 10,054,155 and 10,058,724 records against
+20,117,318 and 20,149,571 operations — 49.98%, i.e. **every** write on a connection that also reads.
+
+**100% local service after the transient**, and the transient bound. Measured over whole runs:
+
+| shape | connections | arms | sidecars | arm-transient demotions | per connection | local hits |
+|---|---|---|---|---|---|---|
+| 1:1 | 512 | 512 | 512 | 8192 | **16** | 14,853,474 |
+| 1:1 | 2048 | 2048 | 2048 | 32768 | **16** | 7,396,718 |
+| 10:10 | 512 | 512 | 512 | 6176 | **12.1** | 15,286,909 |
+| 10:10 | 2048 | 2048 | 2048 | 24576 | **12.0** | 7,448,078 |
+
+`arms` equals the connection count exactly — every connection arms once and never again — and the
+transient costs at most sixteen demoted reads on that connection, ever: 0.055% of the run's local
+reads at 512 connections. In the mid-run measurement windows above,
+`read_local_fallback_arm_transient` is **0 on every cell**, because the transient is over before the
+window opens. That is the one-shot property, measured.
+
+**A read arriving with writes in flight before arming is demoted, never served stale.** Directed and
+deterministic in `tests/read_local_write_ring_unit.cc` (cases 13-17 plus a 200k-frame soak that
+starts UNARMED and crosses the transition), and end-to-end against a live armed server: 40 rounds of
+a 300-deep SET pipeline followed by a GET of the last key written, on a fresh connection each time —
+0 stale reads, 40 arms, 40 transient demotions reported.
+
+## RSS per connection
+
+512 and 2048 connections, each driven through one shape, against the same boot's zero-connection
+baseline:
+
+| connection shape | conns | PRE B/conn | POST B/conn | saved |
+|---|---|---|---|---|
+| idle (PING only) | 512 | 11424 | 10104 | **−1320** |
+| idle | 2048 | 11394 | 10092 | **−1302** |
+| read-only | 512 | 11480 | 10248 | **−1232** |
+| read-only | 2048 | 11438 | 10114 | **−1324** |
+| write-only | 512 | 11552 | 10232 | **−1320** |
+| write-only | 2048 | 11412 | 10136 | **−1276** |
+| reads AND writes | 512 | 11632 | 11480 | −152 |
+| reads AND writes | 2048 | 11458 | 11450 | −8 |
+
+Idle, read-only and write-only connections each stop paying the sidecar — about 1300 bytes, the
+1280-byte jemalloc class plus its page share. A connection that both reads and writes pays exactly
+what it paid before, which is the design: the ring is for connections that have both.
