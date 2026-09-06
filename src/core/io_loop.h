@@ -143,10 +143,6 @@ public:
         wb_.set_cold_send_classification(
             srv_->cfg().thread_mode == ThreadMode::Fused &&
             srv_->cfg().overlap != 0);
-        // Coded replies are armed in fused mode only (see Rob::acquire<Codes>). Telling the send
-        // engine as well lets it instantiate the split retire path with the coded blocks REMOVED
-        // rather than merely unreachable.
-        wb_.set_reply_codes(srv_->cfg().thread_mode == ThreadMode::Fused);
         initialized_ = true;
         return dormant || activate();
     }
@@ -1300,13 +1296,13 @@ private:
                 }
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client))
-                        (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
+                        (void)wb_.prepare_pipeline_tls<kEp, true>(*client, *tls);
                     else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                        (void)wb_.prepare_pipeline_ktls<kEp>(*client);
+                        (void)wb_.prepare_pipeline_ktls<kEp, true>(*client);
                     else
-                        (void)wb_.prepare_pipeline<kEp>(*client);
+                        (void)wb_.prepare_pipeline<kEp, true>(*client);
                 } else {
-                    (void)wb_.prepare_pipeline<kEp>(*client);
+                    (void)wb_.prepare_pipeline<kEp, true>(*client);
                 }
             }
             return wb_context.count;
@@ -5790,13 +5786,13 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
+                    (void)wb_.prepare_pipeline_tls<kEp, true>(*client, *tls);
                 else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_pipeline_ktls<kEp>(*client);
+                    (void)wb_.prepare_pipeline_ktls<kEp, true>(*client);
                 else
-                    (void)wb_.prepare_pipeline<kEp>(*client);
+                    (void)wb_.prepare_pipeline<kEp, true>(*client);
             } else {
-                (void)wb_.prepare_pipeline<kEp>(*client);
+                (void)wb_.prepare_pipeline<kEp, true>(*client);
             }
         }
         for (uint32_t i = 0; i < batch.count; i++) {
@@ -5952,13 +5948,13 @@ ordinary_dispatch:
                 }
                 if constexpr (HasTls) {
                     if (TlsConn* tls = tls_engine(client))
-                        (void)wb_.prepare_pipeline_tls<kEp>(*client, *tls);
+                        (void)wb_.prepare_pipeline_tls<kEp, true>(*client, *tls);
                     else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                        (void)wb_.prepare_pipeline_ktls<kEp>(*client);
+                        (void)wb_.prepare_pipeline_ktls<kEp, true>(*client);
                     else
-                        (void)wb_.prepare_pipeline<kEp>(*client);
+                        (void)wb_.prepare_pipeline<kEp, true>(*client);
                 } else {
-                    (void)wb_.prepare_pipeline<kEp>(*client);
+                    (void)wb_.prepare_pipeline<kEp, true>(*client);
                 }
             }
             for (uint32_t i = 0; i < batch.count; i++) {
@@ -6044,17 +6040,17 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls<kEp, Pipeline == 1>(*c, *tls)) work++;
+                    if (wb_.serve_tls<kEp, Pipeline == 1, true>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed())
                         close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls<kEp, Pipeline == 1>(*c)) work++;
-                } else if (wb_.serve<kEp, Pipeline == 1>(*c)) {
+                    if (wb_.serve_ktls<kEp, Pipeline == 1, true>(*c)) work++;
+                } else if (wb_.serve<kEp, Pipeline == 1, true>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve<kEp, Pipeline == 1>(*c)) {
+            } else if (wb_.serve<kEp, Pipeline == 1, true>(*c)) {
                 work++;
             }
             if constexpr (kEp)
@@ -6379,14 +6375,14 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.prepare_tls<kEp>(*c, *tls, batch.submit_allowed[i])) work++;
+                    if (wb_.prepare_tls<kEp, false>(*c, *tls, batch.submit_allowed[i])) work++;
                     if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.prepare_ktls<kEp>(*c, batch.submit_allowed[i])) work++;
-                } else if (wb_.prepare<kEp>(*c, batch.submit_allowed[i])) {
+                    if (wb_.prepare_ktls<kEp, false>(*c, batch.submit_allowed[i])) work++;
+                } else if (wb_.prepare<kEp, false>(*c, batch.submit_allowed[i])) {
                     work++;
                 }
-            } else if (wb_.prepare<kEp>(*c, batch.submit_allowed[i])) {
+            } else if (wb_.prepare<kEp, false>(*c, batch.submit_allowed[i])) {
                 work++;
             }
         }
@@ -6444,16 +6440,16 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls<kEp>(*c, *tls)) work++;
+                    if (wb_.serve_tls<kEp, false, false>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls<kEp>(*c)) work++;
-                } else if (wb_.serve<kEp>(*c)) {
+                    if (wb_.serve_ktls<kEp, false, false>(*c)) work++;
+                } else if (wb_.serve<kEp, false, false>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve<kEp>(*c)) {
+            } else if (wb_.serve<kEp, false, false>(*c)) {
                 work++;
             }
             if constexpr (kEp)
@@ -6770,16 +6766,16 @@ ordinary_dispatch:
             }
             if constexpr (HasTls) {
                 if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls<kEp>(*c, *tls)) work++;
+                    if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls<kEp>(*c)) work++;
-                } else if (wb_.serve<kEp>(*c)) {
+                    if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
+                } else if (wb_.serve<kEp, false, Fused>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve<kEp>(*c)) {
+            } else if (wb_.serve<kEp, false, Fused>(*c)) {
                 work++;
             }
             // A synchronous send has no CQE to report a fatal errno through, so the engine latches

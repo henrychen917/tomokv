@@ -144,13 +144,6 @@ public:
     // pipeline-1 classifier as a template argument.
     void set_cold_send_classification(bool enabled) { classify_cold_sends_ = enabled; }
 
-    // CODED REPLIES ARE FUSED-ONLY, and this latch is what makes that free rather than merely
-    // unreachable. serve_impl/serve_tls_impl dispatch ONCE per serve on this bool into a body
-    // templated on `Coded`; with Coded=false every coded block is deleted by `if constexpr`, so a
-    // 2s retire lambda is byte-for-byte the code it was before reply codes existed -- not the same
-    // code with an untakeable branch in it. Latched at IoLoop init from cfg().thread_mode, so the
-    // per-serve branch tests a value that never changes after boot.
-    void set_reply_codes(bool enabled) { reply_codes_ = enabled; }
 
     // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
@@ -199,88 +192,88 @@ public:
     // deleted with those postures; see the head of this file), so no lock exists or is needed and
     // the ROB stays SPSC by construction. Returns true if it did anything, so a caller can tell
     // progress from an empty poll.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, true, ClassifySend>(c);
-        return serve_impl<false, false, kEp, true, ClassifySend>(c);
+            return serve_impl<true, false, kEp, true, ClassifySend, Coded>(c);
+        return serve_impl<false, false, kEp, true, ClassifySend, Coded>(c);
     }
 
     // Micro-pipeline retirement half. It drains exactly the same in-order prefix and stages the
     // same buffers/segments as serve(), but deliberately leaves SQE construction to pump().
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare(Client& c, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, false>(c, &submit_allowed);
-        return serve_impl<false, false, kEp, false>(c, &submit_allowed);
+            return serve_impl<true, false, kEp, false, false, Coded>(c, &submit_allowed);
+        return serve_impl<false, false, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
     // Unified pipeline batches already guard a nullable Client slot before their submit half. Its
     // bound limit callback tombstones that slot on the rare refusal, avoiding a parallel bool on
     // every ordinary reply while leaving the established split-pipeline prepare API untouched.
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, false>(c);
-        return serve_impl<false, false, kEp, false>(c);
+            return serve_impl<true, false, kEp, false, false, Coded>(c);
+        return serve_impl<false, false, kEp, false, false, Coded>(c);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, true, ClassifySend>(c);
-        return serve_impl<false, true, kEp, true, ClassifySend>(c);
+            return serve_impl<true, true, kEp, true, ClassifySend, Coded>(c);
+        return serve_impl<false, true, kEp, true, ClassifySend, Coded>(c);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_ktls(Client& c, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, false>(c, &submit_allowed);
-        return serve_impl<false, true, kEp, false>(c, &submit_allowed);
+            return serve_impl<true, true, kEp, false, false, Coded>(c, &submit_allowed);
+        return serve_impl<false, true, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, false>(c);
-        return serve_impl<false, true, kEp, false>(c);
+            return serve_impl<true, true, kEp, false, false, Coded>(c);
+        return serve_impl<false, true, kEp, false, false, Coded>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, true, ClassifySend>(c, tls);
-        return serve_tls_impl<false, kEp, true, ClassifySend>(c, tls);
+            return serve_tls_impl<true, kEp, true, ClassifySend, Coded>(c, tls);
+        return serve_tls_impl<false, kEp, true, ClassifySend, Coded>(c, tls);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_tls(Client& c, TlsConn& tls, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, false>(c, tls, &submit_allowed);
-        return serve_tls_impl<false, kEp, false>(c, tls, &submit_allowed);
+            return serve_tls_impl<true, kEp, false, false, Coded>(c, tls, &submit_allowed);
+        return serve_tls_impl<false, kEp, false, false, Coded>(c, tls, &submit_allowed);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, false>(c, tls);
-        return serve_tls_impl<false, kEp, false>(c, tls);
+            return serve_tls_impl<true, kEp, false, false, Coded>(c, tls);
+        return serve_tls_impl<false, kEp, false, false, Coded>(c, tls);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
@@ -778,19 +771,24 @@ private:
         return flushed;
     }
 
-    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit,
-              bool ClassifySend = false>
-    bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
-        if (reply_codes_)
-            return serve_body<TrackOutput, TlsNoBorrow, kEp, Submit, ClassifySend, true>(
-                c, submit_allowed);
-        return serve_body<TrackOutput, TlsNoBorrow, kEp, Submit, ClassifySend, false>(
-            c, submit_allowed);
-    }
-
+    // `Coded` IS AN ORDINARY TEMPLATE ARGUMENT, and that is the whole point of this shape. The
+    // previous version decided it at RUNTIME from a boot-latched bool, which meant serve_impl
+    // became a forwarder in front of the real body -- a new function boundary in the io thread's
+    // hot path that moved inlining and cost the split cells ~0.9% of real work (measured against a
+    // dead-pad placement control: placement alone was -0.11%..-0.30%, the binary was -0.83%..-1.48%).
+    //
+    // Every caller already knows the mode statically, so nothing had to be threaded:
+    //   flush_ready              carries `Fused` as its 3rd template parameter already, and is the
+    //                            path BOTH modes take -> passes Fused
+    //   wb_serve_natural         split-only: run_loop reaches pipeline_pass under
+    //   wb_retire_prepare        constexpr IoPipe = !Fused && Pipeline == 1  -> pass false
+    //   genthread_*              fused-only: run_loop reaches run_fused_iofused_loop and
+    //   run_fused_streams_loop   run_fused_streams_loop under if constexpr (Fused && ...) -> true
+    // With Coded=false every coded block below is deleted by `if constexpr`, so a 2s instantiation
+    // is the pre-reply-code function, not a variant of it.
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
               bool Coded>
-    bool serve_body(Client& c, bool* submit_allowed = nullptr) {
+    bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -883,17 +881,8 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false>
-    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
-        if (reply_codes_)
-            return serve_tls_body<TrackOutput, kEp, Submit, ClassifySend, true>(
-                c, tls, submit_allowed);
-        return serve_tls_body<TrackOutput, kEp, Submit, ClassifySend, false>(
-            c, tls, submit_allowed);
-    }
-
     template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
-    bool serve_tls_body(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
+    bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
         Client& conn = c;
@@ -1077,10 +1066,6 @@ private:
     bool   epoll_ = false;
     bool   send_failed_ = false;
     bool   classify_cold_sends_ = false;
-    // Packed with the three bools above, in the padding before draining_. ExLoop embeds a WbEngine
-    // purely to keep the stats plumbing uniform, so growing this class trips
-    // static_assert(sizeof(ExLoop) == 6104) -- which is exactly what a fourth 8-byte slot did.
-    bool   reply_codes_ = false;
     // The connection whose retire drain is running right now, or null. defer_oob() uses it to make
     // parking unconditional across the partial-reply staging window.
     const Client* draining_ = nullptr;
