@@ -219,3 +219,39 @@ check that the eager rebind did its job.
 |--------------------------------------------------|------|--------|
 | `ceb6b02f8` pristine release                      |  2   |   1    |
 | with the fix                                      |  4   |   0    |
+
+## 10. Is there a third path? — the audit of every ownership edge
+
+**Shard ownership moves through exactly two functions**, both quiesced, both now carrying the sink:
+
+| edge | callers | carries the retire sink? |
+|------|---------|--------------------------|
+| `Server::transfer_shard_quiesced` | `lb_commit_shard_plan` (server.h), the LB mover (io_loop.h:2985) | yes, now |
+| `Server::transfer_bucket_range_quiesced` | flip / role retirement (a whole executor's shards at once) | yes, now |
+| `Server::set_worker_of_shard` | boot only (server.h:368) | n/a |
+
+`shard_owner_[]` is written in exactly those three places and nowhere else.
+
+**A SECOND per-owner pointer on the shard is still rebound lazily, and should move to the edge for
+the same reason.** `Shard::notify_pending_` is a `bool*` into the OWNER's `notify_keyless_pending_`:
+
+* the FLIP path rebinds it at a barrier — `FlipStage::ExInstall`, ex_loop.h:1832, while IO dispatch
+  is still parked. **Safe.**
+* the LB path rebinds it lazily, in `lb_control_pass` on the first pass after the stage ends
+  (ex_loop.h:1857). **Same window the retire sink had.**
+
+Severity is far lower and it is not the same defect: the stale pointer is written, not spliced, so
+there is no corruption — a `bool` is set on the wrong thread, the old owner's drain walks only its
+own shards, and the event would be stranded. It self-heals because the rebind then forces one drain
+(`notify_keyless_pending_ = true`). It is a correctness wart of the same shape, not a P0, and it is
+left for its own change with its own notify-battery evidence rather than bundled here.
+
+**Client moves do not have this shape.** `IoLoop`'s migration path re-derives or explicitly hands
+over every per-owner structure at the edge: the WB slot is released on the source
+(`release_wb_slot`) and reassigned by the destination at adopt (`assign_wb_slot`), with
+`kWbMigrationInstalling` as the sentinel that keeps early readiness inert in between; the local
+catalog, the routing state and the pending pub/sub events are extracted and posted; and
+`set_ifid_thread(destination)` is the single ownership edge. Nothing is left pointing at the source.
+
+**Thread retirement** (an executor losing its role in a flip) moves its shards through
+`transfer_bucket_range_quiesced`, so it is covered by the same fix.
