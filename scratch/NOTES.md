@@ -428,3 +428,34 @@ MEASUREMENT, not the placement => decided-but-refused now keeps sampling to the 
 at once; flip_choose_split unchanged.
 VERIFIED 109b62e448b416cc: wrongsplit.sh x5 with the box at 2.3x spread -> 5/5 moved, ttfm 13/18/13/
 14/18 s, all landed 2:2, 1 flip, 0 moves after stabilization.
+
+## 2026-09-07 07:20 REBASED onto the fingerprint diet -- branch t-flipdamp-r, merge f13c3f91c
+Integration branch t-merge14 = ca07de2a6 (t-flipfp merged). A 54-commit rebase conflicted at commit
+4 and would have fought itself (later commits rewrite the same regions), so: branch t-flipdamp-r off
+t-merge14 + `git merge --no-ff cd204ed28`. History preserved on branch t-flipdamp and tag
+pre-rebase-flipdamp. flipctl.cc (this lane's bulk) is UNTOUCHED by t-flipfp -> the only conflicted
+file was tests/flipctl_unit.cc, 2 hunks, both pure appends; kept both, ordered so each comment stays
+with the code it introduces.
+ONE REAL COLLISION: their row asserted band = 2*4/K (0.08 at K=100, 0.8 at K=10) -- mainline's OLD
+1/K quantum, which THIS lane replaced with 1/sqrt(K) during the guard work (1/K understates estimator
+noise by sqrt(K), twentyfold at 13.5k cmds/window). Scale-free half is theirs and stands; the floor's
+law is mine. Row now asserts 2/sqrt(K) + that a thinner sample widens the floor, with the reason in
+the test. NOTE for their sampled-vs-dispatched check: under 1/sqrt(K) the two counts differ by
+sqrt(W)=10, not W=100, so it still discriminates; their measured adjacent jitter (0.0028 at depth 32)
+sits ~4x under my floor, so the cluster-sampling design effect does not eat it.
+TYPED-BAND-UNDER-SAMPLER row added (driven through THEIR writer at K=60 and 100): 0 two-consecutive
+exceedances of a typed --flip-auto-band 2 on a stationary 50/50 stream, band never below 2/sqrt(K),
+mix change still clears. Their tree (typed path bypasses the floor) measured 73/600 at K=100, 208/600
+at K=60. Shipped config cannot reach the path (controller uses the learned band) but both knobs can.
+ACCEPTANCE on the combined tree, binary 42796540060c4545:
+  stable hold x3 PASS (band 0.228-0.248 -- the sampler's smaller N raises the quantum as designed --
+    distance 0.000000000, fp_trig 0, and the gate row's mix-change phase still fires)
+  costgate 28/28 | hold 183/183 x2 | unit ok (theirs + mine)
+  stationary 2:2 120 s: 0 flips, hold-optimum, 536k steady, 0 moves after stab
+  wrong-split 3:1 120 s: ttfm 21 s -> 2:2, 509k, moved-delivered, refine=hold-optimum, 0 after stab
+  wrong-split 7:1 120 s: ttfm 20 s -> 4:4, 697k, moved-delivered, 0 after stab
+  MUST-MOVE x5 (box at 2.3x spread): 5/5 moved, ttfm 18/17/21/15/18 s, all 2:2, 1 flip, 0 after stab
+  sampled_band_probe: 0 fires / 0 two-consecutive in 600 windows at every-command, 1-in-100 and
+    w=1000, typed and learned; mix change clears 3.3x at N=100, 33.6x at every command.
+HANDOFF: branch t-flipdamp-r, hash f13c3f91c, binary 42796540060c4545. Coordinator runs the owner-box
+acceptance (both wrong-split boots vs shipped + guard, 120 s traced).
