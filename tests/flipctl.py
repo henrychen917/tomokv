@@ -407,6 +407,12 @@ def main():
                           (PRE_HOLD_SECONDS,
                            ",".join("%.0f" % value for value in rates), band, seconds),
                           flush=True)
+            if hold_started is None:
+                # The assertion window never opened, so nothing was asserted. Never report this
+                # as a hold: a row that turns green without opening its window is the vacuity
+                # this lane exists to remove.
+                return ("reroll", "the assertion window never opened (only %d samples in %ds)" %
+                        (len(rates), PRE_HOLD_SECONDS + seconds))
             return ("held", row)
 
         held_row = None
