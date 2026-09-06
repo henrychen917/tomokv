@@ -133,7 +133,13 @@ struct KvBlockCache {
     // The list a class actually holds must match its counter, and every block on it must carry
     // the class's own request size. A clobbered `next` is caught HERE, on the operation after the
     // write that clobbered it, rather than when it is finally dereferenced.
+    uint64_t dbg_walk_countdown = 0;
+    // The walk is O(list length) and the list can hold thousands of nodes, so running it on every
+    // operation slowed the reclaim path enough to close the race this build exists to catch. The
+    // O(1) residency checks stay on every operation; the walk samples.
     void dbg_walk(uint32_t cls, size_t allocation, const char* op) {
+        if (dbg_walk_countdown--) return;
+        dbg_walk_countdown = 1023;
         uint32_t seen = 0;
         for (FreeBlock* b = heads[cls]; b; b = b->next) {
             if (!dbg_resident.count(b)) {

@@ -104,3 +104,68 @@ gate-hygiene binary that aborted (md5 `b00af053d0f9c1a626c7fe1fc71f0485`).
 Two loops of the exact failing gate row (`differ_gate.sh` with
 `GATE_DIFFER_GEOMETRY=armed-fused`), one against the untouched release binary (cores 32-39,
 ports 8200/8201) and one against the instrumented binary (cores 160-167, ports 8202/8203).
+
+## 6. REPRODUCED — on the release binary, in seconds
+
+`tests/rlcache_churn.py` is a directed stressor for this path. The differential matrix could not be
+the instrument: it walks broad command surface at modest depth and rarely cycles one block through
+put -> grace -> take more than a handful of times. The stressor does the opposite — a 64-key space
+rewritten continuously at sizes chosen so each key's displaced block is exactly the class its next
+write asks for, with READERS AND WRITERS ON SEPARATE CONNECTIONS.
+
+That last point is what makes it work. The first version mixed GETs and SETs on one connection and
+measured **210** local reads across 6M GETs: a connection carrying writes fences its own reads
+through the RYOW ring, so the armed lane was never exercised. Split onto separate connections over
+one key space, the same stressor produces **5.3 million local reads in 25 seconds** — readers
+holding foreign pointers into objects the owners are concurrently retiring, which is the hazard.
+
+```
+geometry:  --thread-mode fused --read-local 1 --atomic 1 --shards 16 (8 fused threads)
+load:      64 connections, half readers half writers, 64-key space, 40 s
+result:    release build/tomokv  ->  SIGABRT after ~7 s
+```
+
+**Which abort.** The faulting frame is `FlatStore::read_local_reclaim_object`, and the `call
+abort@plt` at `0x5bf88` is reached only from the `je` at `0x5be6d`:
+
+```
+5be66:  mov (%r12,%rax,8),%rdx     ; heads[cls]
+5be6a:  cmp %rdx,%rbx              ; == memory ?
+5be6d:  je  5bf88                  ; -> abort
+5be78:  mov %rdx,(%rbx)            ; block->next = heads[cls]
+5be7b:  mov %rbp,0x8(%rbx)         ; block->allocation = allocation
+```
+
+That is `KvBlockCache::put`'s immediate double-return guard: **the same block returned to the
+cache twice in a row.** It is the tripwire the header's own comment describes, and it is the abort
+that killed the gate-hygiene differ target.
+
+## 7. ROOT CAUSE — the block cache is NOT owner-private
+
+The debug build names it directly, on the ordinary write path:
+
+```
+RLCACHE-VIOLATION owner: take on cache 0x75c8f6447080 from tid 3136850, owner tid 3136854
+
+KvBlockCache::take                         kv_block_cache.h
+  FlatStore::read_local_cache_take         flatstore_atomic.inc:1453
+    FlatStore::make_set_string             flatstore.h:1301
+      store_string / cmd_set<false>        t_string.cc:158 / 550
+        ExLoopT<true>::execute<false,false> ex_loop.h:2955
+          exec_batch / drain_tasks          ex_loop.h:2758 / 2100
+            fused_pass_impl                 ex_loop.h:547
+```
+
+A fused thread executing an ordinary SET task reached **another fused thread's** block cache. The
+cache is reached as `read_local_store_state_armed().retire_sink.block_cache` — a pointer stored on
+the SHARD's store, not on the executing thread. So the identity of the cache a write uses is
+whatever the shard was last bound to, and nothing on the write path checks that this is still the
+thread doing the writing.
+
+Two threads then splice one unlocked free list: a lost update leaves a block linked twice, `put`
+sees itself as the head and aborts (`ceb6b02f8`), or `take` hands out a still-linked block whose
+KvObj header then overwrites the list `next` and the following `take` dereferences a wild head
+(`0xc000100` — the ringdiet segfault).
+
+The same stale pointer is `retire_sink.defer`, which pushes into `ReadLocalDeferredQueue`'s
+single-producer retire ring. The cache is simply where the damage shows first.
