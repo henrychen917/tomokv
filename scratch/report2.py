@@ -206,6 +206,8 @@ td.n,th.n{text-align:right}td.wl{white-space:normal;min-width:160px;color:var(--
 tr.pre td.arm code{background:var(--pre-soft);color:var(--pre)}tr.post td.arm code{background:var(--post-soft);color:var(--post)}tr.guard td.arm code{color:var(--guard)}
 td.good{color:var(--good);font-weight:600}td.bad{color:var(--bad);font-weight:600}
 .muted{color:var(--muted)}
+.status{background:var(--pre-soft);border:1px solid var(--rule);border-left:3px solid var(--pre);padding:12px 16px;margin:16px 0;font-size:.92rem}
+.status b{color:var(--pre)}
 .formula{background:var(--paper);border:1px solid var(--rule);border-left:3px solid var(--post);padding:14px 18px;margin:14px 0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86rem;line-height:1.6;overflow-x:auto}
 .formula b{color:var(--post);font-weight:600}
 dl.units{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px;margin:10px 0;font-size:.9rem}dl.units dt{font-family:"IBM Plex Mono",monospace;color:var(--post)}dl.units dd{margin:0;color:var(--muted)}
@@ -277,6 +279,8 @@ page = f"""<title>Flip Actuator Redesign</title>
 <div class="eyebrow">TomoKV · lane t-flipdamp · 2026-09-06 · commit {COMMIT} (guard {GUARD}, base {BASE})</div>
 <h1>Flip actuator redesign: a move must pay for itself, in commands</h1>
 <p>The owner's ask: "be innovative about flip arithmetic and signals to finally get that to being accurate and consistent." This page is the PRE/POST evidence for the redesign built on the verified guard: the demand signal measured from what the loops book faithfully, a cost gate in commands over the stationarity the workload has demonstrated, a verification window sized from the origin's own noise, and an outcome loop that learns the model's sign and magnitude. Table first; the arithmetic, the directed tests and the acceptance recipe follow.</p>
+
+<div class="status"><b>Status.</b> The arithmetic, the code and the unit rows below are complete and verified offline. The empirical PRE/POST cells — the 120&nbsp;s time-to-first-move runs, the 40&nbsp;s thrash matrix and the matched-rate cost — are queued behind the owner&rsquo;s own full gate, which has held the box since 09:53; the resumable chain (<code>scratch/red2.sh</code>) runs them and regenerates this page when the box frees. The directed cost-gate/outcome-loop battery shown below passed on the redesign binary <i>before</i> the asymmetric-gate revision; the unit test carries the asymmetric numbers and passes, and the directed battery is re-queued on the new binary.</div>
 
 <div class="verdict">
 <div><div class="k">multi-key, redesign vs controller OFF</div><div class="v">{kv(mk_red, 'rel', '{:+.1f}%')}</div><div class="s">guard {kv(mk_guard, 'rel', '{:+.1f}%')} · base {kv(mk_base, 'rel', '{:+.1f}%')} · OFF pair spread {kv(mk_red, 'null', '{:.1f}%')}</div></div>
