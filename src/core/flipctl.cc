@@ -936,12 +936,19 @@ void FlipController::anchor(Server& server, double rate) {
     // that stuck lowers it again. A hold (no flip) is neither.
     const bool round_trip = current == maneuver_origin_io_ && maneuver_flips_ > 0;
     if (round_trip) {
-        // Was the test valid? The origin must read what it read before the excursion. If it does
-        // not, the baseline moved while the maneuver was out -- the hypothesis was voided, not
-        // refuted -- and the model's record must not carry a miss it did not earn.
-        const bool baseline_moved = pending_miss_ && origin_rate_ > 0 &&
-            relative_distance(anchor_rate_, origin_rate_) >
-                std::max(hyp_threshold_, anchor_rate_band_);
+        // Was the test valid? Re-judge the hypothesis against the origin as it reads AFTER the
+        // return: if the target's delivered gain, corrected for how far the baseline itself moved
+        // during the excursion, would have cleared the threshold, the baseline moved out from
+        // under the test -- voided, not refuted -- and the model's record must not carry a miss it
+        // did not earn. A baseline wobble smaller than the miss changes nothing: measured here, a
+        // closed-loop driver came back 2.2% faster after a round trip whose target had delivered
+        // -48%, and that miss stands.
+        bool baseline_moved = false;
+        if (pending_miss_ && origin_rate_ > 0 && anchor_rate_ > 0) {
+            const double baseline_shift = anchor_rate_ / origin_rate_ - 1.0;
+            const double corrected = (1.0 + hyp_delivered_) / (1.0 + baseline_shift) - 1.0;
+            baseline_moved = corrected > hyp_threshold_;
+        }
         if (baseline_moved) {
             invalidated_maneuvers_++;
             model_last_decision_ = "moved-reverted-invalidated";
