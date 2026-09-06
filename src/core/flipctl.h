@@ -202,6 +202,8 @@ struct FlipctlReport {
     uint64_t last_flip_moved = 0; // connections the last flip moved
     double flip_ticks = 0;        // mean controller ticks a flip stays in flight
     double stationary_s = 0;      // seconds the current workload has held still
+    std::string refine_decision = "none";  // the local verdict at the last landing (see refine)
+    uint32_t refine_steps = 0;    // extra steps taken after a delivered move, this maneuver
 };
 
 class FlipController {
@@ -292,6 +294,7 @@ private:
     bool seek_after_reading(Server& server, uint32_t coordinator, uint64_t now_ms, double rate);
     bool settle(Server& server, uint32_t coordinator, uint64_t now_ms);
     void anchor(Server& server, double rate);
+    void begin_refinement(Server& server, uint64_t now_ms);
     void record(uint32_t split, double rate);
     double automatic_rate_band(double pair_delta, double rate) const;
 
@@ -381,6 +384,20 @@ private:
     enum class Seek : uint8_t { None = 0, AtTarget, Returning };
     Seek seek_ = Seek::None;
     uint32_t seek_target_io_ = 0;
+    // REFINEMENT. A projection from the origin's demand reading is only as good as the assumption
+    // that per-command io and ex costs are the same at the target as at the origin; they are not
+    // (the io side batches better with fewer threads), so a one-shot argmax from an io-heavy origin
+    // lands short -- measured on the owner's box: 18:14 -> 13:19 settled 8% below 11:21. After a
+    // DELIVERED move the maneuver therefore re-measures the local demand at the landing and takes
+    // one more outcome-judged step while the local argmax differs from the live split and pays
+    // (measured transfer cost now), stopping at the fixed point where the landing IS its own
+    // argmax, or at a split already visited this maneuver. The departure split of the current
+    // hypothesis is seek_origin_io_ (a miss returns there); maneuver_origin_io_ stays the split the
+    // maneuver started from (the null-maneuver rule).
+    uint32_t seek_origin_io_ = 0;
+    bool refining_ = false;
+    const char* refine_decision_ = "none";
+    uint32_t refine_steps_ = 0;
     double origin_rate_ = 0;
     // Every per-tick rate sample, whatever the phase, exponentially weighted over the deferral bound
     // (flip_policy.h): the floor under every band the controller learns from stabilized pairs.

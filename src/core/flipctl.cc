@@ -495,6 +495,10 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     maneuver_rate_jitter_ = 0;
     seek_ = Seek::None;
     seek_target_io_ = 0;
+    seek_origin_io_ = maneuver_origin_io_;
+    refining_ = false;
+    refine_decision_ = "none";
+    refine_steps_ = 0;
     origin_rate_ = 0;
     origin_window_.reset();
     target_window_.reset();
@@ -768,6 +772,13 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     const bool externally_bound = !debug_force && io_headroom > band && ex_headroom > band;
     const bool capped = model_readings_ >= model_readings_cap_;
 
+    // REFINEMENT stops at a split this maneuver already stood on: the landing is then the best
+    // delivered split, and a chain that wants to go back is oscillation, not learning.
+    bool visited = false;
+    if (refining_ && choice.decided && choice.move && choice.target_units != now_units)
+        for (const Reading& r : readings_)
+            if (r.split == choice.target_units * unit) { visited = true; break; }
+    if (visited) { choice.move = false; }
     // COST GATE + VERIFICATION WINDOW (flip_policy.h). Only a target that already clears the noise
     // bar is priced. The window at the target is sized from the origin's own noise; the gate
     // credits the kappa-scaled gain over the stationarity the workload has demonstrated, less the
@@ -793,7 +804,8 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         pays = debug_force || (model_verify_readings_ > 0 && model_cost_.pays);
         if (!pays && !capped && !externally_bound) {
             // Not yet: the horizon grows and the origin's noise estimate tightens while sampling.
-            model_last_decision_ = model_verify_readings_ ? "sampling-cost" : "sampling-unverifiable";
+            const char* v = model_verify_readings_ ? "sampling-cost" : "sampling-unverifiable";
+            if (refining_) refine_decision_ = v; else model_last_decision_ = v;
             return false;
         }
     }
@@ -801,19 +813,30 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
 
     record(now_units * unit, rate);
     if (externally_bound || !choice.decided || !choice.move || !pays) {
-        model_last_decision_ = externally_bound ? "hold-unsaturated"
+        const char* verdict = externally_bound ? "hold-unsaturated"
             : !choice.decided ? "hold-unresolved"
             : choice.target_units == now_units ? "hold-optimum"
+            : visited ? "hold-visited"
             : !choice.move ? "hold-below-bar"
             : !model_verify_readings_ ? "hold-unverifiable" : "hold-cost";
+        if (refining_) {
+            // The landing stands: the maneuver's outcome stays "moved-delivered" and the LOCAL
+            // verdict is kept separately, so a trail can say whether the landing was its own argmax
+            // or a further step that did not pay (hold-cost) -- the difference between a signal
+            // question and a gate question.
+            refine_decision_ = verdict;
+        } else {
+            model_last_decision_ = verdict;
+            model_holds_++;
+        }
         if (choice.decided && choice.move && choice.target_units != now_units && !externally_bound)
             cost_holds_++;
-        model_holds_++;
         debug_seek_io_ = 0;
         debug_seek_force_ = false;
         enter_settling();
         return false;
     }
+    if (refining_) { refine_decision_ = "move"; refine_steps_++; }
     // MOVE: the hypothesis. R0 is the origin window's mean; the prediction is kappa-scaled; the
     // target window is judged against the origin's noise and sample count from here on.
     model_last_decision_ = debug_force ? "move-forced" : "move";
@@ -828,6 +851,7 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     hyp_threshold_ = 0;
     target_window_.reset();
     seek_target_io_ = model_target_io_;
+    seek_origin_io_ = now_units * unit;
     seek_ = Seek::AtTarget;
     debug_seek_io_ = 0;
     debug_seek_force_ = false;
@@ -837,6 +861,31 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         return false;
     }
     return true;
+}
+
+// After a delivered move: measure the landing as a fresh origin and let the model say whether the
+// landing is its own argmax. The workload's stationarity clock is untouched (nothing changed but
+// the split); the demand and origin windows start over at the new split; a later miss returns to
+// this landing, not to where the maneuver began.
+void FlipController::begin_refinement(Server& server, uint64_t now_ms) {
+    refining_ = true;
+    refine_decision_ = "measuring";
+    phase_ = Phase::Measuring;
+    demand_window_.reset();
+    origin_window_.reset();
+    model_readings_ = 0;
+    model_cost_ = FlipCostVerdict{};
+    model_verify_readings_ = 0;
+    hyp_predicted_ = hyp_sigma_ = hyp_delivered_ = hyp_threshold_ = 0;
+    hyp_origin_samples_ = 0;
+    pending_miss_ = false;
+    for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
+        const LoopSignals& signal = server.thread(tid).sig();
+        maneuver_mark_[tid] = ThreadMeasure{signal.ops, signal.busy_ns, signal.idle_ns};
+    }
+    maneuver_mark_ms_ = now_ms;
+    rate_window_ms_ = 0;
+    previous_subwindow_valid_ = false;
 }
 
 bool FlipController::settle(Server& server, uint32_t coordinator, uint64_t now_ms) {
@@ -885,13 +934,13 @@ bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, ui
             model_last_decision_ = "moved-delivered";
             cost_.record_outcome(hyp_predicted_, hyp_delivered_, true);
             seek_ = Seek::None;
-            enter_settling();
+            begin_refinement(server, now_ms);
             return false;
         }
         model_last_decision_ = "moved-reverted";
         pending_miss_ = true;
         seek_ = Seek::Returning;
-        if (issue_flip(server, coordinator, maneuver_origin_io_, Phase::Settling, now_ms,
+        if (issue_flip(server, coordinator, seek_origin_io_, Phase::Settling, now_ms,
                        target_window_.mean)) return true;
     }
     // A refused return, or a reading at a split this seek did not ask for: stop on the best
@@ -952,7 +1001,11 @@ void FlipController::anchor(Server& server, double rate) {
     // The placement model's own outcome loop (flip_policy.h, rule 3): a maneuver that FLIPPED and
     // still ended where it began is a projection that did not deliver, so the bar rises; a move
     // that stuck lowers it again. A hold (no flip) is neither.
-    const bool round_trip = current == maneuver_origin_io_ && maneuver_flips_ > 0;
+    // A ROUND TRIP is a hypothesis that missed and returned to the split it departed from -- not
+    // "ended where the maneuver began": a refinement's second step that misses returns to the
+    // first step's landing, which is a miss all the same, and a delivered first step followed by a
+    // local hold is a move, not a trip.
+    const bool round_trip = pending_miss_ && current == seek_origin_io_ && maneuver_flips_ > 0;
     if (round_trip) {
         // Was the test valid? Re-judge the hypothesis against the origin as it reads AFTER the
         // return: if the target's delivered gain, corrected for how far the baseline itself moved
@@ -973,10 +1026,11 @@ void FlipController::anchor(Server& server, double rate) {
             if (pending_miss_) cost_.record_outcome(hyp_predicted_, hyp_delivered_, false);
             if (anchor_rate_band_ * static_cast<double>(model_margin_) < 1.0) model_margin_ *= 2;
         }
-    } else if (moved_split) {
+    } else if (moved_split && !pending_miss_) {
         model_margin_ = std::max<uint32_t>(1, model_margin_ / 2);
     }
     pending_miss_ = false;
+    refining_ = false;
     shift_streak_ = 0;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
@@ -1243,6 +1297,8 @@ FlipctlReport FlipController::report() const {
     report.last_flip_moved = last_flip_moved_;
     report.flip_ticks = cost_.flips ? cost_.flip_ticks() : 0;
     report.stationary_s = 0;
+    report.refine_decision = refine_decision_;
+    report.refine_steps = refine_steps_;
     return report;
 }
 
@@ -1276,7 +1332,8 @@ std::string FlipController::debug_dump() const {
         "cost_flips=%llu cost_moves=%u cost_misses=%u cost_lost_sum=%.1f cost_moved_sum=%.1f\n"
         "hyp_predicted=%.4f hyp_delivered=%.4f hyp_threshold=%.4f hyp_sigma=%.5f "
         "hyp_origin_samples=%u target_readings=%u pending_miss=%d\n"
-        "last_flip_lost=%.1f last_flip_moved=%llu invalidated=%llu cost_holds=%llu\n",
+        "last_flip_lost=%.1f last_flip_moved=%llu invalidated=%llu cost_holds=%llu\n"
+        "refine_decision=%s refine_steps=%u seek_origin_io=%u refining=%d\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
@@ -1313,7 +1370,8 @@ std::string FlipController::debug_dump() const {
         target_window_.samples, pending_miss_ ? 1 : 0,
         last_flip_lost_, static_cast<unsigned long long>(last_flip_moved_),
         static_cast<unsigned long long>(invalidated_maneuvers_),
-        static_cast<unsigned long long>(cost_holds_));
+        static_cast<unsigned long long>(cost_holds_),
+        refine_decision_, refine_steps_, seek_origin_io_, refining_ ? 1 : 0);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way

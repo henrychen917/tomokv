@@ -2001,7 +2001,8 @@ void cmd_info(Shard&, Op& op) {
                     "flipctl_model_moves:%u\r\nflipctl_model_misses:%u\r\n"
                     "flipctl_invalidated_maneuvers:%llu\r\nflipctl_cost_holds:%llu\r\n"
                     "flipctl_client_cost:%.2f\r\nflipctl_last_flip_lost:%.1f\r\n"
-                    "flipctl_last_flip_moved:%llu\r\nflipctl_flip_ticks:%.2f\r\n",
+                    "flipctl_last_flip_moved:%llu\r\nflipctl_flip_ticks:%.2f\r\n"
+                    "flipctl_refine_decision:%s\r\nflipctl_refine_steps:%u\r\n",
                     ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
                     ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
                     static_cast<unsigned long long>(ctl.triggers),
@@ -2022,7 +2023,8 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(ctl.invalidated_maneuvers),
                     static_cast<unsigned long long>(ctl.cost_holds),
                     ctl.client_cost, ctl.last_flip_lost,
-                    static_cast<unsigned long long>(ctl.last_flip_moved), ctl.flip_ticks);
+                    static_cast<unsigned long long>(ctl.last_flip_moved), ctl.flip_ticks,
+                    ctl.refine_decision.c_str(), ctl.refine_steps);
         }
     }
     if (info_section(op, "CLIENTS")) {

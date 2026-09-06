@@ -249,6 +249,12 @@ def main():
         check("paying move: calibration in (0, 1]", 0.0 < kappa_after_hit <= 1.0, True)
         check("paying move: the flip's cost was measured",
               int(moved["flipctl_last_flip_moved"]) > 0, True)
+        # After a delivered move the controller re-measures the landing before anchoring; on a
+        # pure-executor load the landing is its own argmax, so the local verdict is a hold and
+        # no further step is taken.
+        check("paying move: the landing was re-measured and is its own argmax",
+              moved.get("flipctl_refine_decision"), "hold-optimum")
+        check("paying move: no further step", int(moved.get("flipctl_refine_steps", -1)), 0)
         print("2. paying move: one flip to %s:%s, decision=%s kappa=%.3f client_cost=%s "
               "lost=%s moved=%s"
               % (moved["io_threads"], moved["ex_threads"], moved["flipctl_model_last_decision"],

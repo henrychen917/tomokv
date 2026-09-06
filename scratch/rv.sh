@@ -34,7 +34,7 @@ tm(){ local tag=$1 bin=$2 fa=$3 bio=$4 bex=$5 srv=${6:-$SRV_CPUS} lg=${7:-$LG_CP
   local info; info=$(redis-cli -p "$PORT_SIG" info all 2>/dev/null | tr -d '\r')
   redis-cli -p "$PORT_SIG" debug flipctl >"$SP/fd-r3-tmdbg-$tag.txt" 2>&1
   mt=$(tr '\r' '\n' <"$SP/fd-r3-tmmt-$tag.txt")
-  echo "$tag boot=$bio:$bex fa=$fa memtier_rate=$(echo "$mt" | awk '/^Totals/{print $2}') p99=$(echo "$mt" | awk '/^Totals/{print $8}') flips=$(infog "$info" flip_completed) xfer=$(infog "$info" flip_clients_transferred) trig=$(infog "$info" flipctl_triggers) holds=$(infog "$info" flipctl_model_holds) decision=$(infog "$info" flipctl_model_last_decision) misses=$(infog "$info" flipctl_model_misses) kappa=$(infog "$info" flipctl_model_kappa) rate_band=$(infog "$info" flipctl_rate_band) live=$(infog "$info" io_threads):$(infog "$info" ex_threads) | $(python3 ./scratch/ttfm.py "$tr" "$bio" "$bex" | head -1)" >"$out"
+  echo "$tag boot=$bio:$bex fa=$fa memtier_rate=$(echo "$mt" | awk '/^Totals/{print $2}') p99=$(echo "$mt" | awk '/^Totals/{print $8}') flips=$(infog "$info" flip_completed) xfer=$(infog "$info" flip_clients_transferred) trig=$(infog "$info" flipctl_triggers) holds=$(infog "$info" flipctl_model_holds) decision=$(infog "$info" flipctl_model_last_decision) misses=$(infog "$info" flipctl_model_misses) kappa=$(infog "$info" flipctl_model_kappa) refine=$(infog "$info" flipctl_refine_decision)/$(infog "$info" flipctl_refine_steps) rate_band=$(infog "$info" flipctl_rate_band) live=$(infog "$info" io_threads):$(infog "$info" ex_threads) | $(python3 ./scratch/ttfm.py "$tr" "$bio" "$bex" | head -1)" >"$out"
   LG "TM $(cat "$out")"
   stop "$pid" "$PORT_SIG"
 }
