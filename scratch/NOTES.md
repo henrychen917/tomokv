@@ -361,3 +361,13 @@ the owner box: 18:14 -> 13:19 -> (f_local lower) -> 11:21 or 12:20 at ~35-45 s (
 needs ~25 s of stationarity under the asymmetric gate). Verification queued: scratch/rv2.sh
 (build+unit+rv.sh) detached behind the marker (the coordinator's OFF sweep holds the box);
 results -> fd-rv2.log / fd-rv.log / fd-r3-*.txt. NOT yet verified on any box at this commit.
+- 17:36 coordinator's OFF sweep (settled 20-50 s): 16:16 1.964M, 14:18 2.013M, 13:19 2.046M, 11:21
+  2.098M, 10:22 1.960M, 8:24 1.588M -> optimum 11:21; flat (2.5%) from 13:19 to 11:21, cliff past it.
+  Reading confirmed (argmax two steps high on 18:14, one on 28:4; guard exact by cancellation).
+  ee40cf940: refinement step must clear flip_refine_bar = predicted - delivered of the step that
+  landed (hold-within-error) -> stops short rather than round-tripping or crossing the peak.
+  HASH FOR THE FREEZE: ee40cf940. build/tomokv is still 9b9b559a (dcc5a409a) until rv2.sh's queued
+  build runs (fd-rv2.log "BUILD rc=0 sha=..."); the coordinator freezes from the build dir after that.
+  Expected on the owner box with ee40cf940: 18:14 -> 13:19 -> re-measure -> hold-within-error (bar
+  ~0.10 vs a +5-10% projection at kappa ~0.86) -> anchor 13:19, 1 flip; 28:4 -> 12:20 -> bar ~1.1 ->
+  hold-within-error -> anchor 12:20, 1 flip. Zero extra flips in the flat region by construction.
