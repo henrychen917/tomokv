@@ -272,8 +272,11 @@ struct Config {
     uint32_t lb_cooldown_ms = 5000;
 
     // ---- automatic role split (boot-latched) -----------------------------------------------
-    // Ships dark. The fingerprint remains owner-local and work-windowed independently so DEBUG
-    // can inspect its detector without adding a shared write to dispatch. A numeric band is a
+    // Ships dark. The workload fingerprint the controller reads is owner-local and SAMPLED by
+    // parse pass (DESIGN-flipfp.md): flip_work_window is commands per fingerprinted command, one
+    // pass in W is fingerprinted whole, and the writer is armed only while the controller -- its
+    // one reader -- is enabled, so with flip_auto 0 (and in 1s mode) dispatch pays one predicted
+    // branch per op and no store. 1 = every pass (exhaustive), 0 = off. A numeric band is a
     // percent, -1 learns two times the anchor's own quiet jitter, and 0 disables re-triggers.
     uint32_t flip_auto = 0;
     int32_t  flip_auto_band = -1;
@@ -1150,7 +1153,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --lb-sample-rate N --lb-age-sample-rate N --lb-tick-ms N\n"
                         "    --lb-imbalance-pct N --lb-move-cap N --lb-cooldown-ms N\n"
                         "  flip controller: --flip-auto 0|1 --flip-auto-band -1|PERCENT\n"
-                        "    --flip-work-window N       commands per fingerprint sample (0=off)\n"
+                        "    --flip-work-window N       commands per fingerprint sample: one parse pass in N is fingerprinted (1=every pass, 0=off; armed only with --flip-auto 1)\n"
                         "    --zc-min N                  zero-copy GET replies for values >= N (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY (allkeys-lfu\n"
                         "         recommended for cache duty) --lru-clock-shift N (bucket=1<<N s)\n"

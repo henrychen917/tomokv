@@ -43,18 +43,42 @@ struct FlipFingerprintWindow {
     uint64_t closed_windows = 0;
 };
 
+// SAMPLED BY PARSE PASS (DESIGN-flipfp.md). The io loop asks pass_sampled() once per dispatched
+// frame -- one load of this writer's own word, on the line the old enabled() test already read,
+// and one predicted-false branch; no store. Inside a sampled pass the full fingerprint body runs
+// for every frame and note_command accumulates exactly what the exhaustive writer accumulated for
+// that pass; at the pass end finish_parse_pass() publishes it and the caller draws the gap to the
+// next sampled pass. `work_window_` keeps the knob's documented meaning, commands per fingerprint
+// sample: one pass in W is sampled, so one frame in W is fingerprinted at every pipeline depth (a
+// sampled pass contributes all of its d frames and costs the body d times, once per W passes).
+// Gaps are uniform over [1, 2W-1] passes (mean W). A stride of exactly W would alias with any
+// workload whose classes alternate with a period dividing W (memtier's 1:1 ratio is period 2);
+// a uniform gap has 1 in its support, so the renewal process equidistributes over every period and
+// each class is sampled in proportion. The draw is the io loop's own xorshift, taken only when a
+// sampled pass ends, so the writer holds no generator state and the ThreadCtx footprint is
+// unchanged (pass_frames_ became pass_countdown_; partial_.commands is the sampled pass's depth).
+// W = 1 samples every pass: the exhaustive writer, byte for byte, and the unit test's oracle.
+// Dark writer (work_window_ == 0: --flip-auto 0, every 1s boot): pass_countdown_ is 1 and nothing
+// ever writes it, so the gate word reads false from a clean line and no other code runs.
 class FlipFingerprintWriter {
 public:
-    void configure(uint32_t commands_per_window) {
-        work_window_ = commands_per_window;
+    void configure(uint32_t commands_per_sample) {
+        work_window_ = commands_per_sample;
+        // Armed: the first pass is sampled, so the controller's boot gate sees work after one pass
+        // rather than one gap. Dark: the gate word must never read 0.
+        pass_countdown_ = commands_per_sample ? 0 : 1;
         partial_ = {};
         published_ = {};
-        pass_frames_ = 0;
     }
 
     bool enabled() const { return work_window_ != 0; }
+    uint32_t work_window() const { return work_window_; }
 
-    // Called only after the parsed frame has crossed its last refusal/backpressure point.
+    // THE per-operation gate: true only inside a sampled parse pass.
+    bool pass_sampled() const { return pass_countdown_ == 0; }
+
+    // Called only inside a sampled pass, after the parsed frame has crossed its last
+    // refusal/backpressure point.
     void note_command(FlipFingerprintClass command_class, uint32_t keys,
                       uint64_t value_bytes) {
         partial_.command_class[static_cast<size_t>(command_class)]++;
@@ -64,39 +88,51 @@ public:
             partial_.multikey_ops++;
         }
         partial_.value_bytes += value_bytes;
-        pass_frames_++;
     }
 
-    // One bucket increment per parse pass, never one per frame.  The closing test lives here so a
-    // deep pass pays one comparison and a work window may exceed N only by that already-completed
-    // pass. Detection latency remains work based, independent of wall time.
-    void finish_parse_pass() {
-        const uint32_t frames = pass_frames_;
-        pass_frames_ = 0;
-        if (!frames) return;
-        const size_t bucket = frames == 1 ? 0 : frames <= 4 ? 1 : frames <= 16 ? 2 : 3;
-        partial_.pass_depth[bucket]++;
-        if (partial_.commands < work_window_) return;
-        for (size_t i = 0; i < published_.pass_depth.size(); i++)
-            published_.pass_depth[i] += partial_.pass_depth[i];
-        for (size_t i = 0; i < published_.command_class.size(); i++)
-            published_.command_class[i] += partial_.command_class[i];
-        published_.commands += partial_.commands;
-        published_.multikey_keys += partial_.multikey_keys;
-        published_.multikey_ops += partial_.multikey_ops;
-        published_.value_bytes += partial_.value_bytes;
-        // Keep this as the last owner store. The exceptional monitor reader checks this field
-        // before consuming the cumulative counters, matching the tree's other owner-local INFO
-        // counters without adding an atomic publication to the request path.
-        published_.closed_windows++;
-        partial_ = {};
+    // Pass end, called only while enabled(). An unsampled pass counts down. A sampled pass buckets
+    // its depth (partial_.commands is exactly this pass's frame count: the previous sampled pass
+    // published and reset partial_) and publishes; the return value asks the caller for one random
+    // draw for arm(). Detection latency stays work based: the next sample is a number of passes
+    // away, never a wall-clock interval.
+    bool finish_parse_pass() {
+        if (pass_countdown_ != 0) {
+            pass_countdown_--;
+            return false;
+        }
+        const uint64_t frames = partial_.commands;
+        if (frames) {
+            const size_t bucket = frames == 1 ? 0 : frames <= 4 ? 1 : frames <= 16 ? 2 : 3;
+            partial_.pass_depth[bucket]++;
+            for (size_t i = 0; i < published_.pass_depth.size(); i++)
+                published_.pass_depth[i] += partial_.pass_depth[i];
+            for (size_t i = 0; i < published_.command_class.size(); i++)
+                published_.command_class[i] += partial_.command_class[i];
+            published_.commands += partial_.commands;
+            published_.multikey_keys += partial_.multikey_keys;
+            published_.multikey_ops += partial_.multikey_ops;
+            published_.value_bytes += partial_.value_bytes;
+            // Keep this as the last owner store. The exceptional monitor reader checks this field
+            // before consuming the cumulative counters, matching the tree's other owner-local INFO
+            // counters without adding an atomic publication to the request path.
+            published_.closed_windows++;
+            partial_ = {};
+        }
+        return true;
     }
+
+    // Unsampled passes before the next sampled one: uniform over [0, 2W-2], so sampled passes are
+    // 1..2W-1 apart with mean W. W = 1 gives 0 every time (every pass sampled).
+    static uint32_t gap_for(uint64_t random, uint32_t work_window) {
+        return static_cast<uint32_t>(random % (2ull * work_window - 1));
+    }
+    void arm(uint64_t random) { pass_countdown_ = gap_for(random, work_window_); }
 
     const FlipFingerprintWindow& published() const { return published_; }
 
 private:
     uint32_t work_window_ = 0;
-    uint32_t pass_frames_ = 0;
+    uint32_t pass_countdown_ = 1;
     FlipFingerprintWindow partial_{};
     FlipFingerprintWindow published_{};
 };

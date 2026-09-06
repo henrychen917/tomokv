@@ -3935,8 +3935,7 @@ private:
         const bool lb_pause_this_pass = lb_controller_armed_ &&
             srv_->lb_should_pause(self_id, c->id());
         if (__builtin_expect(lb_pause_this_pass, false)) {
-            if (self_->flip_fingerprint().enabled())
-                self_->flip_fingerprint().finish_parse_pass();
+            flip_fingerprint_finish_pass();
             return result;
         }
         // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
@@ -5274,8 +5273,7 @@ ordinary_dispatch:
             }
             ntouched_ = 0;
         }
-        if (self_->flip_fingerprint().enabled())
-            self_->flip_fingerprint().finish_parse_pass();
+        flip_fingerprint_finish_pass();
         return result;
     }
 
@@ -5292,9 +5290,27 @@ ordinary_dispatch:
         return posted;
     }
 
+    // The per-operation gate of the SAMPLED fingerprint (DESIGN-flipfp.md): one load of the
+    // writer's own word -- the line the old enabled() test already read -- and one predicted-false
+    // branch. The body below (the argv walk and its five counter stores, 63-86 instr/op when it ran
+    // on every frame) runs only inside a sampled parse pass. Dark writer (--flip-auto 0, every 1s
+    // boot): the word is never 0 and nothing else runs.
     void flip_fingerprint_note(const CommandSpec& spec, const Op& op) {
+        if (__builtin_expect(self_->flip_fingerprint().pass_sampled(), false))
+            flip_fingerprint_note_sampled(spec, op);
+    }
+
+    // Pass end: the unsampled pass counts down; the sampled pass publishes and draws its gap. The
+    // draw is taken here, once per sampled pass, never eagerly per pass.
+    void flip_fingerprint_finish_pass() {
         FlipFingerprintWriter& writer = self_->flip_fingerprint();
-        if (!writer.enabled()) return;
+        if (__builtin_expect(!writer.enabled(), true)) return;
+        if (writer.finish_parse_pass()) writer.arm(next_random());
+    }
+
+    __attribute__((noinline))
+    void flip_fingerprint_note_sampled(const CommandSpec& spec, const Op& op) {
+        FlipFingerprintWriter& writer = self_->flip_fingerprint();
         uint32_t keys = 0;
         uint32_t first = 0, last = 0, step = 1;
         if (spec.first_key > 0 && static_cast<uint32_t>(spec.first_key) < op.argc()) {
