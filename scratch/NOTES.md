@@ -394,3 +394,37 @@ CAVEAT for t-flipfp's 1-in-100 sampling: the quantum is 1/sqrt(commands the sign
 from). If the writer samples, that count must be the SAMPLED count or the quantum understates the
 estimator noise tenfold; the new floor covers it empirically either way, but the positive phase's
 margin (a real mix change scores ~0.35) should be re-checked against the widened band.
+
+## 2026-09-07 05:30 pre-rebase work for t-flipfp (sampled fingerprint) + a wrong-split FAIL fixed
+MERGE ORDER (coordinator): P0 shard-ownership -> t-flipfp -> me, rebased. My band's quantum depends
+on their N, so I answered the margin question BEFORE the rebase with scratch/sampled_band_probe.cc
+(replays a stationary stream at a chosen window size through the real FlipShiftDetector).
+THREE band defects found and fixed (9768fcbef, 147033e55), each measured, mix change scores ~0.67:
+ 1. 3bf51b5b7 learned the ADJACENT-window distance while the trigger tests the ANCHOR distance
+    (smoothed+correlated => systematically smaller): bound 0.054 vs quiet maxdist 0.101, 15 fires/60.
+    Now learns the anchored distance's own null distribution.
+ 2. That statistic is AUTOCORRELATED so exceedances CLUSTER: mean+2sd still gave 3 two-consecutive
+    exceedances in 600 stationary windows. FlipEwBound also reports a decaying MAX (retain largest,
+    decay toward the mean) -- the same convention jitter_ uses.
+ 3. THE BINDING ONE: the typed branch never took the 1/sqrt(N) QUANTUM. A typed band cannot buy
+    resolution the signal has not got; at 1-in-100 a 100-command window resolves the mix to ~0.1.
+    Both branches now take max(2*quantum, noise bound).
+ REGRESSION caught by tests/flip_multikey_hold.py: folding EVERY window let the first window of a
+ real mix change lift the band to the excursion's own size -> positive phase reached only 0.80x and
+ FAILED. Restored to IN-BAND-ONLY folding (the quantum makes it safe: the estimate can no longer get
+ stuck too small). Unit row pins it: a mix change must clear its band, not move it, and keep clearing.
+ RESULT (all rows): 0 fires, 0 two-consecutive exceedances in 600 stationary windows at every-command
+ / 1-in-100 / w=1000, typed and learned; mix change clears by 3.3x at 1-in-100, 33x at every command.
+ ANSWER TO THE REBASE QUESTION: margin is NOT thin; needs neither a wider signature sample rate nor a
+ hand-adjusted quantum -- 1/sqrt(N) IS the sampling correction PROVIDED N is the SAMPLED count. That
+ is the one thing t-flipfp must get right; a pre-sampling count understates the noise tenfold.
+WRONG-SPLIT FAIL (47aaec6f7): a 3:1 boot anchored at 3:1 (232k vs 520k), hold-below-bar. Not the
+model, not the cost gate (headroom_ex 0.0004 / io 0.699, demand interval 0.395-0.424, gain +100%,
+cost_pays=1): the VERIFICATION BAR. A neighbour lane swung the box 2.8x/s, rate_ew_sigma 0.244, the
+pair jitter pushed the band past 1.0, and min(1.0, band*margin) caps the required gain EXACTLY on the
+gain a 3:1->2:2 move projects. A bar larger than any available gain is a verdict about the
+MEASUREMENT, not the placement => decided-but-refused now keeps sampling to the reading cap
+("sampling-bar"); the cap gives the honest too-noisy hold. "Live split is the optimum" still decides
+at once; flip_choose_split unchanged.
+VERIFIED 109b62e448b416cc: wrongsplit.sh x5 with the box at 2.3x spread -> 5/5 moved, ttfm 13/18/13/
+14/18 s, all landed 2:2, 1 flip, 0 moves after stabilization.
