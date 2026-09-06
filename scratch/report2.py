@@ -69,7 +69,7 @@ def summarize(rows):
 
 WLNAME = {"mk": "multi-key MSET8+MGET8 1:1, p32 (the defect regime)", "sk1:1": "single-key SET:GET 1:1, p32",
           "sk9:1": "single-key SET:GET 9:1, p32", "get": "pure GET, p32 (null)"}
-ARMNAME = {"base1": f"BASE  {BASE}, --flip-auto 1", "guard1": f"GUARD {GUARD}, --flip-auto 1",
+ARMNAME = {"base1": "BASE-auto t9final, --flip-auto 1", "guard1": f"GUARD {GUARD}, --flip-auto 1",
            "red1": f"REDESIGN {COMMIT}, --flip-auto 1",
            "pol0a": f"OFF  {COMMIT}, --flip-auto 0 (a)", "pol0b": f"OFF  {COMMIT}, --flip-auto 0 (b)"}
 ARMCLASS = {"base1": "pre", "guard1": "guard", "red1": "post", "pol0a": "off", "pol0b": "off"}
@@ -118,14 +118,14 @@ def kvline(path):
 def read(path):
     return open(path, errors="replace").read() if os.path.exists(path) else ""
 
-log = read(f"{SP}/fd-red.log")
+log = read(f"{SP}/fd-red2.log") + read(f"{SP}/fd-red.log")
 def grab(pattern, width=220):
     return [re.sub(r"^\d\d:\d\d:\d\d ", "", m)[:width] for m in re.findall(r"^(?:\d\d:\d\d:\d\d )?" + pattern, log, re.M)]
 def li(lines):
     return "".join(f"<li><code>{html.escape(l)}</code></li>" for l in lines) or "<li class=muted>(not on file)</li>"
 
 # ---- data --------------------------------------------------------------------------------------
-m4 = load(f"{SP}/fd-matrix4.csv")
+m4 = load(f"{SP}/fd-matrix5.csv") or load(f"{SP}/fd-matrix4.csv")
 summ = summarize(m4)
 def cell(wl, arm): return next((s for s in summ if s["wl"] == wl and s["arm"] == arm), None)
 def kv(s, key, fmt="{}"): return fmt.format(s[key]) if s else "—"
@@ -133,7 +133,7 @@ def kv(s, key, fmt="{}"): return fmt.format(s[key]) if s else "—"
 fire_tags = ["red-22-off", "red-31-off", "red-31-on", "guard-31-on", "base-31-on",
              "red8-44-off", "red8-71-off", "red8-71-on", "guard8-71-on"]
 fire = [d for d in (kvline(f"{SP}/fd-fire4-{t}.txt") for t in fire_tags) if d]
-perf = [d for d in (kvline(f"{SP}/fd-perf4-{t}.txt") for t in
+perf = [d for d in (kvline(f"{SP}/fd-r2-perf-{t}.txt") or kvline(f"{SP}/fd-perf4-{t}.txt") for t in
         ("base0-1", "base0-2", "red0-1", "red0-2", "red1-1", "red1-2", "guard1-1", "guard1-2")) if d]
 def perf_mean(prefix, key):
     vals = [float(d[key]) for d in perf if d["tag"].startswith(prefix) and key in d]
@@ -141,14 +141,14 @@ def perf_mean(prefix, key):
 
 costgate = []
 for r in (1, 2):
-    t = read(f"{SP}/fd-costgate-{r}.txt")
+    t = read(f"{SP}/fd-r2-costgate-{r}.txt") or read(f"{SP}/fd-costgate-{r}.txt")
     if not t: continue
     lines = [l for l in t.splitlines() if re.match(r"^[1-4]\. |^ok:|AssertionError|^RC=", l)]
     costgate.append((r, lines))
-holds = [(t, [l for l in read(f"{SP}/fd-hold4-{t}.txt").splitlines() if re.match(r"^ok:|^anchored|^negative|^positive|AssertionError", l)]) for t in ("red-a", "red-b")]
+holds = [(t, [l for l in (read(f"{SP}/fd-r2-hold-{t}.txt") or read(f"{SP}/fd-hold4-{t}.txt")).splitlines() if re.match(r"^ok:|^anchored|^negative|^positive|AssertionError", l)]) for t in ("red-a", "red-b")]
 ctl = []
 for r in (1, 2):
-    t = read(f"{SP}/fd-ctl4-red-{r}.txt")
+    t = read(f"{SP}/fd-r2-ctl-{r}.txt") or read(f"{SP}/fd-ctl4-red-{r}.txt")
     if not t: continue
     rc = re.search(r"^RC=(\d+)", t, re.M)
     said = re.search(r"^(ramp deferred[^\n]*|.*AssertionError[^\n]*)", t, re.M)
@@ -221,6 +221,31 @@ fire_table = simple_table(
       d.get("flips", ""), d.get("xfer", ""), d.get("trig", ""), d.get("holds", ""), d.get("anchor", ""), d.get("live", ""),
       html.escape(d.get("decision", "")), d.get("kappa", ""), d.get("clientcost", "")) for d in fire],
     ["post" if d.get("fa") == "1" and d["tag"].startswith("red") else "pre" if d.get("fa") == "1" else "off" for d in fire]) if fire else "<p class=muted>(probe rows not on file)</p>"
+
+# ---- time-to-first-move (120 s cells, 1 Hz trace) ----------------------------------------------
+TM_TAGS = ["off-22","base-22","guard-22","red-22","off-31","base-31","guard-31","red-31",
+           "off8-71","base8-71","guard8-71","red8-71"]
+def tm_row(tag):
+    t = read(f"{SP}/fd-r2-tm-{tag}.txt")
+    if not t: return None
+    head, _, rest = t.partition("|")
+    d = {"tag": tag}
+    for tok in (head + " " + rest).split():
+        if "=" in tok:
+            k, v = tok.split("=", 1); d[k] = v
+    return d
+tms = [d for d in (tm_row(t) for t in TM_TAGS) if d]
+def tm_cls(tag):
+    return "post" if tag.startswith("red") else "guard" if tag.startswith("guard") else "pre" if tag.startswith("base") else "off"
+tm_table = simple_table(
+    "time-to-first-move — 120 s multi-key cells, 1 Hz INFO trace (total_commands_processed, io/ex_threads); boots 2:2 (matched on this rig), 3:1 and 7:1 (wrong: more executors should win)",
+    ["arm", "boot", "fa", "steady ops/s", "time-to-first-move", "moves-after-stab", "final split", "decision", "misses", "memtier p99"],
+    [(f"<code>{html.escape(d['tag'])}</code>", d.get("boot",""), d.get("fa",""),
+      f"<b>{f(d.get('steady',0))/1000:,.0f}k</b>",
+      (d.get("ttfm","") + "s") if d.get("ttfm","NEVER") not in ("NEVER","") else d.get("ttfm",""),
+      d.get("moves_after_stab",""), d.get("final",""), html.escape(d.get("decision","")), d.get("misses",""),
+      d.get("p99","")) for d in tms],
+    [tm_cls(d["tag"]) for d in tms]) if tms else "<p class=muted>(time-to-first-move cells not on file — queued behind the box gate)</p>"
 
 perf_table = simple_table(
     "instructions and cycles per command at a matched offered rate (memtier --rate-limiting), 35 s perf window on the server's pid after 12 s of warm-up, mk at 2:2",
@@ -300,22 +325,25 @@ n_t   = ceil( 1 / ((κ g_mean / 4σ)² − 1/n_o) )      planned target readings
 <h3>The defect regime held — tests/flip_multikey_hold.py</h3>
 <ul>{"".join(f"<li><b>{t}</b><ul>{li(lines)}</ul></li>" for t, lines in holds)}</ul>
 
-<h2>5. Non-vacuity: boot at the wrong split, move once, land</h2>
+<h2>5. Time-to-first-move (the owner-box metric)</h2>
+<p>The owner-box acceptance of the guard showed its real cost is not thrash but latency: on 64 shards 18:14 is far from optimal (more executors win), and the guard reached the better split late or, once, held on a terrible one. So the cost gate was made asymmetric (section 3): a move off a badly-underperforming split pays at about one blackout, a marginal move needs a long window. These 120 s cells report time-to-first-move, moves-after-stabilization and steady-state as three separate numbers, against BASE-auto (t9final) — the bar to beat — and the guard. On this 4-thread rig 2:2 is the optimum (loadgen-bound), so the 2:2 cells are the zero-loss control and the 3:1 / 7:1 boots are the wrong-split test the owner box runs at 28:4.</p>
+{tm_table}
+<h2>6. Non-vacuity: boot at the wrong split, move once, land</h2>
 <p>Every zero-flip row is worthless if the controller can no longer move. Booted at 3:1 (4 threads) and 7:1 (8 threads) under the multi-key load, <code>--flip-auto 1</code> must find the split, pay for exactly one flip and stay; <code>--flip-auto 0</code> stays where it was booted.</p>
 {fire_table}
 
-<h2>6. What the machinery costs when it is not moving</h2>
+<h2>7. What the machinery costs when it is not moving</h2>
 <p>Rate-limited so every arm offers the same load; instructions and cycles per command are only comparable at a matched rate. <b>base fa=0 → redesign fa=0</b> is the hot path with the controller off; <b>redesign fa=0 → fa=1</b> is the always-on cost of the controller holding.</p>
 {perf_table}
 <p>Hot path, controller off: <b>{pct(instr_base0, instr_red0):+.2f}%</b> instr/op (base {instr_base0:.0f} → redesign {instr_red0:.0f}). Controller running and holding: <b>{pct(instr_red0, instr_red1):+.2f}%</b> instr/op, <b>{pct(cyc_red0, cyc_red1):+.2f}%</b> cycles/op against the same binary with it off (guard fa=1: {instr_guard1:.0f} instr/op). Budget 3%.</p>
 
-<h2>7. The gate row</h2>
+<h2>8. The gate row</h2>
 {ctl_table}
 
-<h2>8. Batteries, modes, differ</h2>
+<h2>9. Batteries, modes, differ</h2>
 <ul>{li(bat_lines)}{li(mode_lines)}{li(differ)}</ul>
 
-<h2>9. Acceptance on the owner's box</h2>
+<h2>10. Acceptance on the owner's box</h2>
 <pre>worktree  /home/user/Projects/wt-flipdamp   branch t-flipdamp   commit {COMMIT}   (guard {GUARD}, base {BASE})
 server    ./build/tomokv --port &lt;p&gt; --save '' --ratio 18:14 --shards 64 --atomic 1 --flip-auto 1 --enable-debug-command yes
 
@@ -334,7 +362,7 @@ F  ALWAYS-ON COST   the A cell at a matched offered rate (memtier --rate-limitin
                     --flip-auto 1 against --flip-auto 0, same binary. Budget 3%
 G  UNIT             make unit (build/flipctl-unit carries the signal, cost-gate, window and outcome rows on the measured numbers)</pre>
 
-<h2>10. Caveats</h2>
+<h2>11. Caveats</h2>
 <ul>
 <li>Lane rig: 2 physical cores + SMT siblings for the server, 4 threads at 2:2; the owner's cell is 32 real cores at 18:14. Direction, counters and decisions transfer; magnitudes do not.</li>
 <li>On this rig the multi-key hold is partly the saturation gate's (memtier at 27% of its cores). On the owner's saturated cell the hold must come from the model — <code>model_last_decision=hold-optimum</code> — or be a delivered move; acceptance cell A distinguishes them.</li>
