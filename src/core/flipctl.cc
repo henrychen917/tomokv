@@ -367,6 +367,7 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
         boot_rate_history_.fill(0);
         boot_rate_samples_ = 0;
         boot_nonidle_ticks_ = 0;
+        stationary_since_ms_ = 0;
     };
     double rate = 0;
     if (!sample_rate(server, now_ms, rate)) return false;
@@ -382,6 +383,9 @@ bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
         return false;
     }
     boot_nonidle_ticks_++;
+    // The workload's stationarity clock: the cost gate credits a move only over the time the
+    // workload has already held still, and at boot that is since the first non-idle tick.
+    if (!stationary_since_ms_) stationary_since_ms_ = now_ms;
     // A command-rate sample made only of controller observability is not enough when work
     // fingerprinting is available. Once real work closes a window, keep counting all non-idle
     // rate ticks: a workload below one fingerprint window per tick must still reach the cap.
@@ -479,9 +483,23 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     seek_ = Seek::None;
     seek_target_io_ = 0;
     origin_rate_ = 0;
-    origin_rate_min_ = 0;
-    origin_rate_max_ = 0;
-    origin_rate_samples_ = 0;
+    origin_window_.reset();
+    target_window_.reset();
+    model_cost_ = FlipCostVerdict{};
+    model_verify_readings_ = 0;
+    model_kappa_ = cost_.kappa();
+    hyp_predicted_ = hyp_sigma_ = hyp_delivered_ = hyp_threshold_ = 0;
+    hyp_origin_samples_ = 0;
+    pending_miss_ = false;
+    flip_measure_armed_ = false;
+    // A change trigger means the workload just changed: its stationarity starts now. A forced
+    // trigger (DEBUG) re-examines an unchanged workload and keeps the clock; boot set it at the
+    // first non-idle tick.
+    if (reason == FlipctlTriggerReason::FingerprintShift ||
+        reason == FlipctlTriggerReason::AnchorRateSurge ||
+        reason == FlipctlTriggerReason::AnchorRateCollapse || !stationary_since_ms_)
+        stationary_since_ms_ = now_ms;
+    maneuver_mark_ms_ = now_ms;
     surge_streak_ = 0;
     collapse_streak_ = 0;
     shift_detector_.reset();
@@ -535,7 +553,7 @@ void FlipController::enter_settling() {
 }
 
 bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
-                                Phase after_flip) {
+                                Phase after_flip, uint64_t now_ms, double rate_before) {
     // A flip onto the live split is a no-op that flip_begin nevertheless counts as completed, and
     // issue_flip would then report failure because the stage never left Idle -- an ownership
     // transaction in the counters that the controller does not believe it made. The seek arithmetic
@@ -548,41 +566,85 @@ bool FlipController::issue_flip(Server& server, uint32_t coordinator, uint32_t t
     pending_refused_ = server.flip_refused();
     pending_target_io_ = target_io;
     after_flip_ = after_flip;
+    // The flip's COST is measured from here: commands the server would have served at the rate it
+    // ran at before, minus the commands it did serve until the stage returns to Idle, per
+    // connection the planner moved. The naive transfer count is what the role change alone
+    // requires; the planner's re-plan moves more, and the ratio is learned.
+    flip_issue_ms_ = now_ms;
+    flip_issue_commands_ = total_commands(server);
+    flip_issue_transfers_ = server.flip_clients_transferred();
+    flip_issue_rate_ = rate_before;
+    flip_issue_naive_ = flip_naive_transfers(io_clients(server), server.role_count(Role::Ifid),
+                                             target_io);
     if (!server.flip_begin(target_io, server.nthreads() - target_io, coordinator, error))
         return false;
     phase_ = Phase::WaitingFlip;
     const bool issued = server.flip_stage() != FlipStage::Idle;
     if (issued) maneuver_flips_++;
+    flip_measure_armed_ = issued;
     return issued;
+}
+
+uint32_t FlipController::io_clients(const Server& server) const {
+    uint32_t clients = 0;
+    for (uint32_t tid = 0; tid < server.nthreads(); tid++)
+        if (server.thread(tid).role() == Role::Ifid) clients += server.thread(tid).client_count();
+    return clients;
+}
+
+// Books the flip that just returned to Idle into the cost model. Called at the first look that
+// sees Idle, which wait_ms() makes a fraction of a tick after completion, so the served count is
+// contaminated by at most that fraction of post-flip traffic at the new rate.
+void FlipController::measure_flip(Server& server, uint64_t now_ms) {
+    if (!flip_measure_armed_) return;
+    flip_measure_armed_ = false;
+    // A refused flip moved nothing and cost nothing worth learning from.
+    if (server.flip_completed() <= pending_completed_) return;
+    const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
+    const double elapsed_s = now_ms > flip_issue_ms_
+        ? static_cast<double>(now_ms - flip_issue_ms_) / 1000.0 : 0;
+    const uint64_t served = total_commands(server) - flip_issue_commands_;
+    const double lost = flip_issue_rate_ > 0
+        ? std::max(0.0, flip_issue_rate_ * elapsed_s - static_cast<double>(served)) : 0;
+    const uint64_t moved = server.flip_clients_transferred() - flip_issue_transfers_;
+    const double ticks = std::max(1.0, elapsed_s * 1000.0 / static_cast<double>(tick_ms));
+    last_flip_lost_ = lost;
+    last_flip_moved_ = moved;
+    // A flip that moved no connection (an empty server) prices nothing per client; it still
+    // counts toward the flip duration the blackout term uses.
+    cost_.record_flip(lost, static_cast<double>(moved), flip_issue_naive_, ticks);
 }
 
 // One windowed observation of how the two roles split the server's real work, plus each role's
 // HEADROOM: the idle share of its busiest thread. Returns false while the window carries no
 // evidence; the caller keeps measuring rather than inventing a prior.
-bool FlipController::sample_role_demand(Server& server, double& io_frac, double& io_headroom,
-                                        double& ex_headroom) {
+//
+// WORK IS WALL MINUS IDLE. The loops' busy_ns is not the whole of their work: the io loop closes
+// its busy span before ring_.submit_and_reap(), so the io_uring_enter syscall -- the kernel
+// moving the bytes, which is io work -- was booked as neither busy nor idle. Measured on the
+// guard's own snapshots (single-key 1:1, 40 s): one io thread booked 16.4 s busy + 0.2 s idle of
+// 39.9 s on-CPU, 23.5 s unbooked; the busy share read io = 0.32 on a workload whose work share is
+// 0.51, and the model moved 2:2 -> 1:3 (measured -52%) and came back. idle_ns is the quantity both
+// loops book faithfully: the io loop's blocked wait after an empty sweep, the ex loop's empty
+// passes and blocked wait (ex_loop.h). The wall is the controller's own tick clock, the same for
+// every thread of the window, so nothing new is read on the hot path.
+bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
+                                        double& io_headroom, double& ex_headroom) {
+    const double wall = now_ms > maneuver_mark_ms_
+        ? static_cast<double>(now_ms - maneuver_mark_ms_) * 1e6 : 0;
     double role_ops[2] = {};
-    double role_busy[2] = {};
-    double busiest[2] = {};
+    double role_work[2] = {};
     double headroom[2] = {1.0, 1.0};
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signal = server.thread(tid).sig();
         const ThreadMeasure& start = maneuver_mark_[tid];
         const uint64_t ops = signal.ops - start.ops;
-        // busy_ns is WORK: the loops book a pass that found nothing as idle (ex_loop.h), so no
-        // spin correction is applied here. The former busy x (1 - spins/iterations) treated an
-        // empty 2048-budget spin pass as costing what a task batch costs and cut the ex share to
-        // a quarter of itself -- io = 0.73 read on a 0.47 workload, a bias toward "more io" in
-        // exactly the direction of the round trip this lane exists to stop.
-        const double busy = static_cast<double>(signal.busy_ns - start.busy_ns);
         const double idle = static_cast<double>(signal.idle_ns - start.idle_ns);
         const Role role = server.thread(tid).role();
         if (role != Role::Ifid && role != Role::Ex) continue;
         const size_t index = role == Role::Ifid ? 0 : 1;
         role_ops[index] += static_cast<double>(ops);
-        role_busy[index] += busy;
-        busiest[index] = std::max(busiest[index], busy);
-        const double wall = busy + idle;
+        role_work[index] += flip_role_work(wall, idle);
         if (wall > 0)
             headroom[index] = std::min(headroom[index], std::clamp(idle / wall, 0.0, 1.0));
     }
@@ -590,38 +652,23 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac, double&
         const LoopSignals& signal = server.thread(tid).sig();
         maneuver_mark_[tid] = ThreadMeasure{signal.ops, signal.busy_ns, signal.idle_ns};
     }
+    maneuver_mark_ms_ = now_ms;
     // Capacity is unidentifiable without observed work on both sides. Keep measuring instead of
     // inventing a workload prior. The constraint guard deliberately examines each role's busiest
     // thread; idle peers therefore cannot veto a move demanded by the loaded owner.
-    if (role_ops[0] <= 0 || role_ops[1] <= 0 ||
-        role_busy[0] <= 0 || role_busy[1] <= 0 ||
-        busiest[0] <= 0 || busiest[1] <= 0) return false;
+    if (wall <= 0 || role_ops[0] <= 0 || role_ops[1] <= 0 ||
+        role_work[0] <= 0 || role_work[1] <= 0) return false;
 
     // WORK CONSERVATION, WITH BOTH OPERANDS THE SAME QUANTITY. The throughput-optimal split gives
     // each role the thread fraction its PER-COMMAND service cost demands,
-    //     n_io* / N = c_io / (c_io + c_ex),   c_role = (busy ns that role spent) / (commands run),
+    //     n_io* / N = c_io / (c_io + c_ex),   c_role = (work ns that role spent) / (commands run),
     // and the command count is the same divisor on both sides, so it cancels: the estimator is the
-    // corrected busy-time share, and it never has to name what an "op" is.
-    //
-    // It used to divide each role's busy time by that role's OWN op counter, and an op is not the
-    // same object on the two sides. The io loop counts one per parsed command -- io_loop.h says so
-    // where it scatters: "one public command, not one count per shard task" -- while the ex loop
-    // adds one per shard task it executes. Measured here on 8-key MGET/MSET at pipeline 32, live
-    // split 5:3 on eight threads: the ex role logged 7.576 ops per command, so its per-op cost read
-    // 397ns against io's 1762ns and the model concluded io deserved 82% of the pool. The same
-    // window's per-COMMAND costs were io 1762ns and ex 3010ns -- ex does the MORE work -- so io
-    // deserves 37%. The controller duly flipped 5:3 to 7:1, which measures 0.29M ops/s against
-    // 0.95M at 5:3 and 1.32M at 4:4, found it worse, and walked back to the split it started from:
-    // the round trip the operator saw as three flips, 993 moved connections and an unchanged
-    // target. On single-key traffic both forms give 0.3293 to four decimals, because there one
-    // command is exactly one ex task -- which is why this is a forty-fold multi-key defect and a
-    // half-percent single-key one.
-    const double demand_io = role_busy[0];
-    const double demand_ex = role_busy[1];
-    if (!std::isfinite(demand_io) || !std::isfinite(demand_ex) ||
-        demand_io + demand_ex <= 0) return false;
-
-    io_frac = demand_io / (demand_io + demand_ex);
+    // work-time share, and it never has to name what an "op" is. (It used to divide each role's
+    // busy time by that role's OWN op counter; the ex loop counts one op per SHARD TASK, 7.576 per
+    // MGET8 command, so ex looked cheap and the model wanted io = 82% -- the 5:3 -> 7:1 -> 5:3
+    // round trip the operator saw as three flips and 993 moved connections.)
+    if (!std::isfinite(role_work[0]) || !std::isfinite(role_work[1])) return false;
+    io_frac = role_work[0] / (role_work[0] + role_work[1]);
     io_headroom = headroom[0];
     ex_headroom = headroom[1];
     return true;
@@ -632,7 +679,7 @@ bool FlipController::sample_role_demand(Server& server, double& io_frac, double&
 // band this maneuver uses, an operator-typed --flip-auto-band included, because that knob says how
 // small a gain is worth chasing, not how still the workload is holding.
 double FlipController::baseline_band() const {
-    return origin_rate_samples_ >= 2 ? flip_baseline_band(origin_rate_min_, origin_rate_max_) : 0;
+    return origin_window_.samples >= 2 ? origin_window_.bracket_band() : 0;
 }
 
 // The throughput noise a projected gain has to beat before a flip could be VERIFIED: the band the
@@ -647,20 +694,17 @@ double FlipController::verification_band(double rate) const {
 
 // The Measuring phase (flip_policy.h): one demand draw per stabilized reading into the policy
 // window, then decide or keep measuring. The server serves at its live split throughout, so time
-// spent here costs nothing but the maneuver's own sampling arm.
-bool FlipController::decide_placement(Server& server, uint32_t coordinator, double rate) {
+// spent here costs nothing but the maneuver's own sampling arm -- which is why every "not yet" below
+// is a return to sampling, not a hold: the interval tightens, the origin's noise estimate firms up,
+// and the stationarity horizon the cost gate credits grows, all for free.
+bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint64_t now_ms,
+                                      double rate) {
     maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
     double io_frac = 0, io_headroom = 0, ex_headroom = 0;
-    if (!sample_role_demand(server, io_frac, io_headroom, ex_headroom)) return false;
+    if (!sample_role_demand(server, now_ms, io_frac, io_headroom, ex_headroom)) return false;
     demand_window_.add(io_frac);
     // Measuring never moves the split, so every reading here is a reading of the ORIGIN.
-    if (rate > 0) {
-        if (!origin_rate_samples_++) origin_rate_min_ = origin_rate_max_ = rate;
-        else {
-            origin_rate_min_ = std::min(origin_rate_min_, rate);
-            origin_rate_max_ = std::max(origin_rate_max_, rate);
-        }
-    }
+    if (rate > 0) origin_window_.add(rate);
     model_readings_++;
     model_io_frac_ = demand_window_.mean;
     model_io_headroom_ = io_headroom;
@@ -671,8 +715,28 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, doub
     const uint32_t now_units = server.role_count(Role::Ifid) / unit;
     const double band = verification_band(rate);
     model_required_gain_ = std::min(1.0, band * static_cast<double>(model_margin_));
-    const FlipPlacementChoice choice = flip_choose_split(
-        now_units, total_units, demand_window_, model_required_gain_, kMinModelSamples);
+    // CALIBRATION. The chooser works in the model's own units; a projection the outcome record
+    // says is worth kappa of itself has to clear a bar 1/kappa as high.
+    model_kappa_ = cost_.kappa();
+    const double bar_model_units = model_kappa_ > 0
+        ? std::min(1.0, model_required_gain_ / model_kappa_) : 1.0;
+    FlipPlacementChoice choice = flip_choose_split(
+        now_units, total_units, demand_window_, bar_model_units, kMinModelSamples);
+    // A DEBUG FLIPCTL SEEK request replaces the model's target with the operator's: judged by the
+    // model's projection for THAT split under the same bars, or, forced, by the outcome loop alone.
+    const bool debug_seek = debug_seek_io_ != 0 && debug_seek_io_ / unit != now_units &&
+                            debug_seek_io_ / unit < total_units;
+    const bool debug_force = debug_seek && debug_seek_force_;
+    if (debug_seek && demand_window_.samples >= kMinModelSamples) {
+        const uint32_t s = debug_seek_io_ / unit;
+        choice.target_units = s;
+        choice.gain_mean = flip_projected_gain(s, now_units, total_units, demand_window_.mean);
+        choice.gain_low = std::min({choice.gain_mean,
+            flip_projected_gain(s, now_units, total_units, choice.io_frac_low),
+            flip_projected_gain(s, now_units, total_units, choice.io_frac_high)});
+        choice.decided = true;
+        choice.move = debug_force || choice.gain_low > bar_model_units;
+    }
     model_io_frac_low_ = choice.io_frac_low;
     model_io_frac_high_ = choice.io_frac_high;
     model_gain_mean_ = choice.gain_mean;
@@ -686,26 +750,71 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, doub
     // not touch -- a paced driver, the network, or the closed loop's own wake-up latency (measured
     // here: memtier at 27% of its cores, io 86% / ex 93% busy, and neither side waiting on the
     // other's capacity) -- and a flip can only cost. Read from the idle_ns the loops already
-    // account, once per reading, off the hot path.
-    const bool externally_bound = io_headroom > band && ex_headroom > band;
-
+    // account, once per reading, off the hot path. A forced seek is exempt: it is a directed test.
+    const bool externally_bound = !debug_force && io_headroom > band && ex_headroom > band;
     const bool capped = model_readings_ >= model_readings_cap_;
+
+    // COST GATE + VERIFICATION WINDOW (flip_policy.h). Only a target that already clears the noise
+    // bar is priced. The window at the target is sized from the origin's own noise; the gate
+    // credits the kappa-scaled gain over the stationarity the workload has demonstrated, less the
+    // blind time, against the measured transfer cost and the blackout at a wrong split.
+    bool pays = false;
+    if (choice.decided && choice.move && choice.target_units != now_units) {
+        const double g_low = model_kappa_ * choice.gain_low;
+        const double g_mean = model_kappa_ * choice.gain_mean;
+        const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
+        const double tick_s = static_cast<double>(tick_ms) / 1000.0;
+        model_verify_readings_ = flip_verify_window(
+            origin_window_.sigma(), origin_window_.samples, std::max(g_mean, 0.0),
+            model_readings_cap_);
+        const double blackout_s = (cost_.flip_ticks() + kSettleTicks +
+            (model_verify_readings_ ? model_verify_readings_ - 1 : 0)) * tick_s;
+        const double stationary_s = (now_ms > stationary_since_ms_ && stationary_since_ms_)
+            ? static_cast<double>(now_ms - stationary_since_ms_) / 1000.0 : 0;
+        const double transfers = cost_.predicted_transfers(
+            io_clients(server), now_units * unit, choice.target_units * unit);
+        model_cost_ = flip_cost_gate(g_low, g_mean, rate, stationary_s, blackout_s,
+                                     cost_.client_cost() * transfers, cost_.miss_probability(),
+                                     model_margin_);
+        pays = debug_force || (model_verify_readings_ > 0 && model_cost_.pays);
+        if (!pays && !capped && !externally_bound) {
+            // Not yet: the horizon grows and the origin's noise estimate tightens while sampling.
+            model_last_decision_ = model_verify_readings_ ? "sampling-cost" : "sampling-unverifiable";
+            return false;
+        }
+    }
     if (!choice.decided && !capped && !externally_bound) return false;  // keep measuring
 
     record(now_units * unit, rate);
-    if (externally_bound || !choice.decided || !choice.move) {
+    if (externally_bound || !choice.decided || !choice.move || !pays) {
         model_last_decision_ = externally_bound ? "hold-unsaturated"
             : !choice.decided ? "hold-unresolved"
-            : choice.target_units == now_units ? "hold-optimum" : "hold-below-bar";
+            : choice.target_units == now_units ? "hold-optimum"
+            : !choice.move ? "hold-below-bar"
+            : !model_verify_readings_ ? "hold-unverifiable" : "hold-cost";
+        if (choice.decided && choice.move && choice.target_units != now_units && !externally_bound)
+            cost_holds_++;
         model_holds_++;
+        debug_seek_io_ = 0;
+        debug_seek_force_ = false;
         enter_settling();
         return false;
     }
-    model_last_decision_ = "move";
-    origin_rate_ = rate;
+    // MOVE: the hypothesis. R0 is the origin window's mean; the prediction is kappa-scaled; the
+    // target window is judged against the origin's noise and sample count from here on.
+    model_last_decision_ = debug_force ? "move-forced" : "move";
+    origin_rate_ = origin_window_.mean > 0 ? origin_window_.mean : rate;
+    hyp_predicted_ = model_kappa_ * choice.gain_mean;
+    hyp_sigma_ = origin_window_.sigma();
+    hyp_origin_samples_ = origin_window_.samples;
+    hyp_delivered_ = 0;
+    hyp_threshold_ = 0;
+    target_window_.reset();
     seek_target_io_ = model_target_io_;
     seek_ = Seek::AtTarget;
-    if (!issue_flip(server, coordinator, seek_target_io_, Phase::Seeking)) {
+    debug_seek_io_ = 0;
+    debug_seek_force_ = false;
+    if (!issue_flip(server, coordinator, seek_target_io_, Phase::Seeking, now_ms, origin_rate_)) {
         seek_ = Seek::None;
         enter_settling();
         return false;
@@ -713,7 +822,7 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, doub
     return true;
 }
 
-bool FlipController::settle(Server& server, uint32_t coordinator) {
+bool FlipController::settle(Server& server, uint32_t coordinator, uint64_t now_ms) {
     if (readings_.empty()) {
         enter_settling();
         return false;
@@ -723,39 +832,55 @@ bool FlipController::settle(Server& server, uint32_t coordinator) {
         if (reading.rate > best->rate) best = &reading;
     const uint32_t current = server.role_count(Role::Ifid);
     if (current != best->split) {
-        if (issue_flip(server, coordinator, best->split, Phase::Settling)) return true;
+        if (issue_flip(server, coordinator, best->split, Phase::Settling, now_ms,
+                       readings_.back().rate)) return true;
     }
     enter_settling();
     return false;
 }
 
-// The Seeking phase: the one stabilized reading at the model's target, judged against the
-// origin's. Better by the band => anchor here. Not => straight back to the origin, where anchor()
-// books the round trip and raises the model's bar. No walk, no overshoot, no second probe: every
-// extra visit is a flip plus a measurement window at a split the model already rated lower, and
-// that walk -- out to an overshot split, back through the origin -- is what cost 19.5% on
-// multi-key with the target unchanged.
-bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, double rate) {
+// The Seeking phase: stabilized readings at the model's target, judged SEQUENTIALLY against the
+// origin's window. The hypothesis planned n_t readings from the origin's noise; after each one the
+// target's mean is compared at two standard errors of the difference (never below the origin's
+// own bracket or the learned band). Better => anchor here, early if the evidence is already in.
+// Clearly worse => straight back at once: no sitting at a split the model already lost on. At the
+// planned count, not better => back to the origin, where anchor() books the miss and raises the
+// bar. No walk, no overshoot: every extra visit is a flip plus a window at a split the model rated
+// lower, and that walk is what cost 19.5% on multi-key with the target unchanged.
+bool FlipController::seek_after_reading(Server& server, uint32_t coordinator, uint64_t now_ms,
+                                        double rate) {
     maneuver_rate_jitter_ = std::max(maneuver_rate_jitter_, stable_pair_delta_);
     const uint32_t current = server.role_count(Role::Ifid);
     record(current, rate);
     if (seek_ == Seek::AtTarget && current == seek_target_io_) {
-        const double band = verification_band(rate);
-        const bool delivered = rate > origin_rate_ * (1.0 + band);
-        if (delivered) {
+        target_window_.add(rate);
+        const uint32_t k = target_window_.samples;
+        hyp_threshold_ = flip_verify_threshold(hyp_sigma_, hyp_origin_samples_, k,
+                                               verification_band(rate));
+        hyp_delivered_ = origin_rate_ > 0 ? target_window_.mean / origin_rate_ - 1.0 : 0;
+        const FlipOutcome verdict = flip_judge(hyp_delivered_, hyp_threshold_, k,
+                                               model_verify_readings_);
+        if (verdict == FlipOutcome::Pending) {
+            model_last_decision_ = "verifying";
+            return false;
+        }
+        if (verdict == FlipOutcome::Hit) {
             model_last_decision_ = "moved-delivered";
+            cost_.record_outcome(hyp_predicted_, hyp_delivered_, true);
             seek_ = Seek::None;
             enter_settling();
             return false;
         }
         model_last_decision_ = "moved-reverted";
+        pending_miss_ = true;
         seek_ = Seek::Returning;
-        if (issue_flip(server, coordinator, maneuver_origin_io_, Phase::Settling)) return true;
+        if (issue_flip(server, coordinator, maneuver_origin_io_, Phase::Settling, now_ms,
+                       target_window_.mean)) return true;
     }
     // A refused return, or a reading at a split this seek did not ask for: stop on the best
     // evidence in hand.
     seek_ = Seek::None;
-    return settle(server, coordinator);
+    return settle(server, coordinator, now_ms);
 }
 
 void FlipController::anchor(Server& server, double rate) {
@@ -811,11 +936,24 @@ void FlipController::anchor(Server& server, double rate) {
     // that stuck lowers it again. A hold (no flip) is neither.
     const bool round_trip = current == maneuver_origin_io_ && maneuver_flips_ > 0;
     if (round_trip) {
-        round_trips_++;
-        if (anchor_rate_band_ * static_cast<double>(model_margin_) < 1.0) model_margin_ *= 2;
+        // Was the test valid? The origin must read what it read before the excursion. If it does
+        // not, the baseline moved while the maneuver was out -- the hypothesis was voided, not
+        // refuted -- and the model's record must not carry a miss it did not earn.
+        const bool baseline_moved = pending_miss_ && origin_rate_ > 0 &&
+            relative_distance(anchor_rate_, origin_rate_) >
+                std::max(hyp_threshold_, anchor_rate_band_);
+        if (baseline_moved) {
+            invalidated_maneuvers_++;
+            model_last_decision_ = "moved-reverted-invalidated";
+        } else {
+            round_trips_++;
+            if (pending_miss_) cost_.record_outcome(hyp_predicted_, hyp_delivered_, false);
+            if (anchor_rate_band_ * static_cast<double>(model_margin_) < 1.0) model_margin_ *= 2;
+        }
     } else if (moved_split) {
         model_margin_ = std::max<uint32_t>(1, model_margin_ / 2);
     }
+    pending_miss_ = false;
     shift_streak_ = 0;
     shift_detector_.anchor();
     signal_sample_rate_.store(0, std::memory_order_release);
@@ -866,6 +1004,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
 
     if (phase_ == Phase::WaitingFlip) {
         if (server.flip_stage() != FlipStage::Idle) return false;
+        measure_flip(server, now_ms);
         if (retrigger_after_flip_) {
             const FlipctlTriggerReason reason = pending_retrigger_;
             start_maneuver(server, reason, now_ms);
@@ -889,18 +1028,18 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             previous_subwindow_valid_ = false;
             return false;
         }
-        if (server.flip_refused() > pending_refused_) return settle(server, coordinator);
+        if (server.flip_refused() > pending_refused_) return settle(server, coordinator, now_ms);
         return false;
     }
 
     double rate = 0;
     if (phase_ == Phase::Measuring) {
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
-        return decide_placement(server, coordinator, rate);
+        return decide_placement(server, coordinator, now_ms, rate);
     }
     if (phase_ == Phase::Seeking) {
         if (!sample_stabilized_rate(server, now_ms, rate)) return false;
-        return seek_after_reading(server, coordinator, rate);
+        return seek_after_reading(server, coordinator, now_ms, rate);
     }
     if (phase_ == Phase::Settling) {
         if (!anchor_sampling_disabled_) {
@@ -1014,6 +1153,38 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
     return false;
 }
 
+uint32_t FlipController::wait_ms(uint32_t tick_ms) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (phase_ == Phase::WaitingFlip && flip_measure_armed_)
+        return std::max<uint32_t>(1, tick_ms / kFlipPollDivisor);
+    return std::max<uint32_t>(1, tick_ms);
+}
+
+bool FlipController::debug_seek(uint32_t target_io, bool force, std::string& error) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!enabled_) {
+        error = "ERR flip controller is disabled; boot with --flip-auto 1";
+        return false;
+    }
+    if (!target_io) {
+        error = "ERR SEEK wants an io thread count of at least 1";
+        return false;
+    }
+    if (phase_ != Phase::Anchored && phase_ != Phase::BootPending) {
+        error = "ERR a maneuver is in progress; SEEK needs an anchored controller";
+        return false;
+    }
+    debug_seek_io_ = target_io;
+    debug_seek_force_ = force;
+    force_requested_.store(true, std::memory_order_release);
+    return true;
+}
+
+void FlipController::debug_cost(double commands_per_client) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    cost_.injected_client_cost = commands_per_client;
+}
+
 FlipctlReport FlipController::report() const {
     std::lock_guard<std::mutex> lock(mutex_);
     FlipctlReport report;
@@ -1038,12 +1209,23 @@ FlipctlReport FlipController::report() const {
     report.rate_confirmations = rate_confirmations_;
     report.round_trips = round_trips_;
     report.model_margin = model_margin_;
+    report.model_last_decision = model_last_decision_;
+    report.model_kappa = cost_.kappa();
+    report.model_moves = cost_.moves;
+    report.model_misses = cost_.misses;
+    report.invalidated_maneuvers = invalidated_maneuvers_;
+    report.cost_holds = cost_holds_;
+    report.client_cost = cost_.client_cost();
+    report.last_flip_lost = last_flip_lost_;
+    report.last_flip_moved = last_flip_moved_;
+    report.flip_ticks = cost_.flips ? cost_.flip_ticks() : 0;
+    report.stationary_s = 0;
     return report;
 }
 
 std::string FlipController::debug_dump() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    char head[2048];
+    char head[4096];
     const int n = std::snprintf(
         head, sizeof(head),
         "state=%s\nphase=%s\nanchor=%u:%u\nanchor_rate=%.3f\n"
@@ -1063,7 +1245,15 @@ std::string FlipController::debug_dump() const {
         "last_trigger=%s\ntriggers=%llu boot=%llu fingerprint=%llu "
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
         "pending_io=%u seek=%s seek_target_io=%u origin_rate=%.3f\n"
-        "origin_rate_readings=%u origin_rate_min=%.3f origin_rate_max=%.3f baseline_band=%.4f\n",
+        "origin_rate_readings=%u origin_rate_min=%.3f origin_rate_max=%.3f baseline_band=%.4f\n"
+        "origin_sigma=%.5f model_kappa=%.4f model_verify_readings=%u\n"
+        "cost_benefit=%.1f cost_cost=%.1f cost_transfer=%.1f cost_blackout_s=%.2f "
+        "cost_horizon_s=%.2f cost_payback_s=%.2f cost_pays=%d\n"
+        "cost_client=%.2f cost_reshuffle=%.3f cost_flip_ticks=%.2f cost_p_miss=%.3f "
+        "cost_flips=%llu cost_moves=%u cost_misses=%u cost_lost_sum=%.1f cost_moved_sum=%.1f\n"
+        "hyp_predicted=%.4f hyp_delivered=%.4f hyp_threshold=%.4f hyp_sigma=%.5f "
+        "hyp_origin_samples=%u target_readings=%u pending_miss=%d\n"
+        "last_flip_lost=%.1f last_flip_moved=%llu invalidated=%llu cost_holds=%llu\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
@@ -1088,7 +1278,18 @@ std::string FlipController::debug_dump() const {
         static_cast<unsigned long long>(forced_triggers_), pending_target_io_,
         seek_ == Seek::AtTarget ? "at-target" : seek_ == Seek::Returning ? "returning" : "none",
         seek_target_io_, origin_rate_,
-        origin_rate_samples_, origin_rate_min_, origin_rate_max_, baseline_band());
+        origin_window_.samples, origin_window_.lo, origin_window_.hi, baseline_band(),
+        origin_window_.sigma(), cost_.kappa(), model_verify_readings_,
+        model_cost_.benefit, model_cost_.cost, model_cost_.transfer_cost, model_cost_.blackout_s,
+        model_cost_.horizon_s, model_cost_.payback_s, model_cost_.pays ? 1 : 0,
+        cost_.client_cost(), cost_.reshuffle(), cost_.flip_ticks(), cost_.miss_probability(),
+        static_cast<unsigned long long>(cost_.flips), cost_.moves, cost_.misses,
+        cost_.lost_sum, cost_.moved_sum,
+        hyp_predicted_, hyp_delivered_, hyp_threshold_, hyp_sigma_, hyp_origin_samples_,
+        target_window_.samples, pending_miss_ ? 1 : 0,
+        last_flip_lost_, static_cast<unsigned long long>(last_flip_moved_),
+        static_cast<unsigned long long>(invalidated_maneuvers_),
+        static_cast<unsigned long long>(cost_holds_));
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way

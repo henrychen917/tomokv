@@ -31,6 +31,34 @@
 //      -- the bar has to rise, not the window). A move that delivered halves the margin back
 //      toward one band. The margin is capped where required gain would exceed 100%: past that
 //      the model could never fire again on any workload, which is a silent `--flip-auto 0`.
+//
+// REVISION 2026-09-06 (the actuator redesign). The three rules above were the placement policy's
+// first cut; this revision gives each of them the quantity it was missing, in units:
+//
+//   SIGNAL. Role demand is measured as WORK = wall - idle per thread (flip_role_work), not as the
+//      loops' busy_ns. The io loop closes its busy span before ring_.submit_and_reap(), so the
+//      io_uring_enter syscall -- the kernel moving the bytes, which is io work -- was booked as
+//      neither busy nor idle: 23.5 s of a 40 s window on one single-key io thread. The busy share
+//      read io = 0.32 on a workload whose work share is 0.51, and the model moved 2:2 -> 1:3
+//      (measured -52%) and came back. idle_ns is the one quantity both loops book faithfully.
+//
+//   COST GATE, in commands over the horizon the workload has demonstrated (flip_cost_gate). A move
+//      must pay for itself: kappa g_low R0 (T_stat - T_black) > margin [C_xfer (1 + P_miss) +
+//      P_miss kappa g_mean R0 T_black]. T_stat is how long the workload has held still, T_black
+//      how long the controller is blind after the flip (flip + settle + planned readings), C_xfer
+//      = measured commands lost per transferred client x predicted transfers, P_miss the model's
+//      own miss rate (Laplace). First flip: the transfer cost is unknown and stays zero -- that
+//      flip is the measurement.
+//
+//   WINDOW FROM VARIANCE (flip_verify_window / flip_verify_threshold). The post-move window is as
+//      long as the origin's own noise says it has to be to resolve the predicted gain at two
+//      standard errors, and no longer; verification is sequential (accept early, reject early).
+//
+//   OUTCOME LOOP (FlipCostModel::record_outcome). Every move is a hypothesis with a predicted
+//      delta. A miss reverts and doubles the margin (sign); kappa = (sum delivered + gbar) /
+//      (sum predicted + gbar) learns the model's MAGNITUDE bias with the credence of one delivered
+//      move of average size as its only prior, and never exceeds one.
+
 #pragma once
 
 #include <algorithm>
@@ -152,6 +180,182 @@ inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_
     }
     if (optimistic <= required_gain) choice.decided = true;  // no split could pay for a flip
     return choice;
+}
+
+// ---- REVISION 2026-09-06: signal, cost gate, verification window, outcome ---------------------
+
+// Work a thread did over a window: everything it did not book as idle. `wall_ns` is the window the
+// controller's own clock measured; `idle_ns` the loop's booked idle over that window.
+inline double flip_role_work(double wall_ns, double idle_ns) {
+    if (!(wall_ns > 0)) return 0;
+    return std::max(0.0, wall_ns - std::max(0.0, idle_ns));
+}
+
+// Running mean/variance/bracket of throughput readings (Welford), the noise model behind the
+// verification window and the outcome threshold.
+struct FlipRateWindow {
+    uint32_t samples = 0;
+    double mean = 0;
+    double m2 = 0;
+    double lo = 0;
+    double hi = 0;
+
+    void reset() { samples = 0; mean = 0; m2 = 0; lo = 0; hi = 0; }
+    void add(double rate) {
+        if (!samples) lo = hi = rate;
+        else { lo = std::min(lo, rate); hi = std::max(hi, rate); }
+        samples++;
+        const double delta = rate - mean;
+        mean += delta / samples;
+        m2 += delta * (rate - mean);
+    }
+    double stdev() const {
+        return samples > 1 ? std::sqrt(std::max(0.0, m2 / (samples - 1))) : 0;
+    }
+    // Relative noise of ONE reading.
+    double sigma() const { return mean > 0 ? stdev() / mean : 0; }
+    // Twice the observed spread: the trend guard (flip_baseline_band).
+    double bracket_band() const { return flip_baseline_band(lo, hi); }
+};
+
+// Connections the flip planner must move for a role change, before its weighted re-plan
+// reshuffles more: every client of a converted io thread when io shrinks, the new threads' share
+// when it grows. Measured against the plan's real count through FlipCostModel::reshuffle().
+inline double flip_naive_transfers(uint32_t clients, uint32_t io_before, uint32_t io_after) {
+    if (!clients || !io_before || !io_after || io_before == io_after) return 0;
+    const uint32_t delta = io_before > io_after ? io_before - io_after : io_after - io_before;
+    return static_cast<double>(clients) * delta / static_cast<double>(std::max(io_before, io_after));
+}
+
+// Readings the target needs so that a predicted gain is resolvable at two standard errors against
+// an origin measured with `n_origin` readings of relative noise `sigma`:
+//     2 sigma sqrt(1/n_o + 1/n_t) <= gain / 2   =>   1/n_t <= (gain / 4 sigma)^2 - 1/n_o.
+// Zero means the origin itself is not yet measured precisely enough (or the window would exceed
+// `cap`): keep sampling the origin, which is free. A noiseless origin resolves in one reading.
+inline uint32_t flip_verify_window(double sigma, uint32_t n_origin, double gain, uint32_t cap) {
+    if (!(gain > 0) || n_origin < 2 || !cap) return 0;
+    if (!(sigma > 0)) return 1;
+    const double quarter = gain / (4.0 * sigma);
+    const double bracket = quarter * quarter - 1.0 / static_cast<double>(n_origin);
+    if (bracket <= 0) return 0;
+    const double n = std::ceil(1.0 / bracket);
+    if (n > static_cast<double>(cap)) return 0;
+    return static_cast<uint32_t>(std::max(1.0, n));
+}
+
+// The gain a target's mean over `k` readings must show over the origin's mean over `n_origin`
+// readings: two standard errors of the difference, never below the caller's floor (the origin's
+// own bracket, the learned band, a typed band).
+inline double flip_verify_threshold(double sigma, uint32_t n_origin, uint32_t k, double floor) {
+    double two_se = 0;
+    if (n_origin && k && sigma > 0)
+        two_se = 2.0 * sigma * std::sqrt(1.0 / n_origin + 1.0 / k);
+    return std::max(two_se, std::max(0.0, floor));
+}
+
+enum class FlipOutcome : uint8_t { Pending = 0, Hit, Miss };
+
+// Sequential verdict on a hypothesis after `k` of `planned` target readings.
+inline FlipOutcome flip_judge(double delivered, double threshold, uint32_t k, uint32_t planned) {
+    if (delivered > threshold) return FlipOutcome::Hit;
+    if (delivered < -threshold) return FlipOutcome::Miss;   // clearly worse: do not sit here
+    return k >= std::max<uint32_t>(1, planned) ? FlipOutcome::Miss : FlipOutcome::Pending;
+}
+
+// The cost model: what every flip so far cost and what every move so far delivered.
+struct FlipCostModel {
+    // Every flip, out or back, measured by the controller: commands the server did not serve while
+    // the flip was in flight, connections the planner moved, the naive count it had to move, and
+    // how many controller ticks it took.
+    uint64_t flips = 0;
+    double lost_sum = 0;
+    double moved_sum = 0;
+    double naive_sum = 0;
+    double ticks_sum = 0;
+    // Every move's outcome: predicted gain, delivered gain (a miss delivers zero).
+    uint32_t moves = 0;
+    uint32_t misses = 0;
+    double predicted_sum = 0;
+    double delivered_sum = 0;
+    // DEBUG FLIPCTL COST: a typed per-client cost stands in for the measured one (< 0 = none).
+    double injected_client_cost = -1;
+
+    void record_flip(double lost, double moved, double naive, double ticks) {
+        flips++;
+        lost_sum += std::max(0.0, lost);
+        moved_sum += std::max(0.0, moved);
+        naive_sum += std::max(0.0, naive);
+        ticks_sum += std::max(1.0, ticks);
+    }
+    // `predicted` in the model's units (before kappa); a non-positive prediction (an induced
+    // hypothesis) counts toward the miss rate but not toward the calibration.
+    void record_outcome(double predicted, double delivered, bool hit) {
+        moves++;
+        if (!hit) misses++;
+        if (predicted > 0) {
+            predicted_sum += predicted;
+            delivered_sum += std::clamp(hit ? delivered : 0.0, 0.0, predicted);
+        }
+    }
+    // Commands lost per transferred client. Zero until a flip has been measured.
+    double client_cost() const {
+        if (injected_client_cost >= 0) return injected_client_cost;
+        return moved_sum > 0 ? lost_sum / moved_sum : 0;
+    }
+    // How many more connections the weighted re-plan moves than the role change requires.
+    double reshuffle() const {
+        return (naive_sum > 0 && moved_sum > 0) ? moved_sum / naive_sum : 1.0;
+    }
+    // Controller ticks a flip keeps the server in transition. One tick until measured: the
+    // controller cannot see a flip complete sooner than its next look.
+    double flip_ticks() const { return flips ? ticks_sum / flips : 1.0; }
+    // Laplace's rule: (misses + 1) / (moves + 2). One half before any move.
+    double miss_probability() const {
+        return (static_cast<double>(misses) + 1.0) / (static_cast<double>(moves) + 2.0);
+    }
+    // Calibration of the model's projected MAGNITUDE. The prior is one delivered move of the
+    // model's own average predicted size; a miss halves the credence, a hit restores it; never
+    // above one. Without any calibrated move the model is taken at its word.
+    double kappa() const {
+        if (predicted_sum <= 0) return 1.0;
+        const double gbar = predicted_sum / static_cast<double>(std::max<uint32_t>(1, moves));
+        return std::clamp((delivered_sum + gbar) / (predicted_sum + gbar), 0.0, 1.0);
+    }
+    double predicted_transfers(uint32_t clients, uint32_t io_before, uint32_t io_after) const {
+        return flip_naive_transfers(clients, io_before, io_after) * reshuffle();
+    }
+};
+
+struct FlipCostVerdict {
+    double benefit = 0;        // commands gained over the credited part of the horizon
+    double cost = 0;           // commands the move is expected to cost, margin applied
+    double transfer_cost = 0;  // commands: client cost x predicted transfers (one flip)
+    double blackout_s = 0;     // seconds the controller is blind after the flip
+    double horizon_s = 0;      // seconds of stationarity the workload has demonstrated
+    double payback_s = 0;      // stationarity at which this move would start paying
+    bool pays = false;
+};
+
+// THE COST GATE. Gains are kappa-scaled by the caller. A gain is credited only after the outcome
+// can be judged (T_stat - T_black); the cost is the flip, the revert with probability P_miss, and
+// the blackout at a wrong split -- during which a wrong move loses about what a right one would
+// have gained -- all times the outcome margin.
+inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
+                                      double stationary_s, double blackout_s,
+                                      double transfer_cost, double p_miss, uint32_t margin) {
+    FlipCostVerdict v;
+    v.blackout_s = std::max(0.0, blackout_s);
+    v.horizon_s = std::max(0.0, stationary_s);
+    v.transfer_cost = std::max(0.0, transfer_cost);
+    const double m = std::max<uint32_t>(1, margin);
+    const double credited = std::max(0.0, v.horizon_s - v.blackout_s);
+    v.benefit = std::max(0.0, gain_low) * std::max(0.0, rate) * credited;
+    v.cost = m * (v.transfer_cost * (1.0 + p_miss) +
+                  p_miss * std::max(0.0, gain_mean) * std::max(0.0, rate) * v.blackout_s);
+    v.payback_s = (gain_low > 0 && rate > 0)
+        ? v.blackout_s + v.cost / (gain_low * rate) : INFINITY;
+    v.pays = gain_low > 0 && v.benefit > v.cost;
+    return v;
 }
 
 }  // namespace tomo

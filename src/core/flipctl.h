@@ -189,6 +189,19 @@ struct FlipctlReport {
     uint32_t rate_confirmations = 0;
     uint64_t round_trips = 0;
     uint32_t model_margin = 0;
+    // Redesign 2026-09-06: the decision the model last took, its calibration and outcome record,
+    // and the measured transfer cost the gate charges.
+    std::string model_last_decision = "none";
+    double model_kappa = 1.0;
+    uint32_t model_moves = 0;
+    uint32_t model_misses = 0;
+    uint64_t invalidated_maneuvers = 0;
+    uint64_t cost_holds = 0;
+    double client_cost = 0;       // commands lost per transferred client (measured or injected)
+    double last_flip_lost = 0;    // commands the last flip cost
+    uint64_t last_flip_moved = 0; // connections the last flip moved
+    double flip_ticks = 0;        // mean controller ticks a flip stays in flight
+    double stationary_s = 0;      // seconds the current workload has held still
 };
 
 class FlipController {
@@ -208,8 +221,21 @@ public:
 
     // Called only by the main monitor thread. Returns true when a new internal FLIP was issued.
     bool tick(Server& server, uint64_t now_ms);
+    // How long the monitor should sleep before the next tick: the controller tick, except while a
+    // flip it issued is in flight, when it looks kFlipPollDivisor times per tick so the flip's
+    // cost (commands not served, duration) is measured to a fraction of a tick instead of being
+    // quantized to whole ticks. Cold: the monitor thread only.
+    uint32_t wait_ms(uint32_t tick_ms) const;
     FlipctlReport report() const;
     std::string debug_dump() const;
+    // DEBUG FLIPCTL SEEK <io> [FORCE]: propose a split as the next maneuver's hypothesis. Without
+    // FORCE it is judged by the model's projection for that split, the noise bar and the cost gate
+    // like any model target; with FORCE the flip is issued regardless and only the outcome loop
+    // judges it -- the directed test of "an induced miss must revert and raise the bar".
+    bool debug_seek(uint32_t target_io, bool force, std::string& error);
+    // DEBUG FLIPCTL COST <commands-per-client>: a typed per-client transfer cost replaces the
+    // measured one (negative restores the measurement) -- the directed test of the cost gate.
+    void debug_cost(double commands_per_client);
 
 private:
     enum class Phase : uint8_t {
@@ -254,15 +280,17 @@ private:
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
     void enter_settling();
-    bool sample_role_demand(Server& server, double& io_frac, double& io_headroom,
-                            double& ex_headroom);
+    bool sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
+                            double& io_headroom, double& ex_headroom);
     double verification_band(double rate) const;
     double baseline_band() const;
-    bool decide_placement(Server& server, uint32_t coordinator, double rate);
+    bool decide_placement(Server& server, uint32_t coordinator, uint64_t now_ms, double rate);
     bool issue_flip(Server& server, uint32_t coordinator, uint32_t target_io,
-                    Phase after_flip);
-    bool seek_after_reading(Server& server, uint32_t coordinator, double rate);
-    bool settle(Server& server, uint32_t coordinator);
+                    Phase after_flip, uint64_t now_ms, double rate_before);
+    void measure_flip(Server& server, uint64_t now_ms);
+    uint32_t io_clients(const Server& server) const;
+    bool seek_after_reading(Server& server, uint32_t coordinator, uint64_t now_ms, double rate);
+    bool settle(Server& server, uint32_t coordinator, uint64_t now_ms);
     void anchor(Server& server, double rate);
     void record(uint32_t split, double rate);
     double automatic_rate_band(double pair_delta, double rate) const;
@@ -351,14 +379,52 @@ private:
     Seek seek_ = Seek::None;
     uint32_t seek_target_io_ = 0;
     double origin_rate_ = 0;
-    // The ORIGIN's own movement while the model was deciding: min/max of the stabilized readings
-    // taken at the origin split during Measuring. A gain smaller than this spread is not a gain,
-    // it is the baseline moving -- the gate's ramping driver produced a +22% "delivered" on a
-    // still-trending load and anchored the boot maneuver on a rail. Bracket, not variance: two
-    // readings already bound a comparison of two readings.
-    double origin_rate_min_ = 0;
-    double origin_rate_max_ = 0;
-    uint32_t origin_rate_samples_ = 0;
+    // The ORIGIN's stabilized readings while the model was deciding (Measuring never moves the
+    // split): their mean is R0, their relative stdev is the noise the verification window is sized
+    // from, and their bracket (min/max) floors every band of the maneuver -- a gain smaller than
+    // the baseline's own movement is the baseline moving, which is how the gate's ramping driver
+    // once anchored a boot maneuver on a rail.
+    FlipRateWindow origin_window_{};
+    // The TARGET's stabilized readings during the seek: judged sequentially against the origin.
+    FlipRateWindow target_window_{};
+    // What every flip cost and what every move delivered (flip_policy.h).
+    FlipCostModel cost_{};
+    FlipCostVerdict model_cost_{};
+    uint32_t model_verify_readings_ = 0;   // planned target readings of the current hypothesis
+    double model_kappa_ = 1.0;
+    // The hypothesis under test: predicted gain (kappa-scaled), the origin's noise and sample
+    // count it is judged against, planned readings, and what the target delivered so far.
+    double hyp_predicted_ = 0;
+    double hyp_sigma_ = 0;
+    uint32_t hyp_origin_samples_ = 0;
+    double hyp_delivered_ = 0;
+    double hyp_threshold_ = 0;
+    bool pending_miss_ = false;
+    uint64_t invalidated_maneuvers_ = 0;
+    uint64_t cost_holds_ = 0;
+    // How long the workload has held still: the boot's first non-idle tick, or the trigger that
+    // detected a change. A forced trigger does not reset it (the workload did not change).
+    uint64_t stationary_since_ms_ = 0;
+    uint64_t maneuver_mark_ms_ = 0;       // the tick clock at the last demand mark (wall per thread)
+    // The flip in flight, for its cost: issue time, commands and transfers at issue, the rate the
+    // server ran at before it, and the naive transfer count the role change requires.
+    uint64_t flip_issue_ms_ = 0;
+    uint64_t flip_issue_commands_ = 0;
+    uint64_t flip_issue_transfers_ = 0;
+    double flip_issue_rate_ = 0;
+    double flip_issue_naive_ = 0;
+    bool flip_measure_armed_ = false;
+    double last_flip_lost_ = 0;
+    uint64_t last_flip_moved_ = 0;
+    // A DEBUG FLIPCTL SEEK request, consumed by the next decision.
+    uint32_t debug_seek_io_ = 0;
+    bool debug_seek_force_ = false;
+    // The reading mechanics behind T_black: after a flip the rate window restarts (one tick) and a
+    // stabilized reading needs two sub-windows -- three ticks before the first target reading.
+    static constexpr uint32_t kSettleTicks = 3;
+    // Looks per tick while a flip is in flight (wait_ms). A sampling ratio, not a machine
+    // constant: it sets how finely a sub-tick event is resolved, and only the cold monitor pays.
+    static constexpr uint32_t kFlipPollDivisor = 8;
 
     uint64_t rate_window_ms_ = 0;
     uint64_t rate_window_commands_ = 0;

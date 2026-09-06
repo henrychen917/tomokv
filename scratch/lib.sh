@@ -8,8 +8,8 @@ SP=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scr
 WT=/home/user/Projects/wt-flipdamp
 FIX_BIN=$WT/build/tomokv
 BASE_BIN=/home/user/Projects/wt-flipdamp-base/build/tomokv
-SRV_CPUS=52,53,180,181
-LG_CPUS=54,55,56,57,182,183,184,185
+SRV_CPUS=${SRV_CPUS:-52,53,180,181}
+LG_CPUS=${LG_CPUS:-54,55,56,57,182,183,184,185}
 MY_CPUS="52 53 54 55 56 57 180 181 182 183 184 185"
 PORT_AB=8220; PORT_HOLD=8221; PORT_SIG=8222; PORT_SPLIT=8223; PORT_BAT=8224
 SRV_RATIO=${SRV_RATIO:-2:2}          # 4 threads: splits 1:3 / 2:2 / 3:1 -- 2:2 ~ the owner's 18:14

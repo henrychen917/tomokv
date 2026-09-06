@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
@@ -145,6 +146,139 @@ int main() {
         for (double v : {0.6, 0.7, 0.65}) a.add(v);
         for (double v : {0.6, 0.7, 0.65, 0.6, 0.7, 0.65}) b.add(v);
         if (!(b.half_width() < a.half_width())) fail("more draws did not tighten the window");
+    }
+    // ---- REVISION 2026-09-06: signal, cost gate, verification window, outcome ------------------
+    // THE SIGNAL DEFECT, in the guard's own numbers (single-key 1:1, 2:2 of 4, 40 s window). The
+    // io thread booked 16.36 s busy + 0.17 s idle of 39.92 s on CPU; busy shares read io = 0.32 and
+    // the model moved to 1:3, which measured 0.48x. Work = wall - idle reads 0.506 and holds.
+    {
+        const double wall = 40.0e9;
+        const double io_work = flip_role_work(wall, 0.17e9) + flip_role_work(wall, 2.40e9);
+        const double ex_work = flip_role_work(wall, 2.56e9) + flip_role_work(wall, 1.76e9);
+        const double f = io_work / (io_work + ex_work);
+        if (std::abs(f - 0.506) > 0.005) fail("wall-idle share of the sk1:1 window is not 0.506");
+        FlipDemandWindow w;
+        w.add(f); w.add(f); w.add(f);
+        const FlipPlacementChoice c = flip_choose_split(2, 4, w, 0.012, 3);
+        if (!c.decided || c.move || c.target_units != 2)
+            fail("the wall-idle share did not hold 2:2 on the sk1:1 window");
+        // The busy share the guard used projected +5.8% for 1:3 -- the round trip it took.
+        FlipDemandWindow busy;
+        busy.add(0.321); busy.add(0.321); busy.add(0.321);
+        const FlipPlacementChoice b = flip_choose_split(2, 4, busy, 0.012, 3);
+        if (!b.move || b.target_units != 1) fail("the busy share did not reproduce the 1:3 move");
+        if (flip_role_work(0, 5) != 0 || flip_role_work(10, 12) != 0 || flip_role_work(10, -1) != 10)
+            fail("flip_role_work bounds");
+    }
+    // The mk window: io 27.6+3.5 / 25.75+3.24 of 38.1 s, ex 38.7+1.2 / 37.5+1.45 of 40.0 s.
+    {
+        const double io_work = flip_role_work(38.1e9, 3.50e9) + flip_role_work(38.1e9, 3.24e9);
+        const double ex_work = flip_role_work(40.0e9, 1.18e9) + flip_role_work(40.0e9, 1.45e9);
+        const double f = io_work / (io_work + ex_work);
+        if (std::abs(f - 0.472) > 0.005) fail("wall-idle share of the mk window is not 0.472");
+        FlipDemandWindow w;
+        w.add(f); w.add(f); w.add(f);
+        if (flip_choose_split(2, 4, w, 0.02, 3).move) fail("mk at 2:2 moved on the work share");
+    }
+    // Naive transfers: every client of a converted thread when io shrinks, the new threads' share
+    // when it grows (measured: 131 and 154 of 256 for 2->1 and 3->2 with the re-plan on top).
+    if (flip_naive_transfers(256, 2, 1) != 128 || flip_naive_transfers(256, 1, 2) != 128)
+        fail("naive transfers 2<->1 of 256 are not 128");
+    if (std::abs(flip_naive_transfers(256, 3, 2) - 85.333) > 0.01)
+        fail("naive transfers 3->2 of 256 are not 85.3");
+    if (flip_naive_transfers(256, 2, 2) != 0 || flip_naive_transfers(0, 2, 1) != 0)
+        fail("naive transfers of a no-op or an empty server are not zero");
+    // VERIFICATION WINDOW from the origin's own noise: a big gain resolves in one reading, a small
+    // one needs more, one too small against the origin's standard error cannot be verified yet,
+    // and more origin readings shorten the target's window.
+    if (flip_verify_window(0.01, 3, 0.20, 15) != 1) fail("+20% at 1% noise did not verify in one");
+    {
+        const uint32_t n3 = flip_verify_window(0.01, 3, 0.03, 15);   // (0.75)^2 - 1/3 = 0.229 -> 5
+        const uint32_t n5 = flip_verify_window(0.01, 5, 0.03, 15);   // 0.5625 - 0.2 = 0.3625 -> 3
+        if (n3 != 5) fail("+3% at 1% noise with 3 origin readings is not 5 target readings");
+        if (n5 != 3) fail("+3% at 1% noise with 5 origin readings is not 3 target readings");
+        if (!(n5 < n3)) fail("more origin readings did not shorten the target window");
+    }
+    if (flip_verify_window(0.05, 3, 0.03, 15) != 0)
+        fail("a gain below the origin's own standard error verified");
+    if (flip_verify_window(0.0, 3, 0.001, 15) != 1) fail("a noiseless origin needs more than one");
+    if (flip_verify_window(0.01, 3, 0.0, 15) != 0) fail("a zero gain planned a window");
+    // The threshold is two standard errors of the difference, floored.
+    if (std::abs(flip_verify_threshold(0.01, 3, 1, 0) - 2 * 0.01 * std::sqrt(1.0 / 3 + 1)) > 1e-12)
+        fail("verify threshold is not 2 sigma sqrt(1/n_o + 1/k)");
+    if (flip_verify_threshold(0.01, 3, 1, 0.40) != 0.40) fail("threshold floor did not hold");
+    // Sequential judgment: early accept, early reject, and the planned-count verdict.
+    if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
+    if (flip_judge(-0.30, 0.10, 1, 5) != FlipOutcome::Miss) fail("a clear loss did not reject early");
+    if (flip_judge(0.05, 0.10, 1, 5) != FlipOutcome::Pending) fail("an unresolved reading decided");
+    if (flip_judge(0.05, 0.10, 5, 5) != FlipOutcome::Miss) fail("the planned count did not reject");
+    // COST GATE. Units: commands = gain x rate x seconds. The first flip has no transfer cost:
+    // the boot maneuver at the wrong split moves as soon as the credited horizon covers the
+    // blackout at the model's miss prior. R0 = 236k/s (this rig at 3:1), gain +100%.
+    {
+        FlipCostModel m;
+        if (m.client_cost() != 0 || m.kappa() != 1.0 || std::abs(m.miss_probability() - 0.5) > 1e-12)
+            fail("fresh cost model priors");
+        const FlipCostVerdict v = flip_cost_gate(1.0, 1.0, 236000, 12.0, 4.0, 0, m.miss_probability(), 1);
+        // benefit 1.0 x 236k x (12-4) = 1.888M; cost 0.5 x 1.0 x 236k x 4 = 472k
+        if (!v.pays || std::abs(v.benefit - 1.888e6) > 1 || std::abs(v.cost - 472000) > 1)
+            fail("first-flip cost gate arithmetic");
+        if (std::abs(v.payback_s - (4.0 + 472000.0 / 236000.0)) > 1e-9) fail("payback seconds");
+    }
+    // A move that does not pay: +5% projected, a measured transfer cost of 0.5 s of throughput per
+    // flip, 10 s of stationarity. It starts paying once the workload has held ~24 s.
+    {
+        FlipCostModel m;
+        m.record_flip(250000, 154, 85.33, 1.0);     // lost 250k commands moving 154 clients
+        if (std::abs(m.client_cost() - 250000.0 / 154) > 1e-6) fail("per-client cost");
+        if (std::abs(m.reshuffle() - 154 / 85.33) > 1e-3) fail("re-plan ratio");
+        const double transfers = m.predicted_transfers(256, 2, 3);   // naive 85.33 x 1.805 = 154
+        if (std::abs(transfers - 154) > 0.01) fail("predicted transfers did not reproduce the plan");
+        const double xfer_cost = m.client_cost() * transfers;        // 250k commands
+        const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, xfer_cost,
+                                                  m.miss_probability(), 1);
+        // benefit 0.05 x 500k x 6 = 150k; cost 250k x 1.5 + 0.5 x 0.05 x 500k x 4 = 375k + 50k
+        if (no.pays || std::abs(no.benefit - 150000) > 1 || std::abs(no.cost - 425000) > 1)
+            fail("a +5% move with a measured 250k-command flip paid at 10 s");
+        const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost,
+                                                   m.miss_probability(), 1);
+        if (!yes.pays) fail("the same move did not pay at 30 s of stationarity");
+        if (std::abs(no.payback_s - (4.0 + 425000.0 / 25000.0)) > 1e-9) fail("payback of the +5% move");
+        // The bar doubles on a miss: at 30 s the move paid with margin 1 and fails with margin 2.
+        if (flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost, m.miss_probability(), 2).pays)
+            fail("a doubled margin did not refuse the marginal move");
+    }
+    // OUTCOME LOOP. A miss halves the model's credence (kappa 1 -> 0.5: the bar doubles in
+    // effect); a hit restores it; over-delivery never buys more than one; the miss rate follows
+    // Laplace; an induced hypothesis with a non-positive prediction counts toward the rate only.
+    {
+        FlipCostModel m;
+        m.record_outcome(0.20, 0.0, false);
+        if (std::abs(m.kappa() - 0.5) > 1e-12) fail("one miss did not halve kappa");
+        if (std::abs(m.miss_probability() - 2.0 / 3.0) > 1e-12) fail("Laplace after one miss");
+        m.record_outcome(0.20, 0.20, true);
+        if (std::abs(m.kappa() - 0.6667) > 1e-3) fail("hit after miss: kappa 2/3");
+        FlipCostModel h;
+        h.record_outcome(0.20, 0.50, true);
+        if (h.kappa() != 1.0) fail("over-delivery bought credit above one");
+        if (std::abs(h.miss_probability() - 1.0 / 3.0) > 1e-12) fail("Laplace after one hit");
+        FlipCostModel partial;
+        partial.record_outcome(0.20, 0.05, true);   // (0.05 + 0.2) / (0.2 + 0.2)
+        if (std::abs(partial.kappa() - 0.625) > 1e-12) fail("partial delivery kappa");
+        FlipCostModel induced;
+        induced.record_outcome(-0.50, -0.60, false);
+        if (induced.kappa() != 1.0 || induced.misses != 1 || induced.moves != 1)
+            fail("an induced miss must count toward the rate, not the calibration");
+    }
+    // The rate window: mean, relative sigma and the bracket band the trend guard uses.
+    {
+        FlipRateWindow r;
+        r.add(4898.601); r.add(6000.916);
+        if (std::abs(r.mean - 5449.7585) > 1e-3) fail("rate window mean");
+        if (!(r.bracket_band() > 0.22)) fail("rate window bracket did not floor the ramp");
+        FlipRateWindow still;
+        for (double v : {500000.0, 505000.0, 495000.0, 500000.0}) still.add(v);
+        if (std::abs(still.sigma() - 0.00816) > 1e-4) fail("rate window relative sigma");
     }
     return 0;
 }

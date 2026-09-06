@@ -824,6 +824,54 @@ void cmd_debug_impl(Shard&, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // DEBUG FLIPCTL SEEK <io> [FORCE] and DEBUG FLIPCTL COST <commands-per-client>: the directed
+    // tests of the cost gate and the outcome loop (flip_policy.h). SEEK proposes a split as the
+    // next maneuver's hypothesis -- judged by the model's projection, the noise bar and the cost
+    // gate, or with FORCE by the outcome loop alone. COST types the measured per-client transfer
+    // cost (negative restores the measurement). Cold, behind the DEBUG permission gate.
+    if (eq_icase(subcommand, "flipctl") && (op.argc() == 4 || op.argc() == 5) &&
+        eq_icase(op.arg(2), "seek")) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server->flipctl_available()) {
+            reply_err(op.sink(),
+                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            return;
+        }
+        uint64_t target = 0;
+        if (!parse_u64(op.arg(3), target) || !target || target >= g_server->nthreads()) {
+            reply_err(op.sink(), "ERR SEEK wants an io thread count between 1 and threads-1");
+            return;
+        }
+        const bool force = op.argc() == 5 && eq_icase(op.arg(4), "force");
+        if (op.argc() == 5 && !force) {
+            reply_err(op.sink(), "ERR syntax: DEBUG FLIPCTL SEEK <io> [FORCE]");
+            return;
+        }
+        std::string error;
+        if (!g_server->flipctl_debug_seek(static_cast<uint32_t>(target), force, error)) {
+            reply_err(op.sink(), error.c_str());
+            return;
+        }
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "flipctl") && op.argc() == 4 && eq_icase(op.arg(2), "cost")) {
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        if (!g_server->flipctl_available()) {
+            reply_err(op.sink(),
+                      "ERR flip controller is unavailable with --thread-mode 1s: threads are fused");
+            return;
+        }
+        double per_client = 0;
+        if (!parse_double_lenient(op.arg(3), per_client)) {
+            reply_err(op.sink(),
+                      "ERR COST wants commands per transferred client (negative = measured)");
+            return;
+        }
+        g_server->flipctl_debug_cost(per_client);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {
         // Raw monotonic dump; windowing is the reader's job (two calls, subtract). See lbsignals.h.
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
@@ -1948,7 +1996,12 @@ void cmd_info(Shard&, Op& op) {
                     "flipctl_shift_confirmations:%u\r\n"
                     "flipctl_rate_confirmations:%u\r\n"
                     "flipctl_round_trips:%llu\r\nflipctl_model_margin:%u\r\n"
-                    "flipctl_last_trigger:%s\r\n",
+                    "flipctl_last_trigger:%s\r\n"
+                    "flipctl_model_last_decision:%s\r\nflipctl_model_kappa:%.4f\r\n"
+                    "flipctl_model_moves:%u\r\nflipctl_model_misses:%u\r\n"
+                    "flipctl_invalidated_maneuvers:%llu\r\nflipctl_cost_holds:%llu\r\n"
+                    "flipctl_client_cost:%.2f\r\nflipctl_last_flip_lost:%.1f\r\n"
+                    "flipctl_last_flip_moved:%llu\r\nflipctl_flip_ticks:%.2f\r\n",
                     ctl.state.c_str(), ctl.phase.c_str(), ctl.anchor_io, ctl.anchor_ex,
                     ctl.anchor_rate, ctl.signature_band, ctl.rate_band,
                     static_cast<unsigned long long>(ctl.triggers),
@@ -1963,7 +2016,13 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(ctl.model_holds),
                     ctl.shift_confirmations, ctl.rate_confirmations,
                     static_cast<unsigned long long>(ctl.round_trips), ctl.model_margin,
-                    ctl.last_trigger.c_str());
+                    ctl.last_trigger.c_str(),
+                    ctl.model_last_decision.c_str(), ctl.model_kappa,
+                    ctl.model_moves, ctl.model_misses,
+                    static_cast<unsigned long long>(ctl.invalidated_maneuvers),
+                    static_cast<unsigned long long>(ctl.cost_holds),
+                    ctl.client_cost, ctl.last_flip_lost,
+                    static_cast<unsigned long long>(ctl.last_flip_moved), ctl.flip_ticks);
         }
     }
     if (info_section(op, "CLIENTS")) {
