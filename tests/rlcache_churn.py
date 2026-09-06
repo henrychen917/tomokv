@@ -234,10 +234,10 @@ def main():
         # geometry -- which is why the gate row names them explicitly.
         after_moves = _lib.info_int(ctl, "all", "tomokv_keylb_bucket_moves")
         rep.check("load balancer moved shards (non-vacuity)", after_moves > before_moves,
-                  "tomokv_keylb_bucket_moves delta %d -- boot with MORE SHARDS THAN THREADS "
-                  "(a thread owning exactly one shard has nothing the balancer can move) and "
-                  "--lb-tick-ms 100 --lb-imbalance-pct 1 --lb-move-cap 4 --lb-cooldown-ms 0"
-                  % (after_moves - before_moves))
+                  "tomokv_keylb_bucket_moves delta %d -- boot with MORE SHARDS THAN THREADS (a "
+                  "thread owning exactly one shard has nothing the balancer can move) and "
+                  "--lb-tick-ms 100. Do NOT add --lb-cooldown-ms 0: measured, it moves ZERO "
+                  "shards, not more" % (after_moves - before_moves))
     print("  churn: ops=%d workers=%d flushes=%d peak_block_cache=%d"
           % (ops, workers, flushes, peak_cache))
     return rep.finish()
