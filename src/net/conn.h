@@ -399,6 +399,11 @@ public:
         fill_buf().commit_raw(len);
         if (obuf_tracking_) obuf_bytes_ += len;
     }
+    // Writable cursor at the fill frontier, published with commit_fill(). The coded-reply path
+    // renders into this instead of formatting a temporary and memcpy-ing it in. Safe on exactly
+    // the terms append_fill is: only the owner calls it, and a live Op::direct region can only
+    // belong to the op at the head of this very drain (see the direct-reply note in io_loop).
+    char* reserve_fill(size_t len) { return fill_buf().reserve(len); }
 
     bool     has_pending_fill() const { return buf_[fill_].size() > 0; }
     uint64_t wsent() const { return wsent_; }

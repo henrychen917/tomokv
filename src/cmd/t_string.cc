@@ -254,8 +254,7 @@ void reply_not_integer(Op& op) {
 enum class ExpireArg : uint8_t { Ok, NotInteger, OutOfRange };
 
 void clear_reply(Op& op) {
-    op.direct_len = 0;
-    op.reply.clear();
+    op.clear_reply();       // bytes AND the reply code -- a discarded reply must leave nothing
 }
 
 }  // namespace

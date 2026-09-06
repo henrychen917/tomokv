@@ -115,8 +115,11 @@ ROW_T=$(date +%s.%N)
 # deltas to the shared base rather than by taking one side: 245+2 / 258+2+3 = 247/263.
 # Merged: 322 quick + 2 (multirace: the multi_exec order-late row per atomic mode) = 324;
 # 335 full + 3 = 338. Additions are disjoint from the fused+armed and lane-admission rows.
+# 258 -> 260 full: reply codes make a blocking timeout's "*-1"/"_" a CODE rather than bytes, so the
+# ACL retire-recheck's discard has a second representation to drop; one battery per thread mode.
+# Merged: the aclreply battery is a FULL-tier row only (branch 245/260 over 245/258), so quick stays 324 and full is 338 + 2 = 340.
 EXPECT_QUICK=324
-EXPECT_FULL=338                 # full without the optional NIC row.
+EXPECT_FULL=340                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -530,6 +533,24 @@ py tests/bplus.py 127.0.0.1 "$PORT" >/tmp/gate-bplus.txt 2>&1 \
 py tests/read_local_lane.py 127.0.0.1 "$PORT" >/tmp/gate-read-local-lane.txt 2>&1 \
     && ok "read-local lane admission battery" \
     || bad "read-local lane admission battery" "see /tmp/gate-read-local-lane.txt"
+stop
+
+# ---- ACL recheck over a CODED reply: exactly one reply per blocking command -------------------
+# A blocking command's reply is discarded and replaced when the live ACL denies it at retire. A
+# timeout answers "*-1" / "_", which are ReplyCode-carried, so a discard that clears only the byte
+# buffer leaves the code standing and puts TWO replies on the wire. Its own boot in each thread
+# mode: the battery creates an ACL user, and a live non-default user makes acl_active() true for
+# everything else sharing the boot. Verified discriminating -- with Op::clear_reply() reverted to
+# op.reply.clear() the four timeout rows fail and the rest pass.
+boot ./build/tomokv --enable-debug-command yes || bad "ACL-recheck reply boot (2s)"
+py tests/aclreply.py 127.0.0.1 "$PORT" >/tmp/gate-aclreply-2s.txt 2>&1 \
+    && ok "ACL recheck one-reply battery (2s)" \
+    || bad "ACL recheck one-reply battery (2s)" "see /tmp/gate-aclreply-2s.txt"
+stop
+boot_fused ./build/tomokv --enable-debug-command yes || bad "ACL-recheck reply boot (1s)"
+py tests/aclreply.py 127.0.0.1 "$PORT" >/tmp/gate-aclreply-1s.txt 2>&1 \
+    && ok "ACL recheck one-reply battery (1s)" \
+    || bad "ACL recheck one-reply battery (1s)" "see /tmp/gate-aclreply-1s.txt"
 stop
 
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------

@@ -2259,8 +2259,7 @@ bool script_group_error(const ScatterState& state, WorkError& error) {
 }
 
 void script_clear_attempt(ScatterState& state, Op& op) {
-    op.reply.clear();
-    op.direct_len = 0;
+    op.clear_reply();
     if (state.status) std::memset(state.status, 0, state.key_count);
     for (uint32_t i = 0; i < state.key_count; i++) {
         state.images[i] = ObjectImage{};
@@ -2495,8 +2494,7 @@ ScatterTaskResult execute_script_phase(const Task& task, Shard& shard, Op& op) {
                 state.aborted.store(true, std::memory_order_release);
                 return ScatterTaskResult::Complete;
             }
-            op.reply.clear();
-            op.direct_len = 0;
+            op.clear_reply();
             const uint64_t workbench_hits = work->stats().hits;
             const uint64_t workbench_misses = work->stats().misses;
             {
@@ -3386,8 +3384,7 @@ void script_snapshot_done(Server& server, ScatterState& state) {
 }
 
 void script_engine_error_reply(Op& op, ScatterState& state, WorkError error) {
-    op.reply.clear();
-    op.direct_len = 0;
+    op.clear_reply();
     if (state.script_stage_limit) {
         reply_err(op.sink(), "ERR cross-shard script staging limit exceeded");
     } else if (error == WorkError::Maxmemory) {
@@ -3526,8 +3523,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         continue;
                     }
                     server.note_script_giveup();
-                    op.reply.clear();
-                    op.direct_len = 0;
+                    op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
                     notify_discard_batch(state.notify.exchange(nullptr));
                     state.script_apply_after_unpin = false;
@@ -3561,8 +3557,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                         continue;
                     }
                     server.note_script_giveup();
-                    op.reply.clear();
-                    op.direct_len = 0;
+                    op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
                     notify_discard_batch(state.notify.exchange(nullptr));
                     state.script_apply_after_unpin = false;

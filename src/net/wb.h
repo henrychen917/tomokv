@@ -64,11 +64,44 @@
 #include <unordered_map>
 #include "conn.h"
 #include "epoll.h"
+#include "resp.h"       // format_reply_code: the owner's half of the coded reply
 #include "tls.h"
 #include "uring.h"
 #include "../core/signal.h"
 
 namespace tomo {
+
+// THE OWNER'S HALF of the coded reply (see ReplyCode in src/exec/op.h) has TWO shapes here, and
+// the split is a performance contract, not a style choice.
+//
+// The HOT path -- an op retiring with nothing staged ahead of it -- renders straight into the fill
+// buffer's frontier through reserve_fill/commit_fill. No temporary.
+//
+// The COLD paths -- a borrowed value, or a segment queue already open -- take op_materialise_code()
+// instead, which turns the code back into bytes inside op.reply and leaves their existing
+// append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size()) lines completely
+// untouched. A code implies op.reply is empty and op.direct_len is zero, so the bytes land in the
+// right order with no reordering logic at all.
+//
+// The obvious middle road -- render into a `char scratch[kReplyCodeMax]` and pass it along -- was
+// built first and MEASURED WORSE. A local array makes GCC apply -fstack-protector-strong to the
+// enclosing function, and the enclosing function here is the per-op retire lambda: it went from
+// 139-196 instructions to 237-280 and picked up two to three canary sequences, which EVERY retired
+// op paid, GETs included, for a benefit only coded replies receive. That is the whole of the split
+// GET regression. No array on this path, ever.
+
+// The coded reply's ONLY appearance in the per-op retire lambda is a call to this. Rendering it
+// inline meant inlining reserve_fill -> SmallBuf::reserve -> grow(), i.e. malloc/memcpy/free, into
+// the hottest function the io thread runs -- paid in code size and register pressure by every op,
+// including the GETs that never carry a code. Base reached its reply through an out-of-line
+// SmallBuf::append call too, so this trades like for like.
+template <bool TrackOutput>
+__attribute__((noinline)) void stage_coded_reply(Client& conn, Op& op) {
+    const uint32_t n = format_reply_code(conn.reserve_fill(kReplyCodeMax),
+                                         op.reply_code_, op.reply_ival_);
+    if constexpr (TrackOutput) conn.commit_fill(n);
+    else                       conn.fill_buf().commit_raw(n);
+}
 
 // THE LOCK BUG note above is preserved as history: WbGuard died with the multi-sender designs
 // (exwb, then 3s). In pure 2s exactly one thread -- the connection's io thread -- ever touches the
@@ -110,6 +143,7 @@ public:
     // Only cold, non-templated send sites consult this boot-latched fallback. Hot paths carry the
     // pipeline-1 classifier as a template argument.
     void set_cold_send_classification(bool enabled) { classify_cold_sends_ = enabled; }
+
 
     // ---- OUT-OF-BAND FRAMES WAITING FOR EARLIER-ISSUED REPLIES ----------------------------------
     //
@@ -158,88 +192,88 @@ public:
     // deleted with those postures; see the head of this file), so no lock exists or is needed and
     // the ROB stays SPSC by construction. Returns true if it did anything, so a caller can tell
     // progress from an empty poll.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, true, ClassifySend>(c);
-        return serve_impl<false, false, kEp, true, ClassifySend>(c);
+            return serve_impl<true, false, kEp, true, ClassifySend, Coded>(c);
+        return serve_impl<false, false, kEp, true, ClassifySend, Coded>(c);
     }
 
     // Micro-pipeline retirement half. It drains exactly the same in-order prefix and stages the
     // same buffers/segments as serve(), but deliberately leaves SQE construction to pump().
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare(Client& c, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, false>(c, &submit_allowed);
-        return serve_impl<false, false, kEp, false>(c, &submit_allowed);
+            return serve_impl<true, false, kEp, false, false, Coded>(c, &submit_allowed);
+        return serve_impl<false, false, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
     // Unified pipeline batches already guard a nullable Client slot before their submit half. Its
     // bound limit callback tombstones that slot on the rare refusal, avoiding a parallel bool on
     // every ordinary reply while leaving the established split-pipeline prepare API untouched.
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, false>(c);
-        return serve_impl<false, false, kEp, false>(c);
+            return serve_impl<true, false, kEp, false, false, Coded>(c);
+        return serve_impl<false, false, kEp, false, false, Coded>(c);
     }
 
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, true, ClassifySend>(c);
-        return serve_impl<false, true, kEp, true, ClassifySend>(c);
+            return serve_impl<true, true, kEp, true, ClassifySend, Coded>(c);
+        return serve_impl<false, true, kEp, true, ClassifySend, Coded>(c);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_ktls(Client& c, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, false>(c, &submit_allowed);
-        return serve_impl<false, true, kEp, false>(c, &submit_allowed);
+            return serve_impl<true, true, kEp, false, false, Coded>(c, &submit_allowed);
+        return serve_impl<false, true, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline_ktls(Client& c) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, false>(c);
-        return serve_impl<false, true, kEp, false>(c);
+            return serve_impl<true, true, kEp, false, false, Coded>(c);
+        return serve_impl<false, true, kEp, false, false, Coded>(c);
     }
 
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
-    template <bool kEp = false, bool ClassifySend = false>
+    template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
     bool serve_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, true, ClassifySend>(c, tls);
-        return serve_tls_impl<false, kEp, true, ClassifySend>(c, tls);
+            return serve_tls_impl<true, kEp, true, ClassifySend, Coded>(c, tls);
+        return serve_tls_impl<false, kEp, true, ClassifySend, Coded>(c, tls);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_tls(Client& c, TlsConn& tls, bool& submit_allowed) {
         submit_allowed = true;
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, false>(c, tls, &submit_allowed);
-        return serve_tls_impl<false, kEp, false>(c, tls, &submit_allowed);
+            return serve_tls_impl<true, kEp, false, false, Coded>(c, tls, &submit_allowed);
+        return serve_tls_impl<false, kEp, false, false, Coded>(c, tls, &submit_allowed);
     }
 
-    template <bool kEp = false>
+    template <bool kEp = false, bool Coded = false>
     bool prepare_pipeline_tls(Client& c, TlsConn& tls) {
         if (__builtin_expect(limit_armed_ &&
                              limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, false>(c, tls);
-        return serve_tls_impl<false, kEp, false>(c, tls);
+            return serve_tls_impl<true, kEp, false, false, Coded>(c, tls);
+        return serve_tls_impl<false, kEp, false, false, Coded>(c, tls);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by
@@ -312,6 +346,7 @@ private:
             }
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
@@ -322,10 +357,14 @@ private:
             // fill frontier; this op's direct region was handed out at the same offset only if
             // nothing was staged, so committing here stays correct.
             if (conn.has_pending_segments()) {
+                if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
             } else {
-                if (op.direct_len) conn.commit_fill(op.direct_len);
+                // A coded reply is rendered straight into the fill frontier: no temporary, and a
+                // compile-time length instead of the runtime-length memcpy op.reply needed.
+                if (op.reply_code_) stage_coded_reply<true>(conn, op);
+                else if (op.direct_len) conn.commit_fill(op.direct_len);
                 if (!op.reply.empty()) conn.append_fill(op.reply.data(), op.reply.size());
             }
         });
@@ -732,8 +771,23 @@ private:
         return flushed;
     }
 
-    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit,
-              bool ClassifySend = false>
+    // `Coded` IS AN ORDINARY TEMPLATE ARGUMENT, and that is the whole point of this shape. The
+    // previous version decided it at RUNTIME from a boot-latched bool, which meant serve_impl
+    // became a forwarder in front of the real body -- a new function boundary in the io thread's
+    // hot path that moved inlining and cost the split cells ~0.9% of real work (measured against a
+    // dead-pad placement control: placement alone was -0.11%..-0.30%, the binary was -0.83%..-1.48%).
+    //
+    // Every caller already knows the mode statically, so nothing had to be threaded:
+    //   flush_ready              carries `Fused` as its 3rd template parameter already, and is the
+    //                            path BOTH modes take -> passes Fused
+    //   wb_serve_natural         split-only: run_loop reaches pipeline_pass under
+    //   wb_retire_prepare        constexpr IoPipe = !Fused && Pipeline == 1  -> pass false
+    //   genthread_*              fused-only: run_loop reaches run_fused_iofused_loop and
+    //   run_fused_streams_loop   run_fused_streams_loop under if constexpr (Fused && ...) -> true
+    // With Coded=false every coded block below is deleted by `if constexpr`, so a 2s instantiation
+    // is the pre-reply-code function, not a variant of it.
+    template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
+              bool Coded>
     bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -758,6 +812,7 @@ private:
                 // reply uses segments until the queue drains, so no fill-buffer append can jump a
                 // borrowed value that is only partially written.
                 conn.seal_fill_segment();
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if constexpr (TlsNoBorrow) {
@@ -776,10 +831,25 @@ private:
             // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
             // direct part so the RESP stream stays in order.
             if (conn.has_pending_segments()) {
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
+                // Coded reply: render at the fill frontier, one constant-length store by the
+                // thread that owns the buffer. The whole block is deleted for Coded=false, and
+                // what remains below is the pre-reply-code text, instruction for instruction.
+                if constexpr (Coded) {
+                    if (op.reply_code_) {
+                        stage_coded_reply<TrackOutput>(conn, op);
+                        if (!op.reply.empty()) {
+                            if constexpr (TrackOutput)
+                                conn.append_fill(op.reply.data(), op.reply.size());
+                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                        }
+                        return;
+                    }
+                }
                 if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);
@@ -811,7 +881,7 @@ private:
         return did;
     }
 
-    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend = false>
+    template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
     bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
         TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
         stats_.serves++;
@@ -823,6 +893,7 @@ private:
             if (op.zc_ptr && retire_fn_) retire_fn_(retire_ctx_, conn, op);
             if (op.zc_ptr) {
                 conn.seal_fill_segment();
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 conn.append_buf_segment(op.zc_ptr, op.zc_len);
@@ -833,10 +904,25 @@ private:
                 return;
             }
             if (conn.has_pending_segments()) {
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
                 conn.append_buf_segment(op.direct, op.direct_len,
                                         op.reply.data(), op.reply.size());
                 if (op.direct_len) stats_.direct++;
             } else {
+                // Coded reply: render at the fill frontier, one constant-length store by the
+                // thread that owns the buffer. The whole block is deleted for Coded=false, and
+                // what remains below is the pre-reply-code text, instruction for instruction.
+                if constexpr (Coded) {
+                    if (op.reply_code_) {
+                        stage_coded_reply<TrackOutput>(conn, op);
+                        if (!op.reply.empty()) {
+                            if constexpr (TrackOutput)
+                                conn.append_fill(op.reply.data(), op.reply.size());
+                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
+                        }
+                        return;
+                    }
+                }
                 if (op.direct_len) {
                     if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
                     else conn.fill_buf().commit_raw(op.direct_len);

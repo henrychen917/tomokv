@@ -1730,6 +1730,16 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
     }
 
     client.seal_fill_segment();
+    // NO CODED REPLIES FOR THE REST OF THIS OP. flush_bytes below hands bytes to the connection
+    // and then EMPTIES the sink, mid-op. A coded reply is only equivalent to its bytes because a
+    // code is taken on an empty sink and therefore stands for the WHOLE reply; here the sink goes
+    // empty again with elements already on the wire, so the very next reply_null() would code a
+    // "$-1" that retire then emits ahead of everything staged after it. That desynchronises the
+    // connection -- it is exactly how the MGET-with-a-hole row in tests/edgeenc.py failed.
+    // Disarming for the remainder of the op keeps this whole assembly on the byte path it has
+    // always used; it runs once per borrowed MGET, not per reply.
+    op.reply_code_ok_ = 0;
+    op_materialise_code(op);        // anything already coded becomes bytes, in place, in order
     auto flush_bytes = [&] {
         client.append_buf_segment(op.direct, op.direct_len, op.reply.data(), op.reply.size());
         op.direct_len = 0;

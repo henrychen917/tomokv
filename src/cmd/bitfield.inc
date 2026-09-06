@@ -46,8 +46,7 @@ Slice bitfield_string_bytes(const KvObj* object, char (&integer)[24],
 }
 
 void reply_bitfield_store_error(Op& op, XshardStringStoreResult result) {
-    op.direct_len = 0;
-    op.reply.clear();
+    op.clear_reply();
     if (result == XshardStringStoreResult::Maxmemory) reply_maxmemory_oom(op);
     else if (result == XshardStringStoreResult::Oom)
         reply_err(op.sink(), "ERR out of memory");

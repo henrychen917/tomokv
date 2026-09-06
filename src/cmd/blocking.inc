@@ -1331,7 +1331,9 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
     // One predicted-false relaxed load on an already-cold path. A command that completed with
     // real data keeps its reply; only the byte-less cancel shape is filled in here.
     const uint8_t unblock = state->unblock_reply.load(std::memory_order_acquire);
-    if (__builtin_expect(unblock != 0, false) && op.reply.empty() && op.direct_len == 0) {
+    // replied(), not a raw byte test: a coded reply IS a reply, and reading it as "no reply"
+    // would append the UNBLOCKED/timeout error behind it and put two replies on the wire.
+    if (__builtin_expect(unblock != 0, false) && !op.replied()) {
         if (unblock == 2) reply_err(op.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
         else blocking_reply_timeout(op, state->kind);
     }
