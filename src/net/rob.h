@@ -151,8 +151,10 @@ public:
     Op* acquire(uint8_t route_flags = 0) {
         if (full()) return nullptr;
         Op* op = slot(static_cast<uint32_t>(dispatch_id()) & kMask, true);
-        op->reset(route_flags);
-        op->reply_code_ok_ = Codes ? 1 : 0;
+        op->reset<Codes>(route_flags);
+        // Not `= Codes ? 1 : 0`: in split that is still a store per op, for a field that is
+        // already zero and that nothing in that mode ever reads as anything else.
+        if constexpr (Codes) op->reply_code_ok_ = 1;
         return op;
     }
 

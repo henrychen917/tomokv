@@ -87,14 +87,20 @@ public:
     Op& operator=(const Op&) = delete;
 
     // ---- built by the IO thread while parsing ------------------------------------------------
+    // `Codes` MUST match the ROB's arming (Rob::acquire<Codes>). When it is false this op can
+    // never carry a code -- Sink::code() declines on reply_code_ok_, which acquire<false> also
+    // leaves alone -- so reply_code_ and reply_ival_ keep the zero they were constructed with and
+    // re-zeroing them is pure per-op work on the io thread's parse path, in the mode that gets no
+    // benefit from it. Defaults to true so the heap child Ops in multi.inc, which call reset()
+    // directly and are never acquired, keep the unconditional clear.
+    template <bool Codes = true>
     void reset(uint8_t route_flags = 0) {
         argc_ = 0;
         spec  = nullptr;
         shard = -1;
         read_cut_lo = 0;
         route_flags_ = route_flags;
-        reply_code_ = 0;
-        reply_ival_ = 0;
+        if constexpr (Codes) { reply_code_ = 0; reply_ival_ = 0; }
         reply.clear();
         direct = nullptr;
         direct_cap = direct_len = 0;
@@ -108,7 +114,7 @@ public:
     // captured connection bits before explicitly classifying the slot; reset() above remains the
     // literal baseline path for every ordinary ROB acquisition.
     void reset_read_local(uint8_t route_flags = 0) {
-        reset(static_cast<uint8_t>(
+        reset<true>(static_cast<uint8_t>(
             route_flags & static_cast<uint8_t>(~(kReadLocal | kReadLocalPreciseWrite))));
     }
 
