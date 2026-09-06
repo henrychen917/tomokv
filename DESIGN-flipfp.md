@@ -83,6 +83,45 @@ work within one pass), and the rate detector, which reads the unsampled `total_c
 unchanged. W = 1 is exhaustive sampling -- today's behaviour exactly -- and is the equivalence oracle
 in the unit test.
 
+**(c) What the sample costs the band, stated exactly.** The band arithmetic above hides a term, so
+here it is in full. `FlipShiftDetector::update_band` (flipctl.cc) is
+
+    band = 2 * max(jitter, 4 / max(commands, 1))          // commands = the TICK aggregate's count
+
+and `commands` is exactly the quantity this lane divides by W. Verified in the code, not assumed:
+`FlipController::sample_fingerprint` (flipctl.cc:235) sums each thread's `published_` **delta since
+the previous tick** into one aggregate, skips a thread whose `closed_windows` did not advance, and
+calls `shift_detector_.observe(aggregate)` **once per tick**; `maneuver_signature_samples_` and
+`anchor_signature_samples_` count those ticks. So the decision window is the tick T, never the
+100-command publication window, and
+
+    K = commands per decision = C * T   (PRE)   ->   C * T / W   (POST)
+    quantum floor of the band = 8 / (C*T)  (PRE)  ->  8*W / (C*T)  (POST)
+
+Two regimes follow, and they are the thing to measure rather than argue:
+
+- **Jitter-dominated** (`jitter > 4/K`, the busy case). The band is the anchor's own quiet jitter,
+  learned from whichever stream the detector saw. The sampled stream's jitter is the exhaustive
+  stream's jitter plus the sampling noise sigma = 0.25/sqrt(K_eff), so the band widens by however
+  much noise the sample actually adds and keeps rejecting exactly what it rejected before. This is
+  self-correcting: the band is learned from, and applied to, the same sampled stream. On this box's
+  accuracy cell (C ~ 350k/s, W = 100) the PRE band was 2.4e-3 against a PRE floor of 2.3e-5 -- 100x
+  above the floor -- and the POST floor lands at 2.3e-3, i.e. right at the jitter the exhaustive
+  stream already had. Whether the band actually moves is S2's measurement.
+- **Quantum-dominated** (`jitter < 4/K`, the quiet/low-rate case). The floor rises by W outright.
+  This is not a defect but the honest resolution of a 1/W sample: a sample of K/W commands cannot
+  resolve a mix change finer than one sampled command in it, and a floor that claimed otherwise
+  would trigger on its own sampling noise. It does cost sensitivity, and the loss is a factor of W
+  in the smallest mix shift a *quiet* anchor can name.
+
+**The fixed-band exposure.** `configured_band_ > 0` (`--flip-auto-band PERCENT`) returns the percent
+directly and never consults the floor, so in that mode the sampling noise is not absorbed by a
+wider band -- it must simply fit under the configured percent. That is the one place a 1/W sample
+can turn into a false trigger, and it is precisely what the `tests/flipctl.py` gate row exercises:
+band 2, a jittery stationary 6:2 load, and a 30 s hold that fails on any trigger. At that row's
+rate the per-tick sample is small, so the row is the binding accuracy test of this lane and is run
+three times per arm.
+
 ## 3. Footprint
 
 `pass_frames_` (u32) becomes `pass_countdown_` (u32): the writer stays 264 bytes, ThreadCtx stays
