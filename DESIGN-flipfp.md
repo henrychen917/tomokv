@@ -263,3 +263,201 @@ mainline bookkeeping drift, at exact parity, not this lane's.
 `RandomShard` command route. In the shipped dark configuration no draw is taken at all, so that
 sequence is byte-identical to PRE; when armed, the two share a generator whose distribution neither
 depends on.
+
+## 6. Cross-lane: the quantum's N, and the deafness margin at 1-in-100
+
+Raised by the flip-redesign lane: if the auto band's quantum is computed from commands DISPATCHED
+rather than commands SAMPLED, then at 1-in-W the quantum understates the estimator's own noise by a
+factor of W and the band is too tight for the signal it judges.
+
+### 6.1 N is already the SAMPLED count
+
+There is exactly one quantum on the signature path, `FlipShiftDetector::update_band`
+(flipctl.cc:109), and its N is `smoothed_.commands`. That field's provenance is a single chain with
+no branch:
+
+    update_band          quantum = 4.0 / smoothed_.commands
+    observe              smoothed_.commands = incoming.commands
+    flip_signature       signature.commands = sample.commands
+    sample_fingerprint   aggregate.commands += published_.commands delta, per thread
+    finish_parse_pass    published_.commands += partial_.commands
+    note_command         partial_.commands++
+    io_loop              note_command runs ONLY inside flip_fingerprint_note_sampled,
+                         i.e. only when pass_sampled() is true
+
+So N is incremented by the same call that accumulates the class histogram: **the estimator's N and
+its sample are the same accumulator**, and no dispatched-command counter exists anywhere on that
+path. Sampling cannot desynchronise them, because there is nothing to desynchronise.
+
+Confirmed numerically as well as structurally. Anchored on a stationary 2:2 load at 3.804M commands/s
+with W = 100 and jitter 0 (quantum-dominated):
+
+| N interpretation | predicted band `2*4/N` | measured |
+|---|---:|---:|
+| **sampled** (C*T/W = 38036) | **2.10e-4** | **2.056e-4** (2.3% off) |
+| dispatched (C*T = 3.804e6) | 2.10e-6 | 100x smaller than measured |
+
+The measurement lands on the sampled value. The consequence is the conservative direction the lane
+asked about: under sampling the floor RISES by W, so the band widens to match the estimator's noise
+and is never too tight. The failure mode left to check is therefore the opposite one -- deafness.
+
+The other two quanta are rate quanta (`automatic_rate_band`, flipctl.cc:273, and the boot rate floor
+at :417). Both are computed from `total_commands`, which is NOT sampled and which this lane does not
+touch, so they are correct as they stand.
+
+### 6.2 The deafness margin, measured
+
+A real class change driven at a pinned command rate, so the fingerprint is not preempted by the rate
+detector. The signal and the floor cannot be read from one run -- with a learned band the trigger
+fires and `reset()` wipes the distance -- so each arm is run twice: `--flip-auto-band 90` holds the
+anchor and lets the distance converge (the signal), `--flip-auto-band -1` learns the floor.
+`scratch/flipfp/fpmargin.sh`.
+
+**BITCOUNT -> INCR** (the redesign lane's reference change), 2:2 split, `--rate-limiting` pinned:
+
+| | PRE (exhaustive) | POST (1 pass in 100) |
+|---|---:|---:|
+| rate across the swap | 511979 -> 512009 (**+0.0%**) | 512001 -> 512011 (**+0.0%**) |
+| signal: converged distance at a held anchor | 0.254560 | **0.268490** |
+| learned floor at the held anchor | 0.000434 | **0.022558** |
+| **margin = signal / floor** | **587x** | **11.9x** |
+| fingerprint triggers on the change | 2 | **1** |
+
+And the rate-neutral GET-only -> SET-only swap (section 5.2) fires exactly one trigger on each arm at
++0.0% rate delta, with POST's floor 0.005597.
+
+Reading: the **signal is not degraded by sampling** (0.2546 -> 0.2685, +5% -- the sampler estimates
+the same signature, as it must, being the same body on a 1/W subsample). What moves is the **floor,
+up 52x**, which is the estimator's noise being correctly absorbed rather than hidden. The margin
+falls from 587x to 11.9x: a real loss of headroom, and an order of magnitude of it left. The detector
+is not deaf.
+
+**Where it would go deaf, as a number.** With the current `2*4/N` floor and a 0.35 signal, deafness
+needs `N <= 22.9` sampled commands per tick, i.e. below ~2.3k commands/s across the io threads at
+W = 100. With the redesign's proposed `2/sqrt(N)` floor it needs `N <= 32.7`, i.e. below ~3.3k
+commands/s. Both are far under any serving rate, but the margin thins fast at the bottom: at
+6k commands/s (the rate `tests/flipctl.py` drives) N = 60, giving a current-form floor of 0.133
+(2.6x margin) and a `2/sqrt(N)` floor of 0.258 (**1.36x margin**). That is the cell the redesign lane
+should size its in-band-windows estimator against; the gate row itself is unaffected because it pins
+a fixed 2% band, and `configured_band_ > 0` never consults the floor. If that margin is judged too
+thin, the fix belongs in the floor (accumulate the window across ticks when N is small -- accuracy
+from the window, not the sample rate) rather than in the sampler.
+
+### 6.3 Gate on fc3f6f51c
+
+The gate-hygiene merge bumped `EXPECT_QUICK` 324 -> 326, so the PROGRAM-STATE ledger row of section
+5.3 is closed at its source. `tests/flipctl.py` was itself rewritten by that lane (+274 lines);
+re-run against the new test, POST passes **3/3**.
+
+One row failed on the first final gate run: `cross-shard dispatch scaling`, whose assertion is a
+TIMING ratio (`dispatch excess ratio 128t/4t <= 1.20`, 128 threads on this lane's 8 logical cpus).
+Run standalone, alternating arms, five times each while other lanes were active:
+
+| | pass | worst individual pair seen |
+|---|---:|---:|
+| PRE (mainline fc3f6f51c) | 5/5 | **1.563** |
+| POST | 5/5 | 1.342 |
+
+Both arms routinely produce individual pairs above the 1.20 threshold and pass only because the row
+takes the best of two; PRE's worst sample is worse than anything POST produced. This is a
+co-tenancy-sensitive timing row, not an effect of this change -- which removes per-op work and
+cannot make cross-shard dispatch scale 43% worse. Flagged for the gate-hygiene lane as a surviving
+timing assertion of the kind that lane is removing.
+
+### 6.4 N, at the line
+
+Asked for directly, so here is the line and its only reachable path. The fingerprint's N is written
+in exactly one place:
+
+    src/core/flipctl.h:85          partial_.commands++;          // inside FlipFingerprintWriter::note_command
+
+`FlipFingerprintWriter::note_command` has exactly one caller in the tree:
+
+    src/core/io_loop.h:5342        writer.note_command(command_class, keys, value_bytes);
+
+which is the last statement of `flip_fingerprint_note_sampled`, and that function has exactly one
+caller:
+
+    src/core/io_loop.h:5298-5300   void flip_fingerprint_note(const CommandSpec& spec, const Op& op) {
+                                       if (__builtin_expect(self_->flip_fingerprint().pass_sampled(), false))
+                                           flip_fingerprint_note_sampled(spec, op);
+                                   }
+
+So N is incremented once per command **that was actually fingerprinted**, and never on a dispatched
+command that the sampler skipped. From there `published_.commands += partial_.commands`
+(flipctl.h:111) -> `aggregate.commands` (flipctl.cc, `sample_fingerprint`) ->
+`signature.commands = sample.commands` (`flip_signature`) -> `smoothed_.commands` (`observe`) ->
+the quantum's denominator (`update_band`). One chain, no branch, no second source.
+
+**Beware the name collision when auditing this.** `grep note_command` returns 20 other call sites --
+`self_->note_command(op.spec->id)` at all 15 dispatch points and in ex_loop/multi/acl. That is a
+DIFFERENT function: `ThreadCtx::note_command`, the per-command-id histogram behind INFO
+COMMANDSTATS. It is unsampled and it is not on the fingerprint's path. The fingerprint's N and the
+dispatched count are two separate counters that happen to share a method name; only the first is
+read by the quantum.
+
+Precision on one word: N is the sampled COMMAND count, not the sampled PASS count. A sampled pass
+contributes all d of its frames, so N = (sampled passes) x d -- which is the right quantity, since
+the quantum bounds the noise of an estimator averaged over commands. One caveat this lane owes the
+redesign: because whole passes are sampled, this is CLUSTER sampling, so the effective sample size
+for a class fraction is between N/d and N depending on how correlated a connection's frames are.
+Measured on the box rather than assumed: at 512k commands/s (N = 5120 sampled) the observed
+adjacent-window jitter was **0.0028**, against a `1/sqrt(N)` quantum of **0.0140**. The proposed
+floor is therefore ~5x conservative relative to the noise this sampler actually produces at p32, so
+the design effect does not eat it.
+
+### 6.5 The flip lane's probe, at this lane's window size
+
+`scratch/flipfp/sampled_band_probe.cc` is the flip lane's
+`wt-flipdamp/scratch/sampled_band_probe.cc` verbatim, except for a constructor shim so it can be
+pointed at either detector, and added rows at this lane's real configuration: W = 100, so the
+sampled count per 1 s tick is (commands/s)/100, evaluated at the three rates this lane measured.
+
+**Against the redesigned detector** (`1/sqrt(N)` quantum + learned noise bound), 600 stationary
+windows per row:
+
+| row | N (sampled) | band | quiet maxdist | fires | 2-consec | change | margin |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| their reference: 1-in-100 | 100 | 0.2000 | 0.0967 | **0/600** | **0** | 0.667 | **3.3x** |
+| 3.8M/s 1-in-100 | 380 | 0.1026 | 0.0579 | **0/600** | **0** | 0.671 | **6.5x** |
+| 3.8M/s 1-in-100 typed | 380 | 0.1026 | 0.0412 | **0/600** | **0** | 0.672 | **6.6x** |
+| 512k/s 1-in-100 | 512 | 0.0884 | 0.0479 | **0/600** | **0** | 0.674 | **7.6x** |
+| 512k/s 1-in-100 typed | 512 | 0.0884 | 0.0364 | **0/600** | **0** | 0.672 | **7.6x** |
+| 6k/s 1-in-100 (thinnest real cell) | 60 | 0.2582 | 0.1488 | **0/600** | **0** | 0.667 | **2.6x** |
+| 6k/s 1-in-100 typed | 60 | 0.2582 | 0.1425 | **0/600** | **0** | 0.668 | **2.6x** |
+
+Their published 3.3x at N = 100 reproduces exactly. At this lane's real window size the redesign
+holds with zero fires and zero two-consecutive exceedances everywhere, and 2.6x to 7.6x of margin on
+a real mix change. **The sampling needs no wider rate and no hand-tuned constant.**
+
+**Against this tree's CURRENT detector** (`4/N` quantum), the same probe, and this is the part that
+matters for merge order:
+
+| row | N | band | quiet maxdist | fires | **2-consec (spurious maneuvers)** |
+|---|---:|---:|---:|---:|---:|
+| 1-in-100 learned, N=380 / 512 / 60 | | 0.046 / 0.041 / 0.133 | 0.044 / 0.036 / 0.112 | 4 / 3 / 0 | **1 / 0 / 0** |
+| **1-in-100 TYPED (band 2), N=380** | 380 | 0.0200 | 0.0309 | 26/600 | **4** |
+| **1-in-100 TYPED (band 2), N=512** | 512 | 0.0200 | 0.0273 | 26/600 | **3** |
+| **1-in-100 TYPED (band 2), N=100** | 100 | 0.0200 | 0.0604 | 231/600 | **73** |
+| **1-in-100 TYPED (band 2), N=60** | 60 | 0.0200 | 0.1069 | 467/600 | **208** |
+| every command, any N, learned or typed | - | - | - | 0/600 | **0** |
+
+The LEARNED band survives sampling on this tree (0-1 confirmed in 600 windows). The **TYPED** band
+does not, and the reason is the exposure section 2(c) already named: `configured_band_ > 0` returns
+the percent and never consults the floor, so a fixed 2% band cannot be widened to cover the
+estimator's noise, and under sampling the quiet distance routinely exceeds it. The redesign's typed
+branch, `band_ = max(configured/100, floor)`, is exactly the fix and produces 0/600 above.
+
+**Merge-order consequence, stated plainly.** In the shipped configuration none of this can occur:
+`flip_auto = 0` (the writer is dark) and `flip_auto_band = -1` (learned). Reaching the noisy cell
+requires an operator to set BOTH `--flip-auto 1` and `--flip-auto-band PERCENT`. So this change is
+safe to land ahead of the redesign, with one condition to carry until the redesign lands: **do not
+run a sampled fingerprint with a typed `--flip-auto-band`.** This lane deliberately does not patch
+`update_band` itself -- a typed floor built on the `4/N` quantum would be wrong by the redesign's own
+analysis, and that file is being rewritten by the lane that measured the right answer.
+
+Live corroboration that the probe's 50/50 model is the stress case and not the shipped one:
+`tests/flipctl.py` drives a typed band 2 at ~6k commands/s (N = 60, the probe's worst row) and POST
+passes it 3/3, because its stationary load is single-class and so carries far less per-window
+variance than the probe's Bernoulli mix. The probe is the right instrument precisely because the
+live row cannot reach that variance.
