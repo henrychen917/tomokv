@@ -213,7 +213,10 @@ int main() {
         w.add(0.9); w.add(0.9);
         if (flip_choose_split(5, 8, w, 0.02, 3).decided) fail("two draws decided a move");
     }
-    // The bar matters: a real +20% clears 2%, and a required gain above it holds.
+    // The bar matters: a real +20% clears 2%, and a required gain above it refuses the move. (The
+    // CONTROLLER treats that refusal as a measurement verdict and keeps sampling to its reading cap
+    // rather than anchoring -- decide_placement, "sampling-bar" -- because a bar larger than any
+    // available gain says the measurement is inadequate, not that the live split is right.)
     {
         FlipDemandWindow w;
         w.add(0.82); w.add(0.82); w.add(0.82);

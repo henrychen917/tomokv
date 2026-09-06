@@ -854,6 +854,22 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
             return false;
         }
     }
+    // A BAR LARGER THAN ANY AVAILABLE GAIN IS A MEASUREMENT VERDICT, NOT A PLACEMENT ONE. When the
+    // model has picked a target and the only thing refusing it is the throughput bar, anchoring here
+    // records "this split is fine" on the strength of noise. Measured: a 3:1 boot whose executors
+    // were pinned (headroom_ex 0.0004, headroom_io 0.699) and whose demand interval was tight
+    // (0.395-0.424) projected the +100% move that 3:1 -> 2:2 is, and was refused because a
+    // neighbouring lane swung the box 2.8x per second, lifting the verification band past 1.0 --
+    // where min(1.0, band x margin) caps it exactly on the gain. Sampling costs nothing and the box
+    // may quieten, so keep measuring until the reading cap and let the cap deliver the honest
+    // "too noisy to decide" hold. The live split is the optimum is a different verdict and still
+    // decides immediately.
+    const bool bar_bound = choice.decided && !choice.move && !visited &&
+                           choice.target_units != now_units;
+    if (bar_bound && !capped && !externally_bound) {
+        model_last_decision_ = "sampling-bar";
+        return false;
+    }
     if (!choice.decided && !capped && !externally_bound) return false;  // keep measuring
 
     record(now_units * unit, rate);
