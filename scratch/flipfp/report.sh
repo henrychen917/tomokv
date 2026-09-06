@@ -2,7 +2,7 @@
 # report.sh -- assemble the lane's PRE/POST tables and verdict rows from the chain outputs.
 source /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/flipfp/fl.sh
 cd "$FP" || exit 1
-ROWS='cycles/op|instr/op|IPC|USER cycles/op|USER instr/op|USER IPC|USER store-queue-full|store-queue-full cyc|load-queue-full cyc|retire-queue-full cyc|driver ops/s'
+ROWS='cycles/op|instr/op|IPC|USER instr/op (:u)|USER store-queue-full|store-queue-full cyc|load-queue-full cyc|retire-queue-full cyc|USER dmnd fills same-CCX|dmnd fills L2|driver ops/s'
 pick(){ # pick TABLE.md SHAPE -> the rows of interest for that shape
   awk -v shape="$2" -v rows="$ROWS" 'BEGIN{n=split(rows,r,"|")} /^#### /{on = index($0, shape " ")==6} on && /^\| / {name=$0; sub(/^\| /,"",name); sub(/ \|.*/,"",name); for(i=1;i<=n;i++) if (name==r[i]) print}' "$1"
 }
