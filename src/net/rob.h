@@ -51,6 +51,20 @@ namespace tomo {
 // its unreachability proof is written against. net/conn.h re-exports it by including this file.
 inline constexpr uint32_t kRobWindow = 64;   // max in-flight ops per connection
 
+// COLD-PATH COUNTERS FOR ARM-ON-DEMAND (DESIGN-RINGDIET.md). Three events, none of them on a hot
+// path: a connection being armed, its RYOW sidecar being allocated, and one write being committed
+// into the ring. They are the instrument the design is proved with -- "pure SET does zero ring
+// bookkeeping" is exactly write_ring_records staying at zero -- so they are always on rather than
+// diagnostic-only, which is affordable precisely because every increment sits behind a noinline
+// call that the unarmed stream never makes. The ROB holds a POINTER to the owning IO thread's
+// block (installed at adopt and re-pointed at the migration edge) so that net/ need not know what
+// a ThreadCtx is; core/thread.h embeds one by value inside ReadLocalStats.
+struct ReadLocalArmStats {
+    uint64_t arms = 0;                  // connections a local read armed
+    uint64_t sidecars = 0;              // RYOW write-ring sidecars allocated (never at accept)
+    uint64_t write_ring_records = 0;    // writes committed into the RYOW write ring
+};
+
 // Allocated only for connections served by the boot-armed fused read-local lane. The connection's
 // IO owner is the sole reader/writer; the ROB ids carried beside hashes are generations, not
 // cross-thread publications. Retirement is therefore lazy: flush_id advancing past an entry is
@@ -107,9 +121,6 @@ struct alignas(64) ReadLocalRobState {
     uint8_t write_count = 0;
     PendingWrite pending_write = PendingWrite::None;
     bool overflow = false;
-    // A local MGET is one command-wide latest-read fence. No younger frame may receive a read cut
-    // until this id either completes locally or is irrevocably transferred to the owner path.
-    uint64_t local_mget_fence_id = UINT64_MAX;
     WriteKey write_ring[kWriteRingCapacity]{};
 };
 static_assert(alignof(ReadLocalRobState) >= 4, "read-local sidecar pointer uses its two low bits");
@@ -118,12 +129,16 @@ static_assert(alignof(ReadLocalRobState) >= 4, "read-local sidecar pointer uses 
 static_assert(ReadLocalRobState::kWriteRingCapacity <=
                   static_cast<uint32_t>(UINT8_MAX),
               "write_head/write_count are uint8_t");
-// THE PER-CONNECTION BILL, LOCKED LIKE EVERY OTHER LAYOUT IN THIS TREE. A read-local server
-// allocates one of these per connection at accept, so this number is what sizing the ring to the
-// ROB window costs: 1216 bytes against the sixteen-slot sidecar's 296, which jemalloc rounds to
-// the 1280-byte class against 320, and which measures as +965 bytes of RSS per armed connection
-// (scratchpad/ringsize section 3). Locked so that a later field cannot quietly add another size
-// class to every armed connection without someone re-measuring that number.
+// THE PER-CONNECTION BILL, LOCKED LIKE EVERY OTHER LAYOUT IN THIS TREE. 1216 bytes, which jemalloc
+// rounds to its 1280-byte class -- measured as +965 bytes of RSS per connection that owns one
+// (scratchpad/ringsize section 3) against the sixteen-slot sidecar's 296/320. It is NO LONGER paid
+// by every connection: arm-on-demand allocates it at the first write of an ARMED connection, so a
+// pure-write connection, a pure-read connection and an idle connection each carry none of it
+// (DESIGN-RINGDIET.md). Locked all the same, so that a later field cannot quietly add another size
+// class to every read/write connection without someone re-measuring that number.
+// The MGET latest-read fence used to live here and now lives in the Rob: it is a read-side fence
+// with nothing to do with the write ring, and keeping it here would have forced a pure-MGET
+// connection to allocate the whole sidecar to hold one id.
 static_assert(sizeof(ReadLocalRobState) == 1216,
               "the armed read-local sidecar grew: re-measure RSS per armed connection");
 
@@ -296,21 +311,20 @@ public:
         read_local_pending_filter_ = exact;
     }
 
+    // A local MGET is one command-wide latest-read fence: no younger frame may receive a read cut
+    // until this id either completes locally or is irrevocably transferred to the owner path. It
+    // lives on the Rob's own producer line rather than in the write-ring sidecar because it is a
+    // READ-side fence -- a connection that only ever sends MGETs must not have to allocate 1216
+    // bytes of write ring to hold one id (DESIGN-RINGDIET.md).
     void arm_current_local_mget_fence() {
-        read_local_state_activate();
-        ReadLocalRobState& state = read_local_state_required();
-        if (state.local_mget_fence_id != UINT64_MAX) std::abort();
-        state.local_mget_fence_id = dispatch_id();
+        if (local_mget_fence_id_ != UINT64_MAX) std::abort();
+        local_mget_fence_id_ = dispatch_id();
     }
 
     bool local_mget_fence_pending() {
-        if (!read_local_state_active()) return false;
-        ReadLocalRobState& state = read_local_state_required();
-        if (state.local_mget_fence_id == UINT64_MAX) return false;
-        if (read_local_id_active(
-                state.local_mget_fence_id, dispatch_id(), flush_id())) return true;
-        state.local_mget_fence_id = UINT64_MAX;
-        read_local_try_deactivate(state);
+        if (local_mget_fence_id_ == UINT64_MAX) return false;
+        if (read_local_id_active(local_mget_fence_id_, dispatch_id(), flush_id())) return true;
+        local_mget_fence_id_ = UINT64_MAX;
         return false;
     }
 
@@ -457,6 +471,27 @@ public:
     // Every write starts conservative. After arity and routing are known, ordinary point writes
     // and bounded blind keysets may refine it; all other special/multi-key writes leave it broad.
     void mark_current_write() {
+        // ARM ON DEMAND, THE WRITE HALF (DESIGN-RINGDIET.md). Until a local read has armed this
+        // connection the ring records NOTHING: no sidecar, no prune, no descriptor, no Staged tag
+        // -- and so no resolve on the next frame either. The entire bookkeeping is one store of
+        // this write's id, into a word on the producer's own cache line that dispatch_ has already
+        // dirtied. A pure-write connection therefore pays a predicted-taken test and that store,
+        // which is what the sixteen-slot ring used to pay for by GIVING UP after an overflow.
+        if (__builtin_expect(read_local_arm_state_ == kReadLocalUnarmed, true)) {
+            read_local_unarmed_write_id_ = dispatch_id();
+            return;
+        }
+        // FIRST WRITE OF AN ARMED CONNECTION: this is where the sidecar is born. Read-only and
+        // idle connections never reach it, which is the whole point of not allocating at accept.
+        if (__builtin_expect(read_local_state_ == 0, false) && !prepare_read_local()) {
+            // Out of memory. Fall back to the unarmed contract, which is always safe: it records
+            // nothing and the next read that arrives while this write is live is demoted to the
+            // owner path. The next quiescent read re-arms and the next write retries the
+            // allocation, so the connection heals itself without a sticky failure flag.
+            read_local_arm_state_ = kReadLocalUnarmed;
+            read_local_unarmed_write_id_ = dispatch_id();
+            return;
+        }
         read_local_state_activate();
         ReadLocalRobState& state = read_local_state_required();
         if (state.pending_write != ReadLocalRobState::PendingWrite::None) std::abort();
@@ -468,6 +503,11 @@ public:
     }
 
     bool refine_current_write_hash(uint64_t hash) {
+        // Nothing was staged on an unarmed connection, so there is nothing to refine. TRUE is the
+        // answer an unfilled ring gives, and it is the right one: the caller uses this only to
+        // decide whether the OP may claim exact-write status downstream (the eviction guard in
+        // ex_loop), a question about the command's keys that ring capacity never had a say in.
+        if (__builtin_expect(read_local_arm_state_ == kReadLocalUnarmed, true)) return true;
         ReadLocalRobState& state = read_local_state_required();
         if (state.pending_write != ReadLocalRobState::PendingWrite::Overflow ||
             state.pending_op_id != dispatch_id())
@@ -496,12 +536,17 @@ public:
     // ROB op owns the immutable key argv used by the conflict predicate, while the stored filter
     // rejects almost every disjoint probe without rescanning argv. Wider keysets stay Overflow.
     bool refine_current_write_keyset(uint64_t filter, uint32_t key_count) {
+        // The policy bound is a property of the COMMAND, so it is answered before the ring is
+        // consulted and its answer is the same armed or not.
+        if (!key_count || key_count > ReadLocalRobState::kMaxPreciseKeysetKeys || !filter)
+            return false;
+        // Same reasoning as refine_current_write_hash: unarmed stages nothing and answers the way
+        // an unfilled ring answers, so the op's precise-write marking is bit-for-bit unchanged.
+        if (__builtin_expect(read_local_arm_state_ == kReadLocalUnarmed, true)) return true;
         ReadLocalRobState& state = read_local_state_required();
         if (state.pending_write != ReadLocalRobState::PendingWrite::Overflow ||
             state.pending_op_id != dispatch_id())
             std::abort();
-        if (!key_count || key_count > ReadLocalRobState::kMaxPreciseKeysetKeys || !filter)
-            return false;
         // Same kept fallback as refine_current_write_hash: unreachable by the window argument,
         // retained because conservative is the safe answer if the argument is ever wrong.
         if (state.overflow ||
@@ -528,6 +573,14 @@ public:
     template <typename KeysetTouchesHash>
     __attribute__((always_inline)) bool read_local_write_conflicts(
             uint64_t hash, KeysetTouchesHash&& keyset_touches_hash) {
+        // ARM ON DEMAND, THE READ HALF (DESIGN-RINGDIET.md). ONE predictable test, on a word this
+        // frame's acquire_read_local has already pulled into L1 with dispatch_, and nothing is
+        // evaluated behind it: a connection in steady state (armed, no arming generation left in
+        // flight) reads a zero and falls straight through to the unchanged probe below. The word
+        // is non-zero for exactly two states, both of which end for good after the connection's
+        // first read: not yet armed, and armed with pre-arming writes still in flight.
+        if (__builtin_expect(read_local_arm_state_ != 0, false))
+            if (read_local_arm()) return true;
         // One load of the sidecar word answers both hazards it names. A staged candidate is
         // consulted directly by the exact walk and no ring slot describes it, so it is read off
         // the same word rather than costing the write frame a store into the filter.
@@ -649,7 +702,10 @@ public:
         return false;
     }
 
-    // Boot-only, before the connection is visible to any loop or kernel registration.
+    // The RYOW write ring's sidecar. Called from the connection's own IO thread on the first
+    // write of an ARMED connection -- never at accept (DESIGN-RINGDIET.md) -- and directly by the
+    // unit test, which drives the ROB without a server. Returns false only on allocation failure;
+    // every caller has a safe unarmed fallback for that.
     bool prepare_read_local() {
         if (read_local_state_) return true;
         ReadLocalRobState* state = new (std::nothrow) ReadLocalRobState;
@@ -657,8 +713,25 @@ public:
         const uintptr_t ptr = reinterpret_cast<uintptr_t>(state);
         if (ptr & kReadLocalStateTagBits) std::abort();
         read_local_state_ = ptr | kReadLocalStateInactive;
+        if (read_local_arm_stats_) read_local_arm_stats_->sidecars++;
         return true;
     }
+
+    // Installed by the IO thread that owns this connection (adopt_client) and re-pointed at the
+    // migration ownership edge, so every increment below is a plain store by the owning thread.
+    void set_read_local_arm_stats(ReadLocalArmStats* stats) { read_local_arm_stats_ = stats; }
+
+    // True while reads on this connection are being demoted by the ARMING TRANSIENT rather than by
+    // an explicit key conflict. The parser reads it only on the demote path, to attribute the
+    // fallback; it is never consulted by a read that is being served.
+    bool read_local_arm_fence_live() const {
+        return read_local_arm_state_ == kReadLocalArmFence;
+    }
+
+    // Test hook: the unarmed/armed/transient state, so the unit test can assert the transition
+    // rather than infer it. 1 = unarmed, 2 = armed with pre-arming writes still in flight, 0 =
+    // armed and recording.
+    uint32_t read_local_arm_state() const { return read_local_arm_state_; }
 
     // ---- consumer side (whichever stage sends) -------------------------------------------------
     // Retire every completed op from the head, in order, handing each reply to `sink`. Stops at the
@@ -738,6 +811,9 @@ private:
 
     // Two tag bits on the sidecar pointer, both owned by the connection's io thread.
     //   Inactive  no write generation is live at all: pure-GET traffic never dereferences the heap.
+    //             (It is read only by read_local_write_conflicts' inline shell, which tests the
+    //             whole word at once; the predicate accessor that used to wrap it had no callers
+    //             left once the MGET fence moved onto the Rob, so it is gone rather than dormant.)
     //   Staged    mark_current_write() has parked a candidate that no resolve has committed yet.
     // Staged is a strict subset of "active": staging activates first, and deactivation is refused
     // while a candidate is parked (read_local_try_deactivate tests pending_write == None).
@@ -746,13 +822,49 @@ private:
     static constexpr uintptr_t kReadLocalStateTagBits =
         kReadLocalStateInactive | kReadLocalStateStaged;
 
+    // ARM-ON-DEMAND STATE (DESIGN-RINGDIET.md), one word on the producer line, zero in the state
+    // every connection ends up in. Two non-zero values, and a connection passes through each of
+    // them at most once:
+    //   Unarmed   no local read has been seen. Writes record nothing but their newest id.
+    //   ArmFence  a read has armed the connection, but writes PUBLISHED BEFORE that arming are
+    //             still in flight and no descriptor describes them. Every read is demoted until
+    //             the newest of them retires -- which, retirement being in order, retires all of
+    //             them. This is the transient, and it is bounded by one ROB drain.
+    // It is deliberately NOT the sidecar's overflow generation, which would have been the obvious
+    // reuse: an overflow generation is EXTENDED by every write published while it is live, so on
+    // an interleaved connection it would never end and no read would ever be served locally again.
+    // This fence is fixed at arming and is never extended; writes published after arming take
+    // ordinary ring slots underneath it and are exact the moment it lifts.
+    static constexpr uint32_t kReadLocalUnarmed  = 1;
+    static constexpr uint32_t kReadLocalArmFence = 2;
+
+    // Cold half of the probe's arming gate. Returns true when this read must take the OWNER path:
+    // the connection is carrying writes that no descriptor describes. The owner path preserves
+    // per-key order by construction (a read and a write of one key share one owner queue), so
+    // demoting here is exactly as strong as the ring would have been -- it just costs a task.
+    __attribute__((noinline)) bool read_local_arm() {
+        const uint64_t dispatch = dispatch_.load(std::memory_order_relaxed);
+        const uint64_t flush = flush_id();
+        if (read_local_arm_state_ == kReadLocalUnarmed) {
+            if (read_local_arm_stats_) read_local_arm_stats_->arms++;
+            if (read_local_id_active(read_local_unarmed_write_id_, dispatch, flush)) {
+                // Writes are in flight and unrecorded: freeze the newest of them as the fence.
+                read_local_arm_state_ = kReadLocalArmFence;
+                return true;
+            }
+            read_local_unarmed_write_id_ = UINT64_MAX;
+            read_local_arm_state_ = 0;
+            return false;
+        }
+        if (read_local_id_active(read_local_unarmed_write_id_, dispatch, flush)) return true;
+        read_local_unarmed_write_id_ = UINT64_MAX;
+        read_local_arm_state_ = 0;
+        return false;
+    }
+
     ReadLocalRobState* read_local_state_ptr() const {
         return reinterpret_cast<ReadLocalRobState*>(
             read_local_state_ & ~kReadLocalStateTagBits);
-    }
-    bool read_local_state_active() const {
-        return read_local_state_ != 0 &&
-               (read_local_state_ & kReadLocalStateInactive) == 0;
     }
     // "resolve_read_local_write() has work": exactly mark_current_write()'s parked candidate.
     bool read_local_state_staged() const {
@@ -772,10 +884,12 @@ private:
         if (!state) std::abort();
         return *state;
     }
+    // The Inactive tag means exactly "no WRITE hazard is live": the MGET fence moved to its own
+    // Rob word and is tested by local_mget_fence_pending() without ever consulting the sidecar,
+    // so it no longer has to hold the whole write-ring state active to be seen.
     void read_local_try_deactivate(const ReadLocalRobState& state) {
         if (!state.overflow && state.write_count == 0 &&
-            state.pending_write == ReadLocalRobState::PendingWrite::None &&
-            state.local_mget_fence_id == UINT64_MAX)
+            state.pending_write == ReadLocalRobState::PendingWrite::None)
             read_local_state_ |= kReadLocalStateInactive;
     }
 
@@ -787,11 +901,7 @@ private:
     }
 
     void read_local_clear_mget_fence(uint64_t op_id) {
-        if (!read_local_state_active()) return;
-        ReadLocalRobState& state = read_local_state_required();
-        if (state.local_mget_fence_id != op_id) return;
-        state.local_mget_fence_id = UINT64_MAX;
-        read_local_try_deactivate(state);
+        if (local_mget_fence_id_ == op_id) local_mget_fence_id_ = UINT64_MAX;
     }
 
     static bool read_local_id_active(uint64_t op_id, uint64_t dispatch, uint64_t flush) {
@@ -916,6 +1026,10 @@ private:
             (static_cast<uint32_t>(state.write_head) + state.write_count) &
             (ReadLocalRobState::kWriteRingCapacity - 1);
         state.write_ring[tail] = ReadLocalRobState::WriteKey{hash, op_id};
+        // THE bookkeeping this lane exists to remove from unarmed streams. Counted here, at the
+        // single commit point, so "pure SET does zero ring bookkeeping" is a number in INFO and
+        // not an argument about which branches ran.
+        if (read_local_arm_stats_) read_local_arm_stats_->write_ring_records++;
         // The filter slot is written in the same breath as the ring slot. A Keyset descriptor
         // stores a key FILTER, not a hash, so tag equality cannot speak for it: it joins wide_
         // and every probe walks it, exactly as before this change.
@@ -947,6 +1061,17 @@ private:
     uint64_t read_local_write_valid_ = 0;
     uint64_t read_local_write_wide_ = 0;
     uint32_t read_local_write_force_ = 0;
+    // ARM-ON-DEMAND, and the MGET latest-read fence, in the same trailing padding. All four are
+    // parser-owned, all four are read or written by the frame that has just stored dispatch_, and
+    // together they fill this line exactly to its 64-byte boundary -- so the 192-byte Rob lock
+    // below still holds and no connection grew a byte for any of it.
+    uint32_t read_local_arm_state_ = kReadLocalUnarmed;
+    // While unarmed: the newest write this connection has published, and the only thing recorded
+    // about it. At arming it becomes the transient's fence and stops being written. UINT64_MAX is
+    // "none", the same never-active sentinel the MGET fence uses.
+    uint64_t read_local_unarmed_write_id_ = UINT64_MAX;
+    uint64_t local_mget_fence_id_ = UINT64_MAX;
+    ReadLocalArmStats* read_local_arm_stats_ = nullptr;
     alignas(64) std::atomic<uint64_t> flush_{0};
     // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
     // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit

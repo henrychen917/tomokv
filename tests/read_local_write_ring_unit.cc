@@ -73,7 +73,22 @@ bool touches(const Op& op, uint64_t hash) { return op.hash == hash; }
 // One connection's parser, driven frame by frame exactly as io_loop.h drives it.
 class Frames {
 public:
-    Frames() { if (!rob_.prepare_read_local()) std::abort(); }
+    // ARM ON DEMAND (DESIGN-RINGDIET.md). A connection records its in-flight writes only after a
+    // LOCAL READ has armed it, and the production door to arming is the write-conflict probe
+    // itself. A fresh connection has nothing in flight, so arming through that door costs no
+    // transient and every case below drives the ring exactly as it did when the sidecar was built
+    // for every connection at accept. Construct with `false` to test the unarmed contract.
+    explicit Frames(bool armed = true) {
+        rob_.set_read_local_arm_stats(&stats_);
+        if (armed) arm();
+    }
+
+    // One probe with no window position of its own: the first one arms the connection.
+    void arm() { (void)rob_.read_local_write_conflicts(0x1ull, touches); }
+
+    // 1 = unarmed, 2 = armed with pre-arming writes still in flight, 0 = armed and recording.
+    uint32_t arm_state() const { return rob_.read_local_arm_state(); }
+    const ReadLocalArmStats& stats() const { return stats_; }
 
     // A write frame: acquire (which commits the PREVIOUS frame's staged candidate), stage, refine
     // to a precise point hash, publish. Mirrors the ordinary-point-write arm of the parser.
@@ -158,6 +173,7 @@ public:
 
 private:
     struct Write { uint64_t id; uint64_t hash; };
+    ReadLocalArmStats stats_{};
     Rob<kRobWindow> rob_;
     std::deque<Write> live_;
     std::vector<bool> precise_;
@@ -167,6 +183,7 @@ private:
 constexpr uint64_t kKeyA      = 0x0000'0001'ABCD'1234ull;
 constexpr uint64_t kTagTwinA  = 0x0000'0002'5678'1234ull;   // same tag as kKeyA, different key
 constexpr uint64_t kKeyB      = 0x0000'0003'0F0F'9999ull;
+constexpr uint64_t kKeyC      = 0x0000'0004'1357'2468ull;   // a third disjoint key
 
 // ---- 1. RYOW: a read of a key with a live write to it must be fenced, at every ring position ---
 void test_ryow_same_key() {
@@ -319,6 +336,143 @@ void test_tag_collision_deep_in_the_ring() {
          ok);
 }
 
+// ==============================================================================================
+// ARM ON DEMAND (DESIGN-RINGDIET.md). The ring is sized to the ROB window and therefore records
+// EVERY write -- including on a connection where no read will ever consult the record. Cases 13
+// to 17 are the directed test for the fix: a connection records nothing until a local read arms
+// it, the writes it published before that arming are fenced wholesale until they retire, and the
+// fence is one-shot -- it is never extended by the writes that arrive after arming, or an
+// interleaved connection would never be served locally again.
+// ----------------------------------------------------------------------------------------------
+
+// ---- 13. an unarmed connection does ZERO ring bookkeeping -------------------------------------
+// The first proof obligation, stated as the counters INFO reports: a pure-write connection commits
+// no descriptor and never even allocates the 1216-byte sidecar the ring lives in.
+void test_unarmed_records_nothing() {
+    Frames f(false);
+    bool ok = true;
+    for (uint32_t i = 0; i < kRobWindow - 1; i++)
+        f.write(0x2000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+    if (f.arm_state() != 1) ok = false;                  // still unarmed
+    if (f.stats().arms != 0) ok = false;
+    if (f.stats().sidecars != 0) ok = false;             // no sidecar: nothing to write into
+    if (f.stats().write_ring_records != 0) ok = false;   // and nothing written
+    char extra[96];
+    std::snprintf(extra, sizeof extra, "(%u writes, %llu records, %llu sidecars)",
+                  kRobWindow - 1,
+                  static_cast<unsigned long long>(f.stats().write_ring_records),
+                  static_cast<unsigned long long>(f.stats().sidecars));
+    note("a connection no read has armed does zero ring bookkeeping", ok, extra);
+}
+
+// ---- 14. a read arriving with unarmed writes in flight is DEMOTED, never served ---------------
+// The safety half. Nothing describes those writes, so the read cannot be cleared against them --
+// on its own key (RYOW, which may never bend) or on any other (the transient is conservative).
+void test_unarmed_write_demotes_the_arming_read() {
+    bool ok = true;
+    {   // same key: the RYOW case
+        Frames f(false);
+        f.write(kKeyA);
+        if (!f.read(kKeyA)) ok = false;
+        if (f.arm_state() != 2) ok = false;              // armed, transient live
+    }
+    {   // a disjoint key is demoted too: no descriptor exists to clear it against
+        Frames f(false);
+        f.write(kKeyA);
+        if (!f.read(kKeyB)) ok = false;
+    }
+    {   // and a write buried under a full window of unarmed writes is still fenced
+        Frames f(false);
+        f.write(kKeyA);
+        for (uint32_t i = 0; i + 3 < kRobWindow; i++)
+            f.write(0x3000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+        if (!f.read(kKeyA)) ok = false;
+    }
+    note("a read that arrives with unarmed writes in flight is demoted, never served stale", ok);
+}
+
+// ---- 15. the transient is bounded by ONE ROB drain and then it is over ------------------------
+void test_arm_transient_is_bounded() {
+    Frames f(false);
+    bool ok = true;
+    const uint32_t pre = 8;
+    for (uint32_t i = 0; i < pre; i++)
+        f.write(0x4000'0000'0000'0000ull | (uint64_t{i} << 24) | i);
+    // Every read published while any pre-arming write is still in flight is demoted. The bound is
+    // structural: those reads share the ROB window with the writes that fence them.
+    uint32_t demoted = 0;
+    while (f.in_flight() < kRobWindow) {
+        if (f.read(kKeyB)) demoted++;
+        else { ok = false; break; }                      // must not be served while they are live
+    }
+    if (demoted > kRobWindow - pre) ok = false;
+    f.retire_all();                                      // the pre-arming generation drains
+    if (f.read(kKeyB)) ok = false;                       // and precision comes back
+    if (f.arm_state() != 0) ok = false;
+    char extra[80];
+    std::snprintf(extra, sizeof extra, "(%u demoted, bound %u)", demoted, kRobWindow - pre);
+    note("the arming transient is bounded by one ROB drain and then lifts", ok, extra);
+}
+
+// ---- 16. THE CASE THIS LANE EXISTS FOR: the fence is never extended ---------------------------
+// The obvious implementation reuses the ring's conservative OVERFLOW generation for the transient.
+// That is wrong, and silently so: an overflow generation is extended by every write published
+// while it is live, so on a 1:1 connection -- which always has a write in flight -- it would never
+// end, and not one read would ever be served locally again. The transient's fence is fixed at
+// arming; writes that arrive after it take ordinary ring slots underneath it.
+void test_arm_fence_is_not_extended_by_later_writes() {
+    Frames f(false);
+    bool ok = true;
+    f.write(kKeyA);                                      // unarmed: recorded nowhere
+    if (!f.read(kKeyB)) ok = false;                      // arms, and is fenced by the transient
+    f.write(kKeyC);                                      // armed: this one DOES take a ring slot
+    if (!f.read(kKeyB)) ok = false;                      // pre-arming write still live: fenced
+    f.retire_all();                                      // ... and now it is not
+    // Steady state, with writes in flight throughout: disjoint reads are served, same-key reads
+    // are fenced, and neither answer depends on the transient any more.
+    for (uint32_t round = 0; round < 32 && ok; round++) {
+        f.write(kKeyC);
+        if (f.read(kKeyB)) ok = false;                   // disjoint: 100% local service
+        if (!f.read(kKeyC)) ok = false;                  // same key: exactly fenced
+        f.retire(f.in_flight());
+    }
+    if (f.arm_state() != 0) ok = false;
+    if (f.stats().write_ring_records == 0) ok = false;    // the armed writes really were recorded
+    if (f.stats().sidecars != 1) ok = false;              // allocated once, at the first armed write
+    char extra[96];
+    std::snprintf(extra, sizeof extra, "(%llu records, %llu arms)",
+                  static_cast<unsigned long long>(f.stats().write_ring_records),
+                  static_cast<unsigned long long>(f.stats().arms));
+    note("the arming fence is one-shot: an interleaved connection returns to full local service",
+         ok, extra);
+}
+
+// ---- 17. arming costs one sidecar per connection, and only for connections that need one -------
+void test_sidecar_is_paid_only_by_read_write_connections() {
+    bool ok = true;
+    {   Frames f(false);                                  // pure writes
+        for (uint32_t i = 0; i < 16; i++) f.write(0x5100'0000'0000'0000ull | i);
+        if (f.stats().sidecars != 0 || f.stats().arms != 0) ok = false;
+    }
+    {   Frames f(false);                                  // pure reads
+        for (uint32_t i = 0; i < 16; i++)
+            if (f.read(0x5200'0000'0000'0000ull | i)) ok = false;
+        if (f.stats().sidecars != 0) ok = false;          // armed, but nothing to record
+        if (f.stats().arms != 1) ok = false;
+    }
+    {   Frames f(false);                                  // reads and writes
+        (void)f.read(kKeyB);
+        f.write(kKeyA);
+        if (f.stats().sidecars != 1) ok = false;          // born at the first ARMED write
+        // The staged candidate commits at the NEXT armed acquire -- that is the ring's commit
+        // point, not the write frame itself -- so drive one more frame before counting records.
+        (void)f.read(kKeyC);
+        if (f.stats().write_ring_records != 1) ok = false;
+        if (!f.probe_without_acquire(kKeyA)) ok = false;   // and the descriptor is the real one
+    }
+    note("only a connection that both reads and writes ever allocates a RYOW sidecar", ok);
+}
+
 // ---- 9. randomised soak against the live-write reference model --------------------------------
 // `depth_cap` sets how deep the ROB is allowed to run and `conservative_pct` how often a write
 // arrives through the door that takes no ring slot. With none of those every write keeps its own
@@ -326,7 +480,7 @@ void test_tag_collision_deep_in_the_ring() {
 // arm at the full window. With most of them the connection lives inside a conservative generation,
 // where the invariant still holds but nothing is expected to be hoisted.
 void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists,
-               const char* label) {
+               const char* label, bool armed = true) {
     std::mt19937_64 rng(20260905);
     // A small key space with many low-16-bit collisions: every key is 0x1000...0000 + (i<<48) + i,
     // so keys i and j collide in the tag whenever (i & 0xFFFF) == (j & 0xFFFF) -- and half the
@@ -334,7 +488,7 @@ void test_soak(uint32_t depth_cap, uint32_t conservative_pct, bool expect_hoists
     auto key = [](uint32_t i) -> uint64_t {
         return 0x1000'0000'0000'0000ull | (uint64_t{i} << 48) | uint64_t{i % 24};
     };
-    Frames f;
+    Frames f(armed);
     bool ok = true;
     uint64_t reads = 0, fenced = 0, hoisted = 0;
     for (uint32_t step = 0; step < 200000 && ok; step++) {
@@ -393,11 +547,19 @@ int main() {
     test_ring_covers_the_rob_window();
     test_conservative_run_past_capacity();
     test_tag_collision_deep_in_the_ring();
+    test_unarmed_records_nothing();
+    test_unarmed_write_demotes_the_arming_read();
+    test_arm_transient_is_bounded();
+    test_arm_fence_is_not_extended_by_later_writes();
+    test_sidecar_is_paid_only_by_read_write_connections();
     test_soak(12, 0, true, "soak shallow precise ring: 200k frames, no live write ever missed");
     test_soak(kRobWindow - 2, 0, true,
               "soak precise ring at the full ROB window: 200k frames, no live write ever missed");
     test_soak(kRobWindow - 2, 70, false,
               "soak conservative regime: 200k frames, no live same-key write ever missed");
+    test_soak(kRobWindow - 2, 0, true,
+              "soak from UNARMED: 200k frames across the arming transition, none served stale",
+              false);
     std::printf("read_local write ring unit: %s\n", failures ? "FAIL" : "ok");
     return failures ? 1 : 0;
 }

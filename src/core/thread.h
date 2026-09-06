@@ -38,6 +38,7 @@
 #include <vector>
 #include "shard.h"
 #include "signal.h"
+#include "../net/rob.h"     // ReadLocalArmStats: the armed lane's cold arm-on-demand counters
 #include "flipctl.h"
 #include "pubsub_event.h"
 #include "../base/topology.h"
@@ -120,6 +121,7 @@ enum class ReadLocalFallbackReason : uint8_t {
     ContextRoute,           // scatter/script/all-shard or conservative broad-owner route
     ContextKeymissNotify,   // MGET miss must retain owner-side notification behavior
     InflightWrite,
+    ArmTransient,           // pre-arming writes still in flight (DESIGN-RINGDIET.md)
     AtomicPending,
     Missing,
     Typed,
@@ -149,6 +151,11 @@ struct ReadLocalStats {
     uint64_t fallback_context_route = 0;
     uint64_t fallback_context_keymiss_notify = 0;
     uint64_t fallback_inflight_write = 0;
+    // ARM-ON-DEMAND TRANSIENT. Reads demoted because the connection carried writes published
+    // BEFORE a local read armed it -- writes the RYOW ring deliberately never recorded. Bounded
+    // per connection by one ROB drain and reported separately from the steady-state key conflict
+    // above so that the two can never be confused in a bench (DESIGN-RINGDIET.md).
+    uint64_t fallback_arm_transient = 0;
     uint64_t fallback_atomic_pending = 0;
     uint64_t fallback_missing = 0;
     uint64_t fallback_typed = 0;
@@ -177,6 +184,7 @@ struct ReadLocalStats {
     uint64_t mget_fallback_context_route = 0;
     uint64_t mget_fallback_context_keymiss_notify = 0;
     uint64_t mget_fallback_inflight_write = 0;
+    uint64_t mget_fallback_arm_transient = 0;
     uint64_t mget_fallback_atomic_pending = 0;
     uint64_t mget_fallback_typed = 0;
     uint64_t mget_fallback_expired = 0;
@@ -185,6 +193,11 @@ struct ReadLocalStats {
     uint64_t mget_fallback_generation = 0;
     uint64_t mget_fallback_lane_full = 0;
 
+    // Arm-on-demand volume: how many connections a local read armed, how many RYOW sidecars that
+    // cost, and how many writes were committed into a ring. A pure-write bench arm must show all
+    // three at zero -- that is the design's first proof obligation, stated as a number.
+    ReadLocalArmStats arm{};
+
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
     // Keep temporary SET attribution off the remotely scanned quiescence-publication cache line.
     alignas(64) ReadLocalSetTaxStats settax{};
@@ -192,14 +205,16 @@ struct ReadLocalStats {
 
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
-               fallback_inflight_write + fallback_atomic_pending + fallback_missing +
+               fallback_inflight_write + fallback_arm_transient +
+               fallback_atomic_pending + fallback_missing +
                fallback_typed + fallback_expired + fallback_seq_churn +
                fallback_generation + fallback_lane_full;
     }
 
     uint64_t mget_fallbacks() const {
         return mget_fallback_multi + mget_fallback_watch + mget_fallback_context +
-               mget_fallback_inflight_write + mget_fallback_atomic_pending +
+               mget_fallback_inflight_write + mget_fallback_arm_transient +
+               mget_fallback_atomic_pending +
                mget_fallback_typed + mget_fallback_expired + mget_fallback_seq_churn +
                mget_fallback_generation + mget_fallback_lane_full;
     }
@@ -225,6 +240,7 @@ struct ReadLocalStats {
                 fallback_context_keymiss_notify++;
                 break;
             case ReadLocalFallbackReason::InflightWrite: fallback_inflight_write++; break;
+            case ReadLocalFallbackReason::ArmTransient: fallback_arm_transient++; break;
             case ReadLocalFallbackReason::AtomicPending: fallback_atomic_pending++; break;
             case ReadLocalFallbackReason::Missing: fallback_missing++; break;
             case ReadLocalFallbackReason::Typed: fallback_typed++; break;
@@ -256,6 +272,9 @@ struct ReadLocalStats {
                 break;
             case ReadLocalFallbackReason::InflightWrite:
                 mget_fallback_inflight_write++;
+                break;
+            case ReadLocalFallbackReason::ArmTransient:
+                mget_fallback_arm_transient++;
                 break;
             case ReadLocalFallbackReason::AtomicPending:
                 mget_fallback_atomic_pending++;
@@ -420,6 +439,13 @@ public:
     ReadLocalStats& read_local_stats() {
         if (!read_local_state_) std::abort();
         return read_local_state_->stats;
+    }
+    // The nullable form. A thread with no read-local state is every thread in split mode and
+    // every thread on a fused boot with the lane disarmed; the arm-on-demand counter block is
+    // handed out per connection at adopt, which happens in those modes too, so that one caller
+    // needs an answer rather than an abort.
+    ReadLocalArmStats* read_local_arm_stats_or_null() {
+        return read_local_state_ ? &read_local_state_->stats.arm : nullptr;
     }
     const ReadLocalStats& read_local_stats() const {
         if (!read_local_state_) std::abort();

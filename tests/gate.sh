@@ -131,8 +131,15 @@ ROW_T=$(date +%s.%N)
 # COUNTED BY LINE, NOT BY INFERENCE (which is what produced the 324/326 correction above): the
 # quick tier exits at the `[ "$TIER" = quick ]` block, and all three rows are emitted after it, so
 # they are full-only. Quick is unchanged at 326; full is 340 + 3 = 343.
-EXPECT_QUICK=326
-EXPECT_FULL=343                 # full without the optional NIC row.
+# 324 -> 325 quick (340 -> 341 full): the RYOW write-ring unit joins the static rows, carrying the
+# arm-on-demand transient cases (t-ringdiet, DESIGN-RINGDIET.md). One row in BOTH tiers, because it
+# is server-less and costs under two seconds; the arithmetic is 324+1 / 340+1 and it is disjoint
+# from every boot-geometry loop above.
+# Merged 2026-09-07: the ring unit is one row in BOTH tiers (server-less, under two seconds), so
+# quick is 326 + 1 = 327 and full is 343 + 1 = 344. Counted by line: the ring row is emitted with
+# the static rows, far above the quick-tier exit, and the P0 rows stay below it.
+EXPECT_QUICK=327
+EXPECT_FULL=344                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -299,6 +306,19 @@ g++ -std=c++20 -O2 -pthread -I. tests/foreign_read_safety_test.cc \
     && /tmp/tomokv-foreign-read-safety-test \
     && ok "B+ counting-fingerprint filter unit" \
     || bad "B+ counting-fingerprint filter unit"
+# THE RYOW WRITE RING, INCLUDING ITS ARMING TRANSIENT (DESIGN-RINGDIET.md). The connection records
+# nothing until a local read arms it, so the reads that arrive with pre-arming writes still in
+# flight must be DEMOTED -- and the fence that demotes them must be one-shot, or a 1:1 connection
+# would never be served locally again. That is a per-frame ordering property of the ROB, so it is
+# tested server-less and deterministically here rather than inferred from a live counter: the five
+# directed arming cases plus a 200k-frame soak that starts UNARMED and crosses the transition, on
+# top of the fourteen ring cases the sizing lane left (which this row also brings into the gate for
+# the first time -- they were `make unit` only). 20 cases, one row.
+g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.cc \
+    -o /tmp/tomokv-read-local-write-ring-unit 2>/tmp/gate-ring-unit.txt \
+    && /tmp/tomokv-read-local-write-ring-unit >>/tmp/gate-ring-unit.txt 2>&1 \
+    && ok "read-local write ring + arming transient unit" \
+    || bad "read-local write ring + arming transient unit" "see /tmp/gate-ring-unit.txt"
 if [ "$ORACLE_OK" = 1 ]; then
   python3 tools/gen_acl_categories.py --redis-root "$REDIS74_ROOT" \
       --check src/cmd/acl_categories_generated.h \
