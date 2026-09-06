@@ -38,7 +38,8 @@ GLOBCASE_ORACLE=0; MMPID=0
 # tier. The preflight below says exactly what is missing instead of a traceback in row 4.
 export REDIS74_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 # Wall-time bound per battery (see py()). A hung battery used to hang the whole gate; now it is a
-# red row that says TIMEOUT. 900 s is ~3x the slowest battery (flipctl) on the gate cores.
+# red row that says TIMEOUT. 900 s is ~3x the slowest battery on the gate cores. flipctl.py is
+# launched with its own explicit 600 s bound (it re-rolls a non-stationary stable hold; see there).
 GATE_TEST_TIMEOUT=${GATE_TEST_TIMEOUT:-900}
 # A battery that records a STRICT skip (a DEBUG hook it needed was denied) fails under the gate:
 # a gate row must run the arm it exists for, never turn green by skipping it (tests/_lib.py).
@@ -846,7 +847,11 @@ py tests/spinprobe.py $PORT "$SRV" >/tmp/gate-spinprobe.txt 2>&1 \
 stop
 boot ./build/tomokv --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
      --flip-auto-band 2 --lb-age-sample-rate 1024 || bad "flipctl boot"
-timeout 300 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
+# 300 -> 600 s: the stable-hold row now MEASURES its precondition (the driver's own command rate
+# must be stationary by the controller's own band) before its assertion window opens, and re-rolls
+# a hold whose load left that band up to three times inside its own wall budget before skipping it.
+# The typical run is unchanged; the worst case adds the re-rolls plus their re-anchor waits.
+timeout 600 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
     >/tmp/gate-flipctl.txt 2>&1 \
     && ok "flip controller: ramp gate, hold, surge + mix re-maneuvers" \
     || bad "flip controller: ramp gate, hold, surge + mix re-maneuvers" \
@@ -1234,7 +1239,15 @@ py tests/ryow.py 127.0.0.1 $PORT >/tmp/gate-ryow-asan.txt 2>&1 \
     && ok "RYOW under ASAN" || bad "RYOW under ASAN"
 py tests/atomic_torn.py 127.0.0.1 $PORT >/tmp/gate-atomic-torn-asan.txt 2>&1 \
     && ok "atomic torn/window under ASAN" || bad "atomic torn/window under ASAN"
-py tests/atomic_ryow.py 127.0.0.1 $PORT >/tmp/gate-atomic-ryow-asan.txt 2>&1 \
+# --no-rate-assertions: the battery's overlap section makes one claim about SPEED (pipelining 24
+# atomic groups beats 24 serial round trips by >10%). ASAN does not slow the two arms by the same
+# factor, so that ratio inverts here on a correct build -- measured pipe 21,005/s vs serial
+# 24,202/s in a full-gate run whose every correctness check passed, on a build that passed 4 of 4
+# standalone. The mechanism half of the same section (all 24 admitted, atomic_window_stalls moved,
+# so a younger cross-key group WAS in flight while an older one decided) still runs on this tier,
+# and the measured rates are still printed in the log.
+py tests/atomic_ryow.py 127.0.0.1 $PORT --no-rate-assertions \
+    >/tmp/gate-atomic-ryow-asan.txt 2>&1 \
     && ok "atomic RYOW under ASAN" || bad "atomic RYOW under ASAN"
 stop
 # "No ASAN report" is a finding only if the ASAN server actually ran to its shutdown dump; an

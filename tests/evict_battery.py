@@ -114,9 +114,26 @@ elif SECTION == "lru":
             s.sendall(enc(["GET", "lru:%d" % i])); rr()
         fill("lrufill", 2000, start=r * 2000)
     ev = info_num("evicted_keys")
-    check("allkeys-lru: writes keep landing past limit", True)
+    live = dbsize()
+    OFFERED = 8000 + 3 * 2000
+    # Was `check("...writes keep landing past limit", True)` -- literally the constant True, a row
+    # that could not fail. The claim it meant to make is an IDENTITY, and an exact one: fill() does
+    # not tolerate OOM, so every one of the 14000 writes was accepted, nothing here carries a TTL,
+    # no key is written twice, and under allkeys-lru an accepted key is either still live or was
+    # evicted to make room for a later one. Nothing sampled about it.
+    check("allkeys-lru: every offered write landed (live + evicted == offered)",
+          live + (ev or 0) == OFFERED,
+          "live=%d evicted=%s offered=%d" % (live, ev, OFFERED))
     check("allkeys-lru: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
-    check("allkeys-lru: plateau near ceiling (<10k of 14k offered)", dbsize() < 10000, dbsize())
+    # The plateau, stated as the property rather than as an observed constant. The budget buys a
+    # ceiling, not a number somebody measured once: MM / 16 shards / ~124 B per 100 B-value key is
+    # ~8.4k keys (see MM above), so a policy that is working holds the live set at that ceiling and
+    # therefore materially SHORT of the 14000 offered. The 25% is headroom for per-shard imbalance,
+    # not a threshold anyone tunes: the discriminating gap here is 8.4k against 14k.
+    CEILING = 8400
+    check("allkeys-lru: live set plateaus at the budget ceiling, not at what was offered",
+          live < CEILING * 5 // 4,
+          "live=%d ceiling~%d offered=%d" % (live, CEILING, OFFERED))
 
 elif SECTION == "vlru":
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-lru")
@@ -135,6 +152,13 @@ elif SECTION == "vttl":
     ev = info_num("evicted_keys")
     soon, late = alive("soon", range(0, 3000, 60)), alive("late", range(0, 3000, 60))
     check("volatile-ttl: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
+    # A count out of a sampled victim choice, so it is stated the way the survival rows in the lfu
+    # and lruclock sections are: RELATIVE, needing no observed constant, and inverting outright if
+    # the policy stops preferring the nearest expiry. The absolute companion below is what makes
+    # the comparison non-vacuous -- if the pressure never reached the `soon` bucket at all both
+    # counts would sit at 50 and "soon < late" would be deciding on noise rather than on policy.
+    check("volatile-ttl: pressure reached the nearest-expiry bucket", soon < 50,
+          "soon=%d/50 alive" % soon)
     check("volatile-ttl: soon evicted more than late", soon < late, "soon=%d late=%d" % (soon, late))
     check("volatile-ttl: permanents survive", alive("perm", range(300)) == 300)
 

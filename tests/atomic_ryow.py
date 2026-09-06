@@ -7,7 +7,22 @@ import threading
 import time
 
 
-HOST, PORT = sys.argv[1], int(sys.argv[2])
+# --no-rate-assertions drops the ONE claim in this file that is about speed rather than about a
+# mechanism (see the overlap section near the end). Every correctness check still runs. The gate
+# passes it on the ASAN tier, where the sanitizer's ~5x slowdown does not slow the pipelined and
+# the serial arm by the same factor and inverts the ratio: the full gate measured pipe 21,005/s
+# against serial 24,202/s and reddened the row while every correctness check in that same run
+# passed, and the same build passed 4 of 4 standalone. A ratio-of-rates claim is a performance
+# assertion; it belongs on the release build only. It is NOT sniffed from the environment -- the
+# caller says so explicitly, so a battery run by hand behaves like the caller asked, not like
+# whatever it guessed about its server.
+ARGS = sys.argv[1:]
+RATE_ASSERTIONS = "--no-rate-assertions" not in ARGS
+ARGS = [a for a in ARGS if a != "--no-rate-assertions"]
+if len(ARGS) != 2:
+    print("usage: atomic_ryow.py <host> <port> [--no-rate-assertions]", flush=True)
+    sys.exit(2)
+HOST, PORT = ARGS[0], int(ARGS[1])
 FAIL = 0
 
 
@@ -16,6 +31,12 @@ def note(name, ok, extra=""):
     print(("  ok   " if ok else "  FAIL ") + name + (" " + extra if extra else ""), flush=True)
     if not ok:
         FAIL += 1
+
+
+def skip(name, reason):
+    """A claim deliberately not made on this tier. Never a failure -- but always printed, with the
+    numbers it would have judged, so the log still carries the measurement."""
+    print("  SKIP " + name + " -- " + reason, flush=True)
 
 
 def frame(*args):
@@ -220,10 +241,23 @@ serial_elapsed = time.perf_counter() - started
 c.close()
 pipe_rate = burst_count / max(pipelined_elapsed, 1e-9)
 serial_rate = burst_count / max(serial_elapsed, 1e-9)
+rates = "stalls=%d pipe=%.0f/s serial=%.0f/s ratio=%.2f" % (
+    stall_after - stall_before, pipe_rate, serial_rate, pipe_rate / max(serial_rate, 1e-9))
+# The MECHANISM half, asserted on every tier: the 24 groups were all admitted and answered OK, and
+# the two-deep window actually stalled admission, which is only possible if a younger cross-key
+# group was in flight while an older one was still deciding. A connection barrier -- the regression
+# this section exists for -- makes stall_after == stall_before, on any build, at any speed.
 note("cross-key atomics on one connection overlap",
-     overlap_ok and stall_after > stall_before and pipe_rate > serial_rate * 1.10,
-     "stalls=%d pipe=%.0f/s serial=%.0f/s" %
-     (stall_after - stall_before, pipe_rate, serial_rate))
+     overlap_ok and stall_after > stall_before, rates)
+# The RATE half: with the barrier gone, pipelining 24 groups must also beat 24 serial round trips.
+# It is a performance claim -- true only on a machine that is not being slowed unevenly -- so it is
+# made on the release tier and skipped, with its numbers, everywhere else.
+if RATE_ASSERTIONS:
+    note("pipelined atomic groups beat the serial round-trip rate", pipe_rate > serial_rate * 1.10,
+         rates)
+else:
+    skip("pipelined atomic groups beat the serial round-trip rate",
+         "rate assertions disabled by --no-rate-assertions; " + rates)
 
 
 def consistent_or_absent(values):
