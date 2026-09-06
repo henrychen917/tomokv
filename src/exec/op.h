@@ -337,8 +337,15 @@ public:
         // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
         // loses nothing -- the owner is writing into that very buffer either way.
         bool code(ReplyCode c, int32_t v = 0) {
-            if (__builtin_expect(!op_.reply_code_ok_ || op_.reply_code_ != 0 ||
-                                 op_.direct_len != 0 || !op_.reply.empty(), false))
+            // THE ARMING TEST CARRIES NO STATIC HINT, deliberately. Folded into the chain below
+            // under __builtin_expect(..., false) it told the compiler "expect code() to succeed",
+            // which is right in fused and wrong on EVERY call in split -- a mispredict per reply
+            // for a decision that is 100% biased for the life of the process, and therefore one
+            // the hardware predictor gets right for free in both modes once it is its own branch.
+            // Costs no instructions either way; it is the branch that was being paid for.
+            if (!op_.reply_code_ok_) return false;
+            if (__builtin_expect(op_.reply_code_ != 0 || op_.direct_len != 0 ||
+                                 !op_.reply.empty(), false))
                 return false;
             op_.reply_code_ = static_cast<uint8_t>(c);
             op_.reply_ival_ = v;
