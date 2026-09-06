@@ -342,3 +342,22 @@ LAW (marker): quiet_ok = exists AND age >= 180 s by stat arithmetic (find -mmin 
   republished at https://claude.ai/code/artifact/fce9ba91-db6b-4e62-815f-9e2cc533a1fa.
   FINAL CODE COMMIT dcc5a409a (src/core/flip_policy.h, flipctl.{h,cc}, server.h, main.cc,
   t_server.cc, tests/flipctl_unit.cc, tests/flip_cost_gate.py); harness/notes commits after it.
+
+## 2026-09-06 17:30 owner-box acceptance of dcc5a409a (coordinator) + the landing question
+120 s cells, 64 shards, 512 conns, mk p32; settled = mean t>=60. 18:14: OFF 1.539M | BASE 18 s ->
+31:1 rail -> back at 24 s, 3 flips/973 clients, 1.531M | GUARD 16 s -> 11:21 held 2.106M | REDESIGN
+19 s -> 13:19 held 1.941M, 0 moves after 60 s, holds 0, round_trips 0. 28:4: OFF 0.528M | BASE
+12 s -> 31:1 -> back, 0.485M | GUARD 15 s -> 10:22 1.973M | REDESIGN 13 s -> 12:20 2.036M (best).
+QUESTION: 13:19 one step short of 11:21 -- argmax, or a refused second step?
+READING: argmax of the ORIGIN's demand reading; no second step was ever proposed (the maneuver ends
+at moved-delivered and anchors; holds 0 / round_trips 0 = no later trigger), so the gate refused
+nothing. Cause = signal/model: c_io is not split-independent (io_uring_enter time amortizes with
+fewer io threads), so an io-heavy origin over-reads f (~0.39 -> 13/12); the guard's busy share
+omits exactly that part (~0.33 -> 11/10) and lands closer by cancellation.
+FIX 2a18b4a1d: after a delivered move re-measure the landing (fresh demand/origin windows), take one
+more judged step if the local argmax differs and pays (measured transfer cost), stop on hold or a
+visited split; local verdict exposed as flipctl_refine_decision / flipctl_refine_steps. Expected on
+the owner box: 18:14 -> 13:19 -> (f_local lower) -> 11:21 or 12:20 at ~35-45 s (the +8% second step
+needs ~25 s of stationarity under the asymmetric gate). Verification queued: scratch/rv2.sh
+(build+unit+rv.sh) detached behind the marker (the coordinator's OFF sweep holds the box);
+results -> fd-rv2.log / fd-rv.log / fd-r3-*.txt. NOT yet verified on any box at this commit.
