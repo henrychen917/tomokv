@@ -782,6 +782,12 @@ public:
         read_local_store_state_required().retire_sink = sink;
     }
     bool read_local_enabled() const { return read_local_enabled_; }
+#ifdef TOMO_RL_CACHE_DEBUG
+    // Debug builds only: lets Server assert that this store's sink still names its CURRENT owner.
+    const ReadLocalRetireSink& read_local_retire_sink_debug() const {
+        return read_local_store_state_required().retire_sink;
+    }
+#endif
     bool read_local_atomic_filter_enabled() const { return read_local_atomic_filter_; }
 
     uint64_t read_local_state_acquire() const {

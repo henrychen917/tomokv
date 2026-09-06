@@ -118,8 +118,14 @@ ROW_T=$(date +%s.%N)
 # 258 -> 260 full: reply codes make a blocking timeout's "*-1"/"_" a CODE rather than bytes, so the
 # ACL retire-recheck's discard has a second representation to drop; one battery per thread mode.
 # Merged: the aclreply battery is a FULL-tier row only (branch 245/260 over 245/258), so quick stays 324 and full is 338 + 2 = 340.
+# 340 -> 343 full: the armed-write block cache's ownership laws (DESIGN-P0REPLY.md). A shard that
+# changed owner kept its read-local retire sink pointing at the OLD owner's QSBR ring and block
+# cache until the destination's own later pass rebound it, so the new owner wrote through another
+# thread's unlocked free list. Three rows: the -DTOMO_RL_CACHE_DEBUG build, the churn battery on it
+# (which carries its own non-vacuity checks, including that the balancer MOVED shards), and the
+# invariant check over that server's log. FULL-tier only: it costs one more whole build.
 EXPECT_QUICK=324
-EXPECT_FULL=340                 # full without the optional NIC row.
+EXPECT_FULL=343                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -1280,6 +1286,46 @@ stop
 if grep -q "ERROR: AddressSanitizer" "$SRVLOG"; then bad "zc ASAN clean" "see $SRVLOG"
 elif shutdown_present; then ok "zc ASAN clean"
 else bad "zc ASAN clean" "ASAN server never reached its shutdown dump; see $SRVLOG"; fi
+
+# ---- 4b-bis. full tier: the armed-write block cache's ownership laws ---------------------------
+# THE ROW THAT WOULD HAVE CAUGHT THE P0 (DESIGN-P0REPLY.md). A shard's read-local retire sink names
+# two structures belonging to ONE thread and protected by nothing else: the owner's single-producer
+# QSBR retire ring and the owner's unlocked block-cache free list. When a shard changed owner the
+# sink was rebound lazily, on the destination's own later executor pass, so for a window the new
+# owner wrote through the old owner's ring and free list -- and the damage surfaced far away, as
+# either KvBlockCache::put's abort or a wild free-list head in an unrelated SET.
+#
+# Nothing in the gate could see it. The differential matrix compares REPLIES; it never rewrites one
+# key often enough to cycle a block through put -> grace -> take, and its key distribution is flat
+# enough that the load balancer moves no shards at all. So this row supplies both missing halves:
+# a debug build that states the ownership laws as assertions, and traffic that forces shard moves.
+RLDBG=/tmp/tomokv-gate-rlcachedbg
+pausable g++ -std=c++20 -O2 -g -march=native -pthread -DTOMO_JEMALLOC -DTOMO_RL_CACHE_DEBUG -I. \
+    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc \
+    -o $RLDBG -ljemalloc -luring -pthread -lssl -lcrypto -lm 2>/tmp/gate-rlcachedbg-build.txt \
+    && ok "read-local ownership-invariant build" \
+    || bad "read-local ownership-invariant build" "see /tmp/gate-rlcachedbg-build.txt"
+quiet_wait
+if boot_fused $RLDBG --atomic 1 --read-local 1 --enable-debug-command yes; then
+  # The battery carries its own three non-vacuity checks: the armed lane served reads, the block
+  # cache actually held blocks, and -- the precondition for this whole class of defect -- the load
+  # balancer MOVED shards during the run.
+  py tests/rlcache_churn.py 127.0.0.1 $PORT "${GATE_RLCACHE_SECONDS:-25}" 48 \
+      >/tmp/gate-rlcache-churn.txt 2>&1 \
+      && ok "armed block-cache churn battery" \
+      || bad "armed block-cache churn battery" "see /tmp/gate-rlcache-churn.txt"
+  stop
+  if grep -q 'RLSINK-VIOLATION\|RLCACHE-VIOLATION\|RLRING-VIOLATION' "$SRVLOG"; then
+    bad "read-local ownership invariants" "see $SRVLOG"
+  elif shutdown_present; then
+    ok "read-local ownership invariants"
+  else
+    bad "read-local ownership invariants" "server never reached its shutdown dump; see $SRVLOG"
+  fi
+else
+  bad "armed block-cache churn battery" "boot failed; see $SRVLOG"
+  bad "read-local ownership invariants" "boot failed"
+fi
 
 # ---- 4c. full tier: byte-exact differential matrix against pinned vanilla Redis 7.4 ----------
 # The helper discovers the ordinary suites from differ.py's gens registry, adds the two special

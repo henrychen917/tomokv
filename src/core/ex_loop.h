@@ -456,9 +456,16 @@ public:
         cached_now_ms_ = realtime_ms();
         // A completed LB stage may have changed this owner's shard vector. Armed retirement sinks
         // must follow ownership before any work; the literal baseline notification block remains in
-        // lb_control_pass below.
+        // lb_control_pass below. Since the ownership edge itself now rebinds
+        // (Server::adopt_read_local_retire_sink) this is a no-op standing check, kept because a
+        // no-op is the cheapest proof that the eager rebind ran.
         if (lb_rebind_pending_ && srv_->lb_stage() != LbStage::ExDrain)
             read_local_rebind_owned_shards_after_lb();
+#ifdef TOMO_RL_CACHE_DEBUG
+        if constexpr (Fused)
+            if (read_local_enabled())
+                srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
+#endif
         const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
         if (!lb_frozen) refresh_live_config();
         if (maxmemory_enabled_)

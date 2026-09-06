@@ -34,6 +34,10 @@
 #include "../snapshot/snapshot.h"
 #include "../persist/aof.h"
 
+#ifdef TOMO_RL_CACHE_DEBUG
+#include <cstdio>
+#endif
+
 namespace tomo {
 
 struct LiveConfigSnapshot {
@@ -1926,11 +1930,59 @@ public:
     // an EMPTY retire ring), so the source has nothing outstanding for this shard and the
     // destination has not started. The sink moves with ownership, in the same critical section.
     void adopt_read_local_retire_sink(Shard& shard, uint32_t destination) {
+#ifdef TOMO_RL_CACHE_NO_EAGER_ADOPT
+        // NEGATIVE CONTROL (Makefile target `rlcache-nofix`): restores the pre-fix behaviour, where
+        // the sink was left for the destination's own later pass to rebind. Every invariant added
+        // for this defect MUST fail against this build; a detector that cannot report failure
+        // proves nothing about the runs that pass.
+        (void)shard; (void)destination;
+        return;
+#else
         if (!shard.store().read_local_enabled()) return;
         const ReadLocalRetireSink* sink = threads_[destination]->read_local_retire_sink_or_null();
         if (!sink) std::abort();
         shard.store().rebind_read_local_retire_sink(*sink);
+#endif
     }
+
+#ifdef TOMO_RL_CACHE_DEBUG
+    // THE INVARIANT THAT WOULD HAVE CAUGHT THIS, stated where it can be checked cheaply and
+    // continuously rather than only where it is violated.
+    //
+    // Every shard's read-local retire sink must name its CURRENT owner, at every instant. Checking
+    // it only at the point of USE (KvBlockCache's owner assertion) makes detection depend on the
+    // new owner happening to write to the moved shard inside the window, which is a coin flip per
+    // move. Checking the mapping itself makes ANY move with a stale sink fire, deterministically,
+    // whether or not a write lands in the window -- which is what lets a gate row rest on it.
+    //
+    // 16-256 pointer compares, debug builds only, once per executor pass.
+    void debug_assert_read_local_sinks_follow_ownership(uint32_t checker) const {
+        // Only outside a migration stage. The transfer functions publish the sink and the new owner
+        // as two separate stores inside one quiesced critical section, so a thread parked at the
+        // ExDrain ack can observe the instant between them; that transient is not the defect. The
+        // defect outlives the stage -- the pre-fix rebind did not happen until the destination's
+        // own later pass -- so checking at Idle still catches it on the very next pass.
+        if (lb_stage() != LbStage::Idle || flip_stage() != FlipStage::Idle) return;
+        for (uint32_t sid = 0; sid < nshards(); sid++) {
+            const Shard& shard = *shards_[sid];
+            if (!shard.store().read_local_enabled()) continue;
+            const uint32_t owner = shard_owner_[sid].load(std::memory_order_acquire);
+            if (owner >= threads_.size()) continue;
+            const ReadLocalRetireSink* want = threads_[owner]->read_local_retire_sink_or_null();
+            if (!want) continue;
+            const ReadLocalRetireSink& have = shard.store().read_local_retire_sink_debug();
+            if (have.block_cache == want->block_cache && have.context == want->context) continue;
+            std::fprintf(stderr,
+                "\nRLSINK-VIOLATION shard %u owner thread %u expects cache %p/queue %p, store %p "
+                "still names cache %p/queue %p (observed by thread %u)\n",
+                sid, owner, static_cast<void*>(want->block_cache), want->context,
+                static_cast<const void*>(&shard.store()),
+                static_cast<void*>(have.block_cache), have.context, checker);
+            std::fflush(stderr);
+            std::abort();
+        }
+    }
+#endif
 
     bool transfer_bucket_range_quiesced(uint32_t begin, uint32_t end, uint32_t source,
                                          uint32_t destination) {

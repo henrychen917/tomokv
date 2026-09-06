@@ -54,6 +54,22 @@ DO_READ   = os.environ.get("RLCHURN_READ",   "1") == "1"
 VALUE_SIZES = (0, 8, 24, 40, 56, 72, 88, 104)   # spread across kv_block_class buckets below 128
 KEYSPACE = int(os.environ.get("RLCHURN_KEYSPACE", "192"))  # small enough that every key is rewritten constantly
 BURST = 32                                       # pipelined GET+SET pairs per round trip
+HOT = 6                                          # keys in the rotating hot window
+HOT_SHARE = 4                                    # 3 of every 4 ops land in the window
+
+
+# THE LOAD BALANCER MUST HAVE SOMETHING TO BALANCE. A uniform key distribution over one small key
+# space keeps every shard at the same op rate, the imbalance never crosses lb-imbalance-pct, and no
+# shard ever changes owner -- which is the precondition for the defect this battery exists for
+# (measured: 7.8M ops, 0 migrations). A hot window that ROTATES makes a few shards hot, then makes
+# different ones hot, so the balancer moves shards continuously and in both directions, which is
+# exactly the traffic under which the crash was first seen.
+def hot_key(keyspace, i, salt):
+    n = len(keyspace)
+    if i % HOT_SHARE:
+        base = int(time.time() * 2) * 13
+        return keyspace[(base + (i + salt) % HOT) % n]
+    return keyspace[(i * 7 + salt) % n]
 
 
 # CONNECTION HOMOGENEITY. A connection that carries writes fences its own reads: the RYOW ring
@@ -74,7 +90,7 @@ def reader(host, port, wid, keyspace, stop, errors, counts):
             expect = 0
             base = (rnd * 7 + wid) % n
             for i in range(BURST):
-                frame.append(_lib.encode("GET", keyspace[(base + i) % n]))
+                frame.append(_lib.encode("GET", hot_key(keyspace, i, wid)))
                 expect += 1
             # MGET takes the multi-key local-read path, which holds several foreign pointers at once.
             frame.append(_lib.encode("MGET", keyspace[base % n], keyspace[(base + 1) % n],
@@ -105,8 +121,9 @@ def writer(host, port, wid, keyspace, stop, errors, counts):
             expect = 0
             base = (rnd * 5 + wid * 3) % n
             for i in range(BURST):
-                j = (base + i) % n
-                frame.append(_lib.encode("SET", keyspace[j], vals[j]))
+                k = hot_key(keyspace, i, wid)
+                j = keyspace.index(k)
+                frame.append(_lib.encode("SET", k, vals[j]))
                 expect += 1
                 if DO_INT and i % 4 == 3:
                     # Int-encoded objects reach the same cache through make_set_int.
@@ -151,6 +168,11 @@ def main():
         return rep.finish()
 
     before_hits = _lib.info_int(ctl, "all", "read_local_hits")
+    # SHARD MOVES ARE THE PRECONDITION. The defect this battery exists for lives at the ownership
+    # edge: a shard changing owner while its read-local retire sink still names the old owner's
+    # QSBR ring and block cache. A run in which the load balancer moved nothing cannot have
+    # exercised it, and must not be reported as evidence that it is fixed.
+    before_moves = _lib.info_int(ctl, "all", "tomokv_keylb_bucket_moves")
     peak_cache = 0
     stop = threading.Event()
     errors = []
@@ -204,6 +226,9 @@ def main():
                   "read_local_hits delta %d" % (after_hits - before_hits))
         rep.check("block cache held blocks (non-vacuity)", peak_cache > 0,
                   "peak mem_block_cache %d bytes" % peak_cache)
+        after_moves = _lib.info_int(ctl, "all", "tomokv_keylb_bucket_moves")
+        rep.check("load balancer moved shards (non-vacuity)", after_moves > before_moves,
+                  "tomokv_keylb_bucket_moves delta %d" % (after_moves - before_moves))
     print("  churn: ops=%d workers=%d flushes=%d peak_block_cache=%d"
           % (ops, workers, flushes, peak_cache))
     return rep.finish()

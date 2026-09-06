@@ -57,6 +57,23 @@ tsan:
 	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
 	  -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
 
+# The armed-write block cache's ownership laws as assertions: the cache and the QSBR retire ring
+# are owner-private (one thread, no lock), each cached block is resident exactly once, each class
+# list matches its counter, and every shard's retire sink names its CURRENT owner. Debug-only: the
+# residency set and the sampled list walk cost far more than the path they guard. DESIGN-P0REPLY.md.
+rlcachedbg:
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_RL_CACHE_DEBUG -I. $(SRC) \
+	  -o build/tomokv-rlcachedbg $(JELIBS) $(LDLIBS) -lm
+
+# NEGATIVE-CONTROL BUILD for the row above: the same assertions with the ownership-edge rebind
+# removed, i.e. the pre-fix behaviour. tests/rlcache_churn.py MUST fail against this binary; a
+# detector that cannot report failure proves nothing about the runs that pass.
+rlcache-nofix:
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_RL_CACHE_DEBUG -DTOMO_RL_CACHE_NO_EAGER_ADOPT -I. $(SRC) \
+	  -o build/tomokv-rlcache-nofix $(JELIBS) $(LDLIBS) -lm
+
 # NEGATIVE-CONTROL BUILD for the cross-owner script reservation sub-wave. Identical to the release
 # build except that ScriptPhase::Pin arms nothing, so tests/xscript.py counterexample MUST fail
 # against it. A detector that cannot report failure proves nothing about the runs that pass.
