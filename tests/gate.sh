@@ -117,8 +117,11 @@ ROW_T=$(date +%s.%N)
 # 335 full + 3 = 338. Additions are disjoint from the fused+armed and lane-admission rows.
 # 258 -> 260 full: reply codes make a blocking timeout's "*-1"/"_" a CODE rather than bytes, so the
 # ACL retire-recheck's discard has a second representation to drop; one battery per thread mode.
-# Merged: the aclreply battery is a FULL-tier row only (branch 245/260 over 245/258), so quick stays 324 and full is 338 + 2 = 340.
-EXPECT_QUICK=324
+# Merged: the aclreply battery adds one row per thread mode and both run BEFORE the quick-tier exit,
+# so quick is 324 + 2 = 326 and full is 338 + 2 = 340. (Corrected 2026-09-07: the first resolution read
+# the branch deltas 245/260 over 245/258 as full-only and left quick at 324, so every quick gate failed
+# its own ledger row by exactly 2 while the full tier was right.)
+EXPECT_QUICK=326
 EXPECT_FULL=340                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
