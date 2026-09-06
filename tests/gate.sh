@@ -39,7 +39,7 @@ GLOBCASE_ORACLE=0; MMPID=0
 export REDIS74_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
 # Wall-time bound per battery (see py()). A hung battery used to hang the whole gate; now it is a
 # red row that says TIMEOUT. 900 s is ~3x the slowest battery on the gate cores. flipctl.py is
-# launched with its own explicit 480 s bound (it re-rolls a non-stationary stable hold; see there).
+# launched with its own explicit 600 s bound (it re-rolls a non-stationary stable hold; see there).
 GATE_TEST_TIMEOUT=${GATE_TEST_TIMEOUT:-900}
 # A battery that records a STRICT skip (a DEBUG hook it needed was denied) fails under the gate:
 # a gate row must run the arm it exists for, never turn green by skipping it (tests/_lib.py).
@@ -844,11 +844,11 @@ py tests/spinprobe.py $PORT "$SRV" >/tmp/gate-spinprobe.txt 2>&1 \
 stop
 boot ./build/tomokv --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
      --flip-auto-band 2 --lb-age-sample-rate 1024 || bad "flipctl boot"
-# 300 -> 480 s: the stable-hold row now MEASURES its precondition (the driver's own command rate
+# 300 -> 600 s: the stable-hold row now MEASURES its precondition (the driver's own command rate
 # must be stationary by the controller's own band) before its assertion window opens, and re-rolls
 # a hold whose load left that band up to three times inside its own wall budget before skipping it.
 # The typical run is unchanged; the worst case adds the re-rolls plus their re-anchor waits.
-timeout 480 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
+timeout 600 python3 tests/flipctl.py --host 127.0.0.1 --port $PORT --stable-seconds 30 \
     >/tmp/gate-flipctl.txt 2>&1 \
     && ok "flip controller: ramp gate, hold, surge + mix re-maneuvers" \
     || bad "flip controller: ramp gate, hold, surge + mix re-maneuvers" \

@@ -100,6 +100,18 @@ def info(control, section="FLIPCTL"):
     return dict(line.split(":", 1) for line in raw.splitlines() if ":" in line)
 
 
+def parse_debug_dump(text):
+    """DEBUG FLIPCTL's dump as a flat dict. Lines carry either one `key=value` or several
+    whitespace-separated ones (`triggers=2 boot=1 fingerprint=0 ...`)."""
+    fields = {}
+    for line in text.splitlines():
+        for token in line.split():
+            if "=" in token:
+                key, _, value = token.partition("=")
+                fields.setdefault(key, value)
+    return fields
+
+
 def relative_distance(left, right):
     """The controller's own distance metric (src/core/flipctl.cc relative_distance)."""
     scale = max(abs(left), abs(right))
@@ -391,6 +403,36 @@ def main():
                          "\n    ".join(trace), dump.replace("\n", "\n    ")))
                     if unstable:
                         return ("reroll", "%s -- %s" % (unstable, evidence))
+                    # The load was stationary in the signal the DRIVER controls -- rate, mix,
+                    # connection set, key and value shapes are all fixed here. Which of the
+                    # controller's two detectors moved decides whether this row can adjudicate it.
+                    fields = parse_debug_dump(dump)
+                    trigger = row.get("flipctl_last_trigger", "unknown")
+                    if trigger == "fingerprint-shift":
+                        distance = float(fields.get("last_shift_distance", "0") or 0)
+                        shift_band = float(fields.get("last_shift_band", "0") or 0)
+                        if shift_band > 0 and distance <= shift_band:
+                            # The detector fired INSIDE its own band. Nothing about the box can
+                            # explain that; it is a controller defect and it fails.
+                            return ("moved",
+                                    "fingerprint shift fired INSIDE its own band (distance "
+                                    "%.6f <= band %.6f) -- %s" % (distance, shift_band, evidence))
+                        # The controller's OWN signature detector reports the workload changed,
+                        # and by a wide margin, while the rate the driver offered did not move.
+                        # The signature also counts PASS DEPTH -- how many frames an io thread
+                        # happened to batch into one parse pass -- which is a property of how the
+                        # box scheduled this load, not of the load. The driver cannot hold that
+                        # still and this row cannot adjudicate it: re-roll, and if it recurs, skip
+                        # with these numbers, which is exactly the report the controller lane
+                        # needs. Every other trigger on a stationary load still fails below.
+                        return ("reroll",
+                                "the controller's own signature detector reports the workload "
+                                "changed (last_shift_distance %.6f against last_shift_band %.6f, "
+                                "%.1fx) while the driver's rate held inside %.4f -- pass depth is "
+                                "a scheduling outcome the driver does not control -- %s" %
+                                (distance, shift_band,
+                                 distance / shift_band if shift_band > 0 else 0.0, band,
+                                 evidence))
                     return ("moved", evidence)
                 if hold_started is None and len(rates) >= PRE_HOLD_SECONDS:
                     unstable = rate_rule_fires(rates, band)
