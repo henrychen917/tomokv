@@ -305,9 +305,12 @@ public:
         threads_.resize(nthreads);
         for (uint32_t i = 0; i < nthreads; i++) {
             threads_[i] = std::make_unique<ThreadCtx>();
+            // The fingerprint writer is armed only when its one reader, the flip controller, is
+            // enabled (DESIGN-flipfp.md): with --flip-auto 0 and in 1s mode it is dark and costs
+            // one predicted branch per op. flip_work_window keeps its CONFIG value either way.
             threads_[i]->init(i, placement_.role_of(i), nthreads,
                               cfg.flip_auto ? 0 : cfg.lb_age_sample_rate,
-                              cfg.flip_work_window);
+                              flipctl_.enabled() ? cfg.flip_work_window : 0);
             threads_[i]->init_command_counts(command_registry_size());
         }
         if (read_local_enabled()) {
