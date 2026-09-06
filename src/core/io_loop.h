@@ -2716,7 +2716,7 @@ private:
         // Last source-side touch before the owner store, so the moved connection's cold arm
         // counters land on the thread that will actually be doing the arming from here on.
         client->rob().set_read_local_arm_stats(
-            &srv_->thread(destination).read_local_stats().arm);
+            srv_->thread(destination).read_local_arm_stats_or_null());
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_move(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
@@ -3234,7 +3234,7 @@ private:
         // The armed lane's cold counters belong to whichever thread owns the connection; this is
         // the one place ownership is taken (accept, AF_UNIX handoff, and migration rollback all
         // arrive here), and the migration edge re-points it for the destination.
-        c->rob().set_read_local_arm_stats(&self_->read_local_stats().arm);
+        c->rob().set_read_local_arm_stats(self_->read_local_arm_stats_or_null());
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
         self_->add_client(c);

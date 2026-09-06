@@ -440,6 +440,13 @@ public:
         if (!read_local_state_) std::abort();
         return read_local_state_->stats;
     }
+    // The nullable form. A thread with no read-local state is every thread in split mode and
+    // every thread on a fused boot with the lane disarmed; the arm-on-demand counter block is
+    // handed out per connection at adopt, which happens in those modes too, so that one caller
+    // needs an answer rather than an abort.
+    ReadLocalArmStats* read_local_arm_stats_or_null() {
+        return read_local_state_ ? &read_local_state_->stats.arm : nullptr;
+    }
     const ReadLocalStats& read_local_stats() const {
         if (!read_local_state_) std::abort();
         return read_local_state_->stats;
