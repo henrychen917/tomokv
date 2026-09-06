@@ -276,7 +276,7 @@ int main() {
     // -49%; +5% delivered against a baseline that fell 10% is really +17% and the test was voided.
     if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
     if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
-    if (flip_corrected_gain(0.10, 0.0) != 0.10) fail("a still baseline changes the gain");
+    if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
     // The rate window: mean, relative sigma and the bracket band the trend guard uses.
     {
         FlipRateWindow r;
