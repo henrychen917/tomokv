@@ -101,8 +101,22 @@ ROW_T=$(date +%s.%N)
 # Merged: 245 base + 1 lane-admission row + 76 fused+armed and eviction rows = 322 quick;
 # 258 base + 1 + 76 = 335 full. The two additions are disjoint: the lane-admission battery is its
 # own row on the B+ boot, not a member of the 32-battery feature list the fused+armed loop runs.
-EXPECT_QUICK=322
-EXPECT_FULL=335                 # full without the optional NIC row.
+# 245 -> 247 quick (258 -> 260 full): multirace joins the armed debug-surface loop under both
+# atomic modes. An MSETNX aborted by a key on another owner had already installed its candidate,
+# and a MULTI/EXEC the same connection sent behind it read that withdrawn value through the
+# store's connection-scoped RYOW overlay and committed a clone of it.
+# 260 -> 261 full: a SECOND differential matrix in the armed-fused geometry (--thread-mode fused
+# --read-local 1). The canonical row boots split with the read-local lane disarmed, so it cannot
+# reach that lane at all; the armed run carries its own non-vacuity check on read_local_hits.
+# ARITHMETIC FOR THE MERGE. This lane (t-multirace) contributes +2 quick and +3 full: two
+# multirace battery rows (one per atomic mode, quick and full alike) and one full-only armed-fused
+# differ row. It branched from 245/258. A sibling lane (t-replycode) contributes +2 FULL-only from
+# the same base, i.e. 245/260. Whichever lands second resolves this hunk by ADDING both lanes'
+# deltas to the shared base rather than by taking one side: 245+2 / 258+2+3 = 247/263.
+# Merged: 322 quick + 2 (multirace: the multi_exec order-late row per atomic mode) = 324;
+# 335 full + 3 = 338. Additions are disjoint from the fused+armed and lane-admission rows.
+EXPECT_QUICK=324
+EXPECT_FULL=338                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
   local now; now=$(date +%s.%N)
@@ -560,7 +574,14 @@ for AT in 0 1; do
   # declared key and the cut is chosen, which is the only way to land a plain write inside that
   # window on demand. Its counters (script_keys_armed / script_write_tickets_forced /
   # script_group_occ_retries) are what make the reservation falsifiable rather than merely present.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires session_monotonic xacct xmove xscript; do
+  # multirace is the withdrawn-candidate half of multires and needs the same armed boot: DEBUG
+  # SHARD is what proves the aborting MSETNX's blocker really lives on an owner other than its
+  # victims', without which the install-then-veto race cannot occur and every round would pass for
+  # the wrong reason. Its armed cases assert atomic_exec_order_holds advanced, so the row cannot
+  # print PASS on a run where no transaction fragment ever met an undecided same-connection unit,
+  # and its committed-MSETNX control asserts read-your-own-writes still crosses the two units --
+  # a "fix" that merely hid the group's candidate would fail there.
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript; do
     py tests/$t.py 127.0.0.1 $PORT >/tmp/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see /tmp/gate-$t-$AT.txt"
   done
@@ -1249,6 +1270,23 @@ if GATE_DIFFER_ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$CORES} \
   ok "Redis 7.4 differential matrix"
 else
   bad "Redis 7.4 differential matrix"
+fi
+
+# ---- 4c-bis. the same matrix in the ARMED-FUSED geometry ---------------------------------------
+# The row above boots the target split, with the read-local lane disarmed, which is the shape the
+# gate has always used -- and which structurally cannot reach the fused read-local parse and
+# resolve arms at all. A defect that needs `--thread-mode fused --read-local 1` is therefore
+# invisible to it, which is how a wire-visible MSETNX/EXEC divergence sat on shipped code (the
+# lane that found it had to run the matrix by hand in this geometry). This row boots the same
+# binary the other way and runs the same matrix; differ_gate.sh's own non-vacuity check refuses to
+# report a pass unless read_local_hits actually advanced, so an accidentally-disarmed boot is a
+# FAIL rather than a quiet green.
+if GATE_DIFFER_GEOMETRY=armed-fused \
+    GATE_DIFFER_ORACLE_CORES=${GATE_DIFFER_ORACLE_CORES:-$CORES} \
+    tests/differ_gate.sh ./build/tomokv "$PORT" "$DIFFER_ORACLE_PORT" "$CORES" "$GATE_RATIO"; then
+  ok "Redis 7.4 differential matrix (armed fused + read-local)"
+else
+  bad "Redis 7.4 differential matrix (armed fused + read-local)"
 fi
 
 # ---- 4d. full tier: glob / scan-cursor grammar parity -----------------------------------------

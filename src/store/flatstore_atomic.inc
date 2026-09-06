@@ -181,23 +181,19 @@
     }
     // Same-connection program order is the only ordering dependency between pipelined commands.
     // Foreign undecided nodes never block: resolution simply skips them.
-    // `ignore_epoch` excludes every record belonging to the caller's OWN logical unit, which the
-    // group pointer cannot do for a transaction: an EXEC's plain per-key installs carry a null
-    // group pointer, while a cross-shard child command inside that same EXEC installs through the
-    // scatter path and carries a non-null one. Both publish through the transaction's single
-    // epoch word, so that word -- not the group pointer -- is what identifies "mine". Callers that
-    // pass nothing keep the previous behaviour exactly.
+    // A caller that has to exclude its OWN logical unit cannot do it here: a transaction spreads
+    // over several epoch words (its own plus one per lowered cross-shard child) and one
+    // `ignore_group` pointer names none of them. That question has its own probe --
+    // atomic_has_foreign_unit_undecided(), below, which takes the predicate.
     bool atomic_has_own_undecided(uint64_t hash, Slice key, uint64_t origin_conn_id,
-                                  const ScatterState* ignore_group = nullptr,
-                                  const std::atomic<uint64_t>* ignore_epoch = nullptr) const {
+                                  const ScatterState* ignore_group = nullptr) const {
         if (!atomic_pending_) return false;
         const uint64_t bit = atomic_membership_bit(hash);
         const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
         for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
              entry = entry->conn_next) {
             if (!(entry->membership & bit) || !entry->group_epoch ||
-                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group ||
-                entry->group_epoch == ignore_epoch)
+                entry->origin_conn_id != origin_conn_id || entry->group == ignore_group)
                 continue;
             if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
             if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
@@ -231,6 +227,36 @@
                     if (atomic_entry_hash(*entry, j) == hash &&
                         atomic_entry_key(*entry, j).key_eq(key)) return true;
             }
+        }
+        return false;
+    }
+    // Does this owner still hold an UNDECIDED record belonging to a DIFFERENT logical unit of
+    // the same connection? A cross-shard atomic group installs its candidate physically before it
+    // knows its own verdict -- MSETNX discovers an existing key on another owner, and any group
+    // can still fail on OOM/maxmemory -- so such a record may yet be withdrawn. Program order
+    // makes it this connection's business alone: foreign connections never see an epoch-zero
+    // record at all, and a same-connection reader must not run past it.
+    // `is_own` names the caller's OWN unit BY EPOCH WORD, and it must recognise every word that
+    // unit publishes through, not just one: an EXEC's plain per-key installs use the transaction's
+    // epoch, while each cross-shard child command lowered inside that EXEC keeps its own
+    // ScatterState and therefore its own. Answering with only the transaction's word makes a
+    // transaction hold against its own RENAME/LMPOP child and hang -- the same self-hold
+    // NOTES-MULTIRES.md §5(a) hit from the other direction. Plain single-command pseudo-entries
+    // carry no group_epoch at all: they draw their ticket in the same owner turn that installs
+    // them, so they are never undecided and are skipped here.
+    template <typename IsOwnUnit>
+    bool atomic_has_foreign_unit_undecided(uint64_t origin_conn_id, IsOwnUnit&& is_own) const {
+        if (!atomic_pending_ || !atomic_pending_->live) return false;
+        const uint32_t bucket = static_cast<uint32_t>(mix64(origin_conn_id)) & 63;
+        for (AtomicEntry* entry = atomic_pending_->conn_heads[bucket]; entry;
+             entry = entry->conn_next) {
+            if (!entry->group_epoch || entry->origin_conn_id != origin_conn_id ||
+                is_own(entry->group_epoch))
+                continue;
+            if (entry->group_epoch->load(std::memory_order_acquire) != 0) continue;
+            if (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire))
+                continue;
+            return true;
         }
         return false;
     }
