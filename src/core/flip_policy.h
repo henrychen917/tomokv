@@ -226,6 +226,43 @@ struct FlipRateWindow {
     double bracket_band() const { return flip_baseline_band(lo, hi); }
 };
 
+// The load's own variability over the LONGEST window the controller has: an exponentially weighted
+// mean and variance of every per-tick rate sample, relative. Every other band in the controller is
+// learned from stabilized PAIRS -- readings the controller selected because two adjacent sub-windows
+// agreed -- and that selection is biased quiet: two readings taken inside one phase of a driver's
+// six-second rate triangle read sigma = 0.05% on a load that swings +-20%, the target's +24% (the
+// swing, not the flip) cleared every band, and the boot maneuver anchored on a rail; a settle window
+// that happened to be still learned an anchor band of 0.02% and then fired four maneuvers on a
+// stationary load. This estimator sees every tick, quiet or not, and floors all of them. The time
+// constant is the boot deferral bound in ticks -- the one wall-clock allowance the controller
+// already grants -- so a level shift (a flip, a real workload change) inflates it for that long and
+// then it settles; the controller resets it when a flip it issued completes, since the level moved
+// by design.
+struct FlipEwVariance {
+    uint32_t samples = 0;
+    double alpha = 0;
+    double mean = 0;
+    double var = 0;   // of the RELATIVE deviation (r - mean) / mean
+
+    void configure(uint32_t time_constant_ticks) {
+        alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_ticks));
+    }
+    void reset() { samples = 0; mean = 0; var = 0; }
+    void add(double rate) {
+        if (!(rate > 0)) return;
+        if (!samples) { mean = rate; var = 0; samples = 1; return; }
+        // Deviation against the mean BEFORE this sample folds in, relative, then both track.
+        const double rel = (rate - mean) / mean;
+        const double a = alpha > 0 ? alpha : 1.0;
+        // Warm-up: until 1/alpha samples the plain running average is the better estimate.
+        const double w = std::max(a, 1.0 / static_cast<double>(samples + 1));
+        var += w * (rel * rel - var);
+        mean += w * (rate - mean);
+        samples++;
+    }
+    double sigma() const { return samples > 1 ? std::sqrt(std::max(0.0, var)) : 0; }
+};
+
 // Connections the flip planner must move for a role change, before its weighted re-plan
 // reshuffles more: every client of a converted io thread when io shrinks, the new threads' share
 // when it grows. Measured against the plan's real count through FlipCostModel::reshuffle().

@@ -382,6 +382,9 @@ private:
     Seek seek_ = Seek::None;
     uint32_t seek_target_io_ = 0;
     double origin_rate_ = 0;
+    // Every per-tick rate sample, whatever the phase, exponentially weighted over the deferral bound
+    // (flip_policy.h): the floor under every band the controller learns from stabilized pairs.
+    FlipEwVariance rate_ew_{};
     // The ORIGIN's stabilized readings while the model was deciding (Measuring never moves the
     // split): their mean is R0, their relative stdev is the noise the verification window is sized
     // from, and their bracket (min/max) floors every band of the maneuver -- a gain smaller than

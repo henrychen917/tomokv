@@ -316,6 +316,12 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
     rate_window_ms_ = now_ms;
     rate_window_commands_ = commands;
     rate_window_movement_ = movement;
+    // Every rate sample, selected or not, feeds the long-window noise estimate.
+    if (rate_ew_.alpha <= 0) {
+        const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
+        rate_ew_.configure(static_cast<uint32_t>(std::max<uint64_t>(1, kBootMaxDeferralMs / tick_ms)));
+    }
+    rate_ew_.add(rate);
     return true;
 }
 
@@ -332,6 +338,9 @@ bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, dou
     double band = anchor_rate_band_;
     if (configured_band_ > 0) band = static_cast<double>(configured_band_) / 100.0;
     if (band <= 0) band = automatic_rate_band(stable_pair_delta_, rate);
+    // A pair is "stable" relative to how the load itself moves tick to tick, never to a band a
+    // lucky settle window learned below that (0.02% measured: no pair ever fit and Measuring stuck).
+    band = std::max(band, 2.0 * rate_ew_.sigma());
     if (stable_pair_delta_ > band) return false;
     // A stabilized reading represents the pair, not whichever of its two subwindows happened to
     // come last. This avoids anchoring on one edge of otherwise accepted quiet jitter.
@@ -610,6 +619,7 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
     const double ticks = std::max(1.0, elapsed_s * 1000.0 / static_cast<double>(tick_ms));
     last_flip_lost_ = lost;
     last_flip_moved_ = moved;
+    rate_ew_.reset();
     // A flip that moved no connection (an empty server) prices nothing per client; it still
     // counts toward the flip duration the blackout term uses.
     cost_.record_flip(lost, static_cast<double>(moved), flip_issue_naive_, ticks);
@@ -686,7 +696,7 @@ double FlipController::baseline_band() const {
 // last anchor learned, if any, or the maneuver's own stabilized-pair jitter, and never below what
 // the baseline itself moved. A typed --flip-auto-band replaces the learned pair, not the floor.
 double FlipController::verification_band(double rate) const {
-    const double floor = baseline_band();
+    const double floor = std::max(baseline_band(), 2.0 * rate_ew_.sigma());
     if (configured_band_ > 0)
         return std::max(static_cast<double>(configured_band_) / 100.0, floor);
     return std::max({anchor_rate_band_, automatic_rate_band(maneuver_rate_jitter_, rate), floor});
@@ -765,8 +775,8 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
         const double tick_s = static_cast<double>(tick_ms) / 1000.0;
         model_verify_readings_ = flip_verify_window(
-            origin_window_.sigma(), origin_window_.samples, std::max(g_mean, 0.0),
-            model_readings_cap_);
+            std::max(origin_window_.sigma(), rate_ew_.sigma()), origin_window_.samples,
+            std::max(g_mean, 0.0), model_readings_cap_);
         const double blackout_s = (cost_.flip_ticks() + kSettleTicks +
             (model_verify_readings_ ? model_verify_readings_ - 1 : 0)) * tick_s;
         const double stationary_s = (now_ms > stationary_since_ms_ && stationary_since_ms_)
@@ -805,7 +815,10 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     model_last_decision_ = debug_force ? "move-forced" : "move";
     origin_rate_ = origin_window_.mean > 0 ? origin_window_.mean : rate;
     hyp_predicted_ = model_kappa_ * choice.gain_mean;
-    hyp_sigma_ = origin_window_.sigma();
+    // The origin's noise for the verification: the window's own sigma or the long-window sigma,
+    // whichever is larger -- two quiet readings inside one phase of a periodic load say nothing
+    // about the swing the target reading will be compared across.
+    hyp_sigma_ = std::max(origin_window_.sigma(), rate_ew_.sigma());
     hyp_origin_samples_ = origin_window_.samples;
     hyp_delivered_ = 0;
     hyp_threshold_ = 0;
@@ -929,7 +942,8 @@ void FlipController::anchor(Server& server, double rate) {
     }
     anchor_rate_band_ = configured_band_ > 0
         ? static_cast<double>(configured_band_) / 100.0
-        : automatic_rate_band(anchor_rate_jitter_, anchor_rate_);
+        : std::max(automatic_rate_band(anchor_rate_jitter_, anchor_rate_),
+                   2.0 * rate_ew_.sigma());
     anchor_rate_band_floor_ = anchor_rate_band_;
     // The placement model's own outcome loop (flip_policy.h, rule 3): a maneuver that FLIPPED and
     // still ended where it began is a projection that did not deliver, so the bar rises; a move
@@ -1251,7 +1265,7 @@ std::string FlipController::debug_dump() const {
         "rate_surge=%llu rate_collapse=%llu forced=%llu\n"
         "pending_io=%u seek=%s seek_target_io=%u origin_rate=%.3f\n"
         "origin_rate_readings=%u origin_rate_min=%.3f origin_rate_max=%.3f baseline_band=%.4f\n"
-        "origin_sigma=%.5f model_kappa=%.4f model_verify_readings=%u\n"
+        "origin_sigma=%.5f model_kappa=%.4f model_verify_readings=%u rate_ew_sigma=%.5f rate_ew_n=%u\n"
         "cost_benefit=%.1f cost_cost=%.1f cost_transfer=%.1f cost_blackout_s=%.2f "
         "cost_horizon_s=%.2f cost_payback_s=%.2f cost_pays=%d\n"
         "cost_client=%.2f cost_reshuffle=%.3f cost_flip_ticks=%.2f cost_p_miss=%.3f "
@@ -1285,6 +1299,7 @@ std::string FlipController::debug_dump() const {
         seek_target_io_, origin_rate_,
         origin_window_.samples, origin_window_.lo, origin_window_.hi, baseline_band(),
         origin_window_.sigma(), cost_.kappa(), model_verify_readings_,
+        rate_ew_.sigma(), rate_ew_.samples,
         model_cost_.benefit, model_cost_.cost, model_cost_.transfer_cost, model_cost_.blackout_s,
         model_cost_.horizon_s, model_cost_.payback_s, model_cost_.pays ? 1 : 0,
         cost_.client_cost(), cost_.reshuffle(), cost_.flip_ticks(), cost_.miss_probability(),

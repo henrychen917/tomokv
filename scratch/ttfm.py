@@ -11,9 +11,12 @@ trace, bio, bex = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 rows = []
 for line in open(trace, errors="replace"):
     f = line.split()
-    if len(f) < 4: continue
+    if len(f) < 3: continue
     try:
-        t = int(f[0]); tc = int(f[1]); io, ex = (int(x) for x in f[3].split(":")) if ":" in f[3] else (int(f[2]), int(f[3]))
+        t = int(f[0]); tc = int(f[1])
+        if ":" in f[2]: io, ex = (int(x) for x in f[2].split(":"))
+        elif len(f) >= 4: io, ex = int(f[2]), int(f[3])
+        else: continue
     except ValueError:
         continue
     rows.append((t, tc, io, ex))
@@ -29,9 +32,13 @@ prev = splits[0][1]
 for t, s in splits:
     if s != prev:
         trans.append((t, prev, s)); prev = s
-# first stabilization: the earliest t after which the split holds for >= 20 s
+# first stabilization: the earliest t AT OR AFTER THE FIRST MOVE after which the split holds for
+# >= 20 s (a boot split held while the controller is still searching is not a settled anchor); a
+# cell that never moved is stable from its start.
 stab_t = None
+first_move = trans[0][0] if trans else 0
 for k, (t, s) in enumerate(splits):
+    if t < first_move: continue
     horizon = [ss for tt, ss in splits if t <= tt <= t + 20]
     if horizon and all(ss == s for ss in horizon) and (t + 20 <= splits[-1][0]):
         stab_t = t; stab_split = s; break

@@ -308,6 +308,22 @@ int main() {
     if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
     if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
     if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
+    // LONG-WINDOW NOISE. The gate driver's six-second triangle (issue intervals x 0.8,0.95,1.1,
+    // 1.2,1.05,0.9) puts per-tick rates at 1.25,1.05,0.91,0.83,0.95,1.11 of the mean: sigma ~0.15.
+    // Two adjacent readings inside one phase read ~0.05%; the target's +24% is that swing.
+    {
+        FlipEwVariance ew; ew.configure(30);
+        for (int cycle = 0; cycle < 3; cycle++)
+            for (double r : {6050.0, 5100.0, 4400.0, 4030.0, 4600.0, 5370.0}) ew.add(r);
+        if (!(ew.sigma() > 0.10)) fail("the triangle's long-window sigma did not read the swing");
+        // and the verification threshold it floors refuses the +24% that fooled the pair bands
+        if (!(flip_verify_threshold(ew.sigma(), 2, 1, 0.02) > 0.24))
+            fail("the long-window sigma did not floor the threshold above the driver's swing");
+        FlipEwVariance still; still.configure(30);
+        for (int k = 0; k < 40; k++) still.add(500000.0 * (1.0 + 0.01 * ((k % 3) - 1)));
+        if (!(still.sigma() < 0.02)) fail("a still load read a large long-window sigma");
+        if (FlipEwVariance{}.sigma() != 0) fail("an empty long window has a sigma");
+    }
     // The rate window: mean, relative sigma and the bracket band the trend guard uses.
     {
         FlipRateWindow r;
