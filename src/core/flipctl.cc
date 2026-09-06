@@ -95,6 +95,7 @@ double flip_signature_pass_distance(const FlipSignature& left, const FlipSignatu
 }
 
 void FlipShiftDetector::reset() {
+    signature_noise_.reset();
     smoothed_ = {};
     previous_ = {};
     learning_origin_ = {};
@@ -112,8 +113,15 @@ void FlipShiftDetector::update_band() {
         band_ = 0;
         return;
     }
+    // A TYPED BAND IS A FLOOR, NOT A CEILING. --flip-auto-band says how large a mix change is worth
+    // a maneuver; it does not say how still the signature holds, and it used to return here without
+    // ever consulting the signal's own movement. Measured by the gate-hygiene lane on a driver whose
+    // rate held to 0.07% across 34 samples: a fingerprint distance of 0.2518 against a flat 0.0200
+    // band -- 12.6x -- fired a maneuver on a stationary load. Whatever the operator types, a band
+    // below the movement the signal shows between adjacent quiet windows fires on its own noise.
     if (configured_band_ > 0) {
-        band_ = static_cast<double>(configured_band_) / 100.0;
+        band_ = std::max(static_cast<double>(configured_band_) / 100.0,
+                         signature_noise_.bound());
         return;
     }
     // SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
@@ -129,7 +137,11 @@ void FlipShiftDetector::update_band() {
     // first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
     const double quantum =
         1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
-    band_ = 2.0 * std::max(jitter_, quantum);
+    // ... and the continuously learned quiet-state movement floors the frozen learning-window max
+    // the same way, for the same reason: jitter_ is the largest adjacent step seen in the few
+    // windows before the anchor, and a learning window that happened to be still freezes a band
+    // that the hold then trips over.
+    band_ = std::max(2.0 * std::max(jitter_, quantum), signature_noise_.bound());
 }
 
 bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
@@ -157,11 +169,19 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         ? flip_signature_distance(smoothed_, previous_) : 0;
     if (anchored_) {
         last_distance_ = flip_signature_distance(smoothed_, anchored_signature_);
-        // The quiet-state band is an anchor property. Do not let later traffic widen its own
-        // trigger threshold (or change the command-quantum floor) while being judged by it.
+        const bool fired = configured_band_ != 0 && last_distance_ > band_;
+        // JUDGE FIRST, THEN FOLD. The quiet-state band must not be widened by the very excursion it
+        // is judging -- that was the reason this branch froze the band, and it stands. But a window
+        // that came back IN band is quiet-state evidence, and refusing to learn from it is what
+        // leaves the anchor holding a band cut from one lucky learning window. So: only in-band
+        // windows feed the noise estimate, and only they may move the band.
+        if (!fired && have_previous_) {
+            signature_noise_.add(adjacent);
+            update_band();
+        }
         previous_ = smoothed_;
         have_previous_ = true;
-        return configured_band_ != 0 && last_distance_ > band_;
+        return fired;
     }
 
     if (have_previous_) {
@@ -169,6 +189,7 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         // observed at the anchor instead of letting one unusually quiet pair collapse the band.
         jitter_ = have_jitter_ ? std::max(jitter_, adjacent) : adjacent;
         have_jitter_ = true;
+        signature_noise_.add(adjacent);
     }
     if (!anchored_ && learning_origin_.valid) {
         jitter_ = std::max(jitter_,
@@ -197,7 +218,9 @@ bool FlipController::init(bool enabled, int32_t configured_band, uint32_t nthrea
     for (uint32_t value = nthreads; value > 1; value >>= 1)
         maneuver_learning_windows_++;
     maneuver_learning_windows_ = std::max<uint32_t>(1, maneuver_learning_windows_);
-    shift_detector_ = FlipShiftDetector(configured_band);
+    // The signature noise estimate's time constant is the same window count the controller already
+    // uses to learn a signature at an anchor -- derived from the live pool, not typed.
+    shift_detector_ = FlipShiftDetector(configured_band, signature_learning_windows_);
     if (!enabled) {
         phase_ = Phase::Disabled;
         return true;
@@ -1317,6 +1340,7 @@ std::string FlipController::debug_dump() const {
         head, sizeof(head),
         "state=%s\nphase=%s\nanchor=%u:%u\nanchor_rate=%.3f\n"
         "signature_band=%.9f\nsignature_distance=%.9f\nsignature_jitter=%.9f\n"
+        "signature_noise_bound=%.9f signature_noise_samples=%u\n"
         "rate_band=%.9f\nanchor_rate_jitter=%.9f\n"
         "last_shift_distance=%.9f\nlast_shift_band=%.9f\n"
         "boot_rate_ewma=%.3f\nboot_rate_jitter=%.9f\nboot_rate_slope=%.9f\n"
@@ -1345,7 +1369,8 @@ std::string FlipController::debug_dump() const {
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
-        shift_detector_.last_distance(), shift_detector_.jitter(), anchor_rate_band_,
+        shift_detector_.last_distance(), shift_detector_.jitter(),
+        shift_detector_.noise_bound(), shift_detector_.noise_samples(), anchor_rate_band_,
         anchor_rate_jitter_, last_shift_distance_, last_shift_band_, boot_rate_ewma_,
         boot_rate_jitter_, boot_rate_slope_, boot_rate_slope_threshold_, boot_nonidle_ticks_,
         model_io_frac_, model_io_frac_low_, model_io_frac_high_,

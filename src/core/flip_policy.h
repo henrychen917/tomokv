@@ -280,6 +280,34 @@ struct FlipEwVariance {
     double sigma() const { return samples > 1 ? std::sqrt(std::max(0.0, var)) : 0; }
 };
 
+// A one-sided noise bound for a NON-NEGATIVE observation (a distance): exponentially weighted mean
+// and variance, reported as mean + 2 sd. Used for the fingerprint's adjacent-window movement, where
+// the rate's second-difference estimator does not apply -- a distance has no trend to remove, it is
+// already a difference, and it cannot go below zero.
+struct FlipEwBound {
+    uint32_t samples = 0;
+    double alpha = 0;
+    double mean = 0;
+    double var = 0;
+
+    void configure(uint32_t time_constant_windows) {
+        alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_windows));
+    }
+    void reset() { samples = 0; mean = 0; var = 0; }
+    void add(double value) {
+        if (!(value >= 0)) return;
+        const double a = alpha > 0 ? alpha : 1.0;
+        const double w = std::max(a, 1.0 / static_cast<double>(samples + 1));
+        const double delta = value - mean;
+        mean += w * delta;
+        var += w * (delta * delta - var);
+        samples++;
+    }
+    double bound() const {
+        return samples > 1 ? mean + 2.0 * std::sqrt(std::max(0.0, var)) : 0;
+    }
+};
+
 // Connections the flip planner must move for a role change, before its weighted re-plan
 // reshuffles more: every client of a converted io thread when io shrinks, the new threads' share
 // when it grows. Measured against the plan's real count through FlipCostModel::reshuffle().

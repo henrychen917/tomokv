@@ -60,6 +60,67 @@ int main() {
     if (!detector.observe(multikey_mix()))
         fail("scripted workload mix change did not fire");
 
+    // THE TYPED BAND IS A FLOOR, NOT A CEILING. The gate-hygiene lane's instrumented failure: a
+    // driver holding its rate to 0.07% across 34 samples, a fingerprint distance of 0.2518 against
+    // a flat --flip-auto-band 2 (0.0200) -- 12.6x its band -- fired a maneuver on a stationary load.
+    // A detector whose signature genuinely moves between adjacent quiet windows must end up with a
+    // band above that movement whatever the operator typed, and must still fire on a real change.
+    {
+        FlipShiftDetector typed(2, 4);   // --flip-auto-band 2
+        // Stationary but NOISY: the read/write split alternates 35:65 / 65:35 window to window.
+        // The detector smooths the signature, so the anchored distance this produces is ~0.09.
+        const auto noisy = [](int k) { return quiet(k % 2 ? 65 : 35, k % 2 ? 35 : 65); };
+        for (int k = 0; k < 8; k++)
+            if (typed.observe(noisy(k))) fail("a pre-anchor window fired the detector");
+        typed.anchor();
+        if (!(typed.band() > 0.15))
+            fail("a typed band ignored a signature that moves between quiet windows");
+        int fires = 0;
+        for (int k = 8; k < 24; k++) fires += typed.observe(noisy(k)) ? 1 : 0;
+        if (fires) fail("the typed band still fired on the signal's own quiet-state noise");
+        if (!(typed.band() > 0.09))
+            fail("the band decayed below the distance its own quiet state produces");
+        // ... and the feature still works: a real mix change clears the widened band.
+        if (!typed.observe(multikey_mix()))
+            fail("the widened typed band swallowed a real mix change");
+    }
+    // A STILL signature keeps the operator's typed band exactly: the floor is the signal's own
+    // movement, not a tax on every deployment.
+    {
+        FlipShiftDetector typed(2, 4);
+        for (int k = 0; k < 8; k++) typed.observe(quiet(80, 20, k % 2));
+        typed.anchor();
+        if (std::abs(typed.band() - 0.02) > 1e-9)
+            fail("a still signature did not keep the typed 2% band");
+        for (int k = 0; k < 8; k++)
+            if (typed.observe(quiet(80, 20, k % 2))) fail("a still signature fired its typed band");
+    }
+    // The learned (auto) band takes the same floor, and the max is what applies: on the same noisy
+    // signature the band is the observed movement, not the count quantum under it.
+    {
+        FlipShiftDetector autob(-1, 4);
+        const auto noisy = [](int k) { return quiet(k % 2 ? 6500 : 3500, k % 2 ? 3500 : 6500); };
+        for (int k = 0; k < 8; k++) autob.observe(noisy(k));
+        autob.anchor();
+        if (!(autob.band() >= autob.noise_bound() - 1e-12))
+            fail("the learned band did not take the noise floor");
+        if (!(autob.band() > 2.0 / std::sqrt(10000.0)))
+            fail("the learned band stayed at the count quantum under a noisy signature");
+        int fires = 0;
+        for (int k = 8; k < 24; k++) fires += autob.observe(noisy(k)) ? 1 : 0;
+        if (fires) fail("the learned band fired on quiet-state movement");
+    }
+    // FlipEwBound itself: mean + 2 sd of a non-negative sample, zero before it has two.
+    {
+        FlipEwBound b; b.configure(8);
+        if (b.bound() != 0) fail("an empty bound is not zero");
+        for (int k = 0; k < 60; k++) b.add(k % 2 ? 0.30 : 0.20);
+        if (!(b.bound() > 0.25 && b.bound() < 0.60)) fail("bound of a 0.2/0.3 alternation");
+        FlipEwBound flat; flat.configure(8);
+        for (int k = 0; k < 40; k++) flat.add(0.0);
+        if (flat.bound() != 0) fail("a flat-zero signal has a bound");
+    }
+
     FlipFingerprintWriter writer;
     writer.configure(4);
     for (unsigned i = 0; i < 4; i++)

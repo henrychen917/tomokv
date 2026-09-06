@@ -127,8 +127,11 @@ double flip_signature_pass_distance(const FlipSignature& left, const FlipSignatu
 // as the floor. A numeric band is a percent; zero disables shift triggering.
 class FlipShiftDetector {
 public:
-    explicit FlipShiftDetector(int32_t configured_band = -1)
-        : configured_band_(configured_band) {}
+    explicit FlipShiftDetector(int32_t configured_band = -1,
+                               uint32_t noise_windows = 1)
+        : configured_band_(configured_band) {
+        signature_noise_.configure(noise_windows);
+    }
 
     void reset();
     bool observe(const FlipFingerprintWindow& sample);
@@ -142,6 +145,10 @@ public:
     double band() const { return band_; }
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
+    // The signal's own adjacent-window movement, learned continuously from IN-BAND windows: the
+    // floor under the band, typed or learned.
+    double noise_bound() const { return signature_noise_.bound(); }
+    uint32_t noise_samples() const { return signature_noise_.samples; }
 
 private:
     void update_band();
@@ -152,6 +159,11 @@ private:
     FlipSignature learning_origin_{};
     FlipSignature anchored_signature_{};
     double jitter_ = 0;
+    // Every in-band window's adjacent-window distance, exponentially weighted. jitter_ is the max
+    // over the pre-anchor learning windows and is then FROZEN (so an excursion cannot widen the
+    // threshold that judges it); this keeps learning the quiet-state noise for as long as the
+    // anchor holds, which is what a band cut from one quiet learning window misses.
+    FlipEwBound signature_noise_{};
     double band_ = 0;
     double last_distance_ = 0;
     bool have_previous_ = false;
