@@ -10,8 +10,10 @@ is the signal that survives when the rate cannot resolve.
 """
 import csv, os, statistics as st, sys
 
-rows = [r for r in csv.DictReader(open(sys.argv[1])) if r['arm'] != 'LADDER']
-ladder = [r for r in csv.DictReader(open(sys.argv[1])) if r['arm'] == 'LADDER']
+CSVP = os.path.abspath(sys.argv[1])
+rows = [r for r in csv.DictReader(open(CSVP)) if r['arm'] != 'LADDER']
+lpath = os.path.join(os.path.dirname(CSVP), 'ladder.csv')
+ladder = list(csv.DictReader(open(lpath))) if os.path.exists(lpath) else []
 NUM = ('rate', 'p50', 'p99', 'cmds', 'instr', 'cycles', 'fills', 'hits', 'demoted',
        'fallbacks', 'srv_cores', 'wall', 'mux')
 for r in rows + ladder:
@@ -30,6 +32,33 @@ for r in rows + ladder:
     r['idle'] = 1.0 - r['srv_cores'] / r['srv_cpus'] if r['srv_cpus'] else float('nan')
     tot = r['hits'] + r['fallbacks']
     r['local_pct'] = 100.0 * r['hits'] / tot if tot else float('nan')
+
+# ONLY CELLS THAT SHARE A RUNG MAY BE AGGREGATED. A median taken across two operating points is a
+# number that describes neither, and it will not look impossible in any single row: the summary that
+# printed 1.121 cpu/Mop on a 16-core box came from rows of 1.38 (an ~8 M ops/s run on ~11 cores) and
+# rows of 0.91 (a ~17 M run on ~15.7), and every one of those rows divided correctly on its own.
+# So the grouping is enforced here rather than checked for afterwards.
+groups = {}
+for r in rows:
+    groups.setdefault((int(r['threads']), int(r['conns'])), []).append(r)
+if len(groups) > 1:
+    print('MORE THAN ONE GEOMETRY IN THIS CSV -- these cells cannot be averaged together:')
+    for (t, c), g in sorted(groups.items()):
+        rate = st.median([x['rate'] for x in g]) / 1e6
+        cores = st.median([x['srv_cores'] for x in g])
+        print(f'    {t} threads x {c // t} = {c:>5} conns   {len(g):>3} rows   '
+              f'{rate:6.3f} M ops/s   {cores:5.2f} cores')
+    want = None
+    if os.path.exists(os.path.join(os.path.dirname(CSVP), 'geometry.txt')):
+        gt = dict(l.strip().split('=', 1) for l in
+                  open(os.path.join(os.path.dirname(CSVP), 'geometry.txt')) if '=' in l)
+        key = (int(gt.get('threads', 0)), int(gt.get('total_conns', 0)))
+        want = key if key in groups else None
+    if want is None:
+        want = max(groups, key=lambda k: len(groups[k]))
+    print(f'  reporting ONLY {want[0]} x {want[1] // want[0]} = {want[1]} connections '
+          f'({len(groups[want])} rows); the rest are ignored, not blended.\n')
+    rows = groups[want]
 
 SHAPES = []
 for r in rows:
@@ -201,7 +230,15 @@ if not ok_mech:
     print('VERDICT: INCONCLUSIVE -- the mechanism did not fire. Fix the shape before reading rates.')
 elif SAT and rate_ok and guard_ok:
     print('VERDICT: MERGE -- a THROUGHPUT win. POST beats both PRE and the unarmed line in the')
-    print('regime the fix targets, and is flat where the ring never fills.')
+    print('regime the fix targets' + (', and is flat where the ring never fills.' if '1:1' in SHAPES
+          else '. NOTE: the 1:1 guard shape was not measured, so "no regression where the ring '
+               'never fills" is untested in this run.'))
+    tight = [s for s in blocked
+             if abs(med(s, 'POST', 'rate') / med(s, 'PRE', 'rate') - 1) * 100 <=
+             max(spread(s, 'PRE', 'rate'), spread(s, 'POST', 'rate'))]
+    if tight:
+        print('  CAUTION: POST over PRE at ' + ', '.join(tight) + ' is inside its own visit spread.')
+        print('  The claim that survives is POST over the UNARMED line; the PRE margin needs visits.')
 elif SAT and effic_ok:
     print('VERDICT: EFFICIENCY CHANGE, NOT A THROUGHPUT ONE. Saturated, the rate does not separate,')
     print('but POST does the same work for less CPU. Merge it as an efficiency change or not at all;')

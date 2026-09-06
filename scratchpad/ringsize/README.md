@@ -1249,3 +1249,36 @@ column come from different cells. **The PRE/POST ratio (−1.0%) survives this e
 ratio of two quantities of the same shape — but the level, and therefore how saturated the box was,
 does not. The report now refuses to present absolute `cpu/Mop` without flagging it when the cores
 column exceeds the allocation.
+
+
+## The 1.121 cpu/Mop was a blended median, and no per-row check could have caught it
+
+The owner confirmed the allocation: `owner_cell.py 0-15 64-95`, sixteen cpus, and the run's own
+header says so. So the impossibility was real and it was in the reporting path.
+
+**The cause is append mode.** `owner_cell.py` opened its csv with `'a'` and wrote a header only when
+the file was absent, so a second invocation's rows sat beside a first invocation's and the report
+took medians straight across both. The first run was ~8 M ops/s on ~11 cores (**1.38** cpu/Mop); the
+second ~17 M on ~15.7 (**0.91**). A median across the two lands near **1.12** — a number that
+describes neither run, that no single row could produce, and that the per-row "cores exceed the
+allocation" guard therefore could not see. Every row divided correctly on its own.
+
+Three changes, and the first is the one that matters:
+
+* **the report will only aggregate cells that share a rung.** It groups rows by (threads,
+  connections), and if more than one group is present it prints them, names the one it is reporting
+  (the geometry recorded by the run, else the largest group) and says the rest are *ignored, not
+  blended*;
+* **the measurement csv is named for its geometry** — `owner_cell-32x32p32.csv` — so two operating
+  points cannot land in one file by construction. Two runs at the *same* geometry still share a
+  file, which is what you want: more visits;
+* **the ladder rows are kept**, in their own `ladder.csv`. They were being discarded, which is why
+  the report's ladder table never printed. They can never join the measurement rows — every rung has
+  a different geometry, which is the whole point.
+
+Replayed against a csv holding both runs, the report now refuses to blend them and reports
+0.908/0.916 cpu/Mop for the 2048 cell — matching the per-cell rows the owner saw, not the 1.121.
+
+**The general law, which is the reusable part:** a median is only defined over cells that share an
+operating point. Guarding each row for internal consistency cannot find a violation of that, because
+each row is individually fine — the aggregation has to refuse, not the row.

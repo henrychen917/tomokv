@@ -302,6 +302,16 @@ def run_ladder(args, fills_ev):
         finally:
             srv.stop(); time.sleep(2)
         rows.append(row)
+        # KEPT, and kept SEPARATE. Every rung has a different geometry, so these rows can never be
+        # averaged with the measurement rows -- but they are the evidence for why the rung was
+        # chosen, and discarding them meant the report's ladder table never printed at all.
+        lcsv = os.path.join(args.out, 'ladder.csv')
+        wnew = not os.path.exists(lcsv)
+        with open(lcsv, 'a', newline='') as lf:
+            w = csv.DictWriter(lf, fieldnames=list(row))
+            if wnew:
+                w.writeheader()
+            w.writerow(row)
         idle = 1.0 - row['srv_cores'] / NSRV
         prev = rows[-2] if len(rows) > 1 else None
         gain = (row['rate'] - prev['rate']) / prev['rate'] if prev else float('nan')
@@ -416,7 +426,16 @@ def main():
                 f'total_conns={args.threads*args.conns}\npipeline={args.pipeline}\n'
                 f'srv_cpus={NSRV}\nsaturated={"yes" if saturated else "no"}\n')
 
-    csv_path = os.path.join(args.out, 'owner_cell.csv')
+    # THE FILE IS NAMED FOR ITS GEOMETRY, so two operating points cannot end up in one csv.
+    # They did: this script opens the csv in APPEND mode and only writes a header when the file is
+    # absent, so a second invocation's rows sat beside a first invocation's, and the report took
+    # medians straight across both. With the first run at ~8 M ops/s on ~11 cores (1.38 cpu/Mop) and
+    # the second at ~17 M on ~15.7 (0.91), the median landed at 1.12 -- a number that describes
+    # neither run and that no single row could have produced, which is why a per-row sanity check
+    # could not have caught it. Two runs at the SAME geometry still share a file, which is what you
+    # want: more visits.
+    csv_path = os.path.join(
+        args.out, f'owner_cell-{args.threads}x{args.conns}p{args.pipeline}.csv')
     new = not os.path.exists(csv_path)
     fh = open(csv_path, 'a', newline='')
     writer = None
@@ -441,6 +460,8 @@ def main():
         print(f'round {rnd} done @ {time.strftime("%T")}')
     fh.close()
     print(f'\nwrote {csv_path}')
+    print(f'ladder rows (per-rung geometry, never aggregated with the above): '
+          f'{os.path.join(args.out, "ladder.csv")}')
     subprocess.run([sys.executable, os.path.join(HERE, 'owner_cell_report.py'), csv_path])
 
 
