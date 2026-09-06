@@ -14,15 +14,18 @@ want(){ [ -z "$ONLY" ] || [[ ",$ONLY," == *",$1,"* ]]; }
 
 # ---- S0 digests --------------------------------------------------------------------------------
 if [ ! -s "$FP/digests.txt" ]; then
-  for b in "$PRE_BIN" "$POST_BIN" "$GUARD_BIN"; do [ -s "$b" ] || { LG "missing $b"; exit 1; }; done
-  { for b in "$PRE_BIN" "$POST_BIN" "$GUARD_BIN"; do echo "$(sha256sum "$b" | cut -c1-16) $(stat -c %s "$b") $(basename "$b")"; done
-    echo "pre=e2ef7a155 post=$(git -C "$WT" rev-parse --short HEAD)"; } > "$FP/digests.txt"
+  for b in "$PRE_BIN" "$POST_BIN"; do [ -s "$b" ] || { LG "missing $b"; exit 1; }; done
+  { for b in "$PRE_BIN" "$POST_BIN"; do echo "$(sha256sum "$b" | cut -c1-16) $(stat -c %s "$b") $(basename "$b")"; done
+    echo "pre=$(git -C "$WT_BASE" rev-parse --short HEAD) post=$(git -C "$WT" rev-parse --short HEAD)"; } > "$FP/digests.txt"
+  if [ "$(sha256sum "$PRE_BIN" | cut -c1-16)" = "$(sha256sum "$POST_BIN" | cut -c1-16)" ]; then LG "PRE==POST DIGEST -- arms identical"; exit 1; fi
   LG "DIGESTS $(tr '\n' ';' < "$FP/digests.txt")"
 fi
 
 # ---- S1 slope cells ----------------------------------------------------------------------------
 slope(){ # slope TAG BIN GEOM [EXTRA] [SETTLE_S]
-  local tag=$1 bin=$2 geom=$3 extra=${4:-} settle=${5:-0} out=$FP/slope-$tag.csv
+  local tag=$1 bin=$2 geom=$3 extra=${4:-} settle=${5:-0}
+  local out=$FP/slope-$tag.csv
+  if [ -z "$tag" ] || [ "${out#*$tag}" = "$out" ]; then LG "HARNESS BUG: tag='$tag' out='$out'"; return 1; fi
   [ -s "$out" ] && { LG "SLOPE $tag on file ($(wc -l < "$out") rows)"; return 0; }
   wait_gate
   local srv cli mode
@@ -34,7 +37,7 @@ slope(){ # slope TAG BIN GEOM [EXTRA] [SETTLE_S]
   esac
   LG "SLOPE $tag geom=$geom bin=$(basename "$bin") extra='$extra' settle=$settle"
   rm -f "$out.part"
-  MODE=$mode RATIO=1:1 RL=1 ATOMIC=0 SHARDS=64 SRVCORES=$srv CLICORES="$cli" CONNS=8 PORT=$PORT_SLOPE \
+  MODE=$mode RATIO=1:1 RL=1 ATOMIC=${ATOMIC:-1} SHARDS=64 SRVCORES=$srv CLICORES="$cli" CONNS=8 PORT=$PORT_SLOPE \
     N1=300000 N2=900000 PIPE=32 KEYLEN=16 VLEN=32 RINGS=4096 SHAPES="set_over get_hit" PMU_GROUPS="be beu rs" \
     FOREIGNMAX=5 SIBMAX=2 PASS_BUDGET_S=240 QUIET_WAIT_S=120 EXTRA="$extra" SETTLE_S=$settle \
     "$FP/cm/multi.sh" "$bin" "$tag" "$out.part" 2 >>"$FP/slope-$tag.log" 2>&1; local rc=$?
@@ -55,7 +58,9 @@ fi
 
 # ---- S2 accuracy: anchored band + false triggers on a stationary mix ---------------------------
 acc(){ # acc TAG BIN KIND(mk|hetero)
-  local tag=$1 bin=$2 kind=$3 out=$FP/acc-$tag.txt
+  local tag=$1 bin=$2 kind=$3
+  local out=$FP/acc-$tag.txt
+  if [ -z "$tag" ] || [ "${out#*$tag}" = "$out" ]; then LG "HARNESS BUG: tag='$tag' out='$out'"; return 1; fi
   [ -s "$out" ] && { LG "ACC $tag on file :: $(head -1 "$out")"; return 0; }
   wait_gate
   local pid; pid=$(SRV_CPUS=$SRV4 boot "$bin" "$PORT_ON" "acc-$tag" --ratio 2:2 --shards 64 --atomic 0 --flip-auto 1) || return 1
@@ -85,7 +90,9 @@ fi
 
 # ---- S3 wrong-split boots: time-to-first-move (the fingerprint must still let it move) ---------
 tm(){ # tm TAG BIN FA BIO BEX SRV LG LGT
-  local tag=$1 bin=$2 fa=$3 bio=$4 bex=$5 srv=$6 lg=$7 lgt=$8 out=$FP/tm-$tag.txt tr=$FP/tm-$tag.trace
+  local tag=$1 bin=$2 fa=$3 bio=$4 bex=$5 srv=$6 lg=$7 lgt=$8
+  local out=$FP/tm-$tag.txt tr=$FP/tm-$tag.trace
+  if [ -z "$tag" ] || [ "${out#*$tag}" = "$out" ]; then LG "HARNESS BUG: tag='$tag' out='$out'"; return 1; fi
   [ -s "$out" ] && { LG "TM $tag on file :: $(cat "$out")"; return 0; }
   wait_gate
   local pid; pid=$(SRV_CPUS=$srv boot "$bin" "$PORT_TM" "tm-$tag" --ratio "$bio:$bex" --shards 64 --atomic 1 --flip-auto "$fa") || return 1
@@ -104,17 +111,18 @@ tm(){ # tm TAG BIN FA BIO BEX SRV LG LGT
   stop "$pid" "$PORT_TM"
 }
 if want S3; then
-  for spec in "pre-31:$PRE_BIN:1" "post-31:$POST_BIN:1" "guard-31:$GUARD_BIN:1" "off-31:$POST_BIN:0"; do
-    IFS=: read -r tag bin fa <<<"$spec"; tm "$tag" "$bin" "$fa" 3 1 "$SRV4" "$LG4" 4
-  done
-  for spec in "pre6-51:$PRE_BIN:1" "post6-51:$POST_BIN:1" "guard6-51:$GUARD_BIN:1"; do
-    IFS=: read -r tag bin fa <<<"$spec"; tm "$tag" "$bin" "$fa" 5 1 "$SRV6" "$LG6" 2
-  done
+  tm pre-31   "$PRE_BIN"   1 3 1 "$SRV4" "$LG4" 4
+  tm post-31  "$POST_BIN"  1 3 1 "$SRV4" "$LG4" 4
+  tm off-31   "$POST_BIN"  0 3 1 "$SRV4" "$LG4" 4
+  tm pre6-51   "$PRE_BIN"   1 5 1 "$SRV6" "$LG6" 2
+  tm post6-51  "$POST_BIN"  1 5 1 "$SRV6" "$LG6" 2
 fi
 
 # ---- S4 gate row -------------------------------------------------------------------------------
 ctl(){ # ctl TAG BIN
-  local tag=$1 bin=$2 out=$FP/ctl-$tag.txt
+  local tag=$1 bin=$2
+  local out=$FP/ctl-$tag.txt
+  if [ -z "$tag" ] || [ "${out#*$tag}" = "$out" ]; then LG "HARNESS BUG: tag='$tag' out='$out'"; return 1; fi
   [ -s "$out" ] && { LG "CTL $tag on file :: $(grep -E '^ok:|AssertionError|anchored off-rail|Error' "$out" | head -1 | cut -c1-200)"; return 0; }
   wait_gate
   local pid; pid=$(SRV_CPUS=$MY_MASK boot "$bin" "$PORT_CTL" "ctl-$tag" --ratio 6:2 --atomic 0 --flip-auto 1 --flip-auto-band 2 --lb-age-sample-rate 1024) || return 1
@@ -124,7 +132,8 @@ ctl(){ # ctl TAG BIN
   stop "$pid" "$PORT_CTL"
 }
 if want S4; then
-  ctl post-1 "$POST_BIN"; ctl post-2 "$POST_BIN"; ctl pre-1 "$PRE_BIN"
+  ctl post-1 "$POST_BIN"; ctl post-2 "$POST_BIN"; ctl post-3 "$POST_BIN"
+  ctl pre-1 "$PRE_BIN"; ctl pre-2 "$PRE_BIN"; ctl pre-3 "$PRE_BIN"
 fi
 
 # ---- S5 batteries both modes -------------------------------------------------------------------
