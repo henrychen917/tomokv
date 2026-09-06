@@ -4265,7 +4265,24 @@ private:
                                 (void)rob.refine_current_write_hash(op->hash);
                                 op->mark_read_local_precise_write();
                             }
-                            if (!read_local_demotion.prepare(
+                            // DEMOTION-PLAN GATE (DESIGN-DEMOTEGATE.md). prepare() returns true
+                            // without building a plan -- loop_ stays null, so active() is false
+                            // and commit_reads() is its `if (!loop_) return;` no-op -- unless the
+                            // current append must be reserved or a still-pending local read may
+                            // overlap this write. Both predicates are single inline loads that
+                            // prepare() itself performs first; deciding them here skips the
+                            // 12-argument out-of-line call and its abort prologue on the common
+                            // disjoint / no-pending-read point write. This is the exact negation
+                            // of prepare()'s two true-early-outs for this call site (no intersect
+                            // command, no fallback seeds, no filter miss): behaviour identical,
+                            // measured -108 instr/op and -23 cyc/op on the armed SET at 1T.
+                            const bool needs_demotion_plan =
+                                (reserve_owner_fenced_current && op->shard >= 0) ||
+                                (rob.has_pending_read_local() &&
+                                 (!point_write_exact ||
+                                  rob.read_local_pending_may_touch(op->hash)));
+                            if (needs_demotion_plan &&
+                                !read_local_demotion.prepare(
                                     *this, c, op->hash, point_write_exact, op->shard,
                                     ReadLocalFallbackReason::InflightWrite,
                                     reserve_owner_fenced_current))
