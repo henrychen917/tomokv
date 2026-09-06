@@ -52,6 +52,10 @@ struct LiveConfigSnapshot {
     uint32_t latency_monitor_threshold;
     bool     save_armed;
     uint64_t proto_max_bulk_len;
+    // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the read-local half. Fused executors latch it once
+    // per pass with the rest of this snapshot, so the local MGET path pays one thread-private test
+    // and no atomic load; arm/disarm publishes it by bumping the version, exactly like CONFIG SET.
+    uint32_t debug_fanout_defer_us;
 };
 
 struct ClientLimitsConfigSnapshot {
@@ -2757,8 +2761,14 @@ public:
     // the executor stays free, so the transaction the test is racing can actually run and commit
     // inside the window. Zero in production; read once per cross-shard read at prepare time on the
     // already-cold scatter path, never on GET/SET.
+    // The fused read-local lane serves a clean MGET without the scatter engine, so it has its own
+    // half of this hook (ExLoopT::debug_fanout_stall_local). That path never loads this atomic --
+    // it shares a line with the commit sequence -- so arm/disarm publishes through the live-config
+    // version and every fused executor latches the value on its next pass, like a CONFIG SET.
     void set_debug_atomic_fanout_defer(uint32_t microseconds) {
+        const uint64_t version = begin_live_config_update();
         debug_atomic_fanout_defer_.store(microseconds, std::memory_order_relaxed);
+        end_live_config_update(version);
     }
     uint32_t debug_atomic_fanout_defer() const {
         return debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
@@ -2935,6 +2945,8 @@ public:
             snapshot.save_armed = live_save_armed_.load(std::memory_order_relaxed);
             snapshot.proto_max_bulk_len =
                 live_proto_max_bulk_len_.load(std::memory_order_relaxed);
+            snapshot.debug_fanout_defer_us =
+                debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
             if (live_config_version_.load(std::memory_order_acquire) == snapshot.version)
                 return snapshot;
         }
