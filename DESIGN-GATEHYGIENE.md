@@ -440,9 +440,10 @@ count is `EXPECT_FULL` = **340**.
 | 3 | 339 ok, 1 FAIL | **server segfault** in the armed-fused differ matrix (section 8) — not this lane's class, nothing under `src/` was touched |
 | 4 | **340 ok, 0 FAIL** | first of the required pair |
 | 5 | **340 ok, 0 FAIL** | second of the required pair, back to back |
+| 6 | **340 ok, 0 FAIL** | third consecutive clean run, taken as extra confirmation |
 
-Runs 4 and 5 are the two consecutive clean runs the bar asks for, both at the expected row count
-with `PROGRAM-STATE ledger (340/340 checks) ok`.
+Runs 4, 5 and 6 are **three** consecutive clean runs — the bar asks for two — all at the expected
+row count with `PROGRAM-STATE ledger (340/340 checks) ok`.
 
 The stable hold opened its assertion window on attempt 1 of 3 in every post-fix run, each time
 printing the pre-hold measurement that licensed it, e.g.
