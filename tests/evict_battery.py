@@ -143,22 +143,51 @@ elif SECTION == "lfu":
     lane_armed = info_num("read_local") == 1
     fill("lfuhot", 20)
     lane0 = info_num("read_local_keyspace_hits") or 0
+    # The hot set is read THROUGH the pressure, not in a burst before each fill, and that is what
+    # makes this row deterministic instead of a coin flip. Our LFU counter has five header bits and
+    # no wall-clock decay: it is decremented once per SAMPLING event instead (flatstore.h
+    # choose_victim, "sampling is also the bounded aging event"). 18k cold writes against an ~8.4k
+    # ceiling force ~10.5k evictions x 5 samples = ~53k decrements spread over the live set, so
+    # every key -- hot ones included -- is decayed several times per round. Read the hot set in a
+    # burst BEFORE a 3000-key fill and its counters are ground down with nothing to restore them,
+    # landing on 2-7 while the cold keys sit on 2-6: two overlapping distributions, and the row
+    # then draws a number. Read it DURING the fill and each decrement is repaid immediately (the
+    # logarithmic increment has probability 1 below 6), so the hot set holds 6-18 against the same
+    # cold 2-6 and all 20 survive.
+    #
+    # DO NOT "fix" a flake here with CONFIG SET maxmemory-samples 64. Because the decay is per
+    # sample rather than per unit time -- unlike Redis, whose lfu-decay-time is independent of
+    # maxmemory-samples -- raising the sample count raises the decay rate with it: measured 4/20
+    # survivors at samples=64 with burst reads, against 17-20 at the default 5. More samples buys a
+    # more exact victim among counters that have all been crushed to the floor.
+    HOT = ["lfuhot:%d" % i for i in range(20)]
+    hot_reads = 0
     for r in range(6):
-        for _ in range(5):
-            for i in range(20):
-                s.sendall(enc(["GET", "lfuhot:%d" % i])); rr()
-        fill("lfucold", 3000, start=r * 3000)
+        for c in range(6):
+            for _ in range(17):
+                for k in HOT:
+                    s.sendall(enc(["GET", k])); rr()
+                hot_reads += len(HOT)
+            fill("lfucold", 500, start=r * 3000 + c * 500)
     lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane0
     ev = info_num("evicted_keys")
-    hot = alive("lfuhot", range(20))
+    survivors = [k for k in HOT if cmd("EXISTS", k) == b":1"]
+    freqs = sorted(x for x in (as_int(cmd("OBJECT", "FREQ", k)) for k in survivors) if x is not None)
+    median = freqs[len(freqs) // 2] if freqs else None
     check("allkeys-lfu: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
-    check("allkeys-lfu: hot 20 mostly survive", hot >= 15, hot)
+    check("allkeys-lfu: the hot 20 ALL survive", len(survivors) == 20, "%d/20 alive" % len(survivors))
+    # The bound that makes the survival row deterministic, asserted directly. A cold key is written
+    # at 5 and its write counts as an access, so the cold population's ceiling is 6 and decay only
+    # moves it down; a median hot counter of 8 is more than one probabilistic increment clear of
+    # that ceiling. Measured medians on this tree: 9.5-13 over six boots, both atomic modes, split
+    # and fused+armed. On a server whose lane does not touch, the hot keys never leave the cold
+    # band at all (measured 2-5, and 2-4 of 20 alive), so this row and the one above fail together.
+    check("allkeys-lfu: hot counters stay clear of the cold band (median OBJECT FREQ >= 8)",
+          median is not None and median >= 8, "median=%s freqs=%s" % (median, freqs))
     if lane_armed:
-        # Not 600: a read of an already-evicted hot key probes Missing and demotes to the owner,
-        # so the floor has to survive the eviction this section is deliberately causing. 400 of
-        # 600 still leaves no doubt about which path answered.
         check("allkeys-lfu: the hot reads were lane-served (read_local_keyspace_hits)",
-              lane_hot >= 400, "lane hits %d of 600 reads" % lane_hot)
+              lane_hot >= hot_reads * 8 // 10,
+              "lane hits %d of %d reads" % (lane_hot, hot_reads))
     # MECHANISM, on a key nothing else samples: a fresh key starts at 5; the first ordinary read
     # raises it for certain (the logarithmic increment has probability 1 below 6), while reads
     # from a CLIENT NO-TOUCH connection must leave it exactly where the write put it.
@@ -187,6 +216,15 @@ elif SECTION == "lfu":
 elif SECTION == "lruclock":
     # Boot with --lru-clock-shift 0: one-second buckets, so a 1.6 s dwell is a visible age.
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+    # 64 samples, and here -- unlike the lfu section -- that is a pure gain, which is the whole
+    # difference between the two policies in this tree. Sampling a candidate under LRU only READS
+    # its clock byte; sampling one under LFU DECREMENTS its counter (flatstore.h choose_victim),
+    # because five header bits leave no room for a wall-clock decay. So raising the sample count
+    # makes LRU's victim choice exact at no cost, while it would multiply LFU's decay rate by the
+    # same factor. With 64 samples the chance that not one of the ~3000 untouched old keys is in
+    # the sample is (1-p)^64 rather than (1-p)^5, which is what turns "the re-read keys mostly
+    # survive" into "all 50 survive" and lets this row assert an exact number.
+    must("CONFIG", "SET", "maxmemory-samples", "64")
     lane_armed = info_num("read_local") == 1
     must("SET", "lruc:probe", "v")
     time.sleep(1.6)
@@ -231,18 +269,40 @@ elif SECTION == "lruclock":
     fill("lruold", 3000)
     time.sleep(1.6)
     lane2 = info_num("read_local_keyspace_hits") or 0
-    for i in range(50):
-        cmd("GET", "lruold:%d" % i)
+    # Re-read THROUGH the fill, for the same reason the lfu section does (see there). On a 1 s
+    # bucket the fill itself takes several buckets, so 50 keys read once BEFORE it age right back
+    # into the band this row needs them to beat, and a few get spent for reasons that have nothing
+    # to do with the policy. Read during it and they carry the current bucket the whole way, which
+    # is what "kept hot" means and is the only version of the claim that is deterministic.
+    # 6000 new keys, not 8000: with 64-sample selection the victim choice is EXACT, so the
+    # untouched old bucket is spent almost in order, and pressure sized to consume ~85% of it
+    # leaves the unlucky shards with nothing old left and they start on the re-read keys -- one
+    # run in five lost a key that way. Sized instead to spend about half the untouched bucket
+    # (~1.5k evictions against 2950 untouched), no shard runs out, the re-read 50 are never the
+    # oldest thing a sample can see, and the row asserts an exact 50.
+    HOT = ["lruold:%d" % i for i in range(50)]
+    reads = 0
+    for c in range(15):
+        for k in HOT:
+            cmd("GET", k)
+        reads += len(HOT)
+        fill("lrunew", 400, start=c * 400, tolerate_oom=True)
     lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
-    fill("lrunew", 6800, tolerate_oom=True)
     ev = info_num("evicted_keys")
     hot = alive("lruold", range(50))
     cold = alive("lruold", range(50, 3000, 59))
     check("lruclock: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
-    check("lruclock: the 50 re-read old keys mostly survive (>=40)", hot >= 40, hot)
-    check("lruclock: untouched old keys went first", cold < hot, "untouched %d/50 alive, re-read %d/50" % (cold, hot))
+    check("lruclock: the 50 re-read old keys ALL survive", hot == 50, hot)
+    # Relative, so it needs no magic constant and discriminates on its own: on a server whose lane
+    # does not touch, the re-read keys ARE untouched keys and come out at or below the control
+    # (measured 23 re-read alive against 30 untouched), so the comparison inverts. The absolute
+    # bound alongside it only says eviction actually reached the untouched bucket at all --
+    # measured 17-32 alive of the 50 sampled, so 40 is a floor, not a threshold anyone tunes.
+    check("lruclock: untouched old keys went first", cold < hot and cold <= 40,
+          "untouched %d/50 alive, re-read %d/50" % (cold, hot))
     if lane_armed:
-        check("lruclock: the re-reads were lane-served", lane_hot >= 40, "lane hits %d of 50" % lane_hot)
+        check("lruclock: the re-reads were lane-served", lane_hot >= reads * 8 // 10,
+              "lane hits %d of %d" % (lane_hot, reads))
 
 elif SECTION == "growth":
     # wrinkle fix: collection growth must respect maxmemory (pre-exec DENYOOM gate).
