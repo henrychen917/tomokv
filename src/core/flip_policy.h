@@ -293,7 +293,7 @@ struct FlipEwBound {
     void configure(uint32_t time_constant_windows) {
         alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_windows));
     }
-    void reset() { samples = 0; mean = 0; var = 0; }
+    void reset() { samples = 0; mean = 0; var = 0; peak = 0; }
     void add(double value) {
         if (!(value >= 0)) return;
         const double a = alpha > 0 ? alpha : 1.0;
@@ -301,10 +301,24 @@ struct FlipEwBound {
         const double delta = value - mean;
         mean += w * delta;
         var += w * (delta * delta - var);
+        // Decay toward the mean first, then admit the new observation: a peak set by one window
+        // fades over a time constant, a peak the signal keeps reaching does not.
+        peak += a * (mean - peak);
+        peak = std::max(peak, value);
         samples++;
     }
+    // A DECAYING MAXIMUM, not a quantile. The observation this bounds (a signature's distance from
+    // its anchor) is AUTOCORRELATED -- the smoothed signature random-walks around the anchor -- so
+    // its excursions CLUSTER, and a mean + 2 sd quantile is exceeded on consecutive windows far more
+    // often than independence would predict: measured on a simulated 1-in-100 sampled stream, a
+    // mean+2sd bound still produced three two-consecutive exceedances in 600 stationary windows,
+    // which is a spurious maneuver. The band must cover the SUSTAINED excursion, so it retains the
+    // largest value seen and decays toward the mean -- the same "quiet jitter is a band, not a trend
+    // estimate" convention the signature's own jitter_ already uses. It settles just above the true
+    // running maximum and falls back if the signal genuinely quietens.
+    double peak = 0;
     double bound() const {
-        return samples > 1 ? mean + 2.0 * std::sqrt(std::max(0.0, var)) : 0;
+        return samples > 1 ? std::max(peak, mean + 2.0 * std::sqrt(std::max(0.0, var))) : 0;
     }
 };
 

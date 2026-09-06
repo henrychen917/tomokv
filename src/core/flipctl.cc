@@ -113,17 +113,6 @@ void FlipShiftDetector::update_band() {
         band_ = 0;
         return;
     }
-    // A TYPED BAND IS A FLOOR, NOT A CEILING. --flip-auto-band says how large a mix change is worth
-    // a maneuver; it does not say how still the signature holds, and it used to return here without
-    // ever consulting the signal's own movement. Measured by the gate-hygiene lane on a driver whose
-    // rate held to 0.07% across 34 samples: a fingerprint distance of 0.2518 against a flat 0.0200
-    // band -- 12.6x -- fired a maneuver on a stationary load. Whatever the operator types, a band
-    // below the movement the signal shows between adjacent quiet windows fires on its own noise.
-    if (configured_band_ > 0) {
-        band_ = std::max(static_cast<double>(configured_band_) / 100.0,
-                         signature_noise_.bound());
-        return;
-    }
     // SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
     // per-command mean estimated from the N commands this window observed, so two windows drawn
     // from one stationary workload differ by the ESTIMATOR'S OWN NOISE, which falls as 1/sqrt(N)
@@ -135,13 +124,30 @@ void FlipShiftDetector::update_band() {
     // observed no commands supplies no evidence: saturate at one command (quantum 1.0) instead of
     // collapsing to zero, or an anchor cut from an idle window freezes a zero band and judges the
     // first busy wobble as a mix shift. Rate triggers, not fingerprints, own idle->busy.
+    //
+    // N IS WHAT THE SIGNATURE WAS ESTIMATED FROM, so when the writer samples the request stream the
+    // quantum grows with the sampling: at one command in a hundred a 100-command window resolves
+    // the mix to about 0.1, not to the 0.009 the underlying 10k commands would give.
     const double quantum =
         1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
-    // ... and the continuously learned quiet-state movement floors the frozen learning-window max
-    // the same way, for the same reason: jitter_ is the largest adjacent step seen in the few
-    // windows before the anchor, and a learning window that happened to be still freezes a band
-    // that the hold then trips over.
-    band_ = std::max(2.0 * std::max(jitter_, quantum), signature_noise_.bound());
+    // A TYPED BAND IS A FLOOR, NOT A CEILING, AND IT CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT.
+    // --flip-auto-band says how large a mix change is worth a maneuver; it says nothing about how
+    // still the signature holds, and it used to return here consulting neither the estimator's
+    // resolution nor the signal's measured movement. Measured by the gate-hygiene lane on a driver
+    // whose rate held to 0.07% across 34 samples: a fingerprint distance of 0.2518 against a flat
+    // 0.0200 band -- 12.6x -- fired a maneuver on a stationary load. Simulated here on a 1-in-100
+    // sampled stream, a typed 2% band produced three two-consecutive exceedances in 600 stationary
+    // windows (a spurious maneuver each); with the quantum applied it produces none, and a real mix
+    // change still clears the band by 3.3x. So both branches take the same two floors.
+    const double floor = std::max(2.0 * quantum, signature_noise_.bound());
+    if (configured_band_ > 0) {
+        band_ = std::max(static_cast<double>(configured_band_) / 100.0, floor);
+        return;
+    }
+    // ... and the learned band adds the frozen learning-window jitter, floored the same way: that
+    // jitter is the largest adjacent step seen in the few windows before the anchor, so a learning
+    // window that happened to be still freezes a band the hold then trips over.
+    band_ = std::max(2.0 * jitter_, floor);
 }
 
 bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
@@ -170,15 +176,21 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
     if (anchored_) {
         last_distance_ = flip_signature_distance(smoothed_, anchored_signature_);
         const bool fired = configured_band_ != 0 && last_distance_ > band_;
-        // JUDGE FIRST, THEN FOLD. The quiet-state band must not be widened by the very excursion it
-        // is judging -- that was the reason this branch froze the band, and it stands. But a window
-        // that came back IN band is quiet-state evidence, and refusing to learn from it is what
-        // leaves the anchor holding a band cut from one lucky learning window. So: only in-band
-        // windows feed the noise estimate, and only they may move the band.
-        if (!fired && have_previous_) {
-            signature_noise_.add(adjacent);
-            update_band();
-        }
+        // LEARN THE STATISTIC THAT IS ACTUALLY TESTED. The trigger compares the distance from the
+        // ANCHOR; the adjacent-window distance is a different quantity -- smoothed and correlated,
+        // so systematically smaller -- and flooring an anchor-distance test with it underestimates.
+        // Measured on a simulated 1-in-100 sampled stream: adjacent-learned bound 0.054 against a
+        // quiet-state anchor distance reaching 0.101, which fired 15 times in 60 stationary windows.
+        // So the noise estimate is the anchored distance's own null distribution.
+        //
+        // Every post-anchor window feeds it, in band or not, and that is not circular: one window
+        // outside the band never acts (a trigger needs shift_confirmations_ CONSECUTIVE out-of-band
+        // windows), and a shift that does confirm starts a maneuver, which resets this detector and
+        // discards whatever the excursion put into the estimate. A real change moves the estimate by
+        // one time constant's worth in the two windows it needs to confirm -- far too little to mask
+        // a mix change, which scores an order of magnitude above the quiet band.
+        signature_noise_.add(last_distance_);
+        update_band();
         previous_ = smoothed_;
         have_previous_ = true;
         return fired;

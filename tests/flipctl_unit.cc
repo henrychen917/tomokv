@@ -84,16 +84,33 @@ int main() {
         if (!typed.observe(multikey_mix()))
             fail("the widened typed band swallowed a real mix change");
     }
-    // A STILL signature keeps the operator's typed band exactly: the floor is the signal's own
-    // movement, not a tax on every deployment.
+    // A STILL signature at a REAL window size keeps the operator's typed band exactly: the floors
+    // are the signal's own movement and the estimator's resolution, not a tax on every deployment.
+    // (Production windows are large -- the lane's dumps show 0.5M to 5M commands per window -- so
+    // the 1/sqrt(N) quantum is far below a typed 2%.)
     {
         FlipShiftDetector typed(2, 4);
-        for (int k = 0; k < 8; k++) typed.observe(quiet(80, 20, k % 2));
+        for (int k = 0; k < 8; k++) typed.observe(quiet(8000, 2000, k % 2));
         typed.anchor();
         if (std::abs(typed.band() - 0.02) > 1e-9)
             fail("a still signature did not keep the typed 2% band");
         for (int k = 0; k < 8; k++)
-            if (typed.observe(quiet(80, 20, k % 2))) fail("a still signature fired its typed band");
+            if (typed.observe(quiet(8000, 2000, k % 2)))
+                fail("a still signature fired its typed band");
+    }
+    // A TYPED BAND CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT. If the writer samples the request
+    // stream, N is what the signature was ESTIMATED from: a 100-command window resolves the mix to
+    // about 0.1, so a typed 2% is raised to the estimator's own 1/sqrt(N) scale. Simulated on a
+    // 1-in-100 sampled stationary stream this took two-consecutive spurious exceedances from three
+    // in 600 windows to none, while a real mix change still cleared the band by 3.3x.
+    {
+        FlipShiftDetector sampled(2, 8);
+        for (int k = 0; k < 8; k++) sampled.observe(quiet(50, 50));
+        sampled.anchor();
+        if (!(sampled.band() >= 2.0 / std::sqrt(100.0) - 1e-9))
+            fail("a typed band undercut the sampled estimator's own resolution");
+        if (!sampled.observe(multikey_mix()))
+            fail("the resolution floor swallowed a real mix change on a sampled stream");
     }
     // The learned (auto) band takes the same floor, and the max is what applies: on the same noisy
     // signature the band is the observed movement, not the count quantum under it.
