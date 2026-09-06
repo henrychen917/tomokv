@@ -334,3 +334,11 @@ LAW (marker): quiet_ok = exists AND age >= 180 s by stat arithmetic (find -mmin 
   >100% = level change reset, rms reported undivided (conservative sqrt(6) on white noise, exact on
   the 6 s triangle). Build 9b9b559a2e1a5eff. r3 re-run: gate row 2/2 PASS with round_trips 2 / 1
   (moved to the rail, judged, reverted -- a real revert, not a hold); COSTGATE 26/26.
+- 16:56 r3 on 9b9b559a2e1a5eff (FINAL): gate row 2/2 PASS (round_trips 2/1: moved to the rail,
+  judged, reverted); COSTGATE 26/26; TM red-22 0 flips hold-optimum steady 529k (OFF 520/534k)
+  rate_band 0.20 (the mk load's second-difference rms ~10%: anchored rate detectors need a 20%
+  move on this load; the mix detector is unaffected); TM red-31 ttfm 15 s -> 2:2 503k, 0 after
+  stab; TM red8-71 ttfm 17 s -> 4:4 699k, 0 after stab, second trigger held. Report regenerated,
+  republished at https://claude.ai/code/artifact/fce9ba91-db6b-4e62-815f-9e2cc533a1fa.
+  FINAL CODE COMMIT dcc5a409a (src/core/flip_policy.h, flipctl.{h,cc}, server.h, main.cc,
+  t_server.cc, tests/flipctl_unit.cc, tests/flip_cost_gate.py); harness/notes commits after it.
