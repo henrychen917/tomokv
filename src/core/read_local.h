@@ -15,6 +15,12 @@
 #include "server.h"
 #include "../base/alloc.h"
 #include "../store/kv_block_cache.h"
+#ifdef TOMO_RL_CACHE_DEBUG
+#include <cstdio>
+#include <unordered_set>
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
 #include "../store/read_local_reclaim.h"
 #include "../store/read_local_settax.h"
 
@@ -274,6 +280,22 @@ public:
     // payload before retiring it. A null in any of them would fault at reclaim in the same pass.
     void defer(void* reclaim_owner, void* payload, size_t auxiliary,
                ReadLocalRetireSink::ReclaimFn reclaim) {
+#ifdef TOMO_RL_CACHE_DEBUG
+        // A payload may be in this ring at most once. Retiring one object twice puts it into the
+        // owner's block cache twice, which splices a CYCLE into that class's free list; the block
+        // is then handed out while still linked, its header overwrites the `next` word, and the
+        // next take() either aborts on the allocation check or dereferences a wild head. That is
+        // the corruption this P0 is chasing, so name it at the double retire instead.
+        dbg_check_owner("defer");
+        if (!dbg_pending_.insert(payload).second) {
+            std::fprintf(stderr,
+                "\nRLRING-VIOLATION double-retire: payload %p aux %zu reclaim %p (queue %p, "
+                "ring count %u)\n", payload, auxiliary,
+                reinterpret_cast<void*>(reclaim), static_cast<void*>(this), ring_.count);
+            std::fflush(stderr);
+            std::abort();
+        }
+#endif
         if (ring_.full()) force_oldest_grace();
         Entry& entry = entries_[ring_.push()];
         entry.owner = reclaim_owner;
@@ -324,6 +346,14 @@ public:
 
     // All fused threads have joined; no epoch test is needed and no reader can retain a pointer.
     uint32_t drain_shutdown() {
+#ifdef TOMO_RL_CACHE_DEBUG
+        // genthread.cc drains every owner's queue from the MAIN thread after pool.join(). That
+        // crossing is single-threaded by construction; adopt the caller so the owner assertions
+        // below police only live operation, which is where a crossing would be the defect.
+        dbg_shutdown_ = true;
+        dbg_owner_tid_ = static_cast<long>(::syscall(SYS_gettid));
+        block_cache_.dbg_owner_tid = dbg_owner_tid_;
+#endif
         const uint32_t drained = ring_.drain_all(
             [this](uint32_t slot) { reclaim_entry(entries_[slot]); });
 #if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
@@ -356,6 +386,16 @@ private:
     // A reclaimed slot is not scrubbed: defer() assigns every field before the slot is live again,
     // and nothing reads a slot outside [head_, tail_).
     void reclaim_entry(Entry& entry) {
+#ifdef TOMO_RL_CACHE_DEBUG
+        dbg_check_owner("reclaim");
+        if (dbg_pending_.erase(entry.payload) != 1) {
+            std::fprintf(stderr,
+                "\nRLRING-VIOLATION reclaim-of-unpending: payload %p (queue %p)\n",
+                entry.payload, static_cast<void*>(this));
+            std::fflush(stderr);
+            std::abort();
+        }
+#endif
         entry.reclaim(sink_, entry.owner, entry.payload, entry.auxiliary);
     }
 
@@ -399,6 +439,25 @@ private:
         ReadLocalSetTaxStats* stats = sink_.diagnostics();
         if (!stats) std::abort();
         return *stats;
+    }
+#endif
+
+#ifdef TOMO_RL_CACHE_DEBUG
+    // The retire ring is the owner's private QSBR list. Both laws -- one thread, each payload
+    // resident at most once -- are stated here as assertions in the debug build only.
+    long dbg_owner_tid_ = 0;
+    bool dbg_shutdown_ = false;
+    std::unordered_set<void*> dbg_pending_;
+    void dbg_check_owner(const char* op) {
+        const long tid = static_cast<long>(::syscall(SYS_gettid));
+        if (!dbg_owner_tid_) { dbg_owner_tid_ = tid; return; }
+        if (dbg_owner_tid_ != tid && !dbg_shutdown_) {
+            std::fprintf(stderr,
+                "\nRLRING-VIOLATION owner: %s on queue %p from tid %ld, owner tid %ld\n",
+                op, static_cast<void*>(this), tid, dbg_owner_tid_);
+            std::fflush(stderr);
+            std::abort();
+        }
     }
 #endif
 

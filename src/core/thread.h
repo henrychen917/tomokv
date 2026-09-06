@@ -942,6 +942,15 @@ public:
         if (!read_local_state_ || !read_local_state_->retire_sink.defer) std::abort();
         return read_local_state_->retire_sink;
     }
+    // The nullable form, for the shard-ownership edge in Server. A thread has no sink in split
+    // mode and on a fused boot with the lane disarmed; the edge must be able to ask without
+    // knowing which, and must be able to tell "disarmed" from "armed but unbound" -- the latter is
+    // a boot-order defect, and the caller aborts on it rather than moving a shard to an owner that
+    // cannot retire for it.
+    const ReadLocalRetireSink* read_local_retire_sink_or_null() const {
+        if (!read_local_state_ || !read_local_state_->retire_sink.defer) return nullptr;
+        return &read_local_state_->retire_sink;
+    }
     // Bytes this owner is holding in its armed-write block cache: allocated from the allocator's
     // point of view, free from the keyspace's. Deliberately NOT in used_memory / MEMORY STATS /
     // the maxmemory budget, so INFO reports it on its own line. Read by INFO from another thread
