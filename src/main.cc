@@ -587,7 +587,7 @@ int main(int argc, char** argv) {
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {
             (void)srv.flipctl_tick(now_ns() / 1000000ull);
             if (srv.shutting_down().load(std::memory_order_relaxed)) break;
-            (void)signal_doorbell_wait(srv.flipctl_tick_ms());
+            (void)signal_doorbell_wait(srv.flipctl_wait_ms());
         }
     }
 

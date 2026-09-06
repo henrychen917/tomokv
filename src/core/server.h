@@ -418,6 +418,13 @@ public:
         return cfg_.flip_auto ? flipctl_signal_sample_rate() : cfg_.lb_age_sample_rate;
     }
     void flipctl_force_trigger() { flipctl_.request_forced_trigger(); }
+    uint32_t flipctl_wait_ms() const { return flipctl_.wait_ms(flipctl_tick_ms()); }
+    bool flipctl_debug_seek(uint32_t target_io, bool force, std::string& error) {
+        return flipctl_.debug_seek(target_io, force, error);
+    }
+    void flipctl_debug_cost(double commands_per_client) {
+        flipctl_.debug_cost(commands_per_client);
+    }
     FlipctlReport flipctl_report() const { return flipctl_.report(); }
     std::string flipctl_debug_dump() const {
         if (flipctl_available()) return flipctl_.debug_dump();
