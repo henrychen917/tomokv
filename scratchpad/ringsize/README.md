@@ -1282,3 +1282,94 @@ Replayed against a csv holding both runs, the report now refuses to blend them a
 **The general law, which is the reusable part:** a median is only defined over cells that share an
 operating point. Guarding each row for internal consistency cannot find a violation of that, because
 each row is individually fine — the aggregation has to refuse, not the row.
+
+
+---
+
+# FINAL VERDICT — MERGE. A throughput win in the regime the fix targets.
+
+Owner's box, mainline geometry: server 0-15 (**16 shards, fused**), generator 64-95,
+**32 x 32 = 1024 connections at p32**, 3 rounds, **6 visits per arm**, server at
+**15.83-15.85 of 16 cores in every cell** — genuinely saturated, at the ladder's proven peak.
+
+| shape | PRE | POST | RL0 (unarmed) | **POST vs PRE** | **POST vs RL0** | claim |
+|---|---|---|---|---|---|---|
+| **10:10 blocked** (~22 live writes) | 18.794 M | **19.229 M** | 17.650 M | **+2.31%** | **+8.95%** | **the claim** |
+| 5:5 blocked (~17 live) | 19.085 M | 19.197 M | 17.679 M | +0.59% | +8.59% | **no claim on PRE** |
+| 1:1 guard (ring never fills) | 19.431 M | 19.465 M | 17.709 M | +0.17% | +9.92% | flat, guard passes |
+
+**The claim is a pair, and both halves are needed to state it honestly:**
+
+* **+2.31% over the same tree's PRE**, and the ranges do not touch — PRE spans 18.651-18.993, POST
+  spans 19.100-19.315, so **the worst POST visit beats the best PRE visit by 0.56%** over six visits
+  an arm. This is the ring change and nothing else: same tree, same binary pair, one header apart.
+* **+8.95% over not arming at all.** The −4.2% penalty the owner measured for arming a blocked
+  workload is gone and has become a +8.95% gain. This is the number that matters operationally,
+  because it is the choice a deployment actually makes.
+* **5:5 is explicitly NO CLAIM against PRE.** +0.59% sits inside the visit spread and is not carried,
+  however convenient its sign. Its mechanism did fire (PRE ~215k demotions against POST ~10k), so it
+  corroborates the direction and prices nothing.
+
+| supporting | |
+|---|---|
+| mechanism at 10:10 | PRE **~6.1 M** reads demoted at 95.6% local → POST **~9.7 k** at **100%** |
+| CPU per unit work at 10:10 | PRE 0.842 → POST **0.823** core-seconds/Mop, **−2.26%** (and it divides: 15.84/18.794 = 0.843, 15.84/19.229 = 0.824) |
+| correctness | 14/14 unit incl. three 200k soaks, every layout lock, full mutation table with passing control, D1 derivation, 2s batteries 11/11, differ 0 diffs |
+
+## The +972.8 bytes per armed connection, priced where it bites
+
+This cell was run at 1024 connections deliberately, so the throughput number is the ring change and
+not the footprint. Here is the footprint, from the same lane's measurements and the owner's earlier
+2048-connection run of the identical three arms and shape:
+
+| | 1024 connections | 2048 connections |
+|---|---|---|
+| PRE sidecar resident | 0.31 MB | 0.62 MB |
+| POST sidecar resident | 1.25 MB | 2.50 MB |
+| **POST − PRE** | **+0.95 MB** | **+1.90 MB** (≈5.9% of the box's 32 MB L3) |
+| POST vs PRE, 10:10 | **+2.31%** | **+0.80%** (inside spread — no claim) |
+| POST vs RL0, 10:10 | **+8.95%** | **+4.47%** |
+
+**Doubling the connection count consumes about 1.5 points of the 2.31% win and about 4.5 points of
+the 8.95%.** The asymmetry is the right shape: RL0 carries no sidecar at all, so its gap covers the
+whole armed footprint (1280 B/connection), while the PRE gap covers only the +972.8 B this lane adds.
+
+**One honest limit on that pricing.** The owner's ladder showed 2048 connections is past a cliff on
+this box — 17.192 M and 8.1% idle against 19.203 M and 1.1% at 1024, slower *and* idler, a server
+stalling rather than waiting. So the 2048 column prices the footprint **and** the cliff together and
+cannot separate them. What it does establish is the direction and the order of magnitude: the win is
+largest where the footprint is smallest, and it does not invert.
+
+**The change that would recover it is already identified and is not this one**: allocate the sidecar
+on a connection's **first write** instead of at accept. The matched-rate cell found pure GET — a
+connection that never touches the ring — paying +7.6% CPU per operation for a sidecar it never uses.
+That is one measurement, not a redesign, and it is orthogonal to the ring sizing merged here.
+
+## The instruction column has the wrong sign, for the third independent time
+
+Armed arms run **~2928 instructions/op** against the unarmed path's **2437** — the unarmed path
+executes **16.8% fewer instructions and loses 8.2% of the rate**. The same inversion appeared in the
+owner's 16-shard control (+14% instructions, +14% throughput, IPC +28%) and again here. **On this
+workload, instructions per operation is not a proxy for throughput and an instruction-diet argument
+points the wrong way.** This lane's own shelve verdict was built on that column and was wrong; the
+record should carry the lesson, not just the correction.
+
+## Integration hazards, for sequencing
+
+1. **`t-fusedgate` must land first, or this change makes its defect materially worse.** The expwide
+   failure turned out to be a real eviction defect — locally served reads never touched the LRU/LFU
+   metadata, so a key read 600 times was as evictable as one never read. **This lane moves about
+   6.1 million reads per 15-second cell from the demoted path to the local path** at 10:10. Every one
+   of those is a read that stops updating recency under the old behaviour. Nothing in this lane's
+   gate would have caught it: the differ and battery matrices run without maxmemory pressure, so the
+   metadata is never consulted. Merge order matters here, not merge content.
+2. **This branch sits on `t-rlbatch`, which is not on mainline**, and mainline has moved to
+   `bd3b42e80` (read-local lane admission, +44.6% at 2048 connections). Merging this means bringing
+   `t-rlbatch` along and resolving against that. Worth noting that lane admission is a
+   **2048-connection** improvement and this lane's footprint cost is a **2048-connection** cost, so
+   the two touch the same axis and the pair should be re-measured together there rather than assumed
+   additive.
+3. **`kMaxPreciseKeysetKeys` stays at 16**, measured rather than flagged: crossing it takes the
+   read-local hit share from 99.9% to zero and fences 3.6 M reads, identically in both arms. Raising
+   it is a separate question and now a live one, since the geometry that made it look unattractive
+   was the small rig.
