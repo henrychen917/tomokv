@@ -273,15 +273,24 @@ NSRV = 0        # size of the server's cpu allocation; set in main(), carried in
 
 
 def run_ladder(args, fills_ev):
-    """Grow the generator until the server is the thing being measured, and say so if it never is.
+    """Grow the generator until the SERVER is the limit, then measure at the best such rung.
 
-    Escalates on the POST arm at the 10:10 shape -- the arm under test, in the regime the fix bites.
-    Returns (threads, conns_per_thread, saturated, rows).
+    THE SATURATION TEST IS NOT "IS THE SERVER IDLE". It is "does more load buy more throughput".
+    Those come apart exactly where this lane cares: at 2048 connections the owner's box ran SLOWER
+    (17.192M) and IDLER (8.1%) than at 1024 (19.203M, 1.1%), which is not a generator that ran out
+    of capacity -- it is a server stalling on a working set it can no longer hold. A rung like that
+    is server-bound too; the limit is simply memory rather than cpu. Idle is a DIAGNOSIS of which
+    wall was hit, never the test for whether one was.
+
+    So: run every rung, take the PEAK rate as the operating point, and call the run saturated only
+    if some LARGER rung failed to beat that peak -- which is what proves it is a peak. The first
+    version of this stopped at the first rung that met a threshold and then measured at the LAST
+    rung tried, which put the owner's measurement at 2048 connections, past a cliff, when 1024 was
+    both faster and saturated.
     """
-    print('\n=== LOAD LADDER: growing the generator until the server is the bottleneck ===')
+    print('\n=== LOAD LADDER: growing the generator until the server is the limit ===')
     binary, _, rl = ARMS['POST']
-    rows, best = [], 0.0
-    chosen = None
+    rows = []
     for i, (th, cn) in enumerate(LADDER):
         args.threads, args.conns = th, cn
         srv = Server(binary, rl, args.srvcpus, args.port, args.shards,
@@ -294,29 +303,45 @@ def run_ladder(args, fills_ev):
             srv.stop(); time.sleep(2)
         rows.append(row)
         idle = 1.0 - row['srv_cores'] / NSRV
-        gain = (row['rate'] - best) / best if best else 1.0
-        print(f"    rung {i+1}: {th}x{cn} = {th*cn} conns   {row['rate']/1e6:.3f} M ops/s   "
-              f"gain {gain*100:+.1f}%   server idle {idle*100:.1f}%")
-        best = max(best, row['rate'])
-        # BOTH conditions, and in this order: a rung that stopped gaining while the server is still
-        # idle is a generator that ran out of capacity, not a server that ran out of headroom.
-        if idle <= IDLE_MAX and gain < GAIN_STOP and i > 0:
-            chosen = (th, cn)
-            print(f"    -> SATURATED at rung {i+1}: idle {idle*100:.1f}% <= {IDLE_MAX*100:.0f}% "
-                  f"and the last rung bought {gain*100:+.1f}%")
-            break
-        if idle <= IDLE_MAX and i == len(LADDER) - 1:
-            chosen = (th, cn)
-            print(f"    -> SATURATED at the last rung: idle {idle*100:.1f}%")
-            break
-    if chosen is None:
-        last = rows[-1]
-        idle = 1.0 - last['srv_cores'] / NSRV
-        print(f"    -> NOT SATURATED: the ladder ran out at {LADDER[-1]} with the server "
-              f"{idle*100:.1f}% idle. The generator is the wall, not the server.")
-        print("       Rates from this run are the generator's; only CPU per unit work may be read.")
-        chosen = LADDER[-1]
-    return chosen[0], chosen[1], chosen is not None and (1.0 - rows[-1]['srv_cores'] / NSRV) <= IDLE_MAX, rows
+        prev = rows[-2] if len(rows) > 1 else None
+        gain = (row['rate'] - prev['rate']) / prev['rate'] if prev else float('nan')
+        # THREE THINGS A RUNG CAN BE, and they are not the same thing.
+        if prev is None:
+            kind = 'first rung'
+        elif gain >= GAIN_STOP:
+            kind = 'still climbing -- the generator was the limit below this'
+        elif idle > IDLE_MAX and row['rate'] < prev['rate'] * (1 - GAIN_STOP):
+            kind = ('SERVER-SIDE CLIFF: slower AND idler than the rung below, so the server is '
+                    'stalling, not waiting for work')
+        elif idle <= IDLE_MAX:
+            kind = 'cpu-bound plateau'
+        else:
+            kind = 'flat with the server idle -- the generator is the limit here'
+        print(f"    rung {i+1}: {th}x{cn} = {th*cn:>5} conns   {row['rate']/1e6:7.3f} M ops/s   "
+              f"gain {gain*100:+6.1f}%   idle {idle*100:5.1f}%   {kind}"
+              if gain == gain else
+              f"    rung {i+1}: {th}x{cn} = {th*cn:>5} conns   {row['rate']/1e6:7.3f} M ops/s   "
+              f"gain     --   idle {idle*100:5.1f}%   {kind}")
+
+    # THE OPERATING POINT IS THE PEAK, not the last rung tried and not the first to plateau.
+    peak = max(range(len(rows)), key=lambda k: rows[k]['rate'])
+    th, cn = LADDER[peak]
+    peak_idle = 1.0 - rows[peak]['srv_cores'] / NSRV
+    beaten_by_larger = any(rows[k]['rate'] > rows[peak]['rate'] * (1 + GAIN_STOP)
+                           for k in range(peak + 1, len(rows)))
+    proved = peak < len(rows) - 1 and not beaten_by_larger
+    if proved:
+        print(f"    -> PEAK at rung {peak+1}: {th}x{cn} = {th*cn} conns, "
+              f"{rows[peak]['rate']/1e6:.3f} M ops/s, server idle {peak_idle*100:.1f}%. "
+              f"A larger rung did not beat it, which is what makes it a peak.")
+        if peak_idle > IDLE_MAX:
+            print(f"       NOTE: the server is {peak_idle*100:.1f}% idle at the peak, so its limit "
+                  f"is stalls rather than cpu. The rate is still the server's.")
+    else:
+        print(f"    -> NOT PROVEN: the peak is the LAST rung tried ({th}x{cn}), so nothing larger "
+              f"has failed to beat it and the generator may still be the wall.")
+        print("       Rates from this run are not safe; only CPU per unit work may be read.")
+    return th, cn, proved, rows
 
 
 def preload(srv, args):

@@ -66,15 +66,36 @@ if ladder:
         prev = r['rate']
     print()
 
+# SATURATION IS THE LADDER'S FINDING, NOT SOMETHING THIS REPORT INFERS FROM IDLE. Idle is a
+# diagnosis of WHICH wall was hit, not a test of whether one was: on the owner's box 2048
+# connections ran slower AND idler than 1024, which is a server stalling on its working set, not a
+# generator running out. A report that read idle as the saturation test would call that cell
+# unsaturated and throw away a perfectly good server-bound measurement.
 geom = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), 'geometry.txt')
-SAT = None
+SAT, GEOM = None, {}
 if os.path.exists(geom):
     for line in open(geom):
-        if line.startswith('saturated='):
-            SAT = line.strip().split('=', 1)[1] == 'yes'
+        if '=' in line:
+            k, v = line.strip().split('=', 1)
+            GEOM[k] = v
+    SAT = GEOM.get('saturated') == 'yes'
 if SAT is None:
-    SAT = all(med(s, a, 'idle') < 0.02 for s in SHAPES for a in ARMS
-              if med(s, a, 'idle') == med(s, a, 'idle'))
+    print('NOTE: no geometry.txt beside this csv, so the ladder\'s saturation finding is unknown.')
+    print('      Rate lines are reported as n/a; re-run through owner_cell.py, or state saturation')
+    print('      yourself. CPU per unit work is read either way.\n')
+    SAT = False
+
+# NAME BOTH OPERANDS. cpu/Mop is server cores divided by millions of operations per second, so it
+# cannot exceed (cpu allocation) / (rate in Mops) -- a value above that means the cores column and
+# the rate column came from different cells, and the LEVEL is then unreadable even though the
+# PRE/POST ratio still is. Cheap to check, and it catches a mixed-up pair before it becomes a claim.
+bad = [(r['shape'], r['arm'], r['srv_cores'], r['srv_cpus']) for r in rows
+       if r['srv_cpus'] and r['srv_cores'] > r['srv_cpus'] * 1.02]
+if bad:
+    print('INCONSISTENT: the server drew more cores than its allocation in '
+          f'{len(bad)} row(s) -- e.g. {bad[0][1]} {bad[0][0]}: {bad[0][2]:.2f} of {bad[0][3]:.0f}.')
+    print('  Cores and rate are not from the same cell. Ratios between arms survive this; absolute')
+    print('  cpu/Mop and idle do not.\n')
 
 hdr = (f"{'shape':<42}{'arm':<6}{'M ops/s':>9}{'spread':>8}{'cpu/Mop':>9}{'srv cores':>11}"
        f"{'idle':>7}{'instr/op':>10}{'IPC':>7}{'p99 ms':>9}{'local %':>9}{'demoted':>14}")
@@ -119,11 +140,17 @@ print()
 print('=' * 118)
 print('ACCEPTANCE')
 print('=' * 118)
+if GEOM:
+    print(f"  geometry: {GEOM.get('threads','?')} threads x {GEOM.get('conns','?')} = "
+          f"{GEOM.get('total_conns','?')} connections at p{GEOM.get('pipeline','?')}, "
+          f"{GEOM.get('srv_cpus','?')} server cpus, ladder says saturated="
+          f"{GEOM.get('saturated','?')}")
 if not SAT:
     idl = max((med(s, a, 'idle') for s in SHAPES for a in ARMS
                if med(s, a, 'idle') == med(s, a, 'idle')), default=float('nan'))
-    print(f'  NOT SATURATED -- up to {idl*100:.1f}% of the server\'s cores were idle. Every rate here')
-    print('  is the load generator\'s number and no rate comparison may be read from this run.')
+    print(f'  RATE NOT SAFE TO READ -- the ladder did not prove a peak (server idle up to '
+          f'{idl*100:.1f}%).')
+    print('  No rate comparison may be read from this run.')
     print('  The CPU-per-work column below is still valid: it divides what the server spent by what')
     print('  the server did, not by how long the wall clock ran.')
     print()
@@ -150,6 +177,20 @@ for s in SHAPES:
 for kind, s, good, valid, text in lines:
     mark = ('PASS' if good else 'FAIL') if valid else 'n/a '
     print(f"  [{mark}] {kind} {s:<7} {text}")
+
+# A MARGIN SMALLER THAN ONE ARM'S OWN VISIT-TO-VISIT SPREAD IS NOT A RESULT, however it is averaged.
+print()
+print('  margin against noise -- each arm\'s own max-to-min spread beside the delta it is asked to')
+print('  support, and the number of visits behind each median:')
+for s in SHAPES:
+    if s == '1:1':
+        continue
+    n = len({(r['round'], r['visit']) for r in rows if r['shape'] == s and r['arm'] == 'PRE'})
+    m = (med(s, 'POST', 'rate') / med(s, 'PRE', 'rate') - 1) * 100
+    sp = max(spread(s, 'PRE', 'rate'), spread(s, 'POST', 'rate'))
+    ok = abs(m) > sp
+    print(f"    {s:<7} POST/PRE {m:+.2f}%  vs worst arm spread {sp:.2f}%  over {n} visits/arm  "
+          f"-> {'resolvable' if ok else 'INSIDE THE NOISE: add visits before believing it'}")
 
 print()
 blocked = [s for s in SHAPES if s != '1:1']

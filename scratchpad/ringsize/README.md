@@ -1191,3 +1191,61 @@ it**, printing the CPU-per-work column instead — which is what it does when fe
 both PRE and the unarmed line at 10:10 and is flat at 1:1 is a **throughput win** and merges; a
 saturated cell where the rate does not separate but POST's CPU per Mop is lower is an **efficiency
 change**, and must be reported as one rather than dressed as a throughput win.
+
+
+## 2026-09-06 — the ladder found the peak and the code then threw it away
+
+The owner's ladder, run on 16 server cores:
+
+| rung | shape | rate | server idle | what it is |
+|---|---|---|---|---|
+| 3 | 32×16 = 512 conns | 17.455 M | 0.6% | cpu-bound |
+| 4 | **32×32 = 1024 conns** | **19.203 M** | 1.1% | **the peak** |
+| 5 | 32×64 = 2048 conns | 17.192 M | 8.1% | **slower AND idler** |
+
+**Both bugs are mine and they are the same mistake made twice.** The selection took the *last rung
+tried* rather than the *best rung that met the criterion*, so the arms were measured at 2048
+connections — past a cliff — when 1024 was both faster and saturated. And the criterion itself was
+wrong: it treated `idle < 2%` as the test for saturation, so a rung that is **slower with more idle**
+came out as "not saturated" when it is the opposite — a server stalling on a working set it can no
+longer hold is server-bound, just against memory rather than against cpu. The read-local
+lane-admission change that shipped as `bd3b42e80` was diagnosed on exactly that axis.
+
+**The saturation test is now "does more load buy more throughput", and idle is a diagnosis of which
+wall was hit rather than the test for whether one was.** The ladder runs every rung, takes the peak
+rate as the operating point, and calls the run saturated only if a **larger** rung failed to beat
+that peak — which is what makes a peak a peak. Replayed against the owner's own five rungs it picks
+rung 4 (1024 connections) and labels rung 5 `SERVER-SIDE CLIFF: slower AND idler than the rung
+below, so the server is stalling, not waiting for work`.
+
+### What the 2048-connection run does show, with the dual rule applied to it
+
+| 10:10 blocked, 2048 conns | rate | cpu/Mop | local | demoted |
+|---|---|---|---|---|
+| RL0 | 16.451 M | | 0% | 0 |
+| PRE | 17.049 M | 1.132 | 95.6% | 5,531,586 / 5,678,729 |
+| POST | 17.186 M | 1.121 | **99.9%** | **6,832** |
+| | POST/RL0 **+4.5%**, POST/PRE **+0.8%** | **−1.0%** | | |
+
+The rule returns **MERGE — a throughput win**, and two of its three rate lines deserve that weight
+while the third does not:
+
+* **PRIMARY is solid.** POST clears the unarmed line by **+4.5%**, far outside any spread here. The
+  −4.2% penalty the owner measured for arming a blocked workload at 512 connections is gone.
+* **SECOND is at the edge.** POST over PRE is **+0.8%** against a PRE visit-to-visit spread of
+  **0.71%** over two visits. That is a margin the size of its own noise and it must not be reported
+  as a throughput win on its own. The report now prints exactly this comparison under
+  "margin against noise" and says `INSIDE THE NOISE: add visits before believing it` when it applies.
+* **5:5 also overflows**: PRE 267,429 demotions against POST 9,314. Twenty times fewer than at 10:10,
+  which is the run-length threshold behaving as the arithmetic says — a block of five sits just over
+  sixteen live writes, a block of ten sits well over.
+
+### An arithmetic inconsistency in the 2048 numbers, raised rather than swallowed
+
+`cpu/Mop` is server cores divided by millions of operations per second, so at 16 cores and 17.19 M
+ops/s it cannot exceed **16 / 17.19 = 0.931**. The reported **1.121** implies about **19.3 cores**.
+Either that run had a larger server allocation than the first one, or the cores column and the rate
+column come from different cells. **The PRE/POST ratio (−1.0%) survives this either way** — it is a
+ratio of two quantities of the same shape — but the level, and therefore how saturated the box was,
+does not. The report now refuses to present absolute `cpu/Mop` without flagging it when the cores
+column exceeds the allocation.
