@@ -1312,14 +1312,20 @@ pausable g++ -std=c++20 -O2 -g -march=native -pthread -DTOMO_JEMALLOC -DTOMO_RL_
     && ok "read-local ownership-invariant build" \
     || bad "read-local ownership-invariant build" "see /tmp/gate-rlcachedbg-build.txt"
 quiet_wait
-# --shards 64 and the tightened balancer band are what make the row DETERMINISTIC rather than a
-# coin flip. The defect needs a shard to change owner; `launch` boots --shards 16, and this gate
-# sizes its thread count from its core set, so on a 16-CPU set every thread owns exactly one shard
-# and the balancer has nothing it can move (measured: 9.4M ops, 0 moves, and the battery correctly
-# refused to report a pass). A later --shards wins over the earlier one, so 64 shards gives every
-# thread several to trade whatever the core count is; the LB flags are boot-only, hence here.
+# --shards 64 and a faster balancer tick are what make the row DETERMINISTIC rather than a coin
+# flip. The defect needs a shard to CHANGE OWNER; `launch` boots --shards 16 and this gate sizes its
+# thread count from its core set, so on a 16-CPU set every thread owns exactly one shard and the
+# balancer has nothing it can take (measured: 9.4M ops, 0 moves -- and the battery's own
+# non-vacuity check correctly refused to report a pass). A later --shards wins over the earlier
+# one, so 64 shards gives every thread several to trade whatever the core count is. The LB knobs
+# are boot-only (CONFIG SET reports "parameter is immutable at runtime"), hence here.
+#
+# ONLY the tick is lowered. Measured over 15 s at 64 shards, moves: default 6, --lb-tick-ms 100
+# -> 50, --lb-move-cap 4 -> 20, --lb-imbalance-pct 1 -> 5, and --lb-cooldown-ms 0 -> ZERO. That
+# last one reads like "no cooldown" and means "never move", which is how the first version of this
+# row silently lost its own precondition. Do not add it back.
 if boot_fused $RLDBG --shards 64 --atomic 1 --read-local 1 --enable-debug-command yes \
-        --lb-tick-ms 100 --lb-imbalance-pct 1 --lb-move-cap 4 --lb-cooldown-ms 0; then
+        --lb-tick-ms 100; then
   # The battery carries its own three non-vacuity checks: the armed lane served reads, the block
   # cache actually held blocks, and -- the precondition for this whole class of defect -- the load
   # balancer MOVED shards during the run.

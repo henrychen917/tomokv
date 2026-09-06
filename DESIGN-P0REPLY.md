@@ -255,3 +255,36 @@ catalog, the routing state and the pending pub/sub events are extracted and post
 
 **Thread retirement** (an executor losing its role in a flip) moves its shards through
 `transfer_bucket_range_quiesced`, so it is covered by the same fix.
+
+## 11. Two harness findings the new row produced
+
+**`--lb-cooldown-ms 0` disables shard movement entirely.** Measured at 64 shards, 8 fused threads,
+15 s of this battery's load, counting `tomokv_keylb_bucket_moves`:
+
+| boot flag                | shard moves |
+|--------------------------|-------------|
+| (defaults)               |  6          |
+| `--lb-tick-ms 100`       | 50          |
+| `--lb-move-cap 4`        | 20          |
+| `--lb-imbalance-pct 1`   |  5          |
+| `--lb-cooldown-ms 0`     |  **0**      |
+
+Every other "move more" knob moves more; this one stops the balancer dead. Under the program's
+knob philosophy `0` reads as "off", and for a COOLDOWN "off" should mean *no* cooldown — move
+freely. It means "never". That is how the first version of this gate row silently lost its own
+precondition, and it is a live trap for anyone tuning the balancer. Not fixed here (it belongs to
+the LB lane), but named.
+
+**`tests/slowlog.py` has a constant that assumes eight recording threads.** `gate.sh` sizes its
+thread count from its core set (`NCORES`, then `GATE_RATIO=6:$((NCORES-6))`), and the battery
+asserts `SLOWLOG LEN <= 8` after shrinking `slowlog-max-len` to 1 — a per-executor ring bound
+written for a 6:2 boot. On a 16-CPU core set that boot is 6:10 and the bound is wrong. Verified
+against the PRISTINE `ceb6b02f8` binary, nothing of this lane's involved:
+
+| pristine `ceb6b02f8`, `tests/slowlog.py` | verdict |
+|------------------------------------------|---------|
+| `--ratio 6:10` (16-CPU core set)          | FAIL — `shrinking max-len trims immediately: got 10` |
+| `--ratio 6:2`  (8-CPU core set)           | PASS |
+
+So the full gate must be run on an 8-CPU core set until that constant is derived from the live
+thread count. This lane gated on `GATE_CORES=32-39`.
