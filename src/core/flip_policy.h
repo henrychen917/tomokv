@@ -141,6 +141,14 @@ struct FlipPlacementChoice {
 //   nothing while the server keeps serving at its live split. Note that "the live split is the
 //   optimum at the mean" is NOT a hold on its own: three draws spread across a thread's width of
 //   io share can put a +16% split at one end and a +20% split at the other.
+//
+// THE PRE-MOVE WAIT DERIVES FROM THE DISTANCE, with no separate rule. min_samples is the fewest
+// draws that admit a variance (two); from there the sequential test decides as soon as the
+// PESSIMISTIC end of the 2-SE interval clears the bar. A wildly wrong split reads a gain so far
+// above the bar that even the pessimistic end of a two-draw interval clears it -- it moves at two
+// readings. A marginal split's pessimistic end sits below the bar until the interval tightens over
+// many draws. Same test, opposite waits, and the outcome loop (not a long pre-move window) is what
+// catches a two-draw move that turns out wrong.
 inline FlipPlacementChoice flip_choose_split(uint32_t now_units, uint32_t total_units,
                                              const FlipDemandWindow& window,
                                              double required_gain, uint32_t min_samples) {
@@ -347,24 +355,31 @@ struct FlipCostVerdict {
     bool pays = false;
 };
 
-// THE COST GATE. Gains are kappa-scaled by the caller. A gain is credited only after the outcome
-// can be judged (T_stat - T_black); the cost is the flip, the revert with probability P_miss, and
-// the blackout at a wrong split -- during which a wrong move loses about what a right one would
-// have gained -- all times the outcome margin.
+// THE COST GATE, and it is ASYMMETRIC BY CONSTRUCTION -- a move off a split that delivers a
+// fraction of the achievable rate must not wait for the long stability window a marginal move
+// needs. The benefit is the kappa-scaled gain credited over the horizon the workload has held
+// still, less the blind time; it scales with the GAIN. The cost is the flip, the revert with
+// probability P_miss, and the blackout: with probability P_miss the move is wrong and the T_black
+// seconds blind risk the whole ORIGIN throughput (a wrong target could deliver nothing before the
+// revert) -- NOT gain_mean x rate, which would scale the cost with the gain too and cancel the
+// asymmetry. So benefit/cost ~ gain, and the stationarity a move needs to clear the gate falls as
+// the gain rises: a +2400% move off a wrong-split boot pays at ~1.0 T_black, a +5% move needs the
+// workload to hold for tens of blackouts. The wait derives from the distance, no constant added.
 inline FlipCostVerdict flip_cost_gate(double gain_low, double gain_mean, double rate,
                                       double stationary_s, double blackout_s,
                                       double transfer_cost, double p_miss, uint32_t margin) {
+    (void)gain_mean;  // retained in the signature for the trail; the blackout risks R0, not the gain
     FlipCostVerdict v;
     v.blackout_s = std::max(0.0, blackout_s);
     v.horizon_s = std::max(0.0, stationary_s);
     v.transfer_cost = std::max(0.0, transfer_cost);
     const double m = std::max<uint32_t>(1, margin);
+    const double r = std::max(0.0, rate);
     const double credited = std::max(0.0, v.horizon_s - v.blackout_s);
-    v.benefit = std::max(0.0, gain_low) * std::max(0.0, rate) * credited;
-    v.cost = m * (v.transfer_cost * (1.0 + p_miss) +
-                  p_miss * std::max(0.0, gain_mean) * std::max(0.0, rate) * v.blackout_s);
-    v.payback_s = (gain_low > 0 && rate > 0)
-        ? v.blackout_s + v.cost / (gain_low * rate) : INFINITY;
+    v.benefit = std::max(0.0, gain_low) * r * credited;
+    v.cost = m * (v.transfer_cost * (1.0 + p_miss) + p_miss * r * v.blackout_s);
+    v.payback_s = (gain_low > 0 && r > 0)
+        ? v.blackout_s + v.cost / (gain_low * r) : INFINITY;
     v.pays = gain_low > 0 && v.benefit > v.cost;
     return v;
 }

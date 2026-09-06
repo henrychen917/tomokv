@@ -330,8 +330,11 @@ private:
     // PLACEMENT POLICY STATE (flip_policy.h). The demand window accumulates one io-share draw per
     // stabilized reading; the choice is re-evaluated on every draw until it is decided, or the
     // reading cap -- the boot deferral bound expressed in two-tick readings -- forces a hold.
-    // Three draws are the fewest that carry a variance worth the name.
-    static constexpr uint32_t kMinModelSamples = 3;
+    // Two draws are the fewest that admit a variance, and the sequential test's 2-SE interval then
+    // provides the distance-derived wait (flip_policy.h): a wildly wrong split's pessimistic gain
+    // clears the bar at two readings, a marginal split's does not until the interval tightens. The
+    // outcome loop catches a two-draw move that misses -- the wait is not the safety net.
+    static constexpr uint32_t kMinModelSamples = 2;
     FlipDemandWindow demand_window_{};
     uint32_t model_readings_ = 0;
     uint32_t model_readings_cap_ = 0;

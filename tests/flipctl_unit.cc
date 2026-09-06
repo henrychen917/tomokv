@@ -212,21 +212,43 @@ int main() {
     if (flip_judge(-0.30, 0.10, 1, 5) != FlipOutcome::Miss) fail("a clear loss did not reject early");
     if (flip_judge(0.05, 0.10, 1, 5) != FlipOutcome::Pending) fail("an unresolved reading decided");
     if (flip_judge(0.05, 0.10, 5, 5) != FlipOutcome::Miss) fail("the planned count did not reject");
-    // COST GATE. Units: commands = gain x rate x seconds. The first flip has no transfer cost:
-    // the boot maneuver at the wrong split moves as soon as the credited horizon covers the
-    // blackout at the model's miss prior. R0 = 236k/s (this rig at 3:1), gain +100%.
+    // COST GATE. Units: commands = gain x rate x seconds. The blackout risks the whole ORIGIN
+    // throughput on a miss (R0 x T_black), NOT gain x R0 x T_black -- that is what makes the gate
+    // asymmetric: benefit/cost ~ gain, so the stationarity a move needs falls as the gain rises.
+    // The first flip has no transfer cost (it IS the measurement); it moves as soon as the credited
+    // horizon covers the blackout risk. R0 = 236k/s (this rig at 3:1), gain +100%.
     {
         FlipCostModel m;
         if (m.client_cost() != 0 || m.kappa() != 1.0 || std::abs(m.miss_probability() - 0.5) > 1e-12)
             fail("fresh cost model priors");
         const FlipCostVerdict v = flip_cost_gate(1.0, 1.0, 236000, 12.0, 4.0, 0, m.miss_probability(), 1);
-        // benefit 1.0 x 236k x (12-4) = 1.888M; cost 0.5 x 1.0 x 236k x 4 = 472k
+        // benefit 1.0 x 236k x (12-4) = 1.888M; cost 0.5 x 236k x 4 = 472k
         if (!v.pays || std::abs(v.benefit - 1.888e6) > 1 || std::abs(v.cost - 472000) > 1)
             fail("first-flip cost gate arithmetic");
         if (std::abs(v.payback_s - (4.0 + 472000.0 / 236000.0)) > 1e-9) fail("payback seconds");
     }
-    // A move that does not pay: +5% projected, a measured transfer cost of 0.5 s of throughput per
-    // flip, 10 s of stationarity. It starts paying once the workload has held ~24 s.
+    // ASYMMETRY. A wildly wrong split (a 28:4 boot delivers ~0.53M against ~13M achievable, +2400%)
+    // pays almost at the blackout floor: benefit 24 x 0.53M x (T-4), cost 0.5 x 0.53M x 4 = 1.06M,
+    // so it pays once (T-4) > 1.06M/(24 x 0.53M) = 0.083 s -> T ~ 4.1 s, one blackout.
+    {
+        const FlipCostVerdict wrong = flip_cost_gate(24.0, 24.0, 530000, 4.1, 4.0, 0, 0.5, 1);
+        if (!wrong.pays) fail("a +2400% wrong-split move did not pay within one blackout");
+        if (!(wrong.payback_s < 4.5)) fail("the wrong-split move's payback was not ~one blackout");
+    }
+    // A marginal move on a HEALTHY split is refused for a long time: +5% off 500k risks the whole
+    // 500k during the blackout. benefit 0.05 x 500k x (T-4); cost (first flip) 0.5 x 500k x 4 = 1M.
+    // Pays only once (T-4) > 1M / 25k = 40 s -> T > 44 s.
+    {
+        const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, 0, 0.5, 1);
+        if (no.pays) fail("a +5% move off a healthy split paid at 10 s of stationarity");
+        if (std::abs(no.cost - 1.0e6) > 1e-3) fail("the blackout cost did not risk the origin rate");
+        const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 45.0, 4.0, 0, 0.5, 1);
+        if (!yes.pays) fail("the +5% move did not pay at 45 s of stationarity");
+        // The bar doubles on a miss: at 45 s margin 1 pays, margin 2 does not.
+        if (flip_cost_gate(0.05, 0.05, 500000, 45.0, 4.0, 0, 0.5, 2).pays)
+            fail("a doubled margin did not refuse the marginal move");
+    }
+    // The measured transfer cost dominates once a flip has been priced (second move onward).
     {
         FlipCostModel m;
         const double naive = flip_naive_transfers(256, 3, 2);       // 85.33: the converted thread's share
@@ -236,18 +258,27 @@ int main() {
         const double transfers = m.predicted_transfers(256, 2, 3);   // naive 85.33 x 1.805 = 154
         if (std::abs(transfers - 154) > 1e-6) fail("predicted transfers did not reproduce the plan");
         const double xfer_cost = m.client_cost() * transfers;        // 250k commands
-        const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, xfer_cost,
-                                                  m.miss_probability(), 1);
-        // benefit 0.05 x 500k x 6 = 150k; cost 250k x 1.5 + 0.5 x 0.05 x 500k x 4 = 375k + 50k
-        if (no.pays || std::abs(no.benefit - 150000) > 1e-3 || std::abs(no.cost - 425000) > 1e-3)
-            fail("a +5% move with a measured 250k-command flip paid at 10 s");
-        const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost,
-                                                   m.miss_probability(), 1);
-        if (!yes.pays) fail("the same move did not pay at 30 s of stationarity");
-        if (std::abs(no.payback_s - (4.0 + 425000.0 / 25000.0)) > 1e-6) fail("payback of the +5% move");
-        // The bar doubles on a miss: at 30 s the move paid with margin 1 and fails with margin 2.
-        if (flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost, m.miss_probability(), 2).pays)
-            fail("a doubled margin did not refuse the marginal move");
+        // benefit 0.20 x 500k x (T-4); cost 250k x 1.5 + 0.5 x 500k x 4 = 375k + 1M = 1.375M.
+        const FlipCostVerdict no = flip_cost_gate(0.20, 0.20, 500000, 10.0, 4.0, xfer_cost, 0.5, 1);
+        if (no.pays || std::abs(no.cost - 1.375e6) > 1e-3) fail("+20% move priced with a measured flip");
+        const FlipCostVerdict yes = flip_cost_gate(0.20, 0.20, 500000, 30.0, 4.0, xfer_cost, 0.5, 1);
+        if (!yes.pays) fail("+20% move did not pay at 30 s with the measured flip cost");
+    }
+    // The pre-move wait is distance-derived: a huge, tight gain decides at the two-draw floor,
+    // while a marginal one stays undecided until the interval tightens (flip_choose_split, above).
+    {
+        FlipDemandWindow w;
+        w.add(0.11); w.add(0.13);   // 28:4-like: ex saturated, io idle -> move toward more ex
+        const FlipPlacementChoice c = flip_choose_split(3, 4, w, 0.02, 2);
+        if (!c.decided || !c.move) fail("a wildly wrong split did not decide at two draws");
+        // A MARGINAL move: at mean io=0.72 of 8, 5:3 -> 6:2 is +2.9% (just over the 2% bar), but the
+        // two-draw interval [0.68, 0.76] puts 6:2 at -15% at one end and +20% at the other, so its
+        // pessimistic gain is below the bar -- keep sampling (undecided), the wait deriving from
+        // how close the split is to the crossover, not from a fixed floor.
+        FlipDemandWindow n;
+        n.add(0.70); n.add(0.74);
+        if (flip_choose_split(5, 8, n, 0.02, 2).decided)
+            fail("a marginal two-draw window decided a one-thread move");
     }
     // OUTCOME LOOP. A miss halves the model's credence (kappa 1 -> 0.5: the bar doubles in
     // effect); a hit restores it; over-delivery never buys more than one; the miss rate follows
