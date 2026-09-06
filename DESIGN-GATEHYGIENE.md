@@ -389,3 +389,38 @@ the reads never touch the LFU metadata. Same binary, same section, back-to-back 
 
 Both survival rows go red together, which is what the file predicts for a server whose reads do
 not touch.
+
+---
+
+## 8. A server defect the acceptance runs found — NOT a timing row, NOT this lane's to fix
+
+Full-gate run 3 came back 339 ok / 1 FAIL. The red row was **not** of this lane's class: the
+armed-fused differential matrix collapsed because **the server segfaulted**.
+
+```
+row:      Redis 7.4 differential matrix (armed fused + read-local)
+geometry: --thread-mode fused --read-local 1, --atomic 1, 16 shards, 8 threads
+first:    differ scan (atomic=1 seed=19)  -> EOFError
+then:     every following leg -> ConnectionRefused (the process was gone)
+server log ends at "listening on 127.0.0.1:8440" -- no crash text, no shutdown dump
+
+kernel (journalctl -k):
+  tomokv[3081117]: segfault at c000108 ip 00005912d5cf68b5 sp 00007a24d07fd7f0 error 4
+  tomokv[3081119]: segfault at c000108 ip 00005912d5cf68b5 sp 00007a24cf3fd800 error 4
+   in tomokv[1968b5,5912d5b71000+36f000]
+```
+
+**TWO threads faulted at the same instruction on the same address**, `0xc000108`, error 4 (a
+user-mode read of an unmapped page). That is the signature of two threads dereferencing one
+corrupted shared pointer, not of an ordinary null deref. Offset `0x1968b5` resolves to
+`tomo::reply_bulk<tomo::Op::Sink>` (`src/net/resp.h:258`); the alternative reading of the base
+arithmetic lands in `serialize_notify_flags` -> `std::string::push_back`, which on an SSO-short
+string can only fault if the frame or the object was already corrupt. Either way it is the **reply
+path**, in the geometry where the read-local lane serves the read.
+
+Frequency: **one occurrence in three full gates** (each runs this matrix once). It was the only
+segfault on the box all night.
+
+This lane changed nothing under `src/`, so this is pre-existing on `ceb6b02f8` and belongs to the
+lane that owns the armed local-read lane. It is recorded here because it is a P0-shaped finding
+and because it is now the only known source of a random red row in the full gate.
