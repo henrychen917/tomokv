@@ -226,40 +226,57 @@ struct FlipRateWindow {
     double bracket_band() const { return flip_baseline_band(lo, hi); }
 };
 
-// The load's own variability over the LONGEST window the controller has: an exponentially weighted
-// mean and variance of every per-tick rate sample, relative. Every other band in the controller is
-// learned from stabilized PAIRS -- readings the controller selected because two adjacent sub-windows
-// agreed -- and that selection is biased quiet: two readings taken inside one phase of a driver's
-// six-second rate triangle read sigma = 0.05% on a load that swings +-20%, the target's +24% (the
-// swing, not the flip) cleared every band, and the boot maneuver anchored on a rail; a settle window
-// that happened to be still learned an anchor band of 0.02% and then fired four maneuvers on a
-// stationary load. This estimator sees every tick, quiet or not, and floors all of them. The time
-// constant is the boot deferral bound in ticks -- the one wall-clock allowance the controller
-// already grants -- so a level shift (a flip, a real workload change) inflates it for that long and
-// then it settles; the controller resets it when a flip it issued completes, since the level moved
-// by design.
+// The load's own variability over the LONGEST window the controller has, DETRENDED: an
+// exponentially weighted variance of the SECOND relative difference of every per-tick rate sample,
+//     rel2 = (r_t - 2 r_{t-1} + r_{t-2}) / r_{t-1}.
+// Every other band in the controller is learned from stabilized PAIRS -- readings the controller
+// selected because two adjacent sub-windows agreed -- and that selection is biased quiet: two
+// readings taken inside one phase of a driver's six-second rate triangle read sigma = 0.05% on a
+// load that swings +-20%, the target's +24% (the swing, not the flip) cleared every band, and the
+// boot maneuver anchored on a rail; a settle window that happened to be still learned an anchor
+// band of 0.02% and then fired four maneuvers on a stationary load. This estimator sees every tick,
+// quiet or not. It is the SECOND difference because the first attempt -- deviation from an EW mean --
+// blew up on the boot ramp (a near-idle first sample followed by the full rate read +12400% and the
+// 1/30 decay kept it alive for 130 ticks: sigma 16.9, every band dead): a linear ramp has zero second
+// difference, a level shift leaves two blips that decay, a periodic swing keeps its full amplitude.
+// Samples at or below the idle floor are not evidence and break the chain; a second difference
+// beyond 100% is a level change, not noise, and resets the estimator. The time constant is the boot
+// deferral bound in ticks -- the one wall-clock allowance the controller already grants -- with a
+// plain running average over the warm-up so one early blip is diluted, not remembered. The
+// controller also resets it when a flip it issued completes: the level moved by design.
 struct FlipEwVariance {
-    uint32_t samples = 0;
+    uint32_t samples = 0;   // second differences folded in
     double alpha = 0;
-    double mean = 0;
-    double var = 0;   // of the RELATIVE deviation (r - mean) / mean
+    double var = 0;         // of rel2
+    double prev1 = 0;       // r_{t-1}, 0 = none
+    double prev2 = 0;       // r_{t-2}, 0 = none
 
     void configure(uint32_t time_constant_ticks) {
         alpha = 1.0 / static_cast<double>(std::max<uint32_t>(1, time_constant_ticks));
     }
-    void reset() { samples = 0; mean = 0; var = 0; }
-    void add(double rate) {
-        if (!(rate > 0)) return;
-        if (!samples) { mean = rate; var = 0; samples = 1; return; }
-        // Deviation against the mean BEFORE this sample folds in, relative, then both track.
-        const double rel = (rate - mean) / mean;
-        const double a = alpha > 0 ? alpha : 1.0;
-        // Warm-up: until 1/alpha samples the plain running average is the better estimate.
-        const double w = std::max(a, 1.0 / static_cast<double>(samples + 1));
-        var += w * (rel * rel - var);
-        mean += w * (rate - mean);
-        samples++;
+    void reset() { samples = 0; var = 0; prev1 = prev2 = 0; }
+    // `floor` is the rate below which a tick is idle, not load (the caller's idle rate).
+    void add(double rate, double floor = 0) {
+        if (!(rate > floor)) { prev1 = prev2 = 0; return; }   // not evidence; the chain restarts
+        if (prev1 > 0 && prev2 > 0) {
+            const double rel2 = (rate - 2.0 * prev1 + prev2) / prev1;
+            if (std::abs(rel2) > 1.0) {
+                // A level change of more than the level itself: a new regime, not noise.
+                samples = 0; var = 0;
+            } else {
+                const double a = alpha > 0 ? alpha : 1.0;
+                const double w = std::max(a, 1.0 / static_cast<double>(samples + 1));
+                var += w * (rel2 * rel2 - var);
+                samples++;
+            }
+        }
+        prev2 = prev1;
+        prev1 = rate;
     }
+    // The rms second difference, reported AS the per-reading noise scale. For white noise that
+    // overstates sigma by sqrt(6) -- conservative; for a swing of a few ticks' period it is right
+    // (the six-second triangle: 0.15 both ways), and that swing is what the pair bands were blind
+    // to. Dividing by sqrt(6) would be exact for white noise and read the triangle at 0.06.
     double sigma() const { return samples > 1 ? std::sqrt(std::max(0.0, var)) : 0; }
 };
 

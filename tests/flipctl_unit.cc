@@ -308,20 +308,36 @@ int main() {
     if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
     if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
     if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
-    // LONG-WINDOW NOISE. The gate driver's six-second triangle (issue intervals x 0.8,0.95,1.1,
-    // 1.2,1.05,0.9) puts per-tick rates at 1.25,1.05,0.91,0.83,0.95,1.11 of the mean: sigma ~0.15.
-    // Two adjacent readings inside one phase read ~0.05%; the target's +24% is that swing.
+    // LONG-WINDOW NOISE, DETRENDED. The gate driver's six-second triangle (issue intervals x 0.8,
+    // 0.95,1.1,1.2,1.05,0.9) puts per-tick rates at 1.25,1.05,0.91,0.83,0.95,1.11 of the mean:
+    // per-reading sigma ~0.15. Two adjacent readings inside one phase read ~0.05%; the target's
+    // +24% is that swing. The second-difference estimator must read the swing, and must NOT read
+    // the boot ramp (a near-idle first sample, then the full rate) that blew the first form up.
     {
         FlipEwVariance ew; ew.configure(30);
-        for (int cycle = 0; cycle < 3; cycle++)
-            for (double r : {6050.0, 5100.0, 4400.0, 4030.0, 4600.0, 5370.0}) ew.add(r);
-        if (!(ew.sigma() > 0.10)) fail("the triangle's long-window sigma did not read the swing");
-        // and the verification threshold it floors refuses the +24% that fooled the pair bands
+        for (int cycle = 0; cycle < 4; cycle++)
+            for (double r : {6050.0, 5100.0, 4400.0, 4030.0, 4600.0, 5370.0}) ew.add(r, 8.0);
+        if (!(ew.sigma() > 0.08 && ew.sigma() < 0.40)) fail("the triangle's long-window sigma did not read the swing");
+        // The verification threshold it floors refuses the +24% that fooled the pair bands.
         if (!(flip_verify_threshold(ew.sigma(), 2, 1, 0.02) > 0.24))
             fail("the long-window sigma did not floor the threshold above the driver's swing");
+        // The boot ramp: idle ticks (skipped), 40/s (skipped as idle), then a fast ramp to a steady
+        // 690k. A linear ramp is invisible; only the knee leaves a blip that the warm-up dilutes.
+        FlipEwVariance ramp; ramp.configure(30);
+        for (double r : {0.0, 3.0, 40.0}) ramp.add(r, 50.0);
+        for (double r : {200000.0, 434000.0, 685000.0, 690000.0}) ramp.add(r, 50.0);
+        for (int k = 0; k < 12; k++) ramp.add(690000.0 * (1.0 + 0.01 * ((k % 3) - 1)), 50.0);
+        // The knee of a fast ramp is real curvature (-36% second difference once); the warm-up
+        // dilutes it to ~0.1 within 14 ticks and the 1/30 decay carries it out from there.
+        if (!(ramp.sigma() < 0.12)) fail("the boot ramp inflated the long-window sigma");
+        // A x3 level step is a new regime: reset, not noise.
+        FlipEwVariance step; step.configure(30);
+        for (int k = 0; k < 10; k++) step.add(1000.0, 8.0);
+        step.add(3000.0, 8.0); step.add(3000.0, 8.0);
+        if (step.samples > 1 && step.sigma() > 0.05) fail("a x3 level step was folded in as noise");
         FlipEwVariance still; still.configure(30);
-        for (int k = 0; k < 40; k++) still.add(500000.0 * (1.0 + 0.01 * ((k % 3) - 1)));
-        if (!(still.sigma() < 0.02)) fail("a still load read a large long-window sigma");
+        for (int k = 0; k < 40; k++) still.add(500000.0 * (1.0 + 0.01 * ((k % 3) - 1)), 8.0);
+        if (!(still.sigma() < 0.03)) fail("a still load read a large long-window sigma");
         if (FlipEwVariance{}.sigma() != 0) fail("an empty long window has a sigma");
     }
     // The rate window: mean, relative sigma and the bracket band the trend guard uses.

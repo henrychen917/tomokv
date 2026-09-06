@@ -316,12 +316,16 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
     rate_window_ms_ = now_ms;
     rate_window_commands_ = commands;
     rate_window_movement_ = movement;
-    // Every rate sample, selected or not, feeds the long-window noise estimate.
-    if (rate_ew_.alpha <= 0) {
+    // Every rate sample, selected or not, feeds the long-window noise estimate; a tick at the
+    // near-idle floor (one command per thread per tick, the boot gate's own idle line) is not load.
+    {
         const uint64_t tick_ms = std::max<uint32_t>(1, server.flipctl_tick_ms());
-        rate_ew_.configure(static_cast<uint32_t>(std::max<uint64_t>(1, kBootMaxDeferralMs / tick_ms)));
+        if (rate_ew_.alpha <= 0)
+            rate_ew_.configure(static_cast<uint32_t>(std::max<uint64_t>(1, kBootMaxDeferralMs / tick_ms)));
+        const double idle_rate = static_cast<double>(server.nthreads()) * 1000.0 /
+                                 static_cast<double>(tick_ms);
+        rate_ew_.add(rate, idle_rate);
     }
-    rate_ew_.add(rate);
     return true;
 }
 
