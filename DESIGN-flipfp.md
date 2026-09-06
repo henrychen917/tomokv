@@ -461,3 +461,23 @@ Live corroboration that the probe's 50/50 model is the stress case and not the s
 passes it 3/3, because its stationary load is single-class and so carries far less per-window
 variance than the probe's Bernoulli mix. The probe is the right instrument precisely because the
 live row cannot reach that variance.
+
+### 6.6 Gate, clean
+
+`tests/gate.sh quick` on fc3f6f51c, run 4, on a quiet box (load 0.51, no other lane's process on
+any cpu): **326 ok, 0 FAIL.**
+
+Runs 1-3 each failed exactly ONE row, a different one each time, none repeating: cross-shard
+dispatch scaling (a 128t/4t timing ratio), the multirace vacuity guard, and `PUBSUB NUMPAT: got 1,
+wanted 2`. Each was re-run standalone, alternating arms, on this lane's cores:
+
+| flaky row | PRE | POST |
+|---|---:|---:|
+| cross-shard dispatch scaling | 5/5 pass (worst pair **1.563**) | 5/5 pass (worst pair 1.342) |
+| multirace battery (atomic 1) | 3/3 pass (holds 120-744) | 3/3 pass (holds 28-1173) |
+| pubsub battery (atomic 0) | 3/3 pass | 3/3 pass |
+
+None reproduces, each reproduces-or-worse on PRE, and runs 1-3 ran at load 9 with three other lanes
+active. All three are timing/vacuity assertions of the kind the gate-hygiene lane is removing; the
+cross-shard ratio row in particular passes only by taking the best of two pairs while both arms
+routinely produce individual pairs above its 1.20 threshold.
