@@ -168,23 +168,30 @@ inline uint32_t i64_to_dec(char* dst, int64_t v) {
 #define TOMO_CODED_REPLY(sink, codeexpr)                                          \
     if constexpr (requires { sink.code(codeexpr); }) { if (sink.code(codeexpr)) return; }
 
-template <typename Buf> inline void reply_ok(Buf&& b)   {
+// always_inline ON THE FIXED-REPLY HELPERS. Adding the coded attempt grew these bodies just
+// enough to cross GCC's inlining threshold, and the loss was not the four instructions of the
+// attempt -- it was that cmd_get stopped inlining reply_null and started CALLING it, which
+// measured +22 instructions per 2s GET-miss on a deterministic replay. These are all one store
+// plus a capacity test; they were inlined before this branch and must stay inlined. reply_int is
+// deliberately NOT in this list: it carries the digit loop and was already out of line in base,
+// so forcing it would change base's own decision.
+template <typename Buf> __attribute__((always_inline)) inline void reply_ok(Buf&& b)   {
     TOMO_CODED_REPLY(b, ReplyCode::Ok)
     b.append("+OK\r\n");
 }
-template <typename Buf> inline void reply_nil(Buf&& b)  {
+template <typename Buf> __attribute__((always_inline)) inline void reply_nil(Buf&& b)  {
     TOMO_CODED_REPLY(b, ReplyCode::Nil)
     b.append("$-1\r\n");
 }
-template <typename Buf> inline void reply_pong(Buf&& b) {
+template <typename Buf> __attribute__((always_inline)) inline void reply_pong(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::Pong)
     b.append("+PONG\r\n");
 }
-template <typename Buf> inline void reply_null_array(Buf&& b) {
+template <typename Buf> __attribute__((always_inline)) inline void reply_null_array(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::NullArray)
     b.append("*-1\r\n");
 }
-template <typename Buf> inline void reply_emptystr(Buf&& b) {
+template <typename Buf> __attribute__((always_inline)) inline void reply_emptystr(Buf&& b) {
     TOMO_CODED_REPLY(b, ReplyCode::EmptyStr)
     b.append("$0\r\n\r\n");
 }

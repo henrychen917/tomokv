@@ -313,7 +313,7 @@ public:
         // all. Bounded at 16 bytes so the 68-byte WRONGTYPE text and its like stay out of line;
         // the semantics are exactly the string_view overload's, NUL excluded.
         template <size_t N>
-        void append(const char (&lit)[N]) {
+        __attribute__((always_inline)) void append(const char (&lit)[N]) {
             static_assert(N >= 1, "append() takes a string literal");
             if constexpr (N - 1 <= 16) {
                 char* p = reserve(N - 1);
@@ -336,6 +336,7 @@ public:
         // append that follows spills to op.reply, which retire emits AFTER the coded bytes. So
         // "code, then more bytes" and "bytes only" both keep RESP order, and the direct region
         // loses nothing -- the owner is writing into that very buffer either way.
+        __attribute__((always_inline))
         bool code(ReplyCode c, int32_t v = 0) {
             // THE ARMING TEST CARRIES NO STATIC HINT, deliberately. Folded into the chain below
             // under __builtin_expect(..., false) it told the compiler "expect code() to succeed",
