@@ -1900,6 +1900,38 @@ public:
     // Vector capacity and membership are settled while PREPARING still names the source.  The
     // phase store in commit_transfer() is the sole ownership edge; bucket entries and the derived
     // shard array publish destination only after that edge.
+    // THE OWNERSHIP EDGE OWNS THE SINK.
+    //
+    // A shard's read-local retire sink names TWO structures that belong to one thread and are
+    // protected by nothing else: the owner's QSBR retire ring (`defer`, a single-producer ring) and
+    // the owner's private block cache (`block_cache`, an unlocked free list). Every armed write on
+    // the shard reaches both through the shard's store, so the sink must name the thread that is
+    // executing that shard's writes -- at every instant, not eventually.
+    //
+    // Moving the shard without moving the sink leaves the DESTINATION executing writes through the
+    // SOURCE's ring and free list. Two threads then splice one unlocked list: the loser's update is
+    // lost, a block ends up linked twice, and the damage surfaces later as either
+    // KvBlockCache::put's `heads[cls] == memory` abort or a take() of a still-linked block whose
+    // KvObj header overwrites the list `next`, so that the NEXT take dereferences a wild pointer.
+    // Both were observed (see DESIGN-P0REPLY.md).
+    //
+    // The rebind used to be deferred to the destination's own next executor pass
+    // (`lb_rebind_pending_` -> `read_local_rebind_owned_shards_after_lb`). Nothing ordered that
+    // pass before the destination's first write to the shard it had just been given, and the
+    // reproduction shows exactly that gap: transfer sid 1 to thread 1, then thread 1 executing
+    // cmd_set on it against thread 7's cache, with no rebind in between.
+    //
+    // Here there is no gap. Both callers hold every executor at the quiesced safe point (the LB
+    // commits only once every EX thread has acked ExDrain, which `flip_quiesced()` grants only with
+    // an EMPTY retire ring), so the source has nothing outstanding for this shard and the
+    // destination has not started. The sink moves with ownership, in the same critical section.
+    void adopt_read_local_retire_sink(Shard& shard, uint32_t destination) {
+        if (!shard.store().read_local_enabled()) return;
+        const ReadLocalRetireSink* sink = threads_[destination]->read_local_retire_sink_or_null();
+        if (!sink) std::abort();
+        shard.store().rebind_read_local_retire_sink(*sink);
+    }
+
     bool transfer_bucket_range_quiesced(uint32_t begin, uint32_t end, uint32_t source,
                                          uint32_t destination) {
         if (begin >= end || end > kNumBuckets || source >= threads_.size() ||
@@ -1947,6 +1979,7 @@ public:
         from.erase(std::remove_if(from.begin(), from.end(), [&](Shard* shard) {
             return std::find(moving.begin(), moving.end(), shard) != moving.end();
         }), from.end());
+        for (Shard* shard : moving) adopt_read_local_retire_sink(*shard, destination);
         router_.commit_transfer();
         for (Shard* shard : moving)
             shard_owner_[shard->id()].store(destination, std::memory_order_release);
@@ -1974,6 +2007,7 @@ public:
         to.push_back(&shard);                       // capacity was reserved before PREPARING
         *found = from.back();
         from.pop_back();
+        adopt_read_local_retire_sink(shard, destination);
         router_.commit_transfer();                 // THE single bucket ownership edge
         shard_owner_[shard_id].store(destination, std::memory_order_release);
         router_.finish_transfer();

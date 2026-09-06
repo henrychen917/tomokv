@@ -169,3 +169,53 @@ KvObj header then overwrites the list `next` and the following `take` dereferenc
 
 The same stale pointer is `retire_sink.defer`, which pushes into `ReadLocalDeferredQueue`'s
 single-producer retire ring. The cache is simply where the damage shows first.
+
+## 8. THE MECHANISM, from the event log
+
+With the shard-transfer edge and every sink rebind logged, one reproduction says it outright
+(`store 0x7f6c0c882638` is shard 1; tid-index is the thread's own id, tid is the OS thread):
+
+```
+line 148: RLBIND transfer  store ...882638 sid 1  src tid-index 1 -> dst tid-index 7
+line 161: RLBIND rebind    store ...882638 cache 0x..5247080 -> 0x..4a47080  tid 3155464   (= index 7)
+line 173: RLBIND transfer  store ...882638 sid 1  src tid-index 7 -> dst tid-index 1
+          ... rebindall for indices 3,7,5,4,0 ... but NOT for index 1 ...
+line 188: RLCACHE-VIOLATION take on cache 0x..4a47080 from tid 3155458, owner tid 3155464,
+                            reached through store ...882638
+```
+
+Shard 1 moved to thread index 1 (`tid 3155458`) at line 173. Its store's sink still named thread
+index 7's cache (`0x..4a47080`, bound at line 161). **Thread index 1 then executed `cmd_set` on
+shard 1 through thread index 7's block cache**, and no rebind for that store appears in between.
+
+`Server::transfer_shard_quiesced` moves the shard: the `shards()` vectors, the bucket router, and
+`shard_owner_`. It does NOT move the read-local retire sink. That was left to the destination's own
+later executor pass (`lb_rebind_pending_` -> `read_local_rebind_owned_shards_after_lb`, ex_loop.h
+460/662), and NOTHING orders that pass before the destination's first write to the shard it has
+just been given. `rebind_read_local_retire_sink`'s own comment claims it is called "before the new
+owner executes store work" — that half of the sentence was never enforced.
+
+**Control.** `--key-lb 0 --client-lb 0` removes shard moves and nothing else:
+
+| arm                                   | runs | deaths |
+|---------------------------------------|------|--------|
+| armed fused, LB on (default)          |  3   |   1    |
+| armed fused, LB off (`--key-lb 0`)    |  5   |   0    |
+
+## 9. THE FIX — the sink moves with ownership
+
+`Server::adopt_read_local_retire_sink(shard, destination)` rebinds the shard's store to the
+destination thread's sink INSIDE both quiesced transfer functions, immediately before
+`router_.commit_transfer()` — the same critical section that moves the shard. Both callers already
+hold every executor at the quiesced safe point (`lb_commit_shard_plan` commits only once every EX
+thread has acked ExDrain, and `flip_quiesced()` grants that ack only with an EMPTY retire ring), so
+the source has nothing outstanding for this shard and the destination has not started. There is no
+window left for the sink to disagree with ownership.
+
+The lazy `rebind_owned_shards` path is kept; it is now always a no-op, and is the cheap standing
+check that the eager rebind did its job.
+
+| arm (64 conns, 64-key space, 40 s runs)          | runs | deaths |
+|--------------------------------------------------|------|--------|
+| `ceb6b02f8` pristine release                      |  2   |   1    |
+| with the fix                                      |  4   |   0    |
