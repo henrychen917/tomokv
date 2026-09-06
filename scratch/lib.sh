@@ -18,7 +18,11 @@ KEYMAX=200000
 MY_PIDS=""
 
 expand_mask() { local IFS=,; for r in $1; do if [[ $r == *-* ]]; then seq "${r%-*}" "${r#*-}"; else echo "$r"; fi; done; }
-quiet_ok() { find "$SP" -maxdepth 1 -name quiet.done -mmin +3 2>/dev/null | grep -q .; }
+# The marker must EXIST and be older than 180 s. Explicit age arithmetic: `find -mmin +3` exits 0
+# whether or not the predicate holds (it only PRINTS the path), so a bare `find ... && make` is
+# vacuous; the previous form piped the printed path into grep -q, which was sound, but the age
+# comparison says what it tests.
+quiet_ok() { local f=$SP/quiet.done; [ -f "$f" ] && [ $(( $(date +%s) - $(stat -c %Y "$f") )) -ge 180 ]; }
 # Any tomokv/memtier that is not mine and whose affinity touches my cores or their siblings.
 intruders() {
   local p mask cpu hit

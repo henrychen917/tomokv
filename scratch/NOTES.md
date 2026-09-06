@@ -304,3 +304,26 @@ fd-report2.html once the chain fills it (a bash chain cannot republish an Artifa
 COMMITS this session (t-flipdamp): cc22ca4ab notes, 601d65d4a redesign, 73fc439c3 unit+report,
 733c6d842 + d764d1958 invalidation rule, aa4b82083 unit tol, 62d85d3d8 asymmetric gate,
 41d216ab9 harness v2, 0bf757612 report banner. Base of the lane: d84031d2f (verified guard).
+
+## 2026-09-06 16:20 resume (after a usage-limit kill): chain results + a THIRD defect fixed
+red2.sh ran detached 12:43-14:08 on the asymmetric binary (a19f4fba-era + asymmetric = the 12:43
+build): BUILD/UNIT ok; COSTGATE x2 26/26; HOLD x2 183/183; 12 TM cells (120 s, 1 Hz trace);
+thrash matrix 60 rows (red1: 0 flips in all 12 cells, mk 535/531/539k vs OFF 524-539k, base
+t9final 434-499k with 2-4 flips); PERF base0 31997 / red0 32389 / red1 31781 instr/op (same-arm
+spread 1.4-2.3% today, so always-on cost is inside noise, <= budget); batteries + modes + differ
+168/168 all PASS. BUT tests/flipctl.py FAILED x2 (rail 1:7) and the 120 s red-22 cell ended still
+"measuring" after 5 triggers (rate_band 0.00019).
+ROOT (both): bands learned from stabilized PAIRS = quiet-selected. Gate row: two origin readings
+inside one 6 s jitter phase read sigma 0.05%; target +24% = the driver's swing -> hit -> rail.
+red-22: lucky-still settle -> anchor band 0.02% -> collapse detector fires on any wobble -> Measuring
+can never take a pair within 0.02% -> stuck. The guard passed the gate row by luck of phase (3rd
+reading straddled the swing); its 40 s cells hid the retrigger loop.
+FIX f2c8fc9a4: FlipEwVariance = EW mean/var of EVERY per-tick rate sample (relative), time constant
+= deferral bound in ticks (30); floors the pair band, verification band, hyp sigma, anchor band;
+reset when a controller flip completes. Unit: triangle sigma > 0.10 floors the threshold above +24%;
+still load < 2%. Build 923ec17396184cc5. rv.sh (r3 tags) re-runs gate row x2, costgate, red-22/
+red-31/red8-71 120 s. ttfm.py: 3-field traces; stabilization starts at/after the first move.
+TM (r2 binary): ttfm base 12/12/14 s but thrashes (3:1: 6 flips, steady 403k, ends 3:1; 2:2: 5
+flips ends 3:1 at 240k) or lands poorly (8thr 6:2 579k); guard 21/20 s -> 2:2 506k / 3:5 695k;
+red 23/18 s -> 2:2 522k / 4:4 697k, moved-delivered, 0 misses, 0 moves after stabilization.
+LAW (marker): quiet_ok = exists AND age >= 180 s by stat arithmetic (find -mmin exit code is vacuous).

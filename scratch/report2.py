@@ -140,19 +140,20 @@ def perf_mean(prefix, key):
     return st.mean(vals) if vals else 0
 
 costgate = []
-for r in (1, 2):
-    t = read(f"{SP}/fd-r2-costgate-{r}.txt") or read(f"{SP}/fd-costgate-{r}.txt")
+for tag, path in (("final binary", f"{SP}/fd-r3-costgate.txt"), ("run 1", f"{SP}/fd-r2-costgate-1.txt"), ("run 2", f"{SP}/fd-r2-costgate-2.txt")):
+    t = read(path)
     if not t: continue
-    lines = [l for l in t.splitlines() if re.match(r"^[1-4]\. |^ok:|AssertionError|^RC=", l)]
-    costgate.append((r, lines))
+    lines = [l for l in t.splitlines() if re.match(r"^[1-4]\. |^ok:|AssertionError", l)]
+    costgate.append((tag, lines))
 holds = [(t, [l for l in (read(f"{SP}/fd-r2-hold-{t}.txt") or read(f"{SP}/fd-hold4-{t}.txt")).splitlines() if re.match(r"^ok:|^anchored|^negative|^positive|AssertionError", l)]) for t in ("red-a", "red-b")]
 ctl = []
-for r in (1, 2):
-    t = read(f"{SP}/fd-r2-ctl-{r}.txt") or read(f"{SP}/fd-ctl4-red-{r}.txt")
-    if not t: continue
-    rc = re.search(r"^RC=(\d+)", t, re.M)
-    said = re.search(r"^(ramp deferred[^\n]*|.*AssertionError[^\n]*)", t, re.M)
-    ctl.append((f"red-{r}", "PASS" if rc and rc.group(1) == "0" else "FAIL", rc.group(1) if rc else "?", said.group(1) if said else ""))
+for gen, label in (("r3", "final (long-window floor)"), ("r2", "before the long-window floor")):
+    for r in (1, 2):
+        t = read(f"{SP}/fd-{gen}-ctl-{r}.txt")
+        if not t: continue
+        rc = re.search(r"^RC=(\d+)", t, re.M)
+        said = re.search(r"^(ramp deferred[^\n]*|.*AssertionError[^\n]*)", t, re.M)
+        ctl.append((f"{label} run {r}", "PASS" if rc and rc.group(1) == "0" else "FAIL", rc.group(1) if rc else "?", said.group(1).strip() if said else ""))
 bat_lines = grab(r"(?:BAT |SPINPROBE |UNIT )[^\n]*$", 170)
 mode_lines = grab(r"MODES: [^\n]*$")
 differ = grab(r"DIFFER [^\n]*$")
@@ -227,27 +228,41 @@ fire_table = simple_table(
 # ---- time-to-first-move (120 s cells, 1 Hz trace) ----------------------------------------------
 TM_TAGS = ["off-22","base-22","guard-22","red-22","off-31","base-31","guard-31","red-31",
            "off8-71","base8-71","guard8-71","red8-71"]
-def tm_row(tag):
-    t = read(f"{SP}/fd-r2-tm-{tag}.txt")
+def tm_row(prefix, tag):
+    t = read(f"{SP}/fd-{prefix}-tm-{tag}.txt")
     if not t: return None
-    head, _, rest = t.partition("|")
-    d = {"tag": tag}
-    for tok in (head + " " + rest).split():
+    head, _, _ = t.partition("|")
+    d = {"tag": tag, "gen": prefix}
+    for tok in head.split():
         if "=" in tok:
             k, v = tok.split("=", 1); d[k] = v
+    boot = d.get("boot", "0:0").split(":")
+    trace = f"{SP}/fd-{prefix}-tmtrace-{tag}.txt"
+    if os.path.exists(trace) and len(boot) == 2:
+        out = subprocess.run(["python3", f"{WT}/scratch/ttfm.py", trace, boot[0], boot[1]],
+                             capture_output=True, text=True).stdout
+        for tok in out.splitlines()[0].split() if out else []:
+            if "=" in tok:
+                k, v = tok.split("=", 1); d[k] = v
+        d["timeline"] = out.splitlines()[1].strip() if out and len(out.splitlines()) > 1 else ""
     return d
-tms = [d for d in (tm_row(t) for t in TM_TAGS) if d]
+tms = [d for d in (tm_row("r2", t) for t in TM_TAGS) if d]
+tms3 = [d for d in (tm_row("r3", t) for t in ("red-22", "red-31", "red8-71")) if d]
 def tm_cls(tag):
     return "post" if tag.startswith("red") else "guard" if tag.startswith("guard") else "pre" if tag.startswith("base") else "off"
-tm_table = simple_table(
-    "time-to-first-move — 120 s multi-key cells, 1 Hz INFO trace (total_commands_processed, io/ex_threads); boots 2:2 (matched on this rig), 3:1 and 7:1 (wrong: more executors should win)",
-    ["arm", "boot", "fa", "steady ops/s", "time-to-first-move", "moves-after-stab", "final split", "decision", "misses", "memtier p99"],
-    [(f"<code>{html.escape(d['tag'])}</code>", d.get("boot",""), d.get("fa",""),
-      f"<b>{f(d.get('steady',0))/1000:,.0f}k</b>",
-      (d.get("ttfm","") + "s") if d.get("ttfm","NEVER") not in ("NEVER","") else d.get("ttfm",""),
-      d.get("moves_after_stab",""), d.get("final",""), html.escape(d.get("decision","")), d.get("misses",""),
-      d.get("p99","")) for d in tms],
-    [tm_cls(d["tag"]) for d in tms]) if tms else "<p class=muted>(time-to-first-move cells not on file — queued behind the box gate)</p>"
+def tm_table_of(rows, caption):
+    if not rows: return "<p class=muted>(cells not on file)</p>"
+    return simple_table(caption,
+        ["arm", "boot", "fa", "steady ops/s (last 30 s)", "time-to-first-move", "moves after stab.", "flips", "clients", "final split", "decision", "misses", "p99 ms", "split timeline"],
+        [(f"<code>{html.escape(d['tag'])}</code>", d.get("boot",""), d.get("fa",""),
+          f"<b>{f(d.get('steady',0))/1000:,.0f}k</b>",
+          (d.get("ttfm","") + " s") if d.get("ttfm","NEVER") not in ("NEVER","") else ("never (held)" if d.get("fa") == "1" else "—"),
+          d.get("moves_after_stab",""), d.get("flips",""), d.get("xfer",""), d.get("final",""),
+          html.escape(d.get("decision","") or "—"), d.get("misses","") or "—",
+          f"{f(d.get('p99',0)):.0f}", html.escape(d.get("timeline","").replace("splits: ",""))) for d in rows],
+        [tm_cls(d["tag"]) for d in rows])
+tm_table = tm_table_of(tms, "time-to-first-move — 120 s multi-key cells, 1 Hz INFO trace (total_commands_processed, io/ex_threads); boots 2:2 (the optimum on this rig), 3:1 and 7:1 (wrong: more executors win). Binary: the asymmetric-gate revision before the long-window fix (62d85d3d8 / a19f4fba-era build).")
+tm_table3 = tm_table_of(tms3, "same three redesign cells re-run on the FINAL binary (long-window noise floor, f2c8fc9a4): the 2:2 cell must show no spurious re-maneuver, the wrong-split cells one bounded move")
 
 perf_table = simple_table(
     "instructions and cycles per command at a matched offered rate (memtier --rate-limiting), 35 s perf window on the server's pid after 12 s of warm-up, mk at 2:2",
@@ -280,7 +295,7 @@ page = f"""<title>Flip Actuator Redesign</title>
 <h1>Flip actuator redesign: a move must pay for itself, in commands</h1>
 <p>The owner's ask: "be innovative about flip arithmetic and signals to finally get that to being accurate and consistent." This page is the PRE/POST evidence for the redesign built on the verified guard: the demand signal measured from what the loops book faithfully, a cost gate in commands over the stationarity the workload has demonstrated, a verification window sized from the origin's own noise, and an outcome loop that learns the model's sign and magnitude. Table first; the arithmetic, the directed tests and the acceptance recipe follow.</p>
 
-<div class="status"><b>Status.</b> The arithmetic, the code and the unit rows below are complete and verified offline. The empirical PRE/POST cells — the 120&nbsp;s time-to-first-move runs, the 40&nbsp;s thrash matrix and the matched-rate cost — are queued behind the owner&rsquo;s own full gate, which has held the box since 09:53; the resumable chain (<code>scratch/red2.sh</code>) runs them and regenerates this page when the box frees. The directed cost-gate/outcome-loop battery shown below passed on the redesign binary <i>before</i> the asymmetric-gate revision; the unit test carries the asymmetric numbers and passes, and the directed battery is re-queued on the new binary.</div>
+<div class="status"><b>Revision history on this page.</b> First publish (12:24): design, arithmetic, unit rows; the box was held by the owner&rsquo;s full gate. The detached chain then ran everything (12:43&ndash;14:08) on the asymmetric-gate binary. Two of its results exposed a further defect &mdash; the gate row anchored on a rail and the 120&nbsp;s matched-split cell re-maneuvered four times on a stationary load &mdash; with one root (bands learned from selected quiet pairs), fixed by the long-window noise floor (section 3, item 5) and re-verified below on the final binary.</div>
 
 <div class="verdict">
 <div><div class="k">multi-key, redesign vs controller OFF</div><div class="v">{kv(mk_red, 'rel', '{:+.1f}%')}</div><div class="s">guard {kv(mk_guard, 'rel', '{:+.1f}%')} · base {kv(mk_base, 'rel', '{:+.1f}%')} · OFF pair spread {kv(mk_red, 'null', '{:.1f}%')}</div></div>
@@ -320,6 +335,7 @@ n_t   = ceil( 1 / ((κ g_mean / 4σ)² − 1/n_o) )      planned target readings
 <dt>P_miss</dt><dd>(misses + 1)/(moves + 2), Laplace — one half before any move</dd>
 <dt>σ, n_o</dt><dd>relative stdev and count of the origin's Measuring readings (Welford); the bracket 2(max−min)/mid guards trends</dd>
 </dl>
+<p><b>5. The long-window noise floor.</b> Every band the controller learned came from <i>stabilized pairs</i> — readings it selected because two adjacent sub-windows agreed — and that selection is biased quiet. Two origin readings taken inside one phase of the gate driver&rsquo;s six-second rate triangle read σ&nbsp;=&nbsp;0.05% on a load that swings ±20%, so the target&rsquo;s +24% (the swing, not the flip) cleared a 2% band and the boot maneuver anchored on a rail; a settle window that happened to be still learned an anchor band of 0.02% and then fired four maneuvers on a stationary 120&nbsp;s load, none of which could take a reading. <code>FlipEwVariance</code> is an exponentially weighted mean/variance of <i>every</i> per-tick rate sample, relative, time constant = the boot deferral bound in ticks (no new constant); it floors the pair band, the verification band, the hypothesis&rsquo; σ and the anchor band, and a flip the controller issued resets it. Accuracy from the window, and the window is the longest one the controller has.</p>
 <p>What each piece replaces in <code>flipctl.cc</code>: <code>sample_role_demand</code> reads wall − idle instead of busy; <code>decide_placement</code> prices a target that clears the noise bar and keeps sampling while it does not yet pay (the horizon grows for free) — at the reading cap the hold is named <code>hold-cost</code>; the flip in flight is measured in <code>WaitingFlip</code>; the seek takes up to n_t readings and judges sequentially; <code>anchor()</code> finalizes a miss, or an <i>invalidated</i> maneuver when the origin no longer reads R0 after the return (the baseline moved; the guard doubled its bar on these too). Not a knob was added; 0/−1 semantics unchanged; no machine constants — every term is measured or derived from the tick.</p>
 
 <h2>4. Directed tests</h2>
@@ -332,6 +348,8 @@ n_t   = ceil( 1 / ((κ g_mean / 4σ)² − 1/n_o) )      planned target readings
 <h2>5. Time-to-first-move (the owner-box metric)</h2>
 <p>The owner-box acceptance of the guard showed its real cost is not thrash but latency: on 64 shards 18:14 is far from optimal (more executors win), and the guard reached the better split late or, once, held on a terrible one. So the cost gate was made asymmetric (section 3): a move off a badly-underperforming split pays at about one blackout, a marginal move needs a long window. These 120 s cells report time-to-first-move, moves-after-stabilization and steady-state as three separate numbers, against BASE-auto (t9final) — the bar to beat — and the guard. On this 4-thread rig 2:2 is the optimum (loadgen-bound), so the 2:2 cells are the zero-loss control and the 3:1 / 7:1 boots are the wrong-split test the owner box runs at 28:4.</p>
 {tm_table}
+{tm_table3}
+<p>Reading the table: BASE-auto moves first (12–14 s) but does not stay — it thrashes back to the wrong split on both 4-thread boots (6 flips, 799 clients, steady 403k at 3:1 against 522k) and lands on a poor split at 8 threads (6:2, 579k against 697k). Guard and redesign move once, 18–23 s after load, and hold; the redesign lands on the model&rsquo;s argmax (2:2, 4:4) with <code>moved-delivered</code> and zero misses. The time-to-first-move is the boot stability gate (five flat ticks after the load ramp) plus two stabilized readings plus the flip — the asymmetric gate itself paid on the first decision (<code>cost_payback_s</code> 4.7–6.0 s against a 12–23 s horizon).</p>
 <h2>6. Non-vacuity: boot at the wrong split, move once, land</h2>
 <p>Every zero-flip row is worthless if the controller can no longer move. Booted at 3:1 (4 threads) and 7:1 (8 threads) under the multi-key load, <code>--flip-auto 1</code> must find the split, pay for exactly one flip and stay; <code>--flip-auto 0</code> stays where it was booted.</p>
 {fire_table}
