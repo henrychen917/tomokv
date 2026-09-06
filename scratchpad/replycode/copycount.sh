@@ -13,18 +13,18 @@ N=${N:-20000}
 count_one() { # BIN MODE CELL KEYLEN NOPS SEED -> memcpy calls
   local BIN=$1 MODE=$2 CELL=$3 KL=$4 NOPS=$5 SEED=$6
   if ss -H -ltn "sport = :$PORT" 2>/dev/null | grep -q .; then echo "GUARD"; return; fi
-  LD_PRELOAD=$HERE/interpose.so taskset -c 136-137 "$BIN" --port $PORT --bind 127.0.0.1 \
+  LD_PRELOAD=$HERE/interpose.so taskset -c 58-59 "$BIN" --port $PORT --bind 127.0.0.1 \
       --thread-mode "$MODE" --shards 1 >"$S/cc.log" 2>"$S/cc.err" &
   local PID=$!
   for _ in $(seq 1 150); do ss -H -ltnp "sport = :$PORT" 2>/dev/null | grep -q "pid=$PID," && break; sleep 0.1; done
   case $CELL in
-    set_over|get_hit|mset8)      taskset -c 141 $HERE/replay $PORT set_new $KL 1000 1 32 >/dev/null 2>&1 ;;
+    set_over|get_hit|mset8)      taskset -c 62 $HERE/replay $PORT set_new $KL 1000 1 32 >/dev/null 2>&1 ;;
     incr)                        : ;;   # INCR creates its own counter; a string here is an ERROR reply
-    del)                         taskset -c 141 $HERE/replay $PORT set_new $KL $((N*2+N+64)) 0 32 >/dev/null 2>&1 ;;
-    del8)                        taskset -c 141 $HERE/replay $PORT set_new $KL $(((N*2+N)*8+128)) 0 32 >/dev/null 2>&1 ;;
+    del)                         taskset -c 62 $HERE/replay $PORT set_new $KL $((N*2+N+64)) 0 32 >/dev/null 2>&1 ;;
+    del8)                        taskset -c 62 $HERE/replay $PORT set_new $KL $(((N*2+N)*8+128)) 0 32 >/dev/null 2>&1 ;;
   esac
   # zero the counter by restarting?  no -- the N/2N difference removes the setup instead.
-  taskset -c 141 $HERE/replay $PORT "$CELL" $KL "$NOPS" "$SEED" 32 >/dev/null 2>&1
+  taskset -c 62 $HERE/replay $PORT "$CELL" $KL "$NOPS" "$SEED" 32 >/dev/null 2>&1
   kill -USR2 $PID 2>/dev/null
   for _ in $(seq 1 60); do grep -q INTERPOSE "$S/cc.err" && break; sleep 0.1; done
   kill -9 $PID 2>/dev/null; wait $PID 2>/dev/null

@@ -6,7 +6,7 @@
 set -u
 S=/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad
 HERE=/home/user/Projects/wt-replycode/scratchpad/replycode
-REPLAY=$HERE/replay; PORT=8424; SRVCPU=136,137; CLICPU=141
+REPLAY=$HERE/replay; PORT=8424; SRVCPU=58,59; CLICPU=62
 N=${N:-400000}; DEPTH=${DEPTH:-512}; REPS=${REPS:-3}
 
 one() { # BIN MODE CELL KEYLEN NOPS SEED -> total server user instructions
