@@ -327,3 +327,10 @@ TM (r2 binary): ttfm base 12/12/14 s but thrashes (3:1: 6 flips, steady 403k, en
 flips ends 3:1 at 240k) or lands poorly (8thr 6:2 579k); guard 21/20 s -> 2:2 506k / 3:5 695k;
 red 23/18 s -> 2:2 522k / 4:4 697k, moved-delivered, 0 misses, 0 moves after stabilization.
 LAW (marker): quiet_ok = exists AND age >= 180 s by stat arithmetic (find -mmin exit code is vacuous).
+- 16:45 FOURTH iteration of the long-window estimator: the first form (deviation from an EW mean)
+  blew up on the boot ramp (rate_ew_sigma 16.9 in the r3 gate-row dump; rate_band 0.70 in red-22)
+  => the r3 "passes" were VACUOUS (hold-unverifiable / dead detector). Fix dcc5a409a: SECOND relative
+  difference (ramp-invisible, level-shift blips decay, swing keeps amplitude), idle-floor break,
+  >100% = level change reset, rms reported undivided (conservative sqrt(6) on white noise, exact on
+  the 6 s triangle). Build 9b9b559a2e1a5eff. r3 re-run: gate row 2/2 PASS with round_trips 2 / 1
+  (moved to the rail, judged, reverted -- a real revert, not a hold); COSTGATE 26/26.
