@@ -9,24 +9,23 @@ HERE=/home/user/Projects/wt-replycode/scratchpad/replycode
 REPLAY=$HERE/replay; PORT=8424; SRVCPU=136,137; CLICPU=141
 N=${N:-400000}; DEPTH=${DEPTH:-512}; REPS=${REPS:-3}
 
-one() { # BIN MODE CELL KEYLEN NOPS SEED -> server user instructions DURING the replay only
-  local BIN=$1 MODE=$2 CELL=$3 KL=$4 NOPS=$5 SEED=$6 SPID
+one() { # BIN MODE CELL KEYLEN NOPS SEED -> total server user instructions
+  local BIN=$1 MODE=$2 CELL=$3 KL=$4 NOPS=$5 SEED=$6 PERF SPID
   if ss -H -ltn "sport = :$PORT" 2>/dev/null | grep -q .; then echo GUARD; return; fi
-  taskset -c $SRVCPU "$BIN" --port $PORT --bind 127.0.0.1 --thread-mode "$MODE" --shards 1 \
+  perf stat -e instructions:u -x, -o "$S/ie.txt" -- \
+      taskset -c $SRVCPU "$BIN" --port $PORT --bind 127.0.0.1 --thread-mode "$MODE" --shards 1 \
       >"$S/ie-srv.log" 2>&1 &
-  local BOOT=$!
-  for _ in $(seq 300); do ss -H -ltn "sport = :$PORT" 2>/dev/null | grep -q . && break; sleep 0.05; done
+  PERF=$!
+  for _ in $(seq 200); do ss -H -ltn "sport = :$PORT" 2>/dev/null | grep -q . && break; sleep 0.05; done
   SPID=$(ss -H -ltnp "sport = :$PORT" 2>/dev/null | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1)
-  [ -z "$SPID" ] && { kill -9 $BOOT 2>/dev/null; echo BOOTFAIL; return; }
-  # SETUP IS OUTSIDE THE WINDOW.
+  [ -z "$SPID" ] && { kill -9 $PERF 2>/dev/null; echo BOOTFAIL; return; }
   case $CELL in
     set_over|get_hit) taskset -c $CLICPU $REPLAY $PORT set_new $KL 1000 1 32 >/dev/null 2>&1 ;;
     del)              taskset -c $CLICPU $REPLAY $PORT set_new $KL $((N*3+64)) 0 32 >/dev/null 2>&1 ;;
   esac
-  taskset -c $CLICPU $REPLAY $PORT "$CELL" $KL $((NOPS/8)) 900000000 $DEPTH >/dev/null 2>&1
-  perf stat -e instructions:u -x, -o "$S/ie.txt" -p "$SPID" -- \
-      taskset -c $CLICPU $REPLAY $PORT "$CELL" $KL "$NOPS" "$SEED" $DEPTH >/dev/null 2>&1
-  kill -TERM "$SPID" 2>/dev/null; wait $BOOT 2>/dev/null
+  taskset -c $CLICPU $REPLAY $PORT "$CELL" $KL "$NOPS" "$SEED" $DEPTH >/dev/null 2>&1
+  kill -TERM "$SPID" 2>/dev/null
+  wait $PERF 2>/dev/null
   for _ in $(seq 100); do ss -H -ltn "sport = :$PORT" 2>/dev/null | grep -q . || break; sleep 0.05; done
   grep -m1 ',instructions:u' "$S/ie.txt" | cut -d, -f1
 }
