@@ -127,6 +127,20 @@ int main() {
         for (int k = 8; k < 24; k++) fires += autob.observe(noisy(k)) ? 1 : 0;
         if (fires) fail("the learned band fired on quiet-state movement");
     }
+    // AN EXCURSION MUST NOT WIDEN THE THRESHOLD THAT JUDGES IT. The regression this pins: folding
+    // every post-anchor window into the noise estimate let the FIRST window of a real mix change
+    // lift the band to the excursion's own size, so the change never cleared its band
+    // (flip_multikey_hold positive phase, reached 0.80x). Only in-band windows may teach it.
+    {
+        FlipShiftDetector d(-1, 4);
+        for (int k = 0; k < 8; k++) d.observe(quiet(8000, 2000, k % 2));
+        d.anchor();
+        const double band_before = d.band();
+        if (!d.observe(multikey_mix())) fail("a real mix change did not clear its band");
+        if (d.band() != band_before) fail("the excursion widened the band that judged it");
+        // ... and it keeps clearing it for as long as it lasts, rather than being absorbed.
+        if (!d.observe(multikey_mix())) fail("the mix change was absorbed on its second window");
+    }
     // FlipEwBound itself: mean + 2 sd of a non-negative sample, zero before it has two.
     {
         FlipEwBound b; b.configure(8);

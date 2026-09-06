@@ -183,14 +183,19 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         // quiet-state anchor distance reaching 0.101, which fired 15 times in 60 stationary windows.
         // So the noise estimate is the anchored distance's own null distribution.
         //
-        // Every post-anchor window feeds it, in band or not, and that is not circular: one window
-        // outside the band never acts (a trigger needs shift_confirmations_ CONSECUTIVE out-of-band
-        // windows), and a shift that does confirm starts a maneuver, which resets this detector and
-        // discards whatever the excursion put into the estimate. A real change moves the estimate by
-        // one time constant's worth in the two windows it needs to confirm -- far too little to mask
-        // a mix change, which scores an order of magnitude above the quiet band.
-        signature_noise_.add(last_distance_);
-        update_band();
+        // JUDGE FIRST, FOLD ONLY IN-BAND WINDOWS. An excursion must never widen the threshold that
+        // judges it -- that is why this branch froze the band originally, and it stands. Folding
+        // every window instead cost exactly that: with the decaying maximum below, the FIRST window
+        // of a real mix change lifted the band to the excursion's own size, so the second window was
+        // judged against a band that had already absorbed it and the change never cleared its band
+        // (tests/flip_multikey_hold.py positive phase, reached 0.80x). A window that came back IN
+        // band is quiet-state evidence and is safe to learn from; one that did not is the thing
+        // under test. The estimate cannot get stuck too small, because the quantum below floors the
+        // band at the estimator's own resolution without needing any observation at all.
+        if (!fired) {
+            signature_noise_.add(last_distance_);
+            update_band();
+        }
         previous_ = smoothed_;
         have_previous_ = true;
         return fired;
