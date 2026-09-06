@@ -811,6 +811,9 @@ private:
 
     // Two tag bits on the sidecar pointer, both owned by the connection's io thread.
     //   Inactive  no write generation is live at all: pure-GET traffic never dereferences the heap.
+    //             (It is read only by read_local_write_conflicts' inline shell, which tests the
+    //             whole word at once; the predicate accessor that used to wrap it had no callers
+    //             left once the MGET fence moved onto the Rob, so it is gone rather than dormant.)
     //   Staged    mark_current_write() has parked a candidate that no resolve has committed yet.
     // Staged is a strict subset of "active": staging activates first, and deactivation is refused
     // while a candidate is parked (read_local_try_deactivate tests pending_write == None).
@@ -862,10 +865,6 @@ private:
     ReadLocalRobState* read_local_state_ptr() const {
         return reinterpret_cast<ReadLocalRobState*>(
             read_local_state_ & ~kReadLocalStateTagBits);
-    }
-    bool read_local_state_active() const {
-        return read_local_state_ != 0 &&
-               (read_local_state_ & kReadLocalStateInactive) == 0;
     }
     // "resolve_read_local_write() has work": exactly mark_current_write()'s parked candidate.
     bool read_local_state_staged() const {

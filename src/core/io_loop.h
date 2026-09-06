@@ -3477,13 +3477,6 @@ private:
         op.zc_shard = -1;
     }
 
-    // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
-    // published until ACL and FLIP admit the current frame; per-producer reservations make that
-    // later commit infallible. If the existing scatter snapshot window accepts only a prefix, that
-    // prefix contains exclusively older, already-admitted reads and is committed before the
-    // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
-    // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
-    // scatter planner into one owner Task per touched shard.
     // ATTRIBUTION FOR A DEMOTED READ, on the demote path only. Arm-on-demand has two distinct
     // reasons to hold a read back and they must not be summed into one counter: an explicit key
     // conflict with a live write descriptor (InflightWrite, the steady state), and the ARMING
@@ -3498,6 +3491,13 @@ private:
             : ReadLocalFallbackReason::InflightWrite;
     }
 
+    // A demotion is planned before the stateful MONITOR/tracking gate. A complete plan is not
+    // published until ACL and FLIP admit the current frame; per-producer reservations make that
+    // later commit infallible. If the existing scatter snapshot window accepts only a prefix, that
+    // prefix contains exclusively older, already-admitted reads and is committed before the
+    // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
+    // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
+    // scatter planner into one owner Task per touched shard.
     class ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
