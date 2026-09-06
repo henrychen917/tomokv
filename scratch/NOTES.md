@@ -371,3 +371,26 @@ results -> fd-rv2.log / fd-rv.log / fd-r3-*.txt. NOT yet verified on any box at 
   Expected on the owner box with ee40cf940: 18:14 -> 13:19 -> re-measure -> hold-within-error (bar
   ~0.10 vs a +5-10% projection at kappa ~0.86) -> anchor 13:19, 1 flip; 28:4 -> 12:20 -> bar ~1.1 ->
   hold-within-error -> anchor 12:20, 1 flip. Zero extra flips in the flat region by construction.
+
+## 2026-09-07 04:35 fingerprint-band floor (coordinator's gate-hygiene finding) -- 3bf51b5b7
+FINDING (their lane): stationary driver (rate spread 0.07% over 34 samples) fired
+last_trigger=fingerprint-shift, distance 0.2518 vs band 0.0200 (12.6x). Cause: pass_depth (a
+SCHEDULING outcome) in the distance + a band that never consults the signal's own movement.
+ON THIS BRANCH, part 1 is already structurally absent: pass_depth was removed from the trigger
+distance in the guard commit (sweep-abandon law). Measured on the SAME gate row, same driver, same
+typed --flip-auto-band 2, 3 runs: signature_distance = 0.000000000, signature_jitter = 0,
+fingerprint_triggers = 0, stable hold 30 s PASS 3/3. The 0.2518 cannot arise here.
+Part 2 WAS a real gap and is fixed: update_band() returned early on a typed band without consulting
+the signal (a flat 2% CEILING), and the learned band's jitter_ is the max over the pre-anchor
+learning windows, then frozen -- the same quiet-selection bias the rate's long-window floor fixes.
+FlipEwBound (EW mean + 2sd of the adjacent-window distance, time constant = signature_learning_
+windows, i.e. the live pool) now floors BOTH branches, learning from IN-BAND windows only (judge
+first, fold after: an excursion still cannot widen the threshold judging it). Free when the signal
+is still: band stayed exactly 0.02 with noise_bound 0.000 over 15 samples.
+VERIFIED on a373f53010cc7220 (= 3bf51b5b7): stable hold 3/3 PASS; costgate 28/28; hold 183/183 x2;
+red-22 stationary 0 flips hold-optimum 544k steady (OFF 520-539k); red-31 ttfm 14 s -> 2:2 521k,
+0 after stab, refine=hold-optimum; red8-71 ttfm 17 s -> 4:4 696k, 0 after stab. fp_trig=0 in all.
+CAVEAT for t-flipfp's 1-in-100 sampling: the quantum is 1/sqrt(commands the signature was estimated
+from). If the writer samples, that count must be the SAMPLED count or the quantum understates the
+estimator noise tenfold; the new floor covers it empirically either way, but the positive phase's
+margin (a real mix change scores ~0.35) should be re-checked against the widened band.
