@@ -271,6 +271,12 @@ int main() {
         if (induced.kappa() != 1.0 || induced.misses != 1 || induced.moves != 1)
             fail("an induced miss must count toward the rate, not the calibration");
     }
+    // INVALIDATION. A miss is voided only when the baseline's own move during the excursion would
+    // have turned the verdict: -48% delivered against a baseline that came back +2.2% is still
+    // -49%; +5% delivered against a baseline that fell 10% is really +17% and the test was voided.
+    if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
+    if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
+    if (flip_corrected_gain(0.10, 0.0) != 0.10) fail("a still baseline changes the gain");
     // The rate window: mean, relative sigma and the bracket band the trend guard uses.
     {
         FlipRateWindow r;

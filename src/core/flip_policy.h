@@ -253,6 +253,17 @@ inline double flip_verify_threshold(double sigma, uint32_t n_origin, uint32_t k,
     return std::max(two_se, std::max(0.0, floor));
 }
 
+// A target's delivered gain re-expressed against the origin as it reads AFTER the return flip,
+// when the baseline itself moved by `baseline_shift` during the excursion. A miss is voided
+// (invalidated, not refuted) only when this corrected gain would have cleared the threshold: the
+// question is not whether the baseline wobbled but whether the wobble would have changed the
+// verdict. Measured: a closed-loop driver came back 2.2% faster after a round trip whose target
+// had delivered -48%; (1 - 0.48) / 1.022 - 1 is still -49%, and that miss stands.
+inline double flip_corrected_gain(double delivered, double baseline_shift) {
+    if (!(1.0 + baseline_shift > 0)) return delivered;
+    return (1.0 + delivered) / (1.0 + baseline_shift) - 1.0;
+}
+
 enum class FlipOutcome : uint8_t { Pending = 0, Hit, Miss };
 
 // Sequential verdict on a hypothesis after `k` of `planned` target readings.

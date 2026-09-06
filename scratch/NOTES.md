@@ -265,3 +265,12 @@ cost <cmds/client> are the directed-test hooks (cold, debug-gated). Knobs: none 
   (build/tomokv) | guard 7c78940416c87e24 ($SP/fd-tomokv-guard-d84031d2f) | base 692984a8c786998b.
 - 09:44 smoke: tests/flip_cost_gate.py by hand on port 8221 (3:1, BITCOUNT load ~2.8k/s, COST 1e9
   injected, boot-pending). Then launch scratch/red.sh detached (resumable; it reuses fd-costgate-1).
+- 09:52 smoke run 1 (601d65d4a): phases 1+2 PASS (model proposed 1:3 from 3:1 with io share 0.027,
+  headroom io 0.987/ex 0.000, gain +200%; typed cost 1e9 -> hold-cost, 0 flips, live 3:1; measured
+  cost restored + TRIGGER -> ONE flip to 1:3, moved-delivered, kappa 0.729 = (0.92+2)/(2+2): the
+  closed-loop driver delivered +92% of a +200% projection). Phase 3 FAILED on the label: the
+  induced -48% miss was booked moved-reverted-INVALIDATED because the driver came back 2.2% faster
+  after the round trip and the bare distance test used a 0.14% threshold (sigma 0.02%). Fix
+  733c6d842: re-judge the delivered gain against the re-measured origin (flip_corrected_gain);
+  void the miss only if the corrected gain would have PASSED. Rebuilt 450630169ea1411e, re-running.
+  Also seen: the model's induced-hypothesis projection for 3:1 was -48.6% vs -47.9% delivered.

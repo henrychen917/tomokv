@@ -944,11 +944,9 @@ void FlipController::anchor(Server& server, double rate) {
         // closed-loop driver came back 2.2% faster after a round trip whose target had delivered
         // -48%, and that miss stands.
         bool baseline_moved = false;
-        if (pending_miss_ && origin_rate_ > 0 && anchor_rate_ > 0) {
-            const double baseline_shift = anchor_rate_ / origin_rate_ - 1.0;
-            const double corrected = (1.0 + hyp_delivered_) / (1.0 + baseline_shift) - 1.0;
-            baseline_moved = corrected > hyp_threshold_;
-        }
+        if (pending_miss_ && origin_rate_ > 0 && anchor_rate_ > 0)
+            baseline_moved = flip_corrected_gain(hyp_delivered_, anchor_rate_ / origin_rate_ - 1.0)
+                             > hyp_threshold_;
         if (baseline_moved) {
             invalidated_maneuvers_++;
             model_last_decision_ = "moved-reverted-invalidated";
