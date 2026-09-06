@@ -326,6 +326,18 @@ inline double flip_corrected_gain(double delivered, double baseline_shift) {
     return (1.0 + delivered) / (1.0 + baseline_shift) - 1.0;
 }
 
+// The bar a REFINEMENT step must clear beyond the noise bar: the model's error just demonstrated on
+// this workload, predicted minus delivered of the step that landed here (zero when it delivered at
+// least what it promised). Work conservation is a V with its point at the optimum and the real
+// curve is rounded there (owner box, 64-shard multi-key: 13:19 -> 11:21 is +2.5%, the model says
+// +10%; past it 10:22 is -6.6%), so a projection smaller than the error the model has just shown
+// is not evidence of a gain, and a chain that respected only the noise bar would round-trip in the
+// flat region or cross the peak. Stopping short costs 2.5%; crossing costs 6.6% and up. No
+// constant: the bar is the outcome record.
+inline double flip_refine_bar(double previous_predicted, double previous_delivered) {
+    return std::max(0.0, previous_predicted - previous_delivered);
+}
+
 enum class FlipOutcome : uint8_t { Pending = 0, Hit, Miss };
 
 // Sequential verdict on a hypothesis after `k` of `planned` target readings.

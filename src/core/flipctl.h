@@ -396,6 +396,7 @@ private:
     // maneuver started from (the null-maneuver rule).
     uint32_t seek_origin_io_ = 0;
     bool refining_ = false;
+    double refine_bar_ = 0;   // flip_refine_bar of the step that landed here
     const char* refine_decision_ = "none";
     uint32_t refine_steps_ = 0;
     double origin_rate_ = 0;

@@ -308,6 +308,15 @@ int main() {
     if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
     if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
     if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
+    // REFINEMENT BAR. Owner box, 18:14 boot: the first step projected +36% and delivered +26%, so
+    // the model's demonstrated error is 10 points; the second step it would project (13:19 -> 11:21,
+    // +10% by work conservation, +2.5% measured) does not clear it at kappa 0.86 and the chain stops
+    // one step short (-2.5%) instead of round-tripping or crossing the peak (10:22, -6.6%). A first
+    // step that delivered what it promised leaves no bar beyond the noise.
+    if (std::abs(flip_refine_bar(0.36, 0.26) - 0.10) > 1e-12) fail("refine bar is not the error");
+    if (!(0.86 * 0.10 <= flip_refine_bar(0.36, 0.26))) fail("a +10% projection cleared a 10-point error");
+    if (flip_refine_bar(0.30, 0.31) != 0) fail("an over-delivering step left a bar");
+    if (flip_refine_bar(4.0, 2.9) < 1.0) fail("a wildly over-projected first step left a small bar");
     // LONG-WINDOW NOISE, DETRENDED. The gate driver's six-second triangle (issue intervals x 0.8,
     // 0.95,1.1,1.2,1.05,0.9) puts per-tick rates at 1.25,1.05,0.91,0.83,0.95,1.11 of the mean:
     // per-reading sigma ~0.15. Two adjacent readings inside one phase read ~0.05%; the target's

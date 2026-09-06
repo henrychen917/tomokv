@@ -499,6 +499,7 @@ void FlipController::start_maneuver(Server& server, FlipctlTriggerReason reason,
     refining_ = false;
     refine_decision_ = "none";
     refine_steps_ = 0;
+    refine_bar_ = 0;
     origin_rate_ = 0;
     origin_window_.reset();
     target_window_.reset();
@@ -778,7 +779,11 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
     if (refining_ && choice.decided && choice.move && choice.target_units != now_units)
         for (const Reading& r : readings_)
             if (r.split == choice.target_units * unit) { visited = true; break; }
-    if (visited) { choice.move = false; }
+    // ... and stops when the projected gain is inside the model's own demonstrated error.
+    bool within_error = false;
+    if (refining_ && choice.decided && choice.move && choice.target_units != now_units && !visited)
+        within_error = model_kappa_ * choice.gain_low <= refine_bar_;
+    if (visited || within_error) { choice.move = false; }
     // COST GATE + VERIFICATION WINDOW (flip_policy.h). Only a target that already clears the noise
     // bar is priced. The window at the target is sized from the origin's own noise; the gate
     // credits the kappa-scaled gain over the stationarity the workload has demonstrated, less the
@@ -817,6 +822,7 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
             : !choice.decided ? "hold-unresolved"
             : choice.target_units == now_units ? "hold-optimum"
             : visited ? "hold-visited"
+            : within_error ? "hold-within-error"
             : !choice.move ? "hold-below-bar"
             : !model_verify_readings_ ? "hold-unverifiable" : "hold-cost";
         if (refining_) {
@@ -870,6 +876,8 @@ bool FlipController::decide_placement(Server& server, uint32_t coordinator, uint
 void FlipController::begin_refinement(Server& server, uint64_t now_ms) {
     refining_ = true;
     refine_decision_ = "measuring";
+    // The model's error on the step that just landed is the bar its next projection must clear.
+    refine_bar_ = flip_refine_bar(hyp_predicted_, hyp_delivered_);
     phase_ = Phase::Measuring;
     demand_window_.reset();
     origin_window_.reset();
@@ -1333,7 +1341,7 @@ std::string FlipController::debug_dump() const {
         "hyp_predicted=%.4f hyp_delivered=%.4f hyp_threshold=%.4f hyp_sigma=%.5f "
         "hyp_origin_samples=%u target_readings=%u pending_miss=%d\n"
         "last_flip_lost=%.1f last_flip_moved=%llu invalidated=%llu cost_holds=%llu\n"
-        "refine_decision=%s refine_steps=%u seek_origin_io=%u refining=%d\n",
+        "refine_decision=%s refine_steps=%u seek_origin_io=%u refining=%d refine_bar=%.4f\n",
         !enabled_ ? "disabled" : phase_ == Phase::BootPending ? "awaiting-load-stability"
             : phase_ == Phase::Anchored ? "anchored" : "maneuvering",
         phase_name(phase_), anchor_io_, anchor_ex_, anchor_rate_, shift_detector_.band(),
@@ -1371,7 +1379,7 @@ std::string FlipController::debug_dump() const {
         last_flip_lost_, static_cast<unsigned long long>(last_flip_moved_),
         static_cast<unsigned long long>(invalidated_maneuvers_),
         static_cast<unsigned long long>(cost_holds_),
-        refine_decision_, refine_steps_, seek_origin_io_, refining_ ? 1 : 0);
+        refine_decision_, refine_steps_, seek_origin_io_, refining_ ? 1 : 0, refine_bar_);
     std::string out(head, n > 0 ? static_cast<size_t>(n) : 0);
     // Cold signature detail. The scalar `signature_distance` above says a shift happened; these
     // two vectors and the four family contributions say WHICH input moved, which is the only way
