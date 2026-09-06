@@ -117,14 +117,20 @@ ROW_T=$(date +%s.%N)
 # 335 full + 3 = 338. Additions are disjoint from the fused+armed and lane-admission rows.
 # 258 -> 260 full: reply codes make a blocking timeout's "*-1"/"_" a CODE rather than bytes, so the
 # ACL retire-recheck's discard has a second representation to drop; one battery per thread mode.
-# Merged: the aclreply battery is a FULL-tier row only (branch 245/260 over 245/258), so quick stays 324 and full is 338 + 2 = 340.
+# Merged: the aclreply battery adds one row per thread mode and both run BEFORE the quick-tier exit,
+# so quick is 324 + 2 = 326 and full is 338 + 2 = 340. (Corrected 2026-09-07: the first resolution read
+# the branch deltas 245/260 over 245/258 as full-only and left quick at 324, so every quick gate failed
+# its own ledger row by exactly 2 while the full tier was right.)
 # 340 -> 343 full: the armed-write block cache's ownership laws (DESIGN-P0REPLY.md). A shard that
 # changed owner kept its read-local retire sink pointing at the OLD owner's QSBR ring and block
 # cache until the destination's own later pass rebound it, so the new owner wrote through another
 # thread's unlocked free list. Three rows: the -DTOMO_RL_CACHE_DEBUG build, the churn battery on it
 # (which carries its own non-vacuity checks, including that the balancer MOVED shards), and the
-# invariant check over that server's log. FULL-tier only: it costs one more whole build.
-EXPECT_QUICK=324
+# invariant check over that server's log.
+# COUNTED BY LINE, NOT BY INFERENCE (which is what produced the 324/326 correction above): the
+# quick tier exits at the `[ "$TIER" = quick ]` block, and all three rows are emitted after it, so
+# they are full-only. Quick is unchanged at 326; full is 340 + 3 = 343.
+EXPECT_QUICK=326
 EXPECT_FULL=343                 # full without the optional NIC row.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 ledger(){ # verdict label -> one ledger line; the elapsed column is wall time since the last row
