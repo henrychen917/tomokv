@@ -258,3 +258,10 @@ hold-unverifiable); WaitingFlip measures the flip (lost, moved, duration) -> Fli
 seek_after_reading: one reading -> sequential Welford verification + outcome; anchor(): miss vs
 invalidated finalization; report/debug/INFO: new fields; DEBUG FLIPCTL seek <io> [force] and
 cost <cmds/client> are the directed-test hooks (cold, debug-gated). Knobs: none added.
+
+### Log (redesign day)
+- 09:36 marker appeared; 09:40 build (601d65d4a) rc=0, 0 warnings; layout static_asserts hold. Unit
+  rc=0 after fixing a rounded literal in my own row (73fc439c3). Arms: red e7d9a6f2e7b6abf8
+  (build/tomokv) | guard 7c78940416c87e24 ($SP/fd-tomokv-guard-d84031d2f) | base 692984a8c786998b.
+- 09:44 smoke: tests/flip_cost_gate.py by hand on port 8221 (3:1, BITCOUNT load ~2.8k/s, COST 1e9
+  injected, boot-pending). Then launch scratch/red.sh detached (resumable; it reuses fd-costgate-1).
