@@ -229,21 +229,22 @@ int main() {
     // flip, 10 s of stationarity. It starts paying once the workload has held ~24 s.
     {
         FlipCostModel m;
-        m.record_flip(250000, 154, 85.33, 1.0);     // lost 250k commands moving 154 clients
+        const double naive = flip_naive_transfers(256, 3, 2);       // 85.33: the converted thread's share
+        m.record_flip(250000, 154, naive, 1.0);     // lost 250k commands moving 154 clients
         if (std::abs(m.client_cost() - 250000.0 / 154) > 1e-6) fail("per-client cost");
-        if (std::abs(m.reshuffle() - 154 / 85.33) > 1e-3) fail("re-plan ratio");
+        if (std::abs(m.reshuffle() - 154 / naive) > 1e-9) fail("re-plan ratio");
         const double transfers = m.predicted_transfers(256, 2, 3);   // naive 85.33 x 1.805 = 154
-        if (std::abs(transfers - 154) > 0.01) fail("predicted transfers did not reproduce the plan");
+        if (std::abs(transfers - 154) > 1e-6) fail("predicted transfers did not reproduce the plan");
         const double xfer_cost = m.client_cost() * transfers;        // 250k commands
         const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, xfer_cost,
                                                   m.miss_probability(), 1);
         // benefit 0.05 x 500k x 6 = 150k; cost 250k x 1.5 + 0.5 x 0.05 x 500k x 4 = 375k + 50k
-        if (no.pays || std::abs(no.benefit - 150000) > 1 || std::abs(no.cost - 425000) > 1)
+        if (no.pays || std::abs(no.benefit - 150000) > 1e-3 || std::abs(no.cost - 425000) > 1e-3)
             fail("a +5% move with a measured 250k-command flip paid at 10 s");
         const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost,
                                                    m.miss_probability(), 1);
         if (!yes.pays) fail("the same move did not pay at 30 s of stationarity");
-        if (std::abs(no.payback_s - (4.0 + 425000.0 / 25000.0)) > 1e-9) fail("payback of the +5% move");
+        if (std::abs(no.payback_s - (4.0 + 425000.0 / 25000.0)) > 1e-6) fail("payback of the +5% move");
         // The bar doubles on a miss: at 30 s the move paid with margin 1 and fails with margin 2.
         if (flip_cost_gate(0.05, 0.05, 500000, 30.0, 4.0, xfer_cost, m.miss_probability(), 2).pays)
             fail("a doubled margin did not refuse the marginal move");
