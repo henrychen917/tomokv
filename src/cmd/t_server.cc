@@ -1538,6 +1538,10 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_context_route += local.fallback_context_route;
     total.fallback_context_keymiss_notify += local.fallback_context_keymiss_notify;
     total.fallback_inflight_write += local.fallback_inflight_write;
+    total.fallback_arm_transient += local.fallback_arm_transient;
+    total.arm.arms += local.arm.arms;
+    total.arm.sidecars += local.arm.sidecars;
+    total.arm.write_ring_records += local.arm.write_ring_records;
     total.fallback_atomic_pending += local.fallback_atomic_pending;
     total.fallback_missing += local.fallback_missing;
     total.fallback_typed += local.fallback_typed;
@@ -1558,6 +1562,7 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_context_keymiss_notify +=
         local.mget_fallback_context_keymiss_notify;
     total.mget_fallback_inflight_write += local.mget_fallback_inflight_write;
+    total.mget_fallback_arm_transient += local.mget_fallback_arm_transient;
     total.mget_fallback_atomic_pending += local.mget_fallback_atomic_pending;
     total.mget_fallback_typed += local.mget_fallback_typed;
     total.mget_fallback_expired += local.mget_fallback_expired;
@@ -1844,6 +1849,14 @@ void cmd_info(Shard&, Op& op) {
             baseline.read_local.fallback_context_keymiss_notify);
         read_local.fallback_inflight_write = minus_baseline(
             read_local.fallback_inflight_write, baseline.read_local.fallback_inflight_write);
+        read_local.fallback_arm_transient = minus_baseline(
+            read_local.fallback_arm_transient, baseline.read_local.fallback_arm_transient);
+        read_local.arm.arms = minus_baseline(
+            read_local.arm.arms, baseline.read_local.arm.arms);
+        read_local.arm.sidecars = minus_baseline(
+            read_local.arm.sidecars, baseline.read_local.arm.sidecars);
+        read_local.arm.write_ring_records = minus_baseline(
+            read_local.arm.write_ring_records, baseline.read_local.arm.write_ring_records);
         read_local.fallback_atomic_pending = minus_baseline(
             read_local.fallback_atomic_pending, baseline.read_local.fallback_atomic_pending);
         read_local.fallback_missing = minus_baseline(
@@ -1885,6 +1898,9 @@ void cmd_info(Shard&, Op& op) {
         read_local.mget_fallback_inflight_write = minus_baseline(
             read_local.mget_fallback_inflight_write,
             baseline.read_local.mget_fallback_inflight_write);
+        read_local.mget_fallback_arm_transient = minus_baseline(
+            read_local.mget_fallback_arm_transient,
+            baseline.read_local.mget_fallback_arm_transient);
         read_local.mget_fallback_atomic_pending = minus_baseline(
             read_local.mget_fallback_atomic_pending,
             baseline.read_local.mget_fallback_atomic_pending);
@@ -2387,6 +2403,10 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_context_route:%llu\r\n"
                 "read_local_fallback_context_keymiss_notify:%llu\r\n"
                 "read_local_fallback_inflight_write:%llu\r\n"
+                "read_local_fallback_arm_transient:%llu\r\n"
+                "read_local_arms:%llu\r\n"
+                "read_local_write_ring_sidecars:%llu\r\n"
+                "read_local_write_ring_records:%llu\r\n"
                 "read_local_fallback_atomic_pending:%llu\r\n"
                 "read_local_fallback_missing:%llu\r\n"
                 "read_local_fallback_typed:%llu\r\n"
@@ -2408,6 +2428,10 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_context_route),
                 static_cast<unsigned long long>(read_local.fallback_context_keymiss_notify),
                 static_cast<unsigned long long>(read_local.fallback_inflight_write),
+                static_cast<unsigned long long>(read_local.fallback_arm_transient),
+                static_cast<unsigned long long>(read_local.arm.arms),
+                static_cast<unsigned long long>(read_local.arm.sidecars),
+                static_cast<unsigned long long>(read_local.arm.write_ring_records),
                 static_cast<unsigned long long>(read_local.fallback_atomic_pending),
                 static_cast<unsigned long long>(read_local.fallback_missing),
                 static_cast<unsigned long long>(read_local.fallback_typed),
@@ -2428,6 +2452,7 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_context_route:%llu\r\n"
                 "read_local_mget_fallback_context_keymiss_notify:%llu\r\n"
                 "read_local_mget_fallback_inflight_write:%llu\r\n"
+                "read_local_mget_fallback_arm_transient:%llu\r\n"
                 "read_local_mget_fallback_atomic_pending:%llu\r\n"
                 "read_local_mget_fallback_typed:%llu\r\n"
                 "read_local_mget_fallback_expired:%llu\r\n"
@@ -2447,6 +2472,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(
                     read_local.mget_fallback_context_keymiss_notify),
                 static_cast<unsigned long long>(read_local.mget_fallback_inflight_write),
+                static_cast<unsigned long long>(read_local.mget_fallback_arm_transient),
                 static_cast<unsigned long long>(read_local.mget_fallback_atomic_pending),
                 static_cast<unsigned long long>(read_local.mget_fallback_typed),
                 static_cast<unsigned long long>(read_local.mget_fallback_expired),

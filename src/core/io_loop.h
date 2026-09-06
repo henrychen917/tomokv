@@ -2420,15 +2420,12 @@ private:
             self_->sig().accept_err++;
             return;
         }
-        // Per-connection read/write ordering state is an armed-only allocation. Prepare it before
-        // the fd is registered or handed to another IO owner so an allocation failure can reject
-        // the connection without exposing a partially armed client.
-        if (srv_->read_local_enabled() && !c->rob().prepare_read_local()) {
-            delete c;
-            ::close(fd);
-            self_->sig().accept_err++;
-            return;
-        }
+        // NOTHING READ-LOCAL IS ALLOCATED HERE ANY MORE (DESIGN-RINGDIET.md). The RYOW write-ring
+        // sidecar used to be built at accept for every connection on an armed boot, so a pure-read
+        // or idle connection carried 1216 bytes (a 1280-byte jemalloc class) it could never use.
+        // It is now built on the first write of a connection a local read has ARMED, from that
+        // connection's own IO thread; an allocation failure there falls back to the unarmed
+        // contract instead of rejecting a connection that is already established.
         if (tls_socket && !attach_tls(c)) {
             delete c;
             ::close(fd);
@@ -2716,6 +2713,10 @@ private:
         if (!self_->remove_client(client)) std::abort();
 
         const ClientTransfer transfer{client, catalog, routing, self_->id()};
+        // Last source-side touch before the owner store, so the moved connection's cold arm
+        // counters land on the thread that will actually be doing the arming from here on.
+        client->rob().set_read_local_arm_stats(
+            &srv_->thread(destination).read_local_stats().arm);
         client->set_ifid_thread(destination); // THE single connection ownership edge
         command_client_directory_move(client_id, destination);
         if (!target.post_client_transfer(self_->id(), transfer, ring_, self_->sig())) std::abort();
@@ -3230,6 +3231,10 @@ private:
         c->set_last_interaction_s(cached_now_s_ ? cached_now_s_
                                                 : static_cast<uint32_t>(now_ns() / 1000000000ull));
         c->set_ifid_thread(self_->id());
+        // The armed lane's cold counters belong to whichever thread owns the connection; this is
+        // the one place ownership is taken (accept, AF_UNIX handoff, and migration rollback all
+        // arrive here), and the migration edge re-points it for the destination.
+        c->rob().set_read_local_arm_stats(&self_->read_local_stats().arm);
         // The ready-mask slot is assigned immediately: WE are the sender, for life.
         c->set_wb_slot(self_->assign_wb_slot(c));
         self_->add_client(c);
@@ -3479,6 +3484,20 @@ private:
     // current frame crosses any stateful hook; the unconsumed frame is then safe to reparse.
     // MGET remains one ROB operation, but its cold fallback expands here through the unchanged
     // scatter planner into one owner Task per touched shard.
+    // ATTRIBUTION FOR A DEMOTED READ, on the demote path only. Arm-on-demand has two distinct
+    // reasons to hold a read back and they must not be summed into one counter: an explicit key
+    // conflict with a live write descriptor (InflightWrite, the steady state), and the ARMING
+    // TRANSIENT -- writes this connection published before any local read armed it, which no
+    // descriptor describes and which are therefore fenced wholesale until they retire. The second
+    // is per-connection and one-shot; a bench arm whose ArmTransient count keeps growing has an
+    // arming bug, which is exactly what makes reporting it separately worth a counter.
+    static ReadLocalFallbackReason read_local_write_fallback_reason(
+            const Rob<kRobWindow>& rob) {
+        return rob.read_local_arm_fence_live()
+            ? ReadLocalFallbackReason::ArmTransient
+            : ReadLocalFallbackReason::InflightWrite;
+    }
+
     class ReadLocalDemotionPlan {
     private:
         enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
@@ -4374,7 +4393,7 @@ private:
                         if (extend_read_local_batch &&
                             (write_conflict || read_local_owner_conflict)) {
                             read_local_fallback_reason = write_conflict
-                                ? ReadLocalFallbackReason::InflightWrite
+                                ? read_local_write_fallback_reason(rob)
                                 : read_local_owner_conflict_reason;
                             read_local_batch = false;
                         }
@@ -4397,7 +4416,7 @@ private:
                                 read_local_eligible = false;
                             } else if (write_conflict) {
                                 read_local_fallback_reason =
-                                    ReadLocalFallbackReason::InflightWrite;
+                                    read_local_write_fallback_reason(rob);
                                 read_local_eligible = false;
                             } else if (read_local_owner_conflict) {
                                 read_local_fallback_reason = read_local_owner_conflict_reason;
