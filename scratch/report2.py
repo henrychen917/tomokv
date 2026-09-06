@@ -344,7 +344,7 @@ n_t   = ceil( 1 / ((κ g_mean / 4σ)² − 1/n_o) )      planned target readings
 <h2>4. Directed tests</h2>
 <h3>Cost gate and outcome loop — tests/flip_cost_gate.py</h3>
 <p>Booted at 3:1 under a BITCOUNT load that saturates the one executor. (1) An absurd per-client cost is typed before the load: the model proposes its target and the gate refuses it — <code>hold-cost</code>, zero flips, split unchanged. (2) The measured cost is restored and the same workload re-opened: exactly one flip, verified against the origin's noise. (3) <code>DEBUG FLIPCTL SEEK &lt;origin&gt; FORCE</code> induces a miss: out, judged, back, margin doubled, one miss booked. (4) The same proposal judged is refused without a flip.</p>
-<ul>{"".join(f"<li><b>run {r}</b><ul>{li(lines)}</ul></li>" for r, lines in costgate) or "<li class=muted>(not on file)</li>"}</ul>
+<ul>{"".join(f"<li><b>{r}</b><ul>{li(lines)}</ul></li>" for r, lines in costgate) or "<li class=muted>(not on file)</li>"}</ul>
 <h3>The defect regime held — tests/flip_multikey_hold.py</h3>
 <ul>{"".join(f"<li><b>{t}</b><ul>{li(lines)}</ul></li>" for t, lines in holds)}</ul>
 
