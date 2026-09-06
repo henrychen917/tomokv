@@ -187,3 +187,74 @@ MODES: 1s refuses --flip-auto 1 by config; 2s boots awaiting-load-stability.
 DIFFER: 168/168 at --ratio 6:2 (the sort suite REQUIRES 6:2 + --shards 16; last night's 4 "fails"
 were the 2:2 invocation).
 Artifact: https://claude.ai/code/artifact/f01d7b82-5685-4f10-bf3f-e89010857b35
+
+## 2026-09-06 day: ACTUATOR REDESIGN lane (owner: "be innovative about flip arithmetic and signals")
+Base: d84031d2f (guard verified; do not re-measure). Build dir per arm: guard binary copied to
+$SP/fd-tomokv-guard-d84031d2f (sha 7c78940416c87e24) BEFORE the first make; base = wt-flipdamp-base
+(692984a8c786998b). Box marker MISSING at 09:10-09:22 (owner gate until ~09:40): design + code first.
+
+### THE SIGNAL DEFECT (from the guard night's own lbsignals snapshots, sk1:1 r3, 40 s window)
+  thread 0 io: busy 16.36 s + idle 0.17 s = 16.53 s booked of cpu_ns 39.92 s  -> 23.5 s UNBOOKED
+  thread 3 io: busy 22.24 s + idle 2.40 s = 24.64 s booked of 40.02 s          -> 15.4 s UNBOOKED
+  thread 1 ex: 25.62 + 2.56 = 28.19 of 39.99; thread 2 ex: 33.25 + 1.76 = 35.01 of 39.98
+  mk r1:       io 27.6+3.5 = 31.1 of 38.1 (7 s unbooked); ex 38.7+1.2 = 39.9 of 40.0 (complete)
+The io loop's busy Span closes BEFORE ring_.submit_and_reap(): the io_uring_enter syscall -- the
+kernel doing the TCP send/recv, which IS io work -- is booked as neither busy nor idle. The share
+busy_io/(busy_io+busy_ex) therefore read io = 0.32 on sk1:1 (headrooms 0.5%/3%, i.e. both roles
+saturated => the true work share is ~0.51). R(1)=min(1/.32, 3/.68)=3.13 > R(2)=2.94 => the model
+moved 2:2 -> 1:3, measured 2.45M vs 5.12M (-52%), reverted: the guard's ONE round trip. mk read
+0.41 for a 0.477 workload (same direction, smaller: fewer syscalls per busy second).
+FIX (signal): work = wall - idle. idle_ns is the one quantity both loops book faithfully (io: the
+blocked wait after an empty sweep; ex: empty passes + blocked wait, since 4d8261d99). wall = the
+controller's own tick clock (now_ms delta) x threads of the role. No hot-path change at all.
+  sk1:1: io 2x(40-1.29)=77.4, ex 2x(40-2.16)=75.7 -> f=0.506 -> HOLD.  mk: f=0.472 -> HOLD.
+headroom := idle/wall (was idle/(busy+idle), inflated 2.4x for io thread 0).
+
+### DESIGN (one page): cost gate + variance window + outcome loop, all in src/core/flip_policy.h
+UNITS: commands (delivered work), seconds (tick clock), clients. R0 = origin stabilized rate [cmd/s].
+g = projected relative gain of the argmax split (model R(s)=min(s/f,(N-s)/(1-f)); the step IS the
+distance: jump to the argmax). kappa = the model's calibration (below). All terms are measured or
+derived from the controller's own mechanics; no machine constants, no new knobs.
+1. COST GATE -- a move must pay for itself within the stationarity the workload has demonstrated.
+   T_stat  = now - stationary_since  (boot: first non-idle tick; change trigger: the trigger)
+   T_black = T_flip + T_settle + (n_t - 1) T_read   [blind time before the outcome can be judged]
+             T_flip measured per flip (issue -> Idle, tick-quantized; first flip: 1 tick),
+             T_settle = 3 ticks (window reset + 2 sub-windows = the controller's reading mechanics),
+             T_read = 1 tick per extra stabilized reading.
+   C_xfer  = c_client x n_pred      [commands]
+             c_client = sum(lost commands) / sum(clients moved) over every flip so far
+               lost = R_before x dt_flip - commands served in dt_flip  (measured, clamped >= 0)
+             n_pred = clients x |dio| / max(io0, io1) x rho, rho = sum(actual moved)/sum(naive)
+               (the weighted re-plan reshuffles more than the converted threads' clients)
+   P_miss  = (misses + 1) / (moves + 2)           [Laplace; no prior constant]
+   benefit = kappa g_low x R0 x (T_stat - T_black)  [gain credited only after verification]
+   cost    = margin x [ C_xfer (1 + P_miss) + P_miss x kappa g_mean x R0 x T_black ]
+             (the revert with probability P_miss; a wrong move loses during the blackout about
+              what a right one would have gained)
+   MOVE iff benefit > cost AND kappa g_low > band x margin (the noise bar, kept: an unverifiable
+   gain cannot pay). Else keep sampling (T_stat grows, the interval tightens) until the reading cap
+   -> "hold-cost". First flip: c_client unknown = 0 (the flip IS the measurement; charged through
+   the blackout term only).
+2. WINDOW from VARIANCE -- sigma = relative stdev of the origin's Measuring readings (Welford,
+   n_o >= 3). Planned target readings n_t = ceil(1 / ((kappa g_mean / 4 sigma)^2 - 1/n_o)); a
+   non-positive bracket means the origin is not yet measured precisely enough to verify a gain this
+   small -> keep sampling the origin. Threshold after k target readings:
+   theta_k = max(2 sigma sqrt(1/n_o + 1/k), baseline bracket 2(max-min)/mid, typed band).
+   Sequential at the target: accept when d_k > theta_k (early or at n_t), reject early when
+   d_k < -theta_k (never sit at a clearly worse split), at k = n_t accept iff d > theta.
+3. OUTCOME LOOP -- every move is a hypothesis (predicted kappa g_mean, planned n_t).
+   hit  -> anchor at target; margin = max(1, margin/2); record delivered/predicted.
+   miss -> flip back; margin x2 (cap where band x margin >= 1); misses++; delivered := 0.
+   invalidated: after the return flip, if the origin no longer reads R0 within theta the baseline
+   moved during the maneuver -- the test was voided, not failed: margin/misses untouched, counted
+   as invalidated_maneuvers (the guard doubled the bar on these too).
+   kappa = (sum delivered+ + gbar) / (sum predicted + gbar), gbar = mean predicted gain over moves:
+   the model starts with the credence of exactly one delivered move of its own average size and
+   earns or loses it; one miss halves every future projection (the bar doubles in effect), a hit
+   restores it; kappa <= 1 (over-delivery never buys credit). Magnitude, where the margin is sign.
+WHAT EACH REPLACES IN flipctl.cc: sample_role_demand busy share -> (wall-idle) share + idle/wall
+headroom; decide_placement gains the cost gate + verify-window feasibility (decisions hold-cost,
+hold-unverifiable); WaitingFlip measures the flip (lost, moved, duration) -> FlipCostModel;
+seek_after_reading: one reading -> sequential Welford verification + outcome; anchor(): miss vs
+invalidated finalization; report/debug/INFO: new fields; DEBUG FLIPCTL seek <io> [force] and
+cost <cmds/client> are the directed-test hooks (cold, debug-gated). Knobs: none added.
