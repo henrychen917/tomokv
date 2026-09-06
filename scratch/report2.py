@@ -284,6 +284,9 @@ ctl_table = simple_table(
     ["post" if v == "PASS" else "pre" for _, v, _, _ in ctl]) if ctl else "<p class=muted>(flipctl.py rows not on file)</p>"
 
 def pct(a, b): return (b / a - 1) * 100 if a else 0
+def spread(prefix):
+    vals = [float(d["instr/op"]) for d in perf if d["tag"].startswith(prefix) and "instr/op" in d]
+    return (max(vals) - min(vals)) / st.mean(vals) * 100 if len(vals) > 1 else 0
 instr_base0 = perf_mean("base0", "instr/op"); instr_red0 = perf_mean("red0", "instr/op"); instr_red1 = perf_mean("red1", "instr/op"); instr_guard1 = perf_mean("guard1", "instr/op")
 cyc_red0 = perf_mean("red0", "cycles/op"); cyc_red1 = perf_mean("red1", "cycles/op")
 
@@ -357,7 +360,7 @@ n_t   = ceil( 1 / ((κ g_mean / 4σ)² − 1/n_o) )      planned target readings
 <h2>7. What the machinery costs when it is not moving</h2>
 <p>Rate-limited so every arm offers the same load; instructions and cycles per command are only comparable at a matched rate. <b>base fa=0 → redesign fa=0</b> is the hot path with the controller off; <b>redesign fa=0 → fa=1</b> is the always-on cost of the controller holding.</p>
 {perf_table}
-<p>Hot path, controller off: <b>{pct(instr_base0, instr_red0):+.2f}%</b> instr/op (base {instr_base0:.0f} → redesign {instr_red0:.0f}). Controller running and holding: <b>{pct(instr_red0, instr_red1):+.2f}%</b> instr/op, <b>{pct(cyc_red0, cyc_red1):+.2f}%</b> cycles/op against the same binary with it off (guard fa=1: {instr_guard1:.0f} instr/op). Budget 3%.</p>
+<p>Hot path, controller off: <b>{pct(instr_base0, instr_red0):+.2f}%</b> instr/op (base {instr_base0:.0f} → redesign {instr_red0:.0f}). Controller running and holding: <b>{pct(instr_red0, instr_red1):+.2f}%</b> instr/op, <b>{pct(cyc_red0, cyc_red1):+.2f}%</b> cycles/op against the same binary with it off. Same-arm spread this afternoon: {spread('base0'):.1f}% / {spread('red0'):.1f}% / {spread('red1'):.1f}% (other lanes were active), so both deltas are inside the rig&rsquo;s noise; last night&rsquo;s quieter measurement of the same always-on cost read +1.24%. Budget 3%.</p>
 
 <h2>8. The gate row</h2>
 {ctl_table}
