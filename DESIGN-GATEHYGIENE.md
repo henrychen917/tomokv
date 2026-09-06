@@ -271,3 +271,121 @@ assert nothing on a measured quantity.
 Unchanged: `EXPECT_QUICK=324`, `EXPECT_FULL=340`. No row was added or retired — `atomic_ryow.py`
 splits one `note()` into two *inside* one battery, which is one gate row either way, and the
 flipctl stable hold is one sub-assertion of one gate row.
+
+---
+
+## 6. Round 2 — what the acceptance runs themselves found
+
+Two back-to-back full gates were the bar. Run 1 came back **340/340, 0 FAIL**. Run 2 reddened
+twice, both in this lane's own class, and one of them **re-diagnosed the row I had just fixed**.
+
+### 6.1 The stable hold's real trigger is the FINGERPRINT, not the rate
+
+The new failure message paid for itself on its second outing. The run-2 move was:
+
+```
+last_trigger=fingerprint-shift
+last_shift_distance=0.251848123   last_shift_band=0.020000000    (12.6x the band)
+driver rate, all 34 samples of the window:  5998 .. 6002 /s      (0.07% spread)
+```
+
+The standing hypothesis — the driver's rate wobbles, the controller fires, the row goes red — is
+**wrong**. The driver's offered rate is rock steady, the new precondition correctly certified it
+stationary, and the detector that moved was the other one.
+
+The signature the fingerprint detector watches includes **pass depth** — how many frames an io
+thread happened to batch into one parse pass (`FlipFingerprintWindow::pass_depth`,
+`src/core/flipctl.cc sample_fingerprint`). That is a property of how the box scheduled the load,
+not of the load. This driver is strict request/response with a fixed command mix, a fixed
+connection set and fixed key/value shapes; it cannot hold pass depth still. And because the
+learned signature jitter on this workload is **0**, the band is the configured 2% and any
+pass-depth movement at all clears it.
+
+So the row now classifies the move by its trigger — which is exactly what recording
+`flipctl_last_trigger` was for:
+
+| `last_trigger` | verdict |
+| --- | --- |
+| `forced` | **FAIL** — nothing but the DEBUG hook can produce it |
+| `anchor-rate-surge` / `anchor-rate-collapse` | **FAIL** when the driver's rate was stationary |
+| `fingerprint-shift`, distance **inside** its own band | **FAIL** — a controller defect; no box artefact explains a detector firing inside its band |
+| `fingerprint-shift`, distance **outside** its band | RE-ROLL, then SKIP with the distance, the band and the ratio |
+| anything else | **FAIL** (conservative) |
+
+The last row is the only case this test cannot adjudicate, and its skip line is the report the
+controller lane needs. Everything else still fails — proven by induction below.
+
+### 6.2 `tests/flip.py:287` — "in-flight test observed a real moving FLIP"
+
+A race-window-hit gate, and the only assertion in that file that could lose its race. An observer
+polls `FLIP` hoping to land a report between the reverse actuation starting and finishing; on a
+loaded box the whole flip completes inside the observer's first round trip. **1 of 542 checks**,
+with nothing wrong — every deterministic proof that the actuation happened (`flip_completed`,
+`flip_clients_transferred`, `flip_conservation_checks`, and the ordered in-flight replies) passed
+in the same run.
+
+The observation is now re-rolled up to 4 times: a missed window restores the split and runs the
+same actuation again, and **the pipelined in-flight traffic is issued on the attempt that won**, so
+what it straddles is a flip that was demonstrably moving. Only an exhausted budget reports the
+window as not opened, and it prints why instead of turning the row red.
+
+---
+
+## 7. Induced-failure evidence
+
+Every fix had to be shown still to bite. All arms on the release build, cores 136-143.
+
+### Row 1 — the rate assertion
+
+`--atomic-window 1` **alone does not redden it**, and that is a finding about the row rather than
+about the fix: pipelining still saves 24 client round trips, so the ratio stays comfortably over
+the 1.10 bar even with admission serialized.
+
+| arm | window | per-group cost | pipe | serial | ratio | rate row |
+| --- | --- | --- | --- | --- | --- | --- |
+| A positive control | 2 | none | 102,987/s | 40,552/s | 2.54 | ok |
+| B ASAN-tier form (`--no-rate-assertions`) | 2 | none | 112,702/s | 43,278/s | 2.60 | SKIP, rates printed |
+| C first attempt | **1** | none | 77,577/s | 41,643/s | **1.86** | ok — does not discriminate |
+| D control | 2 | 2 ms `ATOMIC-COMMIT-DELAY` | 985/s | 489/s | 2.01 | ok |
+| E **induced** | **1** | 2 ms `ATOMIC-COMMIT-DELAY` | 494/s | 490/s | **1.01** | **FAIL** |
+
+Give each group a real 2 ms between ticket draw and publication and the arithmetic is decided by
+how many groups the window lets decide **at once** instead of by the round trips pipelining saves.
+D and E differ only in admission concurrency, on one server, in one run: 2.01 against 1.01, and the
+row goes red. The mechanism half tracked the property in every arm (`atomic_window_stalls` 11 at
+window 2, 23 at window 1).
+
+### Row 2 — the stable hold
+
+`DEBUG FLIPCTL TRIGGER` fired 5 s into an assertion window that had opened on a certified
+stationary load:
+
+```
+stable hold: 8s pre-hold window stationary (driver 6001,6001,6000,6000,5999,5999,5999,6000/s,
+                                            band 0.0200); assertion window open for 30s
+...
+AssertionError: controller moved during the stable hold: {... 'flipctl_last_trigger': 'forced' ...}
+  last_trigger=forced  band=0.020000  anchor_rate=6000.674
+  driver per-second rates: 6002, 6001, 6000 x9, 5999
+  per-second trace:
+    prehold anchored    anchored   driver=6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    ... (8 prehold + 4 hold samples, all anchored, all 6:2) ...
+    hold t=+5.0s maneuvering measuring driver=5999/s live=6:2 anchor=6:2 triggers=2 last=forced
+  DEBUG FLIPCTL at the move: ... last_trigger=forced  triggers=2 boot=1 forced=1
+```
+
+Exit 1. A move while the load is provably stationary still FAILS, and it still FAILS after the
+trigger classification of 6.1 was added.
+
+### Row 3 — the eviction survival rows
+
+The file's own documented inverse: keep the hot set "hot" from a `CLIENT NO-TOUCH` connection so
+the reads never touch the LFU metadata. Same binary, same section, back-to-back boots.
+
+| arm | eviction fired | hot 20 survive | hot median `OBJECT FREQ` | verdict |
+| --- | --- | --- | --- | --- |
+| positive control | 10,532 | **20/20** | 11 (`9,10x5,11x8,13x3,14,15`) | 7 ok, 0 FAIL |
+| **induced** (NO-TOUCH hot reads) | 10,532 | **5/20** | **3** (`2,3,3,5,5`) | 5 ok, **2 FAIL** |
+
+Both survival rows go red together, which is what the file predicts for a server whose reads do
+not touch.
