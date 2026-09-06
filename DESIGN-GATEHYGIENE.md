@@ -424,3 +424,34 @@ segfault on the box all night.
 This lane changed nothing under `src/`, so this is pre-existing on `ceb6b02f8` and belongs to the
 lane that owns the armed local-read lane. It is recorded here because it is a P0-shaped finding
 and because it is now the only known source of a random red row in the full gate.
+
+---
+
+## 9. Acceptance
+
+Five full gates on cores 136-143, `GATE_PORT=8440`, `GATE_QUIET_FILE` set so the run pauses itself
+whenever the box owner needs it. NIC cells skipped (no rig on this scratchpad), so the expected
+count is `EXPECT_FULL` = **340**.
+
+| run | result | note |
+| --- | --- | --- |
+| 1 | **340 ok, 0 FAIL** | first pass of the three fixes |
+| 2 | 338 ok, 2 FAIL | `flip.py` in-flight race + the flipctl **fingerprint** move — both diagnosed by the new failure text and fixed in section 6 |
+| 3 | 339 ok, 1 FAIL | **server segfault** in the armed-fused differ matrix (section 8) — not this lane's class, nothing under `src/` was touched |
+| 4 | **340 ok, 0 FAIL** | first of the required pair |
+| 5 | **340 ok, 0 FAIL** | second of the required pair, back to back |
+
+Runs 4 and 5 are the two consecutive clean runs the bar asks for, both at the expected row count
+with `PROGRAM-STATE ledger (340/340 checks) ok`.
+
+The stable hold opened its assertion window on attempt 1 of 3 in every post-fix run, each time
+printing the pre-hold measurement that licensed it, e.g.
+
+```
+stable hold: 8s pre-hold window stationary (driver 6000,6000,6002,6001,6001,6001,6001,6000/s,
+                                            band 0.0200); assertion window open for 30s
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+```
+
+`flip.py` needed no in-flight re-roll in any post-fix run (0 re-roll lines), so the budget is
+headroom rather than a routine cost. The flipctl row costs 120 s, unchanged from before this lane.
