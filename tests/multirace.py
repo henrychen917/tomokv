@@ -42,7 +42,11 @@ across two units of one connection still holds.
 
 Non-vacuity: `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
 unit on an owner -- exactly this window. Under atomic 1 the armed cases must advance it, or the
-run never entered the window and its pass proves nothing. Under atomic 0 MSETNX is two-hop and
+run never entered the window and its pass proves nothing. Entering it is a race, and under the
+gate's own geometry it is bimodal: 8 of 10 runs open the window hundreds to thousands of times and
+the rest open it exactly zero times. The armed pair is therefore re-armed on fresh connections up
+to ARM_ATTEMPTS times, which re-rolls the dynamic placement that decides it; a tree that has lost
+the park opens the window on no attempt and still fails. Under atomic 0 MSETNX is two-hop and
 decides before it installs, so the window cannot open and the counter must read exactly zero;
 that arm asserts zero rather than merely tolerating it.
 
@@ -70,6 +74,9 @@ HOST, PORT = sys.argv[1], int(sys.argv[2])
 
 ROUNDS = 200
 VICTIMS = 6
+# Attempts allowed to get the armed pair INTO the hazard window before the vacuity gate calls
+# the run vacuous. See run_mode() for the measurement this number comes from.
+ARM_ATTEMPTS = 4
 TAG = "mrace"
 
 
@@ -417,22 +424,49 @@ def run_mode(admin, mode, blocker, victims):
     """The three cases plus the vacuity gate, under ONE value of `atomic`. Returns a failure
     count; never raises for a case failure, so the other mode still runs."""
     failures = 0
-    armed_deltas = []
     print(f"multirace: atomic={mode}", flush=True)
 
-    try:
-        case_abort(admin, "aborted MSETNX then EXEC write on the same connection",
-                   blocker, victims, seen=armed_deltas)
-    except AssertionError as failure:
-        failures += 1
-        print(f"  FAIL {failure}", flush=True)
+    # THE ARMED PAIR, RE-ARMED WHILE THE WINDOW STAYS SHUT. Both cases below must enter the hazard
+    # window for their pass to mean anything, and entering it is a race this test cannot force: the
+    # EXEC fragment has to reach an owner while an older same-connection unit is still undecided
+    # there. Measured 2026-09-07 under the gate's OWN geometry (--shards 16 --ratio 6:2, cores 0-7,
+    # which is 6 io + 2 ex, not the default this battery used to be checked under): a healthy tree
+    # opens the window in 8 of 10 runs, and opens it 268-8777 times when it does. The outcome is
+    # bimodal per run -- hundreds of hits or exactly zero, never a thin tail -- and the key set is
+    # deterministic (TAG is a constant), so what varies between runs is dynamic placement, not which
+    # owners are involved. Each attempt therefore runs on FRESH connections, which re-rolls it.
+    # Four attempts put a vacuous false alarm at roughly 1 in 600. A tree that has genuinely lost
+    # the park opens the window on NO attempt and still fails the gate below, which is the property
+    # this guard exists to protect. To induce that failure: return early from the dispatch-time
+    # hold so no unit is ever parked, and every attempt reports holds+0.
+    attempts = 0
+    while True:
+        attempts += 1
+        armed_deltas = []
+        armed_failures = 0
 
-    try:
-        case_commit(admin, "control: committed MSETNX then EXEC write (RYOW must hold)",
-                    blocker, victims, seen=armed_deltas)
-    except AssertionError as failure:
-        failures += 1
-        print(f"  FAIL {failure}", flush=True)
+        try:
+            case_abort(admin, "aborted MSETNX then EXEC write on the same connection",
+                       blocker, victims, seen=armed_deltas)
+        except AssertionError as failure:
+            armed_failures += 1
+            print(f"  FAIL {failure}", flush=True)
+
+        try:
+            case_commit(admin, "control: committed MSETNX then EXEC write (RYOW must hold)",
+                        blocker, victims, seen=armed_deltas)
+        except AssertionError as failure:
+            armed_failures += 1
+            print(f"  FAIL {failure}", flush=True)
+
+        # Never retry past a real case failure. A correctness FAIL is the answer, and re-running
+        # until it goes away is precisely the vacuity this battery refuses to commit.
+        if armed_failures or mode != "1" or sum(armed_deltas) or attempts >= ARM_ATTEMPTS:
+            break
+        print(f"  note the hazard window stayed shut on attempt {attempts} of {ARM_ATTEMPTS}; "
+              "re-arming the pair on fresh connections", flush=True)
+
+    failures += armed_failures
 
     # NEGATIVE CONTROL. A foreign connection is never answered from another connection's RYOW
     # overlay, so it must be clean before AND after the fix, and it must leave the hazard
@@ -466,11 +500,13 @@ def run_mode(admin, mode, blocker, victims):
     window_holds = sum(armed_deltas)
     if mode == "1" and window_holds == 0:
         failures += 1
-        print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no transaction "
-              "fragment ever met an undecided same-connection unit, so this run never "
-              "entered the window it exists to close and its pass is vacuous", flush=True)
+        print(f"  FAIL the armed cases recorded 0 atomic_exec_order_holds across {attempts} "
+              f"attempt(s) on fresh connections: no transaction fragment ever met an undecided "
+              "same-connection unit, so this run never entered the window it exists to close "
+              "and its pass is vacuous", flush=True)
     elif mode == "1":
-        ok(f"hazard window opened {window_holds}x across the armed cases")
+        armed_on = "" if attempts == 1 else f", armed on attempt {attempts} of {ARM_ATTEMPTS}"
+        ok(f"hazard window opened {window_holds}x across the armed cases{armed_on}")
     elif window_holds:
         failures += 1
         print(f"  FAIL atomic 0 opened the hazard window {window_holds}x: a two-hop MSETNX must "
