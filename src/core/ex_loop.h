@@ -718,8 +718,9 @@ public:
             sig.iterations++;
 
             uint32_t did = 0;
+            uint64_t pass_ns = 0;
             {
-                Span busy(sig.busy_ns);
+                Span busy(pass_ns);
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
                     const uint32_t age_rate = srv_->effective_age_sample_rate();
                     if (age_rate != age_sample_rate_cached_) {
@@ -778,6 +779,13 @@ public:
                     lb_bucket_bytes_pass();
                 }
             }
+            // A pass that found nothing -- every drain and control pass came back empty -- is
+            // polling, not work. Book it as idle so busy_ns means WORK: the FLIP placement model
+            // reads the roles' busy shares, and an executor spinning its 2048-pass budget between
+            // task batches would otherwise report the polling as demand (measured on 8-key
+            // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
+            // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
+            if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
             sig.cpu_ns = thread_cpu_ns();
 
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
