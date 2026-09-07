@@ -726,12 +726,29 @@ note("promotion leaves one exact final group",
      (ov_final, len(ov_completed), ov_threads_still_alive))
 
 # Broadened movers: RENAME publishes source and destination on distinct owners. Widen exactly that
-# OFF mutation wave once; no reroll or scheduling skip is permitted.
-debug("ATOMIC-OFF-HOP-DELAY", 100000)
-try:
-    rename_off = rename_hammer("at:rename-off", 0, mover_pair, seconds=1.0)
-finally:
-    debug("ATOMIC-OFF-HOP-DELAY", 0)
+# OFF mutation wave.
+#
+# This control is probabilistic in the same way the SINTERSTORE control below is, so it re-rolls the
+# same way: only while the run came back CLEAN and every helper stopped, keeping the last real
+# result. It does NOT degrade to a skip. This control's entire job is to prove the detector can see
+# a tear, so a genuine miss on every roll stays a FAILURE -- that is strictly stronger than the
+# skip-on-clean policy used by the SINTERSTORE, COPY and RENAMENX controls.
+#
+# Measured 2026-09-07 at the gate's geometry (--shards 16 --ratio 6:2, cores 0-7): the outcome is
+# almost binary rather than marginal. When the wave lands, ~75,900 of ~76,000 reads are torn; when
+# it does not, exactly 0 of ~70,000 are, which is the signature of the hop-delay not taking effect
+# for that run rather than of a race narrowly lost. 5 of 6 runs landed it, so four rolls leave a
+# residual around 1 in 1,300. To induce the real failure this row protects: make the OFF path
+# publish both owners atomically and every roll reports invalid=0.
+rename_off = None
+for _roll in range(4):
+    debug("ATOMIC-OFF-HOP-DELAY", 100000)
+    try:
+        rename_off = rename_hammer("at:rename-off", 0, mover_pair, seconds=1.0)
+    finally:
+        debug("ATOMIC-OFF-HOP-DELAY", 0)
+    if rename_off[0] > 0 or rename_off[2] or rename_off[4]:
+        break
 rename_on = None
 if not rename_off[2] and not rename_off[4]:
     rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
