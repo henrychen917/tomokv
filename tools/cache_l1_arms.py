@@ -2,6 +2,7 @@
 """Prepare/build one isolated layout candidate and its padding control; never start a workload.
 
 Run `prepare --base <PRE commit>`, then `build --cores <build CPUs> --jobs <N>`.
+The current shared build allocation is CPUs 112-127, at most four make jobs.
 Use `pad --cores <build CPUs>` to resume from already built PRE/POST arms.
 Use --artifacts for a separate candidate and prepare --post to select its isolated commit.
 All generated files stay in this worktree's ignored build/.
@@ -79,6 +80,8 @@ def prepare(args):
     manifest = {'base_commit': commit, 'status': 'sources prepared; not built or measured',
                 'patch_sha256': digest(HERE / 'candidate.patch'),
                 'source_difference': changed, 'sources': manifests}
+    if args.post:
+        manifest['post_commit'] = compared[1]
     (HERE / 'source-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(f'PRE and POST sources prepared at {ARMS}; no compiler or workload started.')
 
@@ -90,8 +93,8 @@ def cores(value):
             raise argparse.ArgumentTypeError('use CPU numbers/ranges, e.g. 0-7')
         ends = [int(n) for n in part.split('-')]
         first, last = ends[0], ends[-1]
-        if first > last or last > 111:
-            raise argparse.ArgumentTypeError('build CPUs must lie in the allowed 0-111 range')
+        if first > last or first < 112 or last > 127:
+            raise argparse.ArgumentTypeError('build CPUs must lie in the assigned 112-127 range')
         result.update(range(first, last + 1))
     if not result:
         raise argparse.ArgumentTypeError('an assigned CPU set is required')
@@ -107,8 +110,8 @@ def build(args):
     for arm in ('pre', 'post'):
         if sources(ARMS / arm) != manifest['sources'][arm]:
             raise RuntimeError(f'{arm} sources changed after preparation')
-    if args.jobs < 1 or args.jobs > len(args.cores.split(',')):
-        raise RuntimeError('jobs must be positive and no larger than the assigned CPU set')
+    if args.jobs < 1 or args.jobs > min(4, len(args.cores.split(','))):
+        raise RuntimeError('jobs must be positive, at most four, and fit the assigned CPU set')
     env = dict(os.environ, CXXFLAGS=FLAGS)
     env.pop('MAKEFLAGS', None)
     env.pop('MFLAGS', None)
