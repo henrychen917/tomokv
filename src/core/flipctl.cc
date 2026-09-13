@@ -86,14 +86,6 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
                                      right.value_bytes_per_command)) / 3.0;
 }
 
-double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right) {
-    if (!left.valid || !right.valid) return 0;
-    double pass_l1 = 0;
-    for (size_t i = 0; i < left.pass_depth.size(); i++)
-        pass_l1 += std::abs(left.pass_depth[i] - right.pass_depth[i]);
-    return pass_l1 * 0.5;
-}
-
 void FlipShiftDetector::reset() {
     signature_noise_.reset();
     smoothed_ = {};

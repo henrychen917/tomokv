@@ -166,8 +166,6 @@ FlipSignature flip_signature(const FlipFingerprintWindow& sample);
 // actuator moves cannot police the actuator. pass_depth stays measured, published and dumped for
 // diagnosis; it is simply not trigger evidence.
 double flip_signature_distance(const FlipSignature& left, const FlipSignature& right);
-// Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
-double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
 
 // Small, deterministic detector used by both the controller and the unit test. In auto mode its
 // band is twice the signature's own adjacent-window EWMA jitter, with one observed-command quantum
