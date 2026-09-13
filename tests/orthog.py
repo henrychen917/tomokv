@@ -117,8 +117,10 @@ def main():
             # A local-aware overlap needs BOTH streams. The owner-only reorder traffic below
             # cannot witness a local drain in an owner prefetch gap. Put disjoint GETs and SETs
             # in one ROB, with the SETs routed to that connection's own thread, so dispatch
-            # publishes both streams before that owner can execute. Socket fragmentation can
-            # split the burst; an absent witness gets fresh keys and a fresh connection, bounded.
+            # publishes both streams before that owner can execute. Alternate the commands so a
+            # partial receive containing one complete pair can supply both streams; a read-only
+            # prefix of 32 commands could drain before the first owner frame arrived. An absent
+            # witness still gets fresh keys and a fresh connection, bounded.
             for gap_attempt in range(4):
                 conn = _lib.Conn(args.host, args.port, timeout=20)
                 opened.append(conn)
@@ -138,8 +140,8 @@ def main():
                 require(ctl.must("SET", local_key, value) == b"OK", "gap seed failed")
                 gap_before = _lib.info(ctl, "server")
                 hits_before = int(_lib.info(ctl, "stats")["read_local_hits"])
-                burst(conn, [("GET", local_key)] * 32 + [("SET", owner_key, b"gap")] * 32,
-                      [value] * 32 + [b"OK"] * 32)
+                burst(conn, [("GET", local_key), ("SET", owner_key, b"gap")] * 32,
+                      [value, b"OK"] * 32)
                 require(int(_lib.info(ctl, "stats")["read_local_hits"]) - hits_before == 32,
                         "mixed gap did not retain all 32 disjoint local reads")
                 gap_after = _lib.info(ctl, "server")
