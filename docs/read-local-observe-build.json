@@ -1,0 +1,139 @@
+{
+  "build": {
+    "schema": 1,
+    "base": "a363c2c5e1f16e98db18e15dd427502093f99f7c",
+    "post": "e864ba1aff2fd3c4a621d296c565a22aafe245e9",
+    "status": "COMPLETE",
+    "arms": {
+      "PRE": {
+        "source_revision": "a363c2c5e1f16e98db18e15dd427502093f99f7c",
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "make",
+          "-j4",
+          "CXX=g++"
+        ],
+        "cxxflags": "-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread",
+        "pad_only": false,
+        "path": "build/readlocal-obs/arms/tomokv-pre",
+        "sha256": "04d13456cad5582cb8d62e611d9a78b4a968df698c205207f139ecbc60cec64f"
+      },
+      "POST": {
+        "source_revision": "e864ba1aff2fd3c4a621d296c565a22aafe245e9",
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "make",
+          "-j4",
+          "CXX=g++"
+        ],
+        "cxxflags": "-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread",
+        "pad_only": false,
+        "path": "build/readlocal-obs/arms/tomokv-post",
+        "sha256": "1c32edcabdd79f0507bcf9881e8c428e1f3b246952aa0fdfc5b46efb0b0a296b"
+      },
+      "PAD": {
+        "source_revision": "a363c2c5e1f16e98db18e15dd427502093f99f7c",
+        "command": [
+          "taskset",
+          "-c",
+          "104-111",
+          "make",
+          "-j4",
+          "CXX=g++"
+        ],
+        "cxxflags": "-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread",
+        "pad_only": true,
+        "path": "build/readlocal-obs/arms/tomokv-pad",
+        "sha256": "4f7f6f40a9acf783a017669e28e13ce6d53888737ecc263b556f240c14bb9f46"
+      }
+    },
+    "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "sizes": {
+      "pre": 384,
+      "post": 576,
+      "pad": 576,
+      "post_and_pad_alignment": 64
+    },
+    "measurement_status": "NOT_RUN"
+  },
+  "inspection": {
+    "scope": "serverless layout and static ordinary-drain instructions, excluding NOP padding",
+    "dynamic_cost": "UNMEASURED",
+    "layouts": {
+      "pre": {
+        "state_size": 384,
+        "state_alignment": 8,
+        "jemalloc_size": 384
+      },
+      "post": {
+        "state_size": 576,
+        "state_alignment": 64,
+        "jemalloc_size": 640
+      },
+      "pad": {
+        "state_size": 576,
+        "state_alignment": 64,
+        "jemalloc_size": 640
+      }
+    },
+    "drains": {
+      "0": {
+        "static_instructions": {
+          "pre": 574,
+          "post": 574,
+          "pad": 574
+        },
+        "post_normalized_equal": true,
+        "pad_normalized_equal": true
+      },
+      "1": {
+        "static_instructions": {
+          "pre": 678,
+          "post": 678,
+          "pad": 678
+        },
+        "post_normalized_equal": true,
+        "pad_normalized_equal": true
+      }
+    }
+  },
+  "reproduction_attempt": {
+    "status": "FAILED",
+    "error": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 4.760000s > 3.360000s per 20s",
+    "historical_geometry_match": false,
+    "completed_runs": 0,
+    "quiet_screening": {
+      "scope": "preflight",
+      "server_physical_cores": 32,
+      "sampled_physical_cores": 112,
+      "capacity_fraction": 0.0015,
+      "window_seconds": 20,
+      "cpu_budget_seconds": 3.3600000000000003,
+      "preflight_seconds": null,
+      "peak_rolling": {
+        "cpu_ticks": 476,
+        "cpu_seconds": 4.76
+      },
+      "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+    },
+    "artifact": "build/readlocal-obs/reproduce-pre/results.json"
+  },
+  "checks": {
+    "observation_unit": "PASS",
+    "diagnostic_controls": "2/2 PASS",
+    "abba_primary": {
+      "passed": 85,
+      "total": 86,
+      "error": "ProcessLookupError at existing polling read in test_build_abort_stops_only_pids_in_its_owned_session"
+    },
+    "abba_saturation": "10/10 PASS",
+    "abba_calibration": "7/7 PASS",
+    "gate": "NOT RUN",
+    "dynamic_amortization": "UNMEASURED",
+    "new_gate_rows": 0
+  }
+}

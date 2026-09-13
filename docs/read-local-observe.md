@@ -88,6 +88,9 @@ revisions and complete SHA-256 digests are in build/readlocal-obs/arms/manifest.
 | POST | 1c32edcabdd79f05 |
 | PAD | 4f7f6f40a9acf783 |
 
+docs/read-local-observe-build.json also commits those digests, the static inspection, test status
+and failed quiet-screening summary so another build-directory cleanup does not erase the record.
+
 Recreate the static checks with `python3 tests/read_local_observe.py inspect`. The diagnostic POST
 GET runs require positive local hits, positive sampled hits and a nonempty histogram. A run that
 never fires the sampler fails this directed check; no histogram-equals-hit assertion is imposed on
