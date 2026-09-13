@@ -12,6 +12,8 @@ from dataclasses import replace
 import argparse
 import json
 from pathlib import Path
+import re
+import subprocess
 import sys
 
 
@@ -91,7 +93,7 @@ def render(cells):
         f"score={c.score} | mix={c.mix} | smoke={int(c.smoke)}\n" for c in cells)
 
 
-def prepare(pre, output, request):
+def prepare(pre, output, request, source_commit):
     pre, output, request = pre.resolve(), output.resolve(), request.resolve()
     for path in (pre, output, request):
         if not path.is_relative_to(ROOT):
@@ -100,6 +102,18 @@ def prepare(pre, output, request):
         if stream.read(4) != b"\x7fELF":
             raise ValueError("PRE is not an ELF executable; build it before preparing the request")
     digest = abba.sha256(pre)
+    # Repository recovery changed the lane's commit ID without changing the C++
+    # sources. Record a resolvable source revision and check that equality, rather
+    # than asserting that a now-missing historical commit identifies the build.
+    source_commit = subprocess.check_output(
+        ["git", "rev-parse", "--verify", "--end-of-options", source_commit + "^{commit}"],
+        cwd=ROOT, text=True).strip()
+    subprocess.run(["git", "diff", "--exit-code", source_commit, "--", "src", "Makefile"],
+                   cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
+    notes = subprocess.check_output(["readelf", "-n", str(pre)], text=True)
+    build_ids = re.findall(r"Build ID: ([0-9a-f]+)", notes)
+    if len(build_ids) != 1:
+        raise ValueError("PRE must have exactly one ELF build ID for profile attribution")
     groups = select_cells(abba.read_cells(ROOT / "tests/headline_cells.txt"))
     if request.exists():
         raise FileExistsError(f"preserve the existing measurement request: {request}")
@@ -112,13 +126,16 @@ def prepare(pre, output, request):
         if [shape(c) for c in parsed] != [shape(c) for c in cells] or any(c.instances for c in parsed):
             raise ValueError(f"generated cells changed shape or inherited a load pin: {path}")
         artifacts[name] = {"path": str(path), "count": len(parsed),
-                           "ids": [c.id for c in parsed]}
+                           "sha256": abba.sha256(path), "ids": [c.id for c in parsed]}
 
     document = {
         "lane": "overlap-O7",
         "status": "awaiting prerequisite stall profile; no O7 candidate",
         "NEEDS-BOX": "Maintainer to schedule armed baseline attribution, one measuring lane at a time.",
         "pre": {"path": str(pre), "sha256": digest,
+                "build_id": build_ids[0], "source_commit": source_commit,
+                "source_check": "src/ and Makefile match this revision; no candidate engine changes",
+                "build_command": "taskset -c 0-3 make -j4 BIN=build/tomokv-O7-PRE",
                 "build_log": str(ROOT / "build/overlap-O7/build-pre.log")},
         "post": None,
         "pad": None,
@@ -199,7 +216,9 @@ if __name__ == "__main__":
     parser.add_argument("--pre", type=Path, default=ROOT / "build/tomokv-O7-PRE")
     parser.add_argument("--output", type=Path, default=ROOT / "build/overlap-O7/handoff")
     parser.add_argument("--request", type=Path, default=ROOT / "MEASURE-REQUEST")
+    parser.add_argument("--source-commit", required=True,
+                        help="resolvable revision whose src/ and Makefile were built for PRE")
     args = parser.parse_args()
-    document = prepare(args.pre, args.output, args.request)
+    document = prepare(args.pre, args.output, args.request, args.source_commit)
     print(json.dumps({"request": str(args.request), "pre": document["pre"],
                       "cell_counts": {name: row["count"] for name, row in document["cells"].items()}}, indent=2))
