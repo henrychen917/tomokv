@@ -2502,9 +2502,6 @@ public:
     }
     bool atomic_enabled() const { return atomic_mode_state() & kAtomicEnabledBit; }
     bool atomic_work_active() const { return (atomic_mode_state() & ~kAtomicEnabledBit) != 0; }
-    uint32_t atomic_window() const {
-        return atomic_credits_.window();
-    }
     void set_atomic_enabled(bool enabled) {
         if (enabled) {
             atomic_activity_.fetch_or(kAtomicEnabledBit, std::memory_order_release);
