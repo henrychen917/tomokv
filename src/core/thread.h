@@ -1143,10 +1143,13 @@ public:
     std::atomic<bool>& stop_flag() { return stop_; }
 
 private:
+    friend struct ThreadCtxLayoutLock;
     uint32_t          id_ = 0;
     std::atomic<Role> role_{Role::Idle};
     std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
+    // Audit #1: every producer reads this beside ring_; mask drains must not invalidate it.
+    std::atomic<bool> parked_{false};
     std::atomic<Ring*> ring_{nullptr};
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;
@@ -1175,7 +1178,8 @@ private:
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;
-    std::atomic<bool>     parked_{false};
+    // Preserve the mask block and every following offset when parked_ consumes the header hole.
+    char parked_gap_[8];
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
@@ -1204,6 +1208,26 @@ private:
     // the 1408-byte allocation stride when read-local is disabled.
     std::unique_ptr<ReadLocalThreadState> read_local_state_;
 };
+
+struct ThreadCtxLayoutLock {
+    static constexpr size_t line = 64;
+    static constexpr size_t parked = offsetof(ThreadCtx, parked_);
+    static constexpr size_t parked_last = parked + sizeof(ThreadCtx::parked_) - 1;
+    static constexpr size_t ring = offsetof(ThreadCtx, ring_);
+    static constexpr size_t ring_last = ring + sizeof(ThreadCtx::ring_) - 1;
+    static constexpr size_t task_notify = offsetof(ThreadCtx, task_notify_);
+};
+
+// The byte-distance guarantee holds for any base; the companion alignment lock proves that
+// ring_ and parked_ also cost just one line for every actual ThreadCtx, including array elements.
+static_assert(ThreadCtxLayoutLock::task_notify - ThreadCtxLayoutLock::parked_last >=
+                  ThreadCtxLayoutLock::line,
+              "task mask stores may share the producer's parked_ line (audit #1)");
+static_assert(ThreadCtxLayoutLock::parked == 7 && ThreadCtxLayoutLock::task_notify == 696);
+static_assert(alignof(ThreadCtx) >= ThreadCtxLayoutLock::line);
+static_assert(ThreadCtxLayoutLock::parked / ThreadCtxLayoutLock::line ==
+                  ThreadCtxLayoutLock::ring_last / ThreadCtxLayoutLock::line,
+              "parked_ and ring_ must share the producer's first line (audit #1)");
 
 static_assert(sizeof(ThreadCtx) == 1408,
               "read-local state must stay out of the baseline ThreadCtx allocation");
