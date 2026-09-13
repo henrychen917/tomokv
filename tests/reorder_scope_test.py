@@ -4,6 +4,7 @@ import copy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 import reorder_scope as scope
 
@@ -80,6 +81,16 @@ class ScopeTest(unittest.TestCase):
         self.assertFalse(path.exists())
         with self.assertRaisesRegex(ValueError, "shared probe measures the PRE"):
             scope.prepare(path)
+        self.assertFalse(path.exists())
+
+    def test_committed_continuous_scope_also_rejects_old_gather_hooks(self):
+        path = scope.ROOT / "build" / "r7-scope-committed-rejection-fixture"
+        original = (scope.ROOT / "src/core/ex_loop.h").read_text()
+        self.assertFalse(path.exists())
+        with mock.patch.object(scope.subprocess, "check_output",
+                               side_effect=["committed-r7\n", original]):
+            with self.assertRaisesRegex(ValueError, "shared probe measures the PRE"):
+                scope.prepare(path, "HEAD")
         self.assertFalse(path.exists())
 
 

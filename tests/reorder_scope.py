@@ -264,9 +264,9 @@ def prepare(path, revision=None):
             ["git", "show", revision + ":src/core/ex_loop.h"], cwd=ROOT, text=True)
     else:
         original = (ROOT / "src/core/ex_loop.h").read_text()
-        if "    uint32_t drain_tasks_reordered(" in original:
-            raise ValueError("R7 queues span gathers: this shared probe measures the PRE gather "
-                             "scope; prepare it with --ref before drawing a scope conclusion")
+    if "    uint32_t drain_tasks_reordered(" in original:
+        raise ValueError("R7 queues span gathers: this shared probe measures the PRE gather "
+                         "scope; use a pre-R7 --ref before drawing a scope conclusion")
     patched = instrument(original)
     path.mkdir(parents=True)
     if revision:
