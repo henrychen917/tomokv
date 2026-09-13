@@ -189,9 +189,14 @@ expect(admin.command("ACL", "USERS"), [b"alice", b"default"], "USERS ordering")
 expect(admin.command("ACL", "SETUSER", "bad-rw", "%R~cache:*"),
        "ERR Error in ACL SETUSER modifier '%R~cache:*': Read/write key patterns are not supported until command key specifications are available",
        "%R rule rejected")
+# Redis 7.4 rejects user flags inside selectors with "Syntax error". TomoKV rejects
+# all selectors until enforcement exists, using the same SETUSER modifier-error grammar.
 expect(admin.command("ACL", "SETUSER", "bad-selector", "(on +get)"),
-       "ERR Error in ACL SETUSER modifier '(on +get)': Syntax error",
+       "ERR Error in ACL SETUSER modifier '(on +get)': " +
+       ("ACL selectors are not supported" if is_tomokv else "Syntax error"),
        "invalid selector rejected")
+expect(admin.command("ACL", "GETUSER", "bad-selector"), None,
+       "rejected selector creates no user")
 expect(admin.command("ACL", "SETUSER", "bad-firstarg", "+select|0"),
        "ERR Error in ACL SETUSER modifier '+select|0': Allowing first-arg of a subcommand is not supported",
        "first-arg rule rejected")
@@ -333,8 +338,9 @@ expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore AC
 before_selector = admin.command("ACL", "GETUSER", "alice")
 selector_reply = admin.command("ACL", "SETUSER", "alice", "(~persist:* +get)")
 if is_tomokv:
-    if not isinstance(selector_reply, RespError) or "ACL selectors are not supported" not in str(selector_reply):
-        raise AssertionError("selector persistence setup must be rejected: %r" % selector_reply)
+    expect(selector_reply,
+           "ERR Error in ACL SETUSER modifier '(~persist:* +get)': ACL selectors are not supported",
+           "selector persistence setup rejected")
     expect(admin.command("ACL", "GETUSER", "alice"), before_selector,
            "rejected selector preserves the user before SAVE")
 else:
