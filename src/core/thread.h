@@ -42,6 +42,7 @@
 #include "flipctl.h"
 #include "pubsub_event.h"
 #include "../base/topology.h"
+#include "../cmd/command.h"
 
 namespace tomo {
 
