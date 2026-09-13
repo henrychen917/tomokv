@@ -12,9 +12,11 @@ import tarfile
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/cache-L3-f11'
 ARMS = OUT / 'arms'
-PRE = '3aadb258e'
-OP = '70c8f369c'
-POST = 'fe5041604'
+# The shared Git store was lost during this lane's crash recovery. The original code commits
+# (3aadb258e / 70c8f369c / fe5041604) survive as hashed source snapshots under build/, while this
+# recovered commit retains the same implementation. Reconstruct fresh arms from reachable refs.
+BASE = 'a363c2c5e'
+POST = 'f5f521732'
 FLAGS = '-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'
 
 def run(args, cwd=ROOT, **kw):
@@ -77,23 +79,82 @@ def sources(dst):
         paths.extend(p for p in (dst / name).rglob('*') if p.is_file())
     return {str(p.relative_to(dst)): sha(p) for p in sorted(paths)}
 
+def placement_controls(result, env):
+    # Reuse candidate 1's unreachable front/tail padding control. A shrinking .text cannot be
+    # matched by negative padding: pad the smaller arm back to the larger one, recording which
+    # source it preserves. This changes no field, instruction on a called path, or data allocation.
+    controls = {}
+    for candidate in ('header', 'body', 'op', 'client', 'post'):
+        small, large = sorted(('pre', candidate), key=lambda a: result[a]['text_bytes'])
+        delta = result[large]['text_bytes'] - result[small]['text_bytes']
+        dst = ARMS / small
+        folder = OUT / f'place-{candidate}'
+        folder.mkdir(exist_ok=True)
+        binary = folder / 'tomokv'
+        objects = capture(['make', '--no-print-directory', '-s',
+            '--eval=cache_l3_objects: ; @echo $(OBJ)', 'cache_l3_objects'], cwd=dst).decode().strip()
+
+        def link(front, tail):
+            for name, count in (('front', front), ('tail', tail)):
+                asm = folder / f'{name}.S'
+                asm.write_text('.section .text,"ax",@progbits\n' + f'.fill {count},1,0x90\n' +
+                               '.section .note.GNU-stack,"",@progbits\n')
+                run(['g++', '-c', str(asm), '-o', str(folder / f'{name}.o')])
+            with (folder / 'link.log').open('a') as log:
+                run(['make', '-j1', 'CXX=g++', 'JE=1', f'BIN={binary}',
+                     f'OBJ={folder / "front.o"} {objects} {folder / "tail.o"}', 'all'],
+                    cwd=dst, env=env, stdout=log, stderr=subprocess.STDOUT)
+            text = folder / 'text.bin'
+            run(['objcopy', '--only-section=.text', '-O', 'binary', str(binary), str(text)])
+            return text.stat().st_size
+
+        front = delta
+        for _ in range(8):
+            growth = link(front, 0) - result[small]['text_bytes']
+            if growth <= delta: break
+            next_front = max(0, front - (growth - delta))
+            if next_front == front: raise RuntimeError('cannot match placement padding')
+            front = next_front
+        else:
+            raise RuntimeError('placement padding did not converge')
+        tail = delta - growth
+        size = link(front, tail) if tail else result[small]['text_bytes'] + growth
+        if size != result[large]['text_bytes']: raise RuntimeError('placement size mismatch')
+        controls[candidate] = dict(binary=str(binary), sha256=sha(binary), text_bytes=size,
+            source_arm=small, matched_size_arm=large, front_bytes=front, tail_bytes=tail,
+            fields_moved=False,
+            limitation='Executable size and placement sensitivity control; function addresses are not matched.')
+    (OUT / 'placement-controls.json').write_text(json.dumps(controls, indent=2) + '\n')
+
 def prepare():
     OUT.mkdir(parents=True, exist_ok=True)
     ARMS.mkdir(exist_ok=False)
-    snapshot('pre', PRE)
-    op = snapshot('op', OP)
+    pre = snapshot('pre', BASE)
     post = snapshot('post', POST)
-    client = snapshot('client', PRE)
+    floor = ('src/core/thread.h',)
+    op_files = ('src/exec/op.h', 'src/net/rob.h')
+    for name in floor:
+        shutil.copy2(post / name, pre / name)
+    op = snapshot('op', BASE)
+    for name in floor + op_files:
+        shutil.copy2(post / name, op / name)
+    client = snapshot('client', BASE)
+    for name in floor:
+        shutil.copy2(post / name, client / name)
     for name in ('src/net/conn.h', 'src/cmd/t_server.cc'):
         shutil.copy2(post / name, client / name)
     for name in ('pad-op', 'pad-client', 'pad-post'):
-        dst = snapshot(name, PRE)
+        dst = snapshot(name, BASE)
+        for filename in floor:
+            shutil.copy2(post / filename, dst / filename)
         if name in ('pad-op', 'pad-post'): pad_op(dst)
         if name in ('pad-client', 'pad-post'): pad_client(dst)
 
     # Expose the argv-header permutation separately from moving reply bytes, so the whole
     # Op result cannot quietly attribute candidate 2's benefit to the F11 body mechanism.
-    header = snapshot('header', PRE)
+    header = snapshot('header', BASE)
+    for name in floor:
+        shutil.copy2(post / name, header / name)
     fields = '''    Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
     uint32_t argc_      = 0;
@@ -101,7 +162,9 @@ def prepare():
     replace(header / 'src/exec/op.h', fields, '')
     replace(header / 'src/exec/op.h', '    SmallBuf<kInlineReply> reply;',
             'private:\n' + fields + 'public:\n    SmallBuf<kInlineReply> reply;')
-    body = snapshot('body', OP)
+    body = snapshot('body', BASE)
+    for name in floor + op_files:
+        shutil.copy2(post / name, body / name)
     group = '''private:
     // Parse and execute both inspect argc/heap even for two inline arguments. Keeping that
     // metadata beside routing avoids fetching the tail solely to discover there is no heap.
@@ -116,7 +179,7 @@ public:
 
     # Every binary is compiled from its archived sources. Never import root objects: their
     # timestamps do not establish which source/flags produced them after an interrupted build.
-    manifest = {'pre': PRE, 'op': OP, 'post': POST,
+    manifest = {'base': BASE, 'post': POST, 'common_floor': list(floor),
                 'sources': {p.name: sources(p) for p in sorted(ARMS.iterdir())}}
     (OUT / 'source-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print('Sources frozen; no server or measurement started.', flush=True)
@@ -160,6 +223,7 @@ def build():
             'cxxflags': FLAGS, 'affinity': sorted(os.sched_getaffinity(0)),
             'measured': False, 'arms': result}, indent=2) + '\n')
         print(f'Ready {name}: {result[name]["sha256"]}', flush=True)
+    placement_controls(result, env)
 
 if __name__ == '__main__':
     if not ARMS.exists(): prepare()
