@@ -6060,8 +6060,8 @@ ordinary_shard_ready:
             Client* c = clients[client_cron_cursor_];
             const size_t before = clients.size();
             bool closed = false;
-            if (timeout && !c->blocked() && (!c->subscriber_mode() || c->resp3()) &&
-                !c->closing() && cached_now_s_ - c->last_interaction_s() > timeout) {
+            if (timeout && !c->blocked() && !c->subscriber_mode() && !c->closing() &&
+                cached_now_s_ - c->last_interaction_s() > timeout) {
                 close_client(c);
                 closed = true;
             } else if (client_obuf_check(c, false)) {

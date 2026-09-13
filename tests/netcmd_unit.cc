@@ -238,9 +238,21 @@ struct NetcmdRegression {
             check(loop.client_cron_pass() == 1 && !client.closing(), "blocked subscribers remain exempt");
             client.set_blocked(false);
             check(loop.client_cron_pass() == 1, "idle subscriber visited by client cron");
-            check(client.closing() == resp3,
-                  resp3 ? "idle RESP3 SUBSCRIBE client must be closed after timeout"
+            check(!client.closing(),
+                  resp3 ? "idle RESP3 SUBSCRIBE client must remain exempt from timeout"
                         : "idle RESP2 SUBSCRIBE client must remain exempt from timeout");
+
+            Client idle(-1); idle.set_id(43); idle.set_resp3(resp3);
+            idle.set_last_interaction_s(100);
+            // Model an outstanding receive to keep this stack-owned control alive after close.
+            // No receive is submitted; the control has no subscription or blocking command.
+            idle.set_recv_armed(true);
+            self.add_client(&idle);
+            check(loop.client_cron_pass() == 2, "subscriber and plain idle client visited by cron");
+            check(!client.closing(), "subscriber stays open alongside the plain idle control");
+            check(idle.closing(),
+                  resp3 ? "plain idle RESP3 client must be closed after timeout"
+                        : "plain idle RESP2 client must be closed after timeout");
         }
     }
 
