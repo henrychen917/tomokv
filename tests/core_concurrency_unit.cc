@@ -171,6 +171,8 @@ struct CoreConcurrencyTest {
                 "cleanup removed watcher and released client");
     }
 
+    inline static std::function<void(Client*)> sliced_observer;
+
     template <bool Fused>
     static void sliced_execution() {
         Fixture<Fused> f(true);
@@ -213,7 +215,33 @@ struct CoreConcurrencyTest {
         add(b, {Slice("SET"), slice(key), slice(zeros)});
         require(ex_split_possible(batch, n), "R8 real executor window must open");
         auto& loop = f.loops[f.source];
+        auto& ready = f.server.thread(f.io_id).ready();
+        ready.clear(a.wb_slot()); // Discard the seed command's notification.
+        ready.clear(b.wb_slot());
+        bool peer_wrote = false, peer_retired = false;
+        sliced_observer = [&](Client* completed) {
+            if (completed == &b) {
+                require(store.outstanding_borrows() == 1 &&
+                            a.rob().at(batch[0].op_id).state.load() == OpState::Issued,
+                        "R8 peer write must overlap the unfinished read");
+                peer_wrote = true;
+            } else if (!peer_retired) {
+                require(peer_wrote, "R8 first read finished before the peer write");
+                const uint64_t notified = ready.take(b.wb_slot() >> 6);
+                require(notified & (uint64_t{1} << (b.wb_slot() & 63)),
+                        "R8 must notify the peer before resuming the long read");
+                require(b.rob().drain([](Op&) {}) == 1, "R8 peer retires during the batch");
+                // Model IO recycling the completed slot while the scheduler is still live.
+                // Subsequent turns must use the captured kind, never this retired metadata.
+                b.rob().at(batch[3].op_id).spec = nullptr;
+                peer_retired = true;
+            }
+        };
+        ExLoopT<Fused>::test_after_done_ = [](Client* c) { sliced_observer(c); };
         loop.exec_batch(batch, n);
+        ExLoopT<Fused>::test_after_done_ = nullptr;
+        sliced_observer = nullptr;
+        require(peer_wrote && peer_retired, "R8 peer completion window must fire");
         const auto& stats = f.server.mode_schedule_stats(f.source);
         require(stats.reorder_sliced_commands.load() > 0 && stats.reorder_slice_yields.load() > 0,
                 "R8 must suspend and yield in the real executor");
@@ -223,7 +251,7 @@ struct CoreConcurrencyTest {
         })) {}
         require(replies == std::vector<std::string>({":524288\r\n", "+OK\r\n", ":65531\r\n"}),
                 "R8 pinned old value, own SET, and ranged RYOW replies");
-        require(b.rob().drain([](Op&) {}) == 1, "R8 foreign writer completes once");
+        require(b.rob().drain([](Op&) {}) == 0, "R8 foreign writer completes only once");
         require(store.outstanding_borrows() == 0, "R8 releases before ownership edge");
         ThreadCtx& incoming = f.server.thread(f.destination);
         require(incoming.init_read_local_state(), "R8 incoming owner storage");

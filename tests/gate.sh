@@ -1245,9 +1245,9 @@ done
 }
 
 job_reorder_unit(){
-# REORDER.md: one row in BOTH tiers (before the quick exit). Real published ROB tasks drive the
-# production scheduler at 32/128 capacity. Exact non-identity permutations prove it fired; ASAN
-# and UBSAN make undersized scratch and an invalid occupancy shift fail, never skip or time out green.
+# One row in BOTH tiers (before the quick exit). Real published ROB tasks drive the R8
+# scheduler at 32/128 capacity. Live borrows, overlapping peer writes and slice/yield witnesses
+# prove it fired; ASAN/UBSAN cover the pinned value's lifetime and the bounded batch scratch.
 row_begin "reorder mechanism + 32/128-task geometry battery"
 g++ -std=c++20 -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all \
     -fno-omit-frame-pointer -pthread -I. tests/reorder_unit.cc \

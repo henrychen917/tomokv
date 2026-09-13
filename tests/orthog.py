@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove one externally started mode cell, including actual multi-client permutations.
+"""Prove one externally started mode cell, including actual multi-client scheduling.
 
 orthog.py HOST PORT 1s|2s READ_LOCAL OVERLAP REORDER [--output FILE]
 Requires atomic 1, DEBUG enabled, key/client LB and automatic FLIP disabled.
@@ -113,7 +113,7 @@ def main():
         opened.clear()
 
         # Every command below reaches an owner, including armed boots. Fresh independent keys
-        # share a real owner; 8-deep concurrent batches permit legal cross-client permutations.
+        # share a real owner; 8-deep concurrent batches permit cross-client slice yields.
         # An absent witness gets fresh keys/connections, bounded; wrong replies never get retried.
         start = _lib.info(ctl, "server")
         mechanism_fields = ('reorder_sliced_commands', 'reorder_slice_yields') \
