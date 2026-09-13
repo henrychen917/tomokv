@@ -140,6 +140,9 @@ def build(args):
                 'text_bytes': text_file.stat().st_size, 'text_sha256': digest(text_file)}
 
     result = {arm: executable(ARMS / arm / 'build/tomokv', arm) for arm in ('pre', 'post')}
+    if prior is not None:
+        for arm in ('pre', 'post'):
+            result[arm] = {**prior[arm], **result[arm]}
 
     def properties(path):
         notes = output(['readelf', '-n', str(path)])
@@ -229,6 +232,8 @@ def build(args):
     result.update(base_commit=manifest['base_commit'], cxxflags=FLAGS,
                   compiler=output(['g++', '--version']).splitlines()[0],
                   cores=args.cores, jobs=args.jobs, measured=False)
+    if manifest.get('post_commit'):
+        result['post_commit'] = manifest['post_commit']
     if prior is not None:
         # The resume only links PAD; do not relabel the earlier PRE/POST build CPU set.
         result['cores'], result['jobs'] = prior['cores'], prior['jobs']
