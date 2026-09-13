@@ -223,8 +223,15 @@ def replace_once(source, anchor, replacement):
 
 
 def instrument(source):
-    source = replace_once(source, '#include "reorder.h"',
-                          '#include "reorder.h"\n#include "reorder_scope_probe.h"')
+    # The isolated runtime retains a FIFO-only header for compiler identity. This
+    # helper can still validate those literal injection sites; prepare() rejects an
+    # R7 runtime before copying it, because these hooks cannot observe its queues.
+    includes = [name for name in ('reorder.h', 'reorder_fifo.h')
+                if '#include "' + name + '"' in source]
+    if len(includes) != 1:
+        raise ValueError(f"scope anchor changed ({len(includes)} scheduler includes)")
+    anchor = '#include "' + includes[0] + '"'
+    source = replace_once(source, anchor, anchor + '\n#include "reorder_scope_probe.h"')
     for anchor, hook in (
         ("    void exec_batch(Task (&batch)[BatchOps], uint32_t n) {",
          "        reorder_scope::Batch scope_batch(batch, n);"),
@@ -264,7 +271,9 @@ def prepare(path, revision=None):
             ["git", "show", revision + ":src/core/ex_loop.h"], cwd=ROOT, text=True)
     else:
         original = (ROOT / "src/core/ex_loop.h").read_text()
-    if "    uint32_t drain_tasks_reordered(" in original:
+    if any(marker in original for marker in
+           ("    uint32_t drain_tasks_reordered(",
+            "    uint32_t r7_drain_tasks_reordered(")):
         raise ValueError("R7 queues span gathers: this shared probe measures the PRE gather "
                          "scope; use a pre-R7 --ref before drawing a scope conclusion")
     patched = instrument(original)
