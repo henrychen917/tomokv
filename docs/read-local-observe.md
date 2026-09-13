@@ -171,6 +171,9 @@ The failed live-attempt record is build/readlocal-obs/reproduce-pre/results.json
 CPU evidence is in quiet.jsonl beside it. The guard failed before population or measurement, so
 there is no four-boot reproduction to report. The failure and all binaries are retained; neither
 the quiet threshold nor the gate cell definition was changed to obtain a result.
+A later read-only process check found another binary-B server and eight load generators on
+selected CPUs. Their PIDs and last CPUs are preserved in the build record. No foreign process was
+signalled, and no further measurement was attempted over that workload.
 
 The initial recovery appeared as c827a7c62, followed by the unit integration commit fbb3e3d00.
 At 11:26 the shared Git store was lost and re-created, removing those objects and 87b88cc4e.

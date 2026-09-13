@@ -120,7 +120,50 @@
       },
       "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
     },
-    "artifact": "build/readlocal-obs/reproduce-pre/results.json"
+    "artifact": "build/readlocal-obs/reproduce-pre/results.json",
+    "followup_selected_cpu_occupancy": {
+      "kind": "read-only proc check after the failed precondition; no owned benchmark was running",
+      "server": {
+        "pid": 1723100,
+        "comm": "binary-B",
+        "last_cpu": 7
+      },
+      "load_generators": [
+        {
+          "pid": 1723143,
+          "last_cpu": 32
+        },
+        {
+          "pid": 1723144,
+          "last_cpu": 46
+        },
+        {
+          "pid": 1723145,
+          "last_cpu": 60
+        },
+        {
+          "pid": 1723146,
+          "last_cpu": 65
+        },
+        {
+          "pid": 1723147,
+          "last_cpu": 77
+        },
+        {
+          "pid": 1723148,
+          "last_cpu": 82
+        },
+        {
+          "pid": 1723149,
+          "last_cpu": 96
+        },
+        {
+          "pid": 1723150,
+          "last_cpu": 105
+        }
+      ],
+      "action": "No further measurement attempt; no foreign process was signalled."
+    }
   },
   "checks": {
     "observation_unit": "PASS",
