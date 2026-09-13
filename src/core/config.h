@@ -24,6 +24,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <cerrno>
 #include <limits>
 #include <string>
 #include <utility>
@@ -117,6 +119,16 @@ inline bool cfg_parse_memory(const char* input, size_t length, uint64_t& out) {
 
 inline bool cfg_parse_memory(const char* input, uint64_t& out) {
     return input && cfg_parse_memory(input, std::strlen(input), out);
+}
+
+inline bool cfg_parse_unixsocketperm(const char* input, uint16_t& out) {
+    if (!input) return false;
+    char* end = nullptr;
+    errno = 0;
+    const long value = std::strtol(input, &end, 8);
+    if (errno || *end || value < 0 || value > 0777) return false;
+    out = static_cast<uint16_t>(value);
+    return true;
 }
 
 struct SaveClause {
@@ -230,25 +242,29 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 struct EncodingConfig {
     enum Key : uint32_t { HashEntries, HashValue, ListSize, SetEntries, SetValue,
                           ZsetEntries, ZsetValue, Count };
-    struct Setting { const char* name; const char* alias; bool memory; };
+    struct Setting { const char* name; const char* alias; bool memory; const char* tomo_alias; };
     static constexpr Setting settings[Count] = {
-        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false},
-        {"hash-max-listpack-value", "hash-max-ziplist-value", true},
-        {"list-max-listpack-size", "list-max-ziplist-size", false},
-        {"set-max-listpack-entries", nullptr, false},
-        {"set-max-listpack-value", nullptr, false},
-        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false},
-        {"zset-max-listpack-value", "zset-max-ziplist-value", true},
+        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false, "hash-max-compact-entries"},
+        {"hash-max-listpack-value", "hash-max-ziplist-value", true, "hash-max-compact-value"},
+        {"list-max-listpack-size", "list-max-ziplist-size", false, nullptr},
+        {"set-max-listpack-entries", nullptr, false, nullptr},
+        {"set-max-listpack-value", nullptr, false, nullptr},
+        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false, "zset-max-compact-entries"},
+        {"zset-max-listpack-value", "zset-max-ziplist-value", true, "zset-max-compact-value"},
     };
     int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64};
 
     static int find(Slice name) {
         for (uint32_t i = 0; i < Count; i++)
             if (name.eq_icase(settings[i].name) ||
-                (settings[i].alias && name.eq_icase(settings[i].alias))) return i;
+                (settings[i].alias && name.eq_icase(settings[i].alias)) ||
+                legacy(i, name)) return i;
         return -1;
     }
-    static bool parse(uint32_t key, Slice input, int64_t& out);
+    static bool legacy(uint32_t key, Slice name) {
+        return key < Count && settings[key].tomo_alias && name.eq_icase(settings[key].tomo_alias);
+    }
+    static bool parse(uint32_t key, Slice input, int64_t& out, bool legacy = false);
     static void apply(TypeLimits& limits, uint32_t key, int64_t value) {
         if (key == ListSize) {
             limits.list = list_compact_limit(static_cast<int32_t>(value));
@@ -298,6 +314,7 @@ struct Config {
 
     // ---- network (boot-only) ---------------------------------------------------------------
     uint16_t port           = 6379;
+    uint16_t unixsocketperm = 0;        // boot-only octal mode; occupies port's alignment hole
     const char* bind_addr   = "127.0.0.1";
     const char* unixsocket  = nullptr;
     uint32_t maxclients     = 10000;     // live; accept-path pre-count safety valve
@@ -335,6 +352,7 @@ struct Config {
     uint32_t auto_aof_rewrite_percentage = 100;
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
+    bool aof_load_truncated = true;     // boot-only recovery policy; existing bool alignment hole
 
     // TomoKV intentionally owns one keyspace. The compatibility knob is still parsed and exposed,
     // but only the honest value 1 is accepted. The protocol bound is live and applies to request
@@ -384,6 +402,9 @@ struct Config {
     const char* tls_ciphers = nullptr;
     const char* tls_ciphersuites = nullptr;
     bool tls_prefer_server_ciphers = false;
+
+    // HLL promotion is boot-latched; use the TLS tail's alignment hole without moving fields.
+    uint32_t hll_sparse_max_bytes = 3000;
 
     // SLOWLOG + LATENCY. Redis knob names, grammar and semantics exactly:
     //   slowlog-log-slower-than  microseconds; -1 disables the log entirely, 0 logs everything
@@ -465,8 +486,21 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     return true;
 }
 
-inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out) {
+inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool legacy) {
     if (key >= Count) return false;
+    // Preserve the original TomoKV aliases' bare uint32 grammar (including leading zeroes).
+    // Redis spellings use the full reference range and grammar below. All paths share storage.
+    if (legacy) {
+        if (!input.n) return false;
+        uint64_t value = 0;
+        for (uint32_t i = 0; i < input.n; i++) {
+            if (input.p[i] < '0' || input.p[i] > '9') return false;
+            value = value * 10 + static_cast<uint32_t>(input.p[i] - '0');
+            if (value > UINT32_MAX) return false;
+        }
+        out = static_cast<int64_t>(value);
+        return true;
+    }
     if (settings[key].memory) {
         uint64_t bytes = 0;
         // Redis memtoull also accepts a bare unit (and the empty string) as zero.
@@ -514,7 +548,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         if (encoding >= 0) {
             const char* value = next(nullptr);
             int64_t parsed = 0;
-            if (!value || !EncodingConfig::parse(encoding, Slice(value, std::strlen(value)), parsed)) {
+            if (!value || !EncodingConfig::parse(encoding, Slice(value, std::strlen(value)), parsed,
+                                                EncodingConfig::legacy(encoding, Slice(a + 2, std::strlen(a + 2))))) {
                 std::fprintf(stderr, "%s has an invalid encoding limit\n", a);
                 return kConfigError;
             }
@@ -566,6 +601,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
+        else if (!std::strcmp(a, "--unixsocketperm")) {
+            if (!cfg_parse_unixsocketperm(next(nullptr), cfg.unixsocketperm)) {
+                std::fprintf(stderr, "--unixsocketperm wants an octal mode between 0 and 777\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--maxclients")) {
             if (!cfg_parse_u32(next(nullptr), cfg.maxclients) || cfg.maxclients == 0) {
                 std::fprintf(stderr, "--maxclients must be between 1 and %u\n", UINT32_MAX);
@@ -914,6 +955,24 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--aof-load-truncated")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.aof_load_truncated = true;
+            else if (cfg_eq_icase(value, "no")) cfg.aof_load_truncated = false;
+            else {
+                std::fprintf(stderr, "--aof-load-truncated wants yes or no\n");
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--hll-sparse-max-bytes")) {
+            uint64_t value = 0;
+            if (!cfg_parse_memory(next(nullptr), value) || value > UINT32_MAX) {
+                std::fprintf(stderr, "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
+                             UINT32_MAX);
+                return kConfigError;
+            }
+            cfg.hll_sparse_max_bytes = static_cast<uint32_t>(value);
+        }
         else if (!std::strcmp(a, "--stream-node-max-bytes")) {
             if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_bytes)) return kConfigError;
         }
@@ -972,6 +1031,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                        "          --unixsocket PATH --unixsocketperm OCTAL\n"
                         "  network engine: --net-io uring|epoll (boot-only; default uring)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
@@ -987,6 +1047,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --appendfilename NAME --appenddirname NAME\n"
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
                         "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
+                        "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
                         "  compatibility: --databases 1 --proto-max-bulk-len BYTES\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
@@ -1000,6 +1061,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
                         "    --set-max-listpack-entries N --set-max-listpack-value N\n"
                         "    --zset-max-listpack-entries N --zset-max-listpack-value BYTES\n"
+                        "    (ziplist and hash/zset compact aliases accepted)\n"
+                        "  HyperLogLog: --hll-sparse-max-bytes BYTES (boot-only; default 3000)\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"
                         "  (--mode/--wb/--nodes died with 3s, 2026-08)\n",
