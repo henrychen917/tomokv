@@ -39,7 +39,7 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture() {
+        Fixture(bool with_reorder = false) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "affinity unavailable");
@@ -60,6 +60,7 @@ struct CoreConcurrencyTest {
             Config config;
             config.shards = 16;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
+            config.reorder = with_reorder;
             config.flip_auto = 0;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
@@ -238,7 +239,9 @@ struct CoreConcurrencyTest {
     // The extra split instantiation is the fused-capable owner used by the RL2S runtime.
     template <bool Fused, bool ReadLocalExecutor = Fused>
     static void adaptive_batches() {
-        Fixture<Fused, ReadLocalExecutor> f;
+        // Arming the loop also needs the ordinary Server::init allocation for its witnesses.
+        Fixture<Fused, ReadLocalExecutor> f(true);
+        require(f.server.mode_schedule_stats() != nullptr, "reorder witnesses allocated by config");
         auto& owner = f.loops[f.source];
         auto& inbox = f.server.thread(f.source);
         auto& producer = f.server.thread(f.io_id);
