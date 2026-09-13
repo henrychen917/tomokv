@@ -774,6 +774,7 @@ public:
 #endif
 
 private:
+    friend struct ClientRobLayoutLock;
     // --- io-hot scalars, packed: touched together on every pass ---------------------------------
     int       fd_   = -1;
     uint32_t  rlen_ = 0;          // bytes received
@@ -826,11 +827,13 @@ private:
     uint32_t  atomic_groups_io_ = 0;    // 64..67
     Session   session_;                 // 68..71
 
-    // --- the ROB (manages its own cross-thread layout) ------------------------------------------
+    // --- the ROB (IO-private prefix at 96, chunks at 192, executor-read frontiers at 256) ---------
     Rob<kRobWindow> rob_;
 
     // --- write buffers (ex writes the direct-reply DATA region inside; header fields io-only) ---
-    SmallBuf<kWbufInline> buf_[2];
+    // Audit #4/#5: retain the 320-byte offset after consuming 32 bytes of the old pre-ROB hole.
+    // That leaves the ROB frontiers alone on their line, including its trailing Client padding.
+    alignas(64) SmallBuf<kWbufInline> buf_[2];
 
     // sendmsg reads both the iovec array and msghdr asynchronously, so both live with the Client.
     static constexpr uint32_t kMaxSendIov = 16;
@@ -860,6 +863,34 @@ private:
     uint32_t acl_user_idx_ = 0;          // 1976: ACL user handle
     uint32_t tls_slot_ = kNoTlsSlot;     // 1980: out-of-line TlsConn handle
 };
+
+struct ClientRobLayoutLock {
+    static constexpr size_t line = RobLayoutLock::line;
+    static constexpr size_t rob = offsetof(Client, rob_);
+    static constexpr size_t io_first = rob + RobLayoutLock::io_first;
+    static constexpr size_t io_last = rob + RobLayoutLock::io_last;
+    static constexpr size_t chunks_first = rob + RobLayoutLock::chunks_first;
+    static constexpr size_t chunks_last = rob + RobLayoutLock::chunks_last;
+    static constexpr size_t frontier_first = rob + RobLayoutLock::frontier_first;
+    static constexpr size_t frontier_last = rob + RobLayoutLock::frontier_last;
+    static constexpr size_t buffers = offsetof(Client, buf_);
+};
+
+// Every actual Client (heap, stack or array) has this alignment. The 96-byte private block uses
+// two lines; chunk pointers and frontiers each get a whole separate line, with no buffer header
+// store in the frontier tail. The pre-existing Client and ROB size locks still apply.
+static_assert(alignof(Client) >= ClientRobLayoutLock::line && ClientRobLayoutLock::rob == 96);
+static_assert(ClientRobLayoutLock::io_last / 64 < ClientRobLayoutLock::chunks_first / 64 &&
+                  ClientRobLayoutLock::chunks_first % 64 == 0 &&
+                  ClientRobLayoutLock::chunks_last / 64 == ClientRobLayoutLock::chunks_first / 64,
+              "IO-private ROB stores may share the executor's chunk-pointer line (audit #4/#5)");
+static_assert(ClientRobLayoutLock::chunks_last / 64 < ClientRobLayoutLock::frontier_first / 64 &&
+                  ClientRobLayoutLock::frontier_first % 64 == 0 &&
+                  ClientRobLayoutLock::frontier_last / 64 == ClientRobLayoutLock::frontier_first / 64,
+              "chunk pointers and executor frontiers must occupy separate lines (audit #4/#5)");
+static_assert(ClientRobLayoutLock::buffers == 320 &&
+                  ClientRobLayoutLock::frontier_last / 64 < ClientRobLayoutLock::buffers / 64,
+              "IO write-buffer headers may share the ROB frontier line (audit #4/#5)");
 
 constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
 static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));

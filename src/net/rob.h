@@ -17,11 +17,10 @@
 //
 // ============================================================================================
 // WHAT CROSSES THREADS, in pure 2s: the io thread owns BOTH counters (it parses and it retires).
-// The executor only ever touches individual Op slots — reached through chunk pointers published
-// with release/acquire, contents ordered by the Op's own state handshake (Issued/Done). The two
-// counters stay atomics anyway: on x86 the same-thread case degrades to ordinary loads and stores
-// (zero cost), and dispatch_id == flush_id is the quiescence fence a future connection MIGRATION
-// between io threads must read from the other side — demoting them buys nothing and closes a door.
+// Executors read the frontiers when draining owner tasks and reach individual Op slots through
+// the chunk pointers, with contents ordered by the Op's state handshake (Issued/Done). Both
+// counters belong together on the executor-read line; IO-private read-local bookkeeping must not
+// share it. dispatch_id == flush_id is also the connection-migration quiescence fence.
 //
 // READ-BUFFER PINNING STILL FALLS OUT. argv Slices point into the connection's read buffer. Because
 // retirement is strictly in order, the oldest live op is always slot(flush_id) — so every byte
@@ -172,10 +171,10 @@ struct ReadLocalPendingFilter {
 
     uint64_t words[kWords] = {};
 };
-static_assert(sizeof(ReadLocalPendingFilter) == 32, "fills the Rob's spare flush_-line tail");
+static_assert(sizeof(ReadLocalPendingFilter) == 32, "pending-key filter footprint changed");
 
 template <uint32_t Capacity>
-class Rob {
+class alignas(32) Rob {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
     static_assert(Capacity <= 64, "read-local slot accounting uses one footprint-free word");
     static constexpr uint32_t kMask = Capacity - 1;
@@ -474,8 +473,8 @@ public:
         // ARM ON DEMAND, THE WRITE HALF. Until a local read has armed this
         // connection the ring records NOTHING: no sidecar, no prune, no descriptor, no Staged tag
         // -- and so no resolve on the next frame either. The entire bookkeeping is one store of
-        // this write's id, into a word on the producer's own cache line that dispatch_ has already
-        // dirtied. A pure-write connection therefore pays a predicted-taken test and that store,
+        // this write's id, into the producer's private bookkeeping block. A pure-write connection
+        // therefore pays a predicted-taken test and that store,
         // which is what the sixteen-slot ring used to pay for by GIVING UP after an overflow.
         if (__builtin_expect(read_local_arm_state_ == kReadLocalUnarmed, true)) {
             read_local_unarmed_write_id_ = dispatch_id();
@@ -1015,26 +1014,22 @@ private:
         state.write_count++;
     }
 
-    Op* chunks_[kChunks] = {};
-    // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
-    // sharing a line would make every publish invalidate the consumer's copy and vice versa.
-    alignas(64) std::atomic<uint64_t> dispatch_{0};
+    friend struct RobLayoutLock;
+    // Audit #4/#5: all 96 bytes of IO-private bookkeeping precede the chunk pointers and the
+    // executor-read frontiers. Client places this 32-aligned ROB at offset 96, using its existing
+    // header padding: private words end at 191, chunks occupy 192..255, frontiers occupy 256..279.
+    // Client's write buffers still begin at 320, so the frontier's tail stays padding too.
     // CONTROL WORDS for the armed RYOW write ring; the tag mirror they select over lives in the
-    // sidecar (ReadLocalRobState::write_tags), because a slot per ROB window position is 128 bytes
-    // and this line has sixteen to spare. valid_ bit i says ring slot i holds a descriptor a probe
+    // sidecar (ReadLocalRobState::write_tags). valid_ bit i says ring slot i holds a descriptor a probe
     // must consider; wide_ bit i says slot i cannot be rejected by tag equality (a precise-keyset
     // entry, whose stored word is a key filter, not a hash). force_ is not a slot: it forces the
     // exact path outright while a conservative generation is live, the one hazard with no ring slot
-    // and therefore no tag that could reject it. All three stay in the padding dispatch_ already
-    // owned, so the 192-byte lock is untouched and the parser that probes them owns that line
-    // either way -- and a connection with nothing live is still answered from this line alone.
+    // and therefore no tag that could reject it. A connection with nothing live is answered
+    // directly from this private block without touching the sidecar.
     uint64_t read_local_write_valid_ = 0;
     uint64_t read_local_write_wide_ = 0;
     uint32_t read_local_write_force_ = 0;
-    // ARM-ON-DEMAND, and the MGET latest-read fence, in the same trailing padding. All four are
-    // parser-owned, all four are read or written by the frame that has just stored dispatch_, and
-    // together they fill this line exactly to its 64-byte boundary -- so the 192-byte Rob lock
-    // below still holds and no connection grew a byte for any of it.
+    // ARM-ON-DEMAND and the MGET latest-read fence are parser-owned too.
     uint32_t read_local_arm_state_ = kReadLocalUnarmed;
     // While unarmed: the newest write this connection has published, and the only thing recorded
     // about it. At arming it becomes the transient's fence and stops being written. UINT64_MAX is
@@ -1042,17 +1037,19 @@ private:
     uint64_t read_local_unarmed_write_id_ = UINT64_MAX;
     uint64_t local_mget_fence_id_ = UINT64_MAX;
     ReadLocalArmStats* read_local_arm_stats_ = nullptr;
-    alignas(64) std::atomic<uint64_t> flush_{0};
     // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
     // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit
-    // means no write generation is active, so pure GETs do not dereference heap state. All three
-    // words remain inside flush_'s established trailing padding.
-    uint64_t read_local_pending_slots_ = 0;
+    // means no write generation is active, so pure GETs do not dereference heap state. The pending
+    // bitmap is also executor-read and lives with the frontiers below; these words are IO-private.
     uint64_t read_local_owner_slots_ = 0;
     uintptr_t read_local_state_ = 0;
-    // Superset of the pending reads' key hashes (see ReadLocalPendingFilter). It completes flush_'s
-    // cache line: the parser that marks/probes it already owns that line for the bitmaps above.
+    // Superset of the pending reads' key hashes (see ReadLocalPendingFilter), also IO-private.
     ReadLocalPendingFilter read_local_pending_filter_;
+
+    Op* chunks_[kChunks] = {};
+    std::atomic<uint64_t> dispatch_{0};
+    std::atomic<uint64_t> flush_{0};
+    uint64_t read_local_pending_slots_ = 0;
 
     // Removing a pending read never shrinks the filter (superset stays valid); an empty pending set
     // is the one point where the summary can be reset for free.
@@ -1062,9 +1059,31 @@ private:
     }
 };
 
-// The bitmaps, tagged sidecar pointer and pending-key filter deliberately occupy the pre-existing
-// tail of flush_'s cache line. Locking the complete ROB keeps future accounting from silently
-// growing every client.
+struct RobLayoutLock {
+    using Type = Rob<kRobWindow>;
+    static constexpr size_t line = 64;
+    static constexpr size_t io_first = offsetof(Type, read_local_write_valid_);
+    static constexpr size_t io_last =
+        offsetof(Type, read_local_pending_filter_) + sizeof(Type::read_local_pending_filter_) - 1;
+    static constexpr size_t chunks_first = offsetof(Type, chunks_);
+    static constexpr size_t chunks_last = chunks_first + sizeof(Type::chunks_) - 1;
+    static constexpr size_t frontier_first = offsetof(Type, dispatch_);
+    static constexpr size_t flush = offsetof(Type, flush_);
+    static constexpr size_t pending = offsetof(Type, read_local_pending_slots_);
+    static constexpr size_t frontier_last = pending + sizeof(Type::read_local_pending_slots_) - 1;
+};
+
+// Every private store (including the filter) is at least a line from every frontier byte for
+// ANY base. Client additionally locks the chunks and the following write-buffer boundary.
+static_assert(RobLayoutLock::frontier_first >= RobLayoutLock::io_last + RobLayoutLock::line,
+              "IO-private ROB stores may share the executor-read frontier line (audit #4/#5)");
+static_assert(RobLayoutLock::io_first == 0 && RobLayoutLock::io_last == 95 &&
+                  RobLayoutLock::chunks_first == 96 && RobLayoutLock::chunks_last == 159);
+static_assert(RobLayoutLock::frontier_first == 160 &&
+                  RobLayoutLock::flush == RobLayoutLock::frontier_first + 8 &&
+                  RobLayoutLock::pending == RobLayoutLock::flush + 8,
+              "dispatch_, flush_ and pending slots must stay together");
+static_assert(alignof(Rob<64>) == 32, "Client uses the ROB's half-line alignment (audit #4/#5)");
 static_assert(sizeof(Rob<64>) == 192, "Rob<64> layout changed");
 
 }  // namespace tomo
