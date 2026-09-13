@@ -6,6 +6,8 @@ The allowed geometry is 0-31 server, 32-111 load, no SMT. It is deliberately lab
 different CPU geometry from the archived 0-31 / 32-127+160-255 campaign. Never earns a gate PASS.
 Build (starts no server):
   build --output build/readlocal-obs/arms
+  inspect --output build/readlocal-obs/arms
+  self-test
 Run examples (each four consecutive boots per cell; no automatic reruns):
   run --output build/readlocal-obs/reproduction
   --order PRE,PRE,PRE,PRE --cells h11,h15,h27,h31
@@ -20,6 +22,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import signal
 import statistics
@@ -111,6 +114,128 @@ def build_arms(argv):
         save()
 
 
+def inspect_arms(argv):
+    """Serverless layout/assembly evidence. Static counts are never dynamic instructions/op."""
+    parser = argparse.ArgumentParser(description=inspect_arms.__doc__)
+    parser.add_argument("--output", type=Path, default=ARMS)
+    args = parser.parse_args(argv)
+    out = args.output.resolve()
+    out.relative_to(ROOT / "build")
+    manifest = json.loads((out / "manifest.json").read_text())
+    if manifest["status"] != "COMPLETE":
+        raise ValueError("all three builds must finish before inspection")
+    check = out / "layout-check.cc"
+    check.write_text('''#include "src/core/thread.h"
+#include "src/core/config.h"
+#include "src/net/conn.h"
+#include <jemalloc/jemalloc.h>
+#include <cstdio>
+using namespace tomo;
+int main() {
+    static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
+    static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
+    static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
+    std::printf("%zu %zu %zu\\n", sizeof(ReadLocalThreadState), alignof(ReadLocalThreadState),
+        nallocx(sizeof(ReadLocalThreadState), MALLOCX_ALIGN(alignof(ReadLocalThreadState))));
+}
+''')
+    result = dict(scope="serverless layout and static ordinary-drain instructions, excluding NOP padding",
+                  dynamic_cost="UNMEASURED", layouts={}, drains={})
+    for arm in ("pre", "post", "pad"):
+        binary = out / ("tomokv-" + arm)
+        if abba.sha256(binary) != manifest["arms"][arm.upper()]["sha256"]:
+            raise ValueError(f"{arm} binary changed after build")
+        layout = out / ("layout-" + arm)
+        subprocess.run(["taskset", "-c", "104", "g++", "-std=c++20", "-O2", "-DTOMO_JEMALLOC",
+            "-I" + str(out / ("source-" + arm)), str(check), "-o", str(layout),
+            "-ljemalloc", "-pthread"], check=True)
+        values = map(int, subprocess.check_output(["taskset", "-c", "104", str(layout)], text=True).split())
+        result["layouts"][arm] = dict(zip(("state_size", "state_alignment", "jemalloc_size"), values))
+    for owner_yield in (0, 1):
+        streams = {}
+        fragment = f"30drain_local_reads_bounded_implILb{owner_yield}E"
+        for arm in ("pre", "post", "pad"):
+            suffix = ("Lb0E" if arm == "post" else "") + "EEjj"
+            symbol = "_ZN4tomo7ExLoopTILb1EE" + fragment + suffix
+            raw = subprocess.check_output(["objdump", "-d", "--no-show-raw-insn",
+                "--disassemble=" + symbol, str(out / ("tomokv-" + arm))], text=True)
+            (out / f"{arm}-drain-{owner_yield}.asm").write_text(raw)
+            stream = []
+            for line in raw.splitlines():
+                match = re.match(r"\s*[0-9a-f]+:\s+(.+)", line)
+                if not match:
+                    continue
+                instruction = re.sub(r"\s+", " ", match[1])
+                if re.search(r"\bnop[a-z]*\b", instruction) or instruction == "xchg %ax,%ax":
+                    continue
+                instruction = instruction.replace(symbol, "SELF")
+                # Observe=false adds a template argument to the same drain/lambda symbols.
+                instruction = instruction.replace(fragment + "Lb0EEEjj", fragment + "EEjj")
+                instruction = re.sub(r"\b[0-9a-f]+ <([^>]+)>", r"<\1>", instruction)
+                if "#" in instruction:
+                    instruction = re.sub(r"-?0x[0-9a-f]+\(%rip\)", "RIP", instruction)
+                stream.append(instruction)
+            if not stream:
+                raise ValueError("missing ordinary drain symbol: " + symbol)
+            streams[arm] = stream
+            (out / f"{arm}-drain-{owner_yield}.normalized").write_text("\n".join(stream) + "\n")
+        result["drains"][owner_yield] = dict(
+            static_instructions={arm: len(stream) for arm, stream in streams.items()},
+            post_normalized_equal=streams["pre"] == streams["post"],
+            pad_normalized_equal=streams["pre"] == streams["pad"])
+    (out / "inspection.json").write_text(json.dumps(result, indent=2) + "\n")
+    print(json.dumps(result, indent=2))
+
+
+def require_observation(cell, arm, measurement):
+    """A directed POST GET run must actually exercise the new sampler.
+
+    This is a diagnostic test witness, never an abbagate scoring rule. PRE/PAD lack the section;
+    pure writes cannot witness read sampling. Do not accept zero samples as a successful check
+    of an armed sampler, or impose equality on fields read at independent snapshot boundaries.
+    """
+    if arm != "POST" or not cell.read_local or cell.op != "GET":
+        return
+    observation = measurement.get("read_local", {})
+    if (observation.get("status") != "COMPLETE" or
+            observation.get("deltas", {}).get("hits_total", 0) <= 0 or
+            observation.get("deltas", {}).get("sampled_hits", 0) <= 0 or
+            not any(observation.get("histogram", []))):
+        raise ValueError("POST GET window did not witness both local hits and sampled latency")
+
+
+def self_test():
+    import unittest
+    class Controls(unittest.TestCase):
+        def test_armed_but_unobserved_window_is_not_a_pass(self):
+            cell = abba.Cell("h11", "1s", 1, 0, 1, "GET", 32, 512)
+            good = dict(status="COMPLETE", deltas=dict(hits_total=1000, sampled_hits=2),
+                        histogram=[1] + [0] * 8)  # independent endpoints need not sum to 2
+            require_observation(cell, "POST", {"read_local": good})
+            for bad in ({}, {**good, "status": "UNAVAILABLE"},
+                        {**good, "deltas": dict(hits_total=0, sampled_hits=2)},
+                        {**good, "deltas": dict(hits_total=1000, sampled_hits=0)},
+                        {**good, "histogram": [0] * 9}):
+                with self.subTest(bad=bad), self.assertRaises(ValueError):
+                    require_observation(cell, "POST", {"read_local": bad})
+            require_observation(cell, "PRE", {})
+            require_observation(cell, "PAD", {})
+            require_observation(replace(cell, read_local=0), "POST", {})
+            require_observation(replace(cell, op="SET"), "POST", {})
+
+        def test_pad_cannot_silently_use_a_stale_layout(self):
+            source = ("    std::atomic<bool> lane_active{false};\n};\n"
+                      "static_assert(sizeof(ReadLocalThreadState) == 384,\n")
+            padded = pad_source(source)
+            self.assertIn("alignas(64) unsigned char observation_padding[192]{}", padded)
+            self.assertIn("offsetof(ReadLocalThreadState, observation_padding) == 384", padded)
+            for bad in (source.replace("384", "400"), source * 2, padded):
+                with self.subTest(bad=bad), self.assertRaises(ValueError):
+                    pad_source(bad)
+    return 0 if unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(Controls)).wasSuccessful() else 1
+
+
 def run(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--pre", type=Path, default=ARMS / "tomokv-pre")
@@ -183,6 +308,7 @@ def run(argv):
                 quiet.check()
                 try:
                     row["runs"].append(runner.measure(cell, arm, sequence, args.instances, knobs))
+                    require_observation(cell, arm, row["runs"][-1])
                     quiet.check()
                 finally:
                     save()
@@ -223,6 +349,10 @@ def run(argv):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "build":
         build_arms(sys.argv[2:])
+    elif len(sys.argv) > 1 and sys.argv[1] == "inspect":
+        inspect_arms(sys.argv[2:])
+    elif len(sys.argv) > 1 and sys.argv[1] == "self-test":
+        sys.exit(self_test())
     elif len(sys.argv) > 1 and sys.argv[1] == "run":
         run(sys.argv[2:])
     else:

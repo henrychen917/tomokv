@@ -2,6 +2,9 @@ Read-local observation, resumed 2026-09-13
 
 Candidate status: code and serverless checks ready; dynamic cost and causal verdict require
 quiet-box measurements. Do not merge the sampling mechanism on the static instruction count.
+The first fresh reproduction attempt failed the existing precondition before any server boot:
+4.76 selected-core CPU-seconds > 3.36 per 20s. The failed results.json and quiet.jsonl remain in
+build/readlocal-obs/reproduce-pre/. There are zero new rate/PMC samples. Use a fresh output path.
 No EXPECT_QUICK/EXPECT_FULL, gate rows, thresholds or cell definitions were changed by this lane.
 
 Arms (built by tests/read_local_observe.py build; hashes and compile commands in manifest.json):
@@ -24,7 +27,7 @@ No process is stopped except a PID created by the driver.
    four instances, GET p32, atomic/key-lb/client-lb=1, reorder=1, overlaps/modes from the cell.
    2,000,000 keys, sequential P:P, 64-byte values; WARMUP=3, WINDOW=20, TAIL=5 seconds.
 
-   python3 tests/read_local_observe.py run --output build/readlocal-obs/reproduce-pre \
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/reproduce-pre-quiet \
      --cells h11,h15,h27,h31 --order PRE,PRE,PRE,PRE
 
    Important historical mismatch: the saved run used FOUR instances for h11/h15 but EIGHT for
@@ -43,6 +46,9 @@ No process is stopped except a PID created by the driver.
    read_local.threads contains counter deltas AND before/after gauges. read_local_hits,
    read_local_misses and read_local_histogram are diagnostic window deltas alongside rate/busy.
    Observation endpoints encompass the central command window; their timestamps are retained.
+   The standalone POST GET diagnostic requires positive local hits AND positive sampled hits
+   AND a nonempty histogram; a sampler that never fires fails. A throwaway POST build with the
+   observed-drain dispatch removed must fail that check even if INFO and exact hits still work.
    Arming deltas alone cannot establish how many connections were armed before the window.
    Compare hits/thread/second and hits per connection with both placement endpoints. Independent
    snapshots can straddle a sample: do not repair bucket totals, infer end-to-end p99, or use an
