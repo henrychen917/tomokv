@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Prepare/build candidate 1 and its padding control; never start a workload.
+"""Prepare/build one isolated layout candidate and its padding control; never start a workload.
 
 Run `prepare --base <PRE commit>`, then `build --cores <build CPUs> --jobs <N>`.
 Use `pad --cores <build CPUs>` to resume from already built PRE/POST arms.
+Use --artifacts for a separate candidate and prepare --post to select its isolated commit.
 All generated files stay in this worktree's ignored build/.
 The PRE and POST snapshots use the same Makefile, including t_string's inline
 budget. PAD reuses PRE objects; only unreachable executable padding is added.
@@ -22,6 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 HERE = ROOT / 'build/cache-L1'
 ARMS = HERE / 'arms'
 FLAGS = '-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'
+LAYOUT_TYPES = {'src/core/thread.h': 'tomo::ThreadCtx', 'src/exec/op.h': 'tomo::Op',
+                'src/net/conn.h': 'tomo::Client'}
 
 
 def command(argv, cwd=ROOT, **kwargs):
@@ -45,16 +48,19 @@ def sources(root):
 
 def prepare(args):
     commit = output(['git', 'rev-parse', '--verify', args.base + '^{commit}']).strip()
-    changes = output(['git', 'diff', commit, '--name-only', '--',
+    compared = [commit]
+    if args.post:
+        compared.append(output(['git', 'rev-parse', '--verify', args.post + '^{commit}']).strip())
+    changes = output(['git', 'diff', *compared, '--name-only', '--',
                       'Makefile', 'src', 'third_party']).splitlines()
-    if changes != ['src/core/thread.h']:
-        raise RuntimeError(f'expected only candidate 1 in the tracked diff, got {changes}')
-    patch = command(['git', 'diff', commit, '--', 'src/core/thread.h'],
+    if len(changes) != 1 or changes[0] not in LAYOUT_TYPES:
+        raise RuntimeError(f'expected one isolated layout source change, got {changes}')
+    patch = command(['git', 'diff', *compared, '--', changes[0]],
                     stdout=subprocess.PIPE).stdout
     archive = command(['git', 'archive', commit, 'Makefile', 'src', 'third_party'],
                       stdout=subprocess.PIPE).stdout
     ARMS.mkdir(parents=True, exist_ok=False)
-    (HERE / 'candidate-01.patch').write_bytes(patch)
+    (HERE / 'candidate.patch').write_bytes(patch)
     for arm in ('pre', 'post'):
         target = ARMS / arm
         target.mkdir()
@@ -68,10 +74,10 @@ def prepare(args):
     manifests = {arm: sources(ARMS / arm) for arm in ('pre', 'post')}
     changed = [p for p in manifests['pre']
                if manifests['pre'][p] != manifests['post'][p]]
-    if changed != ['src/core/thread.h']:
+    if changed != changes:
         raise RuntimeError(f'unexpected arm differences: {changed}')
     manifest = {'base_commit': commit, 'status': 'sources prepared; not built or measured',
-                'patch_sha256': digest(HERE / 'candidate-01.patch'),
+                'patch_sha256': digest(HERE / 'candidate.patch'),
                 'source_difference': changed, 'sources': manifests}
     (HERE / 'source-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(f'PRE and POST sources prepared at {ARMS}; no compiler or workload started.')
@@ -94,6 +100,10 @@ def cores(value):
 
 def build(args):
     manifest = json.loads((HERE / 'source-manifest.json').read_text())
+    differences = manifest['source_difference']
+    if len(differences) != 1 or differences[0] not in LAYOUT_TYPES:
+        raise RuntimeError('PAD requires a single isolated layout candidate')
+    layout_type = LAYOUT_TYPES[differences[0]]
     for arm in ('pre', 'post'):
         if sources(ARMS / arm) != manifest['sources'][arm]:
             raise RuntimeError(f'{arm} sources changed after preparation')
@@ -228,7 +238,7 @@ def build(args):
         binary = result[arm]['binary']
         with (HERE / f'{arm}-layout.txt').open('w') as layout:
             command(['gdb', '-q', '-nx', '-batch', binary,
-                     '-ex', 'ptype /o tomo::ThreadCtx'], stdout=layout)
+                     '-ex', 'ptype /o ' + layout_type], stdout=layout)
         with (HERE / f'{arm}-symbols.txt').open('w') as symbols:
             command(['nm', '-nS', '--defined-only', binary], stdout=symbols)
     (HERE / 'build-provenance.json').write_text(json.dumps(result, indent=2) + '\n')
@@ -237,11 +247,17 @@ def build(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--artifacts', type=Path, default=Path('build/cache-L1'))
     sub = parser.add_subparsers(dest='action', required=True)
-    sub.add_parser('prepare').add_argument('--base', required=True)
+    prepare_parser = sub.add_parser('prepare')
+    prepare_parser.add_argument('--base', required=True)
+    prepare_parser.add_argument('--post')
     for action in ('build', 'pad'):
         build_parser = sub.add_parser(action)
         build_parser.add_argument('--cores', type=cores, required=True)
         build_parser.add_argument('--jobs', type=int, default=1)
     args = parser.parse_args()
+    HERE = (ROOT / args.artifacts).resolve()
+    HERE.relative_to(ROOT / 'build')  # Every write stays in this lane's build directory.
+    ARMS = HERE / 'arms'
     prepare(args) if args.action == 'prepare' else build(args)
