@@ -182,7 +182,9 @@ def main():
     commands = parser.add_subparsers(dest="action", required=True)
     prep = commands.add_parser("prepare")
     prep.add_argument("--directory", type=Path, default=ROOT / "build/reorder-R2-arms")
-    prep.add_argument("--ref", default="87b88cc4e")
+    # The disk recovery retained origin/cpp. Its src/, third_party/ and Makefile are
+    # byte-identical to the lost 87b88cc4e base; only the gate reference receipt differed.
+    prep.add_argument("--ref", default="a363c2c5e")
     show = commands.add_parser("report")
     show.add_argument("results", type=Path)
     commands.add_parser("self-test")
