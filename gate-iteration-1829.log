@@ -1851,3 +1851,32 @@ h01 A=23.066725,22.994919 B=23.028047,22.844013 Mops/s paired=-0.4116% spread A/
   h07 n=1 3:B boot/populate/20s
     11.07790M/s legacy-busy=64.551% productive-role=76.397% CPU=82.239% latency=1.45600ms
   h07 n=1 4:A boot/populate/20s
+    10.65316M/s legacy-busy=62.235% productive-role=74.625% CPU=80.904% latency=1.51200ms
+h07 A=10.724084,10.653162 B=10.961292,11.077896 Mops/s paired=+3.0965% spread A/B=0.6635/1.0581% threshold=0.6635% legacy-busy(ABBA)=62.198,63.659,64.551,62.235% productive-role(ABBA)=74.678,75.669,76.397,74.625% instances=1 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: no higher-instance confirmation block
+  h07 n=2 1:A boot/populate/20s
+    19.35780M/s legacy-busy=99.964% productive-role=99.977% CPU=99.978% latency=0.83950ms
+  h07 n=2 2:B boot/populate/20s
+    19.09317M/s legacy-busy=99.969% productive-role=99.980% CPU=99.981% latency=0.85049ms
+  h07 n=2 3:B boot/populate/20s
+    19.22569M/s legacy-busy=99.917% productive-role=99.950% CPU=99.953% latency=0.84543ms
+  h07 n=2 4:A boot/populate/20s
+    19.31428M/s legacy-busy=99.908% productive-role=99.944% CPU=99.953% latency=0.84149ms
+h07 A=19.357804,19.314284 B=19.093172,19.225689 Mops/s paired=-0.9134% spread A/B=0.2251/0.6917% threshold=0.2251% legacy-busy(ABBA)=99.964,99.969,99.917,99.908% productive-role(ABBA)=99.977,99.980,99.950,99.944% instances=2 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=2; generator headroom UNPROVEN
+  FAIL: paired regression exceeds measured reference spread
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: reference still gains beyond its measured repeatability
+  FAIL: n=1: candidate still gains beyond its measured repeatability
+  FAIL: n=2: no higher-instance confirmation block
+  h07 n=4 1:A boot/populate/20s
+    20.41102M/s legacy-busy=99.997% productive-role=99.994% CPU=99.994% latency=0.79840ms
+  h07 n=4 2:B boot/populate/20s
+  headline ABBA vs last pushed binary                  FAIL (TIMEOUT after 900s; median=-s; no-own-row-history-conservative-default)
+ABBA FAIL: InterruptedError: interrupted by signal 15
+ABBA elapsed=900.3s; /home/user/Projects/cx-deadconf-fix/build/gate-run.f1V9Fu/abba/results.json
+  headline ABBA vs last pushed binary                  FAIL (TIMEOUT 900s; median=-s; no-own-row-history-conservative-default)
