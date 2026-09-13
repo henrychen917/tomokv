@@ -240,6 +240,7 @@ struct NetcmdRegression {
 
     static void config() {
         test_config_bounds();
+        tracking_eviction();
         zero_copy("zc-all");
         Server server;
         const std::string password = "pass with spaces\n\r\t\"'\\tail";
@@ -252,6 +253,59 @@ struct NetcmdRegression {
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }
+
+    static void tracking_eviction() {
+        for (bool collide : {false, true}) {
+            Server server; server.cfg_.tracking_table_max_keys = 32;
+            ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+            IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
+            loop.random_state_ = 0x123456789abcdefULL;
+            loop.climon_track_keys_.reserve(32);
+            Client a(-1), b(-1);
+            a.set_id(101); b.set_id(102); a.set_resp3(true); b.set_resp3(true);
+            a.set_ifid_thread(0); b.set_ifid_thread(0);
+            auto& ast = loop.climon_conn_get(&a); ast.tracking_on = true;
+            auto& bst = loop.climon_conn_get(&b); bst.tracking_on = true;
+            uint32_t next_key = 0;
+            std::vector<std::string> originals;
+            for (unsigned turn = 0; turn < 32 + 4096; ++turn) {
+                std::string key;
+                do { key = "tracking:" + std::to_string(next_key++); }
+                while (collide && loop.climon_track_keys_.bucket(key) != 0);
+                std::vector<std::string> before;
+                for (const auto& entry : loop.climon_track_keys_) before.push_back(entry.first);
+                Op op; args(op, {"GET", key.c_str()});
+                loop.tracking_register_read(&a, ast, op);
+                loop.tracking_register_read(&b, bst, op);
+                check(loop.climon_track_keys_.size() == std::min(turn + 1, 32u), "tracking table respects its bound");
+                check(server.climon_tracking_keys() == loop.climon_track_keys_.size() &&
+                      server.climon_tracking_items() == 2 * loop.climon_track_keys_.size(),
+                      "tracking eviction preserves exact key and owner counts");
+                if (turn < 32) {
+                    originals.push_back(key);
+                    check(a.fill_buf().empty() && b.fill_buf().empty(), "no eviction before the table is full");
+                } else {
+                    unsigned removed = 0;
+                    for (const auto& old : before) {
+                        if (loop.climon_track_keys_.contains(old)) continue;
+                        ++removed;
+                        const std::string frame = ">2\r\n$10\r\ninvalidate\r\n*1\r\n$" +
+                            std::to_string(old.size()) + "\r\n" + old + "\r\n";
+                        check(std::string(a.fill_buf().data(), a.fill_buf().size()) == frame &&
+                              std::string(b.fill_buf().data(), b.fill_buf().size()) == frame,
+                              "each evicted key invalidates every tracking owner exactly once");
+                    }
+                    check(removed == 1, "one actual eviction per full-table insertion");
+                    a.fill_buf().clear(); b.fill_buf().clear();
+                }
+            }
+            check(server.climon_invalidations() == 8192, "4096 evictions fired for both owners");
+            for (const auto& key : originals)
+                check(!loop.climon_track_keys_.contains(key),
+                      "random eviction reaches the whole table, including a single collision bucket");
+        }
+    }
+
 
     static void zero_copy(const std::string& section) {
         if (section == "zc-all" || section == "zc-install") {
@@ -396,6 +450,7 @@ int main(int argc, char** argv) {
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "config") R::config();
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
+    else if (mode == "tracking-eviction") R::tracking_eviction();
     else if (mode.starts_with("zc-")) R::zero_copy(mode);
     else check(false, "unknown regression section");
     std::printf("ok: netcmd %s\n", argv[1]);
