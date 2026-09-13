@@ -93,11 +93,13 @@ def render(cells):
         f"score={c.score} | mix={c.mix} | smoke={int(c.smoke)}\n" for c in cells)
 
 
-def prepare(pre, output, request, source_commit):
-    pre, output, request = pre.resolve(), output.resolve(), request.resolve()
-    for path in (pre, output, request):
+def prepare(pre, output, request, source_commit, build_command, build_log):
+    pre, output, request, build_log = (path.resolve() for path in (pre, output, request, build_log))
+    for path in (pre, output, request, build_log):
         if not path.is_relative_to(ROOT):
             raise ValueError(f"lane artifacts must stay in this worktree: {path}")
+    if not build_command.strip() or not build_log.is_file():
+        raise ValueError("record the actual build command and an existing build log")
     with pre.open("rb") as stream:
         if stream.read(4) != b"\x7fELF":
             raise ValueError("PRE is not an ELF executable; build it before preparing the request")
@@ -135,8 +137,9 @@ def prepare(pre, output, request, source_commit):
         "pre": {"path": str(pre), "sha256": digest,
                 "build_id": build_ids[0], "source_commit": source_commit,
                 "source_check": "src/ and Makefile match this revision; no candidate engine changes",
-                "build_command": "taskset -c 0-3 make -j4 BIN=build/tomokv-O7-PRE",
-                "build_log": str(ROOT / "build/overlap-O7/build-pre.log")},
+                # This is the historical invocation, supplied by the builder;
+                # never label an old binary with today's compile CPU assignment.
+                "build_command": build_command, "build_log": str(build_log)},
         "post": None,
         "pad": None,
         "cells": artifacts,
@@ -171,6 +174,14 @@ def prepare(pre, output, request, source_commit):
             "note": "tests/abbagate.py's stock Runner uses loopback. It has no NIC or stall-sampler CLI; "
                     "the maintainer must use the NIC rig with the same gate accounting. "
                     "tests/abba_profile.py WindowProfile provides owned-TID PMCs and schedstat, not stall sampling.",
+            "offline_cpu_summary": {
+                "tool": str(ROOT / "scratchpad/overlapreply/profile.py"),
+                "usage": "python3 scratchpad/overlapreply/profile.py PATH/TO/cpu-profile.json "
+                         "--output build/overlap-O7/CELL-cpu-summary.json",
+                "scope": "Reads saved gate records only; verifies raw grouped counters, thread coverage and windows. "
+                         "Reports aggregate/per-TID IPC, approximate instructions/command and cycles/command, "
+                         "runtime and runqueue delay. Does not supply source attribution or a bottleneck verdict.",
+            },
             "samples": [
                 "cycles with symbol/source/callchain attribution for every server worker, plus user/kernel scope",
                 "IBS demand-load latency/source/IP for reply/ROB/queue versus storage; "
@@ -218,7 +229,10 @@ if __name__ == "__main__":
     parser.add_argument("--request", type=Path, default=ROOT / "MEASURE-REQUEST")
     parser.add_argument("--source-commit", required=True,
                         help="resolvable revision whose src/ and Makefile were built for PRE")
+    parser.add_argument("--build-command", required=True,
+                        help="actual historical build invocation; new compilation must use cores 112-127")
+    parser.add_argument("--build-log", type=Path, default=ROOT / "build/overlap-O7/build-pre.log")
     args = parser.parse_args()
-    document = prepare(args.pre, args.output, args.request, args.source_commit)
+    document = prepare(args.pre, args.output, args.request, args.source_commit, args.build_command, args.build_log)
     print(json.dumps({"request": str(args.request), "pre": document["pre"],
                       "cell_counts": {name: row["count"] for name, row in document["cells"].items()}}, indent=2))
