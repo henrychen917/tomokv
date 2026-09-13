@@ -2399,3 +2399,73 @@ m47 A=1.556437,1.542659 B=1.556696,1.579231 Mops/s paired=+1.1884% spread A/B=0.
   m92 n=1 3:B boot/populate/20s
     1.74805M/s legacy-busy=50.099% productive-role=99.730% CPU=50.547% latency=2.34000ms
   m92 n=1 4:A boot/populate/20s
+    1.74015M/s legacy-busy=50.149% productive-role=99.734% CPU=50.541% latency=2.35000ms
+m92 A=1.769405,1.740150 B=1.742223,1.748047 Mops/s paired=-0.5495% spread A/B=1.6672/0.3337% threshold=5.0000% legacy-busy(ABBA)=50.143,50.074,50.099,50.149% productive-role(ABBA)=99.737,99.733,99.730,99.734% instances=1 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: no higher-instance confirmation block
+  m92 n=2 1:A boot/populate/20s
+    1.61545M/s legacy-busy=50.275% productive-role=99.996% CPU=50.671% latency=2.53142ms
+  m92 n=2 2:B boot/populate/20s
+    1.60351M/s legacy-busy=50.195% productive-role=99.984% CPU=50.670% latency=2.55269ms
+  m92 n=2 3:B boot/populate/20s
+    1.57884M/s legacy-busy=50.271% productive-role=99.992% CPU=50.662% latency=2.59196ms
+  m92 n=2 4:A boot/populate/20s
+    1.61725M/s legacy-busy=50.205% productive-role=99.984% CPU=50.666% latency=2.53100ms
+m92 A=1.769405,1.740150 B=1.742223,1.748047 Mops/s paired=-0.5495% spread A/B=1.6672/0.3337% threshold=5.0000% legacy-busy(ABBA)=50.143,50.074,50.099,50.149% productive-role(ABBA)=99.737,99.733,99.730,99.734% instances=1 PASS
+  load floor=1 (CONFIRMED, lowest TESTED qualifying rung); confirmation=2 numerical peak=1; generator headroom UNPROVEN
+  workers 16 -> 32; per-arm gains={'reference': -7.888364875576337, 'candidate': -8.82222679228465} repeatability={'reference': 1.6671940926682718, 'candidate': 1.5499824859561766} shape=congestion
+  t01 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t01 n=1 1:A boot/populate/20s
+    1.23031M/s legacy-busy=88.760% productive-role=90.289% CPU=92.102% latency=3.33200ms
+  t01 n=1 2:B boot/populate/20s
+    1.26092M/s legacy-busy=88.956% productive-role=90.501% CPU=92.396% latency=3.21900ms
+  t01 n=1 3:B boot/populate/20s
+    1.29915M/s legacy-busy=90.116% productive-role=91.519% CPU=93.308% latency=3.14000ms
+  t01 n=1 4:A boot/populate/20s
+    1.25593M/s legacy-busy=89.865% productive-role=91.278% CPU=93.009% latency=3.21200ms
+t01 A=14.783000,16.767000 B=13.503000,17.663000 ms (short-command p99.9) paired=-1.2171% spread A/B=12.5769/26.6958% threshold=12.5769% legacy-busy(ABBA)=88.760,88.956,90.116,89.865% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference p999_ms spread exceeds the project's 7.57449% stability boundary
+  FAIL: measurement n=1: candidate p999_ms spread exceeds the project's 7.57449% stability boundary
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference long_p999_ms spread exceeds the project's 8.95761% stability boundary
+  FAIL: measurement n=1: candidate long_p999_ms spread exceeds the project's 8.95761% stability boundary
+  t02 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t02 n=1 1:A boot/populate/20s
+    1.24408M/s legacy-busy=92.567% productive-role=93.705% CPU=94.975% latency=3.28000ms
+  t02 n=1 2:B boot/populate/20s
+    1.19941M/s legacy-busy=90.855% productive-role=92.200% CPU=93.724% latency=3.41000ms
+  t02 n=1 3:B boot/populate/20s
+    1.23843M/s legacy-busy=90.255% productive-role=91.714% CPU=93.363% latency=3.30600ms
+  t02 n=1 4:A boot/populate/20s
+    1.20244M/s legacy-busy=90.899% productive-role=92.255% CPU=93.753% latency=3.40600ms
+t02 A=16.127000,13.951000 B=18.815000,17.407000 ms (short-command p99.9) paired=+20.4269% spread A/B=14.4690/7.7743% threshold=14.4690% legacy-busy(ABBA)=92.567,90.855,90.255,90.899% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference p999_ms spread exceeds the project's 4.21669% stability boundary
+  FAIL: measurement n=1: candidate p999_ms spread exceeds the project's 4.21669% stability boundary
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference long_p999_ms spread exceeds the project's 4.02797% stability boundary
+  FAIL: measurement n=1: candidate long_p999_ms spread exceeds the project's 4.02797% stability boundary
+  FAIL: paired regression exceeds measured reference spread
+  FAIL: long-command p99.9 regression exceeds measured reference spread
+  t03 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t03 n=1 1:A boot/populate/20s
+    1.60419M/s legacy-busy=67.341% productive-role=95.038% CPU=76.229% latency=2.59300ms
+  t03 n=1 2:B boot/populate/20s
+    1.43992M/s legacy-busy=70.662% productive-role=97.700% CPU=76.498% latency=2.80300ms
+  t03 n=1 3:B boot/populate/20s
+    1.44517M/s legacy-busy=67.880% productive-role=96.414% CPU=74.754% latency=2.81400ms
+  t03 n=1 4:A boot/populate/20s
+    1.44655M/s legacy-busy=67.819% productive-role=95.043% CPU=76.326% latency=2.71800ms
+t03 A=9.599000,10.879000 B=11.327000,9.343000 ms (short-command p99.9) paired=+0.9376% spread A/B=12.5012/19.1969% threshold=24.7648% legacy-busy(ABBA)=67.341,70.662,67.880,67.819% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  t04 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t04 n=1 1:A boot/populate/20s
+    1.60831M/s legacy-busy=72.419% productive-role=96.322% CPU=79.509% latency=2.54000ms
+  t04 n=1 2:B boot/populate/20s
+    1.62474M/s legacy-busy=70.168% productive-role=95.591% CPU=78.254% latency=2.50900ms
+  t04 n=1 3:B boot/populate/20s
