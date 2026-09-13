@@ -153,3 +153,1831 @@ foreign-read-safety unit: PASS
   direct-reply fired (direct=10476)                    ok
   row budget: 30s; median=0.04s; own-row-history; dispatched==executed (N)
   dispatched==executed (53917)                         ok
+  row budget: 105s; median=26.13s; own-row-history; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 30s; median=4.06s; own-row-history; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 30s; median=4.24s; own-row-history; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 30s; median=0.02s; own-row-history; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+  row budget: 30s; median=0.47s; own-row-history; s6 battery (atomic 0)
+  s6 battery (atomic 0)                                ok
+  row budget: 30s; median=2.07s; own-row-history; multi_exec battery (atomic 0)
+  multi_exec battery (atomic 0)                        ok
+  row budget: 30s; median=1.51s; own-row-history; blocking battery (atomic 0)
+  blocking battery (atomic 0)                          ok
+  row budget: 30s; median=0.48s; own-row-history; blockmulti battery (atomic 0)
+  blockmulti battery (atomic 0)                        ok
+  row budget: 30s; median=0.51s; own-row-history; stream battery (atomic 0)
+  stream battery (atomic 0)                            ok
+  row budget: 30s; median=0.04s; own-row-history; streamgroups battery (atomic 0)
+  streamgroups battery (atomic 0)                      ok
+  row budget: 30s; median=0.89s; own-row-history; pubsub battery (atomic 0)
+  pubsub battery (atomic 0)                            ok
+  row budget: 30s; median=0.02s; own-row-history; lua_scripting battery (atomic 0)
+  lua_scripting battery (atomic 0)                     ok
+  row budget: 30s; median=0.04s; own-row-history; scriptsurf battery (atomic 0)
+  scriptsurf battery (atomic 0)                        ok
+  row budget: 60s; median=14.99s; own-row-history; limits battery (atomic 0)
+  limits battery (atomic 0)                            ok
+  row budget: 30s; median=0.03s; own-row-history; resp3 battery (atomic 0)
+  resp3 battery (atomic 0)                             ok
+  row budget: 30s; median=0.03s; own-row-history; bitfield battery (atomic 0)
+  bitfield battery (atomic 0)                          ok
+  row budget: 30s; median=0.06s; own-row-history; dumprestore battery (atomic 0)
+  dumprestore battery (atomic 0)                       ok
+  row budget: 30s; median=0.05s; own-row-history; zsetops battery (atomic 0)
+  zsetops battery (atomic 0)                           ok
+  row budget: 30s; median=0.03s; own-row-history; geo battery (atomic 0)
+  geo battery (atomic 0)                               ok
+  row budget: 30s; median=1.13s; own-row-history; climon battery (atomic 0)
+  climon battery (atomic 0)                            ok
+  row budget: 30s; median=3.92s; own-row-history; climon2 battery (atomic 0)
+  climon2 battery (atomic 0)                           ok
+  row budget: 57s; median=14.11s; own-row-history; tracking battery (atomic 0)
+  tracking battery (atomic 0)                          ok
+  row budget: 30s; median=3.69s; own-row-history; hexpire battery (atomic 0)
+  hexpire battery (atomic 0)                           ok
+  row budget: 30s; median=0.6s; own-row-history; servertail battery (atomic 0)
+  servertail battery (atomic 0)                        ok
+  row budget: 30s; median=0.15s; own-row-history; lcs battery (atomic 0)
+  lcs battery (atomic 0)                               ok
+  row budget: 30s; median=2.15s; own-row-history; concur battery (atomic 0)
+  concur battery (atomic 0)                            ok
+  row budget: 30s; median=0.58s; own-row-history; edgeproto battery (atomic 0)
+  edgeproto battery (atomic 0)                         ok
+  row budget: 30s; median=0.34s; own-row-history; edgeenc battery (atomic 0)
+  edgeenc battery (atomic 0)                           ok
+  row budget: 30s; median=4.09s; own-row-history; edgetime battery (atomic 0)
+  edgetime battery (atomic 0)                          ok
+  row budget: 30s; median=0.02s; own-row-history; arity battery (atomic 0)
+  arity battery (atomic 0)                             ok
+  row budget: 30s; median=0.03s; own-row-history; contarity battery (atomic 0)
+  contarity battery (atomic 0)                         ok
+  row budget: 30s; median=0.02s; own-row-history; cmdgap battery (atomic 0)
+  cmdgap battery (atomic 0)                            ok
+  row budget: 30s; median=0.28s; own-row-history; aclsel battery (atomic 0)
+  aclsel battery (atomic 0)                            ok
+  row budget: 241s; median=60.22s; own-row-history; expwide battery (atomic 0)
+  expwide battery (atomic 0)                           ok
+  row budget: 30s; median=0.14s; own-row-history; infofix battery (atomic 0)
+  infofix battery (atomic 0)                           ok
+  row budget: 30s; median=2.94s; own-row-history; pushtear battery (atomic 0)
+  pushtear battery (atomic 0)                          ok
+  row budget: 30s; median=0.03s; own-row-history; netcmd battery (atomic 0)
+  netcmd battery (atomic 0)                            ok
+  row budget: 30s; median=0.02s; own-row-history; feature shutdown invariants (atomic 0)
+  feature shutdown invariants (atomic 0)               ok
+  row budget: 30s; median=0.47s; own-row-history; s6 battery (atomic 1)
+  s6 battery (atomic 1)                                ok
+  row budget: 30s; median=2.07s; own-row-history; multi_exec battery (atomic 1)
+  multi_exec battery (atomic 1)                        ok
+  row budget: 30s; median=1.495s; own-row-history; blocking battery (atomic 1)
+  blocking battery (atomic 1)                          ok
+  row budget: 30s; median=0.48s; own-row-history; blockmulti battery (atomic 1)
+  blockmulti battery (atomic 1)                        ok
+  row budget: 30s; median=0.49s; own-row-history; stream battery (atomic 1)
+  stream battery (atomic 1)                            ok
+  row budget: 30s; median=0.04s; own-row-history; streamgroups battery (atomic 1)
+  streamgroups battery (atomic 1)                      ok
+  row budget: 30s; median=0.89s; own-row-history; pubsub battery (atomic 1)
+  pubsub battery (atomic 1)                            ok
+  row budget: 30s; median=0.03s; own-row-history; lua_scripting battery (atomic 1)
+  lua_scripting battery (atomic 1)                     ok
+  row budget: 30s; median=0.04s; own-row-history; scriptsurf battery (atomic 1)
+  scriptsurf battery (atomic 1)                        ok
+  row budget: 60s; median=14.9s; own-row-history; limits battery (atomic 1)
+  limits battery (atomic 1)                            ok
+  row budget: 30s; median=0.03s; own-row-history; resp3 battery (atomic 1)
+  resp3 battery (atomic 1)                             ok
+  row budget: 30s; median=0.03s; own-row-history; bitfield battery (atomic 1)
+  bitfield battery (atomic 1)                          ok
+  row budget: 30s; median=0.06s; own-row-history; dumprestore battery (atomic 1)
+  dumprestore battery (atomic 1)                       ok
+  row budget: 30s; median=0.04s; own-row-history; zsetops battery (atomic 1)
+  zsetops battery (atomic 1)                           ok
+  row budget: 30s; median=0.03s; own-row-history; geo battery (atomic 1)
+  geo battery (atomic 1)                               ok
+  row budget: 30s; median=1.13s; own-row-history; climon battery (atomic 1)
+  climon battery (atomic 1)                            ok
+  row budget: 30s; median=3.92s; own-row-history; climon2 battery (atomic 1)
+  climon2 battery (atomic 1)                           ok
+  row budget: 57s; median=14.11s; own-row-history; tracking battery (atomic 1)
+  tracking battery (atomic 1)                          ok
+  row budget: 30s; median=3.45s; own-row-history; hexpire battery (atomic 1)
+  hexpire battery (atomic 1)                           ok
+  row budget: 30s; median=0.61s; own-row-history; servertail battery (atomic 1)
+  servertail battery (atomic 1)                        ok
+  row budget: 30s; median=0.16s; own-row-history; lcs battery (atomic 1)
+  lcs battery (atomic 1)                               ok
+  row budget: 30s; median=2.16s; own-row-history; concur battery (atomic 1)
+  concur battery (atomic 1)                            ok
+  row budget: 30s; median=0.58s; own-row-history; edgeproto battery (atomic 1)
+  edgeproto battery (atomic 1)                         ok
+  row budget: 30s; median=0.35s; own-row-history; edgeenc battery (atomic 1)
+  edgeenc battery (atomic 1)                           ok
+  row budget: 30s; median=4.08s; own-row-history; edgetime battery (atomic 1)
+  edgetime battery (atomic 1)                          ok
+  row budget: 30s; median=0.02s; own-row-history; arity battery (atomic 1)
+  arity battery (atomic 1)                             ok
+  row budget: 30s; median=0.03s; own-row-history; contarity battery (atomic 1)
+  contarity battery (atomic 1)                         ok
+  row budget: 30s; median=0.02s; own-row-history; cmdgap battery (atomic 1)
+  cmdgap battery (atomic 1)                            ok
+  row budget: 30s; median=0.28s; own-row-history; aclsel battery (atomic 1)
+  aclsel battery (atomic 1)                            ok
+  row budget: 232s; median=57.88s; own-row-history; expwide battery (atomic 1)
+  expwide battery (atomic 1)                           ok
+  row budget: 30s; median=0.14s; own-row-history; infofix battery (atomic 1)
+  infofix battery (atomic 1)                           ok
+  row budget: 30s; median=2.94s; own-row-history; pushtear battery (atomic 1)
+  pushtear battery (atomic 1)                          ok
+  row budget: 30s; median=0.03s; own-row-history; netcmd battery (atomic 1)
+  netcmd battery (atomic 1)                            ok
+  row budget: 30s; median=0.02s; own-row-history; feature shutdown invariants (atomic 1)
+  feature shutdown invariants (atomic 1)               ok
+  row budget: 30s; median=0.26s; own-row-history; fused boot line (atomic 0)
+  fused boot line (atomic 0)                           ok
+  row budget: 30s; median=0.53s; own-row-history; fused s6 battery (atomic 0)
+  fused s6 battery (atomic 0)                          ok
+  row budget: 30s; median=2.07s; own-row-history; fused multi_exec battery (atomic 0)
+  fused multi_exec battery (atomic 0)                  ok
+  row budget: 30s; median=0.74s; own-row-history; fused edgeproto battery (atomic 0)
+  fused edgeproto battery (atomic 0)                   ok
+  row budget: 30s; median=0.04s; own-row-history; fused atomfix battery (atomic 0)
+  fused atomfix battery (atomic 0)                     ok
+  row budget: 30s; median=2.23s; own-row-history; fused spinprobe battery (atomic 0)
+  fused spinprobe battery (atomic 0)                   ok
+  row budget: 30s; median=1.16s; own-row-history; fused shutdown report (atomic 0)
+  fused shutdown report (atomic 0)                     ok
+  row budget: 30s; median=0.26s; own-row-history; fused boot line (atomic 1)
+  fused boot line (atomic 1)                           ok
+  row budget: 30s; median=0.53s; own-row-history; fused s6 battery (atomic 1)
+  fused s6 battery (atomic 1)                          ok
+  row budget: 30s; median=2.07s; own-row-history; fused multi_exec battery (atomic 1)
+  fused multi_exec battery (atomic 1)                  ok
+  row budget: 30s; median=0.74s; own-row-history; fused edgeproto battery (atomic 1)
+  fused edgeproto battery (atomic 1)                   ok
+  row budget: 30s; median=0.045s; own-row-history; fused atomfix battery (atomic 1)
+  fused atomfix battery (atomic 1)                     ok
+  row budget: 30s; median=2.23s; own-row-history; fused spinprobe battery (atomic 1)
+  fused spinprobe battery (atomic 1)                   ok
+  row budget: 30s; median=1.16s; own-row-history; fused shutdown report (atomic 1)
+  fused shutdown report (atomic 1)                     ok
+  row budget: 30s; median=0.26s; own-row-history; fused+armed boot line (atomic 0)
+  fused+armed boot line (atomic 0)                     ok
+  row budget: 30s; median=0.53s; own-row-history; fused+armed s6 battery (atomic 0)
+  fused+armed s6 battery (atomic 0)                    ok
+  row budget: 30s; median=2.075s; own-row-history; fused+armed multi_exec battery (atomic 0)
+  fused+armed multi_exec battery (atomic 0)            ok
+  row budget: 30s; median=1.445s; own-row-history; fused+armed blocking battery (atomic 0)
+  fused+armed blocking battery (atomic 0)              ok
+  row budget: 30s; median=0.48s; own-row-history; fused+armed blockmulti battery (atomic 0)
+  fused+armed blockmulti battery (atomic 0)            ok
+  row budget: 30s; median=0.5s; own-row-history; fused+armed stream battery (atomic 0)
+  fused+armed stream battery (atomic 0)                ok
+  row budget: 30s; median=0.04s; own-row-history; fused+armed streamgroups battery (atomic 0)
+  fused+armed streamgroups battery (atomic 0)          ok
+  row budget: 30s; median=0.89s; own-row-history; fused+armed pubsub battery (atomic 0)
+  fused+armed pubsub battery (atomic 0)                ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed lua_scripting battery (atomic 0)
+  fused+armed lua_scripting battery (atomic 0)         ok
+  row budget: 30s; median=0.05s; own-row-history; fused+armed scriptsurf battery (atomic 0)
+  fused+armed scriptsurf battery (atomic 0)            ok
+  row budget: 60s; median=14.94s; own-row-history; fused+armed limits battery (atomic 0)
+  fused+armed limits battery (atomic 0)                ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed resp3 battery (atomic 0)
+  fused+armed resp3 battery (atomic 0)                 ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed bitfield battery (atomic 0)
+  fused+armed bitfield battery (atomic 0)              ok
+  row budget: 30s; median=0.06s; own-row-history; fused+armed dumprestore battery (atomic 0)
+  fused+armed dumprestore battery (atomic 0)           ok
+  row budget: 30s; median=0.05s; own-row-history; fused+armed zsetops battery (atomic 0)
+  fused+armed zsetops battery (atomic 0)               ok
+  row budget: 30s; median=0.02s; own-row-history; fused+armed geo battery (atomic 0)
+  fused+armed geo battery (atomic 0)                   ok
+  row budget: 30s; median=1.13s; own-row-history; fused+armed climon battery (atomic 0)
+  fused+armed climon battery (atomic 0)                ok
+  row budget: 30s; median=3.92s; own-row-history; fused+armed climon2 battery (atomic 0)
+  fused+armed climon2 battery (atomic 0)               ok
+  row budget: 57s; median=14.11s; own-row-history; fused+armed tracking battery (atomic 0)
+  fused+armed tracking battery (atomic 0)              ok
+  row budget: 30s; median=3.45s; own-row-history; fused+armed hexpire battery (atomic 0)
+  fused+armed hexpire battery (atomic 0)               ok
+  row budget: 30s; median=0.52s; own-row-history; fused+armed servertail battery (atomic 0)
+  fused+armed servertail battery (atomic 0)            ok
+  row budget: 30s; median=0.16s; own-row-history; fused+armed lcs battery (atomic 0)
+  fused+armed lcs battery (atomic 0)                   ok
+  row budget: 30s; median=2.17s; own-row-history; fused+armed concur battery (atomic 0)
+  fused+armed concur battery (atomic 0)                ok
+  row budget: 30s; median=0.74s; own-row-history; fused+armed edgeproto battery (atomic 0)
+  fused+armed edgeproto battery (atomic 0)             ok
+  row budget: 30s; median=0.37s; own-row-history; fused+armed edgeenc battery (atomic 0)
+  fused+armed edgeenc battery (atomic 0)               ok
+  row budget: 30s; median=4.07s; own-row-history; fused+armed edgetime battery (atomic 0)
+  fused+armed edgetime battery (atomic 0)              ok
+  row budget: 30s; median=0.02s; own-row-history; fused+armed arity battery (atomic 0)
+  fused+armed arity battery (atomic 0)                 ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed contarity battery (atomic 0)
+  fused+armed contarity battery (atomic 0)             ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed cmdgap battery (atomic 0)
+  fused+armed cmdgap battery (atomic 0)                ok
+  row budget: 30s; median=0.28s; own-row-history; fused+armed aclsel battery (atomic 0)
+  fused+armed aclsel battery (atomic 0)                ok
+  row budget: 214s; median=53.46s; own-row-history; fused+armed expwide battery (atomic 0)
+  fused+armed expwide battery (atomic 0)               ok
+  row budget: 30s; median=0.15s; own-row-history; fused+armed infofix battery (atomic 0)
+  fused+armed infofix battery (atomic 0)               ok
+  row budget: 30s; median=2.93s; own-row-history; fused+armed pushtear battery (atomic 0)
+  fused+armed pushtear battery (atomic 0)              ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed netcmd battery (atomic 0)
+  fused+armed netcmd battery (atomic 0)                ok
+  row budget: 30s; median=1.16s; own-row-history; fused+armed shutdown report + lane fired (hits=N, atomic 0)
+  fused+armed shutdown report + lane fired (hits=557, atomic 0) ok
+  row budget: 30s; median=0.26s; own-row-history; fused+armed boot line (atomic 1)
+  fused+armed boot line (atomic 1)                     ok
+  row budget: 30s; median=0.53s; own-row-history; fused+armed s6 battery (atomic 1)
+  fused+armed s6 battery (atomic 1)                    ok
+  row budget: 30s; median=2.08s; own-row-history; fused+armed multi_exec battery (atomic 1)
+  fused+armed multi_exec battery (atomic 1)            ok
+  row budget: 30s; median=1.435s; own-row-history; fused+armed blocking battery (atomic 1)
+  fused+armed blocking battery (atomic 1)              ok
+  row budget: 30s; median=0.48s; own-row-history; fused+armed blockmulti battery (atomic 1)
+  fused+armed blockmulti battery (atomic 1)            ok
+  row budget: 30s; median=0.5s; own-row-history; fused+armed stream battery (atomic 1)
+  fused+armed stream battery (atomic 1)                ok
+  row budget: 30s; median=0.035s; own-row-history; fused+armed streamgroups battery (atomic 1)
+  fused+armed streamgroups battery (atomic 1)          ok
+  row budget: 30s; median=0.89s; own-row-history; fused+armed pubsub battery (atomic 1)
+  fused+armed pubsub battery (atomic 1)                ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed lua_scripting battery (atomic 1)
+  fused+armed lua_scripting battery (atomic 1)         ok
+  row budget: 30s; median=0.05s; own-row-history; fused+armed scriptsurf battery (atomic 1)
+  fused+armed scriptsurf battery (atomic 1)            ok
+  row budget: 61s; median=15.16s; own-row-history; fused+armed limits battery (atomic 1)
+  fused+armed limits battery (atomic 1)                ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed resp3 battery (atomic 1)
+  fused+armed resp3 battery (atomic 1)                 ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed bitfield battery (atomic 1)
+  fused+armed bitfield battery (atomic 1)              ok
+  row budget: 30s; median=0.06s; own-row-history; fused+armed dumprestore battery (atomic 1)
+  fused+armed dumprestore battery (atomic 1)           ok
+  row budget: 30s; median=0.05s; own-row-history; fused+armed zsetops battery (atomic 1)
+  fused+armed zsetops battery (atomic 1)               ok
+  row budget: 30s; median=0.02s; own-row-history; fused+armed geo battery (atomic 1)
+  fused+armed geo battery (atomic 1)                   ok
+  row budget: 30s; median=1.14s; own-row-history; fused+armed climon battery (atomic 1)
+  fused+armed climon battery (atomic 1)                ok
+  row budget: 30s; median=3.92s; own-row-history; fused+armed climon2 battery (atomic 1)
+  fused+armed climon2 battery (atomic 1)               ok
+  row budget: 57s; median=14.11s; own-row-history; fused+armed tracking battery (atomic 1)
+  fused+armed tracking battery (atomic 1)              ok
+  row budget: 30s; median=3.45s; own-row-history; fused+armed hexpire battery (atomic 1)
+  fused+armed hexpire battery (atomic 1)               ok
+  row budget: 30s; median=0.61s; own-row-history; fused+armed servertail battery (atomic 1)
+  fused+armed servertail battery (atomic 1)            ok
+  row budget: 30s; median=0.16s; own-row-history; fused+armed lcs battery (atomic 1)
+  fused+armed lcs battery (atomic 1)                   ok
+  row budget: 30s; median=2.21s; own-row-history; fused+armed concur battery (atomic 1)
+  fused+armed concur battery (atomic 1)                ok
+  row budget: 30s; median=0.74s; own-row-history; fused+armed edgeproto battery (atomic 1)
+  fused+armed edgeproto battery (atomic 1)             ok
+  row budget: 30s; median=0.38s; own-row-history; fused+armed edgeenc battery (atomic 1)
+  fused+armed edgeenc battery (atomic 1)               ok
+  row budget: 30s; median=4.08s; own-row-history; fused+armed edgetime battery (atomic 1)
+  fused+armed edgetime battery (atomic 1)              ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed arity battery (atomic 1)
+  fused+armed arity battery (atomic 1)                 ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed contarity battery (atomic 1)
+  fused+armed contarity battery (atomic 1)             ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed cmdgap battery (atomic 1)
+  fused+armed cmdgap battery (atomic 1)                ok
+  row budget: 30s; median=0.28s; own-row-history; fused+armed aclsel battery (atomic 1)
+  fused+armed aclsel battery (atomic 1)                ok
+  row budget: 191s; median=47.7s; own-row-history; fused+armed expwide battery (atomic 1)
+  fused+armed expwide battery (atomic 1)               ok
+  row budget: 30s; median=0.15s; own-row-history; fused+armed infofix battery (atomic 1)
+  fused+armed infofix battery (atomic 1)               ok
+  row budget: 30s; median=2.93s; own-row-history; fused+armed pushtear battery (atomic 1)
+  fused+armed pushtear battery (atomic 1)              ok
+  row budget: 30s; median=0.03s; own-row-history; fused+armed netcmd battery (atomic 1)
+  fused+armed netcmd battery (atomic 1)                ok
+  row budget: 30s; median=1.16s; own-row-history; fused+armed shutdown report + lane fired (hits=N, atomic 1)
+  fused+armed shutdown report + lane fired (hits=557, atomic 1) ok
+  row budget: 30s; median=0.31s; own-row-history; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok
+  row budget: 30s; median=0.31s; own-row-history; eviction lfu battery (fused+armed, atomic 0)
+  eviction lfu battery (fused+armed, atomic 0)         ok
+  row budget: 512s; median=110.855s; own-row-history; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (split, atomic 0)
+  eviction lruclock battery (split, atomic 0)          ok
+  row budget: 512s; median=110.6s; own-row-history; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok
+  row budget: 30s; median=0.31s; own-row-history; eviction lfu battery (split, atomic 1)
+  eviction lfu battery (split, atomic 1)               ok
+  row budget: 30s; median=0.31s; own-row-history; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok
+  row budget: 512s; median=109.96s; own-row-history; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (split, atomic 1)
+  eviction lruclock battery (split, atomic 1)          ok
+  row budget: 512s; median=109.295s; own-row-history; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (fused+armed, atomic 1)
+  eviction lruclock battery (fused+armed, atomic 1)    ok
+  row budget: 30s; median=2.14s; own-row-history; B+ held-group GET/MGET filter battery
+  B+ held-group GET/MGET filter battery                ok
+  row budget: 30s; median=0.04s; own-row-history; read-local lane admission battery
+  read-local lane admission battery                    ok
+  row budget: 175s; median=43.74s; own-row-history; ACL recheck one-reply battery (2s)
+  ACL recheck one-reply battery (2s)                   ok
+  row budget: 175s; median=43.74s; own-row-history; ACL recheck one-reply battery (1s)
+  ACL recheck one-reply battery (1s)                   ok
+  row budget: 30s; median=0.12s; own-row-history; cross-owner SORT battery (atomic 0)
+  cross-owner SORT battery (atomic 0)                  ok
+  row budget: 30s; median=0.12s; own-row-history; cross-owner SORT battery (atomic 1)
+  cross-owner SORT battery (atomic 1)                  ok
+  row budget: 30s; median=0.16s; own-row-history; lbsignals battery (atomic 0)
+  lbsignals battery (atomic 0)                         ok
+  row budget: 30s; median=1.49s; own-row-history; slowlog battery (atomic 0)
+  slowlog battery (atomic 0)                           ok
+  row budget: 30s; median=0.04s; own-row-history; atomfix battery (atomic 0)
+  atomfix battery (atomic 0)                           ok
+  row budget: 30s; median=0.04s; own-row-history; scriptatomic battery (atomic 0)
+  scriptatomic battery (atomic 0)                      ok
+  row budget: 58s; median=14.47s; own-row-history; execatomic battery (atomic 0)
+  execatomic battery (atomic 0)                        ok
+  row budget: 48s; median=11.86s; own-row-history; execiso battery (atomic 0)
+  execiso battery (atomic 0)                           ok
+  row budget: 30s; median=0.44s; own-row-history; execfix battery (atomic 0)
+  execfix battery (atomic 0)                           ok
+  row budget: 30s; median=0.09s; own-row-history; multires battery (atomic 0)
+  multires battery (atomic 0)                          ok
+  row budget: 30s; median=0.65s; own-row-history; multirace battery (atomic 0)
+  multirace battery (atomic 0)                         ok
+  row budget: 122s; median=30.49s; own-row-history; session_monotonic battery (atomic 0)
+  session_monotonic battery (atomic 0)                 ok
+  row budget: 30s; median=0.31s; own-row-history; xacct battery (atomic 0)
+  xacct battery (atomic 0)                             ok
+  row budget: 30s; median=0.44s; own-row-history; xmove battery (atomic 0)
+  xmove battery (atomic 0)                             ok
+  row budget: 30s; median=0.87s; own-row-history; xscript battery (atomic 0)
+  xscript battery (atomic 0)                           ok
+  row budget: 30s; median=0.16s; own-row-history; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 30s; median=1.49s; own-row-history; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 30s; median=0.04s; own-row-history; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 30s; median=0.04s; own-row-history; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 58s; median=14.47s; own-row-history; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 48s; median=11.86s; own-row-history; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 30s; median=0.45s; own-row-history; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 30s; median=0.09s; own-row-history; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 30s; median=0.65s; own-row-history; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 122s; median=30.49s; own-row-history; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 30s; median=0.3s; own-row-history; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 30s; median=0.44s; own-row-history; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 30s; median=0.86s; own-row-history; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 30s; median=0.05s; own-row-history; xscript limit control
+  xscript limit control                                ok
+  row budget: 30s; median=0.54s; own-row-history; xscript window control
+  xscript window control                               ok
+  row budget: 63s; median=15.56s; own-row-history; expire-index growth bound
+  expire-index growth bound                            ok
+  row budget: 30s; median=1.49s; own-row-history; borrow-registry growth bound
+  borrow-registry growth bound                         ok
+  row budget: 116s; median=28.87s; own-row-history; cross-shard dispatch scaling
+  cross-shard dispatch scaling                         ok
+  row budget: 30s; median=0.06s; own-row-history; DUMP/RESTORE prepare + native SAVE
+  DUMP/RESTORE prepare + native SAVE                   ok
+  row budget: 30s; median=0.05s; own-row-history; DUMP/RESTORE cross-restart round-trip
+  DUMP/RESTORE cross-restart round-trip                ok
+  row budget: 30s; median=0.02s; own-row-history; DUMP/RESTORE restart shutdown invariants
+  DUMP/RESTORE restart shutdown invariants             ok
+  row budget: 30s; median=0.01s; own-row-history; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 30s; median=0.01s; own-row-history; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 30s; median=0.15s; own-row-history; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 30s; median=0.28s; own-row-history; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 30s; median=0.285s; own-row-history; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 30s; median=0.945s; own-row-history; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 30s; median=0.1s; own-row-history; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 30s; median=0.64s; own-row-history; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 30s; median=0.195s; own-row-history; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 30s; median=2.73s; own-row-history; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 30s; median=5.245s; own-row-history; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 30s; median=0.05s; own-row-history; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 30s; median=0.05s; own-row-history; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 30s; median=0.17s; own-row-history; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 30s; median=0.06s; own-row-history; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok
+  row budget: 30s; median=0.63s; own-row-history; snapshot concurrent cut (uring)
+  snapshot concurrent cut (uring)                      ok
+  row budget: 30s; median=0.175s; own-row-history; snapshot cut reload (uring)
+  snapshot cut reload (uring)                          ok
+  row budget: 30s; median=2.74s; own-row-history; snapshot never tears a cross-shard MSET group (uring, atomic 1)
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  row budget: 30s; median=5.215s; own-row-history; snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  row budget: 30s; median=0.05s; own-row-history; typed snapshot save (uring)
+  typed snapshot save (uring)                          ok
+  row budget: 30s; median=0.05s; own-row-history; typed snapshot reload (uring)
+  typed snapshot reload (uring)                        ok
+  row budget: 30s; median=0.185s; own-row-history; typed snapshot preimage race (uring)
+  typed snapshot preimage race (uring)                 ok
+  row budget: 30s; median=0.06s; own-row-history; typed snapshot race reload (uring)
+  typed snapshot race reload (uring)                   ok
+  row budget: 30s; median=2.07s; own-row-history; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 30s; median=1.48s; own-row-history; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 30s; median=0.89s; own-row-history; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 30s; median=0.03s; own-row-history; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 91s; median=22.69s; own-row-history; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 30s; median=0.02s; own-row-history; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+  row budget: 30s; median=0.14s; own-row-history; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 81s; median=20.05s; own-row-history; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 30s; median=1.46s; own-row-history; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 30s; median=2.23s; own-row-history; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 472s; median=117.89s; own-row-history; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 30s; median=6.125s; own-row-history; FLIP applies under saturated load
+  FLIP applies under saturated load                    ok
+  row budget: 30s; median=0.02s; own-row-history; flip battery shutdown invariants
+  flip battery shutdown invariants                     ok
+  row budget: 57s; median=14.03s; own-row-history; atomic MGET/MSET floor (N/s >= 120k)
+  atomic MGET/MSET floor (785302/s >= 120k)            ok
+  row budget: 30s; median=0.005s; own-row-history; tripwire arm/disarm round-trip
+  tripwire arm/disarm round-trip                       ok
+  row budget: 30s; median=0.04s; own-row-history; pipelined same-conn program order (400 rolls)
+  pipelined same-conn program order (400 rolls)        ok
+  row budget: 30s; median=0.08s; own-row-history; configuration reduction + actual geometry (epoll, atomic 0)
+  configuration reduction + actual geometry (epoll, atomic 0) ok
+  row budget: 30s; median=0.32s; own-row-history; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0) ok
+  row budget: 30s; median=0.04s; own-row-history; AOF writer fired (records=N)
+  AOF writer fired (records=976)                       ok
+  row budget: 30s; median=0.04s; own-row-history; AOF process-restart script replay (epoll, atomic 0)
+  AOF process-restart script replay (epoll, atomic 0)  ok
+  row budget: 30s; median=0.04s; own-row-history; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 30s; median=0.01s; own-row-history; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=976 skipped=0)             ok
+  row budget: 30s; median=0.085s; own-row-history; configuration reduction + actual geometry (epoll, atomic 1)
+  configuration reduction + actual geometry (epoll, atomic 1) ok
+  row budget: 30s; median=0.325s; own-row-history; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1) ok
+  row budget: 30s; median=0.04s; own-row-history; AOF writer fired (records=N)
+  AOF writer fired (records=977)                       ok
+  row budget: 30s; median=0.04s; own-row-history; AOF process-restart script replay (epoll, atomic 1)
+  AOF process-restart script replay (epoll, atomic 1)  ok
+  row budget: 30s; median=0.04s; own-row-history; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 30s; median=0.01s; own-row-history; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=977 skipped=0)             ok
+  row budget: 30s; median=0.35s; own-row-history; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 30s; median=0.05s; own-row-history; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 30s; median=0.02s; own-row-history; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 30s; median=0.84s; own-row-history; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 30s; median=0.03s; own-row-history; AOF always acknowledged-prefix recovery
+  AOF always acknowledged-prefix recovery              ok
+  row budget: 30s; median=2.09s; own-row-history; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 30s; median=0.03s; own-row-history; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 30s; median=0.03s; own-row-history; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 34s; median=8.345s; own-row-history; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 33s; median=8.205s; own-row-history; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 30s; median=0.01s; own-row-history; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 30s; median=0s; own-row-history; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 30s; median=0.09s; own-row-history; configuration reduction + actual geometry (uring, atomic 0)
+  configuration reduction + actual geometry (uring, atomic 0) ok
+  row budget: 30s; median=0.355s; own-row-history; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0) ok
+  row budget: 30s; median=0.04s; own-row-history; AOF writer fired (records=N)
+  AOF writer fired (records=976)                       ok
+  row budget: 30s; median=0.04s; own-row-history; AOF process-restart script replay (uring, atomic 0)
+  AOF process-restart script replay (uring, atomic 0)  ok
+  row budget: 30s; median=0.04s; own-row-history; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 30s; median=0.01s; own-row-history; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=976 skipped=0)             ok
+  row budget: 30s; median=0.08s; own-row-history; configuration reduction + actual geometry (uring, atomic 1)
+  configuration reduction + actual geometry (uring, atomic 1) ok
+  row budget: 30s; median=0.33s; own-row-history; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1) ok
+  row budget: 30s; median=0.04s; own-row-history; AOF writer fired (records=N)
+  AOF writer fired (records=977)                       ok
+  row budget: 30s; median=0.04s; own-row-history; AOF process-restart script replay (uring, atomic 1)
+  AOF process-restart script replay (uring, atomic 1)  ok
+  row budget: 30s; median=0.04s; own-row-history; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 30s; median=0.01s; own-row-history; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=977 skipped=0)             ok
+  row budget: 30s; median=0.35s; own-row-history; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 30s; median=0.05s; own-row-history; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 30s; median=0.02s; own-row-history; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 30s; median=0.84s; own-row-history; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 30s; median=0.03s; own-row-history; AOF always acknowledged-prefix recovery
+  AOF always acknowledged-prefix recovery              ok
+  row budget: 30s; median=2.09s; own-row-history; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 30s; median=0.03s; own-row-history; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 30s; median=0.03s; own-row-history; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 34s; median=8.345s; own-row-history; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 33s; median=8.205s; own-row-history; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 30s; median=0.01s; own-row-history; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 30s; median=0s; own-row-history; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 30s; median=1.245s; own-row-history; AOF control frame never inside a large record (atomic 0)
+  AOF control frame never inside a large record (atomic 0) ok
+  row budget: 30s; median=1.34s; own-row-history; AOF control frame never inside a large record (atomic 1)
+  AOF control frame never inside a large record (atomic 1) ok
+  row budget: 30s; median=1.09s; own-row-history; TLS ephemeral CA/server/client certificates
+  TLS ephemeral CA/server/client certificates          ok
+  row budget: 30s; median=0.005s; own-row-history; reject TLS listener without certificate
+  reject TLS listener without certificate              ok
+  row budget: 30s; median=0.01s; own-row-history; reject invalid tls-protocols
+  reject invalid tls-protocols                         ok
+  row budget: 30s; median=0.01s; own-row-history; reject invalid tls-ciphers
+  reject invalid tls-ciphers                           ok
+  row budget: 30s; median=0.05s; own-row-history; TLS client-auth yes matrix
+  TLS client-auth yes matrix                           ok
+  row budget: 30s; median=0.02s; own-row-history; TLS yes shutdown invariants
+  TLS yes shutdown invariants                          ok
+  row budget: 30s; median=0.05s; own-row-history; TLS client-auth optional matrix
+  TLS client-auth optional matrix                      ok
+  row budget: 30s; median=0.43s; own-row-history; kTLS engaged live (default boot)
+  kTLS engaged live (default boot)                     ok
+  row budget: 30s; median=0.02s; own-row-history; TLS optional shutdown invariants
+  TLS optional shutdown invariants                     ok
+  row budget: 60s; median=14.815s; own-row-history; TLS pipeline/torn-record/coexistence battery
+  TLS pipeline/torn-record/coexistence battery         ok
+  row budget: 30s; median=0.02s; own-row-history; TLS shutdown invariants
+  TLS shutdown invariants                              ok
+  row budget: 30s; median=0.02s; own-row-history; TLS application send path error-free
+  TLS application send path error-free                 ok
+  row budget: 30s; median=0.06s; own-row-history; TLS connection slots all freed (N/N)
+  TLS connection slots all freed (33/33)               ok
+  row budget: 30s; median=0s; own-row-history; TLS zc borrow gates fired (suppressed=N)
+  TLS zc borrow gates fired (suppressed=21)            ok
+  row budget: 30s; median=1.24s; own-row-history; feature 1s-0-0-0-0
+  feature 1s-0-0-0-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-0-0-0-1
+  feature 1s-0-0-0-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 1s-0-0-1-0
+  feature 1s-0-0-1-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-0-0-1-1
+  feature 1s-0-0-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 1s-0-1-0-0
+  feature 1s-0-1-0-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-0-1-0-1
+  feature 1s-0-1-0-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 1s-0-1-1-0
+  feature 1s-0-1-1-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-0-1-1-1
+  feature 1s-0-1-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 1s-1-0-0-0
+  feature 1s-1-0-0-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-1-0-0-1
+  feature 1s-1-0-0-1                                   ok
+  row budget: 30s; median=1.25s; own-row-history; feature 1s-1-0-1-0
+  feature 1s-1-0-1-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-1-0-1-1
+  feature 1s-1-0-1-1                                   ok
+  row budget: 30s; median=1.245s; own-row-history; feature 1s-1-1-0-0
+  feature 1s-1-1-0-0                                   ok
+  row budget: 30s; median=0.11s; own-row-history; feature 1s-1-1-0-1
+  feature 1s-1-1-0-1                                   ok
+  row budget: 30s; median=1.25s; own-row-history; feature 1s-1-1-1-0
+  feature 1s-1-1-1-0                                   ok
+  row budget: 30s; median=0.12s; own-row-history; feature 1s-1-1-1-1
+  feature 1s-1-1-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-0-0-0
+  feature 2s-0-0-0-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-0-0-1
+  feature 2s-0-0-0-1                                   ok
+  row budget: 30s; median=1.245s; own-row-history; feature 2s-0-0-1-0
+  feature 2s-0-0-1-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-0-1-1
+  feature 2s-0-0-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-1-0-0
+  feature 2s-0-1-0-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-1-0-1
+  feature 2s-0-1-0-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-1-1-0
+  feature 2s-0-1-1-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-0-1-1-1
+  feature 2s-0-1-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-0-0-0
+  feature 2s-1-0-0-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-0-0-1
+  feature 2s-1-0-0-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-0-1-0
+  feature 2s-1-0-1-0                                   ok
+  row budget: 30s; median=1.25s; own-row-history; feature 2s-1-0-1-1
+  feature 2s-1-0-1-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-1-0-0
+  feature 2s-1-1-0-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-1-0-1
+  feature 2s-1-1-0-1                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-1-1-0
+  feature 2s-1-1-1-0                                   ok
+  row budget: 30s; median=1.24s; own-row-history; feature 2s-1-1-1-1
+  feature 2s-1-1-1-1                                   ok
+  row budget: 30s; median=1.245s; own-row-history; feature split-home-min
+  feature split-home-min                               ok
+  row budget: 30s; median=1.26s; own-row-history; feature fused-home-max-nopin
+  feature fused-home-max-nopin                         ok
+  row budget: 30s; median=1.24s; own-row-history; feature split-shards-auto
+  feature split-shards-auto                            ok
+  row budget: 1395s; median=348.75s; own-row-history; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       ok
+  row budget: 31s; median=7.64s; own-row-history; torture under ASAN
+  torture under ASAN                                   ok
+  row budget: 30s; median=1.02s; own-row-history; RYOW under ASAN
+  RYOW under ASAN                                      ok
+  row budget: 105s; median=26.16s; own-row-history; atomic torn/window under ASAN
+  atomic torn/window under ASAN                        ok
+  row budget: 30s; median=4.07s; own-row-history; atomic RYOW under ASAN
+  atomic RYOW under ASAN                               ok
+  row budget: 30s; median=0.02s; own-row-history; ASAN clean
+  ASAN clean                                           ok
+  row budget: 30s; median=1.23s; own-row-history; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0) ok
+  row budget: 30s; median=1.23s; own-row-history; CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+  CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1) ok
+  row budget: 30s; median=1.35s; own-row-history; zc borrow battery
+  zc borrow battery                                    ok
+  row budget: 30s; median=0.02s; own-row-history; zc fired (zc_sends=N)
+  zc fired (zc_sends=20)                               ok
+  row budget: 30s; median=1.38s; own-row-history; zc borrow battery under ASAN
+  zc borrow battery under ASAN                         ok
+  row budget: 30s; median=0.02s; own-row-history; zc ASAN clean
+  zc ASAN clean                                        ok
+  row budget: 900s; median=0.72s; own-row-history; mechanism-floor=900s (cold cache state not distinguished); read-local ownership-invariant build
+  read-local ownership-invariant build                 ok
+  row budget: 101s; median=25.18s; own-row-history; armed block-cache churn battery
+  armed block-cache churn battery                      ok
+  row budget: 30s; median=0.02s; own-row-history; read-local ownership invariants
+  read-local ownership invariants                      ok
+  row budget: 2138s; median=534.43s; own-row-history; Redis 7.4 differential part (split, atomic 0)
+DIFFER suites (41): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={0} seeds={7 19 20 23 22 38} legs=246 logs=/home/user/Projects/cx-final/build/gate-run.v5lXvo/jobs/differ-split-0/differ
+  vanilla Redis oracle boot                                  ok (pid=3820687 port=7906)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=3820762 port=7905)
+  differ string (atomic=0 seed=7)                            ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=7)                              ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=7)                               ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=7)                              ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=7)                              ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=7)                          ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=7)                            ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=7)                             ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=7)                            ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=7)                               ok (DIFFER hll: 3057 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=7)                          ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=7)                             ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=7)                            ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=7)                            ok (DIFFER script: 5061 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=7)                         ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=7)                           ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=7)                               ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=7)                           ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=7)                              ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=7)                             ok (DIFFER multi: 4260 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=7)                           ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=7)                         ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=7)                            ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=7)                           ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=7)                              ok (DIFFER sort: 4512 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=7)                        ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=7)                             ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=7)                        ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=7)                           ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=7)                          ok (DIFFER blocking: 5327 logical ops, 5388 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=7)                            ok (DIFFER pubsub: 4198 logical ops, 25486 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=7)                            ok (DIFFER fanout: 14237 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=7)                           ok (DIFFER spubsub: 801 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=7)                            ok (DIFFER notify: 345 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=7)                          ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=7)                       ok (DIFFER compatintro: 5630 checks, 0 diffs -> PASS (getkeys=1550, config_multi=631, client_rows=262, acl_mutations=401, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=7)                            ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=7)                           ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2122, intent=2078, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=7)                             ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=19)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=19)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=19)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=19)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=19)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=19)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=19)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=19)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=19)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=19)                              ok (DIFFER hll: 3045 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=19)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=19)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=19)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=19)                           ok (DIFFER script: 5053 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=19)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=19)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=19)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=19)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=19)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=19)                            ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=19)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=19)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=19)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=19)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=19)                             ok (DIFFER sort: 4495 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=19)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=19)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=19)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=19)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=19)                         ok (DIFFER blocking: 5297 logical ops, 5358 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=19)                           ok (DIFFER pubsub: 4198 logical ops, 25265 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=19)                           ok (DIFFER fanout: 7081 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=19)                          ok (DIFFER spubsub: 809 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=19)                           ok (DIFFER notify: 331 ops, 454 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=19)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=19)                      ok (DIFFER compatintro: 5633 checks, 0 diffs -> PASS (getkeys=1550, config_multi=637, client_rows=240, acl_mutations=396, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=19)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=19)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2134, intent=2066, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=19)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=20)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=20)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=20)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=20)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=20)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=20)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=20)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=20)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=20)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=20)                              ok (DIFFER hll: 3068 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=20)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=20)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=20)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=20)                           ok (DIFFER script: 5062 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=20)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=20)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=20)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=20)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=20)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=20)                            ok (DIFFER multi: 4189 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=20)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=20)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=20)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=20)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=20)                             ok (DIFFER sort: 4497 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=20)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=20)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=20)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=20)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=20)                         ok (DIFFER blocking: 5259 logical ops, 5320 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=20)                           ok (DIFFER pubsub: 4198 logical ops, 25960 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=20)                           ok (DIFFER fanout: 10363 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=20)                          ok (DIFFER spubsub: 786 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=20)                           ok (DIFFER notify: 331 ops, 463 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=20)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=20)                      ok (DIFFER compatintro: 5586 checks, 0 diffs -> PASS (getkeys=1550, config_multi=604, client_rows=258, acl_mutations=409, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=20)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=20)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2083, intent=2117, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=20)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=23)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=23)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=23)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=23)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=23)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=23)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=23)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=23)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=23)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=23)                              ok (DIFFER hll: 3071 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=23)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=23)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=23)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=23)                           ok (DIFFER script: 5048 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=23)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=23)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=23)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=23)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=23)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=23)                            ok (DIFFER multi: 4212 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=23)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=23)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=23)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=23)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=23)                             ok (DIFFER sort: 4496 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=23)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=23)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=23)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=23)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=23)                         ok (DIFFER blocking: 5294 logical ops, 5355 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=23)                           ok (DIFFER pubsub: 4198 logical ops, 26605 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=23)                           ok (DIFFER fanout: 10420 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=23)                          ok (DIFFER spubsub: 822 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=23)                           ok (DIFFER notify: 327 ops, 451 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=23)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=23)                      ok (DIFFER compatintro: 5579 checks, 0 diffs -> PASS (getkeys=1550, config_multi=608, client_rows=224, acl_mutations=407, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=23)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=23)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2100, intent=2100, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=23)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=22)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=22)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=22)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=22)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=22)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=22)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=22)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=22)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=22)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=22)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=22)                              ok (DIFFER hll: 3010 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=22)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=22)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=22)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=22)                           ok (DIFFER script: 5043 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=22)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=22)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=22)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=22)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=22)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=22)                            ok (DIFFER multi: 4223 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=22)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=22)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=22)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=22)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=22)                             ok (DIFFER sort: 4497 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=22)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=22)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=22)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=22)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=22)                         ok (DIFFER blocking: 5281 logical ops, 5342 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=22)                           ok (DIFFER pubsub: 4198 logical ops, 25300 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=22)                           ok (DIFFER fanout: 13883 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=22)                          ok (DIFFER spubsub: 797 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=22)                           ok (DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=22)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=22)                      ok (DIFFER compatintro: 5595 checks, 0 diffs -> PASS (getkeys=1550, config_multi=617, client_rows=244, acl_mutations=399, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=22)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=22)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2093, intent=2107, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=22)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=38)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=38)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=38)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=38)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=38)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=38)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=38)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=38)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=38)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=38)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=38)                              ok (DIFFER hll: 3046 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=38)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=38)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=38)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=38)                           ok (DIFFER script: 5064 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=38)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=38)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=38)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=38)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=38)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=38)                            ok (DIFFER multi: 4251 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=38)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=38)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=38)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=38)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=38)                             ok (DIFFER sort: 4495 ops, 0 diffs -> PASS)
+  differ servertail (atomic=0 seed=38)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=38)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=38)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=38)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=38)                         ok (DIFFER blocking: 5248 logical ops, 5309 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=38)                           ok (DIFFER pubsub: 4198 logical ops, 26166 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=38)                           ok (DIFFER fanout: 10632 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=38)                          ok (DIFFER spubsub: 820 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=38)                           ok (DIFFER notify: 344 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=38)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=38)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=38)                      ok (DIFFER compatintro: 5658 checks, 0 diffs -> PASS (getkeys=1550, config_multi=626, client_rows=240, acl_mutations=416, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=38)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=38)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2076, intent=2124, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=38)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  target atomic=0 stop                                       ok (port 7905 free)
+  oracle stop                                                ok (port 7906 free)
+DIFFER COMMAND COVERAGE: diffed 223 of 243 registered commands (1051208 recorded comparison witnesses, 246 legs)
+  not observed in compared replies/properties: AUTH, BGREWRITEAOF, BGSAVE, DBSIZE, FLIP, FLUSHDB, HELLO, INFO, LOLWUT, MONITOR, QUIT, REPLICAOF, SAVE, SELECT, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+DIFFER GATE: pass=246 fail=0 runtime=9m01s
+  Redis 7.4 differential part (split, atomic 0)        ok
+  row budget: 2139s; median=534.625s; own-row-history; Redis 7.4 differential part (split, atomic 1)
+DIFFER suites (41): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={1} seeds={7 19 20 23 22 38} legs=246 logs=/home/user/Projects/cx-final/build/gate-run.v5lXvo/jobs/differ-split-1/differ
+  vanilla Redis oracle boot                                  ok (pid=3820783 port=7921)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=1 boot                                       ok (pid=3820856 port=7920)
+  differ string (atomic=1 seed=7)                            ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=7)                              ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=7)                               ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=7)                              ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=7)                              ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=7)                          ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=7)                            ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=7)                             ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=7)                            ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=7)                               ok (DIFFER hll: 3057 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=7)                          ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=7)                             ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=7)                            ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=7)                            ok (DIFFER script: 5061 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=7)                         ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=7)                           ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=7)                               ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=7)                           ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=7)                              ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=7)                             ok (DIFFER multi: 4260 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=7)                           ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=7)                         ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=7)                            ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=7)                           ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=7)                              ok (DIFFER sort: 4512 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=7)                        ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=7)                             ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=7)                        ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=7)                           ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=7)                          ok (DIFFER blocking: 5327 logical ops, 5388 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=7)                            ok (DIFFER pubsub: 4198 logical ops, 25486 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=7)                            ok (DIFFER fanout: 14237 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=7)                           ok (DIFFER spubsub: 801 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=7)                            ok (DIFFER notify: 345 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=7)                          ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=7)                       ok (DIFFER compatintro: 5630 checks, 0 diffs -> PASS (getkeys=1550, config_multi=631, client_rows=262, acl_mutations=401, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=7)                            ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=7)                           ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2122, intent=2078, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=7)                             ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=19)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=19)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=19)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=19)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=19)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=19)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=19)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=19)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=19)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=19)                              ok (DIFFER hll: 3045 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=19)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=19)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=19)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=19)                           ok (DIFFER script: 5053 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=19)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=19)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=19)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=19)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=19)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19)                            ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=19)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=19)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=19)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=19)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=19)                             ok (DIFFER sort: 4495 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=19)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=19)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=19)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=19)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=19)                         ok (DIFFER blocking: 5297 logical ops, 5358 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=19)                           ok (DIFFER pubsub: 4198 logical ops, 25265 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=19)                           ok (DIFFER fanout: 7081 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=19)                          ok (DIFFER spubsub: 809 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=19)                           ok (DIFFER notify: 331 ops, 454 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=19)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=19)                      ok (DIFFER compatintro: 5633 checks, 0 diffs -> PASS (getkeys=1550, config_multi=637, client_rows=240, acl_mutations=396, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=19)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=19)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2134, intent=2066, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=19)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=20)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=20)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=20)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=20)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=20)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=20)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=20)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=20)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=20)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=20)                              ok (DIFFER hll: 3068 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=20)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=20)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=20)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=20)                           ok (DIFFER script: 5062 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=20)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=20)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=20)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=20)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=20)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=20)                            ok (DIFFER multi: 4189 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=20)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=20)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=20)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=20)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=20)                             ok (DIFFER sort: 4497 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=20)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=20)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=20)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=20)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=20)                         ok (DIFFER blocking: 5259 logical ops, 5320 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=20)                           ok (DIFFER pubsub: 4198 logical ops, 25960 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=20)                           ok (DIFFER fanout: 10363 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=20)                          ok (DIFFER spubsub: 786 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=20)                           ok (DIFFER notify: 331 ops, 463 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=20)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=20)                      ok (DIFFER compatintro: 5586 checks, 0 diffs -> PASS (getkeys=1550, config_multi=604, client_rows=258, acl_mutations=409, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=20)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=20)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2083, intent=2117, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=20)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=23)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=23)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=23)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=23)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=23)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=23)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=23)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=23)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=23)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=23)                              ok (DIFFER hll: 3071 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=23)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=23)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=23)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=23)                           ok (DIFFER script: 5048 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=23)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=23)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=23)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=23)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=23)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=23)                            ok (DIFFER multi: 4212 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=23)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=23)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=23)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=23)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=23)                             ok (DIFFER sort: 4496 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=23)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=23)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=23)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=23)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=23)                         ok (DIFFER blocking: 5294 logical ops, 5355 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=23)                           ok (DIFFER pubsub: 4198 logical ops, 26605 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=23)                           ok (DIFFER fanout: 10420 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=23)                          ok (DIFFER spubsub: 822 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=23)                           ok (DIFFER notify: 327 ops, 451 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=23)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=23)                      ok (DIFFER compatintro: 5579 checks, 0 diffs -> PASS (getkeys=1550, config_multi=608, client_rows=224, acl_mutations=407, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=23)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=23)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2100, intent=2100, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=23)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=22)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=22)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=22)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=22)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=22)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=22)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=22)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=22)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=22)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=22)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=22)                              ok (DIFFER hll: 3010 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=22)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=22)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=22)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=22)                           ok (DIFFER script: 5043 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=22)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=22)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=22)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=22)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=22)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=22)                            ok (DIFFER multi: 4223 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=22)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=22)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=22)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=22)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=22)                             ok (DIFFER sort: 4497 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=22)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=22)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=22)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=22)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=22)                         ok (DIFFER blocking: 5281 logical ops, 5342 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=22)                           ok (DIFFER pubsub: 4198 logical ops, 25300 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=22)                           ok (DIFFER fanout: 13883 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=22)                          ok (DIFFER spubsub: 797 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=22)                           ok (DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=22)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=22)                      ok (DIFFER compatintro: 5595 checks, 0 diffs -> PASS (getkeys=1550, config_multi=617, client_rows=244, acl_mutations=399, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=22)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=22)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2093, intent=2107, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=22)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=38)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=38)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=38)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=38)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=38)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=38)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=38)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=38)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=38)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=38)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=38)                              ok (DIFFER hll: 3046 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=38)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=38)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=38)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=38)                           ok (DIFFER script: 5064 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=38)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=38)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=38)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=38)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=38)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=38)                            ok (DIFFER multi: 4251 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=38)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=38)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=38)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=38)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=38)                             ok (DIFFER sort: 4495 ops, 0 diffs -> PASS)
+  differ servertail (atomic=1 seed=38)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=38)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=38)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=38)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=38)                         ok (DIFFER blocking: 5248 logical ops, 5309 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=38)                           ok (DIFFER pubsub: 4198 logical ops, 26166 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=38)                           ok (DIFFER fanout: 10632 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=38)                          ok (DIFFER spubsub: 820 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=38)                           ok (DIFFER notify: 344 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=38)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=38)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=38)                      ok (DIFFER compatintro: 5658 checks, 0 diffs -> PASS (getkeys=1550, config_multi=626, client_rows=240, acl_mutations=416, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=38)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=38)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2076, intent=2124, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=38)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 1)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 2)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 3)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 4)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  target atomic=1 stop                                       ok (port 7920 free)
+  oracle stop                                                ok (port 7921 free)
+DIFFER COMMAND COVERAGE: diffed 223 of 243 registered commands (1068236 recorded comparison witnesses, 250 legs)
+  not observed in compared replies/properties: AUTH, BGREWRITEAOF, BGSAVE, DBSIZE, FLIP, FLUSHDB, HELLO, INFO, LOLWUT, MONITOR, QUIT, REPLICAOF, SAVE, SELECT, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+DIFFER GATE: pass=250 fail=0 runtime=9m01s
+  Redis 7.4 differential part (split, atomic 1)        ok
+  row budget: 665s; median=166.08s; own-row-history; mode equivalence part (all execution modes and knobs)
+DIFFER suites (41): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={} seeds={7 19 20 23 22 38} legs=0 logs=/home/user/Projects/cx-final/build/gate-run.v5lXvo/jobs/differ-equivalence/differ
+  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)
+  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)
+DIFFER GATE: pass=2 fail=0 runtime=2m45s
+  mode equivalence part (all execution modes and knobs) ok
+  Redis 7.4 differential matrix                        ok (542.082139s across concurrent children)
+  row budget: 2136s; median=533.82s; own-row-history; Redis 7.4 differential part (armed fused, atomic 0)
+DIFFER suites (41): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix
+DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)
+DIFFER matrix: atomic={0} seeds={7 19 20 23 22 38} legs=246 logs=/home/user/Projects/cx-final/build/gate-run.v5lXvo/jobs/differ-armed-0/differ
+  vanilla Redis oracle boot                                  ok (pid=3820802 port=7903)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=3820877 port=7902)
+  differ string (atomic=0 seed=7)                            ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=7)                              ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=7)                               ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=7)                              ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=7)                              ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=7)                          ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=7)                            ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=7)                             ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=7)                            ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=7)                               ok (DIFFER hll: 3057 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=7)                          ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=7)                             ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=7)                            ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=7)                            ok (DIFFER script: 5061 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=7)                         ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=7)                           ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=7)                               ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=7)                           ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=7)                              ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=7)                             ok (DIFFER multi: 4260 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=7)                           ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=7)                         ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=7)                            ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=7)                           ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=7)                        ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=7)                             ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=7)                        ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=7)                           ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=7)                          ok (DIFFER blocking: 5327 logical ops, 5388 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=7)                            ok (DIFFER pubsub: 4198 logical ops, 25486 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=7)                            ok (DIFFER fanout: 14237 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=7)                           ok (DIFFER spubsub: 801 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=7)                            ok (DIFFER notify: 345 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=7)                          ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=7)                       ok (DIFFER compatintro: 5630 checks, 0 diffs -> PASS (getkeys=1550, config_multi=631, client_rows=262, acl_mutations=401, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=7)                            ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=7)                           ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2122, intent=2078, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=7)                             ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=19)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=19)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=19)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=19)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=19)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=19)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=19)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=19)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=19)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=19)                              ok (DIFFER hll: 3045 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=19)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=19)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=19)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=19)                           ok (DIFFER script: 5053 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=19)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=19)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=19)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=19)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=19)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=19)                            ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=19)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=19)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=19)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=19)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=19)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=19)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=19)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=19)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=19)                         ok (DIFFER blocking: 5297 logical ops, 5358 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=19)                           ok (DIFFER pubsub: 4198 logical ops, 25265 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=19)                           ok (DIFFER fanout: 7081 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=19)                          ok (DIFFER spubsub: 809 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=19)                           ok (DIFFER notify: 331 ops, 454 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=19)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=19)                      ok (DIFFER compatintro: 5633 checks, 0 diffs -> PASS (getkeys=1550, config_multi=637, client_rows=240, acl_mutations=396, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=19)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=19)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2134, intent=2066, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=19)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=20)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=20)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=20)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=20)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=20)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=20)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=20)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=20)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=20)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=20)                              ok (DIFFER hll: 3068 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=20)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=20)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=20)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=20)                           ok (DIFFER script: 5062 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=20)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=20)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=20)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=20)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=20)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=20)                            ok (DIFFER multi: 4189 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=20)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=20)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=20)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=20)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=20)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=20)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=20)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=20)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=20)                         ok (DIFFER blocking: 5259 logical ops, 5320 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=20)                           ok (DIFFER pubsub: 4198 logical ops, 25960 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=20)                           ok (DIFFER fanout: 10363 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=20)                          ok (DIFFER spubsub: 786 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=20)                           ok (DIFFER notify: 331 ops, 463 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=20)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=20)                      ok (DIFFER compatintro: 5586 checks, 0 diffs -> PASS (getkeys=1550, config_multi=604, client_rows=258, acl_mutations=409, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=20)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=20)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2083, intent=2117, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=20)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=23)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=23)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=23)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=23)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=23)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=23)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=23)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=23)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=23)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=23)                              ok (DIFFER hll: 3071 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=23)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=23)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=23)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=23)                           ok (DIFFER script: 5048 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=23)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=23)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=23)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=23)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=23)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=23)                            ok (DIFFER multi: 4212 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=23)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=23)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=23)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=23)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=23)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=23)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=23)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=23)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=23)                         ok (DIFFER blocking: 5294 logical ops, 5355 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=23)                           ok (DIFFER pubsub: 4198 logical ops, 26605 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=23)                           ok (DIFFER fanout: 10420 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=23)                          ok (DIFFER spubsub: 822 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=23)                           ok (DIFFER notify: 327 ops, 451 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=23)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=23)                      ok (DIFFER compatintro: 5579 checks, 0 diffs -> PASS (getkeys=1550, config_multi=608, client_rows=224, acl_mutations=407, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=23)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=23)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2100, intent=2100, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=23)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=22)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=22)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=22)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=22)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=22)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=22)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=22)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=22)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=22)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=22)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=22)                              ok (DIFFER hll: 3010 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=22)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=22)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=22)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=22)                           ok (DIFFER script: 5043 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=22)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=22)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=22)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=22)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=22)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=22)                            ok (DIFFER multi: 4223 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=22)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=22)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=22)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=22)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=22)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=22)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=22)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=22)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=22)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=22)                         ok (DIFFER blocking: 5281 logical ops, 5342 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=22)                           ok (DIFFER pubsub: 4198 logical ops, 25300 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=22)                           ok (DIFFER fanout: 13883 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=22)                          ok (DIFFER spubsub: 797 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=22)                           ok (DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=22)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=22)                      ok (DIFFER compatintro: 5595 checks, 0 diffs -> PASS (getkeys=1550, config_multi=617, client_rows=244, acl_mutations=399, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=22)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=22)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2093, intent=2107, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=22)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=0 seed=38)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=0 seed=38)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=0 seed=38)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=0 seed=38)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=0 seed=38)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=0 seed=38)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=0 seed=38)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=0 seed=38)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=0 seed=38)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=0 seed=38)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=0 seed=38)                              ok (DIFFER hll: 3046 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=0 seed=38)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=0 seed=38)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=0 seed=38)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=0 seed=38)                           ok (DIFFER script: 5064 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=0 seed=38)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=0 seed=38)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=0 seed=38)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=0 seed=38)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=0 seed=38)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=38)                            ok (DIFFER multi: 4251 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=0 seed=38)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=0 seed=38)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=0 seed=38)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=0 seed=38)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=0 seed=38)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=0 seed=38)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=0 seed=38)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=0 seed=38)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=0 seed=38)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=0 seed=38)                         ok (DIFFER blocking: 5248 logical ops, 5309 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=0 seed=38)                           ok (DIFFER pubsub: 4198 logical ops, 26166 checks, 0 diffs -> PASS)
+  differ fanout (atomic=0 seed=38)                           ok (DIFFER fanout: 10632 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=0 seed=38)                          ok (DIFFER spubsub: 820 checks, 0 diffs -> PASS)
+  differ notify (atomic=0 seed=38)                           ok (DIFFER notify: 344 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=0 seed=38)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=0 seed=38)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=38)                      ok (DIFFER compatintro: 5658 checks, 0 diffs -> PASS (getkeys=1550, config_multi=626, client_rows=240, acl_mutations=416, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=38)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=38)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2076, intent=2124, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=38)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  read-local lane fired (atomic=0)                           ok (hits=946 fallbacks=305)
+  target atomic=0 stop                                       ok (port 7902 free)
+  oracle stop                                                ok (port 7903 free)
+DIFFER COMMAND COVERAGE: diffed 222 of 243 registered commands (1024216 recorded comparison witnesses, 240 legs)
+  not observed in compared replies/properties: AUTH, BGREWRITEAOF, BGSAVE, DBSIZE, FLIP, FLUSHALL, FLUSHDB, HELLO, INFO, LOLWUT, MONITOR, QUIT, REPLICAOF, SAVE, SELECT, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+DIFFER GATE: pass=241 fail=0 runtime=9m00s
+  Redis 7.4 differential part (armed fused, atomic 0)  ok
+  row budget: 2139s; median=534.52s; own-row-history; Redis 7.4 differential part (armed fused, atomic 1)
+DIFFER suites (41): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix
+DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)
+DIFFER matrix: atomic={1} seeds={7 19 20 23 22 38} legs=246 logs=/home/user/Projects/cx-final/build/gate-run.v5lXvo/jobs/differ-armed-1/differ
+  vanilla Redis oracle boot                                  ok (pid=3820936 port=7924)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=1 boot                                       ok (pid=3820970 port=7923)
+  differ string (atomic=1 seed=7)                            ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=7)                              ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=7)                               ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=7)                              ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=7)                              ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=7)                          ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=7)                            ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=7)                             ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=7)                            ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=7)                               ok (DIFFER hll: 3057 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=7)                          ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=7)                             ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=7)                            ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=7)                            ok (DIFFER script: 5061 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=7)                         ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=7)                           ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=7)                               ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=7)                           ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=7)                              ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=7)                             ok (DIFFER multi: 4260 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=7)                           ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=7)                         ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=7)                            ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=7)                           ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=7)                        ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=7)                             ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=7)                        ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=7)                           ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=7)                          ok (DIFFER blocking: 5327 logical ops, 5388 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=7)                            ok (DIFFER pubsub: 4198 logical ops, 25486 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=7)                            ok (DIFFER fanout: 14237 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=7)                           ok (DIFFER spubsub: 801 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=7)                            ok (DIFFER notify: 345 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=7)                          ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=7)                       ok (DIFFER compatintro: 5630 checks, 0 diffs -> PASS (getkeys=1550, config_multi=631, client_rows=262, acl_mutations=401, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=7)                            ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=7)                           ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2122, intent=2078, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=7)                             ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=19)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=19)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=19)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=19)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=19)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=19)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=19)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=19)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=19)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=19)                              ok (DIFFER hll: 3045 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=19)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=19)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=19)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=19)                           ok (DIFFER script: 5053 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=19)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=19)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=19)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=19)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=19)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19)                            ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=19)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=19)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=19)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=19)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=19)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=19)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=19)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=19)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=19)                         ok (DIFFER blocking: 5297 logical ops, 5358 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=19)                           ok (DIFFER pubsub: 4198 logical ops, 25265 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=19)                           ok (DIFFER fanout: 7081 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=19)                          ok (DIFFER spubsub: 809 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=19)                           ok (DIFFER notify: 331 ops, 454 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=19)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=19)                      ok (DIFFER compatintro: 5633 checks, 0 diffs -> PASS (getkeys=1550, config_multi=637, client_rows=240, acl_mutations=396, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=19)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=19)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2134, intent=2066, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=19)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=20)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=20)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=20)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=20)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=20)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=20)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=20)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=20)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=20)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=20)                              ok (DIFFER hll: 3068 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=20)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=20)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=20)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=20)                           ok (DIFFER script: 5062 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=20)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=20)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=20)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=20)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=20)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=20)                            ok (DIFFER multi: 4189 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=20)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=20)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=20)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=20)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=20)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=20)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=20)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=20)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=20)                         ok (DIFFER blocking: 5259 logical ops, 5320 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=20)                           ok (DIFFER pubsub: 4198 logical ops, 25960 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=20)                           ok (DIFFER fanout: 10363 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=20)                          ok (DIFFER spubsub: 786 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=20)                           ok (DIFFER notify: 331 ops, 463 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=20)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=20)                      ok (DIFFER compatintro: 5586 checks, 0 diffs -> PASS (getkeys=1550, config_multi=604, client_rows=258, acl_mutations=409, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=20)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=20)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2083, intent=2117, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=20)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=23)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=23)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=23)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=23)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=23)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=23)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=23)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=23)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=23)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=23)                              ok (DIFFER hll: 3071 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=23)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=23)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=23)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=23)                           ok (DIFFER script: 5048 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=23)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=23)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=23)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=23)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=23)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=23)                            ok (DIFFER multi: 4212 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=23)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=23)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=23)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=23)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=23)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=23)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=23)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=23)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=23)                         ok (DIFFER blocking: 5294 logical ops, 5355 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=23)                           ok (DIFFER pubsub: 4198 logical ops, 26605 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=23)                           ok (DIFFER fanout: 10420 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=23)                          ok (DIFFER spubsub: 822 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=23)                           ok (DIFFER notify: 327 ops, 451 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=23)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=23)                      ok (DIFFER compatintro: 5579 checks, 0 diffs -> PASS (getkeys=1550, config_multi=608, client_rows=224, acl_mutations=407, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=23)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=23)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2100, intent=2100, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=23)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=22)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=22)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=22)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=22)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=22)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=22)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=22)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=22)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=22)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=22)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=22)                              ok (DIFFER hll: 3010 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=22)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=22)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=22)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=22)                           ok (DIFFER script: 5043 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=22)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=22)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=22)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=22)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=22)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=22)                            ok (DIFFER multi: 4223 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=22)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=22)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=22)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=22)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=22)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=22)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=22)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=22)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=22)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=22)                         ok (DIFFER blocking: 5281 logical ops, 5342 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=22)                           ok (DIFFER pubsub: 4198 logical ops, 25300 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=22)                           ok (DIFFER fanout: 13883 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=22)                          ok (DIFFER spubsub: 797 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=22)                           ok (DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=22)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=22)                      ok (DIFFER compatintro: 5595 checks, 0 diffs -> PASS (getkeys=1550, config_multi=617, client_rows=244, acl_mutations=399, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=22)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=22)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2093, intent=2107, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=22)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ string (atomic=1 seed=38)                           ok (DIFFER string: 4033 ops, 0 diffs -> PASS)
+  differ list (atomic=1 seed=38)                             ok (DIFFER list: 3521 ops, 0 diffs -> PASS)
+  differ set (atomic=1 seed=38)                              ok (DIFFER set: 3524 ops, 0 diffs -> PASS)
+  differ zset (atomic=1 seed=38)                             ok (DIFFER zset: 3531 ops, 0 diffs -> PASS)
+  differ hash (atomic=1 seed=38)                             ok (DIFFER hash: 3545 ops, 0 diffs -> PASS)
+  differ hexpire (atomic=1 seed=38)                          ok (DIFFER hexpire: 4288 ops, 0 diffs -> PASS)
+  differ edgetime (atomic=1 seed=38)                         ok (DIFFER edgetime: 4426 ops, 0 diffs -> PASS)
+  differ xshard (atomic=1 seed=38)                           ok (DIFFER xshard: 4276 ops, 0 diffs -> PASS)
+  differ xmove (atomic=1 seed=38)                            ok (DIFFER xmove: 4263 ops, 0 diffs -> PASS)
+  differ bitmap (atomic=1 seed=38)                           ok (DIFFER bitmap: 4262 ops, 0 diffs -> PASS)
+  differ hll (atomic=1 seed=38)                              ok (DIFFER hll: 3046 ops, 0 diffs -> PASS)
+  differ bitfield (atomic=1 seed=38)                         ok (DIFFER bitfield: 3226 ops, 0 diffs -> PASS)
+  differ cgaps (atomic=1 seed=38)                            ok (DIFFER cgaps: 3310 ops, 0 diffs -> PASS)
+  differ stream (atomic=1 seed=38)                           ok (DIFFER stream: 4031 ops, 0 diffs -> PASS)
+  differ script (atomic=1 seed=38)                           ok (DIFFER script: 5064 ops, 0 diffs -> PASS)
+  differ streamgrp (atomic=1 seed=38)                        ok (DIFFER streamgrp: 4052 ops, 0 diffs -> PASS)
+  differ zsetops (atomic=1 seed=38)                          ok (DIFFER zsetops: 4200 ops, 0 diffs -> PASS)
+  differ geo (atomic=1 seed=38)                              ok (DIFFER geo: 4200 ops, 0 diffs -> PASS)
+  differ doubles (atomic=1 seed=38)                          ok (DIFFER doubles: 5000 ops, 0 diffs -> PASS)
+  differ scan (atomic=1 seed=38)                             ok (DIFFER scan: 4081 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=38)                            ok (DIFFER multi: 4251 ops, 0 diffs -> PASS)
+  differ edgeenc (atomic=1 seed=38)                          ok (DIFFER edgeenc: 6757 ops, 0 diffs -> PASS)
+  differ edgeproto (atomic=1 seed=38)                        ok (DIFFER edgeproto: 5200 ops, 0 diffs -> PASS)
+  differ cmdgap (atomic=1 seed=38)                           ok (DIFFER cmdgap: 4213 ops, 0 diffs -> PASS)
+  differ cmdgap2 (atomic=1 seed=38)                          ok (DIFFER cmdgap2: 4241 ops, 0 diffs -> PASS)
+  differ sort (atomic=1 seed=38)                             SKIP (suite requires the split 6:2 geometry)
+  differ servertail (atomic=1 seed=38)                       ok (DIFFER servertail: 5339 ops, 0 diffs -> PASS)
+  differ arity (atomic=1 seed=38)                            ok (DIFFER arity: 4200 ops, 0 diffs -> PASS)
+  differ storeorder (atomic=1 seed=38)                       ok (DIFFER storeorder: 4600 ops, 0 diffs -> PASS)
+  differ infofix (atomic=1 seed=38)                          ok (DIFFER infofix: 4200 ops, 0 diffs -> PASS)
+  differ blocking (atomic=1 seed=38)                         ok (DIFFER blocking: 5248 logical ops, 5309 checks, 0 diffs -> PASS)
+  differ pubsub (atomic=1 seed=38)                           ok (DIFFER pubsub: 4198 logical ops, 26166 checks, 0 diffs -> PASS)
+  differ fanout (atomic=1 seed=38)                           ok (DIFFER fanout: 10632 checks, 0 diffs -> PASS)
+  differ spubsub (atomic=1 seed=38)                          ok (DIFFER spubsub: 820 checks, 0 diffs -> PASS)
+  differ notify (atomic=1 seed=38)                           ok (DIFFER notify: 344 ops, 470 events, 0 diffs -> PASS)
+  differ wiredump (atomic=1 seed=38)                         ok (DIFFER wiredump: 4200 ops, 0 diffs -> PASS)
+  differ climon (atomic=1 seed=38)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=1 seed=38)                      ok (DIFFER compatintro: 5658 checks, 0 diffs -> PASS (getkeys=1550, config_multi=626, client_rows=240, acl_mutations=416, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=1 seed=38)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=1 seed=38)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2076, intent=2124, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=1 seed=38)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 1)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 2)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 3)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  differ multi (atomic=1 seed=19 rep 4)                      ok (DIFFER multi: 4257 ops, 0 diffs -> PASS)
+  read-local lane fired (atomic=1)                           ok (hits=1025 fallbacks=1266)
+  target atomic=1 stop                                       ok (port 7923 free)
+  oracle stop                                                ok (port 7924 free)
+DIFFER COMMAND COVERAGE: diffed 222 of 243 registered commands (1041244 recorded comparison witnesses, 244 legs)
+  not observed in compared replies/properties: AUTH, BGREWRITEAOF, BGSAVE, DBSIZE, FLIP, FLUSHALL, FLUSHDB, HELLO, INFO, LOLWUT, MONITOR, QUIT, REPLICAOF, SAVE, SELECT, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+DIFFER GATE: pass=245 fail=0 runtime=9m01s
+  Redis 7.4 differential part (armed fused, atomic 1)  ok
+  Redis 7.4 differential matrix (armed fused + read-local) ok (541.678154s across concurrent children)
+  row budget: 30s; median=2.05s; own-row-history; glob/scan grammar parity vs Redis 7.4
+  glob/scan grammar parity vs Redis 7.4                ok
+  row budget: 43200s; median=-s; abba-full-matrix-not-history; headline ABBA vs last pushed binary
+  UNPINNED, searching their ladders (slower; re-pin with --calibrate): h01,h07,h11,h15,h17,h23,h27,h31,m47,m92,t01,t02,t03,t04,t05,t06
+REFERENCE gate_measurements.json a363c2c5e1f16e98db18e15dd427502093f99f7c sha256=93217be3502f808ab2c0882bc046b650dcd9d11db50ef36b0318ab92fe8737f8
+CANDIDATE /home/user/Projects/cx-final/build/tomokv sha256=354838d3debf89983f4aac88561da281aee866b863cc58f3d7dd3b5b8b528cbe
+GEOMETRY server=0-31 (32 physical cores) server-smt=(reserved) (32 threads) load=32-111 load-smt=160-239 port=7899 allowed=7899-7998; Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio 16:16, flip=0.
+  h01 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  h01 n=1 1:A boot/populate/20s
+    11.37879M/s legacy-busy=63.202% productive-role=75.837% CPU=81.244% latency=1.41900ms
+  h01 n=1 2:B boot/populate/20s
+    11.22884M/s legacy-busy=60.278% productive-role=73.719% CPU=79.441% latency=1.43800ms
+  h01 n=1 3:B boot/populate/20s
+    11.21484M/s legacy-busy=60.595% productive-role=73.962% CPU=79.667% latency=1.43800ms
+  h01 n=1 4:A boot/populate/20s
+    11.24171M/s legacy-busy=63.141% productive-role=75.824% CPU=81.241% latency=1.43700ms
+h01 A=11.378790,11.241710 B=11.228835,11.214843 Mops/s paired=-0.7817% spread A/B=1.2120/0.1247% threshold=1.2120% legacy-busy(ABBA)=63.202,60.278,60.595,63.141% productive-role(ABBA)=75.837,73.719,73.962,75.824% instances=1 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: no higher-instance confirmation block
+  h01 n=2 1:A boot/populate/20s
+    22.07867M/s legacy-busy=99.971% productive-role=99.977% CPU=99.977% latency=0.73244ms
+  h01 n=2 2:B boot/populate/20s
+    22.09036M/s legacy-busy=99.967% productive-role=99.975% CPU=99.977% latency=0.73149ms
+  h01 n=2 3:B boot/populate/20s
+    22.42919M/s legacy-busy=99.927% productive-role=99.955% CPU=99.962% latency=0.72142ms
+  h01 n=2 4:A boot/populate/20s
+    21.83397M/s legacy-busy=99.910% productive-role=99.943% CPU=99.957% latency=0.74050ms
+h01 A=22.078670,21.833966 B=22.090362,22.429192 Mops/s paired=+1.3821% spread A/B=1.1145/1.5222% threshold=1.1145% legacy-busy(ABBA)=99.971,99.967,99.927,99.910% productive-role(ABBA)=99.977,99.975,99.955,99.943% instances=2 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=2; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: reference still gains beyond its measured repeatability
+  FAIL: n=1: candidate still gains beyond its measured repeatability
+  FAIL: n=2: no higher-instance confirmation block
+  h01 n=4 1:A boot/populate/20s
+    22.98056M/s legacy-busy=99.993% productive-role=99.990% CPU=99.992% latency=0.70714ms
+  h01 n=4 2:B boot/populate/20s
+    23.97587M/s legacy-busy=99.995% productive-role=99.991% CPU=99.992% latency=0.67756ms
+  h01 n=4 3:B boot/populate/20s
+    23.90071M/s legacy-busy=99.996% productive-role=99.991% CPU=99.993% latency=0.67966ms
+  h01 n=4 4:A boot/populate/20s
+    23.03101M/s legacy-busy=99.996% productive-role=99.993% CPU=99.994% latency=0.70584ms
+h01 A=22.980557,23.031012 B=23.975871,23.900713 Mops/s paired=+4.0534% spread A/B=0.2193/0.3140% threshold=0.3225% legacy-busy(ABBA)=99.993,99.995,99.996,99.996% productive-role(ABBA)=99.990,99.991,99.991,99.993% instances=4 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=4; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: reference still gains beyond its measured repeatability
+  FAIL: n=1: candidate still gains beyond its measured repeatability
+  FAIL: n=2: reference still gains beyond its measured repeatability
+  FAIL: n=2: candidate still gains beyond its measured repeatability
+  FAIL: n=4: no higher-instance confirmation block
+  h01 n=8 1:A boot/populate/20s
+    23.06493M/s legacy-busy=99.996% productive-role=99.994% CPU=99.994% latency=0.70523ms
+  h01 n=8 2:B boot/populate/20s
+    23.76791M/s legacy-busy=99.993% productive-role=99.988% CPU=99.987% latency=0.68442ms
+  h01 n=8 3:B boot/populate/20s
