@@ -30,7 +30,9 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ROOT / "build/readlocal-obs/arms"
-BASE = "87b88cc4eb7d791c87b83a43215454d38c0f72f8"
+# The 11:26 shared Git-store loss removed 87b88cc4e. Its only change from this parent was
+# tests/gate_measurements.json's reference pointer; the PRE server sources are identical.
+BASE = "a363c2c5e1f16e98db18e15dd427502093f99f7c"
 sys.path.insert(0, str(ROOT / "tests"))
 import abbagate as abba
 from abba_profile import WindowProfile
