@@ -370,51 +370,55 @@ public:
 
     // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
     // this pass is the split executor body without its role loop or independent wait.
+    template <bool ContinuousReorder = false>
     uint32_t fused_pass() {
         static_assert(Fused);
         if (!pipeline_batches_)
-            return fused_pass_impl<kGenthreadExBatchOps, true, false>();
+            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void, ContinuousReorder>();
         return iofused_
-            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
+            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void, ContinuousReorder>()
+            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false, false, false, void, ContinuousReorder>();
     }
 
+    template <bool ContinuousReorder = false>
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
-            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, true>();
-        return fused_pass_impl<kGenthreadExBatchOps, true, false>();
+            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, true, void, ContinuousReorder>();
+        return fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void, ContinuousReorder>();
     }
 
     // Private-lane whole-batch turn shared by overlap's thin path, idle repair,
     // and blocking snapshot progress. It has no streams pipeline-state probes.
+    template <bool ContinuousReorder = false>
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>();
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void, ContinuousReorder>();
     }
 
     // Three-way overlap is the ordinary iofused executor envelope with one piece of independent
     // CPU work inserted into the first fresh task batch's existing prefetch gap.  The batch remains
     // the stack-local whole batch used by drain_tasks(); nothing is staged across this call.
-    template <typename Filler>
+    template <bool ContinuousReorder = false, typename Filler>
     uint32_t fused_three_way_pass(Filler&& filler) {
         static_assert(Fused);
         using Fn = std::remove_reference_t<Filler>;
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn>(
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn, ContinuousReorder>(
             &filler);
     }
 
     // Buffered schedules keep control/persistence work in the executor owner but let the fused
     // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
+    template <bool ContinuousReorder = false>
     uint32_t fused_pipeline_control() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void, ContinuousReorder>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              typename Filler = void>
+              typename Filler = void, bool ContinuousReorder = false>
     uint32_t fused_pass_impl(Filler* filler = nullptr) {
         Server::ClientWorkScope client_work(*srv_, self_->id());
         constexpr bool HasFiller = !std::is_void_v<Filler>;
@@ -505,10 +509,10 @@ public:
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                         if constexpr (HasFiller)
-                            did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                            did += select_task_drain_with_filler<ContinuousReorder, BatchOps, IofusedPrivateQueue>(
                                 true, *filler, filler_used);
                         else
-                            did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                            did += select_task_drain<ContinuousReorder, BatchOps, IofusedPrivateQueue>(true);
                     }
                 flush_xshard_commits();
                 did += aof_flush_pass();
@@ -531,14 +535,14 @@ public:
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                         if (snapshot_owner_state_ == SnapshotOwnerState::None) {
                             if constexpr (HasFiller)
-                                did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                                did += select_task_drain_with_filler<ContinuousReorder, BatchOps, IofusedPrivateQueue>(
                                     false, *filler, filler_used);
                             else {
                                 if (fairlane_turn)
                                     did += drain_tasks_read_local_interleaved<
                                         IofusedPrivateQueue>(false, owner_work_remains);
                                 else
-                                    did += drain_tasks<BatchOps, IofusedPrivateQueue>();
+                                    did += select_task_drain<ContinuousReorder, BatchOps, IofusedPrivateQueue>();
                             }
                         } else {
                             did += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
@@ -590,59 +594,63 @@ public:
         fused_idle_spins_ = 0;
         if constexpr (InterleaveLocalReads) {
             did = fairlane_turn
-                ? sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
-                : sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                ? sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true, ContinuousReorder>()
+                : sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
         } else {
-            did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+            did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
         }
         if (did) fused_submit_boundary<CoalesceSubmit>();
         return did;
     }
 
+    template <bool ContinuousReorder = false>
     uint32_t fused_sweep(bool consume_tasks = true) {
         static_assert(Fused);
         if (!consume_tasks) {
             if (lb_controller_armed_ && srv_->lb_dispatch_paused())
                 return iofused_
-                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
+                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true, false, void, ContinuousReorder>()
+                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void, ContinuousReorder>();
             if (!pipeline_batches_)
-                return fused_sweep_impl<kGenthreadExBatchOps, false, false>();
+                return fused_sweep_impl<kGenthreadExBatchOps, false, false, false, false, ContinuousReorder>();
             return iofused_
-                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
+                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true, false, ContinuousReorder>()
+                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false, ContinuousReorder>();
         }
         if (!pipeline_batches_)
-            return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
+            return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
         return iofused_
-            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false>();
+            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true, false, ContinuousReorder>()
+            : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false, false, false, ContinuousReorder>();
     }
 
+    template <bool ContinuousReorder = false>
     uint32_t fused_baseline_sweep() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
-            return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true>();
-        return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
+            return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true, ContinuousReorder>();
+        return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
     }
 
+    template <bool ContinuousReorder = false>
     uint32_t fused_coarse_sweep() {
         static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>();
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true, false, ContinuousReorder>();
     }
 
+    template <bool ContinuousReorder = false>
     uint32_t fused_pipeline_control_sweep() {
         static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false, ContinuousReorder>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
+              bool ContinuousReorder = false>
     uint32_t fused_sweep_impl() {
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
-                                   IofusedPrivateQueue>();
+            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit, IofusedPrivateQueue, false, void, ContinuousReorder>();
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -658,19 +666,19 @@ public:
             if (!read_local_enabled()) std::abort();
             if (fairlane_owner_debt_pending()) {
                 did += drain_local_reads() +
-                    sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                    sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
             } else {
                 compact_local_read_tombstones();
                 if (read_local_impl().lane_count) {
                     did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
-                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>();
+                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true, ContinuousReorder>();
                 } else {
-                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                    did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
                 }
             }
         } else {
             did += drain_local_reads() +
-                sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
         }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
         if (did) fused_submit_boundary<CoalesceSubmit>();
@@ -688,7 +696,16 @@ public:
     // tasks or shard housekeeping, even while FLIP installs its future EX shard vector.
     uint32_t split_read_local_pass();
 
+    // Reorder is boot-latched. Select once per EX role tenure, before the owner loop;
+    // the FIFO instantiation retains the original drain without a new per-drain load.
+    template <bool ContinuousReorder = false>
     void run() {
+        if constexpr (!ContinuousReorder) {
+            if (reorder_enabled_) {
+                run<true>();
+                return;
+            }
+        }
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
             // was drained before role conversion; owner commands use no local-read captures.
@@ -748,7 +765,7 @@ public:
                         did += service_xshard_retries();
                         if (xshard_retries_.empty()) did += service_ordered_deferred();
                         if (xshard_retries_.empty() && ordered_deferred_.empty())
-                            did += drain_tasks(true);
+                            did += select_task_drain<ContinuousReorder>(true);
                         flush_xshard_commits();
                         did += aof_flush_pass();
                         did += drain_notify_keyless(sig);
@@ -769,7 +786,7 @@ public:
                         if (xshard_retries_.empty()) did += service_ordered_deferred();
                         if (xshard_retries_.empty() && ordered_deferred_.empty())
                             did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                       ? drain_tasks() : drain_tasks_snapshot();
+                                       ? select_task_drain<ContinuousReorder>() : drain_tasks_snapshot();
                     }
                     flush_xshard_commits();
                     if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
@@ -827,7 +844,7 @@ public:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep()) { ring_.submit_and_reap(); continue; }
+            if (sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>()) { ring_.submit_and_reap(); continue; }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -1809,7 +1826,8 @@ private:
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
+              bool ContinuousReorder = false>
     uint32_t sweep() {
         Server::ClientWorkScope client_work(*srv_, self_->id());
         [[maybe_unused]] bool owner_work_remains = false;
@@ -1829,7 +1847,7 @@ private:
                             n += drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
                                 true, owner_work_remains);
                         else
-                            n += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                            n += select_task_drain<ContinuousReorder, BatchOps, IofusedPrivateQueue>(true);
                     } else {
                         n += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
                     }
@@ -1976,11 +1994,32 @@ private:
         return drain_local_reads_bounded<true>(UINT32_MAX);
     }
 
+    // The role entry selects this policy at compile time. Off uses the original FIFO
+    // recv/callback/retire body; on retains the continuous drain's exact queue lifetime.
+    // There is no runtime selector, queue state, or extra stack on a FIFO drain.
+    template <bool ContinuousReorder, uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
+    __attribute__((always_inline))
+    uint32_t select_task_drain(bool unmasked = false) {
+        if constexpr (ContinuousReorder)
+            return drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(unmasked);
+        else return drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked);
+    }
+
+    template <bool ContinuousReorder, uint32_t BatchOps,
+              bool IofusedPrivateQueue, typename Filler>
+    __attribute__((always_inline))
+    uint32_t select_task_drain_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
+        if constexpr (ContinuousReorder)
+            return drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(
+                unmasked, &filler, &filler_used);
+        else return drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+            unmasked, filler, filler_used);
+    }
+
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
-        if (__builtin_expect(reorder_enabled_, false))
-            return drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(unmasked);
         Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
@@ -2004,9 +2043,6 @@ private:
     // same pop/retire sequence, so no streams lane list or delayed-retirement context is involved.
     template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
     uint32_t drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
-        if (__builtin_expect(reorder_enabled_, false))
-            return drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(
-                unmasked, &filler, &filler_used);
         Task batch[BatchOps];
         uint32_t held = 0;
         auto execute_batch = [&] {
