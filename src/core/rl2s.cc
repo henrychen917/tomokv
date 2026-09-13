@@ -287,7 +287,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return 1;
     }
     std::string unix_error;
-    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
         std::fprintf(stderr, "%s\n", unix_error.c_str());
         stop_workers();
         return 1;
