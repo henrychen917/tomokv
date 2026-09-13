@@ -1,0 +1,26 @@
+deadconf-fix — maintainer measurements only; no lane server or load generator was run.
+
+Item 2 (zero-copy): PRE build/tomokv-zc-pre, POST build/tomokv-zc-post.
+PRE contains item 1; POST adds only item 2. No layout changed, so no PAD twin is needed.
+Use the gate's ABBA instrument, 16 shards, ratio 6:2 on eight cores, in both 1s and 2s.
+Use the 25GbE two-netns rig for the send-path cells; loopback cannot judge these changes.
+Keep offered load, connections, pinning and all other knobs identical across arms.
+
+Cells (GET and cross-shard MGET-8, 512 connections, pipeline 1/8/32):
+  zc-min=256:   values 255, 256, 257 bytes.
+  zc-min=1024:  values 1023, 1024, 1025 bytes.
+  zc-min=16384: values 64, 1023, 1024, 1025, 16383, 16384, 16385 bytes.
+  zc-min=0:     values 64, 1024, 1025, 16384 bytes.
+Include a mixed GET/MGET population with 64-byte and 16-KiB values so copied and borrowed
+gather slots share replies. Compare read-local off/on in the existing gate postures.
+Run the normal smoke cells as the unchanged-path control, including h15/h31 (GET),
+h48 (SET p1), m47 (MSET-8 p8) and m92 (MGET-8 p8).
+
+Record PRE/POST rate at matched offered load, p99/p99.9, cycles/op, instructions/op and IPC.
+The rate and tail latency decide regressions; instructions and IPC explain cycles/op.
+Check identical-arm variation before attributing any >2% difference to the patch.
+The 1024-byte enabled gather intentionally switches from copy to borrow. The disabled
+large gather intentionally switches from borrowing to owning a reply copy; its slowdown
+relative to the old incorrectly enabled behavior is not an optimization claim.
+Correctness requires zero borrows at zc-min=0 and inclusive borrowing at enabled cutovers.
+The maintainer should append the numbers and acceptance decision to MEASURE-RESULT.

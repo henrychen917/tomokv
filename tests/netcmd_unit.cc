@@ -240,6 +240,7 @@ struct NetcmdRegression {
 
     static void config() {
         test_config_bounds();
+        zero_copy("zc-all");
         Server server;
         const std::string password = "pass with spaces\n\r\t\"'\\tail";
         char directory[] = "build/netcmd-config-XXXXXX";
@@ -250,6 +251,130 @@ struct NetcmdRegression {
         test_config_rewrite();
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
+    }
+
+    static void zero_copy(const std::string& section) {
+        if (section == "zc-all" || section == "zc-install") {
+            Shard shard;
+            shard.init(nullptr, 0, 0, kNumBuckets, 0, TypeLimits{}, StreamLimits{});
+            check(shard.zc_min() == UINT32_MAX, "boot zero-copy off installs the disabled sentinel");
+        }
+        if (section == "zc-all" || section == "zc-live") {
+            Server registry;
+            command_bind_server(&registry); command_bind_server(nullptr);
+            Shard shard;
+            shard.init_private(nullptr, 0, TypeLimits{}, StreamLimits{});
+            for (const char* text : {"256", "0", "1024", "0"}) {
+                check(execute(shard, {"CONFIG", "SET", "zc-min", text}).empty(), "live zc update");
+                check(shard.zc_min() == (std::strcmp(text, "0") ? std::stoul(text) : UINT32_MAX),
+                      "live zero-copy off installs the disabled sentinel");
+                const std::string wire = "*2\r\n$6\r\nzc-min\r\n$" + std::to_string(std::strlen(text)) +
+                    "\r\n" + text + "\r\n";
+                check(execute(shard, {"CONFIG", "GET", "zc-min"}) == wire,
+                      "CONFIG GET retains the public zero spelling");
+            }
+        }
+        if (section == "zc-install" || section == "zc-live") return;
+        for (ThreadMode mode : {ThreadMode::Split, ThreadMode::Fused}) {
+            Server server;
+            Config cfg; cfg.even_ifid = 6; cfg.even_ex = 2; cfg.shards = 16;
+            cfg.thread_mode = mode; cfg.key_lb = cfg.client_lb = 0;
+            check(server.prepare_boot(cfg) && server.init(cfg), "serverless zero-copy topology");
+            std::string keys[2];
+            for (unsigned i = 0; (keys[0].empty() || keys[1].empty()) && i < 100000; ++i) {
+                const auto key = "zc:" + std::to_string(i);
+                const int sid = server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size())));
+                if (sid < 2) keys[sid] = key;
+            }
+            check(!keys[0].empty() && !keys[1].empty(), "two distinct gather shards found");
+            for (uint32_t cutover : {0u, 256u, 1024u}) {
+                if (section == "zc-boundary" && !cutover) continue;
+                if (section == "zc-off" && cutover) continue;
+                for (uint32_t length : {0u, 1u, 255u, 256u, 257u, 1023u, 1024u, 1025u, 16384u}) {
+                    const std::string value(length, 'v');
+                    const bool borrow = cutover && length >= cutover;
+                    for (int sid = 0; sid < 2; ++sid) {
+                        Shard& shard = server.shard(sid);
+                        shard.set_zc_min(cutover ? cutover : UINT32_MAX);
+                        check(execute(shard, {"SET", keys[sid].c_str(), value.c_str()}) == "+OK\r\n", "seed zc value");
+                        Op get; args(get, {"GET", keys[sid].c_str()});
+                        get.spec->handler(shard, get);
+                        check((get.zc_ptr != nullptr) == borrow, "GET cutover is inclusive and zero disables");
+                        if (get.zc_ptr) { shard.store().unborrow(get.zc_ptr); get.zc_ptr = nullptr; }
+                    }
+                    Client client(-1); client.set_id(777);
+                    Op op; args(op, {"MGET", keys[0].c_str(), keys[1].c_str()});
+                    ScatterArenaPool pool; ScatterDispatch dispatch;
+                    check(xshard_prepare(server, op, pool, 0, client.id(), dispatch) == ScatterPrepare::Ready,
+                          "MGET gather prepared");
+                    ScatterState& state = *dispatch.state;
+                    check(state.nsub == 2, "MGET really spans two shards");
+                    for (uint32_t i = 0; i < state.nsub; ++i) {
+                        const int sid = state.groups[i].shard;
+                        check(xshard_execute(Task{&client, 0, sid, &state}, server.shard(sid), op,
+                                             server.worker_of_shard(sid)) == ScatterTaskResult::Complete,
+                              "MGET owner gather completed");
+                    }
+                    for (uint32_t i = 0; i < state.key_count; ++i) {
+                        auto& slot = state.values[i];
+                        check((slot.kind == ValueKind::Borrow) == borrow,
+                              "GET and MGET agree at the exact cutover and when disabled");
+                        const char* data = slot.kind == ValueKind::Inline ? slot.small : slot.ptr;
+                        check(slot.len == length && std::string(data, slot.len) == value, "gather bytes intact");
+                    }
+                    if (!borrow) {
+                        // A disabled gather owns its bytes even after a later owner overwrite.
+                        for (int sid = 0; sid < 2; ++sid)
+                            check(execute(server.shard(sid), {"SET", keys[sid].c_str(), "replacement"}) == "+OK\r\n",
+                                  "overwrite after copied gather");
+                        assemble_mget(client, op, state, nullptr, nullptr, nullptr);
+                        const std::string bulk = "$" + std::to_string(length) + "\r\n" + value + "\r\n";
+                        check(std::string(op.reply.data(), op.reply.size()) == "*2\r\n" + bulk + bulk,
+                              "copied MGET assembles the gathered snapshot");
+                    }
+                    for (uint32_t i = 0; i < state.key_count; ++i) {
+                        auto& slot = state.values[i];
+                        if (slot.kind == ValueKind::Borrow) {
+                            server.shard(slot.shard).store().unborrow(slot.ptr);
+                            slot.kind = ValueKind::Nil;
+                        }
+                    }
+                    for (unsigned i = 0; state.owner_record_refs && i < state.owner_slots; ++i)
+                        while (state.owner_record_refs[i].remaining) complete_owner_record_wave(state, i);
+                    xshard_destroy(&state, pool, 0); pool.reap_deferred();
+                    for (int sid = 0; sid < 2; ++sid)
+                        check(server.shard(sid).store().outstanding_borrows() == 0, "gather released every borrow");
+                }
+            }
+            if (section == "zc-all" || section == "zc-off") {
+                const std::string value(2048, 'x');
+                for (int sid = 0; sid < 2; ++sid) {
+                    server.shard(sid).set_zc_min(UINT32_MAX);
+                    check(execute(server.shard(sid), {"SET", keys[sid].c_str(), value.c_str()}) == "+OK\r\n",
+                          "seed gather allocation-failure case");
+                }
+                Client client(-1); client.set_id(778);
+                Op op; args(op, {"MGET", keys[0].c_str(), keys[1].c_str()});
+                ScatterArenaPool pool; ScatterDispatch dispatch;
+                check(xshard_prepare(server, op, pool, 0, client.id(), dispatch) == ScatterPrepare::Ready,
+                      "prepare allocation-failure gather");
+                auto& state = *dispatch.state;
+                fault(1, value.size()); // the second large reply copy, after the first owner finished
+                for (uint32_t i = 0; i < state.nsub; ++i) {
+                    const int sid = state.groups[i].shard;
+                    check(xshard_execute(Task{&client, 0, sid, &state}, server.shard(sid), op,
+                                         server.worker_of_shard(sid)) == ScatterTaskResult::Complete,
+                          "copy allocation failure terminates the owner task");
+                }
+                const auto failures = netcmd_failures; fault(-1);
+                WorkError error = WorkError::None;
+                check(failures == 1 && first_error(state, error) && error == WorkError::Oom,
+                      "second owned-copy allocation really failed and reported OOM");
+                xshard_destroy(&state, pool, 0); pool.reap_deferred();
+                for (int sid = 0; sid < 2; ++sid)
+                    check(server.shard(sid).store().outstanding_borrows() == 0, "OOM used no borrow fallback");
+            }
+        }
     }
 };
 }
@@ -271,6 +396,7 @@ int main(int argc, char** argv) {
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "config") R::config();
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
+    else if (mode.starts_with("zc-")) R::zero_copy(mode);
     else check(false, "unknown regression section");
     std::printf("ok: netcmd %s\n", argv[1]);
 }
