@@ -1,0 +1,15 @@
+GATE(iteration): 128 physical cores; 12 correctness slots = min(96/8 server, 32/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 32 server + 96 load physical cores, 96 load SMT threads (automatic available siblings), 0 explicit server SMT threads, reviewed ratio 16:16 (64 surplus server cores move to ABBA load)
+  artifacts: /home/user/Projects/cx-deadconf-fix/build/gate-run.f1V9Fu
+  row budget: 900s; median=0.01s; own-row-history; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=66.74s; own-row-history; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok
+  row budget: 30s; median=4.08s; own-row-history; Redis config quoting + mid-value #
+  Redis config quoting + mid-value #                   ok
+  row budget: 30s; median=4.77s; own-row-history; flip controller model unit
+  flip controller model unit                           ok
+  row budget: 30s; median=0.33s; own-row-history; B+ counting-fingerprint filter unit
+foreign-read-safety unit: PASS
+  B+ counting-fingerprint filter unit                  ok
+  row budget: 30s; median=1.18s; own-row-history; read-local write ring + arming transient unit
+  read-local write ring + arming transient unit        ok
