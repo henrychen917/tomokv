@@ -1476,7 +1476,8 @@ sleep 60
 ok "headline ABBA vs last pushed binary"
 '''
         result = subprocess.run(["bash", "-c", "\n".join((setup, helpers, cleanup, body))], cwd=root,
-            env=dict(os.environ, RUN_DIR=str(directory)), capture_output=True, text=True, timeout=5)
+            env=dict(os.environ, RUN_DIR=str(directory), GATE_ABBA_ROW_BUDGET_S="0.3"),
+            capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 124, result.stdout + result.stderr)
         rows = [row.split("\t") for row in (directory / "ledger").read_text().splitlines()]
         self.assertEqual([(row[0], row[2]) for row in rows],

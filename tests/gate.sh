@@ -410,7 +410,8 @@ row_begin(){
   # rounds on 2026-09-13 died exactly that way. The row only reports now; give it the full-matrix
   # budget on every basis, including the 900s no-history default and explicit plan entries.
   if [ "$ROW_ID" = 'headline ABBA vs last pushed binary' ]; then
-    ROW_TIMEOUT=43200; ROW_BASIS=abba-full-matrix-not-history
+    # Only timeout negative controls override the production full-matrix budget.
+    ROW_TIMEOUT=${GATE_ABBA_ROW_BUDGET_S:-43200}; ROW_BASIS=abba-full-matrix-not-history
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
