@@ -277,7 +277,7 @@ void uniform_controls() {
             tasks[per_client + i] = publish(b, cost == &point && i % 2 ? other_point : *cost);
         require(tasks[per_client - 1].op_id - a.rob().flush_id() > 1,
                 "uniform wide-rank control never armed");
-        ExReorderScreen screen(tasks, Capacity);
+        ExReorderScreen screen;
         for (const Task& task : tasks) {
             const uint32_t flags = task.client->rob().at(task.op_id).spec->flags;
             require(screen.prefetch(flags), "uniform ordinary prefetch was suppressed");
@@ -296,7 +296,7 @@ void uniform_controls() {
         (void)publish(a, *cost);
         tasks[0] = publish(a, *cost, true);
         tasks[1] = publish(b, *cost);
-        ExReorderScreen hidden(tasks, 2);
+        ExReorderScreen hidden;
         require(hidden.prefetch(cost->flags) && hidden.prefetch(cost->flags) && !hidden.mixed(),
                 "hidden predecessor manufactured a static class mix");
         verify(tasks, {tasks[0], tasks[1]}, false);
@@ -311,7 +311,7 @@ void screen_controls() {
     Task tasks[kGenthreadExBatchOps];
     tasks[0] = publish(a, long_op);
     tasks[1] = publish(b, point);
-    ExReorderScreen mixed(tasks, 2);
+    ExReorderScreen mixed;
     require(mixed.prefetch(long_op.flags) && !mixed.mixed(), "first class triggered scheduling");
     require(mixed.prefetch(point.flags) && mixed.mixed(), "mixed classes never triggered scheduling");
     require(!mixed.prefetch(CmdFlags::CursorShard | point.flags), "cursor prefetch lost its barrier");
@@ -320,18 +320,19 @@ void screen_controls() {
     retire_all(a);
     retire_all(b);
 
-    // A special first task must not be mistaken for a Point command or dereferenced as an Op.
-    tasks[0] = Task(nullptr, UINT64_MAX, -1, nullptr);
-    tasks[1] = publish(a, small);
-    tasks[2] = publish(b, small);
-    ExReorderScreen special(tasks, 3);
+    // Non-cost flags cannot seed the screen. A route skipped by the owner/scatter check makes
+    // no call at all; excluded prefetch flags must also leave the first real class undecided.
+    ExReorderScreen special;
+    require(!special.mixed(), "empty/skipped batch manufactured a mix");
+    require(special.prefetch(admin.flags) && !special.mixed(), "special command seeded a class");
+    require(!special.prefetch(CmdFlags::CursorShard | long_op.flags) && !special.mixed(),
+            "excluded cursor seeded a class");
+    require(!special.prefetch(CmdFlags::RandomShard | point.flags) && !special.mixed(),
+            "excluded random route seeded a class");
     require(special.prefetch(small.flags) && special.prefetch(small.flags) && !special.mixed(),
-            "null-client barrier manufactured a mix");
-    tasks[0] = Task(&c, UINT64_MAX, -1, reinterpret_cast<ScatterState*>(&c));
-    ExReorderScreen scatter(tasks, 3);
-    require(scatter.prefetch(small.flags) && !scatter.mixed(), "scatter was used as a class seed");
-    retire_all(a);
-    retire_all(b);
+            "skipped prefix manufactured a mix in uniform owned work");
+    require(special.prefetch(admin.flags) && !special.mixed(), "barrier changed a seeded mask");
+    require(special.prefetch(long_op.flags) && special.mixed(), "late second class never armed");
 
     // The batch as a whole mixes classes; its separate eligible runs do not. A wide rank
     // spread on the uniform prefix would be enough to sort if the inner-run guard were lost.
@@ -347,7 +348,7 @@ void screen_controls() {
     retire_all(a);
     retire_all(b);
     retire_all(c);
-    std::puts("  R2 screen: mixed witness, special/scatter seeds, prefetch barriers and uniform runs");
+    std::puts("  R2 screen: mixed witness, delayed seed, prefetch barriers and uniform runs");
 }
 }  // namespace
 

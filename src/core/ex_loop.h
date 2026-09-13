@@ -2380,13 +2380,10 @@ private:
     // round trips overlap instead of each op stalling on its own miss in turn.
     template <bool ScreenReorder = false>
     bool prefetch_exec_batch(const Task* batch, uint32_t n) {
-        // In the disabled instantiation this object and its first-class lookup do not exist.
+        // The disabled instantiation contains no screen; the armed one seeds in this walk.
         // The armed uniform arm reuses the original per-task flag test with a different mask.
         using Screen = std::conditional_t<ScreenReorder, ExReorderScreen, std::nullptr_t>;
-        [[maybe_unused]] Screen screen = [&] {
-            if constexpr (ScreenReorder) return ExReorderScreen(batch, n);
-            else return nullptr;
-        }();
+        [[maybe_unused]] Screen screen{};
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);

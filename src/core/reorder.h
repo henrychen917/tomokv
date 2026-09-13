@@ -20,39 +20,29 @@ inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
 static_assert(kExSchedBuckets == 192);
 static_assert(kExSchedClasses == 3, "update the registry's one-hot cost flags");
 
-// Screening shares the existing prefetch flag branch. Uniform ordinary tasks take that exact
-// arm: no per-op counters, class reductions, ROB-head loads, or new pointer indirection. Only
-// the first task of a different class changes this stack-local screen; subsequent tasks use the
-// original prefetch mask. A different command in the SAME static class cannot trip the screen.
-// Special tasks carry no class bits. Actual scatter/tagged Tasks are excluded before Op access.
+// Seed and screen at the existing prefetch flag branch: no separate Task/Op walk, per-op
+// counters, or ROB-head samples. The first owned ordinary task seeds this mask; the first
+// different class restores the ordinary prefetch mask. A different verb in the SAME static
+// class cannot trip it. Specials carry no class bits; scatter/stale routes never reach it.
+// GCC may erase unscreened prefetch hints and flag loads: sharing the source branch is not
+// proof of zero emitted cost. Compare instructions for the complete armed paths as well.
 class ExReorderScreen {
 public:
     static constexpr uint32_t kPrefetchSkip = CmdFlags::CursorShard | CmdFlags::RandomShard;
-
-    ExReorderScreen(const Task* tasks, uint32_t n) {
-        for (uint32_t i = 0; i < n; i++) {
-            if (!tasks[i].client || tasks[i].scatter) continue;
-            const Op& op = tasks[i].client->rob().at(tasks[i].op_id);
-            const uint32_t cost = op.spec ? op.spec->flags & CmdFlags::ReorderClasses : 0;
-            if (!cost) continue;
-            skip_ |= CmdFlags::ReorderClasses ^ cost;
-            break;
-        }
-    }
+    static constexpr uint32_t kUnseeded = kPrefetchSkip | CmdFlags::ReorderClasses;
 
     __attribute__((always_inline)) bool prefetch(uint32_t flags) {
         if (__builtin_expect(!(flags & skip_), true)) return true;
         if (flags & kPrefetchSkip) return false;
-        mixed_ = true;
-        skip_ = kPrefetchSkip;
+        if (skip_ == kUnseeded) skip_ ^= flags & CmdFlags::ReorderClasses;
+        else skip_ = kPrefetchSkip;
         return true;
     }
 
-    bool mixed() const { return mixed_; }
+    bool mixed() const { return skip_ == kPrefetchSkip; }
 
 private:
-    uint32_t skip_ = kPrefetchSkip;
-    bool mixed_ = false;
+    uint32_t skip_ = kUnseeded;
 };
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
