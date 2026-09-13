@@ -127,6 +127,8 @@ def prepare(directory, revision):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--directory", type=Path, default=ROOT / "build/r4-study")
-    parser.add_argument("--pre", default="87b88cc4e", help="exact static-class reference revision")
+    # The disk recovery lost 87b88cc4e's object. Its src/third_party/Makefile are byte-identical
+    # to this surviving revision; the only intervening change was the gate's reference pin.
+    parser.add_argument("--pre", default="a363c2c5e", help="exact static-class reference revision")
     args = parser.parse_args()
     print(json.dumps(prepare(args.directory, args.pre), indent=2))
