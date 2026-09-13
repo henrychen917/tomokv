@@ -15,6 +15,10 @@ int main() {
     static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
     static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
     for (size_t base = 0; base < 64; ++base) {
+        assert(separate(base, OpLayoutLock::reply_first, OpLayoutLock::reply_last,
+                        OpLayoutLock::completion_first, OpLayoutLock::completion_last));
+        assert(separate(base, OpLayoutLock::reply_first, OpLayoutLock::reply_last,
+                        OpLayoutLock::parse_first, OpLayoutLock::parse_last));
         assert(separate(base, ThreadCtxLayoutLock::task_notify,
                         ThreadCtxLayoutLock::task_notify + sizeof(NotifyMask) - 1,
                         ThreadCtxLayoutLock::parked, ThreadCtxLayoutLock::parked_last));

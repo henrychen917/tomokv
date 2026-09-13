@@ -17,6 +17,7 @@
 // Everything else is touched by one thread at a time, ordered by that single pair.
 #pragma once
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <string_view>
@@ -223,8 +224,8 @@ public:
     bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;
 
-    // THE CODED REPLY. Free real estate: rbuf_off ends at 28 and SmallBuf's pointer forces the
-    // next field to 32, so bytes 29..31 were pure padding. Op stays 336 bytes (asserted below).
+    // THE CODED REPLY. The three completion bytes fill the parse header's 29..31 hole.
+    // The inline argv block below separates them from the executor's reply stores (audit #2/#6).
     // Non-zero means "this op's whole reply is this code"; the owner formats it at retire.
     uint8_t reply_code_ = 0;
 
@@ -240,6 +241,17 @@ public:
     // touch this: a ROB slot is armed once and is a ROB slot forever.
     uint8_t reply_code_ok_ = 0;
 
+    // The only cross-thread publication. Acquire/release on this orders everything else.
+    std::atomic<OpState> state{OpState::Free};
+
+private:
+    friend struct OpLayoutLock;
+    // Op has only 8-byte alignment and its 336-byte array stride visits different line residues.
+    // A reply at 64 would still share state's line for some slots. The existing argv block buys
+    // a base-independent separation without padding, another allocation, or a larger Op.
+    Slice argv_inline_[kInlineArgv];
+
+public:
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
 
     // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
@@ -263,14 +275,10 @@ public:
     uint32_t    zc_len   = 0;
     int32_t     zc_shard = -1;
 
-    // The only cross-thread field. Acquire/release on this orders everything else.
-    std::atomic<OpState> state{OpState::Free};
-
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // `state` is one byte at offset 184 and argv_inline_ needs 8-byte alignment at 192, so 185..191
-    // was padding; this lands at the 4-aligned 188 and costs nothing. int32 rather than int64
-    // because that is what the hole holds: a count or a counter outside +/-2^31 simply keeps the
-    // byte path, which emits the identical digits.
+    // It stays with the reply stores, outside the polled completion line. Counts outside +/-2^31
+    // keep the byte path, which emits the identical digits. The following pointer's alignment
+    // absorbs the old state's padding, so argv_heap_/argv_cap_/argc_ keep their original offsets.
     int32_t reply_ival_ = 0;
 
     // The handler-facing reply sink: prefers the direct region while the whole reply fits, spills
@@ -451,11 +459,41 @@ private:
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
-    Slice    argv_inline_[kInlineArgv];
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
     uint32_t argc_      = 0;
 };
+
+// Op has public handler fields and private argv storage; GCC's supported offsetof extension
+// measures that mixed-access layout, as verified against the release DWARF layout in the audit.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+struct OpLayoutLock {
+    static constexpr size_t line = 64;
+    static constexpr size_t parse_first = offsetof(Op, spec);
+    static constexpr size_t parse_last = offsetof(Op, route_flags_);
+    static constexpr size_t completion_first = offsetof(Op, reply_code_);
+    static constexpr size_t completion_last = offsetof(Op, state) + sizeof(Op::state) - 1;
+    static constexpr size_t reply_first = offsetof(Op, reply);
+    static constexpr size_t reply_last = offsetof(Op, reply_ival_) + sizeof(Op::reply_ival_) - 1;
+    static constexpr size_t argv = offsetof(Op, argv_inline_);
+};
+
+// These distances include every byte of SmallBuf, direct, zc_* and reply_ival_, and hold even
+// when an Op is on the stack or in a new[] chunk with an array cookie and a 336-byte stride.
+static_assert(OpLayoutLock::reply_first - OpLayoutLock::completion_last >= OpLayoutLock::line,
+              "reply stores may share the polled completion line (audit #2)");
+static_assert(OpLayoutLock::reply_first - OpLayoutLock::parse_last >= OpLayoutLock::line,
+              "reply payload stores may share the IO parse header line (audit #6)");
+static_assert(OpLayoutLock::completion_first == 29 && offsetof(Op, reply_code_ok_) == 30 &&
+                  OpLayoutLock::completion_last == 31,
+              "completion flags must occupy the three parse-header spare bytes");
+static_assert(OpLayoutLock::argv == 32 && OpLayoutLock::reply_first == 160);
+static_assert(offsetof(Op, direct) == offsetof(Op, reply) + sizeof(Op::reply) &&
+                  offsetof(Op, zc_ptr) == offsetof(Op, direct) + 16 &&
+                  offsetof(Op, reply_ival_) == offsetof(Op, zc_ptr) + 16,
+              "all executor reply stores must stay in the separated result block");
+#pragma GCC diagnostic pop
 
 // THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at
 // the DRAM wall, ROB footprint is throughput. Growing Op requires paying for it elsewhere in the
