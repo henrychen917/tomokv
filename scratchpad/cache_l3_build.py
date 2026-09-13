@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Frozen F11 decomposition and storage controls. Only compiles; never starts a server."""
+import argparse
+from collections import Counter
 import hashlib
 import io
 import json
@@ -141,6 +143,121 @@ def placement_controls(result, env):
             limitation='Executable size and placement sensitivity control; function addresses are not matched.')
     (OUT / 'placement-controls.json').write_text(json.dumps(controls, indent=2) + '\n')
 
+def matched_placement_controls():
+    # POST is SMALLER than PRE, so a PRE-only positive pad cannot match POST's original
+    # .text. Give every arm the same tail budget, then move the SAME unchanged PRE objects
+    # forward inside that budget for PAD. POST-shift repeats the displacement on the candidate.
+    # This makes a real PRE/PAD comparison possible without shrinking or repacking PRE data.
+    # Frozen measured binaries remain untouched. These are placement controls, not a claim that
+    # equal section size reproduces the different internal addresses created by recompilation.
+    if not set(os.sched_getaffinity(0)) <= set(range(112, 128)):
+        raise RuntimeError('invoke with taskset -c 112-127')
+    manifest = json.loads((OUT / 'source-manifest.json').read_text())
+    provenance = json.loads((OUT / 'build-provenance.json').read_text())
+    verify_pre(manifest)
+    original = provenance['arms']
+    env = dict(os.environ, CXXFLAGS=FLAGS)
+    for key in ('MAKEFLAGS', 'MFLAGS', 'MAKEOVERRIDES'): env.pop(key, None)
+    folder = OUT / 'placement-v2'
+    folder.mkdir(exist_ok=True)
+    shift = abs(original['pre']['text_bytes'] - original['post']['text_bytes'])
+    if shift == 0: raise RuntimeError('choose a displacement for equal-sized originals')
+    target = (max(a['text_bytes'] for a in original.values()) + shift + 4095) // 4096 * 4096
+
+    def code_symbols(binary):
+        # Local symbols may have the same name in multiple TUs. Preserve every occurrence;
+        # comparing a dictionary keyed only by name would silently miss some changed bodies.
+        found = {}
+        for line in capture(['nm', '-S', '--defined-only', '--format=posix', str(binary)]).decode().splitlines():
+            parts = line.split()
+            if len(parts) == 4 and parts[1] in ('t', 'T', 'w', 'W'):
+                found.setdefault(parts[0], []).append((int(parts[2], 16), int(parts[3], 16)))
+        return {name: sorted(entries) for name, entries in found.items()}
+
+    def text_size(binary):
+        text = binary.parent / 'text.bin'
+        run(['objcopy', '--only-section=.text', '-O', 'binary', str(binary), str(text)])
+        return text.stat().st_size, sha(text)
+
+    objects = {}
+    object_hashes = {}
+    symbols = {}
+    for name, arm in original.items():
+        dst = ARMS / name
+        if sources(dst) != manifest['sources'][name]: raise RuntimeError(f'{name}: source drift')
+        if sha(Path(arm['binary'])) != arm['sha256']: raise RuntimeError(f'{name}: binary drift')
+        paths = capture(['make', '--no-print-directory', '-s',
+            '--eval=cache_l3_objects: ; @echo $(OBJ)', 'cache_l3_objects'], cwd=dst).decode().split()
+        objects[name] = paths
+        object_hashes[name] = {p: sha(dst / p) for p in paths}
+        symbols[name] = code_symbols(arm['binary'])
+
+    def link(name, source, front, tail):
+        dst = folder / name
+        dst.mkdir(exist_ok=True)
+        for side, count in (('front', front), ('tail', tail)):
+            asm = dst / f'{side}.S'
+            asm.write_text('.section .text,"ax",@progbits\n' + f'.fill {count},1,0x90\n' +
+                           '.section .note.GNU-stack,"",@progbits\n')
+            run(['g++', '-c', str(asm), '-o', str(dst / f'{side}.o')])
+        binary = dst / 'tomokv'
+        with (dst / 'link.log').open('a') as log:
+            run(['make', '-j4', 'CXX=g++', 'JE=1', f'BIN={binary}',
+                 f'OBJ={dst / "front.o"} {" ".join(objects[source])} {dst / "tail.o"}', 'all'],
+                cwd=ARMS / source, env=env, stdout=log, stderr=subprocess.STDOUT)
+        return binary, text_size(binary)
+
+    result = {}
+    # First reproduce the original instruction bytes with zero padding. This checks that the
+    # surviving objects, flags and linker really reconstruct the measured executable.
+    for source in original:
+        binary, (size, digest) = link(f'verify-{source}', source, 0, 0)
+        if (size, digest) != (original[source]['text_bytes'], original[source]['text_sha256']):
+            raise RuntimeError(f'{source}: frozen objects do not reproduce measured .text')
+        binary.unlink()  # the measured original is retained; the verification hash is below
+        (binary.parent / 'text.bin').unlink()
+
+    recipes = [(name, name, 0) for name in original]
+    recipes += [('pad', 'pre', shift), ('post-shift', 'post', shift)]
+    for name, source, front in recipes:
+        binary, (size, _) = link(name, source, front, 0)
+        tail = target - size
+        if tail < 0: raise RuntimeError('padding budget too small')
+        binary, (size, digest) = link(name, source, front, tail)
+        if size != target: raise RuntimeError(f'{name}: .text size mismatch')
+        after = code_symbols(binary)
+        before = symbols[source]
+        if after.keys() != before.keys(): raise RuntimeError(f'{name}: code symbol set changed')
+        shifts = Counter()
+        for symbol, entries in before.items():
+            if len(entries) != len(after[symbol]): raise RuntimeError(f'{name}: duplicate symbol lost')
+            for (old_addr, old_size), (new_addr, new_size) in zip(entries, after[symbol]):
+                if old_size != new_size: raise RuntimeError(f'{name}: {symbol} body size changed')
+                shifts[new_addr - old_addr] += 1
+        result[name] = dict(binary=str(binary), sha256=sha(binary), source_arm=source,
+            source_binary_sha256=original[source]['sha256'], text_bytes=size, text_sha256=digest,
+            front_bytes=front, tail_bytes=tail, fields_moved=False,
+            unchanged_object_count=len(objects[source]), unchanged_symbol_sizes=sum(shifts.values()),
+            symbol_address_deltas=dict(sorted(shifts.items())))
+        print(f'Ready placement-v2/{name}: {result[name]["sha256"]}', flush=True)
+
+    # No make invocation may have silently rebuilt a production TU along the way.
+    for source, hashes in object_hashes.items():
+        if hashes != {p: sha(ARMS / source / p) for p in objects[source]}:
+            raise RuntimeError(f'{source}: production objects changed while making controls')
+        if sha(Path(original[source]['binary'])) != original[source]['sha256']:
+            raise RuntimeError(f'{source}: measured binary was overwritten')
+    (folder / 'manifest.json').write_text(json.dumps(dict(
+        text_bytes=target, displacement=shift, measured=False,
+        purpose='Equal-size placement controls; all original data layouts and allocation paths retained.',
+        limitation='Internal PRE/POST function addresses differ; a flat PAD alone cannot prove causation.',
+        affinity=sorted(os.sched_getaffinity(0)), make_jobs=4,
+        source_manifest_sha256=sha(OUT / 'source-manifest.json'),
+        zero_padding_text_reproduction={n: a['text_sha256'] for n, a in original.items()},
+        source_object_sha256=object_hashes, arms=result), indent=2) + '\n')
+    (folder / 'SHA256SUMS').write_text(''.join(
+        f'{arm["sha256"]}  {name}/tomokv\n' for name, arm in result.items()))
+
 def prepare():
     OUT.mkdir(parents=True, exist_ok=True)
     ARMS.mkdir(exist_ok=False)
@@ -245,5 +362,12 @@ def build():
     placement_controls(result, env)
 
 if __name__ == '__main__':
-    if not ARMS.exists(): prepare()
-    build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--placement-only', action='store_true',
+                        help='relink verified frozen objects into equal-.text-size PRE/POST/PAD arms')
+    args = parser.parse_args()
+    if args.placement_only:
+        matched_placement_controls()
+    else:
+        if not ARMS.exists(): prepare()
+        build()
