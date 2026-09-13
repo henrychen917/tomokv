@@ -28,6 +28,7 @@
 // REDIRECT sends the invalidation to another connection, which may be owned by a different io
 // thread; that is one extra hop through the same transport (TrackingDeliver).
 
+#include "t_stream.h"
 #include "../core/io_loop.h"
 
 namespace tomo {
@@ -58,16 +59,18 @@ void track_filter_clear() {
         g_track_filter[i].store(0, std::memory_order_relaxed);
 }
 
-bool track_prefix_matches(const std::vector<std::string>& prefixes, Slice key) {
-    if (prefixes.empty()) return true;   // BCAST with no PREFIX tracks the whole keyspace
+size_t track_prefix_match_count(const std::vector<std::string>& prefixes, Slice key) {
+    if (prefixes.empty()) return 1;   // BCAST with no PREFIX tracks the whole keyspace
+    size_t matches = 0;
     for (const std::string& prefix : prefixes) {
         if (prefix.size() > key.n) continue;
-        if (std::memcmp(prefix.data(), key.p, prefix.size()) == 0) return true;
+        if (std::memcmp(prefix.data(), key.p, prefix.size()) == 0) matches++;
     }
-    return false;
+    return matches;
 }
 
-// Redis refuses overlapping BCAST prefixes so a key can never be reported twice.
+// Explicit BCAST prefixes cannot overlap; adding the implicit empty prefix later is Redis's
+// exception, handled after validation below and with per-prefix delivery above.
 bool track_prefix_overlaps(const std::string& a, const std::string& b) {
     const size_t shortest = std::min(a.size(), b.size());
     return std::memcmp(a.data(), b.data(), shortest) == 0;
@@ -92,26 +95,39 @@ void IoLoop::tracking_note_prefix_registered(const std::string& prefix, bool add
 // at all -- its prefix registry is the whole subscription -- so only default (per-key
 // remembering) mode registers here.
 void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
+    // Redis preserves CACHING across every CLIENT command, including introspection and errors.
+    // Consuming it before TRACKINGINFO both hides the flag and loses the following OPTIN read's
+    // invalidation (or wrongly subscribes an exempted OPTOUT read). CLIENT has no keys to enroll.
+    if (op.cmd_name().eq_icase("client")) return;
     const bool caching = state.caching_armed;
-    state.caching_armed = false;   // CLIENT CACHING covers exactly the next command
+    state.caching_armed = false;   // CLIENT subcommands above do not consume the choice
     if (state.bcast) return;
     const CommandSpec* spec = op.spec;
     if (!spec) return;
     // Only genuine reads register. A write from the tracking connection is not a subscription.
     if (!(spec->flags & CmdFlags::Readonly) || (spec->flags & CmdFlags::Write)) return;
-    if (spec->first_key <= 0) return;
     // OPTIN: register only when the previous command was CLIENT CACHING yes.
     // OPTOUT: register unless the previous command was CLIENT CACHING no.
     if (state.optin && !caching) return;
     if (state.optout && caching) return;
 
+    uint32_t first = spec->first_key > 0 ? static_cast<uint32_t>(spec->first_key) : 0;
+    uint32_t end = spec->last_key < 0 ? op.argc()
+        : std::min<uint32_t>(op.argc(), static_cast<uint32_t>(spec->last_key) + 1);
+    if (spec->flags & CmdFlags::StreamRoute) {
+        // Registration must not append a parser error to the real reply; dispatch owns that error.
+        Op probe;
+        for (uint32_t i = 0; i < op.argc(); ++i)
+            if (!probe.push_arg(op.arg(i))) return;
+        StreamXreadArgs parsed;
+        if (!stream_parse_xread(probe, parsed)) return;
+        first = parsed.first_key;
+        end = first + parsed.key_count;
+    }
+    if (!first) return;
     const uint64_t id = client->id();
-    const int32_t last = spec->last_key;
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
-    const uint32_t end = last < 0 ? op.argc()
-                                  : std::min<uint32_t>(op.argc(),
-                                                       static_cast<uint32_t>(last) + 1);
-    for (uint32_t i = static_cast<uint32_t>(spec->first_key); i < end;
+    for (uint32_t i = first; i < end;
          i += static_cast<uint32_t>(step)) {
         const Slice key = op.arg(i);
         if (srv_->cfg().tracking_table_max_keys &&
@@ -318,8 +334,11 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id) {
         ClimonConn& state = entry.second;
         if (!state.tracking_on || !state.bcast) continue;
         if (state.noloop && entry.first == writer_id) continue;
-        if (!track_prefix_matches(state.prefixes, key)) continue;
-        tracking_deliver_frame(state, entry.first, key, false);
+        // Re-enabling BCAST without PREFIX adds the implicit empty prefix even when an
+        // explicit prefix is held. Redis delivers once per matching subscription in that
+        // case; coalescing the two matches would silently change its invalidation stream.
+        for (size_t matches = track_prefix_match_count(state.prefixes, key); matches; matches--)
+            tracking_deliver_frame(state, entry.first, key, false);
     }
     // 2. Per-key remembering. Redis forgets the key once it has reported it.
     if (climon_track_keys_.empty()) return;
@@ -621,11 +640,11 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
         }
     }
 
-    // ORACLE-DERIVED CHECK ORDER (each step is pinned by a differ case):
+    // Mode checks precede prefix validation; seed 20 pins prefix-collision precedence below.
     //   1 OPTIN+OPTOUT together        4 OPTIN/OPTOUT switch on an already-on client
     //   2 PREFIX without BCAST         5 BCAST combined with OPTIN/OPTOUT
-    //   3 BCAST switch on an           6 overlap against prefixes this client already holds
-    //     already-on client            7 overlap among the prefixes this command provides
+    //   3 BCAST switch on an           6 for each supplied prefix, overlap with held prefixes,
+    //     already-on client              then with later prefixes supplied by this command
     // `CLIENT TRACKING off <anything>` is accepted by redis, so every rule is enable-gated.
     ClimonConn* existing = climon_conn_find(client->id());
     const bool live = existing != nullptr && existing->tracking_on && enable;
@@ -658,19 +677,20 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
             "ERR OPTIN and OPTOUT are not compatible with BCAST");
         return ClimonStartResult::Sync;
     }
-    if (live)
-        for (const std::string& fresh : prefixes)
+    // Validation is ordered by the supplied prefix, not by collision category: with held "a"
+    // and supplied "b", "", Redis reports the supplied b/empty collision before empty/held a.
+    for (size_t a = 0; enable && a < prefixes.size(); a++) {
+        if (live)
             for (const std::string& held : existing->prefixes)
-                if (track_prefix_overlaps(fresh, held)) {
+                if (track_prefix_overlaps(prefixes[a], held)) {
                     std::string error = "ERR Prefix '";
-                    error += fresh;
+                    error += prefixes[a];
                     error += "' overlaps with an existing prefix '";
                     error += held;
                     error += "'. Prefixes for a single client must not overlap.";
                     reply_err(op.sink(), error.c_str());
                     return ClimonStartResult::Sync;
                 }
-    for (size_t a = 0; enable && a < prefixes.size(); a++)
         for (size_t b = a + 1; b < prefixes.size(); b++)
             if (track_prefix_overlaps(prefixes[a], prefixes[b])) {
                 // Oracle wording: the FIRST-listed prefix is named first.
@@ -682,6 +702,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
                 reply_err(op.sink(), error.c_str());
                 return ClimonStartResult::Sync;
             }
+    }
 
     if (!enable) {
         if (existing) {
@@ -705,9 +726,13 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     // `CLIENT TRACKING on` after `on OPTIN`/`on NOLOOP` clears optin/noloop (differ-pinned).
     // Only an explicit contradiction (OPTIN while OPTOUT is held) is refused, above.
     state.bcast = bcast;
-    // Oracle-confirmed: `CLIENT TRACKING on BCAST` with no PREFIX registers the EMPTY prefix,
-    // which TRACKINGINFO reports as one zero-length entry and which matches every key.
-    if (bcast && prefixes.empty() && state.prefixes.empty()) prefixes.emplace_back();
+    // Seed 23: omitting PREFIX adds the implicit empty prefix even to an existing explicit
+    // prefix set. It bypasses the supplied-prefix collision checks above, is registered once,
+    // and sorts first for TRACKINGINFO and later overlap errors. Repeated ON BCAST must not
+    // duplicate either the subscription or its allocation/accounting.
+    if (bcast && prefixes.empty() &&
+        std::find(state.prefixes.begin(), state.prefixes.end(), std::string{}) == state.prefixes.end())
+        prefixes.emplace_back();
     state.optin = optin;
     state.optout = optout;
     state.noloop = noloop;

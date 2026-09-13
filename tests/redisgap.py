@@ -193,7 +193,7 @@ def check_aliases(h, mode):
                     args = ('HSET', key, 'f', 'x' * size) if family == 'hash' else ('ZADD', key, 1, 'x' * size)
                     assert c.command(*args) == 1
                     assert c.command('OBJECT', 'ENCODING', key) == encoding
-            for bad in ('-1', '01', '+1', '1kb', '4294967296', '1\x002'):
+            for bad in ('-1', '01', '+1', '1kb', '9223372036854775808', '1\x002'):
                 assert 'error' in c.command('CONFIG', 'SET', names[0], bad)
                 assert get(c, names[0]) == '2'
             assert c.command('CONFIG', 'SET', names[2].swapcase(), '02') == 'OK'
@@ -203,8 +203,8 @@ def check_aliases(h, mode):
             assert [get(c, alias) for alias in names] == ['2'] * 3
             assert 'error' in c.command('CONFIG', 'SET', names[0], 1, names[1], '-1')
             assert [get(c, alias) for alias in names] == ['2'] * 3
-            assert c.command('CONFIG', 'SET', names[0], '4294967295') == 'OK'
-            assert get(c, names[0]) == '4294967295'
+            assert c.command('CONFIG', 'SET', names[0], '9223372036854775807') == 'OK'
+            assert get(c, names[0]) == '9223372036854775807'
             assert c.command('CONFIG', 'SET', names[0], '0') == 'OK'
             # Fresh objects must cross the real promotion path, on multiple shard owners.
             for index in range(32):
@@ -248,8 +248,8 @@ def check_aliases(h, mode):
         unknown = h.root / ('unknown-' + name + '.conf')
         unknown.write_text('save ""\nmaxmemory 256mb\n' + name + ' notice\n')
         h.reject(mode, config=unknown, contains="unknown argument '--" + name + "'")
-    for flag, value, error in [('hash-max-listpack-entries', '01', 'wants an integer'),
-                               ('hash-max-ziplist-value', '4294967296', 'wants a byte count'),
+    for flag, value, error in [('hash-max-listpack-entries', '01', 'invalid encoding limit'),
+                               ('hash-max-ziplist-value', '9223372036854775808', 'invalid encoding limit'),
                                ('unixsocketperm', '888', 'wants an octal mode'),
                                ('hll-sparse-max-bytes', '4294967296', 'wants a byte count'),
                                ('aof-load-truncated', '1', 'wants yes or no')]:
