@@ -1203,7 +1203,10 @@ private:
     std::vector<uint32_t> free_slots_;
     std::atomic<bool>     parked_{false};
     uint32_t nchan_ = 0;
-    uint64_t depth_sample_next_us_ = 0;
+    // Keep the cold tail and LoopSignals at their existing line boundaries when
+    // arranging the preceding masks: packing the gap would mix hot signal stores
+    // with the peer-read WB engine pointer at the other end of LoopSignals.
+    alignas(64) uint64_t depth_sample_next_us_ = 0;
 
     // IO-only cold path. A nullptr in client_in is the notification token; payload ownership
     // moves through this queue and is retired by the destination IoLoop.
