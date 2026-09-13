@@ -169,6 +169,13 @@ def build(args):
                     stdout=log, stderr=subprocess.STDOUT)
         return executable(pad_bin, 'pad')
 
+    # Establish that the saved objects and this link recipe still reproduce PRE before
+    # adding placement. Hashing PRE alone cannot detect stale/corrupt objects after a crash.
+    zero = link_pad(0, 0)
+    if (zero['text_sha256'] != result['pre']['text_sha256'] or
+            properties(pad_bin) != expected_properties):
+        raise RuntimeError('zero-padding relink differs from PRE; S6 control is unready')
+
     # Leading padding moves ordinary .text functions; a trailing remainder matches exact size.
     # Alignment may round the leading request up. Reduce it without measuring any workloads.
     front = delta
@@ -205,6 +212,7 @@ def build(args):
         plt_hashes[section] = digest(pad_dir / f'pad{section}')
     pad.update(front_padding_bytes=front, tail_padding_bytes=tail,
                source_arm='pre', fields_moved=False,
+               zero_padding_text_sha256=zero['text_sha256'],
                gnu_properties=expected_properties, unchanged_plt_sha256=plt_hashes,
                limitation='Size control only; function addresses are not matched to POST.')
     result['pad'] = pad
