@@ -74,7 +74,7 @@ def prepare(directory, pre_ref, post_ref):
             "        return ca < cb || (ca == cb && a < b);"),
         "mutant-chain": (
             "            if (index <= previous || tasks[index].op_id <= tasks[previous].op_id) return 1;",
-            "            (void)previous; // deliberately remove the connection-order rejection"),
+            "            (void)previous; // intentionally broken connection-order check"),
         "mutant-truncate": ("    ReorderResult result;\n",
                             "    n = std::min(n, uint32_t{32});\n    ReorderResult result;\n"),
     }
