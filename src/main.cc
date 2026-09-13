@@ -336,8 +336,11 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
-    // Boot chooses the owner entry; no scheduler choice lives on a drain back edge.
-    const auto run_owner = cfg.reorder ? &ExLoop::r7_run<true> : &ExLoop::run;
+    // Reorder is boot-latched. Select only at a role entry, using the existing cfg
+    // capture: capturing a new local entry pointer enlarged every off-arm thread
+    // launch allocation by eight bytes. This constant table adds no runtime storage.
+    using OwnerEntry = void (ExLoop::*)();
+    static constexpr OwnerEntry run_owner[] = {&ExLoop::run, &ExLoop::r7_run<true>};
     std::mutex load_mu;
     std::condition_variable load_cv;
     uint32_t loaders_done = 0;
@@ -428,7 +431,7 @@ int main(int argc, char** argv) {
                 if (role == Role::Ex) {
                     exs[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    (exs[tid].*run_owner)();
+                    (exs[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else if (role == Role::Ifid) {
                     if (!ios[tid].activate()) std::abort();
@@ -570,7 +573,7 @@ int main(int argc, char** argv) {
                 } else if (role == Role::Ex) {
                     exs[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    (exs[tid].*run_owner)();
+                    (exs[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else {
                     std::this_thread::yield();

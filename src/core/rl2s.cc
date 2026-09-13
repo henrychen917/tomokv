@@ -116,8 +116,11 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
-    // Boot chooses the owner entry; no scheduler choice lives on a drain back edge.
-    const auto run_owner = cfg.reorder ? &FusedExLoop::r7_run<true> : &FusedExLoop::run;
+    // Reorder is boot-latched. Select only at a role entry, using the existing cfg
+    // capture: capturing a new local entry pointer enlarged every off-arm thread
+    // launch allocation by eight bytes. This constant table adds no runtime storage.
+    using OwnerEntry = void (FusedExLoop::*)();
+    static constexpr OwnerEntry run_owner[] = {&FusedExLoop::run, &FusedExLoop::r7_run<true>};
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
     FusedBootGate boot(nthreads);
@@ -242,7 +245,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
                 } else if (role == Role::Ex) {
                     executors[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    (executors[tid].*run_owner)();
+                    (executors[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else {
                     std::this_thread::yield();
