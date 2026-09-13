@@ -313,6 +313,22 @@ struct NetcmdRegression {
         check(::mkdtemp(directory), "private config directory");
         const std::string path = std::string(directory) + "/tomo.conf";
         server.cfg_.conf_path = path.c_str(); server.cfg_.requirepass = password.c_str();
+        ConfigParseState state;
+        check(parse_config_args({"--port", "6397", "--bind", "127.0.0.2",
+                                 "--unixsocket", "build/unused-knob-matrix.sock",
+                                 "--unixsocketperm", "0600", "--aof-load-truncated", "no",
+                                 "--hll-sparse-max-bytes", "1kb"},
+                                server.cfg_, state, 1, "conf") == kConfigParsed,
+              "knob matrix startup values parsed without starting a server");
+        // CONFIG SET reads its owner's committed live snapshot even for encoding-only updates.
+        // Supply the same mailbox contract as init(), with one private shard and no workers/rings.
+        server.live_config_version_.store(2);
+        server.live_config_committed_ = server.capture_live_config(2);
+        server.live_config_mailboxes_ = std::make_unique<LiveConfigMailbox[]>(1);
+        server.live_config_mailboxes_[0].init(server.live_config_committed_);
+        server.shards_.push_back(std::make_unique<Shard>());
+        server.shards_[0]->init_private(&server, 0, server.cfg_.encodings.type_limits(),
+                                       server.cfg_.stream_limits);
         command_bind_server(&server);
         test_config_rewrite();
         command_bind_server(nullptr);

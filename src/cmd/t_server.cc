@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "debug_sleep.h"
 #include "info_stats.h"
+#include "hll.h"
 #include "scripting.h"
 #include "server_tail.h"
 #include "slowlog.h"
@@ -306,6 +307,16 @@ void add_config(const char* name, ConfigKind kind, uint64_t value) {
 void init_config(const Config& cfg) {
     std::lock_guard<std::mutex> lock(g_config_mu);
     g_config.clear();
+    hll::configure_sparse_max_bytes(cfg.hll_sparse_max_bytes);
+    g_config.push_back({"hll-sparse-max-bytes", ConfigKind::Bytes,
+                        std::to_string(cfg.hll_sparse_max_bytes), true});
+    g_config.push_back({"port", ConfigKind::Unsigned, std::to_string(cfg.port), true});
+    g_config.push_back({"bind", ConfigKind::String, cfg.bind_addr, true});
+    g_config.push_back({"unixsocket", ConfigKind::String,
+                        cfg.unixsocket ? cfg.unixsocket : "", true});
+    char unix_mode[8];
+    std::snprintf(unix_mode, sizeof(unix_mode), "%o", static_cast<unsigned>(cfg.unixsocketperm));
+    g_config.push_back({"unixsocketperm", ConfigKind::String, unix_mode, true});
     g_proto_max_bulk_len.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
     g_config.push_back({"save", ConfigKind::Save, cfg_save_schedule_string(cfg.save)});
     g_config.push_back({"dir", ConfigKind::String, (cfg.dir && *cfg.dir) ? cfg.dir : "."});
@@ -340,6 +351,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"aof-use-rdb-preamble", ConfigKind::String, "yes"});
     g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
                         cfg.aof_timestamp_enabled ? "yes" : "no"});
+    g_config.push_back({"aof-load-truncated", ConfigKind::Bool,
+                        cfg.aof_load_truncated ? "yes" : "no", true});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
@@ -460,7 +473,8 @@ bool parse_client_output_buffer_limit_slice(Slice input,
     return cfg_parse_client_output_buffer_limit(argv.data(), argv.size(), out, error);
 }
 
-bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, const char*& error) {
+bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
+                      const char*& error, bool legacy_compact = false) {
     switch (entry.kind) {
         case ConfigKind::Uint32:
         case ConfigKind::Uint32Bytes: {
@@ -473,7 +487,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out, c
         case ConfigKind::Encoding: {
             int64_t value = 0;
             const int key = EncodingConfig::find(Slice(entry.name, std::strlen(entry.name)));
-            if (key < 0 || !EncodingConfig::parse(key, input, value)) return false;
+            if (key < 0 || !EncodingConfig::parse(key, input, value, legacy_compact)) return false;
             out = std::to_string(value);
             return true;
         }
@@ -578,9 +592,14 @@ bool collect_config_updates(Op& op,
             msg.append(op.arg(i).p, op.arg(i).n); msg.push_back('\'');
             reply_err(op.sink(), msg.c_str()); return false;
         }
-        if (item->kind == ConfigKind::Encoding) {
-            for (const auto& previous : updates) {
-                if (previous.first != item) continue;
+        const int encoding = EncodingConfig::find(op.arg(i));
+        const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
+        // Redis rejects a repeated spelling but accepts canonical + historical aliases in
+        // argument order (last value wins). The original TomoKV aliases allowed repetition.
+        if (item->kind == ConfigKind::Encoding && !legacy_compact) {
+            const std::string requested(op.arg(i).p, op.arg(i).n);
+            for (uint32_t previous = 2; previous < i; previous += 2) {
+                if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 reply_err(op.sink(), "ERR duplicate configuration parameter");
                 return false;
             }
@@ -608,7 +627,8 @@ bool collect_config_updates(Op& op,
                 value = cfg_client_output_buffer_limit_string(parsed);
             }
         } else {
-            normalized = normalize_config(*item, op.arg(i + 1), value, config_error);
+            // The old TomoKV spelling accepted leading zeroes and bare bytes only.
+            normalized = normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
             if (config_error) {
@@ -1379,6 +1399,8 @@ void cmd_config(Shard& sh, Op& op) {
                     const int key = EncodingConfig::find(Slice(item.name, std::strlen(item.name)));
                     if (key >= 0 && EncodingConfig::settings[key].alias)
                         match(EncodingConfig::settings[key].alias);
+                    if (key >= 0 && EncodingConfig::settings[key].tomo_alias)
+                        match(EncodingConfig::settings[key].tomo_alias);
                 }
             }
         }

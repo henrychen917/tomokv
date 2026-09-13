@@ -18,6 +18,91 @@ void observe_open(int fd) {
     rewrite_inodes[index] = info.st_ino;
     rewrite_opened.arrive_and_wait(); // both files are open before either writer may write/rename
 }
+
+void knob_matrix() {
+    tomo::Server* server = tomo::command_server();
+    tomo::Shard& shard = server->shard(0);
+    auto get = [&](const char* name, const char* value) {
+        const std::string expected = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" +
+            name + "\r\n$" + std::to_string(std::strlen(value)) + "\r\n" + value + "\r\n";
+        check(execute(shard, {"CONFIG", "GET", name}) == expected, "knob matrix GET round trip");
+    };
+    auto set = [&](std::initializer_list<const char*> values, bool accepted) {
+        tomo::Op op; args(op, values);
+        check(tomo::command_validate_config_set(op) == accepted, "knob matrix SET validation");
+        if (accepted) {
+            op.spec->handler(shard, op);
+            // Successful owner fragments are folded into one OK by the real scatter path.
+            check(op.reply.size() == 0, "knob matrix owner fragment applied without error");
+        } else {
+            check(op.reply.size() && op.reply.data()[0] == '-', "rejected SET has an error reply");
+        }
+    };
+    // These bindings are boot-latched in the lane. Their startup SET/GET round trip must
+    // expose actual non-default values; live SET must fail and leave the value intact.
+    for (const auto& [name, value] : {
+             std::pair{"hll-sparse-max-bytes", "1024"}, {"aof-load-truncated", "no"},
+             {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
+             {"unixsocket", "build/unused-knob-matrix.sock"}}) {
+        get(name, value);
+        set({"CONFIG", "SET", name, value}, false);
+        get(name, value);
+    }
+    const struct {
+        const char* name; const char* alias; const char* tomo_alias;
+        const char* input; const char* output;
+    } rows[] = {
+        {"hash-max-listpack-entries", "hash-max-ziplist-entries", "hash-max-compact-entries", "5", "5"},
+        {"hash-max-listpack-value", "hash-max-ziplist-value", "hash-max-compact-value", "1kb", "1024"},
+        {"list-max-listpack-size", "list-max-ziplist-size", nullptr, "-3", "-3"},
+        {"set-max-listpack-entries", nullptr, nullptr, "6", "6"},
+        {"set-max-listpack-value", nullptr, nullptr, "20", "20"},
+        {"zset-max-listpack-entries", "zset-max-ziplist-entries", "zset-max-compact-entries", "8", "8"},
+        {"zset-max-listpack-value", "zset-max-ziplist-value", "zset-max-compact-value", "2k", "2000"},
+    };
+    for (const auto& row : rows) {
+        for (const char* spelling : {row.name, row.alias, row.tomo_alias}) {
+            if (!spelling) continue;
+            const bool legacy = spelling == row.tomo_alias;
+            set({"CONFIG", "SET", spelling, legacy ? "007" : row.input}, true);
+            for (const char* name : {row.name, row.alias, row.tomo_alias})
+                if (name) get(name, legacy ? "7" : row.output);
+        }
+    }
+    const auto& limits = shard.type_limits();
+    check(limits.hash.max_entries == 7 && limits.hash.max_value == 7 &&
+          limits.zset.max_entries == 7 && limits.zset.max_value == 7 &&
+          limits.list.max_entries == UINT32_MAX && limits.list.max_value == 16384 &&
+          limits.set.max_entries == 6 && limits.set.max_value == 20,
+          "knob matrix SET changes the owner's actual limits, not just GET");
+    for (const auto& row : rows) {
+        if (row.alias) {
+            set({"CONFIG", "SET", row.name, "8", row.alias, "9"}, true);
+            get(row.name, "9"); get(row.alias, "9");
+            set({"CONFIG", "SET", row.name, "10", row.alias, "bad"}, false);
+            get(row.name, "9"); get(row.alias, "9");
+        }
+        const std::string before = execute(shard, {"CONFIG", "GET", row.name});
+        const auto owner_before = shard.type_limits();
+        set({"CONFIG", "SET", row.name, "11", row.name, "12"}, false);
+        check(execute(shard, {"CONFIG", "GET", row.name}) == before &&
+              !std::memcmp(&owner_before, &shard.type_limits(), sizeof(owner_before)),
+              "duplicate SET leaves both published and owner values unchanged");
+    }
+    set({"CONFIG", "SET", "hash-max-listpack-entries", "9223372036854775807",
+         "zset-max-listpack-value", "4294967296"}, true);
+    get("hash-max-ziplist-entries", "9223372036854775807");
+    get("zset-max-compact-value", "4294967296");
+    check(shard.type_limits().hash.max_entries == UINT32_MAX &&
+          shard.type_limits().zset.max_value == UINT32_MAX, "full Redis range saturates owner limits");
+    for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value"}) {
+        const std::string before = execute(shard, {"CONFIG", "GET", name});
+        tomo::Op op; args(op, {"CONFIG", "SET", name});
+        check(op.push_arg(tomo::Slice("1\0x", 3)), "malformed bulk fixture argument");
+        check(!tomo::command_validate_config_set(op), "embedded NUL rejected by shared parser");
+        check(execute(shard, {"CONFIG", "GET", name}) == before, "malformed bulk leaves GET intact");
+    }
+}
 }
 extern "C" int __real_mkstemp(char*);
 extern "C" FILE* __real_fopen(const char*, const char*);
@@ -68,6 +153,7 @@ void test_config_bounds(const char* only) {
 }
 
 void test_config_rewrite() {
+    knob_matrix();
     check(tomo::config_quote("77") == "77", "simple scalar keeps its original spelling");
     const std::string value = "pass with spaces\n\r\t\"'\\tail";
     std::vector<std::string> words;
@@ -78,7 +164,9 @@ void test_config_rewrite() {
     std::FILE* original = std::fopen(path, "w"); check(original, "create original config");
     std::fputs("user reader on nopass ~* +get\nload \"/tmp/recovery source.tomo\"\nrequirepass old\n"
                "hash-max-ziplist-entries 3\nhash-max-ziplist-value 9\nlist-max-ziplist-size -1\n"
-               "zset-max-ziplist-entries 3\nzset-max-ziplist-value 9\n", original);
+               "zset-max-ziplist-entries 3\nzset-max-ziplist-value 9\n"
+               "hash-max-compact-entries 4\nhash-max-compact-value 10\n"
+               "zset-max-compact-entries 4\nzset-max-compact-value 10\n", original);
     std::fclose(original);
     std::string error;
     check(tomo::config_rewrite(error), "first rewrite");
@@ -86,9 +174,14 @@ void test_config_rewrite() {
     check(body.find("user reader on nopass ~* +get\n") != std::string::npos, "inline ACL survived rewrite");
     check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos, "recovery source survived rewrite");
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
+    check(body.find("max-compact-") == std::string::npos, "stale TomoKV aliases were replaced");
     for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",
                              "zset-max-listpack-entries", "zset-max-listpack-value"})
         check(body.find(std::string(name) + " ") != std::string::npos, "canonical encoding directive emitted");
+    for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
+                                  "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",
+                                  "unixsocket build/unused-knob-matrix.sock\n"})
+        check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
     std::vector<std::string> loaded;
     check(tomo::load_conf_file(path, loaded), "rewritten config loads");
     auto password = std::find(loaded.begin(), loaded.end(), "--requirepass");
