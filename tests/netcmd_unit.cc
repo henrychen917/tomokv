@@ -161,6 +161,7 @@ struct NetcmdRegression {
     }
 
     static void pubsub() {
+        pubsub_timeout();
         for (auto kind : {IoLoop::PubSubPendingKind::Channels, IoLoop::PubSubPendingKind::Numsub,
                           IoLoop::PubSubPendingKind::Numpat, IoLoop::PubSubPendingKind::Modify}) {
             for (bool suppressed : {false, true}) {
@@ -189,6 +190,57 @@ struct NetcmdRegression {
                 check(reply.find(push) != std::string::npos, "independent publication survives retirement");
                 if (suppressed) check(reply == push, "only command reply was suppressed");
             }
+        }
+    }
+
+    static void pubsub_timeout() {
+        for (bool resp3 : {false, true}) {
+            Sender sender;
+            Server server; ThreadCtx self; IoLoop loop; Client client(-1);
+            client.set_id(42); client.set_resp3(resp3);
+            loop.srv_ = &server; loop.self_ = &self; sender.bind(loop.wb_);
+            ClientOutputBufferLimits limits; limits.pubsub = {};
+            server.set_client_output_buffer_limits(limits);
+            check(!server.client_obuf_armed(), "idle timeout isolated from output-buffer limits");
+            self.add_client(&client);
+
+            // Drive the real SUBSCRIBE completion, including its protocol-independent
+            // subscriber flag. No listener, ring or worker is started by this fixture.
+            Op* op = client.rob().acquire(); check(op, "timeout SUBSCRIBE slot");
+            args(*op, {"SUBSCRIBE", "idle"});
+            if (resp3) op->mark_resp3();
+            client.rob().publish();
+            auto& local = loop.pubsub_local_[client.id()];
+            local.client = &client; local.pending = 1;
+            auto& pending = loop.pubsub_pending_[client.id()];
+            pending.kind = IoLoop::PubSubPendingKind::Modify;
+            pending.op_id = client.rob().flush_id(); pending.subscribe = true;
+            pending.items.push_back("idle");
+            server.pubsub_pending_started();
+            loop.pubsub_finish_pending(client.id());
+            const std::string ack = std::string(resp3 ? ">" : "*") +
+                "3\r\n$9\r\nsubscribe\r\n$4\r\nidle\r\n:1\r\n";
+            check(op->state.load() == OpState::Done &&
+                  std::string(op->reply.data(), op->reply.size()) == ack &&
+                  client.subscriber_mode() && local.channels.count("idle") == 1 &&
+                  loop.pubsub_pending_.empty() && server.pubsub_pending() == 0,
+                  "SUBSCRIBE completed and armed the subscriber exemption candidate");
+
+            client.set_last_interaction_s(100);
+            loop.cached_now_s_ = 106;
+            server.set_timeout(0);
+            check(loop.client_cron_pass() == 1 && !client.closing(), "timeout 0 keeps subscribers open");
+            server.set_timeout(5);
+            loop.cached_now_s_ = 105;
+            check(loop.client_cron_pass() == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
+            loop.cached_now_s_ = 106;
+            client.set_blocked(true);
+            check(loop.client_cron_pass() == 1 && !client.closing(), "blocked subscribers remain exempt");
+            client.set_blocked(false);
+            check(loop.client_cron_pass() == 1, "idle subscriber visited by client cron");
+            check(client.closing() == resp3,
+                  resp3 ? "idle RESP3 SUBSCRIBE client must be closed after timeout"
+                        : "idle RESP2 SUBSCRIBE client must remain exempt from timeout");
         }
     }
 
@@ -515,6 +567,7 @@ int main(int argc, char** argv) {
     else if (mode == "flush") R::flush();
     else if (mode == "output") R::output();
     else if (mode == "pubsub") R::pubsub();
+    else if (mode == "pubsub-timeout") R::pubsub_timeout();
     else if (mode == "receive") R::receive_segments();
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "config") R::config();
