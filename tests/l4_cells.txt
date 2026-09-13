@@ -1,0 +1,23 @@
+# Private F12 value-size study; copy to build/l4-cells.txt for --cells.
+# Requires this lane's OP:BYTES support in abbagate.py; older instruments reject it.
+# id | mode | rl | ov | ro | op:bytes | depth | total-conns | reserved | reserved | pin | atomic | score | mix | smoke
+# All multi-key operations use eight independently generated keys. No load pin is guessed.
+# MSET allocates external records. MSETNX uses the fully populated keyspace and rejects:
+# it measures avoided allocation on abort, not successful owner-side record placement.
+# GET/MGET are matching value-size/read controls. No production gate row is added.
+l4_mset_1s_256    | 1s | rl=0 | ov=0 | ro=0 | MSET:256    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_msetnx_1s_256  | 1s | rl=0 | ov=0 | ro=0 | MSETNX:256  | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_get_1s_256     | 1s | rl=0 | ov=0 | ro=0 | GET:256     | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mget_1s_256    | 1s | rl=0 | ov=0 | ro=0 | MGET:256    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mset_2s_256    | 2s | rl=0 | ov=0 | ro=0 | MSET:256    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_msetnx_2s_256  | 2s | rl=0 | ov=0 | ro=0 | MSETNX:256  | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_get_2s_256     | 2s | rl=0 | ov=0 | ro=0 | GET:256     | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mget_2s_256    | 2s | rl=0 | ov=0 | ro=0 | MGET:256    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mset_1s_1024   | 1s | rl=0 | ov=0 | ro=0 | MSET:1024   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_msetnx_1s_1024 | 1s | rl=0 | ov=0 | ro=0 | MSETNX:1024 | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_get_1s_1024    | 1s | rl=0 | ov=0 | ro=0 | GET:1024    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mget_1s_1024   | 1s | rl=0 | ov=0 | ro=0 | MGET:1024   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mset_2s_1024   | 2s | rl=0 | ov=0 | ro=0 | MSET:1024   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_msetnx_2s_1024 | 2s | rl=0 | ov=0 | ro=0 | MSETNX:1024 | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_get_2s_1024   | 2s | rl=0 | ov=0 | ro=0 | GET:1024    | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+l4_mget_2s_1024  | 2s | rl=0 | ov=0 | ro=0 | MGET:1024   | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
