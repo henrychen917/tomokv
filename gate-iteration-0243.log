@@ -2421,3 +2421,252 @@ t01 A=16.767000,13.887000 B=13.247000,13.311000 ms (short-command p99.9) paired=
   t02 n=1 1:A boot/populate/20s
     1.23363M/s legacy-busy=91.936% productive-role=93.153% CPU=94.574% latency=3.28800ms
   t02 n=1 2:B boot/populate/20s
+    1.18402M/s legacy-busy=92.565% productive-role=93.650% CPU=94.854% latency=3.40400ms
+  t02 n=1 3:B boot/populate/20s
+    1.27635M/s legacy-busy=86.237% productive-role=88.396% CPU=90.842% latency=3.21800ms
+  t02 n=1 4:A boot/populate/20s
+    1.17322M/s legacy-busy=93.198% productive-role=94.193% CPU=95.277% latency=3.47400ms
+t02 A=14.079000,21.119000 B=13.183000,13.695000 ms (short-command p99.9) paired=-23.6377% spread A/B=40.0023/3.8098% threshold=40.0023% legacy-busy(ABBA)=91.936,92.565,86.237,93.198% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference p999_ms spread exceeds the project's 4.21669% stability boundary
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference long_p999_ms spread exceeds the project's 4.02797% stability boundary
+  t03 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t03 n=1 1:A boot/populate/20s
+    1.48371M/s legacy-busy=68.723% productive-role=96.291% CPU=76.057% latency=2.64800ms
+  t03 n=1 2:B boot/populate/20s
+    1.67688M/s legacy-busy=69.586% productive-role=95.766% CPU=77.502% latency=2.43200ms
+  t03 n=1 3:B boot/populate/20s
+    1.41566M/s legacy-busy=68.516% productive-role=96.698% CPU=75.410% latency=2.82100ms
+  t03 n=1 4:A boot/populate/20s
+    1.45858M/s legacy-busy=70.541% productive-role=97.763% CPU=76.331% latency=2.77400ms
+t03 A=9.215000,11.199000 B=11.775000,12.031000 ms (short-command p99.9) paired=+16.6160% spread A/B=19.4376/2.1507% threshold=24.7648% legacy-busy(ABBA)=68.723,69.586,68.516,70.541% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: candidate rate spread exceeds the project's 2% stability boundary
+  t04 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t04 n=1 1:A boot/populate/20s
+    1.55645M/s legacy-busy=72.325% productive-role=97.257% CPU=78.131% latency=2.63300ms
+  t04 n=1 2:B boot/populate/20s
+    1.52014M/s legacy-busy=70.932% productive-role=96.490% CPU=78.005% latency=2.67900ms
+  t04 n=1 3:B boot/populate/20s
+    1.51973M/s legacy-busy=69.575% productive-role=95.624% CPU=77.417% latency=2.68900ms
+  t04 n=1 4:A boot/populate/20s
+    1.50064M/s legacy-busy=70.360% productive-role=96.339% CPU=77.347% latency=2.71900ms
+t04 A=10.367000,9.087000 B=11.455000,10.559000 ms (short-command p99.9) paired=+13.1592% spread A/B=13.1592/8.1403% threshold=13.1592% legacy-busy(ABBA)=72.325,70.932,69.575,70.360% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: long-command p99.9 regression exceeds measured reference spread
+  t05 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t05 n=1 1:A boot/populate/20s
+    1.21720M/s legacy-busy=95.268% productive-role=95.849% CPU=96.240% latency=3.35800ms
+  t05 n=1 2:B boot/populate/20s
+    1.21531M/s legacy-busy=96.522% productive-role=96.943% CPU=97.220% latency=3.36600ms
+  t05 n=1 3:B boot/populate/20s
+    1.19946M/s legacy-busy=96.895% productive-role=97.266% CPU=97.508% latency=3.40600ms
+  t05 n=1 4:A boot/populate/20s
+    1.24532M/s legacy-busy=94.933% productive-role=95.552% CPU=96.018% latency=3.27900ms
+t05 A=10.367000,10.367000 B=10.559000,10.239000 ms (short-command p99.9) paired=+0.3087% spread A/B=0.0000/3.0772% threshold=5.0000% legacy-busy(ABBA)=95.268,96.522,96.895,94.933% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: candidate p999_ms spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate long_p999_ms spread exceeds the project's 2% stability boundary
+  t06 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  t06 n=1 1:A boot/populate/20s
+    1.22480M/s legacy-busy=96.251% productive-role=96.690% CPU=96.996% latency=3.33400ms
+  t06 n=1 2:B boot/populate/20s
+    1.21397M/s legacy-busy=95.932% productive-role=96.413% CPU=96.769% latency=3.34500ms
+  t06 n=1 3:B boot/populate/20s
+    1.24045M/s legacy-busy=95.007% productive-role=95.607% CPU=96.082% latency=3.23200ms
+  t06 n=1 4:A boot/populate/20s
+    1.24985M/s legacy-busy=96.327% productive-role=96.774% CPU=97.134% latency=3.26900ms
+t06 A=10.239000,11.839000 B=10.367000,11.647000 ms (short-command p99.9) paired=-0.2899% spread A/B=14.4941/11.6290% threshold=14.4941% legacy-busy(ABBA)=96.251,95.932,95.007,96.327% productive-role(ABBA)=?,?,?,?% instances=1 FAIL
+  load floor=None (INVALID, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: measurement n=1: reference p999_ms spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate p999_ms spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate rate spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: reference long_p999_ms spread exceeds the project's 2% stability boundary
+  FAIL: measurement n=1: candidate long_p999_ms spread exceeds the project's 2% stability boundary
+ABBA smoke FAIL worst=t04 (17/180 cells); results=/home/user/Projects/cx-final/build/gate-run.v5lXvo/abba/results.json
+ABBA elapsed=4665.3s; /home/user/Projects/cx-final/build/gate-run.v5lXvo/abba/results.json
+  headline ABBA                                        measured; see per-cell numbers above and results.json (reporting only, not gating)
+  NIC regression cells                                 SKIPPED (no rig/refs)
+  PROGRAM-STATE ledger (436/436 checks)                ok
+  ledger: /home/user/Projects/cx-final/build/gate-ledger-iteration.txt (verdict / own-row seconds / stable label); timings: /home/user/Projects/cx-final/build/gate-ledger-iteration.txt.timings; slowest rows:
+      542.1s  ok   Redis 7.4 differential matrix
+      541.7s  ok   Redis 7.4 differential matrix (armed fused + read-local)
+      356.0s  ok   ABBA comparison + saturation negative controls
+      124.9s  ok   flip controller: ramp gate, hold, surge + mix re-maneuvers
+       64.7s  ok   expwide battery (atomic 0)
+       61.5s  ok   eviction lruclock battery (split, atomic 0)
+       60.8s  ok   eviction lruclock battery (fused+armed, atomic 0)
+       60.7s  ok   eviction lruclock battery (split, atomic 1)
+       60.1s  ok   expwide battery (atomic 1)
+       60.0s  ok   eviction lruclock battery (fused+armed, atomic 1)
+       52.8s  ok   fused+armed expwide battery (atomic 1)
+       47.1s  ok   fused+armed expwide battery (atomic 0)
+GATE HISTORY: 428 labels, 7624 observations, 18 runs; 160 verdict-changing labels
+  DEFECT NEEDS FIX: ABBA comparison + saturation negative controls [with-scheduler-controls]; FAIL observations 8/18 (44.44%); runs containing FAIL 8/18; between-run transitions=11; latest FAIL (iteration:gate-run.iDWLwm) -> ok (iteration:gate-run.v5lXvo) at 2026-09-13T18:49:08Z
+  DEFECT NEEDS FIX: ACL LOAD/SAVE no-file errors; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:46Z
+  DEFECT NEEDS FIX: ACL battery (atomic off); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:56Z
+  DEFECT NEEDS FIX: ACL category runtime table; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:46Z
+  DEFECT NEEDS FIX: ACL recheck one-reply battery (2s); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:31Z
+  DEFECT NEEDS FIX: AOF rewrite triggers + observability matrix; FAIL observations 2/34 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:48Z
+  DEFECT NEEDS FIX: ASAN build; FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:33:09Z
+  DEFECT NEEDS FIX: FLIP under verified load; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=2; latest FAIL (iteration:gate-run.BnsoL0) -> ok (iteration:gate-run.mKGnge) at 2026-09-12T19:01:39Z
+  DEFECT NEEDS FIX: Lua feature battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:00Z
+  DEFECT NEEDS FIX: MULTI feature battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:57Z
+  DEFECT NEEDS FIX: RYOW battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:46Z
+  DEFECT NEEDS FIX: Redis 7.4 differential matrix; FAIL observations 1/16 (6.25%); runs containing FAIL 1/16; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:51Z
+  DEFECT NEEDS FIX: Redis 7.4 differential matrix (armed fused + read-local); FAIL observations 1/16 (6.25%); runs containing FAIL 1/16; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:51Z
+  DEFECT NEEDS FIX: Redis 7.4 differential part (armed fused, atomic 0); FAIL observations 1/16 (6.25%); runs containing FAIL 1/16; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:12Z
+  DEFECT NEEDS FIX: Redis 7.4 differential part (armed fused, atomic 1); FAIL observations 1/16 (6.25%); runs containing FAIL 1/16; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:13Z
+  DEFECT NEEDS FIX: Redis 7.4 differential part (split, atomic 0); FAIL observations 2/17 (11.76%); runs containing FAIL 2/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:12Z
+  DEFECT NEEDS FIX: Redis 7.4 differential part (split, atomic 1); FAIL observations 1/16 (6.25%); runs containing FAIL 1/16; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:13Z
+  DEFECT NEEDS FIX: aclsel battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:20Z
+  DEFECT NEEDS FIX: aclsel battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:23Z
+  DEFECT NEEDS FIX: arity battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:19Z
+  DEFECT NEEDS FIX: arity battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:22Z
+  DEFECT NEEDS FIX: atomic RYOW/mixed-write battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:44Z
+  DEFECT NEEDS FIX: atomic owner-local hazard battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:49Z
+  DEFECT NEEDS FIX: atomic shutdown invariants; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:50Z
+  DEFECT NEEDS FIX: atomic torn/window battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:27:40Z
+  DEFECT NEEDS FIX: bitfield battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:46Z
+  DEFECT NEEDS FIX: bitfield battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:49Z
+  DEFECT NEEDS FIX: blocking feature battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:59Z
+  DEFECT NEEDS FIX: borrow-registry growth bound; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=2; latest FAIL (iteration:gate-run.bB9ltG) -> ok (iteration:gate-run.m2nksC) at 2026-09-13T02:15:11Z
+  DEFECT NEEDS FIX: build dependency: make build/atomic-survivors-unit,build/core-concurrency-unit,build/netcmd-unit,build/rehash-waits-unit,build/waits-unit; FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:33:05Z
+  DEFECT NEEDS FIX: climon battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:48Z
+  DEFECT NEEDS FIX: climon battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:51Z
+  DEFECT NEEDS FIX: climon2 battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:52Z
+  DEFECT NEEDS FIX: climon2 battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:55Z
+  DEFECT NEEDS FIX: cmdgap battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:19Z
+  DEFECT NEEDS FIX: cmdgap battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:22Z
+  DEFECT NEEDS FIX: concur battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:13Z
+  DEFECT NEEDS FIX: concur battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:16Z
+  DEFECT NEEDS FIX: contarity battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:19Z
+  DEFECT NEEDS FIX: contarity battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:22Z
+  DEFECT NEEDS FIX: direct-reply fired (direct=N); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: dispatched==executed (N); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: dumprestore battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:46Z
+  DEFECT NEEDS FIX: dumprestore battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:49Z
+  DEFECT NEEDS FIX: edgeenc battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:15Z
+  DEFECT NEEDS FIX: edgeenc battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:18Z
+  DEFECT NEEDS FIX: edgeproto battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:14Z
+  DEFECT NEEDS FIX: edgeproto battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:17Z
+  DEFECT NEEDS FIX: edgetime battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:19Z
+  DEFECT NEEDS FIX: edgetime battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:22Z
+  DEFECT NEEDS FIX: eviction lruclock battery (fused+armed, atomic 0); FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:32:16Z
+  DEFECT NEEDS FIX: eviction lruclock battery (fused+armed, atomic 1); FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:32:16Z
+  DEFECT NEEDS FIX: eviction lruclock battery (split, atomic 0); FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:32:16Z
+  DEFECT NEEDS FIX: eviction lruclock battery (split, atomic 1); FAIL observations 1/18 (5.56%); runs containing FAIL 1/18; between-run transitions=1; latest FAIL (iteration:gate-run.xNrkDM) -> ok (iteration:gate-run.Iycf5M) at 2026-09-11T15:32:16Z
+  DEFECT NEEDS FIX: execatomic battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:35Z
+  DEFECT NEEDS FIX: execatomic battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:37Z
+  DEFECT NEEDS FIX: execfix battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:48Z
+  DEFECT NEEDS FIX: execfix battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:50Z
+  DEFECT NEEDS FIX: execiso battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:47Z
+  DEFECT NEEDS FIX: execiso battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: expire-index growth bound; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:07Z
+  DEFECT NEEDS FIX: expwide battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:20Z
+  DEFECT NEEDS FIX: expwide battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:13Z
+  DEFECT NEEDS FIX: feature battery shutdown invariants; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:24Z
+  DEFECT NEEDS FIX: feature shutdown invariants (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:25Z
+  DEFECT NEEDS FIX: feature shutdown invariants (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:18Z
+  DEFECT NEEDS FIX: flip controller: ramp gate, hold, surge + mix re-maneuvers; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:19Z
+  DEFECT NEEDS FIX: fused+armed aclsel battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:18Z
+  DEFECT NEEDS FIX: fused+armed aclsel battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:01Z
+  DEFECT NEEDS FIX: fused+armed arity battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:17Z
+  DEFECT NEEDS FIX: fused+armed arity battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:00Z
+  DEFECT NEEDS FIX: fused+armed bitfield battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:44Z
+  DEFECT NEEDS FIX: fused+armed bitfield battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:26Z
+  DEFECT NEEDS FIX: fused+armed climon battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:46Z
+  DEFECT NEEDS FIX: fused+armed climon battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:28Z
+  DEFECT NEEDS FIX: fused+armed climon2 battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:50Z
+  DEFECT NEEDS FIX: fused+armed climon2 battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:32Z
+  DEFECT NEEDS FIX: fused+armed cmdgap battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:18Z
+  DEFECT NEEDS FIX: fused+armed cmdgap battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:00Z
+  DEFECT NEEDS FIX: fused+armed concur battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:11Z
+  DEFECT NEEDS FIX: fused+armed concur battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:54Z
+  DEFECT NEEDS FIX: fused+armed contarity battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:18Z
+  DEFECT NEEDS FIX: fused+armed contarity battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:00Z
+  DEFECT NEEDS FIX: fused+armed dumprestore battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:44Z
+  DEFECT NEEDS FIX: fused+armed dumprestore battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:27Z
+  DEFECT NEEDS FIX: fused+armed edgeenc battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:13Z
+  DEFECT NEEDS FIX: fused+armed edgeenc battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:55Z
+  DEFECT NEEDS FIX: fused+armed edgeproto battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:12Z
+  DEFECT NEEDS FIX: fused+armed edgeproto battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:55Z
+  DEFECT NEEDS FIX: fused+armed edgetime battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:17Z
+  DEFECT NEEDS FIX: fused+armed edgetime battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:00Z
+  DEFECT NEEDS FIX: fused+armed expwide battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:15Z
+  DEFECT NEEDS FIX: fused+armed expwide battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:46Z
+  DEFECT NEEDS FIX: fused+armed geo battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:45Z
+  DEFECT NEEDS FIX: fused+armed geo battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:27Z
+  DEFECT NEEDS FIX: fused+armed hexpire battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:08Z
+  DEFECT NEEDS FIX: fused+armed hexpire battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:50Z
+  DEFECT NEEDS FIX: fused+armed infofix battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:15Z
+  DEFECT NEEDS FIX: fused+armed infofix battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:46Z
+  DEFECT NEEDS FIX: fused+armed lcs battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:09Z
+  DEFECT NEEDS FIX: fused+armed lcs battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:51Z
+  DEFECT NEEDS FIX: fused+armed limits battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:44Z
+  DEFECT NEEDS FIX: fused+armed limits battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:26Z
+  DEFECT NEEDS FIX: fused+armed netcmd battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:19Z
+  DEFECT NEEDS FIX: fused+armed netcmd battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: fused+armed pushtear battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:18Z
+  DEFECT NEEDS FIX: fused+armed pushtear battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: fused+armed resp3 battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:44Z
+  DEFECT NEEDS FIX: fused+armed resp3 battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:26Z
+  DEFECT NEEDS FIX: fused+armed servertail battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:09Z
+  DEFECT NEEDS FIX: fused+armed servertail battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:51Z
+  DEFECT NEEDS FIX: fused+armed shutdown report + lane fired (hits=N, atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:20Z
+  DEFECT NEEDS FIX: fused+armed shutdown report + lane fired (hits=N, atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:50Z
+  DEFECT NEEDS FIX: fused+armed tracking battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:05Z
+  DEFECT NEEDS FIX: fused+armed tracking battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:47Z
+  DEFECT NEEDS FIX: fused+armed zsetops battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:45Z
+  DEFECT NEEDS FIX: fused+armed zsetops battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:27Z
+  DEFECT NEEDS FIX: geo battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:47Z
+  DEFECT NEEDS FIX: geo battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:50Z
+  DEFECT NEEDS FIX: headline ABBA vs last pushed binary [subset=smoke; window=20; cells-sha256=8cd6f3b96150e484e8ccc12a5c5ca7f0631cc5212bffdc6a0630f068fbb3e09f; server_cores=0-31; server_smt=; load_cores=32-127; load_smt=160-255; only=; escalate=0; max_instances=16]; FAIL observations 5/6 (83.33%); runs containing FAIL 5/6; between-run transitions=1; latest ok (iteration:gate-run.x2GrgV) -> FAIL (iteration:gate-run.XRk3gu) at 2026-09-12T15:09:42Z
+  DEFECT NEEDS FIX: headline ABBA vs last pushed binary [subset=smoke; window=20; cells-sha256=c3594a726b00679d8846623757624781a50d637ef52ccae7721fd33f347c3cd1; server_cores=0-31; server_smt=; load_cores=32-127; load_smt=160-255; only=; escalate=0; max_instances=16]; FAIL observations 4/6 (66.67%); runs containing FAIL 4/6; between-run transitions=2; latest ok (iteration:gate-run.iBf31Q) -> FAIL (iteration:gate-run.jtumxT) at 2026-09-12T03:17:51Z
+  DEFECT NEEDS FIX: hexpire battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:10Z
+  DEFECT NEEDS FIX: hexpire battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:13Z
+  DEFECT NEEDS FIX: idle loop ceiling (LBSIGNALS, 1s); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:47Z
+  DEFECT NEEDS FIX: infofix battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:21Z
+  DEFECT NEEDS FIX: infofix battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:13Z
+  DEFECT NEEDS FIX: keyspace notification battery (atomic 0/1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:23Z
+  DEFECT NEEDS FIX: lcs battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:11Z
+  DEFECT NEEDS FIX: lcs battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:14Z
+  DEFECT NEEDS FIX: limits battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:46Z
+  DEFECT NEEDS FIX: limits battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:49Z
+  DEFECT NEEDS FIX: mode equivalence part (all execution modes and knobs); FAIL observations 2/17 (11.76%); runs containing FAIL 2/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:02Z
+  DEFECT NEEDS FIX: multirace battery (atomic 0); FAIL observations 2/17 (11.76%); runs containing FAIL 2/17; between-run transitions=3; latest FAIL (iteration:gate-run.BnsoL0) -> ok (iteration:gate-run.mKGnge) at 2026-09-12T19:01:08Z
+  DEFECT NEEDS FIX: multirace battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:51Z
+  DEFECT NEEDS FIX: multires battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:48Z
+  DEFECT NEEDS FIX: multires battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:50Z
+  DEFECT NEEDS FIX: netcmd battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:24Z
+  DEFECT NEEDS FIX: netcmd battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:17Z
+  DEFECT NEEDS FIX: pubsub feature battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:00Z
+  DEFECT NEEDS FIX: pushtear battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:24Z
+  DEFECT NEEDS FIX: pushtear battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:16Z
+  DEFECT NEEDS FIX: resp3 battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:46Z
+  DEFECT NEEDS FIX: resp3 battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:49Z
+  DEFECT NEEDS FIX: servertail battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:11Z
+  DEFECT NEEDS FIX: servertail battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:14Z
+  DEFECT NEEDS FIX: session_monotonic battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:20Z
+  DEFECT NEEDS FIX: session_monotonic battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:22Z
+  DEFECT NEEDS FIX: shutdown invariants (nothing stuck); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:49Z
+  DEFECT NEEDS FIX: snapshot never tears a cross-shard MSET group (uring, atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:16Z
+  DEFECT NEEDS FIX: torture battery; FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:22:44Z
+  DEFECT NEEDS FIX: tracking battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:19:06Z
+  DEFECT NEEDS FIX: tracking battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:21:09Z
+  DEFECT NEEDS FIX: xacct battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:20Z
+  DEFECT NEEDS FIX: xacct battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:22Z
+  DEFECT NEEDS FIX: xmove battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:21Z
+  DEFECT NEEDS FIX: xmove battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:23Z
+  DEFECT NEEDS FIX: xscript battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:22Z
+  DEFECT NEEDS FIX: xscript battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:23:24Z
+  DEFECT NEEDS FIX: zsetops battery (atomic 0); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:18:47Z
+  DEFECT NEEDS FIX: zsetops battery (atomic 1); FAIL observations 1/17 (5.88%); runs containing FAIL 1/17; between-run transitions=1; latest FAIL (iteration:gate-run.Iycf5M) -> ok (iteration:gate-run.uWT7j5) at 2026-09-11T21:20:50Z
+  Historical flips remain visible even when the latest run passes; the current gate verdict is determined by its current rows.
+
+GATE(iteration): 436 ok, 0 FAIL (ABBA rc=1, NIC checked=0, cleanup rc=0, receipt required=0 rc=0, wall 5249s)
