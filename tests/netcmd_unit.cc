@@ -239,6 +239,7 @@ struct NetcmdRegression {
     }
 
     static void config() {
+        test_config_bounds();
         Server server;
         const std::string password = "pass with spaces\n\r\t\"'\\tail";
         char directory[] = "build/netcmd-config-XXXXXX";
@@ -254,7 +255,8 @@ struct NetcmdRegression {
 }
 
 int main(int argc, char** argv) {
-    check(argc == 2, "one regression section required");
+    check(argc == 2 || (argc == 3 && std::string(argv[1]) == "config-bounds"),
+          "one regression section (and optional config-bound name) required");
     check(tomo::command_registry_init(false), "command registry initialized");
     const std::string mode = argv[1];
     using R = tomo::NetcmdRegression;
@@ -268,6 +270,7 @@ int main(int argc, char** argv) {
     else if (mode == "receive") R::receive_segments();
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "config") R::config();
+    else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
     else check(false, "unknown regression section");
     std::printf("ok: netcmd %s\n", argv[1]);
 }
