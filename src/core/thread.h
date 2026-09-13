@@ -1180,24 +1180,28 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
-    // task_in_ is read by peer producers. Keep the rare scan-hold store on that
-    // line and put the every-command store below, with the owner counters. Swapping
-    // equal-sized counters preserves the 1408-byte stride and every other offset;
-    // it may trade transport-line reacquisitions for an extra owner-counter line.
-    uint64_t atomic_scan_holds_ = 0;
-    FlipFingerprintWriter flip_fingerprint_;
+    // Peer producers read the four transport pointers on bytes 64..127. The shared
+    // counter swap already moved total_commands_ off that line; also keep scan holds
+    // off it when an atomic scan repeatedly parks. Preserve the fingerprint's offset
+    // and use the existing owner-counter padding for the remaining store.
+    alignas(64) FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
     uint64_t total_commands_ = 0;
+    uint64_t atomic_scan_holds_ = 0;
     AtomicAdmissionState atomic_admission_state_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
-    std::vector<Client*>  slots_;          // slot -> client, sender-owned
-    std::vector<uint32_t> free_slots_;
-    std::atomic<bool>     parked_{false};
-    NotifyMask task_notify_;      // "which producers have ops for me"
+    // The four masks occupy exactly one line. Keep their required producer-set /
+    // consumer-take RMWs together, apart from owner slot-vector and park stores.
+    // Previously task_notify_'s first word shared those stores' line and its second
+    // word shared the other masks' line. No mask bits or publication order change.
+    alignas(64) NotifyMask task_notify_; // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
     NotifyMask transfer_notify_;  // "which IO producers handed connection ownership to me"
+    std::vector<Client*>  slots_;          // slot -> client, sender-owned
+    std::vector<uint32_t> free_slots_;
+    std::atomic<bool>     parked_{false};
     uint32_t nchan_ = 0;
     uint64_t depth_sample_next_us_ = 0;
 
