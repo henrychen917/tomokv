@@ -32,7 +32,7 @@ enum class FinalReply : uint8_t {
     Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError
 };
 enum class PopReplyShape : uint8_t { Mpop, ListPair, ZsetTriple };
-enum class ValueKind : uint8_t { Nil, Inline, Borrow };
+enum class ValueKind : uint8_t { Nil, Inline, Borrow, Owned };
 
 struct ObjectImage {
     bool present = false;
@@ -68,6 +68,17 @@ struct ValueSlot {
     // op (8KB of memset per MGET-8 at the 1KB slot -- measured -34% at 64B values). Only the first
     // `len` bytes are ever written and read.
     char small[kInline];
+
+    // Disabling zero-copy still needs stable gather bytes beyond the inline capacity. This
+    // allocation is reply storage, with no FlatStore borrow or owner-release registration.
+    char* copy_buffer(uint32_t length) {
+        len = length;
+        if (length <= kInline) { kind = ValueKind::Inline; return small; }
+        char* buffer = new char[length];
+        ptr = buffer;
+        kind = ValueKind::Owned;
+        return buffer;
+    }
 };
 
 struct GroupAux {
@@ -1383,6 +1394,8 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
 
 void free_state_contents(ScatterState& state) {
     if (state.contents_freed) return;
+    for (uint32_t i = 0; state.values && i < state.key_count; ++i)
+        if (state.values[i].kind == ValueKind::Owned) delete[] state.values[i].ptr;
     for (uint32_t i = 0; i < state.group_cap; i++) delete state.groups[i].aux;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) state.images[i].~ObjectImage();
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) state.apply[i].~ObjectImage();
@@ -2912,10 +2925,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                             slot.len = length;
                             const uint32_t cutover =
                                 std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
-                            if (length <= cutover) {
+                            if (shard.zc_min() == UINT32_MAX || length < cutover) {
                                 kvobj_read_local_copy_raw(
-                                    object, object->read_local_flags(), length, slot.small);
-                                slot.kind = ValueKind::Inline;
+                                    object, object->read_local_flags(), length, slot.copy_buffer(length));
                             } else {
                                 const char* value = object->str_data();
                                 // Registration precedes the next owner command, whose overwrite
@@ -2931,18 +2943,19 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     KvObjRawReadBuffer raw;
                     const Slice value = kvobj_string_value(object, raw);
                     slot.len = value.n;
-                    uint32_t cutover =
+                    const uint32_t cutover =
                         std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
+                    bool copy = shard.zc_min() == UINT32_MAX || value.n < cutover;
                     if constexpr (kReadLocalSetTaxVariant ==
                                   ReadLocalSetTaxVariant::SequenceOverwrite) {
                         // A materializes Raw through atomic cells. Keep that owner-local copy in
                         // the gather slot instead of publishing its stack address as a borrow.
                         if (object->encoding() == Enc::Raw)
-                            cutover = ValueSlot::kInline;
+                            copy = true;
                     }
-                    if (value.n <= cutover) {
-                        if (value.n) std::memcpy(slot.small, value.p, value.n);
-                        slot.kind = ValueKind::Inline;
+                    if (copy) {
+                        char* buffer = slot.copy_buffer(value.n);
+                        if (value.n) std::memcpy(buffer, value.p, value.n);
                     } else {
                         shard.store().borrow(value.p);
                         slot.ptr = value.p;
