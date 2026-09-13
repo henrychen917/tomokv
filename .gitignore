@@ -21,6 +21,10 @@ BRIEF*.md
 LANE_RULES.md
 # The interactive agent transcript changes during validation and is not project source.
 /CODEX-OUT.md
+# Lane measurement handoffs and crash transcripts stay outside the source history.
+/CODEX-OUT.diskfull.md
+/MEASURE-REQUEST
+/MEASURE-RESULT
 
 # replycode lane: measurement drivers are tracked as sources, their binaries are not
 scratchpad/replycode/replay
