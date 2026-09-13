@@ -1581,11 +1581,19 @@ private:
                 stats.keyspace_misses += prefix_keyspace_misses;
                 stats.mget_local_hits += prefix_mget_hits;
                 static_assert(kReadLocalDrainChunkOps <= 32);
-                self_->note_local_read_commands(
-                    chunk.ops, completed, mget_mask, prefix_mget_hits);
-                for (uint32_t i = 0; i < completed; i++) {
-                    Op& op = *chunk.ops[i];
+                // A singleton cannot amortize a counter store. Keep scalar accounting and omit
+                // the Done loop's index machinery, so p1 pays no histogram classification work.
+                if (completed == 1) {
+                    Op& op = *chunk.ops[0];
+                    self_->note_command(op.spec->id);
                     op.state.store(OpState::Done, std::memory_order_release);
+                } else {
+                    self_->note_local_read_commands(
+                        chunk.ops, completed, mget_mask, prefix_mget_hits);
+                    for (uint32_t i = 0; i < completed; i++) {
+                        Op& op = *chunk.ops[i];
+                        op.state.store(OpState::Done, std::memory_order_release);
+                    }
                 }
                 notify_sender(client);
                 lane.lane_head = (lane.lane_head + completed) & (kInboxSlots - 1);
