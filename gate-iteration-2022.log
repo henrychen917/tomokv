@@ -2269,3 +2269,73 @@ h23 A=27.272012,27.153324 B=29.398519,29.208728 Mops/s paired=+7.6838% spread A/
   h27 n=1 3:B boot/populate/20s
     11.92449M/s legacy-busy=10.664% productive-role=36.732% CPU=21.377% latency=1.35000ms
   h27 n=1 4:A boot/populate/20s
+    12.06280M/s legacy-busy=10.971% productive-role=37.739% CPU=21.882% latency=1.33400ms
+h27 A=11.881077,12.062796 B=11.955760,11.924485 Mops/s paired=-0.2657% spread A/B=1.5179/0.2619% threshold=5.0000% legacy-busy(ABBA)=10.917,10.855,10.664,10.971% productive-role(ABBA)=37.422,37.318,36.732,37.739% instances=1 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: no higher-instance confirmation block
+  h27 n=2 1:A boot/populate/20s
+    30.66866M/s legacy-busy=33.461% productive-role=97.615% CPU=49.757% latency=0.51944ms
+  h27 n=2 2:B boot/populate/20s
+    30.68440M/s legacy-busy=30.005% productive-role=92.560% CPU=47.799% latency=0.51893ms
+  h27 n=2 3:B boot/populate/20s
+    30.24218M/s legacy-busy=29.603% productive-role=91.082% CPU=47.144% latency=0.52599ms
+  h27 n=2 4:A boot/populate/20s
+    30.23541M/s legacy-busy=34.559% productive-role=99.915% CPU=50.625% latency=0.52750ms
+h27 A=30.668660,30.235412 B=30.684401,30.242182 Mops/s paired=+0.0370% spread A/B=1.4227/1.4516% threshold=5.0000% legacy-busy(ABBA)=33.461,30.005,29.603,34.559% productive-role(ABBA)=97.615,92.560,91.082,99.915% instances=2 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=2; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: reference still gains beyond its measured repeatability
+  FAIL: n=1: candidate still gains beyond its measured repeatability
+  FAIL: n=2: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=2: no higher-instance confirmation block
+  h27 n=4 1:A boot/populate/20s
+    31.08488M/s legacy-busy=32.473% productive-role=99.997% CPU=50.663% latency=0.51943ms
+  h27 n=4 2:B boot/populate/20s
+    31.20460M/s legacy-busy=32.429% productive-role=99.996% CPU=50.668% latency=0.51791ms
+  h27 n=4 3:B boot/populate/20s
+    29.93212M/s legacy-busy=33.233% productive-role=99.997% CPU=50.664% latency=0.53998ms
+  h27 n=4 4:A boot/populate/20s
+    29.36807M/s legacy-busy=34.035% productive-role=99.997% CPU=50.663% latency=0.55062ms
+h27 A=31.084880,29.368070 B=31.204596,29.932121 Mops/s paired=+1.1311% spread A/B=5.6798/4.1627% threshold=5.6798% legacy-busy(ABBA)=32.473,32.429,33.233,34.035% productive-role(ABBA)=99.997,99.996,99.997,99.997% instances=4 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=4; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: reference still gains beyond its measured repeatability
+  FAIL: n=1: candidate still gains beyond its measured repeatability
+  FAIL: n=2: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=4: no higher-instance confirmation block
+  h27 n=8 1:A boot/populate/20s
+    29.50213M/s legacy-busy=33.525% productive-role=99.997% CPU=50.678% latency=0.54905ms
+  h27 n=8 2:B boot/populate/20s
+    30.30340M/s legacy-busy=32.609% productive-role=99.997% CPU=50.674% latency=0.53404ms
+  h27 n=8 3:B boot/populate/20s
+    29.37910M/s legacy-busy=33.697% productive-role=99.997% CPU=50.673% latency=0.55090ms
+  h27 n=8 4:A boot/populate/20s
+    29.84101M/s legacy-busy=33.157% productive-role=99.996% CPU=50.672% latency=0.54295ms
+h27 A=31.084880,29.368070 B=31.204596,29.932121 Mops/s paired=+1.1311% spread A/B=5.6798/4.1627% threshold=5.6798% legacy-busy(ABBA)=32.473,32.429,33.233,34.035% productive-role(ABBA)=99.997,99.996,99.997,99.997% instances=4 PASS
+  load floor=4 (CONFIRMED, lowest TESTED qualifying rung); confirmation=8 numerical peak=4; generator headroom UNPROVEN
+  workers 64 -> 128; per-arm gains={'reference': -1.8358196666253601, 'candidate': -2.3786166047323087} repeatability={'reference': 5.679821246783337, 'candidate': 4.162721536931029} shape=plateau
+  h31 UNPINNED: searching load ladder 1,2,4,8,12,16; record the validated pin
+  h31 n=1 1:A boot/populate/20s
+    12.07763M/s legacy-busy=18.626% productive-role=37.736% CPU=21.828% latency=1.33300ms
+  h31 n=1 2:B boot/populate/20s
+    12.06392M/s legacy-busy=18.157% productive-role=36.795% CPU=21.436% latency=1.33400ms
+  h31 n=1 3:B boot/populate/20s
+    11.92956M/s legacy-busy=18.054% productive-role=36.590% CPU=21.296% latency=1.34900ms
+  h31 n=1 4:A boot/populate/20s
+    12.10444M/s legacy-busy=19.372% productive-role=39.209% CPU=22.622% latency=1.33000ms
+h31 A=12.077629,12.104441 B=12.063921,11.929555 Mops/s paired=-0.7799% spread A/B=0.2218/1.1200% threshold=5.0000% legacy-busy(ABBA)=18.626,18.157,18.054,19.372% productive-role(ABBA)=37.736,36.795,36.590,39.209% instances=1 FAIL
+  load floor=None (UNPROVEN, lowest TESTED qualifying rung); confirmation=None numerical peak=1; generator headroom UNPROVEN
+  FAIL: no lowest tested load rung has valid saturation and higher-capacity plateau confirmation
+  FAIL: n=1: server below the 95% productive-role floor in some ABBA run
+  FAIL: n=1: no higher-instance confirmation block
+  h31 n=2 1:A boot/populate/20s
+    31.26868M/s legacy-busy=47.816% productive-role=95.233% CPU=48.828% latency=0.50949ms
+  h31 n=2 2:B boot/populate/20s
+    30.79054M/s legacy-busy=48.804% productive-role=97.133% CPU=49.569% latency=0.51698ms
+  h31 n=2 3:B boot/populate/20s
+    30.71990M/s legacy-busy=47.916% productive-role=95.483% CPU=48.910% latency=0.51824ms
+  h31 n=2 4:A boot/populate/20s
