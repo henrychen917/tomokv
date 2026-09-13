@@ -70,8 +70,14 @@ public:
     void advance(size_t n) { len_ += n; }
     void commit_raw(size_t n) { len_ += n; }
     void shrink_to_inline() {
-        if (data_ != home_) { std::free(data_); data_ = home_; }
-        cap_ = home_ == empty_ ? 0 : kInlineReply;
+        // Spilled argv makes ROB retirement call shrink even for a coded/direct MSET reply.
+        // If data already names home, capacity is already 0 (standalone) or 96 (bound chunk).
+        // Recomputing/storing it there charges every multi-key command for unused reply storage.
+        if (data_ != home_) {
+            std::free(data_);
+            data_ = home_;
+            cap_ = home_ == empty_ ? 0 : kInlineReply;
+        }
         len_ = 0;
     }
     char* reserve(size_t n) {
