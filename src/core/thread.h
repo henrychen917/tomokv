@@ -1166,6 +1166,8 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
+    // Audit #3: every mask-drain iteration reads this; it belongs with the transport pointers.
+    uint32_t nchan_ = 0;
     // Peer producers read the transport pointers on this line (task_in_..transfer_in_) when posting
     // work. Keep every owner hot store off it: total_commands_ moved to the owner-private counter line
     // below and the rare-path atomic_scan_holds_ took its slot (measured +15% 2s GET/SET p32, 2026-09-13).
@@ -1184,7 +1186,8 @@ private:
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
     NotifyMask transfer_notify_;  // "which IO producers handed connection ownership to me"
-    uint32_t nchan_ = 0;
+    // Preserve the cold tail after moving nchan_ into the transport line's four-byte hole.
+    char nchan_gap_[8];
     uint64_t depth_sample_next_us_ = 0;
 
     // IO-only cold path. A nullptr in client_in is the notification token; payload ownership
@@ -1216,6 +1219,13 @@ struct ThreadCtxLayoutLock {
     static constexpr size_t ring = offsetof(ThreadCtx, ring_);
     static constexpr size_t ring_last = ring + sizeof(ThreadCtx::ring_) - 1;
     static constexpr size_t task_notify = offsetof(ThreadCtx, task_notify_);
+    static constexpr size_t notify_last =
+        offsetof(ThreadCtx, transfer_notify_) + sizeof(ThreadCtx::transfer_notify_) - 1;
+    static constexpr size_t nchan = offsetof(ThreadCtx, nchan_);
+    static constexpr size_t nchan_last = nchan + sizeof(ThreadCtx::nchan_) - 1;
+    static constexpr size_t transport_first = offsetof(ThreadCtx, task_in_);
+    static constexpr size_t transport_last =
+        offsetof(ThreadCtx, transfer_in_) + sizeof(ThreadCtx::transfer_in_) - 1;
 };
 
 // The byte-distance guarantee holds for any base; the companion alignment lock proves that
@@ -1228,6 +1238,17 @@ static_assert(alignof(ThreadCtx) >= ThreadCtxLayoutLock::line);
 static_assert(ThreadCtxLayoutLock::parked / ThreadCtxLayoutLock::line ==
                   ThreadCtxLayoutLock::ring_last / ThreadCtxLayoutLock::line,
               "parked_ and ring_ must share the producer's first line (audit #1)");
+static_assert(ThreadCtxLayoutLock::task_notify - ThreadCtxLayoutLock::nchan_last >=
+                  ThreadCtxLayoutLock::line,
+              "notification RMWs may share the mask-drain nchan_ line (audit #3)");
+static_assert(ThreadCtxLayoutLock::nchan == 116 &&
+                  ThreadCtxLayoutLock::transport_first / ThreadCtxLayoutLock::line ==
+                      ThreadCtxLayoutLock::nchan_last / ThreadCtxLayoutLock::line &&
+                  ThreadCtxLayoutLock::transport_last < ThreadCtxLayoutLock::nchan,
+              "nchan_ must occupy the read-mostly transport line's spare word");
+static_assert(ThreadCtxLayoutLock::notify_last - ThreadCtxLayoutLock::task_notify + 1 ==
+                  4 * sizeof(NotifyMask),
+              "all four notification masks must stay in the separated block");
 
 static_assert(sizeof(ThreadCtx) == 1408,
               "read-local state must stay out of the baseline ThreadCtx allocation");

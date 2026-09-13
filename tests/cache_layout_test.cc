@@ -22,6 +22,8 @@ int main() {
         assert(separate(base, ThreadCtxLayoutLock::task_notify,
                         ThreadCtxLayoutLock::task_notify + sizeof(NotifyMask) - 1,
                         ThreadCtxLayoutLock::parked, ThreadCtxLayoutLock::parked_last));
+        assert(separate(base, ThreadCtxLayoutLock::task_notify, ThreadCtxLayoutLock::notify_last,
+                        ThreadCtxLayoutLock::nchan, ThreadCtxLayoutLock::nchan_last));
         assert(separate(base, FlatStoreLayoutLock::reader_first, FlatStoreLayoutLock::reader_last,
                         FlatStoreLayoutLock::owner_first, FlatStoreLayoutLock::owner_last));
         assert(separate(base, FlatStoreLayoutLock::reader_first, FlatStoreLayoutLock::reader_last,
