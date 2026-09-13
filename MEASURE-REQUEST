@@ -1,0 +1,40 @@
+CX-delvar2: PRE/POST check for deletion-only cleanup
+
+Maintainer-run only. No measurements or servers were started by this lane.
+
+Arms (release, identical Makefile flags, jemalloc enabled):
+PRE  = build/tomokv-PRE, source 3adaaae06b2fa2fc32a429b13ed517d97535fbe0
+       sha256 dc1361b40a0c0fd78506a10f338f86974bbd8a89b66507798a1c33783dc08e94
+POST = build/tomokv-POST, source ce75ea0e1f3f4101f5fd25192633d998aa496125
+       sha256 ff3c78af28e94efbec1888e01291f9e5aebc3cbb00763a6c1e93435bb8aa39b0
+Both paths are relative to /home/user/Projects/cx-delvar2.
+No object layout changed; all eight layout assertions compile. No PAD arm is needed.
+
+Cells: the current tests/headline_cells.txt full set, exactly 180 rows:
+h01-h64, m01-m96, x01-x06, c01-c04, a01-a04, t01-t06.
+Use the gate's own tests/abbagate.py instrument, existing per-cell load calibration,
+and the maintainer's scheduled server/load core geometry. Keep geometry, offered
+load, data, connections, pipelines, and per-cell knobs identical between arms.
+Do not rebuild the arms or substitute the last-pushed reference for PRE.
+
+Instrument arguments (append the maintainer's scheduled core/port arguments):
+  python3 tests/abbagate.py --subset full --build-reference 0 \
+    --reference-binary /home/user/Projects/cx-delvar2/build/tomokv-PRE \
+    --candidate-binary /home/user/Projects/cx-delvar2/build/tomokv-POST \
+    --output /home/user/Projects/cx-delvar2/build/delvar2-abba
+
+Decision: report every cell's PRE/POST rate at matched offered load, latency or
+p99.9 where that is the cell's score, plus cycles/op, instructions/op and IPC.
+There is no claimed speedup. Any repeatable regression beyond the instrument's
+matched-null uncertainty needs investigation before this is called neutral.
+The per-cell rate/latency result decides; instruction counts alone do not.
+The current gate treats ABBA as reporting, not as a correctness pass/fail rule.
+
+Reason for requesting measurements: removing unused out-of-line functions changed
+eight matched symbol sizes (including compiler folding representatives). GET/SET
+symbol sizes stayed equal, which does not prove equal performance. The complete
+size comparison is build/delvar2-symbol-sizes.txt. Layout assertions and unit tests
+are already green; the maintainer still owns server boot checks and the gate.
+
+Append results, exact geometry, binary hashes, matched-load/null validity and the
+PRE/POST table to MEASURE-RESULT. No result was available when this lane finished.
