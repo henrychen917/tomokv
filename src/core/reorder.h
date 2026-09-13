@@ -12,14 +12,14 @@
 #include "../net/conn.h"
 #include "../cmd/command.h"
 
-namespace tomo {
+namespace tomo::r7 {
 
 inline constexpr uint32_t kExSchedClasses =
     static_cast<uint32_t>(CommandLengthClass::Count);
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
 // barrier in the incoming sequence: both queues drain before it may execute.
-inline bool ex_sched_candidate(const Task& task, uint8_t& length) {
+inline bool candidate(const Task& task, uint8_t& length) {
     if (!task.client || task.scatter) return false;
     const Op& op = task.client->rob().at(task.op_id);
     if (!op.spec || op.has_blocking_state()) return false;
@@ -170,7 +170,7 @@ public:
         uint8_t lengths[BatchOps];
         uint32_t begin = 0;
         while (begin < n) {
-            if (!ex_sched_candidate(tasks[begin], lengths[begin])) {
+            if (!r7::candidate(tasks[begin], lengths[begin])) {
                 finish(emit);
                 emit(tasks + begin, 1, ReorderResult{});
                 begin++;
@@ -180,7 +180,7 @@ public:
             bool one_client = true, one_class = true;
             const bool first_long = lengths[begin] ==
                 static_cast<uint8_t>(CommandLengthClass::Long);
-            while (end < n && ex_sched_candidate(tasks[end], lengths[end])) {
+            while (end < n && r7::candidate(tasks[end], lengths[end])) {
                 one_client &= tasks[end].client == tasks[begin].client;
                 one_class &= (lengths[end] == static_cast<uint8_t>(CommandLengthClass::Long)) ==
                              first_long;
@@ -230,4 +230,4 @@ __attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps
     return result;
 }
 
-}  // namespace tomo
+}  // namespace tomo::r7

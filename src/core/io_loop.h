@@ -501,20 +501,12 @@ private:
 #include "pubsub.inc"
 
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
-              uint8_t Pipeline = 0, bool SplitLocal = false, bool ContinuousReorder = false>
+              uint8_t Pipeline = 0, bool SplitLocal = false>
     void run_loop() {
-        // Reorder cannot change during a role tenure. Choose the fused owner schedule
-        // before the IO loop so disabled drains add no policy branch or field load.
-        if constexpr (Fused && !SplitLocal && !ContinuousReorder) {
-            if (srv_->cfg().reorder) {
-                run_loop<HasUnix, HasTls, kEp, Fused, Pipeline, SplitLocal, true>();
-                return;
-            }
-        }
         static_assert(Pipeline <= 1);
         if constexpr (Fused && Pipeline == 1 && !SplitLocal) {
             // Fused overlap uses the occupancy-gated schedule on the fixed producer lanes.
-            run_fused_iofused_loop<HasUnix, HasTls, kEp, true, ContinuousReorder>();
+            run_fused_iofused_loop<HasUnix, HasTls, kEp, true>();
             return;
         }
         static_assert(!SplitLocal || Fused);
@@ -640,12 +632,12 @@ private:
                 } else if constexpr (Fused) {
                     if (__builtin_expect(!routing_forward_.empty(), false))
                         client_routing_cleanup_pass();
-                    did += flush_ready<HasTls, kEp, true, HasUnix, false, ContinuousReorder>();
+                    did += flush_ready<HasTls, kEp, true, HasUnix>();
                 } else {
                     did += collect_retire_work<HasUnix, kEp>();
                     if (__builtin_expect(!routing_forward_.empty(), false))
                         client_routing_cleanup_pass();
-                    did += flush_ready<HasTls, kEp, false, false, false, ContinuousReorder>();
+                    did += flush_ready<HasTls, kEp>();
                 }
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -697,7 +689,7 @@ private:
                 sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
                     natural_order, submitted);
             else
-                sweep_work = sweep<HasUnix, HasTls, kEp, Fused, ContinuousReorder>();
+                sweep_work = sweep<HasUnix, HasTls, kEp, Fused>();
             if (sweep_work) {
                 if constexpr (IoPipe) {
                     if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
@@ -776,7 +768,7 @@ private:
     // The retained ThreeWay=false body is the former overlap 1 for source comparison only.
     // Fused overlap 1 now selects ThreeWay=true (formerly 2), with the same measured
     // SEND-immediate / four-non-SEND N2 handling.
-    template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay, bool ContinuousReorder = false>
+    template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay>
     void run_fused_iofused_loop() {
         if (srv_->read_local_enabled()) {
             if (ThreadCtx::read_local_publication_parked(self_->read_local_publication()))
@@ -875,10 +867,10 @@ private:
                 if constexpr (kEp)
                     did += epoll_pass<HasUnix, HasTls, true, 1>(0);
                 if constexpr (ThreeWay)
-                    did += genthread_three_way_pass<HasUnix, HasTls, kEp, ContinuousReorder>(
+                    did += genthread_three_way_pass<HasUnix, HasTls, kEp>(
                         wb_batch, three_way_gate_open);
                 else
-                    did += genthread_iofused_pass<HasUnix, HasTls, kEp, ContinuousReorder>(wb_batch);
+                    did += genthread_iofused_pass<HasUnix, HasTls, kEp>(wb_batch);
 
                 did += flip_control_pass<kEp>();
                 if (__builtin_expect(client_lb_signal_armed &&
@@ -924,7 +916,7 @@ private:
 
             if constexpr (ThreeWay) three_way_gate_open = false;
             const uint32_t sweep_work =
-                genthread_iofused_sweep<HasUnix, HasTls, kEp, ContinuousReorder>();
+                genthread_iofused_sweep<HasUnix, HasTls, kEp>();
             if (sweep_work) {
                 if (ring_.take_sq_full_submit()) non_send_rotations = 0;
                 if (ring_.send_pending() ||
@@ -4540,18 +4532,18 @@ ordinary_shard_ready:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool ContinuousReorder = false>
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         if constexpr (Fused) {
             work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                     flush_borrow_releases() +
-                    flush_ready<HasTls, kEp, true, HasUnix, true, ContinuousReorder>();
+                    flush_ready<HasTls, kEp, true, HasUnix, true>();
         } else {
             work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                     flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
-                    flush_ready<HasTls, kEp, false, false, false, ContinuousReorder>();
+                    flush_ready<HasTls, kEp>();
         }
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
@@ -4821,7 +4813,7 @@ ordinary_shard_ready:
     // IOFUSED: launch the targeted WB dependency stream, use the ordinary coarse IFID pass as its
     // filler, consume the warmed retirement batch, then run EX. The outer loop owns the sole submit
     // boundary and applies the measured SEND-immediate / four non-SEND rotations rule.
-    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t genthread_iofused_pass(WbPipelineBatch& batch) {
         if (batch.count || active_wb_context_) std::abort();
         active_wb_context_ = &batch;
@@ -4943,7 +4935,7 @@ ordinary_shard_ready:
         batch.count = 0;
         active_wb_context_ = nullptr;
 
-        work += fused_executor_->fused_coarse_pass<ContinuousReorder>();
+        work += fused_executor_->fused_coarse_pass();
         return work;
     }
 
@@ -4953,7 +4945,7 @@ ordinary_shard_ready:
     // freezes and warms WB first, then runs IFID -> EX loads -> WB stores -> EX consumption. The WB
     // callback is synchronous, so neither its client batch nor EX's stack task batch crosses an
     // outer boundary.
-    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t genthread_three_way_pass(WbPipelineBatch& batch, bool& gate_open) {
         srv_->mode_schedule_stats(self_->id()).note_overlap(OverlapSchedule::Fused, gate_open);
         if (batch.count || active_wb_context_) std::abort();
@@ -4972,7 +4964,7 @@ ordinary_shard_ready:
             note_ops_since(before);
 
             before = sig.ops;
-            work += fused_executor_->fused_coarse_pass<ContinuousReorder>();
+            work += fused_executor_->fused_coarse_pass();
             note_ops_since(before);
 
             work += collect_retire_work<HasUnix, kEp, true>();
@@ -5108,7 +5100,7 @@ ordinary_shard_ready:
         };
 
         const uint64_t before_ex = sig.ops;
-        work += fused_executor_->fused_three_way_pass<ContinuousReorder>(wb_filler);
+        work += fused_executor_->fused_three_way_pass(wb_filler);
         note_ops_since(before_ex);
         if (!wb_filled || batch.count || active_wb_context_) std::abort();
 
@@ -5172,14 +5164,14 @@ ordinary_shard_ready:
     }
 
     // Idle audit shared by both overlapping fused schedules.
-    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    template <bool HasUnix, bool HasTls, bool kEp>
     uint32_t genthread_iofused_sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases();
         work += genthread_ifid_batch<HasTls, kEp>();
-        work += fused_executor_->fused_coarse_sweep<ContinuousReorder>();
+        work += fused_executor_->fused_coarse_sweep();
         work += collect_retire_work<HasUnix, kEp, true>(true) +
                 genthread_wb_batch<HasTls, kEp>();
         if (__builtin_expect(!routing_forward_.empty(), false))
@@ -5609,7 +5601,7 @@ ordinary_shard_ready:
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
-              bool SweepPass = false, bool ContinuousReorder = false>
+              bool SweepPass = false>
     uint32_t flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -5811,8 +5803,8 @@ ordinary_shard_ready:
         // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
         // batch, collect its local self-lane completions, then enter the existing write-back phase.
         if constexpr (Fused) {
-            work += SweepPass ? fused_executor_->fused_baseline_sweep<ContinuousReorder>()
-                              : fused_executor_->fused_baseline_pass<ContinuousReorder>();
+            work += SweepPass ? fused_executor_->fused_baseline_sweep()
+                              : fused_executor_->fused_baseline_pass();
             work += collect_retire_work<HasUnix, kEp>(SweepPass);
         }
 
@@ -6425,6 +6417,27 @@ ordinary_shard_ready:
     bool targeted_ifid_ = false;
     // Cold teardown/migration state; leave all established hot member offsets intact.
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
+public:
+    // R7 definitions are isolated from the FIFO translation units. Boot selects these
+    // entries once; adding their bodies here perturbs even the disarmed machine code.
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
+              uint8_t Pipeline = 0, bool SplitLocal = false, bool ContinuousReorder = false>
+    void r7_run_loop();
+    template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay, bool ContinuousReorder = false>
+    void r7_run_fused_iofused_loop();
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool ContinuousReorder = false>
+    uint32_t r7_sweep();
+    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    uint32_t r7_genthread_iofused_pass(WbPipelineBatch& batch);
+    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    uint32_t r7_genthread_three_way_pass(WbPipelineBatch& batch, bool& gate_open);
+    template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder = false>
+    uint32_t r7_genthread_iofused_sweep();
+    template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
+              bool SweepPass = false, bool ContinuousReorder = false>
+    uint32_t r7_flush_ready();
+    void run_fused_reordered();
+
 };
 
 }  // namespace tomo

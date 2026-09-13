@@ -24,6 +24,8 @@
 #include "shutdown_report.h"
 
 namespace tomo {
+uint32_t reorder_snapshot_baseline(void*);
+uint32_t reorder_snapshot_coarse(void*);
 namespace {
 
 void pin_fused_thread(int cpu) {
@@ -37,6 +39,7 @@ void pin_fused_thread(int cpu) {
 }  // namespace
 
 void IoLoop::run_fused() {
+    if (__builtin_expect(srv_->cfg().reorder != 0, false)) return run_fused_reordered();
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -187,23 +190,20 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 if (cfg.overlap == 0)
                     self.bind_fused_executor_hooks(
                         &executors[tid],
-                        cfg.reorder ? +[](void* p) {
-                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass<true>();
-                        } : +[](void* p) {
-                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass<false>();
+                        cfg.reorder ? reorder_snapshot_baseline : +[](void* p) {
+                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
                         },
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                         });
-                // Snapshot's blocking progress has no WB filler. Both policies use the
-                // private-lane coarse turn; only the ordinary overlap loop supplies a filler.
                 else
                     self.bind_fused_executor_hooks(
                         &executors[tid],
-                        cfg.reorder ? +[](void* p) {
-                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass<true>();
-                        } : +[](void* p) {
-                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass<false>();
+                        cfg.reorder ? reorder_snapshot_coarse : +[](void* p) {
+                            // Snapshot's blocking progress loop has no WB filler to interleave.
+                            // Use the private-lane coarse turn; the main overlap loop supplies
+                            // the three-way callback only at its ordinary batch seam.
+                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass();
                         },
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);

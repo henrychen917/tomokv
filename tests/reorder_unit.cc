@@ -16,6 +16,7 @@ void multi_session_destroy(MultiSession* session) { if (session) std::abort(); }
 
 namespace {
 using namespace tomo;
+using namespace tomo::r7;
 
 [[noreturn]] void fail(const char* what) {
     std::fprintf(stderr, "reorder battery: FAIL: %s\n", what);
@@ -172,7 +173,7 @@ void barriers() {
         if (kind == std::size(flags) + 4)
             clients[barrier_at]->rob().at(tasks[barrier_at].op_id).spec = &invalid;
         uint8_t length = 255;
-        require(!ex_sched_candidate(tasks[barrier_at], length), "barrier state was not entered");
+        require(!r7::candidate(tasks[barrier_at], length), "barrier state was not entered");
         std::vector<Task> expected;
         auto append_run = [&](uint32_t begin, uint32_t end) {
             for (uint32_t i = begin + 1; i < begin + 5; i++) expected.push_back(tasks[i]);
