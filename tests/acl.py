@@ -130,6 +130,7 @@ def wait_closed(conn, timeout=6):
 
 
 admin = Conn()
+is_tomokv = b"tomokv_version:" in admin.command("INFO", "SERVER")
 if ACLFILE == "-":
     nofile = ("ERR This Redis instance is not configured to use an ACL file. You may want to "
               "specify users via the ACL SETUSER command and then issue a CONFIG REWRITE "
@@ -329,10 +330,19 @@ expect(admin.command("ACL", "LOG"), [], "acllog-max-len zero allocates no entrie
 expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore ACL LOG")
 
 # SAVE is the LIST serializer plus one LF per sorted user, using temp+fsync+rename.
-expect(admin.command("ACL", "SETUSER", "alice", "(~persist:* +get)"), b"OK",
-       "add selector before ACL SAVE")
+before_selector = admin.command("ACL", "GETUSER", "alice")
+selector_reply = admin.command("ACL", "SETUSER", "alice", "(~persist:* +get)")
+if is_tomokv:
+    if not isinstance(selector_reply, RespError) or "ACL selectors are not supported" not in str(selector_reply):
+        raise AssertionError("selector persistence setup must be rejected: %r" % selector_reply)
+    expect(admin.command("ACL", "GETUSER", "alice"), before_selector,
+           "rejected selector preserves the user before SAVE")
+else:
+    expect(selector_reply, b"OK", "add reference selector before ACL SAVE")
 saved_selectors = fields(admin.command("ACL", "GETUSER", "alice"))[b"selectors"]
-if not saved_selectors:
+if is_tomokv:
+    expect(saved_selectors, [], "unsupported selectors cannot enter persisted ACLs")
+elif not saved_selectors:
     raise AssertionError("selector persistence setup did not fire")
 expect(admin.command("ACL", "SAVE"), b"OK", "ACL SAVE")
 with open(ACLFILE, "rb") as handle:
@@ -352,6 +362,14 @@ if not isinstance(load_error, RespError) or "nosuchcommand" not in str(load_erro
         "WARNING: ACL errors detected, no change to the previously active ACL rules was performed"):
     raise AssertionError("LOAD aggregate error: %r" % load_error)
 expect(admin.command("ACL", "LIST"), before_bad_load, "LOAD all-or-nothing")
+
+if is_tomokv:
+    with open(ACLFILE, "wb") as handle:
+        handle.write(saved + b"user selector-invalid on nopass (+get ~*)\n")
+    selector_load_error = admin.command("ACL", "LOAD")
+    if not isinstance(selector_load_error, RespError) or "ACL selectors are not supported" not in str(selector_load_error):
+        raise AssertionError("selector file must fail LOAD: %r" % selector_load_error)
+    expect(admin.command("ACL", "LIST"), before_bad_load, "selector LOAD preserves all live users")
 
 with open(ACLFILE, "wb") as handle:
     handle.write(b"# comments are deliberately not preserved\n" + saved)

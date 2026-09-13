@@ -240,6 +240,7 @@ struct NetcmdRegression {
 
     static void config() {
         test_config_bounds();
+        acl_selectors();
         tracking_eviction();
         zero_copy("zc-all");
         Server server;
@@ -253,6 +254,74 @@ struct NetcmdRegression {
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }
+
+    static void acl_selectors() {
+        const std::vector<std::vector<std::string>> selectors = {
+            {"()"}, {"(+get ~safe:*)"}, {"(", "+get", "~safe:*", ")"}, {"("}, {"(+@all (~*))"}
+        };
+        char directory[] = "build/deadconf-acl-XXXXXX";
+        check(::mkdtemp(directory), "private ACL fixture directory");
+        const std::string path = std::string(directory) + "/users.acl";
+        auto write_file = [&](const std::vector<std::string>& rules) {
+            std::FILE* file = std::fopen(path.c_str(), "w"); check(file, "open ACL fixture");
+            std::fputs("user default on nopass ~* &* +@all\nuser acl-file on nopass ~safe:* +get", file);
+            for (const auto& rule : rules) std::fprintf(file, " %s", rule.c_str());
+            check(std::fputs("\n", file) >= 0 && std::fclose(file) == 0, "write ACL fixture");
+        };
+        write_file({});
+        Server server; Config cfg; cfg.aclfile = path.c_str();
+        ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+        IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
+        Client admin(-1); admin.set_id(808);
+        std::string error;
+        acl_shutdown();
+        check(acl_initialize(server, cfg, error), "valid root ACL file accepted");
+        auto request = [&](std::vector<std::string> values) {
+            Op op;
+            for (const auto& value : values)
+                check(op.push_arg(Slice(value.data(), value.size())), "ACL fixture argument");
+            op.spec = command_lookup(op.cmd_name());
+            acl_command_entry(loop, admin, op);
+            return std::string(op.reply.data(), op.reply.size());
+        };
+        check(request({"ACL", "SETUSER", "acl-root", "on", "nopass", "~safe:*", "+get"}) == "+OK\r\n",
+              "root ACL rules remain accepted");
+        const auto before = request({"ACL", "GETUSER", "acl-root"});
+        for (const auto& rules : selectors) {
+            for (const char* name : {"acl-root", "acl-new"}) {
+                std::vector<std::string> values = {"ACL", "SETUSER", name, "reset", "on", "nopass"};
+                values.insert(values.end(), rules.begin(), rules.end());
+                const auto reply = request(values);
+                check(reply.starts_with("-ERR ") && reply.find("ACL selectors are not supported") != std::string::npos,
+                      "ACL SETUSER rejects packed, split, empty and malformed selectors");
+                check(request({"ACL", "GETUSER", "acl-root"}) == before, "failed selector leaves existing ACL intact");
+                check(request({"ACL", "GETUSER", "acl-new"}) == "$-1\r\n", "failed selector creates no user");
+            }
+            write_file(rules);
+            const auto reply = request({"ACL", "LOAD"});
+            check(reply.starts_with("-") && reply.find("ACL selectors are not supported") != std::string::npos &&
+                  reply.ends_with("no change to the previously active ACL rules was performed\r\n"),
+                  "ACL LOAD rejects selectors");
+            check(request({"ACL", "GETUSER", "acl-root"}) == before, "rejected ACL LOAD leaves live users intact");
+        }
+        acl_shutdown();
+        for (const auto& rules : selectors) {
+            Config boot;
+            boot.acl_users = {{"acl-boot", "on", "nopass"}};
+            boot.acl_users.front().insert(boot.acl_users.front().end(), rules.begin(), rules.end());
+            error.clear();
+            check(!acl_initialize(server, boot, error) && error.find("ACL selectors are not supported") != std::string::npos,
+                  "inline boot ACL rejects selectors before startup");
+            acl_shutdown();
+            write_file(rules);
+            error.clear();
+            check(!acl_initialize(server, cfg, error) && error.find("ACL selectors are not supported") != std::string::npos,
+                  "boot ACL file rejects selectors before startup");
+            acl_shutdown();
+        }
+        std::filesystem::remove_all(directory);
+    }
+
 
     static void tracking_eviction() {
         for (bool collide : {false, true}) {
@@ -450,6 +519,7 @@ int main(int argc, char** argv) {
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "config") R::config();
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
+    else if (mode == "acl-selectors") R::acl_selectors();
     else if (mode == "tracking-eviction") R::tracking_eviction();
     else if (mode.starts_with("zc-")) R::zero_copy(mode);
     else check(false, "unknown regression section");
