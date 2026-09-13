@@ -114,6 +114,19 @@ inline void append_read_local_histogram(std::string& body,
     body += "\r\n";
 }
 
+// CLIENT LIST already visits each connection ON ITS IO OWNER. Read existing ROB frontiers and
+// arming state there, with no new client field, allocation, per-read counter or cross-owner walk.
+// The harness joins addr to its own generators' socket inodes. Reply progress is exact, but is
+// NOT itself a lane-hit counter: only an all-GET window with zero fallbacks can attribute it to
+// the lane, and in-flight replies and independently timed endpoints must remain explicit.
+template <class Client>
+void append_read_local_client_observation(std::string& body, const Client& client) {
+    body += " read-local-thread=" + std::to_string(client.ifid_thread());
+    body += " read-local-arm-state=" + std::to_string(client.rob().read_local_arm_state());
+    body += " read-local-dispatch=" + std::to_string(client.rob().dispatch_id());
+    body += " read-local-flush=" + std::to_string(client.rob().flush_id());
+}
+
 // Dependent Server keeps this entire feature in one header without a thread/server include cycle.
 // Only INFO instantiates this cold walk. No new per-client state or accept-time accounting: both
 // current placement and accept history already exist. Lifetime counters survive RESETSTAT/FLIP;

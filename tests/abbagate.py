@@ -339,7 +339,7 @@ def select_port(ports, port):
     return chosen, (first, last)
 
 
-def load_layout(load_cpus, n, conns):
+def load_layout(load_cpus, n, conns, *, identical=True):
     """Keep the cell's TOTAL connections fixed; partition physical/SMT pairs together."""
     if not 1 <= n <= conns:
         raise ValueError("every load instance needs at least one connection")
@@ -354,6 +354,26 @@ def load_layout(load_cpus, n, conns):
         seen.update(group)
     if n > len(groups):
         raise ValueError("more load instances than physical CPU groups")
+    if identical:
+        # Process count, independently of connection count, changed identical-byte scatter
+        # from 1.26% to 10.75% (owner experiment 2026-09-13). Do not give one process extra
+        # clients/workers/SMT capacity. Non-divisible old pins require a new measurement,
+        # never rounding away connections. Reserve any leftover CPU groups but leave them idle.
+        if conns % n:
+            raise ValueError(f"{conns} connections cannot form {n} identical instances; "
+                             "recalibrate with --escalate")
+        width = len(groups) // n
+        assignments = [sorted(c for group in groups[i * width:(i + 1) * width] for c in group)
+                       for i in range(n)]
+        if len({tuple(sorted(len(g) for g in groups[i * width:(i + 1) * width]))
+                for i in range(n)}) != 1:
+            raise ValueError("identical load instances require equal physical/SMT capacity")
+        per_instance = conns // n
+        threads = max(t for t in range(1, min(16, len(assignments[0]), per_instance) + 1)
+                      if per_instance % t == 0)
+        return [dict(cpus=assigned, threads=threads, clients=per_instance // threads)
+                for assigned in assignments]
+    # Historical diagnostic replay only. Production always uses identical=True.
     assignments = []
     for i in range(n):
         assigned = sorted(c for g in groups[i * len(groups) // n:(i + 1) * len(groups) // n]
@@ -700,12 +720,78 @@ class Children:
     def __init__(self):
         self.active = []
 
-    def start(self, argv, log, cwd):
+    def start(self, argv, log, cwd, *, pass_fds=()):
         with log.open("w") as stream:
             p = subprocess.Popen([str(a) for a in argv], cwd=cwd, stdout=stream,
-                                 stderr=subprocess.STDOUT, start_new_session=True)
+                                 stderr=subprocess.STDOUT, start_new_session=True, pass_fds=pass_fds)
         self.active.append(p)
         return p
+
+    def start_together(self, commands, folder, record):
+        """All launchers wait on one pipe before exec; PID and ownership survive exec.
+
+        No generator connects before every launcher is ready. One pipe write releases all;
+        this is an exec barrier, not a claim that the OS schedules every worker simultaneously.
+        The tiny launcher records actual pre-exec times, then disappears before any traffic.
+        """
+        launcher = ("import json,os,sys,time\n"
+                    "fd=int(sys.argv[1]); path=sys.argv[2]\n"
+                    "row=dict(pid=os.getpid(),ready_monotonic=time.monotonic())\n"
+                    "with open(path,'w') as f: json.dump(row,f)\n"
+                    "if os.read(fd,1)!=b'1': sys.exit(125)\n"
+                    "os.close(fd); row['exec_monotonic']=time.monotonic()\n"
+                    "with open(path,'w') as f: json.dump(row,f)\n"
+                    "os.execvp(sys.argv[3],sys.argv[3:])\n")
+        reader, writer = os.pipe()
+        processes, paths = [], []
+        record.update(schema=1, method="ready-pipe-exec-barrier", status="INCOMPLETE", processes=[])
+        try:
+            deadline = time.monotonic() + 30
+            for index, command in enumerate(commands):
+                path = folder / f"load-{index}-launch.json"
+                paths.append(path)
+                process = self.start([sys.executable, "-c", launcher, str(reader), str(path), *command],
+                                     folder / f"load-{index}.log", folder, pass_fds=(reader,))
+                processes.append(process)
+                record["processes"].append(dict(index=index, pid=process.pid, artifact=path.name))
+            os.close(reader)
+            reader = None
+            while not all(path.exists() for path in paths):
+                if any(p.poll() is not None for p in processes):
+                    raise RuntimeError("load launcher exited before the start barrier")
+                if time.monotonic() >= deadline:
+                    raise RuntimeError("load start barrier timed out")
+                time.sleep(0.005)
+            record["released_monotonic"] = time.monotonic()
+            if os.write(writer, b"1" * len(processes)) != len(processes):
+                raise RuntimeError("load start barrier short write")
+            os.close(writer)
+            writer = None
+            # Retain failed starts, and finish startup before the fresh warmup begins.
+            for row, path, process in zip(record["processes"], paths, processes):
+                while True:
+                    try:
+                        stamp = json.loads(path.read_text())
+                        if "exec_monotonic" in stamp:
+                            row.update(stamp)
+                            break
+                    except json.JSONDecodeError:
+                        pass  # An atomic counter is not involved; this is a startup file write.
+                    if process.poll() is not None or time.monotonic() >= deadline:
+                        raise RuntimeError("load launcher failed to exec after barrier release")
+                    time.sleep(0.005)
+            stamps = [row["exec_monotonic"] for row in record["processes"]]
+            record.update(status="COMPLETE", exec_span_seconds=max(stamps) - min(stamps))
+            return processes
+        except BaseException as error:
+            record.update(status="INVALID", reason=f"{type(error).__name__}: {error}")
+            for process in processes:
+                self.stop(process)
+            raise
+        finally:
+            for fd in (reader, writer):
+                if fd is not None:
+                    os.close(fd)
 
     def stop(self, p):
         if p.poll() is None:
@@ -1020,8 +1106,151 @@ def read_local_between(before, after):
                         if key not in (*gauges, "histogram")},
                 histogram=histogram_delta(a["histogram"], b["histogram"]))
         result["window_seconds"] = after["read_finished_monotonic"] - before["read_finished_monotonic"]
+        result["before_read_finished_monotonic"] = before["read_finished_monotonic"]
+        result["after_read_started_monotonic"] = after["read_started_monotonic"]
         result["status"] = "COMPLETE"
     except (KeyError, TypeError, ValueError) as error:
+        result.update(status="INVALID", reason=str(error))
+    return result
+
+
+def generator_socket_addresses(process, port):
+    """Only socket inodes owned by this child, never another process's argv or traffic."""
+    if process.poll() is not None:
+        raise ValueError("generator exited before connection snapshot")
+    proc = Path(f"/proc/{process.pid}")
+    inodes = set()
+    for descriptor in (proc / "fd").iterdir():
+        try:
+            match = re.fullmatch(r"socket:\[([0-9]+)\]", os.readlink(descriptor))
+        except FileNotFoundError:
+            continue  # The endpoint's expected connection count still has to match.
+        if match:
+            inodes.add(match[1])
+    addresses = []
+    for line in (proc / "net/tcp").read_text().splitlines()[1:]:
+        fields = line.split()
+        if fields[9] not in inodes or fields[3] != "01":
+            continue
+        remote_ip, remote_port = fields[2].split(":")
+        if remote_ip != "0100007F" or int(remote_port, 16) != port:
+            continue
+        address, source_port = fields[1].split(":")
+        address = socket.inet_ntoa(int(address, 16).to_bytes(4, sys.byteorder))
+        addresses.append(f"{address}:{int(source_port, 16)}")
+    if process.poll() is not None:
+        raise ValueError("generator exited during connection snapshot")
+    return sorted(addresses)
+
+
+def load_clients_endpoint(conn, generators, layout, port):
+    """Cold owner-side ROB snapshots; diagnostic failure never supplies invented zeros."""
+    result = dict(status="INCOMPLETE", read_started_monotonic=time.monotonic(), processes=[])
+    try:
+        for index, (process, placement) in enumerate(zip(generators, layout)):
+            row = dict(index=index, pid=process.pid,
+                       expected_connections=placement["threads"] * placement["clients"])
+            result["processes"].append(row)
+            row["addresses"] = generator_socket_addresses(process, port)
+            if len(row["addresses"]) != row["expected_connections"]:
+                raise ValueError("generator socket count differs from requested connections")
+        result["raw"] = conn.must("CLIENT", "LIST").decode()
+        result["status"] = "COMPLETE"
+    except (OSError, ValueError, RuntimeError, EOFError) as error:
+        result.update(status="INVALID", reason=f"{type(error).__name__}: {error}")
+    finally:
+        result["read_finished_monotonic"] = time.monotonic()
+    return result
+
+
+def load_clients_between(before, after, observation, cell):
+    """Per-instance/per-thread arming and progress, with conservative lane-hit bounds.
+
+    CLIENT LIST reads on each IO owner; no new per-operation publication is needed. A flush
+    delta counts retired replies, not local executions. For GET-only generators, subtract
+    outstanding replies at the first endpoint and ALL enclosing thread fallbacks for a lower
+    local-hit bound. Add outstanding replies at the last endpoint for an upper bound. Exact
+    thread hits cap that upper bound. INFO read_local must ENCOMPASS both CLIENT LIST endpoints.
+    The bounds deliberately give no unjustified per-instance attribution of a shared fallback.
+    Mixed/write workloads retain progress and arming, but cannot infer local-hit bounds.
+    """
+    result = dict(schema=1, decision_input=False, status="UNAVAILABLE", processes=[],
+                  scope="owner_snapshot_reply_progress; GET_lane_hit_bounds_in_enclosing_INFO_window")
+    try:
+        if before.get("status") != "COMPLETE" or after.get("status") != "COMPLETE":
+            raise ValueError("incomplete generator connection endpoints")
+
+        def parse(endpoint):
+            clients = {}
+            for line in endpoint["raw"].splitlines():
+                fields = dict(field.split("=", 1) for field in line.split())
+                if "read-local-thread" not in fields:
+                    return None
+                values = {key: int(fields[key]) for key in (
+                    "id", "read-local-thread", "read-local-arm-state", "read-local-dispatch", "read-local-flush")}
+                if (any(v < 0 for v in values.values()) or values["read-local-arm-state"] not in (0, 1, 2)
+                        or not 0 <= values["read-local-dispatch"] - values["read-local-flush"] <= 64
+                        or fields["addr"] in clients):
+                    raise ValueError("invalid client identity, ROB frontiers or arming state")
+                clients[fields["addr"]] = values
+            return clients
+
+        first, last = parse(before), parse(after)
+        if first is None or last is None:
+            result["reason"] = "reference CLIENT LIST has no read-local owner snapshots"
+            return result
+        if not before["processes"] or before["processes"] != after["processes"]:
+            raise ValueError("generator PID/socket population changed between endpoints")
+        dt_min = after["read_started_monotonic"] - before["read_finished_monotonic"]
+        dt_max = after["read_finished_monotonic"] - before["read_started_monotonic"]
+        if not 0 < dt_min <= dt_max:
+            raise ValueError("invalid connection snapshot timing")
+        result.update(window_seconds_min=dt_min, window_seconds_max=dt_max)
+        infer_hits = cell.op == "GET" and cell.read_local and observation.get("status") == "COMPLETE"
+        if infer_hits and (observation["before_read_finished_monotonic"] > before["read_started_monotonic"]
+                or observation["after_read_started_monotonic"] < after["read_finished_monotonic"]):
+            raise ValueError("lane counter interval does not enclose connection snapshots")
+        seen = set()
+        for process in before["processes"]:
+            rows = {}
+            if len(process["addresses"]) != process["expected_connections"]:
+                raise ValueError("incomplete instance socket population")
+            for address in process["addresses"]:
+                if address in seen:
+                    raise ValueError("one connection attributed to multiple generators")
+                seen.add(address)
+                a, b = first[address], last[address]
+                if a["id"] != b["id"] or a["read-local-thread"] != b["read-local-thread"]:
+                    raise ValueError("client reconnected or migrated during observation")
+                completed = b["read-local-flush"] - a["read-local-flush"]
+                if completed < 0 or b["read-local-dispatch"] < a["read-local-dispatch"]:
+                    raise ValueError("client progress counter reset")
+                tid = str(a["read-local-thread"])
+                row = rows.setdefault(tid, dict(connections=0, completed_commands=0,
+                    outstanding_before=0, outstanding_after=0, arm_states_before=[0, 0, 0],
+                    arm_states_after=[0, 0, 0]))
+                row["connections"] += 1
+                row["completed_commands"] += completed
+                row["outstanding_before"] += a["read-local-dispatch"] - a["read-local-flush"]
+                row["outstanding_after"] += b["read-local-dispatch"] - b["read-local-flush"]
+                row["arm_states_before"][a["read-local-arm-state"]] += 1
+                row["arm_states_after"][b["read-local-arm-state"]] += 1
+            for tid, row in rows.items():
+                row.update(reply_rate_min=row["completed_commands"] / dt_max,
+                           reply_rate_max=row["completed_commands"] / dt_min,
+                           local_hits_lower=None, local_hits_upper=None)
+                if infer_hits and not any(row["arm_states_before"][1:] + row["arm_states_after"][1:]):
+                    counters = observation["threads"][tid]["deltas"]
+                    row["local_hits_lower"] = max(0, row["completed_commands"] -
+                        row["outstanding_before"] - counters["misses"])
+                    row["local_hits_upper"] = min(counters["hits"], row["completed_commands"] +
+                        row["outstanding_after"])
+                    if row["local_hits_lower"] > row["local_hits_upper"]:
+                        raise ValueError("reply progress cannot be reconciled with enclosing lane counters")
+            result["processes"].append(dict(index=process["index"], pid=process["pid"], threads=rows,
+                completed_commands=sum(row["completed_commands"] for row in rows.values())))
+        result["status"] = "COMPLETE"
+    except (KeyError, ValueError, TypeError) as error:
         result.update(status="INVALID", reason=str(error))
     return result
 
@@ -1133,6 +1362,8 @@ class Runner:
         self.profile_factory = None  # Diagnostic opt-in only: no default PMCs or profile objects.
         self.worker_affinity_factory = None
         self.load_startup_seconds = 0  # Diagnostic allowance; normal generator lifetime stays 28s.
+        self.identical_load = True  # False only in the archived-layout diagnostic replay.
+        self.synchronized_load = True  # False only to reproduce the old sequential launch.
 
     def legacy_reorder_control(self, cell, arm, knobs):
         if cell.op != 'REORDER' or arm != 'A' or 'x-ex-sched' not in knobs:
@@ -1225,7 +1456,7 @@ class Runner:
         legacy_control = self.legacy_reorder_control(cell, arm, knobs)
         folder = self.out / cell.id / f"n{instances}-{sequence}-{arm}"
         folder.mkdir(parents=True)
-        layout = load_layout(self.load_cpus, instances, cell.conns)
+        layout = load_layout(self.load_cpus, instances, cell.conns, identical=self.identical_load)
         # Never connect to or terminate an existing listener, even if it speaks TomoKV.
         if not reused:
             require_unbound_port(self.args.port)
@@ -1247,7 +1478,10 @@ class Runner:
         log = folder / "server.log"
         result = {"arm": arm, "instances": instances, "complete": False,
                   "server_argv": [str(x) for x in command],
-                  "load_layout": layout, "artifacts": str(folder.relative_to(self.out))}
+                  "load_layout": layout, "identical_load": self.identical_load,
+                  "load_reserved_unused_cpus": sorted(set(self.load_cpus) -
+                      {cpu for placement in layout for cpu in placement["cpus"]}),
+                  "artifacts": str(folder.relative_to(self.out))}
         if _calibration is not None:
             result.update(calibration_only=True, population_reused=reused)
         print(f"  {cell.id} n={instances} {sequence}:{arm} "
@@ -1316,12 +1550,20 @@ class Runner:
                 result["load_timing"] = dict(startup_allowance_seconds=self.load_startup_seconds,
                     first_launch_monotonic=load_launch, requested_lifetime_seconds=load_lifetime,
                     fresh_warmup_seconds=WARMUP, central_window_seconds=window, tail_seconds=TAIL)
+            commands = []
             for i, placement in enumerate(layout):
                 argv = self.memtier(placement, cell=cell) + workload_arguments(cell) + [f"--pipeline={cell.depth}",
                         f"--test-time={load_lifetime}",
                         f"--json-out-file={folder / f'load-{i}.json'}"]
-                generators.append(self.children.start(argv, folder / f"load-{i}.log", folder))
-                result.setdefault("load_argv", []).append(argv)
+                commands.append(argv)
+            result["load_argv"] = commands
+            result["load_start"] = {}
+            if self.synchronized_load:
+                generators = self.children.start_together(commands, folder, result["load_start"])
+            else:
+                result["load_start"].update(method="legacy-sequential", status="COMPLETE")
+                for i, argv in enumerate(commands):
+                    generators.append(self.children.start(argv, folder / f"load-{i}.log", folder))
             if self.worker_affinity_factory is not None:
                 worker_affinity = self.worker_affinity_factory(folder)
                 result["load_worker_affinity"] = worker_affinity.record
@@ -1352,6 +1594,7 @@ class Runner:
             before_mode = info(conn, "server") if cell.op == "REORDER" else {}
             before_commands = info(conn, "commandstats")
             result["read_local_before"] = read_local_endpoint(conn)
+            result["load_clients_before"] = load_clients_endpoint(conn, generators, layout, self.args.port)
             # The added /proc reads lie OUTSIDE the unchanged central stats/timer window.
             # Save each raw endpoint immediately so an exit/reset preserves partial evidence.
             generator_cpu = result["generator_cpu"] = {
@@ -1401,10 +1644,13 @@ class Runner:
             after_lb_at = time.monotonic()
             after_commands = info(conn, "commandstats")
             after_mode = info(conn, "server") if cell.op == "REORDER" else {}
+            result["load_clients_after"] = load_clients_endpoint(conn, generators, layout, self.args.port)
             result["read_local_after"] = read_local_endpoint(conn)
             observation = result["read_local"] = read_local_between(
                 result["read_local_before"], result["read_local_after"])
             observation.update(central_start_monotonic=t0, central_end_monotonic=t1)
+            result["load_clients"] = load_clients_between(result["load_clients_before"],
+                result["load_clients_after"], observation, cell)
             recorded = observation if observation["status"] == "COMPLETE" else {}
             result.update(read_local_hits=recorded.get("deltas", {}).get("hits_total"),
                           read_local_misses=recorded.get("deltas", {}).get("misses_total"),
@@ -1448,6 +1694,9 @@ class Runner:
             for i, placement in enumerate(layout):
                 totals.append(memtier_totals(folder / f"load-{i}.json", cell,
                                             placement["threads"] * placement["clients"]))
+            result["instance_rates"] = [dict(index=i, pid=p.pid, rate=totals[i]["rate"],
+                scope="memtier_full_lifetime_including_warmup_and_tail", layout=layout[i])
+                for i, p in enumerate(generators)]
             if self.load_startup_seconds:
                 # HDR includes setup/warmup/tail. Keep each actual memtier runtime
                 # (milliseconds in its JSON schema), not a fictional 20s HDR window.
@@ -1779,6 +2028,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                 pinned = cell.depth > 1 and cell.instances and not args.escalate
                 ladder = ((cell.instances,) if pinned else
                           tuple(sorted(set(LADDER) | ({cell.instances} if args.escalate and cell.instances else set()))))
+                if pinned and cell.conns % cell.instances:
+                    raise ValueError("stored pin cannot form identical instances; recalibrate with --escalate")
+                row["excluded_load_rungs"] = [dict(instances=n, reason="connections not divisible into identical instances")
+                                              for n in ladder if cell.conns % n]
+                ladder = tuple(n for n in ladder if cell.conns % n == 0)
                 row["load_ladder"] = list(ladder)
                 # Clearing the assessment pin matters even at --max-instances=1:
                 # --escalate must prove its load floor with a higher probe, never borrow
@@ -2329,7 +2583,11 @@ def self_test():
                         process = SimpleNamespace(pid=124 + len(generators), poll=lambda: None, wait=wait)
                         generators.append(process)
                         return process
-                    children = SimpleNamespace(start=start, stop=lambda process: stopped.append(process.pid))
+                    def together(commands, folder, record):
+                        record.update(status="COMPLETE", method="test-barrier")
+                        return [start(argv, folder / f"load-{i}.log", folder) for i, argv in enumerate(commands)]
+                    children = SimpleNamespace(start=start, start_together=together,
+                                               stop=lambda process: stopped.append(process.pid))
                     conn = SimpleNamespace(must=lambda *args: [args[-1].encode(), b"1"], close=lambda: None)
                     def snapshot(_conn, section):
                         if section == "read_local":
@@ -2436,6 +2694,7 @@ def self_test():
                     with mock.patch.multiple(__name__, require_unbound_port=mock.Mock(), Conn=mock.Mock(return_value=conn),
                             info=mock.Mock(side_effect=snapshot), lb_snapshot=mock.Mock(return_value=lb),
                             cpu_seconds=mock.Mock(return_value=0), generator_cpu_endpoint=mock.Mock(side_effect=endpoint),
+                            load_clients_endpoint=mock.Mock(return_value={"status": "INVALID"}),
                             busy_between=mock.Mock(return_value=(99, {})),
                             busy_deltas=mock.Mock(return_value={}), productive_saturation=mock.Mock(return_value={}),
                             bottleneck_saturation=mock.Mock(return_value=saturation_record(threads=2)),
@@ -2987,11 +3246,99 @@ def self_test():
         def test_load_escalation_preserves_total_connections(self):
             load = list(range(64, 128)) + list(range(192, 256))
             for n in sorted(set(LADDER) | {3}):
+                if 512 % n:
+                    with self.assertRaisesRegex(ValueError, "identical instances"):
+                        load_layout(load, n, 512)
+                    legacy = load_layout(load, n, 512, identical=False)
+                    self.assertEqual(sum(x["threads"] * x["clients"] for x in legacy), 512)
+                    continue
                 layout = load_layout(load, n, 512)
                 self.assertEqual(sum(x["threads"] * x["clients"] for x in layout), 512)
                 assigned = [c for x in layout for c in x["cpus"]]
                 self.assertEqual(sorted(assigned), load)
                 self.assertEqual(len(assigned), len(set(assigned)))
+
+        def test_identical_layout_reserves_remainder_and_keeps_siblings_together(self):
+            load = list(range(32, 111)) + list(range(160, 239))
+            layout = load_layout(load, 4, 512)
+            self.assertEqual({(p["threads"], p["clients"], len(p["cpus"])) for p in layout}, {(16, 8, 38)})
+            for p in layout:
+                self.assertEqual({c + 128 for c in p["cpus"] if c < 128}, {c for c in p["cpus"] if c >= 128})
+            self.assertEqual(len(set(load) - {c for p in layout for c in p["cpus"]}), 6)
+
+        def test_load_barrier_releases_only_after_all_children_are_ready(self):
+            # Benign exec witnesses, no network or load. Starting processes serially without
+            # the pipe would allow the first to exec before the later launchers were ready.
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
+                folder, children, record = Path(tmp), Children(), {}
+                commands = [[sys.executable, "-c", "import os; print(os.getpid())"] for _ in range(4)]
+                try:
+                    processes = children.start_together(commands, folder, record)
+                    self.assertEqual(record["status"], "COMPLETE")
+                    stamps = record["processes"]
+                    self.assertLessEqual(max(p["ready_monotonic"] for p in stamps), record["released_monotonic"])
+                    self.assertGreaterEqual(min(p["exec_monotonic"] for p in stamps), record["released_monotonic"])
+                    for i, process in enumerate(processes):
+                        self.assertEqual(process.wait(timeout=10), 0)
+                        self.assertEqual(int((folder / f"load-{i}.log").read_text()), process.pid)
+                finally:
+                    children.close()
+                self.assertEqual(children.active, [])
+
+        def test_load_barrier_reaps_its_partial_launch_on_failure(self):
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
+                folder, children, record = Path(tmp), Children(), {}
+                original = children.start
+                owned = []
+                def start(*args, **kwargs):
+                    if owned:
+                        raise OSError("injected second launcher failure")
+                    owned.append(original(*args, **kwargs))
+                    return owned[-1]
+                with mock.patch.object(children, "start", side_effect=start), self.assertRaisesRegex(OSError, "second launcher"):
+                    children.start_together([[sys.executable, "-c", "pass"]] * 2, folder, record)
+                self.assertEqual(record["status"], "INVALID")
+                self.assertIsNotNone(owned[0].poll())
+                self.assertEqual(children.active, [])
+
+        def test_instance_attribution_bounds_hits_without_charging_another_clients_work(self):
+            import copy
+            cell = replace(self.cell, op="GET", read_local=1)
+            def endpoint(finish, delta):
+                clients = [f"id={i} addr=127.0.0.1:{i} read-local-thread=0 read-local-arm-state=0 "
+                           f"read-local-dispatch={100 + delta + i} read-local-flush={100 + delta}"
+                           for i in (1, 2)]
+                return dict(status="COMPLETE", raw="\n".join(clients),
+                    read_started_monotonic=finish - .01, read_finished_monotonic=finish,
+                    processes=[dict(index=i - 1, pid=1000 + i, expected_connections=1,
+                                    addresses=[f"127.0.0.1:{i}"]) for i in (1, 2)])
+            before, after = endpoint(10, 0), endpoint(30, 1000)
+            obs = dict(status="COMPLETE", before_read_finished_monotonic=9,
+                       after_read_started_monotonic=31, threads={"0": {"deltas": {"hits": 2100, "misses": 3}}})
+            result = load_clients_between(before, after, obs, cell)
+            self.assertEqual(result["status"], "COMPLETE")
+            for i, process in enumerate(result["processes"], 1):
+                row = process["threads"]["0"]
+                self.assertEqual((row["local_hits_lower"], row["local_hits_upper"]), (1000 - i - 3, 1000 + i))
+                self.assertEqual(row["arm_states_before"], [1, 0, 0])
+                self.assertLess(row["reply_rate_min"], 50)
+                self.assertGreater(row["reply_rate_max"], 50)
+            for change in ("id=1", "read-local-thread=0", "read-local-flush=1100"):
+                corrupt = copy.deepcopy(after)
+                corrupt["raw"] = corrupt["raw"].replace(change, change.split("=")[0] + "=0", 1)
+                self.assertEqual(load_clients_between(before, corrupt, obs, cell)["status"], "INVALID")
+            short = {**obs, "before_read_finished_monotonic": 10}
+            self.assertEqual(load_clients_between(before, after, short, cell)["status"], "INVALID")
+            unarmed = copy.deepcopy(before)
+            unarmed["raw"] = unarmed["raw"].replace("read-local-arm-state=0", "read-local-arm-state=1")
+            record = load_clients_between(unarmed, after, obs, cell)
+            self.assertEqual(record["status"], "COMPLETE")
+            self.assertIsNone(record["processes"][0]["threads"]["0"]["local_hits_lower"])
+            # Mixed commands and old binaries may expose progress, but never fabricated hits.
+            mixed = load_clients_between(before, after, obs, replace(cell, op="MIX"))
+            self.assertIsNone(mixed["processes"][0]["threads"]["0"]["local_hits_lower"])
+            old = {**before, "raw": "id=1 addr=127.0.0.1:1"}
+            self.assertEqual(load_clients_between(old, after, obs, cell)["status"], "UNAVAILABLE")
 
         def fake_main(self, *, pin="-", depth=32, escalate=False, busy=99.9,
                       climbing=False, ceiling=16, contend_after=None, reference_error=None, rates=None,

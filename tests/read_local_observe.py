@@ -62,11 +62,11 @@ def pad_source(source):
 def build_arms(argv):
     parser = argparse.ArgumentParser(description="Build PRE/POST/PAD; never boots a server")
     parser.add_argument("--output", type=Path, default=ARMS)
-    parser.add_argument("--cores", default="104-111")
+    parser.add_argument("--cores", default="112-127")
     parser.add_argument("--jobs", type=int, default=4)
     args = parser.parse_args(argv)
-    if not set(abba.cpus(args.cores)) <= set(range(112)) or args.jobs < 1:
-        parser.error("build CPUs must stay in 0-111 and jobs must be positive")
+    if not set(abba.cpus(args.cores)) <= set(range(112, 128)) or args.jobs < 1:
+        parser.error("build CPUs must stay in 112-127 and jobs must be positive")
     out = args.output.resolve()
     out.relative_to(ROOT / "build")
     out.mkdir(parents=True, exist_ok=False)
@@ -146,10 +146,10 @@ int main() {
         if abba.sha256(binary) != manifest["arms"][arm.upper()]["sha256"]:
             raise ValueError(f"{arm} binary changed after build")
         layout = out / ("layout-" + arm)
-        subprocess.run(["taskset", "-c", "104", "g++", "-std=c++20", "-O2", "-DTOMO_JEMALLOC",
+        subprocess.run(["taskset", "-c", "112", "g++", "-std=c++20", "-O2", "-DTOMO_JEMALLOC",
             "-I" + str(out / ("source-" + arm)), str(check), "-o", str(layout),
             "-ljemalloc", "-pthread"], check=True)
-        values = map(int, subprocess.check_output(["taskset", "-c", "104", str(layout)], text=True).split())
+        values = map(int, subprocess.check_output(["taskset", "-c", "112", str(layout)], text=True).split())
         result["layouts"][arm] = dict(zip(("state_size", "state_alignment", "jemalloc_size"), values))
     for owner_yield in (0, 1):
         streams = {}
@@ -246,6 +246,8 @@ def run(argv):
     parser.add_argument("--order", default="PRE,PRE,PRE,PRE")
     parser.add_argument("--connections", type=int, default=512)
     parser.add_argument("--instances", type=int, default=4)
+    parser.add_argument("--load-layout", choices=("legacy", "identical"), default="identical")
+    parser.add_argument("--load-launch", choices=("sequential", "barrier"), default="barrier")
     parser.add_argument("--window", type=int, default=20)
     parser.add_argument("--warmup", type=int, default=3)
     parser.add_argument("--profile", type=int, choices=(0, 1), default=0)
@@ -278,11 +280,14 @@ def run(argv):
     abba.check_placement(abba.cpus(geometry.server_cores), abba.cpus(geometry.load_cores))
     children = abba.Children()
     runner = abba.Runner(geometry, out, binaries, children)
+    runner.identical_load = args.load_layout == "identical"
+    runner.synchronized_load = args.load_launch == "barrier"
     if args.profile:
         runner.profile_factory = WindowProfile
     report = dict(schema=1, kind="read-local-diagnostic", normal_gate_eligible=False,
                   status="INCOMPLETE", order=order, geometry=vars(geometry),
                   historical_geometry_match=False, window=args.window, warmup=args.warmup,
+                  load_layout=args.load_layout, load_launch=args.load_launch,
                   binaries={k: abba.sha256(p) for k, p in binaries.items()}, cells=[], summary=[])
     quiet = QuietMonitor(runner.server_cpus, runner.load_cpus, ports=[args.port],
                          sample_artifact=out / "quiet.jsonl")

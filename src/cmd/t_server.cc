@@ -263,7 +263,7 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
         "id=%llu addr=%s laddr=%s fd=%d name=%s age=%llu idle=%llu flags=%s db=%u "
         "sub=%u psub=%u ssub=%u multi=%lld watch=%u qbuf=%llu qbuf-free=%llu "
         "argv-mem=0 multi-mem=%llu rbs=%llu rbp=%llu obl=0 oll=%u omem=%llu "
-        "tot-mem=%llu events=%s cmd=%s user=%s redir=%lld resp=%u lib-name=%s lib-ver=%s\n",
+        "tot-mem=%llu events=%s cmd=%s user=%s redir=%lld resp=%u lib-name=%s lib-ver=%s",
         static_cast<unsigned long long>(client.id()), meta.addr.c_str(), meta.laddr.c_str(),
         client.fd(), meta.name.c_str(), static_cast<unsigned long long>(age),
         static_cast<unsigned long long>(idle), flags, client.session().db_index,
@@ -278,6 +278,8 @@ std::string client_info_line_impl(const Client& client, const ClientMeta& meta, 
         static_cast<long long>(meta.tracking ? meta.tracking_redirect : -1),
         client.resp3() ? 3u : 2u,
         meta.lib_name.c_str(), meta.lib_ver.c_str());
+    append_read_local_client_observation(out, client);
+    out += '\n';
     return out;
 }
 
