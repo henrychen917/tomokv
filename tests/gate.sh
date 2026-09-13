@@ -405,17 +405,11 @@ row_begin(){
   local budget
   budget=$(python3 tests/gate_history.py budget --plan "$ROW_PLAN" --label "$ROW_HISTORY_ID") || exit 2
   IFS=$'\t' read -r ROW_TIMEOUT ROW_MEDIAN ROW_BASIS <<< "$budget"
-  # The whole ABBA matrix is a single historical gate row. Until it has exact
-  # history, its conservative budget must accommodate the full escalation matrix.
-  # This bound is not a license to accept partial results; ABBA still scores all cells.
   # The ABBA row's recorded history is dominated by runs that aborted before measuring (median
   # 0.42s), so a history-derived budget kills every genuine measurement at 30s -- three overnight
   # rounds on 2026-09-13 died exactly that way. The row only reports now; give it the full-matrix
-  # budget unconditionally rather than one derived from its own failures.
-  # An EXPLICIT plan entry (basis != own-row-history) is honoured -- that is how the timeout
-  # self-test drives this row with a 0.3s budget. Only a HISTORY-derived budget is overridden,
-  # because the row's history is instant aborts and would kill every real measurement.
-  if [ "$ROW_ID" = 'headline ABBA vs last pushed binary' ] && [ "$ROW_BASIS" = own-row-history ]; then
+  # budget on every basis, including the 900s no-history default and explicit plan entries.
+  if [ "$ROW_ID" = 'headline ABBA vs last pushed binary' ]; then
     ROW_TIMEOUT=43200; ROW_BASIS=abba-full-matrix-not-history
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
@@ -2812,11 +2806,12 @@ PY
 # our tracked background child is interruptible, so stopping the gate reaches ABBA's cleanup.
 ABBA_HISTORY_CONTEXT=$(python3 tests/gate_history.py abba-context -- "${ABBA_ARGS[@]}") || exit 2
 row_begin "headline ABBA vs last pushed binary" "$ABBA_HISTORY_CONTEXT"
+# The watchdog still tears down the measurement; its timeout must not score or exit the gate.
+trap 'ROW_EXPIRED=1' USR1
 python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
 ABBA_PID=$!
 wait "$ABBA_PID"
 ABBA_RC=$?
-ABBA_PID=0
 # ABBA REPORTS. CORRECTNESS GATES. (Owner ruling 2026-09-13: gate work stops here.)
 # The tier runs on every version and its per-cell numbers print above and land in results.json;
 # read them. It does not decide the gate, for two measured reasons:
@@ -2835,8 +2830,26 @@ case "$ABBA_RC" in
   *) say "headline ABBA" "measured; see per-cell numbers above and results.json (reporting only, not gating)";;
 esac
 
+row_finish
+ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}
+if [ "$ABBA_CLEANUP_RC" = 0 ]; then
+  # An expiry can interrupt the first wait. The watchdog has now finished bounded teardown.
+  wait "$ABBA_PID" 2>/dev/null || :
+  ABBA_PID=0
+fi
+if [ "$ROW_EXPIRED" = 1 ]; then
+  ABBA_RC=124
+  say "headline ABBA" "FAIL-reporting-only (TIMEOUT ${ROW_TIMEOUT}s; $ROW_BASIS)"
+fi
+ROW_ID=; ROW_EXPIRED=0
+trap - USR1
 phase abba-end
-publish_abba || exit 2
+publish_abba || {
+  [ "$ABBA_RC" != 0 ] || ABBA_RC=1
+  say "headline ABBA" "FAIL-reporting-only (incomplete publication; rc=$ABBA_RC)"
+  # Do not retry this reporting failure in cleanup and prevent owned-child teardown.
+  ABBA_PENDING=0
+}
 ROW_T=$(date +%s.%N)
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
@@ -2956,7 +2969,7 @@ fi
 
 phase end
 program_state "$((EXPECT_FULL+NIC_CHECKED))"
-GATE_CLEANUP_RC=0
+GATE_CLEANUP_RC=$ABBA_CLEANUP_RC
 cleanup || GATE_CLEANUP_RC=$?
 RECEIPT_RC=0
 if [ "$RECEIPT_REQUIRED" = 1 ]; then
