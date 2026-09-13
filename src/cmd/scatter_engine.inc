@@ -1961,6 +1961,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // The Op retains its argv through completion. Owner materialization still precedes admission
     // and exchange; partial OOM leaves unlinked key_anchors for the existing abort cleanup.
     // This removes the IO-born record handoff, not the argv handoff or foreign read-local loads.
+    // Arena provenance alone does not establish L3 residency: a migrated small-value pool may
+    // still return an old owner's block, which the executing owner now initializes. Reuse that
+    // pool; adding arena selection or a flush per record would charge the unchanged small path.
 
     if (state->snapshot != UINT64_MAX && !pool.register_snapshot(server, state, owner_io)) {
         set_oom(op);
