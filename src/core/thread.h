@@ -432,6 +432,27 @@ public:
         if (id < command_count_size_) command_counts_[id]++;
         total_commands_++;
     }
+    // A local-read chunk already has an exact completed prefix and GET/MGET classification.
+    // Reuse those owner-local accumulators: the total's line is read by FLIP (and, before the
+    // counter swap, by peer transport producers), while INFO reads the command histogram.
+    // One total store and at most two histogram stores replace two stores per completed op.
+    // No suffix command is counted: mget_count describes only the completed prefix, so either
+    // nonempty class has its first set bit inside that prefix even when the mask has suffix bits.
+    // Publish these counts before any prefix Done store; demoted reads keep normal owner accounting.
+    void note_local_read_commands(Op* const* ops, uint32_t completed,
+                                  uint32_t mget_mask, uint32_t mget_count) {
+        if (!completed) return;
+        const uint32_t get_count = completed - mget_count;
+        if (get_count) {
+            const uint16_t id = ops[__builtin_ctz(~mget_mask)]->spec->id;
+            if (id < command_count_size_) command_counts_[id] += get_count;
+        }
+        if (mget_count) {
+            const uint16_t id = ops[__builtin_ctz(mget_mask)]->spec->id;
+            if (id < command_count_size_) command_counts_[id] += mget_count;
+        }
+        total_commands_ += completed;
+    }
     uint64_t command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id] : 0;
     }

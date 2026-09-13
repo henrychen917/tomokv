@@ -23,6 +23,7 @@ LANE_RULES.md
 /CODEX-OUT.md
 # Lane measurement handoffs and crash transcripts stay outside the source history.
 /CODEX-OUT.diskfull.md
+/CODEX-OUT.round*.md
 /MEASURE-REQUEST
 /MEASURE-RESULT
 

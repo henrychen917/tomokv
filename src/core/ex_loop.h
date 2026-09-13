@@ -1569,7 +1569,8 @@ private:
             // Completion is chunk-aggregated: one pending-mask clear, one demand release and one
             // add per statistic instead of six read-modify-writes per op; the prefix accumulators
             // above describe exactly the entries `completed` names. The pending bits are cleared
-            // before any Done publish, as the per-op order did. note_command and Done stay per op.
+            // before any Done publish, as the per-op order did. Command accounting uses the same
+            // exact prefix; only Done still needs one publication per operation.
             auto complete_local_prefix = [&](uint32_t completed) {
                 if (!completed) return;
                 rob.complete_pending_read_local_mask(prefix_bits);
@@ -1579,9 +1580,11 @@ private:
                 stats.keyspace_hits += prefix_keyspace_hits;
                 stats.keyspace_misses += prefix_keyspace_misses;
                 stats.mget_local_hits += prefix_mget_hits;
+                static_assert(kReadLocalDrainChunkOps <= 32);
+                self_->note_local_read_commands(
+                    chunk.ops, completed, mget_mask, prefix_mget_hits);
                 for (uint32_t i = 0; i < completed; i++) {
                     Op& op = *chunk.ops[i];
-                    self_->note_command(op.spec->id);
                     op.state.store(OpState::Done, std::memory_order_release);
                 }
                 notify_sender(client);
