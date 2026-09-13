@@ -1,0 +1,43 @@
+TomoKV cx-cache-audit — measurement request
+
+Worktree: `/home/user/Projects/cx-cache-audit`. All binaries are ready. No server, load generator, benchmark or gate was run by this lane. Use mainline's current gate instrument on its scheduled quiet box, with these executables supplied as external reference/candidate arms. Record results in `MEASURE-RESULT` here.
+
+The audit's IO/ex coherence claim is **2s only**. The 1s cells are mandatory regression controls. #7 makes an allocation contract explicit in both modes; do not promise a rate gain where the allocator already happened to return 64-aligned Shards.
+
+PRE is `e867f780a24294df59cc353c6462868b960af5a5`, already carrying the total_commands_/atomic_scan_holds_ swap. The audit-document-only autosave `5ebf0dcaf` precedes the five layout commits; its src/tests/Makefile/third_party trees match PRE. Each cumulative arm's exact commit is in `build/audit/arm-N/COMMIT`. The binaries are ordinary release builds, not benchmark variants.
+
+| Arm | Executable (relative to this worktree) | .text bytes | SHA-256 |
+|---|---|---:|---|
+| pre | `build/audit/pre/tomokv` | 3,793,843 | `28580ac29c1c4a8807455ed423bee32af9427425efb531cf2147a96e478c7b9b` |
+| arm-1 | `build/audit/arm-1/tomokv` | 3,793,747 | `62ce14b0dbb9e1127b1d2fa49893a008e2908120990c9ea2a81b8f317c110f1d` |
+| arm-2 | `build/audit/arm-2/tomokv` | 3,798,051 | `dba022ff3add6794b471eec72ba6a948d261d687d213f20691966160fd468f27` |
+| arm-3 | `build/audit/arm-3/tomokv` | 3,796,675 | `2e800263ac69fe8a9013eaf61a4621b39aac2e048cd4a960b1eff34d451a2392` |
+| arm-4 | `build/audit/arm-4/tomokv` | 3,796,707 | `d760e1975753dc153bc1904d70fac39d11fd63740f249748448925e55ad2a329` |
+| arm-5 | `build/audit/arm-5/tomokv` | 3,796,755 | `3bdeb8a7c6c35d0551b001cd85ee39ed0e36e5760dcd57d640ab0844fd02018c` |
+| pad | `build/audit/pad/tomokv` | 3,796,755 | `d3d9b8e2941f44261de08e9fd82df6f22af6f0bb8d63c2091c04a89067d4ef13` |
+
+Verify all seven using `sha256sum -c build/audit/SHA256SUMS` from this worktree. Per-arm build logs, `layout-gdb.txt`, `offsets.txt`, `unit-results.txt`, and individual unit logs are beside the executable. PRE objects are retained in `build/audit/pre/objects`.
+
+Run these incremental comparisons in order; A is the reference and B the candidate:
+
+| Comparison | Finding | Mandatory cells | Expected signal to test |
+|---|---|---|---|
+| pre → arm-1 | #1 ThreadCtx parked_/task mask | h01,h17,h02,h18,m03,m51 | h17/h18/m51: producers no longer read a mask-mutated parked_ line; also share parked_ with ring_. |
+| arm-1 → arm-2 | #2 + #6 Op completion/reply | h01,h17,h02,h18,m03,m51 | h17/h18/m51: same-Op polling no longer shares executor reply stores; check instruction/displacement costs in both modes. |
+| arm-2 → arm-3 | #3 ThreadCtx nchan_/mask block | h01,h17,h02,h18,m03,m51 | h17/h18/m51: mask-drain nchan_ reads move onto the transport line, away from remote RMWs. |
+| arm-3 → arm-4 | #4 + #5 Client/Rob | h01,h17,h02,h18,m03,m51,h11,h27 | h27 is the armed read-local sharing test; h11 guards 1s. rl=0 may benefit from co-located frontiers, but cannot prove savings from inactive read-local bookkeeping. |
+| arm-4 → arm-5 | #7 Shard allocation alignment | h01,h17,h02,h18,m03,m51 | Check neutrality/regression first. No steady-state command logic changes; allocator placement may already match the new contract. |
+
+Also run pre → arm-5, pre → pad, and pad → arm-5 on the six rl=0 cells plus h11/h27. h15/h31 are advisory for every comparison, including the cumulative and padding controls.
+
+Cell grammar is the existing `tests/headline_cells.txt`: all are p32, 512 connections, atomic=1. h01/h17 are 1s/2s GET, h02/h18 are 1s/2s SET, m03/m51 are 1s/2s MGET with eight keys; these six have rl=0, ov=0, ro=0. h11/h27 are 1s/2s GET with rl=1, ov=0, ro=1. Advisory h15/h31 have rl=1, ov=1, ro=1. Use the current per-cell pins and identical geometry/offered load across A/B; no recalibration or guessed load floor is requested. Correctness reproductions use the gate's 16-shard, 6 IO + 2 EX, eight-core geometry.
+
+For each step and the cumulative arm, report PRE and POST rate, cycles/op, instructions/op and IPC, plus deltas and the instrument's repeatability/null verdict. Report fills/op and RFOs/op when mainline's profile collects them. Rate at matched offered load is the verdict; cycles/op = instructions/op / IPC explains amortization. A confirmed main-command regression in either mode rejects the step. An instruction reduction alone is insufficient, and a contended/rejected window is not a result. Check any small cumulative gain against PRE→PAD and PAD→arm-5 before attributing it to field layout.
+
+Fixed logical footprint cost is zero for every step: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624. There are no added per-operation branches, counters, locks, pointer chases or allocation sites. #7 changes the alignment argument of existing scalar Shard allocations; record allocator/RSS effects separately if they change. Actual instruction cost must come from measurement, since field displacements and compiler placement change. The named cells establish payoff at p32; they do not establish a load/depth break-even curve. Mark that broader break-even unknown rather than extrapolating.
+
+The ONE PAD twin relinks untouched PRE objects with 2,880 prefix NOPs and 32 tail NOPs. Both pads are unreachable (no caller/registration/constructor entry); the preceding prefix function jumps away and the tail follows a non-returning unwind call. Its .text is exactly 3,796,755 bytes, identical to arm-5. All six gdb layout summaries match PRE byte-for-byte. Source, link command, map, padding metadata and builder are in `build/audit/pad/` and `build/audit/build-pad.py`. This controls total text size and a uniform placement perturbation, not every individual function's placement.
+
+Two necessary deviations from the audit's suggested offsets preserve the stronger separation requirement: reply is at 160, not 64 (64 would share state at some valid Op bases); the ROB's 96 private bytes use existing Client padding, with Client::rob_ at 96 and buf_ still at 320. No per-operation method logic or memory order changed. See CODEX-OUT.md for every before/after offset and lock. Same-Op separation does not claim to eliminate all sharing between adjacent 336-byte Ops.
+
+Validation: after each layout commit, release and 55 regular serverless unit/layout invocations passed on cores 112-127 (make -j4). Six deliberately broken layout/allocation controls were detected. Two additional diagnostics remain FAIL in every arm and fail identically on branch-point sources: atomic post_apply_probe (post-APPLY serial outcome) and netcmd collection-oom (partial multi-field HSET after OOM). Logs are retained, not counted as passes. No gate rows or EXPECT_QUICK/EXPECT_FULL values changed. Boot/gate/performance verdicts remain mainline work.

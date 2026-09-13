@@ -28,6 +28,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <new>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -53,6 +54,17 @@ inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & 
 
 class Shard {
 public:
+    // Audit #7: scalar allocations (including make_unique) must honor the store's line grouping.
+    // Align the allocation, not the type: alignas(64) would round the 1440-byte size lock to 1472.
+    // Stack/embedded Shards retain the base-independent FlatStore separation guarantee.
+    static constexpr size_t kAllocationAlignment = 64;
+    static void* operator new(size_t bytes) {
+        return ::operator new(bytes, std::align_val_t{kAllocationAlignment});
+    }
+    static void operator delete(void* ptr) noexcept {
+        ::operator delete(ptr, std::align_val_t{kAllocationAlignment});
+    }
+
     Shard() = default;
     ~Shard();
     Shard(const Shard&) = delete;
@@ -517,7 +529,25 @@ private:
 struct ShardLayoutLock {
     static constexpr size_t store_offset = offsetof(Shard, store_);
     static constexpr size_t stats_offset = offsetof(Shard, stats_);
+    static constexpr size_t reader_first = store_offset + FlatStoreLayoutLock::reader_first;
+    static constexpr size_t reader_last = store_offset + FlatStoreLayoutLock::reader_last;
+    static constexpr size_t owner_first = store_offset + FlatStoreLayoutLock::owner_first;
+    static constexpr size_t owner_last = store_offset + FlatStoreLayoutLock::owner_last;
+    static constexpr size_t atomic_owner_last = store_offset + FlatStoreLayoutLock::atomic_owner_last;
 };
+
+// The heap allocation contract makes these line numbers invariant. Whole reader and owner blocks
+// each fit one line, and neither owner block can invalidate the reader's line. FlatStore's byte
+// distances separately protect every possible stack/embedded base, without requiring over-alignment.
+static_assert(Shard::kAllocationAlignment == FlatStoreLayoutLock::line && alignof(Shard) == 8,
+              "align Shard allocations without changing the type alignment (audit #7)");
+static_assert(ShardLayoutLock::reader_first % 64 == 0 &&
+                  ShardLayoutLock::reader_first / 64 == ShardLayoutLock::reader_last / 64,
+              "heap Shard reader topology must fit one aligned line (audit #7)");
+static_assert(ShardLayoutLock::owner_first / 64 == ShardLayoutLock::owner_last / 64 &&
+                  ShardLayoutLock::reader_last / 64 < ShardLayoutLock::owner_first / 64 &&
+                  ShardLayoutLock::atomic_owner_last / 64 < ShardLayoutLock::reader_first / 64,
+              "heap Shard owner stores may share its foreign-reader line (audit #7)");
 
 // atomic_torn's gate geometry depends on the pre-read-local Shard stride and hot stats position.
 static_assert(sizeof(Shard) == 1440);

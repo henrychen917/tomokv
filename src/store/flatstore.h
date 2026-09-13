@@ -3811,8 +3811,8 @@ private:
     //
     // The separation is expressed in OFFSETS, not addresses (see FlatStoreLayoutLock below). Two
     // bytes whose offsets differ by >= 64 cannot share a line for ANY base address, so the property
-    // survives whatever alignment the allocator hands `new Shard` (operator new promises 16, not
-    // 64) and whatever ShardLayoutLock::store_offset becomes. The old layout only looked split
+    // survives stack/embedded Shards (type alignment 8 despite 64-aligned scalar allocation)
+    // and whatever ShardLayoutLock::store_offset becomes. The old layout only looked split
     // because store_offset happened to be 56 and the allocator happened to over-align the Shard.
     // ============================================================================================
 
@@ -3918,8 +3918,8 @@ private:
 };
 
 // THE READER/OWNER LINE SPLIT, pinned in offsets so nothing about it depends on where a Shard
-// happens to land in memory. `new Shard` promises 16-byte alignment, not 64, and the store sits at
-// ShardLayoutLock::store_offset inside it; both are free to change. Two bytes whose OFFSETS differ
+// happens to land in memory. Scalar `new Shard` is 64-aligned, but stack/embedded Shards need not be,
+// and the store sits at ShardLayoutLock::store_offset inside it. Two bytes whose OFFSETS differ
 // by at least 64 are on different lines for every possible base address, which is the only form of
 // this guarantee that a static_assert can actually make.
 struct FlatStoreLayoutLock {
@@ -3955,7 +3955,7 @@ static_assert(FlatStoreLayoutLock::reader_first - FlatStoreLayoutLock::atomic_ow
                   FlatStoreLayoutLock::line,
               "atomic accounting words may share a cache line with the reader's probe words");
 // Both blocks stay compact enough to be one line each when the Shard is 64-byte aligned, which is
-// what the allocator does today: the reader pays one line per foreign GET, the owner one line per
+// what scalar Shard allocation guarantees: the reader pays one line per foreign GET, the owner one line per
 // insert. These are the budgets the split was bought with.
 static_assert(FlatStoreLayoutLock::reader_last - FlatStoreLayoutLock::reader_first <
                   FlatStoreLayoutLock::line, "reader topology block no longer fits one line");
