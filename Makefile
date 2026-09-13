@@ -103,7 +103,7 @@ build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/reorder_unit.cc -o $@
 # Serverless transport/WB access-order witnesses, with poisoned unpublished reply metadata.
-build/cache-access-unit: tests/cache_access_unit.cc $(wildcard src/*/*.h) Makefile
+build/cache-access-unit: tests/cache_access_unit.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer \
 	  -ffunction-sections -fdata-sections -I. $< -Wl,--gc-sections -o $@ $(LDLIBS)
@@ -124,13 +124,14 @@ build/store-regression-tsan: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wil
 build/waits-unit: tests/waits_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/waits_unit.cc -o $@
-unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/reorder-unit build/waits-unit
+unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/reorder-unit build/waits-unit build/cache-access-unit
 	./build/config-parser-test
 	./build/flipctl-unit
 	./build/read-local-ring-unit
 	./build/read-local-write-ring-unit
 	./build/reorder-unit
 	./build/waits-unit
+	./build/cache-access-unit
 
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
