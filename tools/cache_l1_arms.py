@@ -90,7 +90,7 @@ def cores(value):
     result = set()
     for part in value.split(','):
         if not re.fullmatch(r'\d+(?:-\d+)?', part):
-            raise argparse.ArgumentTypeError('use CPU numbers/ranges, e.g. 0-7')
+            raise argparse.ArgumentTypeError('use CPU numbers/ranges, e.g. 112-127')
         ends = [int(n) for n in part.split('-')]
         first, last = ends[0], ends[-1]
         if first > last or first < 112 or last > 127:
