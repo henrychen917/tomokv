@@ -273,6 +273,7 @@ struct CoreConcurrencyTest {
         f.server.client_accepted();
         f.io.ifid_batch_.clients[0] = client;
         f.io.ifid_batch_.count = 1;
+        f.io.active_wb_context_ = &f.io.ifid_batch_;
         require(!f.io.io_pipelines_quiesced() && f.io.client_pipeline_referenced(client),
                 "staged receive blocks the IO drain acknowledgement");
         std::string refusal;
@@ -285,6 +286,7 @@ struct CoreConcurrencyTest {
         require(f.io.dead_ready_.size() == 1 && f.io.dead_ready_.front() == client,
                 "staged handle survives more than two corpse prologues");
         f.io.ifid_batch_.clear();
+        f.io.active_wb_context_ = nullptr;
         require(f.io.io_pipelines_quiesced(), "consuming the staged batch releases IO drain");
         f.io.reap_dead();
         require(f.io.dead_ready_.empty(), "consumed receive handle releases the corpse");

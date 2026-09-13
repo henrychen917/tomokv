@@ -200,7 +200,6 @@ public:
             return true;
         }
         if (!prepare_activation()) return false;
-        if (ifid_batch_.count || wb_batch_.count) std::abort();
         accept_quiescing_ = false;
         accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
         self_->set_ring(&ring_);
@@ -257,7 +256,6 @@ public:
     void deactivate() {
         if (!active_role_) return;
         if (!self_->clients().empty() || !client_migrations_.empty()) std::abort();
-        if (!io_pipelines_quiesced()) std::abort();
         // Channel homes are members of the live IO set. A thread leaving that set retires its
         // owner-local indexes here; every new/surviving IO rebuilds the next epoch in RoleReady.
         pubsub_clear_home_indexes();
@@ -467,6 +465,7 @@ private:
     struct WbPipelineBatch {
         std::array<Client*, kGenthreadPipelineWbBatchConns> clients{};
         uint32_t count = 0;
+        void clear() { count = 0; }
     };
 
     struct ClientMigration {
@@ -744,6 +743,7 @@ private:
             // have drained them before publishing the role edge.
             if (self_->role() != Role::Ifid && !io_pipelines_quiesced()) std::abort();
             ifid_batch_.clear();
+            active_wb_context_ = nullptr;
         }
         if constexpr (Fused) {
             // The read loop is over for this tenure. Teardown may take longer than another
@@ -4656,13 +4656,6 @@ ordinary_shard_ready:
 
     bool client_pipeline_referenced(const Client* client) const {
         if (client->ifid_pending()) return true;
-        // The split receive batch can cross a prologue. Its Client handles must outlive both
-        // corpse grace and client migration, even though it owns no ROB/storage pointer yet.
-        // These scans are cold lifetime checks, never per-command bookkeeping.
-        for (uint32_t i = 0; i < ifid_batch_.count; i++)
-            if (ifid_batch_.clients[i] == client) return true;
-        for (uint32_t i = 0; i < wb_batch_.count; i++)
-            if (wb_batch_.clients[i] == client) return true;
         if (active_wb_context_)
             for (uint32_t i = 0; i < active_wb_context_->count; i++)
                 if (active_wb_context_->clients[i] == client) return true;
@@ -4670,7 +4663,7 @@ ordinary_shard_ready:
     }
 
     bool io_pipelines_quiesced() const {
-        return !ifid_batch_.count && !wb_batch_.count && active_wb_context_ == nullptr;
+        return active_wb_context_ == nullptr;
     }
 
     // Targeted receive-buffer maintenance and the ordinary uncapped parser, shared by both
@@ -5205,11 +5198,11 @@ ordinary_shard_ready:
         return work;
     }
 
-    struct IfidBatch {
-        std::array<Client*, kIoPipeIfidBatchClients> clients{};
-        uint32_t count = 0;
-        void clear() { count = 0; }
-    };
+    // These schedules are mutually exclusive. Reuse the same Client/count view so the existing
+    // lifetime pointer can fence either fused WB or split receive staging, without adding scans
+    // to overlap=0's close/migration paths or changing any member's size or offset.
+    static_assert(kIoPipeIfidBatchClients == kGenthreadPipelineWbBatchConns);
+    using IfidBatch = WbPipelineBatch;
 
     struct WbBatch {
         std::array<Client*, kIoPipeWbBatchClients> clients{};
@@ -5324,7 +5317,9 @@ ordinary_shard_ready:
         // keeps the arrival stream flowing independently of the reply backlog.
         for (uint32_t batch_index = 0; batch_index < batch.count; batch_index++) {
             Client* c = batch.clients[batch_index];
-            if (c->dead() || !c->in_active()) continue;
+            // A hard output-limit close can remove a retained handle through the shared lifetime
+            // view before the next parse pass. Its bytes must not be parsed after that close.
+            if (!c || c->dead() || !c->in_active()) continue;
             Client& conn = *c;
             DispatchResult dispatch_result = DispatchResult::Progress;
             TlsConn* tls = nullptr;
@@ -5586,6 +5581,7 @@ ordinary_shard_ready:
         IfidBatch& ifid = ifid_batch_;
         WbBatch& wb = wb_batch_;
         if (wb.count) std::abort();
+        active_wb_context_ = &ifid;
         uint32_t work = 0;
         if (natural_order) {
             // Prime an empty pipeline immediately, including p1 and the first pass after
@@ -5625,6 +5621,7 @@ ordinary_shard_ready:
         }
         ifid.clear();
         wb.clear();
+        active_wb_context_ = nullptr;
         // Harvest AFTER the ordinary submit/reap, committing received bytes promptly while EX
         // is running. Carry one bounded batch into the next call, without another syscall or
         // another buffer. Selection alone is NOT progress: counting its size would spin on
@@ -5637,6 +5634,7 @@ ordinary_shard_ready:
         // existing nominations before client/role transfer, even if the pause raced this cut.
         if (!unmasked && !srv_->placement_transition_active())
             work += ifid_rx<HasUnix, HasTls, kEp>(ifid);
+        if (ifid.count) active_wb_context_ = &ifid;
         return work;
     }
 
@@ -6076,9 +6074,9 @@ ordinary_shard_ready:
                 "Client id=%llu closed for overcoming of output buffer limits.\n",
                 static_cast<unsigned long long>(c->id()));
         close_client(c);
-        // Unified W1 has already retired/staged this client but must not let W2 submit the bytes
-        // which crossed the hard limit. Its batch already has a nullable-client guard, so encode
-        // this rare refusal there and keep the ordinary prepare path free of a parallel bool.
+        // Unified W1 must not let W2 submit bytes which crossed the hard limit; a retained split
+        // receive must not parse more of the closing client's input. Both views accept a null
+        // handle, so encode this rare refusal there without another per-command flag.
         // close_client runs first while the active context still fences the Client lifetime.
         if (active_wb_context_)
             for (uint32_t i = 0; i < active_wb_context_->count; i++)
@@ -6455,8 +6453,8 @@ ordinary_shard_ready:
     std::unordered_map<uint64_t, ClientForwardRoute> routing_forward_;
     // Boot-selected fused loop only; appended so split-mode IoLoop offsets stay unchanged.
     FusedExLoop* fused_executor_ = nullptr;
-    // Cold safety views into run-loop locals. Streams may retain the IFID view across its one
-    // bounded residual rotation; teardown and migration defer while either context owns a Client.
+    // One lifetime view: fused WB within its synchronous call, or split receive across calls.
+    // The rotations never coexist. Null when disarmed; teardown/migration keep their old checks.
     WbPipelineBatch* active_wb_context_ = nullptr;
     bool targeted_ifid_ = false;
     // Cold teardown/migration state; leave all established hot member offsets intact.
