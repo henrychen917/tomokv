@@ -122,18 +122,31 @@ class FeatureFailures(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{field: value}), knobs, 2, True)
 
-        # With reorder off too, the no-op must not allocate the witness sidecar at all.
+        # The requested no-op reports explicit zeros without allocating a sidecar. Missing
+        # fields made ABBA treat t01 as a legacy server and abort before HDR collection.
         knobs['reorder'] = 0
         for row in (b, a):
-            for field in list(row):
-                if (field.startswith('reorder_') or field.startswith('overlap_') or
-                        field == 'schedule_stats_threads') and field != 'overlap_enabled':
-                    del row[field]
+            row.update(schedule_stats_threads='0', reorder_batches='0',
+                       reorder_multi_client_runs='0', reorder_permuted_runs='0')
         feature.check_activity(b, a, knobs, 2, True)
-        for field, value in (('schedule_stats_threads', '2'), ('overlap_passes', '0'),
-                             ('overlap_interleaved_passes', '1')):
+        from abba_workloads import require_workload_witness
+        tail = SimpleNamespace(op='REORDER', reorder=0, mode='1s')
+        calls_before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
+        calls_after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
+        witness = require_workload_witness(tail, calls_before, calls_after, b, a)
+        self.assertEqual(witness['reorder_permuted_runs'], 0)
+        for field, value in (('schedule_stats_threads', '2'), ('overlap_passes', '1'),
+                             ('overlap_interleaved_passes', '1'), ('reorder_permuted_runs', '1')):
             with self.subTest(field=field), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{field: value}), knobs, 2, True)
+        for field in ('schedule_stats_threads', 'overlap_schedule', 'overlap_passes',
+                      'overlap_interleaved_passes', 'reorder_permuted_runs'):
+            missing = dict(a)
+            del missing[field]
+            with self.subTest(missing=field), self.assertRaises(AssertionError):
+                feature.check_activity(b, missing, knobs, 2, True)
+        with self.assertRaisesRegex(RuntimeError, 'live legacy'):
+            require_workload_witness(tail, calls_before, calls_after, {}, {})
 
 
 class PerformanceFailures(unittest.TestCase):

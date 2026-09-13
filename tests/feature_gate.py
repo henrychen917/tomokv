@@ -161,21 +161,22 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
             'wrong effective overlap mode')
     expected_schedule = 'split-io-overlap' if overlap_enabled else 'plain'
     stats_on = overlap_enabled or knobs['reorder']
-    require(after.get('overlap_schedule') == (expected_schedule if stats_on else None),
+    reports_stats = knobs['overlap'] or knobs['reorder']
+    require(after.get('overlap_schedule') == (expected_schedule if reports_stats else None),
             'wrong overlap schedule/allocation')
     for field in ('overlap_passes', 'overlap_interleaved_passes'):
-        if not stats_on:
+        if not reports_stats:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
         require((delta(before, after, field) > 0) if overlap_enabled
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs'):
-        if not stats_on:
+        if not reports_stats:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
         require((delta(before, after, field) > 0) if knobs['reorder']
                 else number(after, field) == 0, f'reorder witness {field} did not match knob')
-    expect_stats = str(nthreads) if stats_on else None
+    expect_stats = str(nthreads) if stats_on else '0' if reports_stats else None
     require(after.get('schedule_stats_threads') == expect_stats,
             'schedule counters allocated while both features off / missing when on')
     if cross_owner:

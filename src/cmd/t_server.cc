@@ -2052,7 +2052,12 @@ void cmd_info(Shard&, Op& op) {
         // its scratch buffers so the disabled INFO path keeps its old output without those arrays.
         if (g_server && g_server->read_local_enabled())
             append_read_local_thread_info(body, *g_server);
-        if (g_server && g_server->mode_schedule_stats())
+        // Requested fused overlap is an effective no-op in O1. Report the helper's literal
+        // zeros for that arm: absence means an older server without telemetry to the ABBA
+        // tail witness, which otherwise aborts t01 before collecting its client histogram.
+        // A null sidecar still reports schedule_stats_threads:0; no counter storage or hot
+        // path work is introduced, and both requested knobs off keep the old INFO surface.
+        if (g_server && (g_server->cfg().overlap || g_server->cfg().reorder))
             append_mode_schedule_info(body, g_server->mode_schedule_stats(), g_server->nthreads());
         if (g_server && g_server->thread_mode() == ThreadMode::Fused) {
             appendf(body,
