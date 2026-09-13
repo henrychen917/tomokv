@@ -247,6 +247,31 @@ struct NetcmdRegression {
         server.cfg_.conf_path = path.c_str(); server.cfg_.requirepass = password.c_str();
         command_bind_server(&server);
         test_config_rewrite();
+        // t01 requests fused overlap with reorder off. Exercise the actual INFO handler with
+        // no schedule sidecar: absent witnesses abort the client's HDR collection as "legacy".
+        // The fixture never boots workers, opens a ring, or listens on a socket.
+        server.cfg_.thread_mode = ThreadMode::Fused;
+        server.cfg_.reorder = 0;
+        Shard shard;
+        for (uint32_t overlap : {0u, 1u}) {
+            server.cfg_.overlap = overlap;
+            check(server.mode_schedule_stats() == nullptr, "no-op starts without a sidecar");
+            const std::string info = execute(shard, {"INFO", "SERVER"});
+            check(info.find("overlap_enabled:0\r\n") != std::string::npos,
+                  "fused overlap remains effectively off");
+            if (overlap) {
+                for (const char* field : {"schedule_stats_threads:0\r\n", "overlap_schedule:plain\r\n",
+                         "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n",
+                         "reorder_batches:0\r\n", "reorder_multi_client_runs:0\r\n",
+                         "reorder_permuted_runs:0\r\n", "reorder_max_batch:0\r\n"})
+                    check(info.find(field) != std::string::npos, "requested no-op reports explicit zeros");
+            } else {
+                check(info.find("schedule_stats_threads:") == std::string::npos &&
+                      info.find("reorder_permuted_runs:") == std::string::npos,
+                      "both requested knobs off preserve the existing INFO surface");
+            }
+            check(server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
+        }
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }
