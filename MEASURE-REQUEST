@@ -1,0 +1,30 @@
+cx-settax-delete: default-build deletion verification, maintainer execution only
+
+PRE: build/tomokv-pre, source e867f780a (branch starting point), default selector 0.
+SHA256: 648f52c94f9d74d80e87f0a6a100e45a6f499a082dd32f4d90849649d6946d30
+POST: build/tomokv-post, this deletion commit, identical default compiler/linker flags.
+SHA256: 4f9fa93ddc205e7c7bb511bc381c4893b50d8697b81314d76e226f662a28cc16
+No PAD arm: every locked layout and optional read-local sidecar keeps its default size.
+
+Correctness: maintainer runs tests/gate.sh iteration against POST. Keep the gate's
+own --shards 16, GATE_CORES and GATE_RATIO geometry and its 1s/2s/armed coverage.
+No rows changed: EXPECT_QUICK remains 419; EXPECT_FULL remains 436.
+
+Measurement: A=PRE, B=POST, ABBA with the gate's own instrument and calibrated load
+and pinning. Use the full existing tests/headline_cells.txt matrix: h01-h64,
+m01-m96, x01-x06, c01-c04, a01-a04, t01-t06 (180 cells). Cell-file SHA256:
+8cd6f3b96150e484e8ccc12a5c5ca7f0631cc5212bffdc6a0630f068fbb3e09f
+These cover GET/SET, MGET/MSET, mixed reads/writes, connection count, atomic mode,
+and tail latency, in both thread modes and read-local off/on. Preserve each row's
+declared workload, depth, score, and runtime knobs. No selector 1 or 3 arm exists.
+
+Decision: zero correctness regression; no matched-load rate/latency regression
+beyond the instrument's validated per-cell null/resolution. Report cycles/op,
+IPC and instructions/op for every cell as explanations, not as substitutes for
+the row's rate or latency score. No performance improvement is claimed.
+Append results to MEASURE-RESULT; no measurement was run by this lane.
+
+Static evidence: linked PRE/POST .text has the same size and addresses. Its only
+32 differing byte positions are 16 assertion line-number immediates (2307 ->
+2250). All other allocated sections match except the GNU build ID. Release and
+all 15 unit programs were built with taskset -c 112-127 make -j4; none was run.
