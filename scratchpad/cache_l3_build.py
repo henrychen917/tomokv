@@ -79,6 +79,21 @@ def sources(dst):
         paths.extend(p for p in (dst / name).rglob('*') if p.is_file())
     return {str(p.relative_to(dst)): sha(p) for p in sorted(paths)}
 
+def verify_pre(manifest):
+    # Recovery-era commit names in an old manifest may no longer resolve. Verify the actual
+    # bytes against the owner's reachable baseline, with ONLY the confirmed counter-swap file
+    # substituted. Reusing an intact frozen arm must not silently import a different floor.
+    archive = capture(['git', 'archive', BASE, 'Makefile', 'src', 'third_party'])
+    with tarfile.open(fileobj=io.BytesIO(archive)) as contents:
+        expected = {m.name: hashlib.sha256(contents.extractfile(m).read()).hexdigest()
+                    for m in contents if m.isfile()}
+    swap_file = 'src/core/thread.h'
+    expected[swap_file] = hashlib.sha256(capture(['git', 'show', f'{POST}:{swap_file}'])).hexdigest()
+    if manifest['sources']['pre'] != expected:
+        raise RuntimeError('PRE is not a363c2c5e plus the confirmed ThreadCtx swap')
+    return {'base': capture(['git', 'rev-parse', BASE]).decode().strip(),
+            'changed_files': [swap_file], 'swap_file_sha256': expected[swap_file]}
+
 def placement_controls(result, env):
     # Reuse candidate 1's unreachable front/tail padding control. A shrinking .text cannot be
     # matched by negative padding: pad the smaller arm back to the larger one, recording which
@@ -188,6 +203,7 @@ def build():
     if not set(os.sched_getaffinity(0)) <= set(range(112, 128)):
         raise RuntimeError('invoke with taskset -c 112-127')
     manifest = json.loads((OUT / 'source-manifest.json').read_text())
+    pre_verification = verify_pre(manifest)
     env = dict(os.environ, CXXFLAGS=FLAGS)
     for key in ('MAKEFLAGS', 'MFLAGS', 'MAKEOVERRIDES'): env.pop(key, None)
     result = {}
@@ -215,12 +231,15 @@ def build():
             for typ in ('Op', 'OpReply', 'Client', 'ThreadCtx', 'Shard', 'FlatStore',
                         'Rob<64>', 'AtomicEntry', 'Config'):
                 command.extend(['-ex', f'p sizeof(tomo::{typ})'])
-            command.extend(['-ex', 'ptype /o tomo::Op', '-ex', 'ptype /o tomo::Client'])
+            command.extend(['-ex', 'ptype /o tomo::Op', '-ex', 'ptype /o tomo::Client',
+                            '-ex', 'ptype /o tomo::ThreadCtx'])
             # PRE has no OpReply; GDB reports that absence and continues. No inferior is run.
             run(command, stdout=log, stderr=subprocess.STDOUT)
         (OUT / 'build-provenance.json').write_text(json.dumps({
             'compiler': capture(['g++', '--version']).decode().splitlines()[0],
             'cxxflags': FLAGS, 'affinity': sorted(os.sched_getaffinity(0)),
+            'make_jobs': 4, 'pre_verification': pre_verification,
+            'source_manifest_sha256': sha(OUT / 'source-manifest.json'),
             'measured': False, 'arms': result}, indent=2) + '\n')
         print(f'Ready {name}: {result[name]["sha256"]}', flush=True)
     placement_controls(result, env)
