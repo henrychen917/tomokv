@@ -107,55 +107,6 @@ def padding_source(count, note):
             '.section .note.gnu.property,"a",@note\n.p2align 3\n' +
             f'.incbin "{note}"\n')
 
-def placement_controls(result, env):
-    # Reuse candidate 1's unreachable front/tail padding control. A shrinking .text cannot be
-    # matched by negative padding: pad the smaller arm back to the larger one, recording which
-    # source it preserves. This changes no field, instruction on a called path, or data allocation.
-    controls = {}
-    for candidate in ('header', 'body', 'op', 'client', 'post'):
-        small, large = sorted(('pre', candidate), key=lambda a: result[a]['text_bytes'])
-        delta = result[large]['text_bytes'] - result[small]['text_bytes']
-        dst = ARMS / small
-        folder = OUT / f'place-{candidate}'
-        folder.mkdir(exist_ok=True)
-        binary = folder / 'tomokv'
-        objects = capture(['make', '--no-print-directory', '-s',
-            '--eval=cache_l3_objects: ; @echo $(OBJ)', 'cache_l3_objects'], cwd=dst).decode().strip()
-        note = folder / 'source-note.bin'
-        run(['objcopy', '--only-section=.note.gnu.property', '-O', 'binary',
-             str(dst / objects.split()[0]), str(note)])
-
-        def link(front, tail):
-            for name, count in (('front', front), ('tail', tail)):
-                asm = folder / f'{name}.S'
-                asm.write_text(padding_source(count, note))
-                run(['g++', '-c', str(asm), '-o', str(folder / f'{name}.o')])
-            with (folder / 'link.log').open('a') as log:
-                run(['make', '-j1', 'CXX=g++', 'JE=1', f'BIN={binary}',
-                     f'OBJ={folder / "front.o"} {objects} {folder / "tail.o"}', 'all'],
-                    cwd=dst, env=env, stdout=log, stderr=subprocess.STDOUT)
-            text = folder / 'text.bin'
-            run(['objcopy', '--only-section=.text', '-O', 'binary', str(binary), str(text)])
-            return text.stat().st_size
-
-        front = delta
-        for _ in range(8):
-            growth = link(front, 0) - result[small]['text_bytes']
-            if growth <= delta: break
-            next_front = max(0, front - (growth - delta))
-            if next_front == front: raise RuntimeError('cannot match placement padding')
-            front = next_front
-        else:
-            raise RuntimeError('placement padding did not converge')
-        tail = delta - growth
-        size = link(front, tail) if tail else result[small]['text_bytes'] + growth
-        if size != result[large]['text_bytes']: raise RuntimeError('placement size mismatch')
-        controls[candidate] = dict(binary=str(binary), sha256=sha(binary), text_bytes=size,
-            source_arm=small, matched_size_arm=large, front_bytes=front, tail_bytes=tail,
-            fields_moved=False,
-            limitation='Executable size and placement sensitivity control; function addresses are not matched.')
-    (OUT / 'placement-controls.json').write_text(json.dumps(controls, indent=2) + '\n')
-
 def matched_placement_controls():
     # POST is SMALLER than PRE, so a PRE-only positive pad cannot match POST's original
     # .text. Give every arm the same tail budget, then move the SAME unchanged PRE objects
@@ -390,7 +341,9 @@ def build():
     env = dict(os.environ, CXXFLAGS=FLAGS)
     for key in ('MAKEFLAGS', 'MFLAGS', 'MAKEOVERRIDES'): env.pop(key, None)
     result = {}
-    for name in ('pre', 'post', 'op', 'client', 'pad-op', 'pad-client', 'pad-post', 'header', 'body'):
+    names = ['pre', 'post', 'op', 'client', 'pad-op', 'pad-client', 'pad-post', 'header', 'body']
+    if 'cleanup' in manifest['sources']: names.append('cleanup')
+    for name in names:
         dst = ARMS / name
         if sources(dst) != manifest['sources'][name]: raise RuntimeError(f'{name}: source drift')
         print(f'Building {name}', flush=True)
@@ -425,7 +378,7 @@ def build():
             'source_manifest_sha256': sha(OUT / 'source-manifest.json'),
             'measured': False, 'arms': result}, indent=2) + '\n')
         print(f'Ready {name}: {result[name]["sha256"]}', flush=True)
-    placement_controls(result, env)
+    matched_placement_controls()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
