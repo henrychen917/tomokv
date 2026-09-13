@@ -201,13 +201,48 @@ struct Fixture {
     }
     void drain() {
         if (armed) for (unsigned tid = 0; tid < 8; tid++)
-            workers[tid]->call([&] { queues[tid].drain_shutdown(); });
+            workers[tid]->call([&] {
+                // Request completion is a live owner pass. Shutdown draining would bypass QSBR
+                // and empty the block cache, hiding reuse and stale-sink bugs at the next move.
+                queues[tid].drain_ready();
+                require(queues[tid].empty(), "parked fixture readers release every live retirement");
+            });
+    }
+    void move(int32_t sid, uint32_t destination_owner, bool range) {
+        release_records(); drain();
+        const uint32_t source_owner = server.worker_of_shard(sid);
+        require(source_owner != destination_owner && server.atomic_inflight() == 0 &&
+                server.atomic_apply_inflight() == 0, "handoff is between completed atomic waves");
+        require(server.reserve_shard_capacity(destination_owner, 1), "reserve incoming shard");
+        auto& shard = server.shard(sid);
+        require(range ? server.transfer_bucket_range_quiesced(
+                            shard.bucket_begin(), shard.bucket_end(), source_owner, destination_owner)
+                      : server.transfer_shard_quiesced(sid, source_owner, destination_owner),
+                "quiesced ownership transfer fired");
+        require(server.worker_of_shard(sid) == destination_owner, "destination ownership published");
+    }
+    KvObj* find(int32_t sid, const std::string& key) {
+        KvObj* object = nullptr;
+        on(sid, [&] { object = server.shard(sid).store().find(
+            FlatStore::hash_key(slice(key)), slice(key)); });
+        require(object, "fixture key has a live record");
+        return object;
+    }
+    KvObj* set(int32_t sid, const std::string& key, const std::string& value) {
+        on(sid, [&] {
+            require(xshard_store_string(server.shard(sid), slice(key),
+                        FlatStore::hash_key(slice(key)), slice(value)) == XshardStringStoreResult::Stored,
+                    "owner string replacement succeeds");
+        });
+        return find(sid, key);
     }
     ~Fixture() {
         release_records(); drain();
         for (unsigned sid = 0; sid < server.nshards(); sid++)
             on(sid, [&] { server.shard(sid).store().clear(); });
         drain();
+        if (armed) for (unsigned tid = 0; tid < 8; tid++)
+            workers[tid]->call([&] { queues[tid].drain_shutdown(); });
     }
 };
 
@@ -385,6 +420,112 @@ void immutable_retirement(Fixture& f) {
     });
 }
 
+void live_cache_handoff(Fixture& f) {
+    if (!f.armed) return; // The owner block cache does not exist on the read-local-0 path.
+    const std::string prefix(256, 'c');
+    const auto a = f.key(f.sid_a, prefix + "cache-a-"), b = f.key(f.sid_b, prefix + "cache-b-");
+    const std::string first(64, 'a'), second(64, 'b'), third(64, 'c'), fourth(64, 'd');
+    const size_t capacity = good_size(kvobj_alloc_size(a.size(), first.size(), false, Enc::Raw));
+    require(capacity == good_size(kvobj_alloc_size(b.size(), first.size(), false, Enc::Raw)),
+            "both owner caches use the same record class");
+    const uint32_t cls = kv_block_class(capacity);
+    require(cls < KvBlockCache::kClasses, "handoff record is eligible for the owner cache");
+    auto* a_first = f.set(f.sid_a, a, first);
+    auto* b_first = f.set(f.sid_b, b, first);
+    require(f.set(f.sid_a, a, second) != a_first && f.set(f.sid_b, b, second) != b_first,
+            "armed SET replaces live blocks before recycling");
+    f.drain();
+
+    struct CacheState {
+        KvBlockCache::FreeBlock* head;
+        uint32_t nodes;
+        size_t bytes;
+        bool operator==(const CacheState&) const = default;
+    };
+    auto cache_state = [&](unsigned tid) {
+        CacheState state{};
+        f.workers[tid]->call([&] {
+            const auto& cache = *f.queues[tid].sink()->block_cache;
+            state = {cache.heads[cls], cache.class_nodes[cls], cache.bytes};
+        });
+        return state;
+    };
+    require(static_cast<void*>(cache_state(f.source).head) == a_first &&
+            static_cast<void*>(cache_state(f.destination).head) == b_first,
+            "live drain must leave both retired records cached before handoff");
+
+    // The two APIs must both rebind the owner-private cache AT the transfer. Keep a known block
+    // in each owner's cache so the very first replacement can identify which one was consumed.
+    for (bool range : {false, true}) {
+        const auto old_owner = f.server.worker_of_shard(f.sid_a);
+        const auto new_owner = range ? f.source : f.destination;
+        const auto old_cache = cache_state(old_owner), new_cache = cache_state(new_owner);
+        require(old_cache.head && new_cache.head && old_cache.head != new_cache.head,
+                "both sides of the ownership edge have distinct reusable blocks");
+        auto* displaced = f.find(f.sid_a, a);
+        const auto& before = range ? third : second;
+        const auto& after = range ? fourth : third;
+        f.move(f.sid_a, new_owner, range);
+        require(cache_state(old_owner) == old_cache && cache_state(new_owner) == new_cache,
+                "handoff rebinds the store without moving either owner's cache");
+
+        // Migration itself is quiescent. Open the foreign-reader window only after the handoff,
+        // then replace on the new owner. No callback may run until that reader releases its cut.
+        f.server.thread(5).publish_read_local_tick(f.server.read_local_epoch());
+        require(static_cast<void*>(f.set(f.sid_a, a, after)) == new_cache.head,
+                "first write after handoff consumes the destination owner's cached block");
+        require(cache_state(old_owner) == old_cache,
+                "destination write leaves the former owner's cache untouched");
+        require(f.queues[old_owner].empty() && !f.queues[new_owner].empty(),
+                "destination write retires into the destination queue only");
+        f.workers[new_owner]->call([&] {
+            require(f.queues[new_owner].drain_ready() == 0,
+                    "foreign reader blocks reclamation after ownership transfer");
+        });
+        require(displaced->str_value() == slice(before), "post-handoff predecessor stays immutable");
+        const auto held_cache = cache_state(new_owner);
+        require(held_cache.nodes + 1 == new_cache.nodes &&
+                held_cache.bytes + capacity == new_cache.bytes,
+                "reader-held record has not returned to the destination cache");
+        f.server.thread(5).publish_read_local_parked(f.server.read_local_epoch());
+        f.drain();
+        const auto released_cache = cache_state(new_owner);
+        require(static_cast<void*>(released_cache.head) == displaced &&
+                released_cache.nodes == new_cache.nodes && released_cache.bytes == new_cache.bytes,
+                "destination cache receives the displaced block after the reader leaves");
+        require(cache_state(old_owner) == old_cache,
+                "destination reclamation leaves the former owner's cache untouched");
+    }
+}
+
+void atomic_pool_handoff(Fixture& f) {
+    for (unsigned length : {64u, 192u}) {
+        const std::string prefix(1024 + length, 'p');
+        const auto a = f.key(f.sid_a, prefix + "pool-a-"), b = f.key(f.sid_b, prefix + "pool-b-");
+        const std::string first(length, 'j'), second(length, 'k'), third(length, 'l');
+        { Request seed(f, {"MSET", a, first, b, first}); seed.finish(); }
+        auto* recycled = f.find(f.sid_a, a);
+        const auto birth_arena = arena_of(recycled);
+        require(birth_arena == f.workers[f.source]->arena, "pooled record begins on the source owner");
+        { Request warm(f, {"MSET", a, second, b, second}); warm.finish(); }
+        require(f.find(f.sid_a, a) != recycled, "first atomic value was displaced into its shard pool");
+        f.move(f.sid_a, f.destination, false);
+        {
+            Request request(f, {"MSET", a, third, b, third});
+            request.finish();
+            // A warmed shard pool legitimately carries old-arena blocks across migration. Check
+            // exact reuse AND new bytes: requiring destination arena identity here would mistake
+            // allocator provenance for the core that initializes the replacement or L3 residency.
+            request.expect(a, &third, false); request.expect(b, &third);
+            auto* reused = f.find(f.sid_a, a);
+            require(reused == recycled && arena_of(reused) == birth_arena &&
+                    birth_arena != f.workers[f.destination]->arena,
+                    "new owner reuses the migrated shard's historical-arena block");
+        }
+        f.move(f.sid_a, f.source, true);
+    }
+}
+
 void migration(Fixture& f) {
     const auto a = f.key(f.sid_a, "move-a-"), b = f.key(f.sid_b, "move-b-");
     const std::string old(193, 'p'), fresh(4096, 'q');
@@ -410,7 +551,9 @@ int main(int argc, char** argv) {
     require(lane == "read-local-0" || lane == "read-local-1", "known read-local arm");
     require(command_registry_init(false), "command registry initialized");
     Fixture fixture(mode == "1s", lane == "read-local-1");
-    placement_and_duplicates(fixture); aborts(fixture); immutable_retirement(fixture); migration(fixture);
-    std::printf("PASS owner arena %s %s: placement, atomic visibility, duplicates, OOM, NX, QSBR, migration\n",
+    placement_and_duplicates(fixture); aborts(fixture); immutable_retirement(fixture);
+    live_cache_handoff(fixture); atomic_pool_handoff(fixture); migration(fixture);
+    std::printf("PASS owner arena %s %s: placement, atomic visibility, duplicates, OOM, NX, QSBR, "
+                "live-cache handoff, atomic-pool handoff, migration\n",
                 mode.c_str(), lane.c_str());
 }
