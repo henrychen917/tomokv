@@ -44,6 +44,9 @@ $(BIN): $(OBJ)
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 
+# This TU includes t_string.cc, including R8's cold resumable instantiation.
+build/src/cmd/t_string_notify.o: src/cmd/t_string.cc
+
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -c $< -o $@

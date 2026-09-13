@@ -116,6 +116,8 @@ def main():
         # share a real owner; 8-deep concurrent batches permit legal cross-client permutations.
         # An absent witness gets fresh keys/connections, bounded; wrong replies never get retried.
         start = _lib.info(ctl, "server")
+        mechanism_fields = ('reorder_sliced_commands', 'reorder_slice_yields') \
+            if 'reorder_sliced_commands' in start else ('reorder_permuted_runs',)
         for attempt in range(4):
             owner = min(topo.owners)
             chosen = []
@@ -147,18 +149,20 @@ def main():
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(chosen)) as pool:
                 list(pool.map(worker, enumerate(chosen)))
             final = _lib.info(ctl, "server")
-            if not args.reorder or (int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"])):
+            if not args.reorder or all(int(final[field]) > int(start[field]) for field in mechanism_fields):
                 break
         if args.reorder:
             require(int(final["reorder_batches"]) > int(start["reorder_batches"]), "reorder was never called")
             require(int(final["reorder_multi_client_runs"]) > int(start["reorder_multi_client_runs"]),
                     "reorder never saw several clients in one eligible run")
-            require(int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"]),
-                    "no real permutation after four fresh arms: %r" %
-                    {key: value for key, value in final.items() if key.startswith("reorder") })
+            for field in mechanism_fields:
+                require(int(final[field]) > int(start[field]),
+                        "no real %s after four fresh arms: %r" %
+                        (field, {key: value for key, value in final.items() if key.startswith("reorder")}))
         else:
             require(all(int(final.get(name, 0)) == 0 for name in
-                        ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
+                        ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch",
+                         "reorder_sliced_commands", "reorder_slice_yields")),
                     "reorder ran while disabled")
         schedule = "plain" if not args.overlap else "split-io-overlap" if args.mode == "2s" else "fused-overlap"
         require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")

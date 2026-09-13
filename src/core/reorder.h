@@ -1,214 +1,231 @@
-// reorder.h -- latency scheduling across connections within one gathered executor batch.
-// Per-connection order and special-task barriers are absolute. One-client runs retain FIFO.
+// R8: a gathered batch cooperatively advances long BITCOUNTs. No continuation escapes the
+// owner's batch, so FLIP, shard transfer, snapshot control and QSBR maintenance never inherit one.
 #pragma once
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
+#include <new>
 #include "genthread_pipeline.h"
 #include "thread.h"
 #include "orthog.h"
+#include "shard.h"
 #include "../net/conn.h"
+#include "../net/resp.h"
 #include "../cmd/command.h"
 
 namespace tomo {
 
-inline constexpr uint32_t kExSchedClasses =
-    static_cast<uint32_t>(CommandLengthClass::Count);
-inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
-inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
-static_assert(kExSchedBuckets == 192);
-
-// Only the ordinary one-owner path participates. Every existing special mechanism is a hard
-// barrier in the gathered sequence: eligible work on either side cannot move across it.
-inline bool ex_sched_candidate(const Task& task, uint8_t& length) {
-    if (!task.client || task.scatter) return false;
-    const Op& op = task.client->rob().at(task.op_id);
-    if (!op.spec || op.has_blocking_state()) return false;
-    constexpr uint32_t kSpecial =
-        CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
-        CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
-        CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
-        CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
-    // MultiShard is deliberately absent: a same-owner MGET/MSET local-fast task is ordinary
-    // here. A real scatter has task.scatter set and returned above.
-    if (op.spec->flags & kSpecial) return false;
-    length = static_cast<uint8_t>(command_length_class(*op.spec));
-    if (__builtin_expect(length >= kExSchedClasses, false)) return false;
-    // There is no O(1) class pointer from an op to an exact parked atomic predecessor. The
-    // immutable publish-time hazard bit says an older own atomic group existed; Long is the
-    // safe upper bound without a deque scan or persistent scheduler state.
-    if (op.atomic_hazard()) length = static_cast<uint8_t>(CommandLengthClass::Long);
-    return true;
+inline uint64_t bitmap_popcount(const uint8_t* bytes, size_t length) {
+    uint64_t count = 0;
+    while (length >= sizeof(uint64_t)) {
+        uint64_t word;
+        std::memcpy(&word, bytes, sizeof(word));
+        count += static_cast<uint64_t>(__builtin_popcountll(word));
+        bytes += sizeof(word);
+        length -= sizeof(word);
+    }
+    while (length--) count += static_cast<uint64_t>(__builtin_popcount(*bytes++));
+    return count;
 }
 
-struct ExScheduleKey {
-    uint8_t rank = 0;
-    uint8_t length = 0;
+struct BitcountReply {
+    void operator()(Shard&, Op& op, Slice value, size_t offset, size_t length,
+                    uint64_t edges = 0) const {
+        reply_int(op.sink(), static_cast<long long>(edges + bitmap_popcount(
+            reinterpret_cast<const uint8_t*>(value.p) + offset, length)));
+    }
 };
 
-template <size_t BatchOps>
-uint32_t ex_schedule_run(Task* tasks, const uint8_t* base_lengths, uint32_t n) {
-    if (n < 2) return 0;
-    Client* const only_client = tasks[0].client;
-    uint32_t distinct_at = 1;
-    while (distinct_at < n && tasks[distinct_at].client == only_client) distinct_at++;
-    // Absolute per-connection order leaves no legal permutation in a one-client run.
-    if (distinct_at == n) return 0;
+// Only large external strings suspend. Integer/inline views can name handler-stack storage;
+// the structural minimum below is greater than either representation. The borrow is registered
+// under the WHOLE value's pointer, even for a range starting in its middle. It pins exactly the
+// version selected by normal owner admission + plain_read_cut/RYOW resolution, before that
+// scope closes. Replacement, expiry, eviction and MVCC reclamation use the existing retention
+// protocol. Subsequent slices never find the key again or change the selected read cut.
+class BitcountSlice {
+public:
+    explicit BitcountSlice(uint32_t pieces = 1) : pieces_(std::max<uint32_t>(1, pieces)) {}
+    ~BitcountSlice() { if (store_) store_->unborrow(base_); }
+    BitcountSlice(const BitcountSlice&) = delete;
+    BitcountSlice& operator=(const BitcountSlice&) = delete;
 
-    ExScheduleKey keys[BatchOps];
-    uint8_t min_rank = UINT8_MAX;
-    uint8_t max_rank = 0;
-    uint8_t first_length = 0;
-    bool one_length = true;
+    bool pending() const { return store_ != nullptr; }
+    void pieces(uint32_t n) { pieces_ = std::max<uint32_t>(1, n); }
 
-    // The gather contract presents each connection's Tasks in increasing op_id order. Sample
-    // newest-to-oldest: flush_id only advances, so an older task still receives a strictly
-    // lower rank even if IO retires a completed prefix between samples. Adjacent tasks from
-    // one connection reuse the head load without any per-connection table. The slow path
-    // verifies the contract before reordering; every earlier exit retains FIFO.
-    Client* sampled_client = nullptr;
-    uint64_t sampled_head = 0;
-    for (uint32_t i = n; i-- > 0;) {
-        const Task& task = tasks[i];
-        if (task.client != sampled_client) {
-            sampled_client = task.client;
-            sampled_head = sampled_client->rob().flush_id();
+    void operator()(Shard& shard, Op& op, Slice value, size_t offset, size_t length,
+                    uint64_t edges = 0) {
+        constexpr size_t line = kGenthreadCacheLineBytes;
+        // Divide this command among the available batch turns; no window/size knob. The floor
+        // protects pointer lifetime, not a claim that 256-byte slices have earned their cost.
+        quantum_ = (std::max<size_t>(kEmbedThreshold + 1,
+                                    (length + pieces_ - 1) / pieces_) + line - 1) / line * line;
+        if (length <= quantum_) {
+            BitcountReply{}(shard, op, value, offset, length, edges);
+            return;
         }
-        const uint64_t distance = task.op_id - sampled_head;
-        // A fresh unfinished task is always in the 64-slot live ROB window. If that invariant
-        // is ever broken, preserve today's FIFO instead of collapsing ranks and risking order.
-        if (__builtin_expect(distance >= kRobWindow, false)) return 1;
-        keys[i] = ExScheduleKey{static_cast<uint8_t>(distance), base_lengths[i]};
-        min_rank = std::min(min_rank, keys[i].rank);
-        max_rank = std::max(max_rank, keys[i].rank);
-        if (i == n - 1) first_length = keys[i].length;
-        else one_length &= keys[i].length == first_length;
-    }
-
-    // The measured-law escape is defined on the directly available gathered classes and runs
-    // before conservative widening for an invisible predecessor. This is what keeps homogeneous
-    // rank-adjacent traffic off the dependency and bucket paths.
-    if (one_length && max_rank - min_rank <= 1) return 1;
-
-    // Effective class is the prefix maximum for each connection in this gathered run. A rank
-    // before the first represented task, or a gap in its ids, means an unrepresented blocker;
-    // its slot cannot safely be read while IO may recycle it, so Long is the no-state upper
-    // bound. Open addressing is at most half full and is reached only after degeneration.
-    static constexpr uint32_t kChainSlots = BatchOps * 2;
-    static constexpr uint32_t kChainWords = (kChainSlots + 63) / 64;
-    Client* chain_client[kChainSlots];
-    uint8_t chain_last[kChainSlots];
-    uint64_t chain_occupied[kChainWords] = {};
-    for (uint32_t i = 0; i < n; i++) {
-        Client* client = tasks[i].client;
-        uint64_t hash = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(client));
-        hash ^= hash >> 33;
-        hash *= uint64_t{0xff51afd7ed558ccdull};
-        hash ^= hash >> 33;
-        uint32_t slot = static_cast<uint32_t>(hash) & (kChainSlots - 1);
-        uint64_t bit = uint64_t{1} << (slot & 63);
-        while ((chain_occupied[slot >> 6] & bit) && chain_client[slot] != client) {
-            slot = (slot + 1) & (kChainSlots - 1);
-            bit = uint64_t{1} << (slot & 63);
+        try { shard.store().borrow(value.p); }
+        catch (const std::bad_alloc&) {
+            // Optional scheduling storage cannot turn a valid read into an OOM error.
+            BitcountReply{}(shard, op, value, offset, length, edges);
+            return;
         }
-        if (!(chain_occupied[slot >> 6] & bit)) {
-            chain_occupied[slot >> 6] |= bit;
-            chain_client[slot] = client;
-            if (keys[i].rank != 0)
-                keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
-        } else {
-            const uint8_t previous = chain_last[slot];
-            // Preserve the existing FIFO if a producer-lane bug ever violates the gather
-            // contract. The scheduler must never create a same-connection inversion.
-            if (tasks[i].op_id <= tasks[previous].op_id) return 1;
-            keys[i].length = std::max(keys[i].length, keys[previous].length);
-            if (tasks[i].op_id != tasks[previous].op_id + 1)
-                keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
-        }
-        chain_last[slot] = static_cast<uint8_t>(i);
-    }
-    one_length = true;
-    for (uint32_t i = 1; i < n; i++) one_length &= keys[i].length == keys[0].length;
-    if (one_length && max_rank - min_rank <= 1) return 1;
-
-    // Stable gather order often already matches the selected bucket order. Avoid scratch
-    // setup and two Task copies when the policy would be an identity permutation.
-    bool already_ordered = true;
-    uint32_t previous_bucket = keys[0].rank * kExSchedClasses + keys[0].length;
-    for (uint32_t i = 1; i < n; i++) {
-        const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
-        already_ordered &= bucket >= previous_bucket;
-        previous_bucket = bucket;
-    }
-    if (already_ordered) return 1;
-
-    uint8_t counts[kExSchedBuckets];
-    uint8_t cursors[kExSchedBuckets];
-    uint64_t occupied[kExSchedBucketWords] = {};
-    for (uint32_t i = 0; i < n; i++) {
-        const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
-        const uint32_t word = bucket >> 6;
-        const uint64_t bit = uint64_t{1} << (bucket & 63);
-        if (!(occupied[word] & bit)) {
-            occupied[word] |= bit;
-            counts[bucket] = 0;
-        }
-        counts[bucket]++;
+        store_ = &shard.store();
+        base_ = value.p;
+        cursor_ = reinterpret_cast<const uint8_t*>(value.p) + offset;
+        remaining_ = length;
+        count_ = edges;
+        op_ = &op;
+        step();
     }
 
-    uint8_t out = 0;
-    for (uint32_t word = 0; word < kExSchedBucketWords; word++) {
-        uint64_t bits = occupied[word];
-        while (bits) {
-            const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
-            bits &= bits - 1;
-            const uint32_t bucket = word * 64 + bit;
-            cursors[bucket] = out;
-            out = static_cast<uint8_t>(out + counts[bucket]);
-        }
+    // Returns true only after formatting the sole reply and releasing the borrow. Done remains
+    // the executor's publication; the unfinished ROB slot keeps argv and the Client alive.
+    bool step(bool finish = false) {
+        if (!pending()) std::abort();
+        const size_t take = finish ? remaining_ : std::min(remaining_, quantum_);
+        count_ += bitmap_popcount(cursor_, take);
+        cursor_ += take;
+        remaining_ -= take;
+        if (remaining_) return false;
+        reply_int(op_->sink(), static_cast<long long>(count_));
+        store_->unborrow(base_);
+        store_ = nullptr;
+        return true;
     }
 
-    Task ordered[BatchOps];
-    for (uint32_t i = 0; i < n; i++) {
-        const uint32_t bucket = keys[i].rank * kExSchedClasses + keys[i].length;
-        ordered[cursors[bucket]++] = tasks[i];
-    }
-    for (uint32_t i = 0; i < n; i++) tasks[i] = ordered[i];
-    return 2;
+private:
+    FlatStore* store_ = nullptr;
+    Op* op_ = nullptr;
+    const char* base_ = nullptr;
+    const uint8_t* cursor_ = nullptr;
+    size_t remaining_ = 0;
+    size_t quantum_ = 0;
+    uint64_t count_ = 0;
+    uint32_t pieces_ = 1;
+};
+
+// The same BITCOUNT parser/masks as the synchronous handler; defined in t_string.cc.
+void bitcount_slice_begin(Shard& shard, Op& op, BitcountSlice& slice);
+
+// Specials, atomic groups (including same-owner lowering), notifications, and all other long
+// handlers are barriers. EXEC/script child BITCOUNTs keep their ordinary synchronous handler.
+// No half-applied mutation or active plain-read scope is ever held while another task runs.
+enum class SplitKind : uint8_t { Barrier, Ordinary, Bitcount };
+inline SplitKind ex_split_kind(const Task& task) {
+    if (!task.client || task.scatter) return SplitKind::Barrier;
+    const Op& op = task.client->rob().at(task.op_id);
+    if (!op.spec || op.has_blocking_state()) return SplitKind::Barrier;
+    constexpr uint32_t special =
+        CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
+        CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
+        CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction | CmdFlags::MultiShard |
+        CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync |
+        CmdFlags::NotifySelected | CmdFlags::SnapshotWrite;
+    if (op.spec->flags & special) return SplitKind::Barrier;
+    if (op.spec->flags & CmdFlags::SliceBitcount) return SplitKind::Bitcount;
+    return command_length_class(*op.spec) == CommandLengthClass::Long
+        ? SplitKind::Barrier : SplitKind::Ordinary;
 }
 
-// Keep scratch behind the caller's boot-latched enable branch, including stack reservation.
-// Deduce capacity from the gathered array: exec_batch must not decay it to a Task pointer.
-// No heap allocation, persistent state, truncated suffix, or change to the scheduling policy.
-template <size_t BatchOps>
-__attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {
-    static_assert(BatchOps == kGenthreadExBatchOps ||
-                  BatchOps == kGenthreadPipelineExBatchOps,
-                  "audit new executor geometry before enabling reorder");
-    static_assert(BatchOps <= UINT8_MAX, "scheduler indices/counts must fit in a byte");
-    static_assert((BatchOps & (BatchOps - 1)) == 0, "connection hash mask needs power of two");
-    // A future broken gather must fail loudly even in release builds, never schedule a prefix.
-    if (__builtin_expect(n > BatchOps, false)) std::abort();
+// A scan of immutable published metadata, behind one boot-latched branch per batch. A batch
+// without a covered blocker followed by another connection takes the unchanged execution loop.
+// No ROB ranks, counters, handler indirection or scratch allocation enter that loop.
+__attribute__((noinline)) inline bool ex_split_possible(const Task* tasks, uint32_t n) {
+    Client* blocker = nullptr;
+    for (uint32_t i = 0; i < n; i++) {
+        const SplitKind kind = ex_split_kind(tasks[i]);
+        if (kind == SplitKind::Barrier) { blocker = nullptr; continue; }
+        if (blocker && tasks[i].client != blocker) return true;
+        if (kind == SplitKind::Bitcount) blocker = tasks[i].client;
+    }
+    return false;
+}
+
+// Begin uses normal execute() for admission/forwarding/parking, but can suppress Done for a
+// sliced BITCOUNT. Complete publishes that deferred Done. Retry takes the untouched FIFO suffix.
+// All callbacks are compile-time callables; the original ordinary-command loop is unchanged.
+template <typename Begin, typename Complete, typename Retry, typename Yield>
+__attribute__((noinline)) ReorderResult ex_split_batch(
+        const Task* tasks, uint32_t n, Begin&& begin, Complete&& complete, Retry&& retry,
+        Yield&& yield) {
+    constexpr uint32_t capacity = kGenthreadPipelineExBatchOps;
+    static_assert(kGenthreadExBatchOps <= capacity);
+    if (n > capacity) std::abort();
     ReorderResult result;
-    uint8_t base_lengths[BatchOps];
-    uint32_t begin = 0;
-    while (begin < n) {
-        if (!ex_sched_candidate(tasks[begin], base_lengths[begin])) {
-            begin++;
-            continue;
+    BitcountSlice slices[capacity];
+    bool done[capacity] = {};
+    SplitKind kinds[capacity];
+    // Capture metadata BEFORE any Done: IO may recycle completed slots during this call.
+    for (uint32_t i = 0; i < n; i++) kinds[i] = ex_split_kind(tasks[i]);
+    for (uint32_t first = 0; first < n;) {
+        uint32_t end = first;
+        while (end < n && kinds[end] != SplitKind::Barrier) end++;
+        if (end == first) end++;
+        uint32_t remaining = end - first;
+        uint32_t active = 0;
+        bool multi = false;
+        for (uint32_t i = first + 1; i < end; i++)
+            multi |= tasks[i].client != tasks[first].client;
+        result.multi_client_runs += multi;
+        while (remaining) {
+            for (uint32_t i = first; i < end; i++) {
+                if (done[i]) continue;
+                // Same-connection order is stronger than reply order: its next task cannot even
+                // ENTER admission until the preceding sliced read is complete. Existing parked
+                // predecessor checks still protect tasks execute() moves to an atomic queue.
+                bool own_predecessor = false;
+                for (uint32_t j = first; j < i; j++)
+                    own_predecessor |= !done[j] && tasks[j].client == tasks[i].client;
+                if (own_predecessor) continue;
+                if (slices[i].pending()) {
+                    // Once only this connection remains, there is no useful yield left. Finish
+                    // its suffix in one scan instead of paying empty scheduler turns.
+                    bool peer = false;
+                    for (uint32_t j = first; j < end; j++)
+                        peer |= !done[j] && tasks[j].client != tasks[i].client;
+                    if (!slices[i].step(!peer)) continue;
+                    active--;
+                    complete(tasks[i]);
+                } else {
+                    bool peer_after = false;
+                    for (uint32_t j = i + 1; j < end; j++)
+                        peer_after |= !done[j] && tasks[j].client != tasks[i].client;
+                    BitcountSlice* slice = kinds[i] == SplitKind::Bitcount && (peer_after || active)
+                        ? &slices[i] : nullptr;
+                    if (slice) slice->pieces(end - first);
+                    if (!begin(tasks[i], slice)) {
+                        // A retry is a FIFO barrier. Complete all pinned reads before yielding
+                        // the batch, then preserve every still-unstarted Task exactly once.
+                        for (uint32_t j = first; j < end; j++) if (slices[j].pending()) {
+                            slices[j].step(true);
+                            complete(tasks[j]);
+                            done[j] = true;
+                        }
+                        for (uint32_t j = first; j < n; j++)
+                            if (!done[j]) retry(tasks[j]);
+                        return result;
+                    }
+                    if (slice && slice->pending()) {
+                        result.sliced_commands++;
+                        active++;
+                        continue;
+                    }
+                }
+                done[i] = true;
+                remaining--;
+            }
+            if (active) {
+                // Publish peer completion notifications BEFORE resuming the long scans. Leaving
+                // them in the usual batch coalescer would keep a sleeping split IO waiting for
+                // the full command anyway. This is an existing sender wake, never executor WB.
+                yield();
+                result.slice_yields++;
+            }
         }
-        uint32_t end = begin + 1;
-        while (end < n && ex_sched_candidate(tasks[end], base_lengths[end])) end++;
-        const uint32_t witness = ex_schedule_run<BatchOps>(
-            tasks + begin, base_lengths + begin, end - begin);
-        result.multi_client_runs += witness != 0;
-        result.permuted_runs += witness == 2;
-        // The failed candidate at end is a known barrier; consume it without reading its Op a
-        // second time, then find the next eligible run.
-        begin = end + (end < n);
+        first = end;
     }
     return result;
 }
 
-}  // namespace tomo
+} // namespace tomo

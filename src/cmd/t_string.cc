@@ -8,6 +8,7 @@
 #include "notify.h"
 #include "serialize.h"
 #include "../core/shard.h"
+#include "../core/reorder.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../snapshot/format.h"
@@ -885,19 +886,6 @@ void cmd_getbit(Shard& sh, Op& op) {
     reply_int(op.sink(), set ? 1 : 0);
 }
 
-uint64_t bitmap_popcount(const uint8_t* bytes, size_t length) {
-    uint64_t count = 0;
-    while (length >= sizeof(uint64_t)) {
-        uint64_t word;
-        std::memcpy(&word, bytes, sizeof(word));
-        count += static_cast<uint64_t>(__builtin_popcountll(word));
-        bytes += sizeof(word);
-        length -= sizeof(word);
-    }
-    while (length--) count += static_cast<uint64_t>(__builtin_popcount(*bytes++));
-    return count;
-}
-
 bool parse_bitmap_unit(Op& op, Slice unit, bool& bits) {
     if (eq_icase(unit, "bit")) bits = true;
     else if (eq_icase(unit, "byte")) bits = false;
@@ -905,8 +893,8 @@ bool parse_bitmap_unit(Op& op, Slice unit, bool& bits) {
     return true;
 }
 
-template <bool kNotify>
-void cmd_bitcount(Shard& sh, Op& op) {
+template <bool kNotify, typename Finish>
+void bitcount_run(Shard& sh, Op& op, Finish&& finish) {
     int64_t start = 0, end = 0;
     bool bit_unit = false;
     const bool ranged = op.argc() == 4 || op.argc() == 5;
@@ -929,8 +917,7 @@ void cmd_bitcount(Shard& sh, Op& op) {
     KvObjRawReadBuffer raw;
     const Slice value = string_bytes(o, integer, raw);
     if (!ranged) {
-        reply_int(op.sink(), static_cast<long long>(bitmap_popcount(
-            reinterpret_cast<const uint8_t*>(value.p), value.n)));
+        finish(sh, op, value, 0, value.n, 0);
         return;
     }
 
@@ -945,8 +932,8 @@ void cmd_bitcount(Shard& sh, Op& op) {
 
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(value.p);
     if (!bit_unit) {
-        reply_int(op.sink(), static_cast<long long>(
-            bitmap_popcount(bytes + start, static_cast<size_t>(end - start + 1))));
+        finish(sh, op, value, static_cast<size_t>(start),
+               static_cast<size_t>(end - start + 1), 0);
         return;
     }
 
@@ -961,13 +948,18 @@ void cmd_bitcount(Shard& sh, Op& op) {
     } else {
         count += static_cast<uint64_t>(__builtin_popcount(
             static_cast<unsigned>(bytes[first_byte] & first_mask)));
-        if (last_byte > first_byte + 1)
-            count += bitmap_popcount(bytes + first_byte + 1,
-                                     static_cast<size_t>(last_byte - first_byte - 1));
         count += static_cast<uint64_t>(__builtin_popcount(
             static_cast<unsigned>(bytes[last_byte] & last_mask)));
+        finish(sh, op, value, static_cast<size_t>(first_byte + 1),
+               static_cast<size_t>(last_byte - first_byte - 1), count);
+        return;
     }
     reply_int(op.sink(), static_cast<long long>(count));
+}
+
+template <bool kNotify>
+void cmd_bitcount(Shard& sh, Op& op) {
+    bitcount_run<kNotify>(sh, op, BitcountReply{});
 }
 
 int64_t bitmap_find_bit(const uint8_t* bytes, uint64_t start, uint64_t end, bool wanted) {
@@ -1475,7 +1467,8 @@ static const CommandSpec kTable[] = {
                                              cmd_bitfield, 1, 1, 1, cmd_bitfield_notify},
     {"BITFIELD_RO",   2, -1,  CmdFlags::Readonly,
                                           cmd_bitfield_ro, 1, 1, 1, cmd_bitfield_ro_notify},
-    {"BITCOUNT",      2, -1,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitcount, 1, 1, 1)},
+    {"BITCOUNT",      2, -1,  CmdFlags::Readonly | CmdFlags::SliceBitcount,
+                                                                    TOMO_HANDLER_PAIR(cmd_bitcount, 1, 1, 1)},
     {"BITPOS",        3,  6,  CmdFlags::Readonly,                    TOMO_HANDLER_PAIR(cmd_bitpos, 1, 1, 1)},
     {"BITOP",         4, -1,  CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,
                                                                                cmd_xshard_only, 2, -1, 1},
@@ -1527,6 +1520,11 @@ static const CommandSpec kTable[] = {
 }  // namespace
 
 #ifdef TOMO_STRING_NOTIFY_TU
+// Keep the resumable instantiation with the cold string variants. Instantiating it in the
+// clean family changes GCC's whole-unit inlining budget for the unrelated GET handler.
+void bitcount_slice_begin(Shard& shard, Op& op, BitcountSlice& slice) {
+    bitcount_run<false>(shard, op, slice);
+}
 void cmd_get_tls_notify(Shard& shard, Op& op) {
     notify_execute_handler(shard, op, cmd_get<true, false>);
 }

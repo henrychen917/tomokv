@@ -76,17 +76,17 @@
     {
       "name": "reorder-fifo",
       "file": "src/core/reorder.h",
-      "find": "__attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {",
-      "replace": "__attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {\n    return {}; // throwaway mutant: leave every task in FIFO order",
+      "find": "__attribute__((noinline)) inline bool ex_split_possible(const Task* tasks, uint32_t n) {",
+      "replace": "__attribute__((noinline)) inline bool ex_split_possible(const Task* tasks, uint32_t n) {\n    return false; // throwaway mutant: never open a slicing window",
       "rows": [
         {
           "row": "reorder",
-          "failure": "reorder battery: FAIL: actual permutation differs from exact oracle"
+          "failure": "FAIL reorder: real mixed-client scope must arm"
         },
         {
           "feature": "^[12]s-[01]-[01]-1-0$",
           "count": 8,
-          "failure": "reorder witness reorder_multi_client_runs did not match knob|reorder witness reorder_permuted_runs did not match knob"
+          "failure": "reorder witness reorder_multi_client_runs did not match knob|reorder witness reorder_sliced_commands did not match knob|reorder witness reorder_slice_yields did not match knob"
         }
       ]
     },

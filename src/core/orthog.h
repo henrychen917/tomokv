@@ -12,6 +12,8 @@ namespace tomo {
 struct ReorderResult {
     uint32_t multi_client_runs = 0;
     uint32_t permuted_runs = 0;
+    uint64_t sliced_commands = 0;
+    uint64_t slice_yields = 0;
 };
 
 enum class OverlapSchedule : uint32_t { None, SplitIo, Fused };
@@ -24,6 +26,8 @@ struct alignas(64) ModeScheduleStats {
     std::atomic<uint64_t> reorder_permuted_runs{0};
     std::atomic<uint32_t> reorder_max_batch{0};
     std::atomic<OverlapSchedule> overlap_schedule{OverlapSchedule::None};
+    std::atomic<uint64_t> reorder_sliced_commands{0};
+    std::atomic<uint64_t> reorder_slice_yields{0};
 
     // Each element has one physical-thread writer for its entire lifetime, including FLIP.
     // INFO reads atomically; no locked RMW and no changes to the shared ThreadCtx cache lines.
@@ -39,6 +43,8 @@ struct alignas(64) ModeScheduleStats {
         add(reorder_batches);
         add(reorder_multi_client_runs, result.multi_client_runs);
         add(reorder_permuted_runs, result.permuted_runs);
+        add(reorder_sliced_commands, result.sliced_commands);
+        add(reorder_slice_yields, result.slice_yields);
         reorder_max_batch.store(std::max(n, reorder_max_batch.load(std::memory_order_relaxed)),
                                 std::memory_order_relaxed);
     }
@@ -50,6 +56,7 @@ inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats
                                      uint32_t nthreads) {
     uint64_t passes = 0, interleaved = 0, batches = 0, multi = 0, permutations = 0;
     uint32_t max_batch = 0, schedules = 0;
+    uint64_t sliced = 0, yields = 0;
     if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
         const auto& s = stats[tid];
         passes += s.overlap_passes.load(std::memory_order_relaxed);
@@ -57,6 +64,8 @@ inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats
         batches += s.reorder_batches.load(std::memory_order_relaxed);
         multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
         permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
+        sliced += s.reorder_sliced_commands.load(std::memory_order_relaxed);
+        yields += s.reorder_slice_yields.load(std::memory_order_relaxed);
         max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
         schedules |= 1u << static_cast<uint32_t>(s.overlap_schedule.load(std::memory_order_relaxed));
     }
@@ -67,11 +76,13 @@ inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats
     const int n = std::snprintf(row, sizeof(row),
         "schedule_stats_threads:%u\r\noverlap_schedule:%s\r\noverlap_passes:%llu\r\n"
         "overlap_interleaved_passes:%llu\r\nreorder_batches:%llu\r\n"
-        "reorder_multi_client_runs:%llu\r\nreorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\n",
+        "reorder_multi_client_runs:%llu\r\nreorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\n"
+        "reorder_sliced_commands:%llu\r\nreorder_slice_yields:%llu\r\n",
         stats ? nthreads : 0, schedule,
         static_cast<unsigned long long>(passes), static_cast<unsigned long long>(interleaved),
         static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch);
+        static_cast<unsigned long long>(permutations), max_batch,
+        static_cast<unsigned long long>(sliced), static_cast<unsigned long long>(yields));
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }

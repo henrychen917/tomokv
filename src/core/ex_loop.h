@@ -2007,9 +2007,6 @@ private:
         auto execute_batch = [&] {
             if (!held) return;
             if (!filler_used && xshard_retries_.empty()) {
-                if (__builtin_expect(reorder_enabled_, false))
-                    srv_->mode_schedule_stats(self_->id()).note_reorder(
-                        held, ex_schedule_batch(batch, held));
                 prefetch_exec_batch(batch, held);
                 filler();
                 filler_used = true;
@@ -2414,7 +2411,9 @@ private:
             // here, once per batch of up to kExecBatch ops. No clock is read and the recorder is
             // not linked into this loop at all. The armed body is out of line in
             // exec_batch_timed().
-            if (__builtin_expect(slowlog_armed_, false)) {
+            if (__builtin_expect(reorder_enabled_, false) && exec_batch_sliced<IofusedPrivateQueue>(batch, n)) {
+                // Slices complete here, before notify/publish/cleanup or ownership maintenance.
+            } else if (__builtin_expect(slowlog_armed_, false)) {
                 exec_batch_timed<IofusedPrivateQueue>(batch, n);
             } else {
                 for (uint32_t i = 0; i < n; i++) {
@@ -2457,7 +2456,9 @@ private:
             return;
         }
         NotifyBatchScope notify_batch(this);
-        if (__builtin_expect(slowlog_armed_, false)) {
+        if (__builtin_expect(reorder_enabled_, false) && exec_batch_sliced(batch, n)) {
+            // Same batch boundary for buffered callers.
+        } else if (__builtin_expect(slowlog_armed_, false)) {
             exec_batch_timed(batch, n);
         } else {
             for (uint32_t i = 0; i < n; i++) {
@@ -2473,20 +2474,78 @@ private:
     // micro-stage.
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-        // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
-        // reorder BEFORE prefetch so prefetch order matches execution order.
+        // Deferral first; R8 retains gather/prefetch order and yields inside execution.
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        if (__builtin_expect(reorder_enabled_, false))
-            srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
         prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
-    template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false>
-    bool execute(const Task& t) {
+    template <bool IofusedPrivateQueue = false>
+    __attribute__((noinline)) bool exec_batch_sliced(const Task* batch, uint32_t n) {
+        // Exact slowlog samples assume an indivisible handler. Escalated diagnostic batches
+        // stay synchronous; the default batch screen still brackets the complete sliced batch.
+        ReorderResult result;
+        if ((slowlog_armed_ && (slowlog_state_.escalate_batches || n == 1)) ||
+            !ex_split_possible(batch, n)) {
+            srv_->mode_schedule_stats(self_->id()).note_reorder(n, result);
+            return false;
+        }
+        Server::ClientWorkScope client_work(*srv_, self_->id());
+        uint64_t started = 0;
+        if (slowlog_armed_) {
+            slowlog_note_batch_timed();
+            flush_xshard_commits();
+            started = now_ns();
+        }
+        uint32_t executed = n;
+        result = ex_split_batch(batch, n,
+            [&](const Task& task, BitcountSlice* slice) {
+                return slice ? execute<IofusedPrivateQueue>(task, slice)
+                             : execute<IofusedPrivateQueue>(task);
+            },
+            [&](const Task& task) {
+                task.client->rob().at(task.op_id).state.store(OpState::Done, std::memory_order_release);
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+                if (test_after_done_) test_after_done_(task.client);
+#endif
+                notify_sender(task.client);
+            },
+            [&](const Task& task) {
+                executed--;
+                if (xshard_retries_.empty()) xshard_retries_.push_back(task);
+                else ordered_deferred_.push_back(task);
+            },
+            [&] { flush_notify_batch(); });
+        if (slowlog_armed_) {
+            flush_xshard_commits();
+            const uint64_t elapsed = now_ns() - started;
+            const uint64_t threshold = slowlog_arm_.slowlog_us >= 0
+                ? static_cast<uint64_t>(slowlog_arm_.slowlog_us) * 1000 : UINT64_MAX;
+            const uint64_t latency = slowlog_arm_.latency_ms
+                ? static_cast<uint64_t>(slowlog_arm_.latency_ms) * 1000000 : UINT64_MAX;
+            const uint64_t bar = std::min(threshold, latency);
+            if (executed && bar != UINT64_MAX && elapsed / executed >= bar) {
+                slowlog_state_.escalate_batches = kSlowlogEscalateBatches;
+                slowlog_note_escalation();
+            }
+        }
+        srv_->mode_schedule_stats(self_->id()).note_reorder(n, result);
+        return true;
+    }
+
+    template <bool IofusedPrivateQueue = false, bool ReadLocalNoEvict = false,
+              typename... Continuation>
+    bool execute(const Task& t, Continuation*... continuation) {
+        // The ordinary specialization retains its one-argument ABI: it does not pass a null
+        // continuation on every GET/SET. Only the cold sliced BITCOUNT specialization has one.
+        static_assert(sizeof...(Continuation) <= 1);
+        static_assert((std::is_same_v<Continuation, BitcountSlice> && ...));
+        constexpr bool SliceBitcount = sizeof...(Continuation) != 0;
+        [[maybe_unused]] BitcountSlice* slice = nullptr;
+        ((slice = continuation), ...);
         Server::ClientWorkScope client_work(*srv_, self_->id());
         // Forwarding, rather than a request epoch, resolves the route-read/enqueue race.  This check
         // must precede every shard dereference, including tagged MULTI and ownerless cleanup tasks.
@@ -2578,7 +2637,7 @@ private:
                     sh.store().maxmemory_policy() != MaxmemoryPolicy::NoEviction,
                     false)) {
                 ReadLocalPreciseWriteGuard no_evict(sh.store());
-                return execute<IofusedPrivateQueue, true>(t);
+                return execute<IofusedPrivateQueue, true>(t, continuation...);
             }
         }
         sh.set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
@@ -2673,14 +2732,18 @@ private:
                 const bool defer_blocking =
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
-                if (execute_handler) op.spec->handler(sh, op);
+                if (execute_handler) {
+                    if constexpr (SliceBitcount) bitcount_slice_begin(sh, op, *slice);
+                    else op.spec->handler(sh, op);
+                }
                 xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);
                     if (execute_handler) blocking_plain_mutation_published(sh, op);
                 }
             } else {
-                op.spec->handler(sh, op);
+                if constexpr (SliceBitcount) bitcount_slice_begin(sh, op, *slice);
+                else op.spec->handler(sh, op);
             }
         }
         if (!t.scatter) note_lb_hash(sh, op.hash);
@@ -2692,6 +2755,11 @@ private:
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
             else                   aof_record_local_op(sh, op, context);
         }
+
+        // Admission, read-cut selection, command/LB accounting and plain-scope cleanup occur
+        // once. A continuation owns only a pinned immutable input and an unpublished reply.
+        // It never re-enters a handler, atomic group, or admission on subsequent slices.
+        if constexpr (SliceBitcount) if (slice->pending()) return true;
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
         // op.reply becomes visible through this one store.

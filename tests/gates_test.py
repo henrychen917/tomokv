@@ -85,6 +85,17 @@ class FeatureFailures(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{key: '0'}), knobs, 2, True)
 
+    def test_slicing_requires_both_live_witnesses(self):
+        before, after, knobs = feature_evidence()
+        before.update(reorder_sliced_commands='0', reorder_slice_yields='0')
+        after.update(reorder_permuted_runs='0', reorder_sliced_commands='3', reorder_slice_yields='2')
+        feature.check_activity(before, after, knobs, 2, True)
+        for field in ('reorder_sliced_commands', 'reorder_slice_yields'):
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                feature.check_activity(before, {**after, field: '0'}, knobs, 2, True)
+        with self.assertRaisesRegex(AssertionError, 'whole-task sorter'):
+            feature.check_activity(before, {**after, 'reorder_permuted_runs': '1'}, knobs, 2, True)
+
     def test_reader_roles_and_each_hit_counter(self):
         b, a, knobs = feature_evidence()
         for old, new in (('active=1', 'active=0'), ('hits_total=9', 'hits_total=0'),

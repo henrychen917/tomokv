@@ -111,6 +111,8 @@ struct CmdFlags {
     // IoLoop's cold timer list. This bit does not make DEBUG generally deferred: all other DEBUG
     // subcommands retain their synchronous control-plane path.
     static constexpr uint32_t DebugSleep = 1u << 27;
+    // Owner-batch R8 recognizes this one resumable read; nested EXEC/script handlers stay whole.
+    static constexpr uint32_t SliceBitcount = 1u << 28;
 };
 
 using CmdHandler = void (*)(Shard&, Op&);

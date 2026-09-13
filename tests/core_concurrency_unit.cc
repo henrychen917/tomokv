@@ -39,7 +39,7 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture() {
+        explicit Fixture(bool reorder = false) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "affinity unavailable");
@@ -59,6 +59,7 @@ struct CoreConcurrencyTest {
             require(server.placement_.reserve_runtime_roles(8), "reserve placement roles");
             Config config;
             config.shards = 16;
+            config.reorder = reorder;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.save.clear();
@@ -75,6 +76,7 @@ struct CoreConcurrencyTest {
                 loop.self_ = &thread;
                 loop.fused_handoff_ring_ = &loop.ring_;
                 loop.cached_now_ms_ = 1000;
+                loop.reorder_enabled_ = reorder;
                 loop.lb_controller_armed_ = true;
                 server.bind_owner_notify_pending(tid, &loop.notify_keyless_pending_);
                 loop.refresh_live_config();
@@ -169,46 +171,75 @@ struct CoreConcurrencyTest {
                 "cleanup removed watcher and released client");
     }
 
-    static void scheduler() {
-        Fixture<true> f;
-        Client clients[4] = {Client(-1), Client(-1), Client(-1), Client(-1)};
-        std::vector<Task> tasks;
+    template <bool Fused>
+    static void sliced_execution() {
+        Fixture<Fused> f(true);
+        KvBlockCache cache;
+        KvBlockCache incoming_cache;
+        Shard& shard = f.server.shard(f.sid());
+        auto& store = shard.store();
+        require(store.prepare_read_local(), "R8 immutable storage allocation");
+        store.configure_read_local(true, {nullptr,
+            [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
+                reclaim(owner, p, n); // No foreign reader; the borrow must retain the old object.
+            }, &cache});
+        Client a(-1), b(-1);
+        f.client(a); f.client(b);
+        a.set_id(1); b.set_id(2);
         const std::string key = f.key(f.sid());
-        for (uint32_t i = 0; i < kGenthreadPipelineExBatchOps; i++) {
-            Client& client = clients[i % 4];
-            f.client(client);
-            Op& op = prepare(client, {Slice(i % 3 ? "GET" : "STRLEN"), slice(key)}, f.server);
-            (void)op;
-            tasks.emplace_back(&client, client.rob().dispatch_id(), -1, nullptr);
-            client.rob().publish();
-        }
-        require(tasks.size() == 128 && tasks.size() > kExecBatch, "oversized fused batch armed");
-        for (const Task& task : tasks) {
-            uint8_t length = 255;
-            require(ex_sched_candidate(task, length), "every gathered task eligible");
-        }
-        Task batch[kGenthreadPipelineExBatchOps];
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, static_cast<uint32_t>(tasks.size()));
-        std::copy(std::begin(batch), std::end(batch), tasks.begin());
-        uint64_t next[4] = {};
-        for (const Task& task : tasks) {
-            const size_t client = task.client - clients;
-            require(client < 4 && task.op_id == next[client]++, "scheduler preserves client order");
-        }
-        for (uint64_t count : next) require(count == 32, "scheduler conserves every task");
-        // The original overrun occurs before the single-client shortcut too.
-        Client one(-1);
-        tasks.clear();
-        for (uint32_t i = 0; i < 64; i++) {
-            prepare(one, {Slice("GET"), slice(key)}, f.server);
-            tasks.emplace_back(&one, one.rob().dispatch_id(), -1, nullptr);
-            one.rob().publish();
-        }
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, 64);
-        std::copy(std::begin(batch), std::begin(batch) + 64, tasks.begin());
-        for (uint32_t i = 0; i < 64; i++) require(tasks[i].op_id == i, "one-client FIFO shortcut");
+        const std::string ones(65536, '\xff'), zeros(65536, '\0');
+        require(command(f, a, {Slice("SET"), slice(key), slice(ones)}) == "+OK\r\n", "R8 seed");
+        // Force the real ordinary MVCC preparation/read-cut path, not just the clean handler.
+        const uint64_t hash = FlatStore::hash_key(slice(key));
+        void* entry = nullptr;
+        require(store.atomic_prepare_plain(slice(key), hash, 99, entry), "R8 tracked value");
+        KvObj* value = kvobj_new_string(slice(key), slice(ones));
+        require(value != nullptr, "R8 tracked allocation");
+        store.atomic_install_plain(hash, slice(key), entry, value, f.server.atomic_commit());
+        store.atomic_finish_plain();
+        require(store.atomic_has_records(), "R8 MVCC branch armed");
+
+        Task batch[kGenthreadExBatchOps];
+        uint32_t n = 0;
+        auto add = [&](Client& c, std::initializer_list<Slice> args) {
+            prepare(c, args, f.server);
+            batch[n++] = Task{&c, c.rob().dispatch_id(), -1, nullptr};
+            c.rob().publish();
+        };
+        add(a, {Slice("BITCOUNT"), slice(key)});
+        a.rob().at(batch[0].op_id).set_read_cut(f.server.atomic_snapshot());
+        add(a, {Slice("SET"), slice(key), slice(ones)});
+        add(a, {Slice("BITCOUNT"), slice(key), Slice("3"), Slice("65533"), Slice("BIT")});
+        add(b, {Slice("SET"), slice(key), slice(zeros)});
+        require(ex_split_possible(batch, n), "R8 real executor window must open");
+        auto& loop = f.loops[f.source];
+        loop.exec_batch(batch, n);
+        const auto& stats = f.server.mode_schedule_stats(f.source);
+        require(stats.reorder_sliced_commands.load() > 0 && stats.reorder_slice_yields.load() > 0,
+                "R8 must suspend and yield in the real executor");
+        std::vector<std::string> replies;
+        while (a.rob().drain([&](Op& op) {
+            replies.emplace_back(op.reply.data(), op.reply.size());
+        })) {}
+        require(replies == std::vector<std::string>({":524288\r\n", "+OK\r\n", ":65531\r\n"}),
+                "R8 pinned old value, own SET, and ranged RYOW replies");
+        require(b.rob().drain([](Op&) {}) == 1, "R8 foreign writer completes once");
+        require(store.outstanding_borrows() == 0, "R8 releases before ownership edge");
+        ThreadCtx& incoming = f.server.thread(f.destination);
+        require(incoming.init_read_local_state(), "R8 incoming owner storage");
+        incoming.bind_read_local_retire_sink({nullptr,
+            [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
+                reclaim(owner, p, n);
+            }, &incoming_cache});
+        f.move(f.sid(), false);
+        require(store.outstanding_borrows() == 0, "R8 leaves no old-owner continuation");
+        cache.release_all();
+        incoming_cache.release_all();
+    }
+
+    static void scheduler() {
+        sliced_execution<false>();
+        sliced_execution<true>();
     }
 
     inline static std::mutex pause_mutex;

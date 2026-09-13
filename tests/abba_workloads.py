@@ -131,6 +131,16 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
             raise RuntimeError(f"{name} did not execute during the measured window")
         evidence[name] = {"calls": ac - bc}
     if cell.op == "REORDER":
+        slice_fields = ('reorder_sliced_commands', 'reorder_slice_yields')
+        if any(field in mode_before or field in mode_after for field in slice_fields):
+            for field in slice_fields:
+                if field not in mode_before or field not in mode_after:
+                    raise RuntimeError(f"reorder slicing witness disappeared: {field}")
+                count = int(mode_after[field]) - int(mode_before[field])
+                if count < 0 or (cell.reorder and count == 0) or (not cell.reorder and count):
+                    raise RuntimeError(f"reorder={cell.reorder} slicing witness failed: {field} delta={count}")
+                evidence[field] = count
+            return evidence
         field = "reorder_permuted_runs"
         if field not in mode_before or field not in mode_after:
             # The unchanged pushed reference predates this telemetry. Its fallback must be a

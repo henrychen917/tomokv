@@ -166,7 +166,16 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
             continue
         require((delta(before, after, field) > 0) if knobs['overlap']
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
-    for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs'):
+    # R8 starts in FIFO order and yields inside BITCOUNT. Its live slice + yield witnesses
+    # replace the whole-task permutation oracle; both must fire, never infer one from the other.
+    reorder_fields = ('reorder_batches', 'reorder_multi_client_runs')
+    if 'reorder_sliced_commands' in after:
+        reorder_fields += ('reorder_sliced_commands', 'reorder_slice_yields')
+        require(number(after, 'reorder_permuted_runs') == 0,
+                'R8 unexpectedly ran the whole-task sorter')
+    else:
+        reorder_fields += ('reorder_permuted_runs',)
+    for field in reorder_fields:
         if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue

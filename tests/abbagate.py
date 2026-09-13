@@ -1966,6 +1966,17 @@ def self_test():
                 require_workload_witness(cell, before, after, mode, mode)
             evidence = require_workload_witness(cell, before, after, mode, {"reorder_permuted_runs": "1"})
             self.assertEqual(evidence["BITCOUNT"]["calls"], 10)
+            slices = {"reorder_sliced_commands": "0", "reorder_slice_yields": "0"}
+            active = {"reorder_sliced_commands": "1", "reorder_slice_yields": "1"}
+            self.assertEqual(require_workload_witness(cell, before, after, slices, active)
+                             ["reorder_sliced_commands"], 1)
+            for end in (slices, {**active, "reorder_slice_yields": "0"},
+                        {**active, "reorder_sliced_commands": "0"},
+                        {"reorder_sliced_commands": "1"}):
+                with self.subTest(end=end), self.assertRaisesRegex(RuntimeError, "slicing witness"):
+                    require_workload_witness(cell, before, after, slices, end)
+            with self.assertRaisesRegex(RuntimeError, "slicing witness"):
+                require_workload_witness(replace(cell, reorder=0), before, after, slices, active)
             with self.assertRaisesRegex(RuntimeError, "permutation witness"):
                 require_workload_witness(replace(cell, reorder=0), before, after, mode,
                                          {"reorder_permuted_runs": "1"})
