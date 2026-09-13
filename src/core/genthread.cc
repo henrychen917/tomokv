@@ -24,6 +24,11 @@
 #include "shutdown_report.h"
 
 namespace tomo {
+// This shared TLS/local parser is emitted by the isolated runtime translation unit.
+// Keeping its second out-of-line copy here gives GCC another inlining budget and
+// changes the disarmed body despite identical parser source.
+extern template IoLoop::DispatchResult
+IoLoop::parse_and_dispatch<true, 0, false, true, true, true, false>(Client*);
 uint32_t reorder_snapshot_baseline(void*);
 uint32_t reorder_snapshot_coarse(void*);
 namespace {
@@ -39,7 +44,6 @@ void pin_fused_thread(int cpu) {
 }  // namespace
 
 void IoLoop::run_fused() {
-    if (__builtin_expect(srv_->cfg().reorder != 0, false)) return run_fused_reordered();
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
@@ -89,6 +93,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
 
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
+    const auto run_io = cfg.reorder ? &IoLoop::run_fused_reordered : &IoLoop::run_fused;
     std::vector<FusedExLoop> executors(nthreads);
     // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
     // counter so a thread that saw shutdown while parked still reported at the gate (without it a
@@ -221,7 +226,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
-            ios[tid].run_fused();
+            (ios[tid].*run_io)();
             if (srv.read_local_enabled())
                 self.publish_read_local_parked(srv.read_local_epoch());
             self.publish_ready_role(Role::Idle);

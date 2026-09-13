@@ -29,3 +29,7 @@ scratchpad/replycode/*.so
 
 # Exact gate timing and seed history survive make clean.
 .gate-history/
+
+# Competition handoffs and owner measurements are review artifacts, not source.
+/MEASURE-REQUEST
+/MEASURE-RESULT
