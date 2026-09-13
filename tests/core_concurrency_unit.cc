@@ -426,6 +426,13 @@ struct CoreConcurrencyTest {
                 require(task.client->rob().drain([](Op&) {}) == 1, "release rerouted fixture ROB");
             });
         require(rerouted_tasks == 1, "owner change cannot drop or duplicate staged dispatch");
+        // client_obuf_check removes a hard-limit close from this shared view before parsing.
+        // Keep the batch nonempty so deleting the nullable-handle guard faults in the real loop.
+        f.io.ifid_batch_.clients[0] = nullptr;
+        f.io.ifid_batch_.count = 1;
+        f.io.active_wb_context_ = &f.io.ifid_batch_;
+        require(turn(true) == 0 && f.io.io_pipelines_quiesced(),
+                "output-limit removal drains without parsing a discarded receive handle");
         // The fixture owns these clients; do not leave lookup pointers into their destructors.
         for (auto& client : clients) {
             f.io.self_->release_wb_slot(client->wb_slot());
