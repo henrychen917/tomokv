@@ -374,10 +374,13 @@ public:
     uint32_t fused_pass() {
         static_assert(Fused);
         if (!pipeline_batches_)
-            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void, ContinuousReorder>();
+            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void,
+                ContinuousReorder>();
         return iofused_
-            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void, ContinuousReorder>()
-            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false, false, false, void, ContinuousReorder>();
+            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void,
+                ContinuousReorder>()
+            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false, false, false, void,
+                ContinuousReorder>();
     }
 
     template <bool ContinuousReorder = false>
@@ -394,7 +397,8 @@ public:
     template <bool ContinuousReorder = false>
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void, ContinuousReorder>();
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void,
+            ContinuousReorder>();
     }
 
     // Three-way overlap is the ordinary iofused executor envelope with one piece of independent
@@ -413,7 +417,8 @@ public:
     template <bool ContinuousReorder = false>
     uint32_t fused_pipeline_control() {
         static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void, ContinuousReorder>();
+        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void,
+            ContinuousReorder>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
@@ -609,13 +614,18 @@ public:
         if (!consume_tasks) {
             if (lb_controller_armed_ && srv_->lb_dispatch_paused())
                 return iofused_
-                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true, false, void, ContinuousReorder>()
-                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void, ContinuousReorder>();
+                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true, false, void,
+                        ContinuousReorder>()
+                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void,
+                        ContinuousReorder>();
             if (!pipeline_batches_)
-                return fused_sweep_impl<kGenthreadExBatchOps, false, false, false, false, ContinuousReorder>();
+                return fused_sweep_impl<kGenthreadExBatchOps, false, false, false, false,
+                    ContinuousReorder>();
             return iofused_
-                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true, false, ContinuousReorder>()
-                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false, ContinuousReorder>();
+                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true, false,
+                    ContinuousReorder>()
+                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false,
+                    ContinuousReorder>();
         }
         if (!pipeline_batches_)
             return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
@@ -642,7 +652,8 @@ public:
     template <bool ContinuousReorder = false>
     uint32_t fused_pipeline_control_sweep() {
         static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false, ContinuousReorder>();
+        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false,
+            ContinuousReorder>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
@@ -650,7 +661,8 @@ public:
               bool ContinuousReorder = false>
     uint32_t fused_sweep_impl() {
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit, IofusedPrivateQueue, false, void, ContinuousReorder>();
+            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit, IofusedPrivateQueue, false, void,
+                ContinuousReorder>();
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -844,7 +856,10 @@ public:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>()) { ring_.submit_and_reap(); continue; }
+            if (sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>()) {
+                ring_.submit_and_reap();
+                continue;
+            }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();

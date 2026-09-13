@@ -195,6 +195,8 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
                         });
+                // Snapshot's blocking progress has no WB filler. Both policies use the
+                // private-lane coarse turn; only the ordinary overlap loop supplies a filler.
                 else
                     self.bind_fused_executor_hooks(
                         &executors[tid],
