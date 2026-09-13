@@ -341,7 +341,6 @@ void command_client_disconnected(Client* client);
 // opaque handle owns that node between source and destination; no metadata field is reconstructed.
 void* command_client_migration_extract(Client* client);
 bool command_client_migration_install(void* catalog);
-void command_client_migration_discard(void* catalog);
 bool command_client_migration_reserve(uint32_t extra);
 void command_client_set_subscriptions(Client* client, uint32_t channels, uint32_t patterns,
                                       uint32_t shard_channels);

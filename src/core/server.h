@@ -877,9 +877,6 @@ public:
     }
     bool loading() const { return loading_.load(std::memory_order_acquire) != 0; }
 
-    bool flip_is_candidate(uint32_t tid) const {
-        return tid < nthreads() && flip_convert_[tid] != Role::Idle;
-    }
     Role flip_candidate_target(uint32_t tid) const {
         return tid < nthreads() ? flip_convert_[tid] : Role::Idle;
     }

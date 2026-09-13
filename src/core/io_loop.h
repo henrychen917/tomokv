@@ -346,21 +346,11 @@ public:
         }
     }
 
-    bool client_transfers_idle() const { return client_migrations_.empty(); }
     bool client_transfers_prepared() const {
         for (const auto& migration : client_migrations_)
             if (!migration.prepared) return false;
         return true;
     }
-    void commit_prepared_client_transfers() {
-        if (epoll_) commit_prepared_client_transfers_impl<true>();
-        else        commit_prepared_client_transfers_impl<false>();
-    }
-    void cancel_prepared_client_transfers() {
-        if (epoll_) cancel_prepared_client_transfers_impl<true>();
-        else        cancel_prepared_client_transfers_impl<false>();
-    }
-    uint64_t client_transfer_failures() const { return client_transfer_failures_; }
 
     // ---- epoll engine: registration -----------------------------------------------------------
     // Everything that will ever be waited on is registered ONCE here. Listeners are

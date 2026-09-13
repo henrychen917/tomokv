@@ -3108,10 +3108,6 @@ bool command_client_migration_install(void* opaque) {
     return g_client_meta.insert(std::move(catalog->node)).inserted;
 }
 
-void command_client_migration_discard(void* opaque) {
-    delete static_cast<ClientMigrationCatalog*>(opaque);
-}
-
 bool command_client_migration_reserve(uint32_t extra) {
     try {
         g_client_meta.reserve(g_client_meta.size() + extra);
