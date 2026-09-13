@@ -370,7 +370,7 @@ public:
 
     // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
     // this pass is the split executor body without its role loop or independent wait.
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_pass() {
         static_assert(Fused);
         if (!pipeline_batches_)
@@ -383,7 +383,7 @@ public:
                 ContinuousReorder>();
     }
 
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
@@ -394,7 +394,7 @@ public:
 
     // Private-lane whole-batch turn shared by overlap's thin path, idle repair,
     // and blocking snapshot progress. It has no streams pipeline-state probes.
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_coarse_pass() {
         static_assert(Fused);
         return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void,
@@ -404,7 +404,7 @@ public:
     // Three-way overlap is the ordinary iofused executor envelope with one piece of independent
     // CPU work inserted into the first fresh task batch's existing prefetch gap.  The batch remains
     // the stack-local whole batch used by drain_tasks(); nothing is staged across this call.
-    template <bool ContinuousReorder = false, typename Filler>
+    template <bool ContinuousReorder, typename Filler>
     uint32_t fused_three_way_pass(Filler&& filler) {
         static_assert(Fused);
         using Fn = std::remove_reference_t<Filler>;
@@ -414,7 +414,7 @@ public:
 
     // Buffered schedules keep control/persistence work in the executor owner but let the fused
     // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_pipeline_control() {
         static_assert(Fused);
         return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void,
@@ -608,7 +608,7 @@ public:
         return did;
     }
 
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_sweep(bool consume_tasks = true) {
         static_assert(Fused);
         if (!consume_tasks) {
@@ -634,7 +634,7 @@ public:
             : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false, false, false, ContinuousReorder>();
     }
 
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_baseline_sweep() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
@@ -643,13 +643,13 @@ public:
         return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
     }
 
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_coarse_sweep() {
         static_assert(Fused);
         return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true, false, ContinuousReorder>();
     }
 
-    template <bool ContinuousReorder = false>
+    template <bool ContinuousReorder>
     uint32_t fused_pipeline_control_sweep() {
         static_assert(Fused);
         return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false,
