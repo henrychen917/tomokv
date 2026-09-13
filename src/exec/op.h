@@ -267,7 +267,7 @@ public:
     std::atomic<OpState> state{OpState::Free};
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // `state` is one byte at offset 184 and argv_inline_ needs 8-byte alignment at 192, so 185..191
+    // `state` is one byte at offset 184 and the argv header needs 8-byte alignment at 192, so 185..191
     // was padding; this lands at the 4-aligned 188 and costs nothing. int32 rather than int64
     // because that is what the hole holds: a count or a counter outside +/-2^31 simply keeps the
     // byte path, which emits the identical digits.
@@ -451,10 +451,15 @@ private:
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
-    Slice    argv_inline_[kInlineArgv];
+    // Parsing writes argc and execution/retirement read this header even for inline arguments.
+    // Keep it ahead of the argument slots: ordinary GET/SET then leave the tail slots cold,
+    // instead of writing argc on the boundary line that the next Op's routing fields can share.
+    // Only the argv region is permuted; reply/direct/borrow/state offsets and sizeof(Op) stay
+    // fixed. Deep/heap-argv commands still use the same storage, growth and retirement paths.
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
     uint32_t argc_      = 0;
+    Slice    argv_inline_[kInlineArgv];
 };
 
 // THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at
