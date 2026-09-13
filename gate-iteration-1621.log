@@ -1,0 +1,155 @@
+GATE(iteration): 128 physical cores; 12 correctness slots = min(96/8 server, 32/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 32 server + 96 load physical cores, 96 load SMT threads (automatic available siblings), 0 explicit server SMT threads, reviewed ratio 16:16 (64 surplus server cores move to ABBA load)
+  artifacts: /home/user/Projects/cx-deadconf-fix/build/gate-run.7ONXML
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); ASAN build
+  ASAN build                                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis config quoting + mid-value #
+  Redis config quoting + mid-value #                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip controller model unit
+  flip controller model unit                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; B+ counting-fingerprint filter unit
+foreign-read-safety unit: PASS
+  B+ counting-fingerprint filter unit                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local write ring + arming transient unit
+  read-local write ring + arming transient unit        ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency scheduler
+  core concurrency scheduler                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; reorder mechanism + 32/128-task geometry battery
+  reorder mechanism + 32/128-task geometry battery     ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage unlinked regression
+  storage unlinked regression                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage randomkey regression
+  storage randomkey regression                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage rehash regression
+  storage rehash regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage rollback regression
+  storage rollback regression                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage snapshot-eviction regression
+  storage snapshot-eviction regression                 ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); storage flags regression
+  storage flags regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage aof-eviction regression
+  storage aof-eviction regression                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage intents regression
+  storage intents regression                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage imported-hash regression
+  storage imported-hash regression                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage field-index-failure regression
+  storage field-index-failure regression               ok
+  row budget: 900s; median=-s; no-history-conservative-default; storage hash-bytes regression
+  storage hash-bytes regression                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); storage deadline-sidecar regression
+  storage deadline-sidecar regression                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); atomic survivors unit build
+  atomic survivors unit build                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: admission
+  atomic survivor: admission                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: closure
+  atomic survivor: closure                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_keys
+  atomic survivor: script_keys                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: rename_overlay
+  atomic survivor: rename_overlay                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: write_latest
+  atomic survivor: write_latest                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: script_apply
+  atomic survivor: script_apply                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_conversion
+  atomic survivor: lua_conversion                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_parent
+  atomic survivor: watch_parent                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_cycle
+  atomic survivor: watch_cycle                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: mset_arity
+  atomic survivor: mset_arity                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: watch_oom
+  atomic survivor: watch_oom                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: lua_lines
+  atomic survivor: lua_lines                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: library_limit
+  atomic survivor: library_limit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: stage_flag
+  atomic survivor: stage_flag                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; atomic survivor: instruction_limit
+  atomic survivor: instruction_limit                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; generated Redis 7.4 ACL categories
+  generated Redis 7.4 ACL categories                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --mode (flag deleted)
+  reject --mode (flag deleted)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --spread
+  reject --spread                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --nodes
+  reject --nodes                                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject 3-part ratio
+  reject 3-part ratio                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject missing conf
+  reject missing conf                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad conf key
+  reject bad conf key                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject aclfile + conf user lines
+  reject aclfile + conf user lines                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; cmdmeta covers every registered command
+  cmdmeta covers every registered command              ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); waits config publication + admission unit
+  waits config publication + admission unit            ok
+  row budget: 900s; median=-s; no-history-conservative-default; mechanism-floor=900s (cold cache state not distinguished); reads never wait for retirement quiescence
+  reads never wait for retirement quiescence           ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=0
+  read-only resize split read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize split read-local=1
+  read-only resize split read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=0
+  read-only resize fused read-local=0                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-only resize fused read-local=1
+  read-only resize fused read-local=1                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; torture battery
+  torture battery                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; RYOW battery
+  RYOW battery                                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL category runtime table
+  ACL category runtime table                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; ACL LOAD/SAVE no-file errors
+  ACL LOAD/SAVE no-file errors                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; idle loop ceiling (LBSIGNALS, 1s)
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; shutdown invariants (nothing stuck)
+  shutdown invariants (nothing stuck)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; direct-reply fired (direct=N)
+  direct-reply fired (direct=11151)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; dispatched==executed (N)
+  dispatched==executed (54708)                         ok
