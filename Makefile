@@ -128,6 +128,10 @@ build/stage-split-alloc-unit: tests/stage_split_unit.cc $(wildcard src/*/*.h) Ma
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer \
 	  -DTOMO_STAGE_SPLIT_ALLOCATIONS -I. $< -o $@ \
 	  -Wl,--wrap=malloc -Wl,--wrap=realloc -Wl,--wrap=_Znwm
+build/stage-split-cost-unit: tests/stage_split_cost_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@ \
+	  -Wl,--wrap=malloc -Wl,--wrap=realloc -Wl,--wrap=free -Wl,--wrap=_Znwm -Wl,--wrap=_Znam
 unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/reorder-unit build/waits-unit
 	./build/config-parser-test
 	./build/flipctl-unit

@@ -96,6 +96,16 @@ def verify_pre(manifest):
     return {'base': capture(['git', 'rev-parse', BASE]).decode().strip(),
             'changed_files': [swap_file], 'swap_file_sha256': expected[swap_file]}
 
+def padding_source(count, note):
+    # On this build every C++ object advertises IBT/SHSTK. An assembler object without that
+    # note drops the AND property at link time, removes .plt.sec and changes ALL external-call
+    # placement even when the requested pad is zero. Carry the source object's exact note;
+    # do not force new linker features or assume the build host's default feature flags.
+    return ('.section .text,"ax",@progbits\n' + f'.fill {count},1,0x90\n' +
+            '.section .note.GNU-stack,"",@progbits\n' +
+            '.section .note.gnu.property,"a",@note\n.p2align 3\n' +
+            f'.incbin "{note}"\n')
+
 def placement_controls(result, env):
     # Reuse candidate 1's unreachable front/tail padding control. A shrinking .text cannot be
     # matched by negative padding: pad the smaller arm back to the larger one, recording which
@@ -110,12 +120,14 @@ def placement_controls(result, env):
         binary = folder / 'tomokv'
         objects = capture(['make', '--no-print-directory', '-s',
             '--eval=cache_l3_objects: ; @echo $(OBJ)', 'cache_l3_objects'], cwd=dst).decode().strip()
+        note = folder / 'source-note.bin'
+        run(['objcopy', '--only-section=.note.gnu.property', '-O', 'binary',
+             str(dst / objects.split()[0]), str(note)])
 
         def link(front, tail):
             for name, count in (('front', front), ('tail', tail)):
                 asm = folder / f'{name}.S'
-                asm.write_text('.section .text,"ax",@progbits\n' + f'.fill {count},1,0x90\n' +
-                               '.section .note.GNU-stack,"",@progbits\n')
+                asm.write_text(padding_source(count, note))
                 run(['g++', '-c', str(asm), '-o', str(folder / f'{name}.o')])
             with (folder / 'link.log').open('a') as log:
                 run(['make', '-j1', 'CXX=g++', 'JE=1', f'BIN={binary}',
@@ -182,6 +194,7 @@ def matched_placement_controls():
     objects = {}
     object_hashes = {}
     symbols = {}
+    notes = {}
     for name, arm in original.items():
         dst = ARMS / name
         if sources(dst) != manifest['sources'][name]: raise RuntimeError(f'{name}: source drift')
@@ -191,14 +204,17 @@ def matched_placement_controls():
         objects[name] = paths
         object_hashes[name] = {p: sha(dst / p) for p in paths}
         symbols[name] = code_symbols(arm['binary'])
+        notes[name] = folder / f'{name}-source-note.bin'
+        run(['objcopy', '--only-section=.note.gnu.property', '-O', 'binary',
+             str(dst / paths[0]), str(notes[name])])
+        if not notes[name].stat().st_size: raise RuntimeError(f'{name}: missing source feature note')
 
     def link(name, source, front, tail):
         dst = folder / name
         dst.mkdir(exist_ok=True)
         for side, count in (('front', front), ('tail', tail)):
             asm = dst / f'{side}.S'
-            asm.write_text('.section .text,"ax",@progbits\n' + f'.fill {count},1,0x90\n' +
-                           '.section .note.GNU-stack,"",@progbits\n')
+            asm.write_text(padding_source(count, notes[source]))
             run(['g++', '-c', str(asm), '-o', str(dst / f'{side}.o')])
         binary = dst / 'tomokv'
         with (dst / 'link.log').open('a') as log:
