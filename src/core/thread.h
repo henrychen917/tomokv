@@ -686,64 +686,6 @@ public:
         return n;
     }
 
-    // E0 removes a bounded prefix without advancing the retired frontier. Each source lane is
-    // visited at most once, so E2 can publish exactly one retire_n update for that lane after every
-    // removed task has reached Executed, Forwarded, or durable deferral.
-    uint32_t gather_tasks_unretired(Task* tasks, uint32_t* lanes, uint32_t* lane_counts,
-                                    uint32_t& lane_count, uint32_t capacity,
-                                    bool unmasked = false) {
-        uint32_t count = 0;
-        lane_count = 0;
-        auto take_lane = [&](uint32_t producer) {
-            const uint32_t begin = count;
-            Task task;
-            while (count < capacity && task_in_->pop_unretired(producer, task)) {
-                uint64_t age = 0;
-                if (task.enqueue_us_low &&
-                    sig_.observe_queue_delay(task.enqueue_us_low, age))
-                    sig_.observe_oldest_age(age);
-                tasks[count++] = task;
-            }
-            if (count != begin) {
-                lanes[lane_count] = producer;
-                lane_counts[lane_count++] = count - begin;
-            }
-            if (count == capacity) task_notify_.set(producer);
-        };
-
-        if (unmasked) {
-            for (uint32_t producer = 0; producer < nchan_ && count < capacity; producer++)
-                take_lane(producer);
-            return count;
-        }
-        for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
-            uint64_t bits = task_notify_.take(word);
-            while (bits) {
-                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
-                bits &= bits - 1;
-                const uint32_t producer = word * 64 + bit;
-                if (producer >= nchan_) continue;
-                take_lane(producer);
-                if (count == capacity) {
-                    while (bits) {
-                        const uint32_t rest = static_cast<uint32_t>(__builtin_ctzll(bits));
-                        bits &= bits - 1;
-                        const uint32_t queued = word * 64 + rest;
-                        if (queued < nchan_) task_notify_.set(queued);
-                    }
-                    return count;
-                }
-            }
-        }
-        return count;
-    }
-
-    void retire_task_lanes(const uint32_t* lanes, const uint32_t* lane_counts,
-                           uint32_t lane_count) {
-        for (uint32_t i = 0; i < lane_count; i++)
-            task_in_->retire_n(lanes[i], lane_counts[i]);
-    }
-
     // Optional streams A/D filler hint. Visit only producers whose task-notify bit names actual
     // queued work. A producer racing the peek is harmless: the next modulo chunk or the
     // mask-independent idle audit drains it, and this hint alone never controls correctness.

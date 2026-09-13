@@ -368,17 +368,6 @@ public:
         if (read_local_enabled()) (void)read_local_impl().deferred.drain_shutdown();
     }
 
-    // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
-    // this pass is the split executor body without its role loop or independent wait.
-    uint32_t fused_pass() {
-        static_assert(Fused);
-        if (!pipeline_batches_)
-            return fused_pass_impl<kGenthreadExBatchOps, true, false>();
-        return iofused_
-            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
-    }
-
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
@@ -403,13 +392,6 @@ public:
         using Fn = std::remove_reference_t<Filler>;
         return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn>(
             &filler);
-    }
-
-    // Buffered schedules keep control/persistence work in the executor owner but let the fused
-    // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
-    uint32_t fused_pipeline_control() {
-        static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
@@ -599,26 +581,6 @@ public:
         return did;
     }
 
-    uint32_t fused_sweep(bool consume_tasks = true) {
-        static_assert(Fused);
-        if (!consume_tasks) {
-            if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-                return iofused_
-                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
-            if (!pipeline_batches_)
-                return fused_sweep_impl<kGenthreadExBatchOps, false, false>();
-            return iofused_
-                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
-        }
-        if (!pipeline_batches_)
-            return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
-        return iofused_
-            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false>();
-    }
-
     uint32_t fused_baseline_sweep() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
@@ -630,11 +592,6 @@ public:
     uint32_t fused_coarse_sweep() {
         static_assert(Fused);
         return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>();
-    }
-
-    uint32_t fused_pipeline_control_sweep() {
-        static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
     }
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
@@ -896,12 +853,6 @@ private:
                 fused_non_submit_rotations_ = 0;
             }
         }
-    }
-
-    bool pipeline_tasks_allowed() const {
-        if (snapshot_blocks_tasks()) return false;
-        return !(lb_controller_armed_ && srv_->lb_dispatch_paused() &&
-                 srv_->lb_acked(self_->id()));
     }
 
     Ring& handoff_ring() { return *fused_handoff_ring_; }
@@ -2432,40 +2383,6 @@ private:
         // owned shards after each atomic batch so their pending-entry lists stay short.
         if (xshard_retries_.empty() && srv_->atomic_work_active()) {
             atomic_cleanup_cycle(256);
-        }
-    }
-
-    // Run mutation-capable reclamation only after every buffered E2 in the pass. In particular, an
-    // A/D sequence must not put cleanup between E1(D) and E2(D), and consecutive modulo chunks use
-    // the same rule. The caller still holds every gathered source prefix unretired here.
-    void finish_buffered_exec_pass(uint32_t executable_count) {
-        flush_xshard_commits();
-        if (xshard_retries_.empty() && srv_->atomic_work_active() && executable_count) {
-            // The legacy entry supplied 256 cleanup records of service for every batch of at most
-            // 128 tasks. Preserve that capacity while paying the owned-shard walk only once.
-            atomic_cleanup_cycle(std::max<uint32_t>(256, executable_count * 2));
-        }
-    }
-
-    // Buffered E2 batches can be much smaller than the shipped coarse drain. Their caller tracks
-    // owner-verified shards while E1 already has the route in hand, then publishes that dense set
-    // once after the complete multi-chunk EX pass. Keep the ordinary coarse/iofused entry above --
-    // including its historical all-owned-shards publication -- unchanged.
-    void exec_batch_prefetched_buffered(const Task* batch, uint32_t n) {
-        if (!xshard_retries_.empty()) {
-            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-            return;
-        }
-        NotifyBatchScope notify_batch(this);
-        if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed(batch, n);
-        } else {
-            for (uint32_t i = 0; i < n; i++) {
-                if (execute(batch[i])) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                break;
-            }
         }
     }
 
