@@ -12,7 +12,8 @@ class ScopeTest(unittest.TestCase):
     def row(self, command="GET", path="eligible", ns_log2=7, count=10, **kw):
         result = dict(mode="1s", rl=1, atomic=1, key_lb=1, client_lb=1, reorder=1, overlap=1,
                       command=command, path=path, predicted=0, ns_log2=ns_log2, count=count,
-                      ns_total=count * (1 << ns_log2), rank=0, later_short=0, local_fallback=-1)
+                      ns_total=count * (1 << ns_log2), rank=0, later_short=0, later_other=0,
+                      local_fallback=-1)
         result.update(kw)
         return result
 
@@ -30,7 +31,7 @@ class ScopeTest(unittest.TestCase):
 
     def test_scope_population_and_static_miss(self):
         rows = [self.row(), self.row("BITCOUNT", ns_log2=12, predicted=2, later_short=1),
-                self.row("SET", ns_log2=12, predicted=1, count=2),
+                self.row("SET", ns_log2=12, predicted=1, count=2, later_other=1),
                 self.row("MGET", "atomic_deferred", ns_log2=13, predicted=1, count=3),
                 self.row("EVAL", "barrier", ns_log2=14, count=4)]
         original = copy.deepcopy(rows)
@@ -39,6 +40,8 @@ class ScopeTest(unittest.TestCase):
         self.assertEqual(result["short_reference_attempts"], 10)
         by_command = {row["command"]: row for row in result["rows"]}
         self.assertEqual(by_command["SET"]["long_attempts"], 2)
+        self.assertEqual(by_command["SET"]["later_other"], 2)
+        self.assertEqual(by_command["SET"]["later_short"], 0)
         self.assertEqual(by_command["BITCOUNT"]["later_short"], 10)
         self.assertEqual(by_command["MGET"]["path"], "atomic_deferred")
         self.assertEqual(by_command["EVAL"]["path"], "barrier")

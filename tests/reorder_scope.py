@@ -82,8 +82,8 @@ struct Recorder {
         if (!out) std::abort();
         if (std::ftell(out) == 0)
             std::fputs("window\tpid\ttid\tmode\trl\tatomic\tkey_lb\tclient_lb\treorder\toverlap\t"
-                       "path\tcommand\tpredicted\teffective\trank\tposition\tbatch\t"
-                       "later_short\targc_log2\targv_bytes_log2\tlocal_fallback\t"
+                       "path\tcommand\tpredicted\tcandidate_class\trank\tposition\tbatch\t"
+                       "later_short\tlater_other\targc_log2\targv_bytes_log2\tlocal_fallback\t"
                        "ns_log2\tcount\tns_total\tns_max\n", out);
         for (const auto& [key, sample] : rows)
             if (std::fprintf(out, "%llu\t%lu\t%lu\t%s\t%llu\t%llu\t%llu\n",
@@ -138,7 +138,7 @@ struct Entry {
     Task task;
     int rank = -1;
     uint8_t length = 0;
-    bool eligible = false, later_short = false;
+    bool eligible = false, later_short = false, later_other = false;
 };
 struct Batch;
 inline thread_local Batch* current_batch = nullptr;
@@ -169,25 +169,32 @@ struct Batch {
         for (uint32_t i = 0; i < n; i++) {
             auto& e = entries[i];
             if (!e.eligible) continue;
-            for (uint32_t j = i + 1; j < n && entries[j].eligible; j++)
-                e.later_short |= entries[j].task.client != e.task.client &&
-                                 entries[j].length < e.length;
+            for (uint32_t j = i + 1; j < n && entries[j].eligible; j++) {
+                const bool other = entries[j].task.client != e.task.client;
+                e.later_other |= other;
+                e.later_short |= other && entries[j].length < e.length;
+            }
         }
     }
     ~Batch() { current_batch = previous; }
 };
+// Candidate class includes the atomic hazard, but precedes the scheduler's
+// missing-predecessor and prefix widening. Do not call it an effective sort key.
+// later_other also exposes followers of dynamically slow Point commands, which
+// later_short (a STATIC class comparison) cannot see. Neither proves a legal move.
 inline std::string metadata(const Config& cfg, const Op* op, const char* path,
-                            int effective, int rank, int position, int batch, bool later) {
+                            int candidate, int rank, int position, int batch, bool later,
+                            bool later_other = false) {
     uint64_t bytes = 0;
     if (op) for (uint32_t i = 0; i < op->argc(); i++) bytes += op->arg(i).n;
     char row[384];
     const int n = std::snprintf(row, sizeof(row),
-        "%s\t%u\t%u\t%u\t%u\t%u\t%u\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%u\t%u",
+        "%s\t%u\t%u\t%u\t%u\t%u\t%u\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%u\t%u",
         cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", cfg.read_local,
         cfg.atomic, cfg.key_lb, cfg.client_lb, cfg.reorder, cfg.overlap, path,
         op && op->spec ? op->spec->name : "<internal>",
         op && op->spec ? static_cast<int>(op->spec->length_class) : -1,
-        effective, rank, position, batch, later,
+        candidate, rank, position, batch, later, later_other,
         log_bin(op ? op->argc() : 0), log_bin(bytes));
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     return std::string(row, static_cast<size_t>(n));
@@ -229,7 +236,8 @@ struct Execution : Timer {
         const char* path = found ? (found->eligible ? "eligible" : "barrier") : outside_path;
         start(metadata(cfg, op, path, found && found->eligible ? found->length : -1,
                        found ? found->rank : -1, position,
-                       found ? current_batch->count : 0, found && found->later_short));
+                       found ? current_batch->count : 0, found && found->later_short,
+                       found && found->later_other));
     }
     ~Execution() { finish(); execute_depth--; }
 };
@@ -330,7 +338,7 @@ def prepare(path, revision=None):
     (path / "src/core/reorder_scope_probe.h").write_text(
         PROBE.replace("@DIRECTORY@", json.dumps(str(path))))
     (path / "observations").mkdir()
-    manifest = {"source_ref": revision, "source_sha256": digest.hexdigest(),
+    manifest = {"schema_version": 2, "source_ref": revision, "source_sha256": digest.hexdigest(),
                 "instrument_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 "sample_probability": "1/256 per batch, local chunk or standalone attempt",
                 "marker_poll_ns": 1000000,
@@ -409,16 +417,17 @@ def summarize(rows):
             for row in venue:
                 key = (row["path"], row["command"], row["predicted"])
                 item = summary.setdefault(key, dict(path=key[0], command=key[1], predicted=key[2],
-                    attempts=0, ns=0, long_attempts=0, later_short=0, non_head=0))
+                    attempts=0, ns=0, long_attempts=0, later_short=0, later_other=0, non_head=0))
                 item["attempts"] += row["count"]
                 item["ns"] += row["ns_total"]
                 if threshold is not None and (1 << row["ns_log2"]) >= threshold:
                     item["long_attempts"] += row["count"]
                     item["later_short"] += row["count"] if row["later_short"] else 0
+                    item["later_other"] += row["count"] if row["later_other"] else 0
                     item["non_head"] += row["count"] if row["rank"] > 0 else 0
             if threshold is None:
                 for item in summary.values():
-                    for key in ("long_attempts", "later_short", "non_head"):
+                    for key in ("long_attempts", "later_short", "later_other", "non_head"):
                         item[key] = None
             result.append(dict(geometry=identity, venue=location,
                 long_threshold_ns=threshold, short_reference_attempts=total,
