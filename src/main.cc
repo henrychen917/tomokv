@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
     std::vector<ExLoop> exs(nthreads);
     // Reorder is boot-latched. Select only at a role entry, using the existing cfg
     // capture: capturing a new local entry pointer enlarged every off-arm thread
-    // launch allocation by eight bytes. This constant table adds no runtime storage.
+    // launch allocation by eight bytes. The table needs no per-thread storage.
     using OwnerEntry = void (ExLoop::*)();
     static constexpr OwnerEntry run_owner[] = {&ExLoop::run, &ExLoop::r7_run<true>};
     std::mutex load_mu;

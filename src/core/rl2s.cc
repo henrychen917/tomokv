@@ -118,7 +118,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     std::vector<FusedExLoop> executors(nthreads);
     // Reorder is boot-latched. Select only at a role entry, using the existing cfg
     // capture: capturing a new local entry pointer enlarged every off-arm thread
-    // launch allocation by eight bytes. This constant table adds no runtime storage.
+    // launch allocation by eight bytes. The table needs no per-thread storage.
     using OwnerEntry = void (FusedExLoop::*)();
     static constexpr OwnerEntry run_owner[] = {&FusedExLoop::run, &FusedExLoop::r7_run<true>};
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
