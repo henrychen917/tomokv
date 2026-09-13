@@ -19,6 +19,7 @@ ARMS = OUT / 'arms'
 # recovered commit retains the same implementation. Reconstruct fresh arms from reachable refs.
 BASE = 'a363c2c5e'
 POST = 'f5f521732'
+CLEANUP = '1d2ce3940'
 FLAGS = '-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'
 
 def run(args, cwd=ROOT, **kw):
@@ -235,6 +236,7 @@ def matched_placement_controls():
 
     recipes = [(name, name, 0) for name in original]
     recipes += [('pad', 'pre', shift), ('post-shift', 'post', shift)]
+    if 'cleanup' in original: recipes.append(('cleanup-shift', 'cleanup', shift))
     for name, source, front in recipes:
         binary, (size, _) = link(name, source, front, 0)
         tail = target - size
@@ -273,6 +275,54 @@ def matched_placement_controls():
         source_object_sha256=object_hashes, arms=result), indent=2) + '\n')
     (folder / 'SHA256SUMS').write_text(''.join(
         f'{arm["sha256"]}  {name}/tomokv\n' for name, arm in result.items()))
+
+def cleanup_arm():
+    # A one-method revision of the MEASURED POST, not a new floor or a compound redesign.
+    # Keep the original post/ binary and source hashes intact so POST -> cleanup prices just
+    # the unnecessary home-capacity reset on argv-triggered retirement.
+    if not set(os.sched_getaffinity(0)) <= set(range(112, 128)):
+        raise RuntimeError('invoke with taskset -c 112-127')
+    manifest = json.loads((OUT / 'source-manifest.json').read_text())
+    provenance = json.loads((OUT / 'build-provenance.json').read_text())
+    verify_pre(manifest)
+    expected = dict(manifest['sources']['post'])
+    original = (ARMS / 'post/src/exec/op.h').read_text()
+    revision = capture(['git', 'show', f'{CLEANUP}:src/exec/op.h']).decode()
+    start, end = '    void shrink_to_inline() {', '    char* reserve(size_t n) {'
+    old_method = original[original.index(start):original.index(end)]
+    new_method = revision[revision.index(start):revision.index(end)]
+    modified = original.replace(old_method, new_method)
+    expected['src/exec/op.h'] = hashlib.sha256(modified.encode()).hexdigest()
+    dst = ARMS / 'cleanup'
+    if sources(ARMS / 'post') != manifest['sources']['post']:
+        raise RuntimeError('measured POST source drift')
+    if 'cleanup' not in manifest['sources']:
+        # The recovered Git commit differs in comments/Makefile from the original hashed
+        # snapshot. Use those verified measured bytes, not a near-equivalent recovery archive.
+        for name in expected:
+            (dst / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ARMS / 'post' / name, dst / name)
+        (dst / 'src/exec/op.h').write_text(modified)
+    if sources(dst) != expected: raise RuntimeError('cleanup differs by more than the named method')
+    manifest['sources']['cleanup'] = expected
+    manifest['cleanup_change_commit'] = capture(['git', 'rev-parse', CLEANUP]).decode().strip()
+    (OUT / 'source-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    env = dict(os.environ, CXXFLAGS=FLAGS)
+    for key in ('MAKEFLAGS', 'MFLAGS', 'MAKEOVERRIDES'): env.pop(key, None)
+    with (OUT / 'cleanup-build.log').open('a') as log:
+        run(['make', '-j4', 'CXX=g++', 'JE=1', 'all'], cwd=dst, env=env,
+            stdout=log, stderr=subprocess.STDOUT)
+    binary = dst / 'build/tomokv'
+    text = OUT / 'cleanup.text'
+    run(['objcopy', '--only-section=.text', '-O', 'binary', str(binary), str(text)])
+    arm = dict(binary=str(binary), sha256=sha(binary), text_bytes=text.stat().st_size,
+               text_sha256=sha(text))
+    provenance['arms']['cleanup'] = arm
+    provenance['source_manifest_sha256'] = sha(OUT / 'source-manifest.json')
+    provenance['cleanup_change_commit'] = manifest['cleanup_change_commit']
+    (OUT / 'build-provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
+    print(f'Ready cleanup: {arm["sha256"]}', flush=True)
+    matched_placement_controls()
 
 def prepare():
     OUT.mkdir(parents=True, exist_ok=True)
@@ -379,10 +429,15 @@ def build():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--placement-only', action='store_true',
-                        help='relink verified frozen objects into equal-.text-size PRE/POST/PAD arms')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--placement-only', action='store_true',
+                      help='relink verified frozen objects into equal-.text-size PRE/POST/PAD arms')
+    mode.add_argument('--cleanup-only', action='store_true',
+                      help='build the one-method cleanup revision and its equal-size controls')
     args = parser.parse_args()
-    if args.placement_only:
+    if args.cleanup_only:
+        cleanup_arm()
+    elif args.placement_only:
         matched_placement_controls()
     else:
         if not ARMS.exists(): prepare()
