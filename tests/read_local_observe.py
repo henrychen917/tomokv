@@ -183,6 +183,7 @@ def run(argv):
                 quiet.check()
                 try:
                     row["runs"].append(runner.measure(cell, arm, sequence, args.instances, knobs))
+                    quiet.check()
                 finally:
                     save()
             for arm in dict.fromkeys(order):
@@ -205,11 +206,18 @@ def run(argv):
     finally:
         try:
             children.close()  # Only the subprocess PIDs this driver started.
+        except BaseException as error:
+            report.update(status="FAILED", error=f"child cleanup: {type(error).__name__}: {error}")
+            raise
         finally:
             if "original_affinity" in locals():
                 os.sched_setaffinity(0, original_affinity)
             report["quiet"] = quiet.close()
+            if report["status"] == "COMPLETE" and not report["quiet"]["complete"]:
+                report.update(status="FAILED", error="quiet observer did not complete")
             save()
+    if report["status"] != "COMPLETE":
+        raise RuntimeError(report["error"])
 
 
 if __name__ == "__main__":

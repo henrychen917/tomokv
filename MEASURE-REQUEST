@@ -1,0 +1,101 @@
+Read-local observation, resumed 2026-09-13
+
+Candidate status: code and serverless checks ready; dynamic cost and causal verdict require
+quiet-box measurements. Do not merge the sampling mechanism on the static instruction count.
+No EXPECT_QUICK/EXPECT_FULL, gate rows, thresholds or cell definitions were changed by this lane.
+
+Arms (built by tests/read_local_observe.py build; hashes and compile commands in manifest.json):
+  PRE  build/readlocal-obs/arms/tomokv-pre
+  POST build/readlocal-obs/arms/tomokv-post
+  PAD  build/readlocal-obs/arms/tomokv-pad
+PRE server sources are a363c2c5e, also the server sources of the original 87b88cc4e baseline.
+The shared Git store was lost and restored during this resume; the manifest records the actual
+recovered POST revision. PAD adds only 192 zeroed, 64-byte-aligned padding bytes to PRE's optional
+ReadLocalThreadState. It has PRE execution and INFO, with POST sidecar size/alignment/offsets.
+No development knob is present in the production server.
+
+The commands below use the gate's Runner.measure, accounting, population and PMC instrument,
+without invoking the gate or changing its decisions. Run from this worktree. Output directories
+must be fresh. All four boots/failures are retained; there is no retry or result selection.
+Default assignment: server 0-31, load 32-111 (no SMT), control 111; port 10300.
+No process is stopped except a PID created by the driver.
+
+1. Reproduce FIRST: same PRE bytes, four consecutive boots, h11/h15/h27/h31, 512 connections /
+   four instances, GET p32, atomic/key-lb/client-lb=1, reorder=1, overlaps/modes from the cell.
+   2,000,000 keys, sequential P:P, 64-byte values; WARMUP=3, WINDOW=20, TAIL=5 seconds.
+
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/reproduce-pre \
+     --cells h11,h15,h27,h31 --order PRE,PRE,PRE,PRE
+
+   Important historical mismatch: the saved run used FOUR instances for h11/h15 but EIGHT for
+   h27/h31. Its load CPUs were 32-127 plus SMT 160-255. The current 0-111 assignment cannot be an
+   exact CPU replay. The command above implements the requested 512/4 experiment and records
+   historical_geometry_match=false. An exact historical replay needs a maintainer-run instrument
+   with that historical load geometry and n=8 for the split cells; do not silently call 512/4 exact.
+
+2. Repeat on POST, holding every load parameter constant, to obtain per-thread hits/fallbacks,
+   arms/accepts, placement endpoints, sampled reply bytes and noncumulative latency buckets.
+
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/reproduce-post \
+     --cells h11,h15,h27,h31 --order POST,POST,POST,POST
+
+   Inspect measurement.json: read_local_before/after are lifetime raw endpoints;
+   read_local.threads contains counter deltas AND before/after gauges. read_local_hits,
+   read_local_misses and read_local_histogram are diagnostic window deltas alongside rate/busy.
+   Observation endpoints encompass the central command window; their timestamps are retained.
+   Arming deltas alone cannot establish how many connections were armed before the window.
+   Compare hits/thread/second and hits per connection with both placement endpoints. Independent
+   snapshots can straddle a sample: do not repair bucket totals, infer end-to-end p99, or use an
+   UNAVAILABLE/INVALID result as zero evidence. Bytes are sampled RESP bytes, not total traffic.
+
+3. Distinguish population and timing effects. First retain the requested 128/1 hand-control shape.
+   Then change only WINDOW, and only settle (warmup), on the same 512/4 POST shape. Test h11 first;
+   any candidate recipe must subsequently hold for all four cells, in all four fresh boots.
+
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/control-128-1 \
+     --cells h11,h15,h27,h31 --order POST,POST,POST,POST --connections 128 --instances 1
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/window-60 \
+     --cells h11,h15,h27,h31 --order POST,POST,POST,POST --window 60
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/settle-30 \
+     --cells h11,h15,h27,h31 --order POST,POST,POST,POST --warmup 30
+
+   Success is <=1% (max-min)/mean across ALL four identical-byte rates, with comparable throughput,
+   lane hit fraction and actual occupancy. Reject a quiet but underdriven substitute. If a timing
+   recipe holds, the maintainer changes the load definition; no server scheduling fix is proposed.
+   The requested 128/1 vs 512/4 comparison changes two factors. If timing does not explain the
+   result, add 512/1 and 128/4 to separate connection population from generator-instance count:
+   reuse the first command with --connections 512 --instances 1, then 128 and 4, fresh outputs.
+   Per-generator CPU and scheduler data are diagnostic; low CPU alone does not prove headroom.
+
+4. Amortization: after the above recipe is demonstrated measurable, use it unchanged for PRE vs
+   POST and PAD vs POST. The examples below retain the original recipe so no unmeasured settle
+   value is silently promoted. Add --window/--warmup only if step 3 actually establishes them.
+
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/abba-pre-post \
+     --cells h03,h07,h11,h15,h19,h23,h27,h31 --order PRE,POST,POST,PRE --profile 1
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/abba-pad-post \
+     --cells h03,h07,h11,h15,h19,h23,h27,h31 --order PAD,POST,POST,PAD --profile 1
+   python3 tests/read_local_observe.py run --output build/readlocal-obs/abba-pre-pad \
+     --cells h03,h07,h11,h15,h19,h23,h27,h31 --order PRE,PAD,PAD,PRE --profile 1
+
+   h03/h07/h19/h23 are read-local=0 controls. Report each arm's retired instructions/op, IPC,
+   cycles/op (= instructions/op / IPC), matched-load rate, both pair deltas, and same-arm spread.
+   The profile's per-TID intervals encompass the central command window and expose offsets;
+   approx_* counters must keep that qualification. Reject missing, multiplexed or misaligned
+   evidence according to the existing instrument. Repeat without PMCs if attachment changes the
+   repeatability conclusion; a profile must not be credited as an uninstrumented rate.
+   PRE->PAD is allocation/layout cost; PAD->POST is the observation/code cost; PRE->POST decides
+   the shipped total. The total always-on loss must be <=3%, with <=1% identical-arm spread.
+   A spread larger than the claimed cost does not establish the 3% budget. No tolerance widening.
+
+5. Main-command zero-regression coverage, both modes, read-local=1, overlap/reorder=1, p1 and p32:
+   h47,h48,h15,h16,h63,h64,h31,h32,m43,m45,m46,m48,m91,m93,m94,m96.
+   Use the same PRE/POST and PAD controls with --profile 1, and the gate's measured load floor
+   for each cell; do not impose the GET investigation's n=4 on unrelated SET/MGET/MSET cells.
+   The maintainer also owns both-mode boot/correctness checks at --shards 16, GATE_CORES=0-7,
+   GATE_RATIO from tests/gate.sh, and tests/gate.sh iteration. No gate count change is needed.
+
+Append actual results and artifact locations to MEASURE-RESULT. Required decisions: measured
+off/on instr/op tax and 3% verdict; reproduced variance and which hypotheses the counter data
+exclude; a demonstrated <=1% load recipe or an explicit unresolved cause. The archived evidence
+already excludes incomplete arming in the reported windows, but is not a fresh reproduction.
