@@ -2,7 +2,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <chrono>
+#include <latch>
 #include <string_view>
+#include <thread>
 #include "src/net/conn.h"
 #include "src/net/resp.h"
 
@@ -135,6 +138,61 @@ template <bool Codes> static void rob_recycle() {
     }
 }
 
+static void cross_thread_replies() {
+    // The reply bodies cross the same Done release/acquire as the headers. Hold the oldest
+    // reply explicitly while later bodies finish: the test must observe a pinned window, and
+    // must read all bytes before allowing those slots (including heap growth) to recycle.
+    tomo::Rob<64> rob;
+    for (unsigned round = 0; round < 3; ++round) {
+        tomo::Op* slots[64];
+        for (unsigned i = 0; i < 64; ++i) {
+            auto* op = rob.acquire<false>();
+            check(op != nullptr, "cross-thread window acquired");
+            slots[i] = op;
+            op->hash = i;
+            op->state.store(tomo::OpState::Issued, std::memory_order_release);
+            rob.publish();
+        }
+        std::latch tails_done(1), finish_head(1);
+        std::thread executor([&] {
+            auto complete = [&](unsigned i) {
+                // The middle round grows past the oversized-retirement threshold; the next
+                // round reuses the same slots with inline bytes after shrink.
+                const size_t length = round == 1 ? 9000 : 80;
+                char* data = slots[i]->reply.reserve(length);
+                std::memset(data, int('A' + i % 26), length);
+                slots[i]->reply.advance(length);
+                slots[i]->state.store(tomo::OpState::Done, std::memory_order_release);
+            };
+            for (unsigned i = 64; i-- > 1;) complete(i);
+            tails_done.count_down();
+            finish_head.wait();
+            complete(0);
+        });
+        tails_done.wait();
+        check(rob.drain([](tomo::Op&) { check(false, "issued head pins foreign reply bodies"); }) == 0,
+              "foreign tail completion cannot bypass the held head");
+        finish_head.count_down();
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        unsigned retired = 0;
+        while (retired < 64) {
+            rob.drain([&](tomo::Op& op) {
+                check(op.hash == retired, "cross-thread replies retire in connection order");
+                const size_t length = round == 1 ? 9000 : 80;
+                check(op.reply.size() == length, "Done publishes the reply length");
+                for (size_t j = 0; j < length; ++j)
+                    check(op.reply.data()[j] == char('A' + retired % 26),
+                          "Done publishes every byte of the correct body");
+                ++retired;
+            });
+            check(std::chrono::steady_clock::now() < deadline, "head completion has a bounded wait");
+            if (retired != 64) std::this_thread::yield();
+        }
+        executor.join();
+        check(rob.quiesced(), "all foreign reply storage retires before the next wrap");
+    }
+}
+
 static void standalone() {
     tomo::Op op;
     char* empty = op.reply.data();
@@ -249,10 +307,12 @@ int main() {
     op_storage();
     rob_recycle<false>();
     rob_recycle<true>();
+    cross_thread_replies();
     standalone();
     send_storage();
 #ifdef TOMO_STAGE_SPLIT_ALLOCATIONS
     allocation_contract();
 #endif
-    std::puts("stage-split unit: Op/Client lifetimes, both ROB code modes, wrap, short sends and borrow release passed");
+    std::puts("stage-split unit: Op/Client lifetimes, cross-thread publication, both ROB code modes, "
+              "wrap, short sends and borrow release passed");
 }

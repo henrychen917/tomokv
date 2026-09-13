@@ -196,7 +196,7 @@ def build():
         if sources(dst) != manifest['sources'][name]: raise RuntimeError(f'{name}: source drift')
         print(f'Building {name}', flush=True)
         with (OUT / f'{name}-build.log').open('a') as log:
-            run(['make', '-j5', 'CXX=g++', 'JE=1', 'all'], cwd=dst, env=env,
+            run(['make', '-j4', 'CXX=g++', 'JE=1', 'all'], cwd=dst, env=env,
                 stdout=log, stderr=subprocess.STDOUT)
         # A resumed build may need only the objects interrupted by ENOSPC. Inspect the
         # explicit recipe too: an incremental log need not mention an unchanged string TU.
