@@ -1,3 +1,6 @@
+// This PRE scheduler remains compiler input for the unchanged FIFO methods. Its
+// inherited enable branch is false in that runtime; --reorder 1 selects reorder.cc
+// instead. Replacing these helpers with stubs changes inlining in off-path callers.
 // reorder.h -- latency scheduling across connections within one gathered executor batch.
 // Per-connection order and special-task barriers are absolute. One-client runs retain FIFO.
 #pragma once

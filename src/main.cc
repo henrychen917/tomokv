@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
+        return run_fused_server_selected(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
                                 tls_context.get(), unix_listener, final_shutdown_line);
     }
     if (srv.read_local_enabled()) {
@@ -336,6 +336,7 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
+    // Boot chooses the owner entry; no scheduler choice lives on a drain back edge.
     const auto run_owner = cfg.reorder ? &ExLoop::r7_run<true> : &ExLoop::run;
     std::mutex load_mu;
     std::condition_variable load_cv;

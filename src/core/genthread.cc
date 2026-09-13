@@ -24,13 +24,6 @@
 #include "shutdown_report.h"
 
 namespace tomo {
-// This shared TLS/local parser is emitted by the isolated runtime translation unit.
-// Keeping its second out-of-line copy here gives GCC another inlining budget and
-// changes the disarmed body despite identical parser source.
-extern template IoLoop::DispatchResult
-IoLoop::parse_and_dispatch<true, 0, false, true, true, true, false>(Client*);
-uint32_t reorder_snapshot_baseline(void*);
-uint32_t reorder_snapshot_coarse(void*);
 namespace {
 
 void pin_fused_thread(int cpu) {
@@ -93,7 +86,6 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
 
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
-    const auto run_io = cfg.reorder ? &IoLoop::run_fused_reordered : &IoLoop::run_fused;
     std::vector<FusedExLoop> executors(nthreads);
     // ONE boot gate. The ad-hoc mutex/cv gate this replaced needed a separate `runners_stopped`
     // counter so a thread that saw shutdown while parked still reported at the gate (without it a
@@ -195,7 +187,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 if (cfg.overlap == 0)
                     self.bind_fused_executor_hooks(
                         &executors[tid],
-                        cfg.reorder ? reorder_snapshot_baseline : +[](void* p) {
+                        [](void* p) {
                             return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
                         },
                         [](void* p, SnapshotManager* manager) {
@@ -204,7 +196,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 else
                     self.bind_fused_executor_hooks(
                         &executors[tid],
-                        cfg.reorder ? reorder_snapshot_coarse : +[](void* p) {
+                        [](void* p) {
                             // Snapshot's blocking progress loop has no WB filler to interleave.
                             // Use the private-lane coarse turn; the main overlap loop supplies
                             // the three-way callback only at its ordinary batch seam.
@@ -226,7 +218,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             if (!boot.arrive_ready(tid)) return;
             if (!boot.wait_until_running(tid, self.stop_flag())) return;
             self.publish_ready_role(Role::Ifid);
-            (ios[tid].*run_io)();
+            ios[tid].run_fused();
             if (srv.read_local_enabled())
                 self.publish_read_local_parked(srv.read_local_epoch());
             self.publish_ready_role(Role::Idle);

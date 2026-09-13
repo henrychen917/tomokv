@@ -116,6 +116,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
+    // Boot chooses the owner entry; no scheduler choice lives on a drain back edge.
     const auto run_owner = cfg.reorder ? &FusedExLoop::r7_run<true> : &FusedExLoop::run;
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
