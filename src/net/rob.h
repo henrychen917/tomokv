@@ -302,9 +302,6 @@ public:
     bool read_local_pending_may_touch(uint64_t hash) const {
         return read_local_pending_filter_.may_contain(hash);
     }
-    const ReadLocalPendingFilter& read_local_pending_filter() const {
-        return read_local_pending_filter_;
-    }
     // Legal only with a summary just computed over EVERY currently pending read (the planner's
     // complete walk); it restores exactness after false hits without touching the ordinary path.
     void reset_read_local_pending_filter(const ReadLocalPendingFilter& exact) {

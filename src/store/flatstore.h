@@ -845,9 +845,6 @@ public:
     static uint32_t foreign_read_filter_index(uint64_t hash) {
         return ForeignReadSafety::cell_index(hash);
     }
-    static uint32_t foreign_read_filter_fingerprint(uint64_t hash) {
-        return ForeignReadSafety::fingerprint(hash);
-    }
     uint64_t foreign_read_unsafe_refs() const {
         const ReadLocalStoreState* state = read_local_store_state();
         return state ? state->foreign_reads.unsafe_total_refs() : 0;

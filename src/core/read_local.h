@@ -75,20 +75,6 @@ inline bool read_local_command_touches_hash_collect(const Op& op, uint64_t hash,
     return touched;
 }
 
-// Pre-check for read_local_commands_overlap_precise_keyset below: false PROVES that no pending
-// local read can share a key with `command`, because every pending read's keys are in `pending`
-// and this walks exactly the keys touches_hash(command, .) would compare against.
-inline bool read_local_pending_filter_may_touch_command(const ReadLocalPendingFilter& pending,
-                                                        const Op& command) {
-    if (!read_local_command_is_mget(command) && !read_local_command_is_precise_mset(command))
-        return pending.may_contain(command.hash);
-    const uint32_t step = static_cast<uint32_t>(command.spec->key_step);
-    for (uint32_t arg = static_cast<uint32_t>(command.spec->first_key);
-         arg < command.argc(); arg += step)
-        if (pending.may_contain(FlatStore::hash_key(command.arg(arg)))) return true;
-    return false;
-}
-
 inline bool read_local_command_is_precise_point(const Op& op) {
     if (!op.spec) return false;
     constexpr uint32_t kNonPointRoutes =
@@ -114,16 +100,7 @@ inline bool read_local_owner_command_touches_hash(const Op& op, uint64_t hash) {
 
 // Callers use this only after proving that `command` mutates no key outside its declared keyset.
 // Unlike owner-tail overlap, this deliberately accepts precise MSET as an exact command.
-inline bool read_local_commands_overlap_precise_keyset(const Op& read, const Op& command) {
-    if (!read_local_command_is_mget(read))
-        return read_local_command_touches_hash(command, read.hash);
-    for (uint32_t arg = 1; arg < read.argc(); arg++)
-        if (read_local_command_touches_hash(
-                command, FlatStore::hash_key(read.arg(arg)))) return true;
-    return false;
-}
-
-// Same predicate, also reporting every key hash of `read` into `keys` (planner filter rebuild).
+// Reports every key hash of `read` into `keys` while checking overlap (planner filter rebuild).
 inline bool read_local_commands_overlap_precise_keyset_collect(
         const Op& read, const Op& command, ReadLocalPendingFilter& keys) {
     if (!read_local_command_is_mget(read)) {

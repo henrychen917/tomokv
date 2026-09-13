@@ -920,11 +920,7 @@ public:
         if (!read_local_state_ || !sink.defer) std::abort();
         read_local_state_->retire_sink = sink;
     }
-    ReadLocalRetireSink read_local_retire_sink() const {
-        if (!read_local_state_ || !read_local_state_->retire_sink.defer) std::abort();
-        return read_local_state_->retire_sink;
-    }
-    // The nullable form, for the shard-ownership edge in Server. A thread has no sink with the
+    // For the shard-ownership edge in Server. A thread has no sink with the
     // lane disarmed; the edge must be able to ask without
     // knowing which, and must be able to tell "disarmed" from "armed but unbound" -- the latter is
     // a boot-order defect, and the caller aborts on it rather than moving a shard to an owner that
