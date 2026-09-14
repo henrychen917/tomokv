@@ -47,6 +47,18 @@ class ScopeTest(unittest.TestCase):
         self.assertEqual(by_command["EVAL"]["path"], "barrier")
         self.assertEqual(original, rows)
 
+    def test_isolated_armed_scope_requires_both_seams(self):
+        original = (scope.ROOT / "src/core/reorder.cc").read_text()
+        patched = scope.instrument_reorder(original)
+        self.assertEqual(patched.count("reorder_scope::Batch scope_batch"), 2)
+        for anchor in (
+            'void ExLoopT<Fused>::r2_exec_batch(Task (&batch)[BatchOps], uint32_t n) {',
+            '        if (!filler_used && xshard_retries_.empty()) {',
+        ):
+            for damaged in (original.replace(anchor, ''), original + '\n' + anchor):
+                with self.assertRaisesRegex(ValueError, "scope anchor changed"):
+                    scope.instrument_reorder(damaged)
+
     def test_io_local_is_instrumented_and_kept_separate(self):
         original = (scope.ROOT / "src/core/io_loop.h").read_text()
         patched = scope.instrument_io(original)

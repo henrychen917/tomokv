@@ -11,60 +11,34 @@
 #include "../net/conn.h"
 #include "../cmd/command.h"
 
-namespace tomo::r2 {
+namespace tomo {
 
 inline constexpr uint32_t kExSchedClasses =
     static_cast<uint32_t>(CommandLengthClass::Count);
 inline constexpr uint32_t kExSchedBuckets = kRobWindow * kExSchedClasses;
 inline constexpr uint32_t kExSchedBucketWords = (kExSchedBuckets + 63) / 64;
 static_assert(kExSchedBuckets == 192);
-static_assert(kExSchedClasses == 3, "update the registry's one-hot cost flags");
-
-// Seed and screen at the existing prefetch flag branch: no separate Task/Op walk, per-op
-// counters, or ROB-head samples. The first owned ordinary task seeds this mask; the first
-// different class restores the ordinary prefetch mask. A different verb in the SAME static
-// class cannot trip it. Specials carry no class bits; scatter/stale routes never reach it.
-// GCC may erase unscreened prefetch hints and flag loads: sharing the source branch is not
-// proof of zero emitted cost. Compare instructions for the complete armed paths as well.
-class ExReorderScreen {
-public:
-    static constexpr uint32_t kPrefetchSkip = CmdFlags::CursorShard | CmdFlags::RandomShard;
-    static constexpr uint32_t kUnseeded = kPrefetchSkip | CmdFlags::ReorderClasses;
-
-    __attribute__((always_inline)) bool prefetch(uint32_t flags) {
-        if (__builtin_expect(!(flags & skip_), true)) return true;
-        if (flags & kPrefetchSkip) return false;
-        if (skip_ == kUnseeded) skip_ ^= flags & CmdFlags::ReorderClasses;
-        else skip_ = kPrefetchSkip;
-        return true;
-    }
-
-    bool mixed() const { return skip_ == kPrefetchSkip; }
-
-private:
-    uint32_t skip_ = kUnseeded;
-};
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
 // barrier in the gathered sequence: eligible work on either side cannot move across it.
-inline bool ex_sched_static_candidate(const Task& task, uint8_t& length) {
+inline bool ex_sched_candidate(const Task& task, uint8_t& length) {
     if (!task.client || task.scatter) return false;
     const Op& op = task.client->rob().at(task.op_id);
     if (!op.spec || op.has_blocking_state()) return false;
+    constexpr uint32_t kSpecial =
+        CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
+        CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
+        CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
+        CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
     // MultiShard is deliberately absent: a same-owner MGET/MSET local-fast task is ordinary
     // here. A real scatter has task.scatter set and returned above.
-    if (op.spec->flags & CmdFlags::ReorderBarrier) return false;
+    if (op.spec->flags & kSpecial) return false;
     length = static_cast<uint8_t>(command_length_class(*op.spec));
     if (__builtin_expect(length >= kExSchedClasses, false)) return false;
-    return true;
-}
-
-// Keep the effective-class query shared with the R1 scope instrument. Admission in R2 uses the
-// static query above; this immutable own-atomic hint changes priority only inside an admitted run.
-inline bool ex_sched_candidate(const Task& task, uint8_t& length) {
-    if (!ex_sched_static_candidate(task, length)) return false;
-    if (task.client->rob().at(task.op_id).atomic_hazard())
-        length = static_cast<uint8_t>(CommandLengthClass::Long);
+    // There is no O(1) class pointer from an op to an exact parked atomic predecessor. The
+    // immutable publish-time hazard bit says an older own atomic group existed; Long is the
+    // safe upper bound without a deque scan or persistent scheduler state.
+    if (op.atomic_hazard()) length = static_cast<uint8_t>(CommandLengthClass::Long);
     return true;
 }
 
@@ -106,11 +80,6 @@ uint32_t ex_schedule_run(Task* tasks, const uint8_t* base_lengths, uint32_t n) {
         // is ever broken, preserve today's FIFO instead of collapsing ranks and risking order.
         if (__builtin_expect(distance >= kRobWindow, false)) return 1;
         keys[i] = ExScheduleKey{static_cast<uint8_t>(distance), base_lengths[i]};
-        // Atomic hazards widen priority only AFTER a static class mix admitted this run. They
-        // must not manufacture heterogeneity in a uniform GET batch. As before, an invisible
-        // same-connection predecessor has Long cost without reading a recyclable older slot.
-        if (task.client->rob().at(task.op_id).atomic_hazard())
-            keys[i].length = static_cast<uint8_t>(CommandLengthClass::Long);
         min_rank = std::min(min_rank, keys[i].rank);
         max_rank = std::max(max_rank, keys[i].rank);
         if (i == n - 1) first_length = keys[i].length;
@@ -211,8 +180,7 @@ uint32_t ex_schedule_run(Task* tasks, const uint8_t* base_lengths, uint32_t n) {
 
 // Keep scratch behind the caller's boot-latched enable branch, including stack reservation.
 // Deduce capacity from the gathered array: exec_batch must not decay it to a Task pointer.
-// No heap allocation, persistent state, or truncated suffix. The rank/class ordering of a mixed
-// run stays unchanged; static-uniform runs do not enter that policy even with a wide rank spread.
+// No heap allocation, persistent state, truncated suffix, or change to the scheduling policy.
 template <size_t BatchOps>
 __attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {
     static_assert(BatchOps == kGenthreadExBatchOps ||
@@ -226,24 +194,16 @@ __attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps
     uint8_t base_lengths[BatchOps];
     uint32_t begin = 0;
     while (begin < n) {
-        if (!ex_sched_static_candidate(tasks[begin], base_lengths[begin])) {
+        if (!ex_sched_candidate(tasks[begin], base_lengths[begin])) {
             begin++;
             continue;
         }
         uint32_t end = begin + 1;
-        bool mixed = false;
-        while (end < n && ex_sched_static_candidate(tasks[end], base_lengths[end])) {
-            mixed |= base_lengths[end] != base_lengths[begin];
-            end++;
-        }
-        // A batch may mix classes only across a barrier. Screen each legal run before rank
-        // sampling as well: otherwise an unrelated long task could re-arm pure GET scheduling.
-        if (mixed) {
-            const uint32_t witness = r2::ex_schedule_run<BatchOps>(
-                tasks + begin, base_lengths + begin, end - begin);
-            result.multi_client_runs += witness != 0;
-            result.permuted_runs += witness == 2;
-        }
+        while (end < n && ex_sched_candidate(tasks[end], base_lengths[end])) end++;
+        const uint32_t witness = ex_schedule_run<BatchOps>(
+            tasks + begin, base_lengths + begin, end - begin);
+        result.multi_client_runs += witness != 0;
+        result.permuted_runs += witness == 2;
         // The failed candidate at end is a known barrier; consume it without reading its Op a
         // second time, then find the next eligible run.
         begin = end + (end < n);
@@ -251,4 +211,4 @@ __attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps
     return result;
 }
 
-}  // namespace tomo::r2
+}  // namespace tomo

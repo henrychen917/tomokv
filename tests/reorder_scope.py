@@ -260,8 +260,9 @@ def replace_once(source, anchor, replacement):
 
 
 def instrument(source):
-    source = replace_once(source, '#include "reorder.h"',
-                          '#include "reorder.h"\n#include "reorder_scope_probe.h"')
+    include = ('#include "reorder_fifo.h"' if '#include "reorder_fifo.h"' in source
+               else '#include "reorder.h"')
+    source = replace_once(source, include, include + '\n#include "reorder_scope_probe.h"')
     for anchor, hook in (
         ("    void exec_batch(Task (&batch)[BatchOps], uint32_t n) {",
          "        reorder_scope::Batch scope_batch(batch, n);"),
@@ -280,6 +281,21 @@ def instrument(source):
         anchor = f"    uint32_t service_{name}() {{"
         source = replace_once(source, anchor, anchor +
                               f'\n        reorder_scope::Outside scope_path("{name}");')
+    return source
+
+
+def instrument_reorder(source):
+    # R2 moved its armed envelopes out of line, but the sampling population and
+    # pre-permutation boundary remain the same as R1's schema-v2 gather probe.
+    # Both batch seams MUST be present; instrumenting only FIFO would silently
+    # report armed executions as outside scope and invalidate the comparison.
+    for anchor, hook in (
+        ('void ExLoopT<Fused>::r2_exec_batch(Task (&batch)[BatchOps], uint32_t n) {',
+         '    reorder_scope::Batch scope_batch(batch, n);'),
+        ('        if (!filler_used && xshard_retries_.empty()) {',
+         '            reorder_scope::Batch scope_batch(batch, held);'),
+    ):
+        source = replace_once(source, anchor, anchor + '\n' + hook)
     return source
 
 
@@ -319,6 +335,12 @@ def prepare(path, revision=None):
         original_io = (ROOT / "src/core/io_loop.h").read_text()
     patched = instrument(original)
     patched_io = instrument_io(original_io)
+    patched_reorder = None
+    if '    void r2_run();' in original:
+        original_reorder = (subprocess.check_output(
+            ["git", "show", revision + ":src/core/reorder.cc"], cwd=ROOT, text=True)
+            if revision else (ROOT / "src/core/reorder.cc").read_text())
+        patched_reorder = instrument_reorder(original_reorder)
     path.mkdir(parents=True)
     if revision:
         archive = subprocess.check_output(
@@ -335,6 +357,8 @@ def prepare(path, revision=None):
             digest.update(str(item.relative_to(path)).encode() + b"\0" + item.read_bytes())
     (path / "src/core/ex_loop.h").write_text(patched)
     (path / "src/core/io_loop.h").write_text(patched_io)
+    if patched_reorder is not None:
+        (path / "src/core/reorder.cc").write_text(patched_reorder)
     (path / "src/core/reorder_scope_probe.h").write_text(
         PROBE.replace("@DIRECTORY@", json.dumps(str(path))))
     (path / "observations").mkdir()

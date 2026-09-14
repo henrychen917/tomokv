@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
+        return run_fused_server_selected(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
                                 tls_context.get(), unix_listener, final_shutdown_line);
     }
     if (srv.read_local_enabled()) {
@@ -336,6 +336,11 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
+    // Reorder is boot-latched, including across FLIP. Use the existing cfg capture
+    // at each role entry: a captured selector would enlarge every off-arm thread
+    // allocation. This immutable table has no per-thread or per-operation state.
+    using OwnerEntry = void (ExLoop::*)();
+    static constexpr OwnerEntry run_owner[] = {&ExLoop::run, &ExLoop::r2_run};
     std::mutex load_mu;
     std::condition_variable load_cv;
     uint32_t loaders_done = 0;
@@ -426,7 +431,7 @@ int main(int argc, char** argv) {
                 if (role == Role::Ex) {
                     exs[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    exs[tid].run();
+                    (exs[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else if (role == Role::Ifid) {
                     if (!ios[tid].activate()) std::abort();
@@ -568,7 +573,7 @@ int main(int argc, char** argv) {
                 } else if (role == Role::Ex) {
                     exs[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    exs[tid].run();
+                    (exs[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else {
                     std::this_thread::yield();

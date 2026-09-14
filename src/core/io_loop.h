@@ -6417,6 +6417,27 @@ ordinary_shard_ready:
     bool targeted_ifid_ = false;
     // Cold teardown/migration state; leave all established hot member offsets intact.
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
+public:
+    // Definitions stay outside the FIFO translation units; boot selects these
+    // entries once. Keeping armed bodies here perturbs the disarmed machine code.
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
+              uint8_t Pipeline = 0, bool SplitLocal = false>
+    void r2_run_loop();
+    template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay>
+    void r2_run_fused_iofused_loop();
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
+    uint32_t r2_sweep();
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t r2_genthread_iofused_pass(WbPipelineBatch& batch);
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t r2_genthread_three_way_pass(WbPipelineBatch& batch, bool& gate_open);
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t r2_genthread_iofused_sweep();
+    template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
+              bool SweepPass = false>
+    uint32_t r2_flush_ready();
+    void run_fused_reordered();
+
 };
 
 }  // namespace tomo

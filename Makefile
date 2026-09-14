@@ -26,6 +26,7 @@ SRC      += src/cmd/lbsignals.cc
 SRC      += src/core/flipctl.cc
 SRC      += src/core/genthread.cc
 SRC      += src/core/rl2s.cc
+SRC      += src/core/reorder.cc
 SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc

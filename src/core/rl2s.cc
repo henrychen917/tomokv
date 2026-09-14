@@ -116,6 +116,11 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<FusedExLoop> executors(nthreads);
+    // Reorder is boot-latched, including across FLIP. Use the existing cfg capture
+    // at each role entry: a captured selector would enlarge every off-arm thread
+    // allocation. This immutable table has no per-thread or per-operation state.
+    using OwnerEntry = void (FusedExLoop::*)();
+    static constexpr OwnerEntry run_owner[] = {&FusedExLoop::run, &FusedExLoop::r2_run};
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
     FusedBootGate boot(nthreads);
@@ -240,7 +245,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
                 } else if (role == Role::Ex) {
                     executors[tid].activate();
                     self.publish_ready_role(Role::Ex);
-                    executors[tid].run();
+                    (executors[tid].*run_owner[cfg.reorder != 0])();
                     self.publish_ready_role(Role::Idle);
                 } else {
                     std::this_thread::yield();

@@ -17,6 +17,7 @@ void multi_session_destroy(MultiSession* session) { if (session) std::abort(); }
 
 namespace {
 using namespace tomo;
+using namespace tomo::r2;
 
 [[noreturn]] void fail(const char* what) {
     std::fprintf(stderr, "reorder battery: FAIL: %s\n", what);

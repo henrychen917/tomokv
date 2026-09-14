@@ -22,7 +22,7 @@
 #include "signal.h"
 #include "genthread_pipeline.h"
 #include "read_local.h"
-#include "reorder.h"
+#include "reorder_fifo.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -2007,7 +2007,10 @@ private:
         auto execute_batch = [&] {
             if (!held) return;
             if (!filler_used && xshard_retries_.empty()) {
-                prefetch_and_reorder_batch(batch, held);
+                if (__builtin_expect(reorder_enabled_, false))
+                    srv_->mode_schedule_stats(self_->id()).note_reorder(
+                        held, ex_schedule_batch(batch, held));
+                prefetch_exec_batch(batch, held);
                 filler();
                 filler_used = true;
                 exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
@@ -2378,12 +2381,7 @@ private:
 
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
-    template <bool ScreenReorder = false>
-    bool prefetch_exec_batch(const Task* batch, uint32_t n) {
-        // The disabled instantiation contains no screen; the armed one seeds in this walk.
-        // The armed uniform arm reuses the original per-task flag test with a different mask.
-        using Screen = std::conditional_t<ScreenReorder, ExReorderScreen, std::nullptr_t>;
-        [[maybe_unused]] Screen screen{};
+    void prefetch_exec_batch(const Task* batch, uint32_t n) {
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -2392,32 +2390,9 @@ private:
             // order as pipelined E1. A route can go stale after enqueue; even a prefetch through
             // the old FlatStore is formally an ownership violation under TSAN's model.
             if (shard >= 0 && !batch[i].scatter &&
-                srv_->worker_of_shard(shard) == self_->id()) {
-                const uint32_t flags = op.spec->flags;
-                if constexpr (ScreenReorder) {
-                    if (screen.prefetch(flags)) srv_->shard(shard).store().prefetch(op.hash);
-                } else {
-                    if (!(flags & ExReorderScreen::kPrefetchSkip))
-                        srv_->shard(shard).store().prefetch(op.hash);
-                }
-            }
-        }
-        if constexpr (ScreenReorder) return screen.mixed();
-        else return false;
-    }
-
-    template <size_t BatchOps>
-    void prefetch_and_reorder_batch(Task (&batch)[BatchOps], uint32_t n) {
-        if (__builtin_expect(reorder_enabled_ && n > 1, false)) {
-            // All hints still precede execution and each bucket is hinted once. Screening at
-            // this existing walk removes the scheduler's separate class scan from uniform
-            // batches. Stale routes excluded by prefetch need no scheduling on this owner;
-            // execute still forwards them before any store access. No filler or execution is
-            // moved across this boundary. Only mixed batches touch the scheduler/stats sidecar.
-            if (__builtin_expect(prefetch_exec_batch<true>(batch, n), false))
-                srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
-        } else {
-            prefetch_exec_batch(batch, n);
+                srv_->worker_of_shard(shard) == self_->id() &&
+                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                srv_->shard(shard).store().prefetch(op.hash);
         }
     }
 
@@ -2498,13 +2473,15 @@ private:
     // micro-stage.
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-        // Deferral first, then one prefetch pass which also screens armed batches for a static
-        // cost mix. A uniform batch never calls the scheduler, regardless of its ROB ranks.
+        // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
+        // reorder BEFORE prefetch so prefetch order matches execution order.
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        prefetch_and_reorder_batch(batch, n);
+        if (__builtin_expect(reorder_enabled_, false))
+            srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
+        prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
 
@@ -3157,6 +3134,45 @@ private:
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
+public:
+    // Definitions stay outside the FIFO translation units; boot selects these
+    // entries once. Keeping armed bodies here perturbs the disarmed machine code.
+    uint32_t r2_fused_pass();
+    uint32_t r2_fused_baseline_pass();
+    uint32_t r2_fused_coarse_pass();
+    template <typename Filler>
+    uint32_t r2_fused_three_way_pass(Filler&& filler);
+    uint32_t r2_fused_pipeline_control();
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
+              typename Filler = void>
+    uint32_t r2_fused_pass_impl(Filler* filler = nullptr);
+    uint32_t r2_fused_sweep(bool consume_tasks = true);
+    uint32_t r2_fused_baseline_sweep();
+    uint32_t r2_fused_coarse_sweep();
+    uint32_t r2_fused_pipeline_control_sweep();
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r2_fused_sweep_impl();
+    void r2_run();
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r2_sweep();
+    template <bool IofusedPrivateQueue = false>
+    uint32_t r2_drain_tasks_read_local_interleaved(bool unmasked,
+                                                bool& owner_work_remains);
+    template <uint32_t BatchOps = kGenthreadExBatchOps,
+              bool IofusedPrivateQueue = false>
+    uint32_t r2_drain_tasks(bool unmasked = false);
+    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t r2_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
+    template <bool ScreenReorder = false>
+    bool r2_prefetch_exec_batch(const Task* batch, uint32_t n);
+    template <size_t BatchOps>
+    void r2_prefetch_and_reorder_batch(Task (&batch)[BatchOps], uint32_t n);
+    template <bool IofusedPrivateQueue = false, size_t BatchOps>
+    void r2_exec_batch(Task (&batch)[BatchOps], uint32_t n);
+
 };
 
 using ExLoop = ExLoopT<false>;
