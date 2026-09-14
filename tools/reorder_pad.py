@@ -5,6 +5,9 @@ The measured POST is an immutable input. Reuse PRE release objects, split only
 the two changed translation units' existing assembly into linkable functions,
 and let ld fill unused POST slots with unreachable NOPs. A full linked-body audit
 is required: a successful link alone is not evidence of a behaviour twin.
+
+This control records three placement exceptions; it is not a literal match of
+every POST symbol address. No exception is permitted in PRE body equivalence.
 """
 
 import argparse
@@ -12,6 +15,7 @@ import bisect
 import collections
 import hashlib
 import json
+import os
 import re
 import shlex
 import struct
@@ -588,6 +592,10 @@ if __name__ == "__main__":
     parser.add_argument("action", choices=["prepare", "layout", "trim", "audit"])
     parser.add_argument("tag", nargs="?")
     args = parser.parse_args()
-    require(set(__import__("os").sched_getaffinity(0)) <= set(range(112, 128)),
+    if args.action == "trim" and args.tag not in SPLIT.values():
+        parser.error("trim requires main or rl2s")
+    if args.action != "trim" and args.tag is not None:
+        parser.error("only trim accepts an object name")
+    require(set(os.sched_getaffinity(0)) <= set(range(112, 128)),
             "run under taskset -c 112-127")
     globals()[args.action]()
