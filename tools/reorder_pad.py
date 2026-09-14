@@ -7,8 +7,10 @@ the two changed translation units' existing assembly into linkable functions,
 and let ld fill unused POST slots with unreachable NOPs. A full linked-body audit
 is required: a successful link alone is not evidence of a behaviour twin.
 
-This control records three placement exceptions; it is not a literal match of
-every POST symbol address. No exception is permitted in PRE body equivalence.
+Match POST's loaded section geometry, including writable data and TLS, while
+keeping PRE's constructors and every PRE instruction. Three conflicting text
+slots require explicit placement exceptions; no body-equivalence exception is
+permitted. Padding in the constructor section is outside DT_INIT_ARRAYSZ.
 """
 
 import argparse
@@ -89,10 +91,10 @@ class Elf:
                 (section is None or s["section"] == self.sections[section]["index"])]
 
 
-def inputs(path):
+def inputs(path, section=".text", following=".fini"):
     lines = Path(path).read_text().splitlines()
-    start = next(i for i, line in enumerate(lines) if line.startswith(".text "))
-    end = next(i for i in range(start + 1, len(lines)) if lines[i].startswith(".fini "))
+    start = next(i for i, line in enumerate(lines) if line.startswith(section + " "))
+    end = next(i for i in range(start + 1, len(lines)) if lines[i].startswith(following + " "))
     result = []
     pending = None
     for line in lines[start + 1:end]:
@@ -294,6 +296,61 @@ def prepare():
     subprocess.run(["make", "-j8", "-f", str(OUT / "assembly.mk")], check=True)
 
 
+def data_layout(script, pre, post):
+    # Keep the default linker rules (merging literals, dynamic relocation order,
+    # TLS, RELRO and unwind metadata). Fix output addresses and reserve POST's
+    # full sizes. Zero tail bytes are inert data, never additional constructors.
+    # For writable registry/static storage, also require symbol-level placement
+    # in audit; section totals alone do not establish a data-layout control.
+    names = [".rela.dyn", ".rela.plt", ".rodata", ".eh_frame_hdr", ".eh_frame",
+             ".gcc_except_table", ".tdata", ".tbss", ".init_array", ".fini_array",
+             ".data.rel.ro", ".dynamic", ".got", ".data", ".bss"]
+    for name in names:
+        target = post.sections[name]
+        pattern = r"(?m)^  " + re.escape(name) + r"\s*:\s*(ONLY_IF_RO\s*)?\{(.*?)\}"
+        match = re.search(pattern, script, flags=re.S)
+        require(match is not None, f"default linker section absent: {name}")
+        body = match[2]
+        if name == ".rela.dyn":
+            # In the default script these orphan inputs are appended after the
+            # closing brace. Place them before our reserve; otherwise padding
+            # moves live relocations past POST's section end.
+            body += "\n    *(.rela.init_array .rela.fini_array)\n"
+        if name == ".data.rel.ro":
+            # Owner-entry tables and the extra thread vtable occupy holes here.
+            # Link only PRE's objects at their corresponding POST input slots.
+            before = inputs(OUT / "pre.map", name, ".dynamic")
+            after = {(original_object(r["object"]), r["section"]): r
+                     for r in inputs(OUT / "post.map", name, ".dynamic")}
+            rows = []
+            for row in before:
+                other = after[(row["object"], row["section"])]
+                require(row["size"] <= other["size"], "PRE data input outgrew its POST slot")
+                obj = row["object"]
+                for suffix, tag in SPLIT.items():
+                    if obj == str(BASE / "build" / suffix):
+                        obj = str(OUT / f"{tag}.o")
+                rows.append((other["address"], row["size"], obj, row["section"]))
+            rows.sort()
+            end = target["address"]
+            body = "\n    FILL(0)\n"
+            for address, size, obj, section in rows:
+                require(address >= end, "overlapping data input slots")
+                body += f"    . = {address - target['address']:#x};\n    {obj}({section})\n"
+                end = address + size
+        # ld sizes .eh_frame before COMDAT/FDE pruning on an early pass; setting
+        # its final size there attempts to move backwards. An inert input tail
+        # instead reserves the known PRE/POST difference after pruning, keeping
+        # ld from introducing a new PT_LOAD for the otherwise page-sized hole.
+        if name == ".eh_frame":
+            body += "\n    *(.r2_unwind_padding)\n"
+        if name != ".eh_frame":
+            body += f"\n    . = {target['size']:#x};\n  "
+        replacement = f"  {name} {target['address']:#x} : {match[1] or ''}{{{body}}}"
+        script = script[:match.start()] + replacement + script[match.end():]
+    return script
+
+
 def layout():
     pre = Elf(PRE)
     post = Elf(POST)
@@ -374,6 +431,7 @@ def layout():
     default = run("ld", "-pie", "-z", "now", "-z", "relro", "--verbose").split("==================================================")[1]
     script, count = re.subn(r"  \.text\s*:\s*\{.*?\n  \}\n", "".join(body), default, count=1, flags=re.S)
     require(count == 1, "cannot find default text output section")
+    script = data_layout(script, pre, post)
     (OUT / "placement.ld").write_text(script)
     manifest = dict(kind="A behaviour twin", exact_post_placement=False, exceptions=exceptions,
                     pre_sha256=PRE_SHA, post_sha256=POST_SHA, post_text=text,
@@ -383,14 +441,24 @@ def layout():
     argv = json.loads((OUT / "pre-link.json").read_text())
     for obj, tag in SPLIT.items():
         argv[argv.index(str((BASE / "build") / obj))] = str(OUT / f"{tag}.o")
-    argv[argv.index("-o") + 1] = str(CANDIDATE)
+    linked = OUT / "linked"
+    padding = post.sections[".eh_frame"]["size"] - pre.sections[".eh_frame"]["size"]
+    require(padding > 0, "expected positive unwind padding")
+    (OUT / "unwind-padding.S").write_text(
+        '.section .r2_unwind_padding,"a",@progbits\n' + f'.zero {padding}\n' +
+        '.section .note.GNU-stack,"",@progbits\n.section .note.gnu.property,"a"\n'
+        '.p2align 3\n.long 4,16,5\n.asciz "GNU"\n.long 0xc0000002,4,3,0\n')
+    argv.insert(argv.index("-o"), str(OUT / "unwind-padding.o"))
+    argv[argv.index("-o") + 1] = str(linked)
     argv += [f"-Wl,-T,{OUT}/placement.ld,-Map={OUT}/pad.map"]
     make = [f"all: {CANDIDATE}\n"]
     for tag in SPLIT.values():
         make.append(f"{OUT}/{tag}.raw.o: {OUT}/{tag}.split.s\n\tgcc -c $< -o $@\n")
         make.append(f"{OUT}/{tag}.o: {OUT}/{tag}.raw.o {OUT}/layout.json tools/reorder_pad.py\n"
                     f"\tpython3 tools/reorder_pad.py trim {tag}\n")
-    make.append(f"{CANDIDATE}: {OUT}/main.o {OUT}/rl2s.o {OUT}/placement.ld\n\t" + shlex.join(argv) + "\n")
+    make.append(f"{OUT}/unwind-padding.o: {OUT}/unwind-padding.S\n\tgcc -c $< -o $@\n")
+    make.append(f"{linked}: {OUT}/main.o {OUT}/rl2s.o {OUT}/unwind-padding.o {OUT}/placement.ld\n\t" + shlex.join(argv) + "\n")
+    make.append(f"{CANDIDATE}: {linked} tools/reorder_pad.py\n\tpython3 tools/reorder_pad.py finalize\n")
     (OUT / "pad.mk").write_text("".join(make))
     print(f"planned {len(planned)} input sections; {len(exceptions)} explicit placement exceptions")
 
@@ -479,6 +547,106 @@ def trim():
     (OUT / f"{tag}.o").write_bytes(rewritten)
     (OUT / f"trims-{tag}.json").write_text(json.dumps(receipt, indent=2) + "\n")
     (OUT / f"nops-{tag}.json").write_text(json.dumps(nop_fixes, indent=2) + "\n")
+
+
+def finalize():
+    # The loader uses DT_INIT_ARRAYSZ, not the section header size. Leave PRE's
+    # constructor order intact and exclude the final unused POST-sized slot.
+    # A null constructor inside the live range would crash; a no-op constructor
+    # would execute extra instructions and would not be an unreachable control.
+    linked = OUT / "linked"
+    elf = Elf(linked)
+    pre = Elf(PRE)
+    data = bytearray(linked.read_bytes())
+    post = Elf(POST)
+    frame = elf.sections[".eh_frame"]
+    frame_size = post.sections[".eh_frame"]["size"]
+    require(frame["size"] <= frame_size, "PRE unwind metadata outgrew POST")
+    require(data[frame["offset"] + frame["size"]:frame["offset"] + frame_size] ==
+            b"\0" * (frame_size - frame["size"]), "nonzero reserved unwind padding")
+    header = struct.unpack_from("<16sHHIQQQIHHHHHH", data)
+    struct.pack_into("<Q", data, header[6] + frame["index"] * header[11] + 32, frame_size)
+    init = elf.sections[".init_array"]
+    used = pre.sections[".init_array"]["size"]
+    require(data[init["offset"] + used:init["offset"] + init["size"]] == b"\0" * (init["size"] - used),
+            "nonzero constructor padding")
+    dynamic = elf.sections[".dynamic"]
+    edits = []
+    for at in range(dynamic["offset"], dynamic["offset"] + dynamic["size"], 16):
+        tag, value = struct.unpack_from("<QQ", data, at)
+        if tag == 27:  # DT_INIT_ARRAYSZ
+            require(value == init["size"], "unexpected linked constructor extent")
+            struct.pack_into("<Q", data, at + 8, used)
+            edits.append(dict(offset=at + 8, before=value, after=used))
+    require(len(edits) == 1, "missing or duplicated DT_INIT_ARRAYSZ")
+    note = elf.sections[".note.gnu.build-id"]
+    at = note["offset"]
+    require(struct.unpack_from("<III", data, at) == (4, 20, 3) and data[at + 12:at + 16] == b"GNU\0",
+            "unexpected build-id note")
+    data[at + 16:at + 36] = b"\0" * 20
+    data[at + 16:at + 36] = hashlib.sha1(data).digest()
+    CANDIDATE.write_bytes(data)
+    CANDIDATE.chmod(linked.stat().st_mode)
+    (OUT / "finalize.json").write_text(json.dumps(dict(linked_sha256=sha(linked),
+        candidate_sha256=sha(CANDIDATE), dynamic_edits=edits,
+        unwind_tail_bytes=frame_size - frame["size"],
+        build_id="SHA1 of finalized file with build-id descriptor zeroed"), indent=2) + "\n")
+
+
+def audit_data():
+    pre, post, pad = (Elf(p) for p in (PRE, POST, CANDIDATE))
+    loaded = lambda elf: [s for s in elf.by_index if s["flags"] & 2]
+    geometry = ("name", "address", "size", "align", "flags")
+    expected = [{k: s[k] for k in geometry} for s in loaded(post)]
+    actual = [{k: s[k] for k in geometry} for s in loaded(pad)]
+    (OUT / "loaded-sections.json").write_text(json.dumps(dict(post=expected, pad=actual), indent=2) + "\n")
+    require(actual == expected, "POST/PAD loaded section geometry/order differs")
+
+    def objects(elf, sections):
+        rows = collections.defaultdict(list)
+        for s in elf.symbols:
+            if s["type"] not in (1, 6) or not s["size"] or s["section"] >= len(elf.by_index):
+                continue
+            name = elf.by_index[s["section"]]["name"]
+            if name in sections:
+                rows[(name, s["name"])].append((s["address"], s["size"]))
+        return {key: sorted(value) for key, value in rows.items()}
+
+    storage = (".data", ".bss", ".tdata", ".tbss", ".data.rel.ro")
+    before, target, control = (objects(e, storage) for e in (pre, post, pad))
+    require(before.keys() == control.keys(), "PRE/PAD static-storage inventory differs")
+    rows = []
+    for key, old in before.items():
+        require(len(old) == len(control[key]) == len(target[key]), f"static-storage clone mismatch: {key}")
+        for original, candidate, twin in zip(old, target[key], control[key]):
+            require(original[1] == candidate[1] == twin[1], f"static-storage size differs: {key}")
+            rows.append(dict(section=key[0], name=key[1], pre_address=original[0],
+                             post_address=candidate[0], pad_address=twin[0], bytes=twin[1]))
+            require(candidate == twin, f"POST/PAD static-storage placement differs: {key}")
+    (OUT / "static-storage.json").write_text(json.dumps(rows, indent=2) + "\n")
+
+    def constructors(elf):
+        data = elf.path.read_bytes()
+        dynamic = elf.sections[".dynamic"]
+        tags = dict(struct.unpack_from("<QQ", data, at)
+                    for at in range(dynamic["offset"], dynamic["offset"] + dynamic["size"], 16))
+        section = elf.sections[".init_array"]
+        require(tags[25] == section["address"] and tags[27] % 8 == 0, "invalid constructor bounds")
+        names = collections.defaultdict(list)
+        for s in elf.symbols:
+            if s["type"] == 2:
+                names[s["address"]].append(s["name"])
+        result = []
+        for at in range(section["offset"], section["offset"] + tags[27], 8):
+            address, = struct.unpack_from("<Q", data, at)
+            require(address in names, "constructor has no function symbol")
+            result.append(sorted(names[address]))
+        return result
+
+    original, twin = constructors(pre), constructors(pad)
+    require(original == twin and len(twin) == 33, "PRE/PAD constructor sequence differs")
+    (OUT / "constructors.json").write_text(json.dumps(dict(pre=original, pad=twin), indent=2) + "\n")
+    print(f"data layout: {len(actual)} loaded sections, {len(rows)} static objects, {len(twin)} PRE constructors")
 
 
 def audit():
@@ -583,6 +751,7 @@ def audit():
                            if any(key in line for key in ["Properties:", "x86 ISA", "OS:"])]
     require(properties["PRE"] == properties["PAD"], "ELF control-flow/ABI properties changed")
     (directory / "gaps-and-properties.json").write_text(json.dumps(dict(gaps=gaps, properties=properties), indent=2) + "\n")
+    audit_data()
     PAD.write_bytes(CANDIDATE.read_bytes())
     PAD.chmod(CANDIDATE.stat().st_mode)
     require(sha(PAD) == pad.sha256, "published PAD differs from audited candidate")
@@ -591,7 +760,7 @@ def audit():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["prepare", "layout", "trim", "audit"])
+    parser.add_argument("action", choices=["prepare", "layout", "trim", "finalize", "audit"])
     parser.add_argument("tag", nargs="?")
     args = parser.parse_args()
     if args.action == "trim" and args.tag not in SPLIT.values():
