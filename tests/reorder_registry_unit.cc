@@ -23,6 +23,23 @@ struct Saved {
     const tomo::CommandSpec* row;
     tomo::CommandSpec value;
 };
+uint64_t* allocated = nullptr;
+uint64_t inherited_bind_bytes = 0;
+unsigned inherited_bind_calls = 0;
+uint64_t allocation_bytes() {
+    return allocated ? *static_cast<volatile uint64_t*>(allocated) : 0;
+}
+}
+
+// --wrap observes the existing binder inside the real R2 call. It initializes
+// scripting/config/slowlog and legitimately allocates; count that baseline in
+// the SAME invocation instead of warming it up and changing the boot state.
+extern "C" void __real__ZN4tomo19command_bind_serverEPNS_6ServerE(tomo::Server*);
+extern "C" void __wrap__ZN4tomo19command_bind_serverEPNS_6ServerE(tomo::Server* server) {
+    const uint64_t before = allocation_bytes();
+    __real__ZN4tomo19command_bind_serverEPNS_6ServerE(server);
+    inherited_bind_bytes += allocation_bytes() - before;
+    inherited_bind_calls++;
 }
 
 int main(int argc, char** argv) {
@@ -61,7 +78,6 @@ int main(int argc, char** argv) {
 #ifdef TOMO_JEMALLOC
     // Obtain jemalloc's thread counter before the window, including its own
     // first-use setup. This counts allocations even if the binder frees them.
-    uint64_t* allocated = nullptr;
     size_t counter_size = sizeof(allocated);
     require(mallctl("thread.allocatedp", &allocated, &counter_size, nullptr, 0) == 0 && allocated,
             "jemalloc allocation witness unavailable");
@@ -70,12 +86,13 @@ int main(int argc, char** argv) {
     require(witness && *static_cast<volatile uint64_t*>(allocated) > before_witness,
             "jemalloc allocation counter did not observe the witness");
     dallocx(witness, 0);
-    const uint64_t before_bind = *static_cast<volatile uint64_t*>(allocated);
+    const uint64_t before_bind = allocation_bytes();
 #endif
     tomo::command_bind_server_selected(&server);
+    require(inherited_bind_calls == 1, "inherited binder observation did not open (link with --wrap)");
 #ifdef TOMO_JEMALLOC
-    require(*static_cast<volatile uint64_t*>(allocated) == before_bind,
-            "boot binder allocated memory");
+    require(allocation_bytes() - before_bind == inherited_bind_bytes,
+            "R2 allocated beyond the inherited boot binder");
 #endif
     unsigned cost_rows = 0, barriers = 0, classes = 0;
     for (const Saved& saved : before) {
@@ -104,4 +121,7 @@ int main(int argc, char** argv) {
     tomo::command_bind_server(nullptr);
     std::printf("reorder registry: PASS ro=%u tls=%u fused=%u rl=%u, %u rows, %zu variant checks\n",
                 armed, tls, fused, local, count, before.size());
+#ifdef TOMO_JEMALLOC
+    std::printf("inherited binder allocated %lu bytes; R2 added 0 bytes\n", inherited_bind_bytes);
+#endif
 }

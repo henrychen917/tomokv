@@ -103,6 +103,10 @@ build/read-local-write-ring-unit: tests/read_local_write_ring_unit.cc $(wildcard
 build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/reorder_unit.cc -o $@
+# Real registry/boot-binder fixture; no listener, Ring, topology or worker starts.
+build/reorder-registry-unit: tests/reorder_registry_unit.cc $(filter-out build/src/main.o,$(OBJ)) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/main.o,$(OBJ)) -o $@ \
+	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=_ZN4tomo19command_bind_serverEPNS_6ServerE
 STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc
 build/store-regression: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
