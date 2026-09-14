@@ -320,15 +320,56 @@ class FailedFoldTiming(unittest.TestCase):
                     return_value=dict(schema=1, seconds=seconds, complete=True)):
                 rc, output, _errors = self.publish()
                 verdict, duration, label = output.strip().split('\t')
-                self.assertEqual((rc, verdict, label), (int(expected == 'FAIL'), expected, fanout.LABELS['split']))
+                self.assertEqual((rc, verdict, label), (124 if expected == 'FAIL' else 0, expected, fanout.LABELS['split']))
                 self.assertEqual(float(duration), self.observations()[-1]['seconds'])
                 self.assertEqual(self.observations()[-1]['timed_out'], expected == 'FAIL')
+
+    def test_slow_success_ignores_history_but_honors_explicit_matrix_budget(self):
+        for basis, seconds, expected in (('own-row-history', 456, 0), ('fixture', 456, 124),
+                                          ('fixture', 1800, 0)):
+            for group, label in fanout.LABELS.items():
+                write_json(self.directory / 'timeouts.json', dict(schema=1,
+                    defaults=dict(fallback_seconds=900), rows={label: dict(
+                        timeout_seconds=seconds, median_seconds=114, basis=basis)}))
+                with self.subTest(basis=basis, seconds=seconds, group=group), patch.object(fanout, 'fold',
+                        return_value=dict(schema=1, seconds=456.1, complete=True)):
+                    rc, output, errors = self.publish(group)
+                    self.assertEqual(rc, expected, errors)
+                    self.assertTrue(output.startswith('FAIL\t' if expected else 'ok\t'))
+                    self.assertEqual(self.observations()[-1]['timed_out'], expected == 124)
+
+    def test_cancelled_child_is_timeout_inside_matrix_budget(self):
+        for part in fanout.PARTS:
+            done = self.directory / 'jobs' / ('differ-' + part) / 'done'
+            original = done.read_text()
+            done.write_text('124\t0\t1\n')
+            group = 'armed' if part.startswith('armed') else 'split'
+            with self.subTest(part=part):
+                rc, output, errors = self.publish(group)
+                self.assertEqual(rc, 124)
+                self.assertTrue(output.startswith('FAIL\t')) # Nonpassing ledger, distinct reason.
+                self.assertIn('DIFFER FANOUT TIMEOUT:', errors)
+                self.assertNotIn('DIFFER FANOUT FAIL:', errors)
+                self.assertTrue(self.observations()[-1]['timed_out'])
+            done.write_text(original)
+
+    def test_real_failure_is_not_relabelled_when_span_exceeds_matrix_budget(self):
+        write_json(self.directory / 'timeouts.json', dict(schema=1,
+            defaults=dict(fallback_seconds=900), rows={fanout.LABELS['split']: dict(
+                timeout_seconds=1, median_seconds=None, basis='fixture')}))
+        rc, output, errors = self.publish()
+        self.assertEqual(rc, 1)
+        self.assertTrue(output.startswith('FAIL\t'))
+        self.assertIn('DIFFER FANOUT FAIL:', errors)
+        self.assertNotIn('TIMEOUT', errors)
+        self.assertFalse(self.observations()[-1]['timed_out'])
 
     def test_real_collector_accepts_only_exact_failed_rows_after_helper_error(self):
         gate = (ROOT / 'tests/gate.sh').read_text()
         collector = gate[gate.index('collect_differ_group(){'):gate.index('\ncollect_job(){')]
         label = fanout.LABELS['split']
         cases = [(1, f'FAIL\t14.000000\t{label}\n', True),
+                 (124, f'FAIL\t14.000000\t{label}\n', True),
                  (0, f'ok\t14.000000\t{label}\n', True),
                  (1, f'ok\t14.000000\t{label}\n', False), (1, '', False),
                  (1, f'FAIL\tNaN\t{label}\n', False), (1, 'FAIL\t14\twrong label\n', False),
@@ -341,7 +382,7 @@ LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; : > "$LEDGER"; : > "$TIMIN
 job_label(){ printf '%s\n' "$EXPECTED_LABEL"; }
 python3(){ printf '%s' "$FOLD_OUTPUT"; return "$FOLD_RC"; }
 bad(){ printf 'FAIL\t0\t%s\n' "$1" >> "$LEDGER"; FAIL=$((FAIL+1)); }
-say(){ :; }
+say(){ printf '%s %s\n' "$1" "$2"; }
 '''
         for rc, output, accepted in cases:
             with self.subTest(rc=rc, output=output):
@@ -350,6 +391,8 @@ say(){ :; }
                                       FOLD_RC=str(rc), FOLD_OUTPUT=output), capture_output=True, text=True, timeout=5)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual((self.directory / 'ledger').read_text(), output if accepted else f'FAIL\t0\t{label}\n')
+                if accepted:
+                    self.assertIn('TIMEOUT (' if rc == 124 else 'FAIL (' if rc else 'ok (', result.stdout)
 
 
 if __name__ == '__main__':
