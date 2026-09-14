@@ -8,6 +8,7 @@ is required: a successful link alone is not evidence of a behaviour twin.
 """
 
 import argparse
+import bisect
 import collections
 import hashlib
 import json
@@ -24,6 +25,7 @@ PRE = Path("build/r7-pre/build/tomokv")
 POST = Path("build/tomokv")
 OUT = Path("build/r7-pad")
 PAD = Path("build/tomokv-r7-pad")
+CANDIDATE = OUT / "candidate"
 COPY = Path("build/tomokv-r7-post-v2")
 SPLIT = {"src/main.o": "main", "src/core/rl2s.o": "rl2s"}
 PLAIN = {".text", ".text.unlikely", ".text.startup"}
@@ -122,6 +124,54 @@ def function_sections(obj, tag):
     return result
 
 
+def freeze_branches(lines, tag):
+    # GAS relaxation can choose a shorter backward branch after section splitting,
+    # even though the source instruction is unchanged. Emit PRE's opcode/width
+    # with an ordinary symbolic displacement, so every internal NOP stays put.
+    path = next(Path("build/r7-pre/build") / p for p, t in SPLIT.items() if t == tag)
+    original = Elf(path)
+    sections = collections.defaultdict(dict)
+    section = None
+    for line in run("objdump", "-dw", str(path)).splitlines():
+        match = re.fullmatch(r"Disassembly of section (.+):", line)
+        if match:
+            section = match[1]
+        match = re.match(r"\s*([0-9a-f]+):\s*((?:[0-9a-f]{2} )+)\s*(.*)", line)
+        if match and re.match(r"j[a-z]+\s+(?!\*)", match[3]):
+            sections[section][int(match[1], 16)] = bytes.fromhex(match[2])
+    branches = {}
+    for sym in original.functions():
+        rows = sections[original.by_index[sym["section"]]["name"]]
+        branches[sym["name"]] = [raw for at, raw in rows.items()
+                                 if sym["address"] <= at < sym["address"] + sym["size"]]
+    result = []
+    active = None
+    index = 0
+    seen = {}
+    for line in lines:
+        if line.endswith(":\n") and line.rstrip()[:-1] in branches:
+            if active:
+                require(index == len(branches[active]), f"branch count mismatch: {active}")
+                seen[active] = index
+            active = line.rstrip()[:-1]
+            index = 0
+        match = re.fullmatch(r"\s*(j[a-z]+)\s+([^*\s]+)\s*", line)
+        if match and active:
+            require(index < len(branches[active]), f"extra assembly branch: {active}")
+            raw = branches[active][index]
+            index += 1
+            width = 4 if len(raw) >= 5 else 1
+            opcode = ",".join(hex(b) for b in raw[:-width])
+            directive = ".long" if width == 4 else ".byte"
+            line = f"\t.byte {opcode}\n\t{directive} {match[2]} - . - {width}\n"
+        result.append(line)
+    if active:
+        require(index == len(branches[active]), f"final branch count mismatch: {active}")
+        seen[active] = index
+    (OUT / f"branches-{tag}.json").write_text(json.dumps(seen, indent=2) + "\n")
+    return result
+
+
 def split_assembly(tag, funcs):
     """Change section directives and ELF sizes only; preserve all instructions.
 
@@ -131,29 +181,71 @@ def split_assembly(tag, funcs):
     """
     source = OUT / f"{tag}.s"
     target = OUT / f"{tag}.split.s"
-    found = set()
+    # DWARF's translation-unit-wide range subtraction assumes one .text input.
+    # Drop only nonloaded debug directives in these two reassembled objects;
+    # retain CFI, LSDA, properties, symbols and every instruction/data directive.
+    lines = []
+    debug = False
+    with source.open() as src:
+        for line in src:
+            directive = re.match(r'\s*\.section\s+([^,\s]+)', line)
+            if directive:
+                debug = directive[1].startswith(".debug_")
+            symbol_directive = re.match(r"\s*\.(?:hidden|weak|globl|type|size|ident)\s", line)
+            if (not debug or symbol_directive) and not line.lstrip().startswith((".loc ", ".loc\t", ".file ", ".file\t")):
+                lines.append(line)
+    lines = freeze_branches(lines, tag)
+    positions = {line.rstrip()[:-1]: i for i, line in enumerate(lines) if line.endswith(":\n")}
+    switches = {}
+    for symbol, (section, _) in funcs.items():
+        if symbol not in positions:  # Constructor/destructor .set aliases.
+            continue
+        at = positions[symbol]
+        anchor = at
+        # Cold fragments put CFI before their .type/label. Move that prologue
+        # with the body instead of starting an unwind record in the prior slot.
+        for j in range(at - 1, -1, -1):
+            value = lines[j].strip()
+            if value.startswith((".size", ".cfi_endproc")) or value.endswith(":"):
+                break
+            if not value.startswith("."):
+                break
+            anchor = j
+            if value == ".text" or value.startswith(".section"):
+                break
+        switches[anchor] = section
+        # GCC emits the cold LSDA base before the HOT body, long before the
+        # cold body itself. Keep both zero-sized anchors with their fragment.
+        for j in range(at - 1, max(-1, at - 20), -1):
+            label = lines[j].strip()
+            if label.startswith(".LHOTB") and label.endswith(":"):
+                switches[j] = section
+            if label.startswith(".LCOLDB") and label.endswith(":"):
+                cold = funcs.get(symbol + ".cold")
+                require(cold is not None, f"missing cold fragment for {symbol}")
+                switches[j] = cold[0]
+                break
+            if label and not label.startswith("."):
+                break
     current = {}
     original_section = ".text"
-    with source.open() as src, target.open("w") as dst:
-        for line in src:
+    with target.open("w") as dst:
+        for i, line in enumerate(lines):
             directive = re.match(r'\s*\.section\s+([^,\s]+)', line)
             if line.strip() == ".text" or directive:
                 original_section = directive[1] if directive else ".text"
-                if original_section in current:
-                    line = f'\t.section {current[original_section]},"ax",@progbits\n'
-            label = line.rstrip().removesuffix(":")
-            if line.endswith(":\n") and label in funcs:
-                section, _ = funcs[label]
-                require(original_section in PLAIN, f"unexpected original function section: {label}")
-                current[original_section] = section
-                dst.write(f'\t.section {section},"ax",@progbits\n')
-                found.add(label)
-            match = re.fullmatch(r"\s*\.size\s+([^,]+),\s*\.\s*-\s*\1\s*", line)
-            if match and match[1] in funcs:
-                line = f"\t.size {match[1]}, {funcs[match[1]][1]}\n"
+            if i in switches:
+                require(original_section in PLAIN, f"unexpected original section at line {i}: {original_section}")
+                current[original_section] = switches[i]
+                dst.write(f'\t.section {switches[i]},"ax",@progbits\n')
+            if (line.strip() == ".text" or directive) and original_section in current:
+                line = f'\t.section {current[original_section]},"ax",@progbits\n'
+            if line.lstrip().startswith(".size"):
+                match = re.fullmatch(r"\s*\.size\s+([^,]+),\s*\.\s*-\s*\1\s*", line)
+                if match and match[1] in funcs:
+                    line = f"\t.size {match[1]}, {funcs[match[1]][1]}\n"
             dst.write(line)
-    # Constructor/destructor .set aliases do not have a separate label.
-    require(found, f"no functions split in {source}")
+    require(switches, f"no functions split in {source}")
     return target
 
 
@@ -273,14 +365,46 @@ def layout():
     argv = json.loads((OUT / "pre-link.json").read_text())
     for obj, tag in SPLIT.items():
         argv[argv.index(str(Path("build/r7-pre/build") / obj))] = str(OUT / f"{tag}.o")
-    argv[argv.index("-o") + 1] = str(PAD)
+    argv[argv.index("-o") + 1] = str(CANDIDATE)
     argv += [f"-Wl,-T,{OUT}/placement.ld,-Map={OUT}/pad.map"]
-    make = [f"all: {PAD}\n"]
+    make = [f"all: {CANDIDATE}\n"]
     for tag in SPLIT.values():
-        make.append(f"{OUT}/{tag}.o: {OUT}/{tag}.split.s\n\tgcc -c $< -o $@\n")
-    make.append(f"{PAD}: {OUT}/main.o {OUT}/rl2s.o {OUT}/placement.ld\n\t" + shlex.join(argv) + "\n")
+        make.append(f"{OUT}/{tag}.raw.o: {OUT}/{tag}.split.s\n\tgcc -c $< -o $@\n")
+        make.append(f"{OUT}/{tag}.o: {OUT}/{tag}.raw.o {OUT}/layout.json tools/reorder_pad.py\n"
+                    f"\tpython3 tools/reorder_pad.py trim {tag}\n")
+    make.append(f"{CANDIDATE}: {OUT}/main.o {OUT}/rl2s.o {OUT}/placement.ld\n\t" + shlex.join(argv) + "\n")
     (OUT / "pad.mk").write_text("".join(make))
     print(f"planned {len(planned)} input sections; {len(exceptions)} explicit placement exceptions")
+
+
+def trim():
+    tag = sys.argv[2]
+    require(tag in SPLIT.values(), "unknown assembly object")
+    raw = OUT / f"{tag}.raw.o"
+    obj = Elf(raw)
+    data = raw.read_bytes()
+    planned = json.loads((OUT / "layout.json").read_text())["sections"]
+    rewritten = bytearray(data)
+    header = struct.unpack_from("<16sHHIQQQIHHHHHH", data)
+    receipt = []
+    for row in planned:
+        if row["object"] != str(OUT / f"{tag}.o") or not row["section"].startswith(".text.r7pad."):
+            continue
+        section = obj.sections[row["section"]]
+        require(section["size"] >= row["size"], "split assembly body shrank")
+        # The original .align 2 after a cold body now belongs to its own input
+        # section. Remove that *external* NOP and let the explicit linker slots
+        # own alignment; never insert/delete padding inside a PRE function.
+        tail = data[section["offset"] + row["size"]:section["offset"] + section["size"]]
+        require(tail in (b"", b"\x90"), f"unexpected trailing bytes: {row['section']}")
+        # Change section-header bounds only. objcopy --update-section discards
+        # that section's relocation records; retaining them is mandatory here.
+        at = header[6] + section["index"] * header[11]
+        struct.pack_into("<Q", rewritten, at + 32, row["size"])
+        struct.pack_into("<Q", rewritten, at + 48, 1)
+        receipt.append(dict(section=row["section"], removed_external_nops=len(tail)))
+    (OUT / f"{tag}.o").write_bytes(rewritten)
+    (OUT / f"trims-{tag}.json").write_text(json.dumps(receipt, indent=2) + "\n")
 
 
 def audit():
@@ -295,9 +419,9 @@ def audit():
     directory.mkdir(exist_ok=True)
     checker.self_test()
     pre = checker.Binary(PRE, directory)
-    pad = checker.Binary(PAD, directory)
+    pad = checker.Binary(CANDIDATE, directory)
     candidate = Elf(POST)
-    pad_elf = Elf(PAD)
+    pad_elf = Elf(CANDIDATE)
     require(pad_elf.sections[".text"]["size"] == candidate.sections[".text"]["size"],
             "PAD text size does not match POST")
     require(pad_elf.sections[".text"]["address"] == candidate.sections[".text"]["address"],
@@ -305,7 +429,12 @@ def audit():
     require(not any("r7_run" in s["name"] or "drain_tasks_reordered" in s["name"]
                     for s in pad_elf.functions()), "R7 implementation is linked into PAD")
     candidate_functions = collections.defaultdict(list)
-    symbols = candidate.functions()
+    placements = inputs(OUT / "post.map")
+    starts = [p["address"] for p in placements]
+    # R7 adds local clones with PRE names in its isolated object. They are not
+    # replacements for PRE's original clones; match the original object slots.
+    symbols = [s for s in candidate.functions()
+               if placements[bisect.bisect_right(starts, s["address"]) - 1]["object"] != "build/src/core/reorder.o"]
     decoded = run("c++filt", *(s["name"] for s in symbols)).splitlines()
     by_address = collections.defaultdict(list)
     for symbol, name in zip(symbols, decoded):
@@ -360,11 +489,16 @@ def audit():
             "placement exceptions differ from the explicit three-slot plan")
     require(all(r["equal"] and r["placement_equal"] for r in hot),
             "an established hot body or its POST placement differs")
+    PAD.write_bytes(CANDIDATE.read_bytes())
+    PAD.chmod(CANDIDATE.stat().st_mode)
+    require(sha(PAD) == pad.sha256, "published PAD differs from audited candidate")
+    print("Published", PAD, pad.sha256)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["prepare", "layout", "audit"])
+    parser.add_argument("action", choices=["prepare", "layout", "trim", "audit"])
+    parser.add_argument("tag", nargs="?")
     args = parser.parse_args()
     require(set(__import__("os").sched_getaffinity(0)) <= set(range(112, 128)),
             "run under taskset -c 112-127")
