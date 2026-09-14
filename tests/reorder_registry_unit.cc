@@ -8,6 +8,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#ifdef TOMO_JEMALLOC
+#include <jemalloc/jemalloc.h>
+#endif
 
 namespace {
 void require(bool ok, const char* message) {
@@ -55,7 +58,25 @@ int main(int argc, char** argv) {
     cfg.reorder = armed;
     cfg.read_local = local;
     cfg.thread_mode = fused ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split;
+#ifdef TOMO_JEMALLOC
+    // Obtain jemalloc's thread counter before the window, including its own
+    // first-use setup. This counts allocations even if the binder frees them.
+    uint64_t* allocated = nullptr;
+    size_t counter_size = sizeof(allocated);
+    require(mallctl("thread.allocatedp", &allocated, &counter_size, nullptr, 0) == 0 && allocated,
+            "jemalloc allocation witness unavailable");
+    const uint64_t before_witness = *static_cast<volatile uint64_t*>(allocated);
+    void* witness = mallocx(1, 0);
+    require(witness && *static_cast<volatile uint64_t*>(allocated) > before_witness,
+            "jemalloc allocation counter did not observe the witness");
+    dallocx(witness, 0);
+    const uint64_t before_bind = *static_cast<volatile uint64_t*>(allocated);
+#endif
     tomo::command_bind_server_selected(&server);
+#ifdef TOMO_JEMALLOC
+    require(*static_cast<volatile uint64_t*>(allocated) == before_bind,
+            "boot binder allocated memory");
+#endif
     unsigned cost_rows = 0, barriers = 0, classes = 0;
     for (const Saved& saved : before) {
         const auto& row = *saved.row;
