@@ -1899,7 +1899,7 @@ int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_base_pla
                     self.bind_fused_executor_hooks(
                         &executors[tid],
                         [](void* p) {
-                            return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
+                            return static_cast<FusedExLoop*>(p)->r2_fused_baseline_pass();
                         },
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
@@ -1911,7 +1911,7 @@ int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_base_pla
                             // Snapshot's blocking progress loop has no WB filler to interleave.
                             // Use the private-lane coarse turn; the main overlap loop supplies
                             // the three-way callback only at its ordinary batch seam.
-                            return static_cast<FusedExLoop*>(p)->fused_coarse_pass();
+                            return static_cast<FusedExLoop*>(p)->r2_fused_coarse_pass();
                         },
                         [](void* p, SnapshotManager* manager) {
                             static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
