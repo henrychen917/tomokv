@@ -247,7 +247,7 @@ CommandTable pfdebug_command_table();
 // Built once before threads start. Lookup hashes the uppercase-normalized bytes into an open-
 // addressed table; the load factor is capped at 1/2 so ordinary command names land in one probe.
 bool command_registry_init(bool tls_enabled, bool fused_mode = false,
-                           bool read_local_armed = false, bool reorder_armed = false);
+                           bool read_local_armed = false);
 
 // Clean registry rows for the verbs command_lookup resolves inline. command_registry_init stamps
 // them from the same rows the hash table indexes and re-checks the two against each other; they

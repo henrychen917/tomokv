@@ -18,6 +18,32 @@
 #include "reorder.h"
 
 namespace tomo {
+
+void command_bind_server_selected(Server* server) {
+    command_bind_server(server);
+    if (!server || !server->cfg().reorder) return;
+    // main calls this before ACL setup, recovery workers, or listeners. Registry
+    // accessors expose const pointers for runtime readers, but their backing rows
+    // are mutable boot-owned vectors. Stamp every variant before any Op can name
+    // one; the hot-verb pointers already refer to these same rows. No new storage.
+    // Keeping this walk out of commands.cc also preserves its off-arm jump tables
+    // and constant pools; source-only screening did not preserve the linked code.
+    const auto stamp = [](const CommandSpec* spec) {
+        const_cast<CommandSpec*>(spec)->set_length_class(command_length_class(*spec));
+    };
+    const uint32_t count = command_registry_size();
+    for (uint32_t id = 0; id < count; id++) {
+        const CommandSpec* spec = command_registry_at(id);
+        const CommandSpec* notify = command_notify_variant(spec);
+        const CommandSpec* tls = command_tls_variant(spec);
+        const CommandSpec* tls_notify = command_tls_variant(notify);
+        stamp(spec);
+        if (notify != spec) stamp(notify);
+        if (tls != spec) stamp(tls);
+        if (tls_notify != notify) stamp(tls_notify);
+    }
+}
+
 template <bool Fused>
 uint32_t ExLoopT<Fused>::r2_fused_pass() {
     static_assert(Fused);

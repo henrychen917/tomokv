@@ -15,6 +15,9 @@ class ShutdownReportFinalLine;
 class SnapshotLoadPlan;
 class TlsContext;
 
+// The boot-only R2 metadata walk stays outside the original registry/IO units.
+void command_bind_server_selected(Server* server);
+
 int run_fused_server(Server& server, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
                      const SnapshotLoadPlan* load_plan, TlsContext* tls_context,

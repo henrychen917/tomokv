@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
         }
     }
     if (!command_registry_init(cfg.tls_port != 0, cfg.thread_mode == ThreadMode::Fused,
-                               Server::read_local_enabled(cfg), cfg.reorder != 0)) {
+                               Server::read_local_enabled(cfg))) {
         std::fprintf(stderr, "command registry init failed\n");
         return 1;
     }
@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     srv.set_loading(true);
-    command_bind_server(&srv);
+    command_bind_server_selected(&srv);
     {
         std::string acl_error;
         if (!acl_initialize(srv, cfg, acl_error)) {
