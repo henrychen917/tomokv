@@ -137,7 +137,7 @@ def freeze_branches(lines, tag):
         if match:
             section = match[1]
         match = re.match(r"\s*([0-9a-f]+):\s*((?:[0-9a-f]{2} )+)\s*(.*)", line)
-        if match and re.match(r"j[a-z]+\s+(?!\*)", match[3]):
+        if match and re.match(r"j[a-z]+\s+[^*\s]", match[3]):
             sections[section][int(match[1], 16)] = bytes.fromhex(match[2])
     branches = {}
     for sym in original.functions():
@@ -160,6 +160,10 @@ def freeze_branches(lines, tag):
             require(index < len(branches[active]), f"extra assembly branch: {active}")
             raw = branches[active][index]
             index += 1
+            if match[2].endswith("@PLT"):
+                require(len(raw) == 5 and raw[0] == 0xe9, "unexpected PLT branch encoding")
+                result.append(line)  # External PLT jumps always retain rel32.
+                continue
             width = 4 if len(raw) >= 5 else 1
             opcode = ",".join(hex(b) for b in raw[:-width])
             directive = ".long" if width == 4 else ".byte"
@@ -274,6 +278,14 @@ def prepare():
     subprocess.run(["make", "-j8", "-f", str(OUT / "maps.mk")], check=True)
     require((OUT / "pre-layout").read_bytes() == PRE.read_bytes(), "PRE relink is not reproducible")
     require((OUT / "post-layout").read_bytes() == POST.read_bytes(), "POST relink is not reproducible")
+    assembly = ["all: " + " ".join(str(OUT / f"{tag}.s") for tag in SPLIT.values()) + "\n"]
+    for obj, tag in SPLIT.items():
+        source = obj.removesuffix(".o") + ".cc"
+        assembly.append(f"{OUT}/{tag}.s: build/r7-pre/{source}\n"
+                        f"\tcd build/r7-pre && g++ -std=c++20 -O2 -g -Wall -Wextra -march=native "
+                        f"-pthread -DTOMO_JEMALLOC -I. -S {source} -o ../r7-pad/{tag}.s\n")
+    (OUT / "assembly.mk").write_text("".join(assembly))
+    subprocess.run(["make", "-j8", "-f", str(OUT / "assembly.mk")], check=True)
 
 
 def layout():
@@ -353,7 +365,7 @@ def layout():
         body.append(f"    {row['object']}({row['section']})\n")
     body.append(f"    . = {text['size']:#x};\n  }}\n")
     # Use the system's PIE script, preserving dynamic linking and unwind handling.
-    default = run("ld", "-pie", "--verbose").split("==================================================")[1]
+    default = run("ld", "-pie", "-z", "now", "-z", "relro", "--verbose").split("==================================================")[1]
     script, count = re.subn(r"  \.text\s*:\s*\{.*?\n  \}\n", "".join(body), default, count=1, flags=re.S)
     require(count == 1, "cannot find default text output section")
     (OUT / "placement.ld").write_text(script)
@@ -386,6 +398,61 @@ def trim():
     planned = json.loads((OUT / "layout.json").read_text())["sections"]
     rewritten = bytearray(data)
     header = struct.unpack_from("<16sHHIQQQIHHHHHH", data)
+    # Literal branch opcodes make GAS partition a following alignment NOP
+    # differently (e.g. 1+3 instead of one 4-byte NOP). Restore PRE's actual NOP
+    # bytes only after proving the same complete interval decodes as NOPs in
+    # both objects. Every branch, live operand and relocation stays untouched.
+    original_path = next(Path("build/r7-pre/build") / p for p, t in SPLIT.items() if t == tag)
+    original = Elf(original_path)
+    original_data = original_path.read_bytes()
+
+    def nop_ranges(path):
+        ranges = collections.defaultdict(list)
+        section = None
+        for line in run("objdump", "-dw", str(path)).splitlines():
+            match = re.fullmatch(r"Disassembly of section (.+):", line)
+            if match:
+                section = match[1]
+            match = re.match(r"\s*([0-9a-f]+):\s*((?:[0-9a-f]{2} )+)\s*(.*)", line)
+            if not match:
+                continue
+            encoded = bytes.fromhex(match[2])
+            if not (re.search(r"\bnop[lw]?\b", match[3]) or encoded == b"\x66\x90"):
+                continue
+            start = int(match[1], 16)
+            end = start + len(encoded)
+            if ranges[section] and ranges[section][-1][1] == start:
+                ranges[section][-1] = (ranges[section][-1][0], end)
+            else:
+                ranges[section].append((start, end))
+        return ranges
+
+    before_nops = nop_ranges(original_path)
+    after_nops = nop_ranges(raw)
+    new_symbols = {s["name"]: s for s in obj.functions()}
+    visited = set()
+    nop_fixes = []
+    for sym in original.functions():
+        old_section = original.by_index[sym["section"]]
+        other = new_symbols[sym["name"]]
+        new_section = obj.by_index[other["section"]]
+        key = (sym["section"], sym["address"])
+        if key in visited:
+            continue
+        visited.add(key)
+        require(sym["size"] == other["size"], f"reassembled function size changed: {sym['name']}")
+        for begin, end in before_nops[old_section["name"]]:
+            if begin < sym["address"] or end > sym["address"] + sym["size"]:
+                continue
+            target_begin = other["address"] + begin - sym["address"]
+            target_end = target_begin + end - begin
+            require(any(a <= target_begin and target_end <= b for a, b in after_nops[new_section["name"]]),
+                    f"PRE NOP interval is not NOPs after reassembly: {sym['name']}+{begin - sym['address']:x}")
+            old_bytes = original_data[old_section["offset"] + begin:old_section["offset"] + end]
+            at = new_section["offset"] + target_begin
+            if rewritten[at:at + len(old_bytes)] != old_bytes:
+                rewritten[at:at + len(old_bytes)] = old_bytes
+                nop_fixes.append(dict(name=sym["name"], offset=begin - sym["address"], bytes=len(old_bytes)))
     receipt = []
     for row in planned:
         if row["object"] != str(OUT / f"{tag}.o") or not row["section"].startswith(".text.r7pad."):
@@ -405,6 +472,7 @@ def trim():
         receipt.append(dict(section=row["section"], removed_external_nops=len(tail)))
     (OUT / f"{tag}.o").write_bytes(rewritten)
     (OUT / f"trims-{tag}.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    (OUT / f"nops-{tag}.json").write_text(json.dumps(nop_fixes, indent=2) + "\n")
 
 
 def audit():
@@ -489,6 +557,26 @@ def audit():
             "placement exceptions differ from the explicit three-slot plan")
     require(all(r["equal"] and r["placement_equal"] for r in hot),
             "an established hot body or its POST placement differs")
+    layout = json.loads((OUT / "layout.json").read_text())
+    blob = CANDIDATE.read_bytes()
+    section = pad_elf.sections[".text"]
+    end = section["address"]
+    gaps = []
+    for row in layout["sections"]:
+        count = row["address"] - end
+        require(count >= 0, "overlapping PAD input sections")
+        if count:
+            at = section["offset"] + end - section["address"]
+            require(blob[at:at + count] == b"\x90" * count, "non-NOP bytes in a PAD gap")
+            gaps.append(dict(address=end, bytes=count))
+        end = row["address"] + row["size"]
+    require(end == section["address"] + section["size"], "PAD text extends beyond the plan")
+    properties = {}
+    for arm, binary in [("PRE", PRE), ("PAD", CANDIDATE)]:
+        properties[arm] = [line.strip() for line in run("readelf", "-n", str(binary)).splitlines()
+                           if any(key in line for key in ["Properties:", "x86 ISA", "OS:"])]
+    require(properties["PRE"] == properties["PAD"], "ELF control-flow/ABI properties changed")
+    (directory / "gaps-and-properties.json").write_text(json.dumps(dict(gaps=gaps, properties=properties), indent=2) + "\n")
     PAD.write_bytes(CANDIDATE.read_bytes())
     PAD.chmod(CANDIDATE.stat().st_mode)
     require(sha(PAD) == pad.sha256, "published PAD differs from audited candidate")
