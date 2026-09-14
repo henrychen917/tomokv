@@ -87,8 +87,7 @@ class Elf:
 
     def text_relocations(self):
         # Do not guess a relocation's width: unsupported types stop verification.
-        widths = {1: 8, 2: 4, 4: 4, 9: 4, 10: 4, 11: 4, 18: 8,
-                  19: 4, 20: 4, 21: 4, 22: 4, 23: 4, 24: 8, 41: 4, 42: 4}
+        widths = {2: 4, 4: 4, 9: 4, 23: 4, 41: 4, 42: 4}
         result = []
         text = self.by_name['.text']
         for section in self.sections:
@@ -188,6 +187,21 @@ def verify_inverse(reference, padded, target_size):
     b = bytearray(full[:len(a)])
     for offset, kind, width, identity, addend in relocations:
         require(0 <= offset <= len(a) - width, 'relocation outside original .text')
+        if kind in (9, 41, 42):  # These measured objects retain the GOT indirection.
+            section = '.got'
+        elif kind == 23:  # TPOFF32 is relative to the unchanged TLS block, not its VMA.
+            section = None
+            for name in ('.tdata', '.tbss'):
+                require(reference.by_name[name]['size'] == padded.by_name[name]['size'],
+                        'TLS block size changed')
+        else:  # PC32 / PLT32: code/PLT addresses stay fixed; data section VMAs move.
+            section = identity[1] if isinstance(identity[1], str) else None
+        expected_delta = (padded.by_name[section]['addr'] - reference.by_name[section]['addr']
+                          if section else 0)
+        actual_delta = (int.from_bytes(b[offset:offset + width], 'little') -
+                        int.from_bytes(a[offset:offset + width], 'little'))
+        require((actual_delta - expected_delta) % (1 << (8 * width)) == 0,
+                'relocation instruction bytes have the wrong target displacement')
         a[offset:offset + width] = bytes(width)
         b[offset:offset + width] = bytes(width)
     require(a == b, 'non-relocation instruction/text bytes changed')
@@ -214,8 +228,13 @@ def build_inverse(directory, pre, candidate_name, manifest, out):
     suffix = 'PAD-B' if binary.name == 'tomokv-POST' else binary.name.removeprefix('tomokv-') + '-PAD-B'
     target = directory / ('tomokv-' + suffix)
     reference = out / (suffix + '-reference-relocs')
+    script_reference = out / (suffix + '-script-reference')
     script = out / (suffix + '.ld')
-    default_script = run('ld', '-pie', '--verbose').split('=' * 50)[1].strip() + '\n'
+    # Ubuntu's g++ driver supplies PIE, NOW and RELRO. Validate the unmodified
+    # script too: omitting NOW, for example, silently changes GOT placement.
+    default_script = run('ld', '-pie', '-z', 'now', '-z', 'relro', '--verbose').split('=' * 50)[1].strip() + '\n'
+    default_path = out / (suffix + '-default.ld')
+    default_path.write_text(default_script)
     anchor = '    *(.gnu.warning)\n'
     require(default_script.count(anchor) == 1, 'default ld .text script changed')
     script.write_text(default_script.replace(anchor, anchor +
@@ -225,10 +244,11 @@ def build_inverse(directory, pre, candidate_name, manifest, out):
     objects = arm['objects']
     require(all(Path(p).is_file() for p in objects), 'missing measured-arm object')
     libraries = ['-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
-    rules = ['.DELETE_ON_ERROR:', '.PHONY: all', f'all: {reference} {target}']
-    for path, extra in ((reference, []), (target, ['-Wl,-T,' + str(script)])):
+    rules = ['.DELETE_ON_ERROR:', '.PHONY: all', f'all: {reference} {script_reference} {target}']
+    for path, linker_script in ((reference, None), (script_reference, default_path), (target, script)):
+        extra = ['-Wl,-T,' + str(linker_script)] if linker_script else []
         command = flags + objects + ['-o', str(path)] + libraries + ['-Wl,--emit-relocs'] + extra
-        rules += [str(path) + ': ' + ' '.join(objects) + (' ' + str(script) if extra else ''),
+        rules += [str(path) + ': ' + ' '.join(objects) + (' ' + str(linker_script) if extra else ''),
                   '\t' + shlex.join(command)]
     makefile = out / (suffix + '.mk')
     makefile.write_text('\n'.join(rules) + '\n')
@@ -237,21 +257,30 @@ def build_inverse(directory, pre, candidate_name, manifest, out):
                        stdout=log, stderr=subprocess.STDOUT)
     ref, pad = Elf(reference), Elf(target)
     runtime_equal(original, ref)
+    runtime_equal(original, Elf(script_reference))
     result = verify_inverse(ref, pad, size)
-    # A byte mutation outside any relocation must fail the same positive verifier.
-    bad = Elf(target)
-    data = bytearray(bad.data)
-    data[bad.by_name['.text']['offset']] ^= 1
-    bad.data = bytes(data)
-    try:
-        verify_inverse(ref, bad, size)
-    except ValueError as error:
-        require(str(error) == 'non-relocation instruction/text bytes changed', str(error))
-    else:
-        raise ValueError('negative control accepted a changed instruction')
+    # Corrupt instructions, fixups and padding independently. A blanket mask of
+    # relocation bytes would incorrectly accept the second negative control.
+    negative_controls = {}
+    for label, offset, expected in (
+        ('instruction', 0, 'non-relocation instruction/text bytes changed'),
+        ('relocation', ref.text_relocations()[0][0],
+         'relocation instruction bytes have the wrong target displacement'),
+        ('padding', original.by_name['.text']['size'], 'padding is not all trap bytes')):
+        bad = Elf(target)
+        data = bytearray(bad.data)
+        data[bad.by_name['.text']['offset'] + offset] ^= 1
+        bad.data = bytes(data)
+        try:
+            verify_inverse(ref, bad, size)
+        except ValueError as error:
+            require(str(error) == expected, str(error))
+        else:
+            raise ValueError('negative control accepted corrupted ' + label)
+        negative_controls[label] = 'rejected'
     result.update(binary=str(target), sha256=sha(target), behaviour_reference=str(binary),
                   behaviour_reference_sha256=sha(binary), reference_relink_runtime_equal=True,
-                  changed_instruction_negative_control='rejected', measured=False,
+                  default_script_runtime_equal=True, negative_controls=negative_controls, measured=False,
                   objects=[dict(path=p, sha256=sha(Path(p))) for p in objects])
     (out / (suffix + '-proof.json')).write_text(json.dumps(result, indent=2) + '\n')
     # Full disassembly is a receipt. The automated proof above covers every byte of
