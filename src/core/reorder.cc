@@ -17,6 +17,24 @@
 #include "reorder.h"
 
 namespace tomo {
+namespace {
+// The placement model uses wall minus idle. An empty owner turn must therefore include
+// its polling prologue, diagnostic CPU-clock read, pause and final empty sweep in idle;
+// timing only the inner drain makes those gaps look like executor demand. Declare this
+// before its Span so the timer closes before we select the counter. A sweep that finds
+// work sets work too; neither command execution nor its ring submission is booked idle.
+// This envelope is R7-only: the PRE entry and its disabled hot bodies stay untouched.
+struct ReorderOwnerPass {
+    LoopSignals& signal;
+    uint32_t work = 0;
+    uint64_t elapsed_ns = 0;
+    ~ReorderOwnerPass() {
+        if (work) signal.busy_ns += elapsed_ns;
+        else      signal.idle_ns += elapsed_ns;
+    }
+};
+}  // namespace
+
 template <bool Fused>
 template <bool ContinuousReorder>
 uint32_t ExLoopT<Fused>::r7_fused_pass() {
@@ -365,6 +383,9 @@ void ExLoopT<Fused>::r7_run() {
 
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ex) {
+        ReorderOwnerPass accounting{sig};
+        Span pass(accounting.elapsed_ns);
+        uint32_t& did = accounting.work;
 #ifdef TOMO_RL_CACHE_DEBUG
         if constexpr (Fused)
             srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
@@ -382,12 +403,9 @@ void ExLoopT<Fused>::r7_run() {
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
         sig.iterations++;
 
-        uint32_t did = 0;
-        uint64_t pass_ns = 0;
         {
             Server::ClientWorkScope client_work(*srv_, self_->id());
-            Span busy(pass_ns);
-            if (self_->sample_depth(busy.start_ns() / 1000)) {
+            if (self_->sample_depth(pass.start_ns() / 1000)) {
                 const uint32_t age_rate = srv_->effective_age_sample_rate();
                 if (age_rate != age_sample_rate_cached_) {
                     age_sample_rate_cached_ = age_rate;
@@ -447,13 +465,6 @@ void ExLoopT<Fused>::r7_run() {
                 did += owner_control_tail();
             }
         }
-        // A pass that found nothing -- every drain and control pass came back empty -- is
-        // polling, not work. Book it as idle so busy_ns means WORK: the FLIP placement model
-        // reads the roles' busy shares, and an executor spinning its 2048-pass budget between
-        // task batches would otherwise report the polling as demand (measured on 8-key
-        // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
-        // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
-        if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
         sig.cpu_ns = thread_cpu_ns();
 
         // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
@@ -476,7 +487,6 @@ void ExLoopT<Fused>::r7_run() {
                 __builtin_ia32_pause();
                 continue;
             }
-            Span idle(sig.idle_ns);
             self_->arm_blocked();
             ring_.submit_and_wait(1);
             self_->clear_blocked();
@@ -489,12 +499,12 @@ void ExLoopT<Fused>::r7_run() {
         // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
         // not be the only thing that can find queued work, or one lost bit wedges a connection
         // forever. Runs only when this thread has already concluded it has nothing to do.
-        if (r7_sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>()) {
+        did = r7_sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>();
+        if (did) {
             ring_.submit_and_reap();
             continue;
         }
 
-        Span idle(sig.idle_ns);
         self_->arm_blocked();
         if (!self_->any_ex_inbound()) ring_.submit_and_wait(1);
         else                       ring_.submit_and_reap();
