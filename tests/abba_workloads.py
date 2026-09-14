@@ -33,8 +33,9 @@ def workload_arguments(cell):
         return [f"--ratio={writes}:{reads}"]  # cells describe READ:WRITE; memtier wants SET:GET.
     mget = "MGET " + " ".join(["__key__"] * MULTI_KEYS)
     mset = "MSET " + " ".join(["__key__ __data__"] * MULTI_KEYS)
-    if cell.op in ("MGET", "MSET"):
-        commands = [(mget if cell.op == "MGET" else mset, 1)]
+    if cell.op in ("MGET", "MSET", "MSETNX"):
+        command = mget if cell.op == "MGET" else cell.op + mset[len("MSET"):]
+        commands = [(command, 1)]
     elif cell.op == "MIX8":
         reads, writes = map(int, cell.mix.split(":"))
         commands = [(mget, reads), (mset, writes)]
