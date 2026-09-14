@@ -205,6 +205,40 @@ class PerformanceFailures(unittest.TestCase):
                 perf.load_reference(path)
 
 
+class CorrectnessBudgetWiring(unittest.TestCase):
+    def test_watchdogs_use_fixed_or_explicit_budgets_including_contextual_rows(self):
+        root = Path(__file__).resolve().parent.parent
+        gate = (root / 'tests/gate.sh').read_text()
+        helpers = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
+        labels = ['Redis 7.4 differential matrix',
+                  'Redis 7.4 differential matrix (armed fused + read-local)',
+                  'mode equivalence part (all execution modes and knobs)', 'torture battery']
+        labels += [f'Redis 7.4 differential part ({mode}, atomic {atomic})'
+                   for mode in ('split', 'armed fused') for atomic in (0, 1)]
+        cases = [(label, '') for label in labels]
+        cases.append(('ABBA comparison + saturation negative controls', 'with-scheduler-controls'))
+        stub = r'''
+set -u
+ROW_PLAN="$TMPDIR/plan.json"
+quiet_wait(){ :; }
+row_clock(){ ROW_NOW=100; }
+row_watch(){ printf 'WATCH\t%s\t%s\n' "$ROW_TIMEOUT" "$ROW_BASIS"; }
+row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
+'''
+        with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
+            for label, context in cases:
+                for basis, limit, expected in (('own-row-history', 456, 900), ('fixture', 1800, 1800)):
+                    with self.subTest(label=label, context=context, basis=basis):
+                        plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
+                            timeout_seconds=limit, median_seconds=114, basis=basis)})
+                        (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
+                        result = subprocess.run(['bash', '-c', helpers + stub], cwd=root,
+                            env=dict(os.environ, TMPDIR=tmp, FIXTURE_LABEL=label, FIXTURE_CONTEXT=context),
+                            text=True, capture_output=True, timeout=5)
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        self.assertIn(f'WATCH\t{expected}\t', result.stdout)
+
+
 class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
