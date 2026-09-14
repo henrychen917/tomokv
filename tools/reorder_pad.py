@@ -15,6 +15,7 @@ import re
 import shlex
 import struct
 import subprocess
+import sys
 from pathlib import Path
 
 PRE_SHA = "2f77224583b7c6ad2423f055a6319a3150a9694fca28068bc615c0e97f757278"
@@ -282,9 +283,88 @@ def layout():
     print(f"planned {len(planned)} input sections; {len(exceptions)} explicit placement exceptions")
 
 
+def audit():
+    # Keep the established address normalizer unchanged. This broader inventory
+    # includes cold startup and every other PRE body, not just the 217 hot rows.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests"))
+    import reorder_noop as checker
+
+    require(sha(PRE) == PRE_SHA and sha(POST) == POST_SHA and sha(COPY) == POST_SHA,
+            "an immutable reference changed")
+    directory = OUT / "audit"
+    directory.mkdir(exist_ok=True)
+    checker.self_test()
+    pre = checker.Binary(PRE, directory)
+    pad = checker.Binary(PAD, directory)
+    candidate = Elf(POST)
+    pad_elf = Elf(PAD)
+    require(pad_elf.sections[".text"]["size"] == candidate.sections[".text"]["size"],
+            "PAD text size does not match POST")
+    require(pad_elf.sections[".text"]["address"] == candidate.sections[".text"]["address"],
+            "PAD text start does not match POST")
+    require(not any("r7_run" in s["name"] or "drain_tasks_reordered" in s["name"]
+                    for s in pad_elf.functions()), "R7 implementation is linked into PAD")
+    candidate_functions = collections.defaultdict(list)
+    symbols = candidate.functions()
+    decoded = run("c++filt", *(s["name"] for s in symbols)).splitlines()
+    by_address = collections.defaultdict(list)
+    for symbol, name in zip(symbols, decoded):
+        by_address[symbol["address"]].append(checker.canonical(name))
+    for address, names in by_address.items():
+        candidate_functions[min(names)].append(dict(address=address))
+    rows = []
+    differences = []
+    with (directory / "pre.normalized").open("w") as pre_file, (directory / "pad.normalized").open("w") as pad_file:
+        for name in sorted(pre.groups):
+            originals = sorted(pre.groups[name], key=lambda r: r["addr"])
+            controls = sorted(pad.groups.get(name, []), key=lambda r: r["addr"])
+            require(len(originals) == len(controls), f"missing/added PRE clone: {name}")
+            targets = sorted(candidate_functions[name], key=lambda r: r["address"])
+            require(len(targets) == len(originals), f"missing POST placement reference: {name}")
+            for index, (one, other, target) in enumerate(zip(originals, controls, targets)):
+                before = [a + " | " + b for a, b in zip(one["ins"], one["encodings"])]
+                after = [a + " | " + b for a, b in zip(other["ins"], other["encodings"])]
+                equal = before == after and one["size"] == other["size"] and one["aliases"] == other["aliases"]
+                heading = f"Function: {name}\nOccurrence: {index}\nSize: {one['size']}\n"
+                pre_file.write(heading + "\n".join(before) + "\n")
+                pad_file.write(heading + "\n".join(after) + "\n")
+                row = dict(name=name, instance=index, aliases=one["aliases"],
+                           pre_address=one["addr"], pad_address=other["addr"],
+                           post_address=target["address"], bytes=one["size"],
+                           pre_instructions=len(before), pad_instructions=len(after), equal=equal,
+                           placement_equal=other["addr"] == target["address"],
+                           scope=checker.category(name))
+                rows.append(row)
+                if not equal:
+                    import difflib
+                    diff = "\n".join(difflib.unified_diff(before, after, fromfile="PRE", tofile="PAD"))
+                    differences.append(heading + diff + "\n")
+    require(len(rows) == 4882, f"expected 4882 PRE physical bodies, found {len(rows)}")
+    require(set(pre.groups) == set(pad.groups), "PAD has added or removed function groups")
+    hot = [r for r in rows if r["scope"]]
+    require(len(hot) == 217, "established hot inventory changed")
+    result = dict(pre_sha256=pre.sha256, pad_sha256=pad.sha256, post_sha256=POST_SHA,
+                  text_bytes=candidate.sections[".text"]["size"],
+                  functions=len(rows), identical=sum(r["equal"] for r in rows),
+                  identical_placement=sum(r["placement_equal"] for r in rows),
+                  hot_functions=len(hot), hot_identical=sum(r["equal"] for r in hot),
+                  hot_identical_placement=sum(r["placement_equal"] for r in hot), rows=rows)
+    (directory / "all-bodies.diff").write_text("".join(differences))
+    (directory / "audit.json").write_text(json.dumps(result, indent=2) + "\n")
+    print(json.dumps({k: v for k, v in result.items() if k != "rows"}, indent=2))
+    for row in rows:
+        if not row["equal"]:
+            print("BODY DIFFERENCE:", row["name"])
+    require(not differences, "PRE/PAD body equality failed; do not measure this PAD")
+    require(sum(not r["placement_equal"] for r in rows) == 3,
+            "placement exceptions differ from the explicit three-slot plan")
+    require(all(r["equal"] and r["placement_equal"] for r in hot),
+            "an established hot body or its POST placement differs")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["prepare", "layout"])
+    parser.add_argument("action", choices=["prepare", "layout", "audit"])
     args = parser.parse_args()
     require(set(__import__("os").sched_getaffinity(0)) <= set(range(112, 128)),
             "run under taskset -c 112-127")
