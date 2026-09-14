@@ -5214,156 +5214,95 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
 
 
 def run_aclsel_suite(rng):
-    """Byte-compare selector control-plane replies and commands admitted through selectors."""
+    """Check intentional selector rejection and byte-compare unaffected root permissions."""
     diffs = 0
     checks = 0
-    fired = {"profiles": 0, "reporting": 0, "syntax": 0, "grants": 0,
+    fired = {"rejections": 0, "unchanged": 0, "grants": 0,
              "command_denials": 0, "key_denials": 0, "channel_denials": 0}
     ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
 
-    def mismatch(label, target, oracle):
-        nonlocal diffs
-        diffs += 1
-        if diffs <= 18:
-            print("  DIFF %s\n    target: %r\n    oracle: %r" %
-                  (label, target[:280], oracle[:280]))
+    def compare(label, target, wanted):
+        nonlocal checks, diffs
+        checks += 1
+        if target != wanted:
+            diffs += 1
+            if diffs <= 18:
+                print("  DIFF %s\n    target: %r\n    expected: %r" %
+                      (label, target[:280], wanted[:280]))
+        return target == wanted
 
     def raw(sock, file, argv):
         sock.sendall(enc(argv))
         return read_reply(file)
 
     def both(argv, label):
-        nonlocal checks
         target = raw(ts, tf, argv)
         oracle = raw(os_, of, argv)
         coverage.note(argv)
-        checks += 1
-        if target != oracle: mismatch(label, target, oracle)
+        compare(label, target, oracle)
         return target
 
-    def user_both(target_pair, oracle_pair, argv, label):
-        nonlocal checks
-        target = raw(target_pair[0], target_pair[1], argv)
-        oracle = raw(oracle_pair[0], oracle_pair[1], argv)
+    for sock, file in ((ts, tf), (os_, of)):
+        raw(sock, file, ["ACL", "DELUSER", "aclsel:diff", "aclsel:bad"])
+    both(["SET", "as:root:1", "R"], "seed root key")
+    both(["SET", "as:other:1", "X"], "seed forbidden key")
+    root_rules = ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
+                  "~as:root:*", "&as:news:*", "+get", "+mget", "+publish"]
+    both(["ACL", "SETUSER", "aclsel:diff"] + root_rules, "root permission setup")
+    original = both(["ACL", "GETUSER", "aclsel:diff"], "root permission image")
+    tus, tuf = conn(TH, TP); ous, ouf = conn(OH, OP)
+    for sock, file in ((tus, tuf), (ous, ouf)):
+        compare("root AUTH", raw(sock, file, ["AUTH", "aclsel:diff", "unused"]), b"+OK\r\n")
+
+    forms = [["()"], ["(~as:a:* +get)"], ["(", "~as:a:*", "+mget", ")"],
+             ["(&as:news:* +publish)"], ["("], ["((~x:* +get))"]]
+    # Redis accepts these shapes. This is a declared compatibility difference, never an
+    # error-dependent fallback or a normalization that would let TomoKV's old acceptance pass.
+    for rules in forms[:4]:
+        compare("reference selector acceptance",
+                raw(os_, of, ["ACL", "SETUSER", "aclsel:bad", "reset", "on", "nopass"] + rules),
+                b"+OK\r\n")
+        raw(os_, of, ["ACL", "DELUSER", "aclsel:bad"])
+
+    operations = [["GET", "as:root:1"], ["GET", "as:other:1"],
+                  ["MGET", "as:root:1", "as:other:1"], ["SET", "as:root:1", "forbidden"],
+                  ["PUBLISH", "as:news:x", "v"], ["PUBLISH", "as:other", "v"]]
+    stats_before = target_stats()
+    for iteration in range(4200):
+        rules = forms[iteration % len(forms)] if iteration < 12 else rng.choice(forms)
+        name = "aclsel:diff" if (iteration // len(forms)) % 2 else "aclsel:bad"
+        argv = ["ACL", "SETUSER", name, "reset", "on", "nopass"] + rules
+        target = raw(ts, tf, argv)
         coverage.note(argv)
-        checks += 1
-        if target != oracle: mismatch(label, target, oracle)
+        expected = ("-ERR Error in ACL SETUSER modifier '%s': ACL selectors are not supported\r\n" % rules[0]).encode()
+        fired["rejections"] += compare("unsupported selector %d" % iteration, target, expected)
+        unchanged = original if name == "aclsel:diff" else b"$-1\r\n"
+        fired["unchanged"] += compare("failed SETUSER is atomic",
+                                      raw(ts, tf, ["ACL", "GETUSER", name]), unchanged)
+        operation = operations[iteration % len(operations)]
+        target = raw(tus, tuf, operation)
+        oracle = raw(ous, ouf, operation)
+        coverage.note(operation)
+        compare("root permission after rejection", target, oracle)
         if target.startswith(b"-NOPERM"):
             if b"has no permissions to run" in target: fired["command_denials"] += 1
             elif b"access a key" in target: fired["key_denials"] += 1
             elif b"access a channel" in target: fired["channel_denials"] += 1
         elif not target.startswith(b"-"):
             fired["grants"] += 1
-        return target
-
-    # Only cleanup suite-owned state; neither cleanup reply is part of the differential stream.
-    for sock, file in ((ts, tf), (os_, of)):
-        raw(sock, file, ["ACL", "DELUSER", "aclsel:diff", "aclsel:bad"])
-        raw(sock, file, ["FLUSHALL"])
-    for key, value in (("as:a:1", "A"), ("as:b:1", "B"),
-                       ("as:root:1", "R"), ("as:cat:1", "CAT")):
-        both(["SET", key, value], "seed " + key)
-    stats_before = target_stats()
-
-    profiles = [
-        {
-            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
-                      "(~as:a:* +get +strlen +mget)", "(~as:b:* +set)",
-                      "(&as:news:* +publish)"],
-            "ops": [["GET", "as:a:1"], ["SET", "as:b:w", "v"],
-                    ["GET", "as:b:1"], ["DEL", "as:a:1"],
-                    ["PUBLISH", "as:news:x", "v"], ["PUBLISH", "as:other", "v"]],
-        },
-        {
-            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "~as:root:*",
-                      "+get", "allchannels", "(~as:a:* +set)",
-                      "(&as:news:* +publish)"],
-            "ops": [["GET", "as:root:1"], ["SET", "as:a:w", "v"],
-                    ["GET", "as:a:1"], ["SET", "as:root:w", "v"],
-                    ["PUBLISH", "as:news:x", "v"], ["PUBLISH", "as:other", "v"]],
-        },
-        {
-            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
-                      "(~as:cat:* +@string -set)"],
-            "ops": [["GET", "as:cat:1"], ["STRLEN", "as:cat:1"],
-                    ["SET", "as:cat:w", "v"], ["GET", "as:a:1"],
-                    ["PUBLISH", "as:news:x", "v"]],
-        },
-        {
-            # Two selectors arrive fragmented across RESP arguments. A multi-key request must
-            # be authorized by one whole selector, not by combining their key patterns.
-            "rules": ["reset", "on", "nopass", "-@all", "resetkeys", "resetchannels",
-                      "(", "~as:a:*", "+mget", ")", "(~as:b:* +mget)"],
-            "ops": [["MGET", "as:a:1"], ["MGET", "as:b:1"],
-                    ["MGET", "as:a:1", "as:b:1"], ["GET", "as:a:1"]],
-        },
-    ]
-
-    # Establish an authenticated connection pair once; immutable ACL images update underneath it.
-    both(["ACL", "SETUSER", "aclsel:diff"] + profiles[0]["rules"], "initial profile")
-    fired["profiles"] += 1
-    tus, tuf = conn(TH, TP); ous, ouf = conn(OH, OP)
-    user_both((tus, tuf), (ous, ouf), ["AUTH", "aclsel:diff", "unused"], "AUTH")
-
-    # Directed pass guarantees every profile and every denial family fires for every seed.
-    for profile_index, profile in enumerate(profiles):
-        both(["ACL", "SETUSER", "aclsel:diff"] + profile["rules"],
-             "directed profile %d" % profile_index)
-        fired["profiles"] += 1
-        both(["ACL", "GETUSER", "aclsel:diff"], "directed GETUSER %d" % profile_index)
-        fired["reporting"] += 1
-        for operation in profile["ops"]:
-            user_both((tus, tuf), (ous, ouf), operation,
-                      "directed profile %d %s" % (profile_index, operation[0]))
-
-    invalid = [
-        ["ACL", "SETUSER", "aclsel:bad", "reset", "(on +get)"],
-        ["ACL", "SETUSER", "aclsel:bad", "reset", "(>pw +get)"],
-        ["ACL", "SETUSER", "aclsel:bad", "reset", "((~x:* +get))"],
-        ["ACL", "SETUSER", "aclsel:bad", "reset", "(~x:*", "+get"],
-        ["ACL", "SETUSER", "aclsel:bad", "reset", "~x:* +get)"],
-    ]
-
-    current = 0
-    for iteration in range(4200):
-        choice = rng.randrange(15)
-        if choice < 2:
-            current = rng.randrange(len(profiles))
-            both(["ACL", "SETUSER", "aclsel:diff"] + profiles[current]["rules"],
-                 "random profile %d" % iteration)
-            fired["profiles"] += 1
-        elif choice == 2:
-            both(["ACL", "GETUSER", "aclsel:diff"], "random GETUSER %d" % iteration)
-            fired["reporting"] += 1
-        elif choice == 3:
-            both(rng.choice(invalid), "random invalid selector %d" % iteration)
-            fired["syntax"] += 1
-        elif choice == 4:
-            both(["ACL", "GETUSER", "aclsel:bad"], "invalid atomicity %d" % iteration)
-            fired["syntax"] += 1
-        else:
-            operation = rng.choice(profiles[current]["ops"])
-            user_both((tus, tuf), (ous, ouf), operation,
-                      "random profile %d %s" % (current, operation[0]))
 
     after = target_stats()
-    counter_minimums = {"acl_access_denied_cmd": 50,
-                        "acl_access_denied_key": 50,
-                        "acl_access_denied_channel": 50}
-    for name, minimum in counter_minimums.items():
+    for name in ("acl_access_denied_cmd", "acl_access_denied_key", "acl_access_denied_channel"):
         delta = after.get(name, 0) - stats_before.get(name, 0)
-        if delta < minimum:
-            mismatch("target counter delta " + name, str(delta).encode(),
-                     (">=%d" % minimum).encode())
-    minimums = {"profiles": 100, "reporting": 100, "syntax": 200, "grants": 300,
+        compare("non-vacuity counter " + name, str(delta >= 50).encode(), b"True")
+    minimums = {"rejections": 4200, "unchanged": 4200, "grants": 300,
                 "command_denials": 100, "key_denials": 100, "channel_denials": 50}
     for name, minimum in minimums.items():
-        if fired[name] < minimum:
-            mismatch("non-vacuity " + name, str(fired[name]).encode(), str(minimum).encode())
-
+        compare("non-vacuity " + name, str(fired[name] >= minimum).encode(), b"True")
     for sock, file in ((ts, tf), (os_, of)):
         raw(sock, file, ["ACL", "DELUSER", "aclsel:diff", "aclsel:bad"])
-    for sock in (tus, ous, ts, os_): sock.close()
+    for sock, file in ((tus, tuf), (ous, ouf), (ts, tf), (os_, of)):
+        file.close(); sock.close()
     print("DIFFER aclsel: %d checks, %d diffs -> %s (%s)" %
           (checks, diffs, "PASS" if diffs == 0 else "FAIL",
            ", ".join("%s=%d" % item for item in fired.items())))

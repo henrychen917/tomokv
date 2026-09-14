@@ -1164,8 +1164,9 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
-    // Peers read the transport pointers on this line. Keep the exceptional scan-hold counter
-    // here instead of making every command write the line they need to post work.
+    // Peer producers read the transport pointers on this line (task_in_..transfer_in_) when posting
+    // work. Keep the exceptional scan-hold counter here instead of making every command write the
+    // line they need to post work (confirmed counter swap, 2026-09-13).
     uint64_t atomic_scan_holds_ = 0;
     FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
