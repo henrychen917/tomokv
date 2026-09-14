@@ -195,10 +195,6 @@ struct ReadLocalStats {
     // three at zero -- that is the design's first proof obligation, stated as a number.
     ReadLocalArmStats arm{};
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-    // Keep temporary SET attribution off the remotely scanned quiescence-publication cache line.
-    alignas(64) ReadLocalSetTaxStats settax{};
-#endif
 
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
@@ -299,12 +295,10 @@ struct ReadLocalThreadState {
     // an enabled boot knob from a live parser/executor lane. No per-operation publication.
     std::atomic<bool> lane_active{false};
 };
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 3
 static_assert(offsetof(ReadLocalThreadState, lane_active) == 376,
               "resize retirement adds two cold sink hooks to the optional sidecar");
 static_assert(sizeof(ReadLocalThreadState) == 384,
               "resize retirement grows only the armed sidecar by 16 bytes, never ThreadCtx");
-#endif
 
 class ThreadCtx {
 public:

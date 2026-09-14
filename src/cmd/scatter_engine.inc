@@ -2909,41 +2909,12 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         slot.kind = ValueKind::Inline;
                         continue;
                     }
-                    if constexpr (kReadLocalSetTaxVariant ==
-                                  ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                        if (object->encoding() == Enc::Raw) {
-                            const uint32_t length = kvobj_read_local_raw_length(object);
-                            slot.len = length;
-                            const uint32_t cutover =
-                                std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
-                            if (shard.zc_min() == UINT32_MAX || length < cutover) {
-                                kvobj_read_local_copy_raw(
-                                    object, object->read_local_flags(), length, slot.copy_buffer(length));
-                            } else {
-                                const char* value = object->str_data();
-                                // Registration precedes the next owner command, whose overwrite
-                                // gate will force immutable replacement until IO releases this ptr.
-                                shard.store().borrow(value);
-                                slot.ptr = value;
-                                slot.shard = shard.id();
-                                slot.kind = ValueKind::Borrow;
-                            }
-                            continue;
-                        }
-                    }
                     KvObjRawReadBuffer raw;
                     const Slice value = kvobj_string_value(object, raw);
                     slot.len = value.n;
                     const uint32_t cutover =
                         std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
                     bool copy = shard.zc_min() == UINT32_MAX || value.n < cutover;
-                    if constexpr (kReadLocalSetTaxVariant ==
-                                  ReadLocalSetTaxVariant::SequenceOverwrite) {
-                        // A materializes Raw through atomic cells. Keep that owner-local copy in
-                        // the gather slot instead of publishing its stack address as a borrow.
-                        if (object->encoding() == Enc::Raw)
-                            copy = true;
-                    }
                     if (copy) {
                         char* buffer = slot.copy_buffer(value.n);
                         if (value.n) std::memcpy(buffer, value.p, value.n);

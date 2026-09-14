@@ -403,7 +403,8 @@ row_begin(){
   ROW_ID=$(printf '%s\n' "$1" | canonical_label)
   ROW_HISTORY_ID="$ROW_ID${2:+ [$2]}"
   local budget
-  budget=$(python3 tests/gate_history.py budget --plan "$ROW_PLAN" --label "$ROW_HISTORY_ID") || exit 2
+  budget=$(python3 tests/gate_history.py budget --correctness --plan "$ROW_PLAN" \
+      --label "$ROW_HISTORY_ID" --base-label "$ROW_ID") || exit 2
   IFS=$'\t' read -r ROW_TIMEOUT ROW_MEDIAN ROW_BASIS <<< "$budget"
   # The ABBA row's recorded history is dominated by runs that aborted before measuring (median
   # 0.42s), so a history-derived budget kills every genuine measurement at 30s -- three overnight
@@ -424,7 +425,7 @@ row_begin(){
 row_timeout(){
   trap '' USR1
   ROW_EXPIRED=1
-  bad "${ROW_ID:-row watchdog}" "TIMEOUT after ${ROW_TIMEOUT:-?}s; median=${ROW_MEDIAN:--}s; ${ROW_BASIS:-unknown}"
+  ledger FAIL "${ROW_ID:-row watchdog}"
   exit 124
 }
 row_finish(){
@@ -454,7 +455,8 @@ ledger(){
     [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
     if [ "$ROW_EXPIRED" = 1 ]; then
       verdict=FAIL
-      say "$identity" "FAIL (TIMEOUT ${ROW_TIMEOUT}s; median=${ROW_MEDIAN}s; $ROW_BASIS)"
+      # TIMEOUT is distinct in the report and timed_out history; it still fails the gate.
+      say "$identity" "TIMEOUT ${ROW_TIMEOUT}s; median=${ROW_MEDIAN}s; $ROW_BASIS"
     fi
     row_save_history "$verdict" "$scored" || exit 2
   else
@@ -1035,7 +1037,11 @@ collect_differ_group(){
   IFS=$'\t' read -r verdict duration label <<< "$row"
   printf '%s\n' "$row" >> "$LEDGER"
   printf '%s\n' "$row" >> "$TIMINGS"
-  say "$label" "$verdict (${duration}s across concurrent children)"
+  if [ "$fold_rc" = 124 ]; then
+    say "$label" "TIMEOUT (${duration}s across concurrent children)"
+  else
+    say "$label" "$verdict (${duration}s across concurrent children)"
+  fi
   if [ "$verdict" = ok ]; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 }
 collect_job(){
