@@ -2,6 +2,9 @@
 #include "tools/tailgen/histogram.h"
 #include "tools/tailgen/pacing.h"
 #include "tools/tailgen/resp.h"
+#include "tools/tailgen/config.h"
+#include "tools/tailgen/connection.h"
+#include "tools/tailgen/outstanding.h"
 
 #include <algorithm>
 #include <cmath>
@@ -147,10 +150,138 @@ void pacing() {
     }
     std::fprintf(stderr, "pacing: PASS\n");
 }
+
+void workload() {
+    auto short_keys = KeySpace::parse("memtier-{1..11}", "unused");
+    auto long_keys = KeySpace::parse("blocker:memtier-{1..3}", "unused");
+    Workload mix("GET:8,BITCOUNT:2", short_keys, long_keys);
+    Random first(99), second(99);
+    size_t long_count = 0;
+    std::vector<bool> short_seen(11), long_seen(3);
+    for (size_t i = 0; i < 100000; ++i) {
+        std::string a, b;
+        const auto kind = mix.render(first, a);
+        require(mix.render(second, b) == kind && a == b, "seeded commands/keys differ");
+        long_count += kind == CommandClass::long_op;
+        if (kind == CommandClass::short_op) {
+            require(a.starts_with("*2\r\n$3\r\nGET\r\n"), "GET framing");
+            for (unsigned key = 1; key <= 11; ++key)
+                if (a.ends_with("memtier-" + std::to_string(key) + "\r\n")) short_seen[key - 1] = true;
+        } else {
+            require(a.starts_with("*2\r\n$8\r\nBITCOUNT\r\n"), "BITCOUNT framing");
+            for (unsigned key = 1; key <= 3; ++key)
+                if (a.ends_with("blocker:memtier-" + std::to_string(key) + "\r\n")) long_seen[key - 1] = true;
+        }
+    }
+    require(long_count > 19500 && long_count < 20500, "8:2 weighted mixture");
+    require(std::all_of(short_seen.begin(), short_seen.end(), [](bool x) { return x; }) &&
+            std::all_of(long_seen.begin(), long_seen.end(), [](bool x) { return x; }), "key endpoints reached");
+    std::string request;
+    Workload set("SET 3:1", KeySpace::parse("memtier-{1..1}", ""), long_keys);
+    require(set.render(first, request) == CommandClass::short_op &&
+            request == "*3\r\n$3\r\nSET\r\n$9\r\nmemtier-1\r\n$3\r\nxxx\r\n", "SET payload/frame");
+    Workload ping("GET:0,PING:1", short_keys, long_keys);
+    require(ping.render(first, request) == CommandClass::short_op && request == "*1\r\n$4\r\nPING\r\n", "PING/zero weight");
+    for (const char* bad : {"GET:0", "GET:1,", "SET:1", "SET -1:1", "GET:nan", "BOGUS:1",
+                            "GET:18446744073709551615,PING:1"})
+        rejects([&] { Workload invalid(bad, short_keys, long_keys); }, "invalid mix accepted");
+    for (const char* bad : {"0", "memtier-{2..1}", "memtier-{1..N}", "a{1..2}{3..4}", "a{1..2"})
+        rejects([&] { KeySpace::parse(bad, ""); }, "invalid key range accepted");
+    const auto numeric = KeySpace::parse("2000000", "memtier-");
+    require(numeric.first == 1 && numeric.count == 2000000 && numeric.prefix == "memtier-", "numeric key count");
+    for (const char* bad : {"--bogus=1", "--rate=0", "--warmup=-1", "--duration=nan", "--port=65536",
+                            "--threads=0", "--conns=0", "--seed=-1", "--spacing=tick", "--mix=GET:0"}) {
+        const char* argv[] = {"tailgen", bad};
+        rejects([&] { parse_config(2, argv); }, "invalid CLI accepted");
+    }
+    const char* argv[] = {"tailgen", "--rate=717000", "--warmup", "0", "--mix", "PING:1", "--max-outstanding=0"};
+    const auto config = parse_config(7, argv);
+    require(config.rate == 717000 && config.warmup == 0 && config.max_outstanding == 0, "CLI values/defaults");
+    require(core_list("112,114-116") == std::vector<int>({112, 114, 115, 116}), "core list expansion");
+    for (const char* bad : {"1,1", "2-1", "1,", "1024", ""})
+        rejects([&] { core_list(bad); }, "invalid core list accepted");
+    std::fprintf(stderr, "workload/CLI: deterministic mix, key ranges, command framing, validation PASS\n");
+}
+
+void outstanding() {
+    Outstanding a(2, 2, 100, 200), b(1, 1, 100, 200);
+    a.add(0, 80); a.add(0, 81); a.add(0, 90); // over before warmup ends
+    a.complete(0, 120); // [100,120)
+    a.add(1, 130); a.add(1, 131); a.add(1, 140);
+    a.add(0, 150); // both connections over: one continuous [140,190)
+    a.complete(1, 160); a.complete(0, 190);
+    b.add(0, 100); b.add(0, 110); b.complete(0, 145); // overlaps two intervals
+    b.add(0, 195); b.complete(0, 220); // clip drain at 200
+    std::vector<Interval> all = a.finish();
+    const auto& more = b.finish();
+    all.insert(all.end(), more.begin(), more.end());
+    require(union_ns(all) == 95, "union must be [100,190) + [195,200), not a sum/average");
+    require(a.maximum() == 3 && b.maximum() == 2, "per-connection peak in measurement window");
+    Outstanding disabled(1, 0, 100, 200);
+    for (unsigned i = 0; i < 1000; ++i) disabled.add(0, 150);
+    require(disabled.total() == 1000 && disabled.maximum() == 1000 && disabled.finish().empty(),
+            "zero threshold disables observer without bounding outstanding");
+    Outstanding warm(1, 64, 100, 200);
+    for (unsigned i = 0; i < 200; ++i) warm.add(0, 10);
+    for (unsigned i = 0; i < 198; ++i) warm.complete(0, 20);
+    require(warm.finish().empty() && warm.maximum() == 2, "exclude warmup peak; capture unchanged boundary backlog");
+    std::fprintf(stderr, "outstanding: unbounded, warmup/drain clipping, global interval union PASS\n");
+}
+
+void connections() {
+    int sockets[2];
+    require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0, sockets) == 0, "socketpair");
+    Connection connection{File(sockets[0])};
+    File peer(sockets[1]);
+    int small = 1024;
+    require(setsockopt(connection.fd(), SOL_SOCKET, SO_SNDBUF, &small, sizeof small) == 0, "small send buffer");
+    // This is a socket stream fixture, not a server. Force partial writes and
+    // EAGAIN, then compare every drained byte and each reply's FIFO metadata.
+    std::string expected;
+    for (uint64_t i = 0; i < 200; ++i) {
+        const std::string bytes(4096, static_cast<char>('a' + i % 26));
+        expected += bytes;
+        connection.submit(bytes, {i, i % 2 ? CommandClass::long_op : CommandClass::short_op, i >= 10});
+    }
+    require(connection.outstanding() == 200 && connection.wants_write() && connection.queued_bytes() > 0,
+            "fixture must actually open socket-backpressure window beyond 64 outstanding");
+    std::string received;
+    char buffer[8192];
+    for (unsigned round = 0; round < 10000 && (connection.wants_write() || received.size() != expected.size()); ++round) {
+        const ssize_t n = recv(peer.get(), buffer, sizeof buffer, MSG_DONTWAIT);
+        if (n > 0) received.append(buffer, static_cast<size_t>(n));
+        else require(n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK), "fixture recv");
+        connection.write_ready();
+    }
+    require(received == expected && !connection.queued_bytes(), "partial writes changed/lost/duplicated stream bytes");
+    size_t replies = 0;
+    auto completed = [&](Request request, uint64_t stamp, bool error, std::string_view) {
+        require(request.sent_ns == replies && stamp > request.sent_ns && !error, "FIFO request/timestamp matching");
+        require(request.kind == (replies % 2 ? CommandClass::long_op : CommandClass::short_op) &&
+                request.measured == (replies >= 10), "class/warmup metadata pairing");
+        ++replies;
+    };
+    require(send(peer.get(), "$3\r\na", 5, MSG_NOSIGNAL) == 5, "fixture partial bulk send");
+    connection.read_ready(completed);
+    require(!replies && connection.outstanding() == 200, "partial bulk prematurely reduced outstanding");
+    require(send(peer.get(), "bc\r\n", 4, MSG_NOSIGNAL) == 4, "fixture bulk completion");
+    connection.read_ready(completed);
+    std::string responses;
+    for (size_t i = 1; i < 200; ++i) responses += i % 2 ? ":7\r\n" : "+OK\r\n";
+    require(send(peer.get(), responses.data(), responses.size(), MSG_NOSIGNAL) == static_cast<ssize_t>(responses.size()),
+            "fixture coalesced replies");
+    connection.read_ready(completed);
+    require(replies == 200 && !connection.outstanding(), "all replies retire independently");
+    require(send(peer.get(), "+OK\r\n", 5, MSG_NOSIGNAL) == 5, "fixture unsolicited reply");
+    rejects([&] { connection.read_ready(completed); }, "unsolicited reply must fail");
+    peer = File();
+    rejects([&] { connection.read_ready(completed); }, "EOF must fail");
+    std::fprintf(stderr, "connection: forced partial writes/EAGAIN, >64 in flight, FIFO, partial reads, EOF PASS\n");
+}
 } // namespace
 
 int main() {
-    try { histogram(); parser(); pacing(); }
+    try { histogram(); parser(); workload(); outstanding(); connections(); pacing(); }
     catch (const std::exception& e) { std::fprintf(stderr, "tailgen-unit: FAIL: %s\n", e.what()); return 1; }
     std::fprintf(stderr, "tailgen-unit: PASS\n");
 }
