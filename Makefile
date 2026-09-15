@@ -136,7 +136,7 @@ unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit bui
 CORE_TEST_OBJ := $(filter-out build/src/main.o build/src/core/genthread.o,$(OBJ))
 # This fixture uses the production controller but no scheduler entry. The isolated
 # R7 boot TU references genthread's server entry, which this serverless link omits.
-FLIP_CLOCK_OBJ := $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ))
+FLIP_CLOCK_OBJ := $(filter-out build/src/core/reorder.o build/src/core/rl2s.o,$(CORE_TEST_OBJ))
 build/flipctl-clock-unit: tests/flipctl_clock_unit.cc $(FLIP_CLOCK_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(FLIP_CLOCK_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
