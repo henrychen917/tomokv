@@ -87,3 +87,16 @@ relocation-aware hot-body counts, any encoding/prologue exceptions, unit totals,
 and the maintainer's requested measurement cells. Build and raw proof files live
 under `build/lbstall-s3-proof/`. No server, benchmark, load generator or gate was
 started by this lane; live correctness and performance verdicts remain mainline's.
+
+### Final code-generation result
+
+The expanded strict checker finds **573/576** byte-identical bodies. It includes
+O1 stages, executor sweeps and store helpers in addition to the inherited coverage.
+Three TLS specializations in `rl2s.o` retain inlining/encoding differences; the
+checker returns failure and `MEASURE-REQUEST.md` lists their sizes and exact scope.
+Full byte identity remains unmet. No mismatch is waived. The LB control tail also
+has its intended body changes and a 0x268 → 0x278 stack reservation change.
+All unit selections ran: **75/77 pass**, including **11/11 TSAN**. The two failures
+are the existing PRE defects above; PRE and PAD both fail the directed drain bound.
+The final compiler locks retain all compared parser, O1, executor/sweep, store and
+GET/SET/MGET/MSET bodies, with no claim of a measured zero tax.

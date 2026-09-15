@@ -100,8 +100,127 @@ no latency gain for this fix. Only an armed PRE/PAD hold with a clean POST can
 support a live stall-removal claim. The directed PRE/PAD unit failures independently
 prove the new refusal behavior without claiming stack3's old IFID self-hold exists.
 
-## Offline verification and final artifact manifest
+## 4. TLS exception follow-up
 
-Final results and reproducible receipts are appended here after the release rebuild.
+The strict byte proof below has three TLS exceptions. In addition to the named
+plain-transport cells, run TLS GET/SET at p1/p32, 512 connections, 64-byte values,
+read-local=0/1, both thread modes, and `--net-io uring` / `--net-io epoll`.
+Repeat the TLS runs with the gate's Unix listener configured to visit the
+TLS+Unix loop specialization. Use the gate's existing certificates/TLS client
+plumbing and matched offered loads, with A/B/B/A and A/C/C/A controls.
+Profile any changed cell before accepting a zero-regression claim. Live measurements
+cannot turn a differing instruction sequence into a byte-identity pass.
+
+## Final artifact manifest
+
+Product commit: `6b7e90c83`; later commits update only verification documentation.
+Compiler: `g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0`.
+All arms use the same release flags/allocator. POST's three GCC budget locks are
+`main.o:146670`, `genthread.o:129860`, `rl2s.o:162350`, each with
+`inline-unit-growth=0`. No experimental extra compiler parameter survives.
+
+| Arm | File | .text bytes | SHA256 |
+| --- | --- | ---: | --- |
+| PRE | `build/tomokv-lbstall-s3-pre` | 3531171 | `bce51ed313fce228eca285801484091466bdbd0448cad7adfb6ea506cc25945b` |
+| POST | `build/tomokv-lbstall-s3` | 3535763 | `b857b7288197d5cb66f6854c59754dc38fde479e53341087f8c7b71e76032d6a` |
+| PAD-A | `build/tomokv-lbstall-s3-pad` | 3535763 | `9c9b90a9d1e98179a00ebaf3ccb628f2929b8a2040f7859ebb78e6b6bd98b9fa` |
+
+POST grows .text by **4,592 bytes**.
+PAD-A has exactly POST's section sizes, symbol addresses and file size. Only the
+three bytes starting at file offset **3560324** differ. Receipt:
+`build/lbstall-s3-proof/artifacts.json`, `pad.json`. Both release arms remain executable.
+
+## Completed offline verification
+
+| Check | PRE / negative control | POST |
+| --- | --- | --- |
+| Busy client, continuous arrivals, empty ROB | Frozen stack3 fails the four-pass bound | First-tail refusal; both modes, destination ACK present/absent; same frames answered once |
+| PAD patched from the unit executable | Fails the same four-pass assertion | Unpatched unit passes |
+| Ready source / missing destination ACK | Original timeout policy | Exactly third-tail refusal |
+| Shard drain and movement | Original timeout policy | Shared three-tail bound; both modes, ownership and RYOW, non-coordinator and commit/refusal race |
+| Native units | Two existing defects below reproduced | **64/66 pass**; identical two existing failures |
+| TSAN | Not claimed for PRE | **11/11 pass**: eight core selections, overlap, waits, storage flags |
+| Debug park / INFO | Not a live server measurement | Real parked bytes and refusing predicate asserted |
+| Expanded byte comparison | Stack3 release objects | **573/576 match**, raw bytes and resolved relocation targets |
+| Live gate / rate / IPC / tails | Maintainer's reference | Pending mainline execution |
+
+All executions stayed on CPUs **112–127**. Owner-arena selections used **112–119**
+because that fixture requires exactly eight allowed CPUs. Core units use ASAN/UBSAN.
+The core and overlap TSAN builds instrument all linked production dependencies,
+without jemalloc, with `-O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie`.
+Runs used `setarch x86_64 -R`, `TSAN_OPTIONS=halt_on_error=1:exitcode=66`, no
+suppressions. Existing GCC atomic_thread_fence instrumentation warnings remain.
+
+Every named unit selection ran. After the final compiler locks, every affected
+production-linked native selection and the changed core TSAN route were rechecked;
+unchanged independent selections retain their initial passing receipts. The complete
+inventory is `build/lbstall-s3-proof/units/results-final.json` (75/77 including TSAN),
+with `results-initial.json`, per-selection logs, `final-directed.json`, and the
+PRE/POST/PAD/debug directed logs. Build recipes and logs are under the same proof
+directory: `checks.mk`, `extra.mk`, `build-POST-units-retry.log`, `build-final.log`,
+`build-final-make.log`; no server or gate target was executed.
+
+**Known defects, reproduced on frozen stack3 PRE and final POST:**
+
+- `atomic-survivors-unit post_apply_probe`: first-owner APPLY plus two successful
+  APPENDs gives lengths 2/2 and final `BW`, an illegal serial outcome.
+- `netcmd-unit collection-oom`: failed multi-field HSET retains the changed first
+  field and old TTL (OPEN F05).
+
+These existing nongating diagnostics remain failing; no assertion or expected gate
+count was changed. Receipts: `pre-existing-probes.json`, `pre-post_apply_probe.log`,
+`pre-collection-oom.log`, and their final POST logs in `units/`.
+
+### Sizes and source preservation
+
+All eight PRE/POST locks hold: **Op 336, Client 1984, ThreadCtx 1408, Shard 1440,
+FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624**. Also unchanged:
+IoLoop **7136**, ExLoop **5856**, Server **105088**. The optional LB policy grows
+**80 → 8448 bytes**; both LB knobs at zero allocate none of it (unit asserted).
+GDB read DWARF without starting an inferior: `layout-PRE.txt`, `layout-POST.txt`.
+
+`source-proof.json` confirms the L1 layout, O1 pipeline/window, O6 executor/prefetch
+code, read-local code, configuration, overlap witnesses and gate source match stack3.
+All of `io_loop.h` outside the LB control tail and debug-only park hook is identical.
+`lbstall.h` / `lbstall.cc` match cx-lbstall `d0a565b32` exactly.
+
+### Strict byte-proof limit
+
+**Full byte identity is not achieved.** The checker deliberately returns **1** for
+the three exceptions below. No exception is masked or converted to success.
+The expanded 576-body set includes the original cx-lbstall coverage plus O1's
+individual stages, executor sweeps, store insert/erase/find paths, completion
+handlers and loop wrappers. Callee and constant identities are compared when
+address relocations are normalized. All three mismatches are in `core/rl2s.o`:
+
+| Function / specialization | PRE bytes | POST bytes | Difference |
+| --- | ---: | ---: | --- |
+| ROB callback in `WbEngine::serve_impl<false,true,true,true,false,true>` | 936 | 637 | TLS/no-borrow, epoll, coded replies: segment append is outlined |
+| `IoLoop::on_cqe<true,true,false,1>` | 1206 | 1222 | TLS/epoll completion handling: TLS-slot lookup inlining moves between event arms |
+| `IoLoop::run_loop<true,true,false,true,1,true>` | 4665 | 4682 | TLS+Unix, uring, read-local loop: inlining/register/branch layout differs |
+
+These are actual code-generation differences, beyond the predecessor's two commuted
+CMP encodings. No instruction-count neutrality or measured zero tax is inferred.
+Parser, O1 stages, executor/sweep, store and GET/SET/MGET/MSET bodies match; plain
+transport completion/loop bodies also match. Complete names, disassembly and raw
+results: `encoding-exceptions.json`, `tls-exception-*-{pre,post}.txt`,
+`hot-bodies.{json,txt}`. Experimental compiler settings that changed an executor
+sweep or read-local store helpers were rejected; their receipts remain in the proof
+directory for review.
+
+The intended IO LB control-tail body changes **3137 → 3411 bytes**, with stack
+reservation **0x268 → 0x278** and corresponding prologue/epilogue changes. Its idle
+branch returns before new accounting, but that wrapper has no byte-identity claim.
+See `lb-control-bodies.txt` and `lb-control-summary.json`. No whole-program identity
+or measured performance claim follows from the 573 matching bodies.
+
+Reproduce the strict check, without executing either server:
+
+```sh
+taskset -c 112-127 python3 tools/lbstall_artifacts.py compare \
+  build/lbstall-s3-proof/pre-src/build/src build/src \
+  build/lbstall-s3-proof/hot-bodies.json
+```
+
 No fresh throughput, cycles/op, IPC or live-tail improvement is claimed by this lane.
 Append the maintainer's results and decision to `MEASURE-RESULT` in this worktree.
