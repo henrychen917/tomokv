@@ -299,6 +299,7 @@ public:
     void debug_cost(double commands_per_client);
 
 private:
+    friend struct CoreConcurrencyTest;
     enum class Phase : uint8_t {
         Disabled = 0,
         BootPending,
@@ -334,9 +335,9 @@ private:
     static const char* reason_name(FlipctlTriggerReason reason);
     void start_maneuver(Server& server, FlipctlTriggerReason reason, uint64_t now_ms);
     bool sample_fingerprint(Server& server);
-    bool sample_rate(Server& server, uint64_t now_ms, double& rate);
-    bool sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate);
-    bool sample_anchored_rate(Server& server, uint64_t now_ms, double& rate);
+    bool sample_rate(Server& server, uint64_t stamp_ns, double& rate);
+    bool sample_stabilized_rate(Server& server, uint64_t stamp_ns, double& rate);
+    bool sample_anchored_rate(Server& server, uint64_t stamp_ns, double& rate);
     bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
@@ -508,7 +509,7 @@ private:
     // constant: it sets how finely a sub-tick event is resolved, and only the cold monitor pays.
     static constexpr uint32_t kFlipPollDivisor = 8;
 
-    uint64_t rate_window_ms_ = 0;
+    uint64_t rate_window_ns_ = 0;
     uint64_t rate_window_commands_ = 0;
     MovementStamp rate_window_movement_{};
     double previous_subwindow_rate_ = 0;

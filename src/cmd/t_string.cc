@@ -906,6 +906,11 @@ bool parse_bitmap_unit(Op& op, Slice unit, bool& bits) {
 }
 
 template <bool kNotify>
+// Keep the bitmap loop's placement independent of preceding cold text. The v3
+// stack moved this unchanged body into a slow placement (about 345 us per 4 MiB
+// BITCOUNT versus 180-200 us); aligning only this handler restores its service
+// time without changing the loop or the flip controller's demand model.
+__attribute__((aligned(64)))
 void cmd_bitcount(Shard& sh, Op& op) {
     int64_t start = 0, end = 0;
     bool bit_unit = false;
