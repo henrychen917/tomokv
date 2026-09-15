@@ -874,7 +874,7 @@
           "B"
         ],
         "values": [
-          23230619.92192773
+          24467172.47028167
         ]
       },
       "observed_busy": {
@@ -883,12 +883,12 @@
           "B"
         ],
         "values": [
-          99.98454802039404
+          99.9650293170317
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h03": {
@@ -1074,7 +1074,7 @@
         "load_smt": [],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "80d0155d04755df3b1e0a858f0bef915b03f5dac8be30cc0886f26896b0d29fb",
+      "instrument_sha256": "5dd4ee52c4d892000c1ff8fee7e66ce93daeb6a26e18b849745299a541e8eeeb",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -1082,7 +1082,7 @@
           "B"
         ],
         "values": [
-          21128262.473999
+          25711764.133132994
         ]
       },
       "observed_busy": {
@@ -1091,12 +1091,12 @@
           "B"
         ],
         "values": [
-          99.99541081861467
+          99.9703083838185
         ]
       },
       "provenance": {
-        "when": "2026-09-13T05:37:01Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=24bc342a2ab102aca374224537e258aa32fac55b1dd7bf3c4f2acdf36d87ac62; candidate=93217be3502f808ab2c0882bc046b650dcd9d11db50ef36b0318ab92fe8737f8; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h06": {
@@ -1498,7 +1498,7 @@
           "B"
         ],
         "values": [
-          52950235.06951094
+          57039903.720388
         ]
       },
       "observed_busy": {
@@ -1507,12 +1507,12 @@
           "B"
         ],
         "values": [
-          99.99656536652486
+          99.99877085056066
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h12": {
@@ -1730,7 +1730,7 @@
           "B"
         ],
         "values": [
-          52298673.36474638
+          57042163.46342533
         ]
       },
       "observed_busy": {
@@ -1739,12 +1739,12 @@
           "B"
         ],
         "values": [
-          99.99965509753093
+          99.93759486219783
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h16": {
@@ -1914,7 +1914,7 @@
           "B"
         ],
         "values": [
-          27519649.270838946
+          27835905.423941605
         ]
       },
       "observed_busy": {
@@ -1923,12 +1923,12 @@
           "B"
         ],
         "values": [
-          98.56287529400139
+          98.2217555809344
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h18": {
@@ -2074,7 +2074,7 @@
           "B"
         ],
         "values": [
-          25576399.86154001
+          26664163.630825393
         ]
       },
       "observed_busy": {
@@ -2083,12 +2083,12 @@
           "B"
         ],
         "values": [
-          98.24265539866848
+          98.52579384316253
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h19": {
@@ -2282,7 +2282,7 @@
           "B"
         ],
         "values": [
-          30216077.60831483
+          29773241.594075415
         ]
       },
       "observed_busy": {
@@ -2291,12 +2291,12 @@
           "B"
         ],
         "values": [
-          98.31710596431225
+          97.57836637469826
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h22": {
@@ -2466,7 +2466,7 @@
           "B"
         ],
         "values": [
-          29350417.405110005
+          30059059.228553012
         ]
       },
       "observed_busy": {
@@ -2475,12 +2475,12 @@
           "B"
         ],
         "values": [
-          98.79399170793694
+          98.00452008457228
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h24": {
@@ -2698,7 +2698,7 @@
           "B"
         ],
         "values": [
-          30727209.078238852
+          30282157.010574464
         ]
       },
       "observed_busy": {
@@ -2707,12 +2707,12 @@
           "B"
         ],
         "values": [
-          32.932991077612954
+          33.69129324762024
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h28": {
@@ -2930,7 +2930,7 @@
           "B"
         ],
         "values": [
-          29715323.80289663
+          30905288.060719058
         ]
       },
       "observed_busy": {
@@ -2939,12 +2939,12 @@
           "B"
         ],
         "values": [
-          50.20323081383195
+          50.204228531820505
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=12; confirmation=16"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=12; confirmation=16"
       }
     },
     "h32": {
@@ -3114,7 +3114,7 @@
           "B"
         ],
         "values": [
-          1559768.4070596509
+          1587876.6978671213
         ]
       },
       "observed_busy": {
@@ -3123,12 +3123,12 @@
           "B"
         ],
         "values": [
-          99.83952529845463
+          99.79693364843055
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m92": {
@@ -3274,7 +3274,7 @@
           "B"
         ],
         "values": [
-          1822758.2067125787
+          1824372.6111652665
         ]
       },
       "observed_busy": {
@@ -3283,12 +3283,12 @@
           "B"
         ],
         "values": [
-          50.1551676534579
+          50.15465882484609
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "t01": {
@@ -4526,7 +4526,7 @@
           "B"
         ],
         "values": [
-          2304898.6676612822
+          2284109.375822485
         ]
       },
       "observed_busy": {
@@ -4535,12 +4535,12 @@
           "B"
         ],
         "values": [
-          99.77722342282046
+          99.3255936397645
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m51": {
@@ -4686,7 +4686,7 @@
           "B"
         ],
         "values": [
-          2138694.3716105316
+          2155260.833131048
         ]
       },
       "observed_busy": {
@@ -4695,12 +4695,12 @@
           "B"
         ],
         "values": [
-          84.19396024677758
+          83.83153994659236
         ]
       },
       "provenance": {
-        "when": "2026-09-14T18:06:46Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=3d0255b16720b140a5803fd1464c17c21c952fa1cfa868d997b2f4276950295c; candidate=95344621cf991e8512373d0bb5ac5b5ca6d0e410e44abdfef6ade27824df5076; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-15T17:50:55Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
       }
     }
   }
