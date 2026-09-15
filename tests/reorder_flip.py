@@ -48,6 +48,27 @@ def interrupted(signum, frame):
     raise KeyboardInterrupt(f"signal {signum}")
 
 
+def listening(port):
+    # Read kernel state without accepting a client before the unchanged driver.
+    # A readiness PING/INFO can change the initial IO placement of its clients.
+    for path in ("/proc/net/tcp", "/proc/net/tcp6"):
+        for line in Path(path).read_text().splitlines()[1:]:
+            fields = line.split()
+            if fields[3] == "0A" and int(fields[1].rsplit(":", 1)[1], 16) == port:
+                return True
+    return False
+
+
+def check_settings(settings, args, pid):
+    expected = {"thread_mode": "2s", "shards": "16", "atomic": "0",
+                "flip_auto": "1", "reorder": args.reorder or "0",
+                "overlap": args.overlap or "0"}
+    for name, value in expected.items():
+        assert settings[name] == value, (name, settings[name], value)
+    assert settings["process_id"] == str(pid)
+    assert settings["thread_cpus"] == ",".join(f"{i}:{112+i}" for i in range(8))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
@@ -57,6 +78,8 @@ def main():
     parser.add_argument("--observe", action="store_true")
     parser.add_argument("--reorder", choices=("0", "1"))
     parser.add_argument("--overlap", choices=("0", "1"))
+    parser.add_argument("--bare-boot", action="store_true",
+                        help="send no readiness requests; verify INFO settings after the driver")
     parser.add_argument("--sample-driver", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--driver-args", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -99,7 +122,8 @@ def main():
         record = dict(repetition=repetition, binary_sha256=binary_sha,
                       driver_sha256=driver_sha, server_argv=server_argv,
                       driver_argv=driver_argv, server_cwd=str(data), driver_cwd=str(ROOT),
-                      observer=args.observe, functional_acceptance=False)
+                      observer=args.observe, bare_boot=args.bare_boot,
+                      runner_sha256=sha(Path(__file__)), functional_acceptance=False)
         server = driver = None
         started = time.monotonic()
         print(f"run {repetition}/{args.repetitions}: starting {binary}, {binary_sha}", flush=True)
@@ -114,6 +138,12 @@ def main():
                 while True:
                     if server.poll() is not None:
                         raise RuntimeError(f"server exited before readiness: {server.returncode}")
+                    if args.bare_boot:
+                        if listening(port): break
+                        if time.monotonic() >= deadline:
+                            raise RuntimeError("server did not listen within 20 seconds")
+                        time.sleep(0.1)
+                        continue
                     try:
                         control = flipctl.Resp("127.0.0.1", port)
                     except OSError:
@@ -125,14 +155,7 @@ def main():
                         assert control.command("PING") == b"PONG"
                         record["initial_server"] = flipctl.info(control, "SERVER")
                         record["initial_flipctl"] = flipctl.info(control)
-                        settings = record["initial_server"]
-                        expected = {"thread_mode": "2s", "shards": "16", "atomic": "0",
-                                    "flip_auto": "1", "reorder": args.reorder or "0",
-                                    "overlap": args.overlap or "0"}
-                        for name, value in expected.items():
-                            assert settings[name] == value, (name, settings[name], value)
-                        assert settings["process_id"] == str(server.pid)
-                        assert settings["thread_cpus"] == ",".join(f"{i}:{112+i}" for i in range(8))
+                        check_settings(record["initial_server"], args, server.pid)
                     finally:
                         control.close()
                     break
@@ -147,6 +170,7 @@ def main():
                 try:
                     record["final_server"] = flipctl.info(control, "SERVER")
                     record["final_flipctl"] = flipctl.info(control)
+                    check_settings(record["final_server"], args, server.pid)
                 finally:
                     control.close()
                 log = (run / "driver.log").read_text()
