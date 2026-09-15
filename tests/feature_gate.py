@@ -155,28 +155,29 @@ def check_readers(before, after, enabled):
 
 def check_activity(before, after, knobs, nthreads, cross_owner):
     check_readers(before, after, knobs['read-local'])
-    # O1 has one effective split schedule; fused --overlap 1 must be a literal no-op.
-    overlap_enabled = knobs['overlap'] and knobs['thread-mode'] == '2s'
-    require(after.get('overlap_enabled') == str(int(overlap_enabled)),
+    require(after.get('overlap_enabled') == str(int(bool(knobs['overlap']))),
             'wrong effective overlap mode')
-    expected_schedule = 'split-io-overlap' if overlap_enabled else 'plain'
-    stats_on = overlap_enabled or knobs['reorder']
-    reports_stats = knobs['overlap'] or knobs['reorder']
-    require(after.get('overlap_schedule') == (expected_schedule if reports_stats else None),
+    expected_schedule = ('fused-overlap' if knobs['thread-mode'] == '1s'
+                         else 'split-io-overlap') if knobs['overlap'] else 'plain'
+    stats_on = knobs['overlap'] or knobs['reorder']
+    require(after.get('overlap_schedule') == (expected_schedule if stats_on else None),
             'wrong overlap schedule/allocation')
     for field in ('overlap_passes', 'overlap_interleaved_passes'):
-        if not reports_stats:
+        if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
-        require((delta(before, after, field) > 0) if overlap_enabled
+        # Fused overlap is now whole-batch bucket prefetch. Require fresh preparation
+        # passes and an exact zero for the deleted A/B stage interleaving.
+        active = knobs['overlap'] and (field == 'overlap_passes' or knobs['thread-mode'] == '2s')
+        require((delta(before, after, field) > 0) if active
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs'):
-        if not reports_stats:
+        if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
         require((delta(before, after, field) > 0) if knobs['reorder']
                 else number(after, field) == 0, f'reorder witness {field} did not match knob')
-    expect_stats = str(nthreads) if stats_on else '0' if reports_stats else None
+    expect_stats = str(nthreads) if stats_on else None
     require(after.get('schedule_stats_threads') == expect_stats,
             'schedule counters allocated while both features off / missing when on')
     if cross_owner:

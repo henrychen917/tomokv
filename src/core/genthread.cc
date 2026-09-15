@@ -60,8 +60,9 @@ void IoLoop::run_fused() {
             else run_loop<false, false, false, true, Pipeline>();
         }
     };
-    // O1 is the split stage-idle control. Both fused knob values enter the exact same
-    // baseline instantiation, including read-local, completion hooks, and submit boundaries.
+    // Reuse O1's ordinary fused outer loop, transport, completion hooks and submit boundary.
+    // O6 warms each eligible whole owner batch unconditionally in fused placement;
+    // selecting Pipeline 0 here must not turn off that independent executor mechanism.
     run_pipeline(std::integral_constant<uint8_t, 0>{});
 }
 
@@ -73,7 +74,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
-                " overlap=%u (effective=0), %s, alloc=%s\n", nthreads, cfg.shards,
+                " overlap=%u (executor prefetch; ordinary IO), %s, alloc=%s\n", nthreads, cfg.shards,
                 cfg.overlap,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())

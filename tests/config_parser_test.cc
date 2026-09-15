@@ -387,7 +387,7 @@ int main() {
     }
     if (!parses_threads({"--thread-mode", "1s", "--overlap", "1",
                          "--net-io", "epoll"}, tomo::ThreadMode::Fused, 1))
-        fail("O1 fused no-op rejected the baseline engine");
+        fail("owner prefetch rejected the ordinary fused engine");
     tomo::Config read_local;
     tomo::ConfigParseState read_local_state;
     const std::vector<const char*> read_local_args = {
@@ -427,8 +427,7 @@ int main() {
                cfg.thread_mode == ((!std::strcmp(mode, "1s") || !std::strcmp(mode, "fused"))
                    ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
                cfg.overlap == static_cast<uint32_t>(*overlap - '0') &&
-               cfg.overlap_enabled() == (*overlap == '1' &&
-                   (std::strcmp(mode, "2s") == 0 || std::strcmp(mode, "split") == 0)) &&
+               cfg.overlap_enabled() == (*overlap == '1') &&
                cfg.reorder == static_cast<uint32_t>(*reorder - '0') &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };

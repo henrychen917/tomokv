@@ -322,11 +322,11 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    // O1 overlaps split IO writeback with parsing. Its fused arm uses the baseline loop:
-    // the historical fused interleave lost, so O1 must not carry that tax into 1s.
-    // Keep the requested knob for CONFIG/INFO; all boot consumers use the effective schedule.
+    // Split overlap warms owner buckets and interleaves IO writeback with parsing.
+    // Fused always warms eligible owner batches, with the ordinary IO loop and transports.
+    // The knob controls optional scheduling and witnesses; fused prefetch needs no sidecar.
     uint32_t overlap = 0;
-    bool overlap_enabled() const { return overlap != 0 && thread_mode == ThreadMode::Split; }
+    bool overlap_enabled() const { return overlap != 0; }
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -1058,7 +1058,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
-                        "    --overlap 1                 2s: stage-idle IO overlap; 1s: baseline (no-op)\n"
+                        "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
                         "    --reorder 0|1 (default 0)   cross-connection reordering in an executor batch for latency; per-connection order always preserved\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"

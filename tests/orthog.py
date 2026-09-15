@@ -60,12 +60,9 @@ def main():
         for name in ("thread_mode", "read_local", "overlap", "reorder", "atomic"):
             wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else getattr(args, name)
             require(before[name] == str(wanted), "INFO mismatch: " + name)
+        require(before.get("overlap_enabled") == str(args.overlap), "effective overlap mismatch")
         nthreads = int(before["io_threads"]) + int(before["ex_threads"]) if args.mode == "2s" else int(before["fused_threads"])
-        # O1's fused arm is deliberately the baseline, including allocation and completion wiring.
-        # This is an asserted mode contract, not a skip when an interleave fails to engage.
-        overlap_enabled = args.mode == "2s" and args.overlap == 1
-        require(before.get("overlap_enabled") == str(int(overlap_enabled)), "effective overlap mismatch")
-        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if overlap_enabled or args.reorder else 0),
+        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if args.overlap or args.reorder else 0),
                 "disabled schedule knobs allocated witnesses, or enabled witnesses are absent")
         topo = _lib.topology(ctl)
         prefix = "orthog:%d" % time.time_ns()
@@ -151,7 +148,15 @@ def main():
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(chosen)) as pool:
                 list(pool.map(worker, enumerate(chosen)))
             final = _lib.info(ctl, "server")
-            if not args.reorder or (int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"])):
+            reordered = not args.reorder or (
+                int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"]))
+            overlapped = not args.overlap or (
+                int(final["overlap_passes"]) > int(start["overlap_passes"]) and
+                (args.mode == "1s" or int(final["overlap_interleaved_passes"]) >
+                 int(start["overlap_interleaved_passes"])))
+            # An idle or all-natural split pass must re-arm on fresh keys/connections,
+            # just like a missing permutation; activity before this workload cannot pass it.
+            if reordered and overlapped:
                 break
         if args.reorder:
             require(int(final["reorder_batches"]) > int(start["reorder_batches"]), "reorder was never called")
@@ -164,14 +169,19 @@ def main():
             require(all(int(final.get(name, 0)) == 0 for name in
                         ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
                     "reorder ran while disabled")
-        schedule = "split-io-overlap" if overlap_enabled else "plain"
+        schedule = "plain" if not args.overlap else "split-io-overlap" if args.mode == "2s" else "fused-overlap"
         require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")
-        if overlap_enabled:
+        if args.overlap:
             require(int(final["overlap_passes"]) > int(start["overlap_passes"]), "overlap did not run")
-            require(int(final["overlap_interleaved_passes"]) > 0, "overlap never entered its interleaved arm")
+            if args.mode == "2s":
+                require(int(final["overlap_interleaved_passes"]) > int(start["overlap_interleaved_passes"]),
+                        "split IO never entered its interleaved arm in this fresh workload")
+            else:
+                require(int(final["overlap_interleaved_passes"]) == 0,
+                        "fused whole-batch prefetch claimed deleted split interleaving")
         else:
             require(int(final.get("overlap_passes", 0)) == int(final.get("overlap_interleaved_passes", 0)) == 0,
-                    "overlap ran while disabled or in the fused no-op arm")
+                    "overlap ran while disabled")
         if not args.read_local:
             require(int(_lib.info(ctl, "stats")["read_local_hits"]) == 0, "disabled lane completed reads")
         evidence = {"requested": expected, "before": before, "local_info": local_info,

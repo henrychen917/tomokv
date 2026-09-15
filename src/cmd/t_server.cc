@@ -2086,9 +2086,9 @@ void cmd_info(Shard&, Op& op) {
         // its scratch buffers so the disabled INFO path keeps its old output without those arrays.
         if (g_server && g_server->read_local_enabled())
             append_read_local_thread_info(body, *g_server);
-        // Requested fused overlap is an effective no-op in O1. Report the helper's literal
-        // zeros for that arm: absence means an older server without telemetry to the ABBA
-        // tail witness, which otherwise aborts t01 before collecting its client histogram.
+        // Preserve O1's t01 repair: a requested schedule always reports witnesses, even
+        // before any eligible batch runs. Missing fields abort the tail histogram as legacy
+        // telemetry; the null-safe helper reports literal zeros without allocating storage.
         // A null sidecar still reports schedule_stats_threads:0; no counter storage or hot
         // path work is introduced, and both requested knobs off keep the old INFO surface.
         if (g_server && (g_server->cfg().overlap || g_server->cfg().reorder))
