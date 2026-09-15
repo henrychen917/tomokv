@@ -21,17 +21,19 @@ the existing reorder scheduler remain stack3's implementations.
   before the destination acknowledges. Existing ROB, reply, borrow, protocol,
   executor-lifetime and kernel-pointer readiness fences retain their strength.
 - A ready source waiting for destination acknowledgement has a three-tail bound.
-- Shard movement has one three-tail budget across `IoDrain` and `ExDrain`.
-  Advancing stages does not reset it; a live non-coordinator can refuse too.
-- Pending control tails report work, keeping the bounded drain progressing.
+- Shard `IoDrain` / `ExDrain` retain v4's publication and executor barriers and
+  timeout guard. They do not consume the client pass budget. A fast IO cannot
+  cancel a shard move before its peers finish publishing or executing queued work.
+- Pending control tails report work, keeping drains progressing.
 - Refusal, stage advancement, client-start and shard commit serialize on the
   existing shape-transition mutex. Dispatch cannot resume inside a shard move.
 - Refused client moves increment `lb_client_refused`; refused candidates enter
   the existing cooldown. The five-second timeout remains the last guard.
 - An already-started `ClientMoving` handoff cannot be revoked by this refusal.
 
-The runtime fix in `src/core/lbstall.{h,cc}` is identical to cx-lbstall's final
-version. The new watch lines and counters belong to the existing optional LB
+The shard-bound correction confines `lb_drain_pass_expired` to `ClientDrain`;
+the immediate busy-client refusal and destination bound retain cx-lbstall's
+semantics. The watch lines and counters belong to the existing optional LB
 policy. Both LB knobs at zero allocate none of this state. An idle control tail
 returns before the new watch/counter calls. No runtime option was added or changed.
 The bound counts IO passes: it cannot bound the cost of an operation already
@@ -56,8 +58,12 @@ frames receive their correct ordered replies exactly once. The executor fence mu
 still reject migration immediately after refusal, until its scope ends.
 
 Separate cases preserve the ready-destination three-tail check, both shard-owner
-modes, RYOW across refused and successful shard moves, non-coordinator cancellation,
-stale epochs, commit/refusal races, and allocation-free LB-off control tails.
+modes, stale epochs, commit/refusal races, and allocation-free LB-off control tails.
+The shard regression withholds producer ACKs across eight IO tails (including a
+non-coordinator), then holds a real queued SET through four executor-drain tails.
+The same plan must commit after execution, preserve RYOW, and consume no client
+budget or refusal cooldown. A fresh expired shard drain must still time out.
+This regression fails on rejected v5 `29486b6a6` at the publication-drain assertion.
 `TOMO_LB_STALL_DEBUG` checks the actual parked-byte and refusal INFO counters.
 These are deterministic, serverless units; no listener, ring or server loop starts.
 
@@ -85,8 +91,11 @@ retired: **419 quick / 436 full**, delta **0 / 0**.
 See `MEASURE-REQUEST.md` for the final artifact digests, size locks, raw and
 relocation-aware hot-body counts, any encoding/prologue exceptions, unit totals,
 and the maintainer's requested measurement cells. Build and raw proof files live
-under `build/lbstall-s3-proof/`. No server, benchmark, load generator or gate was
-started by this lane; live correctness and performance verdicts remain mainline's.
+under `build/lbstall-s3-repair/`; original integration receipts remain under
+`build/lbstall-s3-proof/`. The owner's authorized churn battery passed **3/3**
+on fresh fused debug servers pinned to **112–119**, with **16 / 10 / 18** shard
+moves, all workers completed, and no ownership-assertion violation. The driver
+ran on **120–127**. No full gate or performance measurement was run.
 
 ### Final code-generation result
 
@@ -94,9 +103,31 @@ The expanded strict checker finds **573/576** byte-identical bodies. It includes
 O1 stages, executor sweeps and store helpers in addition to the inherited coverage.
 Three TLS specializations in `rl2s.o` retain inlining/encoding differences; the
 checker returns failure and `MEASURE-REQUEST.md` lists their sizes and exact scope.
-Full byte identity remains unmet. No mismatch is waived. The LB control tail also
+Full byte identity versus stack3 remains unmet. No mismatch is waived.
+All **576/576** hot bodies and six IO/EX LB control bodies are byte-identical to
+rejected v5 `29486b6a6`; this repair adds no hot-body encoding or prologue difference.
+The LB control tail also
 has its intended body changes and a 0x268 → 0x278 stack reservation change.
 All unit selections ran: **75/77 pass**, including **11/11 TSAN**. The two failures
 are the existing PRE defects above; PRE and PAD both fail the directed drain bound.
 The final compiler locks retain all compared parser, O1, executor/sweep, store and
 GET/SET/MGET/MSET bodies, with no claim of a measured zero tax.
+
+## Shard-bound gate correction
+
+The maintainer's rejected v5 gate had **435/436** passes: the churn row saw zero
+shard moves. The three-tail limit could cancel `IoDrain` / `ExDrain` before peer
+IOs and executors finished their old-route work, then put that shard into cooldown.
+This repair confines that limit to client migration. It retains all ownership
+barriers and the shard timeout guard, and preserves immediate busy-client refusal.
+
+Commits: `85059ae74` (non-vacuous shard regression), `73ddb263b` (client-only guard).
+Corrected POST and its **kind-A behaviour twin** are rebuilt at
+`build/tomokv-lbstall-s3` and `build/tomokv-lbstall-s3-pad`. The PAD disables only
+the out-of-line refusal helper in a copy of POST, preserving every text address.
+The four client witnesses pass in native/debug/TSAN route checks; PRE and PAD
+still fail the client-stall assertion. The new shard test fails against rejected
+v5 and passes on corrected POST in both modes. All **77** unit selections reran:
+**75 pass**, including **11/11 TSAN**; only the two existing defects above remain.
+Artifact hashes, churn commands and results, scope of the byte proof, and remaining
+mainline measurements are in `MEASURE-REQUEST.md`.
