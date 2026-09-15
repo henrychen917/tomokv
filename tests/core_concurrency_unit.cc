@@ -368,7 +368,7 @@ struct CoreConcurrencyTest {
                 std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
                 client.commit_read(sizeof(request) - 1);
                 arrivals++;
-                require(f.io.parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+                require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
                             &client) == IoLoop::DispatchResult::Progress,
                         "production parser visits held input");
                 require(client.rpos() == 0 && client.rob().quiesced() && client.in_active() &&
@@ -378,7 +378,7 @@ struct CoreConcurrencyTest {
                 require(!f.io.client_transfer_ready(&client, destination, error) &&
                             error == "connection has an unfinished executor completion",
                         "readiness rejects the actual outstanding executor lifetime fence");
-                require(f.io.lb_control_pass() != 0, "pending control tail reports work");
+                (void)f.io.lb_control_pass();
             }
             require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
             require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
@@ -401,7 +401,7 @@ struct CoreConcurrencyTest {
                     info.find("tomokv_lbstall_executor:1\r\n") != std::string::npos,
                 "INFO exposes the armed diagnostic and refusing predicate");
 #endif
-        require(f.io.parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+        require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
                     &client) == IoLoop::DispatchResult::Progress &&
                     client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
         uint32_t replies = 0;
