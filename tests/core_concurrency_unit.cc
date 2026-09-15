@@ -415,6 +415,8 @@ struct CoreConcurrencyTest {
         client.set_recv_armed(false);
         command_client_disconnected(&client);
         f.server.thread(f.io_id).clients().clear();
+        std::printf("PASS LB busy client mode=%s destination_ack=%u arrivals=%u (first-tail refusal)\n",
+                    Fused ? "1s" : "2s", unsigned(DestinationAck), arrivals);
     }
 
     static void lb_destination_and_executor() {
@@ -467,7 +469,7 @@ struct CoreConcurrencyTest {
     }
 
     template <bool Fused>
-    static void lb_shard_budget() {
+    static void lb_shard_progress() {
         Fixture<Fused> f;
         Client client(-1);
         f.client(client);
@@ -479,51 +481,52 @@ struct CoreConcurrencyTest {
         require(f.server.thread(f.source).post_task_quiet(f.io_id, task, f.io.self_->sig()),
                 "publish real old-route SET");
         f.server.lb_epoch_.store(1);
-        f.server.lb_coordinator_ = f.io_id;
+        f.server.lb_coordinator_ = f.io_id == 0 ? 1 : 0;
         f.server.lb_shard_moves_ = {{static_cast<uint32_t>(sid), f.source, f.destination, 1, 0}};
         f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
         f.server.lb_start_shard_drain();
-        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::IoDrain,
-                "unacknowledged producers hold the publication fence");
-        for (uint32_t tid : f.server.placement().ifid_threads()) f.server.lb_ack(tid);
-        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
-                "second pass opens executor drain only after all producers publish");
-        require(!f.loops[f.source].flip_quiesced() && !f.server.lb_all_ex_acked(),
-                "real unpublished completion prevents executor quiescence");
-        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle,
-                "third pass refuses: changing drain stage must not reset the budget");
+        // A fast IO can visit many tails before a peer publishes its old-route tasks.
+        // Neither that IO nor the coordinator may cancel a shard move at the CLIENT bound.
+        for (bool coordinator : {false, true}) {
+            if (coordinator) f.server.lb_coordinator_ = f.io_id;
+            for (uint32_t pass = 0; pass <= LbStallState::kPassLimit; pass++)
+                require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::IoDrain,
+                        "shard publication drain MUST survive more than three IO passes");
+        }
         require(f.server.worker_of_shard(sid) == f.source && set.state == OpState::Issued,
-                "refusal preserves owner and queued SET");
-        require(f.loops[f.source].drain_tasks(true) == 1, "original owner resumes its queued SET");
-        require(client.rob().drain([](Op&) {}) == 1, "queued SET retires exactly once");
-        require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
-                "RYOW survives a refused shard move");
-
-        // Fresh epoch, clean queues: a normal two-tail move still commits.
-        f.server.lb_epoch_.store(2);
-        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
-        f.server.lb_start_shard_drain();
+                "publication fence preserves owner and queued SET");
         for (uint32_t tid : f.server.placement().ifid_threads()) f.server.lb_ack(tid);
         require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
-                "fresh movement gets its own publication budget");
+                "executor drain opens only after all producers publish");
+        require(!f.loops[f.source].flip_quiesced() && !f.server.lb_all_ex_acked(),
+                "real queued SET prevents executor quiescence");
+        for (uint32_t pass = 0; pass <= LbStallState::kPassLimit; pass++)
+            require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
+                    "shard executor drain MUST survive more than three IO passes");
+        require(f.server.worker_of_shard(sid) == f.source && set.state == OpState::Issued,
+                "executor fence preserves owner and queued SET");
+        require(!f.server.lb_timed_out() && f.server.lb_transition_refused_ == 0 &&
+                    f.server.lb_policy_->stall.owners[f.io_id].passes == 0,
+                "shard drains consume no client pass budget or refusal cooldown");
+        require(f.loops[f.source].drain_tasks(true) == 1, "original owner executes its queued SET");
+        require(client.rob().drain([](Op&) {}) == 1, "queued SET retires exactly once");
         for (uint32_t tid : f.server.placement().ex_threads()) {
-            require(f.loops[tid].flip_quiesced(), "control executor is quiescent");
+            require(f.loops[tid].flip_quiesced(), "executor is quiescent after its queued work");
             f.server.lb_ack(tid);
         }
         require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
                     f.server.worker_of_shard(sid) == f.destination && f.server.lb_bucket_moves() == 1,
-                "ready shard plan commits within the bound");
+                "same busy shard plan commits after both drains finish");
         require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
                 "RYOW survives a committed shard move");
-        // A stalled coordinator must not pin other live IOs until its timeout check runs.
-        f.server.lb_epoch_.store(3);
-        f.server.lb_coordinator_ = f.io_id == 0 ? 1 : 0;
+        // Restore v4's shard policy, including its final timeout guard.
+        f.server.lb_epoch_.store(2);
+        f.server.lb_deadline_ns_.store(now_ns() - 1);
         f.server.lb_start_shard_drain();
-        for (uint32_t pass = 0; pass < LbStallState::kPassLimit; pass++)
-            require(f.io.lb_control_pass() != 0, "non-coordinator keeps making bounded passes");
-        require(f.server.lb_stage() == LbStage::Idle &&
-                    f.server.worker_of_shard(sid) == f.destination,
-                "a live non-coordinator can refuse without waiting for the coordinator");
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
+                    f.server.worker_of_shard(sid) == f.destination &&
+                    f.server.lb_transition_refused_ == 1 && f.server.lb_bucket_moves() == 1,
+                "expired shard drain still uses the existing timeout guard");
     }
 
     static void lb_commit_refusal_race() {
@@ -559,8 +562,8 @@ struct CoreConcurrencyTest {
         lb_continuous_arrivals<false, true>();
         lb_continuous_arrivals<false, false>();
         lb_destination_and_executor();
-        lb_shard_budget<false>();
-        lb_shard_budget<true>();
+        lb_shard_progress<false>();
+        lb_shard_progress<true>();
         lb_commit_refusal_race();
         Fixture off(false);
         require(!off.server.lb_policy_, "LB=0 allocates no policy or stall accounting");
@@ -660,6 +663,7 @@ int main(int argc, char** argv) {
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); }
     else if (row == "lbstall") T::lb_stalls();
+    else if (row == "lbshard") { T::lb_shard_progress<false>(); T::lb_shard_progress<true>(); }
     else if (row == "snapshot") T::snapshot_forward();
     else if (row == "config") {
         for (bool range : {false, true}) { T::transfer_config<false>(range); T::transfer_config<true>(range); }
