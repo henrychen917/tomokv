@@ -134,9 +134,10 @@ unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit bui
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o build/src/core/genthread.o,$(OBJ))
-# This fixture uses the production controller but no scheduler entry. The isolated
-# R7 boot TU references genthread's server entry, which this serverless link omits.
-FLIP_CLOCK_OBJ := $(filter-out build/src/core/reorder.o build/src/core/rl2s.o,$(CORE_TEST_OBJ))
+# The standalone R7 boot tables name both ordinary and reordered worker entries.
+# Keep those definitions linked; this fixture's main only calls the rate sampler
+# and never invokes a worker entry or starts a server.
+FLIP_CLOCK_OBJ := $(filter-out build/src/main.o,$(OBJ))
 build/flipctl-clock-unit: tests/flipctl_clock_unit.cc $(FLIP_CLOCK_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(FLIP_CLOCK_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
