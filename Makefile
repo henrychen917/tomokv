@@ -169,6 +169,15 @@ build/broaden-bench: tests/broaden_bench.cc Makefile
 	$(CXX) $(CXXFLAGS) -I. tests/broaden_bench.cc -o $@
 tools: build/benchtxn build/broaden-bench
 
+# Standalone smooth open-loop RESP driver; no server libraries or jemalloc.
+TAILGEN_HEADERS := $(wildcard tools/tailgen/*.h)
+build/tailgen-unit: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ -pthread
+tailgen-unit: build/tailgen-unit
+	./build/tailgen-unit
+.PHONY: tailgen-unit
+
 clean:
 	rm -rf build
 .PHONY: all asan tsan noreserve clean unit tools
