@@ -35,7 +35,7 @@ binary (5d567adf5), not a substituted reference. No gate row or expected count
 changes: EXPECT_QUICK=419, EXPECT_FULL=436 (delta 0/0, no row on either side of exit).
 The first invocation was refused before boot because another measurement owned
 port 7899; its log/ledger are retained as gate-preboot-blocked.*. See STACK3.md
-for the completed gate result once the quiet measurement window is available.
+for the resource block: no full gate or live flip verdict has been obtained.
 
 Optional maintainer follow-up for a paper-grade cumulative comparison:
 A=the local PRE above, B=POST, C=PAD-B. Run A/B/B/A and A/C/C/A with the gate's

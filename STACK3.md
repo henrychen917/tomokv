@@ -81,7 +81,7 @@ exactly POST's .text bytes; ELF properties are unchanged.
 
 ## Iteration gate
 
-Pending a quiet box window. Command:
+**BLOCKED before boot; no 436/436 result or live flip verdict yet.** Command attempted:
 
 ```sh
 GATE_LEDGER="$PWD/build/stack3/gate-iteration.tsv" tests/gate.sh iteration --server-cores 0-83 --load-cores 84-111
@@ -91,3 +91,14 @@ No rows are added or retired on either side of the quick-tier exit:
 EXPECT_QUICK=419 and EXPECT_FULL=436 remain unchanged. The initial invocation
 was refused before boot because the active tailbigkeys measurement owned port
 7899; `build/stack3/gate-preboot-blocked.{log,tsv}` preserves that refusal.
+
+The active measurement queue continuously occupied the requested cores and port,
+and was replenished while this lane waited. No quiet gate window was obtained.
+The gate returned exit 1 at its pre-boot guard; no server or correctness battery
+was started by this lane. The actual refused ledger is
+`build/stack3/gate-iteration.tsv`, with the log at `build/stack3/gate-iteration.log`
+and run directory `build/gate-run.GKASw9`. Its refusal is not a correctness verdict.
+The maintainer's active measurements and coordinator were left running. A quiet
+window, or explicit authorization to pause only the coordinator between completed
+jobs and resume it after the gate, is still needed to complete the requested gate.
+Current scheduling evidence is in `build/stack3/gate-resource-block.json`.
