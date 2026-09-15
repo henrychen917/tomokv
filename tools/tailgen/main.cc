@@ -2,6 +2,7 @@
 #include "connection.h"
 #include "histogram.h"
 #include "outstanding.h"
+#include "report.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -271,12 +272,6 @@ void human_histogram(const char* name, const Histogram& histogram) {
               << " p99=" << histogram.percentile_ms(99000) << " p99.9=" << histogram.percentile_ms(99900)
               << " p99.99=" << histogram.percentile_ms(99990) << " max=" << histogram.max_ms() << " ms\n";
 }
-void json_histogram(const Histogram& histogram) {
-    std::cout << "{\"count\":" << histogram.count() << ",\"mean_ms\":" << histogram.mean_ms()
-              << ",\"p50_ms\":" << histogram.percentile_ms(50000) << ",\"p90_ms\":" << histogram.percentile_ms(90000)
-              << ",\"p99_ms\":" << histogram.percentile_ms(99000) << ",\"p999_ms\":" << histogram.percentile_ms(99900)
-              << ",\"p9999_ms\":" << histogram.percentile_ms(99990) << ",\"max_ms\":" << histogram.max_ms() << '}';
-}
 void report(const Config& config, const std::vector<std::unique_ptr<Result>>& results) {
     Histogram short_latency, long_latency, lateness;
     std::vector<Interval> intervals;
@@ -318,15 +313,7 @@ void report(const Config& config, const std::vector<std::unique_ptr<Result>>& re
     if (omitted || lateness.max_ms() > 2 || queued_max)
         std::cerr << "generator pressure observed: inspect pacing lag, omitted arrivals and queued bytes before judging server tails\n";
 
-    std::cout << std::setprecision(12) << "{\"rate\":" << rate << ",\"latency_ms\":" << combined.mean_ms()
-              << ",\"p999_ms\":" << short_latency.percentile_ms(99900)
-              << ",\"long_p999_ms\":" << long_latency.percentile_ms(99900)
-              << ",\"short_count\":" << short_latency.count() << ",\"long_count\":" << long_latency.count() << ",\"short\":";
-    json_histogram(short_latency);
-    std::cout << ",\"long\":";
-    json_histogram(long_latency);
-    std::cout << ",\"outstanding_max\":" << maximum << ",\"over_max_outstanding_fraction\":" << fraction
-              << ",\"window_seconds\":" << window << "}\n";
+    write_json(std::cout, short_latency, long_latency, config.duration_ns(), maximum, fraction);
 }
 
 int run(int argc, char** argv) {

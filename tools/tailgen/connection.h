@@ -76,6 +76,8 @@ public:
             pending_.pop_front();
             reply(request, completed, error, message);
         });
+        if (pending_.empty() && (!parser_.at_boundary() || wants_write()))
+            throw std::runtime_error("reply stream does not match submitted commands");
     }
 
 private:

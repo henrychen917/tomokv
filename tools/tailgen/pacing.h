@@ -66,7 +66,8 @@ public:
             throw std::invalid_argument("invalid arrival process");
     }
     uint64_t next_offset_ns() {
-        elapsed_ += spacing_ == Spacing::fixed ? interval_ : -std::log(random_.open_unit()) * interval_;
+        elapsed_ += spacing_ == Spacing::fixed ? interval_ :
+            -std::log(static_cast<long double>(random_.open_unit())) * interval_;
         // Very low rates may put the next arrival centuries away; a distant
         // sentinel avoids an out-of-range float conversion or origin overflow.
         return elapsed_ >= 9e18L ? 9'000'000'000'000'000'000ULL : static_cast<uint64_t>(elapsed_ + 0.5L);

@@ -5,12 +5,14 @@
 #include "tools/tailgen/config.h"
 #include "tools/tailgen/connection.h"
 #include "tools/tailgen/outstanding.h"
+#include "tools/tailgen/report.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <sched.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -122,11 +124,15 @@ void pacing() {
         Arrivals arrivals(200000, 1, 0, spacing, 17), duplicate(200000, 1, 0, spacing, 17);
         const uint64_t start = now_ns() + 2'000'000;
         uint64_t first = 0, previous = 0, maximum_gap = 0, last_offset = 0;
+        long double interval_sum = 0, interval_squares = 0;
         size_t serviced = 0;
         for (size_t i = 0; i < 100000; ++i) {
             const uint64_t offset = arrivals.next_offset_ns();
             require(offset == duplicate.next_offset_ns(), "arrival seed reproducibility");
             require(offset >= last_offset, "arrival schedule moved backwards");
+            const long double interval = offset - last_offset;
+            interval_sum += interval;
+            interval_squares += interval * interval;
             last_offset = offset;
             const uint64_t actual = pace_until(start + offset, [&](uint64_t) { ++serviced; return true; });
             require(actual >= start + offset, "pacer returned before deadline");
@@ -141,6 +147,10 @@ void pacing() {
         require(std::abs(mean_ns / 5000 - 1) < .01, "pacing mean outside 1 percent");
         require(maximum_gap <= 2'000'000, "pacing gap exceeds 2 ms (no retry or skipped assertion)");
         require(serviced > 0, "pacer never serviced replies");
+        const long double planned_mean = interval_sum / 100000;
+        const long double cv = std::sqrt(std::max(0.0L, interval_squares / 100000 - planned_mean * planned_mean)) / planned_mean;
+        require(spacing == Spacing::poisson ? std::abs(cv - 1) < .03 : cv == 0,
+                "Poisson must have exponential inter-arrivals; fixed must be evenly spaced");
     }
     // Multiple fixed workers must be phase-offset, not synchronized bursts.
     for (size_t t = 0; t < 16; ++t) {
@@ -278,10 +288,22 @@ void connections() {
     rejects([&] { connection.read_ready(completed); }, "EOF must fail");
     std::fprintf(stderr, "connection: forced partial writes/EAGAIN, >64 in flight, FIFO, partial reads, EOF PASS\n");
 }
+
+void json_contract() {
+    Histogram short_latency, long_latency;
+    short_latency.record(1000); short_latency.record(3000); long_latency.record(2000);
+    std::ostringstream out;
+    write_json(out, short_latency, long_latency, 2'000'000'000, 65, .25);
+    // Independent tiny oracle, including units, the eleven keys, and the
+    // distinction between short p99.9, combined mean and measurement rate.
+    const char* expected = R"({"rate":1.5,"latency_ms":0.002,"p999_ms":0.003,"long_p999_ms":0.002,"short_count":2,"long_count":1,"short":{"count":2,"mean_ms":0.002,"p50_ms":0.001,"p90_ms":0.003,"p99_ms":0.003,"p999_ms":0.003,"p9999_ms":0.003,"max_ms":0.003},"long":{"count":1,"mean_ms":0.002,"p50_ms":0.002,"p90_ms":0.002,"p99_ms":0.002,"p999_ms":0.002,"p9999_ms":0.002,"max_ms":0.002},"outstanding_max":65,"over_max_outstanding_fraction":0.25,"window_seconds":2})";
+    require(out.str() == std::string(expected) + '\n', "JSON harness contract");
+    std::fprintf(stderr, "JSON: exact schema, units, sample counts, cohort rate PASS\n");
+}
 } // namespace
 
 int main() {
-    try { histogram(); parser(); workload(); outstanding(); connections(); pacing(); }
+    try { histogram(); parser(); workload(); outstanding(); connections(); json_contract(); pacing(); }
     catch (const std::exception& e) { std::fprintf(stderr, "tailgen-unit: FAIL: %s\n", e.what()); return 1; }
     std::fprintf(stderr, "tailgen-unit: PASS\n");
 }

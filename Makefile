@@ -167,20 +167,27 @@ build/benchtxn: tools/benchtxn.cc Makefile
 build/broaden-bench: tests/broaden_bench.cc Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/broaden_bench.cc -o $@
-tools: build/benchtxn build/broaden-bench
+tools: build/benchtxn build/broaden-bench build/tailgen
 
 # Standalone smooth open-loop RESP driver; no server libraries or jemalloc.
 TAILGEN_HEADERS := $(wildcard tools/tailgen/*.h)
+# Only libc/pthread are dynamic dependencies; bundle the compiler/math runtimes.
+TAILGEN_LIBS := -static-libstdc++ -static-libgcc -Wl,-Bstatic,-lstdc++,-lm,-Bdynamic -pthread
 build/tailgen: tools/tailgen/main.cc $(TAILGEN_HEADERS) Makefile
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. $< -o $@ -pthread
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ $(TAILGEN_LIBS)
 build/tailgen-unit: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
 	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. $< -o $@ -pthread
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ $(TAILGEN_LIBS)
+build/tailgen-unit-asan: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@ -pthread
 tailgen: build/tailgen
 tailgen-unit: build/tailgen-unit
 	./build/tailgen-unit
-.PHONY: tailgen tailgen-unit
+tailgen-unit-asan: build/tailgen-unit-asan
+	./build/tailgen-unit-asan
+.PHONY: tailgen tailgen-unit tailgen-unit-asan
 
 clean:
 	rm -rf build
