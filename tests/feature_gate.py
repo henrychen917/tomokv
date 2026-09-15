@@ -155,6 +155,8 @@ def check_readers(before, after, enabled):
 
 def check_activity(before, after, knobs, nthreads, cross_owner):
     check_readers(before, after, knobs['read-local'])
+    require(after.get('overlap_enabled') == str(int(bool(knobs['overlap']))),
+            'wrong effective overlap mode')
     expected_schedule = ('fused-overlap' if knobs['thread-mode'] == '1s'
                          else 'split-io-overlap') if knobs['overlap'] else 'plain'
     stats_on = knobs['overlap'] or knobs['reorder']
@@ -164,7 +166,10 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
         if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
-        require((delta(before, after, field) > 0) if knobs['overlap']
+        # Fused overlap is now whole-batch bucket prefetch. Require fresh preparation
+        # passes and an exact zero for the deleted A/B stage interleaving.
+        active = knobs['overlap'] and (field == 'overlap_passes' or knobs['thread-mode'] == '2s')
+        require((delta(before, after, field) > 0) if active
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs'):
         if not stats_on:

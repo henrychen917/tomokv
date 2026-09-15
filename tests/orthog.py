@@ -60,6 +60,7 @@ def main():
         for name in ("thread_mode", "read_local", "overlap", "reorder", "atomic"):
             wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else getattr(args, name)
             require(before[name] == str(wanted), "INFO mismatch: " + name)
+        require(before.get("overlap_enabled") == str(args.overlap), "effective overlap mismatch")
         nthreads = int(before["io_threads"]) + int(before["ex_threads"]) if args.mode == "2s" else int(before["fused_threads"])
         require(int(before.get("schedule_stats_threads", 0)) == (nthreads if args.overlap or args.reorder else 0),
                 "disabled schedule knobs allocated witnesses, or enabled witnesses are absent")
@@ -147,7 +148,15 @@ def main():
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(chosen)) as pool:
                 list(pool.map(worker, enumerate(chosen)))
             final = _lib.info(ctl, "server")
-            if not args.reorder or (int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"])):
+            reordered = not args.reorder or (
+                int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"]))
+            overlapped = not args.overlap or (
+                int(final["overlap_passes"]) > int(start["overlap_passes"]) and
+                (args.mode == "1s" or int(final["overlap_interleaved_passes"]) >
+                 int(start["overlap_interleaved_passes"])))
+            # An idle or all-natural split pass must re-arm on fresh keys/connections,
+            # just like a missing permutation; activity before this workload cannot pass it.
+            if reordered and overlapped:
                 break
         if args.reorder:
             require(int(final["reorder_batches"]) > int(start["reorder_batches"]), "reorder was never called")
@@ -164,7 +173,12 @@ def main():
         require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")
         if args.overlap:
             require(int(final["overlap_passes"]) > int(start["overlap_passes"]), "overlap did not run")
-            require(int(final["overlap_interleaved_passes"]) > 0, "overlap never entered its interleaved arm")
+            if args.mode == "2s":
+                require(int(final["overlap_interleaved_passes"]) > int(start["overlap_interleaved_passes"]),
+                        "split IO never entered its interleaved arm in this fresh workload")
+            else:
+                require(int(final["overlap_interleaved_passes"]) == 0,
+                        "fused whole-batch prefetch claimed deleted split interleaving")
         else:
             require(int(final.get("overlap_passes", 0)) == int(final.get("overlap_interleaved_passes", 0)) == 0,
                     "overlap ran while disabled")

@@ -37,7 +37,7 @@ def feature_evidence():
     before.update(read_local_active_threads='1', schedule_stats_threads='2',
                   tomokv_keylb_bucket_weight_spread_current='0',
                   tomokv_keylb_client_weight_spread_current='0',
-                  overlap_schedule='split-io-overlap',
+                  overlap_schedule='split-io-overlap', overlap_enabled='1',
                   read_local_thread_0='role=ifid,shards=0,active=1,hits_total=0,mget_hits_total=0',
                   read_local_thread_1='role=ex,shards=16,active=0,hits_total=0,mget_hits_total=0')
     after = dict(before, **{key: '10' for key in keys})
@@ -84,6 +84,58 @@ class FeatureFailures(unittest.TestCase):
                     'tomokv_keylb_bucket_weight_spread_current', 'tomokv_keylb_client_weight_spread_current'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{key: '0'}), knobs, 2, True)
+
+    def test_fused_prefetch_requires_fresh_passes_and_no_split(self):
+        b, a, knobs = feature_evidence()
+        knobs.update({'thread-mode': '1s', 'read-local': 0})
+        for row in (b, a):
+            for key in list(row):
+                if key.startswith('read_local_'):
+                    del row[key]
+            row['overlap_schedule'] = 'fused-overlap'
+            row['overlap_interleaved_passes'] = '0'
+            for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
+                        'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
+                row[key] = '0'
+        feature.check_activity(b, a, knobs, 2, True)
+        for key in ('overlap_passes', 'overlap_interleaved_passes'):
+            poisoned = dict(a, **{key: '1' if key.endswith('interleaved_passes') else b[key]})
+            with self.subTest(key=key), self.assertRaisesRegex(AssertionError, 'overlap witness'):
+                feature.check_activity(b, poisoned, knobs, 2, True)
+            missing = dict(a)
+            del missing[key]
+            with self.subTest(missing=key), self.assertRaises(AssertionError):
+                feature.check_activity(b, missing, knobs, 2, True)
+
+    def test_fused_prefetch_reorder_off_tail_reports_witnesses(self):
+        b, a, knobs = feature_evidence()
+        knobs.update({'thread-mode': '1s', 'read-local': 0, 'reorder': 0, 'flip-auto': 0})
+        for row in (b, a):
+            for key in list(row):
+                if key.startswith('read_local_'):
+                    del row[key]
+            row.update(overlap_schedule='fused-overlap', overlap_enabled='1',
+                       overlap_interleaved_passes='0', reorder_batches='0',
+                       reorder_multi_client_runs='0', reorder_permuted_runs='0',
+                       flipctl_triggers='0')
+            for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
+                        'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
+                row[key] = '0'
+        feature.check_activity(b, a, knobs, 2, True)
+        from abba_workloads import require_workload_witness
+        tail = SimpleNamespace(op='REORDER', reorder=0, mode='1s')
+        calls_before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
+        calls_after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
+        witness = require_workload_witness(tail, calls_before, calls_after, b, a)
+        self.assertEqual(witness['reorder_permuted_runs'], 0)
+        for field in ('schedule_stats_threads', 'overlap_enabled', 'overlap_schedule',
+                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_permuted_runs'):
+            missing = dict(a)
+            del missing[field]
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                feature.check_activity(b, missing, knobs, 2, True)
+        with self.assertRaisesRegex(RuntimeError, 'live legacy'):
+            require_workload_witness(tail, calls_before, calls_after, {}, {})
 
     def test_reader_roles_and_each_hit_counter(self):
         b, a, knobs = feature_evidence()
