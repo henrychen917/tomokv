@@ -333,6 +333,58 @@ struct CoreConcurrencyTest {
                 "following GET observes SET across ownership change");
     }
 
+    static void lb_continuous_arrivals() {
+        Fixture<true> f;
+        Client client(-1);
+        f.client(client);
+        f.io.targeted_ifid_ = true;
+        // Keep the kernel-pointer flag armed so the real IFID body does not issue a recv.
+        // Arrivals are appended directly to its real input buffer; no socket/ring is opened.
+        client.set_recv_armed(true);
+        f.server.thread(f.io_id).clients().push_back(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.mark_active(&client);
+        const uint32_t destination = 0;
+        f.server.lb_client_move_ = {client.id(), f.io_id, destination, 1};
+        f.server.lb_coordinator_ = f.io_id;
+        f.server.lb_epoch_.store(1);
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        f.server.lb_ack(destination);
+        constexpr char request[] = "*1\r\n$4\r\nPING\r\n";
+        uint32_t arrivals = 0;
+        for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain; pass++) {
+            std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
+            client.commit_read(sizeof(request) - 1);
+            arrivals++;
+            require(f.io.genthread_ifid_batch<false, false>() != 0, "real IFID pass visited input");
+            require(client.rpos() == 0 && client.rob().quiesced() && client.ifid_pending(),
+                    "LB holds already-read input with EMPTY ROB and requeues IFID");
+            std::string error;
+            require(!f.io.client_transfer_ready(&client, destination, error) &&
+                        error == "connection is held by a generalized-thread pipeline batch",
+                    "readiness rejects the same pending-IFID reference made by the hold");
+            (void)f.io.lb_control_pass();
+        }
+        require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
+        require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
+                "busy move MUST be refused within four passes of continuous arrivals");
+        require(f.io.genthread_ifid_batch<false, false>() != 0 &&
+                    client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
+        uint32_t replies = 0;
+        client.rob().drain([&](Op& op) {
+            require(op.reply_code_ == static_cast<uint8_t>(ReplyCode::Pong) ||
+                        std::string(op.reply.data(), op.reply.size()) == "+PONG\r\n",
+                    "held request has its correct ordered reply");
+            replies++;
+        });
+        require(replies == arrivals, "every held frame answered exactly once");
+        client.set_recv_armed(false);
+        f.io.discard_ifid(&client);
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+    }
+
     static void snapshot_forward() {
         Fixture f;
         Client client(-1);
@@ -422,7 +474,8 @@ int main(int argc, char** argv) {
     else if (row == "scheduler") T::scheduler();
     else if (row == "lifetime") T::lifetime();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") T::route_order();
+    else if (row == "route") { T::route_order(); T::lb_continuous_arrivals(); }
+    else if (row == "lbstall") T::lb_continuous_arrivals();
     else if (row == "snapshot") T::snapshot_forward();
     else if (row == "config") {
         for (bool range : {false, true}) { T::transfer_config<false>(range); T::transfer_config<true>(range); }
