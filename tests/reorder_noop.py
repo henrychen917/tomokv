@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline instruction audit. Never runs a server or removes a non-address operand."""
-import argparse, bisect, difflib, hashlib, json, re, subprocess
+import argparse, bisect, difflib, hashlib, json, re, struct, subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -76,11 +76,12 @@ def category(name):
         '::genthread_iofused_sweep<','::flush_ready<']): return 'envelope'
     return None
 
-def normalize_asm(asm,addr,size,demangle,address_name=None):
+def normalize_asm(asm,addr,size,demangle,address_name=None,literal_name=None):
     def ref(m):
         target=int(m[1],16); label=m[2]
         base,sep,offset=label.partition('+0x')
         if addr<=target<addr+size: return '<+'+hex(target-addr)+'>'
+        if literal_name is not None: return '<'+literal_name+'>'
         if address_name and target in address_name: return '<'+address_name[target]+'>'
         return '<'+demangle.get(base,base)+(sep+offset if sep else '')+'>'
     had_reference=bool(REFERENCE.search(asm))
@@ -127,10 +128,67 @@ def normalized_encoding(raw, asm, at, function_address, function_size):
     masked[first:first + width] = ['??'] * width
     return ' '.join(masked)
 
+class LiteralPools:
+    """Resolve unnamed, read-only literals by their complete consumed bytes.
+
+    objdump labels anonymous constants relative to the nearest unrelated symbol
+    (for example kNoThread+0x400, far outside that four-byte object). Adding a
+    clock constant moves these offsets without changing the load. Opt in only:
+    named objects, writable memory and unknown instructions keep the old strict
+    comparison. Opcode/register/width checking and displacement verification are
+    still performed by the original normalizer.
+    """
+    def __init__(self, path, nm):
+        data = Path(path).read_bytes()
+        if data[:6] != b'\x7fELF\x02\x01': raise ValueError('expected little-endian ELF64')
+        table = struct.unpack_from('<Q', data, 40)[0]
+        width, count, _ = struct.unpack_from('<HHH', data, 58)
+        self.sections = []
+        for i in range(count):
+            h = struct.unpack_from('<IIQQQQIIQQ', data, table+i*width)
+            # Allocated PROGBITS, neither writable nor executable.
+            if h[1] == 1 and h[2] & 2 and not h[2] & (1 | 4):
+                self.sections.append((h[3], data[h[4]:h[4]+h[5]]))
+        self.named = []
+        for line in nm.splitlines():
+            parts = line.split(None, 3)
+            if len(parts) == 4 and parts[2] not in 'tTwW':
+                at, size = int(parts[0], 16), int(parts[1], 16)
+                if size: self.named.append((at, at+size))
+
+    def label(self, asm):
+        m = re.fullmatch(r'(vmovdqa|vmovsd|lea)\s+-?0x[0-9a-f]+\(%rip\),%([a-z0-9]+)\s+#\s+([0-9a-f]+) <[^<>]+>', asm)
+        if not m: return None
+        mnemonic, register, target = m[1], m[2], int(m[3], 16)
+        if mnemonic == 'vmovsd' and register.startswith('xmm'): width = 8
+        elif mnemonic == 'vmovdqa' and register.startswith('xmm'): width = 16
+        elif mnemonic == 'vmovdqa' and register.startswith('ymm'): width = 32
+        elif mnemonic == 'lea' and register.startswith('r'): width = 0
+        else: return None
+        for start, data in self.sections:
+            offset = target-start
+            if not 0 <= offset < len(data): continue
+            if width:
+                literal = data[offset:offset+width]
+                if len(literal) != width: return None
+            else:
+                # Only complete text literals, not pointer tables or arbitrary
+                # binary objects reached by LEA. Include the terminating NUL.
+                end = data.find(b'\0', offset, min(len(data), offset+4096))
+                if end <= offset: return None
+                literal = data[offset:end+1]
+                if any(c not in (9, 10, 13) and not 32 <= c <= 126 for c in literal[:-1]):
+                    return None
+            if any(a < target+len(literal) and target < b for a, b in self.named):
+                return None
+            return ('literal-load-' if width else 'literal-string-') + literal.hex()
+        return None
+
 class Binary:
-    def __init__(self,path,out):
+    def __init__(self,path,out,literal_pools=False):
         self.path=Path(path); self.sha256=digest(path)
         nm=run('nm','-S','--defined-only',str(path)); obj=run('objdump','-d','-w',str(path))
+        literals=LiteralPools(path,nm) if literal_pools else None
         (out/(self.path.name+'.'+self.sha256[:12]+'.objdump')).write_text(obj)
         entries=[]
         for line in nm.splitlines():
@@ -167,7 +225,8 @@ class Binary:
             for at in instruction_addresses[bisect.bisect_left(instruction_addresses,addr):bisect.bisect_left(instruction_addresses,addr+size)]:
                 raw,asm=self.instructions[at]
                 encodings.append(normalized_encoding(raw,asm,at,addr,size))
-                asm=normalize_asm(asm,addr,size,self.demangle,self.address_name)
+                asm=normalize_asm(asm,addr,size,self.demangle,self.address_name,
+                                  literals.label(asm) if literals else None)
                 # No source-line, register, member offset, immediate, branch condition,
                 # relative block position, instruction width or padding is normalized away.
                 ins.append(f'{at-addr:04x} [{len(raw):2}] '+' '.join(asm.split()))
@@ -215,15 +274,32 @@ def self_test():
     assert normalized_encoding(['e8','2b','12','00','00'], 'call 1234 <target>', 4, 0, 16) == 'e8 ?? ?? ?? ??'
     assert normalized_encoding(['75','02'], 'jne 4 <f+0x4>', 0, 0, 16) == '75 02'
     assert normalized_encoding(['48','8b','05','2d','12','00','00'], 'mov 0x122d(%rip),%rax # 1234 <data>', 0, 0, 16) == '48 8b 05 ?? ?? ?? ??'
+    # Literal relocation is not permission to hide changed constants, named
+    # fields, a wider load, an unrecognized instruction or writable storage.
+    pools=LiteralPools.__new__(LiteralPools)
+    pools.sections=[(0x1000, bytes(range(32)))]; pools.named=[]
+    load='vmovdqa 0x123(%rip),%xmm0 # 1000 <unrelated+0x400>'
+    token=pools.label(load); assert token is not None
+    pools.sections=[(0x2000, bytes(range(32)))]
+    assert pools.label(load.replace('1000 <','2000 <')) == token
+    pools.sections=[(0x1000, b'\xff'+bytes(range(1,32)))]
+    assert pools.label(load) != token
+    pools.sections=[(0x1000, bytes(range(32)))]; pools.named=[(0x1000,0x1004)]
+    assert pools.label(load) is None
+    pools.named=[]
+    assert pools.label(load.replace('%xmm0','%ymm0')) != token
+    assert pools.label(load.replace('vmovdqa','unknown')) is None
+    pools.sections=[]
+    assert pools.label(load) is None
     print('normalizer self-checks PASS')
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('pre');p.add_argument('post');p.add_argument('output');p.add_argument('--report-only',action='store_true');p.add_argument('--expected-functions',type=int,default=217);args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('pre');p.add_argument('post');p.add_argument('output');p.add_argument('--report-only',action='store_true');p.add_argument('--expected-functions',type=int,default=217);p.add_argument('--literal-pools',action='store_true',help='verify anonymous read-only constants by complete consumed bytes');args=p.parse_args()
     self_test();out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
-    pre=Binary(args.pre,out);post=Binary(args.post,out);rows=compare(pre,post,out)
+    pre=Binary(args.pre,out,args.literal_pools);post=Binary(args.post,out,args.literal_pools);rows=compare(pre,post,out)
     if len(rows) != args.expected_functions:
         raise ValueError(f'expected {args.expected_functions} PRE bodies, found {len(rows)}')
-    result=dict(pre=str(pre.path),post=str(post.path),pre_sha256=pre.sha256,post_sha256=post.sha256,rows=rows,strict_noop=all(r['equal'] for r in rows))
+    result=dict(pre=str(pre.path),post=str(post.path),pre_sha256=pre.sha256,post_sha256=post.sha256,literal_pools=args.literal_pools,rows=rows,strict_noop=all(r['equal'] for r in rows))
     (out/'audit.json').write_text(json.dumps(result,indent=2)+'\n')
     for kind in ['scheduler','envelope','dispatch','retire','commands','multi-key commands']:
         rs=[r for r in rows if r['category']==kind]
