@@ -14,8 +14,8 @@ enum class LbStallReason : uint8_t {
 LbStallReason lb_stall_reason(const std::string& error);
 
 struct LbStallState {
-    // One publication pass, one executor-drain pass, then refuse on the third IO tail.
-    // The budget belongs to the movement epoch: IoDrain -> ExDrain does NOT renew it.
+    // A ready client's source gives its destination three IO tails to acknowledge.
+    // This epoch budget applies only to ClientDrain, never shard publication/executor drains.
     static constexpr uint32_t kPassLimit = 3;
     // Draining IOs update independent lines; the budget must not serialize them on one line.
     struct alignas(64) Watch {

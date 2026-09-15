@@ -25,7 +25,10 @@ void note_max(std::atomic<uint64_t>& counter, uint64_t value) {
 
 bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
     if (!lb_policy_) return false;
-    if (stage == LbStage::ClientDrain && lb_client_move_.source != tid) return false;
+    // Only client migration parks the selected connection behind its own readiness fence.
+    // Shard drains must let every IO publish and every executor finish old-route work;
+    // a fast IO exhausting three tails says nothing about those peers' progress.
+    if (stage != LbStage::ClientDrain || lb_client_move_.source != tid) return false;
     auto& state = lb_policy_->stall;
     static_assert(std::tuple_size_v<decltype(state.owners)> == kMaxThreads);
     auto& watch = state.owners[tid]; // only this physical IO writes its own watch
