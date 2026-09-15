@@ -129,7 +129,7 @@ def normalized_encoding(raw, asm, at, function_address, function_size):
     return ' '.join(masked)
 
 class LiteralPools:
-    """Resolve unnamed, read-only literals by their complete consumed bytes.
+    """Resolve unnamed read-only literals and bounded local switch tables.
 
     objdump labels anonymous constants relative to the nearest unrelated symbol
     (for example kNoThread+0x400, far outside that four-byte object). Adding a
@@ -184,6 +184,50 @@ class LiteralPools:
             return ('literal-load-' if width else 'literal-string-') + literal.hex()
         return None
 
+    def jump_label(self, index, body, instructions, addr, size):
+        # GCC's bounded switch: cmp/ja, LEA table, optional zero extension,
+        # signed table load, base add, indirect jump. Verify every table entry
+        # against its actual instruction boundary in THIS function. A changed
+        # case destination must fail even when the LEA's encoding still matches.
+        if index < 2 or index+4 >= len(body): return None
+        asm = instructions[body[index]][1]
+        lea = re.fullmatch(r'lea\s+-?0x[0-9a-f]+\(%rip\),%([a-z0-9]+)\s+#\s+([0-9a-f]+) <[^<>]+>', asm)
+        bound = re.fullmatch(r'cmp\s+\$0x([0-9a-f]+),%([a-z0-9]+)', instructions[body[index-2]][1])
+        if not lea or not bound or not instructions[body[index-1]][1].startswith('ja '):
+            return None
+        count = int(bound[1], 16)+1
+        if count > 4096: return None
+        base, target = lea[1], int(lea[2], 16)
+        cursor = index+1
+        extend = re.fullmatch(r'movzbl\s+%([a-z0-9]+),%([a-z0-9]+)', instructions[body[cursor]][1])
+        source = bound[2]
+        if extend:
+            if extend[1] != source: return None
+            source = extend[2]
+            cursor += 1
+        if cursor+2 >= len(body): return None
+        load = re.fullmatch(r'movslq\s+\(%([a-z0-9]+),%([a-z0-9]+),4\),%([a-z0-9]+)', instructions[body[cursor]][1])
+        if not load or load[1] != base: return None
+        families = {r: family for family, names in {
+            'rax': ('rax','eax','ax','al'), 'rbx': ('rbx','ebx','bx','bl'),
+            'rcx': ('rcx','ecx','cx','cl'), 'rdx': ('rdx','edx','dx','dl'),
+            'rsi': ('rsi','esi','si','sil'), 'rdi': ('rdi','edi','di','dil'),
+            **{f'r{i}': (f'r{i}',f'r{i}d',f'r{i}w',f'r{i}b') for i in range(8,16)}
+        }.items() for r in names}
+        if source not in families or families[source] != load[2]: return None
+        if ' '.join(instructions[body[cursor+1]][1].split()) != f'add %{base},%{load[3]}': return None
+        jump = ' '.join(instructions[body[cursor+2]][1].split())
+        if jump not in (f'jmp *%{load[3]}', f'notrack jmp *%{load[3]}'): return None
+        if any(a < target+count*4 and target < b for a,b in self.named): return None
+        for start, data in self.sections:
+            offset = target-start
+            if not 0 <= offset <= len(data)-count*4: continue
+            destinations = [target+x[0] for x in struct.iter_unpack('<i',data[offset:offset+count*4])]
+            if any(not addr <= x < addr+size or x not in instructions for x in destinations):
+                return None
+            return 'local-switch-'+','.join(hex(x-addr) for x in destinations)
+        return None
+
 class Binary:
     def __init__(self,path,out,literal_pools=False):
         self.path=Path(path); self.sha256=digest(path)
@@ -222,11 +266,13 @@ class Binary:
             # Aliases at one address represent one function, never duplicate test rows.
             if any(f['addr']==addr for f in self.groups[name]): continue
             ins=[]; encodings=[]
-            for at in instruction_addresses[bisect.bisect_left(instruction_addresses,addr):bisect.bisect_left(instruction_addresses,addr+size)]:
+            body=instruction_addresses[bisect.bisect_left(instruction_addresses,addr):bisect.bisect_left(instruction_addresses,addr+size)]
+            for index,at in enumerate(body):
                 raw,asm=self.instructions[at]
                 encodings.append(normalized_encoding(raw,asm,at,addr,size))
+                literal_name=(literals.label(asm) or literals.jump_label(index,body,self.instructions,addr,size)) if literals else None
                 asm=normalize_asm(asm,addr,size,self.demangle,self.address_name,
-                                  literals.label(asm) if literals else None)
+                                  literal_name)
                 # No source-line, register, member offset, immediate, branch condition,
                 # relative block position, instruction width or padding is normalized away.
                 ins.append(f'{at-addr:04x} [{len(raw):2}] '+' '.join(asm.split()))
@@ -291,6 +337,19 @@ def self_test():
     assert pools.label(load.replace('vmovdqa','unknown')) is None
     pools.sections=[]
     assert pools.label(load) is None
+    table=['cmp    $0x1,%al','ja     1010 <f+0x10>',
+           'lea    0x123(%rip),%rdx # 2000 <unrelated+0x400>',
+           'movzbl %al,%eax','movslq (%rdx,%rax,4),%rax',
+           'add    %rdx,%rax','notrack jmp *%rax']
+    body=list(range(0x1000,0x1000+len(table)))
+    instructions={at:([],asm) for at,asm in zip(body,table)}
+    pools.sections=[(0x2000,struct.pack('<ii',0x1000-0x2000,0x1001-0x2000))]
+    token=pools.jump_label(2,body,instructions,0x1000,len(body))
+    assert token == 'local-switch-0x0,0x1'
+    pools.sections=[(0x2000,struct.pack('<ii',0x1000-0x2000,0x1002-0x2000))]
+    assert pools.jump_label(2,body,instructions,0x1000,len(body)) != token
+    pools.sections=[(0x2000,struct.pack('<ii',0x1000-0x2000,0x3000-0x2000))]
+    assert pools.jump_label(2,body,instructions,0x1000,len(body)) is None
     print('normalizer self-checks PASS')
 
 if __name__=='__main__':
