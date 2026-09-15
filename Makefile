@@ -45,11 +45,13 @@ $(BIN): $(OBJ)
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 
-# Cold LB drain code changes GCC 13's translation-unit inlining budget. Fix the two affected
-# budgets to retain the v3 reply/executor bodies; tools/lbstall_artifacts.py byte-checks them.
-# These are compiler code-generation locks, with no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146900
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162745
+# Cold LB code changes GCC 13's translation-unit inlining budget. These stack3 budgets retain
+# the parser, O1 stages, executor and store bodies. The broader offline byte check also records
+# the remaining TLS/control exceptions in MEASURE-REQUEST.md; it does not waive mismatches.
+# Compiler code-generation locks only: no runtime option or request-path branch.
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146670
+build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129860
+build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162350
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)

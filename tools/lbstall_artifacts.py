@@ -130,6 +130,9 @@ class Elf:
 HOT = re.compile(r'parse_and_dispatch|fused_pass_impl|drain_tasks|genthread_ifid_batch|'
                  r'genthread_wb_|pipeline_pass|flush_ready|collect_retire_work|'
                  r'IoLoop::(?:ifid_|wb_)|'
+                 r'IoLoop::(?:drive_tls|run_loop|on_cqe)|IoLoop::init.*lambda|'
+                 r'FlatStore::(?:insert|erase|find|lookup)|'
+                 r'ExLoopT.*(?:sweep|fused_baseline)|'
                  r'ExLoopT.*execute|WbEngine.*serve|cmd_(?:get|set|mget|mset)(?:\(|<)')
 
 
