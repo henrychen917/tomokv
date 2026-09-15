@@ -1,46 +1,75 @@
-cx-settax-delete: merged candidate, maintainer execution only
+cx-tailgen: smooth open-loop instrument; maintainer execution only
 
-POST: build/tomokv-post, merged de396b3a017bcf23d51b437851903257ac8452ed
-with cx-final d4cf788479a4a8b646447af3ee143cc8220d24d4. The merge commit is
-"Merge cx-final into cx-settax-delete". Default release compiler/linker flags.
-SHA256: f108e1d965eadd93eb9afb3c623f061e715793c7ba22a8a87bab8ad6891cdc72
-build/tomokv is byte-identical to this POST. Both were rebuilt on cores 112-127
-with taskset -c 112-127 make -j8 (the POST relink uses the same release objects).
-No PAD arm: every locked layout and optional read-local sidecar keeps its default size.
+Branch: cx-tailgen
+Source HEAD: 89fc3ebddb75eaf6e1a3b7fd66310731ef950226
+Executable: /home/user/Projects/cx-tailgen/build/tailgen
+SHA256: 4bcb01a5a6bd8cba3e4e8b71304c51270ba98b854372b5bfa2926038b5353402
 
-Correctness: maintainer runs tests/gate.sh iteration against POST. Keep the gate's
-own --shards 16, GATE_CORES and GATE_RATIO geometry and its 1s/2s/armed coverage.
-No rows changed: EXPECT_QUICK remains 419; EXPECT_FULL remains 436.
+This lane adds a standalone load generator. There is no PRE server candidate
+and no PAD arm: no server code or locked server layout changed. The existing
+memtier harness remains the legacy instrument reference. Do not infer a server
+optimization from a difference between load generators or spacing modes.
+The inherited cx-settax-delete request was preserved in
+build/MEASURE-REQUEST.inherited; it is not this lane's active request.
 
-Measurement, if another comparison is needed: A=current cx-final d4cf788479,
-B=the merged POST above, ABBA with the gate's own instrument and calibrated load
-and pinning. The maintainer supplies A; the retained round-one PRE below predates
-mainline fixes and cannot isolate this deletion when paired with the merged POST.
-Use the full existing tests/headline_cells.txt matrix: h01-h64,
-m01-m96, x01-x06, c01-c04, a01-a04, t01-t06 (180 cells). Cell-file SHA256:
-8cd6f3b96150e484e8ccc12a5c5ca7f0631cc5212bffdc6a0630f068fbb3e09f
-These cover GET/SET, MGET/MSET, mixed reads/writes, connection count, atomic mode,
-and tail latency, in both thread modes and read-local off/on. Preserve each row's
-declared workload, depth, score, and runtime knobs. No selector 1 or 3 arm exists.
+Cell: t01, 717000 offered commands/s, GET:BITCOUNT = 8:2,
+16 workers x 32 connections = 512 total; workers within cores 84-111.
+Use the maintainer's already-running t01 server (1s, read-local=0, overlap=1,
+reorder=0, atomic=1) with the existing population: memtier-1..2000000,
+64-byte values; blocker:memtier-1..2048, 256 KiB values. No server is started
+by this request. Match a changed LONG_KEYS population explicitly if applicable.
 
-Decision: zero correctness regression; no matched-load rate/latency regression
-beyond the instrument's validated per-cell null/resolution. Report cycles/op,
-IPC and instructions/op for every cell as explanations, not as substitutes for
-the row's rate or latency score. No performance improvement is claimed.
-Append results to MEASURE-RESULT; no server, gate or measurement was run by this lane.
+Arm A / scored instrument: build/tailgen, Poisson spacing, seed 1.
+Repeat A on the same server binary and settled configuration to assess
+repeatability before using p99.9 to judge reorder candidates.
+Arm B / optional pacing diagnostic: the identical executable and command,
+changing only --spacing fixed. This changes the arrival distribution; do not
+score A-vs-B p99.9 as a server improvement. Keep Poisson for the tail verdict.
 
-Round-one artifacts and measurements (historical, not the merged POST):
-PRE: build/tomokv-pre, source e867f780a, default selector 0.
-SHA256: 648f52c94f9d74d80e87f0a6a100e45a6f499a082dd32f4d90849649d6946d30
-POST: build/tomokv-post-round1, source de396b3a0 (preserved before rebuilding).
-SHA256: 4f9fa93ddc205e7c7bb511bc381c4893b50d8697b81314d76e226f662a28cc16
-Maintainer MEASURE-RESULT (2026-09-14 02:34): h01 +0.73%, h02 +0.52%,
-h17 -0.65%, h18 -1.25%, h11 +0.38%, h27 -0.77%; behavior-neutral.
-The round-one linked .text comparison differed only in 32 assertion-line bytes.
-That static comparison does not describe the newer mainline fixes in merged POST.
+Exact Arm A command, from this worktree (scheduled box only):
 
-Merge evidence: build/settax-merge-source-proof.txt confirms that scatter_engine.inc
-equals current cx-final with only its two false selector branches removed, t_server.cc
-equals cx-final without its two excluded selector-3 INFO blocks, all other deletion
-files equal de396b3a0, and all other incoming files retain cx-final exactly.
-No gate row or expected count was changed by this lane.
+taskset -c 84-111 ./build/tailgen \
+  --host 127.0.0.1 --port 6379 \
+  --rate 717000 --threads 16 --conns 32 --cores 84-111 \
+  --mix 'GET:8,BITCOUNT:2' --spacing poisson --seed 1 \
+  --short-keys 'memtier-{1..2000000}' \
+  --long-keys 'blocker:memtier-{1..2048}' \
+  --warmup 3 --duration 20 --max-outstanding 64 \
+  > build/t01-tailgen.json 2> build/t01-tailgen.log
+
+Numbers to inspect before accepting the instrument:
+- The achieved cohort rate should track 717000/s within 1%; all measurement
+  sends must have completed (a disconnect/error/100 s drain timeout fails).
+- Inspect stderr pacing lag, maximum worker send gap, omitted arrivals and
+  queued bytes. A gap over 2 ms, substantial lag/catch-up, or write backlog
+  invalidates a claim that the observed tail comes solely from the server.
+- Read outstanding_max and the global any-connection over-64 time fraction
+  with the end-of-window pending count and drain duration. The 64 threshold
+  does not limit sending. Queue accumulation is the saturation witness.
+- Report short and long count/mean/p50/p90/p99/p99.9/p99.99/max and combined
+  mean/percentiles. The short p99.9 JSON field p999_ms is the tail-cell score.
+  Compare same-binary repeats before interpreting differences between server
+  candidates; the maintainer owns the repeatability and reorder verdict.
+
+Window semantics: JSON rate is replied measurement-send count / 20 seconds.
+Histograms exclude warmup sends and include replies drained after window end.
+Stderr also reports wall-window reply throughput (including warmup backlog),
+drain time, and generator pressure. Preserve both streams with each result.
+See tools/tailgen/README.md for precise saturation and histogram semantics.
+
+Completed by the lane, all execution on cores 112-127:
+- Built release driver/unit plus ASAN+UBSAN unit with taskset and make -j8.
+- Release units PASS: million-sample exact-sort histogram oracle, RESP splits,
+  malformed/error frames, deterministic mix/keys/config, >64 outstanding with
+  forced socketpair partial writes/EAGAIN, FIFO metadata, interval union, JSON.
+- Release pacing: 100000 arrivals per mode at 200000/s on core 112;
+  mean 5.000 us both; max gap 56.210 us Poisson, 12.430 us fixed.
+- ASAN+UBSAN units PASS; pacing means 5.000 us; maximum gaps 56.310 us
+  Poisson and 25.391 us fixed. No assertion retries or skipped timing checks.
+- Executable --help/invalid-argument checks PASS with stderr-only output;
+  these paths never connect. readelf shows only libc and the system loader.
+- No server, network load run, benchmark, or gate was started by the lane.
+  No gate rows or EXPECT_QUICK / EXPECT_FULL constants changed.
+
+Append maintainer measurements to MEASURE-RESULT. No end-to-end tail-latency
+or server performance claim is made from the serverless units.
