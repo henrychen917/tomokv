@@ -334,45 +334,63 @@ struct CoreConcurrencyTest {
                 "following GET observes SET across ownership change");
     }
 
+    template <bool Fused, bool DestinationAck>
     static void lb_continuous_arrivals() {
-        Fixture<true> f;
+        Fixture<Fused> f;
         Client client(-1);
         f.client(client);
-        f.io.targeted_ifid_ = true;
-        // Keep the kernel-pointer flag armed so the real IFID body does not issue a recv.
-        // Arrivals are appended directly to its real input buffer; no socket/ring is opened.
+        // Drive the parser specialization used by stack3's active-client retry pass.
+        // Arrivals enter the real buffer; no socket/ring or writeback loop is started.
         client.set_recv_armed(true);
         f.server.thread(f.io_id).clients().push_back(&client);
         command_client_connected(&client, "unit", "unit", false, 1);
         f.io.climon_track_client(&client);
         f.io.mark_active(&client);
-        const uint32_t destination = 0;
+        const uint32_t destination = Fused ? 0 : 1;
         f.server.lb_client_move_ = {client.id(), f.io_id, destination, 1};
         f.server.lb_coordinator_ = f.io_id;
         f.server.lb_epoch_.store(1);
         f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
         f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
-        f.server.lb_ack(destination);
+        if constexpr (DestinationAck) f.server.lb_ack(destination);
         constexpr char request[] = "*1\r\n$4\r\nPING\r\n";
         uint32_t arrivals = 0;
-        for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain; pass++) {
-            std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
-            client.commit_read(sizeof(request) - 1);
-            arrivals++;
-            require(f.io.genthread_ifid_batch<false, false>() != 0, "real IFID pass visited input");
-            require(client.rpos() == 0 && client.rob().quiesced() && client.ifid_pending(),
-                    "LB holds already-read input with EMPTY ROB and requeues IFID");
+        {
+            // O1 removed v3's pending-IFID fence. Instead hold a real executor completion
+            // after its reply retired: the ROB is empty but the Client lifetime fence is live.
+            Op* completed = client.rob().acquire<false>();
+            require(completed != nullptr, "publish completion before client drain");
+            client.rob().publish();
+            Server::ClientWorkScope unfinished(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "retire reply before executor scope ends");
+            for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain; pass++) {
+                std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
+                client.commit_read(sizeof(request) - 1);
+                arrivals++;
+                require(f.io.parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+                            &client) == IoLoop::DispatchResult::Progress,
+                        "production parser visits held input");
+                require(client.rpos() == 0 && client.rob().quiesced() && client.in_active() &&
+                            client.migration_protocol_idle(),
+                        "LB holds already-read input with EMPTY ROB on the active client");
+                std::string error;
+                require(!f.io.client_transfer_ready(&client, destination, error) &&
+                            error == "connection has an unfinished executor completion",
+                        "readiness rejects the actual outstanding executor lifetime fence");
+                require(f.io.lb_control_pass() != 0, "pending control tail reports work");
+            }
+            require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
+            require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
+                    "busy move MUST be refused within four passes of continuous arrivals");
+            require(arrivals == 1, "busy move refuses on the FIRST tail, even without destination ACK");
             std::string error;
             require(!f.io.client_transfer_ready(&client, destination, error) &&
-                        error == "connection is held by a generalized-thread pipeline batch",
-                    "readiness rejects the same pending-IFID reference made by the hold");
-            (void)f.io.lb_control_pass();
+                        error == "connection has an unfinished executor completion",
+                    "refusal never weakens the lifetime fence");
         }
-        require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
-        require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
-                "busy move MUST be refused within four passes of continuous arrivals");
-        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Pipeline)] == 1,
-                "diagnostic identifies the pending-IFID predicate");
+        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+                "diagnostic identifies the outstanding executor predicate");
 #ifdef TOMO_LB_STALL_DEBUG
         require(f.server.lb_policy_->stall.parked_passes >= 1 &&
                     f.server.lb_policy_->stall.parked_bytes_max >= sizeof(request) - 1,
@@ -380,10 +398,11 @@ struct CoreConcurrencyTest {
         std::string info;
         f.server.lb_stall_info(info);
         require(info.find("tomokv_lbstall_debug:1\r\n") != std::string::npos &&
-                    info.find("tomokv_lbstall_pipeline:1\r\n") != std::string::npos,
+                    info.find("tomokv_lbstall_executor:1\r\n") != std::string::npos,
                 "INFO exposes the armed diagnostic and refusing predicate");
 #endif
-        require(f.io.genthread_ifid_batch<false, false>() != 0 &&
+        require(f.io.parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+                    &client) == IoLoop::DispatchResult::Progress &&
                     client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
         uint32_t replies = 0;
         client.rob().drain([&](Op& op) {
@@ -394,7 +413,6 @@ struct CoreConcurrencyTest {
         });
         require(replies == arrivals, "every held frame answered exactly once");
         client.set_recv_armed(false);
-        f.io.discard_ifid(&client);
         command_client_disconnected(&client);
         f.server.thread(f.io_id).clients().clear();
     }
@@ -536,7 +554,10 @@ struct CoreConcurrencyTest {
     }
 
     static void lb_stalls() {
-        lb_continuous_arrivals();
+        lb_continuous_arrivals<true, true>();
+        lb_continuous_arrivals<true, false>();
+        lb_continuous_arrivals<false, true>();
+        lb_continuous_arrivals<false, false>();
         lb_destination_and_executor();
         lb_shard_budget<false>();
         lb_shard_budget<true>();

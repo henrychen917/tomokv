@@ -1824,8 +1824,7 @@ private:
                 lb_schedule_wake_all();
                 return 1;
             }
-            // A pending IFID reference can be created by the parse hold itself. Other busy
-            // predicates may need more work than our drain budget allows. Decline this candidate
+            // Busy predicates may need more work than our drain budget allows. Decline this candidate
             // immediately; none of the lifetime, ROB, output, or protocol fences may be waived.
             if (srv_->lb_refuse_stalled(srv_->lb_epoch(), lb_stall_reason(error))) {
                 lb_schedule_wake_all();
