@@ -26,7 +26,7 @@ class Elf:
         self.relocs = {}
         self.direct = None
         for i, s in enumerate(self.sections):
-            if s[1] != 2:  # SHT_SYMTAB
+            if s[1] not in (2, 11):  # SHT_SYMTAB / SHT_DYNSYM (linked binary relocations)
                 continue
             strings = self.section_data(s[6])
             table = []
@@ -35,7 +35,8 @@ class Elf:
                 symbol = dict(name=self.string(strings, name), info=info, sec=sec,
                               value=value, size=length)
                 table.append(symbol)
-                self.symbols.append(symbol)
+                if s[1] == 2:
+                    self.symbols.append(symbol)
             self.tables[i] = table
         for s in self.sections:
             if s[1] != 4:  # SHT_RELA
@@ -135,8 +136,7 @@ def compare(before, after, output):
     rows = []
     for path in sorted(Path(before).rglob('*.o')):
         post = Path(after) / path.relative_to(before)
-        if not post.exists():
-            continue
+        assert post.exists(), f'missing comparison object: {post}'
         a, b = Elf(path), Elf(post)
         old, new = a.functions(), b.functions()
         names = list(old)
@@ -162,9 +162,11 @@ def compare(before, after, output):
 
 def twin(source, output):
     elf = Elf(source)
+    assert elf.kind != 1 and Path(source).resolve() != Path(output).resolve(), 'patch a COPY of a linked binary'
     # Type A: PRE's unbounded busy-drain behavior for ordinary tail-cell clients, with the
     # candidate's exact layout. Keep all code after this entry unreachable, at the same addresses.
-    matches = [s for s in elf.functions().values() if 'lb_refuse_stalled' in s['name']]
+    matches = [s for s in elf.functions().values()
+               if 'lb_refuse_stalled' in s['name'] and '.cold' not in s['name']]
     assert len(matches) == 1, 'refusal helper must have one out-of-line body'
     symbol = matches[0]
     sec = elf.sections[symbol['sec']]

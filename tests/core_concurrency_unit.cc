@@ -39,7 +39,7 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture() {
+        Fixture(bool load_balance = true) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "affinity unavailable");
@@ -61,6 +61,7 @@ struct CoreConcurrencyTest {
             config.shards = 16;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
+            config.key_lb = config.client_lb = load_balance ? 1 : 0;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nshards() == 16 && server.nthreads() == 8, "fixture geometry");
@@ -372,6 +373,16 @@ struct CoreConcurrencyTest {
                 "busy move MUST be refused within four passes of continuous arrivals");
         require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Pipeline)] == 1,
                 "diagnostic identifies the pending-IFID predicate");
+#ifdef TOMO_LB_STALL_DEBUG
+        require(f.server.lb_policy_->stall.parked_passes >= 1 &&
+                    f.server.lb_policy_->stall.parked_bytes_max >= sizeof(request) - 1,
+                "debug accounting saw the actual parked input");
+        std::string info;
+        f.server.lb_stall_info(info);
+        require(info.find("tomokv_lbstall_debug:1\r\n") != std::string::npos &&
+                    info.find("tomokv_lbstall_pipeline:1\r\n") != std::string::npos,
+                "INFO exposes the armed diagnostic and refusing predicate");
+#endif
         require(f.io.genthread_ifid_batch<false, false>() != 0 &&
                     client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
         uint32_t replies = 0;
@@ -486,6 +497,15 @@ struct CoreConcurrencyTest {
                 "ready shard plan commits within the bound");
         require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
                 "RYOW survives a committed shard move");
+        // A stalled coordinator must not pin other live IOs until its timeout check runs.
+        f.server.lb_epoch_.store(3);
+        f.server.lb_coordinator_ = f.io_id == 0 ? 1 : 0;
+        f.server.lb_start_shard_drain();
+        for (uint32_t pass = 0; pass < LbStallState::kPassLimit; pass++)
+            require(f.io.lb_control_pass() != 0, "non-coordinator keeps making bounded passes");
+        require(f.server.lb_stage() == LbStage::Idle &&
+                    f.server.worker_of_shard(sid) == f.destination,
+                "a live non-coordinator can refuse without waiting for the coordinator");
     }
 
     static void lb_commit_refusal_race() {
@@ -521,6 +541,11 @@ struct CoreConcurrencyTest {
         lb_shard_budget<false>();
         lb_shard_budget<true>();
         lb_commit_refusal_race();
+        Fixture off(false);
+        require(!off.server.lb_policy_, "LB=0 allocates no policy or stall accounting");
+        for (unsigned pass = 0; pass < 8; pass++)
+            require(off.io.lb_control_pass() == 0 && !off.server.lb_policy_,
+                    "stable control tails allocate and account nothing");
     }
 
     static void snapshot_forward() {

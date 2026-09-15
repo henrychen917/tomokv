@@ -31,18 +31,32 @@ bool Server::lb_drain_pass_expired(uint32_t tid, LbStage stage) {
     auto& watch = state.owners[tid]; // only this physical IO writes its own watch
     const uint64_t epoch = lb_epoch();
     if (watch.epoch != epoch) watch = {epoch, 0, 0};
-    return ++watch.passes >= LbStallState::kPassLimit &&
-           lb_refuse_stalled(epoch, LbStallReason::PassLimit);
+    if (++watch.passes < LbStallState::kPassLimit) return false;
+    const auto reason = stage == LbStage::ClientDrain && !lb_acked(lb_client_move_.destination)
+        ? LbStallReason::Destination : LbStallReason::PassLimit;
+    return lb_refuse_stalled(epoch, reason);
 }
 
 // A separate body also supplies an exact-size negative control: the measurement helper can
 // replace this function by `return false` in a COPY of the binary, retaining every text address.
-bool Server::lb_refuse_stalled(uint64_t epoch, LbStallReason reason) {
+__attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStallReason reason) {
     std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
     const LbStage stage = lb_stage();
     if (lb_epoch() != epoch || (stage != LbStage::ClientDrain &&
         stage != LbStage::IoDrain && stage != LbStage::ExDrain)) return false;
     const uint64_t now = now_ns();
+#ifdef TOMO_LB_STALL_OBSERVE_ONLY
+    // Diagnostic negative control, never a runtime knob: keep the old timeout policy while
+    // reporting the predicate and its pending duration. Used only in the maintainer's debug PRE.
+    if (lb_policy_) {
+        auto& state = lb_policy_->stall;
+        state.refused[static_cast<size_t>(reason)].fetch_add(1, std::memory_order_relaxed);
+        const uint64_t deadline = lb_deadline_ns();
+        if (deadline && now >= deadline - LbAutotune::kMoveTimeoutNs)
+            note_max(state.pending_ns_max, now - (deadline - LbAutotune::kMoveTimeoutNs));
+    }
+    return false;
+#endif
     std::lock_guard<std::mutex> signal_lock(lb_signal_mu_);
     if (stage == LbStage::ClientDrain) {
         lb_client_refused_.fetch_add(1, std::memory_order_relaxed);

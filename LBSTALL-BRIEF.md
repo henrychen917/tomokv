@@ -27,3 +27,10 @@ LBSTALL-SPLIT (mainline 20:19): --client-lb 0 ALONE removes the stall (round 1: 
 key-lb shard moves are not (key-lb-only run pending, expected to stall with client-lb on). Focus on request_client_transfer /
 client_transfer_ready / the parse hold placed on a connection with a pending client move, and kMoveTimeoutNs.
 LBSTALL-SPLIT 20:22: --key-lb 0 ALONE (client-lb on) STILL stalls (out_max 7005, over-64 fraction 0.36). Attribution closed: client-lb connection migration is the sole cause; key-lb shard moves are clean.
+
+LBSTALL-STACK3 (mainline 20:42): the stack3 candidate (v3 + L1 Op layout + O1 stage window/t01 INFO repair + O6 whole-batch prefetch;
+worktree cx-stack3, binary bench-bins/tomokv-stack3-147ac24b7) does NOT stall with the balancer ON: 2/2 tailgen rounds, max outstanding
+6-7, p99.9 0.98/1.25 ms, zero over-64 episodes — v3 stalls 10/10 rounds under the identical load. Nothing in stack3 touches the balancer,
+so one of the client_transfer_ready() predicates (most likely "unfinished executor completion" / ROB busy) clears under O1's completion
+cadence and never clears under v3's. Diff the inputs of those predicates between v3 and cx-stack3 to find the exact hold; the fix must
+still bound the hold (v3's path remains latent in stack3), but stack3 is your working reference for "what quiescence looks like".

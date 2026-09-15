@@ -17,6 +17,7 @@ struct LbStallState {
     // One publication pass, one executor-drain pass, then refuse on the third IO tail.
     // The budget belongs to the movement epoch: IoDrain -> ExDrain does NOT renew it.
     static constexpr uint32_t kPassLimit = 3;
+    // Draining IOs update independent lines; the budget must not serialize them on one line.
     struct alignas(64) Watch {
         uint64_t epoch = 0;
         uint32_t passes = 0;
