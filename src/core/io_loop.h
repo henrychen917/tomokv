@@ -1744,6 +1744,10 @@ private:
         const LbStage stage = srv_->lb_stage();
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
+        if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
+            lb_schedule_wake_all();
+            return 1;
+        }
         if (stage == LbStage::IoDrain) {
             // This control tail is outside dispatch: all owner samples taken by this IO
             // have either been posted (including quiet batches) or abandoned for reparse.
@@ -1762,7 +1766,7 @@ private:
                     return 1;
                 }
             }
-            return 0;
+            return 1; // keep servicing the bounded drain; do not park waiting for the guard
         }
         if (stage == LbStage::ExDrain) {
             if (self_->id() == srv_->lb_coordinator()) {
@@ -1776,7 +1780,7 @@ private:
                     return 1;
                 }
             }
-            return 0;
+            return 1;
         }
 
         const LbClientMove move = srv_->lb_client_move();
@@ -1802,8 +1806,7 @@ private:
             lb_client_wake_pending_ = true;
             work += wake_source();
         }
-        if (move.source == self_->id() && srv_->lb_stage() == LbStage::ClientDrain &&
-            srv_->lb_acked(move.destination)) {
+        if (move.source == self_->id() && srv_->lb_stage() == LbStage::ClientDrain) {
             Client* selected = nullptr;
             for (Client* client : self_->clients())
                 if (client->id() == move.id) { selected = client; break; }
@@ -1814,9 +1817,17 @@ private:
             }
             std::string error;
             if (client_transfer_ready(selected, move.destination, error)) {
+                if (!srv_->lb_acked(move.destination)) return 1;
                 if (!srv_->lb_client_move_started(move.id, cached_now_ms_)) return 1;
                 const bool started = request_client_transfer(selected, move.destination, error);
                 if (!started) srv_->lb_client_move_cancelled(move.id);
+                lb_schedule_wake_all();
+                return 1;
+            }
+            // A pending IFID reference can be created by the parse hold itself. Other busy
+            // predicates may need more work than our drain budget allows. Decline this candidate
+            // immediately; none of the lifetime, ROB, output, or protocol fences may be waived.
+            if (srv_->lb_refuse_stalled(srv_->lb_epoch(), lb_stall_reason(error))) {
                 lb_schedule_wake_all();
                 return 1;
             }
@@ -1832,7 +1843,7 @@ private:
             lb_schedule_wake_all();
             return 1;
         }
-        return work;
+        return work + 1;
     }
 
     void flip_commit_roles_and_evacuate_shards() {
@@ -2814,6 +2825,9 @@ private:
         const bool lb_pause_this_pass = lb_controller_armed_ &&
             srv_->lb_should_pause(self_id, c->id());
         if (__builtin_expect(lb_pause_this_pass, false)) {
+#ifdef TOMO_LB_STALL_DEBUG
+            srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);
+#endif
             flip_fingerprint_finish_pass();
             return result;
         }

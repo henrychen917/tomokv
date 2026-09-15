@@ -26,3 +26,4 @@ LBSTALL-SPLIT (mainline 20:19): --client-lb 0 ALONE removes the stall (round 1: 
 --atomic 0 with both balancers on still stalls (3/3 rounds, ~7000 outstanding). => the CLIENT balancer's connection migration is the hold;
 key-lb shard moves are not (key-lb-only run pending, expected to stall with client-lb on). Focus on request_client_transfer /
 client_transfer_ready / the parse hold placed on a connection with a pending client move, and kMoveTimeoutNs.
+LBSTALL-SPLIT 20:22: --key-lb 0 ALONE (client-lb on) STILL stalls (out_max 7005, over-64 fraction 0.36). Attribution closed: client-lb connection migration is the sole cause; key-lb shard moves are clean.

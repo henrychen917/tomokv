@@ -343,6 +343,7 @@ struct CoreConcurrencyTest {
         client.set_recv_armed(true);
         f.server.thread(f.io_id).clients().push_back(&client);
         command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
         f.io.mark_active(&client);
         const uint32_t destination = 0;
         f.server.lb_client_move_ = {client.id(), f.io_id, destination, 1};
@@ -369,6 +370,8 @@ struct CoreConcurrencyTest {
         require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
         require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
                 "busy move MUST be refused within four passes of continuous arrivals");
+        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Pipeline)] == 1,
+                "diagnostic identifies the pending-IFID predicate");
         require(f.io.genthread_ifid_batch<false, false>() != 0 &&
                     client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
         uint32_t replies = 0;
@@ -383,6 +386,141 @@ struct CoreConcurrencyTest {
         f.io.discard_ifid(&client);
         command_client_disconnected(&client);
         f.server.thread(f.io_id).clients().clear();
+    }
+
+    static void lb_destination_and_executor() {
+        Fixture f;
+        Client client(-1);
+        f.client(client);
+        f.server.thread(f.io_id).clients().push_back(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
+        auto request = [&](uint64_t epoch) {
+            f.server.lb_epoch_.store(epoch);
+            f.server.lb_client_move_ = {client.id(), f.io_id, 1, 1};
+            f.server.lb_coordinator_ = f.io_id;
+            f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+            f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        };
+        request(1);
+        std::string error;
+        require(f.io.client_transfer_ready(&client, 1, error), "idle client is a valid candidate");
+        // Destination never acknowledges. Even a ready source must get its traffic back.
+        for (uint32_t pass = 1; pass <= LbStallState::kPassLimit; pass++) {
+            require(f.io.lb_control_pass() != 0, "pending drain cannot sleep between passes");
+            require((f.server.lb_stage() == LbStage::Idle) == (pass == LbStallState::kPassLimit),
+                    "destination acknowledgement wait has an exact pass bound");
+        }
+        request(2);
+        Op* completed = client.rob().acquire<false>();
+        require(completed != nullptr, "publish a fresh completion to reset the lifetime snapshot");
+        client.rob().publish();
+        {
+            Server::ClientWorkScope unfinished(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "retire Done while its executor still holds Client");
+            require(client.migration_protocol_idle(), "executor-only fence with empty ROB");
+            require(!f.io.client_transfer_ready(&client, 1, error), "unfinished scope really armed");
+            require(f.io.lb_control_pass() != 0 && f.server.lb_stage() == LbStage::Idle,
+                    "unfinished executor refuses move without waiving its lifetime fence");
+        }
+        require(f.io.client_transfer_ready(&client, 1, error), "ending the scope permits transfer");
+        request(3);
+        require(f.server.lb_client_move_started(client.id(), 1), "quiescent candidate starts");
+        require(!f.server.lb_refuse_stalled(3, LbStallReason::PassLimit) &&
+                    f.server.lb_stage() == LbStage::ClientMoving,
+                "bounded refusal cannot revoke an in-flight kernel-pointer handoff");
+        f.server.lb_client_move_cancelled(client.id());
+        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+                "executor-only refusal has its own diagnostic");
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+    }
+
+    template <bool Fused>
+    static void lb_shard_budget() {
+        Fixture<Fused> f;
+        Client client(-1);
+        f.client(client);
+        const int32_t sid = f.sid();
+        const std::string key = f.key(sid);
+        Op& set = prepare(client, {Slice("SET"), slice(key), Slice("held")}, f.server);
+        const Task task{&client, client.rob().dispatch_id(), -1, nullptr};
+        client.rob().publish();
+        require(f.server.thread(f.source).post_task_quiet(f.io_id, task, f.io.self_->sig()),
+                "publish real old-route SET");
+        f.server.lb_epoch_.store(1);
+        f.server.lb_coordinator_ = f.io_id;
+        f.server.lb_shard_moves_ = {{static_cast<uint32_t>(sid), f.source, f.destination, 1, 0}};
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_start_shard_drain();
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::IoDrain,
+                "unacknowledged producers hold the publication fence");
+        for (uint32_t tid : f.server.placement().ifid_threads()) f.server.lb_ack(tid);
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
+                "second pass opens executor drain only after all producers publish");
+        require(!f.loops[f.source].flip_quiesced() && !f.server.lb_all_ex_acked(),
+                "real unpublished completion prevents executor quiescence");
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle,
+                "third pass refuses: changing drain stage must not reset the budget");
+        require(f.server.worker_of_shard(sid) == f.source && set.state == OpState::Issued,
+                "refusal preserves owner and queued SET");
+        require(f.loops[f.source].drain_tasks(true) == 1, "original owner resumes its queued SET");
+        require(client.rob().drain([](Op&) {}) == 1, "queued SET retires exactly once");
+        require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
+                "RYOW survives a refused shard move");
+
+        // Fresh epoch, clean queues: a normal two-tail move still commits.
+        f.server.lb_epoch_.store(2);
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_start_shard_drain();
+        for (uint32_t tid : f.server.placement().ifid_threads()) f.server.lb_ack(tid);
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
+                "fresh movement gets its own publication budget");
+        for (uint32_t tid : f.server.placement().ex_threads()) {
+            require(f.loops[tid].flip_quiesced(), "control executor is quiescent");
+            f.server.lb_ack(tid);
+        }
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
+                    f.server.worker_of_shard(sid) == f.destination && f.server.lb_bucket_moves() == 1,
+                "ready shard plan commits within the bound");
+        require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
+                "RYOW survives a committed shard move");
+    }
+
+    static void lb_commit_refusal_race() {
+        Fixture f;
+        const uint32_t sid = static_cast<uint32_t>(f.sid());
+        require(f.server.reserve_shard_capacity(f.destination, 1), "pre-reserve test transfer");
+        f.server.lb_epoch_.store(1);
+        f.server.lb_shard_moves_ = {{sid, f.source, f.destination, 1, 0}};
+        f.server.lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
+        for (uint32_t tid : f.server.placement().ex_threads()) f.server.lb_ack(tid);
+        std::atomic<uint32_t> entered{0};
+        bool committed = false, refused = false;
+        auto barrier = [&] {
+            entered.fetch_add(1);
+            while (entered.load() < 2) std::this_thread::yield();
+        };
+        std::thread mover([&] { barrier(); committed = f.server.lb_commit_shard_plan(1); });
+        std::thread canceller([&] {
+            barrier(); refused = f.server.lb_refuse_stalled(1, LbStallReason::PassLimit);
+        });
+        mover.join(); canceller.join();
+        require(committed != refused && f.server.lb_stage() == LbStage::Idle,
+                "commit and bounded refusal have exactly one winner");
+        require(f.server.worker_of_shard(sid) == (committed ? f.destination : f.source),
+                "dispatch resumes only after the winning ownership decision");
+        require(!f.server.lb_refuse_stalled(0, LbStallReason::PassLimit),
+                "stale movement cannot cancel another epoch");
+    }
+
+    static void lb_stalls() {
+        lb_continuous_arrivals();
+        lb_destination_and_executor();
+        lb_shard_budget<false>();
+        lb_shard_budget<true>();
+        lb_commit_refusal_race();
     }
 
     static void snapshot_forward() {
@@ -474,8 +612,8 @@ int main(int argc, char** argv) {
     else if (row == "scheduler") T::scheduler();
     else if (row == "lifetime") T::lifetime();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_continuous_arrivals(); }
-    else if (row == "lbstall") T::lb_continuous_arrivals();
+    else if (row == "route") { T::route_order(); T::lb_stalls(); }
+    else if (row == "lbstall") T::lb_stalls();
     else if (row == "snapshot") T::snapshot_forward();
     else if (row == "config") {
         for (bool range : {false, true}) { T::transfer_config<false>(range); T::transfer_config<true>(range); }
