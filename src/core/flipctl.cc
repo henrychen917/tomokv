@@ -331,9 +331,21 @@ bool FlipController::sample_fingerprint(Server& server) {
     return shifted;
 }
 
+double FlipController::rate_sampling_band() const {
+    // Like the signature band, use estimator noise, not counting resolution. A count N over
+    // elapsed time T has Poisson SE sqrt(N)/T, hence relative SE 1/sqrt(N). Comparing two rate
+    // estimates adds their variances: at most 2/N when N is the smaller window's count. The same
+    // two-error margin as the signature detector therefore gives c = 2*sqrt(2), not a machine-
+    // specific percentage. Pair readings overlap and average rates equally even for unequal T;
+    // pair_rate keeps the smaller constituent count instead of claiming independent pooled work.
+    // No completed work supplies no relative-noise estimate. Keep the learned anchor band in
+    // that case: an empty window must still be able to confirm a complete stop of a busy load.
+    return rate_sample_commands_ ? 2.0 * std::sqrt(2.0 / rate_sample_commands_) : 0;
+}
+
 double FlipController::automatic_rate_band(double pair_delta, double rate) const {
     const double quantum = rate > 0 ? 1.0 / rate : 0;
-    return 2.0 * std::max(pair_delta, quantum);
+    return std::max(2.0 * std::max(pair_delta, quantum), rate_sampling_band());
 }
 
 double FlipController::observe_rate(uint64_t completed, uint64_t elapsed_ms) {
@@ -414,7 +426,7 @@ bool FlipController::stabilize_rate(double& rate) {
     if (band <= 0) band = automatic_rate_band(stable_pair_delta_, rate);
     // A pair is "stable" relative to how the load itself moves tick to tick, never to a band a
     // lucky settle window learned below that (0.02% measured: no pair ever fit and Measuring stuck).
-    band = std::max(band, 2.0 * rate_ew_.sigma());
+    band = std::max({band, 2.0 * rate_ew_.sigma(), rate_sampling_band()});
     if (stable_pair_delta_ > band) return false;
     // A stabilized reading represents the pair, not whichever of its two subwindows happened to
     // come last. This avoids anchoring on one edge of otherwise accepted quiet jitter.
@@ -431,6 +443,10 @@ bool FlipController::sample_anchored_rate(Server& server, uint64_t now_ms, doubl
 }
 
 FlipctlTriggerReason FlipController::rate_trigger(double rate) {
+    // A saved anchor cannot resolve a new, shorter reading below that reading's own noise. Apply
+    // this before either streak votes, and publish the band actually used in INFO/DEBUG. Neither
+    // the current excursion nor its EW sigma may widen the learned band that judges the step.
+    anchor_rate_band_ = std::max(anchor_rate_band_, rate_sampling_band());
     const double reference = anchor_rate_;
     const double band = anchor_rate_band_;
     if (reference > 0 && rate > reference * (1.0 + band)) {

@@ -364,6 +364,7 @@ private:
     void anchor(Server& server, double rate);
     void begin_refinement(Server& server, uint64_t now_ms);
     void record(uint32_t split, double rate);
+    double rate_sampling_band() const;
     double automatic_rate_band(double pair_delta, double rate) const;
 
     mutable std::mutex mutex_;
