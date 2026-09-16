@@ -77,6 +77,9 @@ void check_value(Fixture& f, int32_t sid, const std::string& key, const std::str
         if (candidate) require(object == candidate, "owner consumed the IO object without recopying");
         if (owner_born) {
             const unsigned owner_arena = f.workers[f.server.worker_of_shard(sid)]->arena;
+            if (arena_of(object) != owner_arena)
+                std::fprintf(stderr, "owner placement: key=%s bytes=%zu header_arena=%u owner_arena=%u\n",
+                             key.c_str(), value.size(), arena_of(object), owner_arena);
             require(arena_of(object) == owner_arena, "inactive policy keeps header on owner");
             if (value.size() > kEmbedThreshold)
                 require(arena_of(object->str_data()) == owner_arena,
@@ -385,7 +388,9 @@ struct CoreConcurrencyTest {
         for (bool local : {false, true})
           for (unsigned size : {192u, 193u, 256u, 512u, 513u, 768u, 769u, 1024u}) {
             const auto sid = local ? f.sid_a : f.sid_b;
-            const auto key = f.key(sid, std::string(512, 'q') + "pb-parser-");
+            // Keep the header's size class distinct from every boundary payload, including
+            // 513 B (the old 512-byte key put both allocations into jemalloc's 640 B class).
+            const auto key = f.key(sid, std::string(1536, 'q') + "pb-parser-");
             const std::string value(size, 'p');
             std::string wire = "*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) + "\r\n" +
                 key + "\r\n$" + std::to_string(size) + "\r\n" + value + "\r\n";
@@ -460,10 +465,18 @@ int main(int argc, char** argv) {
     require(argc == 3, "usage: l4prebuild-unit 1s|2s read-local-0|read-local-1");
     require(command_registry_init(false), "command registry initialized");
     const bool fused = std::string(argv[1]) == "1s", armed = std::string(argv[2]) == "read-local-1";
-    Fixture f(fused, armed);
-    mset_policy(f); mset_oom(f); set_options(f); set_oom_and_discard(f);
-    mset_nonatomic_and_migration(f); prebuilt_qsbr(f); CoreConcurrencyTest::parser(f);
-    CoreConcurrencyTest::handoff(f);
+    {
+        Fixture f(fused, armed);
+        mset_policy(f); mset_oom(f); set_options(f); set_oom_and_discard(f);
+        mset_nonatomic_and_migration(f); prebuilt_qsbr(f);
+    }
+    if (!armed) {
+        // The migration/abort cases intentionally free historical IO-arena blocks on the
+        // owner. Start fresh workers and tcaches before asserting parser allocation provenance;
+        // a reused block's birth arena cannot identify the thread making its current allocation.
+        Fixture fresh(fused, false);
+        CoreConcurrencyTest::parser(fresh); CoreConcurrencyTest::handoff(fresh);
+    }
     require(!l4prebuild_policy(kExpectedPrebuildThreshold) &&
             l4prebuild_policy(kExpectedPrebuildThreshold + 1), "exact policy boundary engaged");
     std::printf("PASS l4prebuild threshold=%u %s %s: IO/owner arenas, sizes/owners, NX, OOM, SET options, "
