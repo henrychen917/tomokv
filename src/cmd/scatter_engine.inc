@@ -1750,6 +1750,21 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
 
+    // Only top-level IO dispatch can prebuild. MULTI child preparation (no origin_client)
+    // keeps its owner materialization. MSETNX must probe existence before building anything.
+    const bool io_prebuild = kind == Kind::Mset && origin_client &&
+                            server.thread_mode() == ThreadMode::Fused;
+    bool foreign_external = false;
+    if (io_prebuild) {
+        for (uint32_t i = 0; i < key_count; i++) {
+            if (server.worker_of_shard(routes[i].shard) != owner_io &&
+                l4prebuild_policy(op.arg(routes[i].arg + 1).n)) {
+                foreign_external = true;
+                break;
+            }
+        }
+    }
+
     // Every explicit key, including a STORE destination, must agree before taking localfast.
     if (key_count) {
         bool same_owner = true;
@@ -1765,7 +1780,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // as absent -- which is what the differ caught, on whichever boot placed the weight keys
         // off the source's shard.
         const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
-        if (same_owner && !force_atomic && !sort_deref_group &&
+        if (same_owner && !force_atomic && !sort_deref_group && !foreign_external &&
             kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
@@ -1964,19 +1979,23 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         state->keys[i] = KeyRef{routes[i].hash, routes[i].arg, routes[i].shard};
     if (routes != route_stack) delete[] routes;
 
-    // MSET/MSETNX materialize on the executing shard owner, including external strings. Workers
-    // already bind a private jemalloc arena after pinning; prebuilding >kEmbedThreshold values
-    // here instead made both the record header and its payload on IO before handing them to EX.
-    // Leave stable_object/key_anchor empty so the existing owner materialization pass uses
-    // xshard_make_atomic_string: the small-value pool stays intact and large allocations/copies
-    // run on the current owner after a quiesced shard handoff. No arena pointer is
-    // captured at dispatch, so there is no additional per-owner state to rebind at migration.
-    // The Op retains its argv through completion. Owner materialization still precedes admission
-    // and exchange; partial OOM leaves unlinked key_anchors for the existing abort cleanup.
-    // This removes the IO-born record handoff, not the argv handoff or foreign read-local loads.
-    // Arena provenance alone does not establish L3 residency: a migrated small-value pool may
-    // still return an old owner's block, which the executing owner now initializes. Reuse that
-    // pool; adding arena selection or a flush per record would charge the unchanged small path.
+    // Carry finished foreign external MSET values through the existing candidate ownership.
+    // Local/embedded values, MSETNX and split mode retain owner-side materialization. No arena
+    // pointer is captured, and the usual unpublished/abort cleanup frees every unused anchor.
+    if (foreign_external) {
+        for (uint32_t i = 0; i < key_count; i++) {
+            KeyRef& key = state->keys[i];
+            if (server.worker_of_shard(key.shard) == owner_io ||
+                !l4prebuild_policy(op.arg(key.arg + 1).n)) continue;
+            key.key_anchor = xshard_make_string(op.arg(key.arg), op.arg(key.arg + 1));
+            key.stable_object = key.key_anchor;
+            if (!key.key_anchor) {
+                set_oom(op);
+                xshard_abandon_unpublished(state, pool, owner_io);
+                return ScatterPrepare::Error;
+            }
+        }
+    }
 
     if (state->snapshot != UINT64_MAX && !pool.register_snapshot(server, state, owner_io)) {
         set_oom(op);
@@ -3202,7 +3221,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             case Kind::Mset:
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
-                    const KeyRef& key = state.keys[pos];
+                    KeyRef& key = state.keys[pos];
                     bool plain_active = false;
                     if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
@@ -3214,8 +3233,22 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         }
                         plain_active = true;
                     }
-                    state.status[pos] = static_cast<uint8_t>(store_xstring_selected(
-                        notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1)));
+                    if (key.key_anchor) {
+                        const auto result = notify
+                            ? shard.store_insert<true>(key.hash, key.key_anchor)
+                            : shard.store().insert(key.hash, key.key_anchor);
+                        if (result == FlatStore::InsertResult::Inserted) {
+                            key.key_anchor = nullptr;
+                            state.status[pos] = static_cast<uint8_t>(WorkError::None);
+                        } else {
+                            state.status[pos] = static_cast<uint8_t>(
+                                result == FlatStore::InsertResult::MaxmemoryOom
+                                    ? WorkError::Maxmemory : WorkError::InsertFailed);
+                        }
+                    } else {
+                        state.status[pos] = static_cast<uint8_t>(store_xstring_selected(
+                            notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1)));
+                    }
                     if (plain_active) shard.store().atomic_finish_plain();
                 }
                 return ScatterTaskResult::Complete;

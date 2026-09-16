@@ -2652,6 +2652,7 @@ private:
             // Scatter tasks bypass it -- their writes replace whole objects through insert-level
             // admission in their owner pass.
             reply_maxmemory_oom(op);
+            if constexpr (Fused) l4prebuild_discard_set(op);
         } else {
             // A null pending-entry list is the sole common-path branch. With no cross-shard window,
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
@@ -2667,6 +2668,7 @@ private:
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
+                else if constexpr (Fused) l4prebuild_discard_set(op);
                 xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);

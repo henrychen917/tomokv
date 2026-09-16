@@ -27,6 +27,7 @@ SRC      += src/core/flipctl.cc
 SRC      += src/core/genthread.cc
 SRC      += src/core/rl2s.cc
 SRC      += src/core/lbstall.cc
+SRC      += src/cmd/l4prebuild.cc
 SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
@@ -44,6 +45,8 @@ $(BIN): $(OBJ)
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
+# The isolated prebuild TU reuses the string parser text without emitting its public handlers.
+build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Retiring the reorder pass changes GCC 13's translation-unit inlining budget. These budgets
 # retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
@@ -168,6 +171,48 @@ owner-arena-unit: build/owner-arena-unit
 	./build/owner-arena-unit 2s read-local-0
 	./build/owner-arena-unit 2s read-local-1
 .PHONY: owner-arena-unit
+
+# IO-prebuild policy and lifetime regressions, using pinned serverless L4 workers.
+# Read the one production boundary at build time. The fixture's separate comparison oracle
+# still catches a disabled/inclusive policy; a one-line boundary edit rebuilds both binaries.
+L4PREBUILD_TEST_FLAGS := -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(shell sed -n 's/^\#define TOMO_L4_PREBUILD_THRESHOLD //p' src/cmd/l4prebuild.cc)
+build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
+	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
+	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
+
+# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
+# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
+# offline target patches only the noipa policy predicate; it never executes the server.
+build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+
+l4prebuild-unit: build/l4prebuild-unit
+	./build/l4prebuild-unit 1s read-local-0
+	./build/l4prebuild-unit 1s read-local-1
+	./build/l4prebuild-unit 2s read-local-0
+	./build/l4prebuild-unit 2s read-local-1
+
+# All production objects linked by these serverless tests are instrumented, not just the
+# fixture. Invoke builds and tests under taskset on the lane's CPUs (112-127).
+L4PREBUILD_TSAN_FLAGS := -std=c++20 -O1 -g -Wall -Wextra -march=native -pthread \
+                         -fsanitize=thread -fno-omit-frame-pointer -no-pie
+L4PREBUILD_TSAN_COMMON := $(patsubst build/%.o,build/l4prebuild-tsan/%.o,$(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)))
+build/l4prebuild-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. -c $< -o $@
+build/l4prebuild-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
+build/l4prebuild-unit-tsan: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_TSAN_COMMON) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
+	  $(L4PREBUILD_TSAN_COMMON) \
+	  -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
+
+l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 1s read-local-0
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 1s read-local-1
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
+.PHONY: l4prebuild-unit l4prebuild-unit-tsan
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile

@@ -1,199 +1,237 @@
-# TomoKV v6 cleanup — maintainer handoff
+# cx-l4prebuild — round 3, finalize the 512 B default
 
-Base/PRE: `e4ec4dfce` (v5). This branch retires reorder, replaces the headline
-tail geometry, merges `cx-tailgen` at `76265d400`, and adds the open-loop client
-migration stall row. No server, benchmark, or full gate was run by this lane.
-All compilation and serverless checks were pinned within CPUs 112–127, using
-`make -j8` for builds.
+Worktree `/home/user/Projects/cx-l4prebuild`, branch `cx-l4prebuild`.
+Reference **v6 = d90843b96**. The maintainer selected **strictly >512 B**;
+`make` and the gate's ordinary build now produce that policy in **build/tomokv**.
+The default policy is defined once in `src/cmd/l4prebuild.cc`, beside the
+measurement table. Make reads that boundary into the unit's separate placement
+comparison; the unit never calls the production policy to decide its expected
+result. Named boundary variants and the round-2 aggregate target are retired;
+a subsequent bisect changes only the constant in that source and rebuilds.
 
-## Arms and decisions
+## Supplied box results and decision
 
-- PRE: `build/tomokv-v5`, built from the clean base before any edit.
-- POST: `build/tomokv-v6`, the final release build of this branch.
-- PAD: `build/tomokv-v6-pad`, **kind B — inverse control**: candidate behavior
-  plus inert text padding restoring PRE's `.text` size. It is not a PRE-behavior
-  twin. The pass deletion changes text size by more than a few hundred bytes;
-  compare PAD to both PRE and POST to detect a placement/size contribution.
+PRE -> POST rate changes, 8 pinned generator instances, floor +/-1.6–2%.
+Round-2 arms were delivered in `3d155061c`, against v6; the 192 B historical
+arm `8ba4b3d5a` used v5/v6 references. These are maintainer measurements,
+not new measurements by this lane.
 
-Frozen release arms (same compiler, flags/allocator family):
+| Cell | >192 B, historical rounds | >512 B vs v6 | >768 B vs v6 |
+| --- | ---: | ---: | ---: |
+| `l4_set_1s_1024` | +3.6 to +5.1% | **+5.9%** | +4.4% |
+| `l4_set_1s_256` | −9.0 to −9.5% | +0.6% | −0.9% |
+| `l4_set_2s_1024` | −0.5 to +0.9% | −0.6% | +0.2% |
+| `l4_mset_1s_1024` | +3.0 to +3.5% | **+2.7%** | +5.3% |
+| `l4_mset_1s_256` | −13.6 to −17.7% | −1.9% | −0.9% |
+| `l4_msetnx_1s_1024` | +1.6 / −1.8% | **−3.0%, pooling pending** | +0.8% |
 
-| Arm | .text bytes | SHA256 |
+512 B preserves the owner-born placement benefit at 256 B and the target
+1 KiB gain. It also admits 513–768 B values; no performance gain for that
+middle range has been measured here. MSETNX still checks existence and
+materializes on the owner. Its −3.0% result is unresolved: no pooled verdict
+has been appended to the brief or supplied as `MEASURE-RESULT`.
+
+The brief's **16:03 mainline update** supplied the 768 B MSET results and a
+new decision rule: keep **512 B unless the pooled 512 B MSETNX read stays
+at or below −3%; then switch to 768 B**. No pooled result is supplied yet.
+This delivery therefore keeps 512 B. A one-line edit of the source constant
+rebuilds both production and unit expectations for either selection.
+
+The round-2 binaries differ in only one `.text` byte, the boundary immediate;
+their 256/1024 B policy decisions and MSETNX code are identical. Consequently
+a different MSETNX rate between those arms cannot establish a size-policy
+effect. Preserve pooled paired controls and the byte-audit limitations below.
+This finalization changes no compiler budgets or dispatch/execute codegen.
+
+## Delivered arms and reproduction
+
+| Arm | Binary | Policy |
+| --- | --- | --- |
+| PRE-v6 | `build/tomokv-l4prebuild-pre-v6` | Untouched `d90843b96`, retained from the local round-2 archive |
+| POST | `build/tomokv` | Default build: foreign fused SET/MSET values **>512 B** prebuilt on IO |
+| PAD-A | `build/tomokv-pad` | **Kind (A) behaviour twin:** PRE allocation behaviour with POST's text size and layout |
+
+PAD is copied from POST. Only the `noipa` `l4prebuild_policy(uint32_t)` entry
+is patched to return false, preserving CET. This disables SET and MSET
+prebuild and MSET's forced same-shard scatter. All other bytes, section sizes
+and symbol addresses must match POST. The candidate's eligibility checks
+remain in PAD: PRE/PAD measures their cost plus code placement; PAD/POST
+isolates the allocation policy. No kind-B arm is requested.
+
+```sh
+# Builds only; these targets never execute a server.
+taskset -c 112-119 make -j4 all build/tomokv-pad build/l4prebuild-unit
+taskset -c 120-127 make -j4 build/l4prebuild-unit-tsan
+# Serverless tests; inherit the caller's reserved CPU affinity.
+taskset -c 112-119 make unit l4prebuild-unit owner-arena-unit
+taskset -c 120-127 make l4prebuild-unit-tsan
+```
+
+An edit to `TOMO_L4_PREBUILD_THRESHOLD` in `src/cmd/l4prebuild.cc` rebuilds
+only its isolated production object before relinking POST and recreating PAD.
+192/768 remain possible via this constant; no boundary target or runtime knob
+is retained. Make extracts the selected value into
+`TOMO_L4_PREBUILD_TEST_BOUNDARY`, so the native and TSAN fixtures rebuild
+their separate comparison oracle from the same source definition.
+`src/cmd/t_string.cc` is a prerequisite for both native and TSAN policy objects.
+
+## Behaviour and correctness
+
+At or below 512 B, SET retains the original owner handler and MSET retains
+owner materialization/localfast. Above 512 B only foreign keys in fused mode
+prebuild header and external payload on IO. Local keys, split mode, MULTI
+children and **all MSETNX** remain owner-materialized; mixed MSETs decide
+per key. Eligibility is based on the owner at dispatch, with no stored owner
+arena pointer or new structure to migrate.
+
+Installation, admission, SET options, relative expiry and visibility
+publication remain on the owner. Immutable replacement, QSBR, single-owner
+writes, RYOW and receive-buffer lifetimes retain their existing contracts.
+Refused posts, owner denial, allocation failure, abort and notification paths
+retain the tested cleanup. No runtime option or layout field is added.
+
+The serverless fixture uses 16 shards/eight reserved CPUs (6 IO + 2 EX in
+split mode), covering both modes with read-local off/armed. It checks the
+256/512/513/768/769/1024 B boundaries, original SET handlers/MSET localfast,
+header and payload arenas, mixed sizes, duplicate keys, MSETNX existence
+checks, OOM, SET options/TTL/notifications, atomic=0/1, parser refusal/owner
+admission, QSBR, quiesced migration and concurrent SPSC handoff. PAD-disabled
+and inclusive-boundary mutant unit binaries must fail the positive placement
+witness. No listener or io_uring instance is started by these units.
+
+Gate row delta is **0 quick / 0 full**. `tests/gate.sh` and its EXPECT values
+are unchanged. The maintainer runs `tests/gate.sh iteration` and boots both
+modes at **16 shards / GATE_RATIO / GATE_CORES**. This lane runs no server,
+benchmark, load generator, loopback diagnostic or gate.
+
+## Measurement request
+
+Use the current v6-compatible gate instrument and OP:BYTES grammar from
+`/home/user/Projects/calib/set-cells.txt` and
+`/home/user/Projects/calib/l4-cells.txt`. Pin all six L4 cells to **8 generator
+instances**, keeping server/generator CPU maps identical across PRE, POST and
+PAD. Preserve the scheduled 32-owner geometry, p8, 512 connections, atomic=1,
+rl=ov=ro=0, balancers, key distribution, warmup, duration and denominator.
+Use the current pinned rate-cell rungs for h01/h02/h05/h07.
+
+| Cell | Settings | Final POST/PAD verification |
+| --- | --- | --- |
+| `l4_set_1s_256` | 1s SET:256, p8 | pending |
+| `l4_set_1s_1024` | 1s SET:1024, p8 | pending |
+| `l4_set_2s_1024` | 2s SET:1024, p8 | pending |
+| `l4_mset_1s_256` | 1s MSET:256, p8 | pending |
+| `l4_mset_1s_1024` | 1s MSET:1024, p8 | pending |
+| `l4_msetnx_1s_1024` | 1s MSETNX:1024, p8 | **pool the flagged control** |
+| `h01` | 1s GET p32, ov=0, ro=0 | pending |
+| `h02` | 1s SET p32, ov=0, ro=0 | pending |
+| `h05` | 1s GET p32, ov=1, ro=0 | pending |
+| `h07` | 1s GET p32, ov=1, ro=1 | pending |
+
+On v6, reorder=1 is an intentional no-op; use the current harness that accepts
+it, not the obsolete INFO witness. For each cell run PRE/POST/POST/PRE,
+PRE/PAD/PAD/PRE and PAD/POST/POST/PAD; pool at least two blocks on the pinned
+L4 rung, retaining paired changes and same-binary controls. Record exact
+commands, binary/instrument hashes, CPU maps, offered load, repetitions and
+spreads in `MEASURE-RESULT`.
+
+**Verdict:** rate at matched offered load decides; report cycles/op,
+instructions/op and IPC together (cycles/op = instructions/op / IPC).
+Keep the 1 KiB fused SET/MSET gains, with zero regression on the 256 B cells,
+2s SET, MSETNX and h01/h02/h05/h07 under the gate's acceptance rules. POST
+must improve relative to PAD as well as PRE to attribute the gain to prebuild.
+The floor is not a regression waiver; spreads >2% need investigation.
+
+## Build, validation and byte receipts
+
+Product/default-test source commit: **73b1204ce**. GCC 13.3.0, jemalloc,
+release `-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread`, with
+v6's existing per-TU compiler budgets unchanged. Builds and tests completed
+on CPUs 112–119 (release/native) and 120–127 (fully instrumented TSAN).
+All receipts and logs are in `build/l4prebuild-round3/`.
+
+| Arm | `.text` bytes | SHA256 |
 | --- | ---: | --- |
-| PRE | 3,535,747 | `b56cdc8dc68d6a6d9abca0a805b8896e05387a7c4914d9713d1cf111f2d0ab49` |
-| POST | 3,532,099 | `30f16cce0ca2b99f0873f299e08c5365d7c691d9ba20a26327ca6d37f97b84d4` |
-| PAD | 3,535,747 | `d62e1c07f46ba2645a09a051023c1a83bd85a938f1a4604dace4be374325cc4f` |
+| PRE-v6 | 3,532,099 | `4f8ff56d96d39a60c614d21ec0fbd28f03bf8dd1f1ff07d4757d0ad60d2c7276` |
+| POST, default 512 B | 3,556,371 | `56c07a1b9a553fd39d92c8b8579021577660a07fb1635372b7ad0a5eb43237fa` |
+| PAD-A | 3,556,371 | `bd3e72a7f828995c1b522f1e87540a334015bcda4ac03ea3f324e9fb28fa32d5` |
 
-POST shrinks `.text` by **3,648 bytes**. PAD adds exactly 3,648 inert NOP bytes
-in an unreferenced function; it restores PRE's text size without reintroducing
-the scheduler. `build/v6-audit/binaries.json` and `pad-link.json` retain the
-digests, kind and exact link command. The assembly is `inverse-pad.S`.
-No performance result is claimed before `MEASURE-RESULT` is supplied.
+**The final default is the measured round-2 POST-512 in executable code and
+data:** all 4,467 function symbols have identical addresses/sizes, and every
+allocated section has identical bytes/addresses/sizes except the GNU build ID.
+The original POST-512 hash is
+`8aed5e9a9e1b51d4a0b81d2954ef53dda155509de1a3751519fe8ee765b0e484`;
+`default-vs-measured-512.json` records the comparison. Debug metadata and the
+build ID changed after source comments/default build paths were updated.
 
-| Required comparison | PRE | POST | Decision |
-| --- | --- | --- | --- |
-| h01,h02,h05,h07,h17,h18 rate | pending | pending | Rate-neutral or better vs v5; no loss hidden by a different generator count |
-| Same six cells cycles/op, instructions/op, IPC | pending | pending | Explain the rate result; instruction count alone is not a verdict |
-| t01–t04 short and long p99.9 | pending | pending | Report only; compare with the mode's same-binary spread |
-| Open-loop outstanding bound | owner records: v5 8/8, v3 fails 10/10 | pending | Strict correctness: fraction = 0 and maximum <= 64 |
+PAD differs from the default POST in exactly three bytes at file offset
+3,570,804, immediately after the policy's CET entry. Every other byte, every
+section entry and every symbol entry is identical. The policy body is
+`f30f1efa81ff000200000f97c0c3` (strictly >512 B). Receipt:
+`build/tomokv-pad.json`. Both POST and PAD have 24,272 more `.text` bytes than
+v6; finalization adds no text or layout change to the measured 512 B arm.
 
-Use the quiet box, one measurement lane, with the gate's instrument. Rate fixtures
-pin **all six cells at 12 instances** so h05/h07 cannot repeat the 2-instance cap
-confound. They retain 512 total connections, p32, 64-byte values, atomic=1 and the
-original mode/read-local/overlap/reorder axes. Both balancers remain at default on.
-Tail fixtures fix **16 instances**, 512 total connections, p8, GET:BITCOUNT 8:2,
-65,536 blockers × 256 KiB = 16 GiB, and `--rate-limiting=1400` per connection:
-716,800/s (the 717K/s, 68% rung of the 1.06M/s wall). The ordinary two-million-key
-short population remains 64 B per value. `t00` is identical to `t01` and runs
-first as a reported-only warmup; do not include it in the tail conclusion.
+| Validation | Result |
+| --- | --- |
+| Default policy unit, 1s/2s × read-local 0/1 | **4/4 pass** |
+| Fully instrumented TSAN default policy unit, same matrix | **4/4 pass**, no TSAN diagnostics |
+| `make unit` | All five standalone programs pass |
+| Existing owner-arena unit, same matrix | **4/4 pass** |
+| Atomic survivors | admission, write_latest, mset_arity, rename_overlay, watch_parent pass |
+| PAD-disabled unit negative control | Exit **1** at the required positive placement witness |
+| Inclusive-boundary unit negative control (>511 instead of >512) | Exit **1** at the exact per-key policy assertion |
 
-The root's `build/v6-rate-cells.txt` and `build/v6-tail-cells.txt` are extracted
-from `tests/headline_cells.txt` with column 11 set to 12 and 16 respectively.
-Recreate them after cleaning `build/`; do not calibrate the tail geometry back to
-one generator. The t01–t04 JSON records now explicitly invalidate the old
-2048-key saturation calibration instead of relabeling its observations as fresh.
+The two deliberately broken controls are copies of the **unit binary only**,
+under `build/l4prebuild-round3/`; each reports
+`FAIL owner arena: exact per-key prebuild policy`. No check was skipped and no
+tolerance was widened. `native-results.json` and `tsan-results.json` record
+commands, CPU affinity, expected/actual exits and logs; the TSAN receipt also
+records the instrumented unit digest. TSAN runs use
+`TSAN_OPTIONS=halt_on_error=1:exitcode=66` and `setarch x86_64 -R`.
+GCC emits its existing `atomic_thread_fence` TSAN modelling warnings during
+compilation; the four runs contain no TSAN reports.
 
-Run two complete ABBA blocks per arm pair (distinct `--output` per invocation):
+All eight compiled size locks hold: Op 336, Client 1984, ThreadCtx 1408,
+Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624.
+`EXPECT_QUICK=419`, `EXPECT_FULL=435` remain unchanged; the quick-tier exit
+starts at `tests/gate.sh:2758` and exits at line 2762. No gate rows were added
+or retired. `artifacts.json` records binaries, compiler, layouts and log hashes;
+build logs are `release-build.log` and `tsan-build.log`.
 
-```sh
-# PRE -> POST rates; repeat with candidate tomokv-v6-pad and distinct output.
-tests/gate.sh perf --reference-binary "$PWD/build/tomokv-v5" \
-  --candidate-binary "$PWD/build/tomokv-v6" \
-  --server-cores 0-31 --server-smt '' --load-cores 32-111 --load-smt '' \
-  --cells "$PWD/build/v6-rate-cells.txt" --subset full \
-  --output "$PWD/build/v6-rate-1"
+## Byte-identity limit against v6
 
-# PRE -> POST reported tails; t00 is first in this fixture. Repeat for PAD.
-tests/gate.sh perf --reference-binary "$PWD/build/tomokv-v5" \
-  --candidate-binary "$PWD/build/tomokv-v6" \
-  --server-cores 0-31 --server-smt '' --load-cores 32-111 --load-smt '' \
-  --cells "$PWD/build/v6-tail-cells.txt" --subset full \
-  --output "$PWD/build/v6-tail-1"
-```
+The fresh object audit is exactly the round-2 result: **314/314 original
+string-family bodies match byte-for-byte**, including resolved relocation
+targets and `xshard_make_atomic_string`. The broader selected hot-body audit
+is **561/576 raw-identical, 564/576 with address displacements resolved**:
 
-Keep per-arm rates, cycles/op, instructions/op, IPC, all raw histograms, generator
-CPU/pacing evidence and observed spreads. Repeat a same-binary v5 block at these
-exact placements if rate spreads exceed 2%; do not widen a tolerance. The owner
-measured paired v5 rate differences around ±1% on a quiet box. The valid tail
-instrument's same-binary p99.9 spreads are **2–3.5% (1s)** and **6–10% (2s)**;
-these are reference observations, not newly introduced gate thresholds. Tail
-rows, including t00, stay reported-only under `abba_simple.py`.
-
-## Correctness row and ledger arithmetic
-
-The new `tailgen client-lb outstanding bound` row runs **before the quick-tier
-exit**, after `join_workers`, using `boot_fused` with `--shards 256 --atomic 1
---overlap 1`, read-local at its default off, and both balancers at default on.
-It uses the gate's complete tail placement (`PERF_SERVER_CORES` and
-`PERF_LOAD_CORES`) because ordinary parallel correctness slots may have only two
-load cores, while tailgen requires 16 distinct load cores. A smaller allocation
-fails visibly; the generator is never oversubscribed or silently reduced.
-
-The generator build runs as a dependency job without another ledger row. The
-90-second row covers boot, memtier short-key population, the shared
-`abba_workloads.prepare_long_keys`, 3 s warmup, 20 s measured window, JSON
-validation. Teardown follows before restoring the slot placement. Its exact load is:
-
-```sh
-build/tailgen --rate 717000 --threads 16 --conns 32 --cores '<gate load cores>' \
-  --mix GET:8,BITCOUNT:2 --spacing poisson --warmup 3 --duration 20 \
-  --max-outstanding 64 --short-keys 2000000 --long-keys 65536
-```
-
-`--conns 32` is per thread. The outstanding witness observes, and does not cap,
-open-loop submissions. Any positive `over_max_outstanding_fraction` or
-`outstanding_max > 64` fails. Missing/nonfinite fields, wrong window, absent
-command classes, boot/population/driver/build failures also fail. Artifacts live
-under the run's `main/tailgen-stall/` (argv, population, stdout JSON, stderr).
-The row's serverless controls test both bounds independently and cover failure
-propagation through the real shell branch with all workloads stubbed.
-
-Two retired rows were before the quick exit: the dedicated `reorder mechanism +
-32/128-task geometry battery`, and `core concurrency scheduler`, which directly
-called the deleted scheduler too. One new stall row is also before that exit.
-Counted by source line: v5's core loop was at 1232 and dedicated reorder row
-at 1252, before its quick exit at 2743. V6's new row is at 2746, before its
-quick exit at 2758. Thus **quick 419 - 2 + 1 = 418; full 436 - 2 + 1 = 435**, excluding any optional
-NIC additions. **Neither EXPECT_QUICK nor EXPECT_FULL was edited.** The maintainer
-must update them before the iteration/full gate. T00 adds no correctness ledger
-row; the ABBA result remains reporting-only in this gate.
-
-After that owner count update, run `tests/gate.sh iteration` against POST on the
-quiet box. Both 1s and 2s boot coverage remains in the feature matrix; requested
-reorder=1 must warn exactly once and report effective reorder=0. Its old parser
-grammar is unchanged, and no reorder stats sidecar is allocated.
-
-## Offline validation and byte proof
-
-The final audit is **555/576 identical bodies** after resolving ELF relocation
-addresses and checking their target identities; **549/576** also match as raw
-object bytes. The checker does not normalize instructions or ignore mismatches.
-Sixteen changed bodies contain the removed executor batch path, including its
-inlined drain/sweep callers. Among the other 560 bodies, **555 match and five
-do not**. Thus a claim that *every* untouched body is byte-identical is **not
-established**. Compiler budget retuning reduced the initial 35 mismatches to 21;
-none of the remaining five is silently waived.
-
-| Audited family | Identical / checked |
-| --- | ---: |
-| GET/SET/MGET/MSET emitted bodies | 5 / 5 |
-| Parser/hash-dispatch bodies | 70 / 70 |
-| FlatStore lookup/insert/erase bodies | 160 / 160 |
-| Fused pipeline bodies | 4 / 4 |
-
-The five exceptions are all in `core/rl2s.o` (split read-local):
-
-| Body | PRE bytes | POST bytes |
+| Object group | Audited | Bytes + resolved targets identical |
 | --- | ---: | ---: |
-| `WbEngine::serve_impl<false,true,true,false,false,true>` Op lambda | 936 | 637 |
-| `WbEngine::serve_impl<false,true,false,false,false,true>` Op lambda | 936 | 637 |
-| `IoLoop::on_cqe<true,true,false,1>` | 1,222 | 1,206 |
-| `IoLoop::run_loop<true,false,false,true,1,true>` | 4,626 | 4,618 |
-| `IoLoop::run_loop<true,true,false,true,1,true>` | 4,682 | 4,665 |
+| `main.o` | 128 | 128 |
+| `t_string.o` + `t_string_notify.o`, selected hot bodies | 24 | 24 |
+| `genthread.o` | 113 | 108 |
+| `rl2s.o` | 187 | 182 |
+| `xshard.o` | 11 | 9 |
+| Other selected command/persistence/snapshot bodies | 113 | 113 |
 
-The `on_cqe` specialization is a weak duplicate also emitted by the earlier
-`main.o`; this audit conservatively retains the object mismatch. The two outer
-loops include Unix listeners, with/without TLS. These differences require
-measurement, not an instruction-count argument. In addition to the six required
-rate cells, compare PRE/POST/PAD with **2s, read-local=1, overlap=1, atomic=1,
-balancers on, GET/SET at p1 and p32, 512 connections, 64 B**, covering TCP, Unix,
-and TLS transports plus epoll/uring where supported. Keep the ordinary required
-rate cells unchanged. No zero-regression claim is made for these exceptions.
+Eight differences are required fused parser hooks and executor rejection
+cleanup. Four collateral differences remain from round 2:
 
-All size locks compile unchanged: **Op 336, Client 1984, ThreadCtx 1408, Shard
-1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624**. Retired witness
-space is padding, preserving the live overlap field's offset and 64-byte sidecar;
-the sidecar is allocated only by overlap. The retired executor flag is padding
-so subsequent executor fields retain their offsets. No locked structure grew.
+- `genthread.o`: split TLS `parse_and_dispatch<true, 0u, ...>` clone.
+- `rl2s.o`: `IoLoop::run_loop<true, false, false, true, (unsigned char)1, true>`.
+- `xshard.o`: `FlatStore::find_notify` and `FlatStore::erase_notify`.
 
-Completed serverless checks (logs under `build/v6-audit/`):
+The selected-body audit does not cover the full shared scatter bodies:
+`xshard_prepare` changed from 17,002 to 18,137 bytes and `xshard_execute` from
+22,576 to 22,694 bytes for the MSET policy. MSETNX uses this shared machinery,
+so unchanged allocation semantics do **not** establish whole-path byte
+identity or clear its flagged performance result. The literal whole-inactive-
+path byte-identity requirement against v6 is **not fully satisfied**. The final
+default adds no further codegen drift to the measured arm, but this limitation
+and the pending MSETNX pooling must remain visible to mainline.
 
-- Release `make -j8 all unit`; all five native unit programs passed, including
-  exact retirement grammar/diagnostic and CLI override controls.
-- Netcmd CONFIG/INFO unit: effective zero, retirement marker, absent counters,
-  null-sidecar behavior, no INFO allocation.
-- Overlap prefetch unit: 1s/2s, overlap off/on, read-local/atomic/balancers armed.
-- All seven surviving core concurrency rows under fully instrumented TSAN;
-  the same seven rows also passed ASAN/UBSAN.
-- Tailgen native, ASAN/UBSAN and TSAN units: all passed, including partial sends,
-  more than 64 outstanding requests, both pacing modes and JSON contract.
-- ABBA controls: 88 main + 10 saturation + 7 calibration tests passed.
-- Gate harness: all 54 tests passed (`gates-complete.log`), including each
-  helper's failure propagation, scheduler inventory, and both serial instruments'
-  join boundaries. Tailgen stall controls: 3 passed.
-- Measured-config: 10; simple comparison: 11; planner: 23 + 10 tests passed.
-  Shell and Python syntax checks passed. No test-count constants were modified.
-
-Reproduce the audit without executing a server:
+Receipts: `bytes.json`, `bytes.log`, `string-bytes.json`. Reproduce the selected
+audit below; exit **1** intentionally reports the documented differences:
 
 ```sh
-taskset -c 112-127 python3 tools/lbstall_artifacts.py compare \
-  build/v6-audit/pre-src build/src build/v6-audit/hot-final.json
+taskset -c 112-119 python3 tools/lbstall_artifacts.py compare build/l4prebuild-round2/pre-v6/build/src build/src build/l4prebuild-round3/bytes.json
 ```
-
-This strict comparator intentionally exits nonzero for the 21 recorded changed
-bodies. `hot-final.json` and `hot-final.txt` retain every selected symbol, byte
-length, raw equality and relocation-aware verdict. Do not relabel that exit as a
-complete byte-identity pass. Build logs include compiler warnings; TSAN runtime
-logs contain no race report. Both-mode live boots, the new 16-GiB correctness row,
-the full iteration gate, and all PRE/POST/PAD measurements remain the maintainer's
-work on the scheduled quiet box.

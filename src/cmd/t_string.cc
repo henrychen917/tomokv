@@ -258,6 +258,7 @@ void clear_reply(Op& op) {
 
 }  // namespace
 
+#ifndef TOMO_L4_PREBUILD_TU
 #ifndef TOMO_STRING_NOTIFY_TU
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
                                              int64_t expire_at_ms, bool integer_encode,
@@ -322,6 +323,7 @@ void reply_maxmemory_oom(Op& op) {
     reply_err(op.sink(), "OOM command not allowed when used memory > 'maxmemory'.");
 }
 #endif
+#endif // !TOMO_L4_PREBUILD_TU
 
 namespace {
 
@@ -1408,7 +1410,7 @@ void cmd_type(Shard& sh, Op& op) {
 }
 
 
-#ifndef TOMO_STRING_NOTIFY_TU
+#if !defined(TOMO_STRING_NOTIFY_TU) && !defined(TOMO_L4_PREBUILD_TU)
 #define TOMO_HANDLER_PAIR(fn, first, last, step) \
     fn<false>, first, last, step, fn##_notify
 
@@ -1479,6 +1481,7 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+#ifndef TOMO_L4_PREBUILD_TU
 #ifdef TOMO_STRING_NOTIFY_TU
 void cmd_get_tls_notify(Shard& shard, Op& op) {
     notify_execute_handler(shard, op, cmd_get<true, false>);
@@ -1548,6 +1551,8 @@ CommandTable string_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
 }
 #endif
+
+#endif // !TOMO_L4_PREBUILD_TU
 
 #undef TOMO_STRING_NOTIFY_HANDLERS
 
