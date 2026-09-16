@@ -80,7 +80,7 @@ from abba_saturation import (RUN_SATURATION_MARGIN,
 from gate_receipt import harness_fingerprint, read_json
 from abba_evidence import match_null, null_result
 from abba_instrument import instrument_fingerprint
-from abba_workloads import (workload_arguments, prepare_long_keys, merged_tail,
+from abba_workloads import (retired_reorder, workload_arguments, prepare_long_keys, merged_tail,
                             require_workload_witness, workload_command_names,
                             memtier_workload_counts, require_workload_accounting)
 
@@ -1238,6 +1238,8 @@ class Runner:
                         raise NotComparable(reason)
                     raise RuntimeError(reason)
                 for name, value in {"atomic": cell.atomic, **knobs}.items():
+                    if name == "reorder" and retired_reorder(identity):
+                        value = 0
                     actual = conn.must("CONFIG", "GET", name)
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
@@ -2077,6 +2079,15 @@ def self_test():
             before = {"cmdstat_get": "calls=10", "cmdstat_bitcount": "calls=10"}
             after = {"cmdstat_get": "calls=100", "cmdstat_bitcount": "calls=20"}
             mode = {"reorder_permuted_runs": "0"}
+            retired = {"reorder": "0", "reorder_retired": "1"}
+            evidence = require_workload_witness(cell, before, after, retired, retired)
+            self.assertEqual(evidence["reorder_witness"], "retired, no-op")
+            for missing in ("cmdstat_get", "cmdstat_bitcount"):
+                with self.assertRaisesRegex(RuntimeError, "did not execute"):
+                    require_workload_witness(cell, before, {**after, missing: before[missing]}, retired, retired)
+            for broken in ({"reorder": "0"}, {**retired, "reorder": "1"}, {**retired, **mode}):
+                with self.assertRaises(RuntimeError):
+                    require_workload_witness(cell, before, after, broken, broken)
             with self.assertRaisesRegex(RuntimeError, "BITCOUNT did not execute"):
                 require_workload_witness(cell, before, {**after, "cmdstat_bitcount": "calls=10"}, mode, mode)
             with self.assertRaisesRegex(RuntimeError, "permutation witness"):

@@ -29,12 +29,11 @@ import perf_gate as perf
 def feature_evidence():
     knobs = {'thread-mode': '2s', 'read-local': 1, 'overlap': 1, 'reorder': 1,
              'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
-    keys = ('overlap_passes', 'overlap_interleaved_passes', 'reorder_batches',
-            'reorder_multi_client_runs', 'reorder_permuted_runs', 'atomic_groups',
+    keys = ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
             'tomokv_keylb_ticks', 'tomokv_keylb_bucket_moves', 'tomokv_keylb_client_moves',
             'flipctl_forced_triggers', 'flipctl_triggers')
     before = {key: '0' for key in keys}
-    before.update(read_local_active_threads='1', schedule_stats_threads='2',
+    before.update(reorder='0', reorder_retired='1', read_local_active_threads='1', schedule_stats_threads='2',
                   tomokv_keylb_bucket_weight_spread_current='0',
                   tomokv_keylb_client_weight_spread_current='0',
                   overlap_schedule='split-io-overlap', overlap_enabled='1',
@@ -78,8 +77,7 @@ class FeatureFailures(unittest.TestCase):
     def test_every_enabled_witness_must_fire(self):
         b, a, knobs = feature_evidence()
         feature.check_activity(b, a, knobs, 2, True)
-        for key in ('overlap_passes', 'overlap_interleaved_passes', 'reorder_batches',
-                    'reorder_multi_client_runs', 'reorder_permuted_runs', 'atomic_groups',
+        for key in ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
                     'tomokv_keylb_ticks', 'flipctl_forced_triggers',
                     'tomokv_keylb_bucket_weight_spread_current', 'tomokv_keylb_client_weight_spread_current'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
@@ -115,8 +113,7 @@ class FeatureFailures(unittest.TestCase):
                 if key.startswith('read_local_'):
                     del row[key]
             row.update(overlap_schedule='fused-overlap', overlap_enabled='1',
-                       overlap_interleaved_passes='0', reorder_batches='0',
-                       reorder_multi_client_runs='0', reorder_permuted_runs='0',
+                       overlap_interleaved_passes='0',
                        flipctl_triggers='0')
             for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
                         'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
@@ -127,9 +124,9 @@ class FeatureFailures(unittest.TestCase):
         calls_before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
         calls_after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
         witness = require_workload_witness(tail, calls_before, calls_after, b, a)
-        self.assertEqual(witness['reorder_permuted_runs'], 0)
+        self.assertEqual(witness['reorder_witness'], 'retired, no-op')
         for field in ('schedule_stats_threads', 'overlap_enabled', 'overlap_schedule',
-                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_permuted_runs'):
+                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_retired'):
             missing = dict(a)
             del missing[field]
             with self.subTest(field=field), self.assertRaises(AssertionError):
@@ -152,7 +149,7 @@ class FeatureFailures(unittest.TestCase):
 
     def test_disabled_features_cannot_fire(self):
         b, a, knobs = feature_evidence()
-        for key in ('overlap', 'reorder', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
+        for key in ('overlap', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, a, dict(knobs, **{key: 0}), 2, True)
 
@@ -1238,7 +1235,7 @@ class TSANWiring(unittest.TestCase):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         helpers = gate[gate.index('tsan_unit(){'):gate.index('\njob_production_units(){')]
-        first, after = ('job_core_units(){', 'job_reorder_unit(){') if kind == 'core' else ('job_wait_units(){', 'job_readonly(){')
+        first, after = ('job_core_units(){', 'job_storage_units(){') if kind == 'core' else ('job_wait_units(){', 'job_readonly(){')
         body = gate[gate.index(first):gate.index(after)]
         stub = r'''set -u
 CORE_TSAN=/unused-core-tsan; WAITS_TSAN=/unused-waits-tsan; CORES=0-7

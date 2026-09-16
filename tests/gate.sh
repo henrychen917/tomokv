@@ -946,7 +946,7 @@ start_workers(){
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit reorder_unit storage_units
+  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -1243,19 +1243,6 @@ for core_row in watch scheduler lifetime drain route snapshot config notify; do
     bad "core concurrency $core_row" "see $TMPDIR/gate-core-$core_row.txt, $TMPDIR/tsan-core-concurrency-tsan-$core_row.log, and $RUN_DIR/jobs/production_units/build.log and $RUN_DIR/jobs/core_tsan_build/build.log"
   fi
 done
-}
-
-job_reorder_unit(){
-# REORDER.md: one row in BOTH tiers (before the quick exit). Real published ROB tasks drive the
-# production scheduler at 32/128 capacity. Exact non-identity permutations prove it fired; ASAN
-# and UBSAN make undersized scratch and an invalid occupancy shift fail, never skip or time out green.
-row_begin "reorder mechanism + 32/128-task geometry battery"
-g++ -std=c++20 -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all \
-    -fno-omit-frame-pointer -pthread -I. tests/reorder_unit.cc \
-    -o $TMPDIR/tomokv-reorder-unit 2>$TMPDIR/gate-reorder-unit.txt \
-    && $TMPDIR/tomokv-reorder-unit >>$TMPDIR/gate-reorder-unit.txt 2>&1 \
-    && ok "reorder mechanism + 32/128-task geometry battery" \
-    || bad "reorder mechanism + 32/128-task geometry battery" "see $TMPDIR/gate-reorder-unit.txt"
 }
 
 job_storage_units(){
@@ -2573,7 +2560,7 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|config_unit|flip_unit|filter_unit|ring_unit|reorder_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
     atomic_units|netcmd_units) echo production_units;;
@@ -2639,7 +2626,6 @@ collect_job ring_unit
 
 collect_job core_units
 
-collect_job reorder_unit
 
 collect_job storage_units
 

@@ -2,8 +2,8 @@
 """Workload and histogram boundaries for the ABBA regression cells.
 
 Multi-key cells issue eight independent generated keys, as in tests/matrix.sh.
-Reorder cells use ordinary one-owner BITCOUNT and GET tasks: scatter MGET and
-blocking commands are barriers in reorder.h and cannot establish this mechanism.
+The historical REORDER cells mix ordinary one-owner BITCOUNT and GET tasks.
+The retired knob is identified explicitly; old reference binaries retain their witnesses.
 """
 
 import base64
@@ -123,6 +123,15 @@ def command_stat(data, name):
     return int(fields.get("calls", 0)), float(fields.get("usec", 0))
 
 
+def retired_reorder(mode):
+    if mode.get("reorder_retired") != "1":
+        return False
+    if mode.get("reorder") != "0" or any(name.startswith("reorder_") and name != "reorder_retired"
+                                         for name in mode):
+        raise RuntimeError("retired reorder exposed an active knob or counters")
+    return True
+
+
 def require_workload_witness(cell, before, after, mode_before, mode_after, legacy_control=None):
     evidence = {}
     for name in workload_command_names(cell):
@@ -132,6 +141,9 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
             raise RuntimeError(f"{name} did not execute during the measured window")
         evidence[name] = {"calls": ac - bc}
     if cell.op == "REORDER":
+        if retired_reorder(mode_before) and retired_reorder(mode_after):
+            evidence["reorder_witness"] = "retired, no-op"
+            return evidence
         field = "reorder_permuted_runs"
         if field not in mode_before or field not in mode_after:
             # The unchanged pushed reference predates this telemetry. Its fallback must be a
