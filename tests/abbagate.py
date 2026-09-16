@@ -80,7 +80,7 @@ from abba_saturation import (RUN_SATURATION_MARGIN,
 from gate_receipt import harness_fingerprint, read_json
 from abba_evidence import match_null, null_result
 from abba_instrument import instrument_fingerprint
-from abba_workloads import (workload_arguments, prepare_long_keys, merged_tail,
+from abba_workloads import (retired_reorder, workload_arguments, prepare_long_keys, merged_tail,
                             require_workload_witness, workload_command_names,
                             memtier_workload_counts, require_workload_accounting)
 
@@ -169,6 +169,12 @@ class Cell:
     pin_required: bool = False
     data_bytes: int = 64
 
+    def __post_init__(self):
+        # The tail instrument needs 16 independent generators to avoid arrival bursts.
+        # This is workload geometry, independent of throughput saturation calibration.
+        if self.op == "REORDER" and self.instances == 0:
+            object.__setattr__(self, "instances", 16)
+
     @property
     def metric(self):
         return ("latency_ms" if self.depth == 1 else "rate") if self.score == "auto" else {
@@ -226,7 +232,7 @@ def read_cells(path, *, placement=None):
                 or (cell.op == "REORDER") != (cell.metric == "p999_ms")
                 or (cell.depth == 1 and cell.metric == "rate")):
             raise ValueError(f"{path}:{lineno}: workload, mix and scoring disagree")
-        if pinned == "-":
+        if pinned == "-" and cell.op != "REORDER":
             cell = apply_floor(cell, measurements, placement=placement, instrument_sha256=instrument)
         cells.append(cell)
     if not cells or len({c.id for c in cells}) != len(cells):
@@ -1238,6 +1244,8 @@ class Runner:
                         raise NotComparable(reason)
                     raise RuntimeError(reason)
                 for name, value in {"atomic": cell.atomic, **knobs}.items():
+                    if name == "reorder" and retired_reorder(identity):
+                        value = 0
                     actual = conn.must("CONFIG", "GET", name)
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
@@ -1921,7 +1929,7 @@ def self_test():
         def test_full_coverage_preserves_original_axes_and_restores_multikey(self):
             from itertools import product
             cells = read_cells(ROOT / "tests/headline_cells.txt")
-            self.assertEqual(len(cells), 180)   # +2: the t05/t06 reorder synergy pair
+            self.assertEqual(len(cells), 181)   # t00 is the reported-only tail warmup
             original = [cell for cell in cells if cell.id.startswith("h")]
             self.assertEqual(len(original), 64)
             axes = lambda cell: (cell.mode, cell.read_local, cell.overlap, cell.reorder, cell.op, cell.depth)
@@ -1936,7 +1944,7 @@ def self_test():
 
         def test_smoke_is_seventeen_justified_cells_not_a_cross_product(self):
             cells = selected_cells(read_cells(ROOT / "tests/headline_cells.txt"), "smoke")
-            self.assertEqual(len(cells), 17)
+            self.assertEqual(len(cells), 18)
             for mode in ("1s", "2s"):
                 sweep = [cell for cell in cells if cell.mode == mode and cell.op == "GET"]
                 self.assertEqual({(cell.read_local, cell.overlap, cell.reorder) for cell in sweep},
@@ -2072,11 +2080,45 @@ def self_test():
                             self.assertIn("--ratio=1:0", argv)
                             self.assertFalse(any(arg.startswith("--command=") for arg in argv))
 
+        def test_tail_instrument_geometry_and_warmup(self):
+            from abba_workloads import LONG_KEYS, LONG_BYTES
+            from abba_simple import threshold_for
+            cells = read_cells(ROOT / "tests/headline_cells.txt")
+            warmup = cells[0]
+            measured = next(c for c in cells if c.id == "t01")
+            self.assertEqual(warmup.id, "t00")
+            self.assertEqual(replace(warmup, id="t01"), measured)
+            self.assertEqual(LONG_KEYS * LONG_BYTES, 16 * 1024 ** 3)
+            self.assertEqual(selected_cells(cells, "smoke")[0].id, "t00")
+            for cell in cells:
+                if cell.op != "REORDER":
+                    self.assertNotIn("--rate-limiting=1400", workload_arguments(cell))
+                    continue
+                self.assertEqual(cell.instances, 16)
+                self.assertIn("--rate-limiting=1400", workload_arguments(cell))
+                self.assertIn("--key-maximum=65536", workload_arguments(cell))
+                self.assertIsNone(threshold_for(asdict(cell)))
+            self.assertEqual(replace(measured, instances=0).instances, 16)
+            self.assertEqual(replace(measured, instances=8).instances, 8)
+            pins = load_measurements()["load_floors"]
+            for ident in ("t01", "t02", "t03", "t04"):
+                self.assertEqual(pins[ident]["instances"], 16)
+                self.assertEqual(pins[ident]["shape"]["mix"], "8:2")
+
         def test_missing_workload_or_scheduler_engagement_is_red(self):
             cell = replace(self.cell, op="REORDER", score="p999", mix="95:5", reorder=1)
             before = {"cmdstat_get": "calls=10", "cmdstat_bitcount": "calls=10"}
             after = {"cmdstat_get": "calls=100", "cmdstat_bitcount": "calls=20"}
             mode = {"reorder_permuted_runs": "0"}
+            retired = {"reorder": "0", "reorder_retired": "1"}
+            evidence = require_workload_witness(cell, before, after, retired, retired)
+            self.assertEqual(evidence["reorder_witness"], "retired, no-op")
+            for missing in ("cmdstat_get", "cmdstat_bitcount"):
+                with self.assertRaisesRegex(RuntimeError, "did not execute"):
+                    require_workload_witness(cell, before, {**after, missing: before[missing]}, retired, retired)
+            for broken in ({"reorder": "0"}, {**retired, "reorder": "1"}, {**retired, **mode}):
+                with self.assertRaises(RuntimeError):
+                    require_workload_witness(cell, before, after, broken, broken)
             with self.assertRaisesRegex(RuntimeError, "BITCOUNT did not execute"):
                 require_workload_witness(cell, before, {**after, "cmdstat_bitcount": "calls=10"}, mode, mode)
             with self.assertRaisesRegex(RuntimeError, "permutation witness"):

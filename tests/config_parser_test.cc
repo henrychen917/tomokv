@@ -456,6 +456,33 @@ int main() {
         fail("reorder parser rejection text is not canonical");
     tomo::Config reorder_default;
     if (reorder_default.reorder != 0) fail("reorder default is not FIFO");
+    for (const std::vector<const char*>& args : {
+             std::vector<const char*>{}, {"--reorder", "1", "--reorder", "0"},
+             {"--reorder", "1", "--reorder", "1"}}) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        if (tomo::parse_config_args(args, cfg, state, 2, "test") != tomo::kConfigParsed ||
+            tomo::validate_config(cfg) != tomo::kConfigParsed)
+            fail("retired reorder was rejected");
+        const bool warn = cfg.reorder != 0;
+        std::FILE* capture = std::tmpfile();
+        const int saved = ::dup(STDERR_FILENO);
+        std::fflush(stderr);
+        if (!capture || saved < 0 || ::dup2(::fileno(capture), STDERR_FILENO) < 0)
+            fail("retirement stderr capture failed");
+        tomo::retire_reorder(cfg);
+        tomo::retire_reorder(cfg); // normalization is idempotent, including its diagnostic
+        std::fflush(stderr);
+        if (::dup2(saved, STDERR_FILENO) < 0) fail("restore retirement stderr failed");
+        ::close(saved);
+        std::rewind(capture);
+        std::string output;
+        char block[256];
+        while (std::fgets(block, sizeof(block), capture)) output += block;
+        std::fclose(capture);
+        if (cfg.reorder != 0 || output != (warn ? "reorder: retired, no-op\n" : ""))
+            fail("retired reorder did not normalize with exactly one diagnostic");
+    }
     reorder.reorder = 2;
     {
         StderrSilencer quiet;

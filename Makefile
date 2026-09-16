@@ -48,13 +48,14 @@ build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
-# Cold LB code changes GCC 13's translation-unit inlining budget. These stack3 budgets retain
-# the parser, O1 stages, executor and store bodies. The broader offline byte check also records
-# the remaining TLS/control exceptions in MEASURE-REQUEST.md; it does not waive mismatches.
+# Retiring the reorder pass changes GCC 13's translation-unit inlining budget. These budgets
+# retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
+# The complete byte audit records the remaining split read-local writeback/Unix exceptions
+# in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146670
-build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129860
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162350
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
+build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
+build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
@@ -110,10 +111,6 @@ build/read-local-ring-unit: tests/read_local_ring_unit.cc $(wildcard src/*/*.h) 
 build/read-local-write-ring-unit: tests/read_local_write_ring_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/read_local_write_ring_unit.cc -o $@
-# The production cross-connection scheduler, with real ROB tasks at both executor capacities.
-build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. tests/reorder_unit.cc -o $@
 STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc
 build/store-regression: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
@@ -131,12 +128,11 @@ build/store-regression-tsan: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wil
 build/waits-unit: tests/waits_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/waits_unit.cc -o $@
-unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/reorder-unit build/waits-unit
+unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/waits-unit
 	./build/config-parser-test
 	./build/flipctl-unit
 	./build/read-local-ring-unit
 	./build/read-local-write-ring-unit
-	./build/reorder-unit
 	./build/waits-unit
 
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
@@ -189,7 +185,32 @@ build/benchtxn: tools/benchtxn.cc Makefile
 build/broaden-bench: tests/broaden_bench.cc Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/broaden_bench.cc -o $@
-tools: build/benchtxn build/broaden-bench
+tools: build/benchtxn build/broaden-bench build/tailgen
+
+# Standalone smooth open-loop RESP driver; no server libraries or jemalloc.
+TAILGEN_HEADERS := $(wildcard tools/tailgen/*.h)
+# Only libc/pthread are dynamic dependencies; bundle the compiler/math runtimes.
+TAILGEN_LIBS := -static-libstdc++ -static-libgcc -Wl,-Bstatic,-lstdc++,-lm,-Bdynamic -pthread
+build/tailgen: tools/tailgen/main.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ $(TAILGEN_LIBS)
+build/tailgen-unit: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ $(TAILGEN_LIBS)
+build/tailgen-unit-asan: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@ -pthread
+build/tailgen-unit-tsan: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie -I. $< -o $@ -pthread
+tailgen: build/tailgen
+tailgen-unit: build/tailgen-unit
+	./build/tailgen-unit
+tailgen-unit-asan: build/tailgen-unit-asan
+	./build/tailgen-unit-asan
+tailgen-unit-tsan: build/tailgen-unit-tsan
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/tailgen-unit-tsan
+.PHONY: tailgen tailgen-unit tailgen-unit-asan tailgen-unit-tsan
 
 clean:
 	rm -rf build

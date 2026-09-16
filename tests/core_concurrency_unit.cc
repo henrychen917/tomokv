@@ -170,48 +170,6 @@ struct CoreConcurrencyTest {
                 "cleanup removed watcher and released client");
     }
 
-    static void scheduler() {
-        Fixture<true> f;
-        Client clients[4] = {Client(-1), Client(-1), Client(-1), Client(-1)};
-        std::vector<Task> tasks;
-        const std::string key = f.key(f.sid());
-        for (uint32_t i = 0; i < kGenthreadPipelineExBatchOps; i++) {
-            Client& client = clients[i % 4];
-            f.client(client);
-            Op& op = prepare(client, {Slice(i % 3 ? "GET" : "STRLEN"), slice(key)}, f.server);
-            (void)op;
-            tasks.emplace_back(&client, client.rob().dispatch_id(), -1, nullptr);
-            client.rob().publish();
-        }
-        require(tasks.size() == 128 && tasks.size() > kExecBatch, "oversized fused batch armed");
-        for (const Task& task : tasks) {
-            uint8_t length = 255;
-            require(ex_sched_candidate(task, length), "every gathered task eligible");
-        }
-        Task batch[kGenthreadPipelineExBatchOps];
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, static_cast<uint32_t>(tasks.size()));
-        std::copy(std::begin(batch), std::end(batch), tasks.begin());
-        uint64_t next[4] = {};
-        for (const Task& task : tasks) {
-            const size_t client = task.client - clients;
-            require(client < 4 && task.op_id == next[client]++, "scheduler preserves client order");
-        }
-        for (uint64_t count : next) require(count == 32, "scheduler conserves every task");
-        // The original overrun occurs before the single-client shortcut too.
-        Client one(-1);
-        tasks.clear();
-        for (uint32_t i = 0; i < 64; i++) {
-            prepare(one, {Slice("GET"), slice(key)}, f.server);
-            tasks.emplace_back(&one, one.rob().dispatch_id(), -1, nullptr);
-            one.rob().publish();
-        }
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, 64);
-        std::copy(std::begin(batch), std::begin(batch) + 64, tasks.begin());
-        for (uint32_t i = 0; i < 64; i++) require(tasks[i].op_id == i, "one-client FIFO shortcut");
-    }
-
     inline static std::mutex pause_mutex;
     inline static std::condition_variable pause_cv;
     inline static bool done_hook_entered = false, done_hook_release = false;
@@ -658,7 +616,6 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
     if (row == "watch") T::watch_disconnect();
-    else if (row == "scheduler") T::scheduler();
     else if (row == "lifetime") T::lifetime();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); }

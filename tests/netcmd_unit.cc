@@ -338,7 +338,8 @@ struct NetcmdRegression {
         Server info_server;
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
-        info_server.cfg_.reorder = 0;
+        for (uint32_t reorder : {0u, 1u}) {
+        info_server.cfg_.reorder = reorder;
         Shard shard;
         for (uint32_t overlap : {0u, 1u}) {
             info_server.cfg_.overlap = overlap;
@@ -348,16 +349,20 @@ struct NetcmdRegression {
                   "optional schedule reporting follows overlap");
             if (overlap) {
                 for (const char* field : {"schedule_stats_threads:0\r\n", "overlap_schedule:plain\r\n",
-                         "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n",
-                         "reorder_batches:0\r\n", "reorder_multi_client_runs:0\r\n",
-                         "reorder_permuted_runs:0\r\n", "reorder_max_batch:0\r\n"})
+                         "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n"})
                     check(info.find(field) != std::string::npos, "requested schedule reports explicit zeros without a sidecar");
             } else {
                 check(info.find("schedule_stats_threads:") == std::string::npos &&
                       info.find("reorder_permuted_runs:") == std::string::npos,
                       "both requested knobs off preserve the existing INFO surface");
             }
+            check(info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos,
+                  "retired reorder always reports effective zero");
+            for (const char* field : {"reorder_batches:", "reorder_multi_client_runs:",
+                                     "reorder_permuted_runs:", "reorder_max_batch:"})
+                check(info.find(field) == std::string::npos, "retired counters are absent");
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
+        }
         }
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
