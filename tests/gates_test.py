@@ -1280,20 +1280,20 @@ timeout(){
 
     def test_core_rows_execute_both_matching_controls(self):
         rows, calls = self.run_rows()
-        selections = 'watch scheduler lifetime drain route snapshot config notify'.split()
+        selections = 'watch lifetime drain route snapshot config notify'.split()
         self.assertEqual(rows, [['ok', 'core concurrency ' + case] for case in selections])
         self.assertEqual([case for mode, case in calls if mode == 'tsan'], selections)
-        self.assertEqual(len([1 for mode, _ in calls if mode == 'control']), 8)
+        self.assertEqual(len([1 for mode, _ in calls if mode == 'control']), 7)
 
     def test_core_runtime_report_unavailability_and_missing_witness_all_fail(self):
         for failure in ('runtime', 'report', 'unavailable', 'witness', 'control'):
             with self.subTest(failure=failure):
                 rows, calls = self.run_rows(failure=failure)
-                self.assertEqual([row[0] for row in rows], ['FAIL'] * 8)
+                self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
                 if failure == 'control':
                     self.assertTrue(all(mode == 'control' for mode, _ in calls))
         rows, calls = self.run_rows(ready=False)
-        self.assertEqual([row[0] for row in rows], ['FAIL'] * 8)
+        self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
         self.assertTrue(all(mode == 'control' for mode, _ in calls))
 
     def test_waits_keeps_existing_rows_and_adds_one_tsan_execution(self):

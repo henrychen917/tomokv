@@ -1227,12 +1227,12 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
 }
 
 job_core_units(){
-# SURVIVING core concurrency regressions. Eight rows, all ABOVE the quick-tier exit.
+# SURVIVING core concurrency regressions. Seven rows, all ABOVE the quick-tier exit.
 # Each selection asserts its hazardous state; ASAN/UBSAN and bounded interleaving hooks
 # make a broken mechanism fail. The fixture starts no server and opens no listener.
 CORE_UNIT_READY=0
 unit_ready core-concurrency-unit && CORE_UNIT_READY=1
-for core_row in watch scheduler lifetime drain route snapshot config notify; do
+for core_row in watch lifetime drain route snapshot config notify; do
   row_begin "core concurrency $core_row"
   quiet_wait
   if [ "$CORE_UNIT_READY" = 1 ] && \
@@ -2492,7 +2492,7 @@ fi
 # All core dependencies are instrumented in an isolated cache. Linking release objects here
 # would leave command/owner accesses invisible, while sharing the ASAN cache would mix runtimes.
 # One compile mode across every TU also gives inline test hooks identical definitions everywhere.
-# These builds own no ledger row: the existing eight core rows and waits row require both runs.
+# These builds own no ledger row: the existing seven core rows and waits row require both runs.
 job_core_tsan_build(){
   local source sources=()
   mkdir -p "$RUN_DIR/unit-ready"

@@ -2,11 +2,11 @@
 # Format: id | mode | rl | ov | ro | op | depth | total-conns | reserved(-) | reserved(-) | reserved(-) | atomic | score | mix | smoke
 # mix is READ:WRITE for MIX/MIX8 and short-GET:long-BITCOUNT for REORDER; - means pure.
 # MGET/MSET/MIX8 use eight independently generated keys per operation.
-# New deep cells deliberately have no pin: they FAIL preflight until --escalate measures
-# their load floor and gate_measurements.py imports the validated result. A guessed pin is not validation.
+# Throughput cells use measured load floors. Tail cells instead fix 16 generators as
+# part of their rate-limited instrument; no throughput calibration can change that default.
 # Reserved columns keep diagnostic fixture grammar compatible; production rows must leave them empty.
-# Full push/release design: retained64 + multi-key96 + mixed6 + connections4 + atomic4 + tail4 =178.
-# --subset full is the ABBA default. --subset smoke is a complete15-cell ITERATION result.
+# Full: retained64 + multi-key96 + mixed6 + connections4 + atomic4 + tail6 + warmup1 = 181.
+# --subset full is the ABBA default. --subset smoke is a complete18-cell ITERATION result.
 # It cannot replace the full set at a push or release.
 #
 # SMOKE JUSTIFICATION, EVERY CELL:
