@@ -29,12 +29,11 @@ import perf_gate as perf
 def feature_evidence():
     knobs = {'thread-mode': '2s', 'read-local': 1, 'overlap': 1, 'reorder': 1,
              'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
-    keys = ('overlap_passes', 'overlap_interleaved_passes', 'reorder_batches',
-            'reorder_multi_client_runs', 'reorder_permuted_runs', 'atomic_groups',
+    keys = ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
             'tomokv_keylb_ticks', 'tomokv_keylb_bucket_moves', 'tomokv_keylb_client_moves',
             'flipctl_forced_triggers', 'flipctl_triggers')
     before = {key: '0' for key in keys}
-    before.update(read_local_active_threads='1', schedule_stats_threads='2',
+    before.update(reorder='0', reorder_retired='1', read_local_active_threads='1', schedule_stats_threads='2',
                   tomokv_keylb_bucket_weight_spread_current='0',
                   tomokv_keylb_client_weight_spread_current='0',
                   overlap_schedule='split-io-overlap', overlap_enabled='1',
@@ -78,8 +77,7 @@ class FeatureFailures(unittest.TestCase):
     def test_every_enabled_witness_must_fire(self):
         b, a, knobs = feature_evidence()
         feature.check_activity(b, a, knobs, 2, True)
-        for key in ('overlap_passes', 'overlap_interleaved_passes', 'reorder_batches',
-                    'reorder_multi_client_runs', 'reorder_permuted_runs', 'atomic_groups',
+        for key in ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
                     'tomokv_keylb_ticks', 'flipctl_forced_triggers',
                     'tomokv_keylb_bucket_weight_spread_current', 'tomokv_keylb_client_weight_spread_current'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
@@ -115,8 +113,7 @@ class FeatureFailures(unittest.TestCase):
                 if key.startswith('read_local_'):
                     del row[key]
             row.update(overlap_schedule='fused-overlap', overlap_enabled='1',
-                       overlap_interleaved_passes='0', reorder_batches='0',
-                       reorder_multi_client_runs='0', reorder_permuted_runs='0',
+                       overlap_interleaved_passes='0',
                        flipctl_triggers='0')
             for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
                         'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
@@ -127,9 +124,9 @@ class FeatureFailures(unittest.TestCase):
         calls_before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
         calls_after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
         witness = require_workload_witness(tail, calls_before, calls_after, b, a)
-        self.assertEqual(witness['reorder_permuted_runs'], 0)
+        self.assertEqual(witness['reorder_witness'], 'retired, no-op')
         for field in ('schedule_stats_threads', 'overlap_enabled', 'overlap_schedule',
-                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_permuted_runs'):
+                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_retired'):
             missing = dict(a)
             del missing[field]
             with self.subTest(field=field), self.assertRaises(AssertionError):
@@ -152,7 +149,7 @@ class FeatureFailures(unittest.TestCase):
 
     def test_disabled_features_cannot_fire(self):
         b, a, knobs = feature_evidence()
-        for key in ('overlap', 'reorder', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
+        for key in ('overlap', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, a, dict(knobs, **{key: 0}), 2, True)
 
@@ -294,14 +291,14 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
-                          'tests/gate_process_test.py', 'tests/gates_test.py')
+                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         if kind == 'feature':
             start = gate.index('# ---- A. mandatory feature')
-            end = gate.index('if [ "$TIER" = quick ]; then', start)
+            end = gate.index('# One correctness row, before the quick exit.', start)
         else:
             marker = gate.index('# ---- B. mandatory headline performance')
             start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
@@ -332,7 +329,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -785,7 +782,7 @@ probe
 
 
 class SchedulerWiring(unittest.TestCase):
-    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build'))
+    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'))
 
     # Enumerate the real collector loops, not a hand-maintained approximation of their inventory.
     # This invokes only collect_job stubs: no compiler, server, battery or benchmark is started.
@@ -793,7 +790,7 @@ class SchedulerWiring(unittest.TestCase):
     def setUpClass(cls):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
-        quick = gate[gate.index('\nstart_workers\n'):gate.index('\nif [ "$TIER" = quick ]; then\n  join_workers')]
+        quick = gate[gate.index('\nstart_workers\n'):gate.index('\n# One correctness row, before the quick exit.')]
         full = gate[gate.index('\ncollect_job asan_batteries\n'):gate.index('\n# Every worker has reaped')]
         stub = '''start_workers(){ :; }
 collect_job(){
@@ -889,7 +886,7 @@ __SCHEDULER_AFFINITY_PROBE__
     : > "$RUN_DIR/atomic-boot-reached"
   fi
   case "$current" in
-    production_units|core_tsan_build|waits_tsan_build)
+    production_units|core_tsan_build|waits_tsan_build|tailgen_build)
       : > "$RUN_DIR/completed/$current"
       return 0;;
   esac
@@ -1207,13 +1204,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
         self.assertEqual(result['counts'], (len(self.canonical) - 1, 1), result['output'])
         self.assertIn(b'FAIL\tcorrectness family release\n', result['ledger'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], [name for name in self.canonical if name != 'release'])
 
     def test_release_boots_do_not_wait_for_independent_asan_build(self):
         result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertTrue(result['dependency_reached'], result['output'])
         self.assertTrue(result['dependency_handshake'], result['output'])
@@ -1238,7 +1235,7 @@ class TSANWiring(unittest.TestCase):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         helpers = gate[gate.index('tsan_unit(){'):gate.index('\njob_production_units(){')]
-        first, after = ('job_core_units(){', 'job_reorder_unit(){') if kind == 'core' else ('job_wait_units(){', 'job_readonly(){')
+        first, after = ('job_core_units(){', 'job_storage_units(){') if kind == 'core' else ('job_wait_units(){', 'job_readonly(){')
         body = gate[gate.index(first):gate.index(after)]
         stub = r'''set -u
 CORE_TSAN=/unused-core-tsan; WAITS_TSAN=/unused-waits-tsan; CORES=0-7
@@ -1283,20 +1280,20 @@ timeout(){
 
     def test_core_rows_execute_both_matching_controls(self):
         rows, calls = self.run_rows()
-        selections = 'watch scheduler lifetime drain route snapshot config notify'.split()
+        selections = 'watch lifetime drain route snapshot config notify'.split()
         self.assertEqual(rows, [['ok', 'core concurrency ' + case] for case in selections])
         self.assertEqual([case for mode, case in calls if mode == 'tsan'], selections)
-        self.assertEqual(len([1 for mode, _ in calls if mode == 'control']), 8)
+        self.assertEqual(len([1 for mode, _ in calls if mode == 'control']), 7)
 
     def test_core_runtime_report_unavailability_and_missing_witness_all_fail(self):
         for failure in ('runtime', 'report', 'unavailable', 'witness', 'control'):
             with self.subTest(failure=failure):
                 rows, calls = self.run_rows(failure=failure)
-                self.assertEqual([row[0] for row in rows], ['FAIL'] * 8)
+                self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
                 if failure == 'control':
                     self.assertTrue(all(mode == 'control' for mode, _ in calls))
         rows, calls = self.run_rows(ready=False)
-        self.assertEqual([row[0] for row in rows], ['FAIL'] * 8)
+        self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
         self.assertTrue(all(mode == 'control' for mode, _ in calls))
 
     def test_waits_keeps_existing_rows_and_adds_one_tsan_execution(self):
@@ -1359,6 +1356,8 @@ class CompleteTierDispatch(unittest.TestCase):
                      'differ-split', 'differ-armed', 'globcase'}
         stub = r'''
 GATE_SLOTS=0; PASS=0; FAIL=0; EXPECT_QUICK=419; GATE_STARTED=$SECONDS; JOINED=0
+TMPDIR="$RUN_DIR"; PORT=9999
+mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/tailgen"
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; : > "$LEDGER"; : > "$TIMINGS"
 phase(){ printf 'PHASE %s\n' "$1" >> "$EVENTS"; }
 program_state(){ :; }
@@ -1376,6 +1375,15 @@ collect_job(){
   printf 'COLLECT %s\n' "$1" >> "$EVENTS"
 }
 join_workers(){ JOINED=1; printf 'JOIN\n' >> "$EVENTS"; }
+taskset(){ :; }
+set_slot(){ :; }
+stop(){ :; }
+ok(){ :; }
+bad(){ exit 75; }
+boot_fused(){
+  [ "$JOINED" = 1 ] || { echo 'measurement before worker join' >&2; exit 72; }
+}
+py(){ printf 'TAILGEN\n' >> "$EVENTS"; }
 python3(){
   # This new serverless output resolver is not an ABBA measurement. Let the actual parser
   # resolve its destination before recording the one real background dispatch below.
@@ -1408,6 +1416,8 @@ python3(){
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     self.assertEqual(result.stdout.splitlines()[0], str(root / f'build/gate-ledger-{purpose}.txt'))
                     events = (directory / 'events').read_text().splitlines()
+                    self.assertEqual(events.count('TAILGEN'), 1)
+                    self.assertLess(events.index('JOIN'), events.index('TAILGEN'))
                     collected = {event.removeprefix('COLLECT ') for event in events if event.startswith('COLLECT ')}
                     if purpose == 'quick':
                         self.assertFalse(collected & full_only)
@@ -1416,7 +1426,8 @@ python3(){
                         self.assertTrue(full_only <= collected)
                         self.assertEqual(events.count('ABBA'), 1)
                         self.assertLess(events.index('JOIN'), events.index('ABBA'))
-                        self.assertTrue(all(index < events.index('JOIN') for index, event in enumerate(events)
+                        final_join = len(events) - 1 - events[::-1].index('JOIN')
+                        self.assertTrue(all(index < final_join for index, event in enumerate(events)
                                             if event.startswith('COLLECT ')))
                         argv = (directory / 'argv').read_bytes().decode().rstrip('\0').split('\0')
                         self.assertEqual(argv[0], 'tests/abbagate.py')
@@ -1424,13 +1435,11 @@ python3(){
                                          'smoke' if purpose == 'iteration' else 'full')
                         self.assertEqual(argv[-2:], ['--output', str(directory / 'abba')])
                         if purpose == 'iteration':
-                            # Delete only the production measurement barrier. The same
-                            # workload-boundary assertion must refuse ABBA before it emits
-                            # any measurement evidence; a control that never reaches this
-                            # assertion would otherwise pass on the broken coordinator.
-                            barrier = '\njoin_workers\nphase abba-begin'
-                            self.assertEqual(coordinator.count(barrier), 1)
-                            poisoned = coordinator.replace(barrier, '\nphase abba-begin', 1)
+                            # Both serial instruments follow the worker barrier. Removing
+                            # all joins must fail at the first instrument, before any load.
+                            barrier = '\njoin_workers\n'
+                            self.assertEqual(coordinator.count(barrier), 2)
+                            poisoned = coordinator.replace(barrier, '\n')
                             (directory / 'events').unlink()
                             (directory / 'argv').unlink()
                             result = subprocess.run(

@@ -382,8 +382,8 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Boot-only latency reordering across connections in an executor batch; connection order is
-    // preserved. 0 keeps FIFO and allocates nothing. Same alignment hole as the former ex_sched.
+    // Retired boot knob: accept the old 0|1 grammar, then clear after CLI overrides.
+    // Retaining this slot preserves Config layout; neither value enables or allocates anything.
     uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
@@ -427,6 +427,12 @@ struct Config {
     uint8_t layout_reserved[80]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
+
+// Apply once after validation and all file/CLI overrides, before any server allocation.
+inline void retire_reorder(Config& cfg) {
+    if (cfg.reorder) std::fputs("reorder: retired, no-op\n", stderr);
+    cfg.reorder = 0;
+}
 
 inline constexpr uint32_t cfg_default_shards(uint32_t executors) {
     return executors >= 32 ? 256 : 8 * executors;
@@ -1059,7 +1065,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
-                        "    --reorder 0|1 (default 0)   cross-connection reordering in an executor batch for latency; per-connection order always preserved\n"
+                        "    --reorder 0|1 (default 0)   retired compatibility knob; 1 warns once, both values are no-ops\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"

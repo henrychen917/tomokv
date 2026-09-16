@@ -1,4 +1,4 @@
-cx-lbstall-s3: the current request and gate-correction receipts are in MEASURE-REQUEST.md.
-POST: build/tomokv-lbstall-s3. PAD: build/tomokv-lbstall-s3-pad, kind A (behaviour twin).
-Authorized churn: 3/3, bucket moves 16/10/18, server CPUs 112-119 only.
-Full gate and performance measurements remain mainline-scheduled.
+TomoKV cx-cleanup-v6: see MEASURE-REQUEST.md in this worktree.
+PRE build/tomokv-v5; POST build/tomokv-v6; PAD build/tomokv-v6-pad (kind B inverse control).
+Rate h01,h02,h05,h07,h17,h18; reported tail t00-t04 at 16 instances and 716800/s.
+No live measurements run by this lane. Append maintainer results to MEASURE-RESULT.

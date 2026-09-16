@@ -1,290 +1,199 @@
-# cx-lbstall-s3 — client-only balancer drain limit on stack3
+# TomoKV v6 cleanup — maintainer handoff
 
-**Correction to rejected v5 `29486b6a6`. Builds and units use CPUs 112–127.
-The owner authorized the specific churn battery on server CPUs 112–119; its
-receipts are recorded below. The full gate and performance measurements remain
-mainline-scheduled.**
+Base/PRE: `e4ec4dfce` (v5). This branch retires reorder, replaces the headline
+tail geometry, merges `cx-tailgen` at `76265d400`, and adds the open-loop client
+migration stall row. No server, benchmark, or full gate was run by this lane.
+All compilation and serverless checks were pinned within CPUs 112–127, using
+`make -j8` for builds.
 
-Worktree: `/home/user/Projects/cx-lbstall-s3`; branch: `cx-lbstall-s3`.
-PRE is stack3 `3baa74799` (product source `147ac24b7`: v3 + L1 + O1 + O6).
-The cx-lbstall commits `42d54d7e2`, `ad1542013`, `d0a565b32` are replayed,
-with O1/O6 retained and the regression adapted to stack3. See [LBSTALL.md](LBSTALL.md).
-Busy client moves still refuse immediately, and a ready client waiting for its
-destination retains the three-pass bound. Shard publication/executor drains now
-use v4's barriers and timeout guard: they do not consume the client pass budget.
-The client counters, cooldown, lifetime fences and pending-IFID fix are unchanged.
+## Arms and decisions
 
-## Arms and control semantics
+- PRE: `build/tomokv-v5`, built from the clean base before any edit.
+- POST: `build/tomokv-v6`, the final release build of this branch.
+- PAD: `build/tomokv-v6-pad`, **kind B — inverse control**: candidate behavior
+  plus inert text padding restoring PRE's `.text` size. It is not a PRE-behavior
+  twin. The pass deletion changes text size by more than a few hundred bytes;
+  compare PAD to both PRE and POST to detect a placement/size contribution.
 
-All paths are relative to this worktree. The final manifest appears below.
-Builds use GCC 13.3, jemalloc, `taskset -c 112-127 make -j8`, and the release
-Makefile's per-translation-unit code-generation locks. No runtime knob changed.
+Frozen release arms (same compiler, flags/allocator family):
 
-- **A / PRE:** `build/tomokv-lbstall-s3-pre`, retained frozen stack3 build from the original integration.
-- **B / POST:** `build/tomokv-lbstall-s3`, the client-only bounded-refusal candidate.
-- **C / PAD-A:** `build/tomokv-lbstall-s3-pad`.
+| Arm | .text bytes | SHA256 |
+| --- | ---: | --- |
+| PRE | 3,535,747 | `b56cdc8dc68d6a6d9abca0a805b8896e05387a7c4914d9713d1cf111f2d0ab49` |
+| POST | 3,532,099 | `30f16cce0ca2b99f0873f299e08c5365d7c691d9ba20a26327ca6d37f97b84d4` |
+| PAD | 3,535,747 | `d62e1c07f46ba2645a09a051023c1a83bd85a938f1a4604dace4be374325cc4f` |
 
-PAD is **kind (A), behaviour twin**, with the same scope as cx-lbstall's control:
-PRE's wait-until-timeout busy-drain policy for ordinary tail-cell clients in POST's
-exact text/state layout. Only three bytes at the out-of-line `lb_refuse_stalled`
-entry become `xor eax,eax; ret` in a COPY of POST, preserving CET. Section sizes,
-function addresses and every other file byte remain POST's. The same patch on the
-unit executable makes the bounded-arrivals assertion fail.
+POST shrinks `.text` by **3,648 bytes**. PAD adds exactly 3,648 inert NOP bytes
+in an unreferenced function; it restores PRE's text size without reintroducing
+the scheduler. `build/v6-audit/binaries.json` and `pad-link.json` retain the
+digests, kind and exact link command. The assembly is `inverse-pad.S`.
+No performance result is claimed before `MEASURE-RESULT` is supplied.
 
-PAD retains the candidate's cold safety mutexes, control-tail polling cadence,
-cooldown scaffolding and INFO schema. It is a control for the refusal mechanism,
-not a recreation of all PRE control-flow instructions. No kind (B) arm is requested.
+| Required comparison | PRE | POST | Decision |
+| --- | --- | --- | --- |
+| h01,h02,h05,h07,h17,h18 rate | pending | pending | Rate-neutral or better vs v5; no loss hidden by a different generator count |
+| Same six cells cycles/op, instructions/op, IPC | pending | pending | Explain the rate result; instruction count alone is not a verdict |
+| t01–t04 short and long p99.9 | pending | pending | Report only; compare with the mode's same-binary spread |
+| Open-loop outstanding bound | owner records: v5 8/8, v3 fails 10/10 | pending | Strict correctness: fraction = 0 and maximum <= 64 |
 
-## 1. Correctness gate — mainline schedules it
+Use the quiet box, one measurement lane, with the gate's instrument. Rate fixtures
+pin **all six cells at 12 instances** so h05/h07 cannot repeat the 2-instance cap
+confound. They retain 512 total connections, p32, 64-byte values, atomic=1 and the
+original mode/read-local/overlap/reorder axes. Both balancers remain at default on.
+Tail fixtures fix **16 instances**, 512 total connections, p8, GET:BITCOUNT 8:2,
+65,536 blockers × 256 KiB = 16 GiB, and `--rate-limiting=1400` per connection:
+716,800/s (the 717K/s, 68% rung of the 1.06M/s wall). The ordinary two-million-key
+short population remains 64 B per value. `t00` is identical to `t01` and runs
+first as a reported-only warmup; do not include it in the tail conclusion.
 
-The maintainer's v5 gate reported **435/436**, with the armed block-cache churn
-row failing because it observed **zero shard moves**. The new serverless shard
-regression fails against that rejected implementation. It now requires the SAME
-plan to survive eight publication tails and four executor-drain tails, execute its
-queued SET, then commit and preserve RYOW in both modes. No client bound was relaxed.
+The root's `build/v6-rate-cells.txt` and `build/v6-tail-cells.txt` are extracted
+from `tests/headline_cells.txt` with column 11 set to 12 and 16 respectively.
+Recreate them after cleaning `build/`; do not calibrate the tail geometry back to
+one generator. The t01–t04 JSON records now explicitly invalidate the old
+2048-key saturation calibration instead of relabeling its observations as fresh.
 
-Run `tests/gate.sh iteration` against POST at the gate's own geometry: 16 shards,
-`GATE_RATIO`, `GATE_CORES`, with both thread modes and the armed read-local legs.
-Do not substitute the 256-shard tail geometry for a correctness row.
-Keep the gate's registered reference and ledger; the separate stack3 marginal
-comparison below uses arm A explicitly. A version pass requires the full gate.
-
-No gate source or EXPECT constant changed. The existing `core concurrency route`
-row is emitted at `tests/gate.sh:1233` and collected at line 2640, before the quick
-exit at line 2747. Row delta **0 quick / 0 full**; counts stay **419 / 436**.
-
-## 2. Stack3 marginal rate protection
-
-Use the gate's ABBA instrument at matched offered load. Run A/B/B/A, with at least
-two independent blocks per cell and the existing engagement/overload witnesses.
-Run A/C/C/A and C/B/B/C for any changed cell before attributing a difference.
-
-| Cells | Purpose / fixed setup |
-| --- | --- |
-| `h01,h02,h05,h07` | 1s GET/SET p32, including overlap/reorder controls |
-| `h17,h18,h21,h23` | The corresponding 2s controls |
-| Remaining gate ABBA smoke cells | Armed read-local, multi-key, atomic and tail coverage in the gate's unchanged 17-cell set |
-| GET/SET p8, 1s and 2s, read-local=0, overlap=0/1, reorder=0/1 | Preserve stack3's depth-8 behavior; same connection count and allocator |
-
-Use the exact cell definitions in `tests/headline_cells.txt`, 512 total connections
-for the named h-cells, and the gate's calibrated pins, key/value sizes and command
-denominators. Pin ALL 1s GET comparisons (`h01,h05,h07`) at the same 12-generator
-rung; the prior 2-vs-12-instance comparison hit a load-generator ceiling. Keep each
-cell's offered load identical across arms. Other cells use their validated rung.
-Leave client-lb and key-lb at their normal on settings, then repeat any differing
-cell with both zero to distinguish movement from the stable control tail/layout.
-
-**Decision:** zero main-command regression under the gate's existing acceptance
-rule at matched offered load. Report rate, cycles/op, instructions/op and IPC for
-every arm/cell. Rate is the verdict; instructions and IPC explain it together.
-Resolve identical-arm spread above 2% as contention or a bug; do not widen a limit.
-A/B alone cannot establish the cause of a text-layout-sensitive difference.
-
-## 3. Tail / movement checks
-
-Use mainline's frozen tailgen and population/boot scripts; record their digests,
-full commands, warmup boundary, seeds and CPU mappings in `MEASURE-RESULT`.
-Run A/B/B/A and C/B/B/C for the cells below. Keep 16 generator threads × 32
-connections = 512, Poisson arrivals, GET:BITCOUNT = 8:2, read-local=0, atomic=1,
-overlap=1, and both balancers on unless the cell says otherwise.
-
-| Cells | Arms / repetitions / geometry |
-| --- | --- |
-| Original client-stall shape | 1s reorder=0/1, 717,000 ops/s, 256 shards, 2M short 64-byte keys + 2,048 long 256-KiB keys; 3 ABBA blocks, 3s warmup + 20s measured windows |
-| Uniform-heavy instrument `t01–t04` | Both modes, reorder=0/1; 65,536 uniformly selected long keys, 717,000 and 900,000 ops/s, 16 generator instances; 2 ABBA blocks per rung, mainline's warmup cell and cold-first-run policy |
-| Movement-off controls | Repeat any changed tail cell with client-lb=0 only, then both balancers=0; preserve offered load and all other settings |
-
-At the 900K/s rung use paired deltas and the instrument's established same-binary
-floor. Preserve pacing lag, unsent bytes, achieved rate, backlog and drain time so
-overload cannot masquerade as one stalled connection. Save short and long latency
-histograms separately: p50/p99/p99.9/p99.99/max, per-connection maximum outstanding,
-and the any-connection-over-64 fraction. Take release INFO snapshots outside the
-measured window: client/shard move counts, `lb_client_refused`, the refusal reasons
-and `tomokv_lbstall_pending_ns_max` (publication-to-refusal, not end-to-end latency).
-
-**Decision:** no new multi-second holds or short/long latency regression on POST;
-ready moves remain possible, and busy candidates produce bounded refusals.
-Stack3 already had two clean live rounds in the maintainer's evidence. A finite
-PRE/PAD run with no stall is therefore expected to be possible and establishes
-no latency gain for this fix. Only an armed PRE/PAD hold with a clean POST can
-support a live stall-removal claim. The directed PRE/PAD unit failures independently
-prove the new refusal behavior without claiming stack3's old IFID self-hold exists.
-
-## 4. TLS exception follow-up
-
-The strict byte proof below has three TLS exceptions. In addition to the named
-plain-transport cells, run TLS GET/SET at p1/p32, 512 connections, 64-byte values,
-read-local=0/1, both thread modes, and `--net-io uring` / `--net-io epoll`.
-Repeat the TLS runs with the gate's Unix listener configured to visit the
-TLS+Unix loop specialization. Use the gate's existing certificates/TLS client
-plumbing and matched offered loads, with A/B/B/A and A/C/C/A controls.
-Profile any changed cell before accepting a zero-regression claim. Live measurements
-cannot turn a differing instruction sequence into a byte-identity pass.
-
-## Final artifact manifest
-
-Product commit: `73ddb263b`; regression commit: `85059ae74`.
-Compiler: `g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0`.
-All arms use the same release flags/allocator. POST's unchanged GCC budget locks
-are `main.o:146670`, `genthread.o:129860`, `rl2s.o:162350`, each with
-`inline-unit-growth=0`.
-
-| Arm | File | .text bytes | SHA256 |
-| --- | --- | ---: | --- |
-| PRE | `build/tomokv-lbstall-s3-pre` | 3531171 | `bce51ed313fce228eca285801484091466bdbd0448cad7adfb6ea506cc25945b` |
-| POST | `build/tomokv-lbstall-s3` | 3535747 | `fadf6ed53714e3c89478ae0d1a224338d4105fcb0e94fedfad74092302b81ea6` |
-| PAD-A | `build/tomokv-lbstall-s3-pad` | 3535747 | `c28cb23c1351820b80607eb18aa412546000f758e980fdd161768cce5899b370` |
-
-POST grows .text by **4,576 bytes** versus stack3 and shrinks it by **16 bytes**
-versus rejected v5. PAD-A has exactly POST's section sizes, symbol addresses and
-file size. Only the three bytes starting at file offset **3560324** differ.
-Receipts: `build/lbstall-s3-repair/artifacts.json`, `pad.json`.
-Both delivered release arms remain executable.
-
-## Completed verification
-
-| Check | Negative / reference | Corrected POST |
-| --- | --- | --- |
-| Busy client, continuous arrivals, empty ROB | Frozen stack3 and PAD fail the four-pass assertion | **4/4**, first-tail refusal in both modes, destination ACK present/absent; same frames answered once |
-| Ready source / missing destination ACK | PRE's timeout policy | Exactly third-tail refusal |
-| Delayed shard publication/execution | Rejected v5 fails `shard publication drain MUST survive more than three IO passes` | Both modes commit the same delayed plan; owner, queued SET, RYOW and timeout guard asserted |
-| Native units | Same two existing defects reproduced previously on frozen stack3 | **64/66 pass**, all rerun; unchanged two failures below |
-| TSAN | No suppressions or waived failures | **11/11 pass**: eight core selections, overlap, waits, storage flags |
-| Debug park / INFO | Real buffered input and executor scope | Four witnesses and parked-byte/refusal counters pass |
-| Stable hot bodies vs rejected v5 | Release objects captured before the repair | **576/576** raw bytes AND resolved relocation targets match |
-| Stable hot bodies vs stack3 | Frozen stack3 release objects | **573/576** match; same three TLS exceptions below |
-| Full gate / rate / IPC / tails | Maintainer schedules these | Pending mainline execution |
-
-Build command:
+Run two complete ABBA blocks per arm pair (distinct `--output` per invocation):
 
 ```sh
-taskset -c 112-127 make -j8 -f Makefile \
-  -f build/lbstall-s3-repair/checks.mk lbstall-repair-build
+# PRE -> POST rates; repeat with candidate tomokv-v6-pad and distinct output.
+tests/gate.sh perf --reference-binary "$PWD/build/tomokv-v5" \
+  --candidate-binary "$PWD/build/tomokv-v6" \
+  --server-cores 0-31 --server-smt '' --load-cores 32-111 --load-smt '' \
+  --cells "$PWD/build/v6-rate-cells.txt" --subset full \
+  --output "$PWD/build/v6-rate-1"
+
+# PRE -> POST reported tails; t00 is first in this fixture. Repeat for PAD.
+tests/gate.sh perf --reference-binary "$PWD/build/tomokv-v5" \
+  --candidate-binary "$PWD/build/tomokv-v6" \
+  --server-cores 0-31 --server-smt '' --load-cores 32-111 --load-smt '' \
+  --cells "$PWD/build/v6-tail-cells.txt" --subset full \
+  --output "$PWD/build/v6-tail-1"
 ```
 
-This rebuilt release, all named unit binaries, the park/INFO debug unit, and the gate's
-`TOMO_RL_CACHE_DEBUG` server. The latter uses the exact compile/link flags and
-source order from `job_rldbg` in `tests/gate.sh`, with eight compiler jobs.
-No gate target was executed.
+Keep per-arm rates, cycles/op, instructions/op, IPC, all raw histograms, generator
+CPU/pacing evidence and observed spreads. Repeat a same-binary v5 block at these
+exact placements if rate spreads exceed 2%; do not widen a tolerance. The owner
+measured paired v5 rate differences around ±1% on a quiet box. The valid tail
+instrument's same-binary p99.9 spreads are **2–3.5% (1s)** and **6–10% (2s)**;
+these are reference observations, not newly introduced gate thresholds. Tail
+rows, including t00, stay reported-only under `abba_simple.py`.
 
-Every unit selection reran on CPUs **112–127**; owner-arena selections use
-**112–119** because the fixture requires exactly eight allowed CPUs. Core units
-use ASAN/UBSAN. The core and overlap TSAN builds instrument all linked production
-dependencies, without jemalloc, with `-O1 -fsanitize=thread`,
-`-fno-omit-frame-pointer -no-pie`. Runs use `setarch x86_64 -R`,
-`TSAN_OPTIONS=halt_on_error=1:exitcode=66`, no suppressions. GCC's existing
-atomic_thread_fence instrumentation warnings remain.
+## Correctness row and ledger arithmetic
 
-Fresh receipts live under **`build/lbstall-s3-repair/`**: `build.log`,
-`checks.mk`, `run-units.py`, `units/results.json` (**75/77**, including TSAN),
-per-selection logs, `directed.json`, `POST-shard.log`, `POST-debug.log`,
-`PRE-client.log`, `PAD-client.log`, and `shard-negative.log`.
-`core-concurrency-shard-negative` links the new test against rejected v5's
-unchanged production objects. `core-concurrency-pad` patches only the refusal
-entry in a copy of the corrected unit binary; it fails the intended client assertion.
+The new `tailgen client-lb outstanding bound` row runs **before the quick-tier
+exit**, after `join_workers`, using `boot_fused` with `--shards 256 --atomic 1
+--overlap 1`, read-local at its default off, and both balancers at default on.
+It uses the gate's complete tail placement (`PERF_SERVER_CORES` and
+`PERF_LOAD_CORES`) because ordinary parallel correctness slots may have only two
+load cores, while tailgen requires 16 distinct load cores. A smaller allocation
+fails visibly; the generator is never oversubscribed or silently reduced.
 
-**Known defects outside this repair, reproduced on frozen stack3 PRE during the
-original integration and again on corrected POST:**
-
-- `atomic-survivors-unit post_apply_probe`: first-owner APPLY plus two successful
-  APPENDs gives lengths 2/2 and final `BW`, an illegal serial outcome.
-- `netcmd-unit collection-oom`: failed multi-field HSET retains the changed first
-  field and old TTL (OPEN F05).
-
-These nongating diagnostics remain failing; no assertion or expected gate count
-was changed. PRE receipts remain in `build/lbstall-s3-proof/`; corrected POST
-receipts are in `build/lbstall-s3-repair/units/`.
-
-### Authorized armed block-cache churn
-
-**3/3 fresh boots pass**, with **16 / 10 / 18 bucket moves** measured by the
-unchanged battery itself. Every boot ran the gate's ownership-assertion build:
-`build/lbstall-s3-repair/tomokv-rlcachedbg`, SHA256
-`2d82f35df857ba8c3196c4b474f01c8d0c6c50bd6ac80975df989f366d9b67ab`.
-
-| Trial | Bucket moves | Armed read hits | Peak block cache, bytes | Result |
-| --- | ---: | ---: | ---: | --- |
-| 1 | 16 | 3991436 | 2752 | PASS, 5 checks, 0 skips |
-| 2 | 10 | 3925813 | 2304 | PASS, 5 checks, 0 skips |
-| 3 | 18 | 3865993 | 2768 | PASS, 5 checks, 0 skips |
-
-All 48 workers completed in each 25-second battery. Every owned server exited
-with status 0, a final shutdown report, and no `RLSINK-VIOLATION`,
-`RLCACHE-VIOLATION` or `RLRING-VIOLATION`. All sampled server thread affinities
-were subsets of **112–119**; the Python driver was pinned to **120–127**.
-Each boot used a fresh empty persistence directory and an unused loopback port:
+The generator build runs as a dependency job without another ledger row. The
+90-second row covers boot, memtier short-key population, the shared
+`abba_workloads.prepare_long_keys`, 3 s warmup, 20 s measured window, JSON
+validation. Teardown follows before restoring the slot placement. Its exact load is:
 
 ```sh
-taskset -c 112-119 build/lbstall-s3-repair/tomokv-rlcachedbg \
-  --port "$PORT" --bind 127.0.0.1 --shards 16 --dir "$FRESH_DIR" \
-  --thread-mode fused --shards 64 --atomic 1 --read-local 1 \
-  --enable-debug-command yes
-taskset -c 120-127 python3 tests/rlcache_churn.py 127.0.0.1 "$PORT" 25 48
+build/tailgen --rate 717000 --threads 16 --conns 32 --cores '<gate load cores>' \
+  --mix GET:8,BITCOUNT:2 --spacing poisson --warmup 3 --duration 20 \
+  --max-outstanding 64 --short-keys 2000000 --long-keys 65536
 ```
 
-The base `--shards 16` followed by the `--shards 64` override matches
-`launch` / `boot_fused` exactly; no `--ratio` is passed. INFO confirms
-`thread_mode=1s`, `shards=64`, `atomic=1`, `read_local=1` before every battery.
-Receipt: `build/lbstall-s3-repair/churn/results.json`, with exact argv, PID,
-affinities, INFO snapshots, battery output and server logs. The harness is
-`build/lbstall-s3-repair/run-churn.py`; all three owned server PIDs are gone.
-No full gate or performance measurement was run.
+`--conns 32` is per thread. The outstanding witness observes, and does not cap,
+open-loop submissions. Any positive `over_max_outstanding_fraction` or
+`outstanding_max > 64` fails. Missing/nonfinite fields, wrong window, absent
+command classes, boot/population/driver/build failures also fail. Artifacts live
+under the run's `main/tailgen-stall/` (argv, population, stdout JSON, stderr).
+The row's serverless controls test both bounds independently and cover failure
+propagation through the real shell branch with all workloads stubbed.
 
-### Sizes and source preservation
+Two retired rows were before the quick exit: the dedicated `reorder mechanism +
+32/128-task geometry battery`, and `core concurrency scheduler`, which directly
+called the deleted scheduler too. One new stall row is also before that exit.
+Counted by source line: v5's core loop was at 1232 and dedicated reorder row
+at 1252, before its quick exit at 2743. V6's new row is at 2746, before its
+quick exit at 2758. Thus **quick 419 - 2 + 1 = 418; full 436 - 2 + 1 = 435**, excluding any optional
+NIC additions. **Neither EXPECT_QUICK nor EXPECT_FULL was edited.** The maintainer
+must update them before the iteration/full gate. T00 adds no correctness ledger
+row; the ABBA result remains reporting-only in this gate.
 
-All eight PRE/POST locks hold: **Op 336, Client 1984, ThreadCtx 1408, Shard 1440,
-FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624**. Also unchanged:
-IoLoop **7136**, ExLoop **5856**, Server **105088**. The optional LB policy remains
-**8448 bytes** (stack3: 80); both LB knobs at zero allocate none of it (unit asserted).
-GDB read DWARF without starting an inferior: `build/lbstall-s3-repair/layout-POST.txt`.
+After that owner count update, run `tests/gate.sh iteration` against POST on the
+quiet box. Both 1s and 2s boot coverage remains in the feature matrix; requested
+reorder=1 must warn exactly once and report effective reorder=0. Its old parser
+grammar is unchanged, and no reorder stats sidecar is allocated.
 
-`source-proof.json` confirms the L1 layout, O1 pipeline/window, O6 executor/prefetch
-code, read-local code, configuration, overlap witnesses, gate source and churn
-battery match stack3. `io_loop.h` is byte-for-byte unchanged from rejected v5,
-including the client-move path and O1's removal of the pending-IFID self-hold.
-The production repair is one additional stage guard in the existing out-of-line
-`lb_drain_pass_expired`, plus comments. No new field, knob or per-operation branch.
+## Offline validation and byte proof
 
-### Strict byte-proof limit
+The final audit is **555/576 identical bodies** after resolving ELF relocation
+addresses and checking their target identities; **549/576** also match as raw
+object bytes. The checker does not normalize instructions or ignore mismatches.
+Sixteen changed bodies contain the removed executor batch path, including its
+inlined drain/sweep callers. Among the other 560 bodies, **555 match and five
+do not**. Thus a claim that *every* untouched body is byte-identical is **not
+established**. Compiler budget retuning reduced the initial 35 mismatches to 21;
+none of the remaining five is silently waived.
 
-**Full byte identity versus stack3 is still not achieved.** The strict checker
-returns **1** for the same three inherited exceptions; none is masked or waived.
-The repair matches **576/576** hot bodies versus rejected v5, and all six emitted
-IO/EX LB control bodies are identical to rejected v5, including their prologues.
-The expanded body set includes O1 stages, executor sweeps, store helpers,
-completion handlers and loop wrappers. Callee and constant identities are compared
-when address relocations are normalized. All three stack3 mismatches are in
-`core/rl2s.o`:
+| Audited family | Identical / checked |
+| --- | ---: |
+| GET/SET/MGET/MSET emitted bodies | 5 / 5 |
+| Parser/hash-dispatch bodies | 70 / 70 |
+| FlatStore lookup/insert/erase bodies | 160 / 160 |
+| Fused pipeline bodies | 4 / 4 |
 
-| Function / specialization | PRE bytes | POST bytes | Difference |
-| --- | ---: | ---: | --- |
-| ROB callback in `WbEngine::serve_impl<false,true,true,true,false,true>` | 936 | 637 | TLS/no-borrow, epoll, coded replies: segment append is outlined |
-| `IoLoop::on_cqe<true,true,false,1>` | 1206 | 1222 | TLS/epoll completion handling: TLS-slot lookup inlining moves between event arms |
-| `IoLoop::run_loop<true,true,false,true,1,true>` | 4665 | 4682 | TLS+Unix, uring, read-local loop: inlining/register/branch layout differs |
+The five exceptions are all in `core/rl2s.o` (split read-local):
 
-These are actual code-generation differences beyond the predecessor's two
-commuted CMP encodings. No instruction-count neutrality or measured zero tax is
-inferred. Parser, O1 stages, executor/sweep, store and GET/SET/MGET/MSET bodies
-match stack3; plain transport completion/loop bodies also match.
+| Body | PRE bytes | POST bytes |
+| --- | ---: | ---: |
+| `WbEngine::serve_impl<false,true,true,false,false,true>` Op lambda | 936 | 637 |
+| `WbEngine::serve_impl<false,true,false,false,false,true>` Op lambda | 936 | 637 |
+| `IoLoop::on_cqe<true,true,false,1>` | 1,222 | 1,206 |
+| `IoLoop::run_loop<true,false,false,true,1,true>` | 4,626 | 4,618 |
+| `IoLoop::run_loop<true,true,false,true,1,true>` | 4,682 | 4,665 |
 
-Fresh receipts: `hot-v5.{json,txt}`, `hot-stack3.{json,txt}`, `lb-control-v5.json`
-in `build/lbstall-s3-repair/`. The unchanged TLS disassemblies and baseline control
-comparison remain in `build/lbstall-s3-proof/`. The inherited IO LB control-tail
-body is **3137 → 3411 bytes** relative to stack3, with stack reservation
-**0x268 → 0x278** and corresponding prologue/epilogue differences. Its idle branch
-returns before accounting; that wrapper has no byte-identity claim versus stack3.
-This correction adds no further hot-body alias, encoding or prologue difference.
+The `on_cqe` specialization is a weak duplicate also emitted by the earlier
+`main.o`; this audit conservatively retains the object mismatch. The two outer
+loops include Unix listeners, with/without TLS. These differences require
+measurement, not an instruction-count argument. In addition to the six required
+rate cells, compare PRE/POST/PAD with **2s, read-local=1, overlap=1, atomic=1,
+balancers on, GET/SET at p1 and p32, 512 connections, 64 B**, covering TCP, Unix,
+and TLS transports plus epoll/uring where supported. Keep the ordinary required
+rate cells unchanged. No zero-regression claim is made for these exceptions.
 
-Reproduce the comparisons without executing either server:
+All size locks compile unchanged: **Op 336, Client 1984, ThreadCtx 1408, Shard
+1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624**. Retired witness
+space is padding, preserving the live overlap field's offset and 64-byte sidecar;
+the sidecar is allocated only by overlap. The retired executor flag is padding
+so subsequent executor fields retain their offsets. No locked structure grew.
+
+Completed serverless checks (logs under `build/v6-audit/`):
+
+- Release `make -j8 all unit`; all five native unit programs passed, including
+  exact retirement grammar/diagnostic and CLI override controls.
+- Netcmd CONFIG/INFO unit: effective zero, retirement marker, absent counters,
+  null-sidecar behavior, no INFO allocation.
+- Overlap prefetch unit: 1s/2s, overlap off/on, read-local/atomic/balancers armed.
+- All seven surviving core concurrency rows under fully instrumented TSAN;
+  the same seven rows also passed ASAN/UBSAN.
+- Tailgen native, ASAN/UBSAN and TSAN units: all passed, including partial sends,
+  more than 64 outstanding requests, both pacing modes and JSON contract.
+- ABBA controls: 88 main + 10 saturation + 7 calibration tests passed.
+- Gate harness: all 54 tests passed (`gates-complete.log`), including each
+  helper's failure propagation, scheduler inventory, and both serial instruments'
+  join boundaries. Tailgen stall controls: 3 passed.
+- Measured-config: 10; simple comparison: 11; planner: 23 + 10 tests passed.
+  Shell and Python syntax checks passed. No test-count constants were modified.
+
+Reproduce the audit without executing a server:
 
 ```sh
 taskset -c 112-127 python3 tools/lbstall_artifacts.py compare \
-  build/lbstall-s3-repair/rejected-src build/src \
-  build/lbstall-s3-repair/hot-v5.json
-taskset -c 112-127 python3 tools/lbstall_artifacts.py compare \
-  build/lbstall-s3-proof/pre-src/build/src build/src \
-  build/lbstall-s3-repair/hot-stack3.json
+  build/v6-audit/pre-src build/src build/v6-audit/hot-final.json
 ```
 
-No fresh throughput, cycles/op, IPC or live-tail improvement is claimed by this
-lane. Append the maintainer's full-gate and measurement verdict to `MEASURE-RESULT`.
+This strict comparator intentionally exits nonzero for the 21 recorded changed
+bodies. `hot-final.json` and `hot-final.txt` retain every selected symbol, byte
+length, raw equality and relocation-aware verdict. Do not relabel that exit as a
+complete byte-identity pass. Build logs include compiler warnings; TSAN runtime
+logs contain no race report. Both-mode live boots, the new 16-GiB correctness row,
+the full iteration gate, and all PRE/POST/PAD measurements remain the maintainer's
+work on the scheduled quiet box.

@@ -74,23 +74,6 @@
       ]
     },
     {
-      "name": "reorder-fifo",
-      "file": "src/core/reorder.h",
-      "find": "__attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {",
-      "replace": "__attribute__((noinline)) ReorderResult ex_schedule_batch(Task (&tasks)[BatchOps], uint32_t n) {\n    return {}; // throwaway mutant: leave every task in FIFO order",
-      "rows": [
-        {
-          "row": "reorder",
-          "failure": "reorder battery: FAIL: actual permutation differs from exact oracle"
-        },
-        {
-          "feature": "^[12]s-[01]-[01]-1-0$",
-          "count": 8,
-          "failure": "reorder witness reorder_multi_client_runs did not match knob|reorder witness reorder_permuted_runs did not match knob"
-        }
-      ]
-    },
-    {
       "name": "ryow-drop-tag",
       "file": "src/net/rob.h",
       "find": "        state.write_tags[tail] = static_cast<uint16_t>(hash);",
