@@ -178,31 +178,61 @@ def normalize(cmdname, r):
         it = parse_reply(r)
         if isinstance(it, list):
             return b"SORTED:" + b",".join(sorted(x if x is not None else b"<nil>" for x in it))
-    # HTTL/HPTTL are remaining-time answers computed from each server's own clock, so a
-    # far-future deadline lands a few ms apart. Bucket to 10 s; the ABSOLUTE forms
-    # (HEXPIRETIME/HPEXPIRETIME) stay byte-exact and are what actually pins the deadline.
-    if cmdname in ("HTTL", "HPTTL") and r[:1] == b"*":
-        it = parse_reply(r)
-        if isinstance(it, list):
-            out = []
-            for x in it:
-                v = int(x[1:]) if isinstance(x, bytes) and x[:1] == b":" else None
-                if v is None: out.append(b"?")
-                elif v < 0: out.append(b"%d" % v)
-                else:
-                    ms = v * 1000 if cmdname == "HTTL" else v
-                    out.append(b"~%d" % (ms // 10000))
-            return b"HTTLB:" + b",".join(out)
-    # TTL/PTTL race by wall time between servers: bucket to second granularity.
-    if cmdname in ("TTL", "PTTL", "EXPIRETIME", "PEXPIRETIME") and r[:1] == b":":
-        try:
-            v = int(r[1:-2])
-            if v > 0:
-                if cmdname in ("PTTL",): v = (v + 999) // 1000
-                if cmdname in ("PEXPIRETIME",): v //= 1000
-                return b":~%d\r\n" % v
-        except ValueError: pass
     return r
+
+
+CLOCK_SCALAR_REPLIES = {"EXPIRETIME", "PEXPIRETIME", "TTL", "PTTL"}
+CLOCK_ARRAY_REPLIES = {"HEXPIRETIME", "HPEXPIRETIME", "HTTL", "HPTTL"}
+clock_tolerances = 0
+
+def clock_integers(reply, array):
+    # Inspect the wire types, not parse_reply(): a bulk string containing ":123" decodes
+    # to the same bytes as an integer there. Array lengths and integer grammar stay exact.
+    integer = rb":(0|-?[1-9][0-9]*)\r\n"
+    if array:
+        match = re.fullmatch(rb"\*(0|[1-9][0-9]*)\r\n(?:" + integer + rb")*", reply)
+        if match is None:
+            return None
+        values = [int(value) for value in re.findall(integer, reply)]
+        if len(values) != int(match[1]):
+            return None
+    else:
+        match = re.fullmatch(integer, reply)
+        if match is None:
+            return None
+        values = [int(match[1])]
+    return values if all(-(1 << 63) <= value < (1 << 63) for value in values) else None
+
+def replies_equal(argv, target, oracle):
+    """Compare normalized replies, allowing only one native unit of clock skew.
+
+    No bucketing: +/-2 ms must fail even when both values land in the same second.
+    Missing-key/field and persistent sentinels are semantic results, so stay exact.
+    LASTSAVE has a separate per-server property check; stream generators exclude idle
+    times (XPENDING compares its summary counts). Neither needs integer relaxation here.
+    """
+    global clock_tolerances
+    if target == oracle:
+        return True
+    name = argv[0].upper()
+    if isinstance(name, bytes):
+        name = name.decode('ascii')
+    array = name in CLOCK_ARRAY_REPLIES
+    if not (array or name in CLOCK_SCALAR_REPLIES or
+            (name == "OBJECT" and len(argv) > 1 and argv[1].upper() in ("IDLETIME", b"IDLETIME"))):
+        return False
+    a, b = clock_integers(target, array), clock_integers(oracle, array)
+    if a is None or b is None or len(a) != len(b):
+        return False
+    if any(x != y and (x < 0 or y < 0 or abs(x - y) != 1) for x, y in zip(a, b)):
+        return False
+    clock_tolerances += 1
+    # Every use is visible, including its running per-leg reply count and raw operands;
+    # a consistently biased arithmetic result must not disappear into a green verdict.
+    print("  CLOCK TOLERANCE count=%d integers=%d command=%r\n    target: %r\n    oracle: %r" %
+          (clock_tolerances, sum(x != y for x, y in zip(a, b)), argv, target, oracle), flush=True)
+    return True
+
 
 def gen_string(rng):
     keys = ["s%d" % i for i in range(24)]
@@ -872,8 +902,9 @@ def gen_hash(rng):
 
 def gen_hexpire(rng):
     # Hash-field TTLs.  Every deadline is ABSOLUTE and either far in the future or definitively in
-    # the past, so the whole stream is deterministic on both servers: no sleep, no clock race, and
-    # the "already past" deadlines exercise the immediate-delete return code (2) reproducibly.
+    # the past, so expiry state is deterministic on both servers. Remaining TTL replies still
+    # read separate clocks; replies_equal handles their one-unit boundary skew. The "already
+    # past" deadlines exercise the immediate-delete return code (2) reproducibly.
     keys = ["hx%d" % i for i in range(10)]
     fields = ["f%d" % i for i in range(14)] + ["", "bin\x00fld", "L" * 70]
     vals = ["", "v", "hello world", "12345", "-7", "w" * 130, "\x00\x01\xff"]
@@ -4358,11 +4389,11 @@ def run_wiredump_suite(rng):
         elif kind == "set": op = ["SMEMBERS", key]
         else: op = ["ZRANGE", key, "0", "-1", "WITHSCORES"]
         value = normalize(op[0], command(sock, file, op))
+        ttl = None
         if ttl_fields:
             ttl = command(sock, file,
                           ["HPEXPIRETIME", key, "FIELDS", str(len(ttl_fields))] + ttl_fields)
-            return value + b"\x00field-ttl\x00" + ttl
-        return value
+        return value, ttl
 
     def full_read_diff(kind, key, ttl_fields):
         target = full_read(ts, tf, kind, key, ttl_fields)
@@ -4371,7 +4402,10 @@ def run_wiredump_suite(rng):
                        'set': 'SMEMBERS', 'zset': 'ZRANGE'}[kind])
         if ttl_fields:
             coverage.note('HPEXPIRETIME')
-        return target != oracle
+            if not replies_equal(["HPEXPIRETIME", key, "FIELDS", str(len(ttl_fields))] + ttl_fields,
+                                 target[1], oracle[1]):
+                return True
+        return target[0] != oracle[0]
 
     far = str(int(time.time() * 1000) + 24 * 60 * 60 * 1000)
     farther = str(int(far) + 70000)
@@ -4463,18 +4497,18 @@ def run_wiredump_suite(rng):
                 diffs += 1
         else:
             # This arm is a negative control until the first restore and a live-TTL check after it.
-            target_reply = normalize("PTTL", command(ts, tf, ["PTTL", "wd:restore"]))
-            oracle_reply = normalize("PTTL", command(os_, of, ["PTTL", "wd:restore"]))
+            target_reply = command(ts, tf, ["PTTL", "wd:restore"])
+            oracle_reply = command(os_, of, ["PTTL", "wd:restore"])
             coverage.note('PTTL')
-            if target_reply != oracle_reply:
+            if not replies_equal(["PTTL", "wd:restore"], target_reply, oracle_reply):
                 diffs += 1
         checks += 1
         if diffs and diffs <= 12:
             print("  WIREDUMP DIFF op %d action=%d key=%s" % (iteration, action, key))
 
     ts.close(); os_.close()
-    print("DIFFER wiredump: %d ops, %d diffs -> %s" %
-          (checks, diffs, "PASS" if diffs == 0 else "FAIL"))
+    print("DIFFER wiredump: %d ops, %d diffs, %d clock tolerances -> %s" %
+          (checks, diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
 if SUITE == "wiredump":
@@ -5746,7 +5780,7 @@ for i in range(0, len(ops), BATCH):
         a = normalize(command[0], read_reply(tsf))
         b = normalize(command[0], read_reply(osf))
         coverage.note(command)
-        if a != b:
+        if not replies_equal(command, a, b):
             diffs += 1
             if diffs <= 12:
                 print("  DIFF op %d secondary %r\n    target: %r\n    oracle: %r" %
@@ -5768,7 +5802,7 @@ for i in range(0, len(ops), BATCH):
         a = normalize_introspection(o[0].upper(), o, a)
         b = normalize_introspection(o[0].upper(), o, b)
         coverage.note(o)
-        if a != b:
+        if not replies_equal(o, a, b):
             diffs += 1
             if diffs <= 12:
                 shown_a = a if o[0].upper() == "KEYS" else a[:256]
@@ -6070,5 +6104,6 @@ if SUITE == "script":
     else:
         print("  script mechanism generated_cross=%d deltas=%r live=%d" %
               (script_cross_generated, deltas, live))
-print("DIFFER %s: %d ops, %d diffs -> %s" % (SUITE, len(ops), diffs, "PASS" if diffs == 0 else "FAIL"))
+print("DIFFER %s: %d ops, %d diffs, %d clock tolerances -> %s" %
+      (SUITE, len(ops), diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)
