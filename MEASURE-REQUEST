@@ -1,4 +1,7 @@
-cx-lbstall-s3: the current request and gate-correction receipts are in MEASURE-REQUEST.md.
-POST: build/tomokv-lbstall-s3. PAD: build/tomokv-lbstall-s3-pad, kind A (behaviour twin).
-Authorized churn: 3/3, bucket moves 16/10/18, server CPUs 112-119 only.
-Full gate and performance measurements remain mainline-scheduled.
+cx-l4prebuild: see MEASURE-REQUEST.md for the complete request, exact cells, and verdict.
+PRE: build/tomokv-l4prebuild-pre (e4ec4dfce/v5).
+POST: build/tomokv-l4prebuild.
+PAD: build/tomokv-l4prebuild-pad — kind A, PRE allocation behaviour in POST text/layout.
+Measure l4_set_1s_1024,l4_set_1s_256,l4_mset_1s_1024,l4_mset_1s_256,l4_set_2s_1024
+and h01,h02,h05,h07 with the gate instrument; OP:BYTES grammar, matched load.
+No performance result is claimed. Append measured results as MEASURE-RESULT.

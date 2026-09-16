@@ -389,13 +389,17 @@ struct CoreConcurrencyTest {
                     if (deny) {
                         auto& store = f.server.shard(sid).store();
                         store.configure_maxmemory(true, 1, MaxmemoryPolicy::NoEviction, 5);
+                        require(!store.budget_admit(slice(key)), "pre-handler OOM window actually armed");
                         ExLoopT<true> executor;
                         executor.srv_ = &f.server; executor.self_ = &owner;
                         executor.fused_handoff_ring_ = &executor.ring_;
                         require(executor.execute(task) && op.state.load(std::memory_order_acquire) ==
                                     OpState::Done && !op.zc_ptr,
                                 "owner admission denial frees prebuilt value before Done");
-                        require(op.direct_len || !op.reply.empty(), "owner OOM reply exists");
+                        const std::string reply = op.direct_len
+                            ? std::string(op.direct, op.direct_len)
+                            : std::string(op.reply.data(), op.reply.size());
+                        require(reply.starts_with("-OOM"), "owner admission emits the original OOM reply");
                         store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 5);
                     } else {
                         op.spec->handler(f.server.shard(sid), op);
