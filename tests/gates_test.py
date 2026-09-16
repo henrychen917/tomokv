@@ -1356,6 +1356,8 @@ class CompleteTierDispatch(unittest.TestCase):
                      'differ-split', 'differ-armed', 'globcase'}
         stub = r'''
 GATE_SLOTS=0; PASS=0; FAIL=0; EXPECT_QUICK=419; GATE_STARTED=$SECONDS; JOINED=0
+TMPDIR="$RUN_DIR"; PORT=9999
+mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/tailgen"
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; : > "$LEDGER"; : > "$TIMINGS"
 phase(){ printf 'PHASE %s\n' "$1" >> "$EVENTS"; }
 program_state(){ :; }
@@ -1373,6 +1375,15 @@ collect_job(){
   printf 'COLLECT %s\n' "$1" >> "$EVENTS"
 }
 join_workers(){ JOINED=1; printf 'JOIN\n' >> "$EVENTS"; }
+taskset(){ :; }
+set_slot(){ :; }
+stop(){ :; }
+ok(){ :; }
+bad(){ exit 75; }
+boot_fused(){
+  [ "$JOINED" = 1 ] || { echo 'measurement before worker join' >&2; exit 72; }
+}
+py(){ printf 'TAILGEN\n' >> "$EVENTS"; }
 python3(){
   # This new serverless output resolver is not an ABBA measurement. Let the actual parser
   # resolve its destination before recording the one real background dispatch below.
@@ -1405,6 +1416,8 @@ python3(){
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     self.assertEqual(result.stdout.splitlines()[0], str(root / f'build/gate-ledger-{purpose}.txt'))
                     events = (directory / 'events').read_text().splitlines()
+                    self.assertEqual(events.count('TAILGEN'), 1)
+                    self.assertLess(events.index('JOIN'), events.index('TAILGEN'))
                     collected = {event.removeprefix('COLLECT ') for event in events if event.startswith('COLLECT ')}
                     if purpose == 'quick':
                         self.assertFalse(collected & full_only)
@@ -1413,7 +1426,8 @@ python3(){
                         self.assertTrue(full_only <= collected)
                         self.assertEqual(events.count('ABBA'), 1)
                         self.assertLess(events.index('JOIN'), events.index('ABBA'))
-                        self.assertTrue(all(index < events.index('JOIN') for index, event in enumerate(events)
+                        final_join = len(events) - 1 - events[::-1].index('JOIN')
+                        self.assertTrue(all(index < final_join for index, event in enumerate(events)
                                             if event.startswith('COLLECT ')))
                         argv = (directory / 'argv').read_bytes().decode().rstrip('\0').split('\0')
                         self.assertEqual(argv[0], 'tests/abbagate.py')
@@ -1421,13 +1435,11 @@ python3(){
                                          'smoke' if purpose == 'iteration' else 'full')
                         self.assertEqual(argv[-2:], ['--output', str(directory / 'abba')])
                         if purpose == 'iteration':
-                            # Delete only the production measurement barrier. The same
-                            # workload-boundary assertion must refuse ABBA before it emits
-                            # any measurement evidence; a control that never reaches this
-                            # assertion would otherwise pass on the broken coordinator.
-                            barrier = '\njoin_workers\nphase abba-begin'
-                            self.assertEqual(coordinator.count(barrier), 1)
-                            poisoned = coordinator.replace(barrier, '\nphase abba-begin', 1)
+                            # Both serial instruments follow the worker barrier. Removing
+                            # all joins must fail at the first instrument, before any load.
+                            barrier = '\njoin_workers\n'
+                            self.assertEqual(coordinator.count(barrier), 2)
+                            poisoned = coordinator.replace(barrier, '\n')
                             (directory / 'events').unlink()
                             (directory / 'argv').unlink()
                             result = subprocess.run(
