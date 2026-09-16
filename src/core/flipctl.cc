@@ -336,6 +336,11 @@ double FlipController::automatic_rate_band(double pair_delta, double rate) const
     return 2.0 * std::max(pair_delta, quantum);
 }
 
+double FlipController::observe_rate(uint64_t completed, uint64_t elapsed_ms) {
+    rate_sample_commands_ = completed;
+    return static_cast<double>(completed) * 1000.0 / static_cast<double>(elapsed_ms);
+}
+
 bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) {
     const uint64_t commands = total_commands(server);
     const MovementStamp movement = movement_stamp(server);
@@ -352,7 +357,7 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
     if (now_ms <= rate_window_ms_) return false;
     const uint64_t elapsed_ms = now_ms - rate_window_ms_;
     const uint64_t completed = commands - rate_window_commands_;
-    rate = static_cast<double>(completed) * 1000.0 / static_cast<double>(elapsed_ms);
+    rate = observe_rate(completed, elapsed_ms);
     rate_window_ms_ = now_ms;
     rate_window_commands_ = commands;
     rate_window_movement_ = movement;
@@ -377,14 +382,34 @@ bool FlipController::sample_rate(Server& server, uint64_t now_ms, double& rate) 
 
 bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate) {
     if (!sample_rate(server, now_ms, rate)) return false;
+    return stabilize_rate(rate);
+}
+
+bool FlipController::pair_rate(double rate, double& prior_rate) {
+    const uint64_t completed = rate_sample_commands_;
     if (!previous_subwindow_valid_) {
         previous_subwindow_rate_ = rate;
+        previous_subwindow_commands_ = completed;
         previous_subwindow_valid_ = true;
         return false;
     }
-    const double prior_rate = previous_subwindow_rate_;
+    prior_rate = previous_subwindow_rate_;
     stable_pair_delta_ = relative_distance(rate, prior_rate);
     previous_subwindow_rate_ = rate;
+    // The reading averages two rates with equal weight, even if their elapsed windows differ.
+    // Keep the smaller nonempty constituent's count: summing counts would claim precision the
+    // shorter window does not have. An empty constituent has zero observed absolute variance;
+    // retain the nonempty one's count, including across a complete stop/restart of the load.
+    rate_sample_commands_ = completed && previous_subwindow_commands_
+        ? std::min(completed, previous_subwindow_commands_)
+        : std::max(completed, previous_subwindow_commands_);
+    previous_subwindow_commands_ = completed;
+    return true;
+}
+
+bool FlipController::stabilize_rate(double& rate) {
+    double prior_rate = 0;
+    if (!pair_rate(rate, prior_rate)) return false;
     double band = anchor_rate_band_;
     if (band <= 0) band = automatic_rate_band(stable_pair_delta_, rate);
     // A pair is "stable" relative to how the load itself moves tick to tick, never to a band a
@@ -399,16 +424,43 @@ bool FlipController::sample_stabilized_rate(Server& server, uint64_t now_ms, dou
 
 bool FlipController::sample_anchored_rate(Server& server, uint64_t now_ms, double& rate) {
     if (!sample_rate(server, now_ms, rate)) return false;
-    if (!previous_subwindow_valid_) {
-        previous_subwindow_rate_ = rate;
-        previous_subwindow_valid_ = true;
-        return false;
-    }
-    const double prior_rate = previous_subwindow_rate_;
-    previous_subwindow_rate_ = rate;
-    stable_pair_delta_ = relative_distance(rate, prior_rate);
+    double prior_rate = 0;
+    if (!pair_rate(rate, prior_rate)) return false;
     rate = (rate + prior_rate) * 0.5;
     return true;
+}
+
+FlipctlTriggerReason FlipController::rate_trigger(double rate) {
+    const double reference = anchor_rate_;
+    const double band = anchor_rate_band_;
+    if (reference > 0 && rate > reference * (1.0 + band)) {
+        surge_streak_++;
+        collapse_streak_ = 0;
+    } else if (reference > 0 && rate < reference * (1.0 - band)) {
+        collapse_streak_++;
+        surge_streak_ = 0;
+    } else {
+        surge_streak_ = 0;
+        collapse_streak_ = 0;
+    }
+    // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
+    if (surge_streak_ >= rate_confirmations_ || collapse_streak_ >= rate_confirmations_)
+        return surge_streak_ >= 2 ? FlipctlTriggerReason::AnchorRateSurge
+                                 : FlipctlTriggerReason::AnchorRateCollapse;
+    return FlipctlTriggerReason::None;
+}
+
+void FlipController::learn_anchored_rate(double rate) {
+    // This sample was wholly within an anchored, redistribution-free, in-band window. Fold its
+    // innovation into a very slow live reference only after judging it against the prior
+    // reference. Maneuver and pending-trigger windows never reach this branch.
+    const double jitter_sample = relative_distance(rate, anchor_rate_);
+    anchor_rate_jitter_ += (jitter_sample - anchor_rate_jitter_) * kAnchorRateEwmaAlpha;
+    anchor_rate_ += (rate - anchor_rate_) * kAnchorRateEwmaAlpha;
+    // The final settling windows define the minimum quiet jitter that this anchor already
+    // proved it needs. Live learning may widen the band, but must never erase that floor.
+    anchor_rate_band_ = std::max(
+        anchor_rate_band_floor_, automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
 }
 
 bool FlipController::boot_load_stable(Server& server, uint64_t now_ms) {
@@ -1232,26 +1284,8 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             }
             return false;
         }
-        const double reference = anchor_rate_;
-        const double band = anchor_rate_band_;
-        if (reference > 0 &&
-            rate > reference * (1.0 + band)) {
-            surge_streak_++;
-            collapse_streak_ = 0;
-        } else if (reference > 0 &&
-                   rate < reference * (1.0 - band)) {
-            collapse_streak_++;
-            surge_streak_ = 0;
-        } else {
-            surge_streak_ = 0;
-            collapse_streak_ = 0;
-        }
-        // The same two-sub-window rule that makes a reading comparable supplies "sustained" here.
-        if (surge_streak_ >= rate_confirmations_ ||
-            collapse_streak_ >= rate_confirmations_) {
-            const FlipctlTriggerReason reason = surge_streak_ >= 2
-                ? FlipctlTriggerReason::AnchorRateSurge
-                : FlipctlTriggerReason::AnchorRateCollapse;
+        const FlipctlTriggerReason reason = rate_trigger(rate);
+        if (reason != FlipctlTriggerReason::None) {
             start_maneuver(server, reason, now_ms);
             return false;
         }
@@ -1272,17 +1306,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         // possible step or widen/narrow its band before the confirming observation arrives.
         if (surge_streak_ || collapse_streak_) return false;
 
-        // This sample was wholly within an anchored, redistribution-free, in-band window. Fold its
-        // innovation into a very slow live reference only after judging it against the prior
-        // reference. Maneuver and pending-trigger windows never reach this branch.
-        const double jitter_sample = relative_distance(rate, reference);
-        anchor_rate_jitter_ +=
-            (jitter_sample - anchor_rate_jitter_) * kAnchorRateEwmaAlpha;
-        anchor_rate_ += (rate - anchor_rate_) * kAnchorRateEwmaAlpha;
-        // The final settling windows define the minimum quiet jitter that this anchor already
-        // proved it needs. Live learning may widen the band, but must never erase that floor.
-        anchor_rate_band_ = std::max(
-            anchor_rate_band_floor_, automatic_rate_band(anchor_rate_jitter_, anchor_rate_));
+        learn_anchored_rate(rate);
     }
     return false;
 }
