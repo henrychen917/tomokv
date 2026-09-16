@@ -4,10 +4,9 @@
 #include "owner_arena_unit.cc"
 #undef main
 #include "src/core/io_loop.h"
-#ifndef TOMO_L4_PREBUILD_THRESHOLD
-#define TOMO_L4_PREBUILD_THRESHOLD 512
-#endif
-constexpr uint32_t kExpectedPrebuildThreshold = TOMO_L4_PREBUILD_THRESHOLD;
+// Independent oracle for the shipped default: neither a changed production constant nor a
+// patched policy can silently change the expected placement decisions in this fixture.
+constexpr uint32_t kExpectedPrebuildThreshold = 512;
 
 namespace {
 struct PrebuildRequest {

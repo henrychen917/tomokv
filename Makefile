@@ -178,44 +178,38 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
-# Round 2 rebuilds only the isolated policy TU. Keep every common object and its link order
-# identical across boundaries; CXXFLAGS overrides must not leak a threshold into the callers.
-L4PREBUILD_THRESHOLDS := 512 768
-L4PREBUILD_BINS := $(addprefix build/tomokv-l4prebuild-,$(L4PREBUILD_THRESHOLDS))
-L4PREBUILD_UNITS := $(addprefix build/l4prebuild-unit-,$(L4PREBUILD_THRESHOLDS))
-L4PREBUILD_COMMON := $(filter-out build/src/cmd/l4prebuild.o,$(OBJ))
-L4PREBUILD_UNIT_COMMON := $(filter-out build/src/main.o build/src/cmd/xshard.o,$(L4PREBUILD_COMMON))
-L4PREBUILD_DEPS := src/cmd/t_string.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
-build/src/cmd/l4prebuild-%.o: src/cmd/l4prebuild.cc $(L4PREBUILD_DEPS)
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_L4_PREBUILD_THRESHOLD=$* -I. -c $< -o $@
-$(L4PREBUILD_BINS): build/tomokv-l4prebuild-%: $(L4PREBUILD_COMMON) build/src/cmd/l4prebuild-%.o
-	$(CXX) $(CXXFLAGS) $(subst build/src/cmd/l4prebuild.o,build/src/cmd/l4prebuild-$*.o,$(OBJ)) \
-	  -o $@ $(JELIBS) $(LDLIBS) -lm
-$(L4PREBUILD_UNITS): build/l4prebuild-unit-%: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_UNIT_COMMON) build/src/cmd/l4prebuild-%.o $(L4PREBUILD_DEPS)
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_L4_PREBUILD_THRESHOLD=$* -I. $< \
-	  $(subst build/src/cmd/l4prebuild.o,build/src/cmd/l4prebuild-$*.o,$(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))) \
-	  -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
-$(addsuffix -pad,$(L4PREBUILD_BINS)): build/tomokv-l4prebuild-%-pad: build/tomokv-l4prebuild-% tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
+# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
+# offline target patches only the noipa policy predicate; it never executes the server.
+build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
-l4prebuild-round2: $(L4PREBUILD_BINS) $(addsuffix -pad,$(L4PREBUILD_BINS)) $(L4PREBUILD_UNITS)
-.PHONY: l4prebuild-round2
+
+l4prebuild-unit: build/l4prebuild-unit
+	./build/l4prebuild-unit 1s read-local-0
+	./build/l4prebuild-unit 1s read-local-1
+	./build/l4prebuild-unit 2s read-local-0
+	./build/l4prebuild-unit 2s read-local-1
 
 # All production objects linked by these serverless tests are instrumented, not just the
 # fixture. Invoke builds and tests under taskset on the lane's CPUs (112-127).
 L4PREBUILD_TSAN_FLAGS := -std=c++20 -O1 -g -Wall -Wextra -march=native -pthread \
                          -fsanitize=thread -fno-omit-frame-pointer -no-pie
-L4PREBUILD_TSAN_COMMON := $(patsubst build/%.o,build/l4prebuild-tsan/%.o,$(L4PREBUILD_UNIT_COMMON))
+L4PREBUILD_TSAN_COMMON := $(patsubst build/%.o,build/l4prebuild-tsan/%.o,$(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)))
 build/l4prebuild-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. -c $< -o $@
-build/l4prebuild-tsan/src/cmd/l4prebuild-%.o: src/cmd/l4prebuild.cc $(L4PREBUILD_DEPS)
-	@mkdir -p $(dir $@)
-	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -DTOMO_L4_PREBUILD_THRESHOLD=$* -I. -c $< -o $@
-$(addsuffix -tsan,$(L4PREBUILD_UNITS)): build/l4prebuild-unit-%-tsan: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_TSAN_COMMON) build/l4prebuild-tsan/src/cmd/l4prebuild-%.o $(L4PREBUILD_DEPS)
-	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -DTOMO_L4_PREBUILD_THRESHOLD=$* -I. $< \
-	  $(L4PREBUILD_TSAN_COMMON) build/l4prebuild-tsan/src/cmd/l4prebuild-$*.o \
+build/l4prebuild-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
+build/l4prebuild-unit-tsan: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_TSAN_COMMON) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. $< \
+	  $(L4PREBUILD_TSAN_COMMON) \
 	  -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
+
+l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 1s read-local-0
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 1s read-local-1
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
+.PHONY: l4prebuild-unit l4prebuild-unit-tsan
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile

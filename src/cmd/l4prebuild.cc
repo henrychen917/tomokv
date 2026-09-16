@@ -7,8 +7,16 @@
 
 namespace tomo {
 // The only size policy is this compile-time boundary (strictly greater, like kEmbedThreshold).
-// Round 1 lost the owner-born placement benefit at 256 B. Round 2 compares 512/768 B;
-// neither boundary is a measured winner yet. Keep the comparison out of the caller TUs.
+// Maintainer's 8-instance pinned box results, PRE -> POST rate change (floor +/-1.6-2%):
+// boundary    SET 1s 1024    SET 1s 256    SET 2s 1024    MSET 1s 1024    MSET 1s 256
+//   192 B     +3.6..+5.1%    -9.0..-9.5%  -0.5..+0.9%   +3.0..+3.5%    -13.6..-17.7%
+//   512 B       +5.9%          +0.6%         -0.6%          +2.7%           -1.9%
+//   768 B       +4.4%          -0.9%         +0.2%          pending         pending
+// 192 B used v5/v6 references; 512/768 B used v6 (d90843b96). Pick 512 B: retain
+// owner-born placement at 256 B and the hot-copy gain at 1 KiB, including 513-768 B
+// in the policy. No middle-size gain is claimed. MSETNX always stays owner-side;
+// its 512 B arm's -3.0% control read is pending pooling, not a cleared regression.
+// Keep the comparison out of caller TUs; bisect by rebuilding this constant only.
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
 #define TOMO_L4_PREBUILD_THRESHOLD 512
 #endif
