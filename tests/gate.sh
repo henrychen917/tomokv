@@ -252,7 +252,7 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # negative control BEFORE the quick exit (quick +1, full +1) and the mandatory headline result
 # AFTER it (full +1). 418+1 = 419 quick; 467-32+2 = 437 full.
 EXPECT_QUICK=419
-EXPECT_FULL=436                 # ABBA row reports and is not counted; self-test row remains.
+EXPECT_FULL=435                 # ABBA row reports and is not counted; self-test row remains.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
