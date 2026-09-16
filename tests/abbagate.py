@@ -2624,12 +2624,16 @@ def self_test():
         def test_new_unmeasured_pins_search_instead_of_vetoing_the_tier(self):
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
                 out = Path(tmp) / "out"
+                binary = Path(tmp) / "candidate"
+                binary.write_bytes(b"test executable identity; never executed")
+                binary.chmod(0o700)
                 source = Path(tmp) / "unmeasured-cells"
                 source.write_text("u01 | 1s | rl=1 | ov=1 | ro=1 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1\n")
                 # Exercise the missing-pin precondition even inside a two-CPU gate worker.
                 # Synthetic placement is validated separately and never schedules real work here.
                 with mock.patch.dict(os.environ, {}, clear=True), \
                      mock.patch.object(sys, "argv", ["abbagate.py", "--subset", "smoke", "--output", str(out),
+                         "--candidate", str(binary),
                          "--cells", str(source), "--server-cores", "0-31", "--server-smt", "",
                          "--load-cores", "32-63", "--load-smt", ""]):
                     args = parse_args()
@@ -2974,7 +2978,7 @@ def self_test():
         def fake_main(self, *, pin="-", depth=32, escalate=False, busy=99.9,
                       climbing=False, ceiling=16, contend_after=None, reference_error=None, rates=None,
                       run_overrides=None, load_cores="32-127", load_smt="160-255",
-                      diagnostic_profile=0,
+                      diagnostic_profile=0, candidate_missing=False,
                       diagnostic_pin_load_workers=0, diagnostic_load_startup_seconds=0):
             # Invoke main() and its real load layout, not assess() with fabricated
             # rounds. The regression was in the loop that PRODUCES rounds, and a
@@ -2993,6 +2997,9 @@ def self_test():
                         "--load-smt", load_smt, "--max-instances", str(ceiling)] + (["--escalate"] if escalate else [])
                 with mock.patch.object(sys, "argv", argv), mock.patch.dict(os.environ, {}, clear=True):
                     args = parse_args()
+                if candidate_missing:
+                    args.candidate = directory / "missing-candidate"
+                    self.assertFalse(args.candidate.exists())
                 order, layouts = [], []
                 self.support_calls = []
 
@@ -3032,6 +3039,14 @@ def self_test():
                               diagnostic_pin_load_workers=diagnostic_pin_load_workers,
                               diagnostic_load_startup_seconds=diagnostic_load_startup_seconds)
                 return rc, order, layouts, json.loads((output / "results.json").read_text()), stream.getvalue()
+
+        def test_missing_candidate_executable_is_rejected(self):
+            rc, calls, layouts, report, _ = self.fake_main(candidate_missing=True)
+            self.assertEqual((rc, calls, layouts), (1, [], []))
+            self.assertEqual(report["verdict"], "FAIL")
+            self.assertIn("RuntimeError: candidate executable unavailable:", report["reason"])
+            self.assertTrue(report["reason"].endswith("/missing-candidate"), report["reason"])
+            self.assertEqual(self.support_calls, [])
 
         def test_profile_cannot_be_enabled_in_normal_gate_or_cli(self):
             rc, calls, _, report, _ = self.fake_main(pin=4, diagnostic_profile=1)
@@ -3749,6 +3764,33 @@ def self_test():
 if __name__ == "__main__":
     args = parse_args()
     if args.self_test:
+        import contextlib
+        from unittest import mock
         from load_calibration import self_test as calibration_self_test
-        sys.exit(max(self_test(), saturation_self_test(), calibration_self_test()))
+        # Guard the default AND configured live candidates even when an individual
+        # fixture clears the environment. A warm build must not mask a missing stub.
+        live_candidates = {os.path.abspath(ROOT / "build/tomokv"), os.path.abspath(args.candidate)}
+        live_candidates.update(os.path.abspath(os.environ[name]) for name in
+                               ("GATE_CANDIDATE_BINARY", "GATE_ABBA_CANDIDATE") if os.getenv(name))
+        live_probes = []
+
+        def guard_candidate_access(operation):
+            def checked(path, *positional, **keywords):
+                if os.path.abspath(path) in live_candidates:
+                    reason = f"self-test probed live candidate {path}; use a temporary executable fixture"
+                    live_probes.append(reason)
+                    raise AssertionError(reason)
+                return operation(path, *positional, **keywords)
+            return checked
+
+        with contextlib.ExitStack() as guards:
+            for owner, name in ((Path, "stat"), (Path, "open"), (os, "access")):
+                guards.enter_context(mock.patch.object(owner, name, guard_candidate_access(getattr(owner, name))))
+            rc = max(self_test(), saturation_self_test(), calibration_self_test())
+        # main() records exceptions as failed reports; a test expecting some other
+        # failure must not swallow a forbidden probe and make this control green.
+        if live_probes:
+            print("SELF-TEST FAIL: " + "\n".join(live_probes), file=sys.stderr)
+            rc = 1
+        sys.exit(rc)
     sys.exit(main(args))
