@@ -556,4 +556,5 @@ int main(int argc, char** argv) {
     std::printf("PASS owner arena %s %s: placement, atomic visibility, duplicates, OOM, NX, QSBR, "
                 "live-cache handoff, atomic-pool handoff, migration\n",
                 mode.c_str(), lane.c_str());
+    return 0;
 }

@@ -27,6 +27,7 @@ SRC      += src/core/flipctl.cc
 SRC      += src/core/genthread.cc
 SRC      += src/core/rl2s.cc
 SRC      += src/core/lbstall.cc
+SRC      += src/cmd/l4prebuild.cc
 SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
@@ -172,6 +173,12 @@ owner-arena-unit: build/owner-arena-unit
 	./build/owner-arena-unit 2s read-local-0
 	./build/owner-arena-unit 2s read-local-1
 .PHONY: owner-arena-unit
+
+# IO-prebuild policy and lifetime regressions, using pinned serverless L4 workers.
+build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< \
+	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
+	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile

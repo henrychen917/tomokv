@@ -1,5 +1,11 @@
-// IO-side external SET candidates. Included by the clean and notification string TUs so the
-// alternate handler shares SET's option parser; the original handlers remain untouched.
+// Compile the alternate SET handlers in their own TU. Reuse the original private option
+// parser/helpers without emitting the registry or exported string-family entry points.
+#pragma GCC diagnostic ignored "-Wunused-function"
+#define TOMO_STRING_NOTIFY_TU 1
+#define TOMO_L4_PREBUILD_TU 1
+#include "t_string.cc"
+
+namespace tomo {
 // The only size policy is this compile-time boundary (strictly greater, like kEmbedThreshold).
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
 #define TOMO_L4_PREBUILD_THRESHOLD 192
@@ -47,29 +53,21 @@ struct PrebuiltSetValue {
         }
         return true;
     }
+    template <bool Notify>
     StoreResult install(Shard& sh, uint64_t hash) {
         KvObj* value = object;
         object = nullptr;
-#ifdef TOMO_STRING_NOTIFY_TU
-        return map_insert_notify(sh, hash, value);
-#else
+        if constexpr (Notify) return map_insert_notify(sh, hash, value);
         return map_insert(sh.store(), hash, value);
-#endif
     }
 };
 
+template <bool notify>
 void cmd_set_prebuilt(Shard& sh, Op& op) {
-#ifdef TOMO_STRING_NOTIFY_TU
-    constexpr bool notify = true;
-#else
-    constexpr bool notify = false;
-#endif
     PrebuiltSetValue value(op);
-#ifdef TOMO_STRING_NOTIFY_TU
-    NotifyExecutionScope notifications(sh, op, true);
-#endif
+    NotifyExecutionScope notifications(sh, op, notify);
     if (op.argc() == 3) {
-        const StoreResult result = value.install(sh, op.hash);
+        const StoreResult result = value.install<notify>(sh, op.hash);
         if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
         if constexpr (notify) notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         reply_ok(op.sink());
@@ -98,7 +96,7 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
         return;
     }
     const StoreResult result = value.deadline(expire, reserve)
-        ? value.install(sh, op.hash) : StoreResult::Oom;
+        ? value.install<notify>(sh, op.hash) : StoreResult::Oom;
     if (result != StoreResult::Stored) { reply_store_error(op, result, options.get); return; }
     if constexpr (notify) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
@@ -109,16 +107,14 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
 }
 } // namespace
 
-#ifdef TOMO_STRING_NOTIFY_TU
 const CommandSpec* l4prebuild_notify_spec() {
     static const CommandSpec spec = [] {
         CommandSpec copy = *command_notify_variant(g_hot_command_specs.set);
-        copy.handler = cmd_set_prebuilt;
+        copy.handler = cmd_set_prebuilt<true>;
         return copy;
     }();
     return &spec;
 }
-#else
 // The kind-A control patches only this predicate to false in a COPY of POST. noipa prevents
 // cloning/constant propagation, so both arms have identical text sizes and symbol addresses.
 __attribute__((noipa)) bool l4prebuild_policy(uint32_t bytes) {
@@ -133,7 +129,7 @@ void l4prebuild_prepare_set(Op& op) {
     if (!value) return;
     static const CommandSpec clean = [] {
         CommandSpec copy = *g_hot_command_specs.set;
-        copy.handler = cmd_set_prebuilt;
+        copy.handler = cmd_set_prebuilt<false>;
         return copy;
     }();
     op.spec = (op.spec->flags & CmdFlags::NotifySelected) ? l4prebuild_notify_spec() : &clean;
@@ -146,4 +142,5 @@ void l4prebuild_discard_set(Op& op) {
     if (op.zc_shard != kPrebuiltSetMarker) return;
     PrebuiltSetValue unused(op);
 }
-#endif
+
+} // namespace tomo
