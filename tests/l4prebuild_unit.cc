@@ -215,7 +215,7 @@ void set_oom_and_discard(Fixture& f) {
             l4prebuild_prepare_set(op);
             require(failure ? allocation_failed && !op.zc_ptr && op.spec == g_hot_command_specs.set
                             : op.zc_ptr != nullptr, "SET OOM keeps original owner handler");
-            // Covers queue refusal and retirement after owner-side admission/prepare denial.
+            // Direct unused-candidate cleanup; the parser fixture also drives owner admission denial.
             l4prebuild_discard_set(op);
             require(!op.zc_ptr && op.zc_shard == -1, "unused SET candidate fully detached");
             audit_allocations = false; fail_size = 0; fail_occurrence = 0;
@@ -270,6 +270,74 @@ namespace tomo {
 // Exercise the actual SET parser hook and its refused-post cleanup, including small/local/2s
 // controls. The queues are in memory; neither IoLoop::init nor an io_uring ring is called.
 struct CoreConcurrencyTest {
+    static void handoff(Fixture& f) {
+        if (f.armed || f.server.thread_mode() != ThreadMode::Fused) return;
+        constexpr unsigned count = 512;
+        Client client{-1}; client.set_id(991); client.set_ifid_thread(0);
+        const auto key = f.key(f.sid_b, "pb-concurrent-");
+        const std::string value(8193, 't');
+        const auto hash = FlatStore::hash_key(slice(key));
+        auto& owner = f.server.thread(f.server.worker_of_shard(f.sid_b));
+        std::atomic<bool> producer_started{false};
+        unsigned received = 0;
+        std::thread producer([&] {
+            f.workers[0]->call([&] {
+                producer_started.store(true, std::memory_order_release);
+                auto retire = [&](Op& op) {
+                    require(!op.zc_ptr && std::string(op.reply.data(), op.reply.size()) == "+OK\r\n",
+                            "concurrent reply follows ownership transfer");
+                };
+                for (unsigned i = 0; i < count; i++) {
+                    Op* op = nullptr;
+                    for (unsigned attempt = 0; !op && attempt < 10000000; attempt++) {
+                        client.rob().drain(retire);
+                        op = client.rob().acquire<false>();
+                        if (!op) std::this_thread::yield();
+                    }
+                    require(op, "bounded ROB admission");
+                    require(op->push_arg(Slice("SET", 3)) && op->push_arg(slice(key)) &&
+                            op->push_arg(slice(value)), "concurrent request argv");
+                    op->spec = g_hot_command_specs.set; op->hash = hash; op->shard = f.sid_b;
+                    l4prebuild_prepare_set(*op);
+                    require(op->zc_ptr, "concurrent producer built candidate");
+                    const uint64_t id = client.rob().dispatch_id();
+                    client.rob().publish();
+                    bool posted = false;
+                    for (unsigned attempt = 0; !posted && attempt < 10000000; attempt++) {
+                        posted = owner.post_task_quiet(0, Task{&client, id, -1, nullptr},
+                                                      f.server.thread(0).sig());
+                        if (!posted) std::this_thread::yield();
+                    }
+                    require(posted, "bounded task publication");
+                }
+                for (unsigned attempt = 0; !client.rob().quiesced() && attempt < 10000000; attempt++) {
+                    client.rob().drain(retire);
+                    if (!client.rob().quiesced()) std::this_thread::yield();
+                }
+                require(client.rob().quiesced(), "all concurrent replies retired");
+            });
+        });
+        f.on(f.sid_b, [&] {
+            for (unsigned attempt = 0; received < count && attempt < 10000000; attempt++) {
+                owner.drain_tasks_unmasked([&](const Task& task) {
+                    Op& op = client.rob().at(task.op_id);
+                    auto* candidate = reinterpret_cast<KvObj*>(const_cast<char*>(op.zc_ptr));
+                    require(candidate && candidate->str_value() == slice(value),
+                            "SPSC acquire sees fully constructed external bytes");
+                    op.spec->handler(f.server.shard(f.sid_b), op);
+                    require(f.server.shard(f.sid_b).store().find(hash, slice(key)) == candidate,
+                            "concurrent owner adopts producer candidate");
+                    ++received;
+                    op.state.store(OpState::Done, std::memory_order_release);
+                });
+                if (received < count) std::this_thread::yield();
+            }
+            require(producer_started.load(std::memory_order_acquire) && received == count,
+                    "bounded concurrent handoff completed every request");
+        });
+        producer.join();
+    }
+
     static void parser(Fixture& f) {
         if (f.armed) return; // armed storage lifetime is exercised by the other directed cases
         const bool fused = f.server.thread_mode() == ThreadMode::Fused;
@@ -308,7 +376,9 @@ struct CoreConcurrencyTest {
             f.on(sid, [&] {
                 require(owner.drain_tasks_unmasked([](const Task&) {}) == queued, "release saturated inbox");
             });
-            f.workers[0]->call(parse);
+            const bool deny = eligible && size == 1024;
+            if (deny) allocation_audit.start(header, good_size(size));
+            f.workers[0]->call([&] { audit_allocations = deny; parse(); audit_allocations = false; });
             require(c.rpos() == c.rlen() && c.rob().in_flight() == 1, "same frame posts after retry");
             auto& op = c.rob().at(0);
             require(bool(op.zc_ptr) == eligible, "parser prebuilds exactly foreign fused external SET");
@@ -316,11 +386,25 @@ struct CoreConcurrencyTest {
             f.on(sid, [&] {
                 require(owner.drain_tasks_unmasked([&](const Task& task) {
                     require(task.client == &c, "correct posted client");
-                    op.spec->handler(f.server.shard(sid), op);
-                    op.state.store(OpState::Done, std::memory_order_release);
+                    if (deny) {
+                        auto& store = f.server.shard(sid).store();
+                        store.configure_maxmemory(true, 1, MaxmemoryPolicy::NoEviction, 5);
+                        ExLoopT<true> executor;
+                        executor.srv_ = &f.server; executor.self_ = &owner;
+                        executor.fused_handoff_ring_ = &executor.ring_;
+                        require(executor.execute(task) && op.state.load(std::memory_order_acquire) ==
+                                    OpState::Done && !op.zc_ptr,
+                                "owner admission denial frees prebuilt value before Done");
+                        require(op.direct_len || !op.reply.empty(), "owner OOM reply exists");
+                        store.configure_maxmemory(false, 0, MaxmemoryPolicy::NoEviction, 5);
+                    } else {
+                        op.spec->handler(f.server.shard(sid), op);
+                        op.state.store(OpState::Done, std::memory_order_release);
+                    }
                 }) == 1, "one task consumed");
             });
-            check_value(f, sid, key, value, built);
+            if (deny) allocation_audit.finish(1, 1);
+            else check_value(f, sid, key, value, built);
             f.workers[0]->call([&] {
                 require(c.rob().drain([](Op&) {}) == 1, "posted SET retires once");
                 f.server.thread(0).release_wb_slot(c.wb_slot());
@@ -337,6 +421,7 @@ int main(int argc, char** argv) {
     Fixture f(fused, armed);
     mset_policy(f); mset_oom(f); set_options(f); set_oom_and_discard(f);
     mset_nonatomic_and_migration(f); prebuilt_qsbr(f); CoreConcurrencyTest::parser(f);
+    CoreConcurrencyTest::handoff(f);
     require(!l4prebuild_policy(kExpectedPrebuildThreshold) &&
             l4prebuild_policy(kExpectedPrebuildThreshold + 1), "exact policy boundary engaged");
     std::printf("PASS l4prebuild %s %s: IO arenas, sizes/owners, NX, OOM, SET options, "

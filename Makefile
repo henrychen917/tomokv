@@ -45,6 +45,8 @@ $(BIN): $(OBJ)
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
+# The isolated prebuild TU reuses the string parser text without emitting its public handlers.
+build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Cold LB code changes GCC 13's translation-unit inlining budget. These stack3 budgets retain
 # the parser, O1 stages, executor and store bodies. The broader offline byte check also records

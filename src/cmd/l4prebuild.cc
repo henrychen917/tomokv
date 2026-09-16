@@ -14,7 +14,8 @@ static_assert(TOMO_L4_PREBUILD_THRESHOLD >= kEmbedThreshold);
 
 namespace {
 // Reuse the existing sidecar lane; never a borrowed reply. The handler detaches before any
-// notification can claim that lane. Refused posts and pre-handler errors use the IO cleanup.
+// notification can claim that lane. IO cleans refused posts; the owner cleans admission/prepare
+// errors before publishing Done, so every completed ordinary Op retains the original WB shape.
 constexpr int32_t kPrebuiltSetMarker = -6;
 
 struct PrebuiltSetValue {

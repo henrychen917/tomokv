@@ -114,8 +114,6 @@ public:
                 multi_retire_entry(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
-            } else if (op.zc_shard == -6) {
-                l4prebuild_discard_set(op);
             }
             if (__builtin_expect(notifications != nullptr, false))
                 notify_retire_batch_entry(*loop, notifications, client.id());
@@ -4073,7 +4071,8 @@ ordinary_shard_ready:
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
             if constexpr (Fused && !SplitLocal) {
-                if (worker_id != self_id && spec->id == g_hot_command_specs.set->id &&
+                if (spec->id == g_hot_command_specs.set->id && op->arg(2).n > kEmbedThreshold &&
+                    worker_id != self_id &&
                     srv_->thread_mode() == ThreadMode::Fused)
                     l4prebuild_prepare_set(*op);
             }
