@@ -314,7 +314,7 @@ def hammer(prefix, atomic, seconds=2.0, writers=2, readers=4, keys=None):
             threads_still_alive)
 
 
-def rename_hammer(prefix, atomic, keys, seconds=2.0, readers=6):
+def rename_hammer(prefix, atomic, keys, seconds=2.0, readers=6, deadline=None):
     config("atomic", atomic)
     left, right = keys
     init = Resp()
@@ -373,6 +373,8 @@ def rename_hammer(prefix, atomic, keys, seconds=2.0, readers=6):
         thread.start()
     try:
         start.wait()
+        if deadline is not None:
+            seconds = min(seconds, max(0.0, deadline - time.monotonic()))
         time.sleep(seconds)
     except Exception as exc:
         with lock:
@@ -764,18 +766,51 @@ note("promotion leaves one exact final group",
 # Measured 2026-09-07 at the gate's geometry (--shards 16 --ratio 6:2, cores 0-7): the outcome is
 # almost binary rather than marginal. When the wave lands, ~75,900 of ~76,000 reads are torn; when
 # it does not, exactly 0 of ~70,000 are, which is the signature of the hop-delay not taking effect
-# for that run rather than of a race narrowly lost. 5 of 6 runs landed it, so four rolls leave a
-# residual around 1 in 1,300. To induce the real failure this row protects: make the OFF path
-# publish both owners atomically and every roll reports invalid=0.
+# for that run rather than of a race narrowly lost. 5 of 6 runs landed it; the estimated four-roll
+# residual of 1 in 1,300 applies to that quiet-window sample, not arbitrary one-second rolls.
+# Commit 78c3e5391 records the passing calibration's reads=75667..76443; use its upper end as
+# the per-roll opportunity target. ASAN/co-tenant load can offer fewer reads in one second
+# (gate-run.mhogM2: invalid=0 reads=44716). After a clean undersized roll, size the NEXT fresh
+# roll at the achieved wall rate, including setup/teardown, and never shorten it. This estimates
+# the time to offer the reference sample; further shortfalls resize the next roll again.
+# Keep four attempts and an absolute 20s retry deadline: 4 original 1s rolls * the reported 5x
+# upper ASAN slowdown. Setup/disarm count against it; clamp the sleep after worker startup too.
+# Existing socket/barrier/join failure watchdogs still apply and cleanup can overrun the deadline.
+# No reads, worker errors or live threads stop discovery; exhausting either bound is still FAIL.
+# To induce the real failure this row protects: make the OFF path publish both owners atomically
+# and every roll reports invalid=0, regardless of how many opportunities it offered.
+RENAME_OFF_REFERENCE_READS = 76_443
+RENAME_OFF_ROLLS = 4
+RENAME_OFF_WALL_BUDGET = RENAME_OFF_ROLLS * 1.0 * 5
 rename_off = None
-for _roll in range(4):
+rename_seconds = 1.0
+rename_started = time.monotonic()
+rename_deadline = rename_started + RENAME_OFF_WALL_BUDGET
+for _roll in range(RENAME_OFF_ROLLS):
+    roll_started = time.monotonic()
+    remaining = rename_deadline - roll_started
+    if remaining <= 0:
+        break
+    roll_seconds = min(rename_seconds, remaining)
     debug("ATOMIC-OFF-HOP-DELAY", 100000)
     try:
-        rename_off = rename_hammer("at:rename-off", 0, mover_pair, seconds=1.0)
+        rename_off = rename_hammer("at:rename-off", 0, mover_pair, seconds=roll_seconds,
+                                   deadline=rename_deadline)
     finally:
         debug("ATOMIC-OFF-HOP-DELAY", 0)
-    if rename_off[0] > 0 or rename_off[2] or rename_off[4]:
+    roll_elapsed = time.monotonic() - roll_started
+    print("  note rename-off roll=%d/%d invalid=%d reads=%d duration=%.3fs requested=%.3fs "
+          "elapsed=%.3fs/%.3fs target_reads=%d errors=%r threads_still_alive=%r" %
+          (_roll + 1, RENAME_OFF_ROLLS, rename_off[0], rename_off[1], roll_elapsed,
+           roll_seconds, time.monotonic() - rename_started, RENAME_OFF_WALL_BUDGET,
+           RENAME_OFF_REFERENCE_READS, rename_off[2], rename_off[4]), flush=True)
+    if rename_off[0] > 0 or rename_off[1] == 0 or rename_off[2] or rename_off[4]:
         break
+    if rename_off[1] < RENAME_OFF_REFERENCE_READS:
+        rename_seconds = max(rename_seconds,
+                             roll_elapsed * RENAME_OFF_REFERENCE_READS / rename_off[1])
+if rename_off is None:
+    rename_off = (0, 0, ["OFF roll wall budget exhausted before first roll"], False, False)
 rename_on = None
 if not rename_off[2] and not rename_off[4]:
     rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
