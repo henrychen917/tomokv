@@ -5,7 +5,7 @@
 #undef main
 #include "src/core/io_loop.h"
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
-#define TOMO_L4_PREBUILD_THRESHOLD 192
+#define TOMO_L4_PREBUILD_THRESHOLD 512
 #endif
 constexpr uint32_t kExpectedPrebuildThreshold = TOMO_L4_PREBUILD_THRESHOLD;
 
@@ -70,24 +70,44 @@ struct PrebuildRequest {
 };
 
 void check_value(Fixture& f, int32_t sid, const std::string& key, const std::string& value,
-                 KvObj* candidate = nullptr) {
+                 KvObj* candidate = nullptr, bool owner_born = false) {
     f.on(sid, [&] {
         auto* object = f.server.shard(sid).store().find(FlatStore::hash_key(slice(key)), slice(key));
         require(object && object->str_value() == slice(value), "owner installed exact value");
         if (candidate) require(object == candidate, "owner consumed the IO object without recopying");
+        if (owner_born) {
+            const unsigned owner_arena = f.workers[f.server.worker_of_shard(sid)]->arena;
+            require(arena_of(object) == owner_arena, "inactive policy keeps header on owner");
+            if (value.size() > kEmbedThreshold)
+                require(arena_of(object->str_data()) == owner_arena,
+                        "inactive policy keeps external payload on owner");
+        }
     });
 }
 
 void mset_policy(Fixture& f) {
-    for (unsigned size : {64u, 192u, 193u, 256u, 512u, 768u, 1024u, 8193u}) {
+    for (unsigned size : {64u, 192u, 193u, 256u, 512u, 513u, 768u, 769u, 1024u, 8193u}) {
         const auto a = f.key(f.sid_a, "pb-local-" + std::to_string(size));
         const auto b = f.key(f.sid_b, "pb-foreign-" + std::to_string(size));
         const std::string first(size, 'x'), last(size, 'y');
         PrebuildRequest r(f, {"MSET", a, first, b, first, b, last}, size == 1024);
         r.execute();
         require(!r.state->aborted.load(), "MSET commits");
-        check_value(f, f.sid_a, a, first, r.built[0]);
-        check_value(f, f.sid_b, b, last, r.built[2]);
+        check_value(f, f.sid_a, a, first, r.built[0], !r.built[0]);
+        check_value(f, f.sid_b, b, last, r.built[2], !r.built[2]);
+    }
+    // One request crosses the boundary, so a command-wide size decision cannot pass.
+    {
+        const auto a = f.key(f.sid_a, "pb-mixed-local-");
+        const auto b = f.key(f.sid_b, "pb-mixed-small-");
+        const auto c = f.key(f.sid_b, "pb-mixed-large-");
+        const std::string small(kExpectedPrebuildThreshold, 's');
+        const std::string large(kExpectedPrebuildThreshold + 1, 'l');
+        PrebuildRequest mixed(f, {"MSET", a, large, b, small, c, large});
+        mixed.execute();
+        check_value(f, f.sid_a, a, large, mixed.built[0]);
+        check_value(f, f.sid_b, b, small, mixed.built[1]);
+        check_value(f, f.sid_b, c, large, mixed.built[2]);
     }
     const std::string big(1024, 'n');
     const auto a = f.key(f.sid_a, "pb-nx-a-"), b = f.key(f.sid_b, "pb-nx-b-");
@@ -100,6 +120,21 @@ void mset_policy(Fixture& f) {
         PrebuildRequest same(f, {"MSET", b, big, c, big});
         require(same.state->nsub == 1, "foreign same-shard MSET carries its IO candidates");
         same.execute(); check_value(f, f.sid_b, c, big, same.built[1]);
+    }
+    // The inactive boundary must preserve the original same-shard localfast route, too.
+    for (const char* command : {"MSET", "MSETNX"}) {
+        Op op; op.reset(); Client client{-1}; ScatterArenaPool pool; ScatterDispatch dispatch;
+        const std::vector<std::string> args{command, b,
+            std::string(kExpectedPrebuildThreshold, 'b'), b, std::string(256, 's')};
+        for (const auto& arg : args) require(op.push_arg(slice(arg)), "localfast argv");
+        op.spec = command_lookup(op.arg(0));
+        const auto* original = op.spec;
+        f.workers[0]->call([&] {
+            require(xshard_prepare(f.server, op, pool, 0, client.id(), dispatch, false, &client) ==
+                    ScatterPrepare::NotScatter, "inactive same-shard request keeps localfast");
+            require(op.spec == original && !op.zc_ptr,
+                    "inactive same-shard request keeps original handler and no candidate");
+        });
     }
 }
 
@@ -347,7 +382,8 @@ struct CoreConcurrencyTest {
                           : f.server.thread(tid).init_task_inbox_local(
                                 f.server.placement().ifid_threads(), f.server.placement().ex_threads()),
                     "serverless task inboxes");
-        for (bool local : {false, true}) for (unsigned size : {192u, 193u, 1024u}) {
+        for (bool local : {false, true})
+          for (unsigned size : {192u, 193u, 256u, 512u, 513u, 768u, 769u, 1024u}) {
             const auto sid = local ? f.sid_a : f.sid_b;
             const auto key = f.key(sid, std::string(512, 'q') + "pb-parser-");
             const std::string value(size, 'p');
@@ -382,6 +418,8 @@ struct CoreConcurrencyTest {
             require(c.rpos() == c.rlen() && c.rob().in_flight() == 1, "same frame posts after retry");
             auto& op = c.rob().at(0);
             require(bool(op.zc_ptr) == eligible, "parser prebuilds exactly foreign fused external SET");
+            require(eligible || op.spec == g_hot_command_specs.set,
+                    "inactive SET uses the original owner handler");
             KvObj* built = reinterpret_cast<KvObj*>(const_cast<char*>(op.zc_ptr));
             f.on(sid, [&] {
                 require(owner.drain_tasks_unmasked([&](const Task& task) {
@@ -408,7 +446,7 @@ struct CoreConcurrencyTest {
                 }) == 1, "one task consumed");
             });
             if (deny) allocation_audit.finish(1, 1);
-            else check_value(f, sid, key, value, built);
+            else check_value(f, sid, key, value, built, !built);
             f.workers[0]->call([&] {
                 require(c.rob().drain([](Op&) {}) == 1, "posted SET retires once");
                 f.server.thread(0).release_wb_slot(c.wb_slot());
@@ -428,8 +466,8 @@ int main(int argc, char** argv) {
     CoreConcurrencyTest::handoff(f);
     require(!l4prebuild_policy(kExpectedPrebuildThreshold) &&
             l4prebuild_policy(kExpectedPrebuildThreshold + 1), "exact policy boundary engaged");
-    std::printf("PASS l4prebuild %s %s: IO arenas, sizes/owners, NX, OOM, SET options, "
+    std::printf("PASS l4prebuild threshold=%u %s %s: IO/owner arenas, sizes/owners, NX, OOM, SET options, "
                 "notifications, atomic=0/1, QSBR, migration, parser retry\n",
-                argv[1], argv[2]);
+                kExpectedPrebuildThreshold, argv[1], argv[2]);
     return 0;
 }

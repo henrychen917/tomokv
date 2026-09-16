@@ -7,8 +7,10 @@
 
 namespace tomo {
 // The only size policy is this compile-time boundary (strictly greater, like kEmbedThreshold).
+// Round 1 lost the owner-born placement benefit at 256 B. Round 2 compares 512/768 B;
+// neither boundary is a measured winner yet. Keep the comparison out of the caller TUs.
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
-#define TOMO_L4_PREBUILD_THRESHOLD 192
+#define TOMO_L4_PREBUILD_THRESHOLD 512
 #endif
 static_assert(TOMO_L4_PREBUILD_THRESHOLD >= kEmbedThreshold);
 
