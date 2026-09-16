@@ -173,8 +173,11 @@ owner-arena-unit: build/owner-arena-unit
 .PHONY: owner-arena-unit
 
 # IO-prebuild policy and lifetime regressions, using pinned serverless L4 workers.
+# Read the one production boundary at build time. The fixture's separate comparison oracle
+# still catches a disabled/inclusive policy; a one-line boundary edit rebuilds both binaries.
+L4PREBUILD_TEST_FLAGS := -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(shell sed -n 's/^\#define TOMO_L4_PREBUILD_THRESHOLD //p' src/cmd/l4prebuild.cc)
 build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< \
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
@@ -200,7 +203,7 @@ build/l4prebuild-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Ma
 	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. -c $< -o $@
 build/l4prebuild-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 build/l4prebuild-unit-tsan: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_TSAN_COMMON) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
-	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. $< \
+	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(L4PREBUILD_TSAN_COMMON) \
 	  -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 

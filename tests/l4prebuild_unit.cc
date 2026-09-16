@@ -4,9 +4,9 @@
 #include "owner_arena_unit.cc"
 #undef main
 #include "src/core/io_loop.h"
-// Independent oracle for the shipped default: neither a changed production constant nor a
-// patched policy can silently change the expected placement decisions in this fixture.
-constexpr uint32_t kExpectedPrebuildThreshold = 512;
+// Make extracts the boundary from the one production definition. Expected placement uses
+// this separate comparison, so patching the policy never changes the fixture's oracle.
+constexpr uint32_t kExpectedPrebuildThreshold = TOMO_L4_PREBUILD_TEST_BOUNDARY;
 
 namespace {
 struct PrebuildRequest {

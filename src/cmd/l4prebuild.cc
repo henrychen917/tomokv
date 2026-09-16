@@ -11,11 +11,12 @@ namespace tomo {
 // boundary    SET 1s 1024    SET 1s 256    SET 2s 1024    MSET 1s 1024    MSET 1s 256
 //   192 B     +3.6..+5.1%    -9.0..-9.5%  -0.5..+0.9%   +3.0..+3.5%    -13.6..-17.7%
 //   512 B       +5.9%          +0.6%         -0.6%          +2.7%           -1.9%
-//   768 B       +4.4%          -0.9%         +0.2%          pending         pending
+//   768 B       +4.4%          -0.9%         +0.2%          +5.3%           -0.9%
 // 192 B used v5/v6 references; 512/768 B used v6 (d90843b96). Pick 512 B: retain
 // owner-born placement at 256 B and the hot-copy gain at 1 KiB, including 513-768 B
 // in the policy. No middle-size gain is claimed. MSETNX always stays owner-side;
-// its 512 B arm's -3.0% control read is pending pooling, not a cleared regression.
+// its 512 B arm's -3.0% control read is pending pooling (768 B: +0.8%). Mainline's
+// 16:03 ruling: keep 512 unless pooled MSETNX stays <= -3%, then switch to 768.
 // Keep the comparison out of caller TUs; bisect by rebuilding this constant only.
 #ifndef TOMO_L4_PREBUILD_THRESHOLD
 #define TOMO_L4_PREBUILD_THRESHOLD 512
