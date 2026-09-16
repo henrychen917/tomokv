@@ -1,13 +1,13 @@
-cx-l4prebuild ROUND 2: complete request and receipts in MEASURE-REQUEST.md.
+cx-l4prebuild ROUND 3: full request and receipts in MEASURE-REQUEST.md.
 Reference: v6 d90843b96; build/tomokv-l4prebuild-pre-v6.
-POST-512: build/tomokv-l4prebuild-512 (strictly greater than 512 B).
-POST-768: build/tomokv-l4prebuild-768 (strictly greater than 768 B).
-PAD-512-A: build/tomokv-l4prebuild-512-pad.
-PAD-768-A: build/tomokv-l4prebuild-768-pad.
-Both PADs are kind (A): PRE allocation behaviour with their POST's exact text/layout.
-Pin the L4 cells to 8 generator instances; use the current v6 gate instrument.
-Cells: l4_set_1s_256,l4_set_1s_1024,l4_set_2s_1024,l4_mset_1s_256,
-l4_mset_1s_1024,l4_msetnx_1s_1024,h01,h02,h05,h07; OP:BYTES grammar.
-Judge pooled paired rate at matched load; include cycles/op, instructions/op and IPC.
-Recover 256 B without losing the 1 KiB gain; PAD must separate policy from placement.
-No lane measurement. Append maintainer results to MEASURE-RESULT.
+POST: build/tomokv (the default build, strictly greater than 512 B).
+PAD: build/tomokv-pad, kind (A): PRE allocation behaviour with POST text size/layout.
+Cells: l4_set_1s_256, l4_set_1s_1024, l4_set_2s_1024,
+       l4_mset_1s_256, l4_mset_1s_1024, l4_msetnx_1s_1024,
+       h01, h02, h05, h07.
+Pin all six L4 cells to 8 generator instances; use the current v6-compatible rate harness.
+Pool the flagged MSETNX -3.0% read. Zero-regression bar remains; no pooled verdict supplied.
+Mainline 16:03: keep 512 unless pooled MSETNX stays <= -3%; then select 768 via the one constant.
+Compare PRE/POST, PRE/PAD and PAD/POST using paired ABBA blocks.
+Rate at matched load decides; report cycles/op, instr/op and IPC. No loopback diagnostic.
+Maintainer runs all servers, measurements and the iteration gate. Lane units/TSAN: 112-127 only.
