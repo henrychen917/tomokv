@@ -146,6 +146,19 @@ struct FlipControllerTest {
 
         {
             FlipControllerTest f;
+            // A long quiet learning window must not lend its precision to a shorter live tick.
+            // Test the vote before live learning can incidentally repair the saved band.
+            f.controller.anchor_rate_band_ = 2.0 * std::sqrt(2.0 / 49000);
+            const double rate = f.sample(mean - 70);
+            const auto reason = f.controller.rate_trigger(rate);
+            check("both live streaks use the current count floor before learning",
+                  reason == FlipctlTriggerReason::None && !f.controller.surge_streak_ &&
+                  !f.controller.collapse_streak_ &&
+                  f.controller.report().rate_band >= 2.0 * std::sqrt(2.0 / (mean - 70)));
+        }
+
+        {
+            FlipControllerTest f;
             double rate = f.sample(490, 100); // same 4900/s, one tenth as many commands
             const double short_band = f.controller.automatic_rate_band(0, rate);
             double prior = 0;
@@ -166,6 +179,9 @@ struct FlipControllerTest {
                   std::abs(short_band - 2.0 * std::sqrt(2.0 / 490)) < 1e-12 &&
                   unequal_band == short_band &&
                   std::abs(short_band / long_band - std::sqrt(10.0)) < 1e-12);
+            rate = f.sample(1, 4000);
+            check("the existing command-rate quantum still wins when larger",
+                  f.controller.automatic_rate_band(0, rate) == 8.0);
         }
 
         {
