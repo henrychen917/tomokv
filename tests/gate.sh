@@ -2303,6 +2303,8 @@ job_feature_cell(){
 job_abba_selftest(){
 # The ABBA tier's own decision logic, saturation rules and rejection paths, exercised serverless so
 # a broken comparator is caught on any machine and before any measurement is trusted.
+# The suite rejects live candidate probes even in a warm worktree; executable fixtures and an
+# explicit missing-candidate control keep this row independent of the concurrent release build.
 # Owned-server teardown must retain its drain/identity witnesses too: a success followed by
 # unfinished connection cleanup is failed evidence, including in the parallel feature cells.
 # Calibrated inputs must also reject changed shapes and forged completion evidence before
