@@ -45,13 +45,14 @@ $(BIN): $(OBJ)
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
 
-# Cold LB code changes GCC 13's translation-unit inlining budget. These stack3 budgets retain
-# the parser, O1 stages, executor and store bodies. The broader offline byte check also records
-# the remaining TLS/control exceptions in MEASURE-REQUEST.md; it does not waive mismatches.
+# Retiring the reorder pass changes GCC 13's translation-unit inlining budget. These budgets
+# retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
+# The complete byte audit records the remaining split read-local writeback/Unix exceptions
+# in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146670
-build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129860
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162350
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
+build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
+build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
