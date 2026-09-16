@@ -16,7 +16,7 @@ import zlib
 
 
 MULTI_KEYS = 8
-LONG_KEYS = 2048
+LONG_KEYS = 65536
 LONG_BYTES = 256 * 1024
 
 
@@ -49,10 +49,10 @@ def workload_arguments(cell):
         argv += ["--command=" + command, f"--command-ratio={ratio}", "--command-key-pattern=P"]
     if cell.op == "REORDER":
         # The short keys already exist in the two-million-key population. Only this
-        # extra 512 MiB is long; populating two million long values would change the
+        # extra 16 GiB is long; populating two million long values would change the
         # experiment into a capacity test. Keep more keys than connections even at
         # the first one-instance probe so memtier's parallel key ranges are nonempty.
-        argv += [f"--key-maximum={LONG_KEYS}"]
+        argv += [f"--key-maximum={LONG_KEYS}", "--rate-limiting=1400"]
     return argv
 
 

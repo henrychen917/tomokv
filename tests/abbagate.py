@@ -169,6 +169,12 @@ class Cell:
     pin_required: bool = False
     data_bytes: int = 64
 
+    def __post_init__(self):
+        # The tail instrument needs 16 independent generators to avoid arrival bursts.
+        # This is workload geometry, independent of throughput saturation calibration.
+        if self.op == "REORDER" and self.instances == 0:
+            object.__setattr__(self, "instances", 16)
+
     @property
     def metric(self):
         return ("latency_ms" if self.depth == 1 else "rate") if self.score == "auto" else {
@@ -226,7 +232,7 @@ def read_cells(path, *, placement=None):
                 or (cell.op == "REORDER") != (cell.metric == "p999_ms")
                 or (cell.depth == 1 and cell.metric == "rate")):
             raise ValueError(f"{path}:{lineno}: workload, mix and scoring disagree")
-        if pinned == "-":
+        if pinned == "-" and cell.op != "REORDER":
             cell = apply_floor(cell, measurements, placement=placement, instrument_sha256=instrument)
         cells.append(cell)
     if not cells or len({c.id for c in cells}) != len(cells):
@@ -1923,7 +1929,7 @@ def self_test():
         def test_full_coverage_preserves_original_axes_and_restores_multikey(self):
             from itertools import product
             cells = read_cells(ROOT / "tests/headline_cells.txt")
-            self.assertEqual(len(cells), 180)   # +2: the t05/t06 reorder synergy pair
+            self.assertEqual(len(cells), 181)   # t00 is the reported-only tail warmup
             original = [cell for cell in cells if cell.id.startswith("h")]
             self.assertEqual(len(original), 64)
             axes = lambda cell: (cell.mode, cell.read_local, cell.overlap, cell.reorder, cell.op, cell.depth)
@@ -1938,7 +1944,7 @@ def self_test():
 
         def test_smoke_is_seventeen_justified_cells_not_a_cross_product(self):
             cells = selected_cells(read_cells(ROOT / "tests/headline_cells.txt"), "smoke")
-            self.assertEqual(len(cells), 17)
+            self.assertEqual(len(cells), 18)
             for mode in ("1s", "2s"):
                 sweep = [cell for cell in cells if cell.mode == mode and cell.op == "GET"]
                 self.assertEqual({(cell.read_local, cell.overlap, cell.reorder) for cell in sweep},
@@ -2073,6 +2079,31 @@ def self_test():
                             self.assertIn("--key-pattern=P:P", argv)
                             self.assertIn("--ratio=1:0", argv)
                             self.assertFalse(any(arg.startswith("--command=") for arg in argv))
+
+        def test_tail_instrument_geometry_and_warmup(self):
+            from abba_workloads import LONG_KEYS, LONG_BYTES
+            from abba_simple import threshold_for
+            cells = read_cells(ROOT / "tests/headline_cells.txt")
+            warmup = cells[0]
+            measured = next(c for c in cells if c.id == "t01")
+            self.assertEqual(warmup.id, "t00")
+            self.assertEqual(replace(warmup, id="t01"), measured)
+            self.assertEqual(LONG_KEYS * LONG_BYTES, 16 * 1024 ** 3)
+            self.assertEqual(selected_cells(cells, "smoke")[0].id, "t00")
+            for cell in cells:
+                if cell.op != "REORDER":
+                    self.assertNotIn("--rate-limiting=1400", workload_arguments(cell))
+                    continue
+                self.assertEqual(cell.instances, 16)
+                self.assertIn("--rate-limiting=1400", workload_arguments(cell))
+                self.assertIn("--key-maximum=65536", workload_arguments(cell))
+                self.assertIsNone(threshold_for(asdict(cell)))
+            self.assertEqual(replace(measured, instances=0).instances, 16)
+            self.assertEqual(replace(measured, instances=8).instances, 8)
+            pins = load_measurements()["load_floors"]
+            for ident in ("t01", "t02", "t03", "t04"):
+                self.assertEqual(pins[ident]["instances"], 16)
+                self.assertEqual(pins[ident]["shape"]["mix"], "8:2")
 
         def test_missing_workload_or_scheduler_engagement_is_red(self):
             cell = replace(self.cell, op="REORDER", score="p999", mix="95:5", reorder=1)
