@@ -16,7 +16,7 @@ struct Config {
     Spacing spacing = Spacing::poisson;
     std::string mix = "GET:8,BITCOUNT:2";
     KeySpace short_keys = {"memtier-", "", 1, 2000000};
-    KeySpace long_keys = {"blocker:memtier-", "", 1, 2048};
+    KeySpace long_keys = {"blocker:memtier-", "", 1, 65536};
     bool help = false;
 
     int core(size_t thread) const {

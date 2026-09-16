@@ -190,12 +190,17 @@ build/tailgen-unit: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
 build/tailgen-unit-asan: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@ -pthread
+build/tailgen-unit-tsan: tests/tailgen_unit.cc $(TAILGEN_HEADERS) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie -I. $< -o $@ -pthread
 tailgen: build/tailgen
 tailgen-unit: build/tailgen-unit
 	./build/tailgen-unit
 tailgen-unit-asan: build/tailgen-unit-asan
 	./build/tailgen-unit-asan
-.PHONY: tailgen tailgen-unit tailgen-unit-asan
+tailgen-unit-tsan: build/tailgen-unit-tsan
+	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/tailgen-unit-tsan
+.PHONY: tailgen tailgen-unit tailgen-unit-asan tailgen-unit-tsan
 
 clean:
 	rm -rf build

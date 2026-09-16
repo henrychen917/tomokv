@@ -37,8 +37,8 @@ The tests open no TCP listener and require no server.
 
 Use t01's already-running server at `127.0.0.1:6379` (1s, read-local off,
 overlap on, reorder off, atomic on), with the population from
-`tests/abba_workloads.py`: 2,000,000 short keys with 64-byte values and 2,048
-`blocker:` keys with 256 KiB values. This tool does not populate or configure
+`tests/abba_workloads.py`: 2,000,000 short keys with 64-byte values and 65,536
+`blocker:` keys with 256 KiB values (16 GiB total). Both balancers retain their default on state. This tool does not populate or configure
 the server. Adjust host/port when the maintainer's target uses another endpoint.
 
 ```sh
@@ -47,7 +47,7 @@ taskset -c 84-111 ./build/tailgen \
   --rate 717000 --threads 16 --conns 32 --cores 84-111 \
   --mix 'GET:8,BITCOUNT:2' --spacing poisson --seed 1 \
   --short-keys 'memtier-{1..2000000}' \
-  --long-keys 'blocker:memtier-{1..2048}' \
+  --long-keys 'blocker:memtier-{1..65536}' \
   --warmup 3 --duration 20 --max-outstanding 64 \
   > build/t01-tailgen.json 2> build/t01-tailgen.log
 ```
@@ -80,7 +80,7 @@ For example, `--mix 'GET:7,SET 64:1,BITCOUNT:2'`. `SET 0` sends an empty
 value. Key options accept a quoted `prefix{first..last}suffix` pattern or a
 positive count, which selects `memtier-1..N` / `blocker:memtier-1..K`.
 Quote braces so the shell passes the pattern intact. The defaults match the
-current populations, including `LONG_KEYS=2048`; override the long range if
+current populations, including `LONG_KEYS=65536`; override the long range if
 the harness uses another population.
 
 The PRNG, integer key selection, weighted choices, and per-thread arrival

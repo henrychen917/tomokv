@@ -414,6 +414,9 @@ row_begin(){
     # Only timeout negative controls override the production full-matrix budget.
     ROW_TIMEOUT=${GATE_ABBA_ROW_BUDGET_S:-43200}; ROW_BASIS=abba-full-matrix-not-history
   fi
+  if [ "$ROW_ID" = 'tailgen client-lb outstanding bound' ]; then
+    ROW_TIMEOUT=90; ROW_BASIS=tailgen-populate-3s-warmup-20s-window
+  fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
   row_clock
@@ -944,7 +947,7 @@ start_workers(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
@@ -2317,6 +2320,7 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
 }
@@ -2529,6 +2533,12 @@ tsan_unit(){
   fi
 }
 
+job_tailgen_build(){
+  mkdir -p "$RUN_DIR/unit-ready"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tailgen \
+      >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/tailgen"
+}
+
 job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
@@ -2560,7 +2570,7 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
     atomic_units|netcmd_units) echo production_units;;
@@ -2725,6 +2735,25 @@ for FEATURE_CELL in split-home-min fused-home-max-nopin split-shards-auto; do
 done
 
 collect_job abba_selftest
+
+# One correctness row, before the quick exit. The open-loop driver needs 16 load
+# cores; use the tail cell's complete placement only after every slot has stopped.
+# Its build is already done. Budget: ~90 s including the 2M + 16 GiB population.
+join_workers
+CORES=$PERF_SERVER_CORES; LOAD_CORES=$PERF_LOAD_CORES
+export GATE_CORES="$CORES" GATE_LOAD_CORES="$LOAD_CORES"
+taskset -pc "$LOAD_CORES" "$BASHPID" >/dev/null
+row_begin "tailgen client-lb outstanding bound"
+if [ -f "$RUN_DIR/unit-ready/tailgen" ] &&
+    boot_fused "$CANDIDATE_BINARY" --shards 256 --atomic 1 --overlap 1 &&
+    py tests/tailgen_stall.py --port "$PORT" --cores "$LOAD_CORES" \
+        --output "$TMPDIR/tailgen-stall" >"$TMPDIR/gate-tailgen-stall.txt" 2>&1; then
+  ok "tailgen client-lb outstanding bound"
+else
+  bad "tailgen client-lb outstanding bound" "see $TMPDIR/gate-tailgen-stall.txt and $RUN_DIR/jobs/tailgen_build/build.log"
+fi
+stop
+set_slot 0
 
 if [ "$TIER" = quick ]; then
   join_workers
