@@ -1551,4 +1551,6 @@ CommandTable string_command_table() {
 
 #undef TOMO_STRING_NOTIFY_HANDLERS
 
+#include "l4prebuild.inc"
+
 }  // namespace tomo

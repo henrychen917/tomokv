@@ -114,6 +114,8 @@ public:
                 multi_retire_entry(*loop, client, op);
             } else if (__builtin_expect(op.has_notify_state(), false)) {
                 notifications = notify_take_batch(op);
+            } else if (op.zc_shard == -6) {
+                l4prebuild_discard_set(op);
             }
             if (__builtin_expect(notifications != nullptr, false))
                 notify_retire_batch_entry(*loop, notifications, client.id());
@@ -4070,6 +4072,11 @@ ordinary_shard_ready:
 
             const uint32_t worker_id = srv_->worker_of_shard(op->shard);
             ThreadCtx& worker = srv_->thread(worker_id);
+            if constexpr (Fused && !SplitLocal) {
+                if (worker_id != self_id && spec->id == g_hot_command_specs.set->id &&
+                    srv_->thread_mode() == ThreadMode::Fused)
+                    l4prebuild_prepare_set(*op);
+            }
 
             // PUBLISH BEFORE DISPATCH. The old order posted the task first and published after, which
             // left a window of two instructions in which a worker could receive the task, execute it,
@@ -4107,6 +4114,7 @@ ordinary_shard_ready:
             }
             if (!posted && !post_task_quiet(worker, t)) {
                 rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
+                if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
                 // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
                 // consumed the command's bytes while publishing no op, so the client waited forever
                 // for a reply that would never be produced and the connection wedged. This is not an
