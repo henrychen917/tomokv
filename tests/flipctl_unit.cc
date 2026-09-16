@@ -16,6 +16,7 @@ struct FlipControllerTest {
     uint32_t surges = 0;
     uint32_t collapses = 0;
     uint32_t confirmed_readings = 0;
+    uint32_t readings = 0;
 
     explicit FlipControllerTest(double jitter = 0.0007) {
         controller.init(true, 8);
@@ -38,6 +39,7 @@ struct FlipControllerTest {
         double rate = sample(commands, elapsed_ms);
         double prior = 0;
         if (!controller.pair_rate(rate, prior)) return FlipctlTriggerReason::None;
+        readings++;
         rate = (rate + prior) * 0.5;
         const auto reason = controller.rate_trigger(rate);
         if (reason != FlipctlTriggerReason::None) {
@@ -85,7 +87,7 @@ struct FlipControllerTest {
                         initial_band, min_band, max_band, f.surges, f.collapses);
             check(amplitude == 70 ? "stationary +/-1/sqrt(N), 96 ticks"
                                   : "stationary +/-2/sqrt(N), 96 ticks",
-                  f.surges == 0 && f.collapses == 0);
+                  f.readings == ticks && f.surges == 0 && f.collapses == 0);
         }
         check("reported band >= current window's 1/sqrt(N)", reported_floor);
 
@@ -130,7 +132,7 @@ struct FlipControllerTest {
                 unchanged &= 2.0 * std::sqrt(2.0 / commands) < 0.06;
             }
             check("3% tick jitter keeps the existing 6% band and zero triggers",
-                  unchanged && f.surges == 0 && f.collapses == 0);
+                  unchanged && f.readings == ticks && f.surges == 0 && f.collapses == 0);
         }
 
         {
@@ -145,16 +147,18 @@ struct FlipControllerTest {
         }
 
         {
-            FlipControllerTest f;
             // A long quiet learning window must not lend its precision to a shorter live tick.
             // Test the vote before live learning can incidentally repair the saved band.
-            f.controller.anchor_rate_band_ = 2.0 * std::sqrt(2.0 / 49000);
-            const double rate = f.sample(mean - 70);
-            const auto reason = f.controller.rate_trigger(rate);
-            check("both live streaks use the current count floor before learning",
-                  reason == FlipctlTriggerReason::None && !f.controller.surge_streak_ &&
-                  !f.controller.collapse_streak_ &&
-                  f.controller.report().rate_band >= 2.0 * std::sqrt(2.0 / (mean - 70)));
+            bool floored = true;
+            for (uint64_t commands : {mean - 70, mean + 70}) {
+                FlipControllerTest f;
+                f.controller.anchor_rate_band_ = 2.0 * std::sqrt(2.0 / 49000);
+                const auto reason = f.controller.rate_trigger(f.sample(commands));
+                floored &= reason == FlipctlTriggerReason::None && !f.controller.surge_streak_ &&
+                           !f.controller.collapse_streak_ &&
+                           f.controller.report().rate_band >= 2.0 * std::sqrt(2.0 / commands);
+            }
+            check("both live streaks use the current count floor before learning", floored);
         }
 
         {
