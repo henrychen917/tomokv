@@ -782,7 +782,7 @@ probe
 
 
 class SchedulerWiring(unittest.TestCase):
-    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build'))
+    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'))
 
     # Enumerate the real collector loops, not a hand-maintained approximation of their inventory.
     # This invokes only collect_job stubs: no compiler, server, battery or benchmark is started.
@@ -790,7 +790,7 @@ class SchedulerWiring(unittest.TestCase):
     def setUpClass(cls):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
-        quick = gate[gate.index('\nstart_workers\n'):gate.index('\nif [ "$TIER" = quick ]; then\n  join_workers')]
+        quick = gate[gate.index('\nstart_workers\n'):gate.index('\n# One correctness row, before the quick exit.')]
         full = gate[gate.index('\ncollect_job asan_batteries\n'):gate.index('\n# Every worker has reaped')]
         stub = '''start_workers(){ :; }
 collect_job(){
@@ -886,7 +886,7 @@ __SCHEDULER_AFFINITY_PROBE__
     : > "$RUN_DIR/atomic-boot-reached"
   fi
   case "$current" in
-    production_units|core_tsan_build|waits_tsan_build)
+    production_units|core_tsan_build|waits_tsan_build|tailgen_build)
       : > "$RUN_DIR/completed/$current"
       return 0;;
   esac
@@ -1204,13 +1204,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
         self.assertEqual(result['counts'], (len(self.canonical) - 1, 1), result['output'])
         self.assertIn(b'FAIL\tcorrectness family release\n', result['ledger'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], [name for name in self.canonical if name != 'release'])
 
     def test_release_boots_do_not_wait_for_independent_asan_build(self):
         result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertTrue(result['dependency_reached'], result['output'])
         self.assertTrue(result['dependency_handshake'], result['output'])
