@@ -291,14 +291,14 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
-                          'tests/gate_process_test.py', 'tests/gates_test.py')
+                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         if kind == 'feature':
             start = gate.index('# ---- A. mandatory feature')
-            end = gate.index('if [ "$TIER" = quick ]; then', start)
+            end = gate.index('# One correctness row, before the quick exit.', start)
         else:
             marker = gate.index('# ---- B. mandatory headline performance')
             start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
@@ -329,7 +329,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
