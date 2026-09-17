@@ -18,6 +18,7 @@
 #include <ctime>
 #include <deque>
 #include <type_traits>
+#include <unistd.h>
 #include "server.h"
 #include "signal.h"
 #include "genthread_pipeline.h"
@@ -70,6 +71,28 @@ static_assert(kReadLocalDrainChunkOps == kExecBatch);
 static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
 static_assert(kReadLocalMaxChunksBetweenOwnerBatches > 0);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
+
+// O9: the completion quantum stays at 32; only bucket lookahead grows. Charge each
+// handle and two metadata lines to L1d, and its Op plus two table lines to L2.
+// Fused placement shares those budgets with parse and writeback. Unknown geometry
+// declines the schedule. This models capacity, not residency of variable-size values.
+inline constexpr uint8_t overlap_prefetch_horizon(long l1d, long l2, long line,
+                                                 bool fused) {
+    if (l1d <= 0 || l2 <= 0 || line <= 0 || line > l1d || line > l2) return 0;
+    const uint64_t stages = fused ? 3 : 1;
+    const uint64_t metadata = sizeof(Task) + 2 * static_cast<uint64_t>(line);
+    const uint64_t working_set = metadata + sizeof(Op);
+    const uint64_t capacity = std::min<uint64_t>(kGenthreadPipelineExBatchOps,
+        std::min(static_cast<uint64_t>(l1d) / stages / metadata,
+                 static_cast<uint64_t>(l2) / stages / working_set));
+    return static_cast<uint8_t>(capacity / kExecBatch * kExecBatch);
+}
+static_assert(kGenthreadPipelineExBatchOps <= UINT8_MAX);
+static_assert(kGenthreadPipelineExBatchOps % kExecBatch == 0);
+
+// Boot-only seam for the exact-layout kind-A control. Patching this to false
+// restores PRE's ordinary drain without disabling O1, O6, or L4 prebuild.
+__attribute__((noipa)) inline bool overlap_two_tier_policy() { return true; }
 
 // Constructed only for an armed declared-key-precise write whose owner has since enabled eviction.
 // Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
@@ -183,6 +206,7 @@ public:
         // bucket prefetch below uses placement and cfg.overlap independently of these outer latches.
         pipeline_batches_ = false;
         iofused_ = false;
+        init_overlap_horizon();
         if constexpr (Fused) {
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
@@ -842,7 +866,17 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
+    inline static void (*test_before_prefetch_)(const Task*, uint32_t) = nullptr;
 #endif
+
+    void init_overlap_horizon() {
+        prefetch_horizon_ = 0;
+        if (srv_->cfg().overlap != 0 && overlap_two_tier_policy())
+            prefetch_horizon_ = overlap_prefetch_horizon(
+                ::sysconf(_SC_LEVEL1_DCACHE_SIZE), ::sysconf(_SC_LEVEL2_CACHE_SIZE),
+                ::sysconf(_SC_LEVEL1_DCACHE_LINESIZE),
+                srv_->thread_mode() == ThreadMode::Fused);
+    }
 
     bool read_local_enabled() const {
         if constexpr (Fused) return read_local_.impl != nullptr;
@@ -1937,6 +1971,10 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
+        // O1's ordinary transport/rotation is the base. The read-local fair turn
+        // has its own bounded drain and never reaches this larger gather.
+        if constexpr (BatchOps == kExecBatch && !IofusedPrivateQueue)
+            if (prefetch_horizon_ > kExecBatch) return drain_two_tier_tasks(unmasked);
         Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
@@ -1952,6 +1990,51 @@ private:
         if (held) exec_batch<IofusedPrivateQueue>(batch, held);
         self_->sig().ops += n;
         return n;
+    }
+
+    // Keep the larger stack array out of the off arm, including its stack frame.
+    // Gather only available handles; a short tail executes before returning. No
+    // store/slot/capture survives execution, rotation, or a QSBR boundary.
+    __attribute__((noinline)) uint32_t drain_two_tier_tasks(bool unmasked) {
+        Task batch[kGenthreadPipelineExBatchOps];
+        uint32_t held = 0;
+        auto take = [&](const Task& task) {
+            batch[held++] = task;
+            if (held == kGenthreadPipelineExBatchOps) {
+                exec_two_tier_batch(batch, held);
+                held = 0;
+            }
+        };
+        const uint32_t n = unmasked ? self_->drain_tasks_unmasked(take)
+                                    : self_->drain_tasks(take);
+        if (held) exec_two_tier_batch(batch, held);
+        self_->sig().ops += n;
+        return n;
+    }
+
+    void exec_two_tier_batch(const Task* batch, uint32_t n) {
+        uint32_t prefetched = 0;
+        for (uint32_t begin = 0; begin < n; begin += kExecBatch) {
+            if (!xshard_retries_.empty()) {
+                // The current hot batch already saved its tail; append the
+                // untouched horizon suffix in FIFO order, with no more hints.
+                for (uint32_t i = begin; i < n; i++) ordered_deferred_.push_back(batch[i]);
+                break;
+            }
+            const uint32_t end = std::min<uint32_t>(n, begin + prefetch_horizon_);
+            if (end > prefetched) {
+                // Retain O6's out-of-line, flattened owner-checked walk. Each
+                // handle is hinted once; execute resolves its storage again.
+                if (overlap_prefetch_enabled(end - prefetched))
+                    prefetch_overlap_batch(batch + prefetched, end - prefetched);
+                else
+                    prefetch_exec_batch(batch + prefetched, end - prefetched);
+                prefetched = end;
+            }
+            // Keep the reference's handoff, publish_size, slowlog, and atomic
+            // cleanup cadence: one unchanged execution body per hot batch.
+            exec_batch_prefetched(batch + begin, std::min(kExecBatch, n - begin));
+        }
     }
 
     // Identical ready-mask drain and stack batch as the iofused coarse path.  Only the first batch
@@ -2338,6 +2421,9 @@ private:
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void prefetch_exec_batch(const Task* batch, uint32_t n) {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_before_prefetch_) test_before_prefetch_(batch, n);
+#endif
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -2361,6 +2447,9 @@ private:
     // not inspect a stale owner's mutable table. No store/slot pointer survives this call.
     __attribute__((noinline, flatten))
     void prefetch_overlap_batch(const Task* batch, uint32_t n) {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_before_prefetch_) test_before_prefetch_(batch, n);
+#endif
         // ExLoopT<true> is also used by read-local-armed split owners. Only fused placement
         // reports this coarse prefetch pass; split IO reports its own stage schedule. Keeping
         // the witness here makes a missing walk fail, without claiming A/B interleaving.
@@ -3056,6 +3145,7 @@ private:
     bool       maxmemory_enabled_ = false;
     uint8_t    retired_reorder_padding_ = 0; // preserve cached_lru_clock_ and later offsets
     uint8_t    cached_lru_clock_ = 0;
+    uint8_t    prefetch_horizon_ = 0; // existing padding; boot-only, no sidecar
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
     uint32_t   age_sample_rate_cached_ = 0;
