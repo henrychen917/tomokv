@@ -181,11 +181,20 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
-# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
-# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
-# offline target patches only the noipa policy predicate; it never executes the server.
-build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+# Preserve L4's independent control; O10's PAD must leave the landed L4 policy armed.
+build/tomokv-l4-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+
+# Kind A: disable only O10's parse-pass predicate in an exact copy of POST.
+build/tomokv-pad: $(BIN) tools/o10prefetch_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/o10prefetch_artifacts.py $< $@ --receipt $@.json
+
+# Real parser engagement, owner dispatch, and mode/off controls; no server or ring.
+build/o10prefetch-unit: tests/o10prefetch_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_O10_PREFETCH_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/o10prefetch-unit-pad: build/o10prefetch-unit tools/o10prefetch_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/o10prefetch_artifacts.py $< $@ --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0

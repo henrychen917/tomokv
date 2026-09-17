@@ -27,6 +27,7 @@
 #include "signal.h"
 #include "ex_loop.h"
 #include "genthread_pipeline.h"
+#include "o10prefetch.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -49,26 +50,6 @@
 namespace tomo {
 
 inline constexpr uint32_t kRecvChunk = 16 * 1024;
-
-// O10 only calls this inside the armed parser: table pointers/masks then have atomic publication,
-// and the IO thread already participates in rotation QSBR. Ordinary FlatStore::prefetch is owner-
-// only; borrowing its plain metadata loads would race resize even though the final hint cannot
-// fault. Sample each published word independently here, without a sequence check or reader retry.
-// A resize can pair an old base with a new mask. Build the target as an INTEGER address, never as
-// an out-of-bounds C++ array/pointer expression, and use it only for a non-faulting read prefetch
-// (GCC Other Builtins, __builtin_prefetch). No slot/object is dereferenced or retained; a mismatched
-// pair can waste a hint, but cannot affect the actual lookup or any RYOW/atomic admission decision.
-inline void FlatStore::prefetch_from_io(uint64_t hash) const {
-    const uint32_t home = static_cast<uint32_t>(mix64(hash));
-    for (int table = 0; table < 2; table++) {
-        const uintptr_t base = reinterpret_cast<uintptr_t>(
-            __atomic_load_n(&tab_[table], __ATOMIC_ACQUIRE));
-        if (!base) continue;
-        const uint32_t mask = __atomic_load_n(&mask_[table], __ATOMIC_ACQUIRE);
-        const uintptr_t offset = static_cast<uintptr_t>(home & mask) * sizeof(uint64_t);
-        __builtin_prefetch(reinterpret_cast<const void*>(base + offset), 0, 1);
-    }
-}
 
 // IO and EX responsibilities compose on one physical thread in fused mode:
 //
@@ -2801,14 +2782,13 @@ private:
         static constexpr bool Fused = SplitLocal || IofusedPrivateQueue || (
             BatchOps == kGenthreadIfidBatchOps &&
             !IoPipe && !TargetedIfid && !SuppressOrdinaryActiveMark);
-        // O10 issues home-slot hints while the parser already has each key's hash. These two
-        // instantiations belong to overlap 1; overlap 0 compiles out every hint below. Reuse the
-        // armed read-local hash walks and their rotation QSBR instead of introducing a key walk,
-        // a per-op schedule flag, or another reader lifetime. Unarmed stores are owner-only even
-        // for prefetch: loading their mutable table pointers on IO would race resize/migration.
-        static constexpr bool IssueStoragePrefetch = IofusedPrivateQueue || (IoPipe && SplitLocal);
         [[maybe_unused]] const bool read_local_enabled =
             Fused && __builtin_expect(srv_->read_local_enabled(), false);
+        // Reuse armed key walks and their QSBR lifetime. Split O1 and unarmed parsers
+        // compile out O10; the shared coarse parser checks actual mode once per pass.
+        [[maybe_unused]] const bool issue_storage_prefetch = Fused && !SplitLocal &&
+            read_local_enabled &&
+            o10_prefetch_enabled(srv_->thread_mode(), srv_->cfg().overlap_enabled());
         Client& conn = *c;
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
@@ -3095,7 +3075,7 @@ private:
                         op->hash = FlatStore::hash_key(
                             op->arg(static_cast<uint32_t>(spec->first_key)));
                         op->shard = srv_->router().shard_of(op->hash);
-                        if constexpr (IssueStoragePrefetch)
+                        if (issue_storage_prefetch)
                             srv_->shard(op->shard).store().prefetch_from_io(op->hash);
                         read_local_point_prehashed = true;
                     }
@@ -3206,7 +3186,7 @@ private:
                                     // The precise MSET keyset walk already hashes these keys.
                                     // Larger/conservative writes keep their existing owner path;
                                     // warming them here would require a separate unbounded walk.
-                                    if constexpr (IssueStoragePrefetch)
+                                    if (issue_storage_prefetch)
                                         srv_->shard(srv_->router().shard_of(hash))
                                             .store().prefetch_from_io(hash);
                                     filter |= ReadLocalRobState::keyset_filter(hash);
@@ -3272,8 +3252,8 @@ private:
                                     ? op->shard : srv_->router().shard_of(hash);
                                 // Reuse every MGET hash/route. Executor hints still refresh at
                                 // consumption: an IO hint need not survive queueing, migration,
-                                // or the 2s core crossing. Avoid a per-op "prefetched" marker.
-                                if constexpr (IssueStoragePrefetch)
+                                // or migration. Avoid a per-op "prefetched" marker.
+                                if (issue_storage_prefetch)
                                     srv_->shard(shard).store().prefetch_from_io(hash);
                                 read_local_pending_keys.add(hash);
                                 write_conflict |= rob.read_local_write_conflicts(

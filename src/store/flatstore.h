@@ -1895,7 +1895,7 @@ public:
         if (tab_[1]) __builtin_prefetch(&tab_[1][slot_start(1, h)], 0, 3);
     }
 
-    // Armed-store IO hint; defined with its only caller in core/io_loop.h.
+    // Armed-store IO hint; implemented in core/o10prefetch.h for the parser.
     inline void prefetch_from_io(uint64_t hash) const;
 
     // One hash for the whole server: the router takes its bucket from the low bits and FlatStore
