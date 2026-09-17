@@ -17,6 +17,9 @@ else
   JELIBS  :=
 endif
 CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread
+# L3's offline kind-A control places PRE and POST functions in identical linker slots.
+# This changes placement only; the landed per-TU inlining budgets below still apply.
+CXXFLAGS += -ffunction-sections
 LDLIBS   ?= -luring -pthread
 SRC      := src/main.cc src/net/tls.cc src/cmd/commands.cc src/cmd/glob.cc src/cmd/xshard.cc src/cmd/acl.cc src/cmd/hll.cc src/cmd/t_server.cc src/cmd/t_string.cc src/cmd/t_string_notify.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc \
             src/cmd/t_list.cc src/cmd/t_set.cc src/cmd/t_zset.cc src/cmd/t_zset_ops.cc src/cmd/geo.cc src/cmd/t_stream.cc src/cmd/t_stream_groups.cc src/cmd/scripting.cc src/cmd/functions.cc src/cmd/serialize.cc src/snapshot/snapshot.cc src/persist/aof.cc
@@ -37,6 +40,7 @@ BIN      := build/tomokv
 OBJ      := $(SRC:%.cc=build/%.o)
 
 all: $(BIN)
+default: all
 
 $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
@@ -194,11 +198,15 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
-# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
-# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
-# offline target patches only the noipa policy predicate; it never executes the server.
-build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+# Keep L4's independent control available without calling it the L3 control.
+build/tomokv-l4-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+
+# L3 changes compile-time representations, so patching L4's predicate cannot disable it.
+# Build v7 PRE, then relink both arms into the same per-function slots. The receipt verifies
+# executable-section geometry and common function addresses. No binary is executed here.
+build/tomokv-pad: $(BIN) tools/cache_l3_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/cache_l3_artifacts.py --base 115da1721 --jobs 8
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
@@ -263,7 +271,7 @@ tailgen-unit-tsan: build/tailgen-unit-tsan
 
 clean:
 	rm -rf build
-.PHONY: all asan tsan noreserve clean unit tools
+.PHONY: all default asan tsan noreserve clean unit tools
 
 # Deterministic networking/command regressions. These TUs include the real private implementations;
 # omit their production objects from this serverless binary. No server threads or gate are started.
