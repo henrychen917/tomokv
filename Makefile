@@ -143,6 +143,10 @@ build/multidb-unit: tests/multidb_unit.cc src/cmd/xshard.cc $(filter-out build/s
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/multidb-cost-unit: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/tomokv-multidb2-pad: build/tomokv tools/multidb2_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/multidb2_artifacts.py $< $@ > build/multidb2-pad.json
 build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/multidb_artifacts.py $< $@ > build/multidb-pad.json
 build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile

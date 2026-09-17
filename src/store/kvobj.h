@@ -166,16 +166,7 @@ struct KvObj {
         return (flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0;
     }
     Slice key() const {
-        // Keep the common db-0 identity a zero-extended length. Computing klen and
-        // namespace independently makes the compiler rebuild a 64-bit pair on
-        // every probe, even though a short key cannot have a namespace extension.
-        const uint8_t layout = flags;
-        const char* bytes = tail() + ((layout & KvObjFlags::HasTtl) ? 8u : 0u);
-        if (__builtin_expect(!(layout & KvObjFlags::KeyExt), true))
-            return Slice(bytes, klen8);
-        uint32_t length;
-        std::memcpy(&length, tail(), 4);
-        return Slice(bytes + 4, length, static_cast<uint8_t>(klen8 + 1));
+        return probe_key<false>(flags);
     }
 
     uint32_t read_local_klen(uint8_t stable_flags) const {
@@ -192,12 +183,32 @@ struct KvObj {
         return tail() + ext + ttl;
     }
     Slice read_local_key(uint8_t stable_flags) const {
-        const char* bytes = tail() + ((stable_flags & KvObjFlags::HasTtl) ? 8u : 0u);
-        if (__builtin_expect(!(stable_flags & KvObjFlags::KeyExt), true))
-            return Slice(bytes, klen8);
-        uint32_t length;
-        std::memcpy(&length, tail(), 4);
-        return Slice(bytes + 4, length, static_cast<uint8_t>(klen8 + 1));
+        return probe_key<true>(stable_flags);
+    }
+
+    template <bool Stable>
+    __attribute__((always_inline)) Slice probe_key(uint8_t layout) const {
+        // A short key is necessarily DB 0: its identity is just the zero-extended
+        // length. The branch is the existing KeyExt test, with a local ELF symbol
+        // (no allocated bytes) for the exact-layout kind-A measurement twin.
+#if defined(__GNUC__) && defined(__x86_64__)
+        asm goto("testb %1, %0\n\t"
+                 ".local tomo_multidb2_pad_%=\n"
+                 "tomo_multidb2_pad_%=:\n\t"
+                 "jnz %l[extended]"
+                 : : "q"(layout), "i"(KvObjFlags::KeyExt) : "cc" : extended);
+#else
+        if (layout & KvObjFlags::KeyExt) goto extended;
+#endif
+        return Slice(tail() + ((layout & KvObjFlags::HasTtl) ? 8u : 0u), klen8);
+    extended:
+        // Keep the independent round-1 decoder here. Changing only JNZ to JMP
+        // routes every PAD probe through it without moving a single text byte.
+        // The compiler must not specialize this block for KeyExt being set.
+        asm("" : "+r"(layout));
+        if constexpr (!Stable) return Slice(key_ptr(), klen(), key_namespace());
+        return Slice(read_local_key_ptr(layout), read_local_klen(layout),
+                     (layout & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0);
     }
 
     char*       val_ptr()       { return key_ptr() + klen(); }
