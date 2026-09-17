@@ -154,13 +154,21 @@ def main():
                  int(start["overlap_interleaved_passes"])))
             # An idle or all-natural split pass must re-arm on fresh keys/connections,
             # and activity before this workload cannot pass it.
-            if overlapped:
+            reordered = not args.reorder or start.get("reorder_retired") == "1" or (
+                int(final.get("reorder_permuted_runs", 0)) >
+                int(start.get("reorder_permuted_runs", 0)))
+            if overlapped and reordered:
                 break
-        require(final.get("reorder") == "0" and final.get("reorder_retired") == "1",
-                "retired reorder must report effective zero")
-        require(all(name not in final for name in
-                    ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
-                "retired reorder exposed counters")
+        require(final.get("reorder_retired") in ("0", "1"), "missing reorder capability")
+        reorder_on = args.reorder and final["reorder_retired"] == "0"
+        require(final.get("reorder") == str(int(bool(reorder_on))), "wrong effective reorder mode")
+        if reorder_on:
+            require(int(final.get("reorder_permuted_runs", 0)) >
+                    int(start.get("reorder_permuted_runs", 0)), "R7 never permuted either queue")
+        else:
+            require(all(name not in final for name in
+                        ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
+                    "disabled reorder exposed counters")
         schedule = "plain" if not args.overlap else "split-io-overlap" if args.mode == "2s" else "fused-overlap"
         require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")
         if args.overlap:

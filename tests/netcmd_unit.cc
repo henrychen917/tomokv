@@ -347,7 +347,7 @@ struct NetcmdRegression {
             const std::string info = execute(shard, {"INFO", "SERVER"});
             check(info.find("overlap_enabled:" + std::to_string(overlap) + "\r\n") != std::string::npos,
                   "optional schedule reporting follows overlap");
-            if (overlap) {
+            if (overlap || reorder) {
                 for (const char* field : {"schedule_stats_threads:0\r\n", "overlap_schedule:plain\r\n",
                          "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n"})
                     check(info.find(field) != std::string::npos, "requested schedule reports explicit zeros without a sidecar");
@@ -356,11 +356,12 @@ struct NetcmdRegression {
                       info.find("reorder_permuted_runs:") == std::string::npos,
                       "both requested knobs off preserve the existing INFO surface");
             }
-            check(info.find("reorder:0\r\nreorder_retired:0\r\n") != std::string::npos,
-                  "disabled R7 reports FIFO and an available scheduler");
+            check(info.find("reorder:" + std::to_string(reorder) + "\r\nreorder_retired:0\r\n") != std::string::npos,
+                  "R7 reports its effective boot value and capability");
             for (const char* field : {"reorder_batches:", "reorder_multi_client_runs:",
                                      "reorder_permuted_runs:", "reorder_max_batch:"})
-                check(info.find(field) == std::string::npos, "retired counters are absent");
+                check((info.find(std::string(field) + "0\r\n") != std::string::npos) == (reorder != 0),
+                      "R7 counters appear only when armed, without allocating in INFO");
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
         }
         }

@@ -11,7 +11,7 @@ the guard turns these rows red, and it FAILS if the refusal cites a different re
 combination stays covered either way. Every other cell is still a mandatory boot.
 
 gate.sh invokes --cell once per ledger row. --matrix runs just this tier for development.
-No rates are scored. Independent connections carry pipelined work; reorder is a retired no-op.
+No rates are scored. Independent connections carry pipelined work; R7 must show fresh cross-client permutations when armed.
 """
 import argparse
 from contextlib import ExitStack
@@ -159,9 +159,11 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
             'wrong effective overlap mode')
     expected_schedule = ('fused-overlap' if knobs['thread-mode'] == '1s'
                          else 'split-io-overlap') if knobs['overlap'] else 'plain'
-    stats_on = knobs['overlap']
-    require(after.get('reorder') == '0' and after.get('reorder_retired') == '1',
-            'retired reorder must report effective zero')
+    require(after.get('reorder_retired') in ('0', '1'), 'missing reorder capability')
+    retired = after['reorder_retired'] == '1'
+    reorder_on = knobs['reorder'] and not retired
+    stats_on = knobs['overlap'] or reorder_on
+    require(after.get('reorder') == str(int(bool(reorder_on))), 'wrong effective reorder mode')
     require(after.get('overlap_schedule') == (expected_schedule if stats_on else None),
             'wrong overlap schedule/allocation')
     for field in ('overlap_passes', 'overlap_interleaved_passes'):
@@ -174,10 +176,15 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
         require((delta(before, after, field) > 0) if active
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs', 'reorder_max_batch'):
-        require(field not in after, 'retired reorder exposed counters')
+        if not reorder_on:
+            require(field not in after, 'disabled reorder exposed counters')
+        elif field == 'reorder_max_batch':
+            require(0 < number(after, field) <= 128, 'reorder batch bound')
+        else:
+            require(delta(before, after, field) > 0, f'R7 witness {field} did not advance')
     expect_stats = str(nthreads) if stats_on else None
     require(after.get('schedule_stats_threads') == expect_stats,
-            'schedule counters allocated while overlap off / missing when on')
+            'schedule counters disagree with active mechanisms')
     if cross_owner:
         require((delta(before, after, 'atomic_groups') > 0) if knobs['atomic']
                 else number(after, 'atomic_groups') == 0, 'atomic groups did not match knob')

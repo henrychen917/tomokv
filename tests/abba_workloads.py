@@ -144,6 +144,13 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
         if retired_reorder(mode_before) and retired_reorder(mode_after):
             evidence["reorder_witness"] = "retired, no-op"
             return evidence
+        if not cell.reorder and all(mode.get("reorder_retired") == "0" and
+                                   mode.get("reorder") == "0" for mode in (mode_before, mode_after)):
+            if any(name.startswith("reorder_") and name != "reorder_retired"
+                   for mode in (mode_before, mode_after) for name in mode):
+                raise RuntimeError("disabled R7 exposed scheduler counters")
+            evidence["reorder_witness"] = "R7 disabled, FIFO"
+            return evidence
         field = "reorder_permuted_runs"
         if field not in mode_before or field not in mode_after:
             # The unchanged pushed reference predates this telemetry. Its fallback must be a
