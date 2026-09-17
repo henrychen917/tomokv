@@ -431,6 +431,12 @@ static_assert(sizeof(Config) == 624, "Config footprint changed; update the docum
 // Boot-latched R7 capability; the exact-layout measurement twin disables it.
 bool reorder_available();
 
+// Cold boot decision, shared by the executable and serverless fixtures. Split IO
+// already flushes independently; the measured wall loss scopes this policy to 1s.
+inline uint32_t reorder_for_mode(uint32_t requested, ThreadMode mode) {
+    return mode == ThreadMode::Fused ? requested : 0;
+}
+
 inline constexpr uint32_t cfg_default_shards(uint32_t executors) {
     return executors >= 32 ? 256 : 8 * executors;
 }

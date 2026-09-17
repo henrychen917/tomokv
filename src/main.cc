@@ -176,6 +176,7 @@ int main(int argc, char** argv) {
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
     if (!reorder_available()) cfg.reorder = 0;
+    cfg.reorder = reorder_for_mode(cfg.reorder, cfg.thread_mode);
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.

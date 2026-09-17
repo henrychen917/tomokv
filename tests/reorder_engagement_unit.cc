@@ -53,7 +53,7 @@ struct CoreConcurrencyTest {
             config.thread_mode = mode;
             config.shards = 16;
             config.overlap = overlap;
-            config.reorder = reorder;
+            config.reorder = reorder_available() ? reorder_for_mode(reorder, mode) : 0;
             config.read_local = ReadLocal;
             config.atomic = config.key_lb = config.client_lb = 1;
             config.save.clear();
@@ -82,7 +82,7 @@ struct CoreConcurrencyTest {
             if constexpr (ReadLocal) if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
             require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(), "requested owner paths");
-            require((server.mode_schedule_stats() != nullptr) == (overlap != 0 || reorder != 0),
+            require((server.mode_schedule_stats() != nullptr) == (overlap != 0 || server.cfg().reorder != 0),
                     "both disabled mechanisms allocate no witness sidecar");
         }
         ~Fixture() {
@@ -149,7 +149,7 @@ struct CoreConcurrencyTest {
     template <bool ReadLocal>
     static void run(ThreadMode mode, uint32_t overlap, uint32_t requested, bool expect_available) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
-        const uint32_t reorder = reorder_available() ? requested : 0;
+        const uint32_t reorder = reorder_available() ? reorder_for_mode(requested, mode) : 0;
         Fixture<ReadLocal> f(mode, overlap, reorder);
         CommandSpec short_op = *command_lookup(Slice("GET"));
         CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
@@ -214,6 +214,7 @@ struct CoreConcurrencyTest {
     template <bool ReadLocal>
     static void shadow_pipes(ThreadMode mode, uint32_t overlap, uint32_t requested) {
         Fixture<ReadLocal> f(mode, overlap, requested);
+        const uint32_t reorder = f.server.cfg().reorder;
         IoLoop io;
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
@@ -242,7 +243,7 @@ struct CoreConcurrencyTest {
             std::memcpy(c.rbuf(), wire.data(), wire.size());
             c.commit_read(wire.size());
             auto parse = [&]<uint32_t B, bool SplitLocal>() {
-                if (requested)
+                if (reorder)
                     return io.r7_parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
                 return io.parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
             };
@@ -266,15 +267,15 @@ struct CoreConcurrencyTest {
             require(f.loop.task_shard(t) == f.sid(), "shadow payload changed shard routing");
             require(f.loop.self_->post_task_quiet(0, t, io.self_->sig()), "requeue parsed tasks");
         }
-        const bool shadow = requested && r7::shadow_available();
+        const bool shadow = reorder && r7::shadow_available();
         require(shadows == (shadow ? 7u : 0u), "dispatch shadow stamp count/PAD/FIFO witness");
         observed.clear();
-        const uint32_t drained = requested ? f.loop.template r7_drain_tasks<>(true)
+        const uint32_t drained = reorder ? f.loop.template r7_drain_tasks<>(true)
                                            : f.loop.template drain_tasks<>(true);
         require(drained == total && observed.size() == total, "production three-pipe drain lost work");
         const std::vector<uint64_t> expected = shadow
             ? std::vector<uint64_t>{0,11,1,12,2,13,6,3,14,7,4,15,8,5,9,10}
-            : requested ? std::vector<uint64_t>{0,11,1,2,3,4,5,6,7,8,9,10,12,13,14,15}
+            : reorder ? std::vector<uint64_t>{0,11,1,2,3,4,5,6,7,8,9,10,12,13,14,15}
                         : std::vector<uint64_t>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
         require(observed == expected, "actual parser-to-handler three-pipe order disagrees");
         for (auto& c : clients)
@@ -284,10 +285,9 @@ struct CoreConcurrencyTest {
     }
 
     static void shadow_foreign_passes() {
-        Fixture<false> f(ThreadMode::Split, 0, 1);
-        ThreadCtx& foreign = f.server.thread(7);
-        require(foreign.init_task_inbox_local(f.server.placement().ifid_threads(),
-                                            f.server.placement().ex_threads()), "foreign fixture inbox");
+        Fixture<false> f(ThreadMode::Fused, 0, 1);
+        ThreadCtx& foreign = f.server.thread(1);
+        require(foreign.init_task_inbox_local_fused(), "foreign fixture inbox");
         const int32_t foreign_sid = foreign.shards().front()->id();
         std::string foreign_key;
         for (uint32_t i = 0; i < 100000; ++i) {
@@ -310,7 +310,7 @@ struct CoreConcurrencyTest {
                 "\r\n$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
             std::memcpy(c.rbuf() + c.rlen(), wire.data(), wire.size());
             c.commit_read(wire.size());
-            require(io.r7_parse_and_dispatch<false>(&c) == IoLoop::DispatchResult::Progress &&
+            require((f.server.cfg().reorder ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c)) == IoLoop::DispatchResult::Progress &&
                         c.rpos() == c.rlen(), "real parser pass did not dispatch");
         };
         parse("BITCOUNT", local_key);
@@ -320,7 +320,7 @@ struct CoreConcurrencyTest {
                 foreign.drain_tasks_unmasked([&](const Task& t) { short_task = t; }) == 1,
                 "both owner queues must contain their actual task");
         require(long_task.op_id == 0 && short_task.op_id == 1 &&
-                    r7::shadow_pending(short_task) == r7::shadow_available(),
+                    r7::shadow_pending(short_task) == (reorder_available() && r7::shadow_available()),
                 "foreign long was lost across the parse boundary");
         c.rob().at(0).state.store(OpState::Done, std::memory_order_release);
         require(c.rob().flush_id() == 0 && !r7::shadow_pending(short_task),
@@ -333,11 +333,13 @@ struct CoreConcurrencyTest {
         c.rob().at(2).state.store(OpState::Done, std::memory_order_release);
         require(c.rob().drain([](Op&) {}) == 3, "foreign tasks did not retire in RESP order");
         std::printf("PASS production shadow across parser passes and executor owners; shadow=%u\n",
-                    r7::shadow_available());
+                    (reorder_available() && r7::shadow_available()));
     }
 
     static void shadow_demotions(ThreadMode mode) {
         Fixture<true> f(mode, 1, 1);
+        const bool armed = f.server.cfg().reorder != 0;
+        const bool shadow = armed && r7::shadow_available();
         IoLoop io;
         io.srv_ = &f.server;
         io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
@@ -356,26 +358,27 @@ struct CoreConcurrencyTest {
         const std::string wire = frame("BITCOUNT") + frame("GET") + frame("BITCOUNT");
         std::memcpy(a.rbuf(), wire.data(), wire.size()); a.commit_read(wire.size());
         const auto parsed = mode == ThreadMode::Fused
-            ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a)
-            : io.r7_parse_and_dispatch<false, 0, true, false, false, false, true>(&a);
+            ? (armed ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a))
+            : io.parse_and_dispatch<false, 0, true, false, false, false, true>(&a);
         require(parsed == IoLoop::DispatchResult::Progress && a.rob().dispatch_id() == 3 &&
                     a.rob().pending_read_local(1), "clean GET did not enter the real local lane");
         const uint64_t id = 1;
         const ReadLocalFallbackReason reason = ReadLocalFallbackReason::ContextOwnerKey;
         uint32_t demoted = 0;
-        require(io.r7_fused_demote_local_read_batch(&a, &id, &reason, 1, demoted) && demoted == 1,
+        require((armed ? io.r7_fused_demote_local_read_batch(&a, &id, &reason, 1, demoted) : io.fused_demote_local_read_batch(&a, &id, &reason, 1, demoted)) && demoted == 1,
                 "actual local-read demotion did not post exactly one task");
         const std::string write = frame("SET", true);
         std::memcpy(b.rbuf(), write.data(), write.size()); b.commit_read(write.size());
-        if (mode == ThreadMode::Fused) io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
-        else io.r7_parse_and_dispatch<false, 0, true, false, false, false, true>(&b);
+        if (armed) io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
+        else if (mode == ThreadMode::Fused) io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
+        else io.parse_and_dispatch<false, 0, true, false, false, false, true>(&b);
         std::vector<Task> tasks;
         require(f.loop.self_->drain_tasks_unmasked([&](const Task& t) { tasks.push_back(t); }) == 4,
                 "demotion fixture owner wave missing");
         require(tasks[0].op_id == 0 && tasks[1].op_id == 2 && tasks[2].op_id == 1 &&
                     tasks[2].client == &a, "late older-read dispatch window did not open");
-        require(r7::shadow_bit(tasks[2]) == r7::shadow_available(), "demoted read lost shadow hint");
-        if (r7::shadow_available())
+        require(r7::shadow_bit(tasks[2]) == shadow, "demoted read lost shadow hint");
+        if (shadow)
             require(r7::shadow_id(tasks[2]) == 0 && r7::shadow_pending(tasks[2]),
                     "demotion captured a younger Long instead of its own preceding Long");
         CommandSpec short_op = *command_lookup(Slice("GET"));
@@ -389,7 +392,8 @@ struct CoreConcurrencyTest {
             require(f.loop.self_->post_task_quiet(io.self_->id(), t, io.self_->sig()), "requeue demotion wave");
         }
         observed.clear();
-        require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>({3,0,2,1}),
+        require((armed ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true)) == 4 &&
+                    observed == (armed ? std::vector<uint64_t>{3,0,2,1} : std::vector<uint64_t>{0,2,1,3}),
                 "scheduler changed established owner order for a late local read");
         f.loop.compact_local_read_tombstones();
         require(a.rob().drain([](Op&) {}) == 3 && b.rob().drain([](Op&) {}) == 1,

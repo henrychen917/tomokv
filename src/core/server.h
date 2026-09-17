@@ -221,6 +221,7 @@ public:
             return false;
         }
         cfg_ = cfg;
+        cfg_.reorder = reorder_for_mode(cfg_.reorder, cfg_.thread_mode);
         if (cfg.shards == 0 || cfg.shards > 256) {
             std::fprintf(stderr, "shards must be between 1 and 256\n");
             return false;
