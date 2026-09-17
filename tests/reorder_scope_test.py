@@ -3,6 +3,7 @@
 import copy
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 from unittest import mock
 
@@ -18,7 +19,11 @@ class ScopeTest(unittest.TestCase):
         return result
 
     def test_actual_source_hooks_and_missing_anchor_fail(self):
-        original = (scope.ROOT / "src/core/ex_loop.h").read_text()
+        # This archived gather probe supports the old static scheduler only.
+        # Current R7 is rejected by prepare(); validate its historical injection
+        # sites against the actual reference it was written for.
+        original = subprocess.check_output(
+            ["git", "show", "a363c2c5e:src/core/ex_loop.h"], cwd=scope.ROOT, text=True)
         patched = scope.instrument(original)
         self.assertEqual(patched.count("reorder_scope::Batch scope_batch"), 2)
         self.assertEqual(patched.count("reorder_scope::Execution scope_execute"), 1)

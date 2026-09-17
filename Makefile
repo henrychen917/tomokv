@@ -54,10 +54,12 @@ build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
 # The complete byte audit records the remaining split read-local writeback/Unix exceptions
 # in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
+# R7's cold role selectors shift two budgets slightly. tests/reorder_noop.py locks
+# all 169 current off-path bodies, including O1 pipeline passes and O6 prefetch.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146165
 build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
+build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161735
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)

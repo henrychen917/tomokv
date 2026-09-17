@@ -273,7 +273,8 @@ def prepare(path, revision=None):
         original = (ROOT / "src/core/ex_loop.h").read_text()
     if any(marker in original for marker in
            ("    uint32_t drain_tasks_reordered(",
-            "    uint32_t r7_drain_tasks_reordered(")):
+            "    uint32_t r7_drain_tasks_reordered(",
+            "    uint32_t r7_drain_tasks(")):
         raise ValueError("R7 queues span gathers: this shared probe measures the PRE gather "
                          "scope; use a pre-R7 --ref before drawing a scope conclusion")
     patched = instrument(original)

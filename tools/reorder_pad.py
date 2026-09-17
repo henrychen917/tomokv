@@ -13,7 +13,7 @@ def twin(source, output):
     assert source.resolve() != output.resolve(), 'control must be a separate file'
     elf = Elf(source)
     assert elf.kind != 1, 'expected a linked executable'
-    matches = [s for name, s in elf.functions().items() if 'reorder_available' in name]
+    matches = [s for name, s in elf.functions().items() if name == '_ZN4tomo17reorder_availableEv']
     assert len(matches) == 1, 'one noipa policy function, without clones'
     symbol = matches[0]
     section = elf.sections[symbol['sec']]
