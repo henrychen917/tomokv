@@ -128,7 +128,8 @@ struct ReadLocalExState<true> {
         bool lane_has_tombstones = false;
         bool point_writes_precise = true;
         bool keymiss_notify_armed = false;
-        uint8_t reserved_schedule[2] = {}; // preserve the demotion-state offsets
+        bool owner_prefetch_gap = false; // boot latch in the existing schedule padding
+        uint8_t reserved_schedule[1] = {}; // preserve the demotion-state offsets
         // EFFECTIVE lane capacity for ADMISSION. The physical ring is always kInboxSlots entries
         // and its index arithmetic still masks with kInboxSlots - 1; this only decides when the
         // parser stops admitting, so lowering it can never overrun the ring. It derives to
@@ -195,6 +196,8 @@ public:
                 impl->point_writes_precise =
                     srv->cfg().maxmemory == 0 ||
                     srv->cfg().maxmemory_policy == MaxmemoryPolicy::NoEviction;
+                impl->owner_prefetch_gap = srv->thread_mode() == ThreadMode::Fused &&
+                    srv->cfg().overlap_enabled() && fused_local_rotation_policy();
                 read_local_.impl = std::move(impl);
             }
         }
@@ -381,8 +384,12 @@ public:
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
-        if (read_local_enabled())
+        if (read_local_enabled()) {
+            if (read_local_impl().owner_prefetch_gap)
+                return fused_pass_impl<kGenthreadExBatchOps, true, false,
+                                       false, true, void, true>();
             return fused_pass_impl<kGenthreadExBatchOps, true, false, false, true>();
+        }
         return fused_pass_impl<kGenthreadExBatchOps, true, false>();
     }
 
@@ -413,8 +420,10 @@ public:
 
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              typename Filler = void>
+              typename Filler = void, bool LocalReadGap = false>
     uint32_t fused_pass_impl(Filler* filler = nullptr) {
+        static_assert(!LocalReadGap ||
+                      (Fused && ConsumeTasks && InterleaveLocalReads && std::is_void_v<Filler>));
         Server::ClientWorkScope client_work(*srv_, self_->id());
         constexpr bool HasFiller = !std::is_void_v<Filler>;
         [[maybe_unused]] bool filler_used = false;
@@ -483,8 +492,10 @@ public:
         }
         uint32_t did = 0;
         if (fairlane_turn) {
-            // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
-            did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+            // O11 gives this quantum the owner prefetch gap. A pure-read turn reaches the
+            // existing tail below; exceptional debt keeps the ordinary coarse ordering.
+            if constexpr (!LocalReadGap)
+                did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
         } else {
             // Coarse overlap consumes every local capture inside this call. On a clean
             // three-way turn WB runs later at the owner prefetch seam; on an exceptional turn
@@ -535,7 +546,7 @@ public:
                             else {
                                 if (fairlane_turn)
                                     did += drain_tasks_read_local_interleaved<
-                                        IofusedPrivateQueue>(false, owner_work_remains);
+                                        IofusedPrivateQueue, LocalReadGap>(false, owner_work_remains);
                                 else
                                     did += drain_tasks<BatchOps, IofusedPrivateQueue>();
                             }
@@ -1885,35 +1896,44 @@ private:
         return unmasked ? self_->drain_releases_unmasked(take) : self_->drain_releases(take);
     }
 
+#include "fused_local_rotation.inc"
+
     // The armed coarse scheduler gives every captured producer one owner-task quantum. This keeps
     // WB distance independent of a producer's queued depth and gives a continuously busy remote IO
     // lane service every rotation. ThreadCtx preserves recv -> callback -> retire for each Task and
     // invokes the local hook only after the Task completing a full execution batch is retired.
-    template <bool IofusedPrivateQueue = false>
+    template <bool IofusedPrivateQueue = false, bool LocalReadGap = false>
     uint32_t drain_tasks_read_local_interleaved(bool unmasked,
                                                 bool& owner_work_remains) {
         Task batch[kReadLocalOwnerTaskChunkOps];
         uint32_t held = 0;
         uint32_t local_work = 0;
+        auto execute_batch = [&] {
+            if constexpr (LocalReadGap)
+                local_work += exec_batch_local_read_gap<IofusedPrivateQueue>(batch, held);
+            else
+                exec_batch<IofusedPrivateQueue>(batch, held);
+            held = 0;
+        };
         auto take = [&](const Task& task) {
             batch[held++] = task;
             if (held != kReadLocalOwnerTaskChunkOps) return false;
-            exec_batch<IofusedPrivateQueue>(batch, held);
-            held = 0;
+            execute_batch();
             return true;
         };
         auto local_turn = [&] {
             // A local read must not run between a last-owner install and this batch's epoch
             // publication. This boundary still batches every group in the preceding owner chunk.
             flush_xshard_commits();
-            for (uint32_t chunk = 0;
-                 chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
-                local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+            if constexpr (!LocalReadGap)
+                for (uint32_t chunk = 0;
+                     chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
+                    local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
         };
         const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
             kReadLocalOwnerTaskChunkOps, take, local_turn, unmasked);
         if (held) {
-            exec_batch<IofusedPrivateQueue>(batch, held);
+            execute_batch();
             local_turn();
         }
         owner_work_remains = self_->notified_task_depth_capped(1) != 0 ||
