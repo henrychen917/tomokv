@@ -1,0 +1,28 @@
+# Private O7 measurement request, not additional gate rows. All operations count commands.
+# Use the gate's calibrated load at matched geometry; ro=1 remains the retired no-op.
+# Existing requested IDs retain their CURRENT definitions. m03/m51 are p32 in this reference;
+# the explicitly named o7-m03-p8/o7-m51-p8 copies below provide the requested p8 checks.
+# id | mode | rl | ov | ro | op | depth | conns | reserved | reserved | reserved | atomic | score | mix | smoke
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h07 | 1s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h23 | 2s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g0 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g1 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s0 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s1 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+f8g1 | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m03 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m51 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-m03-p8 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-m51-p8 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-mget-1s-p8 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-mset-1s-p8 | 1s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-mget-2s-p8 | 2s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-mset-2s-p8 | 2s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h15 | 1s | rl=1 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h16 | 1s | rl=1 | ov=1 | ro=1 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h31 | 2s | rl=1 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h32 | 2s | rl=1 | ov=1 | ro=1 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-p8g1-rl1 | 2s | rl=1 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+o7-p8s1-rl1 | 2s | rl=1 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0

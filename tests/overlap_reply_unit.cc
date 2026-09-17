@@ -176,7 +176,15 @@ static void full_ring_already_submitted(bool expect_pre) {
 }
 
 int main(int argc, char** argv) {
-    require(argc == 1 || (argc == 2 && !std::strcmp(argv[1], "--expect-pre")), "arguments");
+    require(argc == 1 || (argc == 2 && (!std::strcmp(argv[1], "--expect-pre") ||
+                                      !std::strcmp(argv[1], "--natural-parked"))), "arguments");
+    if (argc == 2 && !std::strcmp(argv[1], "--natural-parked")) {
+        // Isolate the MSG_RING boundary: O1's notification already happened, so a failure
+        // here cannot be explained merely by moving the shallow mask publication later.
+        witness<false>(true, true, false);
+        std::puts("PASS overlap reply: deep parked-owner engagement");
+        return 0;
+    }
     const bool expect_pre = argc == 2;
     empty_streams();
     for (bool natural : {false, true}) for (bool parked : {false, true}) {
