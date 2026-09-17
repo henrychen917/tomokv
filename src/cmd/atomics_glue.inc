@@ -536,13 +536,14 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
                     if (!group.aux) group.aux = new GroupAux;
                     if (!group.aux->flush_keys_built) {
                         owner.store().for_each([&](KvObj* object) {
-                            group.aux->flush_keys.emplace_back(object->key().p, object->key().n);
+                            if (!op.cmd_name().eq_icase("flushdb") ||
+                                object->key_namespace() == op.physical_db)
+                                group.aux->flush_keys.emplace_back(object->key());
                         });
                         group.aux->flush_keys_built = true;
                     }
                     while (group.snapshot_pos < group.aux->flush_keys.size()) {
-                        const std::string& key = group.aux->flush_keys[group.snapshot_pos];
-                        const Slice slice(key.data(), static_cast<uint32_t>(key.size()));
+                        const Slice slice = group.aux->flush_keys[group.snapshot_pos].slice();
                         const auto result = owner.store().snapshot_prepare_write(
                             FlatStore::hash_key(slice), slice);
                         if (result != FlatStore::SnapshotWriteResult::Ready) return result;

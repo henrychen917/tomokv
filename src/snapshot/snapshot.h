@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "format.h"
+#include "../cmd/multidb.h"
 #include "../core/signal.h"
 
 namespace tomo {
@@ -22,6 +23,7 @@ class ThreadCtx;
 
 class SnapshotLoadPlan {
 public:
+    DatabaseMap::Map database_map;
     uint32_t shard_count = 0;
     uint32_t hash_kind = 0;
     uint64_t epoch = 0;
@@ -133,6 +135,8 @@ private:
     std::atomic<uint64_t> cuts_waited_{0};
     std::atomic<uint64_t> drained_groups_{0};
     std::atomic<Ring*> writer_ring_{nullptr};
+    DatabaseMap::Map database_map_;
+    bool database_map_extended_ = false;
     Server* server_ = nullptr;  // snapshot command lifetime; process-wide Server is stable
 
     std::string dir_;

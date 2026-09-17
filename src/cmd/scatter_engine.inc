@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
+    AllShards, RandomKey, DatabaseInfo, Swapdb, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
@@ -82,9 +82,10 @@ struct ValueSlot {
 };
 
 struct GroupAux {
-    std::vector<std::string> flush_keys;
+    std::vector<DatabaseKey> flush_keys;
     std::vector<std::string> keys_result;
     bool flush_keys_built = false;
+    DatabaseStatsTable database_stats;
 };
 
 // Groups are dense (one record per touched shard), and each owns one range in key_order[].
@@ -96,6 +97,7 @@ struct ShardGroup {
     uint64_t membership = 0;
     uint32_t snapshot_pos = 0;
     uint64_t scan_cursor = 0;
+    bool swap_ready = false;
     WorkError error = WorkError::None;
     GroupAux* aux = nullptr;                 // KEYS / capture-safe FLUSH only
 };
@@ -450,6 +452,8 @@ struct ScatterState : SnapshotCut {
     std::atomic<bool> script_conflict{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
     std::atomic<uint64_t> exact_sum{0};
+    std::atomic<uint32_t> swap_ready_count{0};
+    std::atomic<bool> swap_done{false};
     Kind kind = Kind::AllShards;
     FinalReply final_reply = FinalReply::None;
     WorkError final_error = WorkError::None;
@@ -1446,7 +1450,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              command_config_routes_all_shards(op));
     Kind kind;
     if (all_shards)
-        kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+        kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
+               op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
+               op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
+               op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("borrowcount")
                    ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
@@ -1454,6 +1461,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
+
+    if (op.cmd_name().eq_icase("move") && !multidb_prepare_move(server, op))
+        return ScatterPrepare::Error;
 
     // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
     // planning so FLIP refuses instead of entering a quiescence transaction concurrently. A count
@@ -1784,7 +1794,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // off the source's shard.
         const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
         if (same_owner && !force_atomic && !sort_deref_group && !foreign_external &&
-            kind != Kind::Pfcount && kind != Kind::Pfmerge &&
+            kind != Kind::Pfcount && kind != Kind::Pfmerge && !op.cmd_name().eq_icase("move") &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
             op.shard = routes[0].shard;
@@ -1802,7 +1812,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
+        kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
         group_cap = server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
@@ -2007,7 +2018,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
+        kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -3217,6 +3229,28 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 state.exact_sum.fetch_add(
                     shard.store().outstanding_borrows(), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
+            case Kind::Swapdb: {
+                if (!group.swap_ready) {
+                    group.swap_ready = true;
+                    state.swap_ready_count.fetch_add(1, std::memory_order_acq_rel);
+                }
+                if (state.swap_ready_count.load(std::memory_order_acquire) != state.nsub)
+                    return ScatterTaskResult::Retry;
+                if (shard.id() == 0 && !state.swap_done.load(std::memory_order_acquire)) {
+                    // Snapshot and map publication share an admission edge. A snapshot keeps
+                    // its captured mapping throughout all owner freeze/mark/capture phases.
+                    std::lock_guard lock(state.server->shape_transition_mutex());
+                    if (state.server->snapshot().in_progress()) return ScatterTaskResult::Retry;
+                    if (!multidb_commit_swap(*state.server, shard, op)) group.error = WorkError::Oom;
+                    state.swap_done.store(true, std::memory_order_release);
+                }
+                return state.swap_done.load(std::memory_order_acquire)
+                    ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
+            }
+            case Kind::DatabaseInfo:
+                if (!group.aux) group.aux = new GroupAux;
+                multidb_stats(shard, group.aux->database_stats);
+                return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
                     multidb_size(shard, op.physical_db, state.snapshot), std::memory_order_relaxed);
@@ -3287,9 +3321,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     state.status[pos] = find_value(key.hash, op.arg(key.arg), true) != nullptr;
                 }
                 return ScatterTaskResult::Complete;
+            case Kind::RandomKey:
             case Kind::Keys: {
                 if (!group.aux) group.aux = new GroupAux;
-                const Slice pattern = op.arg(1);
+                const Slice pattern = state.kind == Kind::RandomKey ? Slice("*", 1) : op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
                     const Slice key = object->key();
                     const uint64_t hash = FlatStore::hash_key(key);

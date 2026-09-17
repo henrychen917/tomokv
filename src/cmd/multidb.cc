@@ -18,13 +18,47 @@ bool parse_i64_canonical(Slice arg, int64_t& value) {
 }
 }
 
-bool DatabaseMap::swap(uint8_t first, uint8_t second) {
+bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
+    if (first == second) return true;
     std::lock_guard lock(writer_);
     try {
         auto next = std::make_unique<Map>();
         if (live_) *next = *live_;
         else for (unsigned i = 0; i < next->size(); ++i) (*next)[i] = i;
         std::swap((*next)[first], (*next)[second]);
+        if (first != second) { ++next->versions[first]; ++next->versions[second]; }
+        if (live_) retired_.reserve(retired_.size() + 1);
+        if (journal && !journal->record_database_map(next->data())) return false;
+        current_.store(next.get(), std::memory_order_seq_cst);
+        if (live_) retired_.push_back(std::move(live_));
+        live_ = std::move(next);
+        if (readers_.load(std::memory_order_seq_cst) == 0) retired_.clear();
+        return true;
+    } catch (const std::bad_alloc&) { return false; }
+}
+
+DatabaseMap::Map DatabaseMap::capture() const {
+    Read read(*this);
+    Map map;
+    for (unsigned i = 0; i < map.size(); ++i) {
+        map[i] = read[i]; map.versions[i] = read.version(i);
+    }
+    return map;
+}
+
+bool DatabaseMap::restore(const uint8_t* bytes) {
+    std::lock_guard lock(writer_);
+    bool identity = true;
+    for (unsigned i = 0; i < 256; ++i) identity &= bytes[i] == i;
+    if (identity && !live_) return true;
+    try {
+        auto next = std::make_unique<Map>();
+        bool seen[256]{};
+        for (unsigned i = 0; i < next->size(); ++i) {
+            if (seen[bytes[i]]) return false;
+            seen[bytes[i]] = true; (*next)[i] = bytes[i];
+            next->versions[i] = live_ ? live_->versions[i] + 1 : 0;
+        }
         if (live_) retired_.reserve(retired_.size() + 1);
         current_.store(next.get(), std::memory_order_seq_cst);
         if (live_) retired_.push_back(std::move(live_));
@@ -84,7 +118,7 @@ void multidb_select(Server* server, Client* client, Op& op) {
     }
     if (client) {
         client->session().db_index = parsed;
-        client->arm_multidb();
+        if (parsed != 0) client->arm_multidb();
     }
     reply_ok(op.sink());
 }
@@ -118,5 +152,62 @@ void multidb_flush(Shard& shard, uint8_t physical) {
         shard.store().erase(FlatStore::hash_key(key), key);
     }
     shard.publish_size();
+}
+
+uint64_t multidb_random(uint64_t bound) {
+    thread_local uint64_t state = 0xa0761d6478bd642fULL;
+    state ^= state << 13; state ^= state >> 7; state ^= state << 17;
+    return bound ? state % bound : 0;
+}
+
+bool multidb_prepare_move(Server& server, Op& op) {
+    // Lowered MOVE retains argc=3; the destination aliases the source bytes with a new identity.
+    if (op.arg(1).p == op.arg(2).p && op.arg(1).ns != op.arg(2).ns) return true;
+    int64_t db;
+    if (!parse_i64_canonical(op.arg(2), db)) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
+    }
+    if (db < 0 || uint64_t(db) >= server.cfg().databases) {
+        reply_err(op.sink(), "ERR DB index is out of range"); return false;
+    }
+    if (db == op.db) {
+        reply_err(op.sink(), "ERR source and destination objects are the same"); return false;
+    }
+    multidb_stamp(server, op, op.db);
+    Slice destination = op.arg(1);
+    destination.ns = op.secondary_db;
+    op.replace_arg(2, destination);
+    return true;
+}
+
+bool multidb_validate_swap(Server& server, Op& op) {
+    uint8_t first, second;
+    if (!multidb_parse_index(op.arg(1), server.cfg().databases, first) ||
+        !multidb_parse_index(op.arg(2), server.cfg().databases, second)) {
+        reply_err(op.sink(), "ERR invalid DB index"); return false;
+    }
+    return true;
+}
+
+bool multidb_commit_swap(Server& server, Shard& shard, Op& op) {
+    uint8_t first = 0, second = 0;
+    if (!multidb_parse_index(op.arg(1), server.cfg().databases, first) ||
+        !multidb_parse_index(op.arg(2), server.cfg().databases, second)) std::abort();
+    return server.databases().swap(first, second, &shard.store().aof());
+}
+
+void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
+    uint64_t cursor = 0;
+    do {
+        cursor = shard.store().scan(cursor, 256, [&](KvObj* object) {
+            auto& row = stats[object->key_namespace()];
+            ++row.keys;
+            const int64_t deadline = object->expire_at_ms();
+            if (deadline >= 0) {
+                ++row.expires;
+                row.ttl += std::max<int64_t>(0, deadline - shard.now_ms());
+            }
+        });
+    } while (cursor);
 }
 } // namespace tomo

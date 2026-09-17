@@ -356,9 +356,9 @@ struct Config {
     bool aof_timestamp_enabled = false;
     bool aof_load_truncated = true;     // boot-only recovery policy; existing bool alignment hole
 
-    // Logical databases share the sharded store; physical namespace IDs are one byte. The protocol bound is live and applies to request
-    // bulk lengths; the 32-bit Slice ABI sets the supported ceiling checked by the parser below.
+    // Logical databases share the sharded store; physical namespace IDs are one byte.
     uint32_t databases = 16;
+    // The live protocol bound applies to request bulk lengths (32-bit Slice ceiling).
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------

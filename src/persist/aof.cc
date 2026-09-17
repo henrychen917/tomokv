@@ -856,6 +856,12 @@ bool AofProducer::record_flush(int physical_db) {
                         nullptr, 0, nullptr, nullptr, nullptr);
 }
 
+bool AofProducer::record_database_map(const uint8_t* mapping) {
+    if (!enabled()) return true;
+    return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
+                        mapping, 256, nullptr, nullptr, nullptr);
+}
+
 bool AofProducer::flush(AofOwnerContext& context) {
     if (!manager_) return true;
     if (build_ && !seal(0, nullptr)) return false;
@@ -2354,7 +2360,8 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
             if (!parse_record_bounds(section, record_pos, kind, type, encoding, key_len,
                                      payload_len, expire, group, next, error)) return nullptr;
             (void)type; (void)encoding; (void)key_len; (void)payload_len; (void)expire;
-            if (kind < AofRecordKind::Put || kind > AofRecordKind::GroupDel) {
+            if (kind < AofRecordKind::Put ||
+                (kind > AofRecordKind::GroupDel && kind != AofRecordKind::DatabaseMap)) {
                 error = "unknown AOF record kind";
                 return nullptr;
             }
@@ -2482,6 +2489,13 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                             static_cast<uint32_t>(payload_len));
         pos = next;
         if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
+        if (kind == AofRecordKind::DatabaseMap) {
+            if (sid != 0 || key_len || payload_len != 256 ||
+                !server.databases().restore(reinterpret_cast<const uint8_t*>(payload.p))) {
+                error = "invalid AOF database mapping"; return false;
+            }
+            continue;
+        }
         if (kind == AofRecordKind::Flush) {
             if (type == 1) multidb_flush(shard, key.ns);
             else shard.store().clear();

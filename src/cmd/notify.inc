@@ -10,6 +10,7 @@ struct NotifyRecordImpl {
     // storage; no footprint lock covers it.
     uint32_t routes = 0;
     NotifyEventId event = NotifyEventId::Set;
+    uint8_t db = 0;
     Slice key;
 };
 
@@ -38,6 +39,8 @@ const char* notify_event_name(NotifyEventId event) {
         case NotifyEventId::Persist: return "persist";
         case NotifyEventId::RenameFrom: return "rename_from";
         case NotifyEventId::RenameTo: return "rename_to";
+        case NotifyEventId::MoveFrom: return "move_from";
+        case NotifyEventId::MoveTo: return "move_to";
         case NotifyEventId::CopyTo: return "copy_to";
         case NotifyEventId::Restore: return "restore";
         case NotifyEventId::Setrange: return "setrange";
@@ -153,6 +156,8 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::Xsetid:
         case NotifyEventId::RenameFrom:
         case NotifyEventId::RenameTo:
+        case NotifyEventId::MoveFrom:
+        case NotifyEventId::MoveTo:
         case NotifyEventId::CopyTo:
         case NotifyEventId::Restore: return 4;
         case NotifyEventId::Hexpired: return 3;   // strictly before the del it may trigger
@@ -196,19 +201,18 @@ std::string notify_keyevent_channel(NotifyEventId event, uint8_t db) {
     return channel;
 }
 
-bool notify_make_publication(Server& server, uint32_t routes, uint8_t route,
+bool notify_make_publication(uint8_t db, uint32_t routes, uint8_t route,
                              NotifyEventId event_id, Slice key,
                              std::string& channel, std::string& message) {
     if (route == 0) {
         if (!(routes & NOTIFY_KEYSPACE)) return false;
-        channel = notify_keyspace_channel(key, server.databases().logical(key.ns));
+        channel = notify_keyspace_channel(key, db);
         message = notify_event_name(event_id);
         return true;
     }
     if (!(routes & NOTIFY_KEYEVENT)) return false;
-    channel = notify_keyevent_channel(event_id, server.databases().logical(key.ns));
+    channel = notify_keyevent_channel(event_id, db);
     message.assign(key.p, key.n);
-    (void)server;
     return true;
 }
 
@@ -363,6 +367,7 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     if (!server->pubsub_any_subscribers())
         record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
     record.event = event;
+    record.db = key.ns == source.physical_db ? source.db : source.target_db;
     record.key = stable;
     try {
         if (batch->inline_size < 8) batch->inline_records[batch->inline_size++] = record;
@@ -397,6 +402,7 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
         if (!server->pubsub_any_subscribers())
             out.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
         out.event = event;
+        out.db = server->databases().logical(key.ns);
         out.key.assign(key.p, key.n);
         slot->keyless.push_back(std::move(out));
     } catch (const std::bad_alloc&) {
@@ -486,7 +492,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
             for (uint8_t route = 0; route < 2; route++) {
                 std::string channel, message;
                 if (!notify_make_publication(
-                        server, out.routes, route, out.event,
+                        out.db, out.routes, route, out.event,
                         Slice(out.key.data(), static_cast<uint32_t>(out.key.size())),
                         channel, message)) continue;
                 building->items.push_back(
@@ -591,7 +597,7 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
         for (const NotifyRecordImpl& record : records) {
             for (uint8_t route = 0; route < 2; route++) {
                 std::string channel, message;
-                if (!notify_make_publication(*loop.srv_, record.routes, route, record.event,
+                if (!notify_make_publication(record.db, record.routes, route, record.event,
                                              record.key, channel, message)) continue;
                 building->items.push_back(
                     PubSubNotificationItem{std::move(channel), std::move(message)});
@@ -666,9 +672,11 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
             break;
         case Kind::Renamenx:
             if (state.final_integer == 1) {
-                emit(NOTIFY_GENERIC, NotifyEventId::RenameFrom, 1);
+                emit(NOTIFY_GENERIC, op.cmd_name().eq_icase("move")
+                    ? NotifyEventId::MoveFrom : NotifyEventId::RenameFrom, 1);
                 emit_atomic_new(1, 2);
-                emit(NOTIFY_GENERIC, NotifyEventId::RenameTo, 2);
+                emit(NOTIFY_GENERIC, op.cmd_name().eq_icase("move")
+                    ? NotifyEventId::MoveTo : NotifyEventId::RenameTo, 2);
             }
             break;
         case Kind::Copy:

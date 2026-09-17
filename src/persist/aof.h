@@ -49,6 +49,7 @@ enum class AofRecordKind : uint8_t {
     GroupPut = 5,
     GroupDel = 6,
     GroupCommit = 7,
+    DatabaseMap = 8,
 };
 
 enum class AofRewriteDebugStage : uint8_t {
@@ -123,6 +124,7 @@ public:
                                     uint64_t group = 0);
     bool record_delete(Slice key, uint64_t group = 0);
     bool record_flush(int physical_db = -1);
+    bool record_database_map(const uint8_t* mapping);
     bool begin_group(const std::shared_ptr<AofGroupDecision>& group);
     bool record_group_post_image(FlatStore& store, uint64_t hash, Slice key);
     bool record_group_visible_post_image(FlatStore& store, uint64_t hash, Slice key);

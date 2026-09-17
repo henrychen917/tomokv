@@ -273,6 +273,9 @@ public:
     void set_arg_namespace(uint32_t i, uint8_t ns) {
         (argv_heap_ ? argv_heap_[i] : argv_inline_[i]).ns = ns;
     }
+    void replace_arg(uint32_t i, Slice value) {
+        (argv_heap_ ? argv_heap_[i] : argv_inline_[i]) = value;
+    }
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
     // `state` is one byte at offset 184 and the argv header needs 8-byte alignment at 192, so 185..191

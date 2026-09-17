@@ -15,6 +15,8 @@ struct MultiWatchedKey {
     uint64_t hash = 0;
     int32_t shard = -1;
     uint8_t ns = 0;
+    uint8_t db = 0;
+    uint64_t db_version = 0;
 };
 
 enum class MultiCommandKind : uint8_t {
@@ -484,7 +486,7 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     if (has_name(command.queued, "echo")) return MultiCommandKind::Echo;
     if (has_name(command.queued, "unwatch")) return MultiCommandKind::UnwatchReply;
     if (command.queued.spec->flags & CmdFlags::ConnLocal) return MultiCommandKind::IoLocal;
-    if (has_name(command.queued, "dbsize")) return MultiCommandKind::IoLocal;
+    if (has_name(command.queued, "dbsize")) return MultiCommandKind::Unsupported;
     if (has_name(command.queued, "config") && command.queued.argv.size() > 1 &&
         Slice(command.queued.argv[1].data(),
               static_cast<uint32_t>(command.queued.argv[1].size())).eq_icase("get"))
@@ -499,7 +501,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     // These six execute through a normalized nonblocking xshard child even when all keys happen
     // to share one owner. Calling their ordinary Blocking handler from EXEC would park the whole
     // transaction, which Redis never does.
-    if (command.blocking_pop != MultiBlockingPop::None) return MultiCommandKind::Unsupported;
+    if (command.blocking_pop != MultiBlockingPop::None || has_name(command.queued, "move"))
+        return MultiCommandKind::Unsupported;
     if (command.key_args.empty()) return MultiCommandKind::Unsupported;
     // A DEREFERENCING SORT IS NEVER LOCAL, however few keys it names. Its BY/GET patterns read keys
     // derived from the source's ELEMENTS, on shards this transaction never declared, and a Local
@@ -557,11 +560,6 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command_key_args(command->queued, command->key_args);
             if (!make_child_op(*command)) return false;
             multidb_stamp(server, *command->op, logical_db);
-            if (has_name(command->queued, "select")) {
-                uint8_t selected = logical_db;
-                if (multidb_parse_index(command->op->arg(1), server.cfg().databases, selected))
-                    logical_db = selected;
-            }
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
                 const uint64_t hash = FlatStore::hash_key(command->op->arg(arg));
@@ -611,6 +609,12 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     return false;
                 }
             }
+            if (command->kind == MultiCommandKind::IoLocal &&
+                has_name(command->queued, "select")) {
+                uint8_t selected = logical_db;
+                if (multidb_parse_index(command->op->arg(1), server.cfg().databases, selected))
+                    logical_db = selected;
+            }
             if (command->kind != MultiCommandKind::Prebuilt &&
                 (has_name(command->queued, "mset") || has_name(command->queued, "msetnx")) &&
                 (command->queued.argv.size() & 1u) == 0) {
@@ -627,8 +631,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 !command_prepare_scan_route(server, *command->op))
                 command->kind = MultiCommandKind::Prebuilt;
             if (command->kind == MultiCommandKind::Unsupported &&
-                (command->queued.spec->flags & CmdFlags::MultiShard) &&
-                !(command->queued.spec->flags & (CmdFlags::AllShards | CmdFlags::ConfigRoute))) {
+                ((command->queued.spec->flags & CmdFlags::MultiShard) ||
+                 has_name(command->queued, "dbsize")) &&
+                !(command->queued.spec->flags & CmdFlags::AllShards)) {
                 ScatterDispatch child_dispatch;
                 const ScatterPrepare prepared = xshard_prepare(
                     server, *command->op, state.scatter_pool, state.owner_io,
@@ -1232,12 +1237,26 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
     if (state.kind == MultiStateKind::WatchAdd) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
+            if (state.kind == MultiStateKind::Execute) {
+                DatabaseMap::Read map(state.server->databases());
+                if (map[watched.db] != watched.ns || map.version(watched.db) != watched.db_version) {
+                    state.client->set_watch_dirty();
+                    state.watch_failed.store(true, std::memory_order_release);
+                }
+            }
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_add(key, state.client, state.watch_generation)) return false;
         }
     } else if (state.kind == MultiStateKind::Execute) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
+            if (state.kind == MultiStateKind::Execute) {
+                DatabaseMap::Read map(state.server->databases());
+                if (map[watched.db] != watched.ns || map.version(watched.db) != watched.db_version) {
+                    state.client->set_watch_dirty();
+                    state.watch_failed.store(true, std::memory_order_release);
+                }
+            }
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_validate_and_reserve(
                     key, state.client, state.watch_generation, &state, &state.epoch,
@@ -1389,7 +1408,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                     duplicate |= prior.ns == op.arg(i).ns && prior.key == key;
                 if (duplicate) continue;
                 const uint64_t hash = FlatStore::hash_key(op.arg(i));
-                MultiWatchedKey watched{key, hash, server.router().shard_of(hash), static_cast<uint8_t>(op.arg(i).ns)};
+                MultiWatchedKey watched{key, hash, server.router().shard_of(hash), static_cast<uint8_t>(op.arg(i).ns), op.db,
+                    DatabaseMap::Read(server.databases()).version(op.db)};
                 session->watched.push_back(watched);
                 state->watched.push_back(std::move(watched));
             }
@@ -2425,7 +2445,7 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
                          ScatterTaskResult result) {
     if (result != ScatterTaskResult::Complete || !task.scatter || !shard.has_watches()) return;
     ScatterState& state = *task.scatter;
-    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group) return;
+    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group || state.kind == Kind::Swapdb) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group || group->count == 0) {
         shard.watch_all_write_committed(op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1);
