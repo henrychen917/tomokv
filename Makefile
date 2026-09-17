@@ -141,6 +141,8 @@ unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit bui
 CORE_TEST_OBJ := $(filter-out build/src/main.o build/src/core/genthread.o,$(OBJ))
 build/multidb-unit: tests/multidb_unit.cc src/cmd/xshard.cc $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/multidb_artifacts.py $< $@ > build/multidb-pad.json
 build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
