@@ -876,6 +876,7 @@ struct ClientRobLayoutLock {
     static constexpr size_t buffers = offsetof(Client, buf_);
 };
 
+#if TOMO_CACHE_AUDIT_ARM >= 4
 // Every actual Client (heap, stack or array) has this alignment. The 96-byte private block uses
 // two lines; chunk pointers and frontiers each get a whole separate line, with no buffer header
 // store in the frontier tail. The pre-existing Client and ROB size locks still apply.
@@ -891,6 +892,8 @@ static_assert(ClientRobLayoutLock::chunks_last / 64 < ClientRobLayoutLock::front
 static_assert(ClientRobLayoutLock::buffers == 320 &&
                   ClientRobLayoutLock::frontier_last / 64 < ClientRobLayoutLock::buffers / 64,
               "IO write-buffer headers may share the ROB frontier line (audit #4/#5)");
+
+#endif
 
 constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
 static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));

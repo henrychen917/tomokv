@@ -166,6 +166,21 @@ int main() {
         !rejects({"--tls-prefer-server-ciphers", "1"}))
         fail("invalid TLS grammar was accepted");
 
+    for (const char* flag : {"--latency-monitor-threshold", "--stream-node-max-entries",
+                             "--stream-node-max-bytes"}) {
+        if (rejection_text({flag, "4294967296"}) != std::string(flag) +
+                ": argument must be between 0 and 4294967295 inclusive\n")
+            fail("uint32 config overflow has no precise range diagnostic");
+        for (const char* value : {"0", "4294967295"}) {
+            tomo::Config cfg;
+            tomo::ConfigParseState state;
+            if (tomo::parse_config_args({flag, value}, cfg, state, 2, "test") != tomo::kConfigParsed)
+                fail("uint32 config endpoint rejected at boot");
+        }
+    }
+    for (const char* flag : {"--script-crossshard-cut-slots", "--script-crossshard-conflict-retries"})
+        if (!rejects({flag, "4294967296"})) fail("retired script flag accepted an overflowing value");
+
     // Redisgap boot knobs use the same parser for files and CLI. Set non-default values,
     // override them, and reject malformed/range inputs rather than silently keeping defaults.
     tomo::Config redisgap;
@@ -370,11 +385,9 @@ int main() {
         if (tomo::validate_config(invalid_overlap) != tomo::kConfigError)
             fail("programmatic overlap 2 was accepted");
     }
-    if (rejection_text({"--thread-mode", "1s", "--overlap", "1",
-                        "--net-io", "epoll"}, true) !=
-            "--thread-mode 1s with --overlap 1 requires --net-io uring "
-            "for its single submit boundary\n")
-        fail("overlap engine validation rejection text is not canonical");
+    if (!parses_threads({"--thread-mode", "1s", "--overlap", "1",
+                         "--net-io", "epoll"}, tomo::ThreadMode::Fused, 1))
+        fail("owner prefetch rejected the ordinary fused engine");
     tomo::Config read_local;
     tomo::ConfigParseState read_local_state;
     const std::vector<const char*> read_local_args = {
@@ -414,6 +427,7 @@ int main() {
                cfg.thread_mode == ((!std::strcmp(mode, "1s") || !std::strcmp(mode, "fused"))
                    ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
                cfg.overlap == static_cast<uint32_t>(*overlap - '0') &&
+               cfg.overlap_enabled() == (*overlap == '1') &&
                cfg.reorder == static_cast<uint32_t>(*reorder - '0') &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };
@@ -423,11 +437,8 @@ int main() {
                 for (const char* reorder : {"0", "1"}) {
                     if (!parses_read_local_cell(mode, overlap, lane, reorder, "uring"))
                         fail("overlap/read-local/reorder boot cell was rejected");
-                    const bool fused = !std::strcmp(mode, "1s") || !std::strcmp(mode, "fused");
-                    const bool epoll_supported = !fused || *overlap == '0';
                     StderrSilencer quiet;
-                    if (parses_read_local_cell(mode, overlap, lane, reorder, "epoll") !=
-                        epoll_supported)
+                    if (!parses_read_local_cell(mode, overlap, lane, reorder, "epoll"))
                         fail("epoll overlap/read-local/reorder validation differs");
                 }
 
@@ -445,6 +456,33 @@ int main() {
         fail("reorder parser rejection text is not canonical");
     tomo::Config reorder_default;
     if (reorder_default.reorder != 0) fail("reorder default is not FIFO");
+    for (const std::vector<const char*>& args : {
+             std::vector<const char*>{}, {"--reorder", "1", "--reorder", "0"},
+             {"--reorder", "1", "--reorder", "1"}}) {
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        if (tomo::parse_config_args(args, cfg, state, 2, "test") != tomo::kConfigParsed ||
+            tomo::validate_config(cfg) != tomo::kConfigParsed)
+            fail("retired reorder was rejected");
+        const bool warn = cfg.reorder != 0;
+        std::FILE* capture = std::tmpfile();
+        const int saved = ::dup(STDERR_FILENO);
+        std::fflush(stderr);
+        if (!capture || saved < 0 || ::dup2(::fileno(capture), STDERR_FILENO) < 0)
+            fail("retirement stderr capture failed");
+        tomo::retire_reorder(cfg);
+        tomo::retire_reorder(cfg); // normalization is idempotent, including its diagnostic
+        std::fflush(stderr);
+        if (::dup2(saved, STDERR_FILENO) < 0) fail("restore retirement stderr failed");
+        ::close(saved);
+        std::rewind(capture);
+        std::string output;
+        char block[256];
+        while (std::fgets(block, sizeof(block), capture)) output += block;
+        std::fclose(capture);
+        if (cfg.reorder != 0 || output != (warn ? "reorder: retired, no-op\n" : ""))
+            fail("retired reorder did not normalize with exactly one diagnostic");
+    }
     reorder.reorder = 2;
     {
         StderrSilencer quiet;

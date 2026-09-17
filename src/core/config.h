@@ -322,9 +322,11 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    // Boot-only amortization schedule: 0=off, 1=on. Split overlaps IO writeback;
-    // fused selects the gated three-way schedule, including when read-local is armed.
+    // Split overlap warms owner buckets and interleaves IO writeback with parsing.
+    // Fused always warms eligible owner batches, with the ordinary IO loop and transports.
+    // The knob controls optional scheduling and witnesses; fused prefetch needs no sidecar.
     uint32_t overlap = 0;
+    bool overlap_enabled() const { return overlap != 0; }
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -380,8 +382,8 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Boot-only latency reordering across connections in an executor batch; connection order is
-    // preserved. 0 keeps FIFO and allocates nothing. Same alignment hole as the former ex_sched.
+    // Retired boot knob: accept the old 0|1 grammar, then clear after CLI overrides.
+    // Retaining this slot preserves Config layout; neither value enables or allocates anything.
     uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
@@ -425,6 +427,12 @@ struct Config {
     uint8_t layout_reserved[80]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
+
+// Apply once after validation and all file/CLI overrides, before any server allocation.
+inline void retire_reorder(Config& cfg) {
+    if (cfg.reorder) std::fputs("reorder: retired, no-op\n", stderr);
+    cfg.reorder = 0;
+}
 
 inline constexpr uint32_t cfg_default_shards(uint32_t executors) {
     return executors >= 32 ? 256 : 8 * executors;
@@ -483,6 +491,38 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     out = negative ? (v == (uint64_t{1} << 63) ? std::numeric_limits<int64_t>::min()
                                                 : -static_cast<int64_t>(v))
                    : static_cast<int64_t>(v);
+    return true;
+}
+
+// These consumers have a locked uint32 ABI. Redis itself permits signed-64-bit ceilings;
+// keep its integer/memory grammar and diagnostic form, but report our supported bound honestly.
+inline bool cfg_parse_u32_limit(Slice input, bool memory, uint32_t& out, const char*& error) {
+    const std::string text(input.p, input.n);
+    int64_t integer = 0;
+    const bool canonical = cfg_parse_i64(text.c_str(), integer) && std::to_string(integer) == text;
+    uint64_t value = 0;
+    if (canonical) {
+        value = static_cast<uint64_t>(integer);
+    } else if (memory) {
+        // Redis also accepts an empty memory value or a bare suffix as zero.
+        if (!input.n || cfg_memory_suffix(input.p, input.n, "b") ||
+            cfg_memory_suffix(input.p, input.n, "k") || cfg_memory_suffix(input.p, input.n, "kb") ||
+            cfg_memory_suffix(input.p, input.n, "m") || cfg_memory_suffix(input.p, input.n, "mb") ||
+            cfg_memory_suffix(input.p, input.n, "g") || cfg_memory_suffix(input.p, input.n, "gb")) {
+            value = 0;
+        } else if (!cfg_parse_memory(input.p, input.n, value)) {
+            error = "argument must be a memory value";
+            return false;
+        }
+    } else {
+        error = "argument couldn't be parsed into an integer";
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        error = "argument must be between 0 and 4294967295 inclusive";
+        return false;
+    }
+    out = static_cast<uint32_t>(value);
     return true;
 }
 
@@ -707,9 +747,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--latency-monitor-threshold")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.latency_monitor_threshold)) {
-                std::fprintf(stderr,
-                             "--latency-monitor-threshold wants milliseconds, 0 to disable\n");
+            const char* value = next("");
+            const char* error = nullptr;
+            if (!cfg_parse_u32_limit(Slice(value, std::strlen(value)), false,
+                                     cfg.latency_monitor_threshold, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, error);
                 return kConfigError;
             }
         }
@@ -973,11 +1015,16 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.hll_sparse_max_bytes = static_cast<uint32_t>(value);
         }
-        else if (!std::strcmp(a, "--stream-node-max-bytes")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_bytes)) return kConfigError;
-        }
-        else if (!std::strcmp(a, "--stream-node-max-entries")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_entries)) return kConfigError;
+        else if (!std::strcmp(a, "--stream-node-max-bytes") ||
+                 !std::strcmp(a, "--stream-node-max-entries")) {
+            const bool memory = !std::strcmp(a, "--stream-node-max-bytes");
+            const char* value = next(nullptr);
+            const char* error = "missing argument";
+            uint32_t& limit = memory ? cfg.stream_limits.node_max_bytes : cfg.stream_limits.node_max_entries;
+            if (!value || !cfg_parse_u32_limit(Slice(value, std::strlen(value)), memory, limit, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, error);
+                return kConfigError;
+            }
         }
         else if (!std::strcmp(a, "--zc-min")) {
             const char* v = next(nullptr);
@@ -1017,8 +1064,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
-                        "    --overlap 1                 2s: IO-overlapped writeback; 1s: all overlap (uring)\n"
-                        "    --reorder 0|1 (default 0)   cross-connection reordering in an executor batch for latency; per-connection order always preserved\n"
+                        "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
+                        "    --reorder 0|1 (default 0)   retired compatibility knob; 1 warns once, both values are no-ops\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1093,13 +1140,6 @@ inline int validate_config(const Config& cfg) {
     }
     if (cfg.overlap > 1) {
         std::fprintf(stderr, "--overlap wants 0 or 1\n");
-        return kConfigError;
-    }
-    if (cfg.thread_mode == ThreadMode::Fused && cfg.overlap != 0 &&
-        cfg.net_io != NetIoEngine::Uring) {
-        std::fprintf(stderr,
-                     "--thread-mode 1s with --overlap %u requires --net-io uring for its single submit boundary\n",
-                     cfg.overlap);
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {

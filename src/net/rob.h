@@ -36,6 +36,7 @@
 // logically at retire — state goes Free — never returned to the allocator until the connection
 // dies); steady-state allocator traffic is zero, and jemalloc needs no pool in front of it.
 #pragma once
+#include "src/core/cache_audit.h"
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
@@ -174,7 +175,7 @@ struct ReadLocalPendingFilter {
 static_assert(sizeof(ReadLocalPendingFilter) == 32, "pending-key filter footprint changed");
 
 template <uint32_t Capacity>
-class alignas(32) Rob {
+class alignas(TOMO_CACHE_AUDIT_ARM >= 4 ? 32 : 64) Rob {
     static_assert((Capacity & (Capacity - 1)) == 0, "capacity must be a power of two");
     static_assert(Capacity <= 64, "read-local slot accounting uses one footprint-free word");
     static constexpr uint32_t kMask = Capacity - 1;
@@ -1015,6 +1016,7 @@ private:
     }
 
     friend struct RobLayoutLock;
+#if TOMO_CACHE_AUDIT_ARM >= 4
     // Audit #4/#5: all 96 bytes of IO-private bookkeeping precede the chunk pointers and the
     // executor-read frontiers. Client places this 32-aligned ROB at offset 96, using its existing
     // header padding: private words end at 191, chunks occupy 192..255, frontiers occupy 256..279.
@@ -1051,6 +1053,48 @@ private:
     std::atomic<uint64_t> flush_{0};
     uint64_t read_local_pending_slots_ = 0;
 
+#else
+    Op* chunks_[kChunks] = {};
+    // Separate cache lines: the producer writes dispatch_ while the consumer writes flush_, and
+    // sharing a line would make every publish invalidate the consumer's copy and vice versa.
+    alignas(64) std::atomic<uint64_t> dispatch_{0};
+    // CONTROL WORDS for the armed RYOW write ring; the tag mirror they select over lives in the
+    // sidecar (ReadLocalRobState::write_tags), because a slot per ROB window position is 128 bytes
+    // and this line has sixteen to spare. valid_ bit i says ring slot i holds a descriptor a probe
+    // must consider; wide_ bit i says slot i cannot be rejected by tag equality (a precise-keyset
+    // entry, whose stored word is a key filter, not a hash). force_ is not a slot: it forces the
+    // exact path outright while a conservative generation is live, the one hazard with no ring slot
+    // and therefore no tag that could reject it. All three stay in the padding dispatch_ already
+    // owned, so the 192-byte lock is untouched and the parser that probes them owns that line
+    // either way -- and a connection with nothing live is still answered from this line alone.
+    uint64_t read_local_write_valid_ = 0;
+    uint64_t read_local_write_wide_ = 0;
+    uint32_t read_local_write_force_ = 0;
+    // ARM-ON-DEMAND, and the MGET latest-read fence, in the same trailing padding. All four are
+    // parser-owned, all four are read or written by the frame that has just stored dispatch_, and
+    // together they fill this line exactly to its 64-byte boundary -- so the 192-byte Rob lock
+    // below still holds and no connection grew a byte for any of it.
+    uint32_t read_local_arm_state_ = kReadLocalUnarmed;
+    // While unarmed: the newest write this connection has published, and the only thing recorded
+    // about it. At arming it becomes the transient's fence and stops being written. UINT64_MAX is
+    // "none", the same never-active sentinel the MGET fence uses.
+    uint64_t read_local_unarmed_write_id_ = UINT64_MAX;
+    uint64_t local_mget_fence_id_ = UINT64_MAX;
+    ReadLocalArmStats* read_local_arm_stats_ = nullptr;
+    alignas(64) std::atomic<uint64_t> flush_{0};
+    // Venue-pending and owner-tail bitmaps distinguish work that a write must still demote from
+    // work already sequenced on ordinary owner queues. The sidecar pointer's low alignment bit
+    // means no write generation is active, so pure GETs do not dereference heap state. All three
+    // words remain inside flush_'s established trailing padding.
+    uint64_t read_local_pending_slots_ = 0;
+    uint64_t read_local_owner_slots_ = 0;
+    uintptr_t read_local_state_ = 0;
+    // Superset of the pending reads' key hashes (see ReadLocalPendingFilter). It completes flush_'s
+    // cache line: the parser that marks/probes it already owns that line for the bitmaps above.
+    ReadLocalPendingFilter read_local_pending_filter_;
+
+#endif
+
     // Removing a pending read never shrinks the filter (superset stays valid); an empty pending set
     // is the one point where the summary can be reset for free.
     void read_local_retire_pending_bit(uint64_t bit) {
@@ -1073,6 +1117,7 @@ struct RobLayoutLock {
     static constexpr size_t frontier_last = pending + sizeof(Type::read_local_pending_slots_) - 1;
 };
 
+#if TOMO_CACHE_AUDIT_ARM >= 4
 // Every private store (including the filter) is at least a line from every frontier byte for
 // ANY base. Client additionally locks the chunks and the following write-buffer boundary.
 static_assert(RobLayoutLock::frontier_first >= RobLayoutLock::io_last + RobLayoutLock::line,
@@ -1084,6 +1129,7 @@ static_assert(RobLayoutLock::frontier_first == 160 &&
                   RobLayoutLock::pending == RobLayoutLock::flush + 8,
               "dispatch_, flush_ and pending slots must stay together");
 static_assert(alignof(Rob<64>) == 32, "Client uses the ROB's half-line alignment (audit #4/#5)");
+#endif
 static_assert(sizeof(Rob<64>) == 192, "Rob<64> layout changed");
 
 }  // namespace tomo

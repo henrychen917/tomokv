@@ -24,6 +24,7 @@
 // can already pull 50 — so a migration is a real cost, and an LB that prices it at zero will thrash.
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
+#include "src/core/cache_audit.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -54,6 +55,7 @@ inline uint32_t bucket_of(uint64_t hash) { return static_cast<uint32_t>(hash) & 
 
 class Shard {
 public:
+#if TOMO_CACHE_AUDIT_ARM >= 5
     // Audit #7: scalar allocations (including make_unique) must honor the store's line grouping.
     // Align the allocation, not the type: alignas(64) would round the 1440-byte size lock to 1472.
     // Stack/embedded Shards retain the base-independent FlatStore separation guarantee.
@@ -65,6 +67,7 @@ public:
         ::operator delete(ptr, std::align_val_t{kAllocationAlignment});
     }
 
+#endif
     Shard() = default;
     ~Shard();
     Shard(const Shard&) = delete;
@@ -76,7 +79,7 @@ public:
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
-        zc_min_ = zc_min;
+        set_zc_min(zc_min);
         type_limits_ = type_limits;
         stream_limits_ = stream_limits;
         store_.bind_expired_counter(&stats_.expired);
@@ -113,7 +116,7 @@ public:
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
     uint32_t zc_min()       const { return zc_min_; }
-    void set_zc_min(uint32_t value) { zc_min_ = value; }
+    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
     int64_t  now_ms()       const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
     void set_type_limits(const TypeLimits& value) { type_limits_ = value; }
@@ -536,6 +539,7 @@ struct ShardLayoutLock {
     static constexpr size_t atomic_owner_last = store_offset + FlatStoreLayoutLock::atomic_owner_last;
 };
 
+#if TOMO_CACHE_AUDIT_ARM >= 5
 // The heap allocation contract makes these line numbers invariant. Whole reader and owner blocks
 // each fit one line, and neither owner block can invalidate the reader's line. FlatStore's byte
 // distances separately protect every possible stack/embedded base, without requiring over-alignment.
@@ -548,6 +552,8 @@ static_assert(ShardLayoutLock::owner_first / 64 == ShardLayoutLock::owner_last /
                   ShardLayoutLock::reader_last / 64 < ShardLayoutLock::owner_first / 64 &&
                   ShardLayoutLock::atomic_owner_last / 64 < ShardLayoutLock::reader_first / 64,
               "heap Shard owner stores may share its foreign-reader line (audit #7)");
+
+#endif
 
 // atomic_torn's gate geometry depends on the pre-read-local Shard stride and hot stats position.
 static_assert(sizeof(Shard) == 1440);

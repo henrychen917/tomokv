@@ -135,7 +135,14 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
             climon_track_keys_.find(std::string(key.p, key.n)) == climon_track_keys_.end()) {
             // Bounded table: redis evicts a random entry and tells its owner the cached value is
             // no longer tracked. We do exactly that -- an eviction is an invalidation.
-            auto victim = climon_track_keys_.begin();
+            // Sample buckets without walking the whole table. Randomize within the bucket as
+            // well: always taking its first entry would strand older colliding keys forever.
+            size_t bucket;
+            do { bucket = next_random() % climon_track_keys_.bucket_count(); }
+            while (climon_track_keys_.bucket_size(bucket) == 0);
+            auto sampled = climon_track_keys_.begin(bucket);
+            std::advance(sampled, next_random() % climon_track_keys_.bucket_size(bucket));
+            auto victim = climon_track_keys_.find(sampled->first);
             if (victim != climon_track_keys_.end()) {
                 const Slice vkey(victim->first.data(),
                                  static_cast<uint32_t>(victim->first.size()));

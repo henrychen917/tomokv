@@ -286,7 +286,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding
+    Signed, Encoding, Uint32, Uint32Bytes
 };
 struct ConfigValue {
     const char* name;
@@ -337,7 +337,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"read-local", ConfigKind::Unsigned,
                         std::to_string(cfg.read_local), true});
     g_config.push_back({"reorder", ConfigKind::Unsigned,
-                        std::to_string(cfg.reorder), true});
+                        "0", true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
     g_config.push_back({"flip-auto", ConfigKind::Unsigned,
@@ -397,9 +397,9 @@ void init_config(const Config& cfg) {
     for (uint32_t i = 0; i < EncodingConfig::Count; i++)
         g_config.push_back({EncodingConfig::settings[i].name, ConfigKind::Encoding,
                             std::to_string(cfg.encodings.values[i])});
-    add_config("stream-node-max-bytes", ConfigKind::Unsigned,
+    add_config("stream-node-max-bytes", ConfigKind::Uint32Bytes,
                cfg.stream_limits.node_max_bytes);
-    add_config("stream-node-max-entries", ConfigKind::Unsigned,
+    add_config("stream-node-max-entries", ConfigKind::Uint32,
                cfg.stream_limits.node_max_entries);
     g_config.push_back({"requirepass", ConfigKind::String,
                         cfg.requirepass ? cfg.requirepass : ""});
@@ -412,7 +412,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"slowlog-log-slower-than", ConfigKind::Signed,
                         std::to_string(cfg.slowlog_log_slower_than)});
     add_config("slowlog-max-len", ConfigKind::Unsigned, cfg.slowlog_max_len);
-    add_config("latency-monitor-threshold", ConfigKind::Unsigned,
+    add_config("latency-monitor-threshold", ConfigKind::Uint32,
                cfg.latency_monitor_threshold);
     const char* debug_mode = cfg.enable_debug_command == DebugCommandMode::Yes ? "yes" :
                              cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
@@ -474,8 +474,16 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 }
 
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
-                      bool legacy_compact = false) {
+                      const char*& error, bool legacy_compact = false) {
     switch (entry.kind) {
+        case ConfigKind::Uint32:
+        case ConfigKind::Uint32Bytes: {
+            uint32_t value = 0;
+            if (!cfg_parse_u32_limit(input, entry.kind == ConfigKind::Uint32Bytes, value, error))
+                return false;
+            out = std::to_string(value);
+            return true;
+        }
         case ConfigKind::Encoding: {
             int64_t value = 0;
             const int key = EncodingConfig::find(Slice(entry.name, std::strlen(entry.name)));
@@ -608,6 +616,7 @@ bool collect_config_updates(Op& op,
         }
         std::string value;
         bool normalized = false;
+        const char* config_error = nullptr;
         if (item->kind == ConfigKind::ClientOutputBufferLimit) {
             ClientOutputBufferLimits parsed;
             const char* error = nullptr;
@@ -619,9 +628,15 @@ bool collect_config_updates(Op& op,
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            normalized = normalize_config(*item, op.arg(i + 1), value, legacy_compact);
+            normalized = normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
+            if (config_error) {
+                std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                msg += item->name;
+                msg += "') - "; msg += config_error;
+                reply_err(op.sink(), msg.c_str()); return false;
+            }
             std::string msg = "ERR Invalid argument '";
             msg.append(op.arg(i + 1).p, op.arg(i + 1).n);
             msg += "' for CONFIG SET '"; msg += item->name; msg.push_back('\'');
@@ -1656,9 +1671,6 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_generation_retries += local.mget_generation_retries;
     total.mget_fallback_generation += local.mget_fallback_generation;
     total.mget_fallback_lane_full += local.mget_fallback_lane_full;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-    total.settax.add(local.settax);
-#endif
 }
 
 void collect_stat_totals(StatBaseline& out) {
@@ -2026,13 +2038,13 @@ void cmd_info(Shard&, Op& op) {
         // read_local is the effective boot state. Actual loop entry and successful completions
         // are separate observations: a configured but unreachable lane must be visible in INFO.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\nreorder:%u\r\nread_local:%u\r\natomic:%u\r\n"
+                      "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\noverlap_enabled:%u\r\nreorder:0\r\nreorder_retired:1\r\nread_local:%u\r\natomic:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->nshards() : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
-                g_server ? g_server->cfg().reorder : 0u,
+                g_server && g_server->cfg().overlap_enabled() ? 1u : 0u,
                 g_server && g_server->read_local_enabled() ? 1u : 0u,
                 g_server && g_server->atomic_enabled() ? 1u : 0u,
                 sizeof(void*) * 8,
@@ -2073,7 +2085,9 @@ void cmd_info(Shard&, Op& op) {
         // its scratch buffers so the disabled INFO path keeps its old output without those arrays.
         if (g_server && g_server->read_local_enabled())
             append_read_local_thread_info(body, *g_server);
-        if (g_server && g_server->mode_schedule_stats())
+        // Requested overlap reports explicit witnesses before any eligible batch runs.
+        // The retired reorder knob never allocates or exposes schedule counters.
+        if (g_server && g_server->cfg().overlap)
             append_mode_schedule_info(body, g_server->mode_schedule_stats(), g_server->nthreads());
         if (g_server && g_server->thread_mode() == ThreadMode::Fused) {
             appendf(body,
@@ -2633,129 +2647,6 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_generation_retries),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation),
                 static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-        // Temporary experiment telemetry is lifetime-scoped (unlike Redis compatibility stats,
-        // CONFIG RESETSTAT does not rebase it) so queue/pool gauges and their traffic stay coherent.
-        const ReadLocalSetTaxStats& settax = read_local.settax;
-        const uint64_t settax_overwrite_attempts = settax.overwrite_hits +
-            settax.reject_missing + settax.reject_encoding + settax.reject_ttl +
-            settax.reject_oversize + settax.reject_size_class + settax.reject_borrowed +
-            settax.reject_sequence_saturated + settax.overwrite_maxmemory_oom;
-        appendf(body,
-                "read_local_settax_variant:%u\r\n"
-                "read_local_settax_overwrite_attempts:%llu\r\n"
-                "read_local_settax_overwrite_hits:%llu\r\n"
-                "read_local_settax_reject_missing:%llu\r\n"
-                "read_local_settax_reject_encoding:%llu\r\n"
-                "read_local_settax_reject_ttl:%llu\r\n"
-                "read_local_settax_reject_oversize:%llu\r\n"
-                "read_local_settax_reject_size_class:%llu\r\n"
-                "read_local_settax_reject_borrowed:%llu\r\n"
-                "read_local_settax_reject_sequence_saturated:%llu\r\n"
-                "read_local_settax_overwrite_maxmemory_oom:%llu\r\n",
-                static_cast<unsigned>(TOMO_READ_LOCAL_SET_TAX_VARIANT),
-                static_cast<unsigned long long>(settax_overwrite_attempts),
-                static_cast<unsigned long long>(settax.overwrite_hits),
-                static_cast<unsigned long long>(settax.reject_missing),
-                static_cast<unsigned long long>(settax.reject_encoding),
-                static_cast<unsigned long long>(settax.reject_ttl),
-                static_cast<unsigned long long>(settax.reject_oversize),
-                static_cast<unsigned long long>(settax.reject_size_class),
-                static_cast<unsigned long long>(settax.reject_borrowed),
-                static_cast<unsigned long long>(settax.reject_sequence_saturated),
-                static_cast<unsigned long long>(settax.overwrite_maxmemory_oom));
-        appendf(body,
-                "read_local_settax_init_raw_calls:%llu\r\n"
-                "read_local_settax_init_int_calls:%llu\r\n"
-                "read_local_settax_init_extern_calls:%llu\r\n"
-                "read_local_settax_init_key_bytes:%llu\r\n"
-                "read_local_settax_init_value_bytes:%llu\r\n"
-                "read_local_settax_init_cell_prepare_calls:%llu\r\n"
-                "read_local_settax_fresh_allocation_attempts:%llu\r\n"
-                "read_local_settax_accounting_add_calls:%llu\r\n"
-                "read_local_settax_accounting_sub_calls:%llu\r\n"
-                "read_local_settax_accounting_bytes:%llu\r\n"
-                "read_local_settax_slot_replacements:%llu\r\n"
-                "read_local_settax_expire_erases:%llu\r\n",
-                static_cast<unsigned long long>(settax.init_raw_calls),
-                static_cast<unsigned long long>(settax.init_int_calls),
-                static_cast<unsigned long long>(settax.init_extern_calls),
-                static_cast<unsigned long long>(settax.init_key_bytes),
-                static_cast<unsigned long long>(settax.init_value_bytes),
-                static_cast<unsigned long long>(settax.init_cell_prepare_calls),
-                static_cast<unsigned long long>(settax.fresh_allocation_attempts),
-                static_cast<unsigned long long>(settax.accounting_add_calls),
-                static_cast<unsigned long long>(settax.accounting_sub_calls),
-                static_cast<unsigned long long>(settax.accounting_bytes),
-                static_cast<unsigned long long>(settax.slot_replacements),
-                static_cast<unsigned long long>(settax.expire_erases));
-        appendf(body,
-                "read_local_settax_recycle_acquire_attempts:%llu\r\n"
-                "read_local_settax_recycle_acquire_hits:%llu\r\n"
-                "read_local_settax_recycle_acquire_ineligible:%llu\r\n"
-                "read_local_settax_recycle_acquire_empty:%llu\r\n"
-                "read_local_settax_recycle_return_attempts:%llu\r\n"
-                "read_local_settax_recycle_return_accepted:%llu\r\n"
-                "read_local_settax_recycle_return_ineligible:%llu\r\n"
-                "read_local_settax_recycle_return_limited:%llu\r\n"
-                "read_local_settax_recycle_pool_nodes:%llu\r\n"
-                "read_local_settax_recycle_pool_max_owner_nodes:%llu\r\n"
-                "read_local_settax_recycle_capacity_evals:%llu\r\n"
-                "read_local_settax_recycle_candidate_attempts:%llu\r\n"
-                "read_local_settax_recycle_reject_not_string:%llu\r\n"
-                "read_local_settax_recycle_reject_encoding:%llu\r\n"
-                "read_local_settax_recycle_reject_borrowed:%llu\r\n"
-                "read_local_settax_recycle_atomic_pool_accepts:%llu\r\n",
-                static_cast<unsigned long long>(settax.recycle_acquire_attempts),
-                static_cast<unsigned long long>(settax.recycle_acquire_hits),
-                static_cast<unsigned long long>(settax.recycle_acquire_ineligible),
-                static_cast<unsigned long long>(settax.recycle_acquire_empty),
-                static_cast<unsigned long long>(settax.recycle_return_attempts),
-                static_cast<unsigned long long>(settax.recycle_return_accepted),
-                static_cast<unsigned long long>(settax.recycle_return_ineligible),
-                static_cast<unsigned long long>(settax.recycle_return_limited),
-                static_cast<unsigned long long>(settax.recycle_pool_nodes),
-                static_cast<unsigned long long>(settax.recycle_pool_max_owner_nodes),
-                static_cast<unsigned long long>(settax.recycle_capacity_evals),
-                static_cast<unsigned long long>(settax.recycle_candidate_attempts),
-                static_cast<unsigned long long>(settax.recycle_reject_not_string),
-                static_cast<unsigned long long>(settax.recycle_reject_encoding),
-                static_cast<unsigned long long>(settax.recycle_reject_borrowed),
-                static_cast<unsigned long long>(settax.recycle_atomic_pool_accepts));
-        appendf(body,
-                "read_local_settax_qsbr_deferrals:%llu\r\n"
-                "read_local_settax_qsbr_object_deferrals:%llu\r\n"
-                "read_local_settax_qsbr_table_deferrals:%llu\r\n"
-                "read_local_settax_qsbr_depth:%llu\r\n"
-                "read_local_settax_qsbr_max_owner_depth:%llu\r\n"
-                "read_local_settax_qsbr_depth_samples:%llu\r\n"
-                "read_local_settax_qsbr_depth_sum:%llu\r\n"
-                "read_local_settax_qsbr_seals:%llu\r\n"
-                "read_local_settax_qsbr_sealed_entries:%llu\r\n"
-                "read_local_settax_qsbr_grace_scans:%llu\r\n"
-                "read_local_settax_qsbr_participant_loads:%llu\r\n"
-                "read_local_settax_qsbr_zero_progress_scans:%llu\r\n"
-                "read_local_settax_qsbr_reclaims:%llu\r\n"
-                "read_local_settax_qsbr_forced_graces:%llu\r\n"
-                "read_local_settax_qsbr_forced_yields:%llu\r\n"
-                "read_local_settax_object_sequence_retries:%llu\r\n",
-                static_cast<unsigned long long>(settax.qsbr_deferrals),
-                static_cast<unsigned long long>(settax.qsbr_object_deferrals),
-                static_cast<unsigned long long>(settax.qsbr_table_deferrals),
-                static_cast<unsigned long long>(settax.qsbr_depth),
-                static_cast<unsigned long long>(settax.qsbr_max_owner_depth),
-                static_cast<unsigned long long>(settax.qsbr_depth_samples),
-                static_cast<unsigned long long>(settax.qsbr_depth_sum),
-                static_cast<unsigned long long>(settax.qsbr_seals),
-                static_cast<unsigned long long>(settax.qsbr_sealed_entries),
-                static_cast<unsigned long long>(settax.qsbr_grace_scans),
-                static_cast<unsigned long long>(settax.qsbr_participant_loads),
-                static_cast<unsigned long long>(settax.qsbr_zero_progress_scans),
-                static_cast<unsigned long long>(settax.qsbr_reclaims),
-                static_cast<unsigned long long>(settax.qsbr_forced_graces),
-                static_cast<unsigned long long>(settax.qsbr_forced_yields),
-                static_cast<unsigned long long>(settax.object_sequence_retries));
-#endif
     }
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";

@@ -27,6 +27,7 @@
 // off every shard first; Io -> Ex migrates every connection only after rob.quiesced(). Each role
 // changes by one direct old-to-new store, never an Idle transit which could repeat the fork's P0.
 #pragma once
+#include "src/core/cache_audit.h"
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
@@ -195,10 +196,6 @@ struct ReadLocalStats {
     // three at zero -- that is the design's first proof obligation, stated as a number.
     ReadLocalArmStats arm{};
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-    // Keep temporary SET attribution off the remotely scanned quiescence-publication cache line.
-    alignas(64) ReadLocalSetTaxStats settax{};
-#endif
 
     uint64_t fallbacks() const {
         return fallback_multi + fallback_watch + fallback_context +
@@ -299,12 +296,10 @@ struct ReadLocalThreadState {
     // an enabled boot knob from a live parser/executor lane. No per-operation publication.
     std::atomic<bool> lane_active{false};
 };
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 3
 static_assert(offsetof(ReadLocalThreadState, lane_active) == 376,
               "resize retirement adds two cold sink hooks to the optional sidecar");
 static_assert(sizeof(ReadLocalThreadState) == 384,
               "resize retirement grows only the armed sidecar by 16 bytes, never ThreadCtx");
-#endif
 
 class ThreadCtx {
 public:
@@ -1148,8 +1143,10 @@ private:
     std::atomic<Role> role_{Role::Idle};
     std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
-    // Audit #1: every producer reads this beside ring_; mask drains must not invalidate it.
+#if TOMO_CACHE_AUDIT_ARM >= 1
+    // Audit #1: producers read parked_ alongside ring_, away from mask drains.
     std::atomic<bool> parked_{false};
+#endif
     std::atomic<Ring*> ring_{nullptr};
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;
@@ -1166,28 +1163,39 @@ private:
     std::unique_ptr<TransferChan[]> transfer_in_;
     std::unique_ptr<uint64_t[]> command_counts_;
     uint32_t command_count_size_ = 0;
-    // Audit #3: every mask-drain iteration reads this; it belongs with the transport pointers.
+#if TOMO_CACHE_AUDIT_ARM >= 3
+    // Audit #3: mask-drain bound in the spare transport-line word.
     uint32_t nchan_ = 0;
+#endif
     // Peer producers read the transport pointers on this line (task_in_..transfer_in_) when posting
-    // work. Keep every owner hot store off it: total_commands_ moved to the owner-private counter line
-    // below and the rare-path atomic_scan_holds_ took its slot (measured +15% 2s GET/SET p32, 2026-09-13).
+    // work. Keep the exceptional scan-hold counter here instead of making every command write the
+    // line they need to post work (confirmed counter swap, 2026-09-13).
     uint64_t atomic_scan_holds_ = 0;
     FlipFingerprintWriter flip_fingerprint_;
     uint64_t atomic_groups_ = 0;
     uint64_t atomic_localfast_ = 0;
+    // Swap equal-sized counters: no footprint growth, allocation, or indirection. This line already
+    // holds owner-written accounting and sampled fingerprint state. The flip controller still
+    // samples total_commands_; the swap removes sharing with transport, not all peer reads.
     uint64_t total_commands_ = 0;
     AtomicAdmissionState atomic_admission_state_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
     std::vector<uint32_t> free_slots_;
-    // Preserve the mask block and every following offset when parked_ consumes the header hole.
-    char parked_gap_[8];
+#if TOMO_CACHE_AUDIT_ARM >= 1
+    char parked_gap_[8]; // Preserve every subsequent offset.
+#else
+    std::atomic<bool>     parked_{false};
+#endif
     NotifyMask task_notify_;      // "which producers have ops for me"
     NotifyMask client_notify_;    // "which producers have clients for me"
     NotifyMask release_notify_;   // "which producers returned store borrows to me"
     NotifyMask transfer_notify_;  // "which IO producers handed connection ownership to me"
-    // Preserve the cold tail after moving nchan_ into the transport line's four-byte hole.
-    char nchan_gap_[8];
+#if TOMO_CACHE_AUDIT_ARM >= 3
+    char nchan_gap_[8]; // Preserve the cold tail.
+#else
+    uint32_t nchan_ = 0;
+#endif
     uint64_t depth_sample_next_us_ = 0;
 
     // IO-only cold path. A nullptr in client_in is the notification token; payload ownership
@@ -1226,10 +1234,15 @@ struct ThreadCtxLayoutLock {
     static constexpr size_t transport_first = offsetof(ThreadCtx, task_in_);
     static constexpr size_t transport_last =
         offsetof(ThreadCtx, transfer_in_) + sizeof(ThreadCtx::transfer_in_) - 1;
+    static constexpr size_t task_in_offset = offsetof(ThreadCtx, task_in_);
+    static constexpr size_t transfer_in_offset = offsetof(ThreadCtx, transfer_in_);
+    static constexpr size_t scan_holds_offset = offsetof(ThreadCtx, atomic_scan_holds_);
+    static constexpr size_t total_commands_offset = offsetof(ThreadCtx, total_commands_);
 };
 
 // The byte-distance guarantee holds for any base; the companion alignment lock proves that
 // ring_ and parked_ also cost just one line for every actual ThreadCtx, including array elements.
+#if TOMO_CACHE_AUDIT_ARM >= 1
 static_assert(ThreadCtxLayoutLock::task_notify - ThreadCtxLayoutLock::parked_last >=
                   ThreadCtxLayoutLock::line,
               "task mask stores may share the producer's parked_ line (audit #1)");
@@ -1238,6 +1251,8 @@ static_assert(alignof(ThreadCtx) >= ThreadCtxLayoutLock::line);
 static_assert(ThreadCtxLayoutLock::parked / ThreadCtxLayoutLock::line ==
                   ThreadCtxLayoutLock::ring_last / ThreadCtxLayoutLock::line,
               "parked_ and ring_ must share the producer's first line (audit #1)");
+#endif
+#if TOMO_CACHE_AUDIT_ARM >= 3
 static_assert(ThreadCtxLayoutLock::task_notify - ThreadCtxLayoutLock::nchan_last >=
                   ThreadCtxLayoutLock::line,
               "notification RMWs may share the mask-drain nchan_ line (audit #3)");
@@ -1246,10 +1261,18 @@ static_assert(ThreadCtxLayoutLock::nchan == 116 &&
                       ThreadCtxLayoutLock::nchan_last / ThreadCtxLayoutLock::line &&
                   ThreadCtxLayoutLock::transport_last < ThreadCtxLayoutLock::nchan,
               "nchan_ must occupy the read-mostly transport line's spare word");
+#endif
 static_assert(ThreadCtxLayoutLock::notify_last - ThreadCtxLayoutLock::task_notify + 1 ==
                   4 * sizeof(NotifyMask),
               "all four notification masks must stay in the separated block");
 
+// Size alone cannot detect the two counters returning to their old lines. ThreadCtx is already
+// cache-line aligned, so these offsets also lock the transport/accounting separation.
+static_assert(alignof(ThreadCtx) == 64);
+static_assert(ThreadCtxLayoutLock::task_in_offset == 72);
+static_assert(ThreadCtxLayoutLock::transfer_in_offset == 96);
+static_assert(ThreadCtxLayoutLock::scan_holds_offset == 120);
+static_assert(ThreadCtxLayoutLock::total_commands_offset == 408);
 static_assert(sizeof(ThreadCtx) == 1408,
               "read-local state must stay out of the baseline ThreadCtx allocation");
 

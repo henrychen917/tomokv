@@ -1,43 +1,157 @@
-TomoKV cx-cache-audit — measurement request
+TomoKV cx-flipband — rate-band sampling floor, 2026-09-16
 
-Worktree: `/home/user/Projects/cx-cache-audit`. All binaries are ready. No server, load generator, benchmark or gate was run by this lane. Use mainline's current gate instrument on its scheduled quiet box, with these executables supplied as external reference/candidate arms. Record results in `MEASURE-RESULT` here.
+Production change: 9a7559fd9, with the arithmetic/test extraction in a8005b33e.
+Final unit coverage: 610b75d9b. Base: cx-final 6a22313cc.
+This file supersedes the inherited cleanup-v6 request for this worktree.
 
-The audit's IO/ex coherence claim is **2s only**. The 1s cells are mandatory regression controls. #7 makes an allocation contract explicit in both modes; do not promise a rate gain where the allocator already happened to return 64-aligned Shards.
+The rate estimator now has the same kind of sampling floor as the signature
+estimator. For a completed count N over elapsed time T, Poisson standard error
+is sqrt(N)/T, or 1/sqrt(N) relative to its rate. Comparing two estimates adds
+their variances; the controller's existing two-error convention therefore
+gives 2*sqrt(2/N). The coefficient is statistical, not a machine percentage.
 
-PRE is `e867f780a24294df59cc353c6462868b960af5a5`, already carrying the total_commands_/atomic_scan_holds_ swap. The audit-document-only autosave `5ebf0dcaf` precedes the five layout commits; its src/tests/Makefile/third_party trees match PRE. Each cumulative arm's exact commit is in `build/audit/arm-N/COMMIT`. The binaries are ordinary release builds, not benchmark variants.
+The monitor records actual completed counts, never commands/second as a count.
+The existing equal-weight pair of rates retains the smaller nonempty
+constituent's count. This conservatively handles unequal elapsed windows and
+overlapping readings without pooling commands into fictitious precision.
+Movement resets invalidate the previous count along with the previous rate.
+An all-empty reading adds no relative-noise floor, preserving detection of a
+complete stop against the existing busy anchor.
 
-| Arm | Executable (relative to this worktree) | .text bytes | SHA-256 |
-|---|---|---:|---|
-| pre | `build/audit/pre/tomokv` | 3,793,843 | `28580ac29c1c4a8807455ed423bee32af9427425efb531cf2147a96e478c7b9b` |
-| arm-1 | `build/audit/arm-1/tomokv` | 3,793,747 | `62ce14b0dbb9e1127b1d2fa49893a008e2908120990c9ea2a81b8f317c110f1d` |
-| arm-2 | `build/audit/arm-2/tomokv` | 3,798,051 | `dba022ff3add6794b471eec72ba6a948d261d687d213f20691966160fd468f27` |
-| arm-3 | `build/audit/arm-3/tomokv` | 3,796,675 | `2e800263ac69fe8a9013eaf61a4621b39aac2e048cd4a960b1eff34d451a2392` |
-| arm-4 | `build/audit/arm-4/tomokv` | 3,796,707 | `d760e1975753dc153bc1904d70fac39d11fd63740f249748448925e55ad2a329` |
-| arm-5 | `build/audit/arm-5/tomokv` | 3,796,755 | `3bdeb8a7c6c35d0551b001cd85ee39ed0e36e5760dcd57d640ab0844fd02018c` |
-| pad | `build/audit/pad/tomokv` | 3,796,755 | `d3d9b8e2941f44261de08e9fd82df6f22af6f0bb8d63c2091c04a89067d4ef13` |
+Changed files:
+- src/core/flipctl.cc: floor automatic band derivation, stabilization even with
+  an existing anchor, and both live rate streaks before they vote. The same
+  automatic band reaches placement verification, seek outcomes, anchor creation
+  and subsequent in-band learning. Keep pair_delta, quantum, 2*sigma and the
+  origin-window bracket; the new term only raises their maximum.
+- src/core/flipctl.h: two monitor-owned counts and private arithmetic helpers
+  with a unit-test friend. No new atomics, per-operation work, allocation or knob.
+- tests/flipctl_unit.cc: 12 named rate rows using the production rate arithmetic,
+  pairing, comparisons, streaks, learner and report. The fixture uses no Server.
+  Every stationary case requires all 96 pair readings to have occurred.
 
-Verify all seven using `sha256sum -c build/audit/SHA256SUMS` from this worktree. Per-arm build logs, `layout-gdb.txt`, `offsets.txt`, `unit-results.txt`, and individual unit logs are beside the executable. PRE objects are retained in `build/audit/pre/objects`.
+The existing INFO flipctl_rate_band / DEBUG rate_band publishes the band used
+by the rate decision. tests/flipctl.py and tests/gate.sh are unchanged.
+The unit battery remains the single gate row at tests/gate.sh:1196-1200, before
+the quick-tier exit at line 2758. Added/retired gate rows: 0/0; both expectation
+deltas are zero (EXPECT_QUICK=419, EXPECT_FULL=435 remain as found).
 
-Run these incremental comparisons in order; A is the reference and B the candidate:
+Synthetic PRE / POST / PAD results (native unit execution only):
 
-| Comparison | Finding | Mandatory cells | Expected signal to test |
-|---|---|---|---|
-| pre → arm-1 | #1 ThreadCtx parked_/task mask | h01,h17,h02,h18,m03,m51 | h17/h18/m51: producers no longer read a mask-mutated parked_ line; also share parked_ with ring_. |
-| arm-1 → arm-2 | #2 + #6 Op completion/reply | h01,h17,h02,h18,m03,m51 | h17/h18/m51: same-Op polling no longer shares executor reply stores; check instruction/displacement costs in both modes. |
-| arm-2 → arm-3 | #3 ThreadCtx nchan_/mask block | h01,h17,h02,h18,m03,m51 | h17/h18/m51: mask-drain nchan_ reads move onto the transport line, away from remote RMWs. |
-| arm-3 → arm-4 | #4 + #5 Client/Rob | h01,h17,h02,h18,m03,m51,h11,h27 | h27 is the armed read-local sharing test; h11 guards 1s. rl=0 may benefit from co-located frontiers, but cannot prove savings from inactive read-local bookkeeping. |
-| arm-4 → arm-5 | #7 Shard allocation alignment | h01,h17,h02,h18,m03,m51 | Check neutrality/regression first. No steady-state command logic changes; allocator placement may already match the new contract. |
+| Case | PRE | POST | PAD A |
+| --- | --- | --- | --- |
+| Existing unit assertions | PASS | PASS | PASS |
+| New rate rows | 5/12 | 12/12 | 5/12 |
+| Initial band, N=4900, learned jitter=0.0007 | 0.001400000 | 0.040406102 | 0.001400000 |
+| Band range, +/-1/sqrt(N), 96 ticks | 0.001400000 | 0.040406102–0.040697846 | 0.001400000 |
+| Confirmed requests on +/-1/sqrt(N) | 25 (13 surge, 12 collapse) | 0 | 25 (13 surge, 12 collapse) |
+| Band range, +/-2/sqrt(N), 96 ticks | 0.001400000 | 0.040406102–0.040996003 | 0.001400000 |
+| Confirmed requests on +/-2/sqrt(N) | 25 (13 surge, 12 collapse) | 0 | 25 (13 surge, 12 collapse) |
+| Real -5% / +5% step, first trigger tick | 2 / 2 | 3 / 3 | 2 / 2 |
+| Confirming out-of-band readings | 2 | 2 | 2 |
+| Learned 3% jitter: band / false requests | 0.06 / 0 | 0.06 / 0 | 0.06 / 0 |
 
-Also run pre → arm-5, pre → pad, and pad → arm-5 on the six rl=0 cells plus h11/h27. h15/h31 are advisory for every comparison, including the cumulative and padding controls.
+Noise is four ticks at each sign, with counts 4900 +/-70 or +/-140, for 96 ticks
+after priming one sample. Plain alternating ticks would cancel in the pair
+average and fail to test the defect. The fixture clears a confirmed streak as
+start_maneuver does and retains the anchor to count disjoint maneuver requests;
+these counts are synthetic trigger decisions, not completed live maneuvers.
+The final PRE and PAD unit output files are byte-identical. The PRE regression
+binary uses the final tests with the pre-floor production helper implementation
+from a8005b33e; the separate original PRE unit binary also passed unchanged.
 
-Cell grammar is the existing `tests/headline_cells.txt`: all are p32, 512 connections, atomic=1. h01/h17 are 1s/2s GET, h02/h18 are 1s/2s SET, m03/m51 are 1s/2s MGET with eight keys; these six have rl=0, ov=0, ro=0. h11/h27 are 1s/2s GET with rl=1, ov=0, ro=1. Advisory h15/h31 have rl=1, ov=1, ro=1. Use the current per-cell pins and identical geometry/offered load across A/B; no recalibration or guessed load floor is requested. Correctness reproductions use the gate's 16-shard, 6 IO + 2 EX, eight-core geometry.
+A real 5% step's first pair straddles the old and new levels. That mixed reading
+is inside POST's floor; the next two full new-level readings confirm on tick 3.
+The confirmation requirement and null-maneuver backoff are unchanged. Coverage
+also checks a short live tick against a precise old anchor before learning,
+100 ms versus 1 s windows at the same rate, unequal pairs, movement resets,
+the original rate quantum, baseline wander, 2*sigma and complete-stop collapse.
 
-For each step and the cumulative arm, report PRE and POST rate, cycles/op, instructions/op and IPC, plus deltas and the instrument's repeatability/null verdict. Report fills/op and RFOs/op when mainline's profile collects them. Rate at matched offered load is the verdict; cycles/op = instructions/op / IPC explains amortization. A confirmed main-command regression in either mode rejects the step. An instruction reduction alone is insufficient, and a contended/rejected window is not a result. Check any small cumulative gain against PRE→PAD and PAD→arm-5 before attributing it to field layout.
+The run-1 rail anchor is NOT cascading rate maneuvers. Read-only inspection of
+cx-l4prebuild/build/gate-run.G06atW/jobs/flipctl/battery.log shows triggers=1,
+boot=1, rate_surge=0, rate_collapse=0, model_moves=1, misses=0,
+last_trigger=boot, model_last_decision=moved-delivered, refine=hold-optimum.
+The row had already completed its connection-ramp assertion when it rejected
+the eventual 1:7 anchor. The defect there is a boot move accepted by the outcome
+loop; the saved log lacks the hypothesis's before/after readings, so it does
+not prove why that move passed. The new floor reaches its verification band,
+but no claim is made that it necessarily rejects that particular move.
+boot_load_stable's slope statistic is separate from the anchor rate band;
+its trend threshold and deferral rule are unchanged. The run-2 mhogM2 log does
+confirm an anchor-rate-collapse with the reported 0.001483994 band.
 
-Fixed logical footprint cost is zero for every step: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624. There are no added per-operation branches, counters, locks, pointer chases or allocation sites. #7 changes the alignment argument of existing scalar Shard allocations; record allocator/RSS effects separately if they change. Actual instruction cost must come from measurement, since field displacements and compiler placement change. The named cells establish payoff at p32; they do not establish a load/depth break-even curve. Mark that broader break-even unknown rather than extrapolating.
+Build artifacts, all under this worktree's ignored build/ directory:
 
-The ONE PAD twin relinks untouched PRE objects with 2,880 prefix NOPs and 32 tail NOPs. Both pads are unreachable (no caller/registration/constructor entry); the preceding prefix function jumps away and the tail follows a non-returning unwind call. Its .text is exactly 3,796,755 bytes, identical to arm-5. All six gdb layout summaries match PRE byte-for-byte. Source, link command, map, padding metadata and builder are in `build/audit/pad/` and `build/audit/build-pad.py`. This controls total text size and a uniform placement perturbation, not every individual function's placement.
+| Arm | Binary | SHA256 |
+| --- | --- | --- |
+| PRE, original 6a22313cc | build/tomokv-flipband-pre | a0913f11b3bd1309c8d25112731038f515ccdee81d92fc1047f501dd1b86f326 |
+| POST, final production code | build/tomokv-flipband-post | f39f2ebe469f584f5f0f02cacbab7f51164b778b28842d3e97375544687bd950 |
+| PAD A, behaviour twin | build/tomokv-flipband-pad | a471ef6f633c5d6ea2711283e29e35234fee5a1d7fe62fef69427bd0a5994af8 |
 
-Two necessary deviations from the audit's suggested offsets preserve the stronger separation requirement: reply is at 160, not 64 (64 would share state at some valid Op bases); the ROB's 96 private bytes use existing Client padding, with Client::rob_ at 96 and buf_ still at 320. No per-operation method logic or memory order changed. See CODEX-OUT.md for every before/after offset and lock. Same-Op separation does not claim to eliminate all sharing between adjacent 336-byte Ops.
+PAD semantics: (A) PRE rate behavior with POST's EXACT ELF text size/layout and
+structure layout. build/flipband_make_pad.py copies POST and replaces only reads
+of the new monitor count with same-length immediate-zero loads plus NOPs,
+preserving flags. A zero count disables the added floor. All request-path bytes,
+addresses, section sizes and other code are identical to POST. There are nine
+patched cold instructions in the server and eight in the unit binary; exact
+patch records are build/flipband-pad-server.json and flipband-pad-unit.json.
+The PAD unit was run and restored PRE's failures and trace exactly. No server
+arm, including PAD, was executed. This is an artifact control, not a runtime knob.
 
-Validation: after each layout commit, release and 55 regular serverless unit/layout invocations passed on cores 112-127 (make -j4). Six deliberately broken layout/allocation controls were detected. Two additional diagnostics remain FAIL in every arm and fail identically on branch-point sources: atomic post_apply_probe (post-APPLY serial outcome) and netcmd collection-oom (partial multi-field HSET after OOM). Logs are retained, not counted as passes. No gate rows or EXPECT_QUICK/EXPECT_FULL values changed. Boot/gate/performance verdicts remain mainline work.
+Measured from the built ELF files, without executing them:
+- FlipController: 1736 -> 1752 bytes (+16 monitor-owned bytes).
+- Server: 105088 -> 105152 bytes (+64 after its alignment).
+- .text: 3532099 -> 3532947 bytes (+848); PAD equals POST exactly.
+- All requested layout locks remain: Op 336, Client 1984, ThreadCtx 1408,
+  Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144, Config 624.
+- PRE and POST release builds completed with no compiler warnings/errors.
+
+Commands run (builds and unit executions explicitly pinned to 112-127):
+
+    taskset -c 112-127 g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o build/flipctl-unit-pre
+    taskset -c 112-127 ./build/flipctl-unit-pre
+    taskset -c 112-127 make -j2 all > build/flipband-pre-build.log 2>&1
+    cp build/tomokv build/tomokv-flipband-pre
+    taskset -c 112-127 g++ -std=c++20 -O2 -Wall -Wextra -I. tests/flipctl_unit.cc src/core/flipctl.cc -o build/flipctl-unit-post
+    taskset -c 112-127 ./build/flipctl-unit-post > build/flipband-rate-post.log 2>&1
+    taskset -c 112-127 g++ -std=c++20 -O2 -Wall -Wextra -I. -iquote src/core tests/flipctl_unit.cc build/flipband-pre-source/flipctl-rate-pre.cc -o build/flipctl-unit-rate-pre
+    taskset -c 112-127 ./build/flipctl-unit-rate-pre > build/flipband-rate-pre.log 2>&1
+    taskset -c 112-127 make -j2 all > build/flipband-post-build.log 2>&1
+    cp build/tomokv build/tomokv-flipband-post
+    taskset -c 112-127 python3 build/flipband_make_pad.py build/tomokv-flipband-post build/tomokv-flipband-pad > build/flipband-pad-server.json
+    taskset -c 112-127 python3 build/flipband_make_pad.py build/flipctl-unit-post build/flipctl-unit-pad > build/flipband-pad-unit.json
+    taskset -c 112-127 ./build/flipctl-unit-pad > build/flipband-rate-pad.log 2>&1
+    cmp build/flipband-rate-pre.log build/flipband-rate-pad.log
+    git diff --check
+
+PRE-regression and PAD unit exits are intentionally 1 (seven discriminating
+rows fail); POST exits 0. Also used git status/log/diff, rg/sed for source and
+the two saved failure logs, objdump/nm/size/SHA256 for artifacts, and GDB batch
+sizeof expressions for layouts. GDB never received run/start/attach.
+An initial copied-source build used -Isrc/core, which shadowed system signal.h;
+it was corrected to -iquote src/core and passed. The requested git-add exclusion
+command rejected ignored CODEX-OUT.md, so only the explicit scoped files were
+staged. CODEX-OUT.md was never committed.
+
+Maintainer measurement request (nothing below was run by this lane):
+
+1. Repeat the existing live row "flip controller: ramp gate, hold, surge + mix
+   re-maneuvers" for PRE, POST and PAD A, at least three rolls per arm under the
+   gate's ordinary parallel-battery conditions. Alternate arms; the earlier
+   standalone passes did not expose the condition. Use the row's gate geometry:
+   GATE_CORES=0-7, --shards 16 --ratio 6:2 --atomic 0 --flip-auto 1, normal tick.
+   Retain the existing ramp, hold, surge and mix assertions unchanged.
+   Deciding values: row pass/fail count; no rate trigger or split change during
+   the row's measured-stationary hold; successful genuine surge/mix re-maneuvers.
+   Save rate_band, anchor_rate, trigger counters and DEBUG FLIPCTL alongside
+   each outcome. A POST rail failure remains actionable: capture boot/seek
+   hypothesis readings and outcome thresholds; it is not explained by a cascade.
+2. Run the maintainer's normal iteration gate / ABBA checks on the final code.
+   For placement neutrality compare PRE/POST and PRE/PAD A on the existing
+   GET/SET/MGET/MSET cells at p1 and p32 in both 1s and 2s, with the gate's normal
+   flags and offered loads. Decide by matched-load rate; record cycles/op,
+   instructions/op and IPC. A PAD rate shift identifies layout collateral.
+   This lane makes no measured throughput or instructions/op claim.
+
+Append maintainer outcomes to MEASURE-RESULT. No servers, tests/flipctl.py,
+load generators or gates were run by this lane on any core.

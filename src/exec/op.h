@@ -16,6 +16,7 @@
 // release store; the IO thread observes Done with an acquire load and only then reads `reply`.
 // Everything else is touched by one thread at a time, ordered by that single pair.
 #pragma once
+#include "src/core/cache_audit.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -224,8 +225,8 @@ public:
     bool read_local_precise_write() const { return route_flags_ & kReadLocalPreciseWrite; }
     uint8_t route_flags_ = 0;
 
-    // THE CODED REPLY. The three completion bytes fill the parse header's 29..31 hole.
-    // The inline argv block below separates them from the executor's reply stores (audit #2/#6).
+    // THE CODED REPLY. Free real estate: rbuf_off ends at 28 and SmallBuf's pointer forces the
+    // next field to 32, so bytes 29..31 were pure padding. Op stays 336 bytes (asserted below).
     // Non-zero means "this op's whole reply is this code"; the owner formats it at retire.
     uint8_t reply_code_ = 0;
 
@@ -241,17 +242,17 @@ public:
     // touch this: a ROB slot is armed once and is a ROB slot forever.
     uint8_t reply_code_ok_ = 0;
 
-    // The only cross-thread publication. Acquire/release on this orders everything else.
+#if TOMO_CACHE_AUDIT_ARM >= 2
+    // Audit #2/#6: publication occupies the parse header's last spare byte.
     std::atomic<OpState> state{OpState::Free};
-
 private:
-    friend struct OpLayoutLock;
-    // Op has only 8-byte alignment and its 336-byte array stride visits different line residues.
-    // A reply at 64 would still share state's line for some slots. The existing argv block buys
-    // a base-independent separation without padding, another allocation, or a larger Op.
-    Slice argv_inline_[kInlineArgv];
-
+    // Keep L1's argv header adjacent to the argument slots, including in arm 2+.
+    Slice*   argv_heap_ = nullptr;
+    uint32_t argv_cap_  = 0;
+    uint32_t argc_      = 0;
+    Slice    argv_inline_[kInlineArgv];
 public:
+#endif
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
 
     // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
@@ -275,10 +276,14 @@ public:
     uint32_t    zc_len   = 0;
     int32_t     zc_shard = -1;
 
+#if TOMO_CACHE_AUDIT_ARM < 2
+    // The only cross-thread field. Acquire/release on this orders everything else.
+    std::atomic<OpState> state{OpState::Free};
+#endif
+
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // It stays with the reply stores, outside the polled completion line. Counts outside +/-2^31
-    // keep the byte path, which emits the identical digits. The following pointer's alignment
-    // absorbs the old state's padding, so argv_heap_/argv_cap_/argc_ keep their original offsets.
+    // It stays in the result block. Counts outside +/-2^31 keep the byte path.
+    // Reference: offset 188; arm 2+: offset 328, with Op still 336 bytes.
     int32_t reply_ival_ = 0;
 
     // The handler-facing reply sink: prefers the direct region while the whole reply fits, spills
@@ -451,6 +456,7 @@ public:
     }
 
 private:
+    friend struct OpLayoutLock;
     static constexpr uint8_t kAtomicHazard = 1u << 0;
     static constexpr uint8_t kNoBorrow = 1u << 1;
     static constexpr uint8_t kResp3 = 1u << 2;
@@ -459,9 +465,24 @@ private:
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
+#if TOMO_CACHE_AUDIT_ARM < 2
+    // The hot pair is argc_ (reset/incremented by parsing, checked by execution) and argv_heap_
+    // (tested by push_arg, every arg access, and oversized at retirement even when it is null).
+    // Moving them from the tail beside the first argument slots reduces the short-command field
+    // footprint; separating completion from reply writes alone would leave those tail accesses.
+    // At a 64-aligned base, GET's header and two slots now occupy 192..239 instead of separate
+    // lines at 192..223 and 320..335. Op is only 8-aligned, so the saving depends on its address.
+    // Parsing also stops dirtying the terminal argc word, which can share the next Op's routing
+    // line. This is a locality hypothesis, not a claim that each removed access was a cache miss.
+    // argv_cap_ is cold for inline commands. Carry it with the hot pair to fill their 4-byte
+    // alignment gap before the Slice array; leaving it after the array would grow Op to 344.
+    // Only this 16-byte header and argv_inline_ trade places. Reply/direct/borrow/state offsets,
+    // the 336-byte stride, and deep/heap-argv storage, growth and retirement paths stay fixed.
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
     uint32_t argc_      = 0;
+    Slice    argv_inline_[kInlineArgv];
+#endif
 };
 
 // Op has public handler fields and private argv storage; GCC's supported offsetof extension
@@ -477,8 +498,14 @@ struct OpLayoutLock {
     static constexpr size_t reply_first = offsetof(Op, reply);
     static constexpr size_t reply_last = offsetof(Op, reply_ival_) + sizeof(Op::reply_ival_) - 1;
     static constexpr size_t argv = offsetof(Op, argv_inline_);
+    static constexpr size_t argv_heap = offsetof(Op, argv_heap_);
+    static constexpr size_t argc = offsetof(Op, argc_);
 };
 
+// L1 remains present in every arm: one 16-byte header immediately before inline argv.
+static_assert(OpLayoutLock::argv == OpLayoutLock::argv_heap + 16);
+static_assert(OpLayoutLock::argc == OpLayoutLock::argv_heap + 12);
+#if TOMO_CACHE_AUDIT_ARM >= 2
 // These distances include every byte of SmallBuf, direct, zc_* and reply_ival_, and hold even
 // when an Op is on the stack or in a new[] chunk with an array cookie and a 336-byte stride.
 static_assert(OpLayoutLock::reply_first - OpLayoutLock::completion_last >= OpLayoutLock::line,
@@ -488,11 +515,13 @@ static_assert(OpLayoutLock::reply_first - OpLayoutLock::parse_last >= OpLayoutLo
 static_assert(OpLayoutLock::completion_first == 29 && offsetof(Op, reply_code_ok_) == 30 &&
                   OpLayoutLock::completion_last == 31,
               "completion flags must occupy the three parse-header spare bytes");
-static_assert(OpLayoutLock::argv == 32 && OpLayoutLock::reply_first == 160);
+static_assert(OpLayoutLock::argv_heap == 32 && OpLayoutLock::argv == 48 &&
+                  OpLayoutLock::reply_first == 176);
 static_assert(offsetof(Op, direct) == offsetof(Op, reply) + sizeof(Op::reply) &&
                   offsetof(Op, zc_ptr) == offsetof(Op, direct) + 16 &&
                   offsetof(Op, reply_ival_) == offsetof(Op, zc_ptr) + 16,
               "all executor reply stores must stay in the separated result block");
+#endif
 #pragma GCC diagnostic pop
 
 // THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at
