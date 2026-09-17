@@ -41,7 +41,7 @@ struct CoreConcurrencyTest {
         Client swapper(-1);
         swapper.set_id(99); swapper.set_ifid_thread(0);
         server.thread(0).add_client(&swapper);
-        std::array<Client, 4> writers;
+        std::array<Client, 4> writers{Client(-1), Client(-1), Client(-1), Client(-1)};
         std::array<std::array<std::string, 16>, 4> keys, values;
         for (unsigned w = 0; w < writers.size(); ++w) {
             writers[w].set_id(w + 1); writers[w].set_ifid_thread(w);
