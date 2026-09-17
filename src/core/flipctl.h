@@ -299,6 +299,8 @@ public:
     void debug_cost(double commands_per_client);
 
 private:
+    friend struct FlipControllerTest;
+
     enum class Phase : uint8_t {
         Disabled = 0,
         BootPending,
@@ -337,6 +339,13 @@ private:
     bool sample_rate(Server& server, uint64_t now_ms, double& rate);
     bool sample_stabilized_rate(Server& server, uint64_t now_ms, double& rate);
     bool sample_anchored_rate(Server& server, uint64_t now_ms, double& rate);
+    // Cold arithmetic shared with the serverless unit fixture. Sampling still reads the existing
+    // cumulative command counters only from the monitor tick.
+    double observe_rate(uint64_t completed, uint64_t elapsed_ms);
+    bool pair_rate(double rate, double& prior_rate);
+    bool stabilize_rate(double& rate);
+    FlipctlTriggerReason rate_trigger(double rate);
+    void learn_anchored_rate(double rate);
     bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
@@ -355,6 +364,7 @@ private:
     void anchor(Server& server, double rate);
     void begin_refinement(Server& server, uint64_t now_ms);
     void record(uint32_t split, double rate);
+    double rate_sampling_band() const;
     double automatic_rate_band(double pair_delta, double rate) const;
 
     mutable std::mutex mutex_;
@@ -510,6 +520,8 @@ private:
 
     uint64_t rate_window_ms_ = 0;
     uint64_t rate_window_commands_ = 0;
+    uint64_t rate_sample_commands_ = 0;
+    uint64_t previous_subwindow_commands_ = 0;
     MovementStamp rate_window_movement_{};
     double previous_subwindow_rate_ = 0;
     double stable_pair_delta_ = 0;

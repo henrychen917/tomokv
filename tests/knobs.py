@@ -13,9 +13,9 @@ retired = (
     "script-crossshard-workbench-bytes", "script-crossshard-conflict-retries",
     "script-crossshard-cut-slots", "tls-ktls", "lb", "flip-work-window",
     "script-instruction-limit",
-    "load", "conf", "hash-max-compact-entries", "hash-max-compact-value",
+    "load", "conf",
     "list-max-compact-entries", "list-max-compact-value", "set-max-compact-entries",
-    "set-max-compact-value", "zset-max-compact-entries", "zset-max-compact-value",
+    "set-max-compact-value",
     "lb-sample-rate", "lb-age-sample-rate", "lb-tick-ms", "lb-imbalance-pct",
     "lb-move-cap", "lb-cooldown-ms", "ex-sched", "x-ex-sched", "x-overlap", "thread-pipeline",
 )
@@ -33,10 +33,13 @@ try:
                            ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0")):
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
-    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder"):
+    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder",
+                 "hll-sparse-max-bytes", "aof-load-truncated", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
             raise AssertionError("boot-only knob was mutable: " + name)
+        if conn.must("CONFIG", "GET", name) != [name.encode(), values[name.encode()]]:
+            raise AssertionError("rejected boot-only SET changed its GET value: " + name)
     server = _lib.info(conn, "server")
     for name, expected in (("thread_mode", "2s"), ("shards", "16"),
                            ("read_local", "0"), ("atomic", atomic), ("overlap", "0"), ("reorder", "0"),
@@ -171,13 +174,23 @@ try:
                                  ("hash-max-listpack-value", "hash-max-ziplist-value"),
                                  ("zset-max-listpack-entries", "zset-max-ziplist-entries"),
                                  ("zset-max-listpack-value", "zset-max-ziplist-value"),
-                                 ("list-max-listpack-size", "list-max-ziplist-size")):
+                                 ("list-max-listpack-size", "list-max-ziplist-size"),
+                                 ("hash-max-listpack-entries", "hash-max-compact-entries"),
+                                 ("hash-max-listpack-value", "hash-max-compact-value"),
+                                 ("zset-max-listpack-entries", "zset-max-compact-entries"),
+                                 ("zset-max-listpack-value", "zset-max-compact-value")):
             conn.must("CONFIG", "SET", alias, 7)
             for spelling in (canonical, alias):
                 if conn.must("CONFIG", "GET", spelling) != [spelling.encode(), b"7"]:
                     raise AssertionError("encoding alias is not one shared value: " + spelling)
-            if not isinstance(conn.cmd("CONFIG", "SET", canonical, 8, alias, 9), _lib.RespError):
-                raise AssertionError("duplicate alias accepted in one CONFIG SET")
+            conn.must("CONFIG", "SET", canonical, 8, alias, 9)
+            for spelling in (canonical, alias):
+                if conn.must("CONFIG", "GET", spelling) != [spelling.encode(), b"9"]:
+                    raise AssertionError("last alias value did not win: " + spelling)
+            if not isinstance(conn.cmd("CONFIG", "SET", canonical, 8, canonical, 10), _lib.RespError):
+                raise AssertionError("repeated Redis spelling accepted in one CONFIG SET")
+            if conn.must("CONFIG", "GET", canonical) != [canonical.encode(), b"9"]:
+                raise AssertionError("rejected duplicate changed the setting")
         for name, value, expected in (("hash-max-listpack-value", "1kb", b"1024"),
                                       ("zset-max-listpack-value", "2k", b"2000"),
                                       ("hash-max-listpack-entries", "9223372036854775807",
