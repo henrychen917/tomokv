@@ -267,7 +267,7 @@ public:
     std::atomic<OpState> state{OpState::Free};
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // `state` is one byte at offset 184 and argv_inline_ needs 8-byte alignment at 192, so 185..191
+    // `state` is one byte at offset 184 and the argv header needs 8-byte alignment at 192, so 185..191
     // was padding; this lands at the 4-aligned 188 and costs nothing. int32 rather than int64
     // because that is what the hole holds: a count or a counter outside +/-2^31 simply keeps the
     // byte path, which emits the identical digits.
@@ -451,10 +451,22 @@ private:
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
-    Slice    argv_inline_[kInlineArgv];
+    // The hot pair is argc_ (reset/incremented by parsing, checked by execution) and argv_heap_
+    // (tested by push_arg, every arg access, and oversized at retirement even when it is null).
+    // Moving them from the tail beside the first argument slots reduces the short-command field
+    // footprint; separating completion from reply writes alone would leave those tail accesses.
+    // At a 64-aligned base, GET's header and two slots now occupy 192..239 instead of separate
+    // lines at 192..223 and 320..335. Op is only 8-aligned, so the saving depends on its address.
+    // Parsing also stops dirtying the terminal argc word, which can share the next Op's routing
+    // line. This is a locality hypothesis, not a claim that each removed access was a cache miss.
+    // argv_cap_ is cold for inline commands. Carry it with the hot pair to fill their 4-byte
+    // alignment gap before the Slice array; leaving it after the array would grow Op to 344.
+    // Only this 16-byte header and argv_inline_ trade places. Reply/direct/borrow/state offsets,
+    // the 336-byte stride, and deep/heap-argv storage, growth and retirement paths stay fixed.
     Slice*   argv_heap_ = nullptr;
     uint32_t argv_cap_  = 0;
     uint32_t argc_      = 0;
+    Slice    argv_inline_[kInlineArgv];
 };
 
 // THE FOOTPRINT LOCK (owner law, 2026-08-24): +16 bytes on Op measured -3.7% at 64c p32 -- at

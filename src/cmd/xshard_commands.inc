@@ -1724,7 +1724,7 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
         for (uint32_t i = 0; i < state.key_count; i++) {
             const ValueSlot& slot = state.values[i];
             if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
-            else reply_bulk(op.sink(), Slice(slot.small, slot.len));
+            else reply_bulk(op.sink(), Slice(slot.kind == ValueKind::Inline ? slot.small : slot.ptr, slot.len));
         }
         return;
     }
@@ -1749,7 +1749,8 @@ void assemble_mget(Client& client, Op& op, ScatterState& state, void* release_ct
     for (uint32_t i = 0; i < state.key_count; i++) {
         ValueSlot& slot = state.values[i];
         if (slot.kind == ValueKind::Nil) reply_null(op.sink(), op.resp3());
-        else if (slot.kind == ValueKind::Inline) reply_bulk(op.sink(), Slice(slot.small, slot.len));
+        else if (slot.kind == ValueKind::Inline || slot.kind == ValueKind::Owned)
+            reply_bulk(op.sink(), Slice(slot.kind == ValueKind::Inline ? slot.small : slot.ptr, slot.len));
         else {
             reply_bulk_header(op.sink(), slot.len);
             flush_bytes();

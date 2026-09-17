@@ -75,7 +75,10 @@ def load(path=DEFAULT):
     for ident, floor in value["load_floors"].items():
         require(set(floor) == {"instances", "shape", "geometry", "instrument_sha256", "status", "observed_rate", "observed_busy", "provenance"}
                 and type(floor["instances"]) is int and floor["instances"] > 0 and
-                set(floor["shape"]) == set(SHAPE) and floor["status"] in ("calibrated", "historical-unverified"),
+                set(floor["shape"]) in (set(SHAPE), set(SHAPE) | {"data_bytes"}) and
+                type(floor["shape"].get("data_bytes", 64)) is int and
+                floor["shape"].get("data_bytes", 64) > 0 and
+                floor["status"] in ("calibrated", "historical-unverified"),
                 f"{ident}: invalid load-floor fields")
         provenance(floor["provenance"], ident)
         require(floor["status"] != "calibrated" or isinstance(floor["geometry"], dict) and
@@ -107,7 +110,12 @@ def ratio(family, threads, measurements=None):
 
 def shape(cell):
     cell = asdict(cell) if is_dataclass(cell) else cell
-    return {key: cell[key] for key in SHAPE}
+    result = {key: cell[key] for key in SHAPE}
+    # Old floor records imply 64 B. A private size sweep must not borrow their pin
+    # or share a pin across sizes, even with an unchanged instrument and cell ID.
+    if cell.get("data_bytes", 64) != 64:
+        result["data_bytes"] = cell["data_bytes"]
+    return result
 
 
 def geometry(environment):
@@ -124,7 +132,7 @@ def apply_floor(cell, measurements=None, placement=None, instrument_sha256=None)
     fields = asdict(cell) if is_dataclass(cell) else cell
     floor = measurements["load_floors"].get(fields["id"])
     valid = (floor is not None and floor["status"] == "calibrated" and
-             floor["shape"] == shape(fields) and (placement is None or floor["geometry"] == placement))
+             shape(floor["shape"]) == shape(fields) and (placement is None or floor["geometry"] == placement))
     if valid:
         # The cell's flags do not describe MGET key count, value bytes, keyspace,
         # generation pattern or service-blocker size. Bind the full instrument's
@@ -343,6 +351,15 @@ def self_test():
             for key in SHAPE:
                 changed = {**self.cell, key: "changed"}
                 self.assertEqual(apply_floor(changed, self.config, self.placement)["instances"], 0, key)
+
+        def test_value_sizes_cannot_share_a_load_floor(self):
+            sized = {**self.cell, "data_bytes": 256}
+            self.assertEqual(apply_floor(sized, self.config, self.placement)["instances"], 0)
+            self.config["load_floors"]["unit"]["shape"] = shape(sized)
+            self.assertEqual(apply_floor(sized, self.config, self.placement)["instances"], 4)
+            self.assertEqual(apply_floor(self.cell, self.config, self.placement)["instances"], 0)
+            self.assertEqual(apply_floor({**sized, "data_bytes": 1024}, self.config,
+                                        self.placement)["instances"], 0)
 
         def test_geometry_changes_invalidate(self):
             for key in AXES:

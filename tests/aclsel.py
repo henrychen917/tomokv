@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Directed Redis 7.4 ACL selector parsing, reporting, and enforcement battery.
+"""TomoKV selector rejection and Redis 7.4 selector enforcement battery.
 
 Usage: tests/aclsel.py HOST PORT
 """
@@ -123,6 +123,31 @@ def wait_closed(conn, timeout=6):
 
 admin = Conn()
 is_tomokv = b"tomokv_version:" in admin.command("INFO", "SERVER")
+if is_tomokv:
+    # This is an explicit server policy, not a fallback selected by a command's success/failure.
+    # The former TomoKV parser accepts (), so this branch must fail against that implementation.
+    names = ("aclsel", "aclsel-bad", "aclsel-default")
+    admin.command("ACL", "DELUSER", *names)
+    try:
+        expect(admin.command("ACL", "SETUSER", "aclsel", "on", "nopass", "~sel:root:*", "+get"),
+               b"OK", "root ACL rules remain available")
+        original = admin.command("ACL", "GETUSER", "aclsel")
+        for rules in (("()",), ("(+get ~sel:*)",), ("(", "+get", "~sel:*", ")"),
+                      ("(",), ("(+@all (~*))",)):
+            for name in ("aclsel", "aclsel-bad"):
+                reply = admin.command("ACL", "SETUSER", name, "reset", "on", "nopass", *rules)
+                if not isinstance(reply, RespError) or "ACL selectors are not supported" not in str(reply):
+                    raise AssertionError("selector was not explicitly rejected: %r -> %r" % (rules, reply))
+                expect(admin.command("ACL", "GETUSER", "aclsel"), original,
+                       "rejected selector preserves root permissions")
+                expect(admin.command("ACL", "GETUSER", "aclsel-bad"), None,
+                       "rejected selector creates no user")
+        expect(fields(original)[b"selectors"], [], "root user has no stored selectors")
+    finally:
+        admin.command("ACL", "DELUSER", *names)
+        admin.close()
+    print("aclsel: PASS (%d checks; selector rejection and unchanged root permissions)" % CHECKS)
+    sys.exit(0)
 for username in ("aclsel", "aclsel-bad", "aclsel-default"):
     admin.command("ACL", "DELUSER", username)
 before = stats(admin)

@@ -64,7 +64,7 @@ public:
         id_ = id;
         bucket_begin_ = bucket_begin;
         bucket_end_   = bucket_end;
-        zc_min_ = zc_min;
+        set_zc_min(zc_min);
         type_limits_ = type_limits;
         stream_limits_ = stream_limits;
         store_.bind_expired_counter(&stats_.expired);
@@ -101,7 +101,7 @@ public:
     uint32_t bucket_begin() const { return bucket_begin_; }
     uint32_t bucket_end()   const { return bucket_end_; }
     uint32_t zc_min()       const { return zc_min_; }
-    void set_zc_min(uint32_t value) { zc_min_ = value; }
+    void set_zc_min(uint32_t value) { zc_min_ = value ? value : UINT32_MAX; }
     int64_t  now_ms()       const { return now_ms_; }
     const TypeLimits& type_limits() const { return type_limits_; }
     void set_type_limits(const TypeLimits& value) { type_limits_ = value; }
