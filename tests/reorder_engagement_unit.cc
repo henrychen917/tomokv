@@ -24,9 +24,10 @@ struct CoreConcurrencyTest {
         return {s.data(), static_cast<uint32_t>(s.size())};
     }
 
+    template <bool ReadLocal>
     struct Fixture {
         Server server;
-        ExLoopT<true> loop;
+        ExLoopT<ReadLocal> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
         Fixture(ThreadMode mode, uint32_t overlap, uint32_t reorder) : owner(mode == ThreadMode::Fused ? 0 : 6) {
@@ -51,7 +52,8 @@ struct CoreConcurrencyTest {
             config.shards = 16;
             config.overlap = overlap;
             config.reorder = reorder;
-            config.read_local = config.atomic = config.key_lb = config.client_lb = 1;
+            config.read_local = ReadLocal;
+            config.atomic = config.key_lb = config.client_lb = 1;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nthreads() == 8 && server.nshards() == 16, "gate geometry");
@@ -63,23 +65,27 @@ struct CoreConcurrencyTest {
                     "allocate the production task inbox");
             loop.fused_handoff_ring_ = &loop.ring_;
             loop.cached_now_ms_ = 1000;
+            if constexpr (ReadLocal) {
             loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
             auto& deferred = loop.read_local_impl().deferred;
             require(deferred.init(&server, loop.self_), "owner QSBR queue");
             for (Shard* sh : loop.self_->shards())
                 sh->store().configure_read_local(true, *deferred.sink());
+            }
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
-            if (mode == ThreadMode::Fused)
+            if constexpr (ReadLocal) if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
-            require(loop.read_local_enabled() && server.atomic_enabled(), "armed owner paths");
+            require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(), "requested owner paths");
             require((server.mode_schedule_stats() != nullptr) == (overlap != 0 || reorder != 0),
                     "both disabled mechanisms allocate no witness sidecar");
         }
         ~Fixture() {
-            loop.read_local_impl().deferred.drain_shutdown();
-            for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            if constexpr (ReadLocal) {
+                loop.read_local_impl().deferred.drain_shutdown();
+                for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            }
         }
         int32_t sid() const { return server.thread(owner).shards().front()->id(); }
         std::string key() {
@@ -136,10 +142,11 @@ struct CoreConcurrencyTest {
         observed.push_back(op.hash);
         op.reply.append("+OK\r\n", 5);
     }
+    template <bool ReadLocal>
     static void run(ThreadMode mode, uint32_t overlap, uint32_t requested, bool expect_available) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
         const uint32_t reorder = reorder_available() ? requested : 0;
-        Fixture f(mode, overlap, reorder);
+        Fixture<ReadLocal> f(mode, overlap, reorder);
         CommandSpec short_op = *command_lookup(Slice("GET"));
         CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
         short_op.handler = short_op.handler_notify = record;
@@ -161,7 +168,7 @@ struct CoreConcurrencyTest {
         }
         observed.clear();
         const uint64_t before = f.passes();
-        const uint32_t drained = reorder ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true);
+        const uint32_t drained = reorder ? f.loop.template r7_drain_tasks<>(true) : f.loop.template drain_tasks<>(true);
         require(drained == count && observed.size() == count, "drain lost work or carry");
         std::vector<uint64_t> expected;
         if (reorder) {
@@ -188,9 +195,9 @@ struct CoreConcurrencyTest {
             require(op.state.load() == OpState::Done, "all ROB slots completed");
             require(task.client->rob().drain([](Op&) {}) == 1, "ready prefix retires");
         }
-        std::printf("PASS R7 production drain %s overlap=%u requested=%u effective=%u: "
+        std::printf("PASS R7 production drain %s read-local=%u overlap=%u requested=%u effective=%u: "
                     "64 handlers, %s, empty carry\n",
-                    mode == ThreadMode::Fused ? "1s" : "2s", overlap, requested, reorder,
+                    mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, overlap, requested, reorder,
                     reorder ? "both queues selected 4:1" : "FIFO");
     }
 };
@@ -204,5 +211,8 @@ int main(int argc, char** argv) {
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
         for (uint32_t overlap : {0u, 1u})
             for (uint32_t reorder : {0u, 1u})
-                T::run(mode, overlap, reorder, std::string(argv[1]) == "on");
+                T::run<true>(mode, overlap, reorder, std::string(argv[1]) == "on");
+    for (uint32_t overlap : {0u, 1u})
+        for (uint32_t reorder : {0u, 1u})
+            T::run<false>(tomo::ThreadMode::Split, overlap, reorder, std::string(argv[1]) == "on");
 }
