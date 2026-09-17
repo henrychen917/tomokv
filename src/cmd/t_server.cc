@@ -2088,7 +2088,7 @@ void cmd_info(Shard&, Op& op) {
         if (g_server && g_server->read_local_enabled())
             append_read_local_thread_info(body, *g_server);
         // Requested overlap reports explicit witnesses before any eligible batch runs.
-        if (g_server && g_server->cfg().overlap)
+        if (g_server && (g_server->cfg().overlap || g_server->cfg().reorder))
             append_mode_schedule_info(body, g_server->mode_schedule_stats(), g_server->nthreads());
         if (g_server && g_server->cfg().reorder)
             append_reorder_info(body, g_server->mode_schedule_stats(), g_server->nthreads());

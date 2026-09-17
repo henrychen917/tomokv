@@ -70,10 +70,11 @@ def category(name):
     if 'ExLoopT<' in name and any(n in name for n in [
         '::drain_tasks<','::drain_tasks_with_filler<','::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
-        '::fused_sweep_impl<','::sweep<','::run()']): return 'scheduler'
+        '::fused_sweep_impl<','::fused_baseline_sweep()',
+        '::prefetch_overlap_batch(', '::sweep<','::run()']): return 'scheduler'
     if 'IoLoop::' in name and any(n in name for n in [
         '::run_loop<','::run_fused_iofused_loop<','::genthread_three_way_pass<',
-        '::genthread_iofused_sweep<','::flush_ready<']): return 'envelope'
+        '::genthread_iofused_sweep<','::flush_ready<','::pipeline_pass<','::wb_prefetch<']): return 'envelope'
     return None
 
 def normalize_asm(asm,addr,size,demangle,address_name=None,literal_name=None):
@@ -189,16 +190,32 @@ class LiteralPools:
         # signed table load, base add, indirect jump. Verify every table entry
         # against its actual instruction boundary in THIS function. A changed
         # case destination must fail even when the LEA's encoding still matches.
-        if index < 2 or index+4 >= len(body): return None
+        if index+4 >= len(body): return None
         asm = instructions[body[index]][1]
         lea = re.fullmatch(r'lea\s+-?0x[0-9a-f]+\(%rip\),%([a-z0-9]+)\s+#\s+([0-9a-f]+) <[^<>]+>', asm)
-        bound = re.fullmatch(r'cmp\s+\$0x([0-9a-f]+),%([a-z0-9]+)', instructions[body[index-2]][1])
-        if not lea or not bound or not instructions[body[index-1]][1].startswith('ja '):
-            return None
+        bound = re.fullmatch(r'cmp\s+\$0x([0-9a-f]+),%([a-z0-9]+)', instructions[body[index-2]][1]) if index >= 2 else None
+        cursor = index+1
+        if not lea: return None
+        if not bound or not instructions[body[index-1]][1].startswith('ja '):
+            # The epoll event loop hoists its table LEA before the loop's bound.
+            # Accept only a nearby cmp/ja/load chain, with no intervening control
+            # transfer or use of the base register. Every destination is still
+            # checked below against this body's real instruction boundaries.
+            bound = None
+            for candidate in range(index+3, min(index+16, len(body)-2)):
+                middle = [instructions[body[j]][1] for j in range(index+1, candidate-2)]
+                if any('%'+lea[1] in asm or re.match(r'(?:j|call|ret)', asm) for asm in middle):
+                    break
+                possible = re.fullmatch(r'cmp\s+\$0x([0-9a-f]+),%([a-z0-9]+)',
+                                        instructions[body[candidate-2]][1])
+                if possible and instructions[body[candidate-1]][1].startswith('ja '):
+                    bound = possible
+                    cursor = candidate
+                    break
+            if bound is None: return None
         count = int(bound[1], 16)+1
         if count > 4096: return None
         base, target = lea[1], int(lea[2], 16)
-        cursor = index+1
         extend = re.fullmatch(r'movzbl\s+%([a-z0-9]+),%([a-z0-9]+)', instructions[body[cursor]][1])
         source = bound[2]
         if extend:
@@ -350,10 +367,21 @@ def self_test():
     assert pools.jump_label(2,body,instructions,0x1000,len(body)) != token
     pools.sections=[(0x2000,struct.pack('<ii',0x1000-0x2000,0x3000-0x2000))]
     assert pools.jump_label(2,body,instructions,0x1000,len(body)) is None
+    hoisted = [table[2], 'movslq %r13d,%rax', 'add %rax,0x520(%rdi)',
+               'mov 0x4(%rbp),%rcx', 'mov %rcx,%rax', 'shr $0x38,%rax',
+               *table[:2], *table[4:]]
+    body = list(range(0x1000, 0x1000+len(hoisted)))
+    instructions = {at:([],asm) for at,asm in zip(body,hoisted)}
+    pools.sections = [(0x2000, struct.pack('<ii',0x1000-0x2000,0x1001-0x2000))]
+    assert pools.jump_label(0,body,instructions,0x1000,len(body)) == 'local-switch-0x0,0x1'
+    pools.sections = [(0x2000, struct.pack('<ii',0x1000-0x2000,0x1002-0x2000))]
+    assert pools.jump_label(0,body,instructions,0x1000,len(body)) != 'local-switch-0x0,0x1'
+    instructions[body[1]] = ([], 'mov %rax,%rdx')
+    assert pools.jump_label(0,body,instructions,0x1000,len(body)) is None
     print('normalizer self-checks PASS')
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('pre');p.add_argument('post');p.add_argument('output');p.add_argument('--report-only',action='store_true');p.add_argument('--expected-functions',type=int,default=217);p.add_argument('--literal-pools',action='store_true',help='verify anonymous read-only constants by complete consumed bytes');args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('pre');p.add_argument('post');p.add_argument('output');p.add_argument('--report-only',action='store_true');p.add_argument('--expected-functions',type=int,default=169);p.add_argument('--literal-pools',action='store_true',help='verify anonymous read-only constants by complete consumed bytes');args=p.parse_args()
     self_test();out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     pre=Binary(args.pre,out,args.literal_pools);post=Binary(args.post,out,args.literal_pools);rows=compare(pre,post,out)
     if len(rows) != args.expected_functions:

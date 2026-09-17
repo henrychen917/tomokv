@@ -47,7 +47,9 @@ def main():
         cfg = ctl.must("CONFIG", "GET", "*")
         cfg = dict(zip(cfg[::2], cfg[1::2]))
         expected = {"thread-mode": args.mode, "read-local": args.read_local,
-                    "overlap": args.overlap, "reorder": 0, "atomic": 1,
+                    "overlap": args.overlap,
+                    "reorder": 0 if _lib.info(ctl, "server").get("reorder_retired") == "1" else args.reorder,
+                    "atomic": 1,
                     "key-lb": 0, "client-lb": 0, "flip-auto": 0}
         for name, value in expected.items():
             require(cfg.get(name.encode()) == str(value).encode(), "CONFIG mismatch: " + name)
@@ -190,10 +192,11 @@ def main():
             with open(args.output, "w") as f:
                 json.dump(evidence, f, indent=2, sort_keys=True)
                 f.write("\n")
-        print("PASS orthog %s/%d/%d/%d: active=%s schedule=%s passes=%s interleaved=%s reorder=retired" %
+        print("PASS orthog %s/%d/%d/%d: active=%s schedule=%s passes=%s interleaved=%s reordered=%s" %
               (args.mode, args.read_local, args.overlap, args.reorder,
                local_info.get("read_local_active_threads", "0"), schedule,
-               final.get("overlap_passes", "0"), final.get("overlap_interleaved_passes", "0")))
+               final.get("overlap_passes", "0"), final.get("overlap_interleaved_passes", "0"),
+               final.get("reorder_permuted_runs", "disabled")))
     finally:
         for conn in opened:
             conn.close()

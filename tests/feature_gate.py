@@ -100,7 +100,7 @@ def inventory(cpu_list, ratio):
 def check_config(row, knobs, cell, server_cpus):
     for key in ('thread-mode', *SWITCHES, 'atomic', 'key-lb', 'client-lb'):
         field = key.replace('-', '_')
-        require(row.get(field) == str(0 if key == "reorder" else knobs[key]),
+        require(row.get(field) == str(0 if key == "reorder" and row.get("reorder_retired") == "1" else knobs[key]),
                 f'{key} requested {knobs[key]} but effective {field}={row.get(field)!r}')
     nshards = knobs['shards']
     if nshards == -1:

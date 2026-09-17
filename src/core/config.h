@@ -382,8 +382,8 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Retired boot knob: accept the old 0|1 grammar, then clear after CLI overrides.
-    // Retaining this slot preserves Config layout; neither value enables or allocates anything.
+    // Boot-latched continuous two-queue scheduler. Zero retains the unchanged FIFO
+    // bodies and allocates no scheduler state; one enables R7 in both thread modes.
     uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
