@@ -169,7 +169,15 @@ static std::string transaction(Server& server, Client& client,
                                std::initializer_list<std::string> args) {
     Request r(server, client.session().db_index, args);
     MultiExecState* state = nullptr;
-    const auto action = multi_handle_io(server, client, r.op, 0, state);
+    auto action = multi_handle_io(server, client, r.op, 0, state);
+    const bool boundary = action == MultiIoAction::Backpressure && server.database_boundary_active();
+    const auto before_epoch = server.databases().capture().epoch;
+    if (boundary) {
+        // This driver has no outstanding IO/owner work. The dedicated boundary
+        // unit exercises both real control tails and delayed old-epoch pipelines.
+        server.flip_set_stage(FlipStage::DatabaseRun);
+        action = multi_handle_io(server, client, r.op, 0, state);
+    }
     if (action == MultiIoAction::LocalDone) return r.reply();
     require(action == MultiIoAction::Dispatch && state, "transaction preparation");
     state->now_cut_ms = now_realtime_ms();
@@ -188,6 +196,8 @@ static std::string transaction(Server& server, Client& client,
             const int s = state->shards[i];
             auto result = multi_execute_task(server, multi_make_task(&client, 0, s, state),
                 server.shard(s), server.worker_of_shard(s), 0, nullptr);
+            require(server.databases().capture().epoch == before_epoch || state->epoch.load() != 0,
+                    "map publication shares the MVCC decision");
             if (result != MultiTaskResult::Retry) { done[i] = true; --remaining; }
         }
     }
@@ -200,6 +210,7 @@ static std::string transaction(Server& server, Client& client,
     multi_retire(client, r.op, deferred);
     command_set_local_context(nullptr, nullptr);
     require(deferred.empty(), "transaction record retirement");
+    if (boundary) server.database_boundary_end(client, client.rob().dispatch_id());
     return r.reply();
 }
 
@@ -402,6 +413,31 @@ static void owners() {
     require(transaction(server, watcher, {"MULTI"}) == "+OK\r\n", "destination WATCH MULTI");
     require(transaction(server, watcher, {"GET", "watched-move"}) == "+QUEUED\r\n", "destination WATCH GET");
     require(transaction(server, watcher, {"EXEC"}) == "*-1\r\n", "MOVE dirties destination WATCH");
+    Client swapping(-1); swapping.set_id(83); swapping.session().db_index = 11;
+    require(local(server, 11, {"SET", "tx-swap", "old"}) == "+OK\r\n", "transaction swap source");
+    require(local(server, 12, {"SET", "tx-swap", "other"}) == "+OK\r\n", "transaction swap peer");
+    require(transaction(server, swapping, {"MULTI"}) == "+OK\r\n", "swap MULTI");
+    require(transaction(server, swapping, {"SET", "tx-swap", "before"}) == "+QUEUED\r\n", "pre-swap SET");
+    require(transaction(server, swapping, {"SWAPDB", "11", "12"}) == "+QUEUED\r\n", "queued SWAPDB");
+    require(transaction(server, swapping, {"GET", "tx-swap"}) == "+QUEUED\r\n", "read new map");
+    require(transaction(server, swapping, {"SELECT", "12"}) == "+QUEUED\r\n", "queued SELECT after swap");
+    require(transaction(server, swapping, {"GET", "tx-swap"}) == "+QUEUED\r\n", "read own pre-swap write");
+    require(transaction(server, swapping, {"SET", "tx-swap", "after"}) == "+QUEUED\r\n", "post-swap SET");
+    require(transaction(server, swapping, {"MOVE", "tx-swap", "13"}) == "+QUEUED\r\n", "MOVE after swap");
+    require(transaction(server, swapping, {"SWAPDB", "12", "13"}) == "+QUEUED\r\n", "second queued swap");
+    require(transaction(server, swapping, {"GET", "tx-swap"}) == "+QUEUED\r\n", "read moved value");
+    require(transaction(server, swapping, {"EXEC"}) ==
+            "*9\r\n+OK\r\n+OK\r\n$5\r\nother\r\n+OK\r\n$6\r\nbefore\r\n+OK\r\n:1\r\n+OK\r\n$5\r\nafter\r\n",
+            "SWAPDB/SELECT/MOVE share one untorn EXEC array");
+    require(swapping.session().db_index == 12 && local(server, 12, {"GET", "tx-swap"}) == "$5\r\nafter\r\n",
+            "transaction publishes final mapping and selected DB");
+    const auto committed_epoch = server.databases().capture().epoch;
+    require(transaction(server, swapping, {"WATCH", "tx-swap"}) == "+OK\r\n", "WATCH before aborted swap");
+    require(local(server, 12, {"SET", "tx-swap", "changed"}) == "+OK\r\n", "dirty transaction watch");
+    require(transaction(server, swapping, {"MULTI"}) == "+OK\r\n", "aborted swap MULTI");
+    require(transaction(server, swapping, {"SWAPDB", "12", "13"}) == "+QUEUED\r\n", "aborted queued swap");
+    require(transaction(server, swapping, {"EXEC"}) == "*-1\r\n", "WATCH abort hides map");
+    require(server.databases().capture().epoch == committed_epoch, "aborted swap publishes no epoch");
     persistence(server);
     records_done(server);
     command_bind_server(nullptr);

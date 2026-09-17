@@ -27,6 +27,7 @@ struct CoreConcurrencyTest {
                                              server.placement().ex_threads()), "task lanes");
             auto& owner = owners[tid]; owner.srv_ = &server; owner.self_ = &thread;
             owner.fused_handoff_ring_ = &owner.ring_; owner.cached_now_ms_ = 1000;
+            if constexpr (Fused) owner.fused_completion_ = [](void*, Client*) {};
             server.bind_owner_notify_pending(tid, &owner.notify_keyless_pending_);
             owner.refresh_live_config();
             ios[tid].srv_ = &server; ios[tid].self_ = &thread;

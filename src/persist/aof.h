@@ -50,6 +50,7 @@ enum class AofRecordKind : uint8_t {
     GroupDel = 6,
     GroupCommit = 7,
     DatabaseMap = 8,
+    GroupDatabaseMap = 9,
 };
 
 enum class AofRewriteDebugStage : uint8_t {
@@ -125,6 +126,7 @@ public:
     bool record_delete(Slice key, uint64_t group = 0);
     bool record_flush(int physical_db = -1);
     bool record_database_map(const uint8_t* mapping);
+    bool record_group_database_map(const uint8_t* mapping);
     bool begin_group(const std::shared_ptr<AofGroupDecision>& group);
     bool record_group_post_image(FlatStore& store, uint64_t hash, Slice key);
     bool record_group_visible_post_image(FlatStore& store, uint64_t hash, Slice key);
@@ -159,7 +161,8 @@ private:
     bool record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type,
                             uint8_t encoding, Slice key, int64_t expire_at_ms,
                             const SnapshotTypeHooks* hooks,
-                            SnapshotSaveCursor* cursor);
+                            SnapshotSaveCursor* cursor, const uint8_t* raw = nullptr,
+                            uint64_t raw_size = 0);
     bool record_group_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
                                       bool physical);
     bool make_ready(std::unique_ptr<AofChunk> chunk);

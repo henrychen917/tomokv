@@ -42,6 +42,8 @@ public:
     };
     bool remapped() const { return current_.load(std::memory_order_acquire) != nullptr; }
     bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr);
+    bool prepare_publish(const Map& map, std::unique_ptr<Map>& prepared);
+    void publish_prepared(std::unique_ptr<Map> prepared);
     bool restore(const uint8_t* bytes);
     Map capture() const;
     uint8_t logical(uint8_t physical) const;

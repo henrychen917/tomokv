@@ -462,8 +462,9 @@ bool AofProducer::group_emit(PendingGroup& group, const uint8_t* bytes, uint64_t
 bool AofProducer::record_group_bytes(PendingGroup& group, AofRecordKind kind, uint8_t type,
                                      uint8_t encoding, Slice key, int64_t expire_at_ms,
                                      const SnapshotTypeHooks* hooks,
-                                     SnapshotSaveCursor* cursor) {
-    const uint64_t payload_len = cursor ? cursor->total : 0;
+                                     SnapshotSaveCursor* cursor, const uint8_t* raw,
+                                     uint64_t raw_size) {
+    const uint64_t payload_len = cursor ? cursor->total : raw_size;
     if (payload_len > UINT32_MAX || payload_len > UINT64_MAX - kRecordHeaderBytes - key.n) {
         if (manager_) manager_->fail("AOF group record is too large");
         return false;
@@ -507,6 +508,7 @@ bool AofProducer::record_group_bytes(PendingGroup& group, AofRecordKind kind, ui
     snapshot_put_u64(header + 24, static_cast<uint64_t>(expire_at_ms));
     if (!group_emit(group, header, sizeof(header), large) ||
         !group_emit(group, reinterpret_cast<const uint8_t*>(key.p), key.n, large)) return false;
+    if (raw && !group_emit(group, raw, raw_size, large)) return false;
 
     if (hooks && cursor) {
         while (cursor->offset < cursor->total) {
@@ -860,6 +862,12 @@ bool AofProducer::record_database_map(const uint8_t* mapping) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
                         mapping, 256, nullptr, nullptr, nullptr);
+}
+
+bool AofProducer::record_group_database_map(const uint8_t* mapping) {
+    if (!enabled()) return true;
+    return active_group_ && record_group_bytes(*active_group_, AofRecordKind::GroupDatabaseMap,
+        0, 0, Slice(), -1, nullptr, nullptr, mapping, 256);
 }
 
 bool AofProducer::flush(AofOwnerContext& context) {
@@ -2361,13 +2369,15 @@ std::unique_ptr<AofReplayPlan> aof_read_plan(const char* path, uint32_t expected
                                      payload_len, expire, group, next, error)) return nullptr;
             (void)type; (void)encoding; (void)key_len; (void)payload_len; (void)expire;
             if (kind < AofRecordKind::Put ||
-                (kind > AofRecordKind::GroupDel && kind != AofRecordKind::DatabaseMap)) {
+                kind > AofRecordKind::GroupDatabaseMap) {
                 error = "unknown AOF record kind";
                 return nullptr;
             }
-            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) && !group)
+            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel ||
+                 kind == AofRecordKind::GroupDatabaseMap) && !group)
                 { error = "AOF group fragment has no ticket"; return nullptr; }
-            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&
+            if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel ||
+                 kind == AofRecordKind::GroupDatabaseMap) &&
                 !plan->committed_groups.count(group)) plan->groups_skipped++;
             plan->replayed_records++;
             record_pos = next;
@@ -2489,7 +2499,8 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                             static_cast<uint32_t>(payload_len));
         pos = next;
         if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
-        if (kind == AofRecordKind::DatabaseMap) {
+        if (kind == AofRecordKind::GroupDatabaseMap && !plan.committed_groups.count(group)) continue;
+        if (kind == AofRecordKind::DatabaseMap || kind == AofRecordKind::GroupDatabaseMap) {
             if (sid != 0 || key_len || payload_len != 256 ||
                 !server.databases().restore(reinterpret_cast<const uint8_t*>(payload.p))) {
                 error = "invalid AOF database mapping"; return false;

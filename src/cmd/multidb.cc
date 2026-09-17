@@ -48,6 +48,26 @@ DatabaseMap::Map DatabaseMap::capture() const {
     return map;
 }
 
+bool DatabaseMap::prepare_publish(const Map& map, std::unique_ptr<Map>& prepared) {
+    std::lock_guard lock(writer_);
+    try {
+        prepared = std::make_unique<Map>(map);
+        if (live_) retired_.reserve(retired_.size() + 1);
+        return true;
+    } catch (const std::bad_alloc&) { return false; }
+}
+
+void DatabaseMap::publish_prepared(std::unique_ptr<Map> prepared) {
+    // Only the globally fenced transaction can publish between prepare and here.
+    // All allocation happened before owner work; this commit arm cannot fail.
+    std::lock_guard lock(writer_);
+    if (!prepared || (live_ && retired_.size() == retired_.capacity())) std::abort();
+    current_.store(prepared.get(), std::memory_order_seq_cst);
+    if (live_) retired_.push_back(std::move(live_));
+    live_ = std::move(prepared);
+    if (readers_.load(std::memory_order_seq_cst) == 0) retired_.clear();
+}
+
 bool DatabaseMap::restore(const uint8_t* bytes) {
     std::lock_guard lock(writer_);
     bool identity = true;

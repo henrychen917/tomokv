@@ -276,6 +276,8 @@ public:
     bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
     bool watch_add(Slice key, Client* client, uint64_t generation, uint16_t db = 256);
     void watch_database_swap(uint8_t first, uint8_t second);
+    void watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
+                             uint8_t physical_second);
     void watch_remove(Slice key, Client* client, uint64_t generation);
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,
