@@ -3001,7 +3001,7 @@ def gen_edgeproto(rng):
         order, RANDOMKEY) -- unordered by contract;
       * wall-clock replies (auto stream IDs, TTL seconds, TIME, OBJECT IDLETIME);
       * the divergences NOTES-EDGEPROTO.md records as deliberate or shelved (SCAN's lax cursor,
-        COPY DB on a one-database server, redis's bare-strtod score ranges, SORT BY/GET, the
+        redis's bare-strtod score ranges, SORT BY/GET, the
         grisu2-vs-shortest last digit). A suite that carried those could never reach zero.
     The tail is a random resample of the ERROR-only cases, which are idempotent, so a longer run
     is a longer run and not a different test.
@@ -5542,6 +5542,42 @@ def gen_infofix(rng):
             ops.append(["PING"])
     return ops
 
+def gen_multidb(rng):
+    """One deep pipeline switches namespaces while older owner work is still in flight."""
+    keys = ["mdb:%d" % i for i in range(24)] + ["mdb:\0binary", "mdb:" + "k" * 255]
+    ops = [["SELECT", "0"], ["FLUSHALL"]]
+    for db in range(4):
+        ops += [["SELECT", str(db)], ["SET", "mdb:same", "db%d" % db]]
+    for index in range(3600):
+        key = rng.choice(keys)
+        choice = rng.randrange(12)
+        if choice < 2:
+            ops.append(["SELECT", str(rng.randrange(4))])
+        elif choice < 4:
+            ops.append(["SET", key, "value:%d" % index])
+        elif choice == 4:
+            ops.append(["GET", key])
+        elif choice == 5:
+            ops.append(["MOVE", key, str(rng.randrange(4))])
+        elif choice == 6:
+            ops.append(["SWAPDB", str(rng.randrange(4)), str(rng.randrange(4))])
+        elif choice == 7:
+            ops.append(["FLUSHDB"])
+        elif choice == 8:
+            ops.append(["DBSIZE"])
+        elif choice == 9:
+            ops.append(["KEYS", "mdb:*"])
+        elif choice == 10:
+            ops.append(["COPY", key, key + ":copy", "DB", str(rng.randrange(4)), "REPLACE"])
+        else:
+            ops += [["MULTI"], ["SELECT", str(rng.randrange(4))], ["SET", key, "txn"],
+                    ["GET", key], ["SELECT", str(rng.randrange(4))], ["GET", key], ["EXEC"]]
+    for db in range(4):
+        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE"]]
+    ops += [["SELECT", "0"], ["FLUSHALL"]]
+    return ops
+
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "edgetime": gen_edgetime,
         "xshard": gen_xshard, "xmove": gen_xmove, "bitmap": gen_bitmap,
@@ -5554,7 +5590,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "cmdgap2": gen_cmdgap2,
         "sort": gen_sort,
         "servertail": gen_servertail, "arity": gen_arity,
-        "storeorder": gen_storeorder, "infofix": gen_infofix}
+        "storeorder": gen_storeorder, "infofix": gen_infofix, "multidb": gen_multidb}
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
@@ -5770,7 +5806,7 @@ diffs = 0
 # hide the very window the suite exists to cover.
 BATCH = (1 if SUITE == "script" else
          16 if SUITE in ("hll", "cgaps", "cmdgap2") else
-         512 if SUITE == "storeorder" else 64)
+         512 if SUITE in ("storeorder", "multidb") else 64)
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
@@ -5985,8 +6021,9 @@ if SUITE == "infofix":
     stats = fields(ts, tf, "stats")
     if "aof_delayed_fsync" in persistence:
         property_fail("delayed fsync omission", "row present")
-    if "avg_ttl=" in keyspace.get("db0", ""):
-        property_fail("avg_ttl omission", keyspace.get("db0", ""))
+    ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
+    if not 0 < int(ttl_members.get("avg_ttl", "0")) <= 60000:
+        property_fail("measured avg_ttl", keyspace.get("db0", ""))
     for required in ("instantaneous_ops_per_sec", "total_net_input_bytes",
                      "total_net_output_bytes"):
         if required not in stats: property_fail("required metric", required + " absent")

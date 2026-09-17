@@ -127,7 +127,8 @@ def placeholder_and_commandstats(c):
     keyspace = info(c, "keyspace")
     check("unsupported delayed fsync row omitted", "aof_delayed_fsync" in persistence, False)
     check("db0 was emitted", "db0" in keyspace, True)
-    check("unsupported avg_ttl member omitted", "avg_ttl=" in keyspace.get("db0", ""), False)
+    ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
+    check("measured avg_ttl", int(ttl_members.get("avg_ttl", "0")), lambda value: 0 < value <= 60000)
 
     c.cmd("CONFIG", "RESETSTAT")
     for _ in range(4):
