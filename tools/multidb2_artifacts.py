@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import struct
 from pathlib import Path
 from lbstall_artifacts import Elf
 
@@ -22,10 +23,13 @@ def twin(source, output):
         if data[at] == 0x75:  # JNZ rel8 -> JMP rel8
             data[at] = 0xeb
             changed.add(at)
-        else:  # JNZ rel32 -> NOP; JMP rel32 (same end address and displacement)
+        else:  # JNZ rel32 -> JMP rel32; unreachable NOP, with the same target
             assert data[at:at + 2] == b'\x0f\x85', (hex(value), data[at:at + 6].hex())
-            data[at:at + 2] = b'\x90\xe9'
-            changed.update((at, at + 1))
+            displacement = struct.unpack_from('<i', data, at + 2)[0]
+            data[at:at + 6] = b'\xe9' + struct.pack('<i', displacement + 1) + b'\x90'
+            # Padding is after the unconditional jump, so PAD pays no extra
+            # executed NOP. Instruction and target addresses remain unchanged.
+            changed.update(i for i in range(at, at + 6) if data[i] != elf.data[i])
     assert len(data) == len(elf.data)
     assert {i for i, (a, b) in enumerate(zip(data, elf.data)) if a != b} == changed
     Path(output).write_bytes(data)
@@ -34,7 +38,7 @@ def twin(source, output):
     assert pad.sections == elf.sections and pad.symbols == elf.symbols
     return dict(kind='A: behaviour twin', control='round-1 independent key pointer/length/namespace decoder',
                 source=str(source), output=str(output), branches=len(sites), changed_bytes=len(changed),
-                unchanged='every section size, symbol address, and byte outside the annotated branch opcodes',
+                unchanged='every section size, symbol address, and byte outside the annotated branch instructions',
                 source_sha256=hashlib.sha256(elf.data).hexdigest(),
                 pad_sha256=hashlib.sha256(data).hexdigest())
 
