@@ -325,6 +325,7 @@ bool blocking_validate(Op& op, BlockingState& state, uint32_t& first_key,
     return true;
 }
 
+
 void blocking_notify_sender(Server& server, ThreadCtx& self, Ring& ring, Client* client) {
     ThreadCtx& sender = server.thread(client->ifid_thread());
     const uint32_t slot = client->wb_slot();
@@ -815,6 +816,10 @@ private:
                 work++;
                 continue;
             }
+            // No parked operation may start another owner mutation after the
+            // namespace drain. In-progress probe/register waves still finish.
+            if (phase == BlockingPhase::Parked && state.server->database_boundary_active())
+                return work;
             BlockingKey& key = state.keys[entry.key_index];
             if (blocking_probe_key(shard, state, key) != BlockingProbe::Ready) {
                 // Tri-state, not boolean: FIFO kinds stop the queue here (the front waiter owns
@@ -1244,6 +1249,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
                          BlockingPhase::RemapRequested &&
             block->active_tasks.load(std::memory_order_acquire) == 0 &&
             block->refs.load(std::memory_order_acquire) == 1) {
+            if (server.database_boundary_active()) return false;
             // Every old owner has dropped its alias. Rebuild routes on the owning IO,
             // retaining the original deadline and resolved XREAD cursors (including '$').
             multidb_stamp(server, op, block->logical_db);
@@ -1457,6 +1463,14 @@ const std::vector<uint8_t>* blocking_stream_captured_payload(
     if (!state || state->kind != BlockingKind::Xread || key_index >= state->keys.size() ||
         state->keys[key_index].wake_payload.empty()) return nullptr;
     return &state->keys[key_index].wake_payload;
+}
+
+bool blocking_namespace_quiesced(const Op& op) {
+    const auto* block = op.blocking_state();
+    if (!block || block->active_tasks.load(std::memory_order_acquire)) return false;
+    const auto phase = block->phase.load(std::memory_order_acquire);
+    return phase == BlockingPhase::Parked || phase == BlockingPhase::RemapRequested ||
+           phase == BlockingPhase::Completed || phase == BlockingPhase::Cancelled;
 }
 
 bool blocking_wants_dispatch(const Op& op) {

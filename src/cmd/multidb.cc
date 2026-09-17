@@ -7,6 +7,7 @@
 #include "../exec/op.h"
 #include "../net/resp.h"
 #include "../base/numeric.h"
+#include "blocking.h"
 
 namespace tomo {
 namespace {
@@ -26,6 +27,7 @@ bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
         if (live_) *next = *live_;
         else for (unsigned i = 0; i < next->size(); ++i) (*next)[i] = i;
         std::swap((*next)[first], (*next)[second]);
+        ++next->epoch;
         if (live_) retired_.reserve(retired_.size() + 1);
         if (journal && !journal->record_database_map(next->data())) return false;
         current_.store(next.get(), std::memory_order_seq_cst);
@@ -42,6 +44,7 @@ DatabaseMap::Map DatabaseMap::capture() const {
     for (unsigned i = 0; i < map.size(); ++i) {
         map[i] = read[i];
     }
+    map.epoch = read.epoch();
     return map;
 }
 
@@ -52,6 +55,7 @@ bool DatabaseMap::restore(const uint8_t* bytes) {
     if (identity && !live_) return true;
     try {
         auto next = std::make_unique<Map>();
+        next->epoch = live_ ? live_->epoch + 1 : 1;
         bool seen[256]{};
         for (unsigned i = 0; i < next->size(); ++i) {
             if (seen[bytes[i]]) return false;
@@ -109,10 +113,62 @@ static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
 void multidb_stamp(Server& server, Op& op, uint8_t logical) {
     const DatabaseMap::Read map(server.databases());
     stamp(server, op, logical, map);
+    op.set_database_epoch(map.epoch());
 }
 
 void multidb_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map& map) {
     stamp(server, op, logical, map);
+    op.set_database_epoch(map.epoch);
+}
+
+bool Server::database_boundary_begin(Client& client, uint32_t owner, uint64_t op_id) {
+    std::lock_guard lock(shape_transition_mu_);
+    if (database_boundary_active())
+        return flip_stage() == FlipStage::DatabaseRun &&
+               databases_.boundary_client.load() == &client && databases_.boundary_op.load() == op_id;
+    if (flip_stage() != FlipStage::Idle || lb_stage() != LbStage::Idle ||
+        snapshot_.in_progress() || loading()) return false;
+    // Reuse the Client's existing cold lifetime reference while its initiating
+    // frame is still unconsumed (including disconnect during either drain).
+    client.watch_ref();
+    databases_.boundary_client.store(&client);
+    databases_.boundary_op.store(op_id);
+    databases_.boundary_owner.store(owner);
+    for (uint32_t tid = 0; tid < nthreads(); ++tid) flip_ack_[tid].store(0);
+    flip_epoch_.fetch_add(1, std::memory_order_acq_rel);
+    flip_stage_.store(FlipStage::DatabaseIoDrain, std::memory_order_release);
+    if (Ring* ring = thread(owner).ring())
+        for (uint32_t tid = 0; tid < nthreads(); ++tid)
+            if (tid != owner) thread(tid).wake_if_parked(*ring, thread(owner).sig());
+    return false;
+}
+
+void Server::database_boundary_end(Client& client, uint64_t op_id) {
+    std::lock_guard lock(shape_transition_mu_);
+    if (!database_boundary_active() || databases_.boundary_client.load() != &client ||
+        databases_.boundary_op.load() != op_id) return;
+    databases_.boundary_client.store(nullptr);
+    client.watch_unref();
+    flip_stage_.store(FlipStage::Idle, std::memory_order_release);
+}
+
+bool multidb_dispatch_allowed(Server& server, const Client& client) {
+    return server.flip_stage() == FlipStage::DatabaseRun &&
+           server.databases().boundary_client.load() == &client &&
+           server.databases().boundary_op.load() == client.rob().dispatch_id();
+}
+
+bool multidb_io_drained(ThreadCtx& thread) {
+    for (Client* client : thread.clients()) {
+        const auto& rob = client->rob();
+        for (uint64_t id = rob.flush_id(); id != rob.dispatch_id(); ++id) {
+            const Op& op = rob.at(id);
+            if (op.state.load(std::memory_order_acquire) == OpState::Done) continue;
+            if (op.has_blocking_state() && blocking_namespace_quiesced(op)) continue;
+            return false;
+        }
+    }
+    return true;
 }
 
 void multidb_select(Server* server, Client* client, Op& op) {

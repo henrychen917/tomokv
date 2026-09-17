@@ -1869,10 +1869,59 @@ private:
         flip_publish_stage(FlipStage::RoleReady);
     }
 
+    __attribute__((noinline)) uint32_t database_control_pass() {
+        auto& map = srv_->databases();
+        const auto stage = srv_->flip_stage();
+        const bool coordinator = self_->id() == map.boundary_owner.load();
+        if (coordinator) {
+            Client* client = map.boundary_client.load();
+            const uint64_t id = map.boundary_op.load();
+            if (client && ((client->closing() && client->rob().dispatch_id() == id) ||
+                client->rob().flush_id() > id ||
+                (client->rob().dispatch_id() > id &&
+                 client->rob().at(id).state.load(std::memory_order_acquire) == OpState::Done))) {
+                srv_->database_boundary_end(*client, id);
+                flip_wake_all();
+                return 1;
+            }
+        }
+        if (stage == FlipStage::DatabaseIoDrain) {
+            // This tail follows publication of every local parse/post batch.
+            // Done proves execution; socket output need not drain. Parked blocking
+            // commands retain their deadlines and are remapped after publication.
+            bool drained = multidb_io_drained(*self_);
+            // Closing clients can already have left ThreadCtx::clients(), but
+            // remain in the IO active set until their executor references drain.
+            for (size_t i = 0; drained && i < active_.size(); ++i) {
+                const auto& rob = active_.at(i)->rob();
+                for (uint64_t id = rob.flush_id(); id != rob.dispatch_id(); ++id)
+                    if (rob.at(id).state.load(std::memory_order_acquire) != OpState::Done &&
+                        !blocking_namespace_quiesced(rob.at(id))) { drained = false; break; }
+            }
+            if (!srv_->flip_acked(self_->id(), stage) && drained)
+                srv_->flip_ack(self_->id(), stage);
+            if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage))
+                flip_publish_stage(FlipStage::DatabaseExDrain);
+        } else if (stage == FlipStage::DatabaseExDrain) {
+            if (fused_executor_ && fused_executor_->flip_quiesced())
+                srv_->flip_ack(self_->id(), stage);
+            if (coordinator) {
+                bool drained = true;
+                for (uint32_t tid = 0; tid < srv_->nthreads(); ++tid)
+                    if (srv_->live_executor(tid) && !srv_->flip_acked(tid, stage)) drained = false;
+                if (drained) flip_publish_stage(FlipStage::DatabaseRun);
+            }
+        }
+        // Keep the control transaction progressing even if all network peers sleep.
+        // Ordinary dispatch remains fenced until the initiating operation is Done.
+        return 1;
+    }
+
     template <bool kEp>
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
         if (stage == FlipStage::Idle) return 0;
+        if (stage <= FlipStage::DatabaseRun) return database_control_pass();
 
         if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage) &&
             flip_io_drained()) {
@@ -3406,7 +3455,8 @@ private:
                 if (read_local_enabled && read_local_demotion.active() &&
                     read_local_demotion.partial()) {
                     if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
-                        !(spec->flags & CmdFlags::FlipAsync)) {
+                        !(spec->flags & CmdFlags::FlipAsync) &&
+                        !multidb_dispatch_allowed(*srv_, *c)) {
                         c->set_flip_backpressure(true);
                         break;
                     }
@@ -3423,7 +3473,8 @@ private:
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
-                !(spec->flags & CmdFlags::FlipAsync)) {
+                !(spec->flags & CmdFlags::FlipAsync) &&
+                !multidb_dispatch_allowed(*srv_, *c)) {
                 // No ordinary request may create IO-local fanout or executor work after the first
                 // drain acknowledgement. Leave the frame unconsumed and unpublished: TCP framing
                 // keeps younger frames behind it without a ROB barrier, while FlipAsync commands
@@ -4562,7 +4613,8 @@ ordinary_shard_ready:
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
-            if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
+            if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+                multidb_dispatch_allowed(*srv_, *c)))
                 c->set_flip_backpressure(false);
             if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
                 conn.reset_rbuf_at_quiescence();
@@ -4878,7 +4930,8 @@ ordinary_shard_ready:
             // Success, pre-commit rollback, and synchronous validation refusal all end by publishing
             // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
             // after the FLIP and retries the still-unconsumed frame in the re-parse below.
-            if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
+            if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+                multidb_dispatch_allowed(*srv_, *c)))
                 c->set_flip_backpressure(false);
             // Under epoll the second half of this guard is vacuous and would be actively
             // harmful: recv_armed_ means "an edge is owed", not "the kernel holds a pointer into

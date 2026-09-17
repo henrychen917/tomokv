@@ -61,6 +61,9 @@ struct LbClientSignal {
 
 enum class FlipStage : uint8_t {
     Idle = 0,
+    DatabaseIoDrain,
+    DatabaseExDrain,
+    DatabaseRun,
     Planning,
     IoDrain,
     IoPrepare,
@@ -164,6 +167,12 @@ public:
     Server() = default;
     DatabaseMap& databases() { return databases_; }
     const DatabaseMap& databases() const { return databases_; }
+    bool database_boundary_begin(Client& client, uint32_t owner, uint64_t op_id);
+    void database_boundary_end(Client& client, uint64_t op_id);
+    bool database_boundary_active() const {
+        const auto stage = flip_stage();
+        return stage >= FlipStage::DatabaseIoDrain && stage <= FlipStage::DatabaseRun;
+    }
     friend struct NetcmdRegression;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;

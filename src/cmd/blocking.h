@@ -78,5 +78,6 @@ bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, Stre
 const std::vector<uint8_t>* blocking_stream_captured_payload(
     const BlockingState* state, uint32_t key_index);
 bool blocking_wants_dispatch(const Op& op);
+bool blocking_namespace_quiesced(const Op& op);
 
 }  // namespace tomo

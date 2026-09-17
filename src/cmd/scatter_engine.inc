@@ -1463,6 +1463,13 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
+    if (kind == Kind::Swapdb && origin_client) {
+        if (!multidb_validate_swap(server, op)) return ScatterPrepare::Error;
+        if (!server.database_boundary_begin(*origin_client, owner_io,
+                                            origin_client->rob().dispatch_id()))
+            return ScatterPrepare::Backpressure;
+    }
+
     if (op.cmd_name().eq_icase("move")) {
         // EXEC already stamped every child from one immutable mapping. Ordinary
         // DB-0 connections reach this cold route without arming the parser lane.

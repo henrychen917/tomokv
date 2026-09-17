@@ -16,6 +16,7 @@ class Client;
 class Op;
 class Shard;
 class AofProducer;
+class ThreadCtx;
 
 // An immutable mapping gives readers a single, non-retrying snapshot, including
 // both ends of COPY/MOVE. Publication never waits for a reader. The counter only
@@ -23,6 +24,7 @@ class AofProducer;
 class DatabaseMap {
 public:
     struct Map : std::array<uint8_t, 256> {
+        uint32_t epoch = 0;
         Map() { for (unsigned i = 0; i < size(); ++i) (*this)[i] = i; }
     };
     class Read {
@@ -33,6 +35,7 @@ public:
         }
         ~Read() { owner_.readers_.fetch_sub(1, std::memory_order_seq_cst); }
         uint8_t operator[](uint8_t db) const { return map_ ? (*map_)[db] : db; }
+        uint32_t epoch() const { return map_ ? map_->epoch : 0; }
     private:
         const DatabaseMap& owner_;
         const Map* map_;
@@ -42,6 +45,11 @@ public:
     bool restore(const uint8_t* bytes);
     Map capture() const;
     uint8_t logical(uint8_t physical) const;
+    // Cold boundary state. The existing FLIP stage is the dispatch fence; these
+    // fields are read only while that already-existing fence is taken.
+    std::atomic<Client*> boundary_client{nullptr};
+    std::atomic<uint64_t> boundary_op{0};
+    std::atomic<uint32_t> boundary_owner{0};
     bool admit_swap(const void* token) {
         const void* empty = nullptr;
         return swapping_.compare_exchange_strong(empty, token, std::memory_order_acq_rel);
@@ -75,6 +83,8 @@ struct DatabaseKey {
 
 void multidb_stamp(Server& server, Op& op, uint8_t logical);
 void multidb_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map& map);
+bool multidb_dispatch_allowed(Server& server, const Client& client);
+bool multidb_io_drained(ThreadCtx& thread);
 void multidb_select(Server* server, Client* client, Op& op);
 bool multidb_parse_index(Slice arg, uint32_t count, uint8_t& db);
 void multidb_flush(Shard& shard, uint8_t physical);

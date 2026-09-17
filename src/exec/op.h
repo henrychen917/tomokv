@@ -273,6 +273,12 @@ public:
     void set_arg_namespace(uint32_t i, uint8_t ns) {
         (argv_heap_ ? argv_heap_[i] : argv_inline_[i]).ns = ns;
     }
+    // Command names are never keys. Their former namespace padding carries the
+    // map generation, without growing Op or adding an unarmed reset/store.
+    uint32_t database_epoch() const { return arg(0).ns; }
+    void set_database_epoch(uint32_t epoch) {
+        (argv_heap_ ? argv_heap_[0] : argv_inline_[0]).ns = epoch;
+    }
     void replace_arg(uint32_t i, Slice value) {
         (argv_heap_ ? argv_heap_[i] : argv_inline_[i]) = value;
     }

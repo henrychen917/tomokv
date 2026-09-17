@@ -1631,6 +1631,10 @@ private:
 
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
+        if (stage == FlipStage::DatabaseExDrain && flip_quiesced()) {
+            srv_->flip_ack(self_->id(), stage);
+            return 1;
+        }
         if (stage == FlipStage::IoPrepare &&
             srv_->flip_candidate_target(self_->id()) == Role::Ifid &&
             !srv_->flip_acked(self_->id(), stage)) {
