@@ -336,7 +336,7 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.overlap), true});
     g_config.push_back({"read-local", ConfigKind::Unsigned,
                         std::to_string(cfg.read_local), true});
-    g_config.push_back({"reorder", ConfigKind::Unsigned,
+    g_config.push_back({"reorder", ConfigKind::Signed,
                         std::to_string(cfg.reorder), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
@@ -2038,14 +2038,14 @@ void cmd_info(Shard&, Op& op) {
         // read_local is the effective boot state. Actual loop entry and successful completions
         // are separate observations: a configured but unreachable lane must be visible in INFO.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\noverlap_enabled:%u\r\nreorder:%u\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
+                      "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\noverlap_enabled:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
                       "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->nshards() : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
                 g_server && g_server->cfg().overlap_enabled() ? 1u : 0u,
-                g_server ? g_server->cfg().reorder : 0u,
+                g_server ? g_server->cfg().reorder : 0,
                 reorder_available() ? 0u : 1u,
                 g_server && g_server->read_local_enabled() ? 1u : 0u,
                 g_server && g_server->atomic_enabled() ? 1u : 0u,

@@ -382,9 +382,9 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Boot-latched continuous two-queue scheduler. Zero retains the unchanged FIFO
-    // bodies and allocates no scheduler state; one enables R7 in both thread modes.
-    uint32_t reorder = 0;
+    // Fused shadow priority: 0 = allocation-free FIFO, -1 = queue-derived AUTO,
+    // 1 = forced-on measurement arm. Split boot resolves every value to zero.
+    int32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
     // tracking-table-max-keys, default 1000000, 0 = unlimited). The bound is applied per io
@@ -433,7 +433,7 @@ bool reorder_available();
 
 // Cold boot decision, shared by the executable and serverless fixtures. Split IO
 // already flushes independently; the measured wall loss scopes this policy to 1s.
-inline uint32_t reorder_for_mode(uint32_t requested, ThreadMode mode) {
+inline int32_t reorder_for_mode(int32_t requested, ThreadMode mode) {
     return mode == ThreadMode::Fused ? requested : 0;
 }
 
@@ -833,10 +833,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--reorder")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.reorder) || cfg.reorder > 1) {
-                std::fprintf(stderr, "--reorder wants 0 or 1\n");
+            int64_t value;
+            if (!cfg_parse_i64(next(nullptr), value) || value < -1 || value > 1) {
+                std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
                 return kConfigError;
             }
+            cfg.reorder = static_cast<int32_t>(value);
         }
         else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
@@ -1068,7 +1070,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
-                        "    --reorder 0|1 (default 0)   continuous short/long executor queues; 0 preserves FIFO\n"
+                        "    --reorder -1|0|1 (default 0) fused AUTO/off/on shadow priority; 2s stays FIFO\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1137,8 +1139,8 @@ inline int validate_config(const Config& cfg) {
         std::fprintf(stderr, "--shard-home must contain shard:thread pairs\n");
         return kConfigError;
     }
-    if (cfg.reorder > 1) {
-        std::fprintf(stderr, "--reorder wants 0 or 1\n");
+    if (cfg.reorder < -1 || cfg.reorder > 1) {
+        std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
         return kConfigError;
     }
     if (cfg.overlap > 1) {

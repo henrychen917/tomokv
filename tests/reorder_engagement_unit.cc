@@ -32,7 +32,7 @@ struct CoreConcurrencyTest {
         ExLoopT<ReadLocal> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
-        Fixture(ThreadMode mode, uint32_t overlap, uint32_t reorder) : owner(mode == ThreadMode::Fused ? 0 : 6) {
+        Fixture(ThreadMode mode, uint32_t overlap, int32_t reorder) : owner(mode == ThreadMode::Fused ? 0 : 6) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "read test affinity");
@@ -147,9 +147,9 @@ struct CoreConcurrencyTest {
         op.reply.append("+OK\r\n", 5);
     }
     template <bool ReadLocal>
-    static void run(ThreadMode mode, uint32_t overlap, uint32_t requested, bool expect_available) {
+    static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
-        const uint32_t reorder = reorder_available() ? reorder_for_mode(requested, mode) : 0;
+        const int32_t reorder = reorder_available() ? reorder_for_mode(requested, mode) : 0;
         Fixture<ReadLocal> f(mode, overlap, reorder);
         CommandSpec short_op = *command_lookup(Slice("GET"));
         CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
@@ -205,7 +205,7 @@ struct CoreConcurrencyTest {
             require(op.state.load() == OpState::Done, "all ROB slots completed");
             require(task.client->rob().drain([](Op&) {}) == 1, "ready prefix retires");
         }
-        std::printf("PASS R7 production drain %s read-local=%u overlap=%u requested=%u effective=%u: "
+        std::printf("PASS R7 production drain %s read-local=%u overlap=%u requested=%d effective=%d: "
                     "64 handlers, %s, empty carry\n",
                     mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, overlap, requested, reorder,
                     reorder ? (r7::shadow_available() ? "shadow priority" : "R7 4:1") : "FIFO");
@@ -282,6 +282,63 @@ struct CoreConcurrencyTest {
             require(c->rob().drain([](Op&) {}) == c->rob().dispatch_id(), "RESP prefix did not retire in order");
         std::printf("PASS production parser + three pipes %s read-local=%u overlap=%u reorder=%u shadow=%u\n",
                     mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, overlap, requested, shadow);
+    }
+
+    static void automatic_inbox() {
+        Fixture<false> f(ThreadMode::Fused, 0, -1);
+        // The all-policy PAD deliberately resolves the request before creating state.
+        if (!reorder_available()) {
+            require(f.server.cfg().reorder == 0 && !f.server.mode_schedule_stats(),
+                    "PAD allocated AUTO state");
+            return;
+        }
+        auto& stats = f.server.mode_schedule_stats(f.owner);
+        r7::PolicyScope scope(stats);
+        CommandSpec short_op = *command_lookup(Slice("GET"));
+        CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
+        short_op.handler = short_op.handler_notify = record;
+        long_op.handler = long_op.handler_notify = record;
+        std::array<Client, 4> clients{Client(-1), Client(-1), Client(-1), Client(-1)};
+        for (uint32_t i = 0; i < clients.size(); ++i) {
+            f.client(clients[i], i + 1);
+            Task task = f.prepare(clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
+            auto& op = clients[i].rob().at(task.op_id);
+            op.spec = i ? &short_op : &long_op;
+            op.hash = i;
+            require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO queue setup");
+        }
+        const auto sample = r7::InboxProbe::sample(*f.loop.self_);
+        require(sample.depth == 4 && sample.shorts == 3 && sample.longs == 1 && sample.behind == 3,
+                "AUTO owner probe did not observe the actual queued HOL window");
+        require(!r7::priority_enabled(stats, -1), "AUTO engaged without a sampled window");
+        for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) {
+            require(f.loop.self_->sample_depth(1000 + 100 * i), "existing signal tick missing");
+            scope.policy.tick(*f.loop.self_, stats);
+            require(!f.loop.self_->sample_depth(1050 + 100 * i), "signal sampled per pass instead of per tick");
+        }
+        require(r7::priority_enabled(stats, -1) && (stats.reorder_auto.load() & 1),
+                "production AUTO did not engage");
+        observed.clear();
+        require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>{1,2,3,0},
+                "AUTO engagement did not select the actual shadow scheduler");
+        scope.policy.tick(*f.loop.self_, stats);
+        require(!r7::priority_enabled(stats, -1) && !(stats.reorder_auto.load() & 1),
+                "empty owner inbox did not disengage AUTO");
+        for (auto& c : clients) require(c.rob().drain([](Op&) {}) == 1, "AUTO reply retirement");
+        // Re-arm the same real mixed queue while the policy is disarmed. Before another
+        // sampled window the wrapper MUST delegate to the unchanged FIFO drain.
+        for (uint32_t i = 0; i < clients.size(); ++i) {
+            Task task = f.prepare(clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
+            auto& op = clients[i].rob().at(task.op_id);
+            op.spec = i ? &short_op : &long_op;
+            op.hash = i;
+            require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO disarmed queue");
+        }
+        observed.clear();
+        require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>{0,1,2,3},
+                "AUTO disarmed path retained reordering");
+        for (auto& c : clients) require(c.rob().drain([](Op&) {}) == 1, "AUTO FIFO retirement");
+        std::puts("PASS production AUTO probe, existing tick, priority engagement and FIFO disengagement");
     }
 
     static void shadow_foreign_passes() {
@@ -399,7 +456,7 @@ struct CoreConcurrencyTest {
         require(a.rob().drain([](Op&) {}) == 3 && b.rob().drain([](Op&) {}) == 1,
                 "late read did not retire in RESP order");
         std::printf("PASS production read-local demotion %s: older blocker stamp, late owner order, shadow=%u\n",
-                    mode == ThreadMode::Fused ? "1s" : "2s", r7::shadow_available());
+                    mode == ThreadMode::Fused ? "1s" : "2s", shadow);
     }
 };
 } // namespace tomo
@@ -423,6 +480,9 @@ int main(int argc, char** argv) {
             for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<true>(mode, overlap, reorder);
     for (uint32_t overlap : {0u, 1u})
         for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<false>(tomo::ThreadMode::Split, overlap, reorder);
+    T::run<true>(tomo::ThreadMode::Split, 0, -1, std::string(argv[1]) == "on");
+    T::run<false>(tomo::ThreadMode::Split, 0, -1, std::string(argv[1]) == "on");
+    T::automatic_inbox();
     T::shadow_foreign_passes();
     T::shadow_demotions(tomo::ThreadMode::Fused);
     T::shadow_demotions(tomo::ThreadMode::Split);

@@ -102,7 +102,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     const uint32_t nthreads = srv.nthreads();
     if (cfg.thread_mode != ThreadMode::Split || !srv.read_local_enabled()) std::abort();
     std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                " thread-mode=2s, overlap=%u, reorder=%u, read-local=1, %s, alloc=%s\n",
+                " thread-mode=2s, overlap=%u, reorder=%d, read-local=1, %s, alloc=%s\n",
                 nthreads, srv.placement().ifid_threads().size(),
                 srv.placement().ex_threads().size(), cfg.shards, cfg.overlap, cfg.reorder,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());

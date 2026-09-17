@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include "src/core/reorder.h"
+#include "src/core/config.h"
 
 namespace tomo { void multi_session_destroy(MultiSession* p) { if (p) std::abort(); } }
 namespace {
@@ -193,6 +194,37 @@ void all_barriers() {
     std::puts("PASS all thirteen special barriers and inherited atomic hazard classification");
 }
 
+void automatic_policy() {
+    AutoPolicy policy;
+    require(!policy.engaged(), "AUTO must begin disarmed");
+    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
+        require(!policy.observe({64,64,0,0}), "uniform shorts engaged AUTO");
+    require(policy.depth_threshold() == 64, "AUTO depth threshold was not learned");
+    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) policy.observe({96,48,16,32});
+    require(policy.engaged() && policy.depth_threshold() == 96,
+            "queued short heads behind Longs did not engage AUTO");
+    require(!policy.observe({48,24,8,16}), "below-window depth failed to disengage");
+    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) policy.observe({96,48,16,32});
+    require(policy.engaged(), "AUTO did not re-engage on fresh evidence");
+    require(!policy.observe({96,48,16,0}), "missing current HOL witness did not disengage");
+    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
+        policy.observe({96,16,48,16});
+    require(!policy.engaged(), "class threshold failed when Longs outnumber displaced heads");
+    require(!policy.observe({}), "empty owner queue engaged AUTO");
+    ModeScheduleStats stats;
+    {
+        PolicyScope scope(stats);
+        require(!priority_enabled(stats, -1) && priority_enabled(stats, 1) &&
+                    !priority_enabled(stats, 0), "AUTO/off/on resolution");
+    }
+    require(!stats.reorder_policy, "AUTO state survived its owner tenure");
+    for (int32_t value : {-1,0,1}) {
+        require(reorder_for_mode(value, ThreadMode::Split) == 0, "2s escaped FIFO scope");
+        require(reorder_for_mode(value, ThreadMode::Fused) == value, "1s lost requested policy");
+    }
+    std::puts("PASS derived AUTO thresholds, engage/disengage, role lifetime, 2s no-op");
+}
+
 template <size_t B>
 void bounded_service() {
     constexpr uint32_t rounds = 48;
@@ -246,6 +278,7 @@ int main() {
     queued_completion<kGenthreadExBatchOps>();
     queued_completion<kGenthreadPipelineExBatchOps>();
     all_barriers();
+    automatic_policy();
     bounded_service<kGenthreadExBatchOps>();
     bounded_service<kGenthreadPipelineExBatchOps>();
 }

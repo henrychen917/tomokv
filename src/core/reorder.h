@@ -127,6 +127,98 @@ inline Task shadow_demoted_task(Client* client, uint64_t id) {
     return task;
 }
 
+struct QueueSample {
+    uint32_t depth = 0, shorts = 0, longs = 0, behind = 0;
+};
+
+// The owner is the sole consumer while this runs. The existing acquire-tail
+// observer pins queued handles without consuming them or reading a running Op.
+// A bounded tail sample visits the same producer order as drain_tasks, backwards.
+// Shorts counted here are live ROB heads: their own pipe cannot hide a predecessor.
+struct InboxProbe {
+    static QueueSample sample(ThreadCtx& owner) {
+        QueueSample result;
+        uint32_t budget = 2 * kGenthreadExBatchOps;
+        uint32_t later_heads = 0;
+        for (uint32_t p = owner.nchan_; p-- > 0;) {
+            result.depth += owner.task_in_->depth(p);
+            if (!budget) continue;
+            owner.task_in_->newest_nonzero(p, [&](const Task& task) {
+                uint8_t length;
+                if (!candidate(task, length)) later_heads = 0; // hard barrier
+                else if (length == static_cast<uint8_t>(CommandLengthClass::Long)) {
+                    ++result.longs;
+                    result.behind += later_heads;
+                    later_heads = 0; // count each short once, not once per Long
+                } else {
+                    ++result.shorts;
+                    later_heads += task.op_id == task.client->rob().flush_id();
+                }
+                return --budget == 0 ? 1u : 0u;
+            });
+        }
+        return result;
+    }
+};
+
+// One window of the existing signal beat, with one sample per gather slot.
+// Thresholds are observations, not a core count, rate, time budget or tuned mix:
+// (1) current depth must reach the window's mean depth; (2) displaced short heads
+// must outnumber Longs over the window; (3) the current sample must still witness
+// a short head behind a Long. A missing witness disengages on this very tick.
+class AutoPolicy {
+    static constexpr uint32_t Window = kGenthreadExBatchOps;
+    QueueSample window_[Window]{};
+    uint64_t depth_ = 0, longs_ = 0, behind_ = 0;
+    uint32_t next_ = 0, samples_ = 0;
+    bool engaged_ = false;
+public:
+    bool engaged() const { return engaged_; }
+    uint32_t depth_threshold() const {
+        return samples_ ? static_cast<uint32_t>((depth_ + samples_ - 1) / samples_) : 0;
+    }
+    bool observe(QueueSample sample) {
+        const auto old = window_[next_];
+        depth_ = depth_ - old.depth + sample.depth;
+        longs_ = longs_ - old.longs + sample.longs;
+        behind_ = behind_ - old.behind + sample.behind;
+        window_[next_] = sample;
+        next_ = (next_ + 1) % Window;
+        samples_ = std::min(samples_ + 1, Window);
+        engaged_ = samples_ == Window && sample.behind &&
+                   sample.depth >= depth_threshold() && behind_ > longs_;
+        return engaged_;
+    }
+    void tick(ThreadCtx& owner, ModeScheduleStats& stats) {
+        observe(InboxProbe::sample(owner));
+        const uint64_t ticks = (stats.reorder_auto.load(std::memory_order_relaxed) >> 1) + 1;
+        stats.reorder_auto.store((ticks << 1) | engaged_, std::memory_order_relaxed);
+    }
+};
+
+// Stack lifetime is one armed fused IO tenure. No pointers, tasks or per-shard
+// state survive a role boundary. INFO reads only the separate atomic diagnostic.
+class PolicyScope {
+    ModeScheduleStats& stats_;
+public:
+    AutoPolicy policy;
+    explicit PolicyScope(ModeScheduleStats& stats) : stats_(stats) {
+        if (stats_.reorder_policy) std::abort();
+        stats_.reorder_policy = &policy;
+    }
+    ~PolicyScope() {
+        stats_.reorder_policy = nullptr;
+        stats_.reorder_auto.store(stats_.reorder_auto.load(std::memory_order_relaxed) & ~1ull,
+                                  std::memory_order_relaxed);
+    }
+};
+
+inline bool priority_enabled(const ModeScheduleStats& stats, int32_t requested) {
+    if (requested != -1) return requested != 0;
+    const auto* policy = static_cast<const AutoPolicy*>(stats.reorder_policy);
+    return policy && policy->engaged();
+}
+
 // These queues live for ONE inbox drain, across its gathered batches. finish() is mandatory
 // before local-read service, snapshot/control work, LB acknowledgement, or returning to IO.
 // Thus no queued Task survives a shard/role ownership edge, and no new migration sidecar exists.

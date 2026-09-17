@@ -24,6 +24,11 @@ struct alignas(64) ModeScheduleStats {
     std::atomic<uint64_t> reorder_permuted_runs{0};
     std::atomic<uint32_t> reorder_max_batch{0};
     std::atomic<OverlapSchedule> overlap_schedule{OverlapSchedule::None};
+    // R7-only role-local scratch; the pointer is never read by INFO or a peer.
+    // Uses the existing 16-byte tail padding, leaving every old offset intact.
+    void* reorder_policy = nullptr;
+    // Atomic diagnostic: samples << 1 | engaged. Only the owner writes it.
+    std::atomic<uint64_t> reorder_auto{0};
 
     // Each element has one physical-thread writer for its entire lifetime, including FLIP.
     // INFO reads atomically; no locked RMW and no changes to the shared ThreadCtx cache lines.
