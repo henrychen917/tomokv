@@ -24,6 +24,7 @@
 #include <vector>
 #include "server.h"
 #include "iopipe_pipeline.h"
+#include "overlap_reply.h"
 #include "signal.h"
 #include "ex_loop.h"
 #include "genthread_pipeline.h"
@@ -4782,8 +4783,16 @@ ordinary_shard_ready:
             work += ifid_rx<HasUnix, HasTls, kEp>(ifid, cursor);
             work += collect_retire_work<HasUnix, kEp>(unmasked);
             work += ifid_parse_hash<HasTls, kEp, SplitLocal>(ifid);
+            const uint32_t owners = ntouched_;
+            const uint64_t wakes_before = self_->sig().wakes_sent;
             work += ifid_post(ifid);
             work += wb_gather(wb);
+            // O1 already published the next batch. Only an undelivered wake offers O7 work
+            // here; busy-owner deep passes retain their combined retire/stage/pump order.
+            if (self_->sig().wakes_sent != wakes_before)
+                work += overlap_reply_before_wb<kEp>(
+                    owners, wb.count, wakes_before, self_->sig().wakes_sent, ring_, submitted,
+                    srv_->mode_schedule_stats(self_->id()), [] { return 0u; });
             work += wb_serve_natural<HasTls, kEp, SplitLocal>(wb, submitted);
         } else {
             io_pipe_schedule([&]<IoPipeStage Stage>() {
@@ -4795,8 +4804,13 @@ ordinary_shard_ready:
                     wb_prefetch(wb);
                 else if constexpr (Stage == IoPipeStage::IfidParseHash)
                     work += ifid_parse_hash<HasTls, kEp, SplitLocal>(ifid);
-                else if constexpr (Stage == IoPipeStage::WbRetirePrepare)
+                else if constexpr (Stage == IoPipeStage::WbRetirePrepare) {
+                    work += overlap_reply_before_wb<kEp>(
+                        ntouched_, wb.count, self_->sig().wakes_sent, self_->sig().wakes_sent,
+                        ring_, submitted, srv_->mode_schedule_stats(self_->id()),
+                        [&] { return flush_ifid_posts(); });
                     work += wb_retire_prepare<HasTls, kEp, SplitLocal>(wb);
+                }
                 else if constexpr (Stage == IoPipeStage::IfidPost)
                     work += ifid_post(ifid);
                 else if constexpr (Stage == IoPipeStage::WbSubmitReclaim)

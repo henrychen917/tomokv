@@ -181,11 +181,22 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
-# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
-# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
-# offline target patches only the noipa policy predicate; it never executes the server.
-build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+# Retain the mainline L4 allocation control under an explicit name. O7's PAD must leave
+# prebuild enabled: its PRE is current mainline, including L4, O1, O6 and the LB fixes.
+build/tomokv-l4-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+
+# Kind A: mainline reply scheduling with O7's exact ELF text size/layout.
+build/tomokv-pad: $(BIN) tools/overlap_reply_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/overlap_reply_artifacts.py $< $@ --receipt $@.json
+
+build/overlap-reply-unit: tests/overlap_reply_unit.cc src/core/overlap_reply.h src/core/iopipe_pipeline.h src/core/orthog.h Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+
+overlap-reply-unit: build/overlap-reply-unit
+	./build/overlap-reply-unit
+.PHONY: overlap-reply-unit
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
