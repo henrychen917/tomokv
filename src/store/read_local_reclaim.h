@@ -7,7 +7,6 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
-#include "read_local_settax.h"
 #include "resize_retirement.h"
 
 namespace tomo {
@@ -37,33 +36,13 @@ struct ReadLocalRetireSink {
     // reserved for synchronous, serverless test sinks; real owners always bind both.
     bool (*available)(void* context) = nullptr;
     void (*defer_resize)(void* context, ResizeRetirement* record, uint64_t* table) = nullptr;
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-    ReadLocalSetTaxStats* settax_stats = nullptr;
-#endif
 
     void retire(void* owner, void* payload, size_t auxiliary, ReclaimFn reclaim) const {
         defer(context, owner, payload, auxiliary, reclaim);
     }
-
-    void bind_settax_stats(ReadLocalSetTaxStats* stats) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-        settax_stats = stats;
-#else
-        (void)stats;
-#endif
-    }
-    ReadLocalSetTaxStats* diagnostics() const {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-        return settax_stats;
-#else
-        return nullptr;
-#endif
-    }
 };
 
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT != 3
 static_assert(sizeof(ReadLocalRetireSink) == 5 * sizeof(void*),
               "retire sink plus cold capacity/resize hooks; no FlatStore/ThreadCtx layout change");
-#endif
 
 }  // namespace tomo

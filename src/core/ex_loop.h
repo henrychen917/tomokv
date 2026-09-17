@@ -18,12 +18,10 @@
 #include <ctime>
 #include <deque>
 #include <type_traits>
-#include <unistd.h>
 #include "server.h"
 #include "signal.h"
 #include "genthread_pipeline.h"
 #include "read_local.h"
-#include "reorder.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -72,28 +70,6 @@ static_assert(kReadLocalDrainChunkOps == kExecBatch);
 static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
 static_assert(kReadLocalMaxChunksBetweenOwnerBatches > 0);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
-
-// O9 separates the completion/handoff quantum (the existing 32 tasks) from bucket lookahead.
-// Only Task handles are gathered; the horizon never captures a slot, object, or read result.
-// Charge a Task and two metadata lines against L1d, and the eventual Op plus two possible table
-// lines against L2. A fused thread shares these budgets with IFID and WB. This is a capacity
-// model, not a claim that a command's variable-size values fit or that a hint must stay resident.
-// Keep the existing 128-handle upper bound, including reorder's byte indices. Unknown cache
-// geometry declines the new schedule rather than guessing a machine-specific cache size.
-inline constexpr uint8_t overlap_prefetch_horizon(long l1d, long l2, long line,
-                                                 bool fused) {
-    if (l1d <= 0 || l2 <= 0 || line <= 0 || line > l1d || line > l2) return 0;
-    const uint64_t stages = fused ? 3 : 1;
-    const uint64_t metadata = sizeof(Task) + 2 * static_cast<uint64_t>(line);
-    const uint64_t working_set = sizeof(Task) + sizeof(Op) +
-                                 2 * static_cast<uint64_t>(line);
-    const uint64_t capacity = std::min<uint64_t>(kGenthreadPipelineExBatchOps,
-        std::min(static_cast<uint64_t>(l1d) / stages / metadata,
-                 static_cast<uint64_t>(l2) / stages / working_set));
-    return static_cast<uint8_t>(capacity / kExecBatch * kExecBatch);
-}
-static_assert(kGenthreadPipelineExBatchOps <= UINT8_MAX);
-static_assert(kGenthreadPipelineExBatchOps % kExecBatch == 0);
 
 // Constructed only for an armed declared-key-precise write whose owner has since enabled eviction.
 // Keeping the existing maxmemory admission active but forcing NoEviction makes the IO-side promise
@@ -201,17 +177,12 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
-        reorder_enabled_ = srv->cfg().reorder != 0;
-        pipeline_batches_ = Fused && srv->thread_mode() == ThreadMode::Fused &&
-                            srv->cfg().overlap != 0;
-        if (srv->cfg().overlap != 0)
-            prefetch_horizon_ = overlap_prefetch_horizon(
-                ::sysconf(_SC_LEVEL1_DCACHE_SIZE), ::sysconf(_SC_LEVEL2_CACHE_SIZE),
-                ::sysconf(_SC_LEVEL1_DCACHE_LINESIZE),
-                srv->thread_mode() == ThreadMode::Fused);
-        // Fused overlap uses fixed producer lanes; synchronous local-read demotion resolves
-        // every reservation before the producer resumes. Split readers use ordinary inboxes.
-        iofused_ = pipeline_batches_;
+        // O1's outer-loop floor: both fused knob values use the baseline
+        // executor geometry and inboxes; selecting only its loop without these latches would
+        // still leave a different producer transport and retirement cadence behind. O6's
+        // bucket prefetch below uses placement and cfg.overlap independently of these outer latches.
+        pipeline_batches_ = false;
+        iofused_ = false;
         if constexpr (Fused) {
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
@@ -717,14 +688,6 @@ public:
     uint32_t split_read_local_pass();
 
     void run() {
-        // Boot/role-tenure dispatch keeps horizon scratch and its branches out of overlap 0.
-        // RL2S's fused-capable owner uses this same split arm; Fused alone is not the mode.
-        if (prefetch_horizon_ > kExecBatch) run_owner<true>();
-        else run_owner<false>();
-    }
-
-    template <bool TwoTier>
-    void run_owner() {
         if constexpr (Fused) {
             // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
             // was drained before role conversion; owner commands use no local-read captures.
@@ -783,10 +746,8 @@ public:
                         did += service_atomic_deferred();
                         did += service_xshard_retries();
                         if (xshard_retries_.empty()) did += service_ordered_deferred();
-                        if (xshard_retries_.empty() && ordered_deferred_.empty()) {
-                            if constexpr (TwoTier) did += drain_overlap_tasks<false>(true);
-                            else did += drain_tasks(true);
-                        }
+                        if (xshard_retries_.empty() && ordered_deferred_.empty())
+                            did += drain_tasks(true);
                         flush_xshard_commits();
                         did += aof_flush_pass();
                         did += drain_notify_keyless(sig);
@@ -805,12 +766,9 @@ public:
                         did += service_atomic_deferred();
                         did += service_xshard_retries();
                         if (xshard_retries_.empty()) did += service_ordered_deferred();
-                        if (xshard_retries_.empty() && ordered_deferred_.empty()) {
-                            if (snapshot_owner_state_ != SnapshotOwnerState::None)
-                                did += drain_tasks_snapshot();
-                            else if constexpr (TwoTier) did += drain_overlap_tasks<false>();
-                            else did += drain_tasks();
-                        }
+                        if (xshard_retries_.empty() && ordered_deferred_.empty())
+                            did += snapshot_owner_state_ == SnapshotOwnerState::None
+                                       ? drain_tasks() : drain_tasks_snapshot();
                     }
                     flush_xshard_commits();
                     if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
@@ -868,9 +826,7 @@ public:
             // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
             // not be the only thing that can find queued work, or one lost bit wedges a connection
             // forever. Runs only when this thread has already concluded it has nothing to do.
-            if (sweep<kGenthreadExBatchOps, true, false, false, TwoTier>()) {
-                ring_.submit_and_reap(); continue;
-            }
+            if (sweep()) { ring_.submit_and_reap(); continue; }
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
@@ -886,7 +842,6 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
-    inline static void (*test_before_prefetch_)(const Task*, uint32_t) = nullptr;
 #endif
 
     bool read_local_enabled() const {
@@ -1001,41 +956,6 @@ private:
     }
 
     static bool read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
-        const Enc encoding = object->encoding();
-        if constexpr (kReadLocalSetTaxAtomicRaw) {
-            if (encoding == Enc::Raw) {
-                [[maybe_unused]] uint32_t sequence = 0;
-                if constexpr (kReadLocalSetTaxVariant ==
-                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                    sequence = object->raw_sequence_acquire();
-                }
-                // Selector 3 may copy after observing odd: both the bounded length and fixed cells
-                // are atomic, and both old/new lengths fit this allocation class. Combining odd
-                // with the final mismatch therefore leaves the stable GET path one branch.
-                const uint32_t length = kvobj_read_local_raw_length(object);
-                auto sink = op.sink();
-                char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
-                char* payload = frame;
-                *payload++ = '$';
-                payload += u64_to_dec(payload, length);
-                *payload++ = '\r';
-                *payload++ = '\n';
-                kvobj_read_local_copy_raw(object, stable_flags, length, payload);
-                payload += length;
-                *payload++ = '\r';
-                *payload++ = '\n';
-                if constexpr (kReadLocalSetTaxVariant ==
-                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                    // Keep every payload load before the confirming sequence load. Saturating the
-                    // writer sequence makes equality an ABA-free validation even across preemption.
-                    std::atomic_thread_fence(std::memory_order_acquire);
-                    const uint32_t confirmed = object->raw_sequence_relaxed();
-                    if (((confirmed ^ sequence) | (sequence & 1u)) != 0) return false;
-                }
-                sink.advance(static_cast<size_t>(payload - frame));
-                return true;
-            }
-        }
         reply_bulk(op.sink(), object->read_local_str_value(stable_flags));
         return true;
     }
@@ -1321,9 +1241,6 @@ private:
                         reply_bulk(op.sink(), Slice(text, length));
                     } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
                         if (!read_local_reply_string(op, object, flags)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                            self_->read_local_stats().settax.object_sequence_retries++;
-#endif
                             transient = ReadLocalFallbackReason::SeqChurn;
                             retry = true;
                             break;
@@ -1423,9 +1340,6 @@ private:
                 reply_bulk(op.sink(), Slice(text, length));
             } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
                 if (!read_local_reply_string(op, object, flags)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                    self_->read_local_stats().settax.object_sequence_retries++;
-#endif
                     read_local_clear_reply(op);
                     continue;
                 }
@@ -1853,8 +1767,7 @@ private:
     // Mask-independent: the state backstop behind the notify hint, run only when this thread has
     // already concluded it has nothing to do.
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              bool TwoTier = IofusedPrivateQueue>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t sweep() {
         Server::ClientWorkScope client_work(*srv_, self_->id());
         [[maybe_unused]] bool owner_work_remains = false;
@@ -1873,8 +1786,6 @@ private:
                         if constexpr (InterleaveLocalReads)
                             n += drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
                                 true, owner_work_remains);
-                        else if constexpr (TwoTier)
-                            n += drain_overlap_tasks<IofusedPrivateQueue>(true);
                         else
                             n += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                     } else {
@@ -2026,8 +1937,6 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
-        if constexpr (IofusedPrivateQueue)
-            return drain_overlap_tasks<IofusedPrivateQueue>(unmasked);
         Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
@@ -2045,33 +1954,10 @@ private:
         return n;
     }
 
-    template <bool IofusedPrivateQueue>
-    uint32_t drain_overlap_tasks(bool unmasked = false) {
-        // Gather only work already available: a short prefix executes before this drain returns,
-        // with no wait for a full horizon and no residual batch across a rotation/QSBR boundary.
-        // Separate scratch/instantiation keeps the ordinary 32-task drain's frame and loop intact.
-        constexpr uint32_t Capacity = kGenthreadPipelineExBatchOps;
-        Task batch[Capacity];
-        uint32_t held = 0;
-        auto take = [&](const Task& t) {
-            batch[held++] = t;
-            if (held == Capacity) {
-                exec_overlap_batch<IofusedPrivateQueue>(batch, held);
-                held = 0;
-            }
-        };
-        const uint32_t n = unmasked
-            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
-            : self_->drain_tasks<IofusedPrivateQueue>(take);
-        if (held) exec_overlap_batch<IofusedPrivateQueue>(batch, held);
-        self_->sig().ops += n;
-        return n;
-    }
-
-    // Identical ready-mask drain and handle array as the iofused coarse path. Only the first
-    // horizon gets the caller's synchronous WB filler; subsequent horizons use owner execution
-    // as the prefetch gap. ThreadCtx retains the same pop/retire sequence, with no lane list or
-    // delayed-retirement context.
+    // Identical ready-mask drain and stack batch as the iofused coarse path.  Only the first batch
+    // is split at its existing load-to-use seam; the caller's WB work runs synchronously there and
+    // every later batch remains an ordinary prefetch+execute unit. O6 only preserves the bucket
+    // hints in that whole-batch walk; it adds no execution split or retained task state.
     template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
     uint32_t drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
         Task batch[BatchOps];
@@ -2079,19 +1965,13 @@ private:
         auto execute_batch = [&] {
             if (!held) return;
             if (!filler_used && xshard_retries_.empty()) {
-                if (__builtin_expect(reorder_enabled_, false))
-                    srv_->mode_schedule_stats(self_->id()).note_reorder(
-                        held, ex_schedule_batch(batch, held));
-                if (prefetch_horizon_ >= kExecBatch) {
-                    exec_batch_two_tier<IofusedPrivateQueue>(batch, held, &filler);
-                } else {
-                    prefetch_exec_batch(batch, held);
-                    filler();
-                    exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
-                }
+                if (overlap_prefetch_enabled(held)) prefetch_overlap_batch(batch, held);
+                else                               prefetch_exec_batch(batch, held);
+                filler();
                 filler_used = true;
+                exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
             } else {
-                exec_overlap_batch<IofusedPrivateQueue>(batch, held);
+                exec_batch<IofusedPrivateQueue>(batch, held);
             }
             held = 0;
         };
@@ -2458,9 +2338,6 @@ private:
     // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
     // round trips overlap instead of each op stalling on its own miss in turn.
     void prefetch_exec_batch(const Task* batch, uint32_t n) {
-#ifdef TOMO_CORE_CONCURRENCY_TEST
-        if (test_before_prefetch_) test_before_prefetch_(batch, n);
-#endif
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -2475,47 +2352,40 @@ private:
         }
     }
 
-    // Schedule only at hot-batch boundaries. Each handle gets the existing owner-checked bucket
-    // hint exactly once, while the unchanged execution loop consumes at most one handoff quantum.
-    // No Op cursor, readiness bit, per-op counter, extra handle copy, or stored FlatStore pointer
-    // is introduced. Rehash/eviction/atomic cleanup may invalidate an earlier hint; execution
-    // resolves everything again, as it did after the old whole-batch prefetch.
-    //
-    // Reorder has already run on the gathered handles. The filler runs once, after the first
-    // horizon's hints and before ANY Done publication, preserving its captured AOF/WB gate.
-    // After a retry, the current hot batch's tail is already durable in ordered_deferred_; append
-    // the untouched horizon suffix there without prefetching or executing past the blocker.
-    template <bool IofusedPrivateQueue, typename Filler = void>
-    void exec_batch_two_tier(const Task* batch, uint32_t n, Filler* filler = nullptr) {
-        const uint32_t horizon = prefetch_horizon_;
-        uint32_t prefetched = 0;
-        for (uint32_t begin = 0; begin < n; begin += kExecBatch) {
-            if (!xshard_retries_.empty()) {
-                for (uint32_t i = begin; i < n; i++) ordered_deferred_.push_back(batch[i]);
-                break;
-            }
-            const uint32_t end = std::min(n, begin + horizon);
-            if (end > prefetched) {
-                prefetch_exec_batch(batch + prefetched, end - prefetched);
-                prefetched = end;
-            }
-            if constexpr (!std::is_void_v<Filler>) {
-                if (begin == 0) (*filler)();
-            }
-            const uint32_t hot = std::min(kExecBatch, n - begin);
-            if constexpr (IofusedPrivateQueue)
-                exec_batch_prefetched_buffered<true>(batch + begin, hot);
-            else
-                exec_batch_prefetched(batch + begin, hot);
+    // GCC 13.3 at release -O2 erases the nested bucket prefetch when this walk is inlined.
+    // Flatten this separate body before optimizing it, and retain the direct call so the hints
+    // survive. Decomposition retained this walk and found no rate benefit from splitting A/B:
+    // one direct call per gathered batch replaces the former n/2+1 calls. Execution, slowlog
+    // attribution and suffix deferral use the original whole-batch bodies in both modes.
+    // Ineligible batches keep the walk above. Keep both ownership guards identical: even a hint must
+    // not inspect a stale owner's mutable table. No store/slot pointer survives this call.
+    __attribute__((noinline, flatten))
+    void prefetch_overlap_batch(const Task* batch, uint32_t n) {
+        // ExLoopT<true> is also used by read-local-armed split owners. Only fused placement
+        // reports this coarse prefetch pass; split IO reports its own stage schedule. Keeping
+        // the witness here makes a missing walk fail, without claiming A/B interleaving.
+        // Fused prefetch also runs with overlap off, when its witness sidecar may be absent.
+        if constexpr (Fused)
+            if (srv_->cfg().overlap != 0 && srv_->thread_mode() == ThreadMode::Fused)
+                srv_->mode_schedule_stats(self_->id()).note_overlap(OverlapSchedule::Fused, false);
+        for (uint32_t i = 0; i < n; i++) {
+            if (!batch[i].client) continue;
+            const Op& op = batch[i].client->rob().at(batch[i].op_id);
+            const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+            if (shard >= 0 && !batch[i].scatter &&
+                srv_->worker_of_shard(shard) == self_->id() &&
+                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                srv_->shard(shard).store().prefetch(op.hash);
         }
-        if constexpr (IofusedPrivateQueue) {
-            // Fused previously published statistics/cleaned once per 128 handles. Smaller
-            // completion quanta must not multiply these stores into peer-read shard lines.
-            // Split retains its existing 32-task maintenance cadence in the call above.
-            for (Shard* shard : self_->shards()) shard->publish_size();
-            if (xshard_retries_.empty() && srv_->atomic_work_active())
-                atomic_cleanup_cycle(256);
-        }
+    }
+
+    // Measured policy: always prefetch fused batches; split batches still require overlap.
+    // Fused is a capability, so read-local split owners must also check placement. A singleton cannot
+    // amortize the walk, and exact slowlog escalation retains its original preparation path.
+    // No per-operation schedule state or additional storage is needed when overlap is off.
+    bool overlap_prefetch_enabled(uint32_t n) const {
+        return ((Fused && srv_->thread_mode() == ThreadMode::Fused) || srv_->cfg().overlap != 0) && n > 1 &&
+               (!slowlog_armed_ || !slowlog_state_.escalate_batches);
     }
 
     // Consume a bucket-prefetched homogeneous batch. The interwoven schedule calls this
@@ -2569,10 +2439,10 @@ private:
         }
     }
 
-    // Buffered batches flush completions at the handoff quantum; their caller owns the larger
-    // statistics/cleanup envelope. O9 reuses this body on the private fused lanes, preserving
-    // both the ordinary execution loop and the historical all-owned-shards publication cadence.
-    template <bool IofusedPrivateQueue = false>
+    // Buffered E2 batches can be much smaller than the shipped coarse drain. Their caller tracks
+    // owner-verified shards while E1 already has the route in hand, then publishes that dense set
+    // once after the complete multi-chunk EX pass. Keep the ordinary coarse/iofused entry above --
+    // including its historical all-owned-shards publication -- unchanged.
     void exec_batch_prefetched_buffered(const Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
@@ -2580,10 +2450,10 @@ private:
         }
         NotifyBatchScope notify_batch(this);
         if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed<IofusedPrivateQueue>(batch, n);
+            exec_batch_timed(batch, n);
         } else {
             for (uint32_t i = 0; i < n; i++) {
-                if (execute<IofusedPrivateQueue>(batch[i])) continue;
+                if (execute(batch[i])) continue;
                 xshard_retries_.push_back(batch[i]);
                 for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
                 break;
@@ -2591,36 +2461,19 @@ private:
         }
     }
 
-    // Fresh overlap drains alone enter the two-tier schedule. Retry/snapshot queues retain their
-    // existing service budgets, and the coarse instantiation below contains no horizon branch.
-    template <bool IofusedPrivateQueue, size_t BatchOps>
-    void exec_overlap_batch(Task (&batch)[BatchOps], uint32_t n) {
-        if (!xshard_retries_.empty()) {
-            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-            return;
-        }
-        if (__builtin_expect(reorder_enabled_, false))
-            srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
-        if (prefetch_horizon_ >= kExecBatch) {
-            exec_batch_two_tier<IofusedPrivateQueue>(batch, n);
-        } else {
-            prefetch_exec_batch(batch, n);
-            exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
-        }
-    }
-
-    // Coarse compatibility: prefetch the whole batch and consume it without an intervening
-    // micro-stage.
+    // Whole-batch prefetch follows the gathered FIFO order.
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-        // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
-        // reorder BEFORE prefetch so prefetch order matches execution order.
+        // Deferral first: skip wasted prefetch on the rare retry path.
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        if (__builtin_expect(reorder_enabled_, false))
-            srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
+        if (__builtin_expect(overlap_prefetch_enabled(n), false)) {
+            prefetch_overlap_batch(batch, n);
+            exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
+            return;
+        }
         prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
@@ -2799,6 +2652,7 @@ private:
             // Scatter tasks bypass it -- their writes replace whole objects through insert-level
             // admission in their owner pass.
             reply_maxmemory_oom(op);
+            if constexpr (Fused) l4prebuild_discard_set(op);
         } else {
             // A null pending-entry list is the sole common-path branch. With no cross-shard window,
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
@@ -2814,6 +2668,7 @@ private:
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
+                else if constexpr (Fused) l4prebuild_discard_set(op);
                 xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);
@@ -3199,9 +3054,8 @@ private:
     uint64_t   live_config_version_ = UINT64_MAX;
     AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
-    bool       reorder_enabled_ = false;
+    uint8_t    retired_reorder_padding_ = 0; // preserve cached_lru_clock_ and later offsets
     uint8_t    cached_lru_clock_ = 0;
-    uint8_t    prefetch_horizon_ = 0; // existing one-byte padding before lb_sample_rate_; boot-only
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
     uint32_t   age_sample_rate_cached_ = 0;

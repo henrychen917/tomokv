@@ -80,7 +80,7 @@ from abba_saturation import (RUN_SATURATION_MARGIN,
 from gate_receipt import harness_fingerprint, read_json
 from abba_evidence import match_null, null_result
 from abba_instrument import instrument_fingerprint
-from abba_workloads import (workload_arguments, prepare_long_keys, merged_tail,
+from abba_workloads import (retired_reorder, workload_arguments, prepare_long_keys, merged_tail,
                             require_workload_witness, workload_command_names,
                             memtier_workload_counts, require_workload_accounting)
 
@@ -167,6 +167,13 @@ class Cell:
     mix: str = "-"         # READ:WRITE for MIX/MIX8; short:long for REORDER
     smoke: bool = False
     pin_required: bool = False
+    data_bytes: int = 64
+
+    def __post_init__(self):
+        # The tail instrument needs 16 independent generators to avoid arrival bursts.
+        # This is workload geometry, independent of throughput saturation calibration.
+        if self.op == "REORDER" and self.instances == 0:
+            object.__setattr__(self, "instances", 16)
 
     @property
     def metric(self):
@@ -186,8 +193,17 @@ def read_cells(path, *, placement=None):
         if len(fields) not in (11, 15):
             raise ValueError(f"{path}:{lineno}: expected 11 legacy or 15 extended pipe-separated fields")
         ident, mode, rl, ov, ro, op, depth, conns, _measured, _busy, pinned = fields[:11]
+        data_bytes = 64
+        if ":" in op:
+            # Private studies retain the headline's 15 fields. Encoding the size in
+            # the operation makes older instruments fail instead of silently using 64 B.
+            sized = re.fullmatch(r"(GET|SET|MGET|MSET|MSETNX):([1-9][0-9]*)", op)
+            if (not sized or len(fields) != 15 or
+                    path.resolve() == (ROOT / "tests/headline_cells.txt").resolve()):
+                raise ValueError(f"{path}:{lineno}: OP:BYTES requires a private 15-field cell")
+            op, data_bytes = sized[1], int(sized[2])
         if (not re.fullmatch(r"[A-Za-z0-9_-]+", ident) or mode not in ("1s", "2s")
-                or op not in ("GET", "SET", "MGET", "MSET", "MIX", "MIX8", "REORDER")
+                or op not in ("GET", "SET", "MGET", "MSET", "MSETNX", "MIX", "MIX8", "REORDER")
                 or not re.fullmatch(r"p[1-9][0-9]*", depth)
                 or not re.fullmatch(r"[1-9][0-9]*", conns)
                 or any(not re.fullmatch(prefix + "=[01]", value)
@@ -210,12 +226,13 @@ def read_cells(path, *, placement=None):
                          smoke=smoke[-1] == "1", pin_required=int(depth[1:]) > 1)
         cell = Cell(ident, mode, int(rl[-1]), int(ov[-1]), int(ro[-1]),
                     op, int(depth[1:]), int(conns),
-                    int(pinned) if re.fullmatch(r"[1-9][0-9]*", pinned) else 0, **extra)
+                    int(pinned) if re.fullmatch(r"[1-9][0-9]*", pinned) else 0,
+                    data_bytes=data_bytes, **extra)
         if ((cell.op in ("MIX", "MIX8", "REORDER")) != (cell.mix != "-")
                 or (cell.op == "REORDER") != (cell.metric == "p999_ms")
                 or (cell.depth == 1 and cell.metric == "rate")):
             raise ValueError(f"{path}:{lineno}: workload, mix and scoring disagree")
-        if pinned == "-":
+        if pinned == "-" and cell.op != "REORDER":
             cell = apply_floor(cell, measurements, placement=placement, instrument_sha256=instrument)
         cells.append(cell)
     if not cells or len({c.id for c in cells}) != len(cells):
@@ -242,9 +259,15 @@ def coverage(cells):
             "commands": sorted({command for cell in cells for command in workload_command_names(cell)}),
             "depths": sorted({cell.depth for cell in cells}),
             "connections": sorted({cell.conns for cell in cells}),
+            "data_bytes": sorted({cell.data_bytes for cell in cells}),
             "atomic": sorted({cell.atomic for cell in cells}),
             "scores": sorted({cell.metric for cell in cells}),
             "pending_pins": [cell.id for cell in cells if cell.depth > 1 and not cell.instances]}
+
+
+def workload_data_bytes(cells):
+    sizes = {cell.data_bytes for cell in cells}
+    return next(iter(sizes)) if len(sizes) == 1 else {cell.id: cell.data_bytes for cell in cells}
 
 
 def sha256(path):
@@ -1086,7 +1109,8 @@ class Runner:
                 "-s", "127.0.0.1", "-p", str(self.args.port), "--protocol=redis",
                 "-t", str(layout["threads"]), "-c", str(layout["clients"]),
                 "--key-minimum=1", f"--key-maximum={KEYS}",
-                "-d", "64", "--distinct-client-seed", "--hide-histogram"]
+                "-d", str(cell.data_bytes if cell is not None else 64),
+                "--distinct-client-seed", "--hide-histogram"]
         # memtier rejects its built-in SET:GET pattern whenever --command is
         # present. Those workloads carry a P pattern on EACH command instead;
         # population and built-in GET/SET/MIX retain the original P:P geometry.
@@ -1100,7 +1124,10 @@ class Runner:
         pass
 
     def populate(self, cell, arm, conn, folder):
-        population = self.memtier({"cpus": self.load_cpus, "threads": 8, "clients": 8})
+        # Populate with the same bytes as the scored command, using the native SET
+        # pattern even when the measurement itself uses arbitrary-command mode.
+        population = self.memtier({"cpus": self.load_cpus, "threads": 8, "clients": 8},
+                                  cell=replace(cell, op="SET", mix="-"))
         population += ["--pipeline=32", "--ratio=1:0", "-n", "allkeys"]
         pop = self.children.start(population, folder / "populate.log", folder)
         if pop.wait(timeout=180):
@@ -1112,6 +1139,21 @@ class Runner:
             extra = prepare_long_keys(conn)
             if conn.must("DBSIZE") != KEYS + extra["keys"]:
                 raise RuntimeError("long-blocker population changed the short-key population")
+            return extra
+        if cell.data_bytes != 64 or cell.op == "MSETNX":
+            sampled = {f"memtier-{number}": conn.must("STRLEN", f"memtier-{number}")
+                       for number in (1, KEYS)}
+            if any(length != cell.data_bytes for length in sampled.values()):
+                raise RuntimeError(f"population value size differs from cell: {sampled}")
+            extra = dict(data_bytes=cell.data_bytes, sampled_lengths=sampled)
+            if cell.op == "MSETNX":
+                # Standard wire population fills every generated key. This is an NX
+                # rejection/avoided-allocation control, not successful owner allocation.
+                pairs = [part for number in range(1, 9)
+                         for part in (f"memtier-{number}", b"x" * cell.data_bytes)]
+                if conn.must("MSETNX", *pairs) != 0:
+                    raise RuntimeError("populated-key MSETNX control did not reject")
+                extra.update(msetnx_expected_reply=0, msetnx_population="all keys already exist")
             return extra
         return None
 
@@ -1150,6 +1192,7 @@ class Runner:
         srv, conn, generators = None, None, []
         log = folder / "server.log"
         result = {"arm": arm, "instances": instances, "complete": False,
+                  "data_bytes": cell.data_bytes,
                   "server_argv": [str(x) for x in command],
                   "load_layout": layout, "artifacts": str(folder.relative_to(self.out))}
         if _calibration is not None:
@@ -1201,6 +1244,8 @@ class Runner:
                         raise NotComparable(reason)
                     raise RuntimeError(reason)
                 for name, value in {"atomic": cell.atomic, **knobs}.items():
+                    if name == "reorder" and retired_reorder(identity):
+                        value = 0
                     actual = conn.must("CONFIG", "GET", name)
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
@@ -1645,7 +1690,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "load_instance_ceiling": min(args.max_instances, len(load_physical)),
                                  "load_cpus": load_cpus, "port": args.port,
                                  "permitted_ports": permitted_ports, "keys": KEYS,
-                                 "data_bytes": 64, "key_pattern": "P:P", "atomic": "per-cell",
+                                 "data_bytes": workload_data_bytes(cells),
+                                 "key_pattern": "P:P", "atomic": "per-cell",
                                  "split_ratio": split_ratio,
                                  "split_flip_auto": 0, "memtier_path": args.memtier,
                                  "memtier_sha256": sha256(Path(args.memtier)),
@@ -1883,7 +1929,7 @@ def self_test():
         def test_full_coverage_preserves_original_axes_and_restores_multikey(self):
             from itertools import product
             cells = read_cells(ROOT / "tests/headline_cells.txt")
-            self.assertEqual(len(cells), 180)   # +2: the t05/t06 reorder synergy pair
+            self.assertEqual(len(cells), 181)   # t00 is the reported-only tail warmup
             original = [cell for cell in cells if cell.id.startswith("h")]
             self.assertEqual(len(original), 64)
             axes = lambda cell: (cell.mode, cell.read_local, cell.overlap, cell.reorder, cell.op, cell.depth)
@@ -1898,7 +1944,7 @@ def self_test():
 
         def test_smoke_is_seventeen_justified_cells_not_a_cross_product(self):
             cells = selected_cells(read_cells(ROOT / "tests/headline_cells.txt"), "smoke")
-            self.assertEqual(len(cells), 17)
+            self.assertEqual(len(cells), 18)
             for mode in ("1s", "2s"):
                 sweep = [cell for cell in cells if cell.mode == mode and cell.op == "GET"]
                 self.assertEqual({(cell.read_local, cell.overlap, cell.reorder) for cell in sweep},
@@ -1920,11 +1966,12 @@ def self_test():
             self.assertIn(1, {cell.depth for cell in cells})
 
         def test_arbitrary_workloads_issue_eight_keys_and_correct_mix_direction(self):
-            for op in ("MGET", "MSET"):
+            for op in ("MGET", "MSET", "MSETNX"):
                 args = workload_arguments(replace(self.cell, op=op))
                 command = next(arg for arg in args if arg.startswith("--command="))
                 self.assertEqual(command.count("__key__"), 8)
-                self.assertEqual(command.count("__data__"), 8 if op == "MSET" else 0)
+                self.assertEqual(command.count("__data__"), 0 if op == "MGET" else 8)
+                self.assertTrue(command.startswith("--command=" + op + " "))
             self.assertEqual(workload_arguments(replace(self.cell, op="MIX", mix="7:1")), ["--ratio=1:7"])
             args = workload_arguments(replace(self.cell, op="MIX8", mix="18:14"))
             self.assertEqual([arg for arg in args if arg.startswith("--command-ratio=")],
@@ -1941,7 +1988,7 @@ def self_test():
                             Path("/unused"), {}, Children())
             layout = {"cpus": [2, 3], "threads": 2, "clients": 2}
             self.assertIn("--key-pattern=P:P", runner.memtier(layout))  # wire population
-            for op in ("GET", "SET", "MIX", "MGET", "MSET", "MIX8", "REORDER"):
+            for op in ("GET", "SET", "MIX", "MGET", "MSET", "MSETNX", "MIX8", "REORDER"):
                 cell = replace(self.cell, op=op, mix="7:1")
                 argv = runner.memtier(layout, cell=cell) + workload_arguments(cell)
                 commands = [arg for arg in argv if arg.startswith("--command=")]
@@ -1955,11 +2002,123 @@ def self_test():
                         self.assertEqual(native_patterns, ["--key-pattern=P:P"])
                         self.assertEqual(command_patterns, [])
 
+        def test_l4_cells_cover_sizes_modes_and_controls_without_borrowed_pins(self):
+            from itertools import product
+            from types import SimpleNamespace
+            cells = read_cells(ROOT / "tests/l4_cells.txt")
+            self.assertEqual(len(cells), 16)
+            self.assertEqual({(c.mode, c.op, c.data_bytes) for c in cells},
+                             set(product(("1s", "2s"), ("MSET", "MSETNX", "GET", "MGET"), (256, 1024))))
+            self.assertTrue(all((c.read_local, c.overlap, c.reorder, c.atomic, c.depth, c.conns,
+                                 c.instances, c.metric) == (0, 0, 0, 1, 8, 512, 0, "rate") for c in cells))
+            self.assertEqual(workload_data_bytes(cells), {c.id: c.data_bytes for c in cells})
+            self.assertEqual(workload_data_bytes(cells[:4]), 256)
+            self.assertEqual(workload_data_bytes([self.cell]), 64)
+            runner = Runner(SimpleNamespace(server_cores="0-1", server_smt="", load_cores="2-3",
+                            load_smt="", port=9090, memtier="never-executed-memtier"),
+                            Path("/unused"), {}, Children())
+            layout = dict(cpus=[2, 3], threads=2, clients=2)
+            for cell in cells:
+                with self.subTest(cell=cell.id):
+                    argv = runner.memtier(layout, cell=cell) + workload_arguments(cell)
+                    self.assertEqual(argv[argv.index("-d") + 1], str(cell.data_bytes))
+                    self.assertEqual(workload_command_names(cell), (cell.op,))
+                    commands = [arg for arg in argv if arg.startswith("--command=")]
+                    if cell.op != "GET":
+                        self.assertEqual(len(commands), 1)
+                        self.assertTrue(commands[0].startswith("--command=" + cell.op + " "))
+                        self.assertEqual(commands[0].count("__key__"), 8)
+                        self.assertEqual(commands[0].count("__data__"), 0 if cell.op == "MGET" else 8)
+                        self.assertNotIn("--key-pattern=P:P", argv)
+
+        def test_bad_sized_cells_cannot_silently_measure_64_bytes(self):
+            template = "u01 | 1s | rl=0 | ov=0 | ro=0 | {} | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0\n"
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as folder:
+                path = Path(folder) / "cells.txt"
+                for op in ("GET:0", "GET:-1", "GET:0256", "GET:256:1024", "GET:",
+                           "GET:256x", "REORDER:256", "MIX:256", "MSETN:256"):
+                    path.write_text(template.format(op))
+                    with self.subTest(op=op), self.assertRaisesRegex(ValueError, "OP:BYTES"):
+                        read_cells(path)
+                path.write_text(" | ".join(template.format("GET:256").split("|")[:11]) + "\n")
+                with self.assertRaisesRegex(ValueError, "15-field"):
+                    read_cells(path)
+
+        def test_large_population_matches_scored_bytes_and_rejects_bad_controls(self):
+            from types import SimpleNamespace
+            runner = Runner(SimpleNamespace(server_cores="0-1", server_smt="", load_cores="2-3",
+                            load_smt="", port=9090, memtier="never-executed-memtier"),
+                            Path("/unused"), {}, mock.Mock())
+            runner.children.start.return_value.wait.return_value = 0
+            for op in ("GET", "MGET", "MSET", "MSETNX"):
+                for size in (256, 1024):
+                    cell = replace(self.cell, op=op, data_bytes=size)
+                    for bad in (None, "size", "nx") if op == "MSETNX" else (None, "size"):
+                        def answer(*parts):
+                            if parts[0] == "DBSIZE":
+                                return KEYS
+                            if parts[0] == "STRLEN":
+                                return 64 if bad == "size" else size
+                            self.assertEqual(parts[0], "MSETNX")
+                            self.assertEqual(len(parts), 17)
+                            self.assertTrue(all(value == b"x" * size for value in parts[2::2]))
+                            return 1 if bad == "nx" else 0
+                        conn = mock.Mock()
+                        conn.must.side_effect = answer
+                        with self.subTest(op=op, size=size, bad=bad):
+                            if bad:
+                                with self.assertRaisesRegex(RuntimeError, "size differs|did not reject"):
+                                    runner.populate(cell, "B", conn, Path("/unused"))
+                            else:
+                                evidence = runner.populate(cell, "B", conn, Path("/unused"))
+                                self.assertEqual(evidence["data_bytes"], size)
+                                if op == "MSETNX":
+                                    self.assertEqual(evidence["msetnx_expected_reply"], 0)
+                            argv = runner.children.start.call_args.args[0]
+                            self.assertEqual(argv[argv.index("-d") + 1], str(size))
+                            self.assertIn("--key-pattern=P:P", argv)
+                            self.assertIn("--ratio=1:0", argv)
+                            self.assertFalse(any(arg.startswith("--command=") for arg in argv))
+
+        def test_tail_instrument_geometry_and_warmup(self):
+            from abba_workloads import LONG_KEYS, LONG_BYTES
+            from abba_simple import threshold_for
+            cells = read_cells(ROOT / "tests/headline_cells.txt")
+            warmup = cells[0]
+            measured = next(c for c in cells if c.id == "t01")
+            self.assertEqual(warmup.id, "t00")
+            self.assertEqual(replace(warmup, id="t01"), measured)
+            self.assertEqual(LONG_KEYS * LONG_BYTES, 16 * 1024 ** 3)
+            self.assertEqual(selected_cells(cells, "smoke")[0].id, "t00")
+            for cell in cells:
+                if cell.op != "REORDER":
+                    self.assertNotIn("--rate-limiting=1400", workload_arguments(cell))
+                    continue
+                self.assertEqual(cell.instances, 16)
+                self.assertIn("--rate-limiting=1400", workload_arguments(cell))
+                self.assertIn("--key-maximum=65536", workload_arguments(cell))
+                self.assertIsNone(threshold_for(asdict(cell)))
+            self.assertEqual(replace(measured, instances=0).instances, 16)
+            self.assertEqual(replace(measured, instances=8).instances, 8)
+            pins = load_measurements()["load_floors"]
+            for ident in ("t01", "t02", "t03", "t04"):
+                self.assertEqual(pins[ident]["instances"], 16)
+                self.assertEqual(pins[ident]["shape"]["mix"], "8:2")
+
         def test_missing_workload_or_scheduler_engagement_is_red(self):
             cell = replace(self.cell, op="REORDER", score="p999", mix="95:5", reorder=1)
             before = {"cmdstat_get": "calls=10", "cmdstat_bitcount": "calls=10"}
             after = {"cmdstat_get": "calls=100", "cmdstat_bitcount": "calls=20"}
             mode = {"reorder_permuted_runs": "0"}
+            retired = {"reorder": "0", "reorder_retired": "1"}
+            evidence = require_workload_witness(cell, before, after, retired, retired)
+            self.assertEqual(evidence["reorder_witness"], "retired, no-op")
+            for missing in ("cmdstat_get", "cmdstat_bitcount"):
+                with self.assertRaisesRegex(RuntimeError, "did not execute"):
+                    require_workload_witness(cell, before, {**after, missing: before[missing]}, retired, retired)
+            for broken in ({"reorder": "0"}, {**retired, "reorder": "1"}, {**retired, **mode}):
+                with self.assertRaises(RuntimeError):
+                    require_workload_witness(cell, before, after, broken, broken)
             with self.assertRaisesRegex(RuntimeError, "BITCOUNT did not execute"):
                 require_workload_witness(cell, before, {**after, "cmdstat_bitcount": "calls=10"}, mode, mode)
             with self.assertRaisesRegex(RuntimeError, "permutation witness"):
@@ -2465,12 +2624,16 @@ def self_test():
         def test_new_unmeasured_pins_search_instead_of_vetoing_the_tier(self):
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
                 out = Path(tmp) / "out"
+                binary = Path(tmp) / "candidate"
+                binary.write_bytes(b"test executable identity; never executed")
+                binary.chmod(0o700)
                 source = Path(tmp) / "unmeasured-cells"
                 source.write_text("u01 | 1s | rl=1 | ov=1 | ro=1 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1\n")
                 # Exercise the missing-pin precondition even inside a two-CPU gate worker.
                 # Synthetic placement is validated separately and never schedules real work here.
                 with mock.patch.dict(os.environ, {}, clear=True), \
                      mock.patch.object(sys, "argv", ["abbagate.py", "--subset", "smoke", "--output", str(out),
+                         "--candidate", str(binary),
                          "--cells", str(source), "--server-cores", "0-31", "--server-smt", "",
                          "--load-cores", "32-63", "--load-smt", ""]):
                     args = parse_args()
@@ -2815,7 +2978,7 @@ def self_test():
         def fake_main(self, *, pin="-", depth=32, escalate=False, busy=99.9,
                       climbing=False, ceiling=16, contend_after=None, reference_error=None, rates=None,
                       run_overrides=None, load_cores="32-127", load_smt="160-255",
-                      diagnostic_profile=0,
+                      diagnostic_profile=0, candidate_missing=False,
                       diagnostic_pin_load_workers=0, diagnostic_load_startup_seconds=0):
             # Invoke main() and its real load layout, not assess() with fabricated
             # rounds. The regression was in the loop that PRODUCES rounds, and a
@@ -2834,6 +2997,9 @@ def self_test():
                         "--load-smt", load_smt, "--max-instances", str(ceiling)] + (["--escalate"] if escalate else [])
                 with mock.patch.object(sys, "argv", argv), mock.patch.dict(os.environ, {}, clear=True):
                     args = parse_args()
+                if candidate_missing:
+                    args.candidate = directory / "missing-candidate"
+                    self.assertFalse(args.candidate.exists())
                 order, layouts = [], []
                 self.support_calls = []
 
@@ -2873,6 +3039,14 @@ def self_test():
                               diagnostic_pin_load_workers=diagnostic_pin_load_workers,
                               diagnostic_load_startup_seconds=diagnostic_load_startup_seconds)
                 return rc, order, layouts, json.loads((output / "results.json").read_text()), stream.getvalue()
+
+        def test_missing_candidate_executable_is_rejected(self):
+            rc, calls, layouts, report, _ = self.fake_main(candidate_missing=True)
+            self.assertEqual((rc, calls, layouts), (1, [], []))
+            self.assertEqual(report["verdict"], "FAIL")
+            self.assertIn("RuntimeError: candidate executable unavailable:", report["reason"])
+            self.assertTrue(report["reason"].endswith("/missing-candidate"), report["reason"])
+            self.assertEqual(self.support_calls, [])
 
         def test_profile_cannot_be_enabled_in_normal_gate_or_cli(self):
             rc, calls, _, report, _ = self.fake_main(pin=4, diagnostic_profile=1)
@@ -3590,6 +3764,33 @@ def self_test():
 if __name__ == "__main__":
     args = parse_args()
     if args.self_test:
+        import contextlib
+        from unittest import mock
         from load_calibration import self_test as calibration_self_test
-        sys.exit(max(self_test(), saturation_self_test(), calibration_self_test()))
+        # Guard the default AND configured live candidates even when an individual
+        # fixture clears the environment. A warm build must not mask a missing stub.
+        live_candidates = {os.path.abspath(ROOT / "build/tomokv"), os.path.abspath(args.candidate)}
+        live_candidates.update(os.path.abspath(os.environ[name]) for name in
+                               ("GATE_CANDIDATE_BINARY", "GATE_ABBA_CANDIDATE") if os.getenv(name))
+        live_probes = []
+
+        def guard_candidate_access(operation):
+            def checked(path, *positional, **keywords):
+                if os.path.abspath(path) in live_candidates:
+                    reason = f"self-test probed live candidate {path}; use a temporary executable fixture"
+                    live_probes.append(reason)
+                    raise AssertionError(reason)
+                return operation(path, *positional, **keywords)
+            return checked
+
+        with contextlib.ExitStack() as guards:
+            for owner, name in ((Path, "stat"), (Path, "open"), (os, "access")):
+                guards.enter_context(mock.patch.object(owner, name, guard_candidate_access(getattr(owner, name))))
+            rc = max(self_test(), saturation_self_test(), calibration_self_test())
+        # main() records exceptions as failed reports; a test expecting some other
+        # failure must not swallow a forbidden probe and make this control green.
+        if live_probes:
+            print("SELF-TEST FAIL: " + "\n".join(live_probes), file=sys.stderr)
+            rc = 1
+        sys.exit(rc)
     sys.exit(main(args))

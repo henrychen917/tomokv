@@ -11,7 +11,7 @@ the guard turns these rows red, and it FAILS if the refusal cites a different re
 combination stays covered either way. Every other cell is still a mandatory boot.
 
 gate.sh invokes --cell once per ledger row. --matrix runs just this tier for development.
-No rates are scored. Independent connections carry pipelined work so reorder can permute.
+No rates are scored. Independent connections carry pipelined work; reorder is a retired no-op.
 """
 import argparse
 from contextlib import ExitStack
@@ -100,7 +100,7 @@ def inventory(cpu_list, ratio):
 def check_config(row, knobs, cell, server_cpus):
     for key in ('thread-mode', *SWITCHES, 'atomic', 'key-lb', 'client-lb'):
         field = key.replace('-', '_')
-        require(row.get(field) == str(knobs[key]),
+        require(row.get(field) == str(0 if key == "reorder" else knobs[key]),
                 f'{key} requested {knobs[key]} but effective {field}={row.get(field)!r}')
     nshards = knobs['shards']
     if nshards == -1:
@@ -155,26 +155,29 @@ def check_readers(before, after, enabled):
 
 def check_activity(before, after, knobs, nthreads, cross_owner):
     check_readers(before, after, knobs['read-local'])
+    require(after.get('overlap_enabled') == str(int(bool(knobs['overlap']))),
+            'wrong effective overlap mode')
     expected_schedule = ('fused-overlap' if knobs['thread-mode'] == '1s'
                          else 'split-io-overlap') if knobs['overlap'] else 'plain'
-    stats_on = knobs['overlap'] or knobs['reorder']
+    stats_on = knobs['overlap']
+    require(after.get('reorder') == '0' and after.get('reorder_retired') == '1',
+            'retired reorder must report effective zero')
     require(after.get('overlap_schedule') == (expected_schedule if stats_on else None),
             'wrong overlap schedule/allocation')
     for field in ('overlap_passes', 'overlap_interleaved_passes'):
         if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
-        require((delta(before, after, field) > 0) if knobs['overlap']
+        # Fused overlap is now whole-batch bucket prefetch. Require fresh preparation
+        # passes and an exact zero for the deleted A/B stage interleaving.
+        active = knobs['overlap'] and (field == 'overlap_passes' or knobs['thread-mode'] == '2s')
+        require((delta(before, after, field) > 0) if active
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
-    for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs'):
-        if not stats_on:
-            require(field not in after, 'disabled scheduling allocated counters')
-            continue
-        require((delta(before, after, field) > 0) if knobs['reorder']
-                else number(after, field) == 0, f'reorder witness {field} did not match knob')
+    for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs', 'reorder_max_batch'):
+        require(field not in after, 'retired reorder exposed counters')
     expect_stats = str(nthreads) if stats_on else None
     require(after.get('schedule_stats_threads') == expect_stats,
-            'schedule counters allocated while both features off / missing when on')
+            'schedule counters allocated while overlap off / missing when on')
     if cross_owner:
         require((delta(before, after, 'atomic_groups') > 0) if knobs['atomic']
                 else number(after, 'atomic_groups') == 0, 'atomic groups did not match knob')
