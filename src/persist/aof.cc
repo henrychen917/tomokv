@@ -354,7 +354,7 @@ bool parse_record_bounds(const std::vector<uint8_t>& section, size_t pos,
     }
     const uint8_t* h = section.data() + pos;
     if (snapshot_get_u32(h) != kRecordTag || h[7] != 1 ||
-        snapshot_get_u32(h + 12) != kRecordHeaderBytes) {
+        (snapshot_get_u32(h + 12) & 0xff00ffffu) != kRecordHeaderBytes) {
         error = "invalid AOF record header";
         return false;
     }
@@ -502,7 +502,7 @@ bool AofProducer::record_group_bytes(PendingGroup& group, AofRecordKind kind, ui
     header[6] = encoding;
     header[7] = 1;
     snapshot_put_u32(header + 8, key.n);
-    snapshot_put_u32(header + 12, kRecordHeaderBytes);
+    snapshot_put_u32(header + 12, kRecordHeaderBytes | (key.ns << 16));
     snapshot_put_u64(header + 16, payload_len);
     snapshot_put_u64(header + 24, static_cast<uint64_t>(expire_at_ms));
     if (!group_emit(group, header, sizeof(header), large) ||
@@ -758,7 +758,7 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     header[6] = encoding;
     header[7] = 1;
     snapshot_put_u32(header + 8, key.n);
-    snapshot_put_u32(header + 12, kRecordHeaderBytes);
+    snapshot_put_u32(header + 12, kRecordHeaderBytes | (key.ns << 16));
     snapshot_put_u64(header + 16, payload_len);
     snapshot_put_u64(header + 24, static_cast<uint64_t>(expire_at_ms));
     snapshot_put_u64(header + 32, group);
@@ -849,9 +849,10 @@ bool AofProducer::record_delete(Slice key, uint64_t group) {
     return record_bytes(kind, 0, 0, key, -1, group, nullptr, 0, nullptr, nullptr, nullptr);
 }
 
-bool AofProducer::record_flush() {
+bool AofProducer::record_flush(int physical_db) {
     if (!enabled()) return true;
-    return record_bytes(AofRecordKind::Flush, 0, 0, Slice(), -1, 0,
+    return record_bytes(AofRecordKind::Flush, physical_db >= 0 ? 1 : 0, 0,
+                        Slice(nullptr, 0, physical_db >= 0 ? physical_db : 0), -1, 0,
                         nullptr, 0, nullptr, nullptr, nullptr);
 }
 
@@ -2475,13 +2476,15 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
         if (!parse_record_bounds(section, pos, kind, type, encoding, key_len, payload_len,
                                  expire, group, next, error)) return false;
         const size_t data = pos + kRecordHeaderBytes;
-        const Slice key(reinterpret_cast<const char*>(section.data() + data), key_len);
+        const Slice key(reinterpret_cast<const char*>(section.data() + data), key_len, section[pos + 14]);
+        if (key.ns >= server.cfg().databases) { error = "AOF database is out of range"; return false; }
         const Slice payload(reinterpret_cast<const char*>(section.data() + data + key_len),
                             static_cast<uint32_t>(payload_len));
         pos = next;
         if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
         if (kind == AofRecordKind::Flush) {
-            shard.store().clear();
+            if (type == 1) multidb_flush(shard, key.ns);
+            else shard.store().clear();
             continue;
         }
         if ((kind == AofRecordKind::GroupPut || kind == AofRecordKind::GroupDel) &&

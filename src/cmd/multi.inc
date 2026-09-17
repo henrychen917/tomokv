@@ -14,6 +14,7 @@ struct MultiWatchedKey {
     std::string key;
     uint64_t hash = 0;
     int32_t shard = -1;
+    uint8_t ns = 0;
 };
 
 enum class MultiCommandKind : uint8_t {
@@ -82,6 +83,7 @@ struct MultiWriteKey {
     std::string key;
     uint64_t hash = 0;
     int32_t shard = -1;
+    uint8_t ns = 0;
 };
 
 struct MultiWriteKeyHash {
@@ -94,7 +96,7 @@ struct MultiWriteKeyHash {
 
 struct MultiWriteKeyEqual {
     bool operator()(const MultiWriteKey& left, const MultiWriteKey& right) const {
-        return left.shard == right.shard && left.key == right.key;
+        return left.shard == right.shard && left.ns == right.ns && left.key == right.key;
     }
 };
 
@@ -521,7 +523,7 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
 
 bool state_writes_key(const MultiExecState& state, const MultiWatchedKey& watched) {
     for (const MultiWriteKey& key : state.write_keys)
-        if (key.shard == watched.shard && key.key == watched.key) return true;
+        if (key.shard == watched.shard && key.ns == watched.ns && key.key == watched.key) return true;
     return false;
 }
 
@@ -532,7 +534,8 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const std::string& key = command.queued.argv[arg];
     const int32_t shard = command.key_shards[index];
     MultiWriteKey candidate{
-        key, FlatStore::hash_key(Slice(key.data(), static_cast<uint32_t>(key.size()))), shard};
+        key, FlatStore::hash_key(command.op->arg(arg)), shard,
+        static_cast<uint8_t>(command.op->arg(arg).ns)};
     if (!state.write_key_set.emplace(candidate).second) return;
     state.write_keys.push_back(std::move(candidate));
 }
@@ -544,6 +547,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
     try {
         state.commands.reserve(queue.size());
         state.write_key_set.reserve(queue.size());
+        uint8_t logical_db = state.client->session().db_index;
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
             command->notify_order_base =
@@ -551,15 +555,19 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->queued = std::move(queued);
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
+            if (!make_child_op(*command)) return false;
+            multidb_stamp(server, *command->op, logical_db);
+            if (has_name(command->queued, "select")) {
+                uint8_t selected = logical_db;
+                if (multidb_parse_index(command->op->arg(1), server.cfg().databases, selected))
+                    logical_db = selected;
+            }
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
-                const std::string& key = command->queued.argv[arg];
-                const uint64_t hash = FlatStore::hash_key(
-                    Slice(key.data(), static_cast<uint32_t>(key.size())));
+                const uint64_t hash = FlatStore::hash_key(command->op->arg(arg));
                 command->key_shards.push_back(server.router().shard_of(hash));
             }
             command->kind = classify_multi_command(*command);
-            if (!make_child_op(*command)) return false;
             uint32_t acl_denied_arg = UINT32_MAX;
             const AclDeniedReason acl_denied = acl_check_queued(
                 state.client->acl_user_idx(), *command->queued.spec,
@@ -613,6 +621,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 command->key_args.clear();
                 command->key_shards.clear();
             }
+            multidb_stamp(server, *command->op, command->op->db);
             if (state.client->resp3()) command->op->mark_resp3();
             if (command->kind == MultiCommandKind::Scan &&
                 !command_prepare_scan_route(server, *command->op))
@@ -996,14 +1005,13 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         const uint32_t arg = command.key_args[i];
         bool duplicate = false;
         for (uint32_t prior : unique)
-            duplicate |= command.queued.argv[prior] == command.queued.argv[arg];
+            duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
         if (!duplicate) unique.push_back(arg);
     }
     // Reservation/snapshot checks precede every physical install, so Retry never leaves half of a
     // command installed merely because another EXEC still owns a watched key.
     for (uint32_t arg : unique) {
-        const std::string& owned = command.queued.argv[arg];
-        const Slice key(owned.data(), static_cast<uint32_t>(owned.size()));
+        const Slice key = command.op->arg(arg);
         if (!shard.watch_write_ready(key, &state)) return false;
         const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
@@ -1013,8 +1021,7 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         }
     }
     for (uint32_t arg : unique) {
-        const std::string& owned = command.queued.argv[arg];
-        const Slice key(owned.data(), static_cast<uint32_t>(owned.size()));
+        const Slice key = command.op->arg(arg);
         const MultiPrepareWrite result = prepare_write_key(
             server, state, shard, key, FlatStore::hash_key(key), owner_thread_id);
         if (result == MultiPrepareWrite::Retry) return false;
@@ -1225,13 +1232,13 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
     if (state.kind == MultiStateKind::WatchAdd) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
-            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()));
+            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_add(key, state.client, state.watch_generation)) return false;
         }
     } else if (state.kind == MultiStateKind::Execute) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
-            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()));
+            const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_validate_and_reserve(
                     key, state.client, state.watch_generation, &state, &state.epoch,
                     &state.aborted, &state.watch_refs,
@@ -1243,7 +1250,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
         }
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
-            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size())),
+            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
                                state.client, state.watch_generation);
         }
     } else {
@@ -1253,9 +1260,9 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             // still unpublished.  Keep UNWATCH/DISCARD/close behind that decision so removing the
             // last watcher also releases the reservation's state-lifetime pin.
             if (!shard.watch_write_ready(
-                    Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()))))
+                    Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns)))
                 return false;
-            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size())),
+            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
                                state.client, state.watch_generation);
         }
     }
@@ -1270,12 +1277,12 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
         shard.watch_write_ready(
-            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size())), nullptr);
+            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns), nullptr);
     }
     for (const MultiWriteKey& write : state.write_keys) {
         if (write.shard != shard.id()) continue;
         shard.watch_write_ready(
-            Slice(write.key.data(), static_cast<uint32_t>(write.key.size())), nullptr);
+            Slice(write.key.data(), static_cast<uint32_t>(write.key.size()), write.ns), nullptr);
     }
     state.final_shard_done[static_cast<uint32_t>(shard.id())] = 1;
 }
@@ -1379,10 +1386,10 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 const std::string key(op.arg(i).p, op.arg(i).n);
                 bool duplicate = false;
                 for (const MultiWatchedKey& prior : session->watched)
-                    duplicate |= prior.key == key;
+                    duplicate |= prior.ns == op.arg(i).ns && prior.key == key;
                 if (duplicate) continue;
                 const uint64_t hash = FlatStore::hash_key(op.arg(i));
-                MultiWatchedKey watched{key, hash, server.router().shard_of(hash)};
+                MultiWatchedKey watched{key, hash, server.router().shard_of(hash), static_cast<uint8_t>(op.arg(i).ns)};
                 session->watched.push_back(watched);
                 state->watched.push_back(std::move(watched));
             }
@@ -1868,7 +1875,7 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
     bool ok = true;
     for (const MultiWriteKey& write : state.write_keys) {
         if (write.shard != shard.id()) continue;
-        const Slice key(write.key.data(), static_cast<uint32_t>(write.key.size()));
+        const Slice key(write.key.data(), static_cast<uint32_t>(write.key.size()), write.ns);
         ok &= producer.record_group_visible_post_image(shard.store(), write.hash, key);
     }
     shard.store().atomic_clear_read_epoch();
@@ -2163,7 +2170,7 @@ uint64_t multi_session_memory(const Client& client) {
 
 namespace {
 
-std::string watch_key_string(Slice key) { return std::string(key.p, key.n); }
+std::string watch_key_string(Slice key) { return database_owned_key(key); }
 
 template <typename Fn>
 void for_each_spec_key(Op& op, Fn&& fn) {
@@ -2404,10 +2411,11 @@ bool Shard::watch_all_write_ready() {
     return true;
 }
 
-void Shard::watch_all_write_committed() {
+void Shard::watch_all_write_committed(int physical_db) {
     if (!has_watches()) return;
     if (!watch_all_write_ready()) return;
     for (auto& item : watchers_)
+        if (physical_db < 0 || static_cast<uint8_t>(item.first[0]) == physical_db)
         for (const WatchEntry& entry : item.second)
             if (entry.client && entry.client->watch_generation() == entry.generation)
                 entry.client->set_watch_dirty();
@@ -2420,7 +2428,7 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
     if (!xshard_owner_mutation_phase(state, op) || state.atomic_group) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group || group->count == 0) {
-        shard.watch_all_write_committed();
+        shard.watch_all_write_committed(op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1);
         return;
     }
     for (uint32_t i = 0; i < group->count; i++) {

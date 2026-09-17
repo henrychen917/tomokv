@@ -19,6 +19,7 @@ enum class BlockingPhase : uint8_t {
 enum class BlockingProbe : uint8_t { Empty, Ready, WrongType, MissingGroup, Oom };
 
 struct BlockingKey {
+    uint8_t ns = 0;
     std::string key;
     uint64_t hash = 0;
     int32_t shard = -1;
@@ -107,7 +108,7 @@ BlockingGroup* blocking_group_for(BlockingState& state, int32_t shard) {
 }
 
 Slice blocking_key_slice(const BlockingKey& key) {
-    return Slice(key.key.data(), static_cast<uint32_t>(key.key.size()));
+    return Slice(key.key.data(), static_cast<uint32_t>(key.key.size()), key.ns);
 }
 
 bool blocking_is_list(BlockingKind kind) {
@@ -982,6 +983,7 @@ BlockingPrepare blocking_prepare(Server& server, Client& client, Op& op, uint64_
             const uint64_t hash = FlatStore::hash_key(key);
             const int32_t shard = server.router().shard_of(hash);
             BlockingKey blocking_key;
+            blocking_key.ns = key.ns;
             blocking_key.key.assign(key.p, key.n);
             blocking_key.hash = hash;
             blocking_key.shard = shard;

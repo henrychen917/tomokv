@@ -306,14 +306,14 @@ KvObj* xshard_make_atomic_string(Shard& shard, Slice key, Slice value,
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     if (integer_encode && parse_i64(value, integer)) {
         const size_t allocation = good_size(
-            kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
+            kvobj_alloc_size(key.identity(), 0, has_ttl_slot, Enc::Int));
         void* memory = shard.store().atomic_acquire_value_block(allocation);
         return kvobj_init_int(memory, key, integer, expire_at_ms, reserve_ttl_slot);
     }
     if (value.n > kEmbedThreshold)
         return kvobj_new_string(key, value, expire_at_ms, reserve_ttl_slot);
     const size_t allocation = good_size(
-        kvobj_alloc_size(key.n, value.n, has_ttl_slot, Enc::Raw));
+        kvobj_alloc_size(key.identity(), value.n, has_ttl_slot, Enc::Raw));
     void* memory = shard.store().atomic_acquire_value_block(allocation);
     return kvobj_init_raw_string(memory, key, value, expire_at_ms, reserve_ttl_slot);
 }

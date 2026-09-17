@@ -122,7 +122,7 @@ public:
     bool record_post_image_buffered(FlatStore& store, uint64_t hash, Slice key,
                                     uint64_t group = 0);
     bool record_delete(Slice key, uint64_t group = 0);
-    bool record_flush();
+    bool record_flush(int physical_db = -1);
     bool begin_group(const std::shared_ptr<AofGroupDecision>& group);
     bool record_group_post_image(FlatStore& store, uint64_t hash, Slice key);
     bool record_group_visible_post_image(FlatStore& store, uint64_t hash, Slice key);

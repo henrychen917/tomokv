@@ -125,9 +125,13 @@ __attribute__((always_inline)) inline void bytes_copy(char* d, const char* s, si
 struct Slice {
     const char* p = nullptr;
     uint32_t    n = 0;
+    // Key identity occupies the former ABI padding. Values still compare bytewise.
+    // Physical namespace zero has precisely the old length/hash representation.
+    uint32_t    ns = 0;
 
     Slice() = default;
     Slice(const char* p_, uint32_t n_) : p(p_), n(n_) {}
+    Slice(const char* p_, uint32_t n_, uint32_t ns_) : p(p_), n(n_), ns(ns_) {}
     explicit Slice(std::string_view s) : p(s.data()), n(static_cast<uint32_t>(s.size())) {}
 
     bool empty() const { return n == 0; }
@@ -147,7 +151,15 @@ struct Slice {
     // atomic entry and script-intent scans -- so those paths cannot drift apart. The one deliberate
     // exception is FlatStore::insert_into(), which keeps operator== for a measured reason stated
     // there; both are exact byte equality, so the answer is the same either way.
-    bool key_eq(const Slice& o) const { return n == o.n && bytes_equal(p, o.p, n); }
+    uint64_t identity() const {
+        uint64_t value;
+        std::memcpy(&value, &n, sizeof(value));
+        return value;
+    }
+    bool key_eq(const Slice& o) const { return identity() == o.identity() && bytes_equal(p, o.p, n); }
+    bool key_mem_eq(const Slice& o) const {
+        return identity() == o.identity() && (n == 0 || std::memcmp(p, o.p, n) == 0);
+    }
 
     // Case-insensitive compare against a literal — command names arrive in any case. CONTRACT:
     // the LITERAL must be lowercase. Only the left side is folded (one fold per byte on the verb

@@ -36,6 +36,7 @@
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
 #include "../persist/aof.h"
 
@@ -161,6 +162,8 @@ public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
 
     Server() = default;
+    DatabaseMap& databases() { return databases_; }
+    const DatabaseMap& databases() const { return databases_; }
     friend struct NetcmdRegression;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
@@ -1832,6 +1835,7 @@ public:
     }
 
 private:
+    DatabaseMap databases_;
     std::string flip_smt_pairing_error(uint32_t requested_io) const {
         std::string nearest;
         auto add = [&](uint32_t io) {

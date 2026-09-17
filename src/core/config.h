@@ -356,10 +356,9 @@ struct Config {
     bool aof_timestamp_enabled = false;
     bool aof_load_truncated = true;     // boot-only recovery policy; existing bool alignment hole
 
-    // TomoKV intentionally owns one keyspace. The compatibility knob is still parsed and exposed,
-    // but only the honest value 1 is accepted. The protocol bound is live and applies to request
+    // Logical databases share the sharded store; physical namespace IDs are one byte. The protocol bound is live and applies to request
     // bulk lengths; the 32-bit Slice ABI sets the supported ceiling checked by the parser below.
-    uint32_t databases = 1;
+    uint32_t databases = 16;
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 
     // ---- data path (live via CONFIG SET) ----------------------------------------------------
@@ -919,8 +918,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--databases")) {
             uint32_t value = 0;
-            if (!cfg_parse_u32(next(nullptr), value) || value != 1) {
-                std::fprintf(stderr, "--databases must be 1: this server owns one keyspace\n");
+            if (!cfg_parse_u32(next(nullptr), value) || (value < 1 || value > 256)) {
+                std::fprintf(stderr, "--databases must be between 1 and 256\n");
                 return kConfigError;
             }
             cfg.databases = value;
@@ -1095,7 +1094,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
                         "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
                         "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
-                        "  compatibility: --databases 1 --proto-max-bulk-len BYTES\n"
+                        "  compatibility: --databases N --proto-max-bulk-len BYTES\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"
@@ -1152,8 +1151,8 @@ inline int validate_config(const Config& cfg) {
                      "--flip-auto is unavailable with --thread-mode 1s\n");
         return kConfigError;
     }
-    if (cfg.databases != 1) {
-        std::fprintf(stderr, "databases must be 1: this server owns one keyspace\n");
+    if (cfg.databases < 1 || cfg.databases > 256) {
+        std::fprintf(stderr, "databases must be between 1 and 256\n");
         return kConfigError;
     }
     if (cfg.proto_max_bulk_len < kProtoMinBulkLen ||

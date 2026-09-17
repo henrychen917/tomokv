@@ -2816,7 +2816,8 @@ private:
         const uint8_t security_flags = srv_->security_flags();
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
-        const bool notify_armed = notify_armed_;
+        const bool namespace_armed = c->multidb_armed() || srv_->databases().remapped();
+        const bool notify_armed = notify_armed_ || namespace_armed;
         const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
@@ -3038,9 +3039,10 @@ private:
             // byte-for-byte the pre-lane sequence: one predicted-not-taken test, then the tls
             // variant select and the spec store. The armed side pays a cold out-of-line call.
             if (__builtin_expect(notify_armed, false)) {
-                spec = command_notify_variant(spec);
+                if (notify_armed_) spec = command_notify_variant(spec);
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
+                if (namespace_armed) multidb_stamp(*srv_, *op, conn.session().db_index);
             } else {
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
@@ -3703,6 +3705,7 @@ subscriber_checks_done:
                 mark_active_known<TargetedIfid>(c);
                 if (c->closing()) { result = DispatchResult::Closed; break; }
                 if (acl_command) break;
+                if (op->cmd_name().eq_icase("select") || op->cmd_name().eq_icase("reset")) break;
                 if (__builtin_expect(climon_armed_dirty_, false)) {
                     climon_armed_dirty_ = false;
                     break;

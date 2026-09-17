@@ -160,7 +160,12 @@ struct KvObj {
 
     char*       key_ptr()       { return tail() + klen_ext_bytes() + ttl_bytes(); }
     const char* key_ptr() const { return tail() + klen_ext_bytes() + ttl_bytes(); }
-    Slice       key()     const { return Slice(key_ptr(), klen()); }
+    // Nonzero namespaces use KeyExt even for short keys. klen8 encodes ns-1;
+    // legacy extended keys retain 255, which decodes to namespace zero.
+    uint8_t key_namespace() const {
+        return (flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0;
+    }
+    Slice       key()     const { return Slice(key_ptr(), klen(), key_namespace()); }
 
     uint32_t read_local_klen(uint8_t stable_flags) const {
         if (stable_flags & KvObjFlags::KeyExt) {
@@ -176,7 +181,8 @@ struct KvObj {
         return tail() + ext + ttl;
     }
     Slice read_local_key(uint8_t stable_flags) const {
-        return Slice(read_local_key_ptr(stable_flags), read_local_klen(stable_flags));
+        return Slice(read_local_key_ptr(stable_flags), read_local_klen(stable_flags),
+                     (stable_flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0);
     }
 
     char*       val_ptr()       { return key_ptr() + klen(); }
@@ -254,7 +260,7 @@ struct KvObj {
 
 static_assert(sizeof(KvObj) == 8, "KvObj header must stay 8 bytes");
 
-inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl_slot, Enc enc);
+inline size_t kvobj_alloc_size(uint64_t key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc);
 
 // Small collections follow this architecture's string-inline precedent while retaining Compact's
 // byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
@@ -313,7 +319,7 @@ inline uint32_t embedded_compact_capacity(const KvObj* o) {
     const size_t prefix = static_cast<size_t>(o->val_ptr() - reinterpret_cast<const char*>(o)) +
                           sizeof(EmbeddedCompact);
     const size_t allocation = good_size(kvobj_alloc_size(
-        o->klen(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0, Enc::Compact));
+        o->key().identity(), o->vlen, (o->flags & KvObjFlags::HasTtl) != 0, Enc::Compact));
     const size_t slack = allocation > prefix ? allocation - prefix : 0;
     return static_cast<uint32_t>(std::min<size_t>(slack, kCollectionEmbedMax));
 }
@@ -676,11 +682,11 @@ private:
 // Values at or below this live in the same block as the key. 192 was validated on the fork, but
 // against Redis's allocation shape rather than this one, so it is a starting point to re-measure —
 // it trades RSS against SET throughput.
-inline size_t kvobj_alloc_size(uint32_t klen, uint32_t vlen, bool has_ttl_slot, Enc enc) {
+inline size_t kvobj_alloc_size(uint64_t key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc) {
     size_t n = sizeof(KvObj);
-    if (klen >= 255) n += 4;
+    if (key_identity >= 255) n += 4;
     if (has_ttl_slot) n += 8;
-    n += klen;
+    n += static_cast<uint32_t>(key_identity);
     switch (enc) {
         case Enc::Int:    n += 8; break;
         case Enc::Extern: n += sizeof(void*); break;
@@ -732,10 +738,10 @@ inline KvObj* kvobj_init_raw_string(void* mem, Slice key, Slice val,
     o->type = static_cast<uint8_t>(Type::String);
     o->enc = static_cast<uint8_t>(Enc::Raw);
     o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+                                    (key.identity() >= 255 ? KvObjFlags::KeyExt : 0));
+    o->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
     o->init_raw_length(val.n);
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (key.identity() >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     // The KEY is short and bounded and the object is not published yet, so the inline copy applies.
     // The VALUE deliberately keeps the library memcpy: it is a whole payload, unbounded up to
@@ -754,10 +760,10 @@ inline KvObj* kvobj_init_int(void* mem, Slice key, int64_t value,
     o->type = static_cast<uint8_t>(Type::String);
     o->enc = static_cast<uint8_t>(Enc::Int);
     o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0));
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+                                    (key.identity() >= 255 ? KvObjFlags::KeyExt : 0));
+    o->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
     o->init_nonraw_length(0);
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (key.identity() >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
     o->set_int_value(value);
@@ -773,7 +779,7 @@ inline KvObj* kvobj_new_string(
     // which is only within the allocation if the allocation asked for it: on jemalloc the class
     // rounds up anyway (zero cost), on an exact allocator (ASAN, glibc) requesting the raw size
     // made that write a heap overflow -- a 3-byte corruption the gate's RYOW-under-ASAN caught.
-    const size_t n = good_size(kvobj_alloc_size(key.n, val.n, has_ttl_slot, enc));
+    const size_t n = good_size(kvobj_alloc_size(key.identity(), val.n, has_ttl_slot, enc));
 
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
@@ -785,11 +791,11 @@ inline KvObj* kvobj_new_string(
     o->type  = static_cast<uint8_t>(Type::String);
     o->enc   = static_cast<uint8_t>(enc);
     o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
+                                    (key.identity() >= 255 ? KvObjFlags::KeyExt : 0) |
                                     KvObjFlags::OwnsExtern);
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+    o->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
     o->init_nonraw_length(val.n);
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (key.identity() >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     if (key.n) bytes_copy(o->key_ptr(), key.p, key.n);
     void* ext = alloc_raw(good_size(val.n));   // same contract as the main block
@@ -803,7 +809,7 @@ inline KvObj* kvobj_new_int(
     Slice key, int64_t value, int64_t expire_at_ms = -1, bool reserve_ttl_slot = false
 ) {
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
-    const size_t n = good_size(kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
+    const size_t n = good_size(kvobj_alloc_size(key.identity(), 0, has_ttl_slot, Enc::Int));
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
@@ -815,7 +821,7 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
                                 bool reserve_ttl_slot = false) {
     if (type == Type::String || !value) return nullptr;
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
-    const size_t n = good_size(kvobj_alloc_size(key.n, value_size, has_ttl_slot, Enc::Extern));
+    const size_t n = good_size(kvobj_alloc_size(key.identity(), value_size, has_ttl_slot, Enc::Extern));
     void* mem = alloc_raw(n);
     if (!mem) return nullptr;
 
@@ -823,11 +829,11 @@ inline KvObj* kvobj_new_typeval(Slice key, Type type, void* value, uint32_t valu
     o->type = static_cast<uint8_t>(type);
     o->enc = static_cast<uint8_t>(Enc::Extern);
     o->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                    (key.n >= 255 ? KvObjFlags::KeyExt : 0) |
+                                    (key.identity() >= 255 ? KvObjFlags::KeyExt : 0) |
                                     (owns ? KvObjFlags::OwnsExtern : 0));
-    o->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+    o->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
     o->init_nonraw_length(value_size);
-    if (key.n >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
+    if (key.identity() >= 255) { uint32_t k = key.n; std::memcpy(o->tail(), &k, 4); }
     if (has_ttl_slot) o->set_expire_at_ms(expire_at_ms);
     bytes_copy(o->key_ptr(), key.p, key.n);
     o->set_external_ptr(value);
@@ -842,7 +848,7 @@ inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& co
     const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
     const uint32_t tail_bytes = static_cast<uint32_t>(sizeof(EmbeddedCompact) +
                                                        compact.encoded_bytes());
-    const size_t n = good_size(kvobj_alloc_size(key.n, tail_bytes, has_ttl_slot, Enc::Compact));
+    const size_t n = good_size(kvobj_alloc_size(key.identity(), tail_bytes, has_ttl_slot, Enc::Compact));
     void* memory = alloc_raw(n);
     if (!memory) return nullptr;
 
@@ -850,10 +856,10 @@ inline KvObj* kvobj_new_embedded_typeval(Slice key, Type type, const Compact& co
     object->type = static_cast<uint8_t>(type);
     object->enc = static_cast<uint8_t>(Enc::Compact);
     object->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                         (key.n >= 255 ? KvObjFlags::KeyExt : 0));
-    object->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+                                         (key.identity() >= 255 ? KvObjFlags::KeyExt : 0));
+    object->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
     object->init_nonraw_length(tail_bytes);
-    if (key.n >= 255) { uint32_t length = key.n; std::memcpy(object->tail(), &length, 4); }
+    if (key.identity() >= 255) { uint32_t length = key.n; std::memcpy(object->tail(), &length, 4); }
     if (has_ttl_slot) object->set_expire_at_ms(expire_at_ms);
     if (key.n) std::memcpy(object->key_ptr(), key.p, key.n);
 
@@ -992,17 +998,17 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
         const uint32_t tail_bytes = static_cast<uint32_t>(sizeof(EmbeddedCompact)) +
                                     embedded->encoded_bytes();
         const size_t bytes = good_size(
-            kvobj_alloc_size(key.n, tail_bytes, has_ttl_slot, Enc::Compact));
+            kvobj_alloc_size(key.identity(), tail_bytes, has_ttl_slot, Enc::Compact));
         void* memory = alloc_raw(bytes);
         if (!memory) return nullptr;
         replacement = static_cast<KvObj*>(memory);
         replacement->type = src->type;
         replacement->enc = static_cast<uint8_t>(Enc::Compact);
         replacement->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
-                                                   (key.n >= 255 ? KvObjFlags::KeyExt : 0));
-        replacement->klen8 = static_cast<uint8_t>(key.n >= 255 ? 255 : key.n);
+                                                   (key.identity() >= 255 ? KvObjFlags::KeyExt : 0));
+        replacement->klen8 = static_cast<uint8_t>(key.identity() >= 255 ? static_cast<uint8_t>(key.ns - 1) : key.n);
         replacement->init_nonraw_length(tail_bytes);
-        if (key.n >= 255) {
+        if (key.identity() >= 255) {
             const uint32_t length = key.n;
             std::memcpy(replacement->tail(), &length, sizeof(length));
         }
@@ -1022,7 +1028,7 @@ inline KvObj* kvobj_reheader(KvObj* src, int64_t expire_at_ms) {
 inline size_t kvobj_request_size(const KvObj* o) {
     const Enc encoding = o->encoding();
     const uint32_t length = encoding == Enc::Raw ? kvobj_read_local_raw_length(o) : o->vlen;
-    return kvobj_alloc_size(o->klen(), length, (o->flags & KvObjFlags::HasTtl) != 0, encoding);
+    return kvobj_alloc_size(o->key().identity(), length, (o->flags & KvObjFlags::HasTtl) != 0, encoding);
 }
 
 // What the allocator actually handed back. The slack between request and class is already paid for,

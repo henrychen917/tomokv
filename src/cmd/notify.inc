@@ -180,22 +180,18 @@ NotifyBatch* notify_get_or_create_batch(Op& carrier);
 
 uint32_t notify_key_arg_order(const Shard& shard, const Op& source, Slice key) {
     for (uint32_t i = 1; i < source.argc(); i++)
-        if (source.arg(i) == key) return shard.notify_order_base() + i * 16;
+        if (source.arg(i).key_mem_eq(key)) return shard.notify_order_base() + i * 16;
     return shard.notify_order_base() + 0x0ff0;
 }
 
-std::string notify_keyspace_channel(Slice key) {
-    static constexpr char prefix[] = "__keyspace@0__:";
-    std::string channel;
-    channel.reserve(sizeof(prefix) - 1 + key.n);
-    channel.append(prefix, sizeof(prefix) - 1);
+std::string notify_keyspace_channel(Slice key, uint8_t db) {
+    std::string channel = "__keyspace@" + std::to_string(db) + "__:";
     channel.append(key.p, key.n);
     return channel;
 }
 
-std::string notify_keyevent_channel(NotifyEventId event) {
-    static constexpr char prefix[] = "__keyevent@0__:";
-    std::string channel(prefix, sizeof(prefix) - 1);
+std::string notify_keyevent_channel(NotifyEventId event, uint8_t db) {
+    std::string channel = "__keyevent@" + std::to_string(db) + "__:";
     channel += notify_event_name(event);
     return channel;
 }
@@ -205,12 +201,12 @@ bool notify_make_publication(Server& server, uint32_t routes, uint8_t route,
                              std::string& channel, std::string& message) {
     if (route == 0) {
         if (!(routes & NOTIFY_KEYSPACE)) return false;
-        channel = notify_keyspace_channel(key);
+        channel = notify_keyspace_channel(key, server.databases().logical(key.ns));
         message = notify_event_name(event_id);
         return true;
     }
     if (!(routes & NOTIFY_KEYEVENT)) return false;
-    channel = notify_keyevent_channel(event_id);
+    channel = notify_keyevent_channel(event_id, server.databases().logical(key.ns));
     message.assign(key.p, key.n);
     (void)server;
     return true;
@@ -342,18 +338,18 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     Slice stable = key;
     bool pinned = false;
     for (uint32_t i = 1; i < carrier->argc(); i++) {
-        if (carrier->arg(i) == key) { stable = carrier->arg(i); pinned = true; break; }
+        if (carrier->arg(i).key_mem_eq(key)) { stable = carrier->arg(i); pinned = true; break; }
     }
     if (!pinned && carrier == &source) {
         for (uint32_t i = 1; i < source.argc(); i++) {
-            if (source.arg(i) == key) { stable = source.arg(i); pinned = true; break; }
+            if (source.arg(i).key_mem_eq(key)) { stable = source.arg(i); pinned = true; break; }
         }
     }
     if (!pinned) {
         try {
             batch->owned_keys.emplace_back(key.p, key.n);
             const std::string& owned = batch->owned_keys.back();
-            stable = Slice(owned.data(), static_cast<uint32_t>(owned.size()));
+            stable = Slice(owned.data(), static_cast<uint32_t>(owned.size()), key.ns);
         } catch (const std::bad_alloc&) {
             server->notify_event_dropped();
             return false;

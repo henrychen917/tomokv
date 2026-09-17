@@ -931,7 +931,8 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
             error = "invalid record lengths";
             return false;
         }
-        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len);
+        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
+        if (key.ns >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
         pos += key_len;
         const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
                             static_cast<uint32_t>(payload_len));

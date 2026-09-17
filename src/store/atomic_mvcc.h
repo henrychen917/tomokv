@@ -42,6 +42,7 @@ struct AtomicEntry {
     // DEL/UNLINK groups own packed key bytes in this allocation instead of one empty KvObj per
     // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
     bool copied_group_keys = false;
+    uint8_t key_ns = 0;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -74,6 +75,7 @@ static_assert(sizeof(AtomicEntry) == 144);
 // script allocate none, and a key's hot representation remains byte-identical.  The trailing key
 // bytes make the intent independent of the IO-owned request buffer.
 struct AtomicScriptIntent {
+    uint32_t key_ns = 0;
     AtomicScriptIntent* next = nullptr;
     uint64_t hash = 0;
     uint32_t refs = 0;

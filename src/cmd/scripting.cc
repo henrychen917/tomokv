@@ -606,6 +606,9 @@ int redis_dispatch(lua_State* state, bool protected_call) {
         }
         if (!failed) {
             const uint32_t key_arg = static_cast<uint32_t>(spec->first_key);
+            nested.db = context->parent->db;
+            nested.physical_db = context->parent->physical_db;
+            nested.set_arg_namespace(key_arg, nested.physical_db);
             const Slice key = nested.arg(key_arg);
             if (!mark_declared(*context, key, 1)) {
                 std::snprintf(deferred_error, sizeof(deferred_error),

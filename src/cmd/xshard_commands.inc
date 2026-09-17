@@ -896,7 +896,7 @@ void sort_reply_rows(Op& op, const std::vector<std::string>& values,
 
 bool same_key(const Op& op) {
     const Slice a = op.arg(1), b = op.arg(2);
-    return a.n == b.n && (a.n == 0 || std::memcmp(a.p, b.p, a.n) == 0);
+    return a.key_mem_eq(b);
 }
 
 bool image_type(const ObjectImage& image, Type type) {

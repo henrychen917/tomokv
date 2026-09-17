@@ -781,13 +781,7 @@ void cmd_hello(Shard&, Op& op) {
 }
 
 void cmd_select(Shard&, Op& op) {
-    uint64_t db = 0;
-    if (!parse_u64(op.arg(1), db) || db != 0) {
-        reply_err(op.sink(), "ERR this server supports a single keyspace; only SELECT 0 is valid");
-        return;
-    }
-    if (g_client) g_client->session().db_index = 0;
-    reply_ok(op.sink());
+    multidb_select(g_server, g_client, op);
 }
 
 void cmd_reset(Shard&, Op& op) {
@@ -2684,9 +2678,11 @@ void cmd_dbsize(Shard&, Op& op) {
 
 // publish_size after clear: publications otherwise happen only at executor batch boundaries, so an
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
-void cmd_flush(Shard& sh, Op&) {
+void cmd_flush(Shard& sh, Op& op) {
     const bool changed = sh.store().size() != 0;
-    if (sh.store().snapshot_active()) {
+    if (op.cmd_name().eq_icase("flushdb")) {
+        multidb_flush(sh, op.physical_db);
+    } else if (sh.store().snapshot_active()) {
         // The scatter snapshot gate has serialized every frozen pre-image before this handler is
         // reached.  Keep the frozen table allocation/cursor alive for the capture walker: clear()
         // frees both tables, which was the pre-existing FLUSH-under-capture bug.  Logical erases
@@ -2762,6 +2758,7 @@ void cmd_scan(Shard& sh, Op& op) {
     std::vector<Slice> keys;
     keys.reserve(std::min<uint32_t>(count, 1024));
     inner = sh.store().scan(inner, count, [&](KvObj* obj) {
+        if (obj->key_namespace() != op.physical_db) return;
         if (type.n && !eq_icase(type, object_type(obj))) return;
         if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
     });
@@ -3218,7 +3215,7 @@ bool command_config_routes_all_shards(Op& op) {
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
-    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
+    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 1 || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
                (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||

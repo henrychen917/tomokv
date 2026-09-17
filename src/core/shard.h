@@ -286,7 +286,7 @@ public:
     void watch_write_committed(Slice key, Client* writer = nullptr,
                                uint64_t writer_generation = 0);
     bool watch_all_write_ready();
-    void watch_all_write_committed();
+    void watch_all_write_committed(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
     void watch_prune_stale(const std::string& key);

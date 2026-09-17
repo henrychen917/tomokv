@@ -239,6 +239,7 @@ public:
     // before -- the split is structural rather than a list of sites to remember. reset() must NOT
     // touch this: a ROB slot is armed once and is a ROB slot forever.
     uint8_t reply_code_ok_ = 0;
+    uint8_t db = 0;                 // logical database at parse time (former padding)
 
     SmallBuf<kInlineReply> reply;           // worker writes RESP here (the spill/general sink)
 
@@ -265,6 +266,13 @@ public:
 
     // The only cross-thread field. Acquire/release on this orders everything else.
     std::atomic<OpState> state{OpState::Free};
+    uint8_t physical_db = 0;        // immutable routing namespace for this operation
+    uint8_t secondary_db = 0;       // COPY/MOVE destination, captured with physical_db
+    uint8_t target_db = 0;          // destination's logical name
+
+    void set_arg_namespace(uint32_t i, uint8_t ns) {
+        (argv_heap_ ? argv_heap_[i] : argv_inline_[i]).ns = ns;
+    }
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
     // `state` is one byte at offset 184 and the argv header needs 8-byte alignment at 192, so 185..191

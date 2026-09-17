@@ -189,6 +189,7 @@ struct SortOptions {
 enum class SortDerefWave : uint8_t { Source, Gather, Resolved };
 
 struct SortDerefRequest {
+    uint8_t ns = 0;
     std::string key;
     std::string field;
     std::string value;
@@ -948,7 +949,7 @@ bool sort_deref_gathering(const ScatterState& state) {
 }
 
 Slice sort_deref_key(const SortDerefRequest& request) {
-    return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()));
+    return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()), request.ns);
 }
 
 // A scatter task runs on the one owner of `group.shard`, and the group's dense range contains only
@@ -1038,7 +1039,8 @@ WorkError prepare_sort_deref(ScatterState& state, Op& op) {
             SortDerefRequest request;
             if (!sort_pattern_key(pattern, element, request.key)) return;
             if (pattern.field.n) request.field.assign(pattern.field.p, pattern.field.n);
-            const Slice key(request.key.data(), static_cast<uint32_t>(request.key.size()));
+            request.ns = op.physical_db;
+            const Slice key(request.key.data(), static_cast<uint32_t>(request.key.size()), request.ns);
             request.hash = FlatStore::hash_key(key);
             request.shard = state.server->router().shard_of(request.hash);
             request.output = output;
@@ -1692,6 +1694,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     bool copy_replace = false, from_left = false, to_left = false;
     if (kind == Kind::Copy) {
+        multidb_stamp(server, op, op.db);
         for (uint32_t i = 3; i < op.argc();) {
             if (op.arg(i).eq_icase("replace")) { copy_replace = true; i++; }
             else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {
@@ -1709,7 +1712,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                                          "-2147483648 and 2147483647");
                     return ScatterPrepare::Error;
                 }
-                if (db != 0) {
+                if (db < 0 || uint64_t(db) >= server.cfg().databases) {
                     reply_err(op.sink(), "ERR DB index is out of range");
                     return ScatterPrepare::Error;
                 }
@@ -2138,7 +2141,8 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
     }
     if (state.kind == Kind::AllShards) {
         if (op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall"))
-            (void)shard.store().aof().record_flush();
+            (void)shard.store().aof().record_flush(op.cmd_name().eq_icase("flushdb")
+                ? op.physical_db : -1);
         return;
     }
     if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
@@ -3168,7 +3172,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 // owner-local tombstone cut first so clear() cannot free a protected predecessor.
                 // Allocation happens before the ticket or any relink; OOM retries are deferrable.
                 if ((op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall")) &&
-                    !shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
+                    !shard.store().atomic_tombstone_all(op.cmd_name().eq_icase("flushdb")
+                        ? op.physical_db : -1)) return ScatterTaskResult::Retry;
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
             }
@@ -3214,7 +3219,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
-                    shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);
+                    multidb_size(shard, op.physical_db, state.snapshot), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
             case Kind::Mget:
                 std::abort(); // handled by the owner-hoisted arm above
@@ -3288,13 +3293,13 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
                     const Slice key = object->key();
                     const uint64_t hash = FlatStore::hash_key(key);
-                    if (shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
+                    if (key.ns == op.physical_db && shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
                         command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 if (group.scan_cursor) return ScatterTaskResult::Retry;
                 shard.store().atomic_for_each_side_key(state.snapshot, [&](Slice key) {
-                    if (command_glob_match(pattern, key))
+                    if (key.ns == op.physical_db && command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 return ScatterTaskResult::Complete;
