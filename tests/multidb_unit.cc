@@ -488,6 +488,37 @@ static void owners() {
     require(transaction(server, swapping, {"SWAPDB", "12", "13"}) == "+QUEUED\r\n", "aborted queued swap");
     require(transaction(server, swapping, {"EXEC"}) == "*-1\r\n", "WATCH abort hides map");
     require(server.databases().capture().epoch == committed_epoch, "aborted swap publishes no epoch");
+    Client transient_watcher(-1), transient_writer(-1);
+    transient_watcher.set_id(91); transient_watcher.session().db_index = 14;
+    transient_writer.set_id(92); transient_writer.session().db_index = 13;
+    require(local(server, 13, {"SET", "transient-swap", "value"}) == "+OK\r\n", "transient source");
+    require(transaction(server, transient_watcher, {"WATCH", "transient-swap"}) == "+OK\r\n", "WATCH transient destination");
+    require(transaction(server, transient_writer, {"MULTI"}) == "+OK\r\n", "transient MULTI");
+    require(transaction(server, transient_writer, {"SWAPDB", "13", "14"}) == "+QUEUED\r\n", "transient swap in");
+    require(transaction(server, transient_writer, {"SELECT", "14"}) == "+QUEUED\r\n", "transient SELECT");
+    require(transaction(server, transient_writer, {"DEL", "transient-swap"}) == "+QUEUED\r\n", "transient removal");
+    require(transaction(server, transient_writer, {"SWAPDB", "13", "14"}) == "+QUEUED\r\n", "transient swap back");
+    require(transaction(server, transient_writer, {"EXEC"}) == "*4\r\n+OK\r\n+OK\r\n:1\r\n+OK\r\n", "transient EXEC");
+    require(transaction(server, transient_watcher, {"MULTI"}) == "+OK\r\n", "transient watcher MULTI");
+    require(transaction(server, transient_watcher, {"GET", "transient-swap"}) == "+QUEUED\r\n", "transient watcher GET");
+    require(transaction(server, transient_watcher, {"EXEC"}) == "*-1\r\n", "WATCH remembers a key swapped in, deleted, and swapped back");
+    // A write must dirty the database it named THEN, even if both namespaces
+    // are empty when the final swap executes. The other absent WATCH stays clean.
+    transient_writer.session().db_index = 13;
+    Client original_watcher(-1); original_watcher.set_id(93); original_watcher.session().db_index = 13;
+    require(transaction(server, original_watcher, {"WATCH", "vanished-before-swap"}) == "+OK\r\n", "WATCH original logical DB");
+    require(transaction(server, transient_watcher, {"WATCH", "vanished-before-swap"}) == "+OK\r\n", "WATCH untouched destination");
+    require(transaction(server, transient_writer, {"MULTI"}) == "+OK\r\n", "vanishing MULTI");
+    require(transaction(server, transient_writer, {"SET", "vanished-before-swap", "v"}) == "+QUEUED\r\n", "vanishing SET");
+    require(transaction(server, transient_writer, {"DEL", "vanished-before-swap"}) == "+QUEUED\r\n", "vanishing DEL");
+    require(transaction(server, transient_writer, {"SWAPDB", "13", "14"}) == "+QUEUED\r\n", "vanishing SWAP");
+    require(transaction(server, transient_writer, {"EXEC"}) == "*3\r\n+OK\r\n:1\r\n+OK\r\n", "vanishing EXEC");
+    for (Client* watching : {&original_watcher, &transient_watcher}) {
+        require(transaction(server, *watching, {"MULTI"}) == "+OK\r\n", "vanishing watcher MULTI");
+        require(transaction(server, *watching, {"GET", "vanished-before-swap"}) == "+QUEUED\r\n", "vanishing watcher GET");
+        require(transaction(server, *watching, {"EXEC"}) ==
+            (watching == &original_watcher ? "*-1\r\n" : "*1\r\n$-1\r\n"), "WATCH uses write-time logical identity");
+    }
     persistence(server);
     records_done(server);
     command_bind_server(nullptr);

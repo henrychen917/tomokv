@@ -76,6 +76,8 @@ struct MultiCommand {
     // today (SORT source -> dynamic gather -> STORE apply) with one spare stage for a future retry.
     std::array<std::array<uint64_t, kShardMaskWords>, kXshardStages> xshard_stage_groups{};
     uint32_t notify_order_base = 0;
+    std::array<uint8_t, 2> swap_physical{};
+    std::unique_ptr<DatabaseMap::Map> watch_map;
 };
 
 enum class MultiStateKind : uint8_t { Execute, WatchAdd, Unwatch, Close };
@@ -125,7 +127,11 @@ struct MultiOwnerRecordRefs {
 // that lets it do so through the connection-owning IO thread's ScatterArenaPool, which is the one
 // object allowed to write that thread's published cleanup floor (see xshard.h).
 struct alignas(8) MultiExecState : SnapshotCut {
-    ~MultiExecState() { notify_discard_batch(notify.exchange(nullptr)); }
+    ~MultiExecState() {
+        notify_discard_batch(notify.exchange(nullptr));
+        for (auto& targets : database_watch)
+            for (auto [client, generation] : targets) client->watch_unref();
+    }
     MultiStateKind kind = MultiStateKind::Execute;
     MultiFinalReply final_reply = MultiFinalReply::Exec;
     Server* server = nullptr;
@@ -162,6 +168,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::unique_ptr<DatabaseMap::Map> database_publish;
     struct Swap { uint8_t first, second, physical_first, physical_second; };
     std::vector<Swap> database_swaps;
+    std::vector<std::vector<std::pair<Client*, uint64_t>>> database_watch;
     std::unordered_set<MultiWriteKey, MultiWriteKeyHash, MultiWriteKeyEqual> write_key_set;
     std::vector<int32_t> shards;
     // IO builds these in transaction order. Each cursor has exactly one shard-owner writer.
@@ -195,6 +202,28 @@ struct alignas(8) MultiExecState : SnapshotCut {
 };
 
 namespace {
+
+thread_local const DatabaseMap::Map* multi_watch_map = nullptr;
+struct MultiWatchMapScope {
+    const DatabaseMap::Map* selected;
+    const DatabaseMap::Map* previous = nullptr;
+    explicit MultiWatchMapScope(const DatabaseMap::Map* map) : selected(map) {
+        if (selected) { previous = multi_watch_map; multi_watch_map = selected; }
+    }
+    ~MultiWatchMapScope() { if (selected) multi_watch_map = previous; }
+};
+uint8_t watch_write_database(Server* server, uint8_t physical) {
+    if (multi_watch_map) {
+        for (unsigned logical = 0; logical < 256; ++logical)
+            if ((*multi_watch_map)[logical] == physical) return logical;
+        std::abort();
+    }
+    return server ? server->databases().logical(physical) : physical;
+}
+void watch_note_database(Shard::WatchReservation& reservation, Server* server, uint8_t physical) {
+    const auto db = watch_write_database(server, physical);
+    reservation.dirty_databases[db / 64] |= uint64_t{1} << (db % 64);
+}
 
 constexpr uintptr_t kMultiTaskTag = 1;
 
@@ -557,9 +586,12 @@ bool prepare_commands(Server& server, MultiExecState& state,
         state.write_key_set.reserve(queue.size());
         state.database_map = server.databases().capture();
         auto routing_map = state.database_map;
+        const bool swaps = std::any_of(queue.begin(), queue.end(),
+            [](const auto& queued) { return has_name(queued, "swapdb"); });
         uint8_t logical_db = state.client->session().db_index;
         for (MultiQueuedCommand& queued : queue) {
             auto command = std::make_unique<MultiCommand>();
+            if (swaps) command->watch_map = std::make_unique<DatabaseMap::Map>(routing_map);
             command->notify_order_base =
                 static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
@@ -641,6 +673,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     multidb_parse_index(command->op->arg(1), server.cfg().databases, first);
                     multidb_parse_index(command->op->arg(2), server.cfg().databases, second);
                     if (first != second) {
+                        command->swap_physical = {routing_map[first], routing_map[second]};
                         state.database_swaps.push_back({first, second, routing_map[first], routing_map[second]});
                         std::swap(routing_map[first], routing_map[second]);
                         ++routing_map.epoch;
@@ -759,8 +792,10 @@ bool prepare_commands(Server& server, MultiExecState& state,
             }
             state.commands.push_back(std::move(command));
         }
-        if (!state.database_swaps.empty() &&
-            !server.databases().prepare_publish(routing_map, state.database_publish)) return false;
+        if (!state.database_swaps.empty()) {
+            state.database_watch.resize(server.nshards());
+            if (!server.databases().prepare_publish(routing_map, state.database_publish)) return false;
+        }
     } catch (const std::bad_alloc&) {
         return false;
     }
@@ -1133,7 +1168,21 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                            Shard& shard, uint32_t owner_thread_id, uint32_t stage) {
     // All children already name the physical keys implied by preceding swaps.
     // Join all shards here; the map itself changes only at the commit decision.
-    if (command.kind == MultiCommandKind::Swapdb) return true;
+    if (command.kind == MultiCommandKind::Swapdb) {
+        uint8_t first = 0, second = 0;
+        multidb_parse_index(command.op->arg(1), server.cfg().databases, first);
+        multidb_parse_index(command.op->arg(2), server.cfg().databases, second);
+        if (first == second) return true;
+        // Capture the key's presence AT this command, including prior private
+        // writes. Later commands may delete it or swap it away again. Publish
+        // these invalidations only when the whole transaction commits.
+        shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
+        const bool ok = shard.watch_database_swap(first, second,
+            command.swap_physical[0], command.swap_physical[1], &state.database_watch[shard.id()]);
+        shard.store().atomic_clear_read_epoch();
+        if (!ok) state.aborted.store(true, std::memory_order_release);
+        return true;
+    }
     Op& op = *command.op;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     if (notify)
@@ -1318,9 +1367,15 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
 
 void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
-    if (!state.aborted.load(std::memory_order_acquire))
-        for (const auto& swap : state.database_swaps)
-            shard.watch_database_swap(swap.first, swap.second, swap.physical_first, swap.physical_second);
+    if (!state.database_watch.empty()) {
+        auto& targets = state.database_watch[shard.id()];
+        const bool committed = !state.aborted.load(std::memory_order_acquire);
+        for (auto [client, generation] : targets) {
+            if (committed && client->watch_generation() == generation) client->set_watch_dirty();
+            client->watch_unref();
+        }
+        targets.clear();
+    }
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
         shard.watch_write_ready(
@@ -1972,6 +2027,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         multi_tripwire_fragment_begin(state, shard);
         noted |= 2u;
     }
+    MultiWatchMapScope transaction_map(state.database_watch.empty() ? nullptr : &state.database_map);
     if (!state.watch_phase_done.load(std::memory_order_acquire)) {
         if (!execute_watch_phase(state, shard)) return MultiTaskResult::Retry;
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
@@ -2001,6 +2057,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
 
     while (cursor < command_list.size()) {
         MultiCommand& command = *state.commands[command_list[cursor]];
+        MultiWatchMapScope command_map(command.watch_map.get());
         if (command.finished.load(std::memory_order_acquire)) {
             cursor++;
             continue;
@@ -2273,14 +2330,14 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
     if (found == watch_reservations_.end()) return true;
     std::vector<WatchReservation>& list = found->second;
     bool blocked = false;
-    bool dirty = false;
+    std::array<uint64_t, 4> dirty{};
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
         WatchReservation& reservation = list[i];
-        const bool aborted = reservation.aborted &&
-            reservation.aborted->load(std::memory_order_acquire);
         const uint64_t epoch = reservation.epoch
             ? reservation.epoch->load(std::memory_order_acquire) : 1;
+        const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&
+            reservation.aborted->load(std::memory_order_acquire));
         if (!aborted && epoch == 0) {
             if (reservation.blocking) {
                 stats_.watch_reservation_waits++;
@@ -2290,17 +2347,18 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
             keep++;
             continue;
         }
-        if (!aborted && reservation.mutates) dirty = true;
+        if (!aborted && reservation.mutates)
+            for (unsigned db = 0; db < dirty.size(); ++db)
+                dirty[db] |= reservation.dirty_databases[db];
         if (reservation.refs) reservation.refs->fetch_sub(1, std::memory_order_release);
     }
     list.resize(keep);
-    if (dirty) {
+    if (dirty[0] || dirty[1] || dirty[2] || dirty[3]) {
         auto watchers = watchers_.find(key);
         if (watchers != watchers_.end()) {
-            const uint8_t logical = server_ ? server_->databases().logical(static_cast<uint8_t>(key[0]))
-                                            : static_cast<uint8_t>(key[0]);
             for (const WatchEntry& entry : watchers->second)
-                if (entry.db == logical && entry.client && entry.client->watch_generation() == entry.generation)
+                if ((dirty[entry.db / 64] & (uint64_t{1} << (entry.db % 64))) &&
+                    entry.client && entry.client->watch_generation() == entry.generation)
                     entry.client->set_watch_dirty();
         }
     }
@@ -2404,7 +2462,8 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
     }
     if (client->watch_generation() != generation || client->watch_dirty()) return true;
     if (!watch_append_reservation(owned, WatchReservation{
-            token, epoch, aborted, refs, client, generation, mutates, /*blocking=*/true}))
+            token, epoch, aborted, refs, client, generation,
+            mutates && !multi_watch_map, /*blocking=*/true}))
         aborted->store(true, std::memory_order_release);
     return true;
 }
@@ -2428,6 +2487,7 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
         for (WatchReservation& reservation : existing->second)
             if (reservation.token == token) {
                 reservation.mutates = true;
+                watch_note_database(reservation, server_, key.ns);
                 return;
             }
     if (watchers_.find(owned) == watchers_.end()) return;
@@ -2447,6 +2507,7 @@ bool Shard::watch_append_reservation(const std::string& key, const WatchReservat
     try {
         std::vector<WatchReservation>& list = watch_reservations_[key];
         list.push_back(reservation);
+        if (reservation.mutates) watch_note_database(list.back(), server_, static_cast<uint8_t>(key[0]));
         if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
     } catch (const std::bad_alloc&) {
         auto found = watch_reservations_.find(key);
@@ -2503,9 +2564,10 @@ void Shard::watch_database_swap(uint8_t first, uint8_t second) {
     watch_database_swap(first, second, map[first], map[second]);
 }
 
-void Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
-                               uint8_t physical_second) {
-    if (!has_watches() || first == second) return;
+bool Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
+                               uint8_t physical_second,
+                               std::vector<std::pair<Client*, uint64_t>>* deferred) {
+    if (!has_watches() || first == second) return true;
     for (auto& [owned, entries] : watchers_) {
         const uint8_t ns = static_cast<uint8_t>(owned[0]);
         if (ns != physical_first && ns != physical_second) continue;
@@ -2517,9 +2579,15 @@ void Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_
         for (const WatchEntry& entry : entries)
             if ((entry.db == first || entry.db == second) && entry.client &&
                 entry.client->watch_generation() == entry.generation &&
-                (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms <= now_ms_)))
-                entry.client->set_watch_dirty();
+                (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms <= now_ms_))) {
+                if (deferred) {
+                    try { deferred->emplace_back(entry.client, entry.generation); }
+                    catch (const std::bad_alloc&) { return false; }
+                    entry.client->watch_ref();
+                } else entry.client->set_watch_dirty();
+            }
     }
+    return true;
 }
 
 void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
