@@ -131,6 +131,69 @@ void barriers_and_order() {
 }
 
 template <size_t B>
+void queued_completion() {
+    ShadowReorderQueues<B> q;
+    Task tasks[B];
+    std::vector<std::unique_ptr<Pipe>> pipes;
+    for (uint32_t i = 0; i < B; ++i) {
+        pipes.push_back(std::make_unique<Pipe>());
+        if (i) (void)pipes[i]->add(long_op, UINT32_MAX);
+        tasks[i] = pipes[i]->add(i ? short_op : long_op, i);
+    }
+    std::vector<uint32_t> order;
+    auto emit = [&](const Task* selected, uint32_t n, ReorderResult) {
+        for (uint32_t i = 0; i < n; ++i) order.push_back(selected[i].enqueue_us_low);
+    };
+    q.submit(tasks, B, emit);
+    require(order.empty() && q.size() == B, "queued completion window did not open");
+    for (uint32_t i = 1; i < B; ++i) {
+        require(shadow_pending(tasks[i]), "queued shadow never armed");
+        pipes[i]->done(0); // Another executor completes; IO has not retired the long.
+    }
+    q.finish(emit);
+    require(order.size() == B && order.back() == 0, "queued shadows did not clear on Done");
+    for (uint32_t i = 0; i < B - 1; ++i)
+        require(order[i] == i + 1, "newly unshadowed short was not promoted");
+    std::printf("PASS queued foreign completion B=%zu: Done clears without ROB retirement\n", B);
+}
+
+void all_barriers() {
+    constexpr uint32_t flags[] = {CmdFlags::Admin, CmdFlags::ConnLocal, CmdFlags::AllShards,
+        CmdFlags::RandomShard, CmdFlags::CursorShard, CmdFlags::ConfigRoute, CmdFlags::ScriptRoute,
+        CmdFlags::PubSub, CmdFlags::Blocking, CmdFlags::Transaction, CmdFlags::StreamRoute,
+        CmdFlags::SubcmdRoute, CmdFlags::FlipAsync};
+    for (uint32_t flag : flags) {
+        Pipe a, b, c;
+        Task tasks[kGenthreadExBatchOps];
+        const auto special = spec("SPECIAL", CommandLengthClass::Point, flag);
+        tasks[0] = a.add(long_op, 0);
+        tasks[1] = a.add(short_op, 1);
+        tasks[2] = b.add(short_op, 2);
+        tasks[3] = c.add(special, 3);
+        tasks[4] = b.add(long_op, 4);
+        tasks[5] = b.add(short_op, 5);
+        tasks[6] = c.add(short_op, 6);
+        uint8_t length;
+        require(!candidate(tasks[3], length), "special did not arm a barrier");
+        ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 7);
+        constexpr uint32_t expected[] = {2,0,1,3,6,4,5};
+        for (uint32_t i = 0; i < 7; ++i)
+            require(tasks[i].enqueue_us_low == expected[i], "shadow crossed a special barrier");
+    }
+    Pipe a, b;
+    Task tasks[kGenthreadExBatchOps];
+    tasks[0] = a.add(short_op, 0);
+    a.client.rob().at(0).mark_atomic_hazard();
+    tasks[1] = b.add(short_op, 1);
+    uint8_t length;
+    require(candidate(tasks[0], length) && length == static_cast<uint8_t>(CommandLengthClass::Long),
+            "atomic pending hazard lost the inherited long classification");
+    ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 2);
+    require(tasks[0].enqueue_us_low == 1, "atomic hazard classification did not affect selection");
+    std::puts("PASS all thirteen special barriers and inherited atomic hazard classification");
+}
+
+template <size_t B>
 void bounded_service() {
     constexpr uint32_t rounds = 48;
     ShadowReorderQueues<B> q;
@@ -180,6 +243,9 @@ int main() {
     completion_and_newest();
     barriers_and_order<kGenthreadExBatchOps>();
     barriers_and_order<kGenthreadPipelineExBatchOps>();
+    queued_completion<kGenthreadExBatchOps>();
+    queued_completion<kGenthreadPipelineExBatchOps>();
+    all_barriers();
     bounded_service<kGenthreadExBatchOps>();
     bounded_service<kGenthreadPipelineExBatchOps>();
 }

@@ -16,6 +16,11 @@ namespace tomo::r7 {
 
 inline constexpr uint32_t kExSchedClasses =
     static_cast<uint32_t>(CommandLengthClass::Count);
+inline constexpr uint32_t kExReorderSpecial =
+    CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
+    CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
+    CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
+    CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
 // barrier in the incoming sequence: both queues drain before it may execute.
@@ -23,14 +28,9 @@ inline bool candidate(const Task& task, uint8_t& length) {
     if (!task.client || task.scatter) return false;
     const Op& op = task.client->rob().at(task.op_id);
     if (!op.spec || op.has_blocking_state()) return false;
-    constexpr uint32_t kSpecial =
-        CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards | CmdFlags::RandomShard |
-        CmdFlags::CursorShard | CmdFlags::ConfigRoute | CmdFlags::ScriptRoute |
-        CmdFlags::PubSub | CmdFlags::Blocking | CmdFlags::Transaction |
-        CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
     // MultiShard is deliberately absent: a same-owner MGET/MSET local-fast task is ordinary
     // here. A real scatter has task.scatter set and returned above.
-    if (op.spec->flags & kSpecial) return false;
+    if (op.spec->flags & kExReorderSpecial) return false;
     length = static_cast<uint8_t>(command_length_class(*op.spec));
     if (__builtin_expect(length >= kExSchedClasses, false)) return false;
     // There is no O(1) class pointer from an op to an exact parked atomic predecessor. The
@@ -78,22 +78,30 @@ inline bool shadow_pending(const Task& task) {
 // its OWN preceding long: a later long cannot unshadow already dispatched operations.
 class ShadowDispatch {
     uint64_t newest_ = UINT64_MAX;
+    static bool length(const Op& op, uint8_t& result) {
+        // Only parser-published immutable metadata may be read while another
+        // executor runs this op. candidate() also reads reply-state markers and
+        // route_flags_ (GET can set no-borrow in that byte), so it is NOT safe here.
+        // LONG means the registered command class; atomic_hazard still retains
+        // R7's conservative Long execution rank, independently of the shadow hint.
+        if (!op.spec || (op.spec->flags & kExReorderSpecial)) return false;
+        result = static_cast<uint8_t>(command_length_class(*op.spec));
+        return result < kExSchedClasses;
+    }
 public:
-    explicit ShadowDispatch(Client& client) {
+    explicit ShadowDispatch(Client& client, uint64_t before = UINT64_MAX) {
         auto& rob = client.rob();
-        for (uint64_t id = rob.flush_id(), end = rob.dispatch_id(); id < end; ++id) {
+        for (uint64_t id = rob.flush_id(), end = std::min(before, rob.dispatch_id()); id < end; ++id) {
             const Op& op = rob.at(id);
             if (op.state.load(std::memory_order_acquire) == OpState::Done) continue;
-            uint8_t length;
-            Task task(&client, id, -1, nullptr);
-            if (candidate(task, length) &&
-                length == static_cast<uint8_t>(CommandLengthClass::Long)) newest_ = id;
+            uint8_t kind;
+            if (length(op, kind) && kind == static_cast<uint8_t>(CommandLengthClass::Long)) newest_ = id;
         }
     }
     void stamp(Task& task) {
-        uint8_t length;
-        if (!candidate(task, length)) return;
-        if (length == static_cast<uint8_t>(CommandLengthClass::Long)) {
+        uint8_t kind;
+        if (!task.client || task.scatter || !length(task.client->rob().at(task.op_id), kind)) return;
+        if (kind == static_cast<uint8_t>(CommandLengthClass::Long)) {
             newest_ = task.op_id;
         } else if (newest_ < task.op_id) {
             const uint64_t distance = task.op_id - newest_;
@@ -104,6 +112,15 @@ public:
         }
     }
 };
+
+// A pending local read can be lowered AFTER a later ordinary op was dispatched.
+// Reconstruct only its older prefix on its IO owner, never use a younger Long.
+inline Task shadow_demoted_task(Client* client, uint64_t id) {
+    Task task(client, id, -1, nullptr);
+    ShadowDispatch dispatch(*client, id);
+    dispatch.stamp(task);
+    return task;
+}
 
 // These queues live for ONE inbox drain, across its gathered batches. finish() is mandatory
 // before local-read service, snapshot/control work, LB acknowledgement, or returning to IO.
@@ -292,11 +309,12 @@ class ShadowReorderQueues {
         uint8_t length, rank;
     };
     union Slot { Node node; uint32_t next_free; Slot() {} ~Slot() {} } slots_[Capacity];
-    struct Connection { Client* client = nullptr; uint32_t tail = None; } connections_[TableSize];
+    struct Connection { Client* client; uint32_t tail; } connections_[TableSize];
     uint32_t ready_head_[3] = {None, None, None};
     uint32_t ready_tail_[3] = {None, None, None};
     uint32_t oldest_ = None, newest_ = None, free_ = None, used_ = 0, count_ = 0;
     uint32_t priority_left_ = BatchOps;
+    bool table_initialized_ = false;
 
     Node& node(uint32_t i) { return slots_[i].node; }
     static uint32_t hash(Client* client) {
@@ -342,22 +360,21 @@ class ShadowReorderQueues {
         if (free_ != None) { i = free_; free_ = slots_[i].next_free; }
         else { i = used_++; if (i >= Capacity) std::abort(); }
         Node& n = *new (&slots_[i].node) Node{task, newest_, None, None, c, None, None, length, 0};
-        // Done may precede retirement. Clear at admission, and again between output
-        // batches, so slow IO retirement never keeps a completed long's shadow armed.
-        if (shadow_bit(n.task) && !shadow_pending(n.task)) n.task.shard = -1;
         if (newest_ != None) node(newest_).newer = i;
         else oldest_ = i;
         newest_ = i;
         const uint32_t previous = connections_[c].tail;
         if (previous == None) ready_append(i, rank(n));
-        else {
-            if (node(previous).task.op_id >= task.op_id) std::abort();
-            node(previous).next_conn = i;
-        }
+        // Preserve the admitted owner order. A read-local demotion may legally
+        // lower an older read after a later independent op; its existing hazard
+        // protocol decides that order, not a new ROB-id sort/assertion here.
+        else node(previous).next_conn = i;
         connections_[c].tail = i;
         ++count_;
     }
     void refresh_shadows() {
+        // Done may precede retirement. Sample at each output boundary, after the
+        // previous callback; avoid a second, redundant sample at admission.
         // Only pending tasks pin their Clients. Never retain/dereference emitted
         // tasks after a callback can publish Done and destroy the connection.
         for (uint32_t i = oldest_; i != None; i = node(i).newer) {
@@ -439,6 +456,12 @@ public:
             if (!size() && (one_client || homogeneous)) {
                 emit(tasks + begin, end - begin, ReorderResult{});
             } else {
+                // Preserve homogeneous/single-client bypass: even the connection
+                // index is uninitialized scratch until a mixed run needs it.
+                if (!table_initialized_) {
+                    for (auto& c : connections_) c = {nullptr, None};
+                    table_initialized_ = true;
+                }
                 for (uint32_t i = begin; i < end; ++i) append(tasks[i], lengths[i]);
                 if (size() > BatchOps) emit_queued(size() - BatchOps, emit);
             }

@@ -29,9 +29,9 @@ void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint
     char row[256];
     const int n = std::snprintf(row, sizeof(row),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
-        "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\n",
+        "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n",
         static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch);
+        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available());
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
@@ -108,6 +108,384 @@ void ExLoopT<Fused>::r7_exec_batch(Task (&batch)[BatchOps], uint32_t n) {
 }
 
 // BEGIN R7 GENERATED ENVELOPES
+class IoLoop::r7_ReadLocalDemotionPlan {
+private:
+    enum class ReadKind : uint8_t { Ordinary, Scatter, Error };
+
+    struct Storage {
+        uint64_t ids[kRobWindow];
+        ScatterState* scatter[kRobWindow];
+        uint16_t scatter_tasks[kRobWindow];
+        ReadKind kinds[kRobWindow];
+        ReadLocalFallbackReason reasons[kRobWindow];
+        uint32_t owners[kMaxThreads];
+        uint32_t remaining[kMaxThreads];
+    };
+
+public:
+    r7_ReadLocalDemotionPlan() = default;
+    ~r7_ReadLocalDemotionPlan() { cancel(); }
+    r7_ReadLocalDemotionPlan(const r7_ReadLocalDemotionPlan&) = delete;
+    r7_ReadLocalDemotionPlan& operator=(const r7_ReadLocalDemotionPlan&) = delete;
+
+    bool prepare(IoLoop& loop, Client* client, uint64_t hash,
+                 bool require_hash_match, int32_t reserve_shard = -1,
+                 ReadLocalFallbackReason reason =
+                     ReadLocalFallbackReason::ContextOwnerKey,
+                 bool reserve_current_without_reads = false,
+                 const uint64_t* fallback_ids = nullptr,
+                 const ReadLocalFallbackReason* fallback_reasons = nullptr,
+                 uint32_t fallback_count = 0,
+                 const Op* intersect_command = nullptr,
+                 bool intersect_filter_miss = false) {
+        if (loop_ || !client) std::abort();
+        if (reason == ReadLocalFallbackReason::None) std::abort();
+        if ((fallback_ids == nullptr) != (fallback_reasons == nullptr) ||
+            (fallback_count != 0) != (fallback_ids != nullptr) ||
+            (fallback_count && intersect_command) ||
+            (intersect_filter_miss && !intersect_command)) std::abort();
+        Rob<kRobWindow>& rob = client->rob();
+        const bool reserve_current =
+            reserve_current_without_reads && reserve_shard >= 0;
+        // A caller that already walked a complete precise keyset may pass its authoritative
+        // pending-filter miss. Consume it before reloading the same filter; hit/unknown remains
+        // false and takes the unchanged exact-selection path below.
+        if (!reserve_current && !fallback_count && intersect_filter_miss) return true;
+        // Current intersect callers also passed a known hit when they reach the exact path.
+        // Unknown remains safe without this shortcut: collecting an empty set returns below.
+        if (!intersect_command && !rob.has_pending_read_local() && !reserve_current)
+            return true;
+        // Superset pre-check (ReadLocalPendingFilter, rob.h): the filter holds every key hash
+        // any still-pending local read of this connection can touch, so a miss PROVES that no
+        // pending read shares the point hash / any declared key of the exact command. The
+        // ordinary disjoint write returns here without allocating or walking anything; a hit
+        // runs the unchanged exact plan below. EX seeds are selected by id, and a reserved
+        // current op needs the plan regardless of reads, so neither consults the filter.
+        if (!reserve_current && !fallback_count && !intersect_command &&
+            require_hash_match && !rob.read_local_pending_may_touch(hash)) return true;
+        // Select on the stack; Storage is only paid for once a read is actually demoted or
+        // the current op must be reserved.
+        uint64_t ids[kRobWindow];
+        ReadLocalFallbackReason reasons[kRobWindow];
+        bool selected[kRobWindow] = {};
+        const uint32_t pending =
+            rob.collect_pending_read_local(0, false, ids, kRobWindow);
+        for (uint32_t i = 0; i < pending; i++) reasons[i] = reason;
+        bool selective = false;
+        bool any_selected = false;
+        // The key-walking modes visit every pending read, so they also recompute the exact
+        // pending-key filter and hand it back: false hits never accumulate.
+        ReadLocalPendingFilter exact;
+        bool exact_known = false;
+        if (pending && fallback_count) {
+            selective = true;
+            for (uint32_t seed = 0; seed < fallback_count; seed++) {
+                if (fallback_reasons[seed] == ReadLocalFallbackReason::None) continue;
+                bool found = false;
+                for (uint32_t i = 0; i < pending; i++) {
+                    if (ids[i] != fallback_ids[seed]) continue;
+                    selected[i] = true;
+                    any_selected = true;
+                    reasons[i] = fallback_reasons[seed];
+                    found = true;
+                    break;
+                }
+                if (!found) std::abort();
+            }
+        } else if (pending && intersect_command) {
+            selective = true;
+            exact_known = true;
+            for (uint32_t i = 0; i < pending; i++) {
+                selected[i] = read_local_commands_overlap_precise_keyset_collect(
+                    rob.at(ids[i]), *intersect_command, exact);
+                any_selected |= selected[i];
+            }
+        } else if (pending && require_hash_match) {
+            selective = true;
+            exact_known = true;
+            for (uint32_t i = 0; i < pending; i++) {
+                selected[i] = read_local_command_touches_hash_collect(
+                    rob.at(ids[i]), hash, exact);
+                any_selected |= selected[i];
+            }
+        }
+        if (exact_known) rob.reset_read_local_pending_filter(exact);
+        if (selective && any_selected) {
+            // MGET makes key overlap a graph rather than a single hash. Close every selective
+            // parser or EX seed transitively: if a selected MGET touches an otherwise unrelated
+            // key, its older/later local read of that key must join the same owner wave too.
+            // With nothing selected the closure is the identity, so it is skipped.
+            bool changed;
+            do {
+                changed = false;
+                for (uint32_t i = 0; i < pending; i++) {
+                    if (selected[i]) continue;
+                    const Op& candidate = rob.at(ids[i]);
+                    for (uint32_t prior = 0; prior < pending; prior++) {
+                        if (!selected[prior] ||
+                            !read_local_commands_overlap(
+                                candidate, rob.at(ids[prior]))) continue;
+                        selected[i] = true;
+                        reasons[i] = ReadLocalFallbackReason::ContextOwnerKey;
+                        changed = true;
+                        break;
+                    }
+                }
+            } while (changed);
+        }
+        uint32_t count = pending;
+        if (selective) {
+            uint32_t out = 0;
+            for (uint32_t i = 0; i < pending; i++) {
+                if (!selected[i]) continue;
+                ids[out] = ids[i];
+                reasons[out] = reasons[i];
+                out++;
+            }
+            count = out;
+        }
+        if (!count && !reserve_current) return true;
+        storage_.reset(new (std::nothrow) Storage);
+        if (!storage_) return false;
+        count_ = count;
+        for (uint32_t i = 0; i < count_; i++) {
+            storage_->ids[i] = ids[i];
+            storage_->reasons[i] = reasons[i];
+        }
+
+        loop_ = &loop;
+        client_ = client;
+        for (uint32_t i = 0; i < count_; i++) {
+            storage_->kinds[i] = ReadKind::Ordinary;
+            storage_->scatter[i] = nullptr;
+            storage_->scatter_tasks[i] = 0;
+        }
+        for (uint32_t i = 0; i < count_; i++) {
+            Op& op = rob.at(storage_->ids[i]);
+            if (read_local_mget(op)) {
+                read_local_clear_reply(op);
+                ScatterDispatch dispatch;
+                const ScatterPrepare prepared = xshard_prepare(
+                    *loop.srv_, op, loop.scatter_pool_, loop.self_->id(),
+                    client->id(), dispatch, false, client);
+                if (prepared == ScatterPrepare::Backpressure) {
+                    // A local run can contain more cross-shard reads than the existing
+                    // snapshot window admits concurrently. Publish the already prepared ROB
+                    // prefix as one ordered wave and leave this op plus the exact selected
+                    // remainder tagged in the local lane. The next EX pass demotes only entries
+                    // that overlap the unfinished owner wave; parser callers reparse their
+                    // unconsumed current frame after the same prefix commit.
+                    if (i) {
+                        const uint32_t selected_count = count_;
+                        partial_begin_ = i;
+                        partial_count_ = selected_count - i;
+                        count_ = i;
+                        partial_ = true;
+                        break;
+                    }
+                    cancel();
+                    return false;
+                }
+                if (prepared == ScatterPrepare::Error) {
+                    storage_->kinds[i] = ReadKind::Error;
+                    continue;
+                }
+                if (prepared == ScatterPrepare::Ready) {
+                    storage_->kinds[i] = ReadKind::Scatter;
+                    storage_->scatter[i] = dispatch.state;
+                    storage_->scatter_tasks[i] = dispatch.nshards;
+                    for (uint32_t task = 0; task < dispatch.nshards; task++) {
+                        const int32_t shard = xshard_dispatch_shard(dispatch, task);
+                        if (shard < 0) std::abort();
+                        add_owner(loop.srv_->worker_of_shard(shard));
+                    }
+                    continue;
+                }
+            }
+            if (op.shard < 0) std::abort();
+            add_owner(loop.srv_->worker_of_shard(op.shard));
+        }
+        if (!partial_ && reserve_shard >= 0) {
+            reserved_current_worker_ = static_cast<int32_t>(
+                loop.srv_->worker_of_shard(reserve_shard));
+            add_owner(static_cast<uint32_t>(reserved_current_worker_));
+        }
+
+        uint32_t reserved = 0;
+        for (; reserved < nowners_; reserved++) {
+            if (!loop.srv_->thread(storage_->owners[reserved]).reserve_task_slots(
+                    loop.self_->id(), storage_->remaining[reserved]))
+                break;
+        }
+        if (reserved != nowners_) {
+            for (uint32_t i = 0; i < reserved; i++)
+                loop.srv_->thread(storage_->owners[i]).cancel_task_reservation(
+                    loop.self_->id(), storage_->remaining[i]);
+            discard_prepared_reads();
+            clear();
+            return false;
+        }
+        reservations_live_ = true;
+        return true;
+    }
+
+    bool active() const { return loop_ != nullptr; }
+    bool current_reserved() const { return reserved_current_worker_ >= 0; }
+    bool partial() const { return partial_; }
+    uint32_t read_count() const { return count_; }
+
+    void commit_reads() {
+        if (!loop_) return;
+        Rob<kRobWindow>& rob = client_->rob();
+        bool completed_locally = false;
+        for (uint32_t i = 0; i < count_; i++) {
+            Op& op = rob.at(storage_->ids[i]);
+            if (storage_->kinds[i] == ReadKind::Error) {
+                rob.complete_pending_read_local(storage_->ids[i]);
+                op.state.store(OpState::Done, std::memory_order_release);
+                completed_locally = true;
+                continue;
+            }
+            if (storage_->kinds[i] == ReadKind::Scatter) {
+                ScatterState* state = storage_->scatter[i];
+                if (!state || !storage_->scatter_tasks[i]) std::abort();
+                ScatterDispatch dispatch;
+                dispatch.state = state;
+                dispatch.nshards = storage_->scatter_tasks[i];
+                op.attach_scatter_state(state);
+                storage_->scatter[i] = nullptr;  // the Op/IO retirement path owns it now
+                loop_->self_->note_command(op.spec->id);
+                for (uint32_t task = 0; task < dispatch.nshards; task++) {
+                    const int32_t shard = xshard_dispatch_shard(dispatch, task);
+                    const uint32_t worker = loop_->srv_->worker_of_shard(shard);
+                    loop_->srv_->thread(worker).post_task_reserved_quiet(
+                        loop_->self_->id(),
+                        Task{client_, storage_->ids[i], shard, state},
+                        loop_->self_->sig());
+                    consume(worker);
+                    loop_->touch_worker(worker);
+                }
+            } else {
+                const uint32_t worker = loop_->srv_->worker_of_shard(op.shard);
+                loop_->srv_->thread(worker).post_task_reserved_quiet(
+                    loop_->self_->id(),
+                    r7::shadow_demoted_task(client_, storage_->ids[i]),
+                    loop_->self_->sig());
+                consume(worker);
+                loop_->touch_worker(worker);
+            }
+            rob.publish_pending_read_local_to_owner(storage_->ids[i]);
+        }
+        // A partial plan's suffix is still local. Publish its exact fallback tags only after
+        // the prepared prefix is irrevocable; cancel/backpressure before commit must leave the
+        // lane untouched so a later EX pass can probe it normally.
+        for (uint32_t i = 0; i < partial_count_; i++) {
+            const uint32_t pending = partial_begin_ + i;
+            loop_->fused_executor_->preserve_local_read_fallback(
+                client_, storage_->ids[pending], storage_->reasons[pending]);
+        }
+        if (count_) {
+            ReadLocalStats& stats = loop_->self_->read_local_stats();
+            for (uint32_t i = 0; i < count_; i++) {
+                loop_->fused_executor_->note_local_read_demoted(
+                    rob.at(storage_->ids[i]));
+                stats.note_fallback(
+                    storage_->reasons[i], read_local_mget(rob.at(storage_->ids[i])));
+            }
+        }
+        if (completed_locally) {
+            // Error lowering can finish an MGET locally; release its fence through the
+            // ordinary completion wake in both O1 modes.
+            loop_->fused_executor_completion<false>(client_);
+        }
+        count_ = 0;  // every prepared scatter/marker is now owned by its published Op
+        if (reserved_current_worker_ < 0) {
+            for (uint32_t i = 0; i < nowners_; i++)
+                if (storage_->remaining[i]) std::abort();
+            clear();
+        }
+    }
+
+    void post_current(const Task& task, uint32_t worker) {
+        if (!loop_ || reserved_current_worker_ != static_cast<int32_t>(worker))
+            std::abort();
+        loop_->srv_->thread(worker).post_task_reserved_quiet(
+            loop_->self_->id(), task, loop_->self_->sig());
+        consume(worker);
+        loop_->touch_worker(worker);
+        for (uint32_t i = 0; i < nowners_; i++)
+            if (storage_->remaining[i]) std::abort();
+        clear();
+    }
+
+private:
+    void add_owner(uint32_t worker) {
+        uint32_t at = 0;
+        while (at != nowners_ && storage_->owners[at] != worker) at++;
+        if (at == nowners_) {
+            if (nowners_ == kMaxThreads) std::abort();
+            storage_->owners[nowners_] = worker;
+            storage_->remaining[nowners_] = 0;
+            nowners_++;
+        }
+        storage_->remaining[at]++;
+    }
+
+    void consume(uint32_t worker) {
+        uint32_t at = 0;
+        while (at != nowners_ && storage_->owners[at] != worker) at++;
+        if (at == nowners_ || !storage_->remaining[at]) std::abort();
+        storage_->remaining[at]--;
+    }
+
+    void discard_prepared_reads() {
+        if (!loop_ || !client_) return;
+        Rob<kRobWindow>& rob = client_->rob();
+        for (uint32_t i = 0; i < count_; i++) {
+            Op& op = rob.at(storage_->ids[i]);
+            if (storage_->scatter[i]) {
+                xshard_abandon_unpublished(storage_->scatter[i], loop_->scatter_pool_,
+                                           loop_->self_->id());
+                storage_->scatter[i] = nullptr;
+            }
+            if (read_local_mget(op)) read_local_clear_reply(op);
+        }
+    }
+
+    void cancel() {
+        if (!loop_) return;
+        if (reservations_live_)
+            for (uint32_t i = 0; i < nowners_; i++)
+                if (storage_->remaining[i])
+                    loop_->srv_->thread(storage_->owners[i]).cancel_task_reservation(
+                        loop_->self_->id(), storage_->remaining[i]);
+        discard_prepared_reads();
+        clear();
+    }
+
+    void clear() {
+        loop_ = nullptr;
+        client_ = nullptr;
+        count_ = nowners_ = 0;
+        partial_begin_ = partial_count_ = 0;
+        reserved_current_worker_ = -1;
+        reservations_live_ = false;
+        partial_ = false;
+        storage_.reset();
+    }
+
+    IoLoop* loop_ = nullptr;
+    Client* client_ = nullptr;
+    std::unique_ptr<Storage> storage_;
+    uint32_t count_ = 0;
+    uint32_t nowners_ = 0;
+    uint32_t partial_begin_ = 0;
+    uint32_t partial_count_ = 0;
+    int32_t reserved_current_worker_ = -1;
+    bool reservations_live_ = false;
+    bool partial_ = false;
+};
+
 template <bool Fused>
 uint32_t ExLoopT<Fused>::r7_fused_baseline_pass() {
     static_assert(Fused);
@@ -588,6 +966,15 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_read_local_interleaved(bool unmasked,
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused,
           uint8_t Pipeline, bool SplitLocal>
 void IoLoop::r7_run_loop() {
+    // Bind once at armed IO role entry, covering both fused and split readers.
+    if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())
+        fused_executor_->bind_read_local_demotion(this,
+            [](void* p, Client* client, const uint64_t* probed,
+               const ReadLocalFallbackReason* fallbacks, uint32_t count, uint32_t& demoted) {
+                return static_cast<IoLoop*>(p)->r7_fused_demote_local_read_batch(
+                    client, probed, fallbacks, count, demoted);
+            });
+
     static_assert(Pipeline <= 1);
     // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
     static_assert(!Fused || SplitLocal || Pipeline == 0);
@@ -2062,7 +2449,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         }
         if (!op) break;                    // window full: backpressure; let replies drain first
         using DemotionPlan = std::conditional_t<
-            Fused, ReadLocalDemotionPlan, EmptyReadLocalDemotionPlan>;
+            Fused, r7_ReadLocalDemotionPlan, EmptyReadLocalDemotionPlan>;
         [[maybe_unused]] DemotionPlan read_local_demotion;
         [[maybe_unused]] bool read_local_owner_conflict = false;
         [[maybe_unused]] ReadLocalFallbackReason read_local_owner_conflict_reason =
@@ -3408,6 +3795,24 @@ uint32_t IoLoop::r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& 
 template <bool HasUnix, bool kEp>
 uint32_t IoLoop::r7_wb_observe(bool unmasked, WbBatch& batch) {
     return r7_collect_retire_work<HasUnix, kEp>(unmasked) + wb_gather(batch);
+}
+
+bool IoLoop::r7_fused_demote_local_read_batch(Client* client, const uint64_t* probed,
+                                   const ReadLocalFallbackReason* fallbacks,
+                                   uint32_t probed_count, uint32_t& demoted) {
+    if (!r7::shadow_available())
+        return fused_demote_local_read_batch(client, probed, fallbacks, probed_count, demoted);
+
+    r7_ReadLocalDemotionPlan plan;
+    if (!plan.prepare(
+            *this, client, 0, false, -1,
+            ReadLocalFallbackReason::ContextOwnerKey, false,
+            probed, fallbacks, probed_count)) return false;
+    demoted = plan.read_count();
+    if (!demoted) std::abort();
+    plan.commit_reads();
+    (void)flush_ifid_posts();
+    return true;
 }
 
 void IoLoop::run_fused_reordered() {

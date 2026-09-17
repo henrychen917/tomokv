@@ -5613,6 +5613,7 @@ ordinary_shard_ready:
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
 public:
     // R7 bodies are isolated from the FIFO translation units.
+    class r7_ReadLocalDemotionPlan;
 // BEGIN R7 GENERATED ENVELOPES
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
               uint8_t Pipeline = 0, bool SplitLocal = false>
@@ -5664,6 +5665,9 @@ public:
     uint32_t r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& cursor);
     template <bool HasUnix, bool kEp>
     uint32_t r7_wb_observe(bool unmasked, WbBatch& batch);
+    bool r7_fused_demote_local_read_batch(Client* client, const uint64_t* probed,
+                                       const ReadLocalFallbackReason* fallbacks,
+                                       uint32_t probed_count, uint32_t& demoted);
 // END R7 GENERATED ENVELOPES
     void run_fused_reordered();
     void run_split_reordered();
