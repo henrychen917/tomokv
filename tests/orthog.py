@@ -113,6 +113,49 @@ def main():
             conn.close()
         opened.clear()
 
+        gap_evidence = None
+        if args.mode == "1s" and args.read_local and args.overlap:
+            # A local-aware overlap needs BOTH streams. The owner-only reorder traffic below
+            # cannot witness a local drain in an owner prefetch gap. Put disjoint GETs and SETs
+            # in one ROB, with the SETs routed to that connection's own thread, so dispatch
+            # publishes both streams before that owner can execute. Alternate the commands so a
+            # partial receive containing one complete pair can supply both streams; a read-only
+            # prefix of 32 commands could drain before the first owner frame arrived. An absent
+            # witness still gets fresh keys and a fresh connection, bounded.
+            for gap_attempt in range(4):
+                conn = _lib.Conn(args.host, args.port, timeout=20)
+                opened.append(conn)
+                tid = int(conn.must("DEBUG", "IO-THREAD"))
+                local_key, owner_key = None, None
+                for key, _sid, owner in _lib.probe_keys(
+                        ctl, prefix + ":gap:%d" % gap_attempt, topo, limit=16000):
+                    if owner == tid and owner_key is None:
+                        owner_key = key
+                    elif owner != tid and local_key is None:
+                        local_key = key
+                    if local_key is not None and owner_key is not None:
+                        break
+                require(local_key is not None and owner_key is not None,
+                        "local gap needs one own-thread and one foreign key")
+                keys += [local_key, owner_key]
+                require(ctl.must("SET", local_key, value) == b"OK", "gap seed failed")
+                gap_before = _lib.info(ctl, "server")
+                hits_before = int(_lib.info(ctl, "stats")["read_local_hits"])
+                burst(conn, [("GET", local_key), ("SET", owner_key, b"gap")] * 32,
+                      [value, b"OK"] * 32)
+                require(int(_lib.info(ctl, "stats")["read_local_hits"]) - hits_before == 32,
+                        "mixed gap did not retain all 32 disjoint local reads")
+                gap_after = _lib.info(ctl, "server")
+                conn.close()
+                opened.remove(conn)
+                if int(gap_after["overlap_interleaved_passes"]) > int(
+                        gap_before["overlap_interleaved_passes"]):
+                    gap_evidence = dict(attempts=gap_attempt + 1, before=gap_before,
+                                        after=gap_after, reader_tid=tid)
+                    break
+            else:
+                raise AssertionError("no local/owner overlap after four fresh mixed arms")
+
         # Every command below reaches an owner, including armed boots. Fresh independent keys
         # share a real owner; 8-deep concurrent batches permit legal cross-client permutations.
         # An absent witness gets fresh keys/connections, bounded; wrong replies never get retried.
@@ -168,16 +211,19 @@ def main():
             if args.mode == "2s":
                 require(int(final["overlap_interleaved_passes"]) > int(start["overlap_interleaved_passes"]),
                         "split IO never entered its interleaved arm in this fresh workload")
+            elif args.read_local:
+                require(gap_evidence is not None, "fused lane/owner gap never engaged")
             else:
                 require(int(final["overlap_interleaved_passes"]) == 0,
-                        "fused whole-batch prefetch claimed deleted split interleaving")
+                        "fused prefetch without a lane claimed local interleaving")
         else:
             require(int(final.get("overlap_passes", 0)) == int(final.get("overlap_interleaved_passes", 0)) == 0,
                     "overlap ran while disabled")
         if not args.read_local:
             require(int(_lib.info(ctl, "stats")["read_local_hits"]) == 0, "disabled lane completed reads")
         evidence = {"requested": expected, "before": before, "local_info": local_info,
-                    "scheduler_before": start, "after": final, "overlap_arm_attempts": attempt + 1}
+                    "scheduler_before": start, "after": final, "overlap_arm_attempts": attempt + 1,
+                    "local_gap": gap_evidence}
         if args.output:
             with open(args.output, "w") as f:
                 json.dump(evidence, f, indent=2, sort_keys=True)

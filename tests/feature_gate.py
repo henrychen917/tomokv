@@ -168,9 +168,10 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
         if not stats_on:
             require(field not in after, 'disabled scheduling allocated counters')
             continue
-        # Fused overlap is now whole-batch bucket prefetch. Require fresh preparation
-        # passes and an exact zero for the deleted A/B stage interleaving.
-        active = knobs['overlap'] and (field == 'overlap_passes' or knobs['thread-mode'] == '2s')
+        # Fused O6 prepares whole owner batches; O11 additionally uses their gap for
+        # local reads only when the lane is armed. Require fresh work in that gap.
+        active = knobs['overlap'] and (field == 'overlap_passes' or
+                                      knobs['thread-mode'] == '2s' or knobs['read-local'])
         require((delta(before, after, field) > 0) if active
                 else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs', 'reorder_max_batch'):
@@ -225,7 +226,13 @@ def smoke(conn, port, knobs):
             keys = [f'feature-{attempt}-{i}' for i in range(len(clients))]
             for c, key in zip(clients, keys):
                 require(c.must('SET', key, '0') == b'OK', 'counter seed failed')
-            read_frames = [encode('GET', key) + encode('MGET', key, key) for key in keys]
+            # STRLEN supplies precise owner work on a disjoint key before MGET's
+            # local fence. GETs then remain available for O11's owner prefetch gap.
+            local_gap = (knobs['thread-mode'] == '1s' and knobs['read-local'] and
+                         knobs['overlap'])
+            owner_read = encode('STRLEN', bitmap) if local_gap else b''
+            read_frames = [encode('GET', key) + owner_read + encode('MGET', key, key)
+                           for key in keys]
             end = time.monotonic() + 1.1
             rounds = 0
             while rounds < 4 or time.monotonic() < end:
@@ -242,6 +249,8 @@ def smoke(conn, port, knobs):
                 for c in clients:
                     for _ in range(8):
                         require(c.read() == value, 'GET violated RYOW')
+                        if local_gap:
+                            require(c.read() == 65536, 'gap owner read/reply order failed')
                         require(c.read() == [value, value], 'MGET violated RYOW')
             # Several actual cross-owner groups, discovered from the live directory.
             located = conn.must('DEBUG', 'SHARDS', *keys)

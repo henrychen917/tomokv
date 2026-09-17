@@ -145,6 +145,10 @@ build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard 
 build/overlap-prefetch-unit: tests/overlap_prefetch_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# O11 exercises the real fused pass and its prefetch/lane/owner ordering without a listener.
+build/fused-local-rotation-unit: tests/fused_local_rotation_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 build/core-concurrency-unit: tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer \
 	  -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ \
@@ -184,8 +188,13 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 # Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
 # Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
 # offline target patches only the noipa policy predicate; it never executes the server.
-build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
+build/tomokv-l4prebuild-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+
+# O11 kind A keeps all landed mechanisms, including L4, enabled. Only O11's boot latch
+# is disabled in the exact-layout copy; the original L4-specific control remains above.
+build/tomokv-pad: $(BIN) tools/o11_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/o11_artifacts.py $< $@ --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
