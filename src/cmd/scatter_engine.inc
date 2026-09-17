@@ -32,7 +32,7 @@ enum class FinalReply : uint8_t {
     Work, NoSuchKey, SameObject, QueueFull, Internal, Lcs, LcsError
 };
 enum class PopReplyShape : uint8_t { Mpop, ListPair, ZsetTriple };
-enum class ValueKind : uint8_t { Nil, Inline, Borrow };
+enum class ValueKind : uint8_t { Nil, Inline, Borrow, Owned };
 
 struct ObjectImage {
     bool present = false;
@@ -68,6 +68,17 @@ struct ValueSlot {
     // op (8KB of memset per MGET-8 at the 1KB slot -- measured -34% at 64B values). Only the first
     // `len` bytes are ever written and read.
     char small[kInline];
+
+    // Disabling zero-copy still needs stable gather bytes beyond the inline capacity. This
+    // allocation is reply storage, with no FlatStore borrow or owner-release registration.
+    char* copy_buffer(uint32_t length) {
+        len = length;
+        if (length <= kInline) { kind = ValueKind::Inline; return small; }
+        char* buffer = new char[length];
+        ptr = buffer;
+        kind = ValueKind::Owned;
+        return buffer;
+    }
 };
 
 struct GroupAux {
@@ -1383,6 +1394,8 @@ bool publish_pop_retry(Server& server, ThreadCtx& self, Ring& ring, const Task& 
 
 void free_state_contents(ScatterState& state) {
     if (state.contents_freed) return;
+    for (uint32_t i = 0; state.values && i < state.key_count; ++i)
+        if (state.values[i].kind == ValueKind::Owned) delete[] state.values[i].ptr;
     for (uint32_t i = 0; i < state.group_cap; i++) delete state.groups[i].aux;
     for (uint32_t i = 0; state.images && i < state.key_count; i++) state.images[i].~ObjectImage();
     for (uint32_t i = 0; state.apply && i < state.key_count; i++) state.apply[i].~ObjectImage();
@@ -1737,6 +1750,21 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         routes[i] = RouteKey{hash, arg, server.router().shard_of(hash)};
     }
 
+    // Only top-level IO dispatch can prebuild. MULTI child preparation (no origin_client)
+    // keeps its owner materialization. MSETNX must probe existence before building anything.
+    const bool io_prebuild = kind == Kind::Mset && origin_client &&
+                            server.thread_mode() == ThreadMode::Fused;
+    bool foreign_external = false;
+    if (io_prebuild) {
+        for (uint32_t i = 0; i < key_count; i++) {
+            if (server.worker_of_shard(routes[i].shard) != owner_io &&
+                l4prebuild_policy(op.arg(routes[i].arg + 1).n)) {
+                foreign_external = true;
+                break;
+            }
+        }
+    }
+
     // Every explicit key, including a STORE destination, must agree before taking localfast.
     if (key_count) {
         bool same_owner = true;
@@ -1752,7 +1780,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // as absent -- which is what the differ caught, on whichever boot placed the weight keys
         // off the source's shard.
         const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
-        if (same_owner && !force_atomic && !sort_deref_group &&
+        if (same_owner && !force_atomic && !sort_deref_group && !foreign_external &&
             kind != Kind::Pfcount && kind != Kind::Pfmerge &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
@@ -1951,26 +1979,21 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         state->keys[i] = KeyRef{routes[i].hash, routes[i].arg, routes[i].shard};
     if (routes != route_stack) delete[] routes;
 
-    // Blind string values belong to the op's IO thread until an owner links them. Allocation and
-    // memcpy therefore run on the underutilized stage without touching a shard or shard metadata.
-    // key_anchor is the ownership bit: an owner clears it only after atomic_install_group takes the
-    // object; abandonment and prepare failures leave it for IO-side destruction.
-    if (atomic_write && (kind == Kind::Mset || kind == Kind::Msetnx)) {
+    // Carry finished foreign external MSET values through the existing candidate ownership.
+    // Local/embedded values, MSETNX and split mode retain owner-side materialization. No arena
+    // pointer is captured, and the usual unpublished/abort cleanup frees every unused anchor.
+    if (foreign_external) {
         for (uint32_t i = 0; i < key_count; i++) {
             KeyRef& key = state->keys[i];
-            // Small/int objects already come from the shard owner's hot value pool. Moving those to
-            // generic jemalloc regressed MSET-8 despite shifting cycles to IO. Large strings bypass
-            // that pool in V3, so prebuild precisely the allocation+memcpy work that was already a
-            // heap operation and preserve the allocation-free common cell.
-            if (op.arg(key.arg + 1).n <= kEmbedThreshold) continue;
-            KvObj* value = xshard_make_string(op.arg(key.arg), op.arg(key.arg + 1));
-            if (!value) {
+            if (server.worker_of_shard(key.shard) == owner_io ||
+                !l4prebuild_policy(op.arg(key.arg + 1).n)) continue;
+            key.key_anchor = xshard_make_string(op.arg(key.arg), op.arg(key.arg + 1));
+            key.stable_object = key.key_anchor;
+            if (!key.key_anchor) {
                 set_oom(op);
                 xshard_abandon_unpublished(state, pool, owner_io);
                 return ScatterPrepare::Error;
             }
-            key.stable_object = value;
-            key.key_anchor = value;
         }
     }
 
@@ -2905,44 +2928,15 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         slot.kind = ValueKind::Inline;
                         continue;
                     }
-                    if constexpr (kReadLocalSetTaxVariant ==
-                                  ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                        if (object->encoding() == Enc::Raw) {
-                            const uint32_t length = kvobj_read_local_raw_length(object);
-                            slot.len = length;
-                            const uint32_t cutover =
-                                std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
-                            if (length <= cutover) {
-                                kvobj_read_local_copy_raw(
-                                    object, object->read_local_flags(), length, slot.small);
-                                slot.kind = ValueKind::Inline;
-                            } else {
-                                const char* value = object->str_data();
-                                // Registration precedes the next owner command, whose overwrite
-                                // gate will force immutable replacement until IO releases this ptr.
-                                shard.store().borrow(value);
-                                slot.ptr = value;
-                                slot.shard = shard.id();
-                                slot.kind = ValueKind::Borrow;
-                            }
-                            continue;
-                        }
-                    }
                     KvObjRawReadBuffer raw;
                     const Slice value = kvobj_string_value(object, raw);
                     slot.len = value.n;
-                    uint32_t cutover =
+                    const uint32_t cutover =
                         std::min<uint32_t>(shard.zc_min(), ValueSlot::kInline);
-                    if constexpr (kReadLocalSetTaxVariant ==
-                                  ReadLocalSetTaxVariant::SequenceOverwrite) {
-                        // A materializes Raw through atomic cells. Keep that owner-local copy in
-                        // the gather slot instead of publishing its stack address as a borrow.
-                        if (object->encoding() == Enc::Raw)
-                            cutover = ValueSlot::kInline;
-                    }
-                    if (value.n <= cutover) {
-                        if (value.n) std::memcpy(slot.small, value.p, value.n);
-                        slot.kind = ValueKind::Inline;
+                    bool copy = shard.zc_min() == UINT32_MAX || value.n < cutover;
+                    if (copy) {
+                        char* buffer = slot.copy_buffer(value.n);
+                        if (value.n) std::memcpy(buffer, value.p, value.n);
                     } else {
                         shard.store().borrow(value.p);
                         slot.ptr = value.p;
@@ -3227,7 +3221,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             case Kind::Mset:
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
-                    const KeyRef& key = state.keys[pos];
+                    KeyRef& key = state.keys[pos];
                     bool plain_active = false;
                     if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
@@ -3239,8 +3233,22 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                         }
                         plain_active = true;
                     }
-                    state.status[pos] = static_cast<uint8_t>(store_xstring_selected(
-                        notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1)));
+                    if (key.key_anchor) {
+                        const auto result = notify
+                            ? shard.store_insert<true>(key.hash, key.key_anchor)
+                            : shard.store().insert(key.hash, key.key_anchor);
+                        if (result == FlatStore::InsertResult::Inserted) {
+                            key.key_anchor = nullptr;
+                            state.status[pos] = static_cast<uint8_t>(WorkError::None);
+                        } else {
+                            state.status[pos] = static_cast<uint8_t>(
+                                result == FlatStore::InsertResult::MaxmemoryOom
+                                    ? WorkError::Maxmemory : WorkError::InsertFailed);
+                        }
+                    } else {
+                        state.status[pos] = static_cast<uint8_t>(store_xstring_selected(
+                            notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1)));
+                    }
                     if (plain_active) shard.store().atomic_finish_plain();
                 }
                 return ScatterTaskResult::Complete;

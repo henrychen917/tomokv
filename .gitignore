@@ -19,7 +19,7 @@ __pycache__/
 codex*.log
 BRIEF*.md
 LANE_RULES.md
-# Lane transcripts and measurement handoffs are maintainer artifacts, not project source.
+# The interactive agent transcript changes during validation and is not project source.
 /CODEX-OUT*.md
 /MEASURE-REQUEST
 /MEASURE-RESULT
@@ -31,3 +31,11 @@ scratchpad/replycode/*.so
 
 # Exact gate timing and seed history survive make clean.
 .gate-history/
+
+# lane transcripts and gate logs never belong in the tree
+gate-iteration-*.log
+CODEX-OUT*.md
+MEASURE-REQUEST*
+MEASURE-RESULT*
+LINE-SHARING-AUDIT.md
+OLD-DELVAR-HINTS.txt

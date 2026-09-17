@@ -168,7 +168,8 @@ def main(args):
         runner = abba.Runner(args, out, {"B": binary}, children)
         report["environment"] = dict(uname=list(os.uname()), **placement, server_cpus=server_cpus,
             load_cpus=load_cpus, load_instance_ceiling=min(args.max_instances, len(load_physical)),
-            port=args.port, permitted_ports=permitted_ports, keys=abba.KEYS, data_bytes=64, key_pattern="P:P",
+            port=args.port, permitted_ports=permitted_ports, keys=abba.KEYS,
+            data_bytes=abba.workload_data_bytes(cells), key_pattern="P:P",
             atomic="per-cell", split_flip_auto=0, population_by_arm={"B": "wire"},
             python_runtime=report["instrument_fingerprint"]["python"], memtier_path=args.memtier,
             memtier_sha256=abba.sha256(Path(args.memtier)),

@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#include "lbstall.h"
 
 namespace tomo {
 
@@ -92,6 +93,7 @@ struct LbAutotune {
                                (uint64_t{kTickMs} * 1000000);
         return std::max<uint64_t>(1, ticks) * kTickMs;
     }
+    LbStallState stall; // allocated with the existing LB-only policy, never when both knobs are 0
 };
 
 struct WeightedLbItem {

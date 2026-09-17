@@ -47,7 +47,7 @@ def main():
         cfg = ctl.must("CONFIG", "GET", "*")
         cfg = dict(zip(cfg[::2], cfg[1::2]))
         expected = {"thread-mode": args.mode, "read-local": args.read_local,
-                    "overlap": args.overlap, "reorder": args.reorder, "atomic": 1,
+                    "overlap": args.overlap, "reorder": 0, "atomic": 1,
                     "key-lb": 0, "client-lb": 0, "flip-auto": 0}
         for name, value in expected.items():
             require(cfg.get(name.encode()) == str(value).encode(), "CONFIG mismatch: " + name)
@@ -58,10 +58,11 @@ def main():
                 break
             time.sleep(0.01)
         for name in ("thread_mode", "read_local", "overlap", "reorder", "atomic"):
-            wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else getattr(args, name)
+            wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else 0 if name == "reorder" else getattr(args, name)
             require(before[name] == str(wanted), "INFO mismatch: " + name)
+        require(before.get("overlap_enabled") == str(args.overlap), "effective overlap mismatch")
         nthreads = int(before["io_threads"]) + int(before["ex_threads"]) if args.mode == "2s" else int(before["fused_threads"])
-        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if args.overlap or args.reorder else 0),
+        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if args.overlap else 0),
                 "disabled schedule knobs allocated witnesses, or enabled witnesses are absent")
         topo = _lib.topology(ctl)
         prefix = "orthog:%d" % time.time_ns()
@@ -112,49 +113,6 @@ def main():
             conn.close()
         opened.clear()
 
-        gap_evidence = None
-        if args.mode == "1s" and args.read_local and args.overlap:
-            # A local-aware overlap needs BOTH streams. The owner-only reorder traffic below
-            # cannot witness a local drain in an owner prefetch gap. Put disjoint GETs and SETs
-            # in one ROB, with the SETs routed to that connection's own thread, so dispatch
-            # publishes both streams before that owner can execute. Alternate the commands so a
-            # partial receive containing one complete pair can supply both streams; a read-only
-            # prefix of 32 commands could drain before the first owner frame arrived. An absent
-            # witness still gets fresh keys and a fresh connection, bounded.
-            for gap_attempt in range(4):
-                conn = _lib.Conn(args.host, args.port, timeout=20)
-                opened.append(conn)
-                tid = int(conn.must("DEBUG", "IO-THREAD"))
-                local_key, owner_key = None, None
-                for key, _sid, owner in _lib.probe_keys(
-                        ctl, prefix + ":gap:%d" % gap_attempt, topo, limit=16000):
-                    if owner == tid and owner_key is None:
-                        owner_key = key
-                    elif owner != tid and local_key is None:
-                        local_key = key
-                    if local_key is not None and owner_key is not None:
-                        break
-                require(local_key is not None and owner_key is not None,
-                        "local gap needs one own-thread and one foreign key")
-                keys += [local_key, owner_key]
-                require(ctl.must("SET", local_key, value) == b"OK", "gap seed failed")
-                gap_before = _lib.info(ctl, "server")
-                hits_before = int(_lib.info(ctl, "stats")["read_local_hits"])
-                burst(conn, [("GET", local_key), ("SET", owner_key, b"gap")] * 32,
-                      [value, b"OK"] * 32)
-                require(int(_lib.info(ctl, "stats")["read_local_hits"]) - hits_before == 32,
-                        "mixed gap did not retain all 32 disjoint local reads")
-                gap_after = _lib.info(ctl, "server")
-                conn.close()
-                opened.remove(conn)
-                if int(gap_after["overlap_interleaved_passes"]) > int(
-                        gap_before["overlap_interleaved_passes"]):
-                    gap_evidence = dict(attempts=gap_attempt + 1, before=gap_before,
-                                        after=gap_after, reader_tid=tid)
-                    break
-            else:
-                raise AssertionError("no local/owner overlap after four fresh mixed arms")
-
         # Every command below reaches an owner, including armed boots. Fresh independent keys
         # share a real owner; 8-deep concurrent batches permit legal cross-client permutations.
         # An absent witness gets fresh keys/connections, bounded; wrong replies never get retried.
@@ -190,41 +148,44 @@ def main():
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(chosen)) as pool:
                 list(pool.map(worker, enumerate(chosen)))
             final = _lib.info(ctl, "server")
-            if not args.reorder or (int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"])):
+            overlapped = not args.overlap or (
+                int(final["overlap_passes"]) > int(start["overlap_passes"]) and
+                (args.mode == "1s" or int(final["overlap_interleaved_passes"]) >
+                 int(start["overlap_interleaved_passes"])))
+            # An idle or all-natural split pass must re-arm on fresh keys/connections,
+            # and activity before this workload cannot pass it.
+            if overlapped:
                 break
-        if args.reorder:
-            require(int(final["reorder_batches"]) > int(start["reorder_batches"]), "reorder was never called")
-            require(int(final["reorder_multi_client_runs"]) > int(start["reorder_multi_client_runs"]),
-                    "reorder never saw several clients in one eligible run")
-            require(int(final["reorder_permuted_runs"]) > int(start["reorder_permuted_runs"]),
-                    "no real permutation after four fresh arms: %r" %
-                    {key: value for key, value in final.items() if key.startswith("reorder") })
-        else:
-            require(all(int(final.get(name, 0)) == 0 for name in
-                        ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
-                    "reorder ran while disabled")
+        require(final.get("reorder") == "0" and final.get("reorder_retired") == "1",
+                "retired reorder must report effective zero")
+        require(all(name not in final for name in
+                    ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
+                "retired reorder exposed counters")
         schedule = "plain" if not args.overlap else "split-io-overlap" if args.mode == "2s" else "fused-overlap"
         require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")
         if args.overlap:
             require(int(final["overlap_passes"]) > int(start["overlap_passes"]), "overlap did not run")
-            require(int(final["overlap_interleaved_passes"]) > 0, "overlap never entered its interleaved arm")
+            if args.mode == "2s":
+                require(int(final["overlap_interleaved_passes"]) > int(start["overlap_interleaved_passes"]),
+                        "split IO never entered its interleaved arm in this fresh workload")
+            else:
+                require(int(final["overlap_interleaved_passes"]) == 0,
+                        "fused whole-batch prefetch claimed deleted split interleaving")
         else:
             require(int(final.get("overlap_passes", 0)) == int(final.get("overlap_interleaved_passes", 0)) == 0,
                     "overlap ran while disabled")
         if not args.read_local:
             require(int(_lib.info(ctl, "stats")["read_local_hits"]) == 0, "disabled lane completed reads")
         evidence = {"requested": expected, "before": before, "local_info": local_info,
-                    "scheduler_before": start, "after": final, "reorder_arm_attempts": attempt + 1,
-                    "local_gap": gap_evidence}
+                    "scheduler_before": start, "after": final, "overlap_arm_attempts": attempt + 1}
         if args.output:
             with open(args.output, "w") as f:
                 json.dump(evidence, f, indent=2, sort_keys=True)
                 f.write("\n")
-        print("PASS orthog %s/%d/%d/%d: active=%s schedule=%s passes=%s interleaved=%s reorder=%s/%s/%s max=%s" %
+        print("PASS orthog %s/%d/%d/%d: active=%s schedule=%s passes=%s interleaved=%s reorder=retired" %
               (args.mode, args.read_local, args.overlap, args.reorder,
                local_info.get("read_local_active_threads", "0"), schedule,
-               final.get("overlap_passes", "0"), final.get("overlap_interleaved_passes", "0"), final.get("reorder_batches", "0"),
-               final.get("reorder_multi_client_runs", "0"), final.get("reorder_permuted_runs", "0"), final.get("reorder_max_batch", "0")))
+               final.get("overlap_passes", "0"), final.get("overlap_interleaved_passes", "0")))
     finally:
         for conn in opened:
             conn.close()

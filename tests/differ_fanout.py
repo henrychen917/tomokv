@@ -171,12 +171,13 @@ def failed_span(group, run_directory):
     infrastructure failure, never an invented successful row or an incomplete wall span.
     """
     selected = [f'{group}-0', f'{group}-1'] + (['equivalence'] if group == 'split' else [])
-    starts, ends = [], []
+    starts, ends, timed_out = [], [], False
     for part in selected:
         directory = run_directory / 'jobs' / ('differ-' + part)
         completion = directory.joinpath('done').read_text()
         require(re.fullmatch(r'(0|[1-9][0-9]{0,2})\t[0-9]+\t[0-9]+\n', completion) and
                 int(completion.split('\t')[0]) <= 255, f'{part}: malformed worker completion')
+        timed_out |= int(completion.split('\t')[0]) == 124
         lines = directory.joinpath('family.tsv').read_text().splitlines()
         require(len(lines) == 1, f'{part}: missing or duplicate family timing')
         family = lines[0].split('\t')
@@ -187,7 +188,7 @@ def failed_span(group, run_directory):
                 f'{part}: invalid start/finish duration')
         starts.append(start); ends.append(end)
     return dict(schema=1, group=group, parts=selected, start=min(starts), end=max(ends),
-                seconds=max(ends)-min(starts), complete=False)
+                seconds=max(ends)-min(starts), complete=False, timed_out=timed_out)
 
 
 def publish_fold(args):
@@ -201,20 +202,24 @@ def publish_fold(args):
         result = fold(load_plan(args.plan), args.group, args.run_directory)
     except (ValueError, OSError, KeyError, TypeError) as error:
         failure = str(error)
-        print(f'DIFFER FANOUT FAIL: {failure}', file=sys.stderr)
         result = failed_span(args.group, args.run_directory)
         result['error'] = failure
     from gate_history import budget, record
     label = LABELS[args.group]
-    policy = budget(json.loads(args.row_plan.read_text()), label)
-    expired = result['seconds'] >= policy['timeout_seconds']
+    policy = budget(json.loads(args.row_plan.read_text()), label, correctness=True)
+    # A failed assertion stays FAIL even if collection finishes after the matrix budget.
+    # A child cancelled by its watchdog is TIMEOUT even inside the matrix's own deadline.
+    expired = result.get('timed_out', False) or (
+        failure is None and result['seconds'] >= policy['timeout_seconds'])
     verdict = 'FAIL' if failure is not None or expired else 'ok'
+    if failure is not None:
+        print(f'DIFFER FANOUT {"TIMEOUT" if expired else "FAIL"}: {failure}', file=sys.stderr)
     # The original row spans earliest child start through latest child cleanup, including
     # failed comparisons. Collection delay and sums of overlapping lifetimes are excluded.
-    if expired:
+    if expired and not result.get('timed_out', False):
         print(f'DIFFER TIMEOUT: {label}: {policy["timeout_seconds"]}s; '
               f'median={policy["median_seconds"]}; {policy["basis"]}', file=sys.stderr)
-    result['verdict'] = verdict
+    result.update(verdict=verdict, timed_out=expired)
     write_json(args.run_directory / ('differ-' + args.group + '-fold.json'), result)
     # Receipt validation compares these values exactly: history must record the same
     # six-decimal duration emitted to the ledger, not hidden sub-microsecond float bits.
@@ -222,7 +227,7 @@ def publish_fold(args):
     record(args.row_history, run_id=args.row_run, label=label, seconds=float(duration),
            verdict=verdict, timed_out=expired, ledger_label=label)
     print(f'{verdict}\t{duration}\t{label}')
-    return int(verdict == 'FAIL')
+    return 124 if expired else int(verdict == 'FAIL')
 
 
 def main():
