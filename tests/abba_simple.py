@@ -24,10 +24,9 @@ import sys
 # a single 4.575 ms p99.9 sample against a 3.3 ms median).
 DEFAULT_PCT = 3.0
 READ_LOCAL_PCT = 5.0
-# Tail cells REPORT, they do not gate. On identical bytes t04's p99.9 ran 3.311 vs 4.479 ms, a 35%
-# swing, and 3.3-5.1 ms across runs. No threshold both catches a real tail regression and survives
-# that, so a number here would be theatre. Their p99.9 is printed every run and is the data for
-# reorder work; gate them again when the tail can be measured to better than it swings.
+# Tail cells report only. The valid 65,536-key, 16-generator, rate-limited instrument
+# has same-binary p99.9 spreads of 2-3.5% (1s) and 6-10% (2s), per owner 2026-09-15.
+# These are reference observations, not a regression tolerance; t00 is first-boot warmup.
 TAIL_GATES = False
 
 

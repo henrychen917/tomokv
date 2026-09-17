@@ -320,13 +320,6 @@ public:
     // touch this: a ROB slot is armed once and is a ROB slot forever.
     uint8_t reply_code_ok_ = 0;
 
-private:
-    // Parse and execute both inspect argc/heap even for two inline arguments. Keeping that
-    // metadata beside routing avoids fetching the tail solely to discover there is no heap.
-    Slice*   argv_heap_ = nullptr;
-    uint32_t argv_cap_  = 0;
-    uint32_t argc_      = 0;
-public:
     OpReply reply;                         // metadata here; bytes in the chunk's reply body
 
     // DIRECT REPLY (owner's c->buf trick, both postures). When io dispatches an op that is the ROB
@@ -354,7 +347,7 @@ public:
     std::atomic<OpState> state{OpState::Free};
 
     // The integer that goes with ReplyCode::Int -- a value the executor computed, not a format.
-    // `state` leaves seven bytes before the aligned argv array; the integer uses four of them.
+    // `state` leaves seven bytes before L1's aligned argv header; the integer uses four of them.
     // A count or a counter outside +/-2^31 simply keeps the
     // byte path, which emits the identical digits.
     int32_t reply_ival_ = 0;
@@ -537,6 +530,12 @@ private:
     static constexpr uint8_t kReadCut = 1u << 5;
     static constexpr uint8_t kReadLocal = 1u << 6;
     static constexpr uint8_t kReadLocalPreciseWrite = 1u << 7;
+    // Preserve L1's adjacent argument header and inline slots. With reply payloads outside Op,
+    // the header starts at 104 and the slots at 120 (was 192/208). Do not move this metadata
+    // beside routing: that would undo L1 and confound the F11 body-storage comparison.
+    Slice*   argv_heap_ = nullptr;
+    uint32_t argv_cap_  = 0;
+    uint32_t argc_      = 0;
     Slice    argv_inline_[kInlineArgv];
 };
 

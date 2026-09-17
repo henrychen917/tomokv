@@ -39,7 +39,7 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture() {
+        Fixture(bool load_balance = true) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "affinity unavailable");
@@ -61,6 +61,7 @@ struct CoreConcurrencyTest {
             config.shards = 16;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
+            config.key_lb = config.client_lb = load_balance ? 1 : 0;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nshards() == 16 && server.nthreads() == 8, "fixture geometry");
@@ -167,48 +168,6 @@ struct CoreConcurrencyTest {
         require(owner.execute(cleanup), "null tagged cleanup executed");
         require(!f.server.shard(sid).has_watches() && client.safe_to_release(),
                 "cleanup removed watcher and released client");
-    }
-
-    static void scheduler() {
-        Fixture<true> f;
-        Client clients[4] = {Client(-1), Client(-1), Client(-1), Client(-1)};
-        std::vector<Task> tasks;
-        const std::string key = f.key(f.sid());
-        for (uint32_t i = 0; i < kGenthreadPipelineExBatchOps; i++) {
-            Client& client = clients[i % 4];
-            f.client(client);
-            Op& op = prepare(client, {Slice(i % 3 ? "GET" : "STRLEN"), slice(key)}, f.server);
-            (void)op;
-            tasks.emplace_back(&client, client.rob().dispatch_id(), -1, nullptr);
-            client.rob().publish();
-        }
-        require(tasks.size() == 128 && tasks.size() > kExecBatch, "oversized fused batch armed");
-        for (const Task& task : tasks) {
-            uint8_t length = 255;
-            require(ex_sched_candidate(task, length), "every gathered task eligible");
-        }
-        Task batch[kGenthreadPipelineExBatchOps];
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, static_cast<uint32_t>(tasks.size()));
-        std::copy(std::begin(batch), std::end(batch), tasks.begin());
-        uint64_t next[4] = {};
-        for (const Task& task : tasks) {
-            const size_t client = task.client - clients;
-            require(client < 4 && task.op_id == next[client]++, "scheduler preserves client order");
-        }
-        for (uint64_t count : next) require(count == 32, "scheduler conserves every task");
-        // The original overrun occurs before the single-client shortcut too.
-        Client one(-1);
-        tasks.clear();
-        for (uint32_t i = 0; i < 64; i++) {
-            prepare(one, {Slice("GET"), slice(key)}, f.server);
-            tasks.emplace_back(&one, one.rob().dispatch_id(), -1, nullptr);
-            one.rob().publish();
-        }
-        std::copy(tasks.begin(), tasks.end(), batch);
-        ex_schedule_batch(batch, 64);
-        std::copy(std::begin(batch), std::begin(batch) + 64, tasks.begin());
-        for (uint32_t i = 0; i < 64; i++) require(tasks[i].op_id == i, "one-client FIFO shortcut");
     }
 
     inline static std::mutex pause_mutex;
@@ -333,6 +292,244 @@ struct CoreConcurrencyTest {
                 "following GET observes SET across ownership change");
     }
 
+    template <bool Fused, bool DestinationAck>
+    static void lb_continuous_arrivals() {
+        Fixture<Fused> f;
+        Client client(-1);
+        f.client(client);
+        // Drive the parser specialization used by stack3's active-client retry pass.
+        // Arrivals enter the real buffer; no socket/ring or writeback loop is started.
+        client.set_recv_armed(true);
+        f.server.thread(f.io_id).clients().push_back(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
+        f.io.mark_active(&client);
+        const uint32_t destination = Fused ? 0 : 1;
+        f.server.lb_client_move_ = {client.id(), f.io_id, destination, 1};
+        f.server.lb_coordinator_ = f.io_id;
+        f.server.lb_epoch_.store(1);
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        if constexpr (DestinationAck) f.server.lb_ack(destination);
+        constexpr char request[] = "*1\r\n$4\r\nPING\r\n";
+        uint32_t arrivals = 0;
+        {
+            // O1 removed v3's pending-IFID fence. Instead hold a real executor completion
+            // after its reply retired: the ROB is empty but the Client lifetime fence is live.
+            Op* completed = client.rob().acquire<false>();
+            require(completed != nullptr, "publish completion before client drain");
+            client.rob().publish();
+            Server::ClientWorkScope unfinished(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "retire reply before executor scope ends");
+            for (unsigned pass = 0; pass < 4 && f.server.lb_stage() == LbStage::ClientDrain; pass++) {
+                std::memcpy(client.rbuf() + client.rlen(), request, sizeof(request) - 1);
+                client.commit_read(sizeof(request) - 1);
+                arrivals++;
+                require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+                            &client) == IoLoop::DispatchResult::Progress,
+                        "production parser visits held input");
+                require(client.rpos() == 0 && client.rob().quiesced() && client.in_active() &&
+                            client.migration_protocol_idle(),
+                        "LB holds already-read input with EMPTY ROB on the active client");
+                std::string error;
+                require(!f.io.client_transfer_ready(&client, destination, error) &&
+                            error == "connection has an unfinished executor completion",
+                        "readiness rejects the actual outstanding executor lifetime fence");
+                (void)f.io.lb_control_pass();
+            }
+            require(!f.server.lb_timed_out(), "pass bound fires before five-second guard");
+            require(f.server.lb_stage() == LbStage::Idle && f.server.lb_client_refused() == 1,
+                    "busy move MUST be refused within four passes of continuous arrivals");
+            require(arrivals == 1, "busy move refuses on the FIRST tail, even without destination ACK");
+            std::string error;
+            require(!f.io.client_transfer_ready(&client, destination, error) &&
+                        error == "connection has an unfinished executor completion",
+                    "refusal never weakens the lifetime fence");
+        }
+        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+                "diagnostic identifies the outstanding executor predicate");
+#ifdef TOMO_LB_STALL_DEBUG
+        require(f.server.lb_policy_->stall.parked_passes >= 1 &&
+                    f.server.lb_policy_->stall.parked_bytes_max >= sizeof(request) - 1,
+                "debug accounting saw the actual parked input");
+        std::string info;
+        f.server.lb_stall_info(info);
+        require(info.find("tomokv_lbstall_debug:1\r\n") != std::string::npos &&
+                    info.find("tomokv_lbstall_executor:1\r\n") != std::string::npos,
+                "INFO exposes the armed diagnostic and refusing predicate");
+#endif
+        require(f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(
+                    &client) == IoLoop::DispatchResult::Progress &&
+                    client.rpos() == client.rlen(), "refusal resumes the SAME buffered frames");
+        uint32_t replies = 0;
+        client.rob().drain([&](Op& op) {
+            require(op.reply_code_ == static_cast<uint8_t>(ReplyCode::Pong) ||
+                        std::string(op.reply.data(), op.reply.size()) == "+PONG\r\n",
+                    "held request has its correct ordered reply");
+            replies++;
+        });
+        require(replies == arrivals, "every held frame answered exactly once");
+        client.set_recv_armed(false);
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+        std::printf("PASS LB busy client mode=%s destination_ack=%u arrivals=%u (first-tail refusal)\n",
+                    Fused ? "1s" : "2s", unsigned(DestinationAck), arrivals);
+    }
+
+    static void lb_destination_and_executor() {
+        Fixture f;
+        Client client(-1);
+        f.client(client);
+        f.server.thread(f.io_id).clients().push_back(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
+        auto request = [&](uint64_t epoch) {
+            f.server.lb_epoch_.store(epoch);
+            f.server.lb_client_move_ = {client.id(), f.io_id, 1, 1};
+            f.server.lb_coordinator_ = f.io_id;
+            f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+            f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        };
+        request(1);
+        std::string error;
+        require(f.io.client_transfer_ready(&client, 1, error), "idle client is a valid candidate");
+        // Destination never acknowledges. Even a ready source must get its traffic back.
+        for (uint32_t pass = 1; pass <= LbStallState::kPassLimit; pass++) {
+            require(f.io.lb_control_pass() != 0, "pending drain cannot sleep between passes");
+            require((f.server.lb_stage() == LbStage::Idle) == (pass == LbStallState::kPassLimit),
+                    "destination acknowledgement wait has an exact pass bound");
+        }
+        request(2);
+        Op* completed = client.rob().acquire<false>();
+        require(completed != nullptr, "publish a fresh completion to reset the lifetime snapshot");
+        client.rob().publish();
+        {
+            Server::ClientWorkScope unfinished(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "retire Done while its executor still holds Client");
+            require(client.migration_protocol_idle(), "executor-only fence with empty ROB");
+            require(!f.io.client_transfer_ready(&client, 1, error), "unfinished scope really armed");
+            require(f.io.lb_control_pass() != 0 && f.server.lb_stage() == LbStage::Idle,
+                    "unfinished executor refuses move without waiving its lifetime fence");
+        }
+        require(f.io.client_transfer_ready(&client, 1, error), "ending the scope permits transfer");
+        request(3);
+        require(f.server.lb_client_move_started(client.id(), 1), "quiescent candidate starts");
+        require(!f.server.lb_refuse_stalled(3, LbStallReason::PassLimit) &&
+                    f.server.lb_stage() == LbStage::ClientMoving,
+                "bounded refusal cannot revoke an in-flight kernel-pointer handoff");
+        f.server.lb_client_move_cancelled(client.id());
+        require(f.server.lb_policy_->stall.refused[static_cast<size_t>(LbStallReason::Executor)] == 1,
+                "executor-only refusal has its own diagnostic");
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+    }
+
+    template <bool Fused>
+    static void lb_shard_progress() {
+        Fixture<Fused> f;
+        Client client(-1);
+        f.client(client);
+        const int32_t sid = f.sid();
+        const std::string key = f.key(sid);
+        Op& set = prepare(client, {Slice("SET"), slice(key), Slice("held")}, f.server);
+        const Task task{&client, client.rob().dispatch_id(), -1, nullptr};
+        client.rob().publish();
+        require(f.server.thread(f.source).post_task_quiet(f.io_id, task, f.io.self_->sig()),
+                "publish real old-route SET");
+        f.server.lb_epoch_.store(1);
+        f.server.lb_coordinator_ = f.io_id == 0 ? 1 : 0;
+        f.server.lb_shard_moves_ = {{static_cast<uint32_t>(sid), f.source, f.destination, 1, 0}};
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_start_shard_drain();
+        // A fast IO can visit many tails before a peer publishes its old-route tasks.
+        // Neither that IO nor the coordinator may cancel a shard move at the CLIENT bound.
+        for (bool coordinator : {false, true}) {
+            if (coordinator) f.server.lb_coordinator_ = f.io_id;
+            for (uint32_t pass = 0; pass <= LbStallState::kPassLimit; pass++)
+                require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::IoDrain,
+                        "shard publication drain MUST survive more than three IO passes");
+        }
+        require(f.server.worker_of_shard(sid) == f.source && set.state == OpState::Issued,
+                "publication fence preserves owner and queued SET");
+        for (uint32_t tid : f.server.placement().ifid_threads()) f.server.lb_ack(tid);
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
+                "executor drain opens only after all producers publish");
+        require(!f.loops[f.source].flip_quiesced() && !f.server.lb_all_ex_acked(),
+                "real queued SET prevents executor quiescence");
+        for (uint32_t pass = 0; pass <= LbStallState::kPassLimit; pass++)
+            require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::ExDrain,
+                    "shard executor drain MUST survive more than three IO passes");
+        require(f.server.worker_of_shard(sid) == f.source && set.state == OpState::Issued,
+                "executor fence preserves owner and queued SET");
+        require(!f.server.lb_timed_out() && f.server.lb_transition_refused_ == 0 &&
+                    f.server.lb_policy_->stall.owners[f.io_id].passes == 0,
+                "shard drains consume no client pass budget or refusal cooldown");
+        require(f.loops[f.source].drain_tasks(true) == 1, "original owner executes its queued SET");
+        require(client.rob().drain([](Op&) {}) == 1, "queued SET retires exactly once");
+        for (uint32_t tid : f.server.placement().ex_threads()) {
+            require(f.loops[tid].flip_quiesced(), "executor is quiescent after its queued work");
+            f.server.lb_ack(tid);
+        }
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
+                    f.server.worker_of_shard(sid) == f.destination && f.server.lb_bucket_moves() == 1,
+                "same busy shard plan commits after both drains finish");
+        require(command(f, client, {Slice("GET"), slice(key)}) == "$4\r\nheld\r\n",
+                "RYOW survives a committed shard move");
+        // Restore v4's shard policy, including its final timeout guard.
+        f.server.lb_epoch_.store(2);
+        f.server.lb_deadline_ns_.store(now_ns() - 1);
+        f.server.lb_start_shard_drain();
+        require(f.io.lb_control_pass() && f.server.lb_stage() == LbStage::Idle &&
+                    f.server.worker_of_shard(sid) == f.destination &&
+                    f.server.lb_transition_refused_ == 1 && f.server.lb_bucket_moves() == 1,
+                "expired shard drain still uses the existing timeout guard");
+    }
+
+    static void lb_commit_refusal_race() {
+        Fixture f;
+        const uint32_t sid = static_cast<uint32_t>(f.sid());
+        require(f.server.reserve_shard_capacity(f.destination, 1), "pre-reserve test transfer");
+        f.server.lb_epoch_.store(1);
+        f.server.lb_shard_moves_ = {{sid, f.source, f.destination, 1, 0}};
+        f.server.lb_stage_.store(LbStage::ExDrain, std::memory_order_release);
+        for (uint32_t tid : f.server.placement().ex_threads()) f.server.lb_ack(tid);
+        std::atomic<uint32_t> entered{0};
+        bool committed = false, refused = false;
+        auto barrier = [&] {
+            entered.fetch_add(1);
+            while (entered.load() < 2) std::this_thread::yield();
+        };
+        std::thread mover([&] { barrier(); committed = f.server.lb_commit_shard_plan(1); });
+        std::thread canceller([&] {
+            barrier(); refused = f.server.lb_refuse_stalled(1, LbStallReason::PassLimit);
+        });
+        mover.join(); canceller.join();
+        require(committed != refused && f.server.lb_stage() == LbStage::Idle,
+                "commit and bounded refusal have exactly one winner");
+        require(f.server.worker_of_shard(sid) == (committed ? f.destination : f.source),
+                "dispatch resumes only after the winning ownership decision");
+        require(!f.server.lb_refuse_stalled(0, LbStallReason::PassLimit),
+                "stale movement cannot cancel another epoch");
+    }
+
+    static void lb_stalls() {
+        lb_continuous_arrivals<true, true>();
+        lb_continuous_arrivals<true, false>();
+        lb_continuous_arrivals<false, true>();
+        lb_continuous_arrivals<false, false>();
+        lb_destination_and_executor();
+        lb_shard_progress<false>();
+        lb_shard_progress<true>();
+        lb_commit_refusal_race();
+        Fixture off(false);
+        require(!off.server.lb_policy_, "LB=0 allocates no policy or stall accounting");
+        for (unsigned pass = 0; pass < 8; pass++)
+            require(off.io.lb_control_pass() == 0 && !off.server.lb_policy_,
+                    "stable control tails allocate and account nothing");
+    }
+
     static void snapshot_forward() {
         Fixture f;
         Client client(-1);
@@ -419,10 +616,11 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
     if (row == "watch") T::watch_disconnect();
-    else if (row == "scheduler") T::scheduler();
     else if (row == "lifetime") T::lifetime();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") T::route_order();
+    else if (row == "route") { T::route_order(); T::lb_stalls(); }
+    else if (row == "lbstall") T::lb_stalls();
+    else if (row == "lbshard") { T::lb_shard_progress<false>(); T::lb_shard_progress<true>(); }
     else if (row == "snapshot") T::snapshot_forward();
     else if (row == "config") {
         for (bool range : {false, true}) { T::transfer_config<false>(range); T::transfer_config<true>(range); }

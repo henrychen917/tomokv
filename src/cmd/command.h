@@ -305,6 +305,11 @@ const CommandSpec* command_registry_at(uint32_t id);
 uint64_t command_acl_category_mask(const CommandSpec& spec);
 const CommandSpec* command_notify_variant(const CommandSpec* spec);
 const CommandSpec* command_tls_variant(const CommandSpec* spec);
+// Foreign fused SETs select an alternate handler without changing the owner-only handlers.
+bool l4prebuild_policy(uint32_t bytes);
+void l4prebuild_prepare_set(Op& op);
+void l4prebuild_discard_set(Op& op);
+const CommandSpec* l4prebuild_notify_spec();
 
 // GET is the only ordinary executor handler that can create a FlatStore borrow. TLS selects these
 // copy-only variants on the IO parse specialization, so the plaintext handler has no transport
