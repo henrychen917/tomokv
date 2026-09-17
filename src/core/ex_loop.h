@@ -22,7 +22,6 @@
 #include "signal.h"
 #include "genthread_pipeline.h"
 #include "read_local.h"
-#include "reorder_fifo.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
 #include "../net/uring.h"
@@ -178,12 +177,12 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
-        reorder_enabled_ = srv->cfg().reorder != 0;
-        pipeline_batches_ = Fused && srv->thread_mode() == ThreadMode::Fused &&
-                            srv->cfg().overlap != 0;
-        // Fused overlap uses fixed producer lanes; synchronous local-read demotion resolves
-        // every reservation before the producer resumes. Split readers use ordinary inboxes.
-        iofused_ = pipeline_batches_;
+        // O1's outer-loop floor: both fused knob values use the baseline
+        // executor geometry and inboxes; selecting only its loop without these latches would
+        // still leave a different producer transport and retirement cadence behind. O6's
+        // bucket prefetch below uses placement and cfg.overlap independently of these outer latches.
+        pipeline_batches_ = false;
+        iofused_ = false;
         if constexpr (Fused) {
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
@@ -957,41 +956,6 @@ private:
     }
 
     static bool read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
-        const Enc encoding = object->encoding();
-        if constexpr (kReadLocalSetTaxAtomicRaw) {
-            if (encoding == Enc::Raw) {
-                [[maybe_unused]] uint32_t sequence = 0;
-                if constexpr (kReadLocalSetTaxVariant ==
-                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                    sequence = object->raw_sequence_acquire();
-                }
-                // Selector 3 may copy after observing odd: both the bounded length and fixed cells
-                // are atomic, and both old/new lengths fit this allocation class. Combining odd
-                // with the final mismatch therefore leaves the stable GET path one branch.
-                const uint32_t length = kvobj_read_local_raw_length(object);
-                auto sink = op.sink();
-                char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
-                char* payload = frame;
-                *payload++ = '$';
-                payload += u64_to_dec(payload, length);
-                *payload++ = '\r';
-                *payload++ = '\n';
-                kvobj_read_local_copy_raw(object, stable_flags, length, payload);
-                payload += length;
-                *payload++ = '\r';
-                *payload++ = '\n';
-                if constexpr (kReadLocalSetTaxVariant ==
-                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite) {
-                    // Keep every payload load before the confirming sequence load. Saturating the
-                    // writer sequence makes equality an ABA-free validation even across preemption.
-                    std::atomic_thread_fence(std::memory_order_acquire);
-                    const uint32_t confirmed = object->raw_sequence_relaxed();
-                    if (((confirmed ^ sequence) | (sequence & 1u)) != 0) return false;
-                }
-                sink.advance(static_cast<size_t>(payload - frame));
-                return true;
-            }
-        }
         reply_bulk(op.sink(), object->read_local_str_value(stable_flags));
         return true;
     }
@@ -1277,9 +1241,6 @@ private:
                         reply_bulk(op.sink(), Slice(text, length));
                     } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
                         if (!read_local_reply_string(op, object, flags)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                            self_->read_local_stats().settax.object_sequence_retries++;
-#endif
                             transient = ReadLocalFallbackReason::SeqChurn;
                             retry = true;
                             break;
@@ -1379,9 +1340,6 @@ private:
                 reply_bulk(op.sink(), Slice(text, length));
             } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
                 if (!read_local_reply_string(op, object, flags)) {
-#if TOMO_READ_LOCAL_SET_TAX_VARIANT == 3
-                    self_->read_local_stats().settax.object_sequence_retries++;
-#endif
                     read_local_clear_reply(op);
                     continue;
                 }
@@ -1998,8 +1956,8 @@ private:
 
     // Identical ready-mask drain and stack batch as the iofused coarse path.  Only the first batch
     // is split at its existing load-to-use seam; the caller's WB work runs synchronously there and
-    // every later batch remains the ordinary prefetch+execute unit.  ThreadCtx still owns the exact
-    // same pop/retire sequence, so no streams lane list or delayed-retirement context is involved.
+    // every later batch remains an ordinary prefetch+execute unit. O6 only preserves the bucket
+    // hints in that whole-batch walk; it adds no execution split or retained task state.
     template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
     uint32_t drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
         Task batch[BatchOps];
@@ -2007,10 +1965,8 @@ private:
         auto execute_batch = [&] {
             if (!held) return;
             if (!filler_used && xshard_retries_.empty()) {
-                if (__builtin_expect(reorder_enabled_, false))
-                    srv_->mode_schedule_stats(self_->id()).note_reorder(
-                        held, ex_schedule_batch(batch, held));
-                prefetch_exec_batch(batch, held);
+                if (overlap_prefetch_enabled(held)) prefetch_overlap_batch(batch, held);
+                else                               prefetch_exec_batch(batch, held);
                 filler();
                 filler_used = true;
                 exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
@@ -2396,6 +2352,42 @@ private:
         }
     }
 
+    // GCC 13.3 at release -O2 erases the nested bucket prefetch when this walk is inlined.
+    // Flatten this separate body before optimizing it, and retain the direct call so the hints
+    // survive. Decomposition retained this walk and found no rate benefit from splitting A/B:
+    // one direct call per gathered batch replaces the former n/2+1 calls. Execution, slowlog
+    // attribution and suffix deferral use the original whole-batch bodies in both modes.
+    // Ineligible batches keep the walk above. Keep both ownership guards identical: even a hint must
+    // not inspect a stale owner's mutable table. No store/slot pointer survives this call.
+    __attribute__((noinline, flatten))
+    void prefetch_overlap_batch(const Task* batch, uint32_t n) {
+        // ExLoopT<true> is also used by read-local-armed split owners. Only fused placement
+        // reports this coarse prefetch pass; split IO reports its own stage schedule. Keeping
+        // the witness here makes a missing walk fail, without claiming A/B interleaving.
+        // Fused prefetch also runs with overlap off, when its witness sidecar may be absent.
+        if constexpr (Fused)
+            if (srv_->cfg().overlap != 0 && srv_->thread_mode() == ThreadMode::Fused)
+                srv_->mode_schedule_stats(self_->id()).note_overlap(OverlapSchedule::Fused, false);
+        for (uint32_t i = 0; i < n; i++) {
+            if (!batch[i].client) continue;
+            const Op& op = batch[i].client->rob().at(batch[i].op_id);
+            const int32_t shard = batch[i].shard >= 0 ? batch[i].shard : op.shard;
+            if (shard >= 0 && !batch[i].scatter &&
+                srv_->worker_of_shard(shard) == self_->id() &&
+                !(op.spec->flags & (CmdFlags::CursorShard | CmdFlags::RandomShard)))
+                srv_->shard(shard).store().prefetch(op.hash);
+        }
+    }
+
+    // Measured policy: always prefetch fused batches; split batches still require overlap.
+    // Fused is a capability, so read-local split owners must also check placement. A singleton cannot
+    // amortize the walk, and exact slowlog escalation retains its original preparation path.
+    // No per-operation schedule state or additional storage is needed when overlap is off.
+    bool overlap_prefetch_enabled(uint32_t n) const {
+        return ((Fused && srv_->thread_mode() == ThreadMode::Fused) || srv_->cfg().overlap != 0) && n > 1 &&
+               (!slowlog_armed_ || !slowlog_state_.escalate_batches);
+    }
+
     // Consume a bucket-prefetched homogeneous batch. The interwoven schedule calls this
     // immediately after the prefetch loop; an interleaved schedule reaches it after independent-
     // stream filler.
@@ -2469,18 +2461,19 @@ private:
         }
     }
 
-    // Coarse compatibility: prefetch the whole batch and consume it without an intervening
-    // micro-stage.
+    // Whole-batch prefetch follows the gathered FIFO order.
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-        // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
-        // reorder BEFORE prefetch so prefetch order matches execution order.
+        // Deferral first: skip wasted prefetch on the rare retry path.
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        if (__builtin_expect(reorder_enabled_, false))
-            srv_->mode_schedule_stats(self_->id()).note_reorder(n, ex_schedule_batch(batch, n));
+        if (__builtin_expect(overlap_prefetch_enabled(n), false)) {
+            prefetch_overlap_batch(batch, n);
+            exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
+            return;
+        }
         prefetch_exec_batch(batch, n);
         exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
     }
@@ -2659,6 +2652,7 @@ private:
             // Scatter tasks bypass it -- their writes replace whole objects through insert-level
             // admission in their owner pass.
             reply_maxmemory_oom(op);
+            if constexpr (Fused) l4prebuild_discard_set(op);
         } else {
             // A null pending-entry list is the sole common-path branch. With no cross-shard window,
             // handlers take their original path with no epoch loads, allocations, or cleanup work.
@@ -2674,6 +2668,7 @@ private:
                     __builtin_expect(sh.has_blocking_waiters(), false);
                 if (defer_blocking) blocking_defer_plain_publication(true);
                 if (execute_handler) op.spec->handler(sh, op);
+                else if constexpr (Fused) l4prebuild_discard_set(op);
                 xshard_plain_finish(sh, foreign_scope);
                 if (defer_blocking) {
                     blocking_defer_plain_publication(false);
@@ -3059,7 +3054,7 @@ private:
     uint64_t   live_config_version_ = UINT64_MAX;
     AofManager* aof_manager_ = nullptr;
     bool       maxmemory_enabled_ = false;
-    bool       reorder_enabled_ = false;
+    uint8_t    retired_reorder_padding_ = 0; // preserve cached_lru_clock_ and later offsets
     uint8_t    cached_lru_clock_ = 0;
     uint32_t   lb_sample_rate_ = 0;
     uint32_t   lb_sample_countdown_ = 0;
@@ -3135,47 +3130,32 @@ private:
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
 public:
-    // R7 definitions are isolated from the FIFO translation units. Boot selects these
-    // entries once; adding their bodies here perturbs even the disarmed machine code.
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_pass();
-    template <bool ContinuousReorder>
+    // R7 bodies are isolated from the FIFO translation units.
+// BEGIN R7 GENERATED ENVELOPES
     uint32_t r7_fused_baseline_pass();
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_coarse_pass();
-    template <bool ContinuousReorder, typename Filler>
-    uint32_t r7_fused_three_way_pass(Filler&& filler);
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_pipeline_control();
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              typename Filler = void, bool ContinuousReorder = false>
+              typename Filler = void>
     uint32_t r7_fused_pass_impl(Filler* filler = nullptr);
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_sweep(bool consume_tasks = true);
-    template <bool ContinuousReorder>
     uint32_t r7_fused_baseline_sweep();
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_coarse_sweep();
-    template <bool ContinuousReorder>
-    uint32_t r7_fused_pipeline_control_sweep();
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              bool ContinuousReorder = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_fused_sweep_impl();
-    template <bool ContinuousReorder = false>
     void r7_run();
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              bool ContinuousReorder = false>
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_sweep();
     template <bool IofusedPrivateQueue = false>
     uint32_t r7_drain_tasks_read_local_interleaved(bool unmasked,
                                                 bool& owner_work_remains);
-    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler = void>
+// END R7 GENERATED ENVELOPES
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false,
+              typename Filler = void>
     __attribute__((noinline))
-    uint32_t r7_drain_tasks_reordered(bool unmasked, Filler* filler = nullptr,
-                                   bool* filler_used = nullptr);
+    uint32_t r7_drain_tasks(bool unmasked = false, Filler* filler = nullptr,
+                            bool* filler_used = nullptr);
+    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t r7_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void r7_exec_batch(Task (&batch)[BatchOps], uint32_t n);
 

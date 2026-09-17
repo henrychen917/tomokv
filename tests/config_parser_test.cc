@@ -166,6 +166,46 @@ int main() {
         !rejects({"--tls-prefer-server-ciphers", "1"}))
         fail("invalid TLS grammar was accepted");
 
+    for (const char* flag : {"--latency-monitor-threshold", "--stream-node-max-entries",
+                             "--stream-node-max-bytes"}) {
+        if (rejection_text({flag, "4294967296"}) != std::string(flag) +
+                ": argument must be between 0 and 4294967295 inclusive\n")
+            fail("uint32 config overflow has no precise range diagnostic");
+        for (const char* value : {"0", "4294967295"}) {
+            tomo::Config cfg;
+            tomo::ConfigParseState state;
+            if (tomo::parse_config_args({flag, value}, cfg, state, 2, "test") != tomo::kConfigParsed)
+                fail("uint32 config endpoint rejected at boot");
+        }
+    }
+    for (const char* flag : {"--script-crossshard-cut-slots", "--script-crossshard-conflict-retries"})
+        if (!rejects({flag, "4294967296"})) fail("retired script flag accepted an overflowing value");
+
+    // Redisgap boot knobs use the same parser for files and CLI. Set non-default values,
+    // override them, and reject malformed/range inputs rather than silently keeping defaults.
+    tomo::Config redisgap;
+    tomo::ConfigParseState redisgap_state;
+    if (tomo::parse_config_args({"--unixsocketperm", "0600", "--aof-load-truncated", "No",
+                                "--hll-sparse-max-bytes", "1kB"},
+                               redisgap, redisgap_state, 1, "conf") != tomo::kConfigParsed ||
+        redisgap.unixsocketperm != 0600 || redisgap.aof_load_truncated ||
+        redisgap.hll_sparse_max_bytes != 1024 ||
+        tomo::parse_config_args({"--unixsocketperm", "0", "--aof-load-truncated", "YES",
+                                "--hll-sparse-max-bytes", "0"},
+                               redisgap, redisgap_state, 2, "cli") != tomo::kConfigParsed ||
+        redisgap.unixsocketperm != 0 || !redisgap.aof_load_truncated ||
+        redisgap.hll_sparse_max_bytes != 0)
+        fail("Redisgap file values or CLI overrides were not applied");
+    for (const auto& [flag, bad] : {
+             std::pair{"--unixsocketperm", "888"}, {"--unixsocketperm", "1000"},
+             {"--unixsocketperm", "-1"}, {"--unixsocketperm", "600x"},
+             {"--aof-load-truncated", "1"}, {"--aof-load-truncated", "true"},
+             {"--aof-load-truncated", ""}, {"--hll-sparse-max-bytes", "-1"},
+             {"--hll-sparse-max-bytes", "4294967296"}, {"--hll-sparse-max-bytes", "1xb"}})
+        if (!rejects({flag, bad})) fail("invalid Redisgap boot grammar accepted");
+    for (const char* flag : {"--unixsocketperm", "--aof-load-truncated", "--hll-sparse-max-bytes"})
+        if (!rejects({flag})) fail("missing Redisgap boot argument accepted");
+
     // Restored reference controls: default translation, every alias, signed list modes,
     // full reference ranges, and the surprising INTEGER vs MEMORY distinction for set values.
     tomo::Config encodings;
@@ -204,6 +244,31 @@ int main() {
             !rejects({flag.c_str(), "+1"}) || !rejects({flag.c_str(), "-0"}) ||
             !rejects({flag.c_str(), "9223372036854775808"}))
             fail("encoding zero/range/decimal grammar differs");
+        // Every encoding spelling sets one shared value and round-trips through canonical
+        // output. Live SET/GET, owner limits and rewrite are exercised by netcmd's knob_matrix.
+        for (const char* spelling : {setting.name, setting.alias, setting.tomo_alias}) {
+            if (!spelling) continue;
+            const std::string alias_flag = std::string("--") + spelling;
+            const bool legacy = spelling == setting.tomo_alias;
+            const char* input = legacy ? "007" : setting.memory ? "1kb" : "7";
+            const int64_t expected_value = !legacy && setting.memory ? 1024 : 7;
+            if (tomo::parse_config_args({alias_flag.c_str(), input}, cfg, state, 1, "conf") !=
+                    tomo::kConfigParsed)
+                fail("encoding alias rejected its grammar");
+            const int key = tomo::EncodingConfig::find(tomo::Slice(spelling, std::strlen(spelling)));
+            if (key < 0 || cfg.encodings.values[key] != expected_value)
+                fail("encoding alias did not set its canonical value");
+            const std::string output = std::to_string(cfg.encodings.values[key]);
+            tomo::Config roundtrip;
+            tomo::ConfigParseState roundtrip_state;
+            if (tomo::parse_config_args({flag.c_str(), output.c_str()}, roundtrip, roundtrip_state,
+                                       2, "cli") != tomo::kConfigParsed ||
+                roundtrip.encodings.values[key] != expected_value)
+                fail("encoding alias did not round-trip through canonical output");
+            if (legacy && (!rejects({alias_flag.c_str(), "1kb"}) ||
+                           !rejects({alias_flag.c_str(), "4294967296"})))
+                fail("legacy encoding alias lost its uint32 grammar");
+        }
     }
     for (const auto& probe : {std::pair{"-1", 4096u}, {"-2", 8192u},
                               {"-3", 16384u}, {"-4", 32768u}, {"-5", 65536u},
@@ -320,11 +385,9 @@ int main() {
         if (tomo::validate_config(invalid_overlap) != tomo::kConfigError)
             fail("programmatic overlap 2 was accepted");
     }
-    if (rejection_text({"--thread-mode", "1s", "--overlap", "1",
-                        "--net-io", "epoll"}, true) !=
-            "--thread-mode 1s with --overlap 1 requires --net-io uring "
-            "for its single submit boundary\n")
-        fail("overlap engine validation rejection text is not canonical");
+    if (!parses_threads({"--thread-mode", "1s", "--overlap", "1",
+                         "--net-io", "epoll"}, tomo::ThreadMode::Fused, 1))
+        fail("owner prefetch rejected the ordinary fused engine");
     tomo::Config read_local;
     tomo::ConfigParseState read_local_state;
     const std::vector<const char*> read_local_args = {
@@ -364,6 +427,7 @@ int main() {
                cfg.thread_mode == ((!std::strcmp(mode, "1s") || !std::strcmp(mode, "fused"))
                    ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
                cfg.overlap == static_cast<uint32_t>(*overlap - '0') &&
+               cfg.overlap_enabled() == (*overlap == '1') &&
                cfg.reorder == static_cast<uint32_t>(*reorder - '0') &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };
@@ -373,11 +437,8 @@ int main() {
                 for (const char* reorder : {"0", "1"}) {
                     if (!parses_read_local_cell(mode, overlap, lane, reorder, "uring"))
                         fail("overlap/read-local/reorder boot cell was rejected");
-                    const bool fused = !std::strcmp(mode, "1s") || !std::strcmp(mode, "fused");
-                    const bool epoll_supported = !fused || *overlap == '0';
                     StderrSilencer quiet;
-                    if (parses_read_local_cell(mode, overlap, lane, reorder, "epoll") !=
-                        epoll_supported)
+                    if (!parses_read_local_cell(mode, overlap, lane, reorder, "epoll"))
                         fail("epoll overlap/read-local/reorder validation differs");
                 }
 
@@ -517,10 +578,8 @@ int main() {
         {"--lb", "1"}, {"--flip-work-window", "100"},
         {"--script-instruction-limit", "100000"}, {"--lb-sample-rate", "64"},
         {"--load", "dump.tomo"}, {"--conf", "tomokv.conf"},
-        {"--hash-max-compact-entries", "512"}, {"--hash-max-compact-value", "64"},
         {"--list-max-compact-entries", "4294967295"}, {"--list-max-compact-value", "8192"},
         {"--set-max-compact-entries", "128"}, {"--set-max-compact-value", "64"},
-        {"--zset-max-compact-entries", "128"}, {"--zset-max-compact-value", "64"},
         {"--lb-age-sample-rate", "0"}, {"--lb-tick-ms", "1000"},
         {"--lb-imbalance-pct", "25"}, {"--lb-move-cap", "1"},
         {"--lb-cooldown-ms", "5000"}, {"--ex-sched", "0"}, {"--x-ex-sched", "0"},

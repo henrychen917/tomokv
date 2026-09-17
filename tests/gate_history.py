@@ -474,19 +474,33 @@ def prepare(directory: Path, imports: list[Path], *, multiplier: float = DEFAULT
             "legacy_sources": sources, "rows": rows}
 
 
-def budget(plan: dict, label: str) -> dict:
+def budget(plan: dict, label: str, *, correctness: bool = False, base_label: str | None = None) -> dict:
     if not isinstance(plan, dict) or plan.get("schema") != SCHEMA or not isinstance(plan.get("rows"), dict):
         raise ValueError("invalid timeout plan")
     defaults = plan.get("defaults", {})
     fallback = finite_number(defaults.get("fallback_seconds"), "plan fallback", positive=True)
-    row = plan["rows"].get(canonical_label(label), {
+    key = canonical_label(label)
+    row = plan["rows"].get(key, {
         "timeout_seconds": fallback, "median_seconds": None,
         "basis": "no-history-conservative-default"})
+    if key not in plan["rows"] and correctness and base_label is not None:
+        row = plan["rows"].get(canonical_label(base_label), row)
+    if not isinstance(row, dict):
+        raise ValueError("invalid timeout row")
     finite_number(row.get("timeout_seconds"), "plan timeout", positive=True)
     if row.get("median_seconds") is not None:
         finite_number(row["median_seconds"], "plan median")
     if not isinstance(row.get("basis"), str) or any(c in row["basis"] for c in "\t\r\n"):
         raise ValueError("invalid timeout basis")
+    if correctness:
+        # Timing history describes previous binaries; it is not a correctness deadline.
+        # Keep explicit plan entries, including test deadlines, on every correctness path.
+        if row["basis"].split(";", 1)[0] in (
+                "own-row-history", "no-own-row-history-conservative-default"):
+            row = dict(row, timeout_seconds=fallback, basis="correctness-plan-fallback")
+            row.pop("mechanism_floor_seconds", None)
+            return protect_mechanism_budget(canonical_label(label), row)
+        return row
     if "mechanism_floor_seconds" not in row:
         row = protect_mechanism_budget(canonical_label(label), row)
     return row
@@ -799,6 +813,40 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(row["timeout_seconds"], 900)
         self.assertIn("default", row["basis"])
 
+    def test_correctness_uses_fixed_fallback_and_keeps_explicit_plan_entries(self):
+        labels = ["Redis 7.4 differential matrix",
+                  "Redis 7.4 differential matrix (armed fused + read-local)",
+                  "mode equivalence part (all execution modes and knobs)", "torture battery"]
+        labels += [f"Redis 7.4 differential part ({mode}, atomic {atomic})"
+                   for mode in ("split", "armed fused") for atomic in (0, 1)]
+        for label in labels:
+            self.add(114, label=label) # 456s from history would reject a 7m35s completed matrix.
+        plan = prepare(self.directory, [])
+        for label in labels:
+            with self.subTest(label=label):
+                self.assertEqual(budget(plan, label)["timeout_seconds"], 456)
+                row = budget(plan, label, correctness=True)
+                self.assertEqual((row["timeout_seconds"], row["median_seconds"], row["basis"]),
+                                 (900, 114, "correctness-plan-fallback"))
+                self.assertEqual(plan["rows"][label]["timeout_seconds"], 456)
+                for basis in ("fixture", "no-history-conservative-default"):
+                    explicit = dict(timeout_seconds=1800, median_seconds=None, basis=basis)
+                    plan["rows"][label] = explicit
+                    self.assertEqual(budget(plan, label, correctness=True), explicit)
+
+    def test_correctness_context_falls_back_to_its_explicit_base_plan(self):
+        plan = prepare(self.directory, [])
+        label = "ABBA comparison + saturation negative controls"
+        explicit = dict(timeout_seconds=1800, median_seconds=None, basis="fixture")
+        plan["rows"][label] = explicit
+        contextual = label + " [with-scheduler-controls]"
+        self.assertEqual(budget(plan, contextual, correctness=True, base_label=label), explicit)
+        plan["rows"][contextual] = dict(explicit, timeout_seconds=.3)
+        self.assertEqual(budget(plan, contextual, correctness=True, base_label=label)["timeout_seconds"], .3)
+        plan["rows"][contextual] = None
+        with self.assertRaisesRegex(ValueError, "invalid timeout row"):
+            budget(plan, contextual, correctness=True, base_label=label)
+
     def test_legacy_never_becomes_exact_and_duplicates_count_once(self):
         a = self.directory / "old.tsv"
         b = self.directory / "copy.tsv"
@@ -994,6 +1042,9 @@ for index in range(8):
         subprocess.run(command + ["prepare", "--history", str(self.directory), "--output", str(output)], check=True)
         result = subprocess.check_output(command + ["budget", "--plan", str(output), "--label", "test hits=4"], text=True)
         self.assertEqual(result.strip(), "80\t20\town-row-history")
+        result = subprocess.check_output(command + ["budget", "--correctness", "--plan", str(output),
+                                                   "--label", "test hits=4"], text=True)
+        self.assertEqual(result.strip(), "900\t20\tcorrectness-plan-fallback")
 
     def run_watch_shell(self, body: str, seconds: str = "0.15"):
         import subprocess
@@ -1128,7 +1179,7 @@ eval "$4"
         helpers = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
         directory = Path(self.temp.name)
         plan = prepare(directory / 'history', [])
-        plan['rows']['fixture'] = dict(timeout_seconds=timeout, median_seconds=.05, basis='own-row-history')
+        plan['rows']['fixture'] = dict(timeout_seconds=timeout, median_seconds=.05, basis='fixture')
         atomic_json(directory / 'plan.json', plan)
         setup = '''set -u
 TMPDIR="$FIXTURE"; LEDGER="$FIXTURE/ledger"; TIMINGS="$FIXTURE/timings"
@@ -1154,6 +1205,7 @@ quiet_wait(){ :; }
         self.assertEqual(rows[0][0], 'FAIL')
         self.assertEqual(rows[0][2], 'fixture')
         self.assertIn('TIMEOUT 0.15s; median=0.05s', result.stdout)
+        self.assertNotIn('FAIL', result.stdout)
         self.assertTrue(history[0]['timed_out'])
 
     def test_real_shell_missing_scope_is_a_failure(self):
@@ -1476,7 +1528,8 @@ sleep 60
 ok "headline ABBA vs last pushed binary"
 '''
         result = subprocess.run(["bash", "-c", "\n".join((setup, helpers, cleanup, body))], cwd=root,
-            env=dict(os.environ, RUN_DIR=str(directory)), capture_output=True, text=True, timeout=5)
+            env=dict(os.environ, RUN_DIR=str(directory), GATE_ABBA_ROW_BUDGET_S="0.3"),
+            capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 124, result.stdout + result.stderr)
         rows = [row.split("\t") for row in (directory / "ledger").read_text().splitlines()]
         self.assertEqual([(row[0], row[2]) for row in rows],
@@ -1694,6 +1747,8 @@ def main() -> int:
     p = sub.add_parser("budget")
     p.add_argument("--plan", type=Path, required=True)
     p.add_argument("--label", required=True)
+    p.add_argument("--correctness", action="store_true")
+    p.add_argument("--base-label")
     p = sub.add_parser("canonical")
     p.add_argument("label")
     p = sub.add_parser("watch")
@@ -1723,7 +1778,7 @@ def main() -> int:
     p = sub.add_parser("abba-context")
     p.add_argument("arguments", nargs=argparse.REMAINDER)
     sub.add_parser("self-test")
-    args = parser.parse_args()
+    args = parser.parse_args(["self-test"] if sys.argv[1:] == ["--self-test"] else None)
     try:
         if args.command == "prepare":
             result = prepare(args.history, args.import_ledger, multiplier=args.multiplier,
@@ -1741,7 +1796,8 @@ def main() -> int:
                    verdict=args.verdict, timed_out=args.timed_out, observation_id=args.observation_id,
                    scored=bool(args.scored), ledger_label=args.ledger_label)
         elif args.command == "budget":
-            row = budget(json.loads(args.plan.read_text()), args.label)
+            row = budget(json.loads(args.plan.read_text()), args.label, correctness=args.correctness,
+                         base_label=args.base_label)
             median = "-" if row["median_seconds"] is None else f"{row['median_seconds']:g}"
             print(f"{row['timeout_seconds']:g}\t{median}\t{row['basis']}")
         elif args.command == "canonical":

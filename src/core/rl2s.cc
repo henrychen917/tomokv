@@ -89,7 +89,7 @@ void IoLoop::run_split_read_local() {
             else run_loop<false, false, false, true, Pipeline, true>();
         }
     };
-    if (srv_->cfg().overlap) run.template operator()<1>();
+    if (srv_->cfg().overlap_enabled()) run.template operator()<1>();
     else run.template operator()<0>();
 }
 
@@ -120,7 +120,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     // capture: capturing a new local entry pointer enlarged every off-arm thread
     // launch allocation by eight bytes. The table needs no per-thread storage.
     using OwnerEntry = void (FusedExLoop::*)();
-    static constexpr OwnerEntry run_owner[] = {&FusedExLoop::run, &FusedExLoop::r7_run<true>};
+    static constexpr OwnerEntry run_owner[] = {&FusedExLoop::run, &FusedExLoop::r7_run};
     // Reuse the 1s boot gate's stop-aware loading/listener barriers. Every physical thread binds
     // its permanent sink and every owner arms its stores before any reader can enter the lane.
     FusedBootGate boot(nthreads);
@@ -292,7 +292,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return 1;
     }
     std::string unix_error;
-    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
         std::fprintf(stderr, "%s\n", unix_error.c_str());
         stop_workers();
         return 1;

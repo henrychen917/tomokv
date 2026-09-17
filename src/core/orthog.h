@@ -48,16 +48,12 @@ static_assert(sizeof(ModeScheduleStats) == 64);
 __attribute__((noinline, cold))
 inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats* stats,
                                      uint32_t nthreads) {
-    uint64_t passes = 0, interleaved = 0, batches = 0, multi = 0, permutations = 0;
-    uint32_t max_batch = 0, schedules = 0;
+    uint64_t passes = 0, interleaved = 0;
+    uint32_t schedules = 0;
     if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
         const auto& s = stats[tid];
         passes += s.overlap_passes.load(std::memory_order_relaxed);
         interleaved += s.overlap_interleaved_passes.load(std::memory_order_relaxed);
-        batches += s.reorder_batches.load(std::memory_order_relaxed);
-        multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
-        permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
-        max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
         schedules |= 1u << static_cast<uint32_t>(s.overlap_schedule.load(std::memory_order_relaxed));
     }
     schedules &= ~1u;
@@ -66,14 +62,13 @@ inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats
     char row[512];
     const int n = std::snprintf(row, sizeof(row),
         "schedule_stats_threads:%u\r\noverlap_schedule:%s\r\noverlap_passes:%llu\r\n"
-        "overlap_interleaved_passes:%llu\r\nreorder_batches:%llu\r\n"
-        "reorder_multi_client_runs:%llu\r\nreorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\n",
+        "overlap_interleaved_passes:%llu\r\n",
         stats ? nthreads : 0, schedule,
-        static_cast<unsigned long long>(passes), static_cast<unsigned long long>(interleaved),
-        static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch);
+        static_cast<unsigned long long>(passes), static_cast<unsigned long long>(interleaved));
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
+
+void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads);
 
 } // namespace tomo

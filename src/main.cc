@@ -175,6 +175,7 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
+    if (!reorder_available()) cfg.reorder = 0;
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.
@@ -340,7 +341,7 @@ int main(int argc, char** argv) {
     // capture: capturing a new local entry pointer enlarged every off-arm thread
     // launch allocation by eight bytes. The table needs no per-thread storage.
     using OwnerEntry = void (ExLoop::*)();
-    static constexpr OwnerEntry run_owner[] = {&ExLoop::run, &ExLoop::r7_run<true>};
+    static constexpr OwnerEntry run_owner[] = {&ExLoop::run, &ExLoop::r7_run};
     std::mutex load_mu;
     std::condition_variable load_cv;
     uint32_t loaders_done = 0;
@@ -498,7 +499,7 @@ int main(int argc, char** argv) {
         ::close(probe);
     }
     std::string unix_error;
-    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
         std::fprintf(stderr, "%s\n", unix_error.c_str());
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
         for (auto& thread : pool) thread.join();

@@ -2,8 +2,8 @@
 """Workload and histogram boundaries for the ABBA regression cells.
 
 Multi-key cells issue eight independent generated keys, as in tests/matrix.sh.
-Reorder cells use ordinary one-owner BITCOUNT and GET tasks: scatter MGET and
-blocking commands are barriers in reorder.h and cannot establish this mechanism.
+The historical REORDER cells mix ordinary one-owner BITCOUNT and GET tasks.
+The retired knob is identified explicitly; old reference binaries retain their witnesses.
 """
 
 import base64
@@ -16,7 +16,7 @@ import zlib
 
 
 MULTI_KEYS = 8
-LONG_KEYS = 2048
+LONG_KEYS = 65536
 LONG_BYTES = 256 * 1024
 
 
@@ -33,8 +33,9 @@ def workload_arguments(cell):
         return [f"--ratio={writes}:{reads}"]  # cells describe READ:WRITE; memtier wants SET:GET.
     mget = "MGET " + " ".join(["__key__"] * MULTI_KEYS)
     mset = "MSET " + " ".join(["__key__ __data__"] * MULTI_KEYS)
-    if cell.op in ("MGET", "MSET"):
-        commands = [(mget if cell.op == "MGET" else mset, 1)]
+    if cell.op in ("MGET", "MSET", "MSETNX"):
+        command = mget if cell.op == "MGET" else cell.op + mset[len("MSET"):]
+        commands = [(command, 1)]
     elif cell.op == "MIX8":
         reads, writes = map(int, cell.mix.split(":"))
         commands = [(mget, reads), (mset, writes)]
@@ -48,10 +49,10 @@ def workload_arguments(cell):
         argv += ["--command=" + command, f"--command-ratio={ratio}", "--command-key-pattern=P"]
     if cell.op == "REORDER":
         # The short keys already exist in the two-million-key population. Only this
-        # extra 512 MiB is long; populating two million long values would change the
+        # extra 16 GiB is long; populating two million long values would change the
         # experiment into a capacity test. Keep more keys than connections even at
         # the first one-instance probe so memtier's parallel key ranges are nonempty.
-        argv += [f"--key-maximum={LONG_KEYS}"]
+        argv += [f"--key-maximum={LONG_KEYS}", "--rate-limiting=1400"]
     return argv
 
 
@@ -122,6 +123,15 @@ def command_stat(data, name):
     return int(fields.get("calls", 0)), float(fields.get("usec", 0))
 
 
+def retired_reorder(mode):
+    if mode.get("reorder_retired") != "1":
+        return False
+    if mode.get("reorder") != "0" or any(name.startswith("reorder_") and name != "reorder_retired"
+                                         for name in mode):
+        raise RuntimeError("retired reorder exposed an active knob or counters")
+    return True
+
+
 def require_workload_witness(cell, before, after, mode_before, mode_after, legacy_control=None):
     evidence = {}
     for name in workload_command_names(cell):
@@ -131,6 +141,9 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
             raise RuntimeError(f"{name} did not execute during the measured window")
         evidence[name] = {"calls": ac - bc}
     if cell.op == "REORDER":
+        if retired_reorder(mode_before) and retired_reorder(mode_after):
+            evidence["reorder_witness"] = "retired, no-op"
+            return evidence
         field = "reorder_permuted_runs"
         if field not in mode_before or field not in mode_after:
             # The unchanged pushed reference predates this telemetry. Its fallback must be a

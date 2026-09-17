@@ -252,7 +252,7 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # negative control BEFORE the quick exit (quick +1, full +1) and the mandatory headline result
 # AFTER it (full +1). 418+1 = 419 quick; 467-32+2 = 437 full.
 EXPECT_QUICK=419
-EXPECT_FULL=436                 # ABBA row reports and is not counted; self-test row remains.
+EXPECT_FULL=435                 # ABBA row reports and is not counted; self-test row remains.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -403,20 +403,19 @@ row_begin(){
   ROW_ID=$(printf '%s\n' "$1" | canonical_label)
   ROW_HISTORY_ID="$ROW_ID${2:+ [$2]}"
   local budget
-  budget=$(python3 tests/gate_history.py budget --plan "$ROW_PLAN" --label "$ROW_HISTORY_ID") || exit 2
+  budget=$(python3 tests/gate_history.py budget --correctness --plan "$ROW_PLAN" \
+      --label "$ROW_HISTORY_ID" --base-label "$ROW_ID") || exit 2
   IFS=$'\t' read -r ROW_TIMEOUT ROW_MEDIAN ROW_BASIS <<< "$budget"
-  # The whole ABBA matrix is a single historical gate row. Until it has exact
-  # history, its conservative budget must accommodate the full escalation matrix.
-  # This bound is not a license to accept partial results; ABBA still scores all cells.
   # The ABBA row's recorded history is dominated by runs that aborted before measuring (median
   # 0.42s), so a history-derived budget kills every genuine measurement at 30s -- three overnight
   # rounds on 2026-09-13 died exactly that way. The row only reports now; give it the full-matrix
-  # budget unconditionally rather than one derived from its own failures.
-  # An EXPLICIT plan entry (basis != own-row-history) is honoured -- that is how the timeout
-  # self-test drives this row with a 0.3s budget. Only a HISTORY-derived budget is overridden,
-  # because the row's history is instant aborts and would kill every real measurement.
-  if [ "$ROW_ID" = 'headline ABBA vs last pushed binary' ] && [ "$ROW_BASIS" = own-row-history ]; then
-    ROW_TIMEOUT=43200; ROW_BASIS=abba-full-matrix-not-history
+  # budget on every basis, including the 900s no-history default and explicit plan entries.
+  if [ "$ROW_ID" = 'headline ABBA vs last pushed binary' ]; then
+    # Only timeout negative controls override the production full-matrix budget.
+    ROW_TIMEOUT=${GATE_ABBA_ROW_BUDGET_S:-43200}; ROW_BASIS=abba-full-matrix-not-history
+  fi
+  if [ "$ROW_ID" = 'tailgen client-lb outstanding bound' ]; then
+    ROW_TIMEOUT=90; ROW_BASIS=tailgen-populate-3s-warmup-20s-window
   fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
@@ -429,7 +428,7 @@ row_begin(){
 row_timeout(){
   trap '' USR1
   ROW_EXPIRED=1
-  bad "${ROW_ID:-row watchdog}" "TIMEOUT after ${ROW_TIMEOUT:-?}s; median=${ROW_MEDIAN:--}s; ${ROW_BASIS:-unknown}"
+  ledger FAIL "${ROW_ID:-row watchdog}"
   exit 124
 }
 row_finish(){
@@ -459,7 +458,8 @@ ledger(){
     [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
     if [ "$ROW_EXPIRED" = 1 ]; then
       verdict=FAIL
-      say "$identity" "FAIL (TIMEOUT ${ROW_TIMEOUT}s; median=${ROW_MEDIAN}s; $ROW_BASIS)"
+      # TIMEOUT is distinct in the report and timed_out history; it still fails the gate.
+      say "$identity" "TIMEOUT ${ROW_TIMEOUT}s; median=${ROW_MEDIAN}s; $ROW_BASIS"
     fi
     row_save_history "$verdict" "$scored" || exit 2
   else
@@ -947,9 +947,9 @@ start_workers(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
-  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit reorder_unit storage_units
+  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
@@ -1040,7 +1040,11 @@ collect_differ_group(){
   IFS=$'\t' read -r verdict duration label <<< "$row"
   printf '%s\n' "$row" >> "$LEDGER"
   printf '%s\n' "$row" >> "$TIMINGS"
-  say "$label" "$verdict (${duration}s across concurrent children)"
+  if [ "$fold_rc" = 124 ]; then
+    say "$label" "TIMEOUT (${duration}s across concurrent children)"
+  else
+    say "$label" "$verdict (${duration}s across concurrent children)"
+  fi
   if [ "$verdict" = ok ]; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 }
 collect_job(){
@@ -1223,12 +1227,12 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
 }
 
 job_core_units(){
-# SURVIVING core concurrency regressions. Eight rows, all ABOVE the quick-tier exit.
+# SURVIVING core concurrency regressions. Seven rows, all ABOVE the quick-tier exit.
 # Each selection asserts its hazardous state; ASAN/UBSAN and bounded interleaving hooks
 # make a broken mechanism fail. The fixture starts no server and opens no listener.
 CORE_UNIT_READY=0
 unit_ready core-concurrency-unit && CORE_UNIT_READY=1
-for core_row in watch scheduler lifetime drain route snapshot config notify; do
+for core_row in watch lifetime drain route snapshot config notify; do
   row_begin "core concurrency $core_row"
   quiet_wait
   if [ "$CORE_UNIT_READY" = 1 ] && \
@@ -1242,19 +1246,6 @@ for core_row in watch scheduler lifetime drain route snapshot config notify; do
     bad "core concurrency $core_row" "see $TMPDIR/gate-core-$core_row.txt, $TMPDIR/tsan-core-concurrency-tsan-$core_row.log, and $RUN_DIR/jobs/production_units/build.log and $RUN_DIR/jobs/core_tsan_build/build.log"
   fi
 done
-}
-
-job_reorder_unit(){
-# REORDER.md: one row in BOTH tiers (before the quick exit). Real published ROB tasks drive the
-# production scheduler at 32/128 capacity. Exact non-identity permutations prove it fired; ASAN
-# and UBSAN make undersized scratch and an invalid occupancy shift fail, never skip or time out green.
-row_begin "reorder mechanism + 32/128-task geometry battery"
-g++ -std=c++20 -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all \
-    -fno-omit-frame-pointer -pthread -I. tests/reorder_unit.cc \
-    -o $TMPDIR/tomokv-reorder-unit 2>$TMPDIR/gate-reorder-unit.txt \
-    && $TMPDIR/tomokv-reorder-unit >>$TMPDIR/gate-reorder-unit.txt 2>&1 \
-    && ok "reorder mechanism + 32/128-task geometry battery" \
-    || bad "reorder mechanism + 32/128-task geometry battery" "see $TMPDIR/gate-reorder-unit.txt"
 }
 
 job_storage_units(){
@@ -2312,6 +2303,8 @@ job_feature_cell(){
 job_abba_selftest(){
 # The ABBA tier's own decision logic, saturation rules and rejection paths, exercised serverless so
 # a broken comparator is caught on any machine and before any measurement is trusted.
+# The suite rejects live candidate probes even in a warm worktree; executable fixtures and an
+# explicit missing-candidate control keep this row independent of the concurrent release build.
 # Owned-server teardown must retain its drain/identity witnesses too: a success followed by
 # unfinished connection cleanup is failed evidence, including in the parallel feature cells.
 # Calibrated inputs must also reject changed shapes and forged completion evidence before
@@ -2329,6 +2322,7 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
 }
@@ -2500,7 +2494,7 @@ fi
 # All core dependencies are instrumented in an isolated cache. Linking release objects here
 # would leave command/owner accesses invisible, while sharing the ASAN cache would mix runtimes.
 # One compile mode across every TU also gives inline test hooks identical definitions everywhere.
-# These builds own no ledger row: the existing eight core rows and waits row require both runs.
+# These builds own no ledger row: the existing seven core rows and waits row require both runs.
 job_core_tsan_build(){
   local source sources=()
   mkdir -p "$RUN_DIR/unit-ready"
@@ -2541,6 +2535,12 @@ tsan_unit(){
   fi
 }
 
+job_tailgen_build(){
+  mkdir -p "$RUN_DIR/unit-ready"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tailgen \
+      >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/tailgen"
+}
+
 job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
@@ -2572,7 +2572,7 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|config_unit|flip_unit|filter_unit|ring_unit|reorder_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
     atomic_units|netcmd_units) echo production_units;;
@@ -2638,7 +2638,6 @@ collect_job ring_unit
 
 collect_job core_units
 
-collect_job reorder_unit
 
 collect_job storage_units
 
@@ -2739,6 +2738,25 @@ done
 
 collect_job abba_selftest
 
+# One correctness row, before the quick exit. The open-loop driver needs 16 load
+# cores; use the tail cell's complete placement only after every slot has stopped.
+# Its build is already done. Budget: ~90 s including the 2M + 16 GiB population.
+join_workers
+CORES=$PERF_SERVER_CORES; LOAD_CORES=$PERF_LOAD_CORES
+export GATE_CORES="$CORES" GATE_LOAD_CORES="$LOAD_CORES"
+taskset -pc "$LOAD_CORES" "$BASHPID" >/dev/null
+row_begin "tailgen client-lb outstanding bound"
+if [ -f "$RUN_DIR/unit-ready/tailgen" ] &&
+    boot_fused "$CANDIDATE_BINARY" --shards 256 --atomic 1 --overlap 1 &&
+    py tests/tailgen_stall.py --port "$PORT" --cores "$LOAD_CORES" \
+        --output "$TMPDIR/tailgen-stall" >"$TMPDIR/gate-tailgen-stall.txt" 2>&1; then
+  ok "tailgen client-lb outstanding bound"
+else
+  bad "tailgen client-lb outstanding bound" "see $TMPDIR/gate-tailgen-stall.txt and $RUN_DIR/jobs/tailgen_build/build.log"
+fi
+stop
+set_slot 0
+
 if [ "$TIER" = quick ]; then
   join_workers
   phase end
@@ -2812,11 +2830,12 @@ PY
 # our tracked background child is interruptible, so stopping the gate reaches ABBA's cleanup.
 ABBA_HISTORY_CONTEXT=$(python3 tests/gate_history.py abba-context -- "${ABBA_ARGS[@]}") || exit 2
 row_begin "headline ABBA vs last pushed binary" "$ABBA_HISTORY_CONTEXT"
+# The watchdog still tears down the measurement; its timeout must not score or exit the gate.
+trap 'ROW_EXPIRED=1' USR1
 python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
 ABBA_PID=$!
 wait "$ABBA_PID"
 ABBA_RC=$?
-ABBA_PID=0
 # ABBA REPORTS. CORRECTNESS GATES. (Owner ruling 2026-09-13: gate work stops here.)
 # The tier runs on every version and its per-cell numbers print above and land in results.json;
 # read them. It does not decide the gate, for two measured reasons:
@@ -2835,8 +2854,26 @@ case "$ABBA_RC" in
   *) say "headline ABBA" "measured; see per-cell numbers above and results.json (reporting only, not gating)";;
 esac
 
+row_finish
+ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}
+if [ "$ABBA_CLEANUP_RC" = 0 ]; then
+  # An expiry can interrupt the first wait. The watchdog has now finished bounded teardown.
+  wait "$ABBA_PID" 2>/dev/null || :
+  ABBA_PID=0
+fi
+if [ "$ROW_EXPIRED" = 1 ]; then
+  ABBA_RC=124
+  say "headline ABBA" "FAIL-reporting-only (TIMEOUT ${ROW_TIMEOUT}s; $ROW_BASIS)"
+fi
+ROW_ID=; ROW_EXPIRED=0
+trap - USR1
 phase abba-end
-publish_abba || exit 2
+publish_abba || {
+  [ "$ABBA_RC" != 0 ] || ABBA_RC=1
+  say "headline ABBA" "FAIL-reporting-only (incomplete publication; rc=$ABBA_RC)"
+  # Do not retry this reporting failure in cleanup and prevent owned-child teardown.
+  ABBA_PENDING=0
+}
 ROW_T=$(date +%s.%N)
 
 # ---- 5. full tier: NIC regression cells vs pinned refs ----------------------------------------
@@ -2956,7 +2993,7 @@ fi
 
 phase end
 program_state "$((EXPECT_FULL+NIC_CHECKED))"
-GATE_CLEANUP_RC=0
+GATE_CLEANUP_RC=$ABBA_CLEANUP_RC
 cleanup || GATE_CLEANUP_RC=$?
 RECEIPT_RC=0
 if [ "$RECEIPT_REQUIRED" = 1 ]; then

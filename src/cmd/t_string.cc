@@ -258,6 +258,7 @@ void clear_reply(Op& op) {
 
 }  // namespace
 
+#ifndef TOMO_L4_PREBUILD_TU
 #ifndef TOMO_STRING_NOTIFY_TU
 XshardStringStoreResult xshard_store_string(Shard& shard, Slice key, uint64_t hash, Slice value,
                                              int64_t expire_at_ms, bool integer_encode,
@@ -322,6 +323,7 @@ void reply_maxmemory_oom(Op& op) {
     reply_err(op.sink(), "OOM command not allowed when used memory > 'maxmemory'.");
 }
 #endif
+#endif // !TOMO_L4_PREBUILD_TU
 
 namespace {
 
@@ -332,24 +334,6 @@ void reply_string_bulk(Op& op, const KvObj* o) {
         const uint32_t n = i64_to_dec(text, o->int_value());
         reply_bulk(op.sink(), Slice(text, n));
         return;
-    }
-    if constexpr (kReadLocalSetTaxAtomicRaw) {
-        if (o->encoding() == Enc::Raw) {
-            const uint32_t length = kvobj_read_local_raw_length(o);
-            auto sink = op.sink();
-            char* frame = sink.reserve(24 + static_cast<size_t>(length) + 2);
-            char* payload = frame;
-            *payload++ = '$';
-            payload += u64_to_dec(payload, length);
-            *payload++ = '\r';
-            *payload++ = '\n';
-            kvobj_read_local_copy_raw(o, o->read_local_flags(), length, payload);
-            payload += length;
-            *payload++ = '\r';
-            *payload++ = '\n';
-            sink.advance(static_cast<size_t>(payload - frame));
-            return;
-        }
     }
     KvObjRawReadBuffer raw;
     reply_bulk(op.sink(), kvobj_string_value(o, raw));
@@ -364,40 +348,11 @@ void cmd_get(Shard& sh, Op& op) {
     auto sink = op.sink();
     if (!obj_type_check(o, Type::String, sink)) return;
     if (o->is_int()) { reply_string_bulk(op, o); return; }
-    if constexpr (kReadLocalSetTaxAtomicRaw) {
-        if (o->encoding() == Enc::Raw) {
-            if constexpr (kReadLocalSetTaxVariant ==
-                              ReadLocalSetTaxVariant::ObjectSequenceOverwrite &&
-                          kAllowBorrow) {
-                const uint32_t length = kvobj_read_local_raw_length(o);
-                const uint32_t zc_min = sh.zc_min();
-                if (zc_min && length >= zc_min) {
-                    reply_bulk_header(op.sink(), length);
-                    op.zc_ptr = o->str_data();
-                    op.zc_len = length;
-                    op.zc_shard = sh.id();
-                    // The owner publishes this registry entry before it can run another command;
-                    // selector 3's overwrite gate then leaves these exact bytes immutable.
-                    sh.store().borrow(op.zc_ptr);
-                    return;
-                }
-            }
-            if constexpr (!kAllowBorrow) {
-                const uint32_t zc_min = sh.zc_min();
-                if (zc_min && kvobj_read_local_raw_length(o) >= zc_min) op.mark_no_borrow();
-            }
-            reply_string_bulk(op, o);
-            return;
-        }
-    }
     KvObjRawReadBuffer raw;
     const Slice value = kvobj_string_value(o, raw);
     if constexpr (kAllowBorrow) {
         const uint32_t zc_min = sh.zc_min();
-        bool may_borrow = true;
-        if constexpr (kReadLocalSetTaxVariant == ReadLocalSetTaxVariant::SequenceOverwrite)
-            may_borrow = o->encoding() != Enc::Raw;
-        if (may_borrow && zc_min && value.n >= zc_min) {
+        if (zc_min && value.n >= zc_min) {
             reply_bulk_header(op.sink(), value.n);
             op.zc_ptr = value.p;
             op.zc_len = value.n;
@@ -906,11 +861,6 @@ bool parse_bitmap_unit(Op& op, Slice unit, bool& bits) {
 }
 
 template <bool kNotify>
-// Keep the bitmap loop's placement independent of preceding cold text. The v3
-// stack moved this unchanged body into a slow placement (about 345 us per 4 MiB
-// BITCOUNT versus 180-200 us); aligning only this handler restores its service
-// time without changing the loop or the flip controller's demand model.
-__attribute__((aligned(64)))
 void cmd_bitcount(Shard& sh, Op& op) {
     int64_t start = 0, end = 0;
     bool bit_unit = false;
@@ -1460,7 +1410,7 @@ void cmd_type(Shard& sh, Op& op) {
 }
 
 
-#ifndef TOMO_STRING_NOTIFY_TU
+#if !defined(TOMO_STRING_NOTIFY_TU) && !defined(TOMO_L4_PREBUILD_TU)
 #define TOMO_HANDLER_PAIR(fn, first, last, step) \
     fn<false>, first, last, step, fn##_notify
 
@@ -1531,6 +1481,7 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+#ifndef TOMO_L4_PREBUILD_TU
 #ifdef TOMO_STRING_NOTIFY_TU
 void cmd_get_tls_notify(Shard& shard, Op& op) {
     notify_execute_handler(shard, op, cmd_get<true, false>);
@@ -1600,6 +1551,8 @@ CommandTable string_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
 }
 #endif
+
+#endif // !TOMO_L4_PREBUILD_TU
 
 #undef TOMO_STRING_NOTIFY_HANDLERS
 

@@ -1,13 +1,5 @@
-// R7 owns a separate set of role bodies, selected before their hot loops start. Merely
-// adding a bool template policy to the original headers changed 90 of 217 off-path
-// bodies through GCC's unit-wide inlining budget. Separate definitions with the original
-// method names preserved for FIFO make that boundary testable at the byte level.
-//
-// The control envelopes below intentionally mirror ex_loop.h/io_loop.h. Their queue
-// policy, hard barriers, fairness quanta, and recv/callback/retire lifetime are unchanged.
-// Keep control fixes in both envelopes; tests/reorder_noop.py checks the FIFO binary,
-// while the scheduler unit checks the R7 policy at both batch capacities. Do not move
-// these definitions or the armed fused boot back into the clean translation units.
+// R7 role bodies are isolated so the FIFO compiler input stays unchanged.
+// tools/reorder_sync.py checks the copied envelopes against the current mainline methods.
 #include "genthread.h"
 #include "fused_boot_gate.h"
 #include "shutdown_report.h"
@@ -17,77 +9,104 @@
 #include "reorder.h"
 
 namespace tomo {
-namespace {
-// The placement model uses wall minus idle. An empty owner turn must therefore include
-// its polling prologue, diagnostic CPU-clock read, pause and final empty sweep in idle;
-// timing only the inner drain makes those gaps look like executor demand. Declare this
-// before its Span so the timer closes before we select the counter. A sweep that finds
-// work sets work too; neither command execution nor its ring submission is booked idle.
-// This envelope is R7-only: the PRE entry and its disabled hot bodies stay untouched.
-struct ReorderOwnerPass {
-    LoopSignals& signal;
-    uint32_t work = 0;
-    uint64_t elapsed_ns = 0;
-    ~ReorderOwnerPass() {
-        if (work) signal.busy_ns += elapsed_ns;
-        else      signal.idle_ns += elapsed_ns;
-    }
-};
-}  // namespace
+// A cold capability predicate also supplies the exact-layout kind-A PAD control.
+// Only boot and INFO call it. The PAD changes this body to return false.
+__attribute__((noipa)) bool reorder_available() { return true; }
 
-template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_pass() {
-    static_assert(Fused);
-    if (!pipeline_batches_)
-        return r7_fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void,
-            ContinuousReorder>();
-    return iofused_
-        ? r7_fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void,
-            ContinuousReorder>()
-        : r7_fused_pass_impl<kGenthreadPipelineExBatchOps, true, false, false, false, void,
-            ContinuousReorder>();
+void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
+    uint64_t batches = 0, multi = 0, permutations = 0;
+    uint32_t max_batch = 0;
+    if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
+        const auto& s = stats[tid];
+        batches += s.reorder_batches.load(std::memory_order_relaxed);
+        multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
+        permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
+        max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
+    }
+    char row[256];
+    const int n = std::snprintf(row, sizeof(row),
+        "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
+        "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\n",
+        static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
+        static_cast<unsigned long long>(permutations), max_batch);
+    if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
+    body.append(row, static_cast<size_t>(n));
 }
 
 template <bool Fused>
-template <bool ContinuousReorder>
+template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+__attribute__((noinline))
+uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked, Filler* filler,
+                               bool* filler_used) {
+    r7::ExReorderQueues<BatchOps> queues;
+    Task batch[BatchOps];
+    uint32_t held = 0;
+    auto emit = [&](const Task* selected, uint32_t count, ReorderResult witness) {
+        srv_->mode_schedule_stats(self_->id()).note_reorder(count, witness);
+        if (!xshard_retries_.empty()) {
+            for (uint32_t i = 0; i < count; i++) ordered_deferred_.push_back(selected[i]);
+            return;
+        }
+        if (overlap_prefetch_enabled(count)) prefetch_overlap_batch(selected, count);
+        else prefetch_exec_batch(selected, count);
+        if constexpr (!std::is_void_v<Filler>) {
+            if (!*filler_used) {
+                (*filler)();
+                *filler_used = true;
+            }
+        }
+        exec_batch_prefetched<IofusedPrivateQueue>(selected, count);
+    };
+    auto take = [&](const Task& task) {
+        batch[held++] = task;
+        if (held == BatchOps) {
+            queues.submit(batch, held, emit);
+            held = 0;
+        }
+    };
+    const uint32_t n = unmasked
+        ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
+        : self_->drain_tasks<IofusedPrivateQueue>(take);
+    if (held) queues.submit(batch, held, emit);
+    queues.finish(emit);
+    self_->sig().ops += n;
+    return n;
+}
+
+template <bool Fused>
+template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+uint32_t ExLoopT<Fused>::r7_drain_tasks_with_filler(bool unmasked, Filler& filler,
+                                                  bool& filler_used) {
+    return r7_drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked, &filler, &filler_used);
+}
+
+template <bool Fused>
+template <bool IofusedPrivateQueue, size_t BatchOps>
+void ExLoopT<Fused>::r7_exec_batch(Task (&batch)[BatchOps], uint32_t n) {
+    if (!xshard_retries_.empty()) {
+        for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
+        return;
+    }
+    srv_->mode_schedule_stats(self_->id()).note_reorder(n, r7::ex_schedule_batch(batch, n));
+    if (overlap_prefetch_enabled(n)) prefetch_overlap_batch(batch, n);
+    else prefetch_exec_batch(batch, n);
+    exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
+}
+
+// BEGIN R7 GENERATED ENVELOPES
+template <bool Fused>
 uint32_t ExLoopT<Fused>::r7_fused_baseline_pass() {
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
-        return r7_fused_pass_impl<kGenthreadExBatchOps, true, false, false, true, void, ContinuousReorder>();
-    return r7_fused_pass_impl<kGenthreadExBatchOps, true, false, false, false, void, ContinuousReorder>();
-}
-
-template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_coarse_pass() {
-    static_assert(Fused);
-    return r7_fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, void,
-        ContinuousReorder>();
-}
-
-template <bool Fused>
-template <bool ContinuousReorder, typename Filler>
-uint32_t ExLoopT<Fused>::r7_fused_three_way_pass(Filler&& filler) {
-    static_assert(Fused);
-    using Fn = std::remove_reference_t<Filler>;
-    return r7_fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn, ContinuousReorder>(
-        &filler);
-}
-
-template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_pipeline_control() {
-    static_assert(Fused);
-    return r7_fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void,
-        ContinuousReorder>();
+        return r7_fused_pass_impl<kGenthreadExBatchOps, true, false, false, true>();
+    return r7_fused_pass_impl<kGenthreadExBatchOps, true, false>();
 }
 
 template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
           bool IofusedPrivateQueue, bool InterleaveLocalReads,
-          typename Filler, bool ContinuousReorder>
+          typename Filler>
 uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
     Server::ClientWorkScope client_work(*srv_, self_->id());
     constexpr bool HasFiller = !std::is_void_v<Filler>;
@@ -178,10 +197,10 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
             if constexpr (ConsumeTasks)
                 if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                     if constexpr (HasFiller)
-                        did += r7_drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(
-                            true, filler, &filler_used);
+                        did += r7_drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                            true, *filler, filler_used);
                     else
-                        did += r7_drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(true);
+                        did += r7_drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                 }
             flush_xshard_commits();
             did += aof_flush_pass();
@@ -204,14 +223,14 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
                 if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                     if (snapshot_owner_state_ == SnapshotOwnerState::None) {
                         if constexpr (HasFiller)
-                            did += r7_drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(
-                                false, filler, &filler_used);
+                            did += r7_drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
+                                false, *filler, filler_used);
                         else {
                             if (fairlane_turn)
                                 did += r7_drain_tasks_read_local_interleaved<
                                     IofusedPrivateQueue>(false, owner_work_remains);
                             else
-                                did += r7_drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(false);
+                                did += r7_drain_tasks<BatchOps, IofusedPrivateQueue>();
                         }
                     } else {
                         did += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
@@ -263,75 +282,31 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
     fused_idle_spins_ = 0;
     if constexpr (InterleaveLocalReads) {
         did = fairlane_turn
-            ? r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true, ContinuousReorder>()
-            : r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
+            ? r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
+            : r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     } else {
-        did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
+        did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (did) fused_submit_boundary<CoalesceSubmit>();
     return did;
 }
 
 template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_sweep(bool consume_tasks) {
-    static_assert(Fused);
-    if (!consume_tasks) {
-        if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return iofused_
-                ? r7_fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true, false, void,
-                    ContinuousReorder>()
-                : r7_fused_pass_impl<kGenthreadPipelineExBatchOps, false, false, false, false, void,
-                    ContinuousReorder>();
-        if (!pipeline_batches_)
-            return r7_fused_sweep_impl<kGenthreadExBatchOps, false, false, false, false,
-                ContinuousReorder>();
-        return iofused_
-            ? r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true, false,
-                ContinuousReorder>()
-            : r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false,
-                ContinuousReorder>();
-    }
-    if (!pipeline_batches_)
-        return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
-    return iofused_
-        ? r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true, false, ContinuousReorder>()
-        : r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false, false, false, ContinuousReorder>();
-}
-
-template <bool Fused>
-template <bool ContinuousReorder>
 uint32_t ExLoopT<Fused>::r7_fused_baseline_sweep() {
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
-        return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true, ContinuousReorder>();
-    return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, false, false, ContinuousReorder>();
-}
-
-template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_coarse_sweep() {
-    static_assert(Fused);
-    return r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true, false, ContinuousReorder>();
-}
-
-template <bool Fused>
-template <bool ContinuousReorder>
-uint32_t ExLoopT<Fused>::r7_fused_pipeline_control_sweep() {
-    static_assert(Fused);
-    return r7_fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false, false, false,
-        ContinuousReorder>();
+        return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true>();
+    return r7_fused_sweep_impl<kGenthreadExBatchOps, true, false>();
 }
 
 template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-          bool IofusedPrivateQueue, bool InterleaveLocalReads,
-          bool ContinuousReorder>
+          bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
     if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-        return r7_fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit, IofusedPrivateQueue, false, void,
-            ContinuousReorder>();
+        return r7_fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
+                               IofusedPrivateQueue>();
     struct RotationBoundary {
         bool enabled;
         ThreadCtx* self;
@@ -347,19 +322,19 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
         if (!read_local_enabled()) std::abort();
         if (fairlane_owner_debt_pending()) {
             did += drain_local_reads() +
-                r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
+                r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         } else {
             compact_local_read_tombstones();
             if (read_local_impl().lane_count) {
                 did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
-                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true, ContinuousReorder>();
+                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>();
             } else {
-                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
+                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
             }
         }
     } else {
         did += drain_local_reads() +
-            r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, false, ContinuousReorder>();
+            r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
     if (did) fused_submit_boundary<CoalesceSubmit>();
@@ -367,7 +342,6 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
 }
 
 template <bool Fused>
-template <bool ContinuousReorder>
 void ExLoopT<Fused>::r7_run() {
     if constexpr (Fused) {
         // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
@@ -383,9 +357,6 @@ void ExLoopT<Fused>::r7_run() {
 
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ex) {
-        ReorderOwnerPass accounting{sig};
-        Span pass(accounting.elapsed_ns);
-        uint32_t& did = accounting.work;
 #ifdef TOMO_RL_CACHE_DEBUG
         if constexpr (Fused)
             srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
@@ -403,9 +374,12 @@ void ExLoopT<Fused>::r7_run() {
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
         sig.iterations++;
 
+        uint32_t did = 0;
+        uint64_t pass_ns = 0;
         {
             Server::ClientWorkScope client_work(*srv_, self_->id());
-            if (self_->sample_depth(pass.start_ns() / 1000)) {
+            Span busy(pass_ns);
+            if (self_->sample_depth(busy.start_ns() / 1000)) {
                 const uint32_t age_rate = srv_->effective_age_sample_rate();
                 if (age_rate != age_sample_rate_cached_) {
                     age_sample_rate_cached_ = age_rate;
@@ -428,7 +402,7 @@ void ExLoopT<Fused>::r7_run() {
                     did += service_xshard_retries();
                     if (xshard_retries_.empty()) did += service_ordered_deferred();
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += r7_drain_tasks_reordered<kGenthreadExBatchOps, false>(true);
+                        did += r7_drain_tasks(true);
                     flush_xshard_commits();
                     did += aof_flush_pass();
                     did += drain_notify_keyless(sig);
@@ -449,7 +423,7 @@ void ExLoopT<Fused>::r7_run() {
                     if (xshard_retries_.empty()) did += service_ordered_deferred();
                     if (xshard_retries_.empty() && ordered_deferred_.empty())
                         did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                   ? r7_drain_tasks_reordered<kGenthreadExBatchOps, false>(false) : drain_tasks_snapshot();
+                                   ? r7_drain_tasks() : drain_tasks_snapshot();
                 }
                 flush_xshard_commits();
                 if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
@@ -465,6 +439,13 @@ void ExLoopT<Fused>::r7_run() {
                 did += owner_control_tail();
             }
         }
+        // A pass that found nothing -- every drain and control pass came back empty -- is
+        // polling, not work. Book it as idle so busy_ns means WORK: the FLIP placement model
+        // reads the roles' busy shares, and an executor spinning its 2048-pass budget between
+        // task batches would otherwise report the polling as demand (measured on 8-key
+        // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
+        // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
+        if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
         sig.cpu_ns = thread_cpu_ns();
 
         // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
@@ -487,6 +468,7 @@ void ExLoopT<Fused>::r7_run() {
                 __builtin_ia32_pause();
                 continue;
             }
+            Span idle(sig.idle_ns);
             self_->arm_blocked();
             ring_.submit_and_wait(1);
             self_->clear_blocked();
@@ -499,12 +481,9 @@ void ExLoopT<Fused>::r7_run() {
         // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
         // not be the only thing that can find queued work, or one lost bit wedges a connection
         // forever. Runs only when this thread has already concluded it has nothing to do.
-        did = r7_sweep<kGenthreadExBatchOps, true, false, false, ContinuousReorder>();
-        if (did) {
-            ring_.submit_and_reap();
-            continue;
-        }
+        if (r7_sweep()) { ring_.submit_and_reap(); continue; }
 
+        Span idle(sig.idle_ns);
         self_->arm_blocked();
         if (!self_->any_ex_inbound()) ring_.submit_and_wait(1);
         else                       ring_.submit_and_reap();
@@ -514,8 +493,7 @@ void ExLoopT<Fused>::r7_run() {
 
 template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks,
-          bool IofusedPrivateQueue, bool InterleaveLocalReads,
-          bool ContinuousReorder>
+          bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_sweep() {
     Server::ClientWorkScope client_work(*srv_, self_->id());
     [[maybe_unused]] bool owner_work_remains = false;
@@ -535,7 +513,7 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
                         n += r7_drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
                             true, owner_work_remains);
                     else
-                        n += r7_drain_tasks_reordered<BatchOps, IofusedPrivateQueue>(true);
+                        n += r7_drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                 } else {
                     n += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
                 }
@@ -593,69 +571,12 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_read_local_interleaved(bool unmasked,
     return n + local_work;
 }
 
-template <bool Fused>
-template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
-__attribute__((noinline))
-uint32_t ExLoopT<Fused>::r7_drain_tasks_reordered(bool unmasked, Filler* filler,
-                               bool* filler_used) {
-    r7::ExReorderQueues<BatchOps> queues;
-    Task batch[BatchOps];
-    uint32_t held = 0;
-    auto emit = [&](const Task* selected, uint32_t count, ReorderResult witness) {
-        srv_->mode_schedule_stats(self_->id()).note_reorder(count, witness);
-        if (!xshard_retries_.empty()) {
-            for (uint32_t i = 0; i < count; i++) ordered_deferred_.push_back(selected[i]);
-            return;
-        }
-        prefetch_exec_batch(selected, count);
-        if constexpr (!std::is_void_v<Filler>) {
-            if (!*filler_used) {
-                (*filler)();
-                *filler_used = true;
-            }
-        }
-        exec_batch_prefetched<IofusedPrivateQueue>(selected, count);
-    };
-    auto take = [&](const Task& task) {
-        batch[held++] = task;
-        if (held == BatchOps) {
-            queues.submit(batch, held, emit);
-            held = 0;
-        }
-    };
-    const uint32_t n = unmasked
-        ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
-        : self_->drain_tasks<IofusedPrivateQueue>(take);
-    if (held) queues.submit(batch, held, emit);
-    queues.finish(emit);
-    self_->sig().ops += n;
-    return n;
-}
-
-template <bool Fused>
-template <bool IofusedPrivateQueue, size_t BatchOps>
-void ExLoopT<Fused>::r7_exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-    // Deferral first (skip wasted prefetch on the rare retry path), then the opt-in
-    // reorder BEFORE prefetch so prefetch order matches execution order.
-    if (!xshard_retries_.empty()) {
-        for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-        return;
-    }
-    if (__builtin_expect(reorder_enabled_, false))
-        srv_->mode_schedule_stats(self_->id()).note_reorder(n, r7::ex_schedule_batch(batch, n));
-    prefetch_exec_batch(batch, n);
-    exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
-}
-
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused,
-          uint8_t Pipeline, bool SplitLocal, bool ContinuousReorder>
+          uint8_t Pipeline, bool SplitLocal>
 void IoLoop::r7_run_loop() {
     static_assert(Pipeline <= 1);
-    if constexpr (Fused && Pipeline == 1 && !SplitLocal) {
-        // Fused overlap uses the occupancy-gated schedule on the fixed producer lanes.
-        r7_run_fused_iofused_loop<HasUnix, HasTls, kEp, true, ContinuousReorder>();
-        return;
-    }
+    // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
+    static_assert(!Fused || SplitLocal || Pipeline == 0);
     static_assert(!SplitLocal || Fused);
     constexpr bool IoPipe = (!Fused || SplitLocal) && Pipeline == 1;
     if constexpr (Fused) {
@@ -674,6 +595,10 @@ void IoLoop::r7_run_loop() {
         if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
     }
     LoopSignals& sig = self_->sig();
+    // The disarmed specialization is empty. No depth history or cursor is allocated or
+    // initialized by overlap 0, including when an EX thread activates an IO role after FLIP.
+    [[maybe_unused]] IoPipeLoopState<IoPipe> pipe;
+    if constexpr (IoPipe) pipe.depth.reset(sig.ops);
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ifid) {
         refresh_notify_config();
@@ -705,7 +630,7 @@ void IoLoop::r7_run_loop() {
         bool submitted = false;
         bool natural_order = false;
         if constexpr (IoPipe)
-            natural_order = iopipe_depth_gate_.loop_boundary(sig.ops);
+            natural_order = pipe.depth.loop_boundary(sig.ops);
         {
             Span busy(sig.busy_ns);
             // The work-span clock is already sampled once for this pass. Reuse that cut for
@@ -775,16 +700,16 @@ void IoLoop::r7_run_loop() {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += pipeline_pass<HasUnix, HasTls, kEp, SplitLocal>(
-                    false, natural_order, submitted);
+                    false, natural_order, submitted, pipe.cursor);
             } else if constexpr (Fused) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, ContinuousReorder>();
+                did += r7_flush_ready<HasTls, kEp, true, HasUnix>();
             } else {
                 did += collect_retire_work<HasUnix, kEp>();
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += r7_flush_ready<HasTls, kEp, false, false, false, ContinuousReorder>();
+                did += r7_flush_ready<HasTls, kEp>();
             }
             did += flip_control_pass<kEp>();
             if (__builtin_expect(client_lb_signal_armed &&
@@ -834,9 +759,9 @@ void IoLoop::r7_run_loop() {
         uint32_t sweep_work = 0;
         if constexpr (IoPipe)
             sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
-                natural_order, submitted);
+                natural_order, submitted, pipe.cursor);
         else
-            sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, ContinuousReorder>();
+            sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused>();
         if (sweep_work) {
             if constexpr (IoPipe) {
                 if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
@@ -910,527 +835,19 @@ void IoLoop::r7_run_loop() {
     reap_dead();
 }
 
-template <bool HasUnix, bool HasTls, bool kEp, bool ThreeWay, bool ContinuousReorder>
-void IoLoop::r7_run_fused_iofused_loop() {
-    if (srv_->read_local_enabled()) {
-        if (ThreadCtx::read_local_publication_parked(self_->read_local_publication()))
-            self_->resume_read_local_tick();
-        self_->publish_read_local_tick(srv_->read_local_epoch());
-        self_->set_read_local_lane_active(true);
-    }
-    if constexpr (!kEp) {
-        if (listen_fd_ >= 0) arm_accept(UrKind::Accept);
-        if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
-        if constexpr (HasUnix)
-            if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
-    }
-    LoopSignals& sig = self_->sig();
-    WbPipelineBatch wb_batch;
-    uint32_t non_send_rotations = 0;
-    bool three_way_gate_open = false;
-
-    while (!self_->stop_flag().load(std::memory_order_relaxed) &&
-           self_->role() == Role::Ifid) {
-        refresh_notify_config();
-        if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
-            climon_refresh_armed();
-        const bool pause_armed = climon_pause_armed();
-        const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
-                                       srv_->client_cron_armed();
-        const bool client_lb_signal_armed = client_lb_signal_armed_;
-        const bool lb_controller_armed = lb_controller_armed_;
-        const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
-                                     srv_->save_cron_writer(self_->id());
-        const bool client_cron_newly_armed =
-            client_cron_armed && !client_cron_was_armed_;
-        if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false))
-            for (Client* c : self_->clients()) c->stop_obuf_tracking();
-        client_cron_was_armed_ = client_cron_armed;
-        sig.iterations++;
-        reap_dead();
-        scatter_pool_.reap_deferred();
-
-        uint32_t did = 0;
-        {
-            Span busy(sig.busy_ns);
-            bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
-                                    client_lb_signal_armed || lb_controller_armed ||
-                                    !deferred_timers_.empty();
-            if (__builtin_expect(pass_time_cached, true)) {
-                cached_now_ms_ = busy.start_ns() / 1000000ull;
-                cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-            }
-            if (__builtin_expect(pause_armed &&
-                                 cached_now_ms_ >= climon_pause_deadline_ms_, false))
-                climon_release_pause();
-            if (client_cron_newly_armed) {
-                for (Client* c : self_->clients())
-                    c->set_last_interaction_s(cached_now_s_);
-                client_cron_beat_ms_ = cached_now_ms_;
-            }
-            if (self_->sample_depth(busy.start_ns() / 1000)) {
-                sig.cpu_ns = thread_cpu_ns();
-                refresh_age_sampling();
-                if (age_signals_armed_) sample_rob_head_age(sig.cached_now_us);
-            }
-            if constexpr (!kEp) {
-                if (accept_pending_) arm_accept(UrKind::Accept);
-                if constexpr (HasTls)
-                    if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
-                if constexpr (HasUnix)
-                    if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
-            }
-            did += service_client_migrations<kEp>();
-            did += drain_client_transfers<kEp>();
-            did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
-            if constexpr (HasUnix) did += flush_handoffs();
-            did += multi_owner_pass_entry_iofused(*this);
-            if (srv_->aof().writer_is(self_->id()))
-                did += srv_->aof().writer_pass(*self_, ring_);
-            if (srv_->snapshot().writer_is(self_->id()))
-                did += srv_->snapshot().writer_pass(*self_, ring_);
-            if (__builtin_expect(!deferred_timers_.empty(), false)) {
-                if (!pass_time_cached) {
-                    cached_now_ms_ = busy.start_ns() / 1000000ull;
-                    cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
-                    pass_time_cached = true;
-                }
-                did += deferred_timer_pass(cached_now_ms_);
-            }
-            did += flush_borrow_releases();
-            if (__builtin_expect(!routing_forward_.empty(), false))
-                client_routing_cleanup_pass();
-
-            // N0 is the rotation's only completion harvest. Receive parsing and SEND follow-up
-            // remain in the explicit IFID/WB body below.
-            did += ring_.for_each_cqe([&](io_uring_cqe* cqe) {
-                on_cqe<HasTls, kEp, true, 1>(cqe);
-            });
-            if constexpr (kEp)
-                did += epoll_pass<HasUnix, HasTls, true, 1>(0);
-            if constexpr (ThreeWay)
-                did += r7_genthread_three_way_pass<HasUnix, HasTls, kEp, ContinuousReorder>(
-                    wb_batch, three_way_gate_open);
-            else
-                did += r7_genthread_iofused_pass<HasUnix, HasTls, kEp, ContinuousReorder>(wb_batch);
-
-            did += flip_control_pass<kEp>();
-            if (__builtin_expect(client_lb_signal_armed &&
-                                 cached_now_ms_ >= lb_client_signal_beat_ms_, false)) {
-                did += lb_client_signal_pass();
-                lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
-            }
-            did += lb_control_pass();
-            if (__builtin_expect(lb_controller_armed &&
-                                 cached_now_ms_ >= lb_controller_beat_ms_, false)) {
-                lb_controller_beat_ms_ = cached_now_ms_ + srv_->lb_tick_ms();
-                if (srv_->lb_cron_writer(self_->id()) &&
-                    srv_->lb_controller_tick(self_->id(), cached_now_ms_))
-                    lb_schedule_wake_all();
-                did++;
-            }
-            did += lb_wake_all_pass();
-            if (__builtin_expect(client_cron_armed &&
-                                 cached_now_ms_ >= client_cron_beat_ms_, false)) {
-                did += client_cron_pass();
-                client_cron_beat_ms_ = cached_now_ms_ + 100;
-            }
-            if (__builtin_expect(save_cron_armed &&
-                                 cached_now_ms_ >= save_cron_beat_ms_, false)) {
-                did += srv_->save_cron_pass(*self_, ring_);
-                save_cron_beat_ms_ = cached_now_ms_ + 1000;
-            }
-        }
-
-        if (ring_.take_sq_full_submit()) non_send_rotations = 0;
-        if (ring_.send_pending()) {
-            ring_.submit_and_reap<true>();
-            non_send_rotations = 0;
-            continue;
-        }
-        if (did) {
-            if (++non_send_rotations >= kGenthreadIoFusedCoalesceRotations) {
-                ring_.submit_and_reap<true>();
-                non_send_rotations = 0;
-            }
-            continue;
-        }
-
-        if constexpr (ThreeWay) three_way_gate_open = false;
-        const uint32_t sweep_work =
-            r7_genthread_iofused_sweep<HasUnix, HasTls, kEp, ContinuousReorder>();
-        if (sweep_work) {
-            if (ring_.take_sq_full_submit()) non_send_rotations = 0;
-            if (ring_.send_pending() ||
-                ++non_send_rotations >= kGenthreadIoFusedCoalesceRotations) {
-                ring_.submit_and_reap<true>();
-                non_send_rotations = 0;
-            }
-            continue;
-        }
-
-        Span idle(sig.idle_ns);
-        // All local captures were consumed by the pass/sweep above. An idle fused thread
-        // must stop holding back another owner's bounded retire ring, just as in overlap 0.
-        if (__builtin_expect(srv_->read_local_enabled(), false))
-            self_->publish_read_local_parked(srv_->read_local_epoch());
-        self_->arm_blocked();
-        if constexpr (kEp) {
-            if (!self_->any_fused_inbound())
-                epoll_pass<HasUnix, HasTls, true, 1>(50);
-        } else {
-            if (!self_->any_fused_inbound()) ring_.submit_and_wait<true>(1);
-            else                            ring_.submit_and_reap<true>();
-        }
-        non_send_rotations = 0;
-        // Clear the parked bit BEFORE sampling the epoch, in the same seq-cst order as
-        // the grace scan. The next pass may then capture foreign objects safely.
-        if (__builtin_expect(srv_->read_local_enabled(), false)) {
-            self_->resume_read_local_tick();
-            self_->publish_read_local_tick(srv_->read_local_epoch());
-        }
-        self_->clear_blocked();
-    }
-
-    if (srv_->read_local_enabled()) {
-        self_->set_read_local_lane_active(false);
-        self_->publish_read_local_parked(srv_->read_local_epoch());
-    }
-    if constexpr (kEp) {
-        while (!epoll_closes_.empty()) {
-            Client* victim = epoll_closes_.back();
-            epoll_closes_.pop_back();
-            epoll_close_now(victim);
-        }
-    }
-    clear_ifid_queue();
-    if (srv_->aof().writer_is(self_->id()))
-        srv_->aof().writer_shutdown(*self_, ring_);
-    reap_dead();
-    reap_dead();
-}
-
-template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool ContinuousReorder>
+template <bool HasUnix, bool HasTls, bool kEp, bool Fused>
 uint32_t IoLoop::r7_sweep() {
     uint32_t work = 0;
     if constexpr (HasUnix) work += flush_handoffs();
     if constexpr (Fused) {
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() +
-                r7_flush_ready<HasTls, kEp, true, HasUnix, true, ContinuousReorder>();
+                r7_flush_ready<HasTls, kEp, true, HasUnix, true>();
     } else {
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
-                r7_flush_ready<HasTls, kEp, false, false, false, ContinuousReorder>();
+                r7_flush_ready<HasTls, kEp>();
     }
-    if (__builtin_expect(!routing_forward_.empty(), false))
-        client_routing_cleanup_pass();
-    if (srv_->snapshot().writer_is(self_->id()))
-        work += srv_->snapshot().writer_pass(*self_, ring_, true);
-    if (srv_->aof().writer_is(self_->id()))
-        work += srv_->aof().writer_pass(*self_, ring_, true);
-    return work;
-}
-
-template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder>
-uint32_t IoLoop::r7_genthread_iofused_pass(WbPipelineBatch& batch) {
-    if (batch.count || active_wb_context_) std::abort();
-    active_wb_context_ = &batch;
-
-    uint32_t work = collect_retire_work<HasUnix, kEp, true>();
-    if (!pending_serve_.empty()) {
-        AofManager& aof = srv_->aof();
-        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
-        if (!aof.reply_gate_ready(aof_gate_target_)) {
-            aof.register_send_gate_wait(self_->id());
-        } else {
-            aof_gate_target_ = 0;
-            while (batch.count < kGenthreadPipelineWbBatchConns &&
-                   !pending_serve_.empty()) {
-                Client* client = pending_serve_.front();
-                pending_serve_.pop_front();
-                client->set_serve_pending(false);
-                if (!client->dead()) {
-                    batch.clients[batch.count] = client;
-                    batch.count++;
-                }
-            }
-        }
-    } else {
-        aof_gate_target_ = 0;
-    }
-
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client* client = batch.clients[i];
-        if (!client || client->dead()) continue;
-        Rob<kRobWindow>& rob = client->rob();
-        const uint64_t first = rob.flush_id();
-        const uint64_t last = rob.dispatch_id();
-        const uint64_t count = std::min<uint64_t>(
-            last - first, kGenthreadWbPrefetchOpsPerConn);
-        for (uint64_t off = 0; off < count; off++)
-            __builtin_prefetch(&rob.at(first + off).state, 0, 3);
-    }
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client* client = batch.clients[i];
-        if (!client || client->dead()) continue;
-        Rob<kRobWindow>& rob = client->rob();
-        const uint64_t first = rob.flush_id();
-        const uint64_t last = rob.dispatch_id();
-        const uint64_t count = std::min<uint64_t>(
-            last - first, kGenthreadWbPrefetchOpsPerConn);
-        for (uint64_t off = 0; off < count; off++) {
-            Op& op = rob.at(first + off);
-            if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
-            if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
-            const uint32_t bytes = std::min(
-                op.zc_len, kGenthreadWbBorrowPrefetchBytes);
-            for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
-                __builtin_prefetch(op.zc_ptr + pos, 0, 1);
-        }
-    }
-
-    work += batch.count;
-    work += genthread_ifid_batch<HasTls, kEp>();
-    if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
-
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client*& submit_client = batch.clients[i];
-        Client* client = submit_client;
-        if (!client || client->dead()) continue;
-        if (__builtin_expect(
-                (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-            climon_reply_suppressed(client)) {
-            bool submit_allowed;
-            (void)climon_prepare_suppressed(client, submit_allowed);
-            if (!submit_allowed) submit_client = nullptr;
-            continue;
-        }
-        if constexpr (HasTls) {
-            if (TlsConn* tls = tls_engine(client))
-                (void)wb_.prepare_pipeline_tls<kEp, true>(*client, *tls);
-            else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                (void)wb_.prepare_pipeline_ktls<kEp, true>(*client);
-            else
-                (void)wb_.prepare_pipeline<kEp, true>(*client);
-        } else {
-            (void)wb_.prepare_pipeline<kEp, true>(*client);
-        }
-    }
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client* client = batch.clients[i];
-        if (!client || client->dead()) continue;
-        bool retry_plain_submit = false;
-        if constexpr (HasTls) {
-            if (TlsConn* tls = tls_engine(client)) {
-                (void)wb_.pump_tls<kEp, true>(*client, *tls);
-                if (tls->socket_userspace() && tls->has_pinned_plain())
-                    arm_tls_socket_poll<kEp>(client, tls->wanted());
-                if (tls->failed())
-                    close_client(client,
-                                 tls->output_pending() || client->send_inflight());
-            } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                const bool sent = wb_.pump<kEp, true>(*client);
-                retry_plain_submit = !kEp && !sent &&
-                    !client->send_inflight() && !client->nothing_to_write();
-            } else {
-                const bool sent = wb_.pump<kEp, true>(*client);
-                retry_plain_submit = !kEp && !sent &&
-                    !client->send_inflight() && !client->nothing_to_write();
-            }
-        } else {
-            const bool sent = wb_.pump<kEp, true>(*client);
-            retry_plain_submit = !kEp && !sent &&
-                !client->send_inflight() && !client->nothing_to_write();
-        }
-        if constexpr (kEp)
-            if (wb_.take_send_failure()) epoll_close_now(client);
-        if (retry_plain_submit && !client->dead()) {
-            self_->sig().sqe_starved++;
-            enqueue_serve(client);
-        }
-        if (!client->dead() && client->in_active()) enqueue_ifid(client);
-    }
-    batch.count = 0;
-    active_wb_context_ = nullptr;
-
-    work += fused_executor_->r7_fused_coarse_pass<ContinuousReorder>();
-    return work;
-}
-
-template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder>
-uint32_t IoLoop::r7_genthread_three_way_pass(WbPipelineBatch& batch, bool& gate_open) {
-    srv_->mode_schedule_stats(self_->id()).note_overlap(OverlapSchedule::Fused, gate_open);
-    if (batch.count || active_wb_context_) std::abort();
-    LoopSignals& sig = self_->sig();
-    uint32_t occupancy = 0;
-    auto note_ops_since = [&](uint64_t before) {
-        const uint64_t delta = sig.ops >= before ? sig.ops - before : 0;
-        occupancy = std::max<uint32_t>(
-            occupancy, static_cast<uint32_t>(std::min<uint64_t>(delta, UINT32_MAX)));
-    };
-
-    if (!gate_open) {
-        uint32_t work = 0;
-        uint64_t before = sig.ops;
-        work += genthread_ifid_batch<HasTls, kEp>();
-        note_ops_since(before);
-
-        before = sig.ops;
-        work += fused_executor_->r7_fused_coarse_pass<ContinuousReorder>();
-        note_ops_since(before);
-
-        work += collect_retire_work<HasUnix, kEp, true>();
-        uint32_t wb_occupancy = 0;
-        work += genthread_wb_batch<HasTls, kEp, true>(&wb_occupancy);
-        occupancy = std::max(occupancy, wb_occupancy);
-        gate_open = occupancy >= kGenthreadThreeWayMinBatchOccupancy;
-        return work;
-    }
-
-    active_wb_context_ = &batch;
-    uint32_t work = collect_retire_work<HasUnix, kEp, true>();
-    if (!pending_serve_.empty()) {
-        AofManager& aof = srv_->aof();
-        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
-        if (!aof.reply_gate_ready(aof_gate_target_)) {
-            aof.register_send_gate_wait(self_->id());
-        } else {
-            aof_gate_target_ = 0;
-            while (batch.count < kGenthreadPipelineWbBatchConns &&
-                   !pending_serve_.empty()) {
-                Client* client = pending_serve_.front();
-                pending_serve_.pop_front();
-                client->set_serve_pending(false);
-                if (!client->dead()) batch.clients[batch.count++] = client;
-            }
-        }
-    } else {
-        aof_gate_target_ = 0;
-    }
-
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client* client = batch.clients[i];
-        if (!client || client->dead()) continue;
-        Rob<kRobWindow>& rob = client->rob();
-        const uint64_t first = rob.flush_id();
-        const uint64_t last = rob.dispatch_id();
-        const uint64_t count = std::min<uint64_t>(
-            last - first, kGenthreadWbPrefetchOpsPerConn);
-        for (uint64_t off = 0; off < count; off++)
-            __builtin_prefetch(&rob.at(first + off).state, 0, 3);
-    }
-    for (uint32_t i = 0; i < batch.count; i++) {
-        Client* client = batch.clients[i];
-        if (!client || client->dead()) continue;
-        Rob<kRobWindow>& rob = client->rob();
-        const uint64_t first = rob.flush_id();
-        const uint64_t last = rob.dispatch_id();
-        const uint64_t count = std::min<uint64_t>(
-            last - first, kGenthreadWbPrefetchOpsPerConn);
-        for (uint64_t off = 0; off < count; off++) {
-            Op& op = rob.at(first + off);
-            if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
-            if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
-            const uint32_t bytes = std::min(
-                op.zc_len, kGenthreadWbBorrowPrefetchBytes);
-            for (uint32_t pos = 0; pos < bytes; pos += kGenthreadCacheLineBytes)
-                __builtin_prefetch(op.zc_ptr + pos, 0, 1);
-        }
-    }
-
-    const uint32_t wb_occupancy = batch.count;
-    occupancy = std::max(occupancy, wb_occupancy);
-    work += wb_occupancy;
-    const uint64_t before_ifid = sig.ops;
-    work += genthread_ifid_batch<HasTls, kEp>();
-    note_ops_since(before_ifid);
-    if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
-
-    bool wb_filled = false;
-    auto wb_filler = [&] {
-        if (wb_filled) std::abort();
-        wb_filled = true;
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client*& submit_client = batch.clients[i];
-            Client* client = submit_client;
-            if (!client || client->dead()) continue;
-            if (__builtin_expect(
-                    (climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-                climon_reply_suppressed(client)) {
-                bool submit_allowed;
-                (void)climon_prepare_suppressed(client, submit_allowed);
-                if (!submit_allowed) submit_client = nullptr;
-                continue;
-            }
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client))
-                    (void)wb_.prepare_pipeline_tls<kEp, true>(*client, *tls);
-                else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls())
-                    (void)wb_.prepare_pipeline_ktls<kEp, true>(*client);
-                else
-                    (void)wb_.prepare_pipeline<kEp, true>(*client);
-            } else {
-                (void)wb_.prepare_pipeline<kEp, true>(*client);
-            }
-        }
-        for (uint32_t i = 0; i < batch.count; i++) {
-            Client* client = batch.clients[i];
-            if (!client || client->dead()) continue;
-            bool retry_plain_submit = false;
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(client)) {
-                    (void)wb_.pump_tls<kEp, true>(*client, *tls);
-                    if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll<kEp>(client, tls->wanted());
-                    if (tls->failed())
-                        close_client(client,
-                                     tls->output_pending() || client->send_inflight());
-                } else if (TlsConn* slot = tls_slot_conn(client); slot && slot->ktls()) {
-                    const bool sent = wb_.pump<kEp, true>(*client);
-                    retry_plain_submit = !kEp && !sent &&
-                        !client->send_inflight() && !client->nothing_to_write();
-                } else {
-                    const bool sent = wb_.pump<kEp, true>(*client);
-                    retry_plain_submit = !kEp && !sent &&
-                        !client->send_inflight() && !client->nothing_to_write();
-                }
-            } else {
-                const bool sent = wb_.pump<kEp, true>(*client);
-                retry_plain_submit = !kEp && !sent &&
-                    !client->send_inflight() && !client->nothing_to_write();
-            }
-            if constexpr (kEp)
-                if (wb_.take_send_failure()) epoll_close_now(client);
-            if (retry_plain_submit && !client->dead()) {
-                self_->sig().sqe_starved++;
-                enqueue_serve(client);
-            }
-            if (!client->dead() && client->in_active()) enqueue_ifid(client);
-        }
-        batch.count = 0;
-        active_wb_context_ = nullptr;
-    };
-
-    const uint64_t before_ex = sig.ops;
-    work += fused_executor_->r7_fused_three_way_pass<ContinuousReorder>(wb_filler);
-    note_ops_since(before_ex);
-    if (!wb_filled || batch.count || active_wb_context_) std::abort();
-
-    gate_open = occupancy >= kGenthreadThreeWayMinBatchOccupancy;
-    return work;
-}
-
-template <bool HasUnix, bool HasTls, bool kEp, bool ContinuousReorder>
-uint32_t IoLoop::r7_genthread_iofused_sweep() {
-    uint32_t work = 0;
-    if constexpr (HasUnix) work += flush_handoffs();
-    work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-            flush_borrow_releases();
-    work += genthread_ifid_batch<HasTls, kEp>();
-    work += fused_executor_->r7_fused_coarse_sweep<ContinuousReorder>();
-    work += collect_retire_work<HasUnix, kEp, true>(true) +
-            genthread_wb_batch<HasTls, kEp>();
     if (__builtin_expect(!routing_forward_.empty(), false))
         client_routing_cleanup_pass();
     if (srv_->snapshot().writer_is(self_->id()))
@@ -1441,7 +858,7 @@ uint32_t IoLoop::r7_genthread_iofused_sweep() {
 }
 
 template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
-          bool SweepPass, bool ContinuousReorder>
+          bool SweepPass>
 uint32_t IoLoop::r7_flush_ready() {
     uint32_t work = 0;
     backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -1643,8 +1060,8 @@ uint32_t IoLoop::r7_flush_ready() {
     // The fused loop rotates whole streams: finish the bounded IFID phase above, execute one
     // batch, collect its local self-lane completions, then enter the existing write-back phase.
     if constexpr (Fused) {
-        work += SweepPass ? fused_executor_->r7_fused_baseline_sweep<ContinuousReorder>()
-                          : fused_executor_->r7_fused_baseline_pass<ContinuousReorder>();
+        work += SweepPass ? fused_executor_->r7_fused_baseline_sweep()
+                          : fused_executor_->r7_fused_baseline_pass();
         work += collect_retire_work<HasUnix, kEp>(SweepPass);
     }
 
@@ -1720,33 +1137,31 @@ void IoLoop::run_fused_reordered() {
         constexpr uint8_t Pipeline = decltype(pipeline_tag)::value;
         if (epoll_) {
             if (tls_context_) {
-                if (has_unix) r7_run_loop<true, true, true, true, Pipeline, false, true>();
-                else r7_run_loop<false, true, true, true, Pipeline, false, true>();
+                if (has_unix) r7_run_loop<true, true, true, true, Pipeline>();
+                else r7_run_loop<false, true, true, true, Pipeline>();
             } else {
-                if (has_unix) r7_run_loop<true, false, true, true, Pipeline, false, true>();
-                else r7_run_loop<false, false, true, true, Pipeline, false, true>();
+                if (has_unix) r7_run_loop<true, false, true, true, Pipeline>();
+                else r7_run_loop<false, false, true, true, Pipeline>();
             }
             return;
         }
         if (tls_context_) {
-            if (has_unix) r7_run_loop<true, true, false, true, Pipeline, false, true>();
-            else r7_run_loop<false, true, false, true, Pipeline, false, true>();
+            if (has_unix) r7_run_loop<true, true, false, true, Pipeline>();
+            else r7_run_loop<false, true, false, true, Pipeline>();
         } else {
-            if (has_unix) r7_run_loop<true, false, false, true, Pipeline, false, true>();
-            else r7_run_loop<false, false, false, true, Pipeline, false, true>();
+            if (has_unix) r7_run_loop<true, false, false, true, Pipeline>();
+            else r7_run_loop<false, false, false, true, Pipeline>();
         }
     };
-    switch (srv_->cfg().overlap) {
-        case 0: run_pipeline(std::integral_constant<uint8_t, 0>{}); break;
-        case 1: run_pipeline(std::integral_constant<uint8_t, 1>{}); break;
-        default: std::abort();
-    }
+    // Reuse O1's ordinary fused outer loop, transport, completion hooks and submit boundary.
+    // O6 warms each eligible whole owner batch unconditionally in fused placement;
+    // selecting Pipeline 0 here must not turn off that independent executor mechanism.
+    run_pipeline(std::integral_constant<uint8_t, 0>{});
 }
 
-template void ExLoopT<false>::r7_run<true>();
-template void ExLoopT<true>::r7_run<true>();
-template uint32_t ExLoopT<true>::r7_fused_baseline_pass<true>();
-template uint32_t ExLoopT<true>::r7_fused_coarse_pass<true>();
+template void ExLoopT<false>::r7_run();
+template void ExLoopT<true>::r7_run();
+
 namespace {
 void pin_fused_thread(int cpu) {
     if (cpu < 0) return;
@@ -1755,7 +1170,7 @@ void pin_fused_thread(int cpu) {
     CPU_SET(cpu, &set);
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
-} // namespace
+}
 
 static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,
@@ -1765,7 +1180,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
-                " overlap=%u, %s, alloc=%s\n", nthreads, cfg.shards,
+                " overlap=%u (executor prefetch; ordinary IO), %s, alloc=%s\n", nthreads, cfg.shards,
                 cfg.overlap,
                 cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
     for (const ThreadPlacement& placement : srv.placement().threads())
@@ -1853,18 +1268,11 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
             if (ok) {
                 executors[tid].activate_fused(&ios[tid].ring());
                 ios[tid].bind_fused_executor(&executors[tid]);
-                if (cfg.overlap == 0)
-                    executors[tid].bind_fused_completion(
-                        &ios[tid],
-                        [](void* p, Client* client) {
-                            static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
-                        });
-                else
-                    executors[tid].bind_fused_completion(
-                        &ios[tid],
-                        [](void* p, Client* client) {
-                            static_cast<IoLoop*>(p)->fused_executor_completion<true>(client);
-                        });
+                executors[tid].bind_fused_completion(
+                    &ios[tid],
+                    [](void* p, Client* client) {
+                        static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
+                    });
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
                         &ios[tid],
@@ -1874,27 +1282,14 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
                             return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(
                                 client, probed, fallbacks, probed_count, demoted);
                         });
-                if (cfg.overlap == 0)
-                    self.bind_fused_executor_hooks(
-                        &executors[tid],
-                        [](void* p) {
-                            return static_cast<FusedExLoop*>(p)->r7_fused_baseline_pass<true>();
-                        },
-                        [](void* p, SnapshotManager* manager) {
-                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
-                        });
-                else
-                    self.bind_fused_executor_hooks(
-                        &executors[tid],
-                        [](void* p) {
-                            // Snapshot's blocking progress loop has no WB filler to interleave.
-                            // Use the private-lane coarse turn; the main overlap loop supplies
-                            // the three-way callback only at its ordinary batch seam.
-                            return static_cast<FusedExLoop*>(p)->r7_fused_coarse_pass<true>();
-                        },
-                        [](void* p, SnapshotManager* manager) {
-                            static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
-                        });
+                self.bind_fused_executor_hooks(
+                    &executors[tid],
+                    [](void* p) {
+                        return static_cast<FusedExLoop*>(p)->fused_baseline_pass();
+                    },
+                    [](void* p, SnapshotManager* manager) {
+                        static_cast<FusedExLoop*>(p)->fused_snapshot_start(manager);
+                    });
             }
             if (!boot.arrive_loaded(tid, ok, local_error)) return;
             if (!boot.wait_until_ready(tid, self.stop_flag())) return;
@@ -1952,7 +1347,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
         return 1;
     }
     std::string unix_error;
-    if (!unix_listener.open(cfg.tcp_backlog, unix_error)) {
+    if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
         std::fprintf(stderr, "%s\n", unix_error.c_str());
         stop_workers();
         return 1;
@@ -1988,6 +1383,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     report_graceful_shutdown();
     return 0;
 }
+// END R7 GENERATED ENVELOPES
 
 int run_fused_server_selected(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                      const std::vector<std::unique_ptr<AofReplayPlan>>& aof_plans,

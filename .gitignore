@@ -21,6 +21,8 @@ BRIEF*.md
 LANE_RULES.md
 # The interactive agent transcript changes during validation and is not project source.
 /CODEX-OUT*.md
+/MEASURE-REQUEST
+/MEASURE-RESULT
 
 # replycode lane: measurement drivers are tracked as sources, their binaries are not
 scratchpad/replycode/replay
@@ -30,6 +32,10 @@ scratchpad/replycode/*.so
 # Exact gate timing and seed history survive make clean.
 .gate-history/
 
-# Competition handoffs and owner measurements are review artifacts, not source.
-/MEASURE-REQUEST
-/MEASURE-RESULT
+# lane transcripts and gate logs never belong in the tree
+gate-iteration-*.log
+CODEX-OUT*.md
+MEASURE-REQUEST*
+MEASURE-RESULT*
+LINE-SHARING-AUDIT.md
+OLD-DELVAR-HINTS.txt

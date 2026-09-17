@@ -336,7 +336,7 @@ public:
                 }
             }
         }
-        if (cfg_.overlap || cfg_.reorder) {
+        if (cfg_.overlap_enabled() || cfg_.reorder) {
             mode_schedule_stats_.reset(new (std::nothrow) ModeScheduleStats[nthreads]);
             if (!mode_schedule_stats_) {
                 std::fprintf(stderr, "fatal: could not allocate schedule witnesses\n");
@@ -742,6 +742,7 @@ public:
         return true;
     }
     bool lb_begin_ex_drain() {
+        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_stage() != LbStage::IoDrain || !lb_all_io_acked()) return false;
         // Every producer has left its parse/post pass. Only now may an empty executor
         // inbox prove that no old-route task remains unpublished.
@@ -1412,6 +1413,7 @@ public:
     }
 
     bool lb_commit_shard_plan(uint64_t now_ms) {
+        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_stage() != LbStage::ExDrain || !lb_all_ex_acked()) return false;
         uint32_t incoming[kMaxThreads] = {};
         for (const LbShardMove& move : lb_shard_moves_) incoming[move.destination]++;
@@ -1454,6 +1456,7 @@ public:
     }
 
     bool lb_client_move_started(uint64_t id, uint64_t now_ms) {
+        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_client_move_.id != id) return false;
         LbStage expected = LbStage::ClientDrain;
         if (!lb_stage_.compare_exchange_strong(expected, LbStage::ClientMoving,
@@ -1467,6 +1470,7 @@ public:
         return true;
     }
     void lb_refuse_client_request() {
+        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_stage() != LbStage::ClientDrain) return;
         lb_client_refused_.fetch_add(1, std::memory_order_relaxed);
         std::lock_guard<std::mutex> lock(lb_signal_mu_);
@@ -1503,7 +1507,13 @@ public:
         const uint64_t deadline = lb_deadline_ns();
         return deadline && now_ns() >= deadline;
     }
+    // Only IO control tails and (in debug builds) the already-taken parse hold call these.
+    bool lb_drain_pass_expired(uint32_t tid, LbStage stage);
+    bool lb_refuse_stalled(uint64_t epoch, LbStallReason reason);
+    void lb_debug_park(uint32_t tid, uint64_t bytes);
+    void lb_stall_info(std::string& out) const;
     void lb_stage_timed_out() {
+        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         const LbStage stage = lb_stage();
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return;
         if (stage == LbStage::ClientDrain) {
