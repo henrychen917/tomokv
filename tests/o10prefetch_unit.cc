@@ -114,6 +114,10 @@ struct CoreConcurrencyTest {
                 server.bind_owner_notify_pending(t, &owner.notify_keyless_pending_);
                 if (armed) {
                     owner.read_local_.impl = std::make_unique<ReadLocalExImpl>();
+                    owner.read_local_impl().lane =
+                        std::make_unique<ReadLocalExImpl::LaneEntry[]>(kInboxSlots);
+                    owner.read_local_impl().lane_fallbacks =
+                        std::make_unique<ReadLocalFallbackReason[]>(kInboxSlots);
                     require(owner.read_local_impl().deferred.init(&server, &thread), "QSBR queue");
                     thread.bind_read_local_retire_sink(*owner.read_local_impl().deferred.sink());
                     thread.publish_read_local_parked(server.read_local_epoch());
@@ -148,6 +152,14 @@ struct CoreConcurrencyTest {
             io.srv_ = &server;
             io.self_ = &server.thread(0);
             io.bind_fused_executor(&owners[0]);
+            if (armed)
+                owners[0].bind_read_local_demotion(
+                    &io, [](void* p, Client* client, const uint64_t* probed,
+                            const ReadLocalFallbackReason* fallbacks,
+                            uint32_t count, uint32_t& demoted) {
+                        return static_cast<IoLoop*>(p)->fused_demote_local_read_batch(
+                            client, probed, fallbacks, count, demoted);
+                    });
         }
         ~Fixture() {
             for (unsigned s = 0; s < 16; ++s)
@@ -176,10 +188,14 @@ struct CoreConcurrencyTest {
         void complete(Client& client) {
             for (unsigned pass = 0; pass < 32; ++pass) {
                 if (armed) (void)owners[0].drain_local_reads();
-                for (unsigned t = 0; t < 8; ++t)
+                for (unsigned t = 0; t < 8; ++t) {
+                    (void)owners[t].service_atomic_deferred();
+                    (void)owners[t].service_xshard_retries();
                     server.thread(t).drain_tasks_unmasked([&](const Task& task) {
                         require(owners[t].execute(task), "fixture task executes without a blocker");
                     });
+                    owners[t].flush_xshard_commits();
+                }
                 bool done = true;
                 for (uint64_t id = client.rob().flush_id(); id < client.rob().dispatch_id(); ++id)
                     done &= client.rob().at(id).state.load() == OpState::Done;
