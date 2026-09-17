@@ -174,6 +174,10 @@ bool multidb_prepare_move(Server& server, Op& op) {
     if (!parse_i64_canonical(op.arg(2), db)) {
         reply_err(op.sink(), "ERR value is not an integer or out of range"); return false;
     }
+    if (db < INT32_MIN || db > INT32_MAX) {
+        reply_err(op.sink(), "ERR value is out of range, value must between "
+                             "-2147483648 and 2147483647"); return false;
+    }
     if (db < 0 || uint64_t(db) >= server.cfg().databases) {
         reply_err(op.sink(), "ERR DB index is out of range"); return false;
     }

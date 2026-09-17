@@ -5548,6 +5548,8 @@ def gen_multidb(rng):
     ops = [["SELECT", "0"], ["FLUSHALL"]]
     for db in range(4):
         ops += [["SELECT", str(db)], ["SET", "mdb:same", "db%d" % db]]
+    for bad in ("bad", "+1", "01", "-0", "-1", "16", "2147483648", "-2147483649"):
+        ops += [["MOVE", "mdb:same", bad], ["SWAPDB", bad, "0"], ["SWAPDB", "0", bad]]
     for index in range(3600):
         key = rng.choice(keys)
         choice = rng.randrange(12)

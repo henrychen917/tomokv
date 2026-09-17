@@ -309,6 +309,9 @@ static void owners() {
             "$3\r\none\r\n", "script bridge preserves namespace");
     require(scatter(server, 0, {"MOVE", "k", "1"}) == ":0\r\n", "MOVE NX conflict");
     require(scatter(server, 0, {"MOVE", "absent", "2"}) == ":0\r\n", "MOVE absent source");
+    require(scatter(server, 0, {"MOVE", "absent", "2147483648"}) ==
+            "-ERR value is out of range, value must between -2147483648 and 2147483647\r\n",
+            "MOVE validates destination integer width before lookup");
     require(scatter(server, 0, {"MOVE", "k", "2"}) == ":1\r\n", "MOVE namespace transfer");
     require(local(server, 0, {"GET", "k"}) == "$-1\r\n", "MOVE removed source");
     require(local(server, 2, {"GET", "k"}) == "$4\r\nzero\r\n", "MOVE destination value");
