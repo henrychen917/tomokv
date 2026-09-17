@@ -243,7 +243,16 @@ def main():
         if args.persistence:
             # DEBUG RELOAD invokes the native snapshot save/load path. LOADAOF replays the
             # independently journalled stream. Both are owned by this gate boot, never this client.
-            expect(admin.cmd("SWAPDB", 1, 2), b"OK", "persist nonidentity map")
+            expect(admin.cmd("SELECT", 0), b"OK", "history DB0")
+            expect(admin.cmd("SET", "md:persist-history", "zero"), b"OK", "history zero")
+            expect(one.cmd("SET", "md:persist-history", "one"), b"OK", "history one")
+            expect(admin.cmd("SWAPDB", 0, 2), b"OK", "persist standalone swap")
+            pipeline(admin, [("MULTI",), ("SWAPDB", 0, 1), ("SELECT", 0),
+                             ("GET", "md:persist-history"), ("SET", "md:persist-after", "after"),
+                             ("SELECT", 2), ("GET", "md:persist-history"), ("EXEC",)],
+                     [b"OK"] + [b"QUEUED"] * 6 +
+                     [[b"OK", b"OK", b"one", b"OK", b"OK", b"zero"]],
+                     "persist transactional swap history")
             def dataset():
                 rows = []
                 for db in range(7):

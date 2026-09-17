@@ -216,6 +216,39 @@ static std::string transaction(Server& server, Client& client,
 
 static void persistence(Server& server) {
     records_done(server);
+    // Distinct types, a binary key, and a deadline must survive the complete
+    // nonidentity mapping left by standalone and transactional swaps above.
+    require(local(server, 3, {"HSET", "persist-hash", "field", "value"}) == ":1\r\n", "persist hash");
+    require(local(server, 4, {"RPUSH", "persist-list", "a", "b"}) == ":2\r\n", "persist list");
+    require(local(server, 5, {"SADD", "persist-set", "a", "b"}) == ":2\r\n", "persist set");
+    require(local(server, 6, {"ZADD", "persist-zset", "1", "a", "2", "b"}) == ":2\r\n", "persist zset");
+    require(local(server, 15, {"SET", std::string("binary\0key", 10), "ttl", "PX", "600000"}) ==
+            "+OK\r\n", "persist binary key and TTL");
+    const auto dataset = [&] {
+        std::vector<std::string> rows;
+        const auto mapping = server.databases().capture();
+        for (unsigned sid = 0; sid < server.nshards(); ++sid)
+            server.shard(sid).store().for_each([&](KvObj* object) {
+                ObjectImage image;
+                require(serialize_object(object, image), "serialize complete dataset");
+                const Slice key = object->key();
+                uint8_t header[24]{};
+                unsigned logical = 0;
+                while (mapping[logical] != key.ns) ++logical;
+                header[0] = logical;
+                header[1] = uint8_t(image.type); header[2] = image.encoding;
+                snapshot_put_u32(header + 4, key.n);
+                snapshot_put_u32(header + 8, image.entries);
+                snapshot_put_u64(header + 16, image.expire_at_ms);
+                std::string row(reinterpret_cast<char*>(header), sizeof(header));
+                row.append(key.p, key.n);
+                row.append(reinterpret_cast<const char*>(image.payload.data()), image.payload.size());
+                rows.push_back(std::move(row));
+            });
+        std::sort(rows.begin(), rows.end());
+        return rows;
+    };
+    const auto expected = dataset();
     SnapshotLoadPlan snapshot;
     snapshot.shard_count = server.nshards();
     snapshot.sections.resize(server.nshards());
@@ -255,11 +288,12 @@ static void persistence(Server& server) {
             if (record[6]) ++namespaces;
             uint8_t header[40]{};
             snapshot_put_u32(header, 0x43524f41);
-            header[4] = static_cast<uint8_t>(AofRecordKind::Put);
+            header[4] = static_cast<uint8_t>(AofRecordKind::GroupPut);
             header[5] = record[4]; header[6] = record[5]; header[7] = 1;
             snapshot_put_u32(header + 8, key_len);
             snapshot_put_u32(header + 12, 40u | (uint32_t(record[6]) << 16));
             std::memcpy(header + 16, record + 16, 16);
+            snapshot_put_u64(header + 32, 44);
             output.insert(output.end(), header, header + 40);
             output.insert(output.end(), record + 32, record + 32 + size);
             at += 32 + size;
@@ -268,25 +302,41 @@ static void persistence(Server& server) {
     require(namespaces > 0, "snapshot actually serialized nonzero namespaces");
     uint8_t mapping_header[40]{};
     snapshot_put_u32(mapping_header, 0x43524f41);
-    mapping_header[4] = static_cast<uint8_t>(AofRecordKind::DatabaseMap);
     mapping_header[7] = 1;
     snapshot_put_u32(mapping_header + 12, 40);
     snapshot_put_u64(mapping_header + 16, 256);
     snapshot_put_u64(mapping_header + 24, uint64_t(-1));
-    aof.sections[0].insert(aof.sections[0].end(), mapping_header, mapping_header + 40);
-    aof.sections[0].insert(aof.sections[0].end(), snapshot.database_map.begin(), snapshot.database_map.end());
+    const auto append_map = [&](const DatabaseMap::Map& map, uint64_t group) {
+        mapping_header[4] = static_cast<uint8_t>(group ? AofRecordKind::GroupDatabaseMap : AofRecordKind::DatabaseMap);
+        snapshot_put_u64(mapping_header + 32, group);
+        aof.sections[0].insert(aof.sections[0].end(), mapping_header, mapping_header + 40);
+        aof.sections[0].insert(aof.sections[0].end(), map.begin(), map.end());
+    };
+    DatabaseMap identity;
+    append_map(identity.capture(), 0);
+    auto aborted_map = snapshot.database_map;
+    std::swap(aborted_map[0], aborted_map[15]);
+    append_map(snapshot.database_map, 44);
+    append_map(aborted_map, 43);  // last on disk, but no commit marker
     std::string error;
     for (unsigned sid = 0; sid < server.nshards(); ++sid) server.shard(sid).store().clear();
     for (unsigned sid = 0; sid < server.nshards(); ++sid)
         require(snapshot_load_shard(snapshot, server, server.shard(sid), error), "snapshot namespace load");
     require(local(server, 0, {"GET", "k"}) == "$3\r\none\r\n", "snapshot db0 mapped value");
     require(local(server, 2, {"GET", "k"}) == "$4\r\nzero\r\n", "snapshot db2 value");
+    require(dataset() == expected, "snapshot complete logical dataset, types, binary keys and TTL");
     for (unsigned sid = 0; sid < server.nshards(); ++sid) server.shard(sid).store().clear();
     require(server.databases().swap(0, 1), "disturb mapping before AOF restore");
+    for (unsigned sid = 0; sid < server.nshards(); ++sid)
+        require(aof_load_shard(aof, server, server.shard(sid), error), "uncommitted AOF load");
+    require(dataset().empty() && server.databases().capture() == identity.capture(),
+            "missing commit marker hides both data and map");
+    aof.committed_groups.insert(44);
     for (unsigned sid = 0; sid < server.nshards(); ++sid)
         require(aof_load_shard(aof, server, server.shard(sid), error), "AOF namespace load");
     require(local(server, 0, {"GET", "k"}) == "$3\r\none\r\n", "AOF restores mapping");
     require(local(server, 2, {"GET", "k"}) == "$4\r\nzero\r\n", "AOF db2 value");
+    require(dataset() == expected, "AOF complete dataset and committed map; aborted later map ignored");
     std::puts("PASS multidb native snapshot records and AOF namespace/map replay");
 }
 static void owners() {
