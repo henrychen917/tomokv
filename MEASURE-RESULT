@@ -1,0 +1,8 @@
+MEASURE-RESULT (mainline 2026-09-14 07:24) — cache-audit decomposition, arm-1..arm-4 vs PRE on h17 h18 (2s rl=0) + h11 h27 (rl=1).
+ARM1 (parked_ off the notify line): h17 -1.5 (1-instance rung, uninformative) h18 -0.4 | h11 -1.5 h27 -0.3
+ARM2 (+ Op state/reply split):      h17 -0.4 h18 -0.5 | h11 -0.2 h27 -1.4
+ARM3 (+ nchan_ off the mask line):  h17 -1.7 h18 +1.1 | h11 +0.0 (low rung) h27 +0.3
+ARM4 (+ ROB frontier split):        h17 -0.6 h18 +0.0 | h11 +2.6 h27 -0.1
+Cumulative ARM5 (yesterday): rl=0 null; armed -4.3/-4.5 did NOT reproduce in any single arm -> variance.
+VERDICT: NULL everywhere. Seven confirmed line-sharing sites, zero measurable cycles at saturation. Per the owner's rule: SHELVED. Keep
+LINE-SHARING-AUDIT.md with the theory-vs-measurement note; the static_asserts are not merged (they pin a layout that bought nothing).
