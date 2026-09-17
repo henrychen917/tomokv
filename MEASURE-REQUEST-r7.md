@@ -1,7 +1,7 @@
 reb-r7: v7 rebuild and 2s tail measurement handoff
 
 No server, benchmark, load generator, live flip test, or gate was run by this lane.
-All compilation, unit execution and binary inspection used taskset -c 112-127.
+All compilation, unit execution and strict binary/layout checks used taskset -c 112-127.
 There are no new performance results or performance claims in this report.
 
 Base and merge
@@ -264,8 +264,8 @@ Commands run by this lane (read-only git/rg/sed/nm/objdump inspection omitted)
     taskset -c 112-127 python3 tests/reorder_scope_test.py
     taskset -c 112-127 bash -n tests/gate.sh
     taskset -c 112-127 python3 tools/reorder_sync.py
-    sha256sum build/tomokv build/tomokv-pad build/r7-pre/build/tomokv
-    size -A build/tomokv build/tomokv-pad build/r7-pre/build/tomokv
+    taskset -c 112-127 sha256sum build/tomokv build/tomokv-pad build/r7-pre/build/tomokv
+    taskset -c 112-127 size -A build/tomokv build/tomokv-pad build/r7-pre/build/tomokv
     git diff --check
 
 The compiler-budget search used the same release CXX/JE flags with
