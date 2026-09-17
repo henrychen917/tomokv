@@ -49,6 +49,19 @@
     bool atomic_has_record(uint64_t hash, Slice key) const {
         return atomic_key_pending(hash, key);
     }
+    template <typename Visit>
+    void atomic_visit_key_groups(uint64_t hash, Slice key, Visit&& visit) {
+        if (!atomic_pending_ || !atomic_pending_->live) return;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!entry->group || !(entry->membership & bit)) continue;
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
+                    visit(*entry->group);
+                    break;
+                }
+        }
+    }
     bool atomic_has_script_intent(uint64_t hash, Slice key) const {
         if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;

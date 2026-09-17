@@ -943,6 +943,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     const void* watch_token = nullptr,
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
+    cancel_applied_scripts(shard.store(), hash, key);
     if (!watch_refs) watch_refs = &state.watch_refs;
     // THE FALSIFIER, and it must read ZERO. It asks EXACTLY the question the dispatch-time park in
     // ExLoop::execute() asks -- does this owner still hold an undecided record belonging to a

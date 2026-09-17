@@ -720,6 +720,8 @@ bool classify_keys(Op& op, Kind kind, XshardKeyPlan& keys);
 bool bitop_operation(Slice name, BitOperation& operation);
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id);
+void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
+                            const ScatterState* self = nullptr);
 ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                                        uint32_t owner_thread_id);
 ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, Op& op,
@@ -2655,6 +2657,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
+    if (shard.store().atomic_has_records() && xshard_owner_mutation_phase(state, op))
+        for (uint32_t i = 0; i < group.count; ++i) {
+            const KeyRef& key = state.keys[state.key_order[group.begin + i]];
+            cancel_applied_scripts(shard.store(), key.hash, op.arg(key.arg), &state);
+        }
     if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
         const void* token = state.multi_parent ? state.multi_parent
             : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
@@ -3708,8 +3715,18 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
             case ScriptPhase::Apply: {
                 WorkError error = state.final_error;
-                const bool failed = script_group_error(state, error) ||
-                                    state.aborted.load(std::memory_order_acquire);
+                bool failed = script_group_error(state, error) ||
+                              state.aborted.load(std::memory_order_acquire);
+                if (!failed) {
+                    uint64_t undecided = 0;
+                    if (!state.epoch.compare_exchange_strong(undecided, state.script_ticket,
+                                                             std::memory_order_acq_rel)) {
+                        if (undecided != kAtomicCancelledEpoch) std::abort();
+                        state.script_conflict.store(true, std::memory_order_release);
+                        state.aborted.store(true, std::memory_order_release);
+                        failed = true;
+                    }
+                }
                 if (failed) {
                     const bool conflict = state.script_conflict.load(std::memory_order_acquire);
                     if (conflict) server.note_script_giveup();
@@ -3733,7 +3750,6 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     return ScatterFinish::Final;
                 }
                 if (!state.script_ticket_live) std::abort();
-                state.epoch.store(state.script_ticket, std::memory_order_release);
                 server.atomic_commit_publish();
                 state.script_ticket_live = false;
                 if (!state.script_certifier) std::abort();

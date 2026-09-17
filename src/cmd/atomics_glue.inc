@@ -7,11 +7,30 @@
 namespace tomo {
 namespace {
 
+// Only an explicit conflict with an already-installed script image reaches this
+// arbitration. A writer that wins aborts the undecided activation; a script that
+// wins has published its ticket, so the writer's newest-version clone sees it.
+// Reads continue to resolve immutable predecessors without any retry or wait.
+void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
+                            const ScatterState* self) {
+    store.atomic_visit_key_groups(hash, key, [&](ScatterState& script) {
+        if (&script == self || script.kind != Kind::Script ||
+            script.aborted.load(std::memory_order_acquire)) return;
+        uint64_t undecided = 0;
+        if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                                 std::memory_order_acq_rel)) {
+            script.script_conflict.store(true, std::memory_order_release);
+            script.aborted.store(true, std::memory_order_release);
+        }
+    });
+}
+
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
     // Cleanup is owner-pass work: every caller has already made the pass's single promotion
     // attempt before asking individual keys whether they still need a version.
     FlatStore& store = shard.store();
+    cancel_applied_scripts(store, hash, key);
     const bool had_record = store.atomic_has_record(hash, key);
     // A key reserved by a staged cross-owner script carries no MVCC record of its own, so the
     // record test alone sent this write down the untracked physical path -- it mutated the value
@@ -916,6 +935,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         store.atomic_set_read_context(snapshot, origin_conn_id);
         for (const RecordedKey& item : recorded) {
             if (failure != WorkError::None) break;
+            cancel_applied_scripts(store, item.hash, item.key);
             PreparedLocal next{item};
             KvObj* visible = store.find(item.hash, item.key);
             if (visible) {

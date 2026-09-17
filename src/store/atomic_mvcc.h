@@ -155,9 +155,14 @@ struct AtomicSeenKey {
     Slice key;
 };
 
+// An applied script and a conflicting writer arbitrate on its existing decision
+// word. The abort sentinel is never a visible version, including in newest-write
+// contexts whose cut is UINT64_MAX. No reader retries or waits on that decision.
+inline constexpr uint64_t kAtomicCancelledEpoch = UINT64_MAX;
 static uint64_t atomic_epoch(const AtomicEntry& entry) {
-    return entry.group_epoch
+    const uint64_t epoch = entry.group_epoch
         ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+    return epoch == kAtomicCancelledEpoch ? 0 : epoch;
 }
 
 static uint64_t atomic_membership_bit(uint64_t hash) {
