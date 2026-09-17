@@ -1906,7 +1906,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             DatabaseStatsTable stats{};
             for (uint32_t i = 0; i < state.nsub; ++i) if (state.groups[i].aux)
                 for (unsigned db = 0; db < stats.size(); ++db) {
-                    const auto& row = state.groups[i].aux->database_stats[db];
+                    const auto& row = (*state.groups[i].aux->database_stats)[db];
                     stats[db].keys += row.keys; stats[db].expires += row.expires;
                     stats[db].ttl += row.ttl;
                 }

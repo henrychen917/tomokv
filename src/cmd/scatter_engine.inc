@@ -85,7 +85,7 @@ struct GroupAux {
     std::vector<DatabaseKey> flush_keys;
     std::vector<std::string> keys_result;
     bool flush_keys_built = false;
-    DatabaseStatsTable database_stats;
+    std::unique_ptr<DatabaseStatsTable> database_stats;
 };
 
 // Groups are dense (one record per touched shard), and each owns one range in key_order[].
@@ -3265,7 +3265,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             }
             case Kind::DatabaseInfo:
                 if (!group.aux) group.aux = new GroupAux;
-                multidb_stats(shard, group.aux->database_stats);
+                if (!group.aux->database_stats)
+                    group.aux->database_stats = std::make_unique<DatabaseStatsTable>();
+                multidb_stats(shard, *group.aux->database_stats);
                 return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
