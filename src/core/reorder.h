@@ -91,11 +91,16 @@ class ShadowDispatch {
 public:
     explicit ShadowDispatch(Client& client, uint64_t before = UINT64_MAX) {
         auto& rob = client.rob();
-        for (uint64_t id = rob.flush_id(), end = std::min(before, rob.dispatch_id()); id < end; ++id) {
+        const uint64_t first = rob.flush_id();
+        for (uint64_t end = std::min(before, rob.dispatch_id()); end > first;) {
+            const uint64_t id = --end;
             const Op& op = rob.at(id);
             if (op.state.load(std::memory_order_acquire) == OpState::Done) continue;
             uint8_t kind;
-            if (length(op, kind) && kind == static_cast<uint8_t>(CommandLengthClass::Long)) newest_ = id;
+            if (length(op, kind) && kind == static_cast<uint8_t>(CommandLengthClass::Long)) {
+                newest_ = id;
+                break;
+            }
         }
     }
     void stamp(Task& task) {
@@ -300,19 +305,23 @@ class ShadowReorderQueues {
     static_assert(BatchOps == kGenthreadExBatchOps ||
                   BatchOps == kGenthreadPipelineExBatchOps);
     static constexpr uint32_t Capacity = 2 * BatchOps;
-    static constexpr uint32_t None = UINT32_MAX;
+    using Index = uint16_t;
+    static constexpr Index None = UINT16_MAX;
+    static_assert(Capacity < None);
     static constexpr uint32_t TableSize = 2 * Capacity;
     struct Node {
         Task task;
-        uint32_t older, newer, next_conn, connection;
-        uint32_t prev_ready = None, next_ready = None;
+        Index older, newer, next_conn, hash_next;
+        Index prev_ready = None, next_ready = None;
         uint8_t length, rank;
     };
-    union Slot { Node node; uint32_t next_free; Slot() {} ~Slot() {} } slots_[Capacity];
-    struct Connection { Client* client; uint32_t tail; } connections_[TableSize];
-    uint32_t ready_head_[3] = {None, None, None};
-    uint32_t ready_tail_[3] = {None, None, None};
-    uint32_t oldest_ = None, newest_ = None, free_ = None, used_ = 0, count_ = 0;
+    union Slot { Node node; Index next_free; Slot() {} ~Slot() {} } slots_[Capacity];
+    // Buckets name LIVE connection tails. Erasing a final head unlinks its tail;
+    // drain duration/client churn cannot fill this table with tombstones.
+    Index connections_[TableSize];
+    Index ready_head_[3] = {None, None, None};
+    Index ready_tail_[3] = {None, None, None};
+    Index oldest_ = None, newest_ = None, free_ = None, used_ = 0, count_ = 0;
     uint32_t priority_left_ = BatchOps;
     bool table_initialized_ = false;
 
@@ -321,17 +330,11 @@ class ShadowReorderQueues {
         const auto p = reinterpret_cast<uintptr_t>(client);
         return ((p >> 6) ^ (p >> 17)) & (TableSize - 1);
     }
-    uint32_t connection(Client* client) {
-        uint32_t empty = None;
-        for (uint32_t i = hash(client), n = 0; n < TableSize; ++n, i = (i + 1) & (TableSize - 1)) {
-            auto& c = connections_[i];
-            if (c.tail != None && c.client == client) return i;
-            if (c.tail == None && empty == None) empty = i;
-            if (!c.client) break;
-        }
-        if (empty == None) std::abort();
-        connections_[empty].client = client;
-        return empty;
+    Index* connection(Client* client) {
+        Index* link = &connections_[hash(client)];
+        while (*link != None && node(*link).task.client != client)
+            link = &node(*link).hash_next;
+        return link;
     }
     void ready_append(uint32_t i, uint8_t rank) {
         Node& n = node(i);
@@ -355,37 +358,42 @@ class ShadowReorderQueues {
     }
     void append(const Task& task, uint8_t length) {
         if (count_ == Capacity) std::abort();
-        const uint32_t c = connection(task.client);
-        uint32_t i;
+        Index* link = connection(task.client);
+        const Index previous = *link;
+        Index i;
         if (free_ != None) { i = free_; free_ = slots_[i].next_free; }
         else { i = used_++; if (i >= Capacity) std::abort(); }
-        Node& n = *new (&slots_[i].node) Node{task, newest_, None, None, c, None, None, length, 0};
+        Node& n = *new (&slots_[i].node) Node{task, newest_, None, None,
+            previous == None ? None : node(previous).hash_next, None, None, length, 0};
         if (newest_ != None) node(newest_).newer = i;
         else oldest_ = i;
         newest_ = i;
-        const uint32_t previous = connections_[c].tail;
         if (previous == None) ready_append(i, rank(n));
         // Preserve the admitted owner order. A read-local demotion may legally
         // lower an older read after a later independent op; its existing hazard
         // protocol decides that order, not a new ROB-id sort/assertion here.
         else node(previous).next_conn = i;
-        connections_[c].tail = i;
+        *link = i;
         ++count_;
     }
     void refresh_shadows() {
-        // Done may precede retirement. Sample at each output boundary, after the
-        // previous callback; avoid a second, redundant sample at admission.
-        // Only pending tasks pin their Clients. Never retain/dereference emitted
-        // tasks after a callback can publish Done and destroy the connection.
-        for (uint32_t i = oldest_; i != None; i = node(i).newer) {
+        // Only eligible shadow heads can affect this pick. Followers get one
+        // completion check when activated, not one check at every batch boundary.
+        for (uint32_t i = ready_head_[2]; i != None;) {
             Node& n = node(i);
-            if (!shadow_bit(n.task) || shadow_pending(n.task)) continue;
-            n.task.shard = -1;
-            if (n.rank == 2 && (n.prev_ready != None || ready_head_[2] == i)) {
+            const uint32_t next = n.next_ready;
+            if (!shadow_pending(n.task)) {
+                n.task.shard = -1;
                 ready_remove(i);
                 ready_append(i, 0);
             }
+            i = next;
         }
+    }
+    void activate(uint32_t i) {
+        Node& n = node(i);
+        if (shadow_bit(n.task) && !shadow_pending(n.task)) n.task.shard = -1;
+        ready_append(i, rank(n));
     }
     template <typename Emit>
     void emit_queued(uint32_t n, Emit& emit) {
@@ -409,8 +417,8 @@ class ShadowReorderQueues {
             output[out] = selected.task;
             ready_remove(i);
             if (selected.next_conn != None)
-                ready_append(selected.next_conn, rank(node(selected.next_conn)));
-            else connections_[selected.connection].tail = None;
+                activate(selected.next_conn);
+            else *connection(selected.task.client) = selected.hash_next;
             if (selected.older == None) oldest_ = selected.newer;
             else node(selected.older).newer = selected.newer;
             if (selected.newer == None) newest_ = selected.older;
@@ -459,7 +467,7 @@ public:
                 // Preserve homogeneous/single-client bypass: even the connection
                 // index is uninitialized scratch until a mixed run needs it.
                 if (!table_initialized_) {
-                    for (auto& c : connections_) c = {nullptr, None};
+                    std::fill_n(connections_, TableSize, None);
                     table_initialized_ = true;
                 }
                 for (uint32_t i = begin; i < end; ++i) append(tasks[i], lengths[i]);

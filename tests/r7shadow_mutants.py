@@ -10,7 +10,7 @@ source = (ROOT / 'src/core/reorder.h').read_text()
 mutants = {
     'no-shadow': (source.replace('} else if (newest_ < task.op_id) {', '} else if (false) {'),
                   'own-pipe shadows were not armed'),
-    'no-clear': (source.replace('if (!shadow_bit(n.task) || shadow_pending(n.task)) continue;', 'continue;'),
+    'no-clear': (source.replace('if (!shadow_pending(n.task)) {', 'if (false) {').replace('if (shadow_bit(n.task) && !shadow_pending(n.task))', 'if (false)'),
                  'Done shadow was not promoted'),
     'no-bound': (source.replace('if (!priority_left_) {', 'if (false) {'),
                  'carry/ratio pick bound exceeded'),
