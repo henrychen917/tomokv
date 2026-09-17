@@ -24,6 +24,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <cerrno>
 #include <limits>
 #include <string>
 #include <utility>
@@ -117,6 +119,16 @@ inline bool cfg_parse_memory(const char* input, size_t length, uint64_t& out) {
 
 inline bool cfg_parse_memory(const char* input, uint64_t& out) {
     return input && cfg_parse_memory(input, std::strlen(input), out);
+}
+
+inline bool cfg_parse_unixsocketperm(const char* input, uint16_t& out) {
+    if (!input) return false;
+    char* end = nullptr;
+    errno = 0;
+    const long value = std::strtol(input, &end, 8);
+    if (errno || *end || value < 0 || value > 0777) return false;
+    out = static_cast<uint16_t>(value);
+    return true;
 }
 
 struct SaveClause {
@@ -230,25 +242,29 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 struct EncodingConfig {
     enum Key : uint32_t { HashEntries, HashValue, ListSize, SetEntries, SetValue,
                           ZsetEntries, ZsetValue, Count };
-    struct Setting { const char* name; const char* alias; bool memory; };
+    struct Setting { const char* name; const char* alias; bool memory; const char* tomo_alias; };
     static constexpr Setting settings[Count] = {
-        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false},
-        {"hash-max-listpack-value", "hash-max-ziplist-value", true},
-        {"list-max-listpack-size", "list-max-ziplist-size", false},
-        {"set-max-listpack-entries", nullptr, false},
-        {"set-max-listpack-value", nullptr, false},
-        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false},
-        {"zset-max-listpack-value", "zset-max-ziplist-value", true},
+        {"hash-max-listpack-entries", "hash-max-ziplist-entries", false, "hash-max-compact-entries"},
+        {"hash-max-listpack-value", "hash-max-ziplist-value", true, "hash-max-compact-value"},
+        {"list-max-listpack-size", "list-max-ziplist-size", false, nullptr},
+        {"set-max-listpack-entries", nullptr, false, nullptr},
+        {"set-max-listpack-value", nullptr, false, nullptr},
+        {"zset-max-listpack-entries", "zset-max-ziplist-entries", false, "zset-max-compact-entries"},
+        {"zset-max-listpack-value", "zset-max-ziplist-value", true, "zset-max-compact-value"},
     };
     int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64};
 
     static int find(Slice name) {
         for (uint32_t i = 0; i < Count; i++)
             if (name.eq_icase(settings[i].name) ||
-                (settings[i].alias && name.eq_icase(settings[i].alias))) return i;
+                (settings[i].alias && name.eq_icase(settings[i].alias)) ||
+                legacy(i, name)) return i;
         return -1;
     }
-    static bool parse(uint32_t key, Slice input, int64_t& out);
+    static bool legacy(uint32_t key, Slice name) {
+        return key < Count && settings[key].tomo_alias && name.eq_icase(settings[key].tomo_alias);
+    }
+    static bool parse(uint32_t key, Slice input, int64_t& out, bool legacy = false);
     static void apply(TypeLimits& limits, uint32_t key, int64_t value) {
         if (key == ListSize) {
             limits.list = list_compact_limit(static_cast<int32_t>(value));
@@ -298,6 +314,7 @@ struct Config {
 
     // ---- network (boot-only) ---------------------------------------------------------------
     uint16_t port           = 6379;
+    uint16_t unixsocketperm = 0;        // boot-only octal mode; occupies port's alignment hole
     const char* bind_addr   = "127.0.0.1";
     const char* unixsocket  = nullptr;
     uint32_t maxclients     = 10000;     // live; accept-path pre-count safety valve
@@ -305,9 +322,11 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    // Boot-only amortization schedule: 0=off, 1=on. Split overlaps IO writeback;
-    // fused selects the gated three-way schedule, including when read-local is armed.
+    // Split overlap warms owner buckets and interleaves IO writeback with parsing.
+    // Fused always warms eligible owner batches, with the ordinary IO loop and transports.
+    // The knob controls optional scheduling and witnesses; fused prefetch needs no sidecar.
     uint32_t overlap = 0;
+    bool overlap_enabled() const { return overlap != 0; }
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -335,6 +354,7 @@ struct Config {
     uint32_t auto_aof_rewrite_percentage = 100;
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
+    bool aof_load_truncated = true;     // boot-only recovery policy; existing bool alignment hole
 
     // TomoKV intentionally owns one keyspace. The compatibility knob is still parsed and exposed,
     // but only the honest value 1 is accepted. The protocol bound is live and applies to request
@@ -362,8 +382,8 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Boot-only latency reordering across connections in an executor batch; connection order is
-    // preserved. 0 keeps FIFO and allocates nothing. Same alignment hole as the former ex_sched.
+    // Retired boot knob: accept the old 0|1 grammar, then clear after CLI overrides.
+    // Retaining this slot preserves Config layout; neither value enables or allocates anything.
     uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
@@ -385,6 +405,9 @@ struct Config {
     const char* tls_ciphersuites = nullptr;
     bool tls_prefer_server_ciphers = false;
 
+    // HLL promotion is boot-latched; use the TLS tail's alignment hole without moving fields.
+    uint32_t hll_sparse_max_bytes = 3000;
+
     // SLOWLOG + LATENCY. Redis knob names, grammar and semantics exactly:
     //   slowlog-log-slower-than  microseconds; -1 disables the log entirely, 0 logs everything
     //   slowlog-max-len          ring capacity; 0 keeps no entries
@@ -404,6 +427,12 @@ struct Config {
     uint8_t layout_reserved[80]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
+
+// Apply once after validation and all file/CLI overrides, before any server allocation.
+inline void retire_reorder(Config& cfg) {
+    if (cfg.reorder) std::fputs("reorder: retired, no-op\n", stderr);
+    cfg.reorder = 0;
+}
 
 inline constexpr uint32_t cfg_default_shards(uint32_t executors) {
     return executors >= 32 ? 256 : 8 * executors;
@@ -465,8 +494,53 @@ inline bool cfg_parse_i64(const char* s, int64_t& out) {
     return true;
 }
 
-inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out) {
+// These consumers have a locked uint32 ABI. Redis itself permits signed-64-bit ceilings;
+// keep its integer/memory grammar and diagnostic form, but report our supported bound honestly.
+inline bool cfg_parse_u32_limit(Slice input, bool memory, uint32_t& out, const char*& error) {
+    const std::string text(input.p, input.n);
+    int64_t integer = 0;
+    const bool canonical = cfg_parse_i64(text.c_str(), integer) && std::to_string(integer) == text;
+    uint64_t value = 0;
+    if (canonical) {
+        value = static_cast<uint64_t>(integer);
+    } else if (memory) {
+        // Redis also accepts an empty memory value or a bare suffix as zero.
+        if (!input.n || cfg_memory_suffix(input.p, input.n, "b") ||
+            cfg_memory_suffix(input.p, input.n, "k") || cfg_memory_suffix(input.p, input.n, "kb") ||
+            cfg_memory_suffix(input.p, input.n, "m") || cfg_memory_suffix(input.p, input.n, "mb") ||
+            cfg_memory_suffix(input.p, input.n, "g") || cfg_memory_suffix(input.p, input.n, "gb")) {
+            value = 0;
+        } else if (!cfg_parse_memory(input.p, input.n, value)) {
+            error = "argument must be a memory value";
+            return false;
+        }
+    } else {
+        error = "argument couldn't be parsed into an integer";
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        error = "argument must be between 0 and 4294967295 inclusive";
+        return false;
+    }
+    out = static_cast<uint32_t>(value);
+    return true;
+}
+
+inline bool EncodingConfig::parse(uint32_t key, Slice input, int64_t& out, bool legacy) {
     if (key >= Count) return false;
+    // Preserve the original TomoKV aliases' bare uint32 grammar (including leading zeroes).
+    // Redis spellings use the full reference range and grammar below. All paths share storage.
+    if (legacy) {
+        if (!input.n) return false;
+        uint64_t value = 0;
+        for (uint32_t i = 0; i < input.n; i++) {
+            if (input.p[i] < '0' || input.p[i] > '9') return false;
+            value = value * 10 + static_cast<uint32_t>(input.p[i] - '0');
+            if (value > UINT32_MAX) return false;
+        }
+        out = static_cast<int64_t>(value);
+        return true;
+    }
     if (settings[key].memory) {
         uint64_t bytes = 0;
         // Redis memtoull also accepts a bare unit (and the empty string) as zero.
@@ -514,7 +588,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         if (encoding >= 0) {
             const char* value = next(nullptr);
             int64_t parsed = 0;
-            if (!value || !EncodingConfig::parse(encoding, Slice(value, std::strlen(value)), parsed)) {
+            if (!value || !EncodingConfig::parse(encoding, Slice(value, std::strlen(value)), parsed,
+                                                EncodingConfig::legacy(encoding, Slice(a + 2, std::strlen(a + 2))))) {
                 std::fprintf(stderr, "%s has an invalid encoding limit\n", a);
                 return kConfigError;
             }
@@ -566,6 +641,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--bind"))       cfg.bind_addr = next("127.0.0.1");
         else if (!std::strcmp(a, "--unixsocket")) cfg.unixsocket = next("");
+        else if (!std::strcmp(a, "--unixsocketperm")) {
+            if (!cfg_parse_unixsocketperm(next(nullptr), cfg.unixsocketperm)) {
+                std::fprintf(stderr, "--unixsocketperm wants an octal mode between 0 and 777\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--maxclients")) {
             if (!cfg_parse_u32(next(nullptr), cfg.maxclients) || cfg.maxclients == 0) {
                 std::fprintf(stderr, "--maxclients must be between 1 and %u\n", UINT32_MAX);
@@ -666,9 +747,11 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--latency-monitor-threshold")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.latency_monitor_threshold)) {
-                std::fprintf(stderr,
-                             "--latency-monitor-threshold wants milliseconds, 0 to disable\n");
+            const char* value = next("");
+            const char* error = nullptr;
+            if (!cfg_parse_u32_limit(Slice(value, std::strlen(value)), false,
+                                     cfg.latency_monitor_threshold, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, error);
                 return kConfigError;
             }
         }
@@ -914,11 +997,34 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
-        else if (!std::strcmp(a, "--stream-node-max-bytes")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_bytes)) return kConfigError;
+        else if (!std::strcmp(a, "--aof-load-truncated")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.aof_load_truncated = true;
+            else if (cfg_eq_icase(value, "no")) cfg.aof_load_truncated = false;
+            else {
+                std::fprintf(stderr, "--aof-load-truncated wants yes or no\n");
+                return kConfigError;
+            }
         }
-        else if (!std::strcmp(a, "--stream-node-max-entries")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.stream_limits.node_max_entries)) return kConfigError;
+        else if (!std::strcmp(a, "--hll-sparse-max-bytes")) {
+            uint64_t value = 0;
+            if (!cfg_parse_memory(next(nullptr), value) || value > UINT32_MAX) {
+                std::fprintf(stderr, "--hll-sparse-max-bytes wants a byte count between 0 and %u\n",
+                             UINT32_MAX);
+                return kConfigError;
+            }
+            cfg.hll_sparse_max_bytes = static_cast<uint32_t>(value);
+        }
+        else if (!std::strcmp(a, "--stream-node-max-bytes") ||
+                 !std::strcmp(a, "--stream-node-max-entries")) {
+            const bool memory = !std::strcmp(a, "--stream-node-max-bytes");
+            const char* value = next(nullptr);
+            const char* error = "missing argument";
+            uint32_t& limit = memory ? cfg.stream_limits.node_max_bytes : cfg.stream_limits.node_max_entries;
+            if (!value || !cfg_parse_u32_limit(Slice(value, std::strlen(value)), memory, limit, error)) {
+                std::fprintf(stderr, "%s: %s\n", a, error);
+                return kConfigError;
+            }
         }
         else if (!std::strcmp(a, "--zc-min")) {
             const char* v = next(nullptr);
@@ -958,8 +1064,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
-                        "    --overlap 1                 2s: IO-overlapped writeback; 1s: all overlap (uring)\n"
-                        "    --reorder 0|1 (default 0)   cross-connection reordering in an executor batch for latency; per-connection order always preserved\n"
+                        "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
+                        "    --reorder 0|1 (default 0)   retired compatibility knob; 1 warns once, both values are no-ops\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -972,6 +1078,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
+                        "          --unixsocket PATH --unixsocketperm OCTAL\n"
                         "  network engine: --net-io uring|epoll (boot-only; default uring)\n"
                         "  TLS: --tls-port N --tls-cert-file PATH --tls-key-file PATH\n"
                         "       --tls-ca-cert-file PATH --tls-ca-cert-dir PATH\n"
@@ -987,6 +1094,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --appendfilename NAME --appenddirname NAME\n"
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
                         "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
+                        "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
                         "  compatibility: --databases 1 --proto-max-bulk-len BYTES\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
@@ -1000,6 +1108,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
                         "    --set-max-listpack-entries N --set-max-listpack-value N\n"
                         "    --zset-max-listpack-entries N --zset-max-listpack-value BYTES\n"
+                        "    (ziplist and hash/zset compact aliases accepted)\n"
+                        "  HyperLogLog: --hll-sparse-max-bytes BYTES (boot-only; default 3000)\n"
                         "  streams: --stream-node-max-bytes N --stream-node-max-entries N\n"
                         "  misc: --hash mix64|siphash\n"
                         "  (--mode/--wb/--nodes died with 3s, 2026-08)\n",
@@ -1030,13 +1140,6 @@ inline int validate_config(const Config& cfg) {
     }
     if (cfg.overlap > 1) {
         std::fprintf(stderr, "--overlap wants 0 or 1\n");
-        return kConfigError;
-    }
-    if (cfg.thread_mode == ThreadMode::Fused && cfg.overlap != 0 &&
-        cfg.net_io != NetIoEngine::Uring) {
-        std::fprintf(stderr,
-                     "--thread-mode 1s with --overlap %u requires --net-io uring for its single submit boundary\n",
-                     cfg.overlap);
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {

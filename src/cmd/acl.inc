@@ -326,54 +326,13 @@ bool acl_apply_rule(AclUserImage& image, Slice rule, std::string& error) {
     return true;
 }
 
-bool acl_apply_selector(AclUserImage& image, const std::string& expression,
-                        std::string& error) {
-    AclSelector selector;
-    if (g_acl_pubsub_default_all) selector.flags |= AclAllChannels;
-    const char* text = expression.data() + 1;
-    const char* const end = expression.data() + expression.size() - 1;
-    while (text < end) {
-        while (text < end && std::isspace(static_cast<unsigned char>(*text))) text++;
-        const char* token = text;
-        while (text < end && !std::isspace(static_cast<unsigned char>(*text))) text++;
-        if (token == text) break;
-        const Slice rule(token, static_cast<uint32_t>(text - token));
-        if (!acl_apply_permission_rule(selector, rule, error)) return false;
-    }
-    if (!(selector.flags & AclAllCommands)) {
-        for (uint32_t id = 0; id < command_registry_size(); id++) {
-            const CommandSpec* spec = command_registry_at(id);
-            if ((spec->flags & CmdFlags::ScriptRoute) && acl_command_bit(selector, id)) {
-                error = "Script commands in ACL selectors require allcommands";
-                return false;
-            }
-        }
-    }
-    image.perm.selectors.push_back(std::move(selector));
-    return true;
-}
-
 bool acl_apply_rules(AclUserImage& image, const std::vector<std::string>& rules,
                      size_t begin, std::string& error, std::string* failed = nullptr) {
     for (size_t i = begin; i < rules.size(); i++) {
         if (!rules[i].empty() && rules[i][0] == '(') {
-            std::string expression = rules[i];
-            const std::string selector_start = expression;
-            while (expression.empty() || expression.back() != ')') {
-                if (++i == rules.size()) {
-                    error = "Unmatched parenthesis in acl selector starting at '" +
-                            selector_start + "'.";
-                    if (failed) *failed = expression;
-                    return false;
-                }
-                expression.push_back(' ');
-                expression += rules[i];
-            }
-            if (!acl_apply_selector(image, expression, error)) {
-                if (failed) *failed = expression;
-                return false;
-            }
-            continue;
+            error = "ACL selectors are not supported";
+            if (failed) *failed = rules[i];
+            return false;
         }
         const Slice rule(rules[i].data(), static_cast<uint32_t>(rules[i].size()));
         if (!acl_apply_rule(image, rule, error)) {

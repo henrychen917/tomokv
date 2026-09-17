@@ -1,8 +1,225 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "src/core/flipctl.h"
+
+namespace tomo {
+
+// No Server, sockets or worker threads. Feed completed command counts and elapsed tick windows
+// through the controller's production rate arithmetic, pairing, trigger rule, learner and report.
+// After a confirmation, clear the streak as start_maneuver does and keep the anchor in place:
+// this counts disjoint false maneuver requests without simulating the placement actuator.
+struct FlipControllerTest {
+    FlipController controller;
+    uint32_t surges = 0;
+    uint32_t collapses = 0;
+    uint32_t confirmed_readings = 0;
+    uint32_t readings = 0;
+
+    explicit FlipControllerTest(double jitter = 0.0007) {
+        controller.init(true, 8);
+        controller.phase_ = FlipController::Phase::Anchored;
+        controller.anchor_rate_ = 4900;
+        controller.anchor_rate_jitter_ = jitter;
+        controller.observe_rate(4900, 1000);
+        controller.anchor_rate_band_ = controller.automatic_rate_band(jitter, 4900);
+        controller.anchor_rate_band_floor_ = controller.anchor_rate_band_;
+        controller.rate_ew_.configure(30);
+    }
+
+    double sample(uint64_t commands, uint64_t elapsed_ms = 1000) {
+        const double rate = controller.observe_rate(commands, elapsed_ms);
+        controller.rate_ew_.add(rate, 8);
+        return rate;
+    }
+
+    FlipctlTriggerReason tick(uint64_t commands, uint64_t elapsed_ms = 1000) {
+        double rate = sample(commands, elapsed_ms);
+        double prior = 0;
+        if (!controller.pair_rate(rate, prior)) return FlipctlTriggerReason::None;
+        readings++;
+        rate = (rate + prior) * 0.5;
+        const auto reason = controller.rate_trigger(rate);
+        if (reason != FlipctlTriggerReason::None) {
+            confirmed_readings = std::max(controller.surge_streak_, controller.collapse_streak_);
+            surges += reason == FlipctlTriggerReason::AnchorRateSurge;
+            collapses += reason == FlipctlTriggerReason::AnchorRateCollapse;
+            controller.surge_streak_ = controller.collapse_streak_ = 0;
+        } else if (!controller.surge_streak_ && !controller.collapse_streak_) {
+            controller.learn_anchored_rate(rate);
+        }
+        return reason;
+    }
+
+    static int run() {
+        int rows = 0, failed = 0;
+        const auto check = [&](const char* name, bool ok) {
+            rows++;
+            failed += !ok;
+            std::printf("flipctl rate: %s %s\n", ok ? "PASS" : "FAIL", name);
+        };
+
+        // N = 4900 commands per one-second tick; sqrt(N) = 70 exactly, so the scripted count
+        // excursions have no rounding ambiguity. Four ticks at each sign exercise two-reading
+        // confirmations; simple alternation would average to the mean and miss the defect.
+        constexpr uint64_t mean = 4900;
+        constexpr uint32_t ticks = 96;
+        bool reported_floor = true;
+        for (uint64_t amplitude : {70u, 140u}) {
+            FlipControllerTest f;
+            const double initial_band = f.controller.report().rate_band;
+            double min_band = initial_band, max_band = initial_band;
+            f.tick(mean);
+            for (uint32_t k = 0; k < ticks; k++) {
+                const uint64_t commands = (k / 4) % 2 ? mean - amplitude : mean + amplitude;
+                f.tick(commands);
+                const double band = f.controller.report().rate_band;
+                min_band = std::min(min_band, band);
+                max_band = std::max(max_band, band);
+                reported_floor &= band >= 1.0 / std::sqrt(static_cast<double>(commands));
+            }
+            std::printf("flipctl rate trace: +/-%.0f/sqrt(N) N=%llu ticks=%u "
+                        "band_initial=%.9f band_min=%.9f band_max=%.9f surge=%u collapse=%u\n",
+                        amplitude / std::sqrt(static_cast<double>(mean)),
+                        static_cast<unsigned long long>(mean), ticks,
+                        initial_band, min_band, max_band, f.surges, f.collapses);
+            check(amplitude == 70 ? "stationary +/-1/sqrt(N), 96 ticks"
+                                  : "stationary +/-2/sqrt(N), 96 ticks",
+                  f.readings == ticks && f.surges == 0 && f.collapses == 0);
+        }
+        check("reported band >= current window's 1/sqrt(N)", reported_floor);
+
+        for (int direction : {-1, 1}) {
+            FlipControllerTest f;
+            for (uint32_t k = 0; k < ticks; k++)
+                f.tick((k / 4) % 2 ? mean - 70 : mean + 70);
+            f.tick(mean);
+            f.tick(mean); // finish the noise phase with no pending rate streak
+            const uint32_t before = f.surges + f.collapses;
+            const uint64_t stepped = direction < 0 ? mean - 245 : mean + 245;
+            const auto wanted = direction < 0 ? FlipctlTriggerReason::AnchorRateCollapse
+                                              : FlipctlTriggerReason::AnchorRateSurge;
+            uint32_t first = 0;
+            bool correct_reason = true;
+            for (uint32_t k = 1; k <= 3; k++) {
+                const auto reason = f.tick(stepped);
+                if (reason != FlipctlTriggerReason::None) {
+                    if (!first) first = k;
+                    correct_reason &= reason == wanted && f.confirmed_readings == 2;
+                }
+            }
+            // A tick straddling the step first produces a mixed old/new pair. The two subsequent
+            // readings contain only the new level: confirmation must fire by the second of those,
+            // with the original two-reading streak, never an increased confirmation count.
+            std::printf("flipctl rate step: %+d%% first_trigger_tick=%u confirmations=%u\n",
+                        direction * 5, first, f.confirmed_readings);
+            check(direction < 0 ? "5% collapse confirms within two full readings"
+                                : "5% surge confirms within two full readings",
+                  first >= 2 && first <= 3 && correct_reason &&
+                  f.surges + f.collapses == before + 1 && f.controller.rate_confirmations_ == 2);
+        }
+
+        {
+            FlipControllerTest f(0.03);
+            bool unchanged = true;
+            f.tick(mean);
+            for (uint32_t k = 0; k < ticks; k++) {
+                const uint64_t commands = (k / 4) % 2 ? mean - 147 : mean + 147;
+                f.tick(commands);
+                unchanged &= std::abs(f.controller.report().rate_band - 0.06) < 1e-12;
+                unchanged &= 2.0 * std::sqrt(2.0 / commands) < 0.06;
+            }
+            check("3% tick jitter keeps the existing 6% band and zero triggers",
+                  unchanged && f.readings == ticks && f.surges == 0 && f.collapses == 0);
+        }
+
+        {
+            FlipControllerTest f;
+            f.controller.anchor_rate_band_ = 0.0014; // stale anchor, before the sampling floor
+            double first = f.sample(mean - 70);
+            const bool premature = f.controller.stabilize_rate(first);
+            double second = f.sample(mean + 70);
+            const bool stable = f.controller.stabilize_rate(second);
+            check("stabilization floors an existing narrow anchor band",
+                  !premature && stable && second == mean);
+        }
+
+        {
+            // A long quiet learning window must not lend its precision to a shorter live tick.
+            // Test the vote before live learning can incidentally repair the saved band.
+            bool floored = true;
+            for (uint64_t commands : {mean - 70, mean + 70}) {
+                FlipControllerTest f;
+                f.controller.anchor_rate_band_ = 2.0 * std::sqrt(2.0 / 49000);
+                const auto reason = f.controller.rate_trigger(f.sample(commands));
+                floored &= reason == FlipctlTriggerReason::None && !f.controller.surge_streak_ &&
+                           !f.controller.collapse_streak_ &&
+                           f.controller.report().rate_band >= 2.0 * std::sqrt(2.0 / commands);
+            }
+            check("both live streaks use the current count floor before learning", floored);
+        }
+
+        {
+            FlipControllerTest f;
+            double rate = f.sample(490, 100); // same 4900/s, one tenth as many commands
+            const double short_band = f.controller.automatic_rate_band(0, rate);
+            double prior = 0;
+            const bool premature = f.controller.pair_rate(rate, prior);
+            rate = f.sample(4900, 1000);
+            const bool paired = f.controller.pair_rate(rate, prior);
+            const double unequal_band = f.controller.automatic_rate_band(0, rate);
+            // A movement/window reset discards the short window. Its count must not leak into
+            // the new pair, just as its rate cannot survive a flip or load-balancer move.
+            f.controller.previous_subwindow_valid_ = false;
+            rate = f.sample(4900, 1000);
+            const bool stale_pair = f.controller.pair_rate(rate, prior);
+            rate = f.sample(4900, 1000);
+            const bool fresh_pair = f.controller.pair_rate(rate, prior);
+            const double long_band = f.controller.automatic_rate_band(0, rate);
+            check("counts follow elapsed windows, unequal pairs and movement resets",
+                  !premature && paired && !stale_pair && fresh_pair &&
+                  std::abs(short_band - 2.0 * std::sqrt(2.0 / 490)) < 1e-12 &&
+                  unequal_band == short_band &&
+                  std::abs(short_band / long_band - std::sqrt(10.0)) < 1e-12);
+            rate = f.sample(1, 4000);
+            check("the existing command-rate quantum still wins when larger",
+                  f.controller.automatic_rate_band(0, rate) == 8.0);
+        }
+
+        {
+            FlipControllerTest f;
+            f.controller.anchor_rate_band_ = 0.0014;
+            const double quiet_band = f.controller.verification_band(mean);
+            f.controller.rate_ew_.samples = 30;
+            f.controller.rate_ew_.var = 0.04 * 0.04;
+            const double noisy_band = f.controller.verification_band(mean);
+            f.controller.origin_window_.add(4898.601);
+            f.controller.origin_window_.add(6000.916);
+            const double ramp_band = f.controller.verification_band(mean);
+            check("placement/anchor verification retains sampling, sigma and baseline floors",
+                  quiet_band >= 2.0 * std::sqrt(2.0 / mean) &&
+                  std::abs(noisy_band - 0.08) < 1e-12 &&
+                  ramp_band == f.controller.baseline_band() && ramp_band > noisy_band);
+        }
+
+        {
+            FlipControllerTest f;
+            f.tick(mean);
+            const auto first = f.tick(0);
+            const auto second = f.tick(0);
+            check("a complete stop still confirms a collapse",
+                  first == FlipctlTriggerReason::None &&
+                  second == FlipctlTriggerReason::AnchorRateCollapse &&
+                  f.collapses == 1 && f.confirmed_readings == 2);
+        }
+        std::printf("flipctl rate: %d/%d rows passed\n", rows - failed, rows);
+        return failed;
+    }
+};
+
+}  // namespace tomo
 
 using namespace tomo;
 
@@ -160,7 +377,9 @@ uint64_t drive(FlipFingerprintWriter& writer, XorShift& rng, uint64_t passes, ui
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 2 && std::strcmp(argv[1], "--rate-only") == 0)
+        return FlipControllerTest::run() ? 1 : 0;
     // ---- detector rows (unchanged) --------------------------------------------------------------
     FlipShiftDetector detector(-1);
     if (detector.observe(quiet(80, 20)) ||
@@ -457,8 +676,6 @@ int main() {
         if (!(k10.band() > k100.band()))
             fail("a thinner sample did not widen the floor");
     }
-    std::puts("flipctl unit: ok");
-
     // ---- placement policy (flip_policy.h) -----------------------------------------------------
     // THE DEFECT, in the model's own arithmetic. The estimator then in use read io = 82% on 8-key
     // MGET/MSET at 5:3 of 8 threads; the old jump rounded 8 * 0.82 to 7 and overshot. Under work
@@ -748,5 +965,8 @@ int main() {
         for (double v : {500000.0, 505000.0, 495000.0, 500000.0}) still.add(v);
         if (std::abs(still.sigma() - 0.00816) > 1e-4) fail("rate window relative sigma");
     }
+    std::puts("flipctl unit: existing rows ok");
+    if (FlipControllerTest::run()) return 1;
+    std::puts("flipctl unit: ok");
     return 0;
 }

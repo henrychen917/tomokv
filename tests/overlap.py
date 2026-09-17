@@ -56,6 +56,7 @@ def main():
             raise AssertionError("overlap must remain boot-only: %r" % result)
         server = _lib.info(control, "server")
         for name, wanted in (("thread_mode", mode), ("overlap", overlap),
+                             ("overlap_enabled", overlap),
                              ("read_local", str(int(armed)))):
             expect(server.get(name), wanted, "INFO " + name)
         if "x_overlap" in server:
