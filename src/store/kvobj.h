@@ -165,7 +165,18 @@ struct KvObj {
     uint8_t key_namespace() const {
         return (flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0;
     }
-    Slice       key()     const { return Slice(key_ptr(), klen(), key_namespace()); }
+    Slice key() const {
+        // Keep the common db-0 identity a zero-extended length. Computing klen and
+        // namespace independently makes the compiler rebuild a 64-bit pair on
+        // every probe, even though a short key cannot have a namespace extension.
+        const uint8_t layout = flags;
+        const char* bytes = tail() + ((layout & KvObjFlags::HasTtl) ? 8u : 0u);
+        if (__builtin_expect(!(layout & KvObjFlags::KeyExt), true))
+            return Slice(bytes, klen8);
+        uint32_t length;
+        std::memcpy(&length, tail(), 4);
+        return Slice(bytes + 4, length, static_cast<uint8_t>(klen8 + 1));
+    }
 
     uint32_t read_local_klen(uint8_t stable_flags) const {
         if (stable_flags & KvObjFlags::KeyExt) {
@@ -181,8 +192,12 @@ struct KvObj {
         return tail() + ext + ttl;
     }
     Slice read_local_key(uint8_t stable_flags) const {
-        return Slice(read_local_key_ptr(stable_flags), read_local_klen(stable_flags),
-                     (stable_flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0);
+        const char* bytes = tail() + ((stable_flags & KvObjFlags::HasTtl) ? 8u : 0u);
+        if (__builtin_expect(!(stable_flags & KvObjFlags::KeyExt), true))
+            return Slice(bytes, klen8);
+        uint32_t length;
+        std::memcpy(&length, tail(), 4);
+        return Slice(bytes + 4, length, static_cast<uint8_t>(klen8 + 1));
     }
 
     char*       val_ptr()       { return key_ptr() + klen(); }
