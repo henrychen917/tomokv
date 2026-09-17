@@ -85,7 +85,7 @@ def envelopes():
 ''' + body[opening:]
                 needle = 'if (self_->sample_depth(busy.start_ns() / 1000)) {'
                 assert body.count(needle) == 1
-                body = body.replace(needle, needle + '\n                    if (srv_->cfg().reorder == -1)\n                        reorder_scope.policy.tick(*self_, srv_->mode_schedule_stats(self_->id()));')
+                body = body.replace(needle, needle + '\n                    if (srv_->cfg().reorder == Config::kReorderAuto)\n                        reorder_scope.policy.tick(*self_, srv_->mode_schedule_stats(self_->id()));')
             if method == 'fused_demote_local_read_batch':
                 opening = body.index('{') + 1
                 body = body[:opening] + '''

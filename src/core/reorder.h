@@ -1,4 +1,4 @@
-// reorder.h -- continuous owner-local short/long FIFOs, shared by both thread modes.
+// reorder.h -- fused owner-local shadow priority and sampled AUTO policy.
 #pragma once
 #include <algorithm>
 #include <cstddef>
@@ -23,7 +23,7 @@ inline constexpr uint32_t kExReorderSpecial =
     CmdFlags::StreamRoute | CmdFlags::SubcmdRoute | CmdFlags::FlipAsync;
 
 // Only the ordinary one-owner path participates. Every existing special mechanism is a hard
-// barrier in the incoming sequence: both queues drain before it may execute.
+// barrier in the incoming sequence: queued ordinary work drains before it executes.
 inline bool candidate(const Task& task, uint8_t& length) {
     if (!task.client || task.scatter) return false;
     const Op& op = task.client->rob().at(task.op_id);
@@ -41,7 +41,7 @@ inline bool candidate(const Task& task, uint8_t& length) {
 }
 
 // R7's candidate service ratio matches the deciding 8:2 short/long mix. This is a
-// candidate constant, NOT a measured optimum. Only --reorder 0|1 is exposed.
+// inherited fairness constant, NOT a measured optimum. No ratio knob is exposed.
 inline constexpr uint32_t kExReorderShortQuota = 4;
 
 // The kind-A control changes only this out-of-line predicate. It leaves R7 enabled.
@@ -133,28 +133,26 @@ struct QueueSample {
 
 // The owner is the sole consumer while this runs. The existing acquire-tail
 // observer pins queued handles without consuming them or reading a running Op.
-// A bounded tail sample visits the same producer order as drain_tasks, backwards.
+// A bounded prefix sample visits the same producer order as drain_tasks.
 // Shorts counted here are live ROB heads: their own pipe cannot hide a predecessor.
 struct InboxProbe {
     static QueueSample sample(ThreadCtx& owner) {
         QueueSample result;
         uint32_t budget = 2 * kGenthreadExBatchOps;
-        uint32_t later_heads = 0;
-        for (uint32_t p = owner.nchan_; p-- > 0;) {
+        bool have_long = false;
+        for (uint32_t p = 0; p < owner.nchan_; ++p) {
             result.depth += owner.task_in_->depth(p);
             if (!budget) continue;
-            owner.task_in_->newest_nonzero(p, [&](const Task& task) {
+            budget -= owner.task_in_->observe_prefix(p, budget, [&](const Task& task) {
                 uint8_t length;
-                if (!candidate(task, length)) later_heads = 0; // hard barrier
+                if (!candidate(task, length)) have_long = false; // hard barrier
                 else if (length == static_cast<uint8_t>(CommandLengthClass::Long)) {
                     ++result.longs;
-                    result.behind += later_heads;
-                    later_heads = 0; // count each short once, not once per Long
+                    have_long = true;
                 } else {
                     ++result.shorts;
-                    later_heads += task.op_id == task.client->rob().flush_id();
+                    result.behind += have_long && task.op_id == task.client->rob().flush_id();
                 }
-                return --budget == 0 ? 1u : 0u;
             });
         }
         return result;
@@ -190,9 +188,14 @@ public:
         return engaged_;
     }
     void tick(ThreadCtx& owner, ModeScheduleStats& stats) {
+        const bool was_engaged = engaged_;
         observe(InboxProbe::sample(owner));
-        const uint64_t ticks = (stats.reorder_auto.load(std::memory_order_relaxed) >> 1) + 1;
-        stats.reorder_auto.store((ticks << 1) | engaged_, std::memory_order_relaxed);
+        const uint64_t old = stats.reorder_auto.load(std::memory_order_relaxed);
+        const uint64_t ticks = std::min((old >> 32) + 1, uint64_t{UINT32_MAX});
+        const uint64_t engagements = std::min(((old >> 1) & 0x7fffffffull) +
+            (engaged_ && !was_engaged), 0x7fffffffull);
+        stats.reorder_auto.store((ticks << 32) | (engagements << 1) | engaged_,
+                                  std::memory_order_relaxed);
     }
 };
 

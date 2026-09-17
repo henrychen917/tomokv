@@ -98,6 +98,21 @@ void completion_and_newest() {
     std::puts("PASS newest-long stamps, Done without retire, and real ROB recycling");
 }
 
+void successor_completion() {
+    Pipe a, b;
+    (void)a.add(long_op, 0); // queued on another owner
+    Task tasks[kGenthreadExBatchOps];
+    tasks[0] = b.add(long_op, 3);
+    tasks[1] = a.add(short_op, 1);
+    tasks[2] = a.add(short_op, 2);
+    require(shadow_pending(tasks[1]) && shadow_pending(tasks[2]), "successor window never armed");
+    a.done(0);
+    ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 3);
+    require(tasks[0].enqueue_us_low == 1 && tasks[1].enqueue_us_low == 2 &&
+                tasks[2].enqueue_us_low == 3, "newly eligible follower retained a completed shadow");
+    std::puts("PASS completion probe when a hidden follower becomes eligible");
+}
+
 template <size_t B>
 void barriers_and_order() {
     Pipe a, b;
@@ -273,6 +288,7 @@ int main() {
     three_pipes<kGenthreadExBatchOps>();
     three_pipes<kGenthreadPipelineExBatchOps>();
     completion_and_newest();
+    successor_completion();
     barriers_and_order<kGenthreadExBatchOps>();
     barriers_and_order<kGenthreadPipelineExBatchOps>();
     queued_completion<kGenthreadExBatchOps>();

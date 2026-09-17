@@ -384,7 +384,8 @@ struct Config {
     uint32_t notify_events = 0;
     // Fused shadow priority: 0 = allocation-free FIFO, -1 = queue-derived AUTO,
     // 1 = forced-on measurement arm. Split boot resolves every value to zero.
-    int32_t reorder = 0;
+    static constexpr uint32_t kReorderAuto = UINT32_MAX;
+    uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
     // tracking-table-max-keys, default 1000000, 0 = unlimited). The bound is applied per io
@@ -833,12 +834,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--reorder")) {
-            int64_t value;
-            if (!cfg_parse_i64(next(nullptr), value) || value < -1 || value > 1) {
+            const char* value = next(nullptr);
+            if (value && !std::strcmp(value, "-1")) cfg.reorder = Config::kReorderAuto;
+            else if (!cfg_parse_u32(value, cfg.reorder) || cfg.reorder > 1) {
                 std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
                 return kConfigError;
             }
-            cfg.reorder = static_cast<int32_t>(value);
         }
         else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
@@ -1139,7 +1140,7 @@ inline int validate_config(const Config& cfg) {
         std::fprintf(stderr, "--shard-home must contain shard:thread pairs\n");
         return kConfigError;
     }
-    if (cfg.reorder < -1 || cfg.reorder > 1) {
+    if (cfg.reorder > 1 && cfg.reorder != Config::kReorderAuto) {
         std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
         return kConfigError;
     }

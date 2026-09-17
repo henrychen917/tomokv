@@ -338,7 +338,7 @@ struct NetcmdRegression {
         Server info_server;
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
-        for (uint32_t reorder : {0u, 1u}) {
+        for (int32_t reorder : {-1, 0, 1}) {
         info_server.cfg_.reorder = reorder;
         Shard shard;
         for (uint32_t overlap : {0u, 1u}) {
@@ -365,6 +365,15 @@ struct NetcmdRegression {
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
         }
         }
+        info_server.cfg_.thread_mode = ThreadMode::Split;
+        info_server.cfg_.reorder = 0; // the cold boot resolution for off/on/AUTO
+        info_server.cfg_.overlap = 0;
+        Shard split_shard;
+        const std::string split_info = execute(split_shard, {"INFO", "SERVER"});
+        check(split_info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos &&
+              split_info.find("reorder_batches:") == std::string::npos &&
+              split_info.find("schedule_stats_threads:") == std::string::npos,
+              "split capability and allocation-free FIFO are explicit to the gate instrument");
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }

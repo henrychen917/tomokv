@@ -17,7 +17,7 @@ __attribute__((noipa)) bool shadow_available() { return true; }
 }
 
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
-    uint64_t batches = 0, multi = 0, permutations = 0, auto_samples = 0, auto_owners = 0;
+    uint64_t batches = 0, multi = 0, permutations = 0, auto_samples = 0, auto_owners = 0, auto_engagements = 0;
     uint32_t max_batch = 0;
     if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
         const auto& s = stats[tid];
@@ -25,7 +25,8 @@ void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint
         multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
         permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
         const auto automatic = s.reorder_auto.load(std::memory_order_relaxed);
-        auto_samples += automatic >> 1;
+        auto_samples += automatic >> 32;
+        auto_engagements += (automatic >> 1) & 0x7fffffff;
         auto_owners += automatic & 1;
         max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
     }
@@ -33,10 +34,11 @@ void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint
     const int n = std::snprintf(row, sizeof(row),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
         "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n"
-        "reorder_auto_samples:%llu\r\nreorder_auto_engaged_owners:%llu\r\n",
+        "reorder_auto_samples:%llu\r\nreorder_auto_engaged_owners:%llu\r\nreorder_auto_engagements:%llu\r\n",
         static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
         static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available(),
-        static_cast<unsigned long long>(auto_samples), static_cast<unsigned long long>(auto_owners));
+        static_cast<unsigned long long>(auto_samples), static_cast<unsigned long long>(auto_owners),
+        static_cast<unsigned long long>(auto_engagements));
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
@@ -1066,7 +1068,7 @@ void IoLoop::r7_run_loop() {
                 client_cron_beat_ms_ = cached_now_ms_;
             }
             if (self_->sample_depth(busy.start_ns() / 1000)) {
-                    if (srv_->cfg().reorder == -1)
+                    if (srv_->cfg().reorder == Config::kReorderAuto)
                         reorder_scope.policy.tick(*self_, srv_->mode_schedule_stats(self_->id()));
                 // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                 // only (the placement controller deliberately uses busy/idle), so sample it

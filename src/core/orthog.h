@@ -27,7 +27,8 @@ struct alignas(64) ModeScheduleStats {
     // R7-only role-local scratch; the pointer is never read by INFO or a peer.
     // Uses the existing 16-byte tail padding, leaving every old offset intact.
     void* reorder_policy = nullptr;
-    // Atomic diagnostic: samples << 1 | engaged. Only the owner writes it.
+    // Atomic diagnostic: samples[63:32], engagements[31:1], engaged[0].
+    // Both counts saturate; only the owner writes it, never on an operation.
     std::atomic<uint64_t> reorder_auto{0};
 
     // Each element has one physical-thread writer for its entire lifetime, including FLIP.

@@ -428,7 +428,7 @@ int main() {
                    ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
                cfg.overlap == static_cast<uint32_t>(*overlap - '0') &&
                cfg.overlap_enabled() == (*overlap == '1') &&
-               cfg.reorder == std::atoi(reorder) &&
+               cfg.reorder == static_cast<uint32_t>(std::atoi(reorder)) &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };
     for (const char* mode : {"1s", "2s", "fused", "split"})

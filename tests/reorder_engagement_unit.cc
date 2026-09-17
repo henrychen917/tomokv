@@ -285,7 +285,7 @@ struct CoreConcurrencyTest {
     }
 
     static void automatic_inbox() {
-        Fixture<false> f(ThreadMode::Fused, 0, -1);
+        Fixture<true> f(ThreadMode::Fused, 0, -1);
         // The all-policy PAD deliberately resolves the request before creating state.
         if (!reorder_available()) {
             require(f.server.cfg().reorder == 0 && !f.server.mode_schedule_stats(),
@@ -316,7 +316,8 @@ struct CoreConcurrencyTest {
             scope.policy.tick(*f.loop.self_, stats);
             require(!f.loop.self_->sample_depth(1050 + 100 * i), "signal sampled per pass instead of per tick");
         }
-        require(r7::priority_enabled(stats, -1) && (stats.reorder_auto.load() & 1),
+        require(r7::priority_enabled(stats, -1) && (stats.reorder_auto.load() & 1) &&
+                    ((stats.reorder_auto.load() >> 1) & 0x7fffffff) == 1,
                 "production AUTO did not engage");
         observed.clear();
         require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>{1,2,3,0},

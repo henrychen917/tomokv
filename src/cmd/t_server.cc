@@ -337,7 +337,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"read-local", ConfigKind::Unsigned,
                         std::to_string(cfg.read_local), true});
     g_config.push_back({"reorder", ConfigKind::Signed,
-                        std::to_string(cfg.reorder), true});
+                        std::to_string(static_cast<int32_t>(cfg.reorder)), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
     g_config.push_back({"flip-auto", ConfigKind::Unsigned,
@@ -2045,8 +2045,9 @@ void cmd_info(Shard&, Op& op) {
                 g_server ? g_server->nshards() : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
                 g_server && g_server->cfg().overlap_enabled() ? 1u : 0u,
-                g_server ? g_server->cfg().reorder : 0,
-                reorder_available() ? 0u : 1u,
+                g_server ? static_cast<int32_t>(g_server->cfg().reorder) : 0,
+                reorder_available() && g_server &&
+                    reorder_for_mode(1, g_server->thread_mode()) ? 0u : 1u,
                 g_server && g_server->read_local_enabled() ? 1u : 0u,
                 g_server && g_server->atomic_enabled() ? 1u : 0u,
                 sizeof(void*) * 8,

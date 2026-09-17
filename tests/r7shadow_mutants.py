@@ -14,6 +14,16 @@ mutants = {
                  'Done shadow was not promoted'),
     'no-bound': (source.replace('if (!priority_left_) {', 'if (false) {'),
                  'carry/ratio pick bound exceeded'),
+    'no-successor-clear': (source.replace('if (shadow_bit(n.task) && !shadow_pending(n.task))', 'if (false)'),
+                           'newly eligible follower retained a completed shadow'),
+    'auto-never': (source.replace('engaged_ = samples_ == Window && sample.behind &&',
+                                 'engaged_ = false && samples_ == Window && sample.behind &&'),
+                   'queued short heads behind Longs did not engage AUTO'),
+    'auto-sticky': (source.replace('engaged_ = samples_ == Window && sample.behind &&',
+                                  'engaged_ = engaged_ || (samples_ == Window && sample.behind &&')
+                         .replace('sample.depth >= depth_threshold() && behind_ > longs_;',
+                                  'sample.depth >= depth_threshold() && behind_ > longs_);'),
+                    'below-window depth failed to disengage'),
 }
 for name, (header, expected) in mutants.items():
     assert header != source

@@ -57,7 +57,9 @@ build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # R7's cold role selectors shift two budgets slightly. tests/reorder_noop.py locks
 # all 169 current off-path bodies, including O1 pipeline passes and O6 prefetch.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146165
+# Round-2 cold scope/AUTO grammar changes need 146215 to retain both the split
+# owner's timer inline and the ordinary IO deque outline. Witness: 169/169.
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146215
 build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
 build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161735
 
@@ -190,7 +192,7 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 # R7 kind A: mainline FIFO behavior in an exact copy of POST text and layout.
 # The offline patch disables only the boot capability; L4 prebuild stays enabled.
 build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py
-	python3 tests/r7shadow_pad.py $< $@ --receipt $@.json
+	python3 tests/r7shadow_pad.py $< $@ --scope fifo --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
@@ -281,3 +283,7 @@ build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
+
+# Instructions only, no rate/timing benchmark and no server. Run on compile CPUs.
+build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
