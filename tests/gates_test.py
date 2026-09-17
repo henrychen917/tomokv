@@ -298,7 +298,12 @@ class LedgerWiring(unittest.TestCase):
         gate = (root / 'tests/gate.sh').read_text()
         if kind == 'feature':
             start = gate.index('# ---- A. mandatory feature')
-            end = gate.index('# One correctness row, before the quick exit.', start)
+            # This fixture owns the feature matrix and comparator row. Multidb
+            # has its own verdict control below; including its later collectors
+            # made the round-1 addition fail here as an unknown stub job.
+            marker = '\ncollect_job abba_selftest\n'
+            end = gate.index(marker, start) + len(marker)
+            self.assertLess(end, gate.index('if [ "$TIER" = quick ]; then'))
         else:
             marker = gate.index('# ---- B. mandatory headline performance')
             start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
@@ -397,6 +402,41 @@ say(){ :; }
             rows = self.run_block('feature', abba_rc=rc)
             self.assertEqual([row[0] for row in rows], ['ok'] * 35 + ['FAIL'])
             self.assertEqual(rows[-1][1], 'ABBA comparison + saturation negative controls')
+
+    def test_multidb_rows_fail_independently(self):
+        root = Path(__file__).resolve().parent.parent
+        gate = (root / 'tests/gate.sh').read_text()
+        body = gate[gate.index('job_multidb(){'):gate.index('\nunit_ready(){')]
+        stub = r'''
+set -u
+CANDIDATE_BINARY=/unused; PORT=19000; SRVLOG=/unused
+row_begin(){ :; }
+boot(){ return "$BOOT_RC"; }
+boot_fused(){ boot; }
+stop(){ :; }
+ok(){ printf 'ok\n'; }
+bad(){ printf 'FAIL\n'; }
+py(){
+  case "$1" in
+    tests/multidb.py) return "$MULTIDB_RC";;
+    tests/multidb_serial.py) return "$SERIAL_RC";;
+    *) return 90;;
+  esac
+}
+'''
+        for mode in ('1s', '2s'):
+            for boot, multidb, serial, wanted in (
+                    (0, 0, 0, ['ok', 'ok']), (1, 0, 0, ['FAIL', 'FAIL']),
+                    (0, 1, 0, ['FAIL', 'ok']), (0, 0, 1, ['ok', 'FAIL'])):
+                with self.subTest(mode=mode, boot=boot, multidb=multidb, serial=serial), \
+                     tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
+                    env = dict(os.environ, TMPDIR=tmp, BOOT_RC=str(boot),
+                               MULTIDB_RC=str(multidb), SERIAL_RC=str(serial))
+                    result = subprocess.run(['bash', '-c', stub + body +
+                                             f'\njob_multidb multidb-{mode}-0-0\n'],
+                                            cwd=root, env=env, text=True, capture_output=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.splitlines(), wanted)
 
     def test_each_instrument_helper_failure_reaches_the_same_gate_row(self):
         # Every helper must be dispatched and propagate both failure and skip status. A
