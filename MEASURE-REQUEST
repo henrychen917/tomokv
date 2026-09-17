@@ -1,0 +1,187 @@
+{
+  "lane": "overlap-O7",
+  "status": "awaiting prerequisite stall profile; no O7 candidate",
+  "NEEDS-BOX": "Maintainer to schedule armed baseline attribution, one measuring lane at a time.",
+  "pre": {
+    "path": "/home/user/Projects/cx-overlap-O7/build/tomokv-O7-PRE",
+    "sha256": "daee9ae11665a9366613cfdaae7cb972fc8cbae333be27e96edca9740c88576c",
+    "build_id": "2870157f482236c59d975384c9fa15b69077b59a",
+    "source_commit": "a363c2c5e1f16e98db18e15dd427502093f99f7c",
+    "source_check": "src/ and Makefile match this revision; no candidate engine changes",
+    "build_command": "taskset -c 0-3 make -j4 BIN=build/tomokv-O7-PRE",
+    "build_log": "/home/user/Projects/cx-overlap-O7/build/overlap-O7/build-pre.log"
+  },
+  "post": null,
+  "pad": null,
+  "cells": {
+    "profile": {
+      "path": "/home/user/Projects/cx-overlap-O7/build/overlap-O7/handoff/profile-cells.txt",
+      "count": 8,
+      "sha256": "9e642d10aa0dcbec9768142d0f2f612c0537866397394bf3ccd0c7605ce7b8d9",
+      "ids": [
+        "o7-h11",
+        "o7-h15",
+        "o7-h12",
+        "o7-h16",
+        "o7-h27",
+        "o7-h31",
+        "o7-h28",
+        "o7-h32"
+      ]
+    },
+    "judging": {
+      "path": "/home/user/Projects/cx-overlap-O7/build/overlap-O7/handoff/judging-cells.txt",
+      "count": 56,
+      "sha256": "c88237fc372a2478fd2f0a3e40f97b7c373a39f1099a9a73141428a9260914b9",
+      "ids": [
+        "o7-h01",
+        "o7-h07",
+        "o7-h11",
+        "o7-h15",
+        "o7-h17",
+        "o7-h23",
+        "o7-h27",
+        "o7-h31",
+        "o7-h48",
+        "o7-m47",
+        "o7-m92",
+        "o7-t01",
+        "o7-t02",
+        "o7-t03",
+        "o7-t04",
+        "o7-t05",
+        "o7-t06",
+        "o7-h43",
+        "o7-h47",
+        "o7-h44",
+        "o7-h12",
+        "o7-h16",
+        "o7-m31",
+        "o7-m43",
+        "o7-m33",
+        "o7-m45",
+        "o7-m34",
+        "o7-m46",
+        "o7-m36",
+        "o7-m48",
+        "o7-h59",
+        "o7-h63",
+        "o7-h60",
+        "o7-h64",
+        "o7-h28",
+        "o7-h32",
+        "o7-m79",
+        "o7-m91",
+        "o7-m81",
+        "o7-m93",
+        "o7-m82",
+        "o7-m94",
+        "o7-m84",
+        "o7-m96",
+        "o7-1s-get-p8-ov0",
+        "o7-1s-get-p8-ov1",
+        "o7-1s-set-p8-ov0",
+        "o7-1s-set-p8-ov1",
+        "o7-2s-get-p8-ov0",
+        "o7-2s-get-p8-ov1",
+        "o7-2s-set-p8-ov0",
+        "o7-2s-set-p8-ov1",
+        "o7-c02",
+        "o7-c04",
+        "o7-2s-tail-ro1",
+        "o7-2s-tail-ro0"
+      ]
+    },
+    "deep": {
+      "path": "/home/user/Projects/cx-overlap-O7/build/overlap-O7/handoff/deep-cells.txt",
+      "count": 8,
+      "sha256": "d2e038037e4bb0bc340c55df7feb37ac17f09abbbdb387ce4cbf591cbca13f06",
+      "ids": [
+        "o7-1s-get-p64-ov0",
+        "o7-1s-get-p64-ov1",
+        "o7-1s-get-p128-ov0",
+        "o7-1s-get-p128-ov1",
+        "o7-2s-get-p64-ov0",
+        "o7-2s-get-p64-ov1",
+        "o7-2s-get-p128-ov0",
+        "o7-2s-get-p128-ov1"
+      ]
+    }
+  },
+  "geometry": {
+    "assignment": "proposed only; maintainer assigns the quiet slot and port",
+    "server_cores": "0-31",
+    "server_smt": "",
+    "load_cores": "32-111",
+    "load_smt": "",
+    "split_ratio": "16:16",
+    "shards": "gate ABBA rule: min(8 * owners, 256); record actual argv",
+    "transport": "25GbE serverns/clientns rig; tests/niclib.sh",
+    "correctness_geometry": "16 shards; GATE_RATIO/GATE_CORES, default 6:2 on 0-7",
+    "restriction": "No process-name killing. Stop only the exact PIDs the maintainer's driver started."
+  },
+  "fixed_settings": {
+    "key-lb": 1,
+    "client-lb": 1,
+    "atomic": 1,
+    "read-local": "1 in every profile/matrix cell; original smoke controls retained separately",
+    "overlap": "0/1 in separate cells; identical setting in PRE and POST for each cell",
+    "reorder": "1 except the explicitly retained smoke/tail off controls",
+    "flip-auto": 0,
+    "witness": "Record CONFIG GET and effective INFO SERVER read_local, worker roles and local-hit deltas."
+  },
+  "workload": {
+    "populated_keys": 2000000,
+    "value_bytes": 64,
+    "central_window_seconds": 20,
+    "warmup_seconds": 3,
+    "tail_seconds": 5,
+    "connections": "from each cell, normally 512",
+    "multi_key_width": 8,
+    "operation_unit": "commands, not individual keys",
+    "generator_instances": "Use the gate's load ladder and retain every attempt; calibrate at the assigned geometry."
+  },
+  "phase_1": {
+    "cells": "profile",
+    "arms": "PRE only, overlap 0/1 separately; repeat controls on identical PRE bytes",
+    "instrument": "gate-owned command/count windows and PMCs; separate sampled diagnostic captures",
+    "note": "tests/abbagate.py's stock Runner uses loopback. It has no NIC or stall-sampler CLI; the maintainer must use the NIC rig with the same gate accounting. tests/abba_profile.py WindowProfile provides owned-TID PMCs and schedstat, not stall sampling.",
+    "samples": [
+      "cycles with symbol/source/callchain attribution for every server worker, plus user/kernel scope",
+      "IBS demand-load latency/source/IP for reply/ROB/queue versus storage; reuse cx-cacheutil/scratchpad/cacheutil/ibs_account.py and ibs_record_account.py",
+      "Keep invalid, unknown, off-target, lost and throttled samples explicit; do not scale sample shares into an additive wall-stall decomposition."
+    ],
+    "boundaries": {
+      "reply": "wb_retire_prepare, wb_serve_natural, WbEngine::serve_impl, ROB Done loads and reply copies",
+      "crossing": "task publication versus notification/wake, Done-to-ready fence, queue/ROB pressure",
+      "store": "owner execute/prefetch, bucket/record demand accesses, and actual local-read execution",
+      "send": "io_uring/kernel, SEND/command, commands/SEND, bytes/command and backpressure"
+    },
+    "decision": "Return source-attributed evidence identifying the p32 limitation before O7 implementation. A rate plateau, IPC alone, or GET that bypasses EX is insufficient evidence of a reply crossing bottleneck.",
+    "offline_cpu_summary": {
+      "tool": "/home/user/Projects/cx-overlap-O7/scratchpad/overlapreply/profile.py",
+      "usage": "python3 scratchpad/overlapreply/profile.py PATH/TO/cpu-profile.json --output build/overlap-O7/CELL-cpu-summary.json",
+      "scope": "Reads saved gate records only; verifies raw grouped counters, thread coverage and windows. Reports aggregate/per-TID IPC, approximate instructions/command and cycles/command, runtime and runqueue delay. Does not supply source attribution or a bottleneck verdict."
+    }
+  },
+  "phase_2_after_profile_and_candidate": {
+    "cells": "judging; then deep for the ceiling/break-even extension",
+    "arms": "PRE/POST in A-B-B-A order at the same offered load; PAD twin if a layout changes",
+    "columns": [
+      "rate_commands_per_second",
+      "IPC",
+      "instructions_per_command",
+      "cycles_per_command"
+    ],
+    "verdict": "cycles/command = instructions/command / IPC; matched-load rate alongside; zero regression for GET/SET/MGET/MSET p1/p32 in both armed modes",
+    "decomposition": "Each added mechanism alone, then bundled; include disarmed PRE/POST controls.",
+    "amortization": "Count armed instruction delta, measure disarmed fixed cost and target cycles payoff; numeric break-even IPC ratio = POST instructions / PRE instructions. Find the first measured depth/load/mix with lower POST cycles. An unmeasured transition is a bracket, not an invented exact threshold.",
+    "collapse": "No development knobs exist yet. Hardcode measured winners or delete losers before merge; retain only --overlap 0|1 and --reorder 0|1."
+  },
+  "return": "Append raw artifact paths, exact executable digests/argv/CPU assignments, the stall attribution, and measured rate/IPC/instructions/command/cycles/command tables to root MEASURE-RESULT. Missing evidence is unavailable, never a passing or zero-cost result.",
+  "continuation_2": {
+    "compile_cpus": "112-127 only; existing PRE build receipt retained unchanged",
+    "offline_reader_commit": "8f0b4b1ef",
+    "queue_note": "Queue position 2 currently abbreviates the request as perf stat h11/h27. Aggregate-only GET captures are triage; phase_1 still requires source-attributed evidence, SET witnesses, both armed modes and overlap postures."
+  }
+}
