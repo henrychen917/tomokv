@@ -42,8 +42,12 @@ OBJ      := $(SRC:%.cc=build/%.o)
 all: $(BIN)
 default: all
 
-$(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+# L3 changes compile-time representations, so patching L4's predicate cannot disable it.
+# Compile v7 PRE and relink both arms into the same per-function slots. Grouped outputs keep
+# `make default` reproducible and regenerate the pair if either artifact is removed.
+# The offline receipt checks executable-section geometry and common function addresses.
+$(BIN) build/tomokv-pad &: $(OBJ) tools/cache_l3_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/cache_l3_artifacts.py --base 115da1721 --jobs 8
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
@@ -201,12 +205,6 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 # Keep L4's independent control available without calling it the L3 control.
 build/tomokv-l4-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
-
-# L3 changes compile-time representations, so patching L4's predicate cannot disable it.
-# Build v7 PRE, then relink both arms into the same per-function slots. The receipt verifies
-# executable-section geometry and common function addresses. No binary is executed here.
-build/tomokv-pad: $(BIN) tools/cache_l3_artifacts.py tools/lbstall_artifacts.py
-	python3 tools/cache_l3_artifacts.py --base 115da1721 --jobs 8
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0

@@ -1,0 +1,21 @@
+# L3 current-reference cells. m03/m51 are p32 in v7; include actual p8 MGET/MSET rows too.
+# h11/h27 cover armed read-local (advisory for this non-rl design).
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h07 | 1s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h11 | 1s | rl=1 | ov=0 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h23 | 2s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h27 | 2s | rl=1 | ov=0 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+m02 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m03 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m05 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m06 | 1s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m50 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m51 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m53 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m54 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g0 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g1 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s0 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s1 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+f8g1 | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
