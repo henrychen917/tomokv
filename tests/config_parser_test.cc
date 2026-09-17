@@ -359,19 +359,23 @@ int main() {
                         tomo::ThreadMode::Split, 1) ||
         !parses_threads({"--thread-mode", "1s", "--overlap", "1"},
                         tomo::ThreadMode::Fused, 1) ||
+        !parses_threads({"--thread-mode", "2s", "--overlap", "-1"},
+                        tomo::ThreadMode::Split, 1) ||
+        !parses_threads({"--overlap", "-1", "--thread-mode", "1s"},
+                        tomo::ThreadMode::Fused, 1) ||
         !parses_threads({"--thread-mode", "split"}, tomo::ThreadMode::Split, 0) ||
         !parses_threads({"--thread-mode", "fused"}, tomo::ThreadMode::Fused, 0))
         fail("thread-mode compatibility aliases differ");
     if (!rejects({"--thread-mode", "two-stage"}) ||
         !rejects({"--overlap", "2"}) ||
         !rejects({"--overlap", "3"}) ||
-        !rejects({"--overlap", "-1"}) ||
+        !rejects({"--overlap", "-2"}) ||
         !rejects({"--overlap", "yes"}) ||
         !rejects({"--overlap", ""}) ||
         !rejects({"--overlap"}) ||
         !rejects({"--genthread-schedule", "streams0"}))
         fail("invalid thread grammar was accepted");
-    if (rejection_text({"--overlap", "3"}) != "--overlap wants 0 or 1\n")
+    if (rejection_text({"--overlap", "3"}) != "--overlap wants -1, 0 or 1\n")
         fail("overlap parser rejection text is not canonical");
     for (const char* mode : {"1s", "2s"}) {
         if (!rejects({"--thread-mode", mode, "--overlap", "2"}) ||

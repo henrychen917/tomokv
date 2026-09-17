@@ -325,6 +325,8 @@ struct Config {
     // Split overlap warms owner buckets and interleaves IO writeback with parsing.
     // Fused always warms eligible owner batches, with the ordinary IO loop and transports.
     // The knob controls optional scheduling and witnesses; fused prefetch needs no sidecar.
+    // O8 derives owner batch depth from arrivals. -1 normalizes to the existing on arm;
+    // there is no independently tunable depth. Fused local readers keep their fair chunks.
     uint32_t overlap = 0;
     bool overlap_enabled() const { return overlap != 0; }
     ClientOutputBufferLimits client_output_buffer_limits;
@@ -789,8 +791,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--overlap")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.overlap) || cfg.overlap > 1) {
-                std::fprintf(stderr, "--overlap wants 0 or 1\n");
+            const char* value = next(nullptr);
+            if (value && !std::strcmp(value, "-1")) cfg.overlap = 1;
+            else if (!cfg_parse_u32(value, cfg.overlap) || cfg.overlap > 1) {
+                std::fprintf(stderr, "--overlap wants -1, 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1062,9 +1066,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
+                        "  threading: --thread-mode 2s|1s --overlap -1|0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
+                        "    --overlap -1                alias for 1; owner batch depth derives from arrivals\n"
                         "    --reorder 0|1 (default 0)   retired compatibility knob; 1 warns once, both values are no-ops\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
@@ -1139,7 +1144,7 @@ inline int validate_config(const Config& cfg) {
         return kConfigError;
     }
     if (cfg.overlap > 1) {
-        std::fprintf(stderr, "--overlap wants 0 or 1\n");
+        std::fprintf(stderr, "--overlap wants -1, 0 or 1\n");
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {

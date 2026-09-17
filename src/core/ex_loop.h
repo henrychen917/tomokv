@@ -21,6 +21,7 @@
 #include "server.h"
 #include "signal.h"
 #include "genthread_pipeline.h"
+#include "ex_batch_depth.h"
 #include "read_local.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
@@ -177,6 +178,7 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
+        configure_batch_depth();
         // O1's outer-loop floor: both fused knob values use the baseline
         // executor geometry and inboxes; selecting only its loop without these latches would
         // still leave a different producer transport and retirement cadence behind. O6's
@@ -842,7 +844,15 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
+    inline static void (*test_before_exec_batch_)(const Task*, uint32_t) = nullptr;
 #endif
+
+    void configure_batch_depth() {
+        // Fused local readers retain their bounded producer chunks and reader turns.
+        // RL2S owners use the ordinary gather and learn arrivals like plain 2s owners.
+        arrival_depth_.reset(srv_->cfg().overlap_enabled() &&
+            !(Fused && srv_->thread_mode() == ThreadMode::Fused && srv_->read_local_enabled()));
+    }
 
     bool read_local_enabled() const {
         if constexpr (Fused) return read_local_.impl != nullptr;
@@ -1937,6 +1947,10 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
+        if (!unmasked && __builtin_expect(arrival_depth_.armed(), false)) {
+            const uint32_t depth = self_->notified_task_depth_capped(ExecArrivalDepth::kCapacity);
+            if (depth) return drain_tasks_adaptive<IofusedPrivateQueue>(depth);
+        }
         Task batch[BatchOps];
         uint32_t held = 0;
         auto take = [&](const Task& t) {
@@ -1949,6 +1963,29 @@ private:
         const uint32_t n = unmasked
             ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
             : self_->drain_tasks<IofusedPrivateQueue>(take);
+        if (held) exec_batch<IofusedPrivateQueue>(batch, held);
+        self_->sig().ops += n;
+        return n;
+    }
+
+    // Only fresh owner work changes geometry. Retry/snapshot/quiescence drains retain
+    // their fixed quanta; the history owns no task or shard state to transfer on a move.
+    // Keep the larger scratch behind a nonempty armed call. Zero/missing hints still
+    // reach the ordinary drain and the unmasked idle backstop. Never wait to fill a
+    // batch, and never use the hint to cap how much work may drain.
+    template <bool IofusedPrivateQueue>
+    [[gnu::noinline]] uint32_t drain_tasks_adaptive(uint32_t depth) {
+        const uint32_t limit = arrival_depth_.observe(depth);
+        Task batch[ExecArrivalDepth::kCapacity];
+        uint32_t held = 0;
+        auto take = [&](const Task& task) {
+            batch[held++] = task;
+            if (held == limit) {
+                exec_batch<IofusedPrivateQueue>(batch, held);
+                held = 0;
+            }
+        };
+        const uint32_t n = self_->drain_tasks<IofusedPrivateQueue>(take);
         if (held) exec_batch<IofusedPrivateQueue>(batch, held);
         self_->sig().ops += n;
         return n;
@@ -2393,6 +2430,9 @@ private:
     // stream filler.
     template <bool IofusedPrivateQueue = false>
     void exec_batch_prefetched(const Task* batch, uint32_t n) {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_before_exec_batch_) test_before_exec_batch_(batch, n);
+#endif
         if (!xshard_retries_.empty()) {
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
@@ -2403,7 +2443,7 @@ private:
             // wait on either.
             NotifyBatchScope notify_batch(this);
             // THE ENTIRE DISABLED-FEATURE COST OF SLOWLOG/LATENCY: one predicted-false branch
-            // here, once per batch of up to kExecBatch ops. No clock is read and the recorder is
+            // here, once per execution batch. No clock is read and the recorder is
             // not linked into this loop at all. The armed body is out of line in
             // exec_batch_timed().
             if (__builtin_expect(slowlog_armed_, false)) {
@@ -3099,6 +3139,9 @@ private:
     // Slow-log state at the true cold tail: nothing above it moves. `slowlog_armed_` is the single
     // predicted-false branch exec_batch pays when the feature is off.
     bool         slowlog_armed_ = false;
+    // Four existing padding bytes before SlowlogArm. Neither executor stride nor
+    // any following field moves. Off allocates no sidecar or adaptive scratch.
+    ExecArrivalDepth arrival_depth_;
     SlowlogArm   slowlog_arm_{};
     SlowlogExState slowlog_state_{};
     // Fused-only state stays at the true tail so every split ExLoop field keeps its offset.
@@ -3117,9 +3160,10 @@ private:
     // Per-batch completion notification. While a batch is open, the slot
     // path of notify_sender records (io, slot) here instead of fencing and setting per op; the
     // batch end pays ONE seq_cst fence, one ReadyMask::set per recorded client run and one wake
-    // decision per io that saw an empty->flagged edge. Sized to this loop's largest batch; the
-    // record never holds more than one entry per executed task, and a full record flushes in
-    // place regardless. (io, slot), never Client*: the flush may run a whole batch after the Done
+    // decision per io that saw an empty->flagged edge. Keep the existing capacity:
+    // plain split owners flush their 32-entry record during a larger adaptive batch;
+    // fused-capable owners already hold 128. A full record flushes in place.
+    // (io, slot), never Client*: the flush may run a whole batch after the Done
     // store, and a connection is only guaranteed allocated until the io's second reap prologue
     // after close.
     struct NotifyEntry { uint32_t io; uint32_t slot; };
