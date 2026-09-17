@@ -125,13 +125,17 @@ struct CoreConcurrencyTest {
             op->hash = FlatStore::hash_key(op->arg(1));
             op->shard = server.router().shard_of(op->hash);
             const uint64_t id = c.rob().dispatch_id();
+            const bool mget = command_is_read_local_mget(*op->spec);
             op->state.store(OpState::Issued, std::memory_order_release);
             if (local) {
                 op->mark_read_local();
-                c.rob().mark_current_read_local_hash(id, op->hash);
+                ReadLocalPendingFilter keys;
+                for (uint32_t i = 1; i < op->argc(); i++)
+                    keys.add(FlatStore::hash_key(op->arg(i)));
+                c.rob().mark_current_read_local(id, keys);
             }
             c.rob().publish();
-            if (local) loop.enqueue_local_read(&c, id, 1);
+            if (local) loop.enqueue_local_read(&c, id, mget ? op->argc() - 1 : 1);
             return {&c, id, -1, nullptr};
         }
         void post(const Task& task, uint32_t producer) {
@@ -163,11 +167,13 @@ struct CoreConcurrencyTest {
         std::puts("PASS O11 boot eligibility: both modes, rl/overlap off/on");
     }
 
-    static void replies(Client& reader, Client& writer, uint32_t reads, uint32_t owners) {
+    static void replies(Client& reader, Client& writer, uint32_t reads, uint32_t owners,
+                        bool mget = false) {
         for (uint32_t i = 0; i < reads; i++) {
             const Op& op = reader.rob().at(i);
             require(op.state.load() == OpState::Done, "every local read completes");
-            require(std::string(op.reply.data(), op.reply.size()) == "$5\r\nvalue\r\n",
+            const char* expected = mget ? "*2\r\n$5\r\nvalue\r\n$5\r\nvalue\r\n" : "$5\r\nvalue\r\n";
+            require(std::string(op.reply.data(), op.reply.size()) == expected,
                     "local reply is the seeded immutable value");
         }
         for (uint32_t i = 0; i < owners; i++) {
@@ -180,15 +186,20 @@ struct CoreConcurrencyTest {
         writer.rob().drain([](Op&) {});
     }
 
-    static void mixed(uint32_t reads, uint32_t owners, bool pad, uint32_t overlap = 1) {
+    static void mixed(uint32_t reads, uint32_t owners, bool pad, uint32_t overlap = 1,
+                      bool mget = false) {
         Fixture f(ThreadMode::Fused, true, overlap);
         Client reader(-1), writer(-1);
         f.client(reader, f.owner, 1);
         f.client(writer, f.owner, 2);
         const std::string local = f.key(f.remote), owned = f.key(f.owner);
         f.seed(local, f.remote);
-        for (uint32_t i = 0; i < reads; i++)
-            f.prepare(reader, {Slice("GET"), slice(local)}, true);
+        const std::string second_key = f.key(f.owner);
+        if (mget) f.seed(second_key, f.owner);
+        for (uint32_t i = 0; i < reads; i++) {
+            if (mget) f.prepare(reader, {Slice("MGET"), slice(local), slice(second_key)}, true);
+            else f.prepare(reader, {Slice("GET"), slice(local)}, true);
+        }
         for (uint32_t i = 0; i < owners; i++)
             f.post(f.prepare(writer, {Slice("INCR"), slice(owned)}), f.owner);
         f.reader = &reader;
@@ -206,11 +217,14 @@ struct CoreConcurrencyTest {
                 require(f.prefetched_before_lane, "O6 prefetch must precede first lane completion");
         }
         require(f.loop.self_->read_local_stats().hits == reads, "exact clean-read engagement");
+        require(f.loop.self_->read_local_stats().mget_local_hits == (mget ? reads : 0),
+                "exact multi-shard MGET engagement");
         require(f.loop.read_local_impl().lane_demotion_demand == 0, "all lane demand released");
         require(f.loop.self_->ex_inbound_quiesced(), "every consumed task retired");
-        replies(reader, writer, reads, owners);
-        std::printf("PASS O11 rotation reads=%u owners=%u overlap=%u gaps=%llu\n",
-                    reads, owners, overlap, static_cast<unsigned long long>(f.gaps()));
+        replies(reader, writer, reads, owners, mget);
+        std::printf("PASS O11 rotation %s reads=%u owners=%u overlap=%u gaps=%llu\n",
+                    mget ? "MGET" : "GET", reads, owners, overlap,
+                    static_cast<unsigned long long>(f.gaps()));
     }
 
     static void debt(bool pad) {
@@ -270,5 +284,7 @@ int main(int argc, char** argv) {
         for (uint32_t owners : {0u, 1u, 2u, 31u, 32u, 64u})
             T::mixed(reads, owners, pad);
     T::mixed(64, 64, pad, 0);
+    T::mixed(32, 32, pad, 1, true);
+    T::mixed(64, 0, pad, 1, true);
     T::debt(pad);
 }

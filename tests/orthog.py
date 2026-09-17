@@ -115,7 +115,7 @@ def main():
 
         gap_evidence = None
         if args.mode == "1s" and args.read_local and args.overlap:
-            # A local-aware overlap needs BOTH streams. The owner-only reorder traffic below
+            # A local-aware overlap needs BOTH streams. The owner-only traffic below
             # cannot witness a local drain in an owner prefetch gap. Put disjoint GETs and SETs
             # in one ROB, with the SETs routed to that connection's own thread, so dispatch
             # publishes both streams before that owner can execute. Alternate the commands so a
