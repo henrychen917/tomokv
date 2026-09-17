@@ -1,0 +1,43 @@
+# O8 diagnostics only: existing headline cells retain their exact identities.
+# m03/m51 are p32 MGET off controls; m14/m17/m62/m65 engage O8 at p8.
+# The p8 single-key rows below mirror headline geometry, with depth 8.
+# No gate row or expected row count is changed.
+h01 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h02 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h07 | 1s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h17 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h18 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h22 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h23 | 2s | rl=0 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h13 | 1s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h14 | 1s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h15 | 1s | rl=1 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h29 | 2s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h30 | 2s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h31 | 2s | rl=1 | ov=1 | ro=1 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+h37 | 1s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+h38 | 1s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+h53 | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+h54 | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0
+m03 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m51 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m02 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m05 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m14 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m17 | 1s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m50 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m53 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m62 | 2s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m65 | 2s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m38 | 1s | rl=1 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m41 | 1s | rl=1 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m86 | 2s | rl=1 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m89 | 2s | rl=1 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g0 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g1 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s0 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8s1 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+f8g1 | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
