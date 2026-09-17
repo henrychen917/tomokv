@@ -345,7 +345,8 @@ void mset_arity(Server& server) {
 void watch_oom(Server& server) {
     const std::string key(128, 'w');
     unsigned failures = 0; bool saw_rollback = false, reached_success = false;
-    for (int budget = 0; budget < 100; budget++) {
+    const int max_budget = static_cast<int>(server.cfg().databases) * 8 + 64;
+    for (int budget = 0; budget < max_budget; budget++) {
         Client c(-1); c.set_id(505);
         Request watch({"WATCH", key});
         MultiExecState* state = nullptr;
@@ -366,12 +367,22 @@ void watch_oom(Server& server) {
             require(action == MultiIoAction::Dispatch, "WATCH success reached");
             reached_success = true;
         }
-        require(state && state->watched.size() == 1 && state->shards.size() == 1, "retry owns one key");
-        auto& shard = server.shard(state->shards[0]);
-        require(execute_watch_phase(*state, shard), "retry registered owner watcher");
-        shard.watch_write_committed(slice(key));
+        require(state && state->watched.size() == server.cfg().databases,
+                "retry owns every namespace alias of one logical key");
+        std::vector<bool> namespaces(server.cfg().databases, false);
+        for (const auto& alias : state->watched) {
+            require(alias.db == 0 && alias.key == key && alias.ns < namespaces.size() &&
+                    !namespaces[alias.ns], "one exact logical key, no duplicate namespace alias");
+            namespaces[alias.ns] = true;
+        }
+        for (const auto shard_id : state->shards)
+            require(execute_watch_phase(*state, server.shard(shard_id)), "retry registered owner watcher");
+        server.shard(sid(server, key)).watch_write_committed(slice(key));
         require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
-        shard.watch_remove(slice(key), &c, c.watch_generation());
+        for (const auto& alias : state->watched)
+            server.shard(alias.shard).watch_remove(
+                Slice(alias.key.data(), alias.key.size(), alias.ns), &c, c.watch_generation());
+        require(c.safe_to_release(), "every alias releases its client reference");
         c.multi_session()->pending = nullptr;
         c.multi_session()->watched.clear();
         destroy_multi_state(state);

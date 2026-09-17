@@ -8,6 +8,7 @@
 #include <vector>
 #include "src/core/server.h"
 #include "src/cmd/multidb.h"
+#include "src/cmd/cmdmeta.h"
 
 using namespace tomo;
 static void require(bool ok, const char* why) {
@@ -25,7 +26,7 @@ static std::string run(Server& server, Shard& shard, uint8_t db,
     op.spec->handler(shard, op);
     return std::string(op.reply.data(), op.reply.size());
 }
-static void layout_and_store() {
+static void layout_and_store(bool armed) {
     static_assert(sizeof(Slice) == 16);
     static_assert(sizeof(Op) == 336);
     static_assert(sizeof(Client) == 1984);
@@ -33,10 +34,21 @@ static void layout_and_store() {
     static_assert(sizeof(Shard) == 1440);
     static_assert(sizeof(FlatStore) == 944);
     static_assert(sizeof(Config) == 624);
+    static_assert(sizeof(Rob<64>) == 192);
+    static_assert(sizeof(AtomicEntry) == 144);
+    struct Cache { KvBlockCache blocks; ~Cache() { blocks.release_all(); } } cache;
     Server server;
     Shard shard;
     shard.init(nullptr, 0, 0, kNumBuckets, 0, TypeLimits{}, StreamLimits{});
     shard.set_cached_now_ms(1000);
+    if (armed) {
+        require(shard.store().prepare_read_local(), "read-local allocation");
+        // No concurrent readers in this fixture; each owner replacement has an immediate grace period.
+        shard.store().configure_read_local(true, {nullptr,
+            [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
+                reclaim(owner, p, n);
+            }, &cache.blocks});
+    }
     for (const std::string& key : {std::string{}, std::string("k"),
             std::string("\0\xffkey", 5), std::string(254, 'k'), std::string(255, 'k'),
             std::string(256, 'k')}) {
@@ -53,6 +65,11 @@ static void layout_and_store() {
             KvObj* object = shard.store().find(FlatStore::hash_key(composite), composite);
             require(object && object->key().key_eq(composite), "stored composite identity");
             require(object->key_namespace() == db, "physical namespace in record");
+            if (armed) {
+                const auto probe = shard.store().read_local_probe(FlatStore::hash_key(composite), composite);
+                require(probe.result == FlatStore::ReadLocalProbeResult::Hit && probe.object == object,
+                        "foreign read resolves exact namespace without a retry");
+            }
             require(object->has_ttl_slot() == false, "no namespace TTL alias");
             require(kvobj_request_size(object) == sizeof(KvObj) + key.size() + value.size() +
                     ((db || key.size() >= 255) ? 4 : 0), "exact DB 0 allocation layout");
@@ -70,7 +87,7 @@ static void layout_and_store() {
     require(server.databases().swap(0, 15), "mapping swap");
     require(run(server, shard, 0, {"GET", "k"}) == "$4\r\ndb15\r\n", "logical mapping");
     require(run(server, shard, 15, {"GET", "k"}) == "$3\r\ndb0\r\n", "inverse mapping");
-    std::puts("PASS multidb namespace identity and layout");
+    std::printf("PASS multidb namespace identity and layout (read-local %d)\n", armed);
 }
 
 struct Request {
@@ -90,13 +107,19 @@ static void records_done(Server& server) {
 }
 static std::string local(Server& server, uint8_t db, std::initializer_list<std::string> args) {
     Request r(server, db, args);
-    r.op.hash = FlatStore::hash_key(r.op.key());
+    std::vector<CommandKeyMetadata> keys;
+    command_metadata_collect_keys(r.op, 0, *command_metadata_resolve(r.op, 0), keys);
+    require(!keys.empty(), "local command has a key");
+    r.op.hash = FlatStore::hash_key(r.op.arg(keys[0].argument));
     r.op.shard = server.router().shard_of(r.op.hash);
     Shard& shard = server.shard(r.op.shard);
+    const bool write = r.op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite);
+    if (write) require(multi_plain_write_ready(shard, r.op), "plain WATCH readiness");
     PlainForeignReadScope scope;
     require(xshard_plain_prepare(server, shard, r.op, 71, scope), "plain owner preparation");
     r.op.spec->handler(shard, r.op);
     xshard_plain_finish(shard, scope);
+    if (write) multi_plain_write_committed(shard, r.op);
     return r.reply();
 }
 static std::string scatter(Server& server, uint8_t db,
@@ -116,12 +139,16 @@ static std::string scatter(Server& server, uint8_t db,
         std::vector<bool> completed(count, false);
         bool advanced = false;
         for (unsigned retry = 0; !final && !advanced && retry < 1000; ++retry) {
+            bool parked[kMaxThreads]{};
             for (unsigned i = 0; i < count && !final && !advanced; ++i) {
                 if (completed[i]) continue;
                 const int s = state.groups[i].shard;
+                const auto owner = server.worker_of_shard(s);
+                if (parked[owner]) continue;
                 auto result = xshard_execute(Task{&client, 0, s, &state}, server.shard(s),
-                    r.op, server.worker_of_shard(s));
-                if (result == ScatterTaskResult::Retry) continue;
+                    r.op, owner);
+                if (result == ScatterTaskResult::Retry) { parked[owner] = true; continue; }
+                if (result == ScatterTaskResult::Defer) continue;
                 completed[i] = true;
                 auto finish = xshard_multi_child_complete(state, r.op, server.worker_of_shard(s));
                 final = finish == MultiChildFinish::Final;
@@ -175,6 +202,82 @@ static std::string transaction(Server& server, Client& client,
     require(deferred.empty(), "transaction record retirement");
     return r.reply();
 }
+
+static void persistence(Server& server) {
+    records_done(server);
+    SnapshotLoadPlan snapshot;
+    snapshot.shard_count = server.nshards();
+    snapshot.sections.resize(server.nshards());
+    snapshot.database_map = server.databases().capture();
+    const auto cut = now_realtime_ms();
+    for (unsigned sid = 0; sid < server.nshards(); ++sid) {
+        auto& store = server.shard(sid).store();
+        FlatStore::SnapshotWriteResult prepared = FlatStore::SnapshotWriteResult::Pending;
+        for (unsigned pass = 0; prepared == FlatStore::SnapshotWriteResult::Pending && pass < 10000; ++pass)
+            prepared = store.snapshot_prepare(1, cut);
+        require(prepared == FlatStore::SnapshotWriteResult::Ready && store.snapshot_mark(sid, cut),
+                "snapshot namespace capture prepared");
+        for (unsigned pass = 0; store.snapshot_active() && pass < 10000; ++pass) {
+            store.snapshot_progress(65536, 65536);
+            if (auto chunk = store.snapshot_take_chunk()) {
+                snapshot.sections[sid].insert(snapshot.sections[sid].end(),
+                    chunk->bytes.begin(), chunk->bytes.end());
+                store.snapshot_handoff_complete();
+            }
+        }
+        require(!store.snapshot_active() && !store.snapshot_failed(), "snapshot capture completed");
+    }
+    AofReplayPlan aof;
+    aof.sections.resize(server.nshards());
+    unsigned namespaces = 0;
+    // Feed the real AOF loader matching native records. The gate separately exercises
+    // AofProducer, the on-disk frames/checksums, and both file recovery paths end to end.
+    for (unsigned sid = 0; sid < server.nshards(); ++sid) {
+        const auto& input = snapshot.sections[sid];
+        auto& output = aof.sections[sid];
+        for (size_t at = 0; at < input.size();) {
+            const uint8_t* record = input.data() + at;
+            require(snapshot_get_u32(record) == 0x44434552, "native snapshot record tag");
+            const auto key_len = snapshot_get_u32(record + 8);
+            const auto size = key_len + snapshot_get_u64(record + 16);
+            require(at + 32 + size <= input.size(), "snapshot record bounds");
+            if (record[6]) ++namespaces;
+            uint8_t header[40]{};
+            snapshot_put_u32(header, 0x43524f41);
+            header[4] = static_cast<uint8_t>(AofRecordKind::Put);
+            header[5] = record[4]; header[6] = record[5]; header[7] = 1;
+            snapshot_put_u32(header + 8, key_len);
+            snapshot_put_u32(header + 12, 40u | (uint32_t(record[6]) << 16));
+            std::memcpy(header + 16, record + 16, 16);
+            output.insert(output.end(), header, header + 40);
+            output.insert(output.end(), record + 32, record + 32 + size);
+            at += 32 + size;
+        }
+    }
+    require(namespaces > 0, "snapshot actually serialized nonzero namespaces");
+    uint8_t mapping_header[40]{};
+    snapshot_put_u32(mapping_header, 0x43524f41);
+    mapping_header[4] = static_cast<uint8_t>(AofRecordKind::DatabaseMap);
+    mapping_header[7] = 1;
+    snapshot_put_u32(mapping_header + 12, 40);
+    snapshot_put_u64(mapping_header + 16, 256);
+    snapshot_put_u64(mapping_header + 24, uint64_t(-1));
+    aof.sections[0].insert(aof.sections[0].end(), mapping_header, mapping_header + 40);
+    aof.sections[0].insert(aof.sections[0].end(), snapshot.database_map.begin(), snapshot.database_map.end());
+    std::string error;
+    for (unsigned sid = 0; sid < server.nshards(); ++sid) server.shard(sid).store().clear();
+    for (unsigned sid = 0; sid < server.nshards(); ++sid)
+        require(snapshot_load_shard(snapshot, server, server.shard(sid), error), "snapshot namespace load");
+    require(local(server, 0, {"GET", "k"}) == "$3\r\none\r\n", "snapshot db0 mapped value");
+    require(local(server, 2, {"GET", "k"}) == "$4\r\nzero\r\n", "snapshot db2 value");
+    for (unsigned sid = 0; sid < server.nshards(); ++sid) server.shard(sid).store().clear();
+    require(server.databases().swap(0, 1), "disturb mapping before AOF restore");
+    for (unsigned sid = 0; sid < server.nshards(); ++sid)
+        require(aof_load_shard(aof, server, server.shard(sid), error), "AOF namespace load");
+    require(local(server, 0, {"GET", "k"}) == "$3\r\none\r\n", "AOF restores mapping");
+    require(local(server, 2, {"GET", "k"}) == "$4\r\nzero\r\n", "AOF db2 value");
+    std::puts("PASS multidb native snapshot records and AOF namespace/map replay");
+}
 static void owners() {
     Config cfg;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
@@ -202,6 +305,8 @@ static void owners() {
     require(transaction(server, client, {"EXEC"}) ==
             "*3\r\n$3\r\none\r\n+OK\r\n$4\r\nzero\r\n", "EXEC namespace sequence");
     require(client.session().db_index == 0, "SELECT commits connection DB at EXEC");
+    require(local(server, 1, {"EVAL", "return redis.call('GET',KEYS[1])", "1", "k"}) ==
+            "$3\r\none\r\n", "script bridge preserves namespace");
     require(scatter(server, 0, {"MOVE", "k", "1"}) == ":0\r\n", "MOVE NX conflict");
     require(scatter(server, 0, {"MOVE", "absent", "2"}) == ":0\r\n", "MOVE absent source");
     require(scatter(server, 0, {"MOVE", "k", "2"}) == ":1\r\n", "MOVE namespace transfer");
@@ -224,6 +329,33 @@ static void owners() {
     require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "swapped MULTI");
     require(transaction(server, client, {"GET", "k"}) == "+QUEUED\r\n", "swapped GET");
     require(transaction(server, client, {"EXEC"}) == "*-1\r\n", "WATCH sees swap-back generation");
+    require(transaction(server, client, {"WATCH", "never-created"}) == "+OK\r\n", "WATCH absent");
+    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "absent WATCH swap");
+    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "absent WATCH MULTI");
+    require(transaction(server, client, {"GET", "never-created"}) == "+QUEUED\r\n", "absent WATCH GET");
+    require(transaction(server, client, {"EXEC"}) == "*1\r\n$-1\r\n",
+            "absent in both namespaces preserves WATCH");
+    require(transaction(server, client, {"WATCH", "never-created"}) == "+OK\r\n", "WATCH alias before swap");
+    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "WATCH alias swap back");
+    require(local(server, 1, {"SET", "never-created", "other"}) == "+OK\r\n", "inactive WATCH alias write");
+    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "inactive WATCH alias MULTI");
+    require(transaction(server, client, {"GET", "never-created"}) == "+QUEUED\r\n", "inactive WATCH alias GET");
+    require(transaction(server, client, {"EXEC"}) == "*1\r\n$-1\r\n",
+            "writes in another logical DB do not dirty aliases");
+    require(transaction(server, client, {"WATCH", "later-created"}) == "+OK\r\n", "WATCH future active alias");
+    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "activate different WATCH alias");
+    require(local(server, 0, {"SET", "later-created", "ours"}) == "+OK\r\n", "active WATCH alias write");
+    require(transaction(server, client, {"MULTI"}) == "+OK\r\n", "active WATCH alias MULTI");
+    require(transaction(server, client, {"GET", "later-created"}) == "+QUEUED\r\n", "active WATCH alias GET");
+    require(transaction(server, client, {"EXEC"}) == "*-1\r\n", "WATCH follows logical DB after absent swap");
+    require(local(server, 0, {"DEL", "later-created"}) == ":1\r\n", "alias write cleanup");
+    require(scatter(server, 0, {"SWAPDB", "0", "1"}) == "+OK\r\n", "restore mapping after alias checks");
+    require(scatter(server, 0, {"SWAPDB", "bad", "0"}) == "-ERR invalid first DB index\r\n",
+            "SWAPDB first index grammar");
+    require(scatter(server, 0, {"SWAPDB", "0", "bad"}) == "-ERR invalid second DB index\r\n",
+            "SWAPDB second index grammar");
+    require(scatter(server, 0, {"SWAPDB", "0", "16"}) == "-ERR DB index is out of range\r\n",
+            "SWAPDB configured range");
     require(scatter(server, 1, {"FLUSHDB"}) == "+OK\r\n", "scoped FLUSHDB");
     require(local(server, 0, {"GET", "k"}) == "$3\r\none\r\n", "FLUSHDB isolation");
     require(scatter(server, 1, {"DBSIZE"}) == ":0\r\n", "scoped empty DBSIZE");
@@ -231,12 +363,52 @@ static void owners() {
     require(scatter(server, 0, {"KEYS", "*"}) == "*1\r\n$1\r\nk\r\n", "scoped KEYS");
     require(scatter(server, 0, {"RANDOMKEY"}) == "$1\r\nk\r\n", "scoped RANDOMKEY");
     require(scatter(server, 1, {"RANDOMKEY"}) == "$-1\r\n", "empty RANDOMKEY");
+    for (bool atomic : {false, true}) {
+        server.set_atomic_enabled(atomic);
+        for (bool same_shard : {false, true}) {
+            std::string key;
+            for (unsigned i = 0; i < 100000; ++i) {
+                key = "move-owner:" + std::to_string(i);
+                const auto a = server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size(), 7)));
+                const auto b = server.router().shard_of(FlatStore::hash_key(Slice(key.data(), key.size(), 8)));
+                if ((a == b) == same_shard) break;
+                if (i == 99999) require(false, "MOVE geometry never armed");
+            }
+            require(local(server, 7, {"SET", key, "moved", "PX", "600000"}) == "+OK\r\n", "MOVE source");
+            require(scatter(server, 7, {"MOVE", key, "8"}, atomic) == ":1\r\n", "MOVE owner geometry");
+            require(local(server, 8, {"GET", key}) == "$5\r\nmoved\r\n", "MOVE value across owners");
+            const auto ttl = local(server, 8, {"PTTL", key});
+            require(ttl.front() == ':' && std::stoll(ttl.substr(1)) > 0 &&
+                    std::stoll(ttl.substr(1)) <= 600000, "MOVE preserves TTL");
+            require(local(server, 8, {"DEL", key}) == ":1\r\n", "MOVE cleanup");
+        }
+    }
+    server.set_atomic_enabled(true);
+    Client watcher(-1), mover(-1);
+    watcher.set_id(81); mover.set_id(82);
+    watcher.session().db_index = 10; mover.session().db_index = 9;
+    require(local(server, 9, {"SET", "watched-move", "value"}) == "+OK\r\n", "watched MOVE source");
+    require(transaction(server, watcher, {"WATCH", "watched-move"}) == "+OK\r\n", "WATCH destination");
+    require(transaction(server, mover, {"MULTI"}) == "+OK\r\n", "MOVE MULTI");
+    require(transaction(server, mover, {"MOVE", "watched-move", "10"}) == "+QUEUED\r\n", "MOVE queued");
+    require(transaction(server, mover, {"EXEC"}) == "*1\r\n:1\r\n", "MOVE EXEC");
+    require(transaction(server, watcher, {"MULTI"}) == "+OK\r\n", "destination WATCH MULTI");
+    require(transaction(server, watcher, {"GET", "watched-move"}) == "+QUEUED\r\n", "destination WATCH GET");
+    require(transaction(server, watcher, {"EXEC"}) == "*-1\r\n", "MOVE dirties destination WATCH");
+    persistence(server);
     records_done(server);
     command_bind_server(nullptr);
     std::puts("PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH");
 }
 int main() {
     require(command_registry_init(false), "registry initialization");
-    layout_and_store();
+    require(Config{}.databases == 16, "Redis default database count");
+    for (const char* count : {"1", "16", "256"}) {
+        Config cfg; ConfigParseState state;
+        require(parse_config_args({"--databases", count}, cfg, state, 8, "unit") == kConfigParsed &&
+                cfg.databases == std::stoul(count), "database count parser");
+    }
+    layout_and_store(false);
+    layout_and_store(true);
     owners();
 }

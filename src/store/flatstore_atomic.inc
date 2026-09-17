@@ -562,7 +562,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         opaque = nullptr;
         if (!entry || !entry->plain() || entry->key_len != key.n ||
-            Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
+            !Slice(entry->plain_key_data(), entry->key_len, entry->key_ns).key_eq(key)) std::abort();
         entry->epoch = epoch;
         if (entry->plain_hash != hash) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
@@ -579,7 +579,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         opaque = nullptr;
         if (!entry || !entry->plain() || !entry->group_epoch || entry->key_len != key.n ||
-            Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
+            !Slice(entry->plain_key_data(), entry->key_len, entry->key_ns).key_eq(key)) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
         entry->parked()[0] = old;
         entry->count = 1;

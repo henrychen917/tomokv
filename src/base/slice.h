@@ -149,8 +149,8 @@ struct Slice {
     // is one register compare), then the inline byte compare. Every key-identity LOOKUP in the
     // store goes through this one member -- FlatStore's probes, the fused read-local probes, the
     // atomic entry and script-intent scans -- so those paths cannot drift apart. The one deliberate
-    // exception is FlatStore::insert_into(), which keeps operator== for a measured reason stated
-    // there; both are exact byte equality, so the answer is the same either way.
+    // exception is FlatStore::insert_into(), which keeps memcmp for a measured reason stated
+    // there; key_mem_eq includes the same namespace/length identity before comparing bytes.
     uint64_t identity() const {
         uint64_t value;
         std::memcpy(&value, &n, sizeof(value));

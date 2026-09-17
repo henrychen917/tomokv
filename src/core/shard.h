@@ -244,6 +244,7 @@ public:
     struct WatchEntry {
         Client* client = nullptr;
         uint64_t generation = 0;
+        uint8_t db = 0;
         // Captured while WATCH is armed, and only then. Expiry is an owner-side mutation with no
         // command behind it, so nothing calls watch_write_committed() for it; recognising that one
         // transition needs the deadline the key carried when the client armed the WATCH.
@@ -273,7 +274,8 @@ public:
         bool blocking = false;
     };
     bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
-    bool watch_add(Slice key, Client* client, uint64_t generation);
+    bool watch_add(Slice key, Client* client, uint64_t generation, uint16_t db = 256);
+    void watch_database_swap(uint8_t first, uint8_t second);
     void watch_remove(Slice key, Client* client, uint64_t generation);
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,

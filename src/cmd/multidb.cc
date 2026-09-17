@@ -26,7 +26,6 @@ bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
         if (live_) *next = *live_;
         else for (unsigned i = 0; i < next->size(); ++i) (*next)[i] = i;
         std::swap((*next)[first], (*next)[second]);
-        if (first != second) { ++next->versions[first]; ++next->versions[second]; }
         if (live_) retired_.reserve(retired_.size() + 1);
         if (journal && !journal->record_database_map(next->data())) return false;
         current_.store(next.get(), std::memory_order_seq_cst);
@@ -41,7 +40,7 @@ DatabaseMap::Map DatabaseMap::capture() const {
     Read read(*this);
     Map map;
     for (unsigned i = 0; i < map.size(); ++i) {
-        map[i] = read[i]; map.versions[i] = read.version(i);
+        map[i] = read[i];
     }
     return map;
 }
@@ -57,7 +56,6 @@ bool DatabaseMap::restore(const uint8_t* bytes) {
         for (unsigned i = 0; i < next->size(); ++i) {
             if (seen[bytes[i]]) return false;
             seen[bytes[i]] = true; (*next)[i] = bytes[i];
-            next->versions[i] = live_ ? live_->versions[i] + 1 : 0;
         }
         if (live_) retired_.reserve(retired_.size() + 1);
         current_.store(next.get(), std::memory_order_seq_cst);
@@ -86,8 +84,8 @@ bool multidb_parse_index(Slice arg, uint32_t count, uint8_t& db) {
 // function to return zero without changing any linked text addresses or sizes.
 __attribute__((noipa)) uint8_t multidb_namespace(uint8_t physical) { return physical; }
 
-void multidb_stamp(Server& server, Op& op, uint8_t logical) {
-    DatabaseMap::Read map(server.databases());
+template <typename Map>
+static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
     op.db = logical;
     op.physical_db = multidb_namespace(map[logical]);
     op.target_db = logical;
@@ -106,6 +104,15 @@ void multidb_stamp(Server& server, Op& op, uint8_t logical) {
     }
     if (op.cmd_name().eq_icase("copy") && op.argc() >= 3)
         op.set_arg_namespace(2, op.secondary_db);
+}
+
+void multidb_stamp(Server& server, Op& op, uint8_t logical) {
+    const DatabaseMap::Read map(server.databases());
+    stamp(server, op, logical, map);
+}
+
+void multidb_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map& map) {
+    stamp(server, op, logical, map);
 }
 
 void multidb_select(Server* server, Client* client, Op& op) {
@@ -173,18 +180,35 @@ bool multidb_prepare_move(Server& server, Op& op) {
     if (db == op.db) {
         reply_err(op.sink(), "ERR source and destination objects are the same"); return false;
     }
-    multidb_stamp(server, op, op.db);
     Slice destination = op.arg(1);
     destination.ns = op.secondary_db;
+    // MOVE has three arguments, leaving an unused inline slot for its original DB text.
+    // Observability must print the original request after the transfer lowering.
+    op.replace_arg(3, op.arg(2));
     op.replace_arg(2, destination);
     return true;
 }
 
+Slice multidb_display_argument(const Op& op, uint32_t argument) {
+    if (argument == 2 && op.argc() == 3 && op.cmd_name().eq_icase("move") &&
+        op.arg(1).p == op.arg(2).p && op.arg(1).ns != op.arg(2).ns)
+        return op.arg(3);
+    return op.arg(argument);
+}
+
 bool multidb_validate_swap(Server& server, Op& op) {
-    uint8_t first, second;
-    if (!multidb_parse_index(op.arg(1), server.cfg().databases, first) ||
-        !multidb_parse_index(op.arg(2), server.cfg().databases, second)) {
-        reply_err(op.sink(), "ERR invalid DB index"); return false;
+    int64_t indexes[2]{};
+    for (unsigned i = 0; i < 2; ++i) {
+        if (!parse_i64_canonical(op.arg(i + 1), indexes[i]) ||
+            indexes[i] < INT32_MIN || indexes[i] > INT32_MAX) {
+            reply_err(op.sink(), i == 0 ? "ERR invalid first DB index" : "ERR invalid second DB index");
+            return false;
+        }
+    }
+    for (const auto index : indexes) {
+        if (index < 0 || uint64_t(index) >= server.cfg().databases) {
+            reply_err(op.sink(), "ERR DB index is out of range"); return false;
+        }
     }
     return true;
 }

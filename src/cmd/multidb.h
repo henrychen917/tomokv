@@ -23,7 +23,6 @@ class AofProducer;
 class DatabaseMap {
 public:
     struct Map : std::array<uint8_t, 256> {
-        std::array<uint64_t, 256> versions{};
         Map() { for (unsigned i = 0; i < size(); ++i) (*this)[i] = i; }
     };
     class Read {
@@ -34,7 +33,6 @@ public:
         }
         ~Read() { owner_.readers_.fetch_sub(1, std::memory_order_seq_cst); }
         uint8_t operator[](uint8_t db) const { return map_ ? (*map_)[db] : db; }
-        uint64_t version(uint8_t db) const { return map_ ? map_->versions[db] : 0; }
     private:
         const DatabaseMap& owner_;
         const Map* map_;
@@ -44,7 +42,15 @@ public:
     bool restore(const uint8_t* bytes);
     Map capture() const;
     uint8_t logical(uint8_t physical) const;
+    bool admit_swap(const void* token) {
+        const void* empty = nullptr;
+        return swapping_.compare_exchange_strong(empty, token, std::memory_order_acq_rel);
+    }
+    void release_swap(const void* token) {
+        swapping_.compare_exchange_strong(token, nullptr, std::memory_order_acq_rel);
+    }
 private:
+    std::atomic<const void*> swapping_{nullptr};
     mutable std::atomic<uint32_t> readers_{0};
     std::atomic<const Map*> current_{nullptr};
     std::mutex writer_;
@@ -68,12 +74,14 @@ struct DatabaseKey {
 };
 
 void multidb_stamp(Server& server, Op& op, uint8_t logical);
+void multidb_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map& map);
 void multidb_select(Server* server, Client* client, Op& op);
 bool multidb_parse_index(Slice arg, uint32_t count, uint8_t& db);
 void multidb_flush(Shard& shard, uint8_t physical);
 uint64_t multidb_size(Shard& shard, uint8_t physical, uint64_t cut);
 uint64_t multidb_random(uint64_t bound);
 bool multidb_prepare_move(Server& server, Op& op);
+Slice multidb_display_argument(const Op& op, uint32_t argument);
 bool multidb_validate_swap(Server& server, Op& op);
 bool multidb_commit_swap(Server& server, Shard& shard, Op& op);
 struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0; };

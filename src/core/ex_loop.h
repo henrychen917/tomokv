@@ -2614,6 +2614,10 @@ private:
         if (t.scatter) {
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
             xshard_watch_finish(t, sh, op, result);
+            if (result == ScatterTaskResult::Defer) {
+                atomic_deferred_.push_back(t);
+                return true;
+            }
             if (result == ScatterTaskResult::Retry) return false;
             if (lb_sample_rate_) {
                 struct LbVisit { ExLoopT* loop; Shard* shard; } visit{this, &sh};

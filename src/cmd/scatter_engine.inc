@@ -453,6 +453,7 @@ struct ScatterState : SnapshotCut {
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
     std::atomic<uint64_t> exact_sum{0};
     std::atomic<uint32_t> swap_ready_count{0};
+    bool swap_succeeded = false;  // published by swap_done
     std::atomic<bool> swap_done{false};
     Kind kind = Kind::AllShards;
     FinalReply final_reply = FinalReply::None;
@@ -1462,8 +1463,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
 
-    if (op.cmd_name().eq_icase("move") && !multidb_prepare_move(server, op))
-        return ScatterPrepare::Error;
+    if (op.cmd_name().eq_icase("move")) {
+        // EXEC already stamped every child from one immutable mapping. Ordinary
+        // DB-0 connections reach this cold route without arming the parser lane.
+        if (!force_atomic) multidb_stamp(server, op, op.db);
+        if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
+    }
 
     // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
     // planning so FLIP refuses instead of entering a quiescence transaction concurrently. A count
@@ -1704,14 +1709,12 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     bool copy_replace = false, from_left = false, to_left = false;
     if (kind == Kind::Copy) {
-        multidb_stamp(server, op, op.db);
+        if (!force_atomic) multidb_stamp(server, op, op.db);
         for (uint32_t i = 3; i < op.argc();) {
             if (op.arg(i).eq_icase("replace")) { copy_replace = true; i++; }
             else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {
                 // Three answers, in redis's order: not an integer, outside the int range it
-                // parses into, and only then "out of range" for the database itself. This server
-                // has exactly one database, so every index but 0 lands on the last one -- but a
-                // typo must still be reported as a typo.
+                // parses into, and only then "out of range" for the configured database count.
                 int64_t db = 0;
                 if (!parse_i64(op.arg(i + 1), db)) {
                     reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -2070,6 +2073,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     dispatch.nshards = state->nsub;
     dispatch.barrier = state->barrier;
     dispatch.atomic_write = state->atomic_group;
+    if (kind == Kind::Swapdb && !server.databases().admit_swap(state)) {
+        xshard_abandon_unpublished(state, pool, owner_io);
+        dispatch = {};
+        return ScatterPrepare::Backpressure;
+    }
     return ScatterPrepare::Ready;
 }
 
@@ -2088,6 +2096,8 @@ void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,
 }
 
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io) {
+    if (state && state->server && state->kind == Kind::Swapdb)
+        state->server->databases().release_swap(state);
     if (!state) return;
     if (__builtin_expect(atomic_tripwire_enabled(), false))
         atomic_tripwire_forget_scope(state);
@@ -2642,7 +2652,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         const void* token = state.multi_parent ? state.multi_parent
             : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
         if (group.count == 0) {
-            if (!shard.watch_all_write_ready()) return ScatterTaskResult::Retry;
+            if (!shard.watch_all_write_ready()) return state.kind == Kind::Swapdb
+                ? ScatterTaskResult::Defer : ScatterTaskResult::Retry;
         } else {
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
@@ -3235,17 +3246,22 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     state.swap_ready_count.fetch_add(1, std::memory_order_acq_rel);
                 }
                 if (state.swap_ready_count.load(std::memory_order_acquire) != state.nsub)
-                    return ScatterTaskResult::Retry;
+                    return ScatterTaskResult::Defer;
                 if (shard.id() == 0 && !state.swap_done.load(std::memory_order_acquire)) {
                     // Snapshot and map publication share an admission edge. A snapshot keeps
                     // its captured mapping throughout all owner freeze/mark/capture phases.
                     std::lock_guard lock(state.server->shape_transition_mutex());
-                    if (state.server->snapshot().in_progress()) return ScatterTaskResult::Retry;
-                    if (!multidb_commit_swap(*state.server, shard, op)) group.error = WorkError::Oom;
+                    if (state.server->snapshot().in_progress()) return ScatterTaskResult::Defer;
+                    state.swap_succeeded = multidb_commit_swap(*state.server, shard, op);
+                    if (!state.swap_succeeded) group.error = WorkError::Oom;
                     state.swap_done.store(true, std::memory_order_release);
                 }
-                return state.swap_done.load(std::memory_order_acquire)
-                    ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
+                if (!state.swap_done.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
+                uint8_t first = 0, second = 0;
+                multidb_parse_index(op.arg(1), state.server->cfg().databases, first);
+                multidb_parse_index(op.arg(2), state.server->cfg().databases, second);
+                if (state.swap_succeeded) shard.watch_database_swap(first, second);
+                return ScatterTaskResult::Complete;
             }
             case Kind::DatabaseInfo:
                 if (!group.aux) group.aux = new GroupAux;

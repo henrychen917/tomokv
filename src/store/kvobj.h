@@ -94,7 +94,7 @@ struct KvObj {
     uint8_t  type;      // Type
     uint8_t  enc;       // Enc
     KvObjFlagByte flags; // KvObjFlags + concurrent eviction touches
-    uint8_t  klen8;     // key length when < 255; 255 means "see the u32 after the header"
+    uint8_t  klen8;     // short DB-0 length, or namespace-1 when KeyExt is set (255 = DB 0)
     uint32_t vlen;      // inline value length, or external length when Enc::Extern
 
     Enc encoding() const { return static_cast<Enc>(enc); }
