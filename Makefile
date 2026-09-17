@@ -132,8 +132,9 @@ build/store-regression-tsan: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wil
 build/waits-unit: tests/waits_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/waits_unit.cc -o $@
-unit: build/reorder-unit build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/waits-unit
+unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/waits-unit
 	./build/reorder-unit
+	./build/r7shadow-unit
 	./build/config-parser-test
 	./build/flipctl-unit
 	./build/read-local-ring-unit
@@ -188,8 +189,8 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 
 # R7 kind A: mainline FIFO behavior in an exact copy of POST text and layout.
 # The offline patch disables only the boot capability; L4 prebuild stays enabled.
-build/tomokv-pad: $(BIN) tools/reorder_pad.py tools/lbstall_artifacts.py
-	python3 tools/reorder_pad.py $< $@ --receipt $@.json
+build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py
+	python3 tests/r7shadow_pad.py $< $@ --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
@@ -275,3 +276,8 @@ build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 
 build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@

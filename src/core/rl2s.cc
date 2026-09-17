@@ -68,7 +68,7 @@ uint32_t ExLoopT<true>::split_read_local_pass() {
 }
 
 // Preserve the split IO schedule; only the parser's reader capability and lane drain vary.
-void IoLoop::run_split_read_local() {
+void IoLoop::run_split_read_local_baseline() {
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
     const bool has_tls = tls_context_ != nullptr;

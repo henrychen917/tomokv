@@ -3154,6 +3154,8 @@ public:
     __attribute__((noinline))
     uint32_t r7_drain_tasks(bool unmasked = false, Filler* filler = nullptr,
                             bool* filler_used = nullptr);
+    template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t r7_drain_tasks_impl(bool unmasked, Filler* filler, bool* filler_used);
     template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
     uint32_t r7_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
