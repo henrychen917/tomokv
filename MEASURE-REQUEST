@@ -1,9 +1,11 @@
-TomoKV multidb2 — round 2
+TomoKV multidb4 — concurrent SWAPDB accept/reset fix
 
-Read MEASURE-REQUEST-multidb2.md for the implementation, frozen artifacts, exact kind-A PAD semantics, validation and required cells/arms.
+Read MEASURE-REQUEST-multidb4.md for the cause, directed reproductions, frozen
+PRE/POST/kind-A PAD digests, validation, and maintainer handoff. This supersedes
+the measurement requests from earlier multidb rounds.
 
-Mainline measures: h05/h07/h21/h23, SET counterparts h06/h08/h22/h24, m51 and the existing p8g1/p8s0/p8s1/f8g1 definitions at the same 12-instance pins. Compare v7, round-1 PRE, POST and kind-A PAD with matched ABBA/nulls. DB-0 throughput must be a NULL versus v7.
-
-Run the supplied serverless p32 GET/SET instruction instruments on the quiet box; retain instructions/op, cycles/op and IPC. No performance measurements were run by this lane.
-
-Gate counts are 438 quick / 454 full (+10 rows before the quick exit). Both thread modes and the live namespace/persistence batteries still require maintainer execution. Append results as MEASURE-RESULT.
+Maintainer: run the unchanged 128-swap-per-connection battery and serial-order
+checks in both modes, then tests/gate.sh iteration. Counts remain 438/454.
+Recheck only h05/h07 with the gate's existing ABBA instrument and matched pins;
+the detailed request defines the arms and acceptance criterion. No server,
+benchmark, gate, or performance measurement was run by this lane.
