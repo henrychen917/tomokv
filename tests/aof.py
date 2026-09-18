@@ -50,10 +50,12 @@ def self_test():
         data = folder / "aof-data"
         data.mkdir()
         state = data / "state.json"
-        options = ["--dir", data, "--shards", "16", "--ratio", "6:2",
+        options = ["--dir", data, "--shards", "16",
                    "--thread-mode", mode, "--net-io", args.net_io,
                    "--databases", args.databases, "--protected-mode", "no",
                    "--appendonly", "yes", "--appendfsync", "always"]
+        if mode == "2s":
+            options += ["--ratio", "6:2"]
         print("AOF SELF-TEST: mode=%s net-io=%s databases=%d" %
               (mode, args.net_io, args.databases), flush=True)
         pids = []
