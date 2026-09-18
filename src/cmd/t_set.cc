@@ -871,6 +871,11 @@ void cmd_spop(Shard& shard, Op& op) {
     if (!obj_type_check(object, Type::Set, sink)) return;
     CollectionRef initial = as_set(object);
     const uint32_t size = initial.entries();
+    if (!size) {
+        if (with_count) reply_set_header(op.sink(), 0, op.resp3());
+        else reply_null(op.sink(), op.resp3());
+        return;
+    }
     const uint64_t count = static_cast<uint64_t>(signed_count);
     if (count == 0) {
         reply_set_header(op.sink(), 0, op.resp3());
@@ -956,6 +961,12 @@ void cmd_srandmember(Shard& shard, Op& op) {
     if (!obj_type_check(object, Type::Set, sink)) return;
     CollectionRef set = as_set(object);
     const uint32_t size = set.entries();
+
+    if (!size) {
+        if (with_count) reply_array_header(op.sink(), 0);
+        else reply_null(op.sink(), op.resp3());
+        return;
+    }
 
     if (!with_count) {
         const uint32_t pick = static_cast<uint32_t>(random_below(size));
@@ -1302,7 +1313,7 @@ SnapshotHookStatus set_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* destin
 SnapshotHookStatus set_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                      Slice payload, const TypeLimits& limits, KvObj*& result) {
     result = nullptr;
-    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    if (encoding != 0 || !payload.n) return SnapshotHookStatus::Corrupt;
     auto* set = new (std::nothrow) SetVal;
     if (!set) return SnapshotHookStatus::Oom;
     CollectionRef set_ref(set);

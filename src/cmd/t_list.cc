@@ -1291,7 +1291,7 @@ SnapshotHookStatus list_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
 SnapshotHookStatus list_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                       Slice payload, const TypeLimits& limits, KvObj*& result) {
     result = nullptr;
-    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    if (encoding != 0 || !payload.n) return SnapshotHookStatus::Corrupt;
     auto* list = new (std::nothrow) ListVal;
     if (!list) return SnapshotHookStatus::Oom;
     // First pass: count and validate, so the compact-vs-deque decision mirrors a fresh RPUSH.
