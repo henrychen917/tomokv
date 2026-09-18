@@ -1339,7 +1339,7 @@ timeout(){
         for line in makefile.splitlines():
             if line.startswith('SRC '):
                 production.update(line.split('=', 1)[1].split())
-        expected = production - {'src/main.cc', 'src/core/genthread.cc'} | {'tests/core_concurrency_unit.cc'}
+        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'}
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
             stub = r'''set -u
