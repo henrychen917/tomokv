@@ -3522,33 +3522,186 @@
         "load_smt": [],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "5dd4ee52c4d892000c1ff8fee7e66ce93daeb6a26e18b849745299a541e8eeeb",
+      "instrument_sha256": "bd9071c0065374325b295aa1defc6c91797f9b47cea174e5a7772b079bcd063b",
       "status": "calibrated",
+      "variance_pin": {
+        "schema": 1,
+        "method": "independent-ceiling-nulls-v1",
+        "rate_instances": 1,
+        "confirmation_instances": 2,
+        "ladder": [
+          1,
+          2,
+          4,
+          8,
+          12,
+          16
+        ],
+        "binary_sha256": "f8e53f984d7f46d96e7a388e71b260a6144f9c475f5100faf1be572a49f0708f",
+        "limits": {
+          "absolute_delta_pct": 2.0,
+          "arm_spread_pct": 3.9105836041619764
+        },
+        "selected_instances": 1,
+        "noise": [
+          {
+            "instances": 16,
+            "order": [
+              "A",
+              "B",
+              "B",
+              "A"
+            ],
+            "rates": [
+              2190342.99701896,
+              2159443.622957067,
+              2176182.843740221,
+              2220020.184975242
+            ],
+            "busy_pct": [
+              94.89603024643138,
+              94.29480497153014,
+              94.62287284092099,
+              96.22206481167778
+            ],
+            "saturation_pct": [
+              95.48180859923518,
+              94.96012483093024,
+              95.25677223794656,
+              96.6306652200643
+            ],
+            "report_sha256": "b884282fe139489a417dd52eb89d260b7d510c1b9f2237c1458c54fa4d7b6fed"
+          },
+          {
+            "instances": 16,
+            "order": [
+              "A",
+              "B",
+              "B",
+              "A"
+            ],
+            "rates": [
+              2177527.762666757,
+              2280449.0799967134,
+              2192980.478566264,
+              2178797.9185324605
+            ],
+            "busy_pct": [
+              94.10764348966988,
+              98.63140348667373,
+              95.3130707507303,
+              94.58157463781326
+            ],
+            "saturation_pct": [
+              94.77985505007888,
+              98.75232982313145,
+              95.83771049727106,
+              95.22064545645235
+            ],
+            "report_sha256": "8d777fe39294e4e3b8ca4918dca88efd76cbc074d6643238dab98eb0f7e016f4"
+          }
+        ],
+        "trials": [
+          {
+            "instances": 1,
+            "samples": [
+              {
+                "instances": 1,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2316018.3231091844,
+                  2277916.1753904526,
+                  2277194.0185085447,
+                  2300144.071544642
+                ],
+                "busy_pct": [
+                  99.71408151823479,
+                  99.19338789612898,
+                  99.20685597373269,
+                  99.52659561618663
+                ],
+                "saturation_pct": [
+                  99.7337038988036,
+                  99.25819103353675,
+                  99.2702087347558,
+                  99.56206125875784
+                ],
+                "report_sha256": "03e5bac77bffdbb92313d31019c4f137f29970c47675ff65ef2a8a571cb83256"
+              },
+              {
+                "instances": 1,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2295268.8783744304,
+                  2258569.2828607913,
+                  2298832.983914917,
+                  2290676.582811068
+                ],
+                "busy_pct": [
+                  99.51008439601331,
+                  98.60071207207356,
+                  99.26709427194992,
+                  99.26121244088287
+                ],
+                "saturation_pct": [
+                  99.54682350035065,
+                  98.72383849642547,
+                  99.32678444245404,
+                  99.31773707765821
+                ],
+                "report_sha256": "71d5200b0e78f814c0567776b6e5393333ce32bd610f5c98396bcd0203fa8778"
+              }
+            ]
+          }
+        ]
+      },
       "observed_rate": {
         "unit": "ops_per_second",
         "order": [
-          "B"
+          "A",
+          "B",
+          "B",
+          "A"
         ],
         "values": [
-          2284109.375822485
+          2295268.8783744304,
+          2258569.2828607913,
+          2298832.983914917,
+          2290676.582811068
         ]
       },
       "observed_busy": {
         "unit": "percent",
         "order": [
-          "B"
+          "A",
+          "B",
+          "B",
+          "A"
         ],
         "values": [
-          99.3255936397645
+          99.51008439601331,
+          98.60071207207356,
+          99.26709427194992,
+          99.26121244088287
         ]
       },
       "provenance": {
-        "when": "2026-09-15T17:50:55Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-18T00:51:32Z",
+        "how": "abbagate --pin; /home/user/Projects/cx-pinrule/build/pinrule-m03-m51/results.json; sha256=dd78f28dea12aeedfe014562fe48d88403539e2d7af1a94b95b7e3e04e797c67; binary=f8e53f984d7f46d96e7a388e71b260a6144f9c475f5100faf1be572a49f0708f; rate instances=1; confirmation=2; variance instances=1"
       }
     },
     "m51": {
-      "instances": 1,
+      "instances": 2,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -3682,29 +3835,243 @@
         "load_smt": [],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "5dd4ee52c4d892000c1ff8fee7e66ce93daeb6a26e18b849745299a541e8eeeb",
+      "instrument_sha256": "bd9071c0065374325b295aa1defc6c91797f9b47cea174e5a7772b079bcd063b",
       "status": "calibrated",
+      "variance_pin": {
+        "schema": 1,
+        "method": "independent-ceiling-nulls-v1",
+        "rate_instances": 1,
+        "confirmation_instances": 2,
+        "ladder": [
+          1,
+          2,
+          4,
+          8,
+          12,
+          16
+        ],
+        "binary_sha256": "f8e53f984d7f46d96e7a388e71b260a6144f9c475f5100faf1be572a49f0708f",
+        "limits": {
+          "absolute_delta_pct": 0.8247030977652507,
+          "arm_spread_pct": 2.468681735945755
+        },
+        "selected_instances": 2,
+        "noise": [
+          {
+            "instances": 16,
+            "order": [
+              "A",
+              "B",
+              "B",
+              "A"
+            ],
+            "rates": [
+              2124408.0433024783,
+              2082927.36418875,
+              2134990.8525151997,
+              2128584.7366051017
+            ],
+            "busy_pct": [
+              85.03919931093107,
+              85.73227354254139,
+              84.47987316532854,
+              84.60138385405999
+            ],
+            "saturation_pct": [
+              98.83240373758474,
+              98.69853304299161,
+              98.80518281325323,
+              98.71946076052143
+            ],
+            "report_sha256": "5926f5143f0e2a3aeac20959dc8ed4b7bb10c1146324dabbe83699616c197bf6"
+          },
+          {
+            "instances": 16,
+            "order": [
+              "A",
+              "B",
+              "B",
+              "A"
+            ],
+            "rates": [
+              2135347.5303679076,
+              2118754.913388488,
+              2115014.8008275116,
+              2109181.91196245
+            ],
+            "busy_pct": [
+              85.82849149240695,
+              86.01800119315732,
+              85.79459378333272,
+              86.52958069849831
+            ],
+            "saturation_pct": [
+              98.97179567805868,
+              98.85974165341355,
+              98.82059781038875,
+              98.94055089445158
+            ],
+            "report_sha256": "3a49ff3e139e7efb3b8970d0368b093800cf9b6e7f746e1ff71e9c6927a1a253"
+          }
+        ],
+        "trials": [
+          {
+            "instances": 1,
+            "samples": [
+              {
+                "instances": 1,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2084484.0122828537,
+                  2179254.958473275,
+                  2169667.4110123008,
+                  2136210.2671663086
+                ],
+                "busy_pct": [
+                  86.10076395930788,
+                  83.82874720690202,
+                  83.86344473155769,
+                  83.96563478477185
+                ],
+                "saturation_pct": [
+                  98.84509795506676,
+                  99.0149997013819,
+                  98.8838208772195,
+                  98.75287318991228
+                ],
+                "report_sha256": "2d07e28cbf6866a1d3da221d3964216c230d8f439055e011b42bb4e3c87d87a9"
+              },
+              {
+                "instances": 1,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2161671.906647759,
+                  2162807.3287658417,
+                  2157661.3168695006,
+                  2146506.8911863174
+                ],
+                "busy_pct": [
+                  83.88161728723188,
+                  83.17707986779409,
+                  83.59661846829262,
+                  84.08261218361027
+                ],
+                "saturation_pct": [
+                  98.91356574238239,
+                  98.84437035046375,
+                  98.78317613909894,
+                  98.68714745815673
+                ],
+                "report_sha256": "8abece7a7323b04976dc483d86cbcb1c0628585e751432f9a14ea0b58c1fb447"
+              }
+            ]
+          },
+          {
+            "instances": 2,
+            "samples": [
+              {
+                "instances": 2,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2149841.3897501584,
+                  2136926.0064859265,
+                  2139926.5505303233,
+                  2151437.7026798245
+                ],
+                "busy_pct": [
+                  83.67850863678903,
+                  83.66638027199889,
+                  83.2998278109357,
+                  83.5445131238081
+                ],
+                "saturation_pct": [
+                  98.77999186180172,
+                  98.66249364102636,
+                  98.65331133489624,
+                  98.68232168127122
+                ],
+                "report_sha256": "93f6154d461144e08781af57bec8635b665db50accbf08179e3616e1e00e33db"
+              },
+              {
+                "instances": 2,
+                "order": [
+                  "A",
+                  "B",
+                  "B",
+                  "A"
+                ],
+                "rates": [
+                  2173316.1562563675,
+                  2155985.196811323,
+                  2157964.9653403834,
+                  2140601.479292228
+                ],
+                "busy_pct": [
+                  83.47107591153123,
+                  83.85509820336944,
+                  83.39539432205498,
+                  83.38507244310989
+                ],
+                "saturation_pct": [
+                  98.84303475851713,
+                  98.87479280204307,
+                  98.80114338431804,
+                  98.45996557732684
+                ],
+                "report_sha256": "bf3d3a669b27b326cf0d41430eb60487514ff73abd66c36867ff89c878b8067f"
+              }
+            ]
+          }
+        ]
+      },
       "observed_rate": {
         "unit": "ops_per_second",
         "order": [
-          "B"
+          "A",
+          "B",
+          "B",
+          "A"
         ],
         "values": [
-          2155260.833131048
+          2173316.1562563675,
+          2155985.196811323,
+          2157964.9653403834,
+          2140601.479292228
         ]
       },
       "observed_busy": {
         "unit": "percent",
         "order": [
-          "B"
+          "A",
+          "B",
+          "B",
+          "A"
         ],
         "values": [
-          83.83153994659236
+          83.47107591153123,
+          83.85509820336944,
+          83.39539432205498,
+          83.38507244310989
         ]
       },
       "provenance": {
-        "when": "2026-09-15T17:50:55Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/calib/pins-only.json; sha256=5c5f688de2089f560e403d7f95b8354673ea821bb4d0a3262927c0456f8efc8d; candidate=8e96cfb7beadee1de0f3a24cc63f2d10593bb26c79183676ea87f1e38355133f; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-18T00:51:32Z",
+        "how": "abbagate --pin; /home/user/Projects/cx-pinrule/build/pinrule-m03-m51/results.json; sha256=dd78f28dea12aeedfe014562fe48d88403539e2d7af1a94b95b7e3e04e797c67; binary=f8e53f984d7f46d96e7a388e71b260a6144f9c475f5100faf1be572a49f0708f; rate instances=1; confirmation=2; variance instances=2"
       }
     }
   }
