@@ -57,11 +57,11 @@ build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # R7's cold role selectors shift two budgets slightly. tests/reorder_noop.py locks
 # all 169 current off-path bodies, including O1 pipeline passes and O6 prefetch.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-# Round-2 cold scope/AUTO grammar changes need 146215 to retain both the split
-# owner's timer inline and the ordinary IO deque outline. Witness: 169/169.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146215
+# Round-3 direct split entries retain the split owner's timer inline, ordinary IO
+# deque outline and split read-local epoch outlines at these compiler budgets.
+build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146255
 build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161735
+build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
 
 build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)

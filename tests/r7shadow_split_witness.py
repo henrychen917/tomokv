@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Serverless split no-op witness, including real-path and transient-allocation controls."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -32,7 +33,7 @@ def main():
     # These checks complement the 169-body machine-code audit, not replace it.
     for file in ('src/main.cc', 'src/core/rl2s.cc'):
         text = (ROOT / file).read_text()
-        assert '::r7_run' not in text and 'run_owner[' not in text, file
+        assert 'r7_' not in text and 'run_owner[' not in text, file
     import r7shadow_sync as sync
     assert 'reorder' not in sync.function((ROOT / 'src/core/io_loop.h').read_text(), 'run').replace(
         '// This is a split-role entry, including after FLIP. It has no R7 arm.', '')
@@ -60,7 +61,8 @@ def main():
             assert allocation != baseline and allocation['heap_calls'] == baseline['heap_calls'] + 1, (
                 baseline, allocation)
     args.receipt.parent.mkdir(parents=True, exist_ok=True)
-    args.receipt.write_text(json.dumps(dict(rows=rows, positive=True,
+    args.receipt.write_text(json.dumps(dict(binary=str(args.binary),
+        sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(), rows=rows, positive=True,
         rejected=['parse', 'policy', 'sample', 'transient allocation']), indent=2) + '\n')
     print('PASS split witness: 12 cells and 16 forbidden-path/allocation negative controls')
 
