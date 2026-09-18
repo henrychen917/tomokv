@@ -325,8 +325,11 @@ struct CoreConcurrencyTest {
                 "production AUTO did not engage");
         observed.clear();
         std::vector<uint64_t> priority;
-        for (uint32_t i = 1; i < count; ++i) priority.push_back(i);
+        // The inherited oldest-task fairness turn follows one gather of priority
+        // picks. With two gathers this Long must run before the remaining shorts.
+        for (uint32_t i = 1; i <= kGenthreadExBatchOps; ++i) priority.push_back(i);
         priority.push_back(0);
+        for (uint32_t i = kGenthreadExBatchOps + 1; i < count; ++i) priority.push_back(i);
         require(f.loop.r7_drain_tasks<>(true) == count && observed == priority,
                 "AUTO engagement did not select the actual shadow scheduler");
         scope.policy.tick(*f.loop.self_, stats);
