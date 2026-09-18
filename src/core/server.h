@@ -36,6 +36,7 @@
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
 #include "../persist/aof.h"
 
@@ -60,6 +61,11 @@ struct LbClientSignal {
 
 enum class FlipStage : uint8_t {
     Idle = 0,
+#if !TOMO_SINGLE_DATABASE
+    DatabaseIoDrain,
+    DatabaseExDrain,
+    DatabaseRun,
+#endif
     Planning,
     IoDrain,
     IoPrepare,
@@ -71,6 +77,12 @@ enum class FlipStage : uint8_t {
     ShardCommit,
     ExInstall,
     Rollback,
+#if TOMO_SINGLE_DATABASE
+    // Keep the original role-state values in the single-keyspace runtime.
+    DatabaseIoDrain,
+    DatabaseExDrain,
+    DatabaseRun,
+#endif
 };
 
 enum class LbStage : uint8_t {
@@ -161,6 +173,15 @@ public:
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
 
     Server() = default;
+    DatabaseMap& databases() { return databases_; }
+    const DatabaseMap& databases() const { return databases_; }
+    bool database_boundary_begin(Client& client, uint32_t owner, uint64_t op_id);
+    void database_boundary_end(Client& client, uint64_t op_id);
+    bool database_boundary_active() const {
+        if constexpr (kSingleDatabase) return false;
+        const auto stage = flip_stage();
+        return stage >= FlipStage::DatabaseIoDrain && stage <= FlipStage::DatabaseRun;
+    }
     friend struct NetcmdRegression;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
@@ -1836,6 +1857,13 @@ public:
     }
 
 private:
+#if TOMO_SINGLE_DATABASE
+    // Identity-only, never published or allocated. Keep every Server offset at
+    // its pre-database value; the configured runtime owns its mutable map.
+    inline static DatabaseMap databases_;
+#else
+    DatabaseMap databases_;
+#endif
     std::string flip_smt_pairing_error(uint32_t requested_io) const {
         std::string nearest;
         auto add = [&](uint32_t io) {

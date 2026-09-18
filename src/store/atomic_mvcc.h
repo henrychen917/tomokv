@@ -42,6 +42,7 @@ struct AtomicEntry {
     // DEL/UNLINK groups own packed key bytes in this allocation instead of one empty KvObj per
     // key. The flag consumes header padding; AtomicEntry's locked size stays unchanged.
     bool copied_group_keys = false;
+    uint8_t key_ns = 0;
 
     KvObj** parked() { return reinterpret_cast<KvObj**>(this + 1); }
     KvObj* const* parked() const { return reinterpret_cast<KvObj* const*>(this + 1); }
@@ -74,6 +75,7 @@ static_assert(sizeof(AtomicEntry) == 144);
 // script allocate none, and a key's hot representation remains byte-identical.  The trailing key
 // bytes make the intent independent of the IO-owned request buffer.
 struct AtomicScriptIntent {
+    uint32_t key_ns = 0;
     AtomicScriptIntent* next = nullptr;
     uint64_t hash = 0;
     uint32_t refs = 0;
@@ -153,9 +155,14 @@ struct AtomicSeenKey {
     Slice key;
 };
 
+// An applied script and a conflicting writer arbitrate on its existing decision
+// word. The abort sentinel is never a visible version, including in newest-write
+// contexts whose cut is UINT64_MAX. No reader retries or waits on that decision.
+inline constexpr uint64_t kAtomicCancelledEpoch = UINT64_MAX;
 static uint64_t atomic_epoch(const AtomicEntry& entry) {
-    return entry.group_epoch
+    const uint64_t epoch = entry.group_epoch
         ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+    return epoch == kAtomicCancelledEpoch ? 0 : epoch;
 }
 
 static uint64_t atomic_membership_bit(uint64_t hash) {

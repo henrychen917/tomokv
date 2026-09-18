@@ -57,6 +57,7 @@ constexpr uint64_t kMaxInnerCursor = (uint64_t{1} << 33) - 1;
 Server* g_server = nullptr;
 thread_local Client* g_client = nullptr;
 thread_local ThreadCtx* g_thread = nullptr;
+thread_local const DatabaseStatsTable* g_database_stats = nullptr;
 uint64_t g_started_monotonic_ns = 0;
 
 bool eq_icase(Slice s, const char* lit) {
@@ -390,7 +391,7 @@ void init_config(const Config& cfg) {
     // not live-settable (redis allows CONFIG SET).
     g_config.push_back({"tracking-table-max-keys", ConfigKind::Unsigned,
                         std::to_string(cfg.tracking_table_max_keys), true});
-    add_config("databases", ConfigKind::Unsigned, cfg.databases);
+    g_config.push_back({"databases", ConfigKind::Unsigned, std::to_string(cfg.databases), true});
     add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
@@ -514,7 +515,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             if (!std::strcmp(entry.name, "maxmemory-samples") && (value == 0 || value > 64))
                 return false;
             if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
-            if (!std::strcmp(entry.name, "databases") && value != 1) return false;
+            if (!std::strcmp(entry.name, "databases") && (value < 1 || value > 256)) return false;
             if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage") &&
                 value > UINT32_MAX) return false;
             if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
@@ -781,13 +782,7 @@ void cmd_hello(Shard&, Op& op) {
 }
 
 void cmd_select(Shard&, Op& op) {
-    uint64_t db = 0;
-    if (!parse_u64(op.arg(1), db) || db != 0) {
-        reply_err(op.sink(), "ERR this server supports a single keyspace; only SELECT 0 is valid");
-        return;
-    }
-    if (g_client) g_client->session().db_index = 0;
-    reply_ok(op.sink());
+    multidb_select(g_server, g_client, op);
 }
 
 void cmd_reset(Shard&, Op& op) {
@@ -2668,8 +2663,17 @@ void cmd_info(Shard&, Op& op) {
     }
     if (info_section(op, "KEYSPACE")) {
         body += "# Keyspace\r\n";
-        appendf(body, "db0:keys=%llu,expires=%llu\r\n",
-                static_cast<unsigned long long>(keys), static_cast<unsigned long long>(expires));
+        if (g_database_stats && g_server) {
+            DatabaseMap::Read map(g_server->databases());
+            for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
+                const auto& row = (*g_database_stats)[map[db]];
+                if (!row.keys) continue;
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
+                        static_cast<unsigned long long>(row.keys),
+                        static_cast<unsigned long long>(row.expires),
+                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
+            }
+        }
     }
     if (g_server && info_section(op, "LB", false)) lbsignals_info_section(*g_server, body);
     reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
@@ -2688,9 +2692,11 @@ void cmd_dbsize(Shard&, Op& op) {
 
 // publish_size after clear: publications otherwise happen only at executor batch boundaries, so an
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
-void cmd_flush(Shard& sh, Op&) {
+void cmd_flush(Shard& sh, Op& op) {
     const bool changed = sh.store().size() != 0;
-    if (sh.store().snapshot_active()) {
+    if (op.cmd_name().eq_icase("flushdb")) {
+        multidb_flush(sh, op.physical_db);
+    } else if (sh.store().snapshot_active()) {
         // The scatter snapshot gate has serialized every frozen pre-image before this handler is
         // reached.  Keep the frozen table allocation/cursor alive for the capture walker: clear()
         // frees both tables, which was the pre-existing FLUSH-under-capture bug.  Logical erases
@@ -2766,6 +2772,7 @@ void cmd_scan(Shard& sh, Op& op) {
     std::vector<Slice> keys;
     keys.reserve(std::min<uint32_t>(count, 1024));
     inner = sh.store().scan(inner, count, [&](KvObj* obj) {
+        if (obj->key_namespace() != op.physical_db) return;
         if (type.n && !eq_icase(type, object_type(obj))) return;
         if (command_glob_match(match, obj->key())) keys.push_back(obj->key());
     });
@@ -2822,12 +2829,14 @@ static const CommandSpec kTable[] = {
     {"FLIP",       1,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::ConnLocal |
                           CmdFlags::OrderedLocal | CmdFlags::NoScript | CmdFlags::NoMulti |
                           CmdFlags::NoAsyncLoading | CmdFlags::FlipAsync,           cmd_flip,       0,  0, 0},
-    {"INFO",       1, -1, CmdFlags::ConnLocal | CmdFlags::Admin,                  cmd_info,       0,  0, 0},
+    {"INFO",       1, -1, CmdFlags::ConfigRoute | CmdFlags::Admin,                cmd_info,       0,  0, 0},
     {"SELECT",     2,  2, CmdFlags::ConnLocal,                                    cmd_select,     0,  0, 0},
-        {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
+    {"MOVE",       3,  3, CmdFlags::Write | CmdFlags::MultiShard,                 cmd_xshard_only,1,1,1},
+    {"SWAPDB",     3,  3, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,  cmd_transaction_control,0,0,0},
+    {"DBSIZE",     1,  2, CmdFlags::Admin | CmdFlags::ConfigRoute,                cmd_dbsize,     0,  0, 0},
     {"FLUSHALL",   1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
     {"FLUSHDB",    1,  2, CmdFlags::Write | CmdFlags::Admin | CmdFlags::AllShards,cmd_flush,      0,  0, 0},
-    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::RandomShard,             cmd_randomkey,  0,  0, 0},
+    {"RANDOMKEY",  1,  1, CmdFlags::Readonly | CmdFlags::AllShards,               cmd_randomkey,  0,  0, 0},
     {"SCAN",       2, -1, CmdFlags::Readonly | CmdFlags::CursorShard,             cmd_scan,       0,  0, 0},
     {"KEYS",       2,  2, CmdFlags::Readonly | CmdFlags::Admin | CmdFlags::MultiShard,cmd_xshard_only,0,0,0},
     {"SORT",       2, -1, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::MultiShard,cmd_xshard_only,1,1,1},
@@ -3211,6 +3220,7 @@ bool command_prepare_scan_route(Server& server, Op& op) {
 }
 
 bool command_validate_all_shards(Op& op) {
+    if (op.cmd_name().eq_icase("swapdb")) return g_server && multidb_validate_swap(*g_server, op);
     if (op.argc() == 1) return true;
     if (op.argc() == 2 && (eq_icase(op.arg(1), "ASYNC") || eq_icase(op.arg(1), "SYNC"))) return true;
     reply_syntax(op.sink());
@@ -3222,7 +3232,8 @@ bool command_config_routes_all_shards(Op& op) {
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
-    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 2 && eq_icase(op.arg(1), "NOW");
+    if (op.cmd_name().eq_icase("info")) return info_section(op, "KEYSPACE", true);
+    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 1 || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
                (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
@@ -3231,10 +3242,16 @@ bool command_config_routes_all_shards(Op& op) {
 }
 
 bool command_validate_config_set(Op& op) {
-    if (op.cmd_name().eq_icase("dbsize")) return true;   // DBSIZE NOW needs no further validation
+    if (op.cmd_name().eq_icase("dbsize") || op.cmd_name().eq_icase("info")) return true;   // DBSIZE NOW needs no further validation
     std::lock_guard<std::mutex> lock(g_config_mu);
     std::vector<std::pair<ConfigValue*, std::string>> updates;
     return collect_config_updates(op, updates);
+}
+
+void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats) {
+    g_database_stats = &stats;
+    cmd_info(server.shard(0), op);
+    g_database_stats = nullptr;
 }
 
 CommandTable server_command_table() {

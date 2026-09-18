@@ -49,11 +49,24 @@
     bool atomic_has_record(uint64_t hash, Slice key) const {
         return atomic_key_pending(hash, key);
     }
+    template <typename Visit>
+    void atomic_visit_key_groups(uint64_t hash, Slice key, Visit&& visit) {
+        if (!atomic_pending_ || !atomic_pending_->live) return;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!entry->group || !(entry->membership & bit)) continue;
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
+                    visit(*entry->group);
+                    break;
+                }
+        }
+    }
     bool atomic_has_script_intent(uint64_t hash, Slice key) const {
         if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
-            if (intent->hash == hash && intent->key_len == key.n &&
+            if (intent->hash == hash && intent->key_ns == key.ns && intent->key_len == key.n &&
                 bytes_equal(intent->key_data(), key.p, key.n)) return true;
         }
         return false;
@@ -101,7 +114,7 @@
         if (!atomic_ensure_pending()) return false;
         for (AtomicScriptIntent* intent = atomic_pending_->script_intents; intent;
              intent = intent->next) {
-            if (intent->hash != hash || intent->key_len != key.n ||
+            if (intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
                 !bytes_equal(intent->key_data(), key.p, key.n)) continue;
             intent->refs++;
             return true;
@@ -113,6 +126,7 @@
         intent->hash = hash;
         intent->refs = 1;
         intent->key_len = key.n;
+        intent->key_ns = key.ns;
         if (key.n) std::memcpy(intent->key_data(), key.p, key.n);
         const bool first_activity = atomic_pending_->live == 0 &&
                                     atomic_pending_->script_intent_count == 0;
@@ -131,7 +145,7 @@
         AtomicScriptIntent** link = &atomic_pending_->script_intents;
         while (*link) {
             AtomicScriptIntent* intent = *link;
-            if (intent->hash != hash || intent->key_len != key.n ||
+            if (intent->hash != hash || intent->key_ns != key.ns || intent->key_len != key.n ||
                 !bytes_equal(intent->key_data(), key.p, key.n)) {
                 link = &intent->next;
                 continue;
@@ -348,6 +362,7 @@
         if (!entry || entry->count >= entry->capacity) std::abort();
         const uint32_t index = entry->count;
         if (entry->copied_group_keys) {
+            entry->key_ns = key.ns;
             uint32_t* offsets = entry->group_key_offsets();
             const uint32_t begin = index ? offsets[index - 1] : 0;
             const uint64_t end = static_cast<uint64_t>(begin) + key.n;
@@ -513,6 +528,7 @@
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->key_ns = key.ns;
         entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
         entry->membership = atomic_membership_bit(hash);
@@ -539,6 +555,7 @@
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->key_ns = key.ns;
         entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
         entry->group_epoch = group_epoch;
@@ -558,7 +575,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         opaque = nullptr;
         if (!entry || !entry->plain() || entry->key_len != key.n ||
-            Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
+            !Slice(entry->plain_key_data(), entry->key_len, entry->key_ns).key_eq(key)) std::abort();
         entry->epoch = epoch;
         if (entry->plain_hash != hash) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
@@ -575,7 +592,7 @@
         auto* entry = static_cast<AtomicEntry*>(opaque);
         opaque = nullptr;
         if (!entry || !entry->plain() || !entry->group_epoch || entry->key_len != key.n ||
-            Slice(entry->plain_key_data(), entry->key_len) != key) std::abort();
+            !Slice(entry->plain_key_data(), entry->key_len, entry->key_ns).key_eq(key)) std::abort();
         KvObj* old = atomic_exchange_physical(hash, key, value);
         entry->parked()[0] = old;
         entry->count = 1;
@@ -688,16 +705,17 @@
     // every pseudo-entry first, then give this owner's logical clear one committed ticket. The
     // subsequent table clear sees tombstones for tracked keys, so protected predecessors remain
     // parked while unrelated plain keys are reclaimed immediately.
-    bool atomic_tombstone_all() {
+    bool atomic_tombstone_all(int namespace_filter = -1) {
         if (!atomic_pending_ || atomic_pending_->live == 0) return true;
-        struct PreparedClear { uint64_t hash; std::string key; AtomicEntry* entry; };
+        struct PreparedClear { uint64_t hash; std::string key; uint8_t ns; AtomicEntry* entry; };
         std::vector<PreparedClear> prepared;
         try {
             uint32_t count = 0;
             atomic_for_each_unique_key([&](uint64_t, Slice) { count++; });
             prepared.reserve(count);
             atomic_for_each_unique_key([&](uint64_t hash, Slice key) {
-                PreparedClear item{hash, std::string(key.p, key.n), nullptr};
+                if (namespace_filter >= 0 && key.ns != unsigned(namespace_filter)) return;
+                PreparedClear item{hash, std::string(key.p, key.n), static_cast<uint8_t>(key.ns), nullptr};
                 void* opaque = nullptr;
                 if (!atomic_prepare_plain(key, hash, 0, opaque)) throw std::bad_alloc();
                 item.entry = static_cast<AtomicEntry*>(opaque);
@@ -723,7 +741,7 @@
         const uint64_t saved_origin = atomic_read_origin_conn_id_;
         const uint64_t ticket = atomic_ticket_fn_(atomic_ticket_ctx_);
         for (PreparedClear& item : prepared) {
-            Slice key(item.key.data(), static_cast<uint32_t>(item.key.size()));
+            Slice key(item.key.data(), static_cast<uint32_t>(item.key.size()), item.ns);
             void* opaque = item.entry;
             KvObj* tombstone = nullptr;
             atomic_install_plain(item.hash, key, opaque, tombstone, ticket);
@@ -820,6 +838,7 @@ private:
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->key_ns = key.ns;
         entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
         entry->membership = atomic_membership_bit(hash);
@@ -839,6 +858,7 @@ private:
         if (!entry) return false;
         entry->capacity = 1;
         entry->key_len = key.n;
+        entry->key_ns = key.ns;
         entry->plain_hash = hash;
         entry->origin_conn_id = origin_conn_id;
         entry->group_epoch = group_epoch;
@@ -981,7 +1001,7 @@ private:
     }
 
     Slice atomic_entry_key(const AtomicEntry& entry, uint32_t index) const {
-        if (entry.plain()) return Slice(entry.plain_key_data(), entry.key_len);
+        if (entry.plain()) return Slice(entry.plain_key_data(), entry.key_len, entry.key_ns);
         if (!entry.copied_group_keys)
             return xshard_atomic_key_slice(entry.group, entry.begin + index);
         if (index >= entry.count) std::abort();
@@ -989,7 +1009,7 @@ private:
         const uint32_t begin = index ? offsets[index - 1] : 0;
         const uint32_t end = offsets[index];
         if (end < begin || end > entry.key_len) std::abort();
-        return Slice(entry.group_key_data() + begin, end - begin);
+        return Slice(entry.group_key_data() + begin, end - begin, entry.key_ns);
     }
 
     bool atomic_key_pending(uint64_t hash, Slice key) const {

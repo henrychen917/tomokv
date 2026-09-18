@@ -44,7 +44,7 @@ struct PrebuiltSetValue {
         const bool ttl = reserve || expire >= 0;
         if (object->has_ttl_slot() != ttl) {
             const Slice key = object->key();
-            const size_t capacity = good_size(kvobj_alloc_size(key.n, object->vlen, ttl, Enc::Extern));
+            const size_t capacity = good_size(kvobj_alloc_size(key.identity(), object->vlen, ttl, Enc::Extern));
             auto* replacement = static_cast<KvObj*>(alloc_raw(capacity));
             if (!replacement) return false;
             replacement->type = object->type;

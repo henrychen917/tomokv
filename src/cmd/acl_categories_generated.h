@@ -157,6 +157,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"MEMORY", 0x0000000000008000ULL}, // slow
     {"MGET", 0x0000000000004082ULL}, // read string fast
     {"MONITOR", 0x000000000002a000ULL}, // admin slow dangerous
+    {"MOVE", 0x0000000000004005ULL}, // keyspace write fast
     {"MSET", 0x0000000000008084ULL}, // write string slow
     {"MSETNX", 0x0000000000008084ULL}, // write string slow
     {"MULTI", 0x0000000000084000ULL}, // fast transaction
@@ -229,6 +230,7 @@ inline constexpr AclCommandCategoryDefinition kAclCommandCategories[] = {
     {"SUNION", 0x000000000000800aULL}, // read set slow
     {"SUNIONSTORE", 0x000000000000800cULL}, // write set slow
     {"SUNSUBSCRIBE", 0x0000000000009000ULL}, // pubsub slow
+    {"SWAPDB", 0x0000000000024005ULL}, // keyspace write fast dangerous
     {"TIME", 0x0000000000004000ULL}, // fast
     {"TOUCH", 0x0000000000004003ULL}, // keyspace read fast
     {"TTL", 0x0000000000004003ULL}, // keyspace read fast

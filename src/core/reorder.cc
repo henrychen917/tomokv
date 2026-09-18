@@ -1355,7 +1355,8 @@ uint32_t IoLoop::r7_flush_ready() {
         // Success, pre-commit rollback, and synchronous validation refusal all end by publishing
         // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
         // after the FLIP and retries the still-unconsumed frame in the re-parse below.
-        if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
+        if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+            (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
             c->set_flip_backpressure(false);
         // Under epoll the second half of this guard is vacuous and would be actively
         // harmful: recv_armed_ means "an edge is owed", not "the kernel holds a pointer into
@@ -1589,7 +1590,7 @@ void IoLoop::r7_run_split() {
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_admit_fd(int fd, UrKind kind) {
     TOMO_R7_PATH();
-    if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
+    if (accepts_paused()) { ::close(fd); return; }
     const bool unix_socket = kind == UrKind::UnixAccept;
     const bool tls_socket = kind == UrKind::TlsAccept;
     self_->sig().accepts++;
@@ -1932,7 +1933,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
 template <bool kEp, bool Fused, uint8_t Pipeline>
 uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
     TOMO_R7_PATH();
-    if (srv_->flip_dispatch_paused()) return 0;
+    if (accepts_paused()) return 0;
     const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
                          kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
     if (listener < 0) return 0;
@@ -2077,7 +2078,8 @@ uint32_t IoLoop::r7_ifid_parse_hash(IfidBatch& batch) {
         if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
             scatter_pool_.can_register_snapshot())
             c->set_atomic_backpressure(false);
-        if (c->flip_backpressure() && !srv_->flip_dispatch_paused())
+        if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+            (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
             c->set_flip_backpressure(false);
         if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
             conn.reset_rbuf_at_quiescence();
@@ -2207,7 +2209,7 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
         rearm_accept(cqe, kind);
         return;
     }
-    if (srv_->flip_dispatch_paused()) {
+    if (accepts_paused()) {
         ::close(cqe->res);
         rearm_accept(cqe, kind);
         return;
@@ -2660,6 +2662,22 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             if constexpr (NoBorrow) spec = command_tls_variant(spec);
             op->spec = spec;
         }
+        // One immutable map for ALL keys, before any route/hash/RYOW work.
+        // The separately compiled DB-0 runtime emits none of this lane.
+        if constexpr (!kSingleDatabase) {
+            // An IO that already acknowledged a database drain may receive
+            // more input (or accept a new client). Do not capture the old map
+            // while paused: the swap could finish before the later dispatch
+            // check, letting an old physical stamp through the new Idle stage.
+            // Starting from Idle is safe: a new boundary needs this pass's
+            // tail acknowledgement before it can publish its map.
+            if (srv_->flip_dispatch_paused() && !(spec->flags & CmdFlags::FlipAsync) &&
+                !multidb_dispatch_allowed(*srv_, *c)) {
+                c->set_flip_backpressure(true);
+                break;
+            }
+            multidb_stamp(*srv_, *op, conn.session().db_index);
+        }
         if constexpr (Fused) {
             if (read_local_enabled) {
                 constexpr uint32_t kWriteHazards =
@@ -3019,7 +3037,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             if (read_local_enabled && read_local_demotion.active() &&
                 read_local_demotion.partial()) {
                 if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
-                    !(spec->flags & CmdFlags::FlipAsync)) {
+                    !(spec->flags & CmdFlags::FlipAsync) &&
+                    !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
                     c->set_flip_backpressure(true);
                     break;
                 }
@@ -3036,7 +3055,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         if (__builtin_expect(security_check, false) &&
             acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
         if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
-            !(spec->flags & CmdFlags::FlipAsync)) {
+            !(spec->flags & CmdFlags::FlipAsync) &&
+            !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
             // No ordinary request may create IO-local fanout or executor work after the first
             // drain acknowledgement. Leave the frame unconsumed and unpublished: TCP framing
             // keeps younger frames behind it without a ROB barrier, while FlipAsync commands
@@ -3318,6 +3338,7 @@ subscriber_checks_done:
             mark_active_known<TargetedIfid>(c);
             if (c->closing()) { result = DispatchResult::Closed; break; }
             if (acl_command) break;
+            if (op->cmd_name().eq_icase("select") || op->cmd_name().eq_icase("reset")) break;
             if (__builtin_expect(climon_armed_dirty_, false)) {
                 climon_armed_dirty_ = false;
                 break;

@@ -130,7 +130,17 @@ static void pin_to(int cpu) {
     pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
+#if TOMO_SINGLE_DATABASE
+int tomokv_multidb_main(int argc, char** argv);
+// One boot decision; the kind-A artifact can force the legacy representation
+// here without rewriting or relinking any instruction-path code.
+__attribute__((noipa)) bool tomokv_multidb_boot(uint32_t databases) { return databases > 1; }
 int main(int argc, char** argv) {
+#elif defined(TOMO_DUAL_DATABASE)
+int tomokv_multidb_main(int argc, char** argv) {
+#else
+int main(int argc, char** argv) {
+#endif
     // Declared before every other automatic: once armed on a clean runtime shutdown, this emits
     // only after all later-declared objects (including server/loops/listeners/signals) destruct.
     ShutdownReportFinalLine final_shutdown_line;
@@ -175,6 +185,9 @@ int main(int argc, char** argv) {
         if (rc != kConfigParsed) return rc == kConfigHelp ? 0 : 1;
     }
     if (validate_config(cfg) != kConfigParsed) return 1;
+#if TOMO_SINGLE_DATABASE
+    if (tomokv_multidb_boot(cfg.databases)) return tomokv_multidb_main(argc, argv);
+#endif
     if (!reorder_available()) cfg.reorder = 0;
     cfg.reorder = reorder_for_mode(cfg.reorder, cfg.thread_mode);
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the

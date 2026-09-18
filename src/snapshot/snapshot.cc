@@ -47,7 +47,7 @@ struct SnapshotIoRequest {
     int fd = -1;
     uint64_t offset = 0;
     size_t remaining = 0;
-    std::array<uint8_t, kFileHeaderBytes> header{};
+    std::array<uint8_t, kFileHeaderBytes + 256> header{};
     std::unique_ptr<SnapshotChunk> chunk;
     iovec vectors[2]{};
     uint32_t vector_count = 0;
@@ -200,6 +200,12 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             error = "Background save already in progress";
             return StartResult::Busy;
         }
+#if !TOMO_SINGLE_DATABASE
+        database_map_ = server.databases().capture();
+        database_map_extended_ = false;
+        for (unsigned i = 0; i < database_map_.size(); ++i)
+            database_map_extended_ |= database_map_[i] != i;
+#endif
     }
     // FLIP and snapshot start are mutually exclusive. Latch this epoch's live executor count,
     // rather than the boot split, before broadcasting its owner barrier.
@@ -457,10 +463,11 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
 }
 
 bool SnapshotManager::write_header_normal() {
-    uint8_t h[kFileHeaderBytes] = {};
+    uint8_t h[kFileHeaderBytes + 256] = {};
+    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? 256 : 0);
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(h + 8, kSnapshotFormatVersion);
-    snapshot_put_u32(h + 12, kFileHeaderBytes);
+    snapshot_put_u32(h + 12, header_bytes);
     snapshot_put_u32(h + 16, nshards_);
     snapshot_put_u32(h + 20, static_cast<uint32_t>(g_hash_kind));
     snapshot_put_u64(h + 24, epoch());
@@ -469,8 +476,12 @@ bool SnapshotManager::write_header_normal() {
     snapshot_put_u64(h + 48, g_sip_k0);
     snapshot_put_u64(h + 56, g_sip_k1);
     snapshot_put_u64(h + 64, snapshot_checksum(h, 64));
-    if (!write_all(fd_, h, sizeof(h))) return false;
-    file_offset_ = sizeof(h);
+    if (database_map_extended_) {
+        std::memcpy(h + kFileHeaderBytes, database_map_.data(), 256);
+        snapshot_put_u64(h + 72, snapshot_checksum(database_map_.data(), 256));
+    }
+    if (!write_all(fd_, h, header_bytes)) return false;
+    file_offset_ = header_bytes;
     header_complete_ = true;
     return true;
 }
@@ -520,12 +531,13 @@ bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
 bool SnapshotManager::submit_header_uring(Ring& ring) {
     auto* request = new (std::nothrow) SnapshotIoRequest();
     if (!request) return false;
+    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? 256 : 0);
     request->role = SnapshotIoHeader;
     request->epoch = epoch();
     request->fd = fd_;
     std::memcpy(request->header.data(), kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(request->header.data() + 8, kSnapshotFormatVersion);
-    snapshot_put_u32(request->header.data() + 12, kFileHeaderBytes);
+    snapshot_put_u32(request->header.data() + 12, header_bytes);
     snapshot_put_u32(request->header.data() + 16, nshards_);
     snapshot_put_u32(request->header.data() + 20, static_cast<uint32_t>(g_hash_kind));
     snapshot_put_u64(request->header.data() + 24, epoch());
@@ -536,11 +548,15 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
     snapshot_put_u64(request->header.data() + 64,
                      snapshot_checksum(request->header.data(), 64));
     request->offset = 0;
-    request->remaining = kFileHeaderBytes;
-    request->vectors[0] = {request->header.data(), kFileHeaderBytes};
+    if (database_map_extended_) {
+        std::memcpy(request->header.data() + kFileHeaderBytes, database_map_.data(), 256);
+        snapshot_put_u64(request->header.data() + 72, snapshot_checksum(database_map_.data(), 256));
+    }
+    request->remaining = header_bytes;
+    request->vectors[0] = {request->header.data(), header_bytes};
     request->vector_count = 1;
     if (!queue_snapshot_write(ring, *request)) { delete request; return false; }
-    file_offset_ = kFileHeaderBytes;
+    file_offset_ = header_bytes;
     io_inflight_++;
     return true;
 }
@@ -838,7 +854,8 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     if (file.size() < kFileHeaderBytes + kFooterBytes ||
         std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
         snapshot_get_u32(file.data() + 8) != kSnapshotFormatVersion ||
-        snapshot_get_u32(file.data() + 12) != kFileHeaderBytes ||
+        (snapshot_get_u32(file.data() + 12) != kFileHeaderBytes &&
+         snapshot_get_u32(file.data() + 12) != kFileHeaderBytes + 256) ||
         snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
         error = "invalid snapshot header";
         return nullptr;
@@ -863,7 +880,20 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     std::vector<uint32_t> sequence(plan->shard_count, 0);
     std::vector<uint8_t> began(plan->shard_count, 0), ended(plan->shard_count, 0);
 
-    size_t pos = kFileHeaderBytes;
+    const uint32_t header_bytes = snapshot_get_u32(file.data() + 12);
+    if (header_bytes > file.size() - kFooterBytes) { error = "truncated database mapping"; return nullptr; }
+    if (header_bytes != kFileHeaderBytes) {
+        const uint8_t* map = file.data() + kFileHeaderBytes;
+        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, 256)) {
+            error = "invalid database mapping checksum"; return nullptr;
+        }
+        bool seen[256]{};
+        for (unsigned i = 0; i < 256; ++i) {
+            if (seen[map[i]]) { error = "invalid database mapping"; return nullptr; }
+            seen[map[i]] = true; plan->database_map[i] = map[i];
+        }
+    }
+    size_t pos = header_bytes;
     uint64_t frames = 0;
     while (pos + kFooterBytes <= file.size() && snapshot_get_u32(file.data() + pos) == kFrameTag) {
         if (pos + kFrameHeaderBytes > file.size()) { error = "truncated snapshot frame"; return nullptr; }
@@ -912,6 +942,9 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
                          std::string& error) {
     const int64_t now = now_realtime_ms();
     const uint32_t sid = static_cast<uint32_t>(shard.id());
+    if (sid == 0 && !server.databases().restore(plan.database_map.data())) {
+        error = "could not restore snapshot database mapping"; return false;
+    }
     const std::vector<uint8_t>& section = plan.sections[sid];
     size_t pos = 0;
     shard.set_cached_now_ms(now);
@@ -931,7 +964,8 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
             error = "invalid record lengths";
             return false;
         }
-        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len);
+        const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
+        if (h[6] >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
         pos += key_len;
         const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
                             static_cast<uint32_t>(payload_len));

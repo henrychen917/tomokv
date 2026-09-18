@@ -244,6 +244,7 @@ public:
     struct WatchEntry {
         Client* client = nullptr;
         uint64_t generation = 0;
+        uint8_t db = 0;
         // Captured while WATCH is armed, and only then. Expiry is an owner-side mutation with no
         // command behind it, so nothing calls watch_write_committed() for it; recognising that one
         // transition needs the deadline the key carried when the client armed the WATCH.
@@ -271,9 +272,17 @@ public:
         // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
         // now coexist on a key (the map holds a list) and block nobody.
         bool blocking = false;
+        // A swap-containing EXEC can write the same physical key while it names
+        // different logical databases. Keep the identities at each write, not
+        // the mapping at reservation retirement. WATCH state is cold/heap-owned.
+        std::array<uint64_t, 4> dirty_databases{};
     };
     bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
-    bool watch_add(Slice key, Client* client, uint64_t generation);
+    bool watch_add(Slice key, Client* client, uint64_t generation, uint16_t db = 256);
+    void watch_database_swap(uint8_t first, uint8_t second);
+    bool watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
+                             uint8_t physical_second,
+                             std::vector<std::pair<Client*, uint64_t>>* deferred = nullptr);
     void watch_remove(Slice key, Client* client, uint64_t generation);
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,
@@ -286,7 +295,7 @@ public:
     void watch_write_committed(Slice key, Client* writer = nullptr,
                                uint64_t writer_generation = 0);
     bool watch_all_write_ready();
-    void watch_all_write_committed();
+    void watch_all_write_committed(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
     void watch_prune_stale(const std::string& key);

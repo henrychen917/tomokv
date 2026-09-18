@@ -162,7 +162,9 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
             owners.push_back(id);
             srv_->climon_note_tracking_item_delta(1);
         }
-        track_filter_add(FlatStore::hash_key(key));
+        // Tracking reports raw key names across databases. Its table and event
+        // transport both use those bytes, so the membership filter must too.
+        track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
 }
 

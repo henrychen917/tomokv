@@ -13,9 +13,9 @@ unsafe reads use the shard owner. Cross-shard commands use scatter/gather, with
 epoch-MVCC for grouped execution. Shards and connections can move between threads
 while the server runs.
 
-The scope is deliberately **single node, single keyspace**. Cluster management,
-replication, Sentinel, modules, cross-server key migration, and multiple logical
-databases are absent. Some related command names exist only to return a
+The scope is deliberately **single node**, with multiple logical databases.
+Cluster management, replication, Sentinel, modules, and cross-server key
+migration are absent. Some related command names exist only to return a
 standalone response or an explicit unsupported error.
 
 ## Build
@@ -169,9 +169,16 @@ client tracking, snapshots, and append-only persistence.
 
 The main boundaries are:
 
-- Only database zero exists: `SELECT 0` works, other indexes fail, and
-  `databases` accepts only `1`. `CLUSTER`, `MIGRATE`, `MODULE`, `MOVE`, `PSYNC`,
-  `REPLCONF`, `SENTINEL`, `SWAPDB`, and `SYNC` have no registry entries.
+- `databases` defaults to `1` and accepts `1` through `256`. The default selects
+  a separately compiled single-keyspace runtime at boot; larger counts select
+  the namespace-aware runtime. Both are included in the same executable.
+  The maximum logical index is `255`. `SELECT`, `MOVE`, `COPY ... DB`, and
+  `SWAPDB` preserve database identity through pipelines and `MULTI`/`EXEC`.
+  `SWAPDB` drains dispatched work before publishing its namespace boundary.
+  Native snapshots and AOF preserve the database mapping and swap history;
+  these formats do not provide Redis RDB/AOF interchange.
+- `CLUSTER`, `MIGRATE`, `MODULE`, `PSYNC`, `REPLCONF`, `SENTINEL`, and `SYNC`
+  have no registry entries.
 - `REPLICAOF`/`SLAVEOF` explicitly reject replication. `ASKING`, `READONLY`, and
   `READWRITE` return the cluster-disabled error. `WAIT` cannot obtain replica
   acknowledgements; `WAITAOF` with a positive local-fsync count is unimplemented.

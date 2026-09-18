@@ -645,7 +645,7 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
             out += "\"(redacted)\"";
             continue;
         }
-        climon_quote_arg(op.arg(i), out);
+        climon_quote_arg(multidb_display_argument(op, i), out);
     }
     out += "\r\n";
 }

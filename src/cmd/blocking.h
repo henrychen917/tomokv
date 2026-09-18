@@ -50,7 +50,7 @@ BlockingSnapshotPrepare blocking_snapshot_prepare(const Task& task, Shard& shard
 
 // Called only behind Shard::has_blocking_waiters(), from mutations that can make a waited
 // collection non-empty.
-void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len);
+void blocking_publish_key(Shard& shard, uint64_t hash, const char* key, uint32_t key_len, uint8_t ns = 0);
 void blocking_publish_list_op(Shard& shard, Op& op);
 void blocking_publish_zset_op(Shard& shard, Op& op);
 void blocking_defer_plain_publication(bool defer);
@@ -78,5 +78,6 @@ bool blocking_stream_bounds(const BlockingState* state, uint32_t key_index, Stre
 const std::vector<uint8_t>* blocking_stream_captured_payload(
     const BlockingState* state, uint32_t key_index);
 bool blocking_wants_dispatch(const Op& op);
+bool blocking_namespace_quiesced(const Op& op);
 
 }  // namespace tomo

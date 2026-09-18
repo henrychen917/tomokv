@@ -13,6 +13,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <string_view>
+#include "database_variant.h"
 
 namespace tomo {
 
@@ -125,9 +126,17 @@ __attribute__((always_inline)) inline void bytes_copy(char* d, const char* s, si
 struct Slice {
     const char* p = nullptr;
     uint32_t    n = 0;
+    // Key identity occupies the former ABI padding. Values still compare bytewise.
+    // Physical namespace zero has precisely the old length/hash representation.
+#if TOMO_SINGLE_DATABASE
+    static constexpr uint32_t ns = 0;
+#else
+    uint32_t    ns = 0;
+#endif
 
     Slice() = default;
     Slice(const char* p_, uint32_t n_) : p(p_), n(n_) {}
+    Slice(const char* p_, uint32_t n_, uint32_t ns_) : p(p_), n(n_) { set_namespace(ns_); }
     explicit Slice(std::string_view s) : p(s.data()), n(static_cast<uint32_t>(s.size())) {}
 
     bool empty() const { return n == 0; }
@@ -145,9 +154,28 @@ struct Slice {
     // is one register compare), then the inline byte compare. Every key-identity LOOKUP in the
     // store goes through this one member -- FlatStore's probes, the fused read-local probes, the
     // atomic entry and script-intent scans -- so those paths cannot drift apart. The one deliberate
-    // exception is FlatStore::insert_into(), which keeps operator== for a measured reason stated
-    // there; both are exact byte equality, so the answer is the same either way.
-    bool key_eq(const Slice& o) const { return n == o.n && bytes_equal(p, o.p, n); }
+    // exception is FlatStore::insert_into(), which keeps memcmp for a measured reason stated
+    // there; key_mem_eq includes the same namespace/length identity before comparing bytes.
+    void set_namespace(uint32_t value) {
+#if TOMO_SINGLE_DATABASE
+        (void)value;
+#else
+        ns = value;
+#endif
+    }
+    KeyIdentity identity() const {
+#if TOMO_SINGLE_DATABASE
+        return n;
+#else
+        uint64_t value;
+        std::memcpy(&value, &n, sizeof(value));
+        return value;
+#endif
+    }
+    bool key_eq(const Slice& o) const { return identity() == o.identity() && bytes_equal(p, o.p, n); }
+    bool key_mem_eq(const Slice& o) const {
+        return identity() == o.identity() && (n == 0 || std::memcmp(p, o.p, n) == 0);
+    }
 
     // Case-insensitive compare against a literal — command names arrive in any case. CONTRACT:
     // the LITERAL must be lowercase. Only the left side is folded (one fold per byte on the verb
