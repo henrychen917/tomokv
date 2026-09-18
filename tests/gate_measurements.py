@@ -73,7 +73,8 @@ def load(path=DEFAULT):
             re.fullmatch("[0-9a-f]{64}", reference["sha256"]), "invalid reference binary identity")
     provenance(reference["provenance"], "reference binary")
     for ident, floor in value["load_floors"].items():
-        require(set(floor) == {"instances", "shape", "geometry", "instrument_sha256", "status", "observed_rate", "observed_busy", "provenance"}
+        fields = {"instances", "shape", "geometry", "instrument_sha256", "status", "observed_rate", "observed_busy", "provenance"}
+        require(set(floor) in (fields, fields | {"variance_pin"})
                 and type(floor["instances"]) is int and floor["instances"] > 0 and
                 set(floor["shape"]) in (set(SHAPE), set(SHAPE) | {"data_bytes"}) and
                 type(floor["shape"].get("data_bytes", 64)) is int and
@@ -81,6 +82,8 @@ def load(path=DEFAULT):
                 floor["status"] in ("calibrated", "historical-unverified"),
                 f"{ident}: invalid load-floor fields")
         provenance(floor["provenance"], ident)
+        require(not floor["provenance"]["how"].startswith("abbagate --pin;") or "variance_pin" in floor,
+                f"{ident}: invalid load-floor fields (missing variance evidence)")
         require(floor["status"] != "calibrated" or isinstance(floor["geometry"], dict) and
                 set(floor["geometry"]) == set(AXES) and isinstance(floor["instrument_sha256"], str) and
                 re.fullmatch("[0-9a-f]{64}", floor["instrument_sha256"]),
@@ -97,6 +100,18 @@ def load(path=DEFAULT):
                         f"{ident}: calibrated floor lacks its measured {name} samples")
             require(floor["observed_rate"]["order"] == floor["observed_busy"]["order"],
                     f"{ident}: rate and occupancy observations use different calibration designs")
+        if "variance_pin" in floor:
+            from abbagate import select_variance_pin
+            evidence = floor["variance_pin"]
+            result = select_variance_pin(evidence)
+            require(floor["status"] == "calibrated" and result["status"] == "PIN" and
+                    evidence["limits"] == result["limits"] and
+                    evidence["selected_instances"] == result["selected_instances"] == floor["instances"],
+                    f"{ident}: invalid load-floor fields (variance evidence does not authorize pin)")
+            sample = evidence["trials"][-1]["samples"][-1]
+            require(floor["observed_rate"] == dict(unit="ops_per_second", order=sample["order"], values=sample["rates"]) and
+                    floor["observed_busy"] == dict(unit="percent", order=sample["order"], values=sample["busy_pct"]),
+                    f"{ident}: invalid load-floor fields (observations differ from pin null)")
     return value
 
 
@@ -265,6 +280,8 @@ def import_calibration(path, measurements, cells):
     content = path.read_bytes()
     report = json.loads(content)
     fingerprint = instrument_fingerprint(DEFAULT.parent.parent)
+    if report.get("run_kind") == "variance-pin":
+        return import_variance_pin(report, path, content, measurements, cells, fingerprint)
     # Load selection alone cannot certify an instrument: an explicit failed null,
     # a failed depth-1 row, a shortened measurement, or incomplete quiet coverage
     # must reject the entire import too. Reuse the normal report validator.
@@ -324,6 +341,57 @@ def import_calibration(path, measurements, cells):
     # earlier campaign prefix. Stored floors never change the live ABBA tolerances.
     measurements["load_floors"].update(updates)
     return sorted(updates)
+
+
+def import_variance_pin(report, path, content, measurements, cells, fingerprint):
+    from abbagate import Cell, variance_pin_evidence
+    require(report.get("schema") == 1 and report.get("verdict") == "PIN" and report.get("complete") is True and
+            all(report.get(flag) is False for flag in ("measurement_valid", "normal_gate_eligible", "comparison_trusted")) and
+            not report.get("reason") and not report.get("error") and report.get("instrument_fingerprint") == fingerprint,
+            "variance pin did not complete with the current instrument")
+    calibration = report.get("rate_calibration")
+    validate_fast_calibration(calibration, fingerprint)
+    placement = geometry(calibration["environment"])
+    require(placement["split_ratio"] == ratio("abba", len(calibration["environment"]["server_cpus"]), measurements),
+            "pin ratio differs from reviewed config")
+    rows = report.get("cells")
+    require(isinstance(rows, list) and len(rows) == len(calibration["cells"]) and rows,
+            "variance pin has incomplete cell coverage")
+    current, updates = {cell.id: cell for cell in cells}, {}
+    for row, rate_row in zip(rows, calibration["cells"]):
+        require(row.get("cell") == rate_row["cell"], "variance pin changed rate-search cell")
+        cell = Cell(**row["cell"])
+        require(cell.id in current and shape(current[cell.id]) == shape(cell), f"{cell.id}: pin cell shape changed")
+        evidence = variance_pin_evidence(calibration, rate_row, row["noise_reports"], row["trials"], fingerprint)
+        require(evidence == row.get("pin") and evidence["selected_instances"] is not None,
+                f"{cell.id}: variance pin has no qualifying rung or edited evidence")
+        sample = evidence["trials"][-1]["samples"][-1]
+        updates[cell.id] = dict(instances=evidence["selected_instances"], shape=shape(cell), geometry=placement,
+            instrument_sha256=fingerprint["sha256"], status="calibrated", variance_pin=evidence,
+            observed_rate=dict(unit="ops_per_second", order=sample["order"], values=sample["rates"]),
+            observed_busy=dict(unit="percent", order=sample["order"], values=sample["busy_pct"]),
+            provenance=dict(when=calibration["started_utc"], how=f"abbagate --pin; {path}; "
+                f"sha256={hashlib.sha256(content).hexdigest()}; binary={evidence['binary_sha256']}; "
+                f"rate instances={evidence['rate_instances']}; confirmation={evidence['confirmation_instances']}; "
+                f"variance instances={evidence['selected_instances']}"))
+    # No partial import if a later cell or any unselected pilot/trial is invalid.
+    measurements["load_floors"].update(updates)
+    return sorted(updates)
+
+
+def write_calibration(path, cells, config=DEFAULT):
+    """The CLI and --pin share the same validated, atomic ledger writer."""
+    config = Path(config)
+    measurements = load(config)
+    updated = import_calibration(path, measurements, cells)
+    temporary = config.with_suffix(".json.tmp")
+    try:
+        temporary.write_text(json.dumps(measurements, indent=2) + "\n")
+        load(temporary)
+        temporary.replace(config)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return updated
 
 
 def self_test():
@@ -601,17 +669,12 @@ def main():
     args = parser.parse_args()
     if args.self_test:
         return self_test()
-    measurements = load(args.config)
     if args.import_calibration:
         from abbagate import read_cells
-        updated = import_calibration(args.import_calibration, measurements, read_cells(args.cells))
-        temporary = args.config.with_suffix(".json.tmp")
-        temporary.write_text(json.dumps(measurements, indent=2) + "\n")
-        load(temporary)
-        temporary.replace(args.config)
+        updated = write_calibration(args.import_calibration, read_cells(args.cells), args.config)
         print("Imported measured floors: " + ", ".join(updated))
     else:
-        print(json.dumps(measurements, indent=2))
+        print(json.dumps(load(args.config), indent=2))
     return 0
 
 
