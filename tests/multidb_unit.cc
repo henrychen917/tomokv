@@ -87,6 +87,16 @@ static void layout_and_store(bool armed) {
     require(server.databases().swap(0, 15), "mapping swap");
     require(run(server, shard, 0, {"GET", "k"}) == "$4\r\ndb15\r\n", "logical mapping");
     require(run(server, shard, 15, {"GET", "k"}) == "$3\r\ndb0\r\n", "inverse mapping");
+    // DBSIZE must neither hide nor reap an elapsed physical record. This is the
+    // precondition used by edgetime and expwide, including while WATCH is armed.
+    shard.store().clear();
+    require(run(server, shard, 1, {"SET", "elapsed", "value", "PX", "1"}) == "+OK\r\n",
+            "expired size seed");
+    shard.set_cached_now_ms(1002);
+    require(multidb_size(shard, 1, UINT64_MAX) == 1 && shard.store().size() == 1,
+            "DBSIZE retains elapsed physical record");
+    require(run(server, shard, 1, {"GET", "elapsed"}) == "$-1\r\n" && shard.store().size() == 0,
+            "GET alone reaps elapsed record");
     std::printf("PASS multidb namespace identity and layout (read-local %d)\n", armed);
 }
 

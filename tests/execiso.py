@@ -192,7 +192,8 @@ if HAVE_DEBUG:
         while len(picked) < wanted and probe < limit:
             key = "%s:%d" % (prefix, probe)
             owner = int(ADMIN.cmd("DEBUG", "SHARD", key))
-            if owner not in seen:
+            if (owner not in seen and
+                    (len(picked) != 1 or shard_owner[owner] != shard_owner[next(iter(seen))])):
                 seen.add(owner)
                 picked.append(key)
             probe += 1

@@ -610,6 +610,8 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     Op& op = state.client->rob().at(state.op_id);
     if (state.kind == BlockingKind::Xreadgroup) {
         if (!stream_xreadgroup_execute(shard, op)) return false;
+        AofOwnerContext context{self.id(), &ring, &self.sig()};
+        (void)aof_record_local_op(shard, op, context);
         blocking_publish_completion(state, self, ring);
         return true;
     }
@@ -641,6 +643,12 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     }
     if (plain_active) shard.store().atomic_finish_plain();
     if (result == XshardPopResult::Missing) return false;
+    if (result == XshardPopResult::Popped) {
+        // Parked completions bypass ExLoop's ordinary command epilogue. Journal
+        // the selected physical key before Done, including after a map remap.
+        AofOwnerContext context{self.id(), &ring, &self.sig()};
+        (void)shard.store().aof().record_post_image(shard.store(), key.hash, key_slice, context);
+    }
     if (result == XshardPopResult::WrongType) {
         reply_wrongtype(op.sink());
     } else if (result == XshardPopResult::Oom) {

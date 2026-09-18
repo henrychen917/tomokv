@@ -101,8 +101,7 @@ def run():
                 (b"restore-asking", -4, 1, 1, 1)])
         # These are intentionally handed on or out of scope. This control catches a test that
         # accidentally treats every formerly absent command as part of this small implementation.
-        shelved = {b"cluster", b"migrate", b"module", b"move", b"psync", b"replconf",
-                   b"swapdb", b"sync"}
+        shelved = {b"cluster", b"migrate", b"module", b"psync", b"replconf", b"sync"}
         expect("shelved inventory control", name_set.isdisjoint(shelved), True)
 
         disabled = RespError(b"ERR This instance has cluster support disabled")

@@ -2054,7 +2054,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     // TEST HOOK arming, after the groups exist so a lead shard can be named. Only cross-shard READS
     // arm it: they are the commands whose fragments each answer at their own moment.
-    if (__builtin_expect(state->nsub > 1, false) &&
+    if (__builtin_expect(state->nsub > 1, false) && kind != Kind::DatabaseInfo &&
+        kind != Kind::DebugBorrowCount &&
         !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
         if (__builtin_expect(fanout_defer != 0, false)) {

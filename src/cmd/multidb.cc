@@ -207,14 +207,14 @@ void multidb_select(Server* server, Client* client, Op& op) {
 }
 
 uint64_t multidb_size(Shard& shard, uint8_t physical, uint64_t cut) {
-    uint64_t size = 0, cursor = 0;
-    do {
-        cursor = shard.store().scan(cursor, 256, [&](KvObj* object) {
-            Slice key = object->key();
-            if (key.ns == physical && shard.store().atomic_physical_key_visible(
-                    FlatStore::hash_key(key), key, cut)) ++size;
-        });
-    } while (cursor);
+    uint64_t size = 0;
+    // Counts are physical: neither DBSIZE nor INFO may reap elapsed records.
+    // This owner-local walk also counts each slot exactly once during rehash.
+    shard.store().for_each([&](KvObj* object) {
+        Slice key = object->key();
+        if (key.ns == physical && shard.store().atomic_physical_key_visible(
+                FlatStore::hash_key(key), key, cut)) ++size;
+    });
     shard.store().atomic_for_each_side_key(cut, [&](Slice key) {
         if (key.ns == physical) ++size;
     });
@@ -301,9 +301,7 @@ bool multidb_commit_swap(Server& server, Shard& shard, Op& op) {
 }
 
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
-    uint64_t cursor = 0;
-    do {
-        cursor = shard.store().scan(cursor, 256, [&](KvObj* object) {
+    shard.store().for_each([&](KvObj* object) {
             auto& row = stats[object->key_namespace()];
             ++row.keys;
             const int64_t deadline = object->expire_at_ms();
@@ -311,7 +309,6 @@ void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
                 ++row.expires;
                 row.ttl += std::max<int64_t>(0, deadline - shard.now_ms());
             }
-        });
-    } while (cursor);
+    });
 }
 } // namespace tomo
