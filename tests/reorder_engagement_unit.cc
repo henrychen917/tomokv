@@ -346,8 +346,14 @@ struct CoreConcurrencyTest {
         require((f.server.cfg().reorder ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true)) == 2,
                 "database pipe did not execute");
         std::string replies;
-        require(client.rob().drain([&](Op& op) { replies.append(op.reply.data(), op.reply.size()); }) == 2 &&
-                    replies == ":0\r\n+OK\r\n", "database pipe replies/retirement");
+        const auto retired = client.rob().drain([&](Op& op) {
+            op_materialise_code(op);
+            replies.append(op.reply.data(), op.reply.size());
+        });
+        if (retired != 2 || replies != ":0\r\n+OK\r\n")
+            std::fprintf(stderr, "database pipe requested=%d retired=%u replies=%s\n",
+                         requested, static_cast<unsigned>(retired), replies.c_str());
+        require(retired == 2 && replies == ":0\r\n+OK\r\n", "database pipe replies/retirement");
         command_bind_server(nullptr);
         std::printf("PASS reorder database parser %s requested=%d: SELECT, boundary, stamp, shadow, replies\n",
                     kSingleDatabase ? "db0" : "multidb", requested);
