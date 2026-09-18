@@ -7,6 +7,13 @@
 #include <cstdlib>
 #include <string>
 
+// The serverless R7 witness supplies these at compile time. Release builds have
+// no counters, storage, calls or branches, including on the zero-knob path.
+#ifndef TOMO_R7_PATH
+#define TOMO_R7_PATH() ((void)0)
+#define TOMO_R7_ALLOC() ((void)0)
+#endif
+
 namespace tomo {
 
 struct ReorderResult {

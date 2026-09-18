@@ -279,6 +279,16 @@ build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# Test-only path counters in every R7 envelope plus a complete C++ allocation trace.
+# The release objects/binary have no instrumentation; neither unit starts a server.
+build/r7shadow3/reorder-witness.o: src/core/reorder.cc tests/r7shadow_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -include tests/r7shadow_witness.h -I. -c $< -o $@
+build/r7shadow-split-unit: tests/r7shadow_split_unit.cc tests/reorder_engagement_unit.cc tests/r7shadow_witness.h build/r7shadow3/reorder-witness.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -DTOMO_R7_WITNESS_MAIN -Wno-mismatched-new-delete \
+	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness.o \
+	  $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile

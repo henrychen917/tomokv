@@ -17,6 +17,7 @@ __attribute__((noipa)) bool shadow_available() { return true; }
 }
 
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
+    TOMO_R7_PATH();
     uint64_t batches = 0, multi = 0, permutations = 0, auto_samples = 0, auto_owners = 0, auto_engagements = 0;
     uint32_t max_batch = 0;
     if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
@@ -48,6 +49,7 @@ template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
 __attribute__((noinline))
 uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked, Filler* filler,
                                bool* filler_used) {
+    TOMO_R7_PATH();
     if (!r7::priority_enabled(srv_->mode_schedule_stats(self_->id()), srv_->cfg().reorder)) {
         if constexpr (std::is_void_v<Filler>)
             return drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked);
@@ -62,6 +64,7 @@ template <bool Fused>
 template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked, Filler* filler,
                                           bool* filler_used) {
+    TOMO_R7_PATH();
     std::conditional_t<Shadow, r7::ShadowReorderQueues<BatchOps>, r7::ExReorderQueues<BatchOps>> queues;
     Task batch[BatchOps];
     uint32_t held = 0;
@@ -101,12 +104,14 @@ template <bool Fused>
 template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_with_filler(bool unmasked, Filler& filler,
                                                   bool& filler_used) {
+    TOMO_R7_PATH();
     return r7_drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked, &filler, &filler_used);
 }
 
 template <bool Fused>
 template <bool IofusedPrivateQueue, size_t BatchOps>
 void ExLoopT<Fused>::r7_exec_batch(Task (&batch)[BatchOps], uint32_t n) {
+    TOMO_R7_PATH();
     if (!xshard_retries_.empty()) {
         for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
         return;
@@ -502,6 +507,7 @@ private:
 
 template <bool Fused>
 uint32_t ExLoopT<Fused>::r7_fused_baseline_pass() {
+    TOMO_R7_PATH();
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
@@ -514,6 +520,7 @@ template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
           bool IofusedPrivateQueue, bool InterleaveLocalReads,
           typename Filler>
 uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
+    TOMO_R7_PATH();
     Server::ClientWorkScope client_work(*srv_, self_->id());
     constexpr bool HasFiller = !std::is_void_v<Filler>;
     [[maybe_unused]] bool filler_used = false;
@@ -699,6 +706,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
 
 template <bool Fused>
 uint32_t ExLoopT<Fused>::r7_fused_baseline_sweep() {
+    TOMO_R7_PATH();
     static_assert(Fused);
     if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
     if (read_local_enabled())
@@ -710,6 +718,7 @@ template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
+    TOMO_R7_PATH();
     if (lb_controller_armed_ && srv_->lb_dispatch_paused())
         return r7_fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
                                IofusedPrivateQueue>();
@@ -749,6 +758,7 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
 
 template <bool Fused>
 void ExLoopT<Fused>::r7_run() {
+    TOMO_R7_PATH();
     if constexpr (Fused) {
         // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
         // was drained before role conversion; owner commands use no local-read captures.
@@ -901,6 +911,7 @@ template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_sweep() {
+    TOMO_R7_PATH();
     Server::ClientWorkScope client_work(*srv_, self_->id());
     [[maybe_unused]] bool owner_work_remains = false;
     uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
@@ -947,6 +958,7 @@ template <bool Fused>
 template <bool IofusedPrivateQueue>
 uint32_t ExLoopT<Fused>::r7_drain_tasks_read_local_interleaved(bool unmasked,
                                             bool& owner_work_remains) {
+    TOMO_R7_PATH();
     Task batch[kReadLocalOwnerTaskChunkOps];
     uint32_t held = 0;
     uint32_t local_work = 0;
@@ -990,6 +1002,7 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    TOMO_R7_PATH();
     static_assert(Pipeline <= 1);
     // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
     static_assert(!Fused || SplitLocal || Pipeline == 0);
@@ -1255,6 +1268,7 @@ void IoLoop::r7_run_loop() {
 
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused>
 uint32_t IoLoop::r7_sweep() {
+    TOMO_R7_PATH();
     uint32_t work = 0;
     if constexpr (HasUnix) work += flush_handoffs();
     if constexpr (Fused) {
@@ -1278,6 +1292,7 @@ uint32_t IoLoop::r7_sweep() {
 template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
           bool SweepPass>
 uint32_t IoLoop::r7_flush_ready() {
+    TOMO_R7_PATH();
     uint32_t work = 0;
     backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
     if (backstop_pass_) flush_tick_ = 0;
@@ -1549,6 +1564,7 @@ uint32_t IoLoop::r7_flush_ready() {
 
 template <uint8_t Pipeline>
 void IoLoop::r7_run_split() {
+    TOMO_R7_PATH();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
     if (epoll_) {
@@ -1572,6 +1588,7 @@ void IoLoop::r7_run_split() {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_admit_fd(int fd, UrKind kind) {
+    TOMO_R7_PATH();
     if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
     const bool unix_socket = kind == UrKind::UnixAccept;
     const bool tls_socket = kind == UrKind::TlsAccept;
@@ -1639,6 +1656,7 @@ void IoLoop::r7_admit_fd(int fd, UrKind kind) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
+    TOMO_R7_PATH();
     // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
     // still lets ::close() deregister; migration alone pre-registers destination + rollback
     // interests and removes the old tenure's original registration around the owner edge.
@@ -1704,6 +1722,7 @@ void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_arm_tls_recv(Client* c) {
+    TOMO_R7_PATH();
     if (c->recv_armed() || c->closing()) return;
     TlsConn* tls = tls_engine(c);
     if (!tls || !tls->memory_bio()) return;
@@ -1752,6 +1771,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
 
 template <bool HasUnix, bool kEp, bool TargetedIfid>
 uint32_t IoLoop::r7_collect_retire_work(bool unmasked) {
+    TOMO_R7_PATH();
     uint32_t pubsub_work = 0;
     auto take = [&](Client* c) {
         if (!c) {
@@ -1794,6 +1814,7 @@ uint32_t IoLoop::r7_collect_retire_work(bool unmasked) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 bool IoLoop::r7_drive_tls(Client* c) {
+    TOMO_R7_PATH();
     TlsConn* tls = tls_slot_conn(c);
     if (!tls) return false;
     if (tls->ktls()) return true;
@@ -1910,6 +1931,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
+    TOMO_R7_PATH();
     if (srv_->flip_dispatch_paused()) return 0;
     const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
                          kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
@@ -1929,6 +1951,7 @@ uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
 
 template <bool HasUnix, bool HasTls, bool Fused, uint8_t Pipeline>
 uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
+    TOMO_R7_PATH();
     const int n = ep_.wait(timeout_ms);
     if (n <= 0) return 0;
     self_->sig().epoll_events += static_cast<uint64_t>(n);
@@ -2007,6 +2030,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
 
 template <bool HasTls, bool kEp, bool SplitLocal>
 uint32_t IoLoop::r7_ifid_parse_hash(IfidBatch& batch) {
+    TOMO_R7_PATH();
     uint32_t work = 0;
     backstop_pass_ = (++flush_tick_ >= kIoPipeWbBackstopTurns);
     if (backstop_pass_) flush_tick_ = 0;
@@ -2150,6 +2174,7 @@ uint32_t IoLoop::r7_ifid_parse_hash(IfidBatch& batch) {
 
 template <bool HasUnix, bool HasTls, bool kEp>
 uint32_t IoLoop::r7_ifid_rx(IfidBatch& batch, size_t& cursor) {
+    TOMO_R7_PATH();
     uint32_t work = ring_.for_each_cqe(
         [&](io_uring_cqe* cqe) { r7_on_cqe<HasTls, kEp, false, 1>(cqe); });
     if constexpr (kEp) work += r7_epoll_pass<HasUnix, HasTls, false, 1>(0);
@@ -2168,6 +2193,7 @@ uint32_t IoLoop::r7_ifid_rx(IfidBatch& batch, size_t& cursor) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
+    TOMO_R7_PATH();
     const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
     if (generation != accept_generation_ || self_->role() != Role::Ifid) {
         if (cqe->res >= 0) ::close(cqe->res);
@@ -2192,6 +2218,7 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
 
 template <bool HasTls, bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
+    TOMO_R7_PATH();
     constexpr bool ImmediateSendProgress = !(Fused && Pipeline != 0);
     if constexpr (!HasTls) {
         // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
@@ -2275,6 +2302,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
 
 template <bool HasTls, bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_on_recv(Client* c, int res) {
+    TOMO_R7_PATH();
     c->set_recv_armed(false);       // the kernel has released its pointer
     if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
     if (find_client_migration(c)) {
@@ -2315,6 +2343,7 @@ void IoLoop::r7_on_recv(Client* c, int res) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_on_tls_recv(Client* c, int res) {
+    TOMO_R7_PATH();
     c->set_recv_armed(false);
     if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
     TlsConn* tls = tls_engine(c);
@@ -2339,6 +2368,7 @@ void IoLoop::r7_on_tls_recv(Client* c, int res) {
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
 void IoLoop::r7_on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
+    TOMO_R7_PATH();
     TlsConn* tls = tls_slot_conn(c);
     if (!tls) { close_client(c); return; }
     tls->set_poll_armed(wanted, false);
@@ -2360,6 +2390,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             SuppressOrdinaryActiveMark, IofusedPrivateQueue, SplitLocal>(c);
     r7::ShadowDispatch shadow_dispatch(*c);
 
+    TOMO_R7_PATH();
     // Split readers and fused overlap need the same ROB hazards, MGET fence,
     // admission, and demotion protocol as the baseline fused reader.
     static constexpr bool Fused = SplitLocal || IofusedPrivateQueue || (
@@ -3747,6 +3778,7 @@ ordinary_shard_ready:
 template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal>
 __attribute__((noinline))
 uint32_t IoLoop::r7_pipeline_pass(bool unmasked, bool natural_order, bool& submitted, size_t& cursor) {
+    TOMO_R7_PATH();
     srv_->mode_schedule_stats(self_->id()).note_overlap(
         OverlapSchedule::SplitIo, !natural_order);
     // One synchronous buffer per stream, exactly as measured. The non-inlined armed entry
@@ -3786,6 +3818,7 @@ uint32_t IoLoop::r7_pipeline_pass(bool unmasked, bool natural_order, bool& submi
 
 template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal>
 uint32_t IoLoop::r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& cursor) {
+    TOMO_R7_PATH();
     uint32_t work = 0;
     if constexpr (HasUnix) work += flush_handoffs();
     work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
@@ -3811,6 +3844,7 @@ uint32_t IoLoop::r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& 
 
 template <bool HasUnix, bool kEp>
 uint32_t IoLoop::r7_wb_observe(bool unmasked, WbBatch& batch) {
+    TOMO_R7_PATH();
     return r7_collect_retire_work<HasUnix, kEp>(unmasked) + wb_gather(batch);
 }
 
@@ -3820,6 +3854,7 @@ bool IoLoop::r7_fused_demote_local_read_batch(Client* client, const uint64_t* pr
     if (!r7::shadow_available())
         return fused_demote_local_read_batch(client, probed, fallbacks, probed_count, demoted);
 
+    TOMO_R7_PATH();
     r7_ReadLocalDemotionPlan plan;
     if (!plan.prepare(
             *this, client, 0, false, -1,
@@ -4120,7 +4155,7 @@ void IoLoop::run_split_reordered() {
 // END R7 GENERATED ENVELOPES
 
 void IoLoop::run_split_read_local() {
-    if (srv_->cfg().reorder) return run_split_read_local_reordered();
+    // ExLoopT<true> is also the split read-local executor; it does not imply 1s.
     return run_split_read_local_baseline();
 }
 

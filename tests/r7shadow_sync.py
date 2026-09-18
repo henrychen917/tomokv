@@ -70,6 +70,8 @@ def envelopes():
         decls = []
         for method in methods:
             body = base.rename(function(source, method), names)
+            opening = body.index('{') + 1
+            body = body[:opening] + '\n    TOMO_R7_PATH();' + body[opening:]
             if method == 'run_loop':
                 opening = body.index('{') + 1
                 body = body[:opening] + '''

@@ -414,7 +414,7 @@ public:
     }
 
     void run() {
-        if (srv_->cfg().reorder) return run_split_reordered();
+        // This is a split-role entry, including after FLIP. It has no R7 arm.
         if (srv_->cfg().overlap_enabled()) run_split<1>();
         else                              run_split<0>();
     }

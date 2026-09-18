@@ -90,6 +90,7 @@ class ShadowDispatch {
     }
 public:
     explicit ShadowDispatch(Client& client, uint64_t before = UINT64_MAX) {
+        TOMO_R7_PATH();
         auto& rob = client.rob();
         const uint64_t first = rob.flush_id();
         for (uint64_t end = std::min(before, rob.dispatch_id()); end > first;) {
@@ -104,6 +105,7 @@ public:
         }
     }
     void stamp(Task& task) {
+        TOMO_R7_PATH();
         uint8_t kind;
         if (!task.client || task.scatter || !length(task.client->rob().at(task.op_id), kind)) return;
         if (kind == static_cast<uint8_t>(CommandLengthClass::Long)) {
@@ -121,6 +123,7 @@ public:
 // A pending local read can be lowered AFTER a later ordinary op was dispatched.
 // Reconstruct only its older prefix on its IO owner, never use a younger Long.
 inline Task shadow_demoted_task(Client* client, uint64_t id) {
+    TOMO_R7_PATH();
     Task task(client, id, -1, nullptr);
     ShadowDispatch dispatch(*client, id);
     dispatch.stamp(task);
@@ -137,6 +140,7 @@ struct QueueSample {
 // Shorts counted here are live ROB heads: their own pipe cannot hide a predecessor.
 struct InboxProbe {
     static QueueSample sample(ThreadCtx& owner) {
+        TOMO_R7_PATH();
         QueueSample result;
         uint32_t budget = 2 * kGenthreadExBatchOps;
         bool have_long = false;
@@ -176,6 +180,7 @@ public:
         return samples_ ? static_cast<uint32_t>((depth_ + samples_ - 1) / samples_) : 0;
     }
     bool observe(QueueSample sample) {
+        TOMO_R7_PATH();
         const auto old = window_[next_];
         depth_ = depth_ - old.depth + sample.depth;
         longs_ = longs_ - old.longs + sample.longs;
@@ -188,6 +193,7 @@ public:
         return engaged_;
     }
     void tick(ThreadCtx& owner, ModeScheduleStats& stats) {
+        TOMO_R7_PATH();
         const bool was_engaged = engaged_;
         observe(InboxProbe::sample(owner));
         const uint64_t old = stats.reorder_auto.load(std::memory_order_relaxed);
@@ -206,6 +212,7 @@ class PolicyScope {
 public:
     AutoPolicy policy;
     explicit PolicyScope(ModeScheduleStats& stats) : stats_(stats) {
+        TOMO_R7_PATH();
         if (stats_.reorder_policy) std::abort();
         stats_.reorder_policy = &policy;
     }
@@ -217,6 +224,7 @@ public:
 };
 
 inline bool priority_enabled(const ModeScheduleStats& stats, int32_t requested) {
+    TOMO_R7_PATH();
     if (requested != -1) return requested != 0;
     const auto* policy = static_cast<const AutoPolicy*>(stats.reorder_policy);
     return policy && policy->engaged();
@@ -314,7 +322,7 @@ class ExReorderQueues {
     }
 
 public:
-    ExReorderQueues() = default;
+    ExReorderQueues() { TOMO_R7_PATH(); }
     ExReorderQueues(const ExReorderQueues&) = delete;
     ExReorderQueues& operator=(const ExReorderQueues&) = delete;
     ~ExReorderQueues() { if (size()) std::abort(); }
@@ -526,7 +534,7 @@ class ShadowReorderQueues {
     }
 public:
     static constexpr uint32_t kMaxWaitPicks = BatchOps + Capacity * (kExReorderShortQuota + 1);
-    ShadowReorderQueues() = default;
+    ShadowReorderQueues() { TOMO_R7_PATH(); }
     ShadowReorderQueues(const ShadowReorderQueues&) = delete;
     ShadowReorderQueues& operator=(const ShadowReorderQueues&) = delete;
     ~ShadowReorderQueues() { if (size()) std::abort(); }

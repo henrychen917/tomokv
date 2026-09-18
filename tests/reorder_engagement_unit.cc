@@ -53,7 +53,9 @@ struct CoreConcurrencyTest {
             config.thread_mode = mode;
             config.shards = 16;
             config.overlap = overlap;
-            config.reorder = reorder_available() ? reorder_for_mode(reorder, mode) : 0;
+            // Pass the raw knob through production initialization. Pre-resolving it
+            // here hid boot/allocation defects from the previous split witness.
+            config.reorder = reorder;
             config.read_local = ReadLocal;
             config.atomic = config.key_lb = config.client_lb = 1;
             config.save.clear();
@@ -149,8 +151,8 @@ struct CoreConcurrencyTest {
     template <bool ReadLocal>
     static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
-        const int32_t reorder = reorder_available() ? reorder_for_mode(requested, mode) : 0;
-        Fixture<ReadLocal> f(mode, overlap, reorder);
+        Fixture<ReadLocal> f(mode, overlap, requested);
+        const int32_t reorder = f.server.cfg().reorder;
         CommandSpec short_op = *command_lookup(Slice("GET"));
         CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
         short_op.handler = short_op.handler_notify = record;
@@ -487,4 +489,5 @@ int main(int argc, char** argv) {
     T::shadow_foreign_passes();
     T::shadow_demotions(tomo::ThreadMode::Fused);
     T::shadow_demotions(tomo::ThreadMode::Split);
+    return 0;
 }
