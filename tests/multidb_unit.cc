@@ -15,7 +15,7 @@ static void require(bool ok, const char* why) {
     if (!ok) { std::fprintf(stderr, "FAIL multidb: %s\n", why); std::exit(1); }
 }
 static std::string run(Server& server, Shard& shard, uint8_t db,
-                       std::initializer_list<std::string> args) {
+                       std::initializer_list<std::string> args, bool prebuild = false) {
     Op op;
     for (const auto& arg : args) require(op.push_arg(Slice(arg)), "push argument");
     op.spec = command_lookup(op.cmd_name());
@@ -23,8 +23,95 @@ static std::string run(Server& server, Shard& shard, uint8_t db,
     multidb_stamp(server, op, db);
     op.hash = FlatStore::hash_key(op.key());
     op.shard = shard.id();
+    op.mark_no_borrow();
+    if (prebuild) {
+        const auto* original = op.spec;
+        l4prebuild_prepare_set(op);
+        require(op.spec != original && op.zc_ptr, "large SET actually selects L4 prebuild");
+        const auto* candidate = reinterpret_cast<const KvObj*>(op.zc_ptr);
+        require(candidate->encoding() == Enc::Extern && !candidate->has_ttl_slot() &&
+                candidate->key().key_eq(op.key()), "prebuilt candidate identity and TTL layout");
+    }
     op.spec->handler(shard, op);
+    if (prebuild) require(!op.zc_ptr, "owner consumed prebuilt SET candidate");
     return std::string(op.reply.data(), op.reply.size());
+}
+
+// A long DB-0 key only tests KeyExt by length. The L4 TTL reheader must also
+// write klen_ext when a short (even empty) key needs KeyExt solely for its DB.
+static void prebuilt_ttl(bool armed) {
+    struct Cache { KvBlockCache blocks; ~Cache() { blocks.release_all(); } } cache;
+    Server server;
+    Shard shard;
+    shard.init(nullptr, 0, 0, kNumBuckets, 0, TypeLimits{}, StreamLimits{});
+    shard.set_cached_now_ms(1000);
+    if (armed) {
+        require(shard.store().prepare_read_local(), "prebuild read-local allocation");
+        shard.store().configure_read_local(true, {nullptr,
+            [](void*, void* owner, void* p, size_t n, ReadLocalRetireSink::ReclaimFn reclaim) {
+                reclaim(owner, p, n);
+            }, &cache.blocks});
+    }
+    const std::string value(1024, 'v'), updated(1024, 'u');
+    for (uint8_t db : {1, 15, 255, 0}) for (unsigned length : {1, 0, 254, 255, 307}) {
+        const std::string key(length, 'k');
+        const Slice identity(key.data(), key.size(), db);
+        const auto hash = FlatStore::hash_key(identity);
+        auto check = [&](const std::string& expected, int64_t deadline, bool slot) {
+            auto* object = shard.store().find(hash, identity);
+            require(object && object->key().key_eq(identity), "prebuilt TTL replacement keeps exact key identity");
+            require(object->key_namespace() == db && object->klen() == length &&
+                    bool(object->flags & KvObjFlags::KeyExt) == (db != 0 || length >= 255),
+                    "prebuilt TTL replacement decodes namespace and extended length");
+            require(object->encoding() == Enc::Extern && object->has_ttl_slot() == slot &&
+                    shard.store().deadline(hash, object) == deadline,
+                    "prebuilt TTL replacement retains Extern encoding and deadline");
+            require(run(server, shard, db, {"GET", key}) == "$1024\r\n" + expected + "\r\n",
+                    "prebuilt TTL GET exact bytes");
+            require(run(server, shard, db, {"STRLEN", key}) == ":1024\r\n",
+                    "prebuilt TTL STRLEN");
+            const int64_t ttl = deadline < 0 ? -1 : deadline - 1000;
+            require(run(server, shard, db, {"PTTL", key}) == ":" + std::to_string(ttl) + "\r\n",
+                    "prebuilt TTL PTTL");
+            if (armed) {
+                const auto probe = shard.store().read_local_probe(hash, identity);
+                require(probe.result == FlatStore::ReadLocalProbeResult::Hit && probe.object == object,
+                        "prebuilt replacement remains readable in read-local lane");
+            }
+        };
+        std::printf("L4 TTL case: read-local=%d db=%u key-bytes=%u value-bytes=1024\n",
+                    armed, db, length);
+        std::fflush(stdout);
+        require(run(server, shard, db, {"SET", key, value, "EX", "60"}, true) == "+OK\r\n",
+                "prebuilt SET EX reply");
+        check(value, 61000, true);
+        require(run(server, shard, db, {"SET", key, updated, "KEEPTTL"}, true) == "+OK\r\n",
+                "prebuilt KEEPTTL reply");
+        check(updated, 61000, true);
+        require(run(server, shard, db, {"PERSIST", key}) == ":1\r\n", "prebuilt PERSIST reply");
+        check(updated, -1, true);
+        require(run(server, shard, db, {"SET", key, value, "KEEPTTL"}, true) == "+OK\r\n",
+                "prebuilt KEEPTTL reserves persisted slot");
+        check(value, -1, true);
+        for (const char* expire : {"EXPIRE", "PEXPIRE", "GETEX"}) {
+            require(run(server, shard, db, {"SET", key, value}, true) == "+OK\r\n",
+                    "prebuilt SET removes old TTL slot");
+            check(value, -1, false);
+            if (std::strcmp(expire, "GETEX") == 0) {
+                require(run(server, shard, db, {expire, key, "PX", "60000"}) ==
+                        "$1024\r\n" + value + "\r\n", "GETEX adds TTL to prebuilt value");
+            } else {
+                require(run(server, shard, db, {expire, key,
+                        std::strcmp(expire, "EXPIRE") == 0 ? "60" : "60000"}) == ":1\r\n",
+                        "EXPIRE/PEXPIRE adds TTL to prebuilt value");
+            }
+            check(value, 61000, true);
+        }
+        require(run(server, shard, db, {"GETEX", key, "PERSIST"}) ==
+                "$1024\r\n" + value + "\r\n", "GETEX PERSIST preserves value");
+        check(value, -1, true);
+    }
+    std::printf("PASS multidb L4 TTL transitions (read-local %d)\n", armed);
 }
 static void layout_and_store(bool armed) {
     static_assert(sizeof(Slice) == 16);
@@ -565,5 +652,7 @@ int main() {
     }
     layout_and_store(false);
     layout_and_store(true);
+    prebuilt_ttl(false);
+    prebuilt_ttl(true);
     owners();
 }

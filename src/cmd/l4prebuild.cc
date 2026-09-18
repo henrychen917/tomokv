@@ -47,13 +47,7 @@ struct PrebuiltSetValue {
             const size_t capacity = good_size(kvobj_alloc_size(key.identity(), object->vlen, ttl, Enc::Extern));
             auto* replacement = static_cast<KvObj*>(alloc_raw(capacity));
             if (!replacement) return false;
-            replacement->type = object->type;
-            replacement->enc = object->enc;
-            replacement->flags = static_cast<uint8_t>(
-                (object->flags & ~KvObjFlags::HasTtl) | (ttl ? KvObjFlags::HasTtl : 0));
-            replacement->klen8 = object->klen8;
-            replacement->init_nonraw_length(object->vlen);
-            if (key.n >= 255) std::memcpy(replacement->tail(), &key.n, 4);
+            kvobj_init_header(replacement, key, object->type, object->enc, object->vlen, ttl, 0, object);
             if (ttl) replacement->set_expire_at_ms(expire);
             if (key.n) bytes_copy(replacement->key_ptr(), key.p, key.n);
             replacement->set_external_ptr(object->external_ptr());

@@ -1,16 +1,6 @@
-r7shadow2 supersedes this worktree's inherited measurement request.
-See MEASURE-REQUEST-r7shadow2.md for fused-only scope, AUTO policy, unit instruction
-accounting, frozen artifact receipts, and the h07/h23 plus six-row tailgen matrix.
-The maintainer runs all servers, rate/tail measurements and the iteration gate.
-
-TomoKV multidb4 — concurrent SWAPDB accept/reset fix
-
-Read MEASURE-REQUEST-multidb4.md for the cause, directed reproductions, frozen
-PRE/POST/kind-A PAD digests, validation, and maintainer handoff. This supersedes
-the measurement requests from earlier multidb rounds.
-
-Maintainer: run the unchanged 128-swap-per-connection battery and serial-order
-checks in both modes, then tests/gate.sh iteration. Counts remain 438/454.
-Recheck only h05/h07 with the gate's existing ABBA instrument and matched pins;
-the detailed request defines the arms and acceptance criterion. No server,
-benchmark, gate, or performance measurement was run by this lane.
+aoffix supersedes this checkout's inherited measurement requests.
+Read MEASURE-REQUEST-aoffix.md for the confirmed S3/P15 diagnoses, failing and
+passing S3 evidence, PRE/S3-only/POST/kind-A PAD artifacts, and measurement cells.
+Builds and unit/self tests ran only on CPUs 112-127. No benchmark, hardware
+counter measurement, or gate ran. P15 instr/op and the 454-row iteration gate
+remain pending mainline; append results as MEASURE-RESULT in this worktree.
