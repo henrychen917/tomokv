@@ -3110,7 +3110,20 @@ private:
             }
             // One immutable map for ALL keys, before any route/hash/RYOW work.
             // The separately compiled DB-0 runtime emits none of this lane.
-            if constexpr (!kSingleDatabase) multidb_stamp(*srv_, *op, conn.session().db_index);
+            if constexpr (!kSingleDatabase) {
+                // An IO that already acknowledged a database drain may receive
+                // more input (or accept a new client). Do not capture the old map
+                // while paused: the swap could finish before the later dispatch
+                // check, letting an old physical stamp through the new Idle stage.
+                // Starting from Idle is safe: a new boundary needs this pass's
+                // tail acknowledgement before it can publish its map.
+                if (srv_->flip_dispatch_paused() && !(spec->flags & CmdFlags::FlipAsync) &&
+                    !multidb_dispatch_allowed(*srv_, *c)) {
+                    c->set_flip_backpressure(true);
+                    break;
+                }
+                multidb_stamp(*srv_, *op, conn.session().db_index);
+            }
             if constexpr (Fused) {
                 if (read_local_enabled) {
                     constexpr uint32_t kWriteHazards =

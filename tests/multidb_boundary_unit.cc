@@ -1,6 +1,19 @@
 // Deterministic namespace boundary schedules. Socketpairs for admission only;
 // no listeners, io_uring queues, worker loops, sleeps or timing-based arming.
+#include "src/core/server.h"
+#include <functional>
+namespace tomo {
+static std::function<void(Server&, Op&)> after_database_stamp;
+static void boundary_test_stamp(Server& server, Op& op, uint8_t logical) {
+    multidb_stamp(server, op, logical);
+    if (after_database_stamp) after_database_stamp(server, op);
+}
+}
+// Interpose only in this test TU: the real stamp runs, then the deterministic
+// schedule can finish the other connection's swap before parsing continues.
+#define multidb_stamp boundary_test_stamp
 #include "src/core/io_loop.h"
+#undef multidb_stamp
 #include <array>
 #include <cstdio>
 #include <memory>
@@ -124,6 +137,75 @@ struct CoreConcurrencyTest {
         std::printf("PASS multidb accept boundary %s read-local=%u atomic=1: %u forced windows\n",
                     Fused ? "1s" : "2s", ReadLocal, windows);
     }
+    template<bool Fused> static void stamp_at_boundary(
+            Server& server, std::array<ExLoopT<Fused>, 8>& owners, IoLoop& io) {
+        Client initiator(-1), writer(-1);
+        writer.set_id(98); writer.set_ifid_thread(0);
+        writer.set_wb_slot(server.thread(0).assign_wb_slot(&writer));
+        server.thread(0).add_client(&writer);
+        const std::string key = "stamp-boundary";
+        const std::string frame = "*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) +
+                                  "\r\n" + key + "\r\n$5\r\nvalue\r\n";
+        std::memcpy(writer.rbuf(), frame.data(), frame.size());
+        writer.commit_read(frame.size());
+        const auto find = [&](uint8_t logical) {
+            Slice physical(key.data(), key.size(), server.databases().capture()[logical]);
+            const auto hash = FlatStore::hash_key(physical);
+            return server.shard(server.router().shard_of(hash)).store().find(hash, physical);
+        };
+        require(!find(0) && !find(1), "fresh key for stamp/publication window");
+        require(!server.database_boundary_begin(initiator, 0, 0), "stamp fixture boundary starts");
+        server.flip_stage_.store(FlipStage::DatabaseRun, std::memory_order_release);
+        unsigned releases = 0, stamps = 0;
+        const auto finish_swap = [&] {
+            require(server.flip_stage() == FlipStage::DatabaseRun, "swap publication window armed");
+            require(server.databases().swap(0, 1), "publish swap during parser schedule");
+            server.database_boundary_end(initiator, 0);
+            ++releases;
+            // This read starts AFTER SWAPDB replies and BEFORE SET executes. It
+            // forces the overlapping SET after the swap in every serial history.
+            require(!find(1), "post-swap read precedes the pending SET");
+        };
+        after_database_stamp = [&](Server&, Op&) {
+            ++stamps;
+            if (server.database_boundary_active()) finish_swap();
+        };
+        const auto parse = [&] {
+            (void)io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(&writer);
+        };
+        parse();
+        if (server.database_boundary_active()) {
+            require(writer.flip_backpressure() && writer.rpos() == 0 && writer.rob().quiesced(),
+                    "parser holds the new command until its map may be captured");
+            finish_swap();
+            writer.set_flip_backpressure(false);
+            parse();
+        }
+        after_database_stamp = {};
+        require(releases == 1 && stamps == 1 && writer.rob().dispatch_id() == 1 &&
+                    writer.rpos() == writer.rlen(), "one map capture and one dispatch across the forced window");
+        unsigned executed = 0;
+        for (unsigned tid = 0; tid < 8; ++tid)
+            server.thread(tid).drain_tasks_unmasked([&](const Task& task) {
+                require(owners[tid].execute(task), "execute the delayed SET on its owner");
+                ++executed;
+            });
+        require(executed == 1, "the pending SET actually executed");
+        require(find(0) && !find(1),
+                "SET must use the post-swap map after the intervening empty read");
+        require(writer.rob().drain([](Op& op) {
+            op_materialise_code(op);
+            std::string reply;
+            if (op.direct_len) reply.append(op.direct, op.direct_len);
+            reply.append(op.reply.data(), op.reply.size());
+            require(reply == "+OK\r\n", "pending SET reply");
+        }) == 1, "one SET reply retired");
+        server.thread(0).remove_client(&writer);
+        server.thread(0).release_wb_slot(writer.wb_slot());
+        writer.set_in_active(false); io.active_.erase(&writer);
+        std::printf("PASS multidb stamp/publication boundary %s: one forced swap, one SET, intervening read\n",
+                    Fused ? "1s" : "2s");
+    }
     template<bool Fused> static void run() {
         Server server;
         Config cfg; cfg.databases = 16; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
@@ -153,6 +235,7 @@ struct CoreConcurrencyTest {
             if constexpr (!Fused)
                 for (auto tid : server.placement().ex_threads()) (void)owners[tid].flip_control_pass();
         };
+        stamp_at_boundary<Fused>(server, owners, ios[0]);
         Client swapper(-1);
         swapper.set_id(99); swapper.set_ifid_thread(0);
         server.thread(0).add_client(&swapper);
