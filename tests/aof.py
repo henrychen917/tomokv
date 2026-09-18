@@ -5,6 +5,7 @@ Usage:
   tests/aof.py HOST PORT populate STATE.json
   tests/aof.py HOST PORT loadaof  STATE.json
   tests/aof.py HOST PORT verify   STATE.json
+  taskset -c 112-127 tests/aof.py --self-test BINARY --output DIRECTORY
 
 The state file contains the exact RESP wire replies observed before restart.  Only
 Redis replies with explicitly unspecified order (SMEMBERS and HGETALL) are given
@@ -23,12 +24,65 @@ import sys
 import time
 
 
+def self_test():
+    """Run this battery in owned, fresh processes; no benchmark or gate runner."""
+    import argparse
+    from pathlib import Path
+    import subprocess
+    from _gate_process import cpus, info, server
+
+    parser = argparse.ArgumentParser(description=self_test.__doc__)
+    parser.add_argument("--self-test", required=True, type=Path, dest="binary")
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--server-cores", default="112-119")
+    parser.add_argument("--port", type=int, default=18671)
+    parser.add_argument("--modes", nargs="+", choices=("1s", "2s"), default=("1s", "2s"))
+    parser.add_argument("--net-io", choices=("uring", "epoll"), default="uring")
+    parser.add_argument("--databases", type=int, choices=(1, 16), default=1)
+    args = parser.parse_args()
+    if len(cpus(args.server_cores)) != 8 or not set(cpus(args.server_cores)) <= os.sched_getaffinity(0):
+        parser.error("self-test needs eight server CPUs inside its inherited affinity")
+    root = args.output.resolve()
+    root.mkdir(parents=True, exist_ok=False)
+    for mode in args.modes:
+        folder = root / mode
+        folder.mkdir()
+        data = folder / "aof-data"
+        data.mkdir()
+        state = data / "state.json"
+        options = ["--dir", data, "--shards", "16", "--ratio", "6:2",
+                   "--thread-mode", mode, "--net-io", args.net_io,
+                   "--databases", args.databases, "--protected-mode", "no",
+                   "--appendonly", "yes", "--appendfsync", "always"]
+        print("AOF SELF-TEST: mode=%s net-io=%s databases=%d" %
+              (mode, args.net_io, args.databases), flush=True)
+        pids = []
+        for phase, checks in (("write", ("populate", "loadaof")), ("replay", ("verify",))):
+            with server(args.binary, args.server_cores, args.port, folder / phase, options) as (conn, process):
+                pids.append(process.pid)
+                for check in checks:
+                    subprocess.run([sys.executable, str(Path(__file__).resolve()),
+                                    "127.0.0.1", str(args.port), check, str(state)],
+                                   check=True, timeout=90)
+                if phase == "replay" and int(info(conn, "Persistence")["aof_replayed_records"]) <= 0:
+                    raise AssertionError("fresh server did not replay AOF records")
+        if pids[0] == pids[1] or list(data.glob("*.tomo")):
+            raise AssertionError("replay must use a fresh process and AOF only")
+        print("AOF FRESH-PROCESS PASS: mode=%s" % mode, flush=True)
+
+
+if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
+    self_test()
+    raise SystemExit(0)
+
+
 if len(sys.argv) != 5 or sys.argv[3] not in ("populate", "loadaof", "verify", "snapshot"):
     raise SystemExit(
         "usage: tests/aof.py HOST PORT populate|loadaof|verify STATE.json\n"
         "       tests/aof.py HOST PORT snapshot SNAPSHOT.tomo")
 
 HOST, PORT, MODE, STATE_PATH = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+LARGE_KEY = "s:large-key:" + "K" * (70000 - len("s:large-key:"))
 
 
 def encode(args):
@@ -147,6 +201,13 @@ def persistence_info():
     return values
 
 
+def assert_write_status(stats=None):
+    stats = persistence_info() if stats is None else stats
+    if stats.get("aof_last_write_status") != "ok":
+        raise AssertionError("aof_last_write_status: expected ok, got %s" %
+                             stats.get("aof_last_write_status"))
+
+
 def assert_surface():
     expect(("CONFIG", "GET", "appendonly"),
            b"*2\r\n$10\r\nappendonly\r\n$3\r\nyes\r\n")
@@ -246,6 +307,9 @@ def populate():
     expect(("SET", "s:i64max", "9223372036854775807"), b"+OK\r\n")
     expect(("SET", "s:binary", b"\x00\x01bin\xff\x00"), b"+OK\r\n")
     expect(("SET", "s:large", b"L" * 70000), b"+OK\r\n")
+    # Large values use the type hook; a large key forces emit() itself to seal
+    # mid-record. Both key and value must survive a fresh-process AOF replay.
+    expect(("SET", LARGE_KEY, bytes(range(256)) * 273 + b"tail" * 28), b"+OK\r\n")
     expect(("SET", "s:ttl", "survives-restart", "PX", "3600000"), b"+OK\r\n")
     expect(("SETBIT", "bitmap", "1", "1"), b":0\r\n")
     expect(("SETBIT", "bitmap", "4097", "1"), b":0\r\n")
@@ -296,6 +360,7 @@ PROBES = [
     ("GET", "s:i64min"), ("GET", "s:i64max"),
     ("OBJECT", "ENCODING", "s:i64min"), ("OBJECT", "ENCODING", "s:i64max"),
     ("GET", "s:binary"), ("GET", "s:large"), ("STRLEN", "s:large"),
+    ("GET", LARGE_KEY), ("STRLEN", LARGE_KEY),
     ("GET", "s:ttl"),
     ("GETBIT", "bitmap", "1"), ("GETBIT", "bitmap", "4097"),
     ("GETBIT", "bitmap", "99999"), ("BITCOUNT", "bitmap"), ("STRLEN", "bitmap"),
@@ -438,6 +503,7 @@ def wait_for_script_aof(script_state):
     previous = None
     while time.monotonic() < deadline:
         stats = persistence_info()
+        assert_write_status(stats)
         current = (stats.get("aof_records_written", 0), stats.get("aof_current_size", 0),
                    stats.get("aof_groups_committed", 0))
         if current[2] >= script_state["expected_groups"]:
@@ -465,6 +531,7 @@ def verify_script_state(script_state):
 
 
 def verify(expect_state):
+    assert_write_status()
     got = capture()
     failures = []
     for index, (want, actual) in enumerate(zip(expect_state["replies"], got["replies"])):
@@ -514,8 +581,17 @@ def snapshot_model():
 
 assert_surface()
 if MODE == "populate":
+    waits_before = persistence_info().get("aof_send_gate_waits", 0)
     script_state = populate()
     wait_for_script_aof(script_state)
+    stats = persistence_info()
+    assert_write_status(stats)
+    if c.command("CONFIG", "GET", "appendfsync") == b"*2\r\n$11\r\nappendfsync\r\n$6\r\nalways\r\n":
+        waits_after = stats.get("aof_send_gate_waits", 0)
+        if waits_after <= waits_before:
+            raise AssertionError("appendfsync always did not advance aof_send_gate_waits")
+        print("AOF SEND GATE PASS: waits=%d -> %d" % (waits_before, waits_after))
+    print("AOF LARGE RECORD PASS: key=70000 value=70000 aof_last_write_status:ok")
     state = capture()
     state["script"] = script_state
     save_state(state)
