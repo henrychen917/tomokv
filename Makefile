@@ -292,6 +292,16 @@ build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard
 build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
 
+# The same direct-call regressions against the databases=1 runtime selected at boot.
+NETCMD_DB0_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/db0/tests/%.o)
+build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@
+# Lua's C runtime is emitted only by the namespaced scripting object; the second library
+# supplies that shared runtime, as in multidb-unit, without crossing database state.
+build/netcmd-unit-db0: $(NETCMD_DB0_TEST_OBJ) $(patsubst build/%,build/db0/%,$(NETCMD_LIB_OBJ)) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
+
 # R7 uses real Clients/ROB slots, without a listener or worker loop.
 build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@

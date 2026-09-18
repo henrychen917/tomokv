@@ -2026,6 +2026,11 @@ void cmd_zrandmember(Shard& shard, Op& op) {
         return;
     }
     CollectionRef value = zset_value(object);
+    if (!value.entries()) {
+        if (has_count) reply_array_header(op.sink(), 0);
+        else reply_null(op.sink(), op.resp3());
+        return;
+    }
     CompactItems compact;
     CompactItems* compact_ptr = nullptr;
     if (value.encoding() == CollectionEncoding::Compact) {
@@ -2411,7 +2416,7 @@ SnapshotHookStatus zset_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
 SnapshotHookStatus zset_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                       Slice payload, const TypeLimits& limits, KvObj*& result) {
     result = nullptr;
-    if (encoding != 0) return SnapshotHookStatus::Corrupt;
+    if (encoding != 0 || !payload.n) return SnapshotHookStatus::Corrupt;
     auto* value = new (std::nothrow) ZsetVal;
     if (!value) return SnapshotHookStatus::Oom;
     CollectionRef value_ref(value);

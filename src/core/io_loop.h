@@ -4294,7 +4294,7 @@ ordinary_shard_ready:
         FlipFingerprintClass command_class = FlipFingerprintClass::Other;
         if (spec.flags & CmdFlags::Blocking) {
             command_class = FlipFingerprintClass::Blocking;
-        } else if (keys > 1 && srv_->cfg().atomic &&
+        } else if (keys > 1 && srv_->atomic_enabled() &&
                    (spec.flags & CmdFlags::MultiShard)) {
             command_class = FlipFingerprintClass::AtomicGrouped;
         } else if (keys > 1) {

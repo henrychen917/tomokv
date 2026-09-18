@@ -1567,7 +1567,7 @@ SnapshotHookStatus hash_snapshot_read(SnapshotSaveCursor& cursor, uint8_t* desti
 SnapshotHookStatus hash_snapshot_load(Slice key, uint8_t encoding, int64_t expire_at_ms,
                                       Slice payload, const TypeLimits& limits, KvObj*& result) {
     result = nullptr;
-    if (encoding > 1) return SnapshotHookStatus::Corrupt;
+    if (encoding > 1 || !payload.n) return SnapshotHookStatus::Corrupt;
     const bool with_ttl = encoding == 1;
     const int64_t now_ms = snapshot_now_ms();
     uint64_t seed = 0xcbf29ce484222325ull;
