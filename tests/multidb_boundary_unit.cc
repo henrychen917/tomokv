@@ -1,4 +1,5 @@
-// Deterministic namespace boundary schedule. No sockets, worker loops or clocks.
+// Deterministic namespace boundary schedules. Socketpairs for admission only;
+// no listeners, io_uring queues, worker loops, sleeps or timing-based arming.
 #include "src/core/io_loop.h"
 #include <array>
 #include <cstdio>
@@ -9,6 +10,119 @@ namespace tomo {
 struct CoreConcurrencyTest {
     static void require(bool value, const char* why) {
         if (!value) { std::fprintf(stderr, "FAIL multidb boundary: %s\n", why); std::exit(1); }
+    }
+    template<bool Fused, bool ReadLocal> static void accept_during_boundary() {
+        Server server;
+        Config cfg; cfg.databases = 16; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
+        cfg.read_local = ReadLocal; cfg.atomic = 1;
+        cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;
+        require(server.prepare_boot(cfg) && server.init(cfg), "admission fixture initialization");
+        require(server.nthreads() == 8, "exact eight-core admission fixture");
+        command_bind_server(&server);
+        IoLoop io; io.srv_ = &server; io.self_ = &server.thread(0);
+        // The accept CQE handler's admission checks are shared by both transport
+        // instantiations. Use epoll for socketpair reads so no uring is started.
+        io.epoll_ = true;
+        require(io.ep_.init(), "socketpair epoll set");
+        ExLoopT<true> local;
+        local.srv_ = &server; local.self_ = io.self_;
+        io.fused_executor_ = &local;
+        const auto parse = [&](Client* client) {
+            (void)io.template parse_and_dispatch<false,
+                Fused ? kGenthreadIfidBatchOps : 0, !Fused,
+                false, false, false, !Fused && ReadLocal>(client);
+        };
+        const auto accepted = [&](int fd, bool direct, uint64_t generation) {
+            if (direct) io.template admit_fd<true, Fused>(fd, UrKind::Accept);
+            else {
+                io_uring_cqe cqe{};
+                cqe.res = fd; cqe.flags = IORING_CQE_F_MORE;
+                cqe.user_data = ur_tag(UrKind::Accept, reinterpret_cast<void*>(generation));
+                io.template on_accept<true, Fused>(&cqe, UrKind::Accept);
+            }
+        };
+        Client initiator(-1);
+        constexpr char request[] = "*3\r\n$6\r\nSWAPDB\r\n$1\r\n0\r\n$1\r\n1\r\n"
+                                   "*3\r\n$6\r\nSWAPDB\r\n$1\r\n0\r\n$1\r\n1\r\n";
+        unsigned windows = 0;
+        for (const auto stage : {FlipStage::DatabaseIoDrain, FlipStage::DatabaseExDrain,
+                                 FlipStage::DatabaseRun}) {
+            for (bool direct : {false, true}) {
+                require(!server.database_boundary_begin(initiator, 0, 0), "first swap holds boundary");
+                // Force each exact accept window, including after IO has acknowledged
+                // the drain. The execution/ack schedule is covered by run() below.
+                server.flip_stage_.store(stage, std::memory_order_release);
+                int sockets[2];
+                require(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC,
+                                     0, sockets) == 0, "admission socketpair");
+                require(::send(sockets[1], request, sizeof(request) - 1, MSG_NOSIGNAL) ==
+                            sizeof(request) - 1, "second swapper sends two commands before admission");
+                accepted(sockets[0], direct, io.accept_generation_);
+                char byte;
+                const auto received = ::recv(sockets[1], &byte, 1, MSG_DONTWAIT);
+                if (received != -1 || (errno != EAGAIN && errno != EWOULDBLOCK))
+                    std::fprintf(stderr, "admission mode=%s read-local=%u stage=%u direct=%u recv=%zd errno=%d\n",
+                                 Fused ? "1s" : "2s", ReadLocal, unsigned(stage), direct, received, errno);
+                require(received == -1 && (errno == EAGAIN || errno == EWOULDBLOCK),
+                        "SWAPDB must not close a newly accepted swapper");
+                require(server.live_clients() == 1 && io.self_->clients().size() == 1,
+                        "second swapper is owned and counted");
+                Client* client = io.self_->clients().front();
+                require(client->rlen() == sizeof(request) - 1 && !client->closing(),
+                        "both swap frames reached the live connection");
+                parse(client);
+                require(client->flip_backpressure() && client->rpos() == 0 &&
+                            client->rob().dispatch_id() == 0 && client->rob().quiesced(),
+                        "admission cannot dispatch past another swap's execution boundary");
+                require(multidb_io_drained(*io.self_) &&
+                            server.databases().boundary_client.load() == &initiator,
+                        "new unconsumed commands preserve the prior drain acknowledgement");
+                require(server.databases().swap(0, 1), "first swap publishes");
+                server.database_boundary_end(initiator, 0);
+                // This is the active-loop retry once Idle releases flip backpressure.
+                client->set_flip_backpressure(false);
+                parse(client);
+                require(server.flip_stage() == FlipStage::DatabaseIoDrain &&
+                            server.databases().boundary_client.load() == client &&
+                            client->rpos() == 0 && client->rob().quiesced(),
+                        "surviving swapper starts its own boundary from the same frame");
+                io.close_client(client);
+                require(!client->dead(), "boundary reference holds the disconnect");
+                (void)io.database_control_pass();
+                require(!server.database_boundary_active(), "disconnect cancels the new boundary");
+                io.close_client(client);
+                io.reap_dead(); io.reap_dead();
+                ::close(sockets[1]);
+                require(server.live_clients() == 0 && io.self_->clients().empty() &&
+                            io.active_.size() == 0 && io.dead_ready_.empty(),
+                        "admission fixture releases the connection exactly once");
+                ++windows;
+            }
+        }
+        // Role conversion still rejects incoming descriptors, as do stale accept
+        // completions. A broad removal of the admission fence must fail here.
+        for (auto stage : {FlipStage::Planning, FlipStage::IoDrain, FlipStage::IoPrepare,
+                           FlipStage::ExDrain, FlipStage::ClientPrepare, FlipStage::ClientCommit,
+                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
+                           FlipStage::ExInstall, FlipStage::Rollback, FlipStage::Idle}) {
+            server.flip_stage_.store(stage, std::memory_order_release);
+            for (bool direct : {false, true}) {
+                if (stage == FlipStage::Idle && direct) continue;
+                int sockets[2];
+                require(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC,
+                                     0, sockets) == 0, "role fence socketpair");
+                accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
+                char byte;
+                require(::recv(sockets[1], &byte, 1, MSG_DONTWAIT) == 0 && server.live_clients() == 0,
+                        "role-transition/stale accept still closes without admission");
+                ::close(sockets[1]);
+            }
+        }
+        require(windows == 6, "every database-stage/accept-entry window armed");
+        command_bind_server(nullptr);
+        std::printf("PASS multidb accept boundary %s read-local=%u atomic=1: %u forced windows\n",
+                    Fused ? "1s" : "2s", ReadLocal, windows);
     }
     template<bool Fused> static void run() {
         Server server;
@@ -123,6 +237,10 @@ struct CoreConcurrencyTest {
 }
 int main() {
     tomo::CoreConcurrencyTest::require(tomo::command_registry_init(false), "command registry");
+    tomo::CoreConcurrencyTest::accept_during_boundary<false, false>();
+    tomo::CoreConcurrencyTest::accept_during_boundary<false, true>();
+    tomo::CoreConcurrencyTest::accept_during_boundary<true, false>();
+    tomo::CoreConcurrencyTest::accept_during_boundary<true, true>();
     tomo::CoreConcurrencyTest::run<false>();
     tomo::CoreConcurrencyTest::run<true>();
 }
