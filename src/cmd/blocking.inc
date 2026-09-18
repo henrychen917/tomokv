@@ -611,7 +611,10 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     if (state.kind == BlockingKind::Xreadgroup) {
         if (!stream_xreadgroup_execute(shard, op)) return false;
         AofOwnerContext context{self.id(), &ring, &self.sig()};
-        (void)aof_record_local_op(shard, op, context);
+        for (const auto& stream : state.keys)
+            if (stream.shard == shard.id())
+                (void)shard.store().aof().record_post_image(
+                    shard.store(), stream.hash, blocking_key_slice(stream), context);
         blocking_publish_completion(state, self, ring);
         return true;
     }

@@ -2579,7 +2579,7 @@ job_multidb(){
   local boot_fn=boot
   [ "$mode" != 1s ] || boot_fn=boot_fused
   if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --read-local "$read_local" \
-        --enable-debug-command yes --appendonly yes --appendfsync no --save '' && booted=1 &&
+        --databases 16 --enable-debug-command yes --appendonly yes --appendfsync no --save '' && booted=1 &&
       py tests/multidb.py 127.0.0.1 "$PORT" --read-local "$read_local" --persistence \
         >"$TMPDIR/multidb.log" 2>&1; then
     ok "$label"

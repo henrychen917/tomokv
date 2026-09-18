@@ -3,7 +3,7 @@
 import argparse
 import threading
 import time
-from _lib import Conn, RespError, encode
+from _lib import Conn, RespError, encode, topology
 
 
 def expect(got, wanted, label):
@@ -15,7 +15,11 @@ def pipeline(c, commands, replies, label):
     assert len(commands) == len(replies)
     c.raw(b"".join(encode(*cmd) for cmd in commands))
     for index, wanted in enumerate(replies):
-        expect(c.read(), wanted, f"{label} #{index} {commands[index]!r}")
+        try:
+            got = c.read()
+        except (EOFError, OSError) as error:
+            raise AssertionError(f"{label} #{index} {commands[index]!r}: {error}") from error
+        expect(got, wanted, f"{label} #{index} {commands[index]!r}")
 
 
 def fields(c, section):
@@ -40,7 +44,7 @@ def main():
 
     admin = connection()
     try:
-        expect(admin.cmd("CONFIG", "GET", "databases"), [b"databases", b"16"], "default count")
+        expect(admin.cmd("CONFIG", "GET", "databases"), [b"databases", b"16"], "configured count")
         for index in (-1, 16, 256):
             expect(admin.cmd("SELECT", index), RespError("ERR DB index is out of range"), "SELECT range")
         for index in ("no", "+1", "01", "-0", "9223372036854775808"):
@@ -171,17 +175,40 @@ def main():
         expect(one.cmd("DEL", "md:missing"), 1, "WATCH alias cleanup")
 
         # Two equal keys per DB make a cross-namespace/torn pair detectable under SWAPDB.
+        # Prove owner fan-out in BOTH physical namespaces; two distinct shard IDs
+        # alone are insufficient at the gate's sixteen-shard/two-executor geometry.
+        shard_owner = topology(admin).shard_owner
+        pair = None
+        first = None
+        for probe in range(10000):
+            key = f"md:pair:{probe}"
+            owners = []
+            for db in (0, 1):
+                expect(c.cmd("SELECT", db), b"OK", "pair geometry DB")
+                owners.append(shard_owner[c.must("DEBUG", "SHARD", key)])
+            if first is None:
+                first = (key, owners)
+            elif all(a != b for a, b in zip(first[1], owners)):
+                pair = (first[0], key)
+                break
+        assert pair, "multi-owner SWAPDB pair never armed in both databases"
         for db in (0, 1):
             expect(c.cmd("SELECT", db), b"OK", "swap population DB")
-            expect(c.cmd("MSET", "md:a", f"db{db}", "md:b", f"db{db}"), b"OK", "swap population")
+            expect(c.cmd("MSET", pair[0], f"db{db}", pair[1], f"db{db}"), b"OK", "swap population")
         commands, replies = [], []
         for i in range(128):
-            commands += [("SWAPDB", 0, 1), ("SELECT", 0), ("MGET", "md:a", "md:b"),
-                         ("SELECT", 1), ("MGET", "md:a", "md:b")]
+            commands += [("SWAPDB", 0, 1), ("SELECT", 0), ("MGET", *pair),
+                         ("SELECT", 1), ("MGET", *pair)]
             left = b"db1" if i % 2 == 0 else b"db0"
             right = b"db0" if i % 2 == 0 else b"db1"
             replies += [b"OK", b"OK", [left, left], b"OK", [right, right]]
         pipeline(c, commands, replies, "SWAPDB pipeline")
+        pipeline(c, [("SELECT", 0), ("SET", "md:midpipe", "before"), ("SWAPDB", 0, 1),
+                     ("SELECT", 1), ("GET", "md:midpipe"), ("SET", "md:midpipe", "after"),
+                     ("SELECT", 0), ("GET", "md:midpipe"), ("SWAPDB", 0, 1),
+                     ("GET", "md:midpipe"), ("DEL", "md:midpipe")],
+                 [b"OK", b"OK", b"OK", b"OK", b"before", b"OK", b"OK", None,
+                  b"OK", b"after", 1], "mid-pipe SELECT+SWAPDB RYOW")
 
         swap_start = threading.Event()
         swap_counts = [0, 0]
@@ -205,7 +232,7 @@ def main():
         swap_start.set()
         read_batches = 0
         while any(thread.is_alive() for thread in swappers):
-            c.raw(encode("MGET", "md:a", "md:b") * 32)
+            c.raw(encode("MGET", *pair) * 32)
             for _ in range(32):
                 assert c.read() in ([b"db0", b"db0"], [b"db1", b"db1"]), "SWAPDB tore a pipelined read"
             read_batches += 1
