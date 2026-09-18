@@ -302,7 +302,76 @@ struct NetcmdRegression {
               "OPEN F05: failed multi-field HSET retained a changed prefix (and its old TTL)");
     }
 
+    static void atomic_fingerprint(uint32_t boot) {
+        Server server;
+        server.cfg_.atomic = boot;
+        server.set_atomic_enabled(boot != 0);
+        server.live_config_version_.store(2);
+        server.live_config_committed_ = server.capture_live_config(2);
+        server.live_config_mailboxes_ = std::make_unique<LiveConfigMailbox[]>(1);
+        server.live_config_mailboxes_[0].init(server.live_config_committed_);
+        server.shards_.push_back(std::make_unique<Shard>());
+        Shard& shard = *server.shards_[0];
+        shard.init_private(&server, 0, TypeLimits{}, StreamLimits{});
+        command_bind_server(&server);
+        ThreadCtx self;
+        IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
+        auto classify = [&](bool enabled) {
+            auto& writer = self.flip_fingerprint();
+            writer.configure(1); // every pass sampled; no probabilistic window to miss
+            const auto note = [&](std::initializer_list<const char*> values) {
+                Op op; args(op, values);
+                loop.flip_fingerprint_note(*op.spec, op);
+            };
+            note({"MGET", "a", "b"});
+            note({"MSET", "a", "1", "b", "2"});
+            note({"GET", "a"});
+            note({"SET", "a", "1"});
+            note({"BLPOP", "a", "b", "0"});
+            loop.flip_fingerprint_finish_pass();
+            const auto& sample = writer.published();
+            std::array<uint64_t, kFlipFingerprintClasses> expected{};
+            expected[static_cast<size_t>(FlipFingerprintClass::Read)] = 1;
+            expected[static_cast<size_t>(FlipFingerprintClass::Write)] = 1;
+            expected[static_cast<size_t>(FlipFingerprintClass::Blocking)] = 1;
+            if (enabled) expected[static_cast<size_t>(FlipFingerprintClass::AtomicGrouped)] = 2;
+            else {
+                expected[static_cast<size_t>(FlipFingerprintClass::MultiRead)] = 1;
+                expected[static_cast<size_t>(FlipFingerprintClass::MultiWrite)] = 1;
+            }
+            check(sample.commands == 5 && sample.closed_windows == 1,
+                  "fingerprint sample actually published all five commands");
+            if (sample.command_class != expected)
+                std::fprintf(stderr, "FAIL: atomic fingerprint boot=%u live=%u grouped=%llu "
+                             "multiread=%llu multiwrite=%llu\n", boot, enabled,
+                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::AtomicGrouped)],
+                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiRead)],
+                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiWrite)]);
+            check(sample.command_class == expected, "fingerprint classification follows live CONFIG SET atomic");
+        };
+        classify(boot != 0);
+        // Leave an activity bit set while toggling: activity alone must not mean atomic mode is on.
+        server.atomic_activity_.fetch_add(1, std::memory_order_relaxed);
+        for (uint32_t live : {1u - boot, boot, 1u - boot}) {
+            Op set; args(set, {"CONFIG", "SET", "atomic", live ? "1" : "0"});
+            check(command_validate_config_set(set), "runtime atomic CONFIG SET validated");
+            set.spec->handler(shard, set);
+            check(!set.replied(), "successful CONFIG owner fragment awaits coordinator OK");
+            check(server.cfg().atomic == boot && server.atomic_enabled() == (live != 0) &&
+                  server.atomic_work_active(), "CONFIG changed the live bit, preserving boot and activity");
+            check(execute(shard, {"CONFIG", "GET", "atomic"}) ==
+                      std::string("*2\r\n$6\r\natomic\r\n$1\r\n") + (live ? "1\r\n" : "0\r\n"),
+                  "CONFIG GET confirms the runtime value");
+            classify(live != 0);
+        }
+        server.atomic_activity_.fetch_sub(1, std::memory_order_relaxed);
+        command_bind_server(nullptr);
+        std::printf("ok: atomic fingerprint boot=%u, three runtime toggles with active work\n", boot);
+    }
+
     static void config() {
+        atomic_fingerprint(0);
+        atomic_fingerprint(1);
         test_config_bounds();
         acl_selectors();
         tracking_eviction();
@@ -664,7 +733,15 @@ int main(int argc, char** argv) {
     const std::string mode = argv[1];
     using R = tomo::NetcmdRegression;
     if (mode == "streams") test_stream_faults();
-    else if (mode == "zpop") test_zpop_faults();
+    else if (mode == "zpop") {
+        test_zpop_faults();
+        test_empty_collection_loads();
+        test_empty_collection_random();
+    }
+    else if (mode == "empty-load") test_empty_collection_loads();
+    else if (mode == "empty-random") test_empty_collection_random();
+    else if (mode == "atomic-config-off") R::atomic_fingerprint(0);
+    else if (mode == "atomic-config-on") R::atomic_fingerprint(1);
     else if (mode == "notify-oom") R::notify_oom();
     else if (mode == "notify-retry") R::notify_retry();
     else if (mode == "flush") R::flush();

@@ -34,5 +34,7 @@ inline std::string execute(tomo::Shard& shard, std::initializer_list<const char*
 }
 void test_stream_faults();
 void test_zpop_faults();
+void test_empty_collection_loads();
+void test_empty_collection_random();
 void test_config_rewrite();
 void test_config_bounds(const char* only = nullptr);
