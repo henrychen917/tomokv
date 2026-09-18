@@ -15,19 +15,28 @@ def twin(source, output, scope='shadow'):
     assert source.resolve() != output.resolve(), 'control must be a separate file'
     elf = Elf(source)
     assert elf.kind != 1, 'expected a linked executable'
-    symbol = elf.functions()['_ZN4tomo17reorder_availableEv' if scope == 'fifo'
-                             else '_ZN4tomo2r716shadow_availableEv']
-    section = elf.sections[symbol['sec']]
-    offset = section[4] + symbol['value'] - section[3]
-    body = elf.body(symbol)
-    if body.startswith(b'\xf3\x0f\x1e\xfa'):
-        offset += 4
-        body = body[4:]
-    assert body == b'\xb8\x01\x00\x00\x00\xc3', 'expected bool true; ret'
+    functions = elf.functions()
+    suffix = '17reorder_availableEv' if scope == 'fifo' else '2r716shadow_availableEv'
     patched = bytearray(elf.data)
-    # Change only the immediate. Instructions, padding, symbols and sections stay exact.
-    patched[offset + 1] = 0
-    assert sum(a != b for a, b in zip(elf.data, patched)) == 1
+    patches = []
+    # The boot-selected DB-0 and multidb runtimes each own their capability.
+    # Patch every linked variant, including single-variant serverless fixtures.
+    for prefix in ('_ZN4tomo', '_ZN8tomo_db0'):
+        if not any(name.startswith(prefix) for name in functions):
+            continue
+        symbol = functions[prefix + suffix]
+        section = elf.sections[symbol['sec']]
+        offset = section[4] + symbol['value'] - section[3]
+        body = elf.body(symbol)
+        if body.startswith(b'\xf3\x0f\x1e\xfa'):
+            offset += 4
+            body = body[4:]
+        assert body == b'\xb8\x01\x00\x00\x00\xc3', 'expected bool true; ret'
+        # Change only the immediate. Instructions, padding, symbols and sections stay exact.
+        patched[offset + 1] = 0
+        patches.append({'capability_symbol': symbol['name'], 'patch_offset': offset + 1})
+    assert patches, 'no reorder runtime found'
+    assert sum(a != b for a, b in zip(elf.data, patched)) == len(patches)
     output.write_bytes(patched)
     output.chmod(source.stat().st_mode)
     control = Elf(output)
@@ -38,7 +47,8 @@ def twin(source, output, scope='shadow'):
                  'A: PRE R7 behaviour with POST text size and layout; shadow disabled'),
         'post': str(source), 'pad': str(output), 'file_bytes': len(patched),
         'text_bytes': elf.sections[elf.names.index('.text')][5],
-        'capability_symbol': symbol['name'], 'patch_offset': offset + 1,
+        'patches': patches,
+        **(patches[0] if len(patches) == 1 else {}),
         'original_byte': '01', 'pad_byte': '00',
         'post_sha256': hashlib.sha256(elf.data).hexdigest(),
         'pad_sha256': hashlib.sha256(patched).hexdigest(),

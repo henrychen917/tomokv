@@ -32,7 +32,8 @@ struct CoreConcurrencyTest {
         ExLoopT<ReadLocal> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
-        Fixture(ThreadMode mode, uint32_t overlap, int32_t reorder) : owner(mode == ThreadMode::Fused ? 0 : 6) {
+        Fixture(ThreadMode mode, uint32_t overlap, int32_t reorder, uint32_t databases = 1)
+            : owner(mode == ThreadMode::Fused ? 0 : 6) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "read test affinity");
@@ -50,6 +51,7 @@ struct CoreConcurrencyTest {
                         : server.placement_.build_even(server.topo_, 6, 2), "place fixture");
             require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
             Config config;
+            config.databases = databases;
             config.thread_mode = mode;
             config.shards = 16;
             config.overlap = overlap;
@@ -94,10 +96,11 @@ struct CoreConcurrencyTest {
             }
         }
         int32_t sid() const { return server.thread(owner).shards().front()->id(); }
-        std::string key() {
+        std::string key(uint8_t ns = 0) {
             for (uint32_t tries = 0; tries < 100000; tries++) {
                 std::string s = "overlap-prefetch-" + std::to_string(key_serial++);
-                if (server.router().shard_of(FlatStore::hash_key(slice(s))) == sid()) return s;
+                if (server.router().shard_of(FlatStore::hash_key(
+                        Slice(s.data(), s.size(), ns))) == sid()) return s;
             }
             require(false, "bounded owner key search");
             return {};
@@ -284,6 +287,70 @@ struct CoreConcurrencyTest {
             require(c->rob().drain([](Op&) {}) == c->rob().dispatch_id(), "RESP prefix did not retire in order");
         std::printf("PASS production parser + three pipes %s read-local=%u overlap=%u reorder=%u shadow=%u\n",
                     mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, overlap, requested, shadow);
+    }
+
+    static void database_dispatch(int32_t requested) {
+        Fixture<false> f(ThreadMode::Fused, 0, requested, kSingleDatabase ? 1 : 16);
+        command_bind_server(&f.server);
+        IoLoop io;
+        io.srv_ = &f.server;
+        io.self_ = &f.server.thread(f.owner);
+        Client client(-1), boundary(-1);
+        f.client(client, 1);
+        constexpr uint8_t logical = kSingleDatabase ? 0 : 3;
+        constexpr uint8_t physical = kSingleDatabase ? 0 : 5;
+        if constexpr (!kSingleDatabase)
+            require(f.server.databases().swap(logical, 9), "initial nonidentity database map");
+        const std::string key = f.key(physical);
+        const std::string wire = "*2\r\n$6\r\nSELECT\r\n$1\r\n" + std::to_string(logical) +
+            "\r\n*2\r\n$8\r\nBITCOUNT\r\n$" + std::to_string(key.size()) + "\r\n" + key +
+            "\r\n*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) + "\r\n" + key +
+            "\r\n$1\r\nv\r\n";
+        std::memcpy(client.rbuf(), wire.data(), wire.size());
+        client.commit_read(wire.size());
+        auto parse = [&] {
+            return f.server.cfg().reorder
+                ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client)
+                : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&client);
+        };
+        require(parse() == IoLoop::DispatchResult::Progress &&
+                    client.session().db_index == logical && client.rob().dispatch_id() == 1 &&
+                    client.rpos() < client.rlen(), "SELECT ends the current parser pass");
+        require(client.rob().drain([](Op&) {}) == 1, "SELECT retires before its following pipe");
+        if constexpr (!kSingleDatabase) {
+            require(!f.server.database_boundary_begin(boundary, f.owner, 0),
+                    "fresh SWAPDB boundary must open");
+            const uint32_t before = client.rpos();
+            (void)parse();
+            require(client.flip_backpressure() && client.rpos() == before &&
+                        client.rob().dispatch_id() == 1 && client.rob().quiesced(),
+                    "armed parser dispatched inside the SWAPDB boundary");
+            require(f.server.databases().swap(logical, physical), "publish changed physical database");
+            f.server.database_boundary_end(boundary, 0);
+            client.set_flip_backpressure(false);
+        }
+        require(parse() == IoLoop::DispatchResult::Progress && client.rpos() == client.rlen(),
+                "database pipe did not resume after the boundary");
+        std::vector<Task> queued;
+        f.loop.self_->drain_tasks_unmasked([&](const Task& task) { queued.push_back(task); });
+        require(queued.size() == 2, "database-stamped tasks missed their expected owner");
+        for (const auto& task : queued) {
+            const Op& op = client.rob().at(task.op_id);
+            require(op.db == logical && op.physical_db == physical && op.arg(1).ns == physical &&
+                        op.shard == f.sid() && op.hash == FlatStore::hash_key(Slice(key.data(), key.size(), physical)),
+                    "database stamp/hash/shard must use the post-boundary map");
+            require(f.loop.self_->post_task_quiet(f.owner, task, io.self_->sig()), "requeue database pipe");
+        }
+        require(r7::shadow_pending(queued[1]) == (f.server.cfg().reorder && r7::shadow_available()),
+                "database stamping lost the same-pipe Long shadow");
+        require((f.server.cfg().reorder ? f.loop.r7_drain_tasks<>(true) : f.loop.drain_tasks<>(true)) == 2,
+                "database pipe did not execute");
+        std::string replies;
+        require(client.rob().drain([&](Op& op) { replies.append(op.reply.data(), op.reply.size()); }) == 2 &&
+                    replies == ":0\r\n+OK\r\n", "database pipe replies/retirement");
+        command_bind_server(nullptr);
+        std::printf("PASS reorder database parser %s requested=%d: SELECT, boundary, stamp, shadow, replies\n",
+                    kSingleDatabase ? "db0" : "multidb", requested);
     }
 
     static void automatic_inbox() {
@@ -499,5 +566,6 @@ int main(int argc, char** argv) {
     T::shadow_foreign_passes();
     T::shadow_demotions(tomo::ThreadMode::Fused);
     T::shadow_demotions(tomo::ThreadMode::Split);
+    for (int32_t requested : {0, 1, -1}) T::database_dispatch(requested);
     return 0;
 }
