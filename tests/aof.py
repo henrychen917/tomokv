@@ -62,6 +62,8 @@ def self_test():
         for phase, checks in (("write", ("populate", "loadaof")), ("replay", ("verify",))):
             with server(args.binary, args.server_cores, args.port, folder / phase, options) as (conn, process):
                 pids.append(process.pid)
+                if conn.must("CONFIG", "GET", "appendfsync") != [b"appendfsync", b"always"]:
+                    raise AssertionError("self-test did not arm appendfsync always")
                 for check in checks:
                     subprocess.run([sys.executable, str(Path(__file__).resolve()),
                                     "127.0.0.1", str(args.port), check, str(state)],

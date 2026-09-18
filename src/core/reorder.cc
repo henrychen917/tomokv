@@ -1512,10 +1512,12 @@ uint32_t IoLoop::r7_flush_ready() {
     // the latency -- which is the correct place for overload to live; throughput stays at peak.
     if (!pending_serve_.empty()) {
         AofManager& aof = srv_->aof();
-        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
-        if (!aof.reply_gate_ready(aof_gate_target_)) {
-            aof.register_send_gate_wait(self_->id());
-            return work;
+        if (__builtin_expect(aof.configured(), false)) {
+            if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
+            if (!aof.reply_gate_ready(aof_gate_target_)) {
+                aof.register_send_gate_wait(self_->id());
+                return work;
+            }
         }
         aof_gate_target_ = 0;
     } else {
