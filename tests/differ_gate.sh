@@ -273,7 +273,7 @@ for ATOMIC in "${ATOMICS[@]}"; do
   # remains part of the differential surface instead of diverging by harness construction.
   if ! boot_owned "target atomic=$ATOMIC" "$TARGET_PORT" "$TARGET_CORES" "$TARGET_LOG" \
       "$TARGET_BIN" --port "$TARGET_PORT" --bind 127.0.0.1 --shards 16 \
-      "${TARGET_SHAPE[@]}" --atomic "$ATOMIC" --save '' --dir "$TARGET_DIR" \
+      "${TARGET_SHAPE[@]}" --databases 16 --atomic "$ATOMIC" --save '' --dir "$TARGET_DIR" \
       --enable-debug-command yes; then
     FAIL=$((FAIL+1))
     break

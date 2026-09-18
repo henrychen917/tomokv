@@ -9,7 +9,7 @@
 namespace tomo {
 namespace {
 enum class Kind : uint8_t {
-    AllShards, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
+    AllShards, RandomKey, DatabaseInfo, Swapdb, DebugReload, DebugLoadAof, DebugBorrowCount, DbsizeExact, Mget, Mset, Del, Unlink, Exists, Touch, Keys, Pfcount, Xread, Xreadgroup, Lcs, Msetnx,
     Rename, Renamenx, Copy, Smove, Lmove, Rpoplpush,
     Sinter, Sunion, Sdiff, Sintercard, Sinterstore, Sunionstore, Sdiffstore,
     Zunion, Zinter, Zdiff, Zintercard, Zunionstore, Zinterstore, Zdiffstore,
@@ -82,9 +82,10 @@ struct ValueSlot {
 };
 
 struct GroupAux {
-    std::vector<std::string> flush_keys;
+    std::vector<DatabaseKey> flush_keys;
     std::vector<std::string> keys_result;
     bool flush_keys_built = false;
+    std::unique_ptr<DatabaseStatsTable> database_stats;
 };
 
 // Groups are dense (one record per touched shard), and each owns one range in key_order[].
@@ -96,6 +97,7 @@ struct ShardGroup {
     uint64_t membership = 0;
     uint32_t snapshot_pos = 0;
     uint64_t scan_cursor = 0;
+    bool swap_ready = false;
     WorkError error = WorkError::None;
     GroupAux* aux = nullptr;                 // KEYS / capture-safe FLUSH only
 };
@@ -189,6 +191,7 @@ struct SortOptions {
 enum class SortDerefWave : uint8_t { Source, Gather, Resolved };
 
 struct SortDerefRequest {
+    uint8_t ns = 0;
     std::string key;
     std::string field;
     std::string value;
@@ -449,6 +452,9 @@ struct ScatterState : SnapshotCut {
     std::atomic<bool> script_conflict{false};
     std::atomic<uint8_t> direct_ready{0};     // 0=source pending, 1=image ready, 2=terminal
     std::atomic<uint64_t> exact_sum{0};
+    std::atomic<uint32_t> swap_ready_count{0};
+    bool swap_succeeded = false;  // published by swap_done
+    std::atomic<bool> swap_done{false};
     Kind kind = Kind::AllShards;
     FinalReply final_reply = FinalReply::None;
     WorkError final_error = WorkError::None;
@@ -714,6 +720,8 @@ bool classify_keys(Op& op, Kind kind, XshardKeyPlan& keys);
 bool bitop_operation(Slice name, BitOperation& operation);
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id);
+void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
+                            const ScatterState* self = nullptr);
 ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                                        uint32_t owner_thread_id);
 ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, Op& op,
@@ -948,7 +956,7 @@ bool sort_deref_gathering(const ScatterState& state) {
 }
 
 Slice sort_deref_key(const SortDerefRequest& request) {
-    return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()));
+    return Slice(request.key.data(), static_cast<uint32_t>(request.key.size()), request.ns);
 }
 
 // A scatter task runs on the one owner of `group.shard`, and the group's dense range contains only
@@ -1038,7 +1046,8 @@ WorkError prepare_sort_deref(ScatterState& state, Op& op) {
             SortDerefRequest request;
             if (!sort_pattern_key(pattern, element, request.key)) return;
             if (pattern.field.n) request.field.assign(pattern.field.p, pattern.field.n);
-            const Slice key(request.key.data(), static_cast<uint32_t>(request.key.size()));
+            request.ns = op.physical_db;
+            const Slice key(request.key.data(), static_cast<uint32_t>(request.key.size()), request.ns);
             request.hash = FlatStore::hash_key(key);
             request.shard = state.server->router().shard_of(request.hash);
             request.output = output;
@@ -1444,7 +1453,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              command_config_routes_all_shards(op));
     Kind kind;
     if (all_shards)
-        kind = op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
+        kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :
+               op.cmd_name().eq_icase("info") ? Kind::DatabaseInfo :
+               op.cmd_name().eq_icase("swapdb") ? Kind::Swapdb :
+               op.cmd_name().eq_icase("dbsize") ? Kind::DbsizeExact :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("borrowcount")
                    ? Kind::DebugBorrowCount :
                op.cmd_name().eq_icase("debug") && op.arg(1).eq_icase("loadaof")
@@ -1452,6 +1464,23 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                op.cmd_name().eq_icase("debug") ? Kind::DebugReload : Kind::AllShards;
     else if (!(op.spec->flags & CmdFlags::MultiShard) || !classify(op, kind))
         return ScatterPrepare::NotScatter;
+
+    if (kind == Kind::Swapdb && origin_client) {
+        if (!multidb_validate_swap(server, op)) return ScatterPrepare::Error;
+        if constexpr (kSingleDatabase) {
+            reply_ok(op.sink());
+            return ScatterPrepare::Error; // already-built local reply, with no map state
+        }
+        if (!server.database_boundary_begin(*origin_client, owner_io,
+                                            origin_client->rob().dispatch_id()))
+            return ScatterPrepare::Backpressure;
+    }
+
+    if (op.cmd_name().eq_icase("move")) {
+        // Both ordinary dispatch and EXEC already identified this operation's
+        // keys from one map. Never resolve a second map during lowering.
+        if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
+    }
 
     // DEBUG RELOAD/LOADAOF are asynchronous all-owner loads. Publish that fact before any file
     // planning so FLIP refuses instead of entering a quiescence transaction concurrently. A count
@@ -1696,9 +1725,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             if (op.arg(i).eq_icase("replace")) { copy_replace = true; i++; }
             else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {
                 // Three answers, in redis's order: not an integer, outside the int range it
-                // parses into, and only then "out of range" for the database itself. This server
-                // has exactly one database, so every index but 0 lands on the last one -- but a
-                // typo must still be reported as a typo.
+                // parses into, and only then "out of range" for the configured database count.
                 int64_t db = 0;
                 if (!parse_i64(op.arg(i + 1), db)) {
                     reply_err(op.sink(), "ERR value is not an integer or out of range");
@@ -1709,7 +1736,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                                          "-2147483648 and 2147483647");
                     return ScatterPrepare::Error;
                 }
-                if (db != 0) {
+                if (db < 0 || uint64_t(db) >= server.cfg().databases) {
                     reply_err(op.sink(), "ERR DB index is out of range");
                     return ScatterPrepare::Error;
                 }
@@ -1781,7 +1808,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         // off the source's shard.
         const bool sort_deref_group = kind == Kind::Sort && sort_options.deref;
         if (same_owner && !force_atomic && !sort_deref_group && !foreign_external &&
-            kind != Kind::Pfcount && kind != Kind::Pfmerge &&
+            kind != Kind::Pfcount && kind != Kind::Pfmerge && !op.cmd_name().eq_icase("move") &&
             (!(op.spec->flags & CmdFlags::Blocking) || xread_local) &&
             (!xread_kind || xread_local)) {
             op.shard = routes[0].shard;
@@ -1799,7 +1826,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                              (kind == Kind::Sort && sort_options.store)) ? 1u : 0u;
     uint32_t group_cap = 0;
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
+        kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
         group_cap = server.nshards();
     } else if (atomic_write) {
         bool seen[256] = {};
@@ -2004,7 +2032,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
 
     if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys) {
+        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
+        kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -2027,7 +2056,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     // TEST HOOK arming, after the groups exist so a lead shard can be named. Only cross-shard READS
     // arm it: they are the commands whose fragments each answer at their own moment.
-    if (__builtin_expect(state->nsub > 1, false) &&
+    if (__builtin_expect(state->nsub > 1, false) && kind != Kind::DatabaseInfo &&
+        kind != Kind::DebugBorrowCount &&
         !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
         if (__builtin_expect(fanout_defer != 0, false)) {
@@ -2055,6 +2085,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     dispatch.nshards = state->nsub;
     dispatch.barrier = state->barrier;
     dispatch.atomic_write = state->atomic_group;
+    if (kind == Kind::Swapdb && !server.databases().admit_swap(state)) {
+        xshard_abandon_unpublished(state, pool, owner_io);
+        dispatch = {};
+        return ScatterPrepare::Backpressure;
+    }
     return ScatterPrepare::Ready;
 }
 
@@ -2073,6 +2108,8 @@ void xshard_abandon_unpublished(ScatterState* state, ScatterArenaPool& pool,
 }
 
 void xshard_destroy(ScatterState* state, ScatterArenaPool& pool, uint32_t owner_io) {
+    if (state && state->server && state->kind == Kind::Swapdb)
+        state->server->databases().release_swap(state);
     if (!state) return;
     if (__builtin_expect(atomic_tripwire_enabled(), false))
         atomic_tripwire_forget_scope(state);
@@ -2138,7 +2175,8 @@ void xshard_aof_emit(const Task& task, Shard& shard, Op& op, AofOwnerContext& co
     }
     if (state.kind == Kind::AllShards) {
         if (op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall"))
-            (void)shard.store().aof().record_flush();
+            (void)shard.store().aof().record_flush(op.cmd_name().eq_icase("flushdb")
+                ? op.physical_db : -1);
         return;
     }
     if (state.kind == Kind::DebugReload || state.kind == Kind::DebugLoadAof ||
@@ -2622,11 +2660,17 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         (state.script_phase != ScriptPhase::Apply || state.script_resume_post))
         return execute_script_phase(task, shard, op);
     ShardGroup& group = *group_for(state, shard.id());
+    if (shard.store().atomic_has_records() && xshard_owner_mutation_phase(state, op))
+        for (uint32_t i = 0; i < group.count; ++i) {
+            const KeyRef& key = state.keys[state.key_order[group.begin + i]];
+            cancel_applied_scripts(shard.store(), key.hash, op.arg(key.arg), &state);
+        }
     if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
         const void* token = state.multi_parent ? state.multi_parent
             : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
         if (group.count == 0) {
-            if (!shard.watch_all_write_ready()) return ScatterTaskResult::Retry;
+            if (!shard.watch_all_write_ready()) return state.kind == Kind::Swapdb
+                ? ScatterTaskResult::Defer : ScatterTaskResult::Retry;
         } else {
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
@@ -3168,7 +3212,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 // owner-local tombstone cut first so clear() cannot free a protected predecessor.
                 // Allocation happens before the ticket or any relink; OOM retries are deferrable.
                 if ((op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall")) &&
-                    !shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
+                    !shard.store().atomic_tombstone_all(op.cmd_name().eq_icase("flushdb")
+                        ? op.physical_db : -1)) return ScatterTaskResult::Retry;
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
             }
@@ -3212,9 +3257,38 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 state.exact_sum.fetch_add(
                     shard.store().outstanding_borrows(), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
+            case Kind::Swapdb: {
+                if (!group.swap_ready) {
+                    group.swap_ready = true;
+                    state.swap_ready_count.fetch_add(1, std::memory_order_acq_rel);
+                }
+                if (state.swap_ready_count.load(std::memory_order_acquire) != state.nsub)
+                    return ScatterTaskResult::Defer;
+                if (shard.id() == 0 && !state.swap_done.load(std::memory_order_acquire)) {
+                    // Snapshot and map publication share an admission edge. A snapshot keeps
+                    // its captured mapping throughout all owner freeze/mark/capture phases.
+                    std::lock_guard lock(state.server->shape_transition_mutex());
+                    if (state.server->snapshot().in_progress()) return ScatterTaskResult::Defer;
+                    state.swap_succeeded = multidb_commit_swap(*state.server, shard, op);
+                    if (!state.swap_succeeded) group.error = WorkError::Oom;
+                    state.swap_done.store(true, std::memory_order_release);
+                }
+                if (!state.swap_done.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
+                uint8_t first = 0, second = 0;
+                multidb_parse_index(op.arg(1), state.server->cfg().databases, first);
+                multidb_parse_index(op.arg(2), state.server->cfg().databases, second);
+                if (state.swap_succeeded) shard.watch_database_swap(first, second);
+                return ScatterTaskResult::Complete;
+            }
+            case Kind::DatabaseInfo:
+                if (!group.aux) group.aux = new GroupAux;
+                if (!group.aux->database_stats)
+                    group.aux->database_stats = std::make_unique<DatabaseStatsTable>();
+                multidb_stats(shard, *group.aux->database_stats);
+                return ScatterTaskResult::Complete;
             case Kind::DbsizeExact:
                 state.exact_sum.fetch_add(
-                    shard.store().atomic_resolved_size(state.snapshot), std::memory_order_relaxed);
+                    multidb_size(shard, op.physical_db, state.snapshot), std::memory_order_relaxed);
                 return ScatterTaskResult::Complete;
             case Kind::Mget:
                 std::abort(); // handled by the owner-hoisted arm above
@@ -3282,19 +3356,20 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     state.status[pos] = find_value(key.hash, op.arg(key.arg), true) != nullptr;
                 }
                 return ScatterTaskResult::Complete;
+            case Kind::RandomKey:
             case Kind::Keys: {
                 if (!group.aux) group.aux = new GroupAux;
-                const Slice pattern = op.arg(1);
+                const Slice pattern = state.kind == Kind::RandomKey ? Slice("*", 1) : op.arg(1);
                 group.scan_cursor = shard.store().scan(group.scan_cursor, 256, [&](KvObj* object) {
                     const Slice key = object->key();
                     const uint64_t hash = FlatStore::hash_key(key);
-                    if (shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
+                    if (key.ns == op.physical_db && shard.store().atomic_physical_key_visible(hash, key, state.snapshot) &&
                         command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 if (group.scan_cursor) return ScatterTaskResult::Retry;
                 shard.store().atomic_for_each_side_key(state.snapshot, [&](Slice key) {
-                    if (command_glob_match(pattern, key))
+                    if (key.ns == op.physical_db && command_glob_match(pattern, key))
                         group.aux->keys_result.emplace_back(key.p, key.n);
                 });
                 return ScatterTaskResult::Complete;
@@ -3643,8 +3718,18 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
 
             case ScriptPhase::Apply: {
                 WorkError error = state.final_error;
-                const bool failed = script_group_error(state, error) ||
-                                    state.aborted.load(std::memory_order_acquire);
+                bool failed = script_group_error(state, error) ||
+                              state.aborted.load(std::memory_order_acquire);
+                if (!failed) {
+                    uint64_t undecided = 0;
+                    if (!state.epoch.compare_exchange_strong(undecided, state.script_ticket,
+                                                             std::memory_order_acq_rel)) {
+                        if (undecided != kAtomicCancelledEpoch) std::abort();
+                        state.script_conflict.store(true, std::memory_order_release);
+                        state.aborted.store(true, std::memory_order_release);
+                        failed = true;
+                    }
+                }
                 if (failed) {
                     const bool conflict = state.script_conflict.load(std::memory_order_acquire);
                     if (conflict) server.note_script_giveup();
@@ -3668,7 +3753,6 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     return ScatterFinish::Final;
                 }
                 if (!state.script_ticket_live) std::abort();
-                state.epoch.store(state.script_ticket, std::memory_order_release);
                 server.atomic_commit_publish();
                 state.script_ticket_live = false;
                 if (!state.script_certifier) std::abort();

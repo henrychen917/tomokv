@@ -437,6 +437,38 @@ struct NetcmdRegression {
 
 
     static void tracking_eviction() {
+        {
+            // A post-SWAP GET carries a physical namespace, while invalidation
+            // events carry raw key bytes. Exercise the actual membership filter
+            // before either eviction run can populate it with false positives.
+            Server server; server.cfg_.databases = 16;
+            ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+            IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
+            loop.tracking_broadcast_flush();
+            server.climon_set_tracking_io(0, true);
+            Client client(-1); client.set_id(100); client.set_resp3(true);
+            client.set_ifid_thread(0);
+            auto& tracking = loop.climon_conn_get(&client); tracking.tracking_on = true;
+            check(server.databases().swap(0, 1), "tracking map swapped");
+            std::string key;
+            bool armed = false;
+            for (unsigned attempt = 0; attempt < 128; ++attempt) {
+                key = "tracking:namespace:" + std::to_string(attempt);
+                const auto raw = FlatStore::hash_key(Slice(key));
+                const auto stamped = FlatStore::hash_key(Slice(key.data(), key.size(), 1));
+                if ((raw & 63) != (stamped & 63)) { armed = true; break; }
+            }
+            check(armed, "raw and physical identities use distinct filter bits");
+            Op op; args(op, {"GET", key.c_str()}); multidb_stamp(server, op, 0);
+            check(op.key().ns == 1, "tracking read uses post-SWAP physical identity");
+            loop.tracking_register_read(&client, tracking, op);
+            loop.tracking_broadcast_keys({key}, 999);
+            const std::string frame = ">2\r\n$10\r\ninvalidate\r\n*1\r\n$" +
+                std::to_string(key.size()) + "\r\n" + key + "\r\n";
+            check(std::string(client.fill_buf().data(), client.fill_buf().size()) == frame,
+                  "raw invalidation reaches a physically stamped read");
+            check(loop.climon_track_keys_.empty(), "post-SWAP invalidation retires registration");
+        }
         for (bool collide : {false, true}) {
             Server server; server.cfg_.tracking_table_max_keys = 32;
             ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);

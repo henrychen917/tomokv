@@ -70,7 +70,9 @@ XshardElementResult xshard_insert_set_element(Shard& shard, Slice key, uint64_t 
                                               Slice member);
 
 enum class ScatterPrepare : uint8_t { NotScatter, Ready, Backpressure, Error };
-enum class ScatterTaskResult : uint8_t { Complete, Retry };
+// Defer keeps the owner inbox running while an administrative rendezvous waits
+// for other owners. Retry retains the existing ordered, owner-parking retry.
+enum class ScatterTaskResult : uint8_t { Complete, Retry, Defer };
 enum class ScatterFinish : uint8_t { Waiting, Retry, CommitQueued, Final };
 
 // ONE PUBLISHED READ CUT, whoever holds it.  A read that resolves its fragments on several owners

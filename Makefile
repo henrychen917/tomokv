@@ -32,69 +32,78 @@ SRC      += src/cmd/cmdgap.cc
 SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
 SRC      += src/cmd/t_sort.cc
+SRC      += src/cmd/multidb.cc
 LDLIBS   += -lssl -lcrypto
-BIN      := build/tomokv
-OBJ      := $(SRC:%.cc=build/%.o)
+BUILD_ROOT ?= build
+BIN      := $(BUILD_ROOT)/tomokv
+OBJ      := $(SRC:%.cc=$(BUILD_ROOT)/%.o)
+DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
-$(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+$(BIN): $(OBJ) $(DB0_OBJ)
+	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
-build/src/cmd/t_string.o: CXXFLAGS += --param large-unit-insns=10600
+$(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+$(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
-build/src/cmd/l4prebuild.o: src/cmd/t_string.cc
+$(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Retiring the reorder pass changes GCC 13's translation-unit inlining budget. These budgets
 # retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
 # The complete byte audit records the remaining split read-local writeback/Unix exceptions
 # in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-build/src/main.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
-build/src/core/genthread.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
-build/src/core/rl2s.o: CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146170
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
+$(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
-build/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
+# Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
+# The only shared code is third-party Lua; all database state is variant-private.
+$(BUILD_ROOT)/db0/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@
+
+$(BUILD_ROOT)/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) $(wildcard third_party/lua/*) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -c $< -o $@
 
-asan: CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -O1
 asan:
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -I. $(SRC) -o build/tomokv-asan $(LDLIBS) -lm
+	$(MAKE) BUILD_ROOT=build/asan JE=0 CXXFLAGS='$(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -O1' all
+	cp build/asan/tomokv build/tomokv-asan
 
 tsan:
-	@mkdir -p build
-	$(CXX) -std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread \
-	  -I. $(SRC) -o build/tomokv-tsan $(LDLIBS) -lm
+	$(MAKE) BUILD_ROOT=build/tsan JE=0 CXXFLAGS='-std=c++20 -O1 -g -Wall -Wextra -pthread -fsanitize=thread' all
+	cp build/tsan/tomokv build/tomokv-tsan
 
 # The armed-write block cache's ownership laws as assertions: the cache and the QSBR retire ring
 # are owner-private (one thread, no lock), each cached block is resident exactly once, each class
 # list matches its counter, and every shard's retire sink names its CURRENT owner. Debug-only: the
 # residency set and the sampled list walk cost far more than the path they guard. DESIGN-P0REPLY.md.
 rlcachedbg:
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_RL_CACHE_DEBUG -I. $(SRC) \
-	  -o build/tomokv-rlcachedbg $(JELIBS) $(LDLIBS) -lm
+	$(MAKE) BUILD_ROOT=build/rlcachedbg CXXFLAGS='$(CXXFLAGS) -DTOMO_RL_CACHE_DEBUG' all
+	cp build/rlcachedbg/tomokv build/tomokv-rlcachedbg
 
 # NEGATIVE-CONTROL BUILD for the row above: the same assertions with the ownership-edge rebind
 # removed, i.e. the pre-fix behaviour. tests/rlcache_churn.py MUST fail against this binary; a
 # detector that cannot report failure proves nothing about the runs that pass.
 rlcache-nofix:
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_RL_CACHE_DEBUG -DTOMO_RL_CACHE_NO_EAGER_ADOPT -I. $(SRC) \
-	  -o build/tomokv-rlcache-nofix $(JELIBS) $(LDLIBS) -lm
+	$(MAKE) BUILD_ROOT=build/rlcache-nofix CXXFLAGS='$(CXXFLAGS) -DTOMO_RL_CACHE_DEBUG -DTOMO_RL_CACHE_NO_EAGER_ADOPT' all
+	cp build/rlcache-nofix/tomokv build/tomokv-rlcache-nofix
 
 # NEGATIVE-CONTROL BUILD for the cross-owner script reservation sub-wave. Identical to the release
 # build except that ScriptPhase::Pin arms nothing, so tests/xscript.py counterexample MUST fail
 # against it. A detector that cannot report failure proves nothing about the runs that pass.
 noreserve:
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_XSCRIPT_NO_RESERVE -I. $(SRC) \
-	  -o build/tomokv-noreserve $(JELIBS) $(LDLIBS) -lm
+	$(MAKE) BUILD_ROOT=build/noreserve CXXFLAGS='$(CXXFLAGS) -DTOMO_XSCRIPT_NO_RESERVE' all
+	cp build/noreserve/tomokv build/tomokv-noreserve
 
 # Server-less unit binaries: the config parser and the flip controller. `make unit` builds and
 # runs both (neither boots a server). tests/gate.sh's parser row is the same program.
@@ -138,6 +147,19 @@ unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit bui
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o build/src/core/genthread.o,$(OBJ))
+DB0_TEST_OBJ := $(filter-out build/db0/src/main.o build/db0/src/core/genthread.o,$(DB0_OBJ))
+build/multidb-unit: tests/multidb_unit.cc src/cmd/xshard.cc build/db0/tests/multidb_db0_unit.o $(DB0_TEST_OBJ) $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< build/db0/tests/multidb_db0_unit.o $(DB0_TEST_OBJ) $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/multidb-cost-unit: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(DB0_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/multidb-cost-unit-multi: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_COST_NAMESPACED=1 -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/tomokv-multidb2-pad: build/tomokv tools/multidb2_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/multidb2_artifacts.py $< $@ > build/multidb2-pad.json
+build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/multidb_artifacts.py $< $@ > build/multidb-pad.json
 build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 

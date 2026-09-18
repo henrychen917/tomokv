@@ -7,11 +7,30 @@
 namespace tomo {
 namespace {
 
+// Only an explicit conflict with an already-installed script image reaches this
+// arbitration. A writer that wins aborts the undecided activation; a script that
+// wins has published its ticket, so the writer's newest-version clone sees it.
+// Reads continue to resolve immutable predecessors without any retry or wait.
+void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
+                            const ScatterState* self) {
+    store.atomic_visit_key_groups(hash, key, [&](ScatterState& script) {
+        if (&script == self || script.kind != Kind::Script ||
+            script.aborted.load(std::memory_order_acquire)) return;
+        uint64_t undecided = 0;
+        if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                                 std::memory_order_acq_rel)) {
+            script.script_conflict.store(true, std::memory_order_release);
+            script.aborted.store(true, std::memory_order_release);
+        }
+    });
+}
+
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
     // Cleanup is owner-pass work: every caller has already made the pass's single promotion
     // attempt before asking individual keys whether they still need a version.
     FlatStore& store = shard.store();
+    cancel_applied_scripts(store, hash, key);
     const bool had_record = store.atomic_has_record(hash, key);
     // A key reserved by a staged cross-owner script carries no MVCC record of its own, so the
     // record test alone sent this write down the untracked physical path -- it mutated the value
@@ -536,13 +555,14 @@ FlatStore::SnapshotWriteResult xshard_snapshot_prepare(const Task& task, Shard& 
                     if (!group.aux) group.aux = new GroupAux;
                     if (!group.aux->flush_keys_built) {
                         owner.store().for_each([&](KvObj* object) {
-                            group.aux->flush_keys.emplace_back(object->key().p, object->key().n);
+                            if (!op.cmd_name().eq_icase("flushdb") ||
+                                object->key_namespace() == op.physical_db)
+                                group.aux->flush_keys.emplace_back(object->key());
                         });
                         group.aux->flush_keys_built = true;
                     }
                     while (group.snapshot_pos < group.aux->flush_keys.size()) {
-                        const std::string& key = group.aux->flush_keys[group.snapshot_pos];
-                        const Slice slice(key.data(), static_cast<uint32_t>(key.size()));
+                        const Slice slice = group.aux->flush_keys[group.snapshot_pos].slice();
                         const auto result = owner.store().snapshot_prepare_write(
                             FlatStore::hash_key(slice), slice);
                         if (result != FlatStore::SnapshotWriteResult::Ready) return result;
@@ -915,6 +935,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         store.atomic_set_read_context(snapshot, origin_conn_id);
         for (const RecordedKey& item : recorded) {
             if (failure != WorkError::None) break;
+            cancel_applied_scripts(store, item.hash, item.key);
             PreparedLocal next{item};
             KvObj* visible = store.find(item.hash, item.key);
             if (visible) {

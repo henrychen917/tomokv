@@ -23,6 +23,7 @@
 #include "slowlog.h"
 
 #include "command.h"
+#include "multidb.h"
 #include "../base/slice.h"
 #include "../core/config.h"
 #include "../core/thread.h"
@@ -487,7 +488,7 @@ void slowlog_capture(const Op& op, SlowlogCapture& out) {
     // Reserve the last visible slot for the "N more arguments" marker when there is an overflow.
     const uint32_t limit = argc > kSlowlogMaxArgs ? kSlowlogMaxArgs - 1 : argc;
     for (uint32_t i = 0; i < limit; i++) {
-        const Slice arg = op.arg(i);
+        const Slice arg = multidb_display_argument(op, i);
         const uint32_t take = arg.n < kSlowlogMaxArgBytes ? arg.n : kSlowlogMaxArgBytes;
         if (out.used + take > sizeof(out.bytes)) break;
         if (take) std::memcpy(out.bytes + out.used, arg.p, take);

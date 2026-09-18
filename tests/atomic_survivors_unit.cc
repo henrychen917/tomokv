@@ -287,49 +287,61 @@ void watch_cycle(Server& server) {
     require(ar == 0 && br == 0, "reservation references drained");
 }
 
-// Diagnostic for a separate, still-unfixed interval found while reviewing C atomics 6.
-// Deliberately NOT a green gate row: run explicitly as `post_apply_probe`. See FIXES.md.
+// Drive the real final decision in both orders around the first-owner APPLY window.
+// Foreign reads must finish from immutable predecessors while the decision is open.
 void post_apply_probe(Server& server) {
-    const auto x = key_on(server, 0, "post-apply-x"), y = key_on(server, 1, "post-apply-y");
-    require(server.worker_of_shard(0) != server.worker_of_shard(1), "two APPLY owners");
-    require(local(server, {"SET", x, "B"}) == "+OK\r\n" &&
-            local(server, {"SET", y, "B"}) == "+OK\r\n", "seed both APPLY owners");
-    ScatterRun run(server, {"EVAL", "redis.call('APPEND',KEYS[2],'T'); return redis.call('APPEND',KEYS[1],'S')",
-                           "2", x, y});
-    for (unsigned i = 0; i < run.state->nsub; i++) {
-        const int s = run.state->groups[i].shard;
-        require(xshard_execute(Task{&run.client, 0, s, run.state}, server.shard(s), run.request.op,
-                server.worker_of_shard(s)) == ScatterTaskResult::Complete, "PIN ran");
+    for (bool commit_first : {false, true}) {
+        const auto x = key_on(server, 0, commit_first ? "commit-first-x" : "writer-first-x");
+        const auto y = key_on(server, 1, commit_first ? "commit-first-y" : "writer-first-y");
+        require(server.worker_of_shard(0) != server.worker_of_shard(1), "two APPLY owners");
+        require(local(server, {"SET", x, "B"}) == "+OK\r\n" &&
+                local(server, {"SET", y, "B"}) == "+OK\r\n", "seed both APPLY owners");
+        ScatterRun run(server, {"EVAL", "redis.call('APPEND',KEYS[2],'T'); return redis.call('APPEND',KEYS[1],'S')",
+                               "2", x, y});
+        run.phase(ScriptPhase::Pin);
+        run.state->script_cut = server.atomic_snapshot();
+        run.phase(ScriptPhase::Read); run.phase(ScriptPhase::Run);
+        require(server.script_try_certification(), "script certification");
+        run.state->script_certifier = true;
+        run.state->script_ticket = server.atomic_commit_reserve();
+        run.state->script_ticket_live = true;
+        run.phase(ScriptPhase::Validate);
+        require(!run.state->script_conflict.load(), "validation succeeded before either APPLY");
+        run.state->script_apply_after_unpin = true;
+        run.phase(ScriptPhase::Unpin);
+        run.state->script_phase = ScriptPhase::Apply; run.state->phase = 2;
+        const auto count = script_select_positions(*run.state, ScriptPhase::Apply);
+        reset_groups(*run.state); build_groups(*run.state, run.state->hop2, count);
+        initialize_owner_completion(*run.state);
+        require(run.state->nsub == 2, "both owners must install script writes");
+        require(xshard_execute(Task{&run.client, 0, 0, run.state}, server.shard(0), run.request.op,
+                server.worker_of_shard(0)) == ScatterTaskResult::Complete, "first APPLY completed");
+        require(!run.state->epoch.load() && server.shard(0).store().atomic_pending_entries() != 0,
+                "first script image is installed and still undecided");
+        require(local(server, {"GET", x}, 889) == "$1\r\nB\r\n", "foreign read completes without retry in open APPLY window");
+        std::string write_reply;
+        if (!commit_first) write_reply = local(server, {"APPEND", x, "W"}, 888);
+        require(xshard_execute(Task{&run.client, 0, 1, run.state}, server.shard(1), run.request.op,
+                server.worker_of_shard(1)) == ScatterTaskResult::Complete, "second APPLY completed");
+        run.state->pending.store(1);
+        Ring unused_ring;
+        require(xshard_complete_script<false>(server, server.thread(server.worker_of_shard(1)), unused_ring,
+                    Task{&run.client, 0, 1, run.state}, run.request.op, *run.state) == ScatterFinish::Final,
+                "production script final decision");
+        if (commit_first) {
+            write_reply = local(server, {"APPEND", x, "W"}, 888);
+            require(run.request.reply() == ":2\r\n" && write_reply == ":3\r\n" &&
+                    local(server, {"GET", x}) == "$3\r\nBSW\r\n",
+                    "committed script precedes foreign APPEND");
+        } else {
+            require(run.request.reply().starts_with("-TRYAGAIN ") && write_reply == ":2\r\n" &&
+                    local(server, {"GET", x}) == "$2\r\nBW\r\n" &&
+                    local(server, {"GET", y}) == "$1\r\nB\r\n",
+                    "explicit key conflict rejects the whole script, with no lost write or partial success");
+        }
     }
-    run.state->script_cut = server.atomic_snapshot();
-    run.phase(ScriptPhase::Read); run.phase(ScriptPhase::Run);
-    run.state->script_ticket = server.atomic_commit_reserve();
-    run.phase(ScriptPhase::Validate);
-    require(!run.state->script_conflict.load(), "validation succeeded before either APPLY");
-    run.state->script_apply_after_unpin = true;
-    run.phase(ScriptPhase::Unpin);
-    run.state->script_phase = ScriptPhase::Apply; run.state->phase = 2;
-    const auto count = script_select_positions(*run.state, ScriptPhase::Apply);
-    reset_groups(*run.state); build_groups(*run.state, run.state->hop2, count);
-    initialize_owner_completion(*run.state);
-    require(run.state->nsub == 2, "both owners must install script writes");
-    require(xshard_execute(Task{&run.client, 0, 0, run.state}, server.shard(0), run.request.op,
-            server.worker_of_shard(0)) == ScatterTaskResult::Complete, "first APPLY completed");
-    require(!run.state->epoch.load() && server.shard(0).store().atomic_pending_entries() != 0,
-            "first script image is installed and still undecided");
-    const auto write_reply = local(server, {"APPEND", x, "W"}, 888);
-    require(xshard_execute(Task{&run.client, 0, 1, run.state}, server.shard(1), run.request.op,
-            server.worker_of_shard(1)) == ScatterTaskResult::Complete, "second APPLY completed");
-    require(!run.state->aborted.load(), "both owners accepted their images");
-    run.state->epoch.store(run.state->script_ticket, std::memory_order_release);
-    server.atomic_commit_publish();
-    const auto value = local(server, {"GET", x});
-    std::printf("script reply=%sforeign reply=%sfinal x=%s", run.request.reply().c_str(),
-                write_reply.c_str(), value.c_str());
-    require((run.request.reply() == ":2\r\n" && write_reply == ":3\r\n" && value == "$3\r\nBSW\r\n") ||
-            (run.request.reply() == ":3\r\n" && write_reply == ":2\r\n" && value == "$3\r\nBWS\r\n"),
-            "completed APPENDs have a legal serial outcome after first-owner APPLY");
 }
+
 void mset_arity(Server& server) {
     const auto a = key_on(server, 0, "arity-a"), b = key_on(server, 1, "arity-b");
     for (const char* verb : {"MSET", "MSETNX"}) {
@@ -345,7 +357,8 @@ void mset_arity(Server& server) {
 void watch_oom(Server& server) {
     const std::string key(128, 'w');
     unsigned failures = 0; bool saw_rollback = false, reached_success = false;
-    for (int budget = 0; budget < 100; budget++) {
+    const int max_budget = static_cast<int>(server.cfg().databases) * 8 + 64;
+    for (int budget = 0; budget < max_budget; budget++) {
         Client c(-1); c.set_id(505);
         Request watch({"WATCH", key});
         MultiExecState* state = nullptr;
@@ -366,12 +379,22 @@ void watch_oom(Server& server) {
             require(action == MultiIoAction::Dispatch, "WATCH success reached");
             reached_success = true;
         }
-        require(state && state->watched.size() == 1 && state->shards.size() == 1, "retry owns one key");
-        auto& shard = server.shard(state->shards[0]);
-        require(execute_watch_phase(*state, shard), "retry registered owner watcher");
-        shard.watch_write_committed(slice(key));
+        require(state && state->watched.size() == server.cfg().databases,
+                "retry owns every namespace alias of one logical key");
+        std::vector<bool> namespaces(server.cfg().databases, false);
+        for (const auto& alias : state->watched) {
+            require(alias.db == 0 && alias.key == key && alias.ns < namespaces.size() &&
+                    !namespaces[alias.ns], "one exact logical key, no duplicate namespace alias");
+            namespaces[alias.ns] = true;
+        }
+        for (const auto shard_id : state->shards)
+            require(execute_watch_phase(*state, server.shard(shard_id)), "retry registered owner watcher");
+        server.shard(sid(server, key)).watch_write_committed(slice(key));
         require(c.watch_dirty(), "foreign mutation dirties the successfully retried WATCH");
-        shard.watch_remove(slice(key), &c, c.watch_generation());
+        for (const auto& alias : state->watched)
+            server.shard(alias.shard).watch_remove(
+                Slice(alias.key.data(), alias.key.size(), alias.ns), &c, c.watch_generation());
+        require(c.safe_to_release(), "every alias releases its client reference");
         c.multi_session()->pending = nullptr;
         c.multi_session()->watched.clear();
         destroy_multi_state(state);

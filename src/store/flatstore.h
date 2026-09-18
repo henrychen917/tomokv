@@ -1249,7 +1249,7 @@ public:
         if (o->encoding() != Enc::Raw) return OverwriteResult::NotPossible;
         if (o->flags & KvObjFlags::HasTtl) return OverwriteResult::NotPossible;  // SET clears TTL
         if (val.n > kEmbedThreshold) return OverwriteResult::NotPossible;       // becomes Extern
-        const size_t want = kvobj_alloc_size(o->klen(), val.n, false, Enc::Raw);
+        const size_t want = kvobj_alloc_size(o->key().identity(), val.n, false, Enc::Raw);
         if (good_size(want) != kvobj_capacity(o)) return OverwriteResult::NotPossible;
 
         // In-place overwrite is the one mutation that would change bytes without retiring their
@@ -1294,7 +1294,7 @@ public:
         if (__builtin_expect(read_local_enabled_, false) && value.n <= kEmbedThreshold) {
             const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
             const size_t allocation = good_size(
-                kvobj_alloc_size(key.n, value.n, has_ttl_slot, Enc::Raw));
+                kvobj_alloc_size(key.identity(), value.n, has_ttl_slot, Enc::Raw));
             void* memory = read_local_cache_take(allocation);
             if (!memory) {
                 memory = alloc_raw(allocation);
@@ -1316,7 +1316,7 @@ public:
         if (__builtin_expect(read_local_enabled_, false)) {
             const bool has_ttl_slot = reserve_ttl_slot || expire_at_ms >= 0;
             const size_t allocation = good_size(
-                kvobj_alloc_size(key.n, 0, has_ttl_slot, Enc::Int));
+                kvobj_alloc_size(key.identity(), 0, has_ttl_slot, Enc::Int));
             void* memory = read_local_cache_take(allocation);
             if (!memory) {
                 memory = alloc_raw(allocation);
@@ -1899,14 +1899,14 @@ public:
     // mixes for its index, so both must agree and it lives here. Word-at-a-time, because FNV-1a
     // costs one DEPENDENT multiply per byte and a 20-character key is then a 20-long chain.
     static uint64_t hash_key(Slice k) {
-        if (g_hash_kind == HashKind::SipHash12) return siphash12(k.p, k.n);
+        if (g_hash_kind == HashKind::SipHash12) return siphash12(k.p, k.n) ^ (uint64_t{k.ns} * 0x9e3779b97f4a7c15ULL);
         return hash_key_mix(k);
     }
 
     static uint64_t hash_key_mix(Slice k) {
         const uint8_t* p = reinterpret_cast<const uint8_t*>(k.p);
         uint32_t n = k.n;
-        uint64_t h = (0x9e3779b97f4a7c15ULL ^ (static_cast<uint64_t>(n) * 0xff51afd7ed558ccdULL)) ^ g_hash_seed;
+        uint64_t h = (0x9e3779b97f4a7c15ULL ^ (k.identity() * 0xff51afd7ed558ccdULL)) ^ g_hash_seed;
         auto rd8 = [](const uint8_t* q) { uint64_t v; std::memcpy(&v, q, 8); return v; };
         auto rd4 = [](const uint8_t* q) { uint32_t v; std::memcpy(&v, q, 4); return v; };
         while (n >= 8) { h = mix64(h ^ rd8(p)); p += 8; n -= 8; }
@@ -2026,7 +2026,8 @@ private:
         snapshot_put_u32(state.header + 0, kSnapshotRecordTag);
         state.header[4] = object->type;
         state.header[5] = encoding;
-        state.header[6] = state.header[7] = 0;
+        state.header[6] = object->key_namespace();
+        state.header[7] = 0;
         snapshot_put_u32(state.header + 8, object->klen());
         snapshot_put_u32(state.header + 12, 0);
         snapshot_put_u64(state.header + 16, state.value.total);
@@ -2629,7 +2630,7 @@ private:
             // and the compare itself almost never runs (it needs a 15-bit tag match: a real
             // replacement or a collision). Both spellings are exact byte equality over the same
             // bytes, so no path can answer differently; only the inlining policy differs.
-            else if (tag_of_word(w) == tag && cur->key() == key) {
+            else if (tag_of_word(w) == tag && cur->key().key_mem_eq(key)) {
                 if (fresh && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
                 if (fresh) (void)this->track_expire(h, o);
@@ -3075,7 +3076,7 @@ private:
             KvObj* cur = ptr_of(w);
             if (!cur) { if (first_tomb < 0) first_tomb = static_cast<int32_t>(i); }
             // Same measured exception as insert_into: memcmp here, not the inline compare.
-            else if (tag_of_word(w) == tag && cur->key() == key) {
+            else if (tag_of_word(w) == tag && cur->key().key_mem_eq(key)) {
                 if (track_expire && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
                 // An acquiring reader that starts after the retirement stamp must no longer be
@@ -3283,7 +3284,7 @@ private:
                 // read_local_capture_in only run with --read-local 1 in fused mode.
                 // Both spellings are exact byte equality over the same bytes, so no path can
                 // answer differently; only the inlining policy differs.
-                if (object->read_local_key(flags) == key) return object;
+                if (object->read_local_key(flags).key_mem_eq(key)) return object;
             }
             slot = (slot + 1) & table.mask;
         }
@@ -3304,7 +3305,7 @@ private:
             if (object && tag_of_word(word) == tag) {
                 const uint8_t flags = object->read_local_flags();
                 // memcmp, for the reason spelled out in read_local_find_in above.
-                if (object->read_local_key(flags) == key) return object;
+                if (object->read_local_key(flags).key_mem_eq(key)) return object;
             }
             slot = (slot + 1) & table.mask;
         }

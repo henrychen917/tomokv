@@ -251,8 +251,11 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # then removed the 32-row stored-reference loopback tier and added two ABBA rows -- the serverless
 # negative control BEFORE the quick exit (quick +1, full +1) and the mandatory headline result
 # AFTER it (full +1). 418+1 = 419 quick; 467-32+2 = 437 full.
-EXPECT_QUICK=419
-EXPECT_FULL=435                 # ABBA row reports and is not counted; self-test row remains.
+# multidb: +1 serverless owner row and +8 (mode x read-local x atomic) batteries.
+# Both collection sites are above the quick-tier exit: 419+9 / 435+9.
+# multidb2: +1 boundary row, +1 script diagnostic, +8 serial-order rows, all before quick exit.
+EXPECT_QUICK=438
+EXPECT_FULL=454                 # ABBA row reports and is not counted; self-test row remains.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -820,6 +823,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
@@ -967,6 +971,9 @@ start_workers(){
   done
   JOB_NAMES+=(flipctl)
   for atomic in 0 1; do JOB_NAMES+=("feature-split-$atomic" "feature-armed-$atomic"); done
+  for mode in 1s 2s; do
+    for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
+  done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               core_units atomic_units netcmd_units boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
@@ -1288,14 +1295,24 @@ row_begin "storage deadline-sidecar regression"
 }
 
 job_atomic_units(){
-# SURVIVING.md's atomic lane: one build and fifteen named, deterministic defect rows.
-# Counted by line: all sixteen are ABOVE the quick-tier exit, so both tiers gain sixteen.
-# EXPECT_QUICK/EXPECT_FULL are deliberately left to the maintainer (see FIXES-ATOMICS.md).
+row_begin "multidb serverless owners"
+unit_ready multidb-unit && taskset -c "$CORES" ./build/multidb-unit \
+    >"$TMPDIR/multidb-unit.log" 2>&1 \
+    && ok "multidb serverless owners" \
+    || bad "multidb serverless owners" "see $TMPDIR/multidb-unit.log"
+row_begin "multidb global namespace boundary"
+unit_ready multidb-boundary-unit && taskset -c "$CORES" ./build/multidb-boundary-unit \
+    >"$TMPDIR/multidb-boundary-unit.log" 2>&1 \
+    && python3 tests/multidb_serial.py --self-test >>"$TMPDIR/multidb-boundary-unit.log" 2>&1 \
+    && ok "multidb global namespace boundary" \
+    || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
+# SURVIVING.md's atomic lane, plus the post-APPLY diagnostic: one build and sixteen
+# named defect rows. This collection site remains above the quick-tier exit.
 row_begin "atomic survivors unit build"
 unit_ready atomic-survivors-unit \
     && ok "atomic survivors unit build" \
     || bad "atomic survivors unit build" "see $RUN_DIR/jobs/production_units/build.log"
-for defect in admission closure script_keys rename_overlay write_latest script_apply \
+for defect in admission closure script_keys rename_overlay write_latest script_apply post_apply_probe \
               lua_conversion watch_parent watch_cycle mset_arity watch_oom lua_lines \
               library_limit stage_flag instruction_limit; do
   quiet_wait
@@ -2546,13 +2563,37 @@ job_production_units(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
-      build/waits-unit build/rehash-waits-unit >"$TMPDIR/build.log" 2>&1
+      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   return 0
+}
+job_multidb(){
+  local prefix mode read_local atomic label booted=0
+  IFS=- read -r prefix mode read_local atomic <<< "$1"
+  label="multidb ($mode, read-local $read_local, atomic $atomic)"
+  row_begin "$label"
+  local boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --read-local "$read_local" \
+        --databases 16 --enable-debug-command yes --appendonly yes --appendfsync no --save '' && booted=1 &&
+      py tests/multidb.py 127.0.0.1 "$PORT" --read-local "$read_local" --persistence \
+        >"$TMPDIR/multidb.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/multidb.log and $SRVLOG"
+  fi
+  row_begin "$label SWAPDB serial order"
+  if [ "$booted" = 1 ] && py tests/multidb_serial.py 127.0.0.1 "$PORT" \
+        --output "$TMPDIR/multidb-serial-epochs.json" >"$TMPDIR/multidb-serial.log" 2>&1; then
+    ok "$label SWAPDB serial order"
+  else
+    bad "$label SWAPDB serial order" "see $TMPDIR/multidb-serial.log and $SRVLOG"
+  fi
+  stop
 }
 unit_ready(){
   [ -f "$RUN_DIR/unit-ready/$1" ] || {
@@ -2737,6 +2778,14 @@ for FEATURE_CELL in split-home-min fused-home-max-nopin split-shards-auto; do
 done
 
 collect_job abba_selftest
+
+# Eight multidb jobs, two rows each, all before the quick-tier exit. The differential generator
+# joins the two existing full-tier matrix rows and does not add public ledger rows.
+for MD_MODE in 1s 2s; do
+  for MD_RL in 0 1; do for MD_AT in 0 1; do
+    collect_job "multidb-$MD_MODE-$MD_RL-$MD_AT"
+  done; done
+done
 
 # One correctness row, before the quick exit. The open-loop driver needs 16 load
 # cores; use the tail cell's complete placement only after every slot has stopped.

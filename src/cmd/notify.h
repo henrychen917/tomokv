@@ -110,7 +110,7 @@ inline std::string serialize_notify_flags(uint32_t flags) {
 }
 
 enum class NotifyEventId : uint8_t {
-    Set, Expire, Del, Persist, RenameFrom, RenameTo, CopyTo, Restore,
+    Set, Expire, Del, Persist, RenameFrom, RenameTo, MoveFrom, MoveTo, CopyTo, Restore,
     Setrange, Append, Incrby, Incrbyfloat, Setbit, Pfadd,
     Lpush, Rpush, Lpop, Rpop, Linsert, Lset, Lrem, Ltrim, Sortstore,
     Sadd, Srem, Spop, Sinterstore, Sunionstore, Sdiffstore,
@@ -135,6 +135,7 @@ struct NotifyBatch;
 struct NotifyOut {
     uint32_t routes = 0;
     NotifyEventId event = NotifyEventId::Expired;
+    uint8_t db = 0;
     std::string key;
 };
 

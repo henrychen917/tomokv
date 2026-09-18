@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -147,26 +148,55 @@ struct CoreConcurrencyTest {
         Client client(-1);
         f.client(client);
         Op& op = prepare(client, {Slice("WATCH"), slice(key)}, f.server);
+        // Logical WATCH pre-registers each possible physical alias so a later
+        // swap can keep tracking an absent key. Assert the exact shard set.
+        std::set<int32_t> expected;
+        for (unsigned ns = 0; ns < f.server.cfg().databases; ++ns)
+            expected.insert(f.server.router().shard_of(
+                FlatStore::hash_key(Slice(key.data(), key.size(), ns))));
         MultiExecState* state = nullptr;
         require(multi_handle_io(f.server, client, op, f.io_id, state) == MultiIoAction::Dispatch &&
-                    state && multi_dispatch_count(state) == 1, "WATCH owner fragment prepared");
+                    state && multi_dispatch_count(state) == expected.size(), "WATCH owner fragments prepared");
+        std::set<int32_t> actual;
+        for (unsigned i = 0; i < multi_dispatch_count(state); ++i)
+            actual.insert(multi_dispatch_shard(state, i));
+        require(actual == expected, "every physical WATCH alias has its owner");
         op.attach_multi_state(state);
         client.atomic_group_started();
         client.rob().publish();
         multi_dispatch_started(client, state);
-        require(owner.execute(multi_make_task(&client, 0, sid, state)), "WATCH executed");
+        for (int32_t target : actual)
+            require(f.loops[f.server.worker_of_shard(target)].execute(
+                multi_make_task(&client, 0, target, state)), "WATCH alias executed");
+        const auto drain_aliases = [&] {
+            for (unsigned pass = 0; pass < 1000; ++pass) {
+                bool pending = false;
+                for (auto tid : f.server.placement().ex_threads()) {
+                    f.loops[tid].service_multi_retries();
+                    pending |= !f.loops[tid].multi_retries_.empty();
+                }
+                if (!pending) return;
+            }
+            require(false, "WATCH alias barriers failed to drain");
+        };
+        drain_aliases();
         std::vector<MultiExecState*> deferred;
         require(client.rob().drain([&](Op& done) { multi_retire(client, done, deferred); }) == 1,
                 "WATCH replied successfully");
         require(deferred.empty() && f.server.shard(sid).has_watches(), "WATCH registration exists");
         require(!client.safe_to_release(), "watcher reference pins disconnected client");
         state = multi_prepare_close(f.server, client, f.io_id);
-        require(state && multi_dispatch_count(state) == 1, "disconnect cleanup prepared");
+        require(state && multi_dispatch_count(state) == expected.size(), "disconnect cleanup prepared");
         multi_internal_dispatch_started(state);
-        const Task cleanup = multi_make_task(nullptr, UINT64_MAX, sid, state);
-        require(multi_task_tagged(cleanup) && cleanup.client == nullptr, "null tagged task armed");
-        require(owner.execute(cleanup), "null tagged cleanup executed");
-        require(!f.server.shard(sid).has_watches() && client.safe_to_release(),
+        for (int32_t target : actual) {
+            const Task cleanup = multi_make_task(nullptr, UINT64_MAX, target, state);
+            require(multi_task_tagged(cleanup) && cleanup.client == nullptr, "null tagged task armed");
+            require(f.loops[f.server.worker_of_shard(target)].execute(cleanup), "null tagged cleanup executed");
+        }
+        drain_aliases();
+        for (int32_t target : actual)
+            require(!f.server.shard(target).has_watches(), "cleanup removed physical alias");
+        require(client.safe_to_release(),
                 "cleanup removed watcher and released client");
     }
 

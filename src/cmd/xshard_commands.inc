@@ -290,7 +290,7 @@ bool classify(const Op& op, Kind& kind) {
         {"UNLINK", Kind::Unlink}, {"EXISTS", Kind::Exists}, {"TOUCH", Kind::Touch},
         {"KEYS", Kind::Keys}, {"PFCOUNT", Kind::Pfcount}, {"MSETNX", Kind::Msetnx},
         {"PFMERGE", Kind::Pfmerge}, {"RENAME", Kind::Rename},
-        {"RENAMENX", Kind::Renamenx}, {"COPY", Kind::Copy}, {"SMOVE", Kind::Smove},
+        {"MOVE", Kind::Renamenx}, {"RENAMENX", Kind::Renamenx}, {"COPY", Kind::Copy}, {"SMOVE", Kind::Smove},
         {"LMOVE", Kind::Lmove}, {"BLMOVE", Kind::Lmove},
         {"RPOPLPUSH", Kind::Rpoplpush}, {"BRPOPLPUSH", Kind::Rpoplpush},
         {"SINTER", Kind::Sinter}, {"SUNION", Kind::Sunion}, {"SDIFF", Kind::Sdiff},
@@ -347,6 +347,9 @@ bool classify_keys(const Op& op, Kind kind, const XshardKeyHints& hints,
         case Kind::DebugLoadAof:
         case Kind::DebugBorrowCount:
         case Kind::DbsizeExact:
+        case Kind::RandomKey:
+        case Kind::DatabaseInfo:
+        case Kind::Swapdb:
         case Kind::Keys:
             return true;
         case Kind::Mget:
@@ -896,7 +899,7 @@ void sort_reply_rows(Op& op, const std::vector<std::string>& values,
 
 bool same_key(const Op& op) {
     const Slice a = op.arg(1), b = op.arg(2);
-    return a.n == b.n && (a.n == 0 || std::memcmp(a.p, b.p, a.n) == 0);
+    return a.key_mem_eq(b);
 }
 
 bool image_type(const ObjectImage& image, Type type) {
@@ -1280,7 +1283,10 @@ bool finish_phase1(ScatterState& state, Op& op) {
         case Kind::Rename:
         case Kind::Renamenx: {
             const ObjectImage& source = state.images[0];
-            if (!source.present) { state.final_reply = FinalReply::NoSuchKey; return true; }
+            if (!source.present) {
+                state.final_reply = op.cmd_name().eq_icase("move") ? FinalReply::Integer : FinalReply::NoSuchKey;
+                state.final_integer = 0; return true;
+            }
             if (same_key(op)) {
                 state.final_reply = state.kind == Kind::Rename ? FinalReply::Ok : FinalReply::Integer;
                 state.final_integer = 0;
@@ -1893,10 +1899,35 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
             reply_int(op.sink(), static_cast<long long>(count));
             break;
         }
+        case Kind::Swapdb:
+            reply_ok(op.sink());
+            break;
+        case Kind::DatabaseInfo: {
+            DatabaseStatsTable stats{};
+            for (uint32_t i = 0; i < state.nsub; ++i) if (state.groups[i].aux)
+                for (unsigned db = 0; db < stats.size(); ++db) {
+                    const auto& row = (*state.groups[i].aux->database_stats)[db];
+                    stats[db].keys += row.keys; stats[db].expires += row.expires;
+                    stats[db].ttl += row.ttl;
+                }
+            command_info_with_databases(*state.server, op, stats);
+            break;
+        }
+        case Kind::RandomKey:
         case Kind::Keys: {
             uint64_t count = 0;
             for (uint32_t i = 0; i < state.nsub; i++)
                 if (state.groups[i].aux) count += state.groups[i].aux->keys_result.size();
+            if (state.kind == Kind::RandomKey) {
+                if (!count) { reply_null(op.sink(), op.resp3()); break; }
+                uint64_t selected = multidb_random(count);
+                for (uint32_t i = 0; i < state.nsub; ++i) if (state.groups[i].aux) {
+                    const auto& keys = state.groups[i].aux->keys_result;
+                    if (selected < keys.size()) { reply_bulk(op.sink(), Slice(keys[selected])); break; }
+                    selected -= keys.size();
+                }
+                break;
+            }
             reply_array_header(op.sink(), count);
             for (uint32_t i = 0; i < state.nsub; i++)
                 if (state.groups[i].aux)
@@ -2343,7 +2374,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             reply_bulk(op.sink(), Slice(moved.data(), static_cast<uint32_t>(moved.size())));
             const Slice destination = op.arg(2);
             blocking_publish_key(shard, FlatStore::hash_key(destination),
-                                 destination.p, destination.n);
+                                 destination.p, destination.n, destination.ns);
         }
         return;
     }
