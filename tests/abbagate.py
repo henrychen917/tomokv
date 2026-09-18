@@ -2152,6 +2152,195 @@ def self_test():
             self.quiet_factory = patcher.start()
             self.addCleanup(patcher.stop)
 
+        def pin_fixture(self, lower=1, trials=()):
+            serial = 0
+            def samples(n, rates):
+                nonlocal serial
+                result = []
+                for values in rates:
+                    serial += 1
+                    result.append(dict(instances=n, order=list(ORDER), rates=values,
+                        busy_pct=[99.] * 4, saturation_pct=[99.] * 4, report_sha256=f"{serial:064x}"))
+                return result
+            return dict(schema=1, method=PIN_METHOD, rate_instances=lower,
+                confirmation_instances=LADDER[LADDER.index(lower) + 1], ladder=list(LADDER),
+                binary_sha256="a" * 64, limits=None, selected_instances=None,
+                noise=samples(16, [[100, 103, 99, 100], [100, 99, 103, 100]]),
+                trials=[dict(instances=n, samples=samples(n, rates)) for n, rates in trials])
+
+        def test_variance_pin_noisy_cell_escalates_even_when_rate_is_flat(self):
+            quiet = [100, 100.2, 100.4, 100]
+            biased = [100, 92.4, 92.4, 100]
+            scattered = [100, 103, 97, 100]  # zero paired delta, 6% B spread
+            evidence = self.pin_fixture(trials=[(1, [quiet, biased]), (2, [scattered] * 2),
+                                               (4, [biased] * 2), (8, [quiet] * 2)])
+            result = select_variance_pin(evidence)
+            self.assertEqual((result["status"], result["selected_instances"]), ("PIN", 8))
+            self.assertEqual([r["passed"] for r in result["tested_rungs"]], [False, False, False, True])
+            self.assertEqual(result["limits"]["absolute_delta_pct"], 1.)
+            self.assertAlmostEqual(result["limits"]["arm_spread_pct"], 400 / 101)
+
+        def test_variance_pin_quiet_cell_keeps_its_saturation_rung(self):
+            evidence = self.pin_fixture(lower=4, trials=[(4, [[100, 100, 100, 100]] * 2)])
+            self.assertEqual(select_variance_pin(evidence)["selected_instances"], 4)
+
+        def test_variance_pin_exhaustion_does_not_award_the_ceiling(self):
+            evidence = self.pin_fixture(trials=[(n, [[100, 108, 108, 100]] * 2) for n in LADDER])
+            result = select_variance_pin(evidence)
+            self.assertEqual((result["status"], result["selected_instances"]), ("EXHAUSTED", None))
+
+        def test_variance_pin_bounds_are_frozen_and_pilots_cannot_raise_paired_ceiling(self):
+            evidence = self.pin_fixture(trials=[(1, [[100, 100, 100, 100]] * 2)])
+            before = select_variance_pin(evidence)["limits"]
+            evidence["trials"][0]["samples"][0]["rates"] = [100, 1000, 1, 100]
+            result = select_variance_pin(evidence)
+            self.assertEqual(result["limits"], before)
+            self.assertIsNone(result["selected_instances"])
+            for pilot in evidence["noise"]:
+                pilot["rates"] = [100, 110, 110, 100]
+            self.assertEqual(select_variance_pin(evidence)["limits"]["absolute_delta_pct"], MAX_SPREAD)
+
+        def test_variance_pin_rejects_missing_reused_skipped_and_unsaturated_evidence(self):
+            import copy
+            evidence = self.pin_fixture(trials=[(1, [[100, 100, 100, 100]] * 2)])
+            for mutate in (
+                    lambda v: v["noise"].pop(),
+                    lambda v: v["trials"][0]["samples"].pop(),
+                    lambda v: v["trials"][0].update(instances=2),
+                    lambda v: v["trials"][0]["samples"][0].update(report_sha256=v["noise"][0]["report_sha256"]),
+                    lambda v: v["trials"][0]["samples"][0].update(saturation_pct=[50.] * 4),
+                    lambda v: v["noise"][0].update(rates=[float("nan")] * 4),
+                    lambda v: v["noise"][0].update(order=["A", "A", "B", "B"]),
+                    lambda v: v.update(rate_instances=8),
+                    lambda v: v.update(note="hand edit"),
+                    lambda v: v["trials"].append(copy.deepcopy(v["trials"][0]))):
+                broken = copy.deepcopy(evidence)
+                mutate(broken)
+                with self.assertRaises(ValueError):
+                    select_variance_pin(broken)
+
+        def test_pin_dispatch_uses_identical_arms_and_the_validated_atomic_writer(self):
+            import copy
+            import gate_measurements as ledger
+            from types import SimpleNamespace
+            fingerprint = instrument_fingerprint(ROOT)
+            epoch, ticks = 1_789_000_000., [0.]
+            original_gmtime = time.gmtime
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as temporary:
+                directory = Path(temporary)
+                binary, source, config = (directory / name for name in ("binary", "cells", "config.json"))
+                binary.write_bytes(b"unit fixture, must never execute")
+                binary.chmod(0o700)
+                source.write_text("pin-cell | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | -\n")
+                config.write_text(json.dumps(ledger.load()))
+                cell = read_cells(source)[0]
+                argv = ["abbagate.py", "--pin", "--only", cell.id, "--candidate", str(binary),
+                        "--cells", str(source), "--output", str(directory / "pin"), "--memtier", sys.executable,
+                        "--server-cores", "0-31", "--server-smt", "", "--load-cores", "32-111", "--load-smt", ""]
+                with mock.patch.object(sys, "argv", argv), mock.patch.dict(os.environ, {}, clear=True):
+                    args = parse_args()
+                placement = dict(server_physical=list(range(32)), server_smt=[],
+                    load_physical=list(range(32, 112)), load_smt=[], split_ratio="16:16")
+                environment = dict(**placement, server_cpus=list(range(32)), load_cpus=list(range(32, 112)),
+                    load_instance_ceiling=16, port=8700, permitted_ports=[8700, 8700], keys=KEYS,
+                    data_bytes=64, key_pattern="P:P", atomic="per-cell", split_flip_auto=0,
+                    uname=list(os.uname()), python_runtime=fingerprint["python"],
+                    memtier_sha256=sha256(Path(sys.executable).resolve()), memtier_version="unit",
+                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"})
+
+                def calibrate(options):
+                    rounds = []
+                    for i, n in enumerate((1, 2), 1):
+                        rounds.append(dict(instances=n, runs=[dict(arm="B", rate=100., latency_ms=1.,
+                            busy_pct=99., commands=1000, complete=True, instances=n, pid=123,
+                            artifacts=f"{cell.id}/n{n}-{i}-B", window_seconds=10., midpoint_monotonic=6.,
+                            calibration_only=True, population_reused=i > 1,
+                            load_layout=load_layout(environment["load_cpus"], n, cell.conns),
+                            saturation=saturation_record(window_seconds=10))]))
+                    report = dict(schema=1, run_kind="load-calibration", verdict="PIN", complete=True,
+                        measurement_valid=False, normal_gate_eligible=False, comparison_trusted=False,
+                        order=["B"], window_seconds=10, elapsed_seconds=30,
+                        started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", original_gmtime(epoch)),
+                        instrument_fingerprint=fingerprint, candidate={"sha256": sha256(options.candidate)},
+                        cell_source=dict(path=str(source.resolve()), text=source.read_text(),
+                            sha256=sha256(source), total_cells=1), environment=environment,
+                        coverage=dict(ids=[cell.id], count=1), cells=[dict(cell=asdict(cell), status="PIN", rounds=rounds)],
+                        quiet_box=quiet_record(cpus=range(112), started_at=epoch, finished_at=epoch + 30,
+                                               samples=31, window_seconds=10))
+                    options.output.mkdir()
+                    (options.output / "results.json").write_text(json.dumps(report))
+                    ticks[0] = 30.
+                    return 3
+
+                class Quiet:
+                    def __init__(self, *args, **kwargs): self.started = ticks[0]
+                    def start(self): pass
+                    def check(self): pass
+                    def evidence(self):
+                        return quiet_record(cpus=range(112), started_at=epoch + self.started,
+                            finished_at=epoch + ticks[0], samples=int(ticks[0] - self.started) + 1)
+                    def close(self): return self.evidence()
+
+                calls = []
+                def measure(runner, measured_cell, arm, sequence, instances, knobs):
+                    self.assertEqual(runner.binaries["A"].read_bytes(), runner.binaries["B"].read_bytes())
+                    calls.append((instances, arm))
+                    ticks[0] += 20.
+                    pilot = runner.out.name.startswith("noise")
+                    rates = [100, 103, 99, 100] if pilot else (
+                        [100, 94, 94, 100] if instances < 8 else [100, 100.2, 100.4, 100])
+                    return dict(arm=arm, rate=rates[sequence - 1], busy_pct=99., latency_ms=1.,
+                        commands=2000, complete=True, instances=instances, pid=1000 + len(calls),
+                        artifacts=f"{cell.id}/n{instances}-{sequence}-{arm}", window_seconds=20.,
+                        midpoint_monotonic=11., saturation=saturation_record(),
+                        load_layout=load_layout(environment["load_cpus"], instances, cell.conns))
+
+                original_writer = ledger.write_calibration
+                with mock.patch("load_calibration.main", side_effect=calibrate), \
+                     mock.patch.object(Runner, "measure", measure), \
+                     mock.patch(__name__ + ".QuietMonitor", Quiet), \
+                     mock.patch(__name__ + ".accepted", return_value=True), \
+                     mock.patch(__name__ + ".check_placement"), \
+                     mock.patch(__name__ + ".git", return_value="unit"), \
+                     mock.patch(__name__ + ".capture", return_value=SimpleNamespace(stdout="unit")), \
+                     mock.patch(__name__ + ".harness_fingerprint", return_value={"sha256": "f" * 64}), \
+                     mock.patch(__name__ + ".instrument_fingerprint", return_value=fingerprint), \
+                     mock.patch.object(os, "sched_setaffinity"), \
+                     mock.patch.object(subprocess, "Popen", side_effect=AssertionError("unit test started a process")), \
+                     mock.patch.object(time, "time", side_effect=lambda: epoch + ticks[0]), \
+                     mock.patch.object(time, "monotonic", side_effect=lambda: ticks[0]), \
+                     mock.patch.object(time, "gmtime", side_effect=lambda seconds=None:
+                         original_gmtime(epoch + ticks[0] if seconds is None else seconds)), \
+                     mock.patch.object(ledger, "write_calibration", side_effect=lambda path, cells:
+                         original_writer(path, cells, config)) as writer, \
+                     mock.patch.dict(os.environ, {}, clear=True), \
+                     contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    rc = main(args)
+                report_path = directory / "pin/results.json"
+                report = read_json(report_path)
+                self.assertEqual(rc, 3, report)
+                writer.assert_called_once()
+                self.assertEqual(calls, [(n, arm) for n in (16, 16, 1, 1, 2, 2, 4, 4, 8, 8) for arm in ORDER])
+                saved = ledger.load(config)
+                floor = saved["load_floors"][cell.id]
+                self.assertEqual((floor["instances"], floor["variance_pin"]["rate_instances"]), (8, 1))
+                self.assertEqual(floor["observed_rate"]["order"], list(ORDER))
+                before = config.read_bytes()
+                # Replay fails closed even when the serialized PIN was left green.
+                for mutate in (
+                        lambda r: r["cells"][0]["pin"].update(selected_instances=16),
+                        lambda r: r["cells"][0]["trials"].pop(0),
+                        lambda r: r["cells"][0]["noise_reports"][0]["candidate"].update(sha256="b" * 64),
+                        lambda r: r["cells"][0]["trials"][0]["reports"][0]["cells"][0]["rounds"][0]["runs"][0].update(complete=False),
+                        lambda r: r["cells"][0]["trials"][0]["reports"][0]["quiet_box"].update(complete=False),
+                        lambda r: r["rate_calibration"]["cells"][0]["rounds"].pop()):
+                    broken = copy.deepcopy(report)
+                    mutate(broken)
+                    report_path.write_text(json.dumps(broken))
+                    with self.assertRaises(ValueError):
+                        original_writer(report_path, [cell], config)
+                    self.assertEqual(config.read_bytes(), before)
+
         def test_full_coverage_preserves_original_axes_and_restores_multikey(self):
             from itertools import product
             cells = read_cells(ROOT / "tests/headline_cells.txt")

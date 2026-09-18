@@ -474,6 +474,40 @@ def self_test():
                 with self.assertRaisesRegex(ValueError, "digest mismatch"):
                     configured_reference(commit, self.config)
 
+        def test_variance_pin_schema_rejects_hand_edited_count_limits_and_evidence(self):
+            from abbagate import PIN_METHOD, ORDER, LADDER, select_variance_pin
+            def sample(n, sequence, rates):
+                return dict(instances=n, order=list(ORDER), rates=rates, busy_pct=[99.] * 4,
+                            saturation_pct=[99.] * 4, report_sha256=f"{sequence:064x}")
+            evidence = dict(schema=1, method=PIN_METHOD, rate_instances=1, confirmation_instances=2,
+                binary_sha256="a" * 64, ladder=list(LADDER), limits=None, selected_instances=None,
+                noise=[sample(16, 1, [100, 103, 99, 100]), sample(16, 2, [100, 99, 103, 100])],
+                trials=[dict(instances=1, samples=[sample(1, i, [100] * 4) for i in (3, 4)])])
+            result = select_variance_pin(evidence)
+            evidence.update(limits=result["limits"], selected_instances=result["selected_instances"])
+            floor = self.config["load_floors"]["unit"]
+            floor.update(instances=1, variance_pin=evidence,
+                         observed_busy=dict(unit="percent", order=list(ORDER), values=[99.] * 4))
+            floor["provenance"]["how"] = "abbagate --pin; synthetic unit witness"
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "config.json"
+                path.write_text(json.dumps(self.config))
+                self.assertEqual(load(path), self.config)
+                for mutate in (
+                        lambda f: f.update(instances=8),
+                        lambda f: f.update(note="instances 1 -> 8"),
+                        lambda f: f.pop("variance_pin"),
+                        lambda f: f["variance_pin"].update(selected_instances=8),
+                        lambda f: f["variance_pin"]["limits"].update(absolute_delta_pct=20),
+                        lambda f: f["variance_pin"]["trials"].clear(),
+                        lambda f: f["variance_pin"]["trials"][0]["samples"].pop(),
+                        lambda f: f["observed_rate"]["values"].__setitem__(1, 500)):
+                    broken = copy.deepcopy(self.config)
+                    mutate(broken["load_floors"]["unit"])
+                    path.write_text(json.dumps(broken))
+                    with self.assertRaises(ValueError):
+                        load(path)
+
         def test_fast_calibration_import_is_pin_only_and_replays_every_rung(self):
             from abbagate import Cell, load_layout
             from abba_evidence import validate_measurements
