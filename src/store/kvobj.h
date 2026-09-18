@@ -54,7 +54,7 @@ struct KvObjFlags {
     // Physical layout bit: an eight-byte deadline slot follows klen_ext.  PERSIST writes -1 into
     // that slot; logical volatility is KvObj::has_ttl(), not this bit alone.
     static constexpr uint8_t HasTtl = 1u << 0;
-    static constexpr uint8_t KeyExt = 1u << 1;   // klen did not fit in 8 bits; u32 follows the hdr
+    static constexpr uint8_t KeyExt = 1u << 1;   // long key or nonzero namespace; u32 length follows hdr
     // Re-headering a collection moves this ownership bit to the replacement before FlatStore
     // retires the old header. Both headers briefly name the pointer; exactly one may destroy it.
     static constexpr uint8_t OwnsExtern = 1u << 2;
@@ -724,6 +724,35 @@ inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has
         case Enc::Raw:    n += vlen; break;
     }
     return n;
+}
+
+// Initialize the complete positional header before any TTL/key/value pointer is decoded.
+// KeyExt is determined by identity, not length: a short namespaced key also needs
+// klen_ext, with namespace-1 in klen8 (255 denotes namespace zero for long keys).
+// A private replacement may reuse the known-valid DB-0 header bytes. This keeps
+// that boot variant's existing code generation while sharing the extended-length write.
+__attribute__((always_inline))
+inline void kvobj_init_header(KvObj* object, Slice key, uint8_t type, uint8_t enc,
+                               uint32_t length, bool has_ttl_slot, uint8_t extra_flags = 0,
+                               const KvObj* source = nullptr) {
+    object->type = type;
+    object->enc = enc;
+    if (kSingleDatabase && source) {
+        object->flags = static_cast<uint8_t>(
+            (source->flags & ~KvObjFlags::HasTtl) | (has_ttl_slot ? KvObjFlags::HasTtl : 0));
+        object->klen8 = source->klen8;
+    } else {
+        if (source) extra_flags = source->flags & ~(KvObjFlags::HasTtl | KvObjFlags::KeyExt);
+        object->flags = static_cast<uint8_t>((has_ttl_slot ? KvObjFlags::HasTtl : 0) |
+            (key.identity() >= 255 ? KvObjFlags::KeyExt : 0) | extra_flags);
+        object->klen8 = static_cast<uint8_t>(key.identity() >= 255 ?
+            static_cast<uint8_t>(key.ns - 1) : key.n);
+    }
+    object->init_nonraw_length(length);
+    if (key.identity() >= 255) {
+        const uint32_t key_length = key.n;
+        std::memcpy(object->tail(), &key_length, sizeof(key_length));
+    }
 }
 
 inline uint32_t kvobj_read_local_raw_length(const KvObj* object) {
