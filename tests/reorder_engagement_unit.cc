@@ -300,17 +300,19 @@ struct CoreConcurrencyTest {
         CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
         short_op.handler = short_op.handler_notify = record;
         long_op.handler = long_op.handler_notify = record;
-        std::array<Client, 4> clients{Client(-1), Client(-1), Client(-1), Client(-1)};
+        constexpr uint32_t count = 2 * kGenthreadExBatchOps;
+        std::vector<std::unique_ptr<Client>> clients;
+        for (uint32_t i = 0; i < count; ++i) clients.push_back(std::make_unique<Client>(-1));
         for (uint32_t i = 0; i < clients.size(); ++i) {
-            f.client(clients[i], i + 1);
-            Task task = f.prepare(clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
-            auto& op = clients[i].rob().at(task.op_id);
+            f.client(*clients[i], i + 1);
+            Task task = f.prepare(*clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
+            auto& op = clients[i]->rob().at(task.op_id);
             op.spec = i ? &short_op : &long_op;
             op.hash = i;
             require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO queue setup");
         }
         const auto sample = r7::InboxProbe::sample(*f.loop.self_);
-        require(sample.depth == 4 && sample.shorts == 3 && sample.longs == 1 && sample.behind == 3,
+        require(sample.depth == count && sample.shorts == count - 1 && sample.longs == 1 && sample.behind == count - 1,
                 "AUTO owner probe did not observe the actual queued HOL window");
         require(!r7::priority_enabled(stats, -1), "AUTO engaged without a sampled window");
         for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) {
@@ -322,25 +324,30 @@ struct CoreConcurrencyTest {
                     ((stats.reorder_auto.load() >> 1) & 0x7fffffff) == 1,
                 "production AUTO did not engage");
         observed.clear();
-        require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>{1,2,3,0},
+        std::vector<uint64_t> priority;
+        for (uint32_t i = 1; i < count; ++i) priority.push_back(i);
+        priority.push_back(0);
+        require(f.loop.r7_drain_tasks<>(true) == count && observed == priority,
                 "AUTO engagement did not select the actual shadow scheduler");
         scope.policy.tick(*f.loop.self_, stats);
         require(!r7::priority_enabled(stats, -1) && !(stats.reorder_auto.load() & 1),
                 "empty owner inbox did not disengage AUTO");
-        for (auto& c : clients) require(c.rob().drain([](Op&) {}) == 1, "AUTO reply retirement");
+        for (auto& c : clients) require(c->rob().drain([](Op&) {}) == 1, "AUTO reply retirement");
         // Re-arm the same real mixed queue while the policy is disarmed. Before another
         // sampled window the wrapper MUST delegate to the unchanged FIFO drain.
         for (uint32_t i = 0; i < clients.size(); ++i) {
-            Task task = f.prepare(clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
-            auto& op = clients[i].rob().at(task.op_id);
+            Task task = f.prepare(*clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
+            auto& op = clients[i]->rob().at(task.op_id);
             op.spec = i ? &short_op : &long_op;
             op.hash = i;
             require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO disarmed queue");
         }
         observed.clear();
-        require(f.loop.r7_drain_tasks<>(true) == 4 && observed == std::vector<uint64_t>{0,1,2,3},
+        std::vector<uint64_t> fifo;
+        for (uint32_t i = 0; i < count; ++i) fifo.push_back(i);
+        require(f.loop.r7_drain_tasks<>(true) == count && observed == fifo,
                 "AUTO disarmed path retained reordering");
-        for (auto& c : clients) require(c.rob().drain([](Op&) {}) == 1, "AUTO FIFO retirement");
+        for (auto& c : clients) require(c->rob().drain([](Op&) {}) == 1, "AUTO FIFO retirement");
         std::puts("PASS production AUTO probe, existing tick, priority engagement and FIFO disengagement");
     }
 

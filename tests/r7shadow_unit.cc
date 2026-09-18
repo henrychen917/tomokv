@@ -210,6 +210,27 @@ void all_barriers() {
 }
 
 void automatic_policy() {
+    // Fresh windows make the occupancy guard decisive: mean depth and both HOL
+    // conditions hold at every rung. A never-engaging policy also fails at 2x.
+    constexpr uint32_t B = kGenthreadExBatchOps;
+    for (uint32_t depth : {B / 2, B, 2 * B}) {
+        AutoPolicy occupancy;
+        for (uint32_t tick = 0; tick < B; ++tick) {
+            const bool active = occupancy.observe({depth, depth - 1, 1, depth - 1});
+            require(active == (depth > B && tick + 1 == B),
+                    "AUTO occupancy floor/warmup failed at 0.5x/1x/2x gather");
+        }
+        require(occupancy.depth_threshold() == depth, "occupancy fixture did not learn its own depth");
+        for (uint32_t tick = 0; tick < B; ++tick) occupancy.observe({2 * B, 2 * B - 1, 1, 2 * B - 1});
+        require(occupancy.engaged(), "occupancy fixture failed to re-arm at 2x gather");
+        require(occupancy.observe({depth, depth - 1, 1, depth - 1}) == (depth > B),
+                "AUTO retained priority at or below one gather");
+        // The moving mean must not eventually re-engage shallow steady queues.
+        for (uint32_t tick = 0; tick < 2 * B; ++tick)
+            require(occupancy.observe({depth, depth - 1, 1, depth - 1}) == (depth > B),
+                    "AUTO shallow queue re-engaged after the mean decayed");
+    }
+    std::puts("PASS AUTO occupancy 0.5x/1x/2x: warmup, engage, immediate release, steady shallow off");
     AutoPolicy policy;
     require(!policy.engaged(), "AUTO must begin disarmed");
     for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)

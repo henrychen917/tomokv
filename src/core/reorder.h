@@ -167,7 +167,10 @@ struct InboxProbe {
 // Thresholds are observations, not a core count, rate, time budget or tuned mix:
 // (1) current depth must reach the window's mean depth; (2) displaced short heads
 // must outnumber Longs over the window; (3) the current sample must still witness
-// a short head behind a Long. A missing witness disengages on this very tick.
+// a short head behind a Long. Additionally, depth must exceed one whole fused
+// gather: a shallow steady queue must not teach itself an arbitrarily low floor.
+// Fused priority uses the coarse kGenthreadExBatchOps gather (also with overlap).
+// Any missing condition disengages on this very tick; no rate/mix knob is added.
 class AutoPolicy {
     static constexpr uint32_t Window = kGenthreadExBatchOps;
     QueueSample window_[Window]{};
@@ -189,6 +192,7 @@ public:
         next_ = (next_ + 1) % Window;
         samples_ = std::min(samples_ + 1, Window);
         engaged_ = samples_ == Window && sample.behind &&
+                   sample.depth > kGenthreadExBatchOps &&
                    sample.depth >= depth_threshold() && behind_ > longs_;
         return engaged_;
     }
