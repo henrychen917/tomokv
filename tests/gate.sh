@@ -2496,11 +2496,10 @@ fi
 # One compile mode across every TU also gives inline test hooks identical definitions everywhere.
 # These builds own no ledger row: the existing seven core rows and waits row require both runs.
 job_core_tsan_build(){
-  local source sources=()
+  # Match the core unit's Makefile dependencies: reorder's fused boot selector
+  # references run_fused_server in genthread.cc even in this serverless binary.
+  local sources=(src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc)
   mkdir -p "$RUN_DIR/unit-ready"
-  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
-    [ "$source" = src/core/genthread.cc ] || sources+=("$source")
-  done
   pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "$CORE_TSAN" \
       "$PWD/build/gate-cache/obj-core-tsan" \
       '-std=c++20 -O1 -g -march=native -pthread -fsanitize=thread -fno-omit-frame-pointer -no-pie -DTOMO_CORE_CONCURRENCY_TEST -I.' \
