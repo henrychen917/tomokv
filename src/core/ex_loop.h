@@ -3139,6 +3139,38 @@ private:
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
+public:
+    // R7 bodies are isolated from the FIFO translation units.
+// BEGIN R7 GENERATED ENVELOPES
+    uint32_t r7_fused_baseline_pass();
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
+              typename Filler = void>
+    uint32_t r7_fused_pass_impl(Filler* filler = nullptr);
+    uint32_t r7_fused_baseline_sweep();
+    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r7_fused_sweep_impl();
+    void r7_run();
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r7_sweep();
+    template <bool IofusedPrivateQueue = false>
+    uint32_t r7_drain_tasks_read_local_interleaved(bool unmasked,
+                                                bool& owner_work_remains);
+// END R7 GENERATED ENVELOPES
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false,
+              typename Filler = void>
+    __attribute__((noinline))
+    uint32_t r7_drain_tasks(bool unmasked = false, Filler* filler = nullptr,
+                            bool* filler_used = nullptr);
+    template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t r7_drain_tasks_impl(bool unmasked, Filler* filler, bool* filler_used);
+    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
+    uint32_t r7_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
+    template <bool IofusedPrivateQueue = false, size_t BatchOps>
+    void r7_exec_batch(Task (&batch)[BatchOps], uint32_t n);
+
 };
 
 using ExLoop = ExLoopT<false>;

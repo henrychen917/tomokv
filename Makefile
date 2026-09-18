@@ -33,6 +33,8 @@ SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
 SRC      += src/cmd/t_sort.cc
 SRC      += src/cmd/multidb.cc
+# Preserve mainline weak-symbol selection; isolated R7 bodies link last.
+SRC      += src/core/reorder.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
@@ -56,13 +58,17 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # retain the parser, command/store bodies and ordinary split/fused IO schedules against v5.
 # The complete byte audit records the remaining split read-local writeback/Unix exceptions
 # in MEASURE-REQUEST.md; they are not counted as byte-identity passes.
+# R7's cold role selectors shift two budgets slightly. tests/reorder_noop.py locks
+# all 169 current off-path bodies, including O1 pipeline passes and O6 prefetch.
 # Compiler code-generation locks only: no runtime option or request-path branch.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146170
+# Round-3 direct split entries retain the split owner's timer inline, ordinary IO
+# deque outline and split read-local epoch outlines at these compiler budgets.
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146255
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146170
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146255
 $(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128880
-$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161750
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
@@ -137,7 +143,9 @@ build/store-regression-tsan: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wil
 build/waits-unit: tests/waits_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/waits_unit.cc -o $@
-unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/waits-unit
+unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flipctl-unit build/read-local-ring-unit build/read-local-write-ring-unit build/waits-unit
+	./build/reorder-unit
+	./build/r7shadow-unit
 	./build/config-parser-test
 	./build/flipctl-unit
 	./build/read-local-ring-unit
@@ -146,8 +154,8 @@ unit: build/config-parser-test build/flipctl-unit build/read-local-ring-unit bui
 
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
-CORE_TEST_OBJ := $(filter-out build/src/main.o build/src/core/genthread.o,$(OBJ))
-DB0_TEST_OBJ := $(filter-out build/db0/src/main.o build/db0/src/core/genthread.o,$(DB0_OBJ))
+CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
 build/multidb-unit: tests/multidb_unit.cc src/cmd/xshard.cc build/db0/tests/multidb_db0_unit.o $(DB0_TEST_OBJ) $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< build/db0/tests/multidb_db0_unit.o $(DB0_TEST_OBJ) $(filter-out build/src/cmd/xshard.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
@@ -203,11 +211,10 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
 
-# Default POST uses the one compile-time boundary in src/cmd/l4prebuild.cc (512 B).
-# Kind A: PRE allocation behaviour in an exact copy of POST's text size/layout. This
-# offline target patches only the noipa policy predicate; it never executes the server.
-build/tomokv-pad: $(BIN) tools/l4prebuild_artifacts.py tools/lbstall_artifacts.py
-	python3 tools/l4prebuild_artifacts.py $< $@ --receipt $@.json
+# R7 kind A: mainline FIFO behavior in an exact copy of POST text and layout.
+# The offline patch disables only the boot capability; L4 prebuild stays enabled.
+build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py
+	python3 tests/r7shadow_pad.py $< $@ --scope fifo --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
 	./build/l4prebuild-unit 1s read-local-0
@@ -284,3 +291,31 @@ build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -I. -c $< -o $@
 build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
+
+# R7 uses real Clients/ROB slots, without a listener or worker loop.
+build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
+
+build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# Test-only path counters in every R7 envelope plus a complete C++ allocation trace.
+# The release objects/binary have no instrumentation; neither unit starts a server.
+build/r7shadow3/reorder-witness.o: src/core/reorder.cc tests/r7shadow_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -include tests/r7shadow_witness.h -I. -c $< -o $@
+build/r7shadow-split-unit: tests/r7shadow_split_unit.cc tests/reorder_engagement_unit.cc tests/r7shadow_witness.h build/r7shadow3/reorder-witness.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -DTOMO_R7_WITNESS_MAIN -Wno-mismatched-new-delete \
+	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness.o \
+	  $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
+
+# Instructions only, no rate/timing benchmark and no server. Run on compile CPUs.
+build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) -I. $< -o $@

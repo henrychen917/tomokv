@@ -7,15 +7,36 @@
 #include <cstdlib>
 #include <string>
 
+// The serverless R7 witness supplies these at compile time. Release builds have
+// no counters, storage, calls or branches, including on the zero-knob path.
+#ifndef TOMO_R7_PATH
+#define TOMO_R7_PATH() ((void)0)
+#define TOMO_R7_ALLOC() ((void)0)
+#endif
+
 namespace tomo {
+
+struct ReorderResult {
+    uint32_t multi_client_runs = 0;
+    uint32_t permuted_runs = 0;
+};
 
 enum class OverlapSchedule : uint32_t { None, SplitIo, Fused };
 
 struct alignas(64) ModeScheduleStats {
     std::atomic<uint64_t> overlap_passes{0};
     std::atomic<uint64_t> overlap_interleaved_passes{0};
-    uint8_t retired_reorder_padding_[28]{}; // keep the surviving overlap field at byte 44
+    std::atomic<uint64_t> reorder_batches{0};
+    std::atomic<uint64_t> reorder_multi_client_runs{0};
+    std::atomic<uint64_t> reorder_permuted_runs{0};
+    std::atomic<uint32_t> reorder_max_batch{0};
     std::atomic<OverlapSchedule> overlap_schedule{OverlapSchedule::None};
+    // R7-only role-local scratch; the pointer is never read by INFO or a peer.
+    // Uses the existing 16-byte tail padding, leaving every old offset intact.
+    void* reorder_policy = nullptr;
+    // Atomic diagnostic: samples[63:32], engagements[31:1], engaged[0].
+    // Both counts saturate; only the owner writes it, never on an operation.
+    std::atomic<uint64_t> reorder_auto{0};
 
     // Each element has one physical-thread writer for its entire lifetime, including FLIP.
     // INFO reads atomically; no locked RMW and no changes to the shared ThreadCtx cache lines.
@@ -27,7 +48,13 @@ struct alignas(64) ModeScheduleStats {
         add(overlap_passes);
         if (interleaved) add(overlap_interleaved_passes);
     }
-
+    void note_reorder(uint32_t n, ReorderResult result) {
+        add(reorder_batches);
+        add(reorder_multi_client_runs, result.multi_client_runs);
+        add(reorder_permuted_runs, result.permuted_runs);
+        reorder_max_batch.store(std::max(n, reorder_max_batch.load(std::memory_order_relaxed)),
+                                std::memory_order_relaxed);
+    }
 };
 static_assert(sizeof(ModeScheduleStats) == 64);
 
@@ -54,5 +81,7 @@ inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
+
+void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads);
 
 } // namespace tomo

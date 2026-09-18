@@ -188,7 +188,8 @@ int main(int argc, char** argv) {
 #if TOMO_SINGLE_DATABASE
     if (tomokv_multidb_boot(cfg.databases)) return tomokv_multidb_main(argc, argv);
 #endif
-    retire_reorder(cfg);
+    if (!reorder_available()) cfg.reorder = 0;
+    cfg.reorder = reorder_for_mode(cfg.reorder, cfg.thread_mode);
     // THE ENGINE IS LATCHED HERE, once, before anything that reads it exists. Every Ring in the
     // process must agree (a uring ring cannot receive an eventfd doorbell and vice versa), and no
     // thread has been spawned yet, so this store needs no synchronisation.
@@ -322,7 +323,7 @@ int main(int argc, char** argv) {
 
     if (cfg.thread_mode == ThreadMode::Fused) {
         srv.topo().dump(stdout);
-        return run_fused_server(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
+        return run_fused_server_selected(srv, aof_base_plan.get(), aof_plans, load_plan.get(),
                                 tls_context.get(), unix_listener, final_shutdown_line);
     }
     if (srv.read_local_enabled()) {
@@ -350,6 +351,7 @@ int main(int argc, char** argv) {
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
     std::vector<ExLoop> exs(nthreads);
+    // Split owners always enter the ordinary executor, including after FLIP.
     std::mutex load_mu;
     std::condition_variable load_cv;
     uint32_t loaders_done = 0;

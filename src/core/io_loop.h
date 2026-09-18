@@ -414,6 +414,7 @@ public:
     }
 
     void run() {
+        // This is a split-role entry, including after FLIP. It has no R7 arm.
         if (srv_->cfg().overlap_enabled()) run_split<1>();
         else                              run_split<0>();
     }
@@ -431,6 +432,7 @@ public:
 
     void run_fused();
     void run_split_read_local();
+    void run_split_read_local_baseline();
 
 private:
     friend struct NetcmdRegression;
@@ -5693,6 +5695,68 @@ ordinary_shard_ready:
     // bounded residual rotation; teardown and migration defer while either context owns a Client.
     // Cold teardown/migration state; leave all established hot member offsets intact.
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
+public:
+    // R7 bodies are isolated from the FIFO translation units.
+    class r7_ReadLocalDemotionPlan;
+// BEGIN R7 GENERATED ENVELOPES
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
+              uint8_t Pipeline = 0, bool SplitLocal = false>
+    void r7_run_loop();
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
+    uint32_t r7_sweep();
+    template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
+              bool SweepPass = false>
+    uint32_t r7_flush_ready();
+    template <uint8_t Pipeline>
+    void r7_run_split();
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_admit_fd(int fd, UrKind kind);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_adopt_client(Client* c, bool unix_socket, bool tls_socket = false);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_arm_tls_recv(Client* c);
+    template <bool HasUnix, bool kEp, bool TargetedIfid = false>
+    uint32_t r7_collect_retire_work(bool unmasked = false);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    bool r7_drive_tls(Client* c);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    uint32_t r7_epoll_accept(UrKind kind);
+    template <bool HasUnix, bool HasTls, bool Fused = false, uint8_t Pipeline = 0>
+    uint32_t r7_epoll_pass(int timeout_ms);
+    template <bool HasTls, bool kEp, bool SplitLocal = false>
+    uint32_t r7_ifid_parse_hash(IfidBatch& batch);
+    template <bool HasUnix, bool HasTls, bool kEp>
+    uint32_t r7_ifid_rx(IfidBatch& batch, size_t& cursor);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_on_accept(io_uring_cqe* cqe, UrKind kind);
+    template <bool HasTls, bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_on_cqe(io_uring_cqe* cqe);
+    template <bool HasTls, bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_on_recv(Client* c, int res);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_on_tls_recv(Client* c, int res);
+    template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
+    void r7_on_tls_socket_poll(Client* c, int res, TlsOp wanted);
+    template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
+              bool TargetedIfid = false,
+              bool SuppressOrdinaryActiveMark = false,
+              bool IofusedPrivateQueue = false, bool SplitLocal = false>
+    DispatchResult r7_parse_and_dispatch(Client* c);
+    template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal = false>
+    __attribute__((noinline))
+    uint32_t r7_pipeline_pass(bool unmasked, bool natural_order, bool& submitted, size_t& cursor);
+    template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal = false>
+    uint32_t r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& cursor);
+    template <bool HasUnix, bool kEp>
+    uint32_t r7_wb_observe(bool unmasked, WbBatch& batch);
+    bool r7_fused_demote_local_read_batch(Client* client, const uint64_t* probed,
+                                       const ReadLocalFallbackReason* fallbacks,
+                                       uint32_t probed_count, uint32_t& demoted);
+// END R7 GENERATED ENVELOPES
+    void run_fused_reordered();
+    void run_split_reordered();
+    void run_split_read_local_reordered();
+
 };
 
 }  // namespace tomo

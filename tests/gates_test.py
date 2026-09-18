@@ -61,6 +61,33 @@ def perf_evidence():
 
 
 class FeatureFailures(unittest.TestCase):
+    def test_r7_requires_fresh_permutations_and_disabled_storage_is_absent(self):
+        b, a, knobs = feature_evidence()
+        fields = ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs')
+        for row, value in ((b, '0'), (a, '10')):
+            row.update(reorder='1', reorder_retired='0', reorder_max_batch='32')
+            row.update({field: value for field in fields})
+        feature.check_activity(b, a, knobs, 2, True)
+        for field in fields:
+            broken = dict(a, **{field: b[field]})
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                feature.check_activity(b, broken, knobs, 2, True)
+        with self.assertRaises(AssertionError):
+            feature.check_activity(b, a, dict(knobs, reorder=0), 2, True)
+        from abba_workloads import require_workload_witness
+        cell = SimpleNamespace(op='REORDER', reorder=0, mode='2s')
+        before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
+        after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
+        off = dict(reorder='0', reorder_retired='0')
+        evidence = require_workload_witness(cell, before, after, off, off)
+        self.assertEqual(evidence['reorder_witness'], 'R7 disabled, FIFO')
+        with self.assertRaises(RuntimeError):
+            require_workload_witness(cell, before, after, off,
+                                     dict(off, reorder_permuted_runs='0'))
+        cell.reorder = 1
+        with self.assertRaises(RuntimeError):
+            require_workload_witness(cell, before, after, off, off)
+
     def test_full_inventory_and_values(self):
         feature.inventory('8-15', '6:2')
         self.assertEqual(len(feature.CELLS), 35)
@@ -1352,7 +1379,7 @@ timeout(){
         for line in makefile.splitlines():
             if line.startswith('SRC '):
                 production.update(line.split('=', 1)[1].split())
-        expected = production - {'src/main.cc', 'src/core/genthread.cc'} | {'tests/core_concurrency_unit.cc'}
+        expected = production - {'src/main.cc'} | {'tests/core_concurrency_unit.cc'}
         with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
             directory = Path(temporary)
             stub = r'''set -u

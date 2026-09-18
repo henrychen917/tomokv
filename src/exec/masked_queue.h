@@ -547,6 +547,18 @@ public:
         return 0;
     }
 
+    // Consumer-only bounded observation. No cursor is advanced, so neither the
+    // producer nor IO can recycle these queued handles during the callback.
+    template <typename Visit>
+    uint32_t observe_prefix(uint32_t producer, uint32_t limit, Visit&& visit) const {
+        const ConsumerLine& c = lanes_[producer].consumer;
+        const uint32_t head = c.head.load(std::memory_order_relaxed);
+        const uint32_t tail = lanes_[producer].producer.tail.load(std::memory_order_acquire);
+        const uint32_t n = std::min(limit, tail - head);
+        for (uint32_t i = 0; i < n; ++i) visit(slots_[c.base + ((head + i) & c.mask)]);
+        return n;
+    }
+
     uint32_t total_slots() const { return total_slots_; }
 
     MaskedQueueDiagnostics diagnostics() const {

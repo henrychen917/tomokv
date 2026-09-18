@@ -242,6 +242,7 @@ public:
             return false;
         }
         cfg_ = cfg;
+        cfg_.reorder = reorder_available() ? reorder_for_mode(cfg_.reorder, cfg_.thread_mode) : 0;
         if (cfg.shards == 0 || cfg.shards > 256) {
             std::fprintf(stderr, "shards must be between 1 and 256\n");
             return false;
@@ -357,7 +358,10 @@ public:
                 }
             }
         }
-        if (cfg_.overlap_enabled()) {
+        if (cfg_.overlap_enabled() || cfg_.reorder) {
+#ifdef TOMO_R7_WITNESS
+            if (cfg_.reorder) TOMO_R7_ALLOC();
+#endif
             mode_schedule_stats_.reset(new (std::nothrow) ModeScheduleStats[nthreads]);
             if (!mode_schedule_stats_) {
                 std::fprintf(stderr, "fatal: could not allocate schedule witnesses\n");

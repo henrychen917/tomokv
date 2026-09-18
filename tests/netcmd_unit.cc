@@ -338,7 +338,7 @@ struct NetcmdRegression {
         Server info_server;
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
-        for (uint32_t reorder : {0u, 1u}) {
+        for (int32_t reorder : {-1, 0, 1}) {
         info_server.cfg_.reorder = reorder;
         Shard shard;
         for (uint32_t overlap : {0u, 1u}) {
@@ -347,7 +347,7 @@ struct NetcmdRegression {
             const std::string info = execute(shard, {"INFO", "SERVER"});
             check(info.find("overlap_enabled:" + std::to_string(overlap) + "\r\n") != std::string::npos,
                   "optional schedule reporting follows overlap");
-            if (overlap) {
+            if (overlap || reorder) {
                 for (const char* field : {"schedule_stats_threads:0\r\n", "overlap_schedule:plain\r\n",
                          "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n"})
                     check(info.find(field) != std::string::npos, "requested schedule reports explicit zeros without a sidecar");
@@ -356,14 +356,24 @@ struct NetcmdRegression {
                       info.find("reorder_permuted_runs:") == std::string::npos,
                       "both requested knobs off preserve the existing INFO surface");
             }
-            check(info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos,
-                  "retired reorder always reports effective zero");
+            check(info.find("reorder:" + std::to_string(reorder) + "\r\nreorder_retired:0\r\n") != std::string::npos,
+                  "R7 reports its effective boot value and capability");
             for (const char* field : {"reorder_batches:", "reorder_multi_client_runs:",
                                      "reorder_permuted_runs:", "reorder_max_batch:"})
-                check(info.find(field) == std::string::npos, "retired counters are absent");
+                check((info.find(std::string(field) + "0\r\n") != std::string::npos) == (reorder != 0),
+                      "R7 counters appear only when armed, without allocating in INFO");
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
         }
         }
+        info_server.cfg_.thread_mode = ThreadMode::Split;
+        info_server.cfg_.reorder = 0; // the cold boot resolution for off/on/AUTO
+        info_server.cfg_.overlap = 0;
+        Shard split_shard;
+        const std::string split_info = execute(split_shard, {"INFO", "SERVER"});
+        check(split_info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos &&
+              split_info.find("reorder_batches:") == std::string::npos &&
+              split_info.find("schedule_stats_threads:") == std::string::npos,
+              "split capability and allocation-free FIFO are explicit to the gate instrument");
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }

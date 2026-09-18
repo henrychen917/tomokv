@@ -49,6 +49,7 @@ class Client;
 class Ring;
 class WbEngine;
 class SnapshotManager;
+namespace r7 { struct InboxProbe; }
 
 // Heap-side multi-shard state is deliberately opaque here.  Its vectors, result slots and phase
 // bookkeeping live in cmd/xshard so neither Task nor the footprint-locked Op grows.
@@ -1137,6 +1138,7 @@ public:
     std::atomic<bool>& stop_flag() { return stop_; }
 
 private:
+    friend struct r7::InboxProbe;
     friend struct ThreadCtxLayoutLock;
     uint32_t          id_ = 0;
     std::atomic<Role> role_{Role::Idle};

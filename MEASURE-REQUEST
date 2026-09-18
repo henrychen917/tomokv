@@ -1,3 +1,8 @@
+r7shadow2 supersedes this worktree's inherited measurement request.
+See MEASURE-REQUEST-r7shadow2.md for fused-only scope, AUTO policy, unit instruction
+accounting, frozen artifact receipts, and the h07/h23 plus six-row tailgen matrix.
+The maintainer runs all servers, rate/tail measurements and the iteration gate.
+
 TomoKV multidb4 — concurrent SWAPDB accept/reset fix
 
 Read MEASURE-REQUEST-multidb4.md for the cause, directed reproductions, frozen
