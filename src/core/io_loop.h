@@ -1134,6 +1134,19 @@ private:
         return epoll_ || (!accept_armed_ && !tls_accept_armed_ && !unix_accept_armed_);
     }
 
+    bool accepts_paused() const {
+        const FlipStage stage = srv_->flip_stage();
+        // SWAPDB borrows the dispatch fence, but never converts an IO owner.
+        // Closing accepts here resets a concurrent swapper before its first
+        // command. Admit it normally; its unconsumed frames obey the existing
+        // execution boundary, including after this IO acknowledged the drain.
+        // Use one stage snapshot so admission cannot mix two transitions.
+        if constexpr (!kSingleDatabase)
+            if (stage >= FlipStage::DatabaseIoDrain && stage <= FlipStage::DatabaseRun)
+                return false;
+        return stage != FlipStage::Idle;
+    }
+
     void quiesce_accepts_for_conversion() {
         // UNIX owns a unique pathname and its boot owner is never selected for conversion.
         if (unix_listen_fd_ >= 0) std::abort();
@@ -1189,7 +1202,7 @@ private:
             rearm_accept(cqe, kind);
             return;
         }
-        if (srv_->flip_dispatch_paused()) {
+        if (accepts_paused()) {
             ::close(cqe->res);
             rearm_accept(cqe, kind);
             return;
@@ -1203,7 +1216,7 @@ private:
     // EAGAIN here keeps one epoll_wait per burst instead of one per connection.
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     uint32_t epoll_accept(UrKind kind) {
-        if (srv_->flip_dispatch_paused()) return 0;
+        if (accepts_paused()) return 0;
         const int listener = kind == UrKind::UnixAccept ? unix_listen_fd_ :
                              kind == UrKind::TlsAccept ? tls_listen_fd_ : listen_fd_;
         if (listener < 0) return 0;
@@ -1225,7 +1238,7 @@ private:
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     void admit_fd(int fd, UrKind kind) {
-        if (srv_->flip_dispatch_paused()) { ::close(fd); return; }
+        if (accepts_paused()) { ::close(fd); return; }
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         self_->sig().accepts++;
