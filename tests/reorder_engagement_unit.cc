@@ -301,7 +301,19 @@ struct CoreConcurrencyTest {
         constexpr uint8_t physical = kSingleDatabase ? 0 : 5;
         if constexpr (!kSingleDatabase)
             require(f.server.databases().swap(logical, 9), "initial nonidentity database map");
-        const std::string key = f.key(physical);
+        // Both identities must reach the initialized fixture owner. A deliberately
+        // missing stamp then fails the identity assertion, not a foreign-inbox fault.
+        std::string key;
+        for (uint32_t i = 0; i < 100000; ++i) {
+            const std::string candidate = "reorder-database-" + std::to_string(i);
+            if (f.server.router().shard_of(FlatStore::hash_key(slice(candidate))) == f.sid() &&
+                f.server.router().shard_of(FlatStore::hash_key(
+                    Slice(candidate.data(), candidate.size(), physical))) == f.sid()) {
+                key = candidate;
+                break;
+            }
+        }
+        require(!key.empty(), "bounded database key search");
         const std::string wire = "*2\r\n$6\r\nSELECT\r\n$1\r\n" + std::to_string(logical) +
             "\r\n*2\r\n$8\r\nBITCOUNT\r\n$" + std::to_string(key.size()) + "\r\n" + key +
             "\r\n*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) + "\r\n" + key +
