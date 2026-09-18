@@ -1921,7 +1921,8 @@ private:
     uint32_t flip_control_pass() {
         const FlipStage stage = srv_->flip_stage();
         if (stage == FlipStage::Idle) return 0;
-        if (stage <= FlipStage::DatabaseRun) return database_control_pass();
+        if constexpr (!kSingleDatabase)
+            if (stage <= FlipStage::DatabaseRun) return database_control_pass();
 
         if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage) &&
             flip_io_drained()) {
@@ -2865,8 +2866,7 @@ private:
         const uint8_t security_flags = srv_->security_flags();
         const bool auth_required = (security_flags & Server::kSecurityAuth) != 0;
         const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
-        const bool namespace_armed = c->multidb_armed() || srv_->databases().remapped();
-        const bool notify_armed = notify_armed_ || namespace_armed;
+        const bool notify_armed = notify_armed_;
         const uint64_t pass_max_bulk_len = proto_max_bulk_len_;
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
@@ -3088,14 +3088,16 @@ private:
             // byte-for-byte the pre-lane sequence: one predicted-not-taken test, then the tls
             // variant select and the spec store. The armed side pays a cold out-of-line call.
             if (__builtin_expect(notify_armed, false)) {
-                if (notify_armed_) spec = command_notify_variant(spec);
+                spec = command_notify_variant(spec);
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
-                if (namespace_armed) multidb_stamp(*srv_, *op, conn.session().db_index);
             } else {
                 if constexpr (NoBorrow) spec = command_tls_variant(spec);
                 op->spec = spec;
             }
+            // One immutable map for ALL keys, before any route/hash/RYOW work.
+            // The separately compiled DB-0 runtime emits none of this lane.
+            if constexpr (!kSingleDatabase) multidb_stamp(*srv_, *op, conn.session().db_index);
             if constexpr (Fused) {
                 if (read_local_enabled) {
                     constexpr uint32_t kWriteHazards =
@@ -3456,7 +3458,7 @@ private:
                     read_local_demotion.partial()) {
                     if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
                         !(spec->flags & CmdFlags::FlipAsync) &&
-                        !multidb_dispatch_allowed(*srv_, *c)) {
+                        !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
                         c->set_flip_backpressure(true);
                         break;
                     }
@@ -3474,7 +3476,7 @@ private:
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
                 !(spec->flags & CmdFlags::FlipAsync) &&
-                !multidb_dispatch_allowed(*srv_, *c)) {
+                !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
                 // No ordinary request may create IO-local fanout or executor work after the first
                 // drain acknowledgement. Leave the frame unconsumed and unpublished: TCP framing
                 // keeps younger frames behind it without a ROB barrier, while FlipAsync commands
@@ -4614,7 +4616,7 @@ ordinary_shard_ready:
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
             if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
-                multidb_dispatch_allowed(*srv_, *c)))
+                (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
                 c->set_flip_backpressure(false);
             if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
                 conn.reset_rbuf_at_quiescence();
@@ -4931,7 +4933,7 @@ ordinary_shard_ready:
             // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
             // after the FLIP and retries the still-unconsumed frame in the re-parse below.
             if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
-                multidb_dispatch_allowed(*srv_, *c)))
+                (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
                 c->set_flip_backpressure(false);
             // Under epoll the second half of this guard is vacuous and would be actively
             // harmful: recv_armed_ means "an edge is owed", not "the kernel holds a pointer into

@@ -95,6 +95,10 @@ static void layout_and_store(bool armed) {
     shard.set_cached_now_ms(1002);
     require(multidb_size(shard, 1, UINT64_MAX) == 1 && shard.store().size() == 1,
             "DBSIZE retains elapsed physical record");
+    DatabaseStatsTable stats{};
+    multidb_stats(shard, stats);
+    require(stats[1].keys == 1 && stats[1].expires == 1 && shard.store().size() == 1,
+            "INFO retains elapsed physical record");
     require(run(server, shard, 1, {"GET", "elapsed"}) == "$-1\r\n" && shard.store().size() == 0,
             "GET alone reaps elapsed record");
     std::printf("PASS multidb namespace identity and layout (read-local %d)\n", armed);
@@ -114,6 +118,20 @@ struct Request {
 static void records_done(Server& server) {
     for (unsigned s = 0; s < server.nshards(); ++s)
         server.shard(s).store().atomic_shutdown_release_records();
+}
+static void diagnostic_hook(Server& server) {
+    server.set_debug_atomic_fanout_defer(600000);
+    ScatterArenaPool pool;
+    for (const char* command : {"INFO", "DBSIZE"}) {
+        Request request(server, 0, {command});
+        ScatterDispatch dispatch;
+        require(xshard_prepare(server, request.op, pool, 0, 71, dispatch) == ScatterPrepare::Ready,
+                "diagnostic scatter prepared");
+        require((dispatch.state->debug_fanout_deadline != 0) == (std::string(command) == "DBSIZE"),
+                "INFO cannot delay the pinned-window witness; data census still arms");
+        xshard_abandon_unpublished(dispatch.state, pool, 0);
+    }
+    server.set_debug_atomic_fanout_defer(0);
 }
 static std::string local(Server& server, uint8_t db, std::initializer_list<std::string> args) {
     Request r(server, db, args);
@@ -350,12 +368,13 @@ static void persistence(Server& server) {
     std::puts("PASS multidb native snapshot records and AOF namespace/map replay");
 }
 static void owners() {
-    Config cfg;
+    Config cfg; cfg.databases = 16;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
     Server server;
     require(server.prepare_boot(cfg) && server.init(cfg), "16 shards / 6 IO / 2 owners");
     command_bind_server(&server);
+    diagnostic_hook(server);
     std::string error;
     require(acl_initialize(server, cfg, error), "ACL initialize");
     for (unsigned s = 0; s < server.nshards(); ++s)
@@ -534,9 +553,11 @@ static void owners() {
     command_bind_server(nullptr);
     std::puts("PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH");
 }
+void multidb_db0_unit();
 int main() {
+    multidb_db0_unit();
     require(command_registry_init(false), "registry initialization");
-    require(Config{}.databases == 16, "Redis default database count");
+    require(Config{}.databases == 1, "single-database boot default");
     for (const char* count : {"1", "16", "256"}) {
         Config cfg; ConfigParseState state;
         require(parse_config_args({"--databases", count}, cfg, state, 8, "unit") == kConfigParsed &&

@@ -12,6 +12,15 @@
 #include <vector>
 
 using namespace tomo;
+// Offline disassembly witnesses: emit the actual primitives used by the p32
+// instrument. They are never called by the measured loop or --self-test.
+__attribute__((noipa, used)) bool multidb_probe_identity(Slice a, Slice b) { return a.key_eq(b); }
+__attribute__((noipa, used)) Slice multidb_probe_decoder(const KvObj& object) { return object.key(); }
+__attribute__((noipa, used)) uint64_t multidb_probe_hash(Slice key) { return FlatStore::hash_key(key); }
+__attribute__((noipa, used)) ParseResult multidb_probe_parser(const char* wire, uint32_t size, Op& op) {
+    uint32_t at = 0; const char* error = nullptr;
+    return resp_parse(wire, size, at, op, &error);
+}
 static void require(bool ok, const char* why) {
     if (!ok) { std::fprintf(stderr, "FAIL multidb cost unit: %s\n", why); std::exit(1); }
 }
@@ -31,6 +40,9 @@ static int counter(uint64_t event, int group = -1) {
     return fd;
 }
 static void run(const std::string& verb, bool measure) {
+#ifdef TOMO_COST_NAMESPACED
+    Server namespace_server;
+#endif
     constexpr unsigned keys = 4096, depth = 32;
     Shard shard;
     shard.init(nullptr, 0, 0, kNumBuckets, 0, TypeLimits{}, StreamLimits{});
@@ -42,7 +54,11 @@ static void run(const std::string& verb, bool measure) {
         const std::string seed = frame({"SET", name, value});
         Op op; uint32_t at = 0; const char* error = nullptr;
         require(resp_parse(seed.data(), seed.size(), at, op, &error) == ParseResult::Ok, "seed parse");
-        op.spec = command_lookup(op.cmd_name()); op.hash = FlatStore::hash_key(op.key());
+        op.spec = command_lookup(op.cmd_name());
+#ifdef TOMO_COST_NAMESPACED
+        multidb_stamp(namespace_server, op, 0);
+#endif
+        op.hash = FlatStore::hash_key(op.key());
         op.spec->handler(shard, op);
         require(std::string(op.reply.data(), op.reply.size()) == "+OK\r\n", "seed reply");
         wires[i / depth] += verb == "GET" ? frame({verb, name}) : frame({verb, name, value});
@@ -57,6 +73,9 @@ static void run(const std::string& verb, bool measure) {
             Op* op = rob.acquire(); require(op, "p32 ROB capacity");
             require(resp_parse(wire.data(), wire.size(), at, *op, &error) == ParseResult::Ok, "pipeline parse");
             op->spec = command_lookup(op->cmd_name());
+#ifdef TOMO_COST_NAMESPACED
+            multidb_stamp(namespace_server, *op, 0);
+#endif
             op->hash = FlatStore::hash_key(op->key());
             rob.publish();
         }

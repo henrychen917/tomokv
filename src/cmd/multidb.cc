@@ -20,6 +20,7 @@ bool parse_i64_canonical(Slice arg, int64_t& value) {
 }
 
 bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
+    if constexpr (kSingleDatabase) return first == 0 && second == 0;
     if (first == second) return true;
     std::lock_guard lock(writer_);
     try {
@@ -72,6 +73,7 @@ bool DatabaseMap::restore(const uint8_t* bytes) {
     std::lock_guard lock(writer_);
     bool identity = true;
     for (unsigned i = 0; i < 256; ++i) identity &= bytes[i] == i;
+    if constexpr (kSingleDatabase) return identity;
     if (identity && !live_) return true;
     try {
         auto next = std::make_unique<Map>();
@@ -104,14 +106,10 @@ bool multidb_parse_index(Slice arg, uint32_t count, uint8_t& db) {
     return true;
 }
 
-// The noipa boundary is also the kind-A artifact's patch point: force this
-// function to return zero without changing any linked text addresses or sizes.
-__attribute__((noipa)) uint8_t multidb_namespace(uint8_t physical) { return physical; }
-
 template <typename Map>
 static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
     op.db = logical;
-    op.physical_db = multidb_namespace(map[logical]);
+    op.physical_db = map[logical];
     op.target_db = logical;
     op.secondary_db = op.physical_db;
     if (op.cmd_name().eq_icase("move") && op.argc() == 3)
@@ -120,7 +118,7 @@ static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
         for (uint32_t i = 3; i + 1 < op.argc(); ++i)
             if (op.arg(i).eq_icase("db"))
                 multidb_parse_index(op.arg(++i), server.cfg().databases, op.target_db);
-    op.secondary_db = multidb_namespace(map[op.target_db]);
+    op.secondary_db = map[op.target_db];
     std::vector<CommandKeyMetadata> keys;
     if (const auto* metadata = command_metadata_resolve(op, 0)) {
         command_metadata_collect_keys(op, 0, *metadata, keys);
@@ -131,17 +129,18 @@ static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
 }
 
 void multidb_stamp(Server& server, Op& op, uint8_t logical) {
+    if constexpr (kSingleDatabase) return;
     const DatabaseMap::Read map(server.databases());
     stamp(server, op, logical, map);
-    op.set_database_epoch(map.epoch());
 }
 
 void multidb_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map& map) {
+    if constexpr (kSingleDatabase) return;
     stamp(server, op, logical, map);
-    op.set_database_epoch(map.epoch);
 }
 
 bool Server::database_boundary_begin(Client& client, uint32_t owner, uint64_t op_id) {
+    if constexpr (kSingleDatabase) return true;
     std::lock_guard lock(shape_transition_mu_);
     if (database_boundary_active())
         return flip_stage() == FlipStage::DatabaseRun &&
@@ -164,6 +163,7 @@ bool Server::database_boundary_begin(Client& client, uint32_t owner, uint64_t op
 }
 
 void Server::database_boundary_end(Client& client, uint64_t op_id) {
+    if constexpr (kSingleDatabase) return;
     std::lock_guard lock(shape_transition_mu_);
     if (!database_boundary_active() || databases_.boundary_client.load() != &client ||
         databases_.boundary_op.load() != op_id) return;
@@ -196,12 +196,11 @@ void multidb_select(Server* server, Client* client, Op& op) {
     if (!parse_i64_canonical(op.arg(1), parsed)) {
         reply_err(op.sink(), "ERR invalid DB index"); return;
     }
-    if (parsed < 0 || uint64_t(parsed) >= (server ? server->cfg().databases : 16)) {
+    if (parsed < 0 || uint64_t(parsed) >= (server ? server->cfg().databases : 1)) {
         reply_err(op.sink(), "ERR DB index is out of range"); return;
     }
     if (client) {
         client->session().db_index = parsed;
-        if (parsed != 0) client->arm_multidb();
     }
     reply_ok(op.sink());
 }
@@ -261,7 +260,7 @@ bool multidb_prepare_move(Server& server, Op& op) {
         reply_err(op.sink(), "ERR source and destination objects are the same"); return false;
     }
     Slice destination = op.arg(1);
-    destination.ns = op.secondary_db;
+    destination.set_namespace(op.secondary_db);
     // MOVE has three arguments, leaving an unused inline slot for its original DB text.
     // Observability must print the original request after the transfer lowering.
     op.replace_arg(3, op.arg(2));

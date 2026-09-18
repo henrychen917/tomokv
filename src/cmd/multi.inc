@@ -586,7 +586,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
         state.write_key_set.reserve(queue.size());
         state.database_map = server.databases().capture();
         auto routing_map = state.database_map;
-        const bool swaps = std::any_of(queue.begin(), queue.end(),
+        const bool swaps = !kSingleDatabase && std::any_of(queue.begin(), queue.end(),
             [](const auto& queued) { return has_name(queued, "swapdb"); });
         uint8_t logical_db = state.client->session().db_index;
         for (MultiQueuedCommand& queued : queue) {
@@ -598,7 +598,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
             if (!make_child_op(*command)) return false;
-            multidb_stamp(server, *command->op, logical_db, routing_map);
+            if constexpr (!kSingleDatabase) multidb_stamp(server, *command->op, logical_db, routing_map);
             command->key_shards.reserve(command->key_args.size());
             for (uint32_t arg : command->key_args) {
                 const uint64_t hash = FlatStore::hash_key(command->op->arg(arg));
@@ -664,7 +664,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 command->key_args.clear();
                 command->key_shards.clear();
             }
-            multidb_stamp(server, *command->op, command->op->db, routing_map);
+            if constexpr (!kSingleDatabase) multidb_stamp(server, *command->op, command->op->db, routing_map);
             if (command->kind == MultiCommandKind::Swapdb) {
                 if (!multidb_validate_swap(server, *command->op)) {
                     command->kind = MultiCommandKind::Prebuilt;
@@ -679,6 +679,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
                         ++routing_map.epoch;
                     }
                     reply_ok(command->op->sink());
+                    if constexpr (kSingleDatabase) command->kind = MultiCommandKind::Prebuilt;
                 }
             }
             if (state.client->resp3()) command->op->mark_resp3();
@@ -1568,7 +1569,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             return MultiIoAction::LocalDone;
         }
         bool swaps = false;
-        for (const auto& queued : session->queue) swaps |= has_name(queued, "swapdb");
+        if constexpr (!kSingleDatabase)
+            for (const auto& queued : session->queue) swaps |= has_name(queued, "swapdb");
         if (swaps && !server.database_boundary_begin(client, owner_io, client.rob().dispatch_id()))
             return MultiIoAction::Backpressure;
         if (!server.atomic_can_admit(owner_io, true)) return MultiIoAction::Backpressure;

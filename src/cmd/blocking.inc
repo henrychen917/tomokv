@@ -1263,7 +1263,7 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
             if (server.database_boundary_active()) return false;
             // Every old owner has dropped its alias. Rebuild routes on the owning IO,
             // retaining the original deadline and resolved XREAD cursors (including '$').
-            multidb_stamp(server, op, block->logical_db);
+            if constexpr (!kSingleDatabase) multidb_stamp(server, op, block->logical_db);
             BlockingDispatch remap;
             if (blocking_prepare(server, client, op, id, remap) == BlockingPrepare::Error) {
                 block->phase.store(BlockingPhase::Completed, std::memory_order_release);

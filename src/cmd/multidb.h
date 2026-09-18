@@ -20,7 +20,8 @@ class ThreadCtx;
 
 // An immutable mapping gives readers a single, non-retrying snapshot, including
 // both ends of COPY/MOVE. Publication never waits for a reader. The counter only
-// delays reclamation; it is absent until a database has actually been swapped.
+// delays reclamation. The boot-selected single-keyspace runtime omits the reader
+// counter and pointer load altogether.
 class DatabaseMap {
 public:
     struct Map : std::array<uint8_t, 256> {
@@ -30,17 +31,22 @@ public:
     class Read {
     public:
         explicit Read(const DatabaseMap& owner) : owner_(owner) {
-            owner_.readers_.fetch_add(1, std::memory_order_seq_cst);
-            map_ = owner_.current_.load(std::memory_order_seq_cst);
+            if constexpr (!kSingleDatabase) {
+                owner_.readers_.fetch_add(1, std::memory_order_seq_cst);
+                map_ = owner_.current_.load(std::memory_order_seq_cst);
+            }
         }
-        ~Read() { owner_.readers_.fetch_sub(1, std::memory_order_seq_cst); }
+        ~Read() { if constexpr (!kSingleDatabase) owner_.readers_.fetch_sub(1, std::memory_order_seq_cst); }
         uint8_t operator[](uint8_t db) const { return map_ ? (*map_)[db] : db; }
         uint32_t epoch() const { return map_ ? map_->epoch : 0; }
     private:
         const DatabaseMap& owner_;
-        const Map* map_;
+        const Map* map_ = nullptr;
     };
-    bool remapped() const { return current_.load(std::memory_order_acquire) != nullptr; }
+    bool remapped() const {
+        if constexpr (kSingleDatabase) return false;
+        return current_.load(std::memory_order_acquire) != nullptr;
+    }
     bool swap(uint8_t first, uint8_t second, AofProducer* journal = nullptr);
     bool prepare_publish(const Map& map, std::unique_ptr<Map>& prepared);
     void publish_prepared(std::unique_ptr<Map> prepared);

@@ -1467,15 +1467,18 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     if (kind == Kind::Swapdb && origin_client) {
         if (!multidb_validate_swap(server, op)) return ScatterPrepare::Error;
+        if constexpr (kSingleDatabase) {
+            reply_ok(op.sink());
+            return ScatterPrepare::Error; // already-built local reply, with no map state
+        }
         if (!server.database_boundary_begin(*origin_client, owner_io,
                                             origin_client->rob().dispatch_id()))
             return ScatterPrepare::Backpressure;
     }
 
     if (op.cmd_name().eq_icase("move")) {
-        // EXEC already stamped every child from one immutable mapping. Ordinary
-        // DB-0 connections reach this cold route without arming the parser lane.
-        if (!force_atomic) multidb_stamp(server, op, op.db);
+        // Both ordinary dispatch and EXEC already identified this operation's
+        // keys from one map. Never resolve a second map during lowering.
         if (!multidb_prepare_move(server, op)) return ScatterPrepare::Error;
     }
 
@@ -1718,7 +1721,6 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
 
     bool copy_replace = false, from_left = false, to_left = false;
     if (kind == Kind::Copy) {
-        if (!force_atomic) multidb_stamp(server, op, op.db);
         for (uint32_t i = 3; i < op.argc();) {
             if (op.arg(i).eq_icase("replace")) { copy_replace = true; i++; }
             else if (op.arg(i).eq_icase("db") && i + 1 < op.argc()) {

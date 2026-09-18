@@ -32,7 +32,15 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 extern "C" {
+#if TOMO_SINGLE_DATABASE
+// The boot-selected variants share the Lua implementation, but own their C++
+// contexts, stores and callbacks. Only the primary TU emits Lua's C symbols.
+#include "../../third_party/lua/lua.h"
+#include "../../third_party/lua/lauxlib.h"
+#include "../../third_party/lua/lualib.h"
+#else
 #include "../../third_party/lua/lua_amalgamation.c"
+#endif
 }
 #pragma GCC diagnostic pop
 

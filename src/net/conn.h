@@ -576,8 +576,6 @@ public:
     void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
     Session& session() { return session_; }
     const Session& session() const { return session_; }
-    bool multidb_armed() const { return multidb_armed_; }
-    void arm_multidb() { multidb_armed_ = true; }
 
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.
@@ -859,7 +857,6 @@ private:
     uint32_t obuf_soft_since_s_ = 0;   // 1968: cron-written only; 0 = not continuously over soft
     bool obuf_tracking_ = false;        // 1972: flips once per arm/disarm, never per append
     bool authenticated_ = false;        // 1973: requirepass state
-    bool multidb_armed_ = false;        // sticky after SELECT; former tail padding
     uint32_t acl_user_idx_ = 0;          // 1976: ACL user handle
     uint32_t tls_slot_ = kNoTlsSlot;     // 1980: out-of-line TlsConn handle
 };

@@ -200,10 +200,12 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             error = "Background save already in progress";
             return StartResult::Busy;
         }
+#if !TOMO_SINGLE_DATABASE
         database_map_ = server.databases().capture();
         database_map_extended_ = false;
         for (unsigned i = 0; i < database_map_.size(); ++i)
             database_map_extended_ |= database_map_[i] != i;
+#endif
     }
     // FLIP and snapshot start are mutually exclusive. Latch this epoch's live executor count,
     // rather than the boot split, before broadcasting its owner barrier.
@@ -963,7 +965,7 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
             return false;
         }
         const Slice key(reinterpret_cast<const char*>(section.data() + pos), key_len, h[6]);
-        if (key.ns >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
+        if (h[6] >= server.cfg().databases) { error = "snapshot database is out of range"; return false; }
         pos += key_len;
         const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
                             static_cast<uint32_t>(payload_len));

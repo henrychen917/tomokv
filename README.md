@@ -169,7 +169,9 @@ client tracking, snapshots, and append-only persistence.
 
 The main boundaries are:
 
-- `databases` defaults to `16`, matching Redis, and accepts `1` through `256`.
+- `databases` defaults to `1` and accepts `1` through `256`. The default selects
+  a separately compiled single-keyspace runtime at boot; larger counts select
+  the namespace-aware runtime. Both are included in the same executable.
   The maximum logical index is `255`. `SELECT`, `MOVE`, `COPY ... DB`, and
   `SWAPDB` preserve database identity through pipelines and `MULTI`/`EXEC`.
   `SWAPDB` drains dispatched work before publishing its namespace boundary.

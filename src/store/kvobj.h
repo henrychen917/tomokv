@@ -163,9 +163,11 @@ struct KvObj {
     // Nonzero namespaces use KeyExt even for short keys. klen8 encodes ns-1;
     // legacy extended keys retain 255, which decodes to namespace zero.
     uint8_t key_namespace() const {
+        if constexpr (kSingleDatabase) return 0;
         return (flags & KvObjFlags::KeyExt) ? static_cast<uint8_t>(klen8 + 1) : 0;
     }
     Slice key() const {
+        if constexpr (kSingleDatabase) return Slice(key_ptr(), klen());
         return probe_key<false>(flags);
     }
 
@@ -183,6 +185,8 @@ struct KvObj {
         return tail() + ext + ttl;
     }
     Slice read_local_key(uint8_t stable_flags) const {
+        if constexpr (kSingleDatabase)
+            return Slice(read_local_key_ptr(stable_flags), read_local_klen(stable_flags));
         return probe_key<true>(stable_flags);
     }
 
@@ -286,7 +290,7 @@ struct KvObj {
 
 static_assert(sizeof(KvObj) == 8, "KvObj header must stay 8 bytes");
 
-inline size_t kvobj_alloc_size(uint64_t key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc);
+inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc);
 
 // Small collections follow this architecture's string-inline precedent while retaining Compact's
 // byte format. Redis/Valkey's one-listpack small form and Dragonfly's packed outer object establish
@@ -708,7 +712,7 @@ private:
 // Values at or below this live in the same block as the key. 192 was validated on the fork, but
 // against Redis's allocation shape rather than this one, so it is a starting point to re-measure —
 // it trades RSS against SET throughput.
-inline size_t kvobj_alloc_size(uint64_t key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc) {
+inline size_t kvobj_alloc_size(KeyIdentity key_identity, uint32_t vlen, bool has_ttl_slot, Enc enc) {
     size_t n = sizeof(KvObj);
     if (key_identity >= 255) n += 4;
     if (has_ttl_slot) n += 8;

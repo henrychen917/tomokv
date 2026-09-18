@@ -2494,7 +2494,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
                                  expire, group, next, error)) return false;
         const size_t data = pos + kRecordHeaderBytes;
         const Slice key(reinterpret_cast<const char*>(section.data() + data), key_len, section[pos + 14]);
-        if (key.ns >= server.cfg().databases) { error = "AOF database is out of range"; return false; }
+        if (section[pos + 14] >= server.cfg().databases) { error = "AOF database is out of range"; return false; }
         const Slice payload(reinterpret_cast<const char*>(section.data() + data + key_len),
                             static_cast<uint32_t>(payload_len));
         pos = next;

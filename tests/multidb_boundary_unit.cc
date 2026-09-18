@@ -12,7 +12,7 @@ struct CoreConcurrencyTest {
     }
     template<bool Fused> static void run() {
         Server server;
-        Config cfg; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        Config cfg; cfg.databases = 16; cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
         cfg.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
         cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
         require(server.prepare_boot(cfg) && server.init(cfg), "fixture initialization");
@@ -79,7 +79,8 @@ struct CoreConcurrencyTest {
             for (unsigned index = 0; index < 32; ++index) {
                 for (unsigned w = 0; w < writers.size(); ++w) {
                     auto& c = writers[w]; auto id = starts[w] + index; auto& op = c.rob().at(id);
-                    require(op.database_epoch() == map.epoch, "recorded reply epoch");
+                    require(op.physical_db == map[w % 2] && op.key().ns == map[w % 2],
+                            "immutable physical identity from the captured map");
                     require(owners[server.worker_of_shard(op.shard)].execute(Task{&c, id, -1, nullptr}), "owner execution");
                     if (index % 2) {
                         const auto& value = values[w][index / 2];

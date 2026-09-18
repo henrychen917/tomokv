@@ -135,8 +135,13 @@ private:
     std::atomic<uint64_t> cuts_waited_{0};
     std::atomic<uint64_t> drained_groups_{0};
     std::atomic<Ring*> writer_ring_{nullptr};
+#if TOMO_SINGLE_DATABASE
+    inline static const DatabaseMap::Map database_map_;
+    inline static constexpr bool database_map_extended_ = false;
+#else
     DatabaseMap::Map database_map_;
     bool database_map_extended_ = false;
+#endif
     Server* server_ = nullptr;  // snapshot command lifetime; process-wide Server is stable
 
     std::string dir_;
