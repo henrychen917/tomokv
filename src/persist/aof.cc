@@ -693,8 +693,8 @@ bool AofProducer::emit(const uint8_t* bytes, uint64_t length, bool large,
                        AofOwnerContext* context) {
     while (length) {
         if (!build_) {
-            build_ = make_chunk(
-                large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
+            // record_bytes marked the first frame; emit only allocates continuations.
+            build_ = make_chunk(0);
             if (!build_) return false;
         }
         const size_t room = kAofChunkBytes - build_->bytes.size();
