@@ -123,9 +123,17 @@ def main():
     post_text = len(post.section_data(post.names.index('.text')))
     pad = post_text - pre_text
     assert pad >= 0, 'candidate shrank: use an explicitly labelled inverse control instead'
+    # An unannotated assembly object clears CET's IBT/SHSTK property at link time,
+    # which changes the entire PLT and text base. Preserve the compiler's exact note.
+    pre_object = Elf(BUILD / 'lbfix-pre/src/main.o')
+    properties = ''
+    if '.note.gnu.property' in pre_object.names:
+        note = pre_object.section_data(pre_object.names.index('.note.gnu.property'))
+        properties = '.section .note.gnu.property,"a",@note\n.p2align 3\n.byte ' + \
+            ','.join(str(byte) for byte in note) + '\n'
     (BUILD / 'lbfix-pad.S').write_text(
         '.text\n.globl lbfix_text_size_control\nlbfix_text_size_control:\n'
-        f'.fill {pad},1,0x90\n.section .note.GNU-stack,"",@progbits\n')
+        f'.fill {pad},1,0x90\n.section .note.GNU-stack,"",@progbits\n' + properties)
     make.extend([
         'LB_PRE_OBJ := $(SRC:%.cc=build/lbfix-pre/%.o)',
         'LB_PRE_DB0_OBJ := $(SRC:%.cc=build/lbfix-pre/db0/%.o)',
