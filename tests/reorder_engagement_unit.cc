@@ -26,10 +26,10 @@ struct CoreConcurrencyTest {
         return {s.data(), static_cast<uint32_t>(s.size())};
     }
 
-    template <bool ReadLocal>
+    template <bool ReadLocal, bool FusedExecutor = ReadLocal>
     struct Fixture {
         Server server;
-        ExLoopT<ReadLocal> loop;
+        ExLoopT<FusedExecutor> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
         Fixture(ThreadMode mode, uint32_t overlap, int32_t reorder, uint32_t databases = 1)
@@ -83,7 +83,7 @@ struct CoreConcurrencyTest {
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
-            if constexpr (ReadLocal) if (mode == ThreadMode::Fused)
+            if constexpr (FusedExecutor) if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
             require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(), "requested owner paths");
             require((server.mode_schedule_stats() != nullptr) == (overlap != 0 || server.cfg().reorder != 0),
@@ -125,7 +125,7 @@ struct CoreConcurrencyTest {
             return task;
         }
         uint32_t drain() {
-            if constexpr (ReadLocal) {
+            if constexpr (FusedExecutor) {
                 if (server.cfg().reorder) return loop.template r7_drain_tasks<>(true);
             } else {
                 require(!server.cfg().reorder, "split executor must stay FIFO");
@@ -283,8 +283,7 @@ struct CoreConcurrencyTest {
         const bool shadow = reorder && r7::shadow_available();
         require(shadows == (shadow ? 7u : 0u), "dispatch shadow stamp count/PAD/FIFO witness");
         observed.clear();
-        const uint32_t drained = reorder ? f.loop.template r7_drain_tasks<>(true)
-                                           : f.loop.template drain_tasks<>(true);
+        const uint32_t drained = f.drain();
         require(drained == total && observed.size() == total, "production three-pipe drain lost work");
         const std::vector<uint64_t> expected = shadow
             ? std::vector<uint64_t>{0,11,1,12,2,13,6,3,14,7,4,15,8,5,9,10}
@@ -298,7 +297,7 @@ struct CoreConcurrencyTest {
     }
 
     static void database_dispatch(int32_t requested) {
-        Fixture<false> f(ThreadMode::Fused, 0, requested, kSingleDatabase ? 1 : 16);
+        Fixture<false, true> f(ThreadMode::Fused, 0, requested, kSingleDatabase ? 1 : 16);
         command_bind_server(&f.server);
         IoLoop io;
         io.srv_ = &f.server;
@@ -380,7 +379,7 @@ struct CoreConcurrencyTest {
     }
 
     static void shadow_foreign_passes() {
-        Fixture<false> f(ThreadMode::Fused, 0, 1);
+        Fixture<false, true> f(ThreadMode::Fused, 0, 1);
         ThreadCtx& foreign = f.server.thread(1);
         require(foreign.init_task_inbox_local_fused(), "foreign fixture inbox");
         const int32_t foreign_sid = foreign.shards().front()->id();
