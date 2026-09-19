@@ -475,16 +475,16 @@ int main() {
     tomo::LbAutotune slow_lb, fast_lb;
     if (slow_lb.move_cap(16) != 1 || slow_lb.cooldown_ms() == 0)
         fail("LB bootstrap cannot move or has no observation cooldown");
-    slow_lb.note_transfer(600000000, 1);
+    slow_lb.note_transfer(1200000000, 1);
     fast_lb.note_transfer(1000000, 1);
     if (slow_lb.move_cap(16) >= fast_lb.move_cap(16) ||
         slow_lb.cooldown_ms() <= fast_lb.cooldown_ms())
         fail("LB pacing does not track completed transfer cost");
     tomo::LbAutotune::QuietJitter noise;
     for (double sample : {10.0, 11.0, 10.0, 11.0}) noise.observe(sample);
-    if (noise.band() != 2.0) fail("LB band is not twice measured quiet jitter");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
     noise.observe(40.0);
-    if (noise.band() != 2.0) fail("an excursion widened its own LB band");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
 
     tomo::Config lb_defaults;
     if (lb_defaults.key_lb != 1 || lb_defaults.client_lb != 1)

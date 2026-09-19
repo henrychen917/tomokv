@@ -8,6 +8,7 @@
 // path.
 #pragma once
 #include <atomic>
+#include <array>
 
 #include <algorithm>
 #include <cmath>
@@ -30,6 +31,34 @@ struct LbAutotune {
 
     std::atomic<uint32_t> sample_rate{1}; // bootstrap until the first completed traffic window
     uint64_t last_fold_ns = 0;           // protected by Server::lb_signal_mu_
+
+    // Cold admission uses the existing monotonic shard operation counters. Keep the last
+    // decision window by physical shard, so an ownership change cannot reset its demand.
+    struct ShardWindow {
+        uint64_t last_ops = 0;
+        std::array<double, kDecisionTicks> ticks{};
+        double weight = 0;
+    };
+    std::vector<ShardWindow> shards; // empty when key-lb=0
+    uint32_t window_slot = 0;
+    uint32_t window_ticks = 0;
+    uint64_t bucket_fold_ns = 0;
+    std::atomic<uint64_t> bucket_gathers{0}; // one increment per admitted gather, no per-op writer
+
+    static double sampling_floor(uint32_t owners) {
+        // ratio_pct is (max-min)/mean, in percent. With N samples shared by M owners,
+        // a pair's count difference has variance 2*N/M; dividing by mean N/M gives
+        // relative SE sqrt(2*M/N). Use flipctl's two-SE margin. Max/min selects among
+        // P=M*(M-1)/2 pairs: multiplying the Gaussian tail bound by P requires
+        // z^2=4+2*log(P), rather than treating the selected pair as fixed in advance.
+        // N is the EXISTING decision-window sample budget, not a CPU/rate constant.
+        // This is a resolution floor, not a claim that correlated samples are iid;
+        // measured adjacent-window jitter can only widen it.
+        const double m = std::max<uint32_t>(owners, 2);
+        const double pairs = m * (m - 1) / 2;
+        return 200.0 * std::sqrt(2.0 * m / kSamplesPerDecision *
+                                 (1.0 + 0.5 * std::log(pairs)));
+    }
 
     static uint32_t sample_every(double visits, double elapsed_ms, uint32_t window_ms) {
         if (!(elapsed_ms > 0)) return 1;
@@ -61,7 +90,9 @@ struct LbAutotune {
             windows = std::min(windows + 1, kDecisionTicks + 1);
             return windows > kDecisionTicks;
         }
-        double band() const { return 2 * jitter; }
+        double band(uint32_t owners = 2) const {
+            return std::max(2 * jitter, sampling_floor(owners));
+        }
     };
     QuietJitter key_jitter, client_jitter; // controller writer only
 
@@ -91,7 +122,8 @@ struct LbAutotune {
         const uint64_t cost = move_cost_ns();
         const uint64_t ticks = (cost * kDecisionTicks + uint64_t{kTickMs} * 1000000 - 1) /
                                (uint64_t{kTickMs} * 1000000);
-        return std::max<uint64_t>(1, ticks) * kTickMs;
+        // A move must remain pinned through a complete fresh decision window.
+        return std::max<uint64_t>(kDecisionTicks, ticks) * kTickMs;
     }
     LbStallState stall; // allocated with the existing LB-only policy, never when both knobs are 0
 };

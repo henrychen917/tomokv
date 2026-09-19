@@ -68,11 +68,8 @@ __attribute__((noinline)) bool Server::lb_refuse_stalled(uint64_t epoch, LbStall
     } else {
         lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
         // The normal candidate filter sees this refusal as cooldown and can choose another shard.
-        for (const LbShardMove& move : lb_shard_moves_) {
-            const Shard& physical = shard(static_cast<int32_t>(move.sid));
-            for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
-                lb_bucket_last_move_ms_[bucket] = now / 1000000;
-        }
+        for (const LbShardMove& move : lb_shard_moves_)
+            lb_shard_last_move_ms_[move.sid] = now / 1000000;
     }
     if (lb_policy_) {
         auto& state = lb_policy_->stall;
