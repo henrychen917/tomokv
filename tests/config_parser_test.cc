@@ -434,7 +434,7 @@ int main() {
     for (const char* mode : {"1s", "2s", "fused", "split"})
         for (const char* overlap : {"0", "1"})
             for (const char* lane : {"0", "1"})
-                for (const char* reorder : {"-1", "0", "1"}) {
+                for (const char* reorder : {"0", "1"}) {
                     if (!parses_read_local_cell(mode, overlap, lane, reorder, "uring"))
                         fail("overlap/read-local/reorder boot cell was rejected");
                     StderrSilencer quiet;
@@ -448,11 +448,11 @@ int main() {
     if (tomo::parse_config_args(reorder_args, reorder, reorder_state, 2, "test") !=
             tomo::kConfigParsed ||
         reorder.reorder != 1 ||
-        !rejects({"--reorder", "2"}) || !rejects({"--reorder", "yes"}) ||
+        !rejects({"--reorder", "-1"}) || !rejects({"--reorder", "2"}) || !rejects({"--reorder", "yes"}) ||
         !rejects({"--reorder", "-2"}) || !rejects({"--reorder", "1x"}) ||
         !rejects({"--reorder", ""}) || !rejects({"--reorder"}))
         fail("reorder boot grammar differs");
-    if (rejection_text({"--reorder", "3"}) != "--reorder wants -1 (auto), 0 or 1\n")
+    if (rejection_text({"--reorder", "3"}) != "--reorder wants 0 or 1\n")
         fail("reorder parser rejection text is not canonical");
     tomo::Config reorder_default;
     if (reorder_default.reorder != 0) fail("reorder default is not FIFO");

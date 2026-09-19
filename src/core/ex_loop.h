@@ -3151,13 +3151,6 @@ public:
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_fused_sweep_impl();
-    void r7_run();
-    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
-    uint32_t r7_sweep();
-    template <bool IofusedPrivateQueue = false>
-    uint32_t r7_drain_tasks_read_local_interleaved(bool unmasked,
-                                                bool& owner_work_remains);
 // END R7 GENERATED ENVELOPES
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false,
               typename Filler = void>
@@ -3168,8 +3161,6 @@ public:
     uint32_t r7_drain_tasks_impl(bool unmasked, Filler* filler, bool* filler_used);
     template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
     uint32_t r7_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
-    template <bool IofusedPrivateQueue = false, size_t BatchOps>
-    void r7_exec_batch(Task (&batch)[BatchOps], uint32_t n);
 
 };
 
