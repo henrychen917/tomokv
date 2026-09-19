@@ -641,7 +641,18 @@ static void owners() {
     std::puts("PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH");
 }
 void multidb_db0_unit();
-int main() {
+void mdbstamp_checks(const char* selection);
+int main(int argc, char** argv) {
+    require(command_registry_init(true), "registry initialization including TLS shadows");
+    if (argc == 3 && std::strcmp(argv[1], "--stamp-check") == 0) {
+        mdbstamp_checks(argv[2]);
+        return 0;
+    }
+    if (argc == 2 && std::strcmp(argv[1], "--owners-only") == 0) {
+        owners();
+        return 0;
+    }
+    mdbstamp_checks("all");
     multidb_db0_unit();
     require(command_registry_init(false), "registry initialization");
     require(Config{}.databases == 1, "single-database boot default");
