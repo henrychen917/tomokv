@@ -30,6 +30,17 @@ def mutate(name, source):
             source['server.h'], 'bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {',
             'bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {\n'
             '        if (key_lb_signals_enabled()) return false; // negative control')
+    elif name == 'fixed-budget':
+        # Restore the rejected global budget in BOTH the floor and the sampler.
+        source['weighted_lb.h'] = replace_once(
+            source['weighted_lb.h'],
+            'return uint64_t{kSamplesPerDecision} * std::max<uint32_t>(owners, 1);',
+            'return kSamplesPerDecision; // negative control: resolution collapses with M')
+    elif name == 'fixed-sampling':
+        # A lower floor alone is not a resolution fix: make the live fold ignore owners.
+        source['server.h'] = replace_once(
+            source['server.h'], 'lb_policy_->observe_visits(visits, now, owners);',
+            'lb_policy_->observe_visits(visits, now, 1); // negative control')
     elif name == 'eager-gather':
         source['server.h'] = replace_once(
             source['server.h'], '                lb_fold_signals(now_ms * 1000000);',
@@ -70,6 +81,8 @@ def main():
     controls = {
         'no-floor': ['lbfix-floor', 'lbfix-stationary'],
         'no-hot': ['lbfix-hot'],
+        'fixed-budget': ['lbfix-clearable', 'lbfix-hot-32', 'lbfix-hot-64', 'lbfix-sampling'],
+        'fixed-sampling': ['lbfix-sampling'],
         'eager-gather': ['lbfix-gather'],
         'no-reset': ['lbfix-no-move'],
         'step-no-floor': ['lbfix-step'],

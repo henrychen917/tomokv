@@ -1,6 +1,6 @@
 // Deterministic, serverless regressions for SURVIVING.md's src/core concurrency findings.
 // No listener, executor loop, benchmark, sleeps, or probabilistic arming. The fixture has
-// the gate's 16 shards / 6 IO + 2 EX geometry; transfer rows also exercise fused ownership.
+// the gate's 16 shards / 6 IO + 2 EX geometry; LB also models up to 64 fused owners.
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -35,38 +35,51 @@ struct CoreConcurrencyTest {
     template <bool Fused = false>
     struct Fixture {
         Server server;
-        ExLoopT<Fused> loops[8];
+        std::unique_ptr<ExLoopT<Fused>[]> loops;
         IoLoop io;
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture(bool load_balance = true) {
+        Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16)
+            : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "affinity unavailable");
             std::string domain;
+            std::vector<int> allowed;
             uint32_t count = 0;
             for (int cpu = 0; cpu < CPU_SETSIZE && count < 8; cpu++) {
                 if (!CPU_ISSET(cpu, &cpus)) continue;
                 if (count++) domain += '+';
                 domain += std::to_string(cpu);
+                allowed.push_back(cpu);
             }
             require(count == 8, "regression fixture requires eight allowed CPUs (no skip)");
             require(server.topo_.declare(domain.c_str()), "declare fixture topology");
-            if constexpr (Fused)
-                require(server.placement_.build_fused(server.topo_, nullptr), "fused placement");
-            else
+            if constexpr (Fused) {
+                // State-only logical owners may share an allowed CPU. No worker is started,
+                // so 32/64-owner proofs need no wider affinity than the gate's eight CPUs.
+                std::string place;
+                for (uint32_t tid = 0; tid < thread_count; tid++) {
+                    if (tid) place += ',';
+                    place += "ifid@" + std::to_string(allowed[tid % allowed.size()]);
+                }
+                require(server.placement_.build_fused(server.topo_, place.c_str()), "fused placement");
+                io_id = thread_count - 1;
+            } else {
+                require(thread_count == 8, "split fixture retains gate geometry");
                 require(server.placement_.build_even(server.topo_, 6, 2), "6:2 placement");
-            require(server.placement_.reserve_runtime_roles(8), "reserve placement roles");
+            }
+            require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
             Config config;
-            config.shards = 16;
+            config.shards = shard_count;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.key_lb = config.client_lb = load_balance ? 1 : 0;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
-            require(server.nshards() == 16 && server.nthreads() == 8, "fixture geometry");
-            for (uint32_t tid = 0; tid < 8; tid++) {
+            require(server.nshards() == shard_count && server.nthreads() == thread_count, "fixture geometry");
+            for (uint32_t tid = 0; tid < thread_count; tid++) {
                 ThreadCtx& thread = server.thread(tid);
                 require(Fused ? thread.init_task_inbox_local_fused()
                               : thread.init_task_inbox_local(server.placement().ifid_threads(),
@@ -565,8 +578,12 @@ struct CoreConcurrencyTest {
     template <bool Fused>
     struct LbFixture : Fixture<Fused> {
         uint64_t clock_ms = now_ns() / 1000000;
-        std::vector<uint32_t> visits = std::vector<uint32_t>(16, 1000);
-        LbFixture() {
+        std::vector<uint32_t> visits;
+        LbFixture(uint32_t owners = Fused ? 8 : 2)
+            : Fixture<Fused>(true, Fused ? owners : 8, Fused ? 2 * owners : 16),
+              visits(this->server.nshards(), 1000) {
+            require(this->server.placement().ex_threads().size() == owners &&
+                        this->server.shard_owner_count() == owners, "LB fixture owner count");
             this->server.cfg_.client_lb = 0;
             this->server.lb_policy_->last_fold_ns = clock_ms * 1000000;
             this->server.lb_policy_->bucket_fold_ns = clock_ms * 1000000;
@@ -611,13 +628,48 @@ struct CoreConcurrencyTest {
                     visits[owned[i]] = total / owned.size() + (i < total % owned.size());
             }
         }
+        void balanced_owner_loads() {
+            // Every owner starts at 10000 visits, including one 1250-visit movable shard.
+            for (uint32_t owner : this->server.placement().ex_threads()) {
+                const auto& owned = this->server.thread(owner).shards();
+                require(owned.size() >= 2, "modest-imbalance witness needs a movable shard");
+                visits[owned.front()->id()] = 1250;
+                const uint32_t rest = owned.size() - 1;
+                for (uint32_t i = 0; i < rest; i++)
+                    visits[owned[i + 1]->id()] = 8750 / rest + (i < 8750 % rest);
+            }
+        }
+        void modest_imbalance() {
+            // +12.5% on source and -12.5% on destination, unchanged total at every M.
+            // Moving source's 1250-visit shard to destination eliminates the 25% span.
+            visits[this->server.thread(this->source).shards().back()->id()] += 1250;
+            visits[this->server.thread(this->destination).shards().back()->id()] -= 1250;
+        }
+        double demand_spread() {
+            std::vector<uint64_t> loads(this->server.nthreads());
+            for (uint32_t sid = 0; sid < visits.size(); sid++)
+                loads[this->server.worker_of_shard(sid)] += visits[sid];
+            uint64_t lo = UINT64_MAX, hi = 0;
+            for (uint32_t owner : this->server.placement().ex_threads()) {
+                lo = std::min(lo, loads[owner]);
+                hi = std::max(hi, loads[owner]);
+            }
+            return hi - lo;
+        }
     };
 
+    static constexpr std::array<uint32_t, 6> lb_owner_counts{2, 4, 8, 16, 32, 64};
+
+    static void require_lb(bool ok, uint32_t owners, const char* message) {
+        if (!ok) std::fprintf(stderr, "LB owners=%u: ", owners);
+        require(ok, message);
+    }
+
     static void lb_floor() {
-        for (uint32_t owners : {2u, 8u, 64u}) {
+        for (uint32_t owners : lb_owner_counts) {
             const double pairs = double(owners) * (owners - 1) / 2;
             const double expected = 100 * std::sqrt((4 + 2 * std::log(pairs)) *
-                                                   2 * owners / LbAutotune::kSamplesPerDecision);
+                                                   2 / LbAutotune::kSamplesPerDecision);
             LbAutotune::QuietJitter noise;
             for (uint32_t tick = 0; tick < 256; tick++) {
                 noise.observe(1.0);
@@ -633,8 +685,8 @@ struct CoreConcurrencyTest {
     }
 
     template <bool Fused>
-    static void lb_stationary() {
-        LbFixture<Fused> f;
+    static void lb_stationary(uint32_t owners = Fused ? 8 : 2) {
+        LbFixture<Fused> f(owners);
         f.small_residual();
         for (uint32_t tick = 0; tick < 96; tick++)
             require(!f.tick(), "stationary residual yields no move through and after stabilization");
@@ -647,19 +699,25 @@ struct CoreConcurrencyTest {
     }
 
     template <bool Fused>
-    static void lb_hot() {
-        LbFixture<Fused> f;
+    static void lb_hot(uint32_t owners = Fused ? 8 : 2, bool modest = false) {
+        LbFixture<Fused> f(owners);
+        if (modest) f.balanced_owner_loads();
         for (uint32_t tick = 0; tick < 96; tick++) require(!f.tick(), "prime stationary hot test");
-        f.visits[f.sid()] += 8000;
+        if (modest) f.modest_imbalance();
+        else f.visits[f.sid()] += 8000;
+        const double before = f.demand_spread();
+        require(before > 0, "hot-shard test armed a real owner imbalance");
         bool planned = false;
         // Three ticks fill/sustain the cheap window; a deferred detailed fold may contain
         // the old stationary history. Two further decision windows must find the hot shard.
         for (uint32_t tick = 0; tick < 3 * LbAutotune::kDecisionTicks && !planned; tick++)
             planned = f.tick();
-        require(planned && f.server.lb_bucket_gathers() > 0 && !f.server.lb_shard_moves_.empty(),
+        require_lb(planned && f.server.lb_bucket_gathers() > 0 && !f.server.lb_shard_moves_.empty(), owners,
                 "induced hot shard fires within nine ticks after stationary warmup");
         f.commit();
         require(f.server.lb_bucket_moves() > 0, "hot-shard proof committed actual ownership moves");
+        require_lb(f.demand_spread() < before, owners, "hot-shard move improves actual owner spread");
+        if (modest) require_lb(f.demand_spread() == 0, owners, "modest imbalance is eliminated by one move");
         // Keep the induced workload fixed by physical shard; let further beneficial plans
         // finish, then require a zero-move stationary suffix.
         for (uint32_t tick = 0; tick < 96; tick++) if (f.tick()) f.commit();
@@ -667,6 +725,52 @@ struct CoreConcurrencyTest {
         for (uint32_t tick = 0; tick < 48; tick++)
             require(!f.tick(), "fixed hot-shard workload stops moving after stabilization");
         require(f.server.lb_bucket_moves() == settled_moves, "stationary suffix has zero moves");
+    }
+
+    static void lb_stationary_all() {
+        lb_stationary<false>();
+        for (uint32_t owners : lb_owner_counts) lb_stationary<true>(owners);
+    }
+
+    static void lb_hot_all() {
+        lb_hot<false>(); lb_hot<true>(); // preserve the original large-hot-shard assertions
+        for (uint32_t owners : {8u, 32u, 64u}) lb_hot<true>(owners, true);
+    }
+
+    static void lb_clearable() {
+        for (uint32_t owners : lb_owner_counts) {
+            LbFixture<true> f(owners);
+            f.balanced_owner_loads();
+            for (uint32_t tick = 0; tick < 96; tick++) require(!f.tick(), "prime clearable-floor test");
+            f.modest_imbalance();
+            require(f.demand_spread() == 2500, "clearable-floor witness has exactly 25% owner spread");
+            for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++)
+                if (f.tick()) f.commit();
+            require_lb(f.server.lb_bucket_gathers() > 0, owners,
+                       "25% owner imbalance clears admission within nine ticks");
+            const auto& noise = f.server.lb_policy_->key_jitter;
+            require_lb(std::abs(noise.previous - 25.0) < 1e-9 && noise.band(owners) < 25.0, owners,
+                       "production admission observes the stated realistic imbalance above its floor");
+        }
+    }
+
+    template <bool Fused>
+    static void lb_sampling(uint32_t owners = Fused ? 8 : 2) {
+        LbFixture<Fused> f(owners);
+        f.balanced_owner_loads();
+        require(!f.tick(), "sample-budget witness starts balanced");
+        // 10000 visits per owner per second, 30000 per decision: ceil(30000/4096)=8.
+        // This checks the production fold's wiring, not just the standalone budget formula.
+        require_lb(f.server.lb_policy_->sample_rate.load() == 8, owners,
+                   "live owner count preserves per-owner sample resolution");
+        std::fill(f.visits.begin(), f.visits.end(), 0);
+        f.tick();
+        require(f.server.lb_policy_->sample_rate.load() == 1, "sparse traffic samples every visit");
+    }
+
+    static void lb_sampling_all() {
+        lb_sampling<false>(); // two actual owners, eight total threads
+        for (uint32_t owners : lb_owner_counts) lb_sampling<true>(owners);
     }
 
     template <bool Fused>
@@ -752,8 +856,10 @@ struct CoreConcurrencyTest {
 
     static void lb_signals() {
         lb_floor();
-        lb_stationary<false>(); lb_stationary<true>();
-        lb_hot<false>(); lb_hot<true>();
+        lb_stationary_all();
+        lb_hot_all();
+        lb_clearable();
+        lb_sampling_all();
         lb_lazy_gather<false>(); lb_lazy_gather<true>();
         lb_no_move<false>(); lb_no_move<true>();
         lb_step_floor<false>(); lb_step_floor<true>();
@@ -851,8 +957,13 @@ int main(int argc, char** argv) {
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); }
     else if (row == "lbfix") T::lb_signals();
     else if (row == "lbfix-floor") T::lb_floor();
-    else if (row == "lbfix-stationary") { T::lb_stationary<false>(); T::lb_stationary<true>(); }
-    else if (row == "lbfix-hot") { T::lb_hot<false>(); T::lb_hot<true>(); }
+    else if (row == "lbfix-stationary") T::lb_stationary_all();
+    else if (row == "lbfix-hot") T::lb_hot_all();
+    else if (row == "lbfix-hot-8") T::lb_hot<true>(8, true);
+    else if (row == "lbfix-hot-32") T::lb_hot<true>(32, true);
+    else if (row == "lbfix-hot-64") T::lb_hot<true>(64, true);
+    else if (row == "lbfix-clearable") T::lb_clearable();
+    else if (row == "lbfix-sampling") T::lb_sampling_all();
     else if (row == "lbfix-gather") { T::lb_lazy_gather<false>(); T::lb_lazy_gather<true>(); }
     else if (row == "lbfix-no-move") { T::lb_no_move<false>(); T::lb_no_move<true>(); }
     else if (row == "lbfix-step") { T::lb_step_floor<false>(); T::lb_step_floor<true>(); }
