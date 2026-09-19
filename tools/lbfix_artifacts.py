@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare serverless LB negative controls, TSan build, and a type-A text-size control.
+"""Prepare serverless LB negative controls, TSan build, and a labelled text-size control.
 
 This script only writes build inputs. It never runs a server, test, or measurement.
 All mutations live under build/lbfix-controls; production sources remain untouched.
@@ -80,7 +80,7 @@ def mutate(name, source):
 def main():
     controls = {
         'no-floor': ['lbfix-floor', 'lbfix-stationary'],
-        'no-hot': ['lbfix-hot'],
+        'no-hot': ['lbfix-hot', 'lbfix-hot-8', 'lbfix-hot-32', 'lbfix-hot-64'],
         'fixed-budget': ['lbfix-clearable', 'lbfix-hot-32', 'lbfix-hot-64', 'lbfix-sampling'],
         'fixed-sampling': ['lbfix-sampling'],
         'eager-gather': ['lbfix-gather'],
@@ -134,36 +134,39 @@ def main():
     pre, post = Elf(BUILD / 'lbfix-pre/tomokv'), Elf(BUILD / 'tomokv')
     pre_text = len(pre.section_data(pre.names.index('.text')))
     post_text = len(post.section_data(post.names.index('.text')))
-    pad = post_text - pre_text
-    assert pad >= 0, 'candidate shrank: use an explicitly labelled inverse control instead'
+    behavior_twin = post_text >= pre_text
+    pad = abs(post_text - pre_text)
+    base = BUILD / ('lbfix-pre' if behavior_twin else '')
+    kind = ('A: PRE behaviour with POST .text size' if behavior_twin else
+            'B: candidate behaviour plus padding restoring PRE .text size')
     # An unannotated assembly object clears CET's IBT/SHSTK property at link time,
     # which changes the entire PLT and text base. Preserve the compiler's exact note.
-    pre_object = Elf(BUILD / 'lbfix-pre/src/main.o')
+    base_object = Elf(base / 'src/main.o')
     properties = ''
-    if '.note.gnu.property' in pre_object.names:
-        note = pre_object.section_data(pre_object.names.index('.note.gnu.property'))
+    if '.note.gnu.property' in base_object.names:
+        note = base_object.section_data(base_object.names.index('.note.gnu.property'))
         properties = '.section .note.gnu.property,"a",@note\n.p2align 3\n.byte ' + \
             ','.join(str(byte) for byte in note) + '\n'
     (BUILD / 'lbfix-pad.S').write_text(
         '.text\n.globl lbfix_text_size_control\nlbfix_text_size_control:\n'
         f'.fill {pad},1,0x90\n.section .note.GNU-stack,"",@progbits\n' + properties)
     make.extend([
-        'LB_PRE_OBJ := $(SRC:%.cc=build/lbfix-pre/%.o)',
-        'LB_PRE_DB0_OBJ := $(SRC:%.cc=build/lbfix-pre/db0/%.o)',
+        'LB_PAD_OBJ := ' + ('$(SRC:%.cc=build/lbfix-pre/%.o)' if behavior_twin else '$(OBJ)'),
+        'LB_PAD_DB0_OBJ := ' + ('$(SRC:%.cc=build/lbfix-pre/db0/%.o)' if behavior_twin else '$(DB0_OBJ)'),
         'lbfix-pad: build/tomokv-lbfix-pad',
         'build/lbfix-pad.o: build/lbfix-pad.S',
         '\t$(CXX) -c $< -o $@',
-        'build/tomokv-lbfix-pad: $(LB_PRE_OBJ) $(LB_PRE_DB0_OBJ) build/lbfix-pad.o',
-        '\t$(CXX) $(CXXFLAGS) $(LB_PRE_DB0_OBJ) $(LB_PRE_OBJ) build/lbfix-pad.o '
+        'build/tomokv-lbfix-pad: $(LB_PAD_OBJ) $(LB_PAD_DB0_OBJ) build/lbfix-pad.o',
+        '\t$(CXX) $(CXXFLAGS) $(LB_PAD_DB0_OBJ) $(LB_PAD_OBJ) build/lbfix-pad.o '
         '-o $@ $(JELIBS) $(LDLIBS) -lm', ''])
     (BUILD / 'lbfix-artifacts.mk').write_text('\n'.join(make))
     (BUILD / 'lbfix-controls.json').write_text(json.dumps(manifest, indent=2) + '\n')
     (BUILD / 'lbfix-pad.json').write_text(json.dumps({
-        'kind': 'A: PRE behaviour with POST .text size', 'padding_bytes': pad,
+        'kind': kind, 'padding_bytes': pad, 'source_binary': str((base / 'tomokv').relative_to(ROOT)),
         'pre_text_bytes': pre_text, 'post_text_bytes': post_text,
         'limitation': 'Matches text extent, not internal function addresses or cold heap allocations.'
     }, indent=2) + '\n')
-    print('Prepared controls, full TSan unit, and type-A text-size twin; ran nothing.')
+    print(f'Prepared controls, full TSan unit, and PAD ({kind}); ran nothing.')
 
 
 if __name__ == '__main__':
