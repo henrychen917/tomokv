@@ -106,12 +106,38 @@ bool multidb_parse_index(Slice arg, uint32_t count, uint8_t& db) {
     return true;
 }
 
+static bool stamp_regular_range(Op& op) {
+    const CommandSpec* spec = op.spec;
+    if (!spec) return false;
+    // These rows describe a routing hint, not an exact key range. In particular,
+    // scripts include ARGV, streams include IDs, and containers have keyless arms.
+    constexpr uint32_t dynamic = CmdFlags::ScriptRoute | CmdFlags::StreamRoute |
+                                 CmdFlags::Blocking | CmdFlags::SubcmdRoute;
+    if (spec->flags & dynamic) return false;
+    // Admit only the audited whole-tail scatter families: DEL/UNLINK/EXISTS/TOUCH,
+    // MGET/MSET/MSETNX, PFCOUNT/PFMERGE, and S{DIFF,INTER,UNION}[STORE]. Their
+    // minimum arity is <= 3; the superficially identical Z*STORE and GEORADIUS
+    // ranges need >= 4 and contain counts/options. Other scatter rows stay cold
+    // (notably COPY/MOVE endpoints and SORT's optional destination).
+    if ((spec->flags & CmdFlags::MultiShard) &&
+        !(spec->first_key == 1 && spec->last_key == -1 && spec->min_arity <= 3))
+        return false;
+    if (spec->first_key > 0 && spec->key_step > 0) {
+        const int64_t argc = op.argc();
+        const int64_t last = spec->last_key < 0 ? argc + spec->last_key : spec->last_key;
+        for (int64_t key = spec->first_key; key <= last && key < argc; key += spec->key_step)
+            op.set_arg_namespace(static_cast<uint32_t>(key), op.physical_db);
+    }
+    return true;
+}
+
 template <typename Map>
 static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
     op.db = logical;
     op.physical_db = map[logical];
     op.target_db = logical;
     op.secondary_db = op.physical_db;
+    if (stamp_regular_range(op)) return;
     if (op.cmd_name().eq_icase("move") && op.argc() == 3)
         multidb_parse_index(op.arg(2), server.cfg().databases, op.target_db);
     if (op.cmd_name().eq_icase("copy"))
