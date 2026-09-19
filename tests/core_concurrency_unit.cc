@@ -560,6 +560,206 @@ struct CoreConcurrencyTest {
                     "stable control tails allocate and account nothing");
     }
 
+    // Feed production counters, clock windows, admission, planner and drain/commit directly.
+    // These are deterministic signal inputs, not a server or a load generator.
+    template <bool Fused>
+    struct LbFixture : Fixture<Fused> {
+        uint64_t clock_ms = now_ns() / 1000000;
+        std::vector<uint32_t> visits = std::vector<uint32_t>(16, 1000);
+        LbFixture() {
+            this->server.cfg_.client_lb = 0;
+            this->server.lb_policy_->last_fold_ns = clock_ms * 1000000;
+            this->server.lb_policy_->bucket_fold_ns = clock_ms * 1000000;
+        }
+        bool tick(bool hot_admission_only = false) {
+            clock_ms += LbAutotune::kTickMs;
+            for (uint32_t sid = 0; sid < visits.size(); sid++) {
+                Shard& physical = this->server.shard(sid);
+                physical.stats().ops += hot_admission_only
+                    ? (this->server.worker_of_shard(sid) == this->source ? 10000 : 1000)
+                    : visits[sid];
+                // Two buckets per shard make the dominant-bucket veto independent of the
+                // indivisible-shard/no-improvement case (neither bucket exceeds half).
+                physical.note_lb_sample(physical.bucket_begin(), visits[sid] / 2);
+                physical.note_lb_sample(physical.bucket_begin() + 1, visits[sid] - visits[sid] / 2);
+            }
+            return this->server.lb_controller_tick(this->io_id, clock_ms);
+        }
+        void commit() {
+            auto& server = this->server;
+            require(server.lb_stage() == LbStage::IoDrain, "key plan enters IO publication drain");
+            for (uint32_t tid : server.placement().ifid_threads()) server.lb_ack(tid);
+            require(server.lb_begin_ex_drain(), "key plan waits for every IO acknowledgement");
+            for (uint32_t tid : server.placement().ex_threads()) server.lb_ack(tid);
+            require(server.lb_commit_shard_plan(clock_ms), "admitted key plan commits a real move");
+        }
+        void small_residual() {
+            // Every owner has 10000 visits except source (10200). Its 100-visit shard is
+            // movable and strictly improves spread. Removing the floor must therefore
+            // produce a move; a set of equal indivisible shards would be a vacuous control.
+            for (uint32_t owner : this->server.placement().ex_threads()) {
+                std::vector<uint32_t> owned;
+                for (uint32_t sid = 0; sid < visits.size(); sid++)
+                    if (this->server.worker_of_shard(sid) == owner) owned.push_back(sid);
+                uint32_t total = 10000;
+                if (owner == this->source) {
+                    visits[owned.back()] = 100;
+                    owned.pop_back();
+                    total = 10100;
+                }
+                for (uint32_t i = 0; i < owned.size(); i++)
+                    visits[owned[i]] = total / owned.size() + (i < total % owned.size());
+            }
+        }
+    };
+
+    static void lb_floor() {
+        for (uint32_t owners : {2u, 8u, 64u}) {
+            const double pairs = double(owners) * (owners - 1) / 2;
+            const double expected = 100 * std::sqrt((4 + 2 * std::log(pairs)) *
+                                                   2 * owners / LbAutotune::kSamplesPerDecision);
+            LbAutotune::QuietJitter noise;
+            for (uint32_t tick = 0; tick < 256; tick++) {
+                noise.observe(1.0);
+                require(noise.band(owners) + 1e-12 >= expected,
+                        "LB band never falls below the independently derived sampling floor");
+            }
+            require(noise.windows > LbAutotune::kDecisionTicks && noise.jitter == 0,
+                    "stationary adjacent-window jitter really collapsed to zero");
+        }
+        LbAutotune policy;
+        require(policy.cooldown_ms() >= LbAutotune::kWindowMs,
+                "cooldown covers a complete fresh decision window");
+    }
+
+    template <bool Fused>
+    static void lb_stationary() {
+        LbFixture<Fused> f;
+        f.small_residual();
+        for (uint32_t tick = 0; tick < 96; tick++)
+            require(!f.tick(), "stationary residual yields no move through and after stabilization");
+        require(f.server.lb_policy_->key_jitter.previous > 0 &&
+                    f.server.lb_policy_->key_jitter.jitter < 1e-9 &&
+                    f.server.lb_policy_->key_jitter.windows > LbAutotune::kDecisionTicks,
+                "stationary test armed nonzero imbalance with fully decayed jitter");
+        require(f.server.lb_bucket_moves() == 0 && f.server.lb_bucket_gathers() == 0,
+                "stationary residual moves nothing and gathers no buckets");
+    }
+
+    template <bool Fused>
+    static void lb_hot() {
+        LbFixture<Fused> f;
+        for (uint32_t tick = 0; tick < 96; tick++) require(!f.tick(), "prime stationary hot test");
+        f.visits[f.sid()] += 8000;
+        bool planned = false;
+        // Three ticks fill/sustain the cheap window; a deferred detailed fold may contain
+        // the old stationary history. Two further decision windows must find the hot shard.
+        for (uint32_t tick = 0; tick < 3 * LbAutotune::kDecisionTicks && !planned; tick++)
+            planned = f.tick();
+        require(planned && f.server.lb_bucket_gathers() > 0 && !f.server.lb_shard_moves_.empty(),
+                "induced hot shard fires within nine ticks after stationary warmup");
+        f.commit();
+        require(f.server.lb_bucket_moves() > 0, "hot-shard proof committed actual ownership moves");
+        // Keep the induced workload fixed by physical shard; let further beneficial plans
+        // finish, then require a zero-move stationary suffix.
+        for (uint32_t tick = 0; tick < 96; tick++) if (f.tick()) f.commit();
+        const uint64_t settled_moves = f.server.lb_bucket_moves();
+        for (uint32_t tick = 0; tick < 48; tick++)
+            require(!f.tick(), "fixed hot-shard workload stops moving after stabilization");
+        require(f.server.lb_bucket_moves() == settled_moves, "stationary suffix has zero moves");
+    }
+
+    template <bool Fused>
+    static void lb_lazy_gather() {
+        LbFixture<Fused> f;
+        const auto before_samples = f.server.lb_bucket_last_samples_;
+        const auto before_weights = f.server.lb_bucket_weight_;
+        for (uint32_t tick = 0; tick < 96; tick++) {
+            require(!f.tick(), "balanced tick plans no move");
+            require(f.server.lb_bucket_gathers() == 0 &&
+                        f.server.lb_bucket_last_samples_ == before_samples &&
+                        f.server.lb_bucket_weight_ == before_weights,
+                    "tick without admission performs no full-bucket gather or fold");
+        }
+        f.visits[f.sid()] += 8000;
+        for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++) {
+            if (f.tick()) f.commit();
+        }
+        require(f.server.lb_bucket_gathers() > 0 &&
+                    f.server.lb_bucket_last_samples_ != before_samples,
+                "gather witness and sample fold both fire on admitted evidence");
+    }
+
+    template <bool Fused>
+    static void lb_no_move() {
+        LbFixture<Fused> f;
+        std::fill(f.visits.begin(), f.visits.end(), 0);
+        f.visits[f.sid()] = 10000; // one indivisible shard; relocating it cannot improve spread
+        for (uint32_t tick = 0; tick < 9 && !f.server.lb_bucket_gathers(); tick++)
+            require(!f.tick(), "indivisible load cannot produce a beneficial move");
+        const uint64_t gathered = f.server.lb_bucket_gathers();
+        require(gathered > 0 && f.server.lb_bucket_hot_streak_ == 0,
+                "no-move plan consumes its admission streak");
+        for (uint32_t tick = 1; tick < LbAutotune::kDecisionTicks; tick++)
+            require(!f.tick() && f.server.lb_bucket_gathers() == gathered,
+                    "no-move plan must earn fresh sustained admission");
+        require(!f.tick() && f.server.lb_bucket_gathers() == gathered + 1,
+                "fresh sustain still reconsiders an indivisible load");
+    }
+
+    template <bool Fused>
+    static void lb_step_floor() {
+        LbFixture<Fused> f;
+        f.small_residual();
+        for (uint32_t tick = 0; tick < 12; tick++)
+            require(!f.tick(true), "per-step planner respects the same floored band as admission");
+        require(f.server.lb_bucket_gathers() > 0,
+                "step-floor proof reached the detailed planner with sub-floor sampled spread");
+    }
+
+    template <bool Fused>
+    static void lb_fold_read_only() {
+        LbFixture<Fused> f;
+        Shard& physical = f.server.shard(f.sid());
+        const std::string key = f.key(f.sid());
+        const uint64_t hash = FlatStore::hash_key(slice(key));
+        physical.set_cached_now_ms(1000, 0);
+        KvObj* object = kvobj_new_string(slice(key), Slice("expired-accounting-witness"), 1001);
+        require(object && physical.store().insert(hash, object) == FlatStore::InsertResult::Inserted,
+                "read-only fold planted a real expiring object");
+        physical.set_cached_now_ms(1002, 0);
+        physical.note_lb_sample(hash, 17);
+        const uint64_t bytes = physical.store().object_bytes();
+        const uint64_t expired = physical.stats().expired;
+        require(physical.store().size() == 1 && physical.store().expire_count() == 1,
+                "expiry window is armed before accounting (no skip)");
+        f.server.lb_fold_signals(f.clock_ms * 1000000 + 1000000000);
+        require(physical.lb_scan_bucket_bytes(1 << 20), "owner accounting completed its full walk");
+        require(physical.lb_bucket_bytes(bucket_of(hash)) > 0,
+                "accounting callback actually visited the expired object");
+        std::vector<WeightedLbItem> items;
+        f.server.lb_gather_key_evidence(items, f.clock_ms + 1000, 0);
+        require(f.server.lb_bucket_gathers() == 1 && items.size() == f.server.nshards(),
+                "read-only proof executed full detailed gather");
+        require(physical.store().size() == 1 && physical.store().expire_count() == 1 &&
+                    physical.store().object_bytes() == bytes && physical.stats().expired == expired &&
+                    physical.lb_bucket_samples(bucket_of(hash)) == 17,
+                "fold and census preserve objects, TTLs, bytes and owner sample counters");
+        require(physical.store().find(hash, slice(key)) == nullptr &&
+                    physical.store().size() == 0 && physical.stats().expired == expired + 1,
+                "ordinary owner lookup expires the witness, proving the hazardous state was real");
+    }
+
+    static void lb_signals() {
+        lb_floor();
+        lb_stationary<false>(); lb_stationary<true>();
+        lb_hot<false>(); lb_hot<true>();
+        lb_lazy_gather<false>(); lb_lazy_gather<true>();
+        lb_no_move<false>(); lb_no_move<true>();
+        lb_step_floor<false>(); lb_step_floor<true>();
+        lb_fold_read_only<false>(); lb_fold_read_only<true>();
+    }
+
     static void snapshot_forward() {
         Fixture f;
         Client client(-1);
@@ -648,7 +848,15 @@ int main(int argc, char** argv) {
     if (row == "watch") T::watch_disconnect();
     else if (row == "lifetime") T::lifetime();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); }
+    else if (row == "lbfix") T::lb_signals();
+    else if (row == "lbfix-floor") T::lb_floor();
+    else if (row == "lbfix-stationary") { T::lb_stationary<false>(); T::lb_stationary<true>(); }
+    else if (row == "lbfix-hot") { T::lb_hot<false>(); T::lb_hot<true>(); }
+    else if (row == "lbfix-gather") { T::lb_lazy_gather<false>(); T::lb_lazy_gather<true>(); }
+    else if (row == "lbfix-no-move") { T::lb_no_move<false>(); T::lb_no_move<true>(); }
+    else if (row == "lbfix-step") { T::lb_step_floor<false>(); T::lb_step_floor<true>(); }
+    else if (row == "lbfix-read-only") { T::lb_fold_read_only<false>(); T::lb_fold_read_only<true>(); }
     else if (row == "lbstall") T::lb_stalls();
     else if (row == "lbshard") { T::lb_shard_progress<false>(); T::lb_shard_progress<true>(); }
     else if (row == "snapshot") T::snapshot_forward();

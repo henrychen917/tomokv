@@ -207,5 +207,15 @@ for field in info_age_fields:
     value = float(lb[field])
     ok("INFO %s is sane" % field, 0 <= value <= SANE_AGE_US, str(value))
 
+# The cold gather counter lets the stationary-load run distinguish a quiet controller from
+# one that still scans all buckets but happens to produce no move. Directed arming/zero-gather
+# assertions live in the existing core concurrency route row (both sanitizers, both modes).
+gathers_field = "tomokv_keylb_bucket_gathers"
+ok("INFO exports admitted bucket gathers", gathers_field in lb)
+gathers = int(lb[gathers_field])
+ok("bucket gathers is a nonnegative counter", gathers >= 0)
+if int(lb["tomokv_keylb_enabled"]) == 0:
+    ok("key-lb=0 performs no bucket gathers", gathers == 0)
+
 print(f"LBSIGNALS: {checks} checks ok (thread-mode {MODE}, {len(skipped)} skipped: "
       f"{', '.join(skipped) if skipped else 'none'})", flush=True)
