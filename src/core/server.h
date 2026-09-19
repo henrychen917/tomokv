@@ -539,8 +539,9 @@ public:
             }
             lb_policy_->window_ticks = ticks;
             lb_policy_->window_slot = (lb_policy_->window_slot + 1) % LbAutotune::kDecisionTicks;
-            // Executed shard fragments are a cheap lower bound on key visits. Multi-key
-            // fragments may oversample; never increase the per-op sampling work to add a census.
+            // Existing shard execution counts are a cheap rate proxy for key visits. Multi-key
+            // and retried fragments can change the achieved sample count; each sampled visit
+            // still carries its latched rate. No per-operation census is added.
             lb_policy_->observe_visits(visits, now);
         }
         // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
