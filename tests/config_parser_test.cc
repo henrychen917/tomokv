@@ -465,26 +465,30 @@ int main() {
 
     // A longer observation interval with proportionally more traffic must preserve the
     // samples-per-decision target; transfer pacing must respond to measured cost.
-    tomo::LbAutotune sampled_lb;
-    sampled_lb.last_fold_ns = 1;
-    sampled_lb.observe_visits(4096, 1000000001);
-    const uint32_t sampled_rate = sampled_lb.sample_rate.load();
-    sampled_lb.observe_visits(8192, 3000000001);
-    if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
-        fail("LB samples per decision depend on observation interval");
+    for (uint32_t owners : {2u, 4u, 8u, 16u, 32u, 64u}) {
+        tomo::LbAutotune sampled_lb;
+        sampled_lb.last_fold_ns = 1;
+        sampled_lb.observe_visits(4096 * owners, 1000000001, owners);
+        const uint32_t sampled_rate = sampled_lb.sample_rate.load();
+        sampled_lb.observe_visits(8192 * owners, 3000000001, owners);
+        if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
+            fail("LB per-owner sampling resolution depends on owner count or interval");
+    }
+    if (tomo::LbAutotune::sample_every(4096, 1000, 3000) != 3)
+        fail("FLIP no longer uses its existing global decision budget");
     tomo::LbAutotune slow_lb, fast_lb;
     if (slow_lb.move_cap(16) != 1 || slow_lb.cooldown_ms() == 0)
         fail("LB bootstrap cannot move or has no observation cooldown");
-    slow_lb.note_transfer(600000000, 1);
+    slow_lb.note_transfer(1200000000, 1);
     fast_lb.note_transfer(1000000, 1);
     if (slow_lb.move_cap(16) >= fast_lb.move_cap(16) ||
         slow_lb.cooldown_ms() <= fast_lb.cooldown_ms())
         fail("LB pacing does not track completed transfer cost");
     tomo::LbAutotune::QuietJitter noise;
     for (double sample : {10.0, 11.0, 10.0, 11.0}) noise.observe(sample);
-    if (noise.band() != 2.0) fail("LB band is not twice measured quiet jitter");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
     noise.observe(40.0);
-    if (noise.band() != 2.0) fail("an excursion widened its own LB band");
+    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
 
     tomo::Config lb_defaults;
     if (lb_defaults.key_lb != 1 || lb_defaults.client_lb != 1)

@@ -371,12 +371,14 @@ public:
         if (lb_controller_enabled()) {
             lb_policy_ = std::make_unique<LbAutotune>();
             lb_policy_->last_fold_ns = now_ns();
+            lb_policy_->bucket_fold_ns = lb_policy_->last_fold_ns;
         }
         if (key_lb_signals_enabled()) {
             try {
                 lb_bucket_last_samples_.assign(kNumBuckets, 0);
                 lb_bucket_weight_.assign(kNumBuckets, 0.0);
-                lb_bucket_last_move_ms_.assign(kNumBuckets, 0);
+                lb_shard_last_move_ms_.assign(cfg.shards, 0);
+                lb_policy_->shards.resize(cfg.shards);
             } catch (const std::bad_alloc&) {
                 std::fprintf(stderr, "fatal: could not allocate weighted key-placement windows\n");
                 return false;
@@ -512,28 +514,39 @@ public:
         return found == lb_clients_.end() ? 0.0 : found->second.weight;
     }
 
-    // The controller owns this fold. Every bucket keeps a monotonic sampled counter on its
-    // physical shard; EWMA history is indexed by immutable bucket id, never by executor owner.
-    void lb_fold_signals() {
+    // The admission fold reads only existing shard counters/publications and loop counters.
+    // No store walk, bucket walk, allocation, expiry or request-path writer is needed.
+    void lb_fold_signals(uint64_t now = now_ns()) {
         if (!lb_controller_enabled()) return;
         std::lock_guard<std::mutex> lock(lb_signal_mu_);
         if (key_lb_signals_enabled()) {
             uint64_t visits = 0;
+            const double elapsed = now > lb_policy_->last_fold_ns
+                ? double(now - lb_policy_->last_fold_ns) : LbAutotune::kTickMs * 1000000.0;
+            const double scale = LbAutotune::kTickMs * 1000000.0 / elapsed;
+            const uint32_t ticks = std::min(lb_policy_->window_ticks + 1,
+                                             LbAutotune::kDecisionTicks);
             for (uint32_t sid = 0; sid < nshards(); sid++) {
-                Shard& physical = shard(static_cast<int32_t>(sid));
-                for (uint32_t bucket = physical.bucket_begin();
-                     bucket < physical.bucket_end(); bucket++) {
-                    const uint32_t current = physical.lb_bucket_samples(bucket);
-                    const uint32_t delta = current - lb_bucket_last_samples_[bucket];
-                    lb_bucket_last_samples_[bucket] = current;
-                    visits += delta;
-                    const double sample = static_cast<double>(delta);
-                    lb_bucket_weight_[bucket] = lb_bucket_primed_
-                        ? 0.25 * sample + 0.75 * lb_bucket_weight_[bucket] : sample;
-                }
+                const Shard& physical = shard(static_cast<int32_t>(sid));
+                auto& window = lb_policy_->shards[sid];
+                const uint64_t current = __atomic_load_n(&physical.stats().ops, __ATOMIC_RELAXED);
+                const uint64_t delta = current - window.last_ops;
+                window.last_ops = current;
+                visits += delta;
+                window.ticks[lb_policy_->window_slot] = double(delta) * scale;
+                window.weight = 0;
+                for (double count : window.ticks) window.weight += count / ticks;
             }
-            lb_bucket_primed_ = true;
-            lb_policy_->observe_visits(visits, now_ns());
+            lb_policy_->window_ticks = ticks;
+            lb_policy_->window_slot = (lb_policy_->window_slot + 1) % LbAutotune::kDecisionTicks;
+            // Existing shard execution counts are a cheap rate proxy for key visits. Multi-key
+            // and retried fragments can change the achieved sample count; each sampled visit
+            // still carries its latched rate. No per-operation census is added.
+            // Match the controller's eligible owners, including empty destinations. Read
+            // live roles so a split-mode FLIP cannot leave the sample budget at boot size.
+            uint32_t owners = 0;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) owners += owns_shards(tid);
+            lb_policy_->observe_visits(visits, now, owners);
         }
         // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
         // polling/spinning is scheduled CPU but does not mean the role has useful work available.
@@ -552,22 +565,48 @@ public:
         }
         lb_occupancy_primed_ = true;
     }
-    double lb_shard_weight(uint32_t sid) const {
-        if (sid >= nshards() || !key_lb_signals_enabled()) return 0.0;
-        std::lock_guard<std::mutex> lock(lb_signal_mu_);
-        const Shard& physical = shard(static_cast<int32_t>(sid));
-        double weight = 0;
-        for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
-            weight += lb_bucket_weight_[bucket];
-        return weight;
+
+    uint64_t lb_bucket_gathers() const {
+        return lb_policy_ ? lb_policy_->bucket_gathers.load(std::memory_order_relaxed) : 0;
     }
-    uint64_t lb_shard_bytes(uint32_t sid) const {
-        if (sid >= nshards() || !key_lb_signals_enabled()) return 0;
-        const Shard& physical = shard(static_cast<int32_t>(sid));
-        uint64_t bytes = 0;
-        for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++)
-            bytes += physical.lb_bucket_bytes(bucket);
-        return bytes;
+    // Only admitted key/FLIP plans gather detailed evidence. One lock and one bucket pass
+    // combine fold, shard weight/bytes, and the indivisible hot-bucket check. A skipped beat
+    // does not turn accumulated samples into a one-second rate or extend EWMA retention.
+    bool lb_gather_key_evidence(std::vector<WeightedLbItem>& items, uint64_t now_ms,
+                                uint64_t cooldown_ms) {
+        if (!key_lb_signals_enabled()) return false;
+        items.reserve(nshards());
+        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+        lb_policy_->bucket_gathers.fetch_add(1, std::memory_order_relaxed);
+        const uint64_t now = now_ms * 1000000;
+        const double elapsed = now > lb_policy_->bucket_fold_ns
+            ? double(now - lb_policy_->bucket_fold_ns) : LbAutotune::kTickMs * 1000000.0;
+        const double scale = LbAutotune::kTickMs * 1000000.0 / elapsed;
+        const double retain = lb_bucket_primed_
+            ? std::pow(0.75, elapsed / (LbAutotune::kTickMs * 1000000.0)) : 0;
+        double total = 0, hottest = 0;
+        for (uint32_t sid = 0; sid < nshards(); sid++) {
+            const Shard& physical = shard(static_cast<int32_t>(sid));
+            double weight = 0;
+            uint64_t bytes = 0;
+            for (uint32_t bucket = physical.bucket_begin(); bucket < physical.bucket_end(); bucket++) {
+                const uint32_t current = physical.lb_bucket_samples(bucket);
+                const uint32_t delta = current - lb_bucket_last_samples_[bucket];
+                lb_bucket_last_samples_[bucket] = current;
+                double& sample = lb_bucket_weight_[bucket];
+                sample = (1 - retain) * double(delta) * scale + retain * sample;
+                weight += sample;
+                hottest = std::max(hottest, sample);
+                bytes += physical.lb_bucket_bytes(bucket);
+            }
+            total += weight;
+            const uint64_t moved = lb_shard_last_move_ms_[sid];
+            items.push_back({sid, worker_of_shard(static_cast<int32_t>(sid)), weight,
+                             moved && now_ms - moved < cooldown_ms, static_cast<double>(bytes)});
+        }
+        lb_bucket_primed_ = true;
+        lb_policy_->bucket_fold_ns = now;
+        return total > 0 && hottest * 2.0 > total;
     }
     double lb_thread_occupancy(uint32_t tid) const {
         if (tid >= lb_thread_occupancy_.size()) return 0.0;
@@ -1079,15 +1118,18 @@ public:
             std::vector<WeightedLbItem> items;
             items.reserve(nshards());
             const bool weighted_key = key_lb_signals_enabled();
-            for (uint32_t sid = 0; sid < nshards(); sid++) {
-                const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
-                if (owner >= nthreads()) {
+            if (weighted_key) {
+                lb_gather_key_evidence(items, now_ns() / 1000000, 0);
+            } else {
+                for (uint32_t sid = 0; sid < nshards(); sid++)
+                    items.push_back({sid, worker_of_shard(static_cast<int32_t>(sid)), 0.0,
+                                     false, 0.0});
+            }
+            for (const auto& item : items) {
+                if (item.owner >= nthreads()) {
                     error = "ERR FLIP shard ownership names an invalid thread";
                     return false;
                 }
-                items.push_back({sid, owner,
-                                 weighted_key ? lb_shard_weight(sid) : 0.0, false,
-                                 weighted_key ? static_cast<double>(lb_shard_bytes(sid)) : 0.0});
             }
             std::sort(executors.begin(), executors.end());
             std::vector<WeightedLbAssignment> assignments;
@@ -1194,7 +1236,7 @@ public:
                 }
                 // FLIP folds the same windows while holding this admission mutex. Serialising the
                 // fold prevents a losing concurrent planner from consuming and decaying its tick.
-                lb_fold_signals();
+                lb_fold_signals(now_ms * 1000000);
             }
             std::vector<uint32_t> executors;
             std::vector<uint32_t> ios;
@@ -1227,16 +1269,16 @@ public:
             };
             const uint64_t cooldown_ms = lb_policy_->cooldown_ms();
             auto update_streak = [&](double ratio, LbAutotune::QuietJitter& noise,
-                                     uint32_t& streak) {
+                                     uint32_t& streak, uint32_t owners) {
                 if (!noise.observe(ratio)) {
                     lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                     return false;
                 }
-                const double fire = noise.band();
+                const double fire = noise.band(owners);
                 const double release = fire * 0.8; // Schmitt release band
-                if (ratio > fire) streak = std::min<uint32_t>(streak + 1, 3);
+                if (ratio > fire) streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
                 else if (ratio < release || ratio == 0) streak = 0;
-                if (streak < 3) {
+                if (streak < LbAutotune::kDecisionTicks) {
                     lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                     return false;
                 }
@@ -1249,40 +1291,13 @@ public:
             if (key_enabled && executors.size() >= 2) {
                 double loads[kMaxThreads] = {};
                 double byte_loads[kMaxThreads] = {};
-                std::vector<WeightedLbItem> shard_items;
-                shard_items.reserve(nshards());
-                std::vector<uint64_t> last_move;
-                bool dominant_bucket = false;
                 {
                     std::lock_guard<std::mutex> lock(lb_signal_mu_);
-                    last_move = lb_bucket_last_move_ms_;
-                    double total = 0, hottest = 0;
-                    for (double weight : lb_bucket_weight_) {
-                        total += weight;
-                        hottest = std::max(hottest, weight);
+                    for (uint32_t sid = 0; sid < nshards(); sid++) {
+                        const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
+                        loads[owner] += lb_policy_->shards[sid].weight;
+                        byte_loads[owner] += shard(static_cast<int32_t>(sid)).published_obj_bytes();
                     }
-                    dominant_bucket = total > 0 && hottest * 2.0 > total;
-                }
-                uint32_t cooldown_seen = 0;
-                for (uint32_t sid = 0; sid < nshards(); sid++) {
-                    const uint32_t owner = worker_of_shard(static_cast<int32_t>(sid));
-                    const double weight = lb_shard_weight(sid);
-                    const uint64_t bytes = lb_shard_bytes(sid);
-                    const Shard& physical = shard(static_cast<int32_t>(sid));
-                    bool cooling = false;
-                    for (uint32_t bucket = physical.bucket_begin();
-                         bucket < physical.bucket_end(); bucket++) {
-                        const uint64_t moved = last_move[bucket];
-                        if (moved && now_ms - moved < cooldown_ms) {
-                            cooling = true;
-                            break;
-                        }
-                    }
-                    if (cooling) cooldown_seen++;
-                    shard_items.push_back(
-                        {sid, owner, weight, cooling, static_cast<double>(bytes)});
-                    loads[owner] += weight;
-                    byte_loads[owner] += static_cast<double>(bytes);
                 }
                 shard_before = spread(loads, executors);
                 bytes_before = spread(byte_loads, executors);
@@ -1293,43 +1308,68 @@ public:
                     std::memory_order_relaxed);
                 lb_bucket_bytes_spread_current_.store(
                     static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
-                if (dominant_bucket && weight_ratio > lb_policy_->key_jitter.band()) {
-                    // A bucket carrying at least half of all observed demand cannot be decomposed
-                    // by the single-owner actuator. It may contain a hot key; record and stop
-                    // instead of merely relocating the bottleneck.
-                    lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
-                    lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                if (update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
+                                  lb_bucket_hot_streak_, executors.size())) {
+                    // Consume admission even when cooldown, indivisibility, or a sampled
+                    // no-improvement plan produces no move. Such a plan needs fresh sustain.
                     lb_bucket_hot_streak_ = 0;
-                } else if (update_streak(
-                               std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
-                               lb_bucket_hot_streak_)) {
-                    for (uint32_t step = 0; step < lb_policy_->move_cap(nshards()); step++) {
-                        const double old_weight_span = spread(loads, executors);
-                        const double old_byte_span = spread(byte_loads, executors);
-                        const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
-                                                lb_policy_->key_jitter.band();
-                        const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
-                                                lb_policy_->key_jitter.band();
-                        if (!demand_hot && !memory_hot) break;
-                        WeightedLbMoveChoice choice;
-                        if (!weighted_lb_best_incremental_move(
-                                shard_items, executors, demand_hot, memory_hot, choice)) {
-                            if (cooldown_seen)
-                                lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
-                            else
-                                lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
-                            break;
+                    std::vector<WeightedLbItem> shard_items;
+                    bool dominant_bucket;
+                    {
+                        // Match FLIP's fold/ownership admission lock order. Do not consume
+                        // bucket history if another transition won after the cheap fold.
+                        std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
+                        if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
+                            snapshot_.in_progress() || loading()) {
+                            lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
+                            return false;
                         }
-                        WeightedLbItem& item = shard_items[choice.item_index];
-                        shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
-                                             choice.destination, item.weight,
-                                             static_cast<uint64_t>(item.secondary)});
-                        loads[choice.source] -= item.weight;
-                        loads[choice.destination] += item.weight;
-                        byte_loads[choice.source] -= item.secondary;
-                        byte_loads[choice.destination] += item.secondary;
-                        item.owner = choice.destination;
-                        item.pinned = true;
+                        dominant_bucket = lb_gather_key_evidence(shard_items, now_ms, cooldown_ms);
+                    }
+                    std::fill_n(loads, kMaxThreads, 0.0);
+                    std::fill_n(byte_loads, kMaxThreads, 0.0);
+                    uint32_t cooldown_seen = 0;
+                    for (const WeightedLbItem& item : shard_items) {
+                        loads[item.owner] += item.weight;
+                        byte_loads[item.owner] += item.secondary;
+                        cooldown_seen += item.pinned;
+                    }
+                    shard_before = spread(loads, executors);
+                    bytes_before = spread(byte_loads, executors);
+                    const double band = lb_policy_->key_jitter.band(executors.size());
+                    if (dominant_bucket && ratio_pct(shard_before, loads, executors) > band) {
+                        // The single-owner actuator cannot decompose a dominant bucket.
+                        lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
+                        lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                    } else {
+                        for (uint32_t step = 0; step < lb_policy_->move_cap(nshards()); step++) {
+                            const double old_weight_span = spread(loads, executors);
+                            const double old_byte_span = spread(byte_loads, executors);
+                            const bool demand_hot = ratio_pct(old_weight_span, loads, executors) >
+                                                    band;
+                            const bool memory_hot = ratio_pct(old_byte_span, byte_loads, executors) >
+                                                    band;
+                            if (!demand_hot && !memory_hot) break;
+                            WeightedLbMoveChoice choice;
+                            if (!weighted_lb_best_incremental_move(
+                                    shard_items, executors, demand_hot, memory_hot, choice)) {
+                                if (cooldown_seen)
+                                    lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
+                                else
+                                    lb_no_candidate_.fetch_add(1, std::memory_order_relaxed);
+                                break;
+                            }
+                            WeightedLbItem& item = shard_items[choice.item_index];
+                            shard_plan.push_back({static_cast<uint32_t>(item.id), choice.source,
+                                                 choice.destination, item.weight,
+                                                 static_cast<uint64_t>(item.secondary)});
+                            loads[choice.source] -= item.weight;
+                            loads[choice.destination] += item.weight;
+                            byte_loads[choice.source] -= item.secondary;
+                            byte_loads[choice.destination] += item.secondary;
+                            item.owner = choice.destination;
+                            item.pinned = true;
+                        }
                     }
                     shard_after = spread(loads, executors);
                     bytes_after = spread(byte_loads, executors);
@@ -1343,29 +1383,36 @@ public:
             double client_before = 0, client_after = 0;
             if (client_enabled && ios.size() >= 2) {
                 double loads[kMaxThreads] = {};
-                std::vector<WeightedLbItem> clients;
-                uint32_t cooldown_seen = 0;
-                {
-                    std::lock_guard<std::mutex> lock(lb_signal_mu_);
-                    clients.reserve(lb_clients_.size());
-                    for (const auto& entry : lb_clients_) {
-                        const LbClientSignal& signal = entry.second;
-                        if (signal.owner >= nthreads() ||
-                            thread(signal.owner).role() != Role::Ifid) continue;
-                        const bool cooling = signal.last_move_ms &&
-                            now_ms - signal.last_move_ms < cooldown_ms;
-                        if (cooling) cooldown_seen++;
-                        clients.push_back(
-                            {entry.first, signal.owner, signal.weight, cooling, 0.0});
-                        loads[signal.owner] += signal.weight;
-                    }
-                }
+                for (uint32_t tid : ios)
+                    loads[tid] = double(lb_client_owner_weight_[tid].load(std::memory_order_acquire)) /
+                                 1024.0;
                 client_before = spread(loads, ios);
                 lb_client_weight_spread_current_.store(
                     static_cast<uint64_t>(client_before * 1024.0 + 0.5),
                     std::memory_order_relaxed);
                 const double client_ratio = ratio_pct(client_before, loads, ios);
-                if (update_streak(client_ratio, lb_policy_->client_jitter, lb_client_hot_streak_)) {
+                if (update_streak(client_ratio, lb_policy_->client_jitter, lb_client_hot_streak_,
+                                  ios.size())) {
+                    lb_client_hot_streak_ = 0;
+                    std::fill_n(loads, kMaxThreads, 0.0);
+                    std::vector<WeightedLbItem> clients;
+                    uint32_t cooldown_seen = 0;
+                    {
+                        std::lock_guard<std::mutex> lock(lb_signal_mu_);
+                        clients.reserve(lb_clients_.size());
+                        for (const auto& entry : lb_clients_) {
+                            const LbClientSignal& signal = entry.second;
+                            if (signal.owner >= nthreads() ||
+                                thread(signal.owner).role() != Role::Ifid) continue;
+                            const bool cooling = signal.last_move_ms &&
+                                now_ms - signal.last_move_ms < cooldown_ms;
+                            if (cooling) cooldown_seen++;
+                            clients.push_back(
+                                {entry.first, signal.owner, signal.weight, cooling, 0.0});
+                            loads[signal.owner] += signal.weight;
+                        }
+                    }
+                    client_before = spread(loads, ios);
                     WeightedLbMoveChoice choice;
                     if (!weighted_lb_best_incremental_move(
                             clients, ios, true, false, choice)) {
@@ -1454,12 +1501,9 @@ public:
         for (const LbShardMove& move : lb_shard_moves_) {
             if (!transfer_shard_quiesced(static_cast<int32_t>(move.sid), move.source,
                                           move.destination)) std::abort();
-            Shard& physical = shard(static_cast<int32_t>(move.sid));
             {
                 std::lock_guard<std::mutex> lock(lb_signal_mu_);
-                for (uint32_t bucket = physical.bucket_begin();
-                     bucket < physical.bucket_end(); bucket++)
-                    lb_bucket_last_move_ms_[bucket] = now_ms;
+                lb_shard_last_move_ms_[move.sid] = now_ms;
             }
             lb_bucket_moves_.fetch_add(1, std::memory_order_relaxed);
             if (placement_.domain_of_thread(move.source) !=
@@ -3471,7 +3515,7 @@ private:
     mutable std::mutex lb_signal_mu_;
     std::vector<uint32_t> lb_bucket_last_samples_;
     std::vector<double> lb_bucket_weight_;
-    std::vector<uint64_t> lb_bucket_last_move_ms_;
+    std::vector<uint64_t> lb_shard_last_move_ms_; // physical shard is the transfer unit
     std::vector<uint64_t> lb_thread_last_busy_;
     std::vector<uint64_t> lb_thread_last_idle_;
     std::vector<double> lb_thread_occupancy_;
