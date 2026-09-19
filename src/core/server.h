@@ -542,7 +542,11 @@ public:
             // Existing shard execution counts are a cheap rate proxy for key visits. Multi-key
             // and retried fragments can change the achieved sample count; each sampled visit
             // still carries its latched rate. No per-operation census is added.
-            lb_policy_->observe_visits(visits, now);
+            // Match the controller's eligible owners, including empty destinations. Read
+            // live roles so a split-mode FLIP cannot leave the sample budget at boot size.
+            uint32_t owners = 0;
+            for (uint32_t tid = 0; tid < nthreads(); tid++) owners += owns_shards(tid);
+            lb_policy_->observe_visits(visits, now, owners);
         }
         // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
         // polling/spinning is scheduled CPU but does not mean the role has useful work available.

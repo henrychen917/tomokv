@@ -465,13 +465,17 @@ int main() {
 
     // A longer observation interval with proportionally more traffic must preserve the
     // samples-per-decision target; transfer pacing must respond to measured cost.
-    tomo::LbAutotune sampled_lb;
-    sampled_lb.last_fold_ns = 1;
-    sampled_lb.observe_visits(4096, 1000000001);
-    const uint32_t sampled_rate = sampled_lb.sample_rate.load();
-    sampled_lb.observe_visits(8192, 3000000001);
-    if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
-        fail("LB samples per decision depend on observation interval");
+    for (uint32_t owners : {2u, 4u, 8u, 16u, 32u, 64u}) {
+        tomo::LbAutotune sampled_lb;
+        sampled_lb.last_fold_ns = 1;
+        sampled_lb.observe_visits(4096 * owners, 1000000001, owners);
+        const uint32_t sampled_rate = sampled_lb.sample_rate.load();
+        sampled_lb.observe_visits(8192 * owners, 3000000001, owners);
+        if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
+            fail("LB per-owner sampling resolution depends on owner count or interval");
+    }
+    if (tomo::LbAutotune::sample_every(4096, 1000, 3000) != 3)
+        fail("FLIP no longer uses its existing global decision budget");
     tomo::LbAutotune slow_lb, fast_lb;
     if (slow_lb.move_cap(16) != 1 || slow_lb.cooldown_ms() == 0)
         fail("LB bootstrap cannot move or has no observation cooldown");
