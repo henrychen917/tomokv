@@ -201,6 +201,7 @@ def run_case(binary, args, case, arm, attempt):
                 time.sleep(TICK / 4)
 
         result['parked'] = wait_parked(proc)
+        require(not failures, f'load stopped before the SWAPDB window: {failures}')
         baseline = counts[0]
         replies = []
         # Three real swaps create two retirements even on a brand-new boot.
@@ -217,6 +218,9 @@ def run_case(binary, args, case, arm, attempt):
                         'SWAPDB timed out without the intended live negative')
                 result['expected_timeout'] = True
                 result['timeout_at_swap'] = index
+                result['parked_at_timeout'] = park_snapshot(proc.pid)
+                require(set(result['parked']) & set(result['parked_at_timeout']),
+                        'no original parked participant remained at the negative timeout')
                 break
             require(reply == b'OK' and time.monotonic() - begin <= GRACE,
                     'SWAPDB missed its reply deadline')
