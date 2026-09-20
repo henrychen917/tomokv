@@ -407,7 +407,7 @@ struct NetcmdRegression {
         Server info_server;
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
-        for (int32_t reorder : {-1, 0, 1}) {
+        for (int32_t reorder : {0, 1}) {
         info_server.cfg_.reorder = reorder;
         Shard shard;
         for (uint32_t overlap : {0u, 1u}) {
@@ -432,10 +432,11 @@ struct NetcmdRegression {
                 check((info.find(std::string(field) + "0\r\n") != std::string::npos) == (reorder != 0),
                       "R7 counters appear only when armed, without allocating in INFO");
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
+            check(info.find("reorder_auto_") == std::string::npos, "INFO retained AUTO diagnostics");
         }
         }
         info_server.cfg_.thread_mode = ThreadMode::Split;
-        info_server.cfg_.reorder = 0; // the cold boot resolution for off/on/AUTO
+        info_server.cfg_.reorder = 0; // the cold boot resolution for off/on
         info_server.cfg_.overlap = 0;
         Shard split_shard;
         const std::string split_info = execute(split_shard, {"INFO", "SERVER"});

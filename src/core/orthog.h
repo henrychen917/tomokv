@@ -2,6 +2,7 @@
 #pragma once
 #include <algorithm>
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -31,12 +32,8 @@ struct alignas(64) ModeScheduleStats {
     std::atomic<uint64_t> reorder_permuted_runs{0};
     std::atomic<uint32_t> reorder_max_batch{0};
     std::atomic<OverlapSchedule> overlap_schedule{OverlapSchedule::None};
-    // R7-only role-local scratch; the pointer is never read by INFO or a peer.
-    // Uses the existing 16-byte tail padding, leaving every old offset intact.
-    void* reorder_policy = nullptr;
-    // Atomic diagnostic: samples[63:32], engagements[31:1], engaged[0].
-    // Both counts saturate; only the owner writes it, never on an operation.
-    std::atomic<uint64_t> reorder_auto{0};
+    // Reserved tail: preserve the 64-byte stride and every surviving member offset.
+    uint8_t reorder_reserved[16]{};
 
     // Each element has one physical-thread writer for its entire lifetime, including FLIP.
     // INFO reads atomically; no locked RMW and no changes to the shared ThreadCtx cache lines.
@@ -57,6 +54,14 @@ struct alignas(64) ModeScheduleStats {
     }
 };
 static_assert(sizeof(ModeScheduleStats) == 64);
+static_assert(offsetof(ModeScheduleStats, overlap_passes) == 0);
+static_assert(offsetof(ModeScheduleStats, overlap_interleaved_passes) == 8);
+static_assert(offsetof(ModeScheduleStats, reorder_batches) == 16);
+static_assert(offsetof(ModeScheduleStats, reorder_multi_client_runs) == 24);
+static_assert(offsetof(ModeScheduleStats, reorder_permuted_runs) == 32);
+static_assert(offsetof(ModeScheduleStats, reorder_max_batch) == 40);
+static_assert(offsetof(ModeScheduleStats, overlap_schedule) == 44);
+static_assert(offsetof(ModeScheduleStats, reorder_reserved) == 48);
 
 __attribute__((noinline, cold))
 inline void append_mode_schedule_info(std::string& body, const ModeScheduleStats* stats,

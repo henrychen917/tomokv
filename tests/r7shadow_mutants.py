@@ -16,19 +16,7 @@ mutants = {
                  'carry/ratio pick bound exceeded'),
     'no-successor-clear': (source.replace('if (shadow_bit(n.task) && !shadow_pending(n.task))', 'if (false)'),
                            'newly eligible follower retained a completed shadow'),
-    'auto-no-floor': (source.replace('sample.depth > kGenthreadExBatchOps &&', 'true &&'),
-                      'AUTO occupancy floor/warmup failed at 0.5x/1x/2x gather'),
-    'auto-inclusive-floor': (source.replace('sample.depth > kGenthreadExBatchOps &&',
-                                            'sample.depth >= kGenthreadExBatchOps &&'),
-                             'AUTO occupancy floor/warmup failed at 0.5x/1x/2x gather'),
-    'auto-never': (source.replace('engaged_ = samples_ == Window && sample.behind &&',
-                                 'engaged_ = false && samples_ == Window && sample.behind &&'),
-                   'occupancy fixture failed to re-arm at 2x gather'),
-    'auto-sticky': (source.replace('engaged_ = samples_ == Window && sample.behind &&',
-                                  'engaged_ = engaged_ || (samples_ == Window && sample.behind &&')
-                         .replace('sample.depth >= depth_threshold() && behind_ > longs_;',
-                                  'sample.depth >= depth_threshold() && behind_ > longs_);'),
-                    'AUTO retained priority at or below one gather'),
+
 }
 for name, (header, expected) in mutants.items():
     assert header != source

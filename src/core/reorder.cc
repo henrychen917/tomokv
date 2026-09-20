@@ -18,28 +18,21 @@ __attribute__((noipa)) bool shadow_available() { return true; }
 
 void append_reorder_info(std::string& body, const ModeScheduleStats* stats, uint32_t nthreads) {
     TOMO_R7_PATH();
-    uint64_t batches = 0, multi = 0, permutations = 0, auto_samples = 0, auto_owners = 0, auto_engagements = 0;
+    uint64_t batches = 0, multi = 0, permutations = 0;
     uint32_t max_batch = 0;
     if (stats) for (uint32_t tid = 0; tid < nthreads; tid++) {
         const auto& s = stats[tid];
         batches += s.reorder_batches.load(std::memory_order_relaxed);
         multi += s.reorder_multi_client_runs.load(std::memory_order_relaxed);
         permutations += s.reorder_permuted_runs.load(std::memory_order_relaxed);
-        const auto automatic = s.reorder_auto.load(std::memory_order_relaxed);
-        auto_samples += automatic >> 32;
-        auto_engagements += (automatic >> 1) & 0x7fffffff;
-        auto_owners += automatic & 1;
         max_batch = std::max(max_batch, s.reorder_max_batch.load(std::memory_order_relaxed));
     }
     char row[512];
     const int n = std::snprintf(row, sizeof(row),
         "reorder_batches:%llu\r\nreorder_multi_client_runs:%llu\r\n"
-        "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n"
-        "reorder_auto_samples:%llu\r\nreorder_auto_engaged_owners:%llu\r\nreorder_auto_engagements:%llu\r\n",
+        "reorder_permuted_runs:%llu\r\nreorder_max_batch:%u\r\nreorder_shadow:%u\r\n",
         static_cast<unsigned long long>(batches), static_cast<unsigned long long>(multi),
-        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available(),
-        static_cast<unsigned long long>(auto_samples), static_cast<unsigned long long>(auto_owners),
-        static_cast<unsigned long long>(auto_engagements));
+        static_cast<unsigned long long>(permutations), max_batch, r7::shadow_available());
     if (n < 0 || static_cast<size_t>(n) >= sizeof(row)) std::abort();
     body.append(row, static_cast<size_t>(n));
 }
@@ -50,7 +43,7 @@ __attribute__((noinline))
 uint32_t ExLoopT<Fused>::r7_drain_tasks(bool unmasked, Filler* filler,
                                bool* filler_used) {
     TOMO_R7_PATH();
-    if (!r7::priority_enabled(srv_->mode_schedule_stats(self_->id()), srv_->cfg().reorder)) {
+    if (!r7::priority_enabled(srv_->cfg().reorder)) {
         if constexpr (std::is_void_v<Filler>)
             return drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked);
         else return drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(unmasked, *filler, *filler_used);
@@ -106,24 +99,6 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_with_filler(bool unmasked, Filler& fille
                                                   bool& filler_used) {
     TOMO_R7_PATH();
     return r7_drain_tasks<BatchOps, IofusedPrivateQueue>(unmasked, &filler, &filler_used);
-}
-
-template <bool Fused>
-template <bool IofusedPrivateQueue, size_t BatchOps>
-void ExLoopT<Fused>::r7_exec_batch(Task (&batch)[BatchOps], uint32_t n) {
-    TOMO_R7_PATH();
-    if (!xshard_retries_.empty()) {
-        for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-        return;
-    }
-    if (!r7::priority_enabled(srv_->mode_schedule_stats(self_->id()), srv_->cfg().reorder))
-        return exec_batch<IofusedPrivateQueue>(batch, n);
-    const ReorderResult witness = r7::shadow_available()
-        ? r7::ex_schedule_batch<BatchOps, true>(batch, n) : r7::ex_schedule_batch(batch, n);
-    srv_->mode_schedule_stats(self_->id()).note_reorder(n, witness);
-    if (overlap_prefetch_enabled(n)) prefetch_overlap_batch(batch, n);
-    else prefetch_exec_batch(batch, n);
-    exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
 }
 
 // BEGIN R7 GENERATED ENVELOPES
@@ -640,7 +615,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
                                 false, *filler, filler_used);
                         else {
                             if (fairlane_turn)
-                                did += r7_drain_tasks_read_local_interleaved<
+                                did += drain_tasks_read_local_interleaved<
                                     IofusedPrivateQueue>(false, owner_work_remains);
                             else
                                 did += r7_drain_tasks<BatchOps, IofusedPrivateQueue>();
@@ -757,157 +732,6 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
 }
 
 template <bool Fused>
-void ExLoopT<Fused>::r7_run() {
-    TOMO_R7_PATH();
-    if constexpr (Fused) {
-        // Only RL2S instantiates the owner loop with the fused-capable executor. Its lane
-        // was drained before role conversion; owner commands use no local-read captures.
-        if (!read_local_enabled() || read_local_impl().lane_count != 0) std::abort();
-        self_->publish_read_local_parked(srv_->read_local_epoch());
-        // A preceding shard-less IO tenure may have consumed this CONFIG version without
-        // applying it to shards. Reapply once ownership is installed and dispatch resumes.
-        live_config_version_ = UINT64_MAX;
-    }
-    LoopSignals& sig = self_->sig();
-    uint32_t idle_spins = 0;
-
-    while (!self_->stop_flag().load(std::memory_order_relaxed) &&
-           self_->role() == Role::Ex) {
-#ifdef TOMO_RL_CACHE_DEBUG
-        if constexpr (Fused)
-            srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
-#endif
-        cached_now_ms_ = realtime_ms();
-        const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
-        const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
-        const bool placement_frozen = flip_frozen || lb_frozen;
-        // refresh_live_config() walks this owner's shard vector. The coordinator may rewrite
-        // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
-        // the otherwise-cold configuration refresh path.
-        if (!placement_frozen) refresh_live_config();
-        if (maxmemory_enabled_)
-            cached_lru_clock_ = static_cast<uint8_t>(
-                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
-        sig.iterations++;
-
-        uint32_t did = 0;
-        uint64_t pass_ns = 0;
-        {
-            Server::ClientWorkScope client_work(*srv_, self_->id());
-            Span busy(pass_ns);
-            if (self_->sample_depth(busy.start_ns() / 1000)) {
-                const uint32_t age_rate = srv_->effective_age_sample_rate();
-                if (age_rate != age_sample_rate_cached_) {
-                    age_sample_rate_cached_ = age_rate;
-                    self_->sig().configure_age_sampling(age_rate);
-                }
-            }
-            if (placement_frozen) {
-                // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
-                // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
-                // publishes ExInstall. The coordinator may rewrite owner entries immediately
-                // after observing the acknowledgement.
-                const bool acknowledged = flip_frozen
-                    ? srv_->flip_acked(self_->id(), FlipStage::ExDrain)
-                    : srv_->lb_acked(self_->id());
-                if (!acknowledged) {
-                    did += service_stale_forwards();
-                    did += drain_releases(true);
-                    did += service_multi_retries();
-                    did += service_atomic_deferred();
-                    did += service_xshard_retries();
-                    if (xshard_retries_.empty()) did += service_ordered_deferred();
-                    if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += r7_drain_tasks(true);
-                    flush_xshard_commits();
-                    did += aof_flush_pass();
-                    did += drain_notify_keyless(sig);
-                    if constexpr (Fused)
-                        did += read_local_impl().deferred.drain_ready();
-                }
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
-                did += lb_control_pass();
-                did += flip_control_pass();
-            } else {
-                did += snapshot_control_pass();
-                did += service_stale_forwards();
-                did += drain_releases();
-                if (!snapshot_blocks_tasks()) {
-                    did += service_multi_retries();
-                    did += service_atomic_deferred();
-                    did += service_xshard_retries();
-                    if (xshard_retries_.empty()) did += service_ordered_deferred();
-                    if (xshard_retries_.empty() && ordered_deferred_.empty())
-                        did += snapshot_owner_state_ == SnapshotOwnerState::None
-                                   ? r7_drain_tasks() : drain_tasks_snapshot();
-                }
-                flush_xshard_commits();
-                if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
-                    cached_now_ms_ >= blocking_beat_ms_) {
-                    did += blocking_owner_cycle(
-                        *srv_, *self_, ring_, cached_now_ms_, true);
-                    blocking_beat_ms_ = cached_now_ms_ + 10;
-                }
-                did += aof_flush_pass();
-                did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
-                if constexpr (Fused)
-                    did += read_local_impl().deferred.drain_ready();
-                did += owner_control_tail();
-            }
-        }
-        // A pass that found nothing -- every drain and control pass came back empty -- is
-        // polling, not work. Book it as idle so busy_ns means WORK: the FLIP placement model
-        // reads the roles' busy shares, and an executor spinning its 2048-pass budget between
-        // task batches would otherwise report the polling as demand (measured on 8-key
-        // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
-        // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
-        if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
-        sig.cpu_ns = thread_cpu_ns();
-
-        // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
-        // PREPARED during the work section but only reach the kernel on submit; taking
-        // the busy path without submitting strands them in the SQ forever, and the peer
-        // that is waiting on that wake never runs.
-        if (did) {
-            ring_.submit_and_reap(); idle_spins = 0; continue;
-        }
-
-        // A frozen executor must never fall through to r7_sweep(): sweep owns expiry, MVCC
-        // cleanup and blocking-waiter walks, any of which can touch a shard after ExDrain's
-        // acknowledgement. Before the acknowledgement keep polling internal retry debt; after
-        // it, sleep only on the ring the coordinator wakes at every stage publication.
-        if (placement_frozen) {
-            const bool acknowledged = flip_frozen
-                ? srv_->flip_acked(self_->id(), FlipStage::ExDrain)
-                : srv_->lb_acked(self_->id());
-            if (!acknowledged) {
-                __builtin_ia32_pause();
-                continue;
-            }
-            Span idle(sig.idle_ns);
-            self_->arm_blocked();
-            ring_.submit_and_wait(1);
-            self_->clear_blocked();
-            continue;
-        }
-
-        if (++idle_spins < kExSpinBudget) { sig.spins++; __builtin_ia32_pause(); continue; }
-        idle_spins = 0;
-
-        // Mask-independent sweep before parking. The mask is a hint for the hot path; it must
-        // not be the only thing that can find queued work, or one lost bit wedges a connection
-        // forever. Runs only when this thread has already concluded it has nothing to do.
-        if (r7_sweep()) { ring_.submit_and_reap(); continue; }
-
-        Span idle(sig.idle_ns);
-        self_->arm_blocked();
-        if (!self_->any_ex_inbound()) ring_.submit_and_wait(1);
-        else                       ring_.submit_and_reap();
-        self_->clear_blocked();
-    }
-}
-
-template <bool Fused>
 template <uint32_t BatchOps, bool ConsumeTasks,
           bool IofusedPrivateQueue, bool InterleaveLocalReads>
 uint32_t ExLoopT<Fused>::r7_sweep() {
@@ -927,7 +751,7 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
             if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                 if (snapshot_owner_state_ == SnapshotOwnerState::None) {
                     if constexpr (InterleaveLocalReads)
-                        n += r7_drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
+                        n += drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
                             true, owner_work_remains);
                     else
                         n += r7_drain_tasks<BatchOps, IofusedPrivateQueue>(true);
@@ -954,46 +778,10 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     return n;
 }
 
-template <bool Fused>
-template <bool IofusedPrivateQueue>
-uint32_t ExLoopT<Fused>::r7_drain_tasks_read_local_interleaved(bool unmasked,
-                                            bool& owner_work_remains) {
-    TOMO_R7_PATH();
-    Task batch[kReadLocalOwnerTaskChunkOps];
-    uint32_t held = 0;
-    uint32_t local_work = 0;
-    auto take = [&](const Task& task) {
-        batch[held++] = task;
-        if (held != kReadLocalOwnerTaskChunkOps) return false;
-        r7_exec_batch<IofusedPrivateQueue>(batch, held);
-        held = 0;
-        return true;
-    };
-    auto local_turn = [&] {
-        // A local read must not run between a last-owner install and this batch's epoch
-        // publication. This boundary still batches every group in the preceding owner chunk.
-        flush_xshard_commits();
-        for (uint32_t chunk = 0;
-             chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
-            local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
-    };
-    const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
-        kReadLocalOwnerTaskChunkOps, take, local_turn, unmasked);
-    if (held) {
-        r7_exec_batch<IofusedPrivateQueue>(batch, held);
-        local_turn();
-    }
-    owner_work_remains = self_->notified_task_depth_capped(1) != 0 ||
-        fairlane_owner_debt_pending();
-    self_->sig().ops += n;
-    return n + local_work;
-}
-
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused,
           uint8_t Pipeline, bool SplitLocal>
 void IoLoop::r7_run_loop() {
-    r7::PolicyScope reorder_scope(srv_->mode_schedule_stats(self_->id()));
-    // Bind once at armed IO role entry, covering both fused and split readers.
+    // Bind once at armed fused IO role entry.
     if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())
         fused_executor_->bind_read_local_demotion(this,
             [](void* p, Client* client, const uint64_t* probed,
@@ -1081,8 +869,6 @@ void IoLoop::r7_run_loop() {
                 client_cron_beat_ms_ = cached_now_ms_;
             }
             if (self_->sample_depth(busy.start_ns() / 1000)) {
-                    if (srv_->cfg().reorder == Config::kReorderAuto)
-                        reorder_scope.policy.tick(*self_, srv_->mode_schedule_stats(self_->id()));
                 // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                 // only (the placement controller deliberately uses busy/idle), so sample it
                 // on the existing 100us signal beat instead of every hot pass.
@@ -1130,14 +916,14 @@ void IoLoop::r7_run_loop() {
             if constexpr (IoPipe) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += r7_pipeline_pass<HasUnix, HasTls, kEp, SplitLocal>(
+                did += pipeline_pass<HasUnix, HasTls, kEp, SplitLocal>(
                     false, natural_order, submitted, pipe.cursor);
             } else if constexpr (Fused) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp, true, HasUnix>();
             } else {
-                did += r7_collect_retire_work<HasUnix, kEp>();
+                did += collect_retire_work<HasUnix, kEp>();
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp>();
@@ -1189,7 +975,7 @@ void IoLoop::r7_run_loop() {
         // forever. Runs only when this thread has already concluded it has nothing to do.
         uint32_t sweep_work = 0;
         if constexpr (IoPipe)
-            sweep_work = r7_pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
+            sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
                 natural_order, submitted, pipe.cursor);
         else
             sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused>();
@@ -1277,7 +1063,7 @@ uint32_t IoLoop::r7_sweep() {
                 r7_flush_ready<HasTls, kEp, true, HasUnix, true>();
     } else {
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-                flush_borrow_releases() + r7_collect_retire_work<HasUnix, kEp>(true) +
+                flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
                 r7_flush_ready<HasTls, kEp>();
     }
     if (__builtin_expect(!routing_forward_.empty(), false))
@@ -1496,7 +1282,7 @@ uint32_t IoLoop::r7_flush_ready() {
     if constexpr (Fused) {
         work += SweepPass ? fused_executor_->r7_fused_baseline_sweep()
                           : fused_executor_->r7_fused_baseline_pass();
-        work += r7_collect_retire_work<HasUnix, kEp>(SweepPass);
+        work += collect_retire_work<HasUnix, kEp>(SweepPass);
     }
 
     // PUB/SUB PASS BOUNDARY -- between parsing and serving, on purpose. Everything this pass
@@ -1563,30 +1349,6 @@ uint32_t IoLoop::r7_flush_ready() {
     }
     work += served;
     return work;
-}
-
-template <uint8_t Pipeline>
-void IoLoop::r7_run_split() {
-    TOMO_R7_PATH();
-    const bool has_unix = unix_listen_fd_ >= 0 ||
-                          (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    if (epoll_) {
-        if (tls_context_) {
-            if (has_unix) r7_run_loop<true, true, true, false, Pipeline>();
-            else r7_run_loop<false, true, true, false, Pipeline>();
-        } else {
-            if (has_unix) r7_run_loop<true, false, true, false, Pipeline>();
-            else r7_run_loop<false, false, true, false, Pipeline>();
-        }
-        return;
-    }
-    if (tls_context_) {
-        if (has_unix) r7_run_loop<true, true, false, false, Pipeline>();
-        else r7_run_loop<false, true, false, false, Pipeline>();
-    } else {
-        if (has_unix) r7_run_loop<true, false, false, false, Pipeline>();
-        else r7_run_loop<false, false, false, false, Pipeline>();
-    }
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
@@ -1770,49 +1532,6 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         ring_.note_pending();
         c->set_recv_armed(true);
     }
-}
-
-template <bool HasUnix, bool kEp, bool TargetedIfid>
-uint32_t IoLoop::r7_collect_retire_work(bool unmasked) {
-    TOMO_R7_PATH();
-    uint32_t pubsub_work = 0;
-    auto take = [&](Client* c) {
-        if (!c) {
-            pubsub_work += pubsub_drain_events();
-            return;
-        }
-        // AF_UNIX accept handoffs use this existing channel without claiming retirement.
-        // Executor completions always CAS retire_queued false->true before posting, so the bit
-        // distinguishes the two meanings without adding a Client field or a catalog lock here.
-        if constexpr (HasUnix)
-            if (!c->retire_queued().load(std::memory_order_acquire)) {
-                r7_adopt_client<kEp>(c, true);
-                return;
-            }
-        c->retire_queued().store(false, std::memory_order_release);
-        enqueue_serve(c);                    // a posted client is a serve request
-        mark_active_known<TargetedIfid>(c);
-    };
-    uint32_t n = unmasked ? self_->drain_clients_unmasked(take) : self_->drain_clients(take);
-    // The ready-mask path: workers set one bit per completed-work burst; we map slot -> client,
-    // flag it FOR SERVING, and put it back in the active set. The flag is the point: serving
-    // every active conn every pass measured 93% EMPTY serves at 8 nodes -- 526M drain-checks
-    // that each pulled a remote worker's cache line to learn there was nothing to do. Targeted
-    // serving turns the poll into a response.
-    for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
-        uint64_t bits = self_->ready().take(w);
-        while (bits) {
-            const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
-            bits &= bits - 1;
-            Client* c = self_->wb_slot_client(w * 64 + b);
-            if (c && !c->dead()) {
-                enqueue_serve(c);
-                mark_active_known<TargetedIfid>(c);
-                n++;
-            }
-        }
-    }
-    return n + pubsub_work;
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
@@ -3798,79 +3517,6 @@ ordinary_shard_ready:
     return result;
 }
 
-template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal>
-__attribute__((noinline))
-uint32_t IoLoop::r7_pipeline_pass(bool unmasked, bool natural_order, bool& submitted, size_t& cursor) {
-    TOMO_R7_PATH();
-    srv_->mode_schedule_stats(self_->id()).note_overlap(
-        OverlapSchedule::SplitIo, !natural_order);
-    // One synchronous buffer per stream, exactly as measured. The non-inlined armed entry
-    // owns the scratch, so overlap 0 reserves no batch arrays even with LTO. Gather writes
-    // every entry below count; initializing the unused tails would add two memsets per pass.
-    // Queue publications and SQEs own their data afterwards; no retained client handles.
-    IfidBatch ifid;
-    WbBatch wb;
-    uint32_t work = 0;
-    if (natural_order) {
-        work += r7_ifid_rx<HasUnix, HasTls, kEp>(ifid, cursor);
-        work += r7_collect_retire_work<HasUnix, kEp>(unmasked);
-        work += r7_ifid_parse_hash<HasTls, kEp, SplitLocal>(ifid);
-        work += ifid_post(ifid);
-        work += wb_gather(wb);
-        work += wb_serve_natural<HasTls, kEp, SplitLocal>(wb, submitted);
-    } else {
-        io_pipe_schedule([&]<IoPipeStage Stage>() {
-            if constexpr (Stage == IoPipeStage::WbObserve)
-                work += r7_wb_observe<HasUnix, kEp>(unmasked, wb);
-            else if constexpr (Stage == IoPipeStage::IfidRx)
-                work += r7_ifid_rx<HasUnix, HasTls, kEp>(ifid, cursor);
-            else if constexpr (Stage == IoPipeStage::WbPrefetch)
-                wb_prefetch(wb);
-            else if constexpr (Stage == IoPipeStage::IfidParseHash)
-                work += r7_ifid_parse_hash<HasTls, kEp, SplitLocal>(ifid);
-            else if constexpr (Stage == IoPipeStage::WbRetirePrepare)
-                work += wb_retire_prepare<HasTls, kEp, SplitLocal>(wb);
-            else if constexpr (Stage == IoPipeStage::IfidPost)
-                work += ifid_post(ifid);
-            else if constexpr (Stage == IoPipeStage::WbSubmitReclaim)
-                work += wb_submit_reclaim<HasTls, kEp>(wb, submitted);
-        });
-    }
-    return work;
-}
-
-template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal>
-uint32_t IoLoop::r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& cursor) {
-    TOMO_R7_PATH();
-    uint32_t work = 0;
-    if constexpr (HasUnix) work += flush_handoffs();
-    work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
-            flush_borrow_releases();
-    // The hot rotation visits one cap-bounded IFID batch. Before parking, run enough batches
-    // to inspect the whole active set once, retaining this outer pass's selected order and the
-    // unmasked completion drain.
-    const size_t active_at_start = active_.size();
-    const size_t passes = std::max<size_t>(
-        1, (active_at_start + kIoPipeIfidBatchClients - 1) /
-               kIoPipeIfidBatchClients);
-    for (size_t pass = 0; pass < passes; pass++)
-        work += r7_pipeline_pass<HasUnix, HasTls, kEp, SplitLocal>(
-            true, natural_order, submitted, cursor);
-    if (__builtin_expect(!routing_forward_.empty(), false))
-        client_routing_cleanup_pass();
-    if (srv_->snapshot().writer_is(self_->id()))
-        work += srv_->snapshot().writer_pass(*self_, ring_, true);
-    if (srv_->aof().writer_is(self_->id()))
-        work += srv_->aof().writer_pass(*self_, ring_, true);
-    return work;
-}
-
-template <bool HasUnix, bool kEp>
-uint32_t IoLoop::r7_wb_observe(bool unmasked, WbBatch& batch) {
-    TOMO_R7_PATH();
-    return r7_collect_retire_work<HasUnix, kEp>(unmasked) + wb_gather(batch);
-}
-
 bool IoLoop::r7_fused_demote_local_read_batch(Client* client, const uint64_t* probed,
                                    const ReadLocalFallbackReason* fallbacks,
                                    uint32_t probed_count, uint32_t& demoted) {
@@ -3919,34 +3565,6 @@ void IoLoop::run_fused_reordered() {
     // selecting Pipeline 0 here must not turn off that independent executor mechanism.
     run_pipeline(std::integral_constant<uint8_t, 0>{});
 }
-
-void IoLoop::run_split_read_local_reordered() {
-    const bool has_unix = unix_listen_fd_ >= 0 ||
-                          (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    const bool has_tls = tls_context_ != nullptr;
-    auto run = [&]<uint8_t Pipeline>() {
-        if (epoll_) {
-            if (has_tls) {
-                if (has_unix) r7_run_loop<true, true, true, true, Pipeline, true>();
-                else r7_run_loop<false, true, true, true, Pipeline, true>();
-            } else {
-                if (has_unix) r7_run_loop<true, false, true, true, Pipeline, true>();
-                else r7_run_loop<false, false, true, true, Pipeline, true>();
-            }
-        } else if (has_tls) {
-            if (has_unix) r7_run_loop<true, true, false, true, Pipeline, true>();
-            else r7_run_loop<false, true, false, true, Pipeline, true>();
-        } else {
-            if (has_unix) r7_run_loop<true, false, false, true, Pipeline, true>();
-            else r7_run_loop<false, false, false, true, Pipeline, true>();
-        }
-    };
-    if (srv_->cfg().overlap_enabled()) run.template operator()<1>();
-    else run.template operator()<0>();
-}
-
-template void ExLoopT<false>::r7_run();
-template void ExLoopT<true>::r7_run();
 
 namespace {
 void pin_fused_thread(int cpu) {
@@ -4169,12 +3787,6 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     report_graceful_shutdown();
     return 0;
 }
-
-void IoLoop::run_split_reordered() {
-    if (srv_->cfg().overlap_enabled()) r7_run_split<1>();
-    else r7_run_split<0>();
-}
-
 // END R7 GENERATED ENVELOPES
 
 void IoLoop::run_split_read_local() {

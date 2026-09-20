@@ -5712,16 +5712,12 @@ public:
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
               bool SweepPass = false>
     uint32_t r7_flush_ready();
-    template <uint8_t Pipeline>
-    void r7_run_split();
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     void r7_admit_fd(int fd, UrKind kind);
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     void r7_adopt_client(Client* c, bool unix_socket, bool tls_socket = false);
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     void r7_arm_tls_recv(Client* c);
-    template <bool HasUnix, bool kEp, bool TargetedIfid = false>
-    uint32_t r7_collect_retire_work(bool unmasked = false);
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     bool r7_drive_tls(Client* c);
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
@@ -5747,20 +5743,11 @@ public:
               bool SuppressOrdinaryActiveMark = false,
               bool IofusedPrivateQueue = false, bool SplitLocal = false>
     DispatchResult r7_parse_and_dispatch(Client* c);
-    template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal = false>
-    __attribute__((noinline))
-    uint32_t r7_pipeline_pass(bool unmasked, bool natural_order, bool& submitted, size_t& cursor);
-    template <bool HasUnix, bool HasTls, bool kEp, bool SplitLocal = false>
-    uint32_t r7_pipeline_sweep(bool natural_order, bool& submitted, size_t& cursor);
-    template <bool HasUnix, bool kEp>
-    uint32_t r7_wb_observe(bool unmasked, WbBatch& batch);
     bool r7_fused_demote_local_read_batch(Client* client, const uint64_t* probed,
                                        const ReadLocalFallbackReason* fallbacks,
                                        uint32_t probed_count, uint32_t& demoted);
 // END R7 GENERATED ENVELOPES
     void run_fused_reordered();
-    void run_split_reordered();
-    void run_split_read_local_reordered();
 
 };
 

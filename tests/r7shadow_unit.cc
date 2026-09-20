@@ -209,56 +209,13 @@ void all_barriers() {
     std::puts("PASS all thirteen special barriers and inherited atomic hazard classification");
 }
 
-void automatic_policy() {
-    // Fresh windows make the occupancy guard decisive: mean depth and both HOL
-    // conditions hold at every rung. A never-engaging policy also fails at 2x.
-    constexpr uint32_t B = kGenthreadExBatchOps;
-    for (uint32_t depth : {B / 2, B, 2 * B}) {
-        AutoPolicy occupancy;
-        for (uint32_t tick = 0; tick < B; ++tick) {
-            const bool active = occupancy.observe({depth, depth - 1, 1, depth - 1});
-            require(active == (depth > B && tick + 1 == B),
-                    "AUTO occupancy floor/warmup failed at 0.5x/1x/2x gather");
-        }
-        require(occupancy.depth_threshold() == depth, "occupancy fixture did not learn its own depth");
-        for (uint32_t tick = 0; tick < B; ++tick) occupancy.observe({2 * B, 2 * B - 1, 1, 2 * B - 1});
-        require(occupancy.engaged(), "occupancy fixture failed to re-arm at 2x gather");
-        require(occupancy.observe({depth, depth - 1, 1, depth - 1}) == (depth > B),
-                "AUTO retained priority at or below one gather");
-        // The moving mean must not eventually re-engage shallow steady queues.
-        for (uint32_t tick = 0; tick < 2 * B; ++tick)
-            require(occupancy.observe({depth, depth - 1, 1, depth - 1}) == (depth > B),
-                    "AUTO shallow queue re-engaged after the mean decayed");
-    }
-    std::puts("PASS AUTO occupancy 0.5x/1x/2x: warmup, engage, immediate release, steady shallow off");
-    AutoPolicy policy;
-    require(!policy.engaged(), "AUTO must begin disarmed");
-    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
-        require(!policy.observe({64,64,0,0}), "uniform shorts engaged AUTO");
-    require(policy.depth_threshold() == 64, "AUTO depth threshold was not learned");
-    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) policy.observe({96,48,16,32});
-    require(policy.engaged() && policy.depth_threshold() == 96,
-            "queued short heads behind Longs did not engage AUTO");
-    require(!policy.observe({48,24,8,16}), "below-window depth failed to disengage");
-    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) policy.observe({96,48,16,32});
-    require(policy.engaged(), "AUTO did not re-engage on fresh evidence");
-    require(!policy.observe({96,48,16,0}), "missing current HOL witness did not disengage");
-    for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
-        policy.observe({96,16,48,16});
-    require(!policy.engaged(), "class threshold failed when Longs outnumber displaced heads");
-    require(!policy.observe({}), "empty owner queue engaged AUTO");
-    ModeScheduleStats stats;
-    {
-        PolicyScope scope(stats);
-        require(!priority_enabled(stats, -1) && priority_enabled(stats, 1) &&
-                    !priority_enabled(stats, 0), "AUTO/off/on resolution");
-    }
-    require(!stats.reorder_policy, "AUTO state survived its owner tenure");
-    for (int32_t value : {-1,0,1}) {
+void numeric_policy() {
+    require(!priority_enabled(0) && priority_enabled(1), "numeric off/on resolution");
+    for (int32_t value : {0, 1}) {
         require(reorder_for_mode(value, ThreadMode::Split) == 0, "2s escaped FIFO scope");
         require(reorder_for_mode(value, ThreadMode::Fused) == value, "1s lost requested policy");
     }
-    std::puts("PASS derived AUTO thresholds, engage/disengage, role lifetime, 2s no-op");
+    std::puts("PASS numeric off/on resolution and 2s no-op");
 }
 
 template <size_t B>
@@ -315,7 +272,7 @@ int main() {
     queued_completion<kGenthreadExBatchOps>();
     queued_completion<kGenthreadPipelineExBatchOps>();
     all_barriers();
-    automatic_policy();
+    numeric_policy();
     bounded_service<kGenthreadExBatchOps>();
     bounded_service<kGenthreadPipelineExBatchOps>();
 }

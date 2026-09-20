@@ -381,9 +381,8 @@ struct Config {
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
-    // Fused shadow priority: 0 = allocation-free FIFO, -1 = queue-derived AUTO,
-    // 1 = forced-on measurement arm. Split boot resolves every value to zero.
-    static constexpr uint32_t kReorderAuto = UINT32_MAX;
+    // Fused shadow priority: 0 = allocation-free FIFO, 1 = on.
+    // Split boot resolves both values to zero.
     uint32_t reorder = 0;
 
     // CLIENT TRACKING's bounded per-key remembering table (redis knob name and semantics:
@@ -834,9 +833,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--reorder")) {
             const char* value = next(nullptr);
-            if (value && !std::strcmp(value, "-1")) cfg.reorder = Config::kReorderAuto;
-            else if (!cfg_parse_u32(value, cfg.reorder) || cfg.reorder > 1) {
-                std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
+            if (!cfg_parse_u32(value, cfg.reorder) || cfg.reorder > 1) {
+                std::fprintf(stderr, "--reorder wants 0 or 1\n");
                 return kConfigError;
             }
         }
@@ -1070,7 +1068,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
-                        "    --reorder -1|0|1 (default 0) fused AUTO/off/on shadow priority; 2s stays FIFO\n"
+                        "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1139,8 +1137,8 @@ inline int validate_config(const Config& cfg) {
         std::fprintf(stderr, "--shard-home must contain shard:thread pairs\n");
         return kConfigError;
     }
-    if (cfg.reorder > 1 && cfg.reorder != Config::kReorderAuto) {
-        std::fprintf(stderr, "--reorder wants -1 (auto), 0 or 1\n");
+    if (cfg.reorder > 1) {
+        std::fprintf(stderr, "--reorder wants 0 or 1\n");
         return kConfigError;
     }
     if (cfg.overlap > 1) {

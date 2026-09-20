@@ -1,4 +1,4 @@
-// reorder.h -- fused owner-local shadow priority and sampled AUTO policy.
+// reorder.h -- fused owner-local shadow priority.
 #pragma once
 #include <algorithm>
 #include <cstddef>
@@ -130,108 +130,9 @@ inline Task shadow_demoted_task(Client* client, uint64_t id) {
     return task;
 }
 
-struct QueueSample {
-    uint32_t depth = 0, shorts = 0, longs = 0, behind = 0;
-};
-
-// The owner is the sole consumer while this runs. The existing acquire-tail
-// observer pins queued handles without consuming them or reading a running Op.
-// A bounded prefix sample visits the same producer order as drain_tasks.
-// Shorts counted here are live ROB heads: their own pipe cannot hide a predecessor.
-struct InboxProbe {
-    static QueueSample sample(ThreadCtx& owner) {
-        TOMO_R7_PATH();
-        QueueSample result;
-        uint32_t budget = 2 * kGenthreadExBatchOps;
-        bool have_long = false;
-        for (uint32_t p = 0; p < owner.nchan_; ++p) {
-            result.depth += owner.task_in_->depth(p);
-            if (!budget) continue;
-            budget -= owner.task_in_->observe_prefix(p, budget, [&](const Task& task) {
-                uint8_t length;
-                if (!candidate(task, length)) have_long = false; // hard barrier
-                else if (length == static_cast<uint8_t>(CommandLengthClass::Long)) {
-                    ++result.longs;
-                    have_long = true;
-                } else {
-                    ++result.shorts;
-                    result.behind += have_long && task.op_id == task.client->rob().flush_id();
-                }
-            });
-        }
-        return result;
-    }
-};
-
-// One window of the existing signal beat, with one sample per gather slot.
-// Thresholds are observations, not a core count, rate, time budget or tuned mix:
-// (1) current depth must reach the window's mean depth; (2) displaced short heads
-// must outnumber Longs over the window; (3) the current sample must still witness
-// a short head behind a Long. Additionally, depth must exceed one whole fused
-// gather: a shallow steady queue must not teach itself an arbitrarily low floor.
-// Fused priority uses the coarse kGenthreadExBatchOps gather (also with overlap).
-// Any missing condition disengages on this very tick; no rate/mix knob is added.
-class AutoPolicy {
-    static constexpr uint32_t Window = kGenthreadExBatchOps;
-    QueueSample window_[Window]{};
-    uint64_t depth_ = 0, longs_ = 0, behind_ = 0;
-    uint32_t next_ = 0, samples_ = 0;
-    bool engaged_ = false;
-public:
-    bool engaged() const { return engaged_; }
-    uint32_t depth_threshold() const {
-        return samples_ ? static_cast<uint32_t>((depth_ + samples_ - 1) / samples_) : 0;
-    }
-    bool observe(QueueSample sample) {
-        TOMO_R7_PATH();
-        const auto old = window_[next_];
-        depth_ = depth_ - old.depth + sample.depth;
-        longs_ = longs_ - old.longs + sample.longs;
-        behind_ = behind_ - old.behind + sample.behind;
-        window_[next_] = sample;
-        next_ = (next_ + 1) % Window;
-        samples_ = std::min(samples_ + 1, Window);
-        engaged_ = samples_ == Window && sample.behind &&
-                   sample.depth > kGenthreadExBatchOps &&
-                   sample.depth >= depth_threshold() && behind_ > longs_;
-        return engaged_;
-    }
-    void tick(ThreadCtx& owner, ModeScheduleStats& stats) {
-        TOMO_R7_PATH();
-        const bool was_engaged = engaged_;
-        observe(InboxProbe::sample(owner));
-        const uint64_t old = stats.reorder_auto.load(std::memory_order_relaxed);
-        const uint64_t ticks = std::min((old >> 32) + 1, uint64_t{UINT32_MAX});
-        const uint64_t engagements = std::min(((old >> 1) & 0x7fffffffull) +
-            (engaged_ && !was_engaged), 0x7fffffffull);
-        stats.reorder_auto.store((ticks << 32) | (engagements << 1) | engaged_,
-                                  std::memory_order_relaxed);
-    }
-};
-
-// Stack lifetime is one armed fused IO tenure. No pointers, tasks or per-shard
-// state survive a role boundary. INFO reads only the separate atomic diagnostic.
-class PolicyScope {
-    ModeScheduleStats& stats_;
-public:
-    AutoPolicy policy;
-    explicit PolicyScope(ModeScheduleStats& stats) : stats_(stats) {
-        TOMO_R7_PATH();
-        if (stats_.reorder_policy) std::abort();
-        stats_.reorder_policy = &policy;
-    }
-    ~PolicyScope() {
-        stats_.reorder_policy = nullptr;
-        stats_.reorder_auto.store(stats_.reorder_auto.load(std::memory_order_relaxed) & ~1ull,
-                                  std::memory_order_relaxed);
-    }
-};
-
-inline bool priority_enabled(const ModeScheduleStats& stats, int32_t requested) {
+inline bool priority_enabled(uint32_t requested) {
     TOMO_R7_PATH();
-    if (requested != -1) return requested != 0;
-    const auto* policy = static_cast<const AutoPolicy*>(stats.reorder_policy);
-    return policy && policy->engaged();
+    return requested != 0;
 }
 
 // These queues live for ONE inbox drain, across its gathered batches. finish() is mandatory
