@@ -121,6 +121,27 @@ def pad(args):
     print(json.dumps(result, indent=2))
 
 
+def arms(args):
+    # The checked-in ABBA CLI has no arbitrary server-argument option. exec-only
+    # wrappers fix the DB count equally on both arms, with no resident wrapper.
+    output = Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
+    reference = json.loads(Path('tests/gate_measurements.json').read_text())['reference_binary']['path']
+    binaries = {name: Path('build/tomokv-mdbqsbr-' + name).resolve() for name in ('pre', 'post', 'pad')}
+    binaries['reference'] = Path(reference).resolve()
+    manifest = {}
+    for count in (1, 16):
+        for name, binary in binaries.items():
+            path = output / f'db{count}-{name}'
+            path.write_text('#!/bin/sh\nexec ' + shlex.quote(str(binary)) +
+                            f' --databases {count} "$@"\n')
+            path.chmod(0o755)
+            manifest[str(path)] = dict(databases=count, binary=str(binary),
+                                      binary_sha256=digest(binary), wrapper_sha256=digest(path))
+    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    print(json.dumps(manifest, indent=2))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)
@@ -129,4 +150,6 @@ if __name__ == '__main__':
     p = sub.add_parser('pad')
     p.add_argument('base'); p.add_argument('target'); p.add_argument('link_log'); p.add_argument('output')
     p.set_defaults(fn=pad)
+    w = sub.add_parser('arms')
+    w.add_argument('output'); w.set_defaults(fn=arms)
     args = parser.parse_args(); args.fn(args)
