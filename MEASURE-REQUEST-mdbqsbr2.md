@@ -13,11 +13,18 @@ passes 256 busy swaps (51 batches), then times out at serial order and shutdown
 (PID 2629815). All eight serial-order rows fail. Five of the eight preceding
 multidb rows pass; the others fail, including a blocked-waiter SWAPDB in 2s/0/1.
 
-The four 1s recorded PIDs no longer exist in `/proc`. The `gate-srv-*` artifacts
+All ten recorded timeout PIDs no longer exist in `/proc` (the eight multidb
+boots, plus `rlcache` and `asan_batteries`); the inventory is retained in
+`build/mdbqsbr2-evidence/historical-pids.json`. The `gate-srv-*` artifacts
 are ordinary stdout logs, not directories or core dumps. They identify t0–t7
 and their CPU placement, but contain no stacks, map tickets or drain-ack values.
 **An exact historical non-acknowledging participant cannot be recovered from
 these artifacts.** No live server was started to manufacture that evidence.
+
+The other two hung jobs do not request `--databases 16` in the gate. In
+particular, rlcache completed its churn and then its post-run PING timed out.
+These failures are not attributed to map grace by this report; they reinforce
+why full mainline gating, not only the new targeted rows, remains necessary.
 
 ## Diagnosis audit (before implementation)
 
@@ -38,10 +45,286 @@ The new coarse scope also extends the existing Client lifetime epochs through
 IO waits. These are separate mechanisms; a missing map ack must not be reported
 as a verified explanation of the live SWAPDB/shutdown deadlock.
 
-The implementation will make retirement and namespace-boundary wakes explicit,
-diagnose both kinds of overdue participant independently, and move shutdown
-progress supervision to the existing main thread. It must retain every map when
-workers stop, then let destruction after joins supply the final grace.
+The implementation makes retirement and namespace-boundary wakes explicit,
+diagnoses both kinds of overdue participant independently, and moves shutdown
+progress supervision to the existing main thread. It retains every map when
+workers stop, then lets destruction after joins supply the final grace.
 
 Live PASS claims and the exact historical blocked participant remain unavailable
 until mainline runs the supplied real-boot proof and serial-order battery.
+
+## Candidate design
+
+Each configured multi-DB physical participant owns one nonblocking eventfd in
+the cold map state, allocated before workers start. DB0 creates none. Both
+preprovisioned IO/EX rings watch that physical fd with one-shot POLLIN requests;
+the active ring drains/rearms its own request. A dormant ring's stale completion
+is harmless on its next tenure. Epoll IO registers the same fd and epoll EX
+includes it in its existing poll wait. There is no new thread or runtime knob.
+
+After releasing the pointer and retire ticket, publication writes **every** fd,
+unconditionally with respect to parked/role snapshots, including the publisher's.
+No producer uses a foreign SINGLE_ISSUER SQ or depends on a future submit to send
+this wake. The existing outer-scope acknowledgement remains the only proof that
+the old pointer is no longer in use. Waking is not acknowledging, and a sampled
+even, parked, stopped or role-changing participant is not silently waived.
+SWAPDB's initial namespace fence, both stage transitions and fence release use
+the same doorbells. An idle role gap acknowledges from its owning physical
+thread. The existing dispatch, journal-before-publish, namespace drain, WATCH,
+blocking and transaction barriers remain intact.
+
+The map reader still performs one acquire pointer load. No per-operation wake,
+registration, retry, RMW, allocation or reader wait was introduced. Eventfd
+writes, clocks and broadcasts belong to cold publication/control paths. The
+already-existing main thread supervises progress while it would otherwise be
+blocked in joins. Worker t0 still performs ordinary asynchronous reclamation;
+main can also reap and diagnose a stuck t0 using the same try-lock protocol.
+
+`Ring::kWaitTimeoutMs` names the existing 50 ms tick. For N workers, a grace
+budget is `2 * (N + 1) * tick`: two complete pass/wake opportunities per worker
+plus main, pessimistically serialized. At the required N=8 this is 900 ms.
+Namespace drain has three stages, so its total deadline is 2700 ms. Worker
+shutdown uses that same 2700 ms budget from observing stop, plus at most one
+50 ms supervisor sampling interval. The oldest pending ticket keeps its original
+age; new swaps cannot extend an old debt indefinitely. Recovery publications are
+aged from the start of live supervision, not time spent reading snapshot/AOF
+files before workers exist. Every overdue diagnostic prints the mechanism,
+elapsed/budget, namespace stage, request, and each physical participant's t-id,
+OS tid, ack, exited, role, parked, stop, client epoch and IO/EX drain acks.
+This is a fail-stop deadline, never a time-based permission to reclaim.
+
+## Shutdown
+
+A lifetime guard covers each complete physical-worker lambda in ordinary split,
+split read-local, fused and reordered fused runtimes, including early boot exits
+and final teardown. An ordinary role change does not execute that guard. Main
+waits for exits with bounded condition-variable ticks before calling join; a
+missing exit aborts loudly with the same participant inventory. The existing
+sticky signal doorbell wakes ring waits on SIGTERM.
+
+Once any worker stops/exits or the server stop flag is set, early map reclamation
+is abandoned for the entire domain. No stopped worker is asked to acknowledge,
+and no artificial ack frees a version that another worker may still hold.
+Pending/live maps remain owned until DatabaseMap destruction after the joins.
+The old default destructor already supplied that final grace; the new code
+explicitly enforces the stop path and bounds worker shutdown instead of adding
+a final acknowledgement barrier.
+
+## Live proof for mainline (not run by this lane)
+
+`tests/mdbqsbr_live.py` boots exactly eight cores, `--shards 16 --ratio 6:2
+--databases 16`, in every mode/read-local/atomic cell. It verifies the live mode,
+thread/shard counts and database count. Each arm/case gets fresh state and its
+own directory, exact command, PID-owned process, server log and JSON receipt.
+
+| Assertion | Witness | Negative control |
+|---|---|---|
+| Idle SWAPDB reply within 900 ms | At least four physical workers appear in kernel ring waits in two successive samples; then three actual swaps, creating two retirements | Matching long-park build with database wake writes removed must hit the SWAPDB socket timeout while the server is still alive |
+| SWAPDB under load within 900 ms | A client completes SET/GET RYOW batches in DB2 before and across swaps of DB0/1; four other parked workers witnessed | Same missing-wake control with the load present; boot/arming/crash errors cannot count as the expected timeout |
+| SWAPDB with BLPOP within 900 ms | `blocked_clients == 1` before the window; an infinite BLPOP follows its logical DB and receives the post-swap list value | Same missing-wake control while BLPOP is parked |
+| Shutdown bounded for all three cases | Owned PID exits zero after SIGTERM within 2700 ms and emits the final shutdown report, including in the timed-out control | The broken arm is still required to terminate; any shutdown timeout fails the row and the harness kills/reaps only its owned PID |
+
+The production arm uses its normal wait cadence. The second positive arm and
+its negative twin both extend only the ordinary idle wait to
+`2 * 3 * grace = 5400 ms`, longer than the reply deadline. Without this shared
+schedule control, removing a wake alone can pass thanks to the existing 50 ms
+tick: calling such a run a negative proof would be dishonest. The negative
+additionally removes all database eventfd writes (retire and namespace stages),
+not the sticky shutdown signal wake. It is a real boot with real io_uring waits;
+no callback impersonates a participant or injects an acknowledgement. The
+standalone eventfd unit separately isolates the *retirement-only* wake.
+
+An unarmed kernel-wait window reboots on fresh state, at most eight attempts;
+exhaustion fails. No tolerance grows and no case skips. A timeout anywhere
+except the intended SWAPDB reply is a failure. The harness bounds child waits,
+client sockets and load-thread joins, unwinds on SIGTERM/INT, and always reaps
+its own child. The shutdown test deliberately keeps connections open until stop
+to cover BLPOP/queued work: its definition of clean is zero exit plus the final
+report, not a false assertion that no connections were open at SIGTERM.
+
+Build the two test twins (builds only):
+
+```sh
+taskset -c 112-127 make -j16 mdbqsbr-live-arms
+```
+
+On the maintainer's scheduled eight-core allocation, run each combination:
+
+```sh
+python3 tests/mdbqsbr_live.py --binary build/tomokv \
+  --parked-binary build/mdbqsbr2-park/tomokv \
+  --no-wake-binary build/mdbqsbr2-no-wake/tomokv \
+  --mode 1s --read-local 0 --atomic 0 --cores 0-7 --port 7900 \
+  --output build/mdbqsbr2-live/1s-0-0
+```
+
+Repeat for `mode={1s,2s}`, `read-local={0,1}`, `atomic={0,1}`; each invocation
+runs idle first, then load and BLPOP, with production/parked/no-wake arms.
+Expected total: 24 production cases, 24 long-park positives and 24 timed-out
+negative controls, each with a bounded shutdown. Then run the unchanged
+`tests/multidb_serial.py` and existing multidb battery on each normal production
+boot, and mainline's full `tests/gate.sh iteration`.
+
+The gate builds the twins in `production_units`; each existing multidb row now
+runs this proof before its original busy battery, followed by its existing
+serial-order row on the original boot. **No ledger row was added or retired.**
+The collection remains above the quick exit: `EXPECT_QUICK=438`,
+`EXPECT_FULL=454` remain unchanged. Failure-only shutdown rows are never added
+to these expectations. The long-park twins are scheduling/negative controls,
+not performance padding; they must never substitute for a measurement PAD.
+
+## Layout and padding control
+
+All locked hot sizes and the audited Server member offsets remain unchanged.
+`DatabaseMap` is still 120 bytes; participant slots are still 64 bytes. Cold
+`DatabaseMap::State` grows 56→192 bytes and retired entries grow 16→24 bytes.
+The additional fd per physical worker is included in the open-file reservation.
+
+For that cold-layout/text change, `build/tomokv-mdbqsbr2-pad` is **PAD kind A
+(behaviour twin)**: launch PRE behaviour from `0dfac1b7c`, with 136 bytes of
+unused State tail and eight unused bytes per retired entry to match POST's cold
+sizes, then unreachable padding to match POST's aggregate `.text` size. It
+also gives Participant an empty nontrivial destructor to preserve POST's array
+allocation cookie (one extra 64-byte alignment unit), without any wake/fd work.
+It retains the rejected PRE progress behaviour and is not a correctness candidate.
+Its isolated source is `build/mdbqsbr2-pad-source`; the base link and padding
+receipt are under `build/mdbqsbr2-evidence`. PRE is also preserved byte-for-byte
+as `build/tomokv-mdbqsbr2-pre` before rebuilding POST.
+
+This matches cold allocation sizes and total text size, **not every function's
+address or branch layout**. No kind B inverse control is supplied: POST's text
+is larger, so adding padding cannot restore PRE's smaller size. There is no
+performance win claim. Mainline should require the normal full headline ABBA
+against the trusted reference, with cycles/op, instructions/op and IPC. If
+attributing any change to this repair, compare PRE / POST / PAD(A) at the same
+offered load in both modes, databases 1/16, GET/SET, p1/p32, on the same eight
+cores and 16 shards (split ratio 6:2). POST must preserve the mainline rate
+verdict; any movement also present in PAD is a placement confound. All rates and
+counters are pending mainline, never inferred from the one-load disassembly.
+
+## Local verification and artifacts
+
+Builds and serverless tests use only cores 112–127; exact eight-core fixtures
+use 112–119. The original 13 selections and their lifetime/UAF fault controls
+remain. Additional selections check all eight eventfds, retained maps after
+stop with a missing t1 acknowledgement, and a deterministic expired live-t1
+deadline. The no-wake unit control must fail its readable-doorbell assertion;
+the expired-ticket run must abort and print t1 with ack=0. A further negative
+ignores stop and must abort instead of passing the shutdown retention check.
+Local build/test and structural receipts are retained in
+`build/mdbqsbr2-evidence/`.
+
+Final local results:
+
+| Check | Result |
+|---|---|
+| Release, ASAN/UBSAN, TSAN and both live proof twins | Built successfully; final `make -q` checks current |
+| ASAN/UBSAN positive selections | 15/15; all original 13 retained |
+| ASAN control driver | 20/20 invocations: the positive suite plus 19 expected failures, including missing wake, ignored stop and expired live ack |
+| TSAN positive selections | 15/15, no runtime report (`setarch x86_64 -R`, `halt_on_error=1:exitcode=66`) |
+| Serverless namespace boundary | Eight PASS witnesses, including both modes and read-local admission windows |
+| Serial oracle self-test | Legal orders accepted; stale-stamp counterexample rejected |
+| Disassembly / footprints | One acquire map-pointer load, no reader RMW/store; DB0 scope empty; all locked sizes and audited offsets unchanged; both structural negative controls reject |
+| PAD(A) | Cold sizes verified by GDB; aggregate `.text` exactly matches POST |
+| Python / shell syntax | PASS |
+| Real boots, live serial-order, full gate, rates/counters | NOT RUN — mainline owns these |
+
+The final release has 7,445,596 `.text` bytes; preserved PRE has 7,435,564
+(+10,032). PAD(A) adds 9,520 unreachable bytes to its cold-size-matched PRE
+construction. No instruction-count or performance parity claim follows from
+that match. TSAN compilation retains the existing fence/optional-scope compiler
+warnings; the runtime selections are clean.
+
+A deterministic failure receipt names the participant, rather than hanging:
+
+```text
+fatal: database retire acknowledgement timeout elapsed_ms=901 grace_bound_ms=900 stage=0 request=1
+  participant=t1 os_tid=0 ack=0 exited=0
+```
+
+Here OS tid 0 explicitly denotes the serverless fixture; a live worker records
+its real OS tid at entry. This is not represented as the vanished historical
+server's participant identity.
+
+### Artifact hashes
+
+These are files in this worktree, not assumed external reference hashes.
+
+| Artifact | SHA-256 |
+|---|---|
+| `build/tomokv` | `de6da9fc51900afe76abd6d8d5cf68c2a964834ed897c86cd977793ef90731d6` |
+| `build/tomokv-mdbqsbr2-pre` | `5adbd64cd40023783c0c0b3f2947f25bf1565b9aa64eb694730a0e08deba454f` |
+| `build/tomokv-mdbqsbr2-post` | `de6da9fc51900afe76abd6d8d5cf68c2a964834ed897c86cd977793ef90731d6` |
+| `build/tomokv-mdbqsbr2-pad (A)` | `3edb23b3352b5695f99afec7471e85806e69bde4989999d69c42ee38c5efdd16` |
+| `build/mdbqsbr2-park/tomokv` | `40effcbc2364e570ac83a2cd3c7390b63b564611ba2e910f4d773fdbeea36f57` |
+| `build/mdbqsbr2-no-wake/tomokv` | `141fc16799b1872118e7913e7d441e5c0b81330949ec350ddba9265c5b432ac3` |
+
+`build/tomokv` is POST. The complete receipts, per-control stdout, compiler logs,
+PAD source diff, construction metadata, ABI arrays and hashes are in
+`build/mdbqsbr2-evidence/`. The implementation is committed on `cx-mdbqsbr`; no
+push, server, gate, load generator or performance run was made by this lane.
+
+The historical deadlock's exact blocker remains **unverified**, not silently
+assigned to map grace. Mainline must run the new live matrix and the existing
+serial-order/full-gate checks before this repair can be called a live fix. If a
+participant still stalls, the new bounded diagnostics distinguish retirement,
+namespace drain and worker shutdown and identify its physical and OS ids.
+
+### Review diff
+
+Repair-only reference: launch `0dfac1b7c`. Cumulative lane reference:
+`b8fe404e2` (includes the pre-existing launch gate-reference metadata update).
+
+<!-- final-diff-stat -->
+
+`git diff 0dfac1b7c --stat`:
+
+```text
+ MEASURE-REQUEST-mdbqsbr2.md | 330 ++++++++++++++++++++++++++++++++++++++++++++
+ Makefile                    |   8 ++
+ src/cmd/multidb.cc          | 251 +++++++++++++++++++++++++++++++--
+ src/cmd/multidb.h           |  35 ++++-
+ src/core/ex_loop.h          |  12 +-
+ src/core/genthread.cc       |   6 +-
+ src/core/io_loop.h          |  24 +++-
+ src/core/reorder.cc         |  14 +-
+ src/core/rl2s.cc            |   8 +-
+ src/core/server.h           |   5 +-
+ src/main.cc                 |  18 ++-
+ src/net/uring.h             |  16 ++-
+ tests/gate.sh               |  17 ++-
+ tests/mdbqsbr_checks.py     |  15 +-
+ tests/mdbqsbr_live.py       | 301 ++++++++++++++++++++++++++++++++++++++++
+ tests/mdbqsbr_unit.cc       |  37 +++++
+ tools/mdbqsbr_artifacts.py  |  11 ++
+ 17 files changed, 1063 insertions(+), 45 deletions(-)
+```
+
+`git diff b8fe404e2 --stat`:
+
+```text
+ MEASURE-REQUEST              |  24 ++-
+ MEASURE-REQUEST-mdbqsbr.md   | 502 +++++++++++++++++++++++++++++++++++++++++++
+ MEASURE-REQUEST-mdbqsbr2.md  | 330 ++++++++++++++++++++++++++++
+ Makefile                     |  38 +++-
+ src/cmd/multidb.cc           | 438 ++++++++++++++++++++++++++++++++++---
+ src/cmd/multidb.h            | 130 ++++++++++-
+ src/core/ex_loop.h           |  19 +-
+ src/core/genthread.cc        |   6 +-
+ src/core/io_loop.h           |  31 ++-
+ src/core/reorder.cc          |  21 +-
+ src/core/rl2s.cc             |   8 +-
+ src/core/server.h            |  39 +++-
+ src/main.cc                  |  18 +-
+ src/net/uring.h              |  16 +-
+ tests/gate.sh                |  19 +-
+ tests/gate_measurements.json |   8 +-
+ tests/mdbqsbr_checks.py      |  56 +++++
+ tests/mdbqsbr_live.py        | 301 ++++++++++++++++++++++++++
+ tests/mdbqsbr_probe.cc       |  17 ++
+ tests/mdbqsbr_unit.cc        | 443 ++++++++++++++++++++++++++++++++++++++
+ tests/multidb_db0_unit.cc    |   7 +
+ tests/multidb_unit.cc        |   4 +
+ tools/mdbqsbr_artifacts.py   | 166 ++++++++++++++
+ 23 files changed, 2561 insertions(+), 80 deletions(-)
+```

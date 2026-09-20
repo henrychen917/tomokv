@@ -117,6 +117,16 @@ def pad(args):
                               'Extra candidate scope stores and cold ownership sidecar remain. '
                               'This is not an exact instruction-address layout twin; treat attribution as limited.',
                   text_bytes=text_size(output), sha256=digest(output))
+    if args.source == 'acknowledged':
+        result.update(
+            construction='Acknowledged-worker PRE from the supplied base, with unused cold State '
+                         'tail/retired-entry padding and nontrivial empty Participant destructor '
+                         'for the array cookie; original publication, grace and wake behaviour retained',
+            member_layout='DatabaseMap 120 bytes, grace gate offset 32, pointer offset 40; '
+                          'State 192, retired entry 24, participant 64 bytes',
+            limitations='Cold allocation sizes and aggregate .text size match POST. Individual '
+                        'function addresses/inlining differ. PRE progress defects remain; '
+                        'this is not a correctness candidate or an exact instruction-address twin.')
     output.with_suffix('.json').write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result, indent=2))
 
@@ -149,6 +159,7 @@ if __name__ == '__main__':
     a.add_argument('evidence'); a.add_argument('arms', nargs='+'); a.set_defaults(fn=audit)
     p = sub.add_parser('pad')
     p.add_argument('base'); p.add_argument('target'); p.add_argument('link_log'); p.add_argument('output')
+    p.add_argument('--source', choices=['counter', 'acknowledged'], default='counter')
     p.set_defaults(fn=pad)
     w = sub.add_parser('arms')
     w.add_argument('output'); w.set_defaults(fn=arms)

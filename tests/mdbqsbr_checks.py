@@ -2,6 +2,7 @@
 """Run only serverless correctness schedules and require their fault controls to fail."""
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 
@@ -20,7 +21,7 @@ def run(case, fault, witness, failure=False):
     if (result.returncode != 0) != bool(fault or failure) or witness not in result.stdout:
         print(result.stdout)
         raise SystemExit(f"FAIL mdbqsbr case={case} fault={fault}: missing expected result/witness")
-    if case == "deadline" and (result.returncode != -6 or
+    if case == "deadline" and (result.returncode != -signal.SIGABRT or
                                "fatal: database retire acknowledgement timeout" not in result.stdout):
         raise SystemExit("FAIL mdbqsbr: deadline did not abort with the production acknowledgement diagnostic")
     print(f"PASS control case={case} fault={fault} exit={result.returncode}: {witness}")
