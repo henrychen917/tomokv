@@ -16,6 +16,13 @@ void multidb_db0_unit() {
     static_assert(sizeof(ThreadCtx) == 1408 && sizeof(Shard) == 1440 && sizeof(FlatStore) == 944);
     static_assert(sizeof(Rob<64>) == 192 && sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
     require(Config{}.databases == 1, "default boot choice");
+    {
+        Server server;
+        require(server.databases().bind_workers(8), "DB0 bind is a no-op");
+        Server::DatabaseWorkScope scope(server, 0);
+        require(server.client_work_epoch(0) == 0 && !server.databases().reclamation_pending(),
+                "DB0 adds no map scope, acknowledgement, or maintenance work");
+    }
     require(command_registry_init(false), "DB-0 command registry");
     for (bool armed : {false, true}) {
         struct Cache { KvBlockCache blocks; ~Cache() { blocks.release_all(); } } cache;

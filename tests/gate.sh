@@ -1298,6 +1298,8 @@ job_atomic_units(){
 row_begin "multidb serverless owners"
 unit_ready multidb-unit && taskset -c "$CORES" ./build/multidb-unit \
     >"$TMPDIR/multidb-unit.log" 2>&1 \
+    && taskset -c "$CORES" python3 tests/mdbqsbr_checks.py build/mdbqsbr-unit \
+        >>"$TMPDIR/multidb-unit.log" 2>&1 \
     && ok "multidb serverless owners" \
     || bad "multidb serverless owners" "see $TMPDIR/multidb-unit.log"
 row_begin "multidb global namespace boundary"

@@ -702,6 +702,13 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ex) {
+            Server::DatabaseWorkScope database_work(*srv_, self_->id());
+#ifdef TOMO_MDBQSBR_TEST
+            if (DatabaseMapTestHooks::loop_pass) {
+                DatabaseMapTestHooks::loop_pass(*srv_, *self_, 2);
+                continue;
+            }
+#endif
 #ifdef TOMO_RL_CACHE_DEBUG
             if constexpr (Fused)
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());

@@ -19,22 +19,162 @@ bool parse_i64_canonical(Slice arg, int64_t& value) {
 }
 }
 
+// Acknowledgements are cold and cache-line separated just like client_work_.
+// No epoch array is allocated per publication: one monotonic grace ticket covers
+// all older versions. The vector and all commit storage are writer-owned.
+struct DatabaseMap::State {
+    struct alignas(64) Participant { std::atomic<uint64_t> acknowledged{0}; };
+    struct Retired { std::unique_ptr<Map> map; uint64_t request; };
+    std::unique_ptr<Map> live;
+    std::vector<Retired> retired;
+    std::unique_ptr<Participant[]> participants;
+    uint32_t count = 0;  // immutable after bind_workers, before thread creation
+    std::atomic<uint64_t> requested{0};
+};
+
+DatabaseMap::DatabaseMap() noexcept = default;
+// Caller has stopped/joined all readers, including cold readers. No early free
+// is attempted for participants that stopped without acknowledging the last swap.
+DatabaseMap::~DatabaseMap() = default;
+
+#ifdef TOMO_MDBQSBR_TEST
+size_t DatabaseMapTest::backlog(const DatabaseMap& map) {
+    return map.state_ ? map.state_->retired.size() : 0;
+}
+uint64_t DatabaseMapTest::acknowledged(const DatabaseMap& map, uint32_t tid) {
+    return map.state_->participants[tid].acknowledged.load(std::memory_order_acquire);
+}
+#endif
+
+DatabaseMap::State& DatabaseMap::state() {
+    if (!state_) state_ = std::make_unique<State>();
+    return *state_;
+}
+
+bool DatabaseMap::bind_workers(uint32_t count) {
+    if constexpr (kSingleDatabase) return true;
+    std::lock_guard lock(writer_);
+    try {
+        auto& s = state();
+        if (!count || s.count) std::abort();
+        auto participants = std::make_unique<State::Participant[]>(count);
+        s.participants = std::move(participants);
+        s.count = count;
+        return true;
+    } catch (const std::bad_alloc&) { return false; }
+}
+
+void DatabaseMap::publish(std::unique_ptr<Map> next) noexcept {
+    auto& s = *state_;
+    const bool retiring = bool(s.live);
+    const uint64_t request = s.requested.load(std::memory_order_relaxed) + 1;
+    if (!request || (retiring && s.retired.size() == s.retired.capacity())) std::abort();
+#ifdef TOMO_MDBQSBR_TEST
+    if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::SampledEven) {
+        DatabaseMapTestHooks::sampled_even = 0;
+        for (uint32_t tid = 0; tid < s.count; ++tid)
+            if (!(DatabaseMapTestHooks::server->client_work_epoch(tid) & 1))
+                DatabaseMapTestHooks::sampled_even |= uint64_t{1} << tid;
+    }
+    if (DatabaseMapTestHooks::before_publish) DatabaseMapTestHooks::before_publish();
+#endif
+    // Initialization -> release pointer -> release request. Every old reader,
+    // including this stack and sampled-even/parked workers, owes an acquire of
+    // this request at a subsequent true safe point. Do NOT exempt the publisher.
+#ifdef TOMO_MDBQSBR_PAD
+    // Measurement-only type A: the real PRE shared counter, at its original
+    // offset/line, and writer-observed-global-zero reclamation. Never a knob.
+    current_.store(next.get(), std::memory_order_seq_cst);
+#else
+    current_.store(next.get(), std::memory_order_release);
+#endif
+    if (retiring) s.retired.push_back({std::move(s.live), request});
+    s.live = std::move(next);
+#ifdef TOMO_MDBQSBR_PAD
+    if (grace_work_.load(std::memory_order_seq_cst) == 0) s.retired.clear();
+#else
+    if (retiring) {
+        s.requested.store(request, std::memory_order_release);
+        grace_work_.store(1, std::memory_order_release);
+    }
+#endif
+}
+
+void DatabaseMap::quiescent(Server& server, uint32_t tid) {
+    if constexpr (kSingleDatabase) return;
+    // Gate before dereferencing cold state, reading epochs, or taking the mutex.
+    if (!reclamation_pending()) return;
+    auto& s = *state_;
+    if (!s.count) return; // explicit unbound/cold lifetime: retain until destruction
+    if (tid >= s.count) std::abort();
+    // Same-thread nesting check, never an inference from a remote even snapshot.
+    if (server.client_work_epoch(tid) & 1) {
+#ifdef TOMO_MDBQSBR_TEST
+        if (DatabaseMapTestHooks::fault != DatabaseMapTestHooks::NestedAck) return;
+#else
+        return;
+#endif
+    }
+    const uint64_t request = s.requested.load(std::memory_order_acquire);
+    auto& ack = s.participants[tid].acknowledged;
+    if (ack.load(std::memory_order_relaxed) != request)
+        ack.store(request, std::memory_order_release);
+    // One fixed physical participant owns maintenance regardless of IO/EX role.
+    // It polls only with actual retirement work. No per-idle-map thread scan.
+    if (tid == 0) reclaim(server);
+}
+
+void DatabaseMap::reclaim([[maybe_unused]] Server& server) {
+    if (!reclamation_pending()) return;
+    std::unique_lock lock(writer_, std::try_to_lock);
+    if (!lock.owns_lock()) return; // a reader's coarse pass never waits for a writer
+    auto& s = *state_;
+    if (s.retired.empty() || !s.count) return;
+#ifdef TOMO_MDBQSBR_TEST
+    ++DatabaseMapTestHooks::scans;
+    if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::NoReclaim) return;
+    if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::GlobalIdle)
+        for (uint32_t tid = 0; tid < s.count; ++tid)
+            if (server.client_work_epoch(tid) & 1) return;
+#endif
+    uint64_t through = s.requested.load(std::memory_order_relaxed);
+    for (uint32_t tid = 0; tid < s.count; ++tid) {
+#ifdef TOMO_MDBQSBR_TEST
+        if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::ImmediateFree ||
+            (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::SampledEven &&
+             (DatabaseMapTestHooks::sampled_even & (uint64_t{1} << tid)))) continue;
+#endif
+        through = std::min(through, s.participants[tid].acknowledged.load(std::memory_order_acquire));
+    }
+    // A newer odd scope is fine: its preceding request acquisition makes the
+    // publication happen-before every map load in that scope. Conversely even,
+    // parked, or a changed client epoch alone is NEVER sufficient evidence.
+    auto end = s.retired.begin();
+    while (end != s.retired.end() && end->request <= through) ++end;
+    s.retired.erase(s.retired.begin(), end);
+    if (s.retired.empty()) grace_work_.store(0, std::memory_order_relaxed);
+}
+
 bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {
     if constexpr (kSingleDatabase) return first == 0 && second == 0;
     if (first == second) return true;
     std::lock_guard lock(writer_);
     try {
+        auto& s = state();
         auto next = std::make_unique<Map>();
-        if (live_) *next = *live_;
-        else for (unsigned i = 0; i < next->size(); ++i) (*next)[i] = i;
+        if (s.live) *next = *s.live;
         std::swap((*next)[first], (*next)[second]);
         ++next->epoch;
-        if (live_) retired_.reserve(retired_.size() + 1);
+        if (s.live) s.retired.reserve(s.retired.size() + 1);
+#ifdef TOMO_MDBQSBR_TEST
+        if (journal && DatabaseMapTestHooks::fault == DatabaseMapTestHooks::JournalOrder) {
+            const auto bytes = *next;
+            publish(std::move(next));
+            return journal->record_database_map(bytes.data());
+        }
+#endif
         if (journal && !journal->record_database_map(next->data())) return false;
-        current_.store(next.get(), std::memory_order_seq_cst);
-        if (live_) retired_.push_back(std::move(live_));
-        live_ = std::move(next);
-        if (readers_.load(std::memory_order_seq_cst) == 0) retired_.clear();
+        publish(std::move(next));
         return true;
     } catch (const std::bad_alloc&) { return false; }
 }
@@ -50,23 +190,32 @@ DatabaseMap::Map DatabaseMap::capture() const {
 }
 
 bool DatabaseMap::prepare_publish(const Map& map, std::unique_ptr<Map>& prepared) {
+    if constexpr (kSingleDatabase) return false; // no publication/state in DB0
     std::lock_guard lock(writer_);
+    prepared.reset();
     try {
-        prepared = std::make_unique<Map>(map);
-        if (live_) retired_.reserve(retired_.size() + 1);
+        auto& s = state();
+        auto next = std::make_unique<Map>(map);
+        s.retired.reserve(s.retired.size() + 1);
+        prepared = std::move(next);
         return true;
     } catch (const std::bad_alloc&) { return false; }
 }
 
 void DatabaseMap::publish_prepared(std::unique_ptr<Map> prepared) {
+    if constexpr (kSingleDatabase) std::abort();
     // Only the globally fenced transaction can publish between prepare and here.
-    // All allocation happened before owner work; this commit arm cannot fail.
+    // Record, map, participant array and queue capacity already exist. No scan,
+    // allocation, or free is necessary in this non-failing commit arm.
     std::lock_guard lock(writer_);
-    if (!prepared || (live_ && retired_.size() == retired_.capacity())) std::abort();
-    current_.store(prepared.get(), std::memory_order_seq_cst);
-    if (live_) retired_.push_back(std::move(live_));
-    live_ = std::move(prepared);
-    if (readers_.load(std::memory_order_seq_cst) == 0) retired_.clear();
+    if (!prepared || !state_) std::abort();
+#ifdef TOMO_MDBQSBR_TEST
+    if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::CommitAllocation) {
+        void* allocation = ::operator new(1);
+        ::operator delete(allocation);
+    }
+#endif
+    publish(std::move(prepared));
 }
 
 bool DatabaseMap::restore(const uint8_t* bytes) {
@@ -74,20 +223,18 @@ bool DatabaseMap::restore(const uint8_t* bytes) {
     bool identity = true;
     for (unsigned i = 0; i < 256; ++i) identity &= bytes[i] == i;
     if constexpr (kSingleDatabase) return identity;
-    if (identity && !live_) return true;
+    if (identity && (!state_ || !state_->live)) return true;
     try {
+        auto& s = state();
         auto next = std::make_unique<Map>();
-        next->epoch = live_ ? live_->epoch + 1 : 1;
+        next->epoch = s.live ? s.live->epoch + 1 : 1;
         bool seen[256]{};
         for (unsigned i = 0; i < next->size(); ++i) {
             if (seen[bytes[i]]) return false;
             seen[bytes[i]] = true; (*next)[i] = bytes[i];
         }
-        if (live_) retired_.reserve(retired_.size() + 1);
-        current_.store(next.get(), std::memory_order_seq_cst);
-        if (live_) retired_.push_back(std::move(live_));
-        live_ = std::move(next);
-        if (readers_.load(std::memory_order_seq_cst) == 0) retired_.clear();
+        if (s.live) s.retired.reserve(s.retired.size() + 1);
+        publish(std::move(next));
         return true;
     } catch (const std::bad_alloc&) { return false; }
 }
@@ -145,6 +292,14 @@ static void stamp(Server& server, Op& op, uint8_t logical, const Map& map) {
             if (op.arg(i).eq_icase("db"))
                 multidb_parse_index(op.arg(++i), server.cfg().databases, op.target_db);
     op.secondary_db = map[op.target_db];
+#ifdef TOMO_MDBQSBR_TEST
+    if constexpr (std::is_same_v<Map, DatabaseMap::Read>) {
+        if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::SecondLoad) {
+            DatabaseMap::Read second(server.databases());
+            op.secondary_db = second[op.target_db];
+        }
+    }
+#endif
     std::vector<CommandKeyMetadata> keys;
     if (const auto* metadata = command_metadata_resolve(op, 0)) {
         command_metadata_collect_keys(op, 0, *metadata, keys);

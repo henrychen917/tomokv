@@ -518,6 +518,13 @@ private:
         if constexpr (IoPipe) pipe.depth.reset(sig.ops);
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            Server::DatabaseWorkScope database_work(*srv_, self_->id());
+#ifdef TOMO_MDBQSBR_TEST
+            if (DatabaseMapTestHooks::loop_pass) {
+                DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);
+                continue;
+            }
+#endif
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
