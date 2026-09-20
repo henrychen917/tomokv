@@ -1,0 +1,67 @@
+# label<TAB>zero-based key indexes<TAB>argv words; shared by the real-parser unit and Redis differ
+# invalid-* rows require execution rejection and Redis's permissive metadata extraction.
+oracle	1,3	SORT	src	STORE	dst	BY	STORE	LIMIT	0	2
+plain	1	SORT	src
+by-pattern	1	SORT	src	BY	weight:*
+get-pattern	1	SORT	src	GET	object:*
+get-patterns	1	SORT	src	GET	#	GET	object:*	GET	hash:*->field
+store	1,3	SORT	src	STORE	dst
+by-get-store	1,10	SORT	src	BY	weight:*	GET	#	GET	object:*	DESC	STORE	dst
+store-by-get	1,3	SORT	src	STORE	dst	BY	weight:*	GET	#	GET	object:*
+limit	1	SORT	src	LIMIT	0	2
+limit-store	1,6	SORT	src	LIMIT	0	2	STORE	dst
+store-limit	1,3	SORT	src	STORE	dst	LIMIT	0	2
+ordering	1	SORT	src	ASC	DESC	ALPHA	LIMIT	-1	-1
+repeated-store	1,5	SORT	src	STORE	first-dst	STORE	dst
+repeated-by	1,9	SORT	src	BY	STORE	BY	weight:*	GET	#	STORE	dst
+get-store-no-destination	1	SORT	src	GET	STORE	ASC
+by-store-no-destination	1	SORT	src	BY	STORE	LIMIT	0	2
+mixed-case	1,3	sOrT	src	sToRe	dst	bY	sToRe	gEt	sToRe	lImIt	0	2
+ro-plain	1	SORT_RO	src
+ro-by-get	1	SORT_RO	src	BY	weight:*	GET	#	GET	object:*	DESC
+by-store-store-first	1,3	SORT	src	STORE	dst	BY	STORE	LIMIT	0	2
+by-store-store-last	1,8	SORT	src	BY	STORE	LIMIT	0	2	STORE	dst
+get-store-store-first	1,3	SORT	src	STORE	dst	GET	STORE	LIMIT	0	2
+get-store-store-last	1,8	SORT	src	GET	STORE	LIMIT	0	2	STORE	dst
+by-get-store	1,12	SORT	src	BY	STORE	GET	STORE	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-store	1	SORT_RO	src	BY	STORE	GET	STORE	GET	#	LIMIT	0	2
+by-by-store-first	1,3	SORT	src	STORE	dst	BY	BY	LIMIT	0	2
+by-by-store-last	1,8	SORT	src	BY	BY	LIMIT	0	2	STORE	dst
+get-by-store-first	1,3	SORT	src	STORE	dst	GET	BY	LIMIT	0	2
+get-by-store-last	1,8	SORT	src	GET	BY	LIMIT	0	2	STORE	dst
+by-get-by	1,12	SORT	src	BY	BY	GET	BY	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-by	1	SORT_RO	src	BY	BY	GET	BY	GET	#	LIMIT	0	2
+by-get-store-first	1,3	SORT	src	STORE	dst	BY	GET	LIMIT	0	2
+by-get-store-last	1,8	SORT	src	BY	GET	LIMIT	0	2	STORE	dst
+get-get-store-first	1,3	SORT	src	STORE	dst	GET	GET	LIMIT	0	2
+get-get-store-last	1,8	SORT	src	GET	GET	LIMIT	0	2	STORE	dst
+by-get-get	1,12	SORT	src	BY	GET	GET	GET	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-get	1	SORT_RO	src	BY	GET	GET	GET	GET	#	LIMIT	0	2
+by-limit-store-first	1,3	SORT	src	STORE	dst	BY	LIMIT	LIMIT	0	2
+by-limit-store-last	1,8	SORT	src	BY	LIMIT	LIMIT	0	2	STORE	dst
+get-limit-store-first	1,3	SORT	src	STORE	dst	GET	LIMIT	LIMIT	0	2
+get-limit-store-last	1,8	SORT	src	GET	LIMIT	LIMIT	0	2	STORE	dst
+by-get-limit	1,12	SORT	src	BY	LIMIT	GET	LIMIT	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-limit	1	SORT_RO	src	BY	LIMIT	GET	LIMIT	GET	#	LIMIT	0	2
+by-asc-store-first	1,3	SORT	src	STORE	dst	BY	ASC	LIMIT	0	2
+by-asc-store-last	1,8	SORT	src	BY	ASC	LIMIT	0	2	STORE	dst
+get-asc-store-first	1,3	SORT	src	STORE	dst	GET	ASC	LIMIT	0	2
+get-asc-store-last	1,8	SORT	src	GET	ASC	LIMIT	0	2	STORE	dst
+by-get-asc	1,12	SORT	src	BY	ASC	GET	ASC	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-asc	1	SORT_RO	src	BY	ASC	GET	ASC	GET	#	LIMIT	0	2
+by-desc-store-first	1,3	SORT	src	STORE	dst	BY	DESC	LIMIT	0	2
+by-desc-store-last	1,8	SORT	src	BY	DESC	LIMIT	0	2	STORE	dst
+get-desc-store-first	1,3	SORT	src	STORE	dst	GET	DESC	LIMIT	0	2
+get-desc-store-last	1,8	SORT	src	GET	DESC	LIMIT	0	2	STORE	dst
+by-get-desc	1,12	SORT	src	BY	DESC	GET	DESC	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-desc	1	SORT_RO	src	BY	DESC	GET	DESC	GET	#	LIMIT	0	2
+by-alpha-store-first	1,3	SORT	src	STORE	dst	BY	ALPHA	LIMIT	0	2
+by-alpha-store-last	1,8	SORT	src	BY	ALPHA	LIMIT	0	2	STORE	dst
+get-alpha-store-first	1,3	SORT	src	STORE	dst	GET	ALPHA	LIMIT	0	2
+get-alpha-store-last	1,8	SORT	src	GET	ALPHA	LIMIT	0	2	STORE	dst
+by-get-alpha	1,12	SORT	src	BY	ALPHA	GET	ALPHA	GET	#	LIMIT	0	2	STORE	dst
+ro-by-get-alpha	1	SORT_RO	src	BY	ALPHA	GET	ALPHA	GET	#	LIMIT	0	2
+invalid-limit-store-operand	1	SORT	src	LIMIT	STORE	2	ASC
+invalid-limit-before-store	1,6	SORT	src	LIMIT	STORE	2	STORE	dst
+invalid-limit-after-store	1,3	SORT	src	STORE	dst	LIMIT	STORE	2
+invalid-unknown-option	1,4	SORT	src	NOPE	STORE	dst

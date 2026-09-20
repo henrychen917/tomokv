@@ -3452,6 +3452,15 @@ def gen_sort(rng):
         ["COMMAND", "GETKEYS", "SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*",
          "STORE", "so:tdst"],
     ]
+    # SORT namespace oracle and keyword-valued BY/GET patterns. These metadata
+    # replies expose the wrong argument even on the databases=1 differ boot.
+    from sortstore import key_commands
+    ops += key_commands()
+    ops += [
+        ["DEL", "src", "dst"], ["RPUSH", "src", "3", "1", "2"],
+        ["SORT", "src", "STORE", "dst", "BY", "STORE", "LIMIT", "0", "2"],
+        ["LRANGE", "dst", "0", "-1"], ["DEL", "src", "dst"],
+    ]
     return ops
 
 
