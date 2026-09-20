@@ -152,8 +152,19 @@ def run_case(binary, args, case, arm, attempt):
         topology = lbsignals(admin)
         require(len(topology.threads) == WORKERS and len(topology.shards) == 16,
                 'boot did not preserve gate geometry')
+        roles = [thread.role for thread in topology.threads]
+        require((roles.count('io') == 6 and roles.count('ex') == 2) if args.mode == '2s'
+                else roles.count('fused') == WORKERS, 'boot did not preserve the requested ratio')
         require(admin.cmd('CONFIG', 'GET', 'databases') == [b'databases', b'16'],
                 'boot did not enable sixteen databases')
+        if arm != 'production':
+            markers = re.findall(r'mdbqsbr worker=t(\d+) os_tid=(\d+) tick_ms=(\d+) grace_ms=(\d+)',
+                                 (directory / 'server.log').read_text(errors='replace'))
+            require(sorted(int(row[0]) for row in markers) == list(range(WORKERS)),
+                    'the positive/negative twin did not arm its long-park schedule')
+            require(all(int(row[2]) == round(TICK * 1000) and int(row[3]) == round(GRACE * 1000)
+                        for row in markers), 'binary/test cadence mismatch')
+            result['participants'] = {row[1]: f't{row[0]}' for row in markers}
         if case == 'load':
             load = Conn('127.0.0.1', args.port, timeout=GRACE)
             conns.append(load)
