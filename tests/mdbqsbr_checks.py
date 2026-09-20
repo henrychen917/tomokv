@@ -42,6 +42,7 @@ for case, fault, witness in [
     ("journal", 8, "AOF refusal leaves old mapping live"),
     ("endpoints", 9, "COPY/MOVE endpoints use one immutable version across forced swap"),
     ("wake", 10, "every physical worker has a readable retire doorbell"),
+    ("shutdown", 11, "fatal: database retire acknowledgement timeout"),
 ]:
     run(case, fault, witness)
 

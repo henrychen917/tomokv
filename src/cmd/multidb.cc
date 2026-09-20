@@ -165,6 +165,9 @@ void DatabaseMap::boundary_finished() {
 }
 
 bool DatabaseMap::stopping(Server& server) {
+#ifdef TOMO_MDBQSBR_TEST
+    if (DatabaseMapTestHooks::fault == DatabaseMapTestHooks::IgnoreStop) return false;
+#endif
     auto& s = *state_;
     bool stop = s.stopping.load(std::memory_order_acquire) ||
                 server.shutting_down().load(std::memory_order_relaxed);

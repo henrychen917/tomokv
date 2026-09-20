@@ -27,7 +27,8 @@ class Ring;
 // Deterministic interleavings/faults; absent from production and measurement arms.
 struct DatabaseMapTestHooks {
     enum Fault { None, ImmediateFree, NoReclaim, SampledEven, NestedAck,
-                 OmitIo, GlobalIdle, CommitAllocation, JournalOrder, SecondLoad, NoWake };
+                 OmitIo, GlobalIdle, CommitAllocation, JournalOrder, SecondLoad,
+                 NoWake, IgnoreStop };
     inline static Fault fault = None;
     inline static Server* server = nullptr;
     inline static uint64_t sampled_even = 0;
