@@ -160,7 +160,8 @@ struct CoreConcurrencyTest {
         op.reply.append("+OK\r\n", 5);
     }
     template <bool ReadLocal>
-    static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available) {
+    static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available,
+                    bool use_sweep = false) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
         Fixture<ReadLocal> f(mode, overlap, requested);
         const int32_t reorder = f.server.cfg().reorder;
@@ -185,7 +186,15 @@ struct CoreConcurrencyTest {
         }
         observed.clear();
         const uint64_t before = f.passes();
-        const uint32_t drained = f.drain();
+        const uint32_t drained = [&] {
+            if constexpr (ReadLocal) {
+                if (use_sweep) {
+                    require(mode == ThreadMode::Fused, "sweep witness must use the fused owner");
+                    return reorder ? f.loop.template r7_sweep<>() : f.loop.template sweep<>();
+                }
+            }
+            return f.drain();
+        }();
         require(drained == count && observed.size() == count, "drain lost work or carry");
         std::vector<uint64_t> expected;
         if (reorder && r7::shadow_available()) {
@@ -512,6 +521,9 @@ int main(int argc, char** argv) {
     for (uint32_t overlap : {0u, 1u})
         for (uint32_t reorder : {0u, 1u})
             T::run<false>(tomo::ThreadMode::Split, overlap, reorder, std::string(argv[1]) == "on");
+    // The idle/parking sweep is shared by the fused scheduler, so trimming the
+    // split owner loop must not silently send this path through FIFO.
+    T::run<true>(tomo::ThreadMode::Fused, 0, 1, std::string(argv[1]) == "on", true);
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
         for (uint32_t overlap : {0u, 1u})
             for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<true>(mode, overlap, reorder);

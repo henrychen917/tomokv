@@ -670,10 +670,10 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl(Filler* filler) {
     fused_idle_spins_ = 0;
     if constexpr (InterleaveLocalReads) {
         did = fairlane_turn
-            ? sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
-            : sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+            ? r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>()
+            : r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     } else {
-        did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+        did = r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (did) fused_submit_boundary<CoalesceSubmit>();
     return did;
@@ -712,23 +712,70 @@ uint32_t ExLoopT<Fused>::r7_fused_sweep_impl() {
         if (!read_local_enabled()) std::abort();
         if (fairlane_owner_debt_pending()) {
             did += drain_local_reads() +
-                sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         } else {
             compact_local_read_tombstones();
             if (read_local_impl().lane_count) {
                 did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
-                did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>();
+                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue, true>();
             } else {
-                did += sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+                did += r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
             }
         }
     } else {
         did += drain_local_reads() +
-            sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
+            r7_sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
     }
     if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
     if (did) fused_submit_boundary<CoalesceSubmit>();
     return did;
+}
+
+template <bool Fused>
+template <uint32_t BatchOps, bool ConsumeTasks,
+          bool IofusedPrivateQueue, bool InterleaveLocalReads>
+uint32_t ExLoopT<Fused>::r7_sweep() {
+    TOMO_R7_PATH();
+    Server::ClientWorkScope client_work(*srv_, self_->id());
+    [[maybe_unused]] bool owner_work_remains = false;
+    uint32_t n = snapshot_control_pass<BatchOps, IofusedPrivateQueue>() +
+                 service_stale_forwards<BatchOps, IofusedPrivateQueue>() +
+                 drain_releases(true);
+    if (!snapshot_blocks_tasks()) {
+        n += service_multi_retries<IofusedPrivateQueue>();
+        n += service_atomic_deferred<IofusedPrivateQueue>();
+        n += service_xshard_retries<IofusedPrivateQueue>();
+        if (xshard_retries_.empty())
+            n += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
+        if constexpr (ConsumeTasks)
+            if (xshard_retries_.empty() && ordered_deferred_.empty()) {
+                if (snapshot_owner_state_ == SnapshotOwnerState::None) {
+                    if constexpr (InterleaveLocalReads)
+                        n += drain_tasks_read_local_interleaved<IofusedPrivateQueue>(
+                            true, owner_work_remains);
+                    else
+                        n += r7_drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                } else {
+                    n += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>(true);
+                }
+            }
+    }
+    if constexpr (InterleaveLocalReads) {
+        owner_work_remains |= fairlane_owner_debt_pending();
+        if (!owner_work_remains) n += drain_local_read_tail();
+        compact_local_read_tombstones();
+    }
+    flush_xshard_commits();
+    n += active_expire_cycle() + atomic_cleanup_cycle(64);
+    n += drain_notify_keyless(self_->sig(), /*force=*/true);
+    if (__builtin_expect(srv_->blocking_waiters() != 0, false))
+        n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
+    n += aof_flush_pass();
+    // Normally flush_xshard_commits empties the queue synchronously. The DEBUG hold can
+    // retain it across passes; both split and fused idle paths consult this sweep before
+    // parking, so keep polling until the control connection releases the latch.
+    if (__builtin_expect(xshard_commit_pending_, false)) n++;
+    return n;
 }
 
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused,

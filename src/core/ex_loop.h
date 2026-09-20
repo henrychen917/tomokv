@@ -3151,6 +3151,9 @@ public:
     template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_fused_sweep_impl();
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r7_sweep();
 // END R7 GENERATED ENVELOPES
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false,
               typename Filler = void>

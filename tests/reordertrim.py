@@ -158,6 +158,19 @@ def artifacts(args):
         'build/tomokv-reordertrim-pad-b: $(DB0_OBJ) $(OBJ) build/reordertrim-pad-b.o\n'
         '\t$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) build/reordertrim-pad-b.o '
         '-o $@ $(JELIBS) $(LDLIBS) -lm\n')
+    source = (ROOT / 'src/core/reorder.cc').read_text()
+    (directory / 'reordertrim-sweep-fifo.cc').write_text(replace(source,
+        'n += r7_drain_tasks<BatchOps, IofusedPrivateQueue>(true);',
+        'n += drain_tasks<BatchOps, IofusedPrivateQueue>(true);'))
+    with (directory / 'reordertrim-pad-b.mk').open('a') as make:
+        make.write(
+            'build/reordertrim-sweep-fifo.o: build/reordertrim-sweep-fifo.cc\n'
+            '\t$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -iquote src/core -c $< -o $@\n'
+            'build/reordertrim-sweep-fifo: tests/reorder_engagement_unit.cc '
+            'build/reordertrim-sweep-fifo.o $(CORE_TEST_OBJ)\n'
+            '\t$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< '
+            '$(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) '
+            'build/reordertrim-sweep-fifo.o -o $@ $(JELIBS) $(LDLIBS) -lm\n')
     (directory / 'tomokv-reordertrim-pad-b.json').write_text(json.dumps(dict(
         kind='B: candidate behaviour plus padding restoring PRE text size',
         pre=str(args.pre), post=str(args.binary), pre_text_bytes=pre_size,
@@ -200,7 +213,7 @@ def boot(args):
                             check_result(label, subprocess.CompletedProcess([], 0, row['reorder'] + '\n', ''),
                                          effective)
                             assert row['reorder_retired'] == ('0' if mode == '1s' else '1'), row
-                            assert row['schedule_stats_threads'] == ('8' if overlap or effective else '0'), row
+                            assert row.get('schedule_stats_threads') == ('8' if overlap or effective else None), row
                             assert not any(key.startswith('reorder_auto') for key in row), row
                             assert conn.must('SET', 'reordertrim', 'value') == b'OK'
                             assert conn.must('GET', 'reordertrim') == b'value'
