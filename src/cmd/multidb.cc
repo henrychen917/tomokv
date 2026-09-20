@@ -42,6 +42,7 @@ struct DatabaseMap::State {
     std::atomic<bool> stopping{false};
     std::atomic<uint64_t> boundary_since_ms{0};
     std::atomic<uint64_t> oldest_since_ms{0};
+    std::atomic<uint64_t> supervision_since_ms{0};
     std::atomic<uint32_t> exited{0};
     std::mutex wait_mutex;
     std::condition_variable changed;
@@ -62,6 +63,7 @@ uint64_t DatabaseMapTest::acknowledged(const DatabaseMap& map, uint32_t tid) {
 void DatabaseMapTest::expire_deadline(DatabaseMap& map) {
     const uint64_t since = now_ns() / 1000000 - map.grace_bound_ms() - 1;
     map.state_->oldest_since_ms.store(since);
+    map.state_->supervision_since_ms.store(since);
     map.state_->retired.front().since_ms = since;
 }
 #endif
@@ -210,15 +212,22 @@ bool DatabaseMap::stopping(Server& server) {
 void DatabaseMap::monitor(Server& server) {
     if constexpr (kSingleDatabase) return;
     if (!state_ || stopping(server)) return;
+    // Cold snapshot/AOF recovery can publish before workers start. The tick
+    // budget applies only once main reaches live supervision, never to boot IO.
+    uint64_t unarmed = 0;
+    state_->supervision_since_ms.compare_exchange_strong(unarmed, now_ns() / 1000000,
+                                                        std::memory_order_release);
     reclaim(server);
     // This check must not depend on obtaining writer_: a stuck writer is also
     // a failure. Recheck the ticket's age after the clock sample to avoid racing
     // a completed grace followed by a new publication.
     const uint64_t oldest = state_->oldest_since_ms.load(std::memory_order_acquire);
     const uint64_t cut = now_ns() / 1000000;
-    if (reclamation_pending() && oldest && cut - oldest > grace_bound_ms() &&
+    const uint64_t supervised = state_->supervision_since_ms.load(std::memory_order_acquire);
+    const uint64_t age = cut - std::max(oldest, supervised);
+    if (reclamation_pending() && oldest && age > grace_bound_ms() &&
         state_->oldest_since_ms.load(std::memory_order_acquire) == oldest && !stopping(server))
-        overdue(server, "retire acknowledgement", cut - oldest);
+        overdue(server, "retire acknowledgement", age);
     const uint64_t since = state_->boundary_since_ms.load(std::memory_order_acquire);
     const uint64_t now = now_ns() / 1000000;
     if (since && now - since > 3 * grace_bound_ms() &&
@@ -367,9 +376,12 @@ void DatabaseMap::reclaim([[maybe_unused]] Server& server) {
     s.oldest_since_ms.store(s.retired.empty() ? 0 : s.retired.front().since_ms,
                            std::memory_order_release);
     if (s.retired.empty()) grace_work_.store(0, std::memory_order_relaxed);
-    else if (s.server && now_ns() / 1000000 - s.retired.front().since_ms > grace_bound_ms() &&
-             !stopping(server))
-        overdue(server, "retire acknowledgement", now_ns() / 1000000 - s.retired.front().since_ms);
+    else if (s.server) {
+        const uint64_t supervised = s.supervision_since_ms.load(std::memory_order_acquire);
+        const uint64_t age = now_ns() / 1000000 - std::max(s.retired.front().since_ms, supervised);
+        if (supervised && age > grace_bound_ms() && !stopping(server))
+            overdue(server, "retire acknowledgement", age);
+    }
 }
 
 bool DatabaseMap::swap(uint8_t first, uint8_t second, AofProducer* journal) {

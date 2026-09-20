@@ -66,7 +66,7 @@ def park_snapshot(pid):
 
 
 def wait_parked(proc):
-    # >=3 parked workers excludes the admin's own IO and BOTH split executors:
+    # >=4 parked workers excludes the admin's own IO and BOTH split executors:
     # even if the admin wakes, an unrelated participant must need a doorbell.
     deadline = time.monotonic() + SHUTDOWN
     prior = {}
@@ -74,11 +74,11 @@ def wait_parked(proc):
         require(proc.poll() is None, 'server exited before parked window')
         current = park_snapshot(proc.pid)
         stable = {tid: wait for tid, wait in current.items() if tid in prior}
-        if len(stable) >= 3:
+        if len(stable) >= WORKERS // 2:
             return stable
         prior = current
         time.sleep(TICK / 4)
-    raise Unarmed('fewer than three physical workers witnessed in kernel ring waits')
+    raise Unarmed('fewer than four physical workers witnessed in kernel ring waits')
 
 
 def no_core_dump():
@@ -247,6 +247,11 @@ def run_case(binary, args, case, arm, attempt):
 
 
 def main():
+    def interrupted(signum, _frame):
+        raise SystemExit(128 + signum)  # unwind run_case's owned-child cleanup
+
+    signal.signal(signal.SIGTERM, interrupted)
+    signal.signal(signal.SIGINT, interrupted)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--parked-binary', type=Path, required=True)
