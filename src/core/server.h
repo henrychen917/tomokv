@@ -3332,7 +3332,8 @@ private:
             std::perror("getrlimit(RLIMIT_NOFILE)");
             return false;
         }
-        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2;
+        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2 +
+            (kSingleDatabase ? 0 : placement_.total_threads()); // database doorbells
         const uint64_t wanted = static_cast<uint64_t>(cfg_.maxclients) + reserve;
         if (limit.rlim_cur < wanted) {
             rlimit raised = limit;
