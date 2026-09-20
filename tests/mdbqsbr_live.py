@@ -148,7 +148,9 @@ def run_case(binary, args, case, arm, attempt):
             proc = boot(binary, args, directory, log)
         admin = connect_ready(proc, args.port)
         conns.append(admin)
-        require(info(admin, 'server')['thread_mode'] == args.mode, 'wrong boot mode')
+        server_info = info(admin, 'server')
+        require(int(server_info['process_id']) == proc.pid, 'connection reached a different server PID')
+        require(server_info['thread_mode'] == args.mode, 'wrong boot mode')
         topology = lbsignals(admin)
         require(len(topology.threads) == WORKERS and len(topology.shards) == 16,
                 'boot did not preserve gate geometry')
