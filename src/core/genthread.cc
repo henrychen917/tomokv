@@ -119,6 +119,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
+            DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
@@ -207,8 +208,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
         boot.stop();
-        for (std::thread& worker : pool)
-            if (worker.joinable()) worker.join();
+        srv.databases().join_workers(srv, pool);
     };
     if (!boot.wait_loaded(srv.shutting_down())) {
         stop_workers();
@@ -272,7 +272,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
-    for (std::thread& worker : pool) worker.join();
+    srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
     return 0;

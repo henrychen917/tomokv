@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 #ifdef TOMO_MDBQSBR_TEST
 #include <optional>
@@ -20,12 +21,13 @@ class Op;
 class Shard;
 class AofProducer;
 class ThreadCtx;
+class Ring;
 
 #ifdef TOMO_MDBQSBR_TEST
 // Deterministic interleavings/faults; absent from production and measurement arms.
 struct DatabaseMapTestHooks {
     enum Fault { None, ImmediateFree, NoReclaim, SampledEven, NestedAck,
-                 OmitIo, GlobalIdle, CommitAllocation, JournalOrder, SecondLoad };
+                 OmitIo, GlobalIdle, CommitAllocation, JournalOrder, SecondLoad, NoWake };
     inline static Fault fault = None;
     inline static Server* server = nullptr;
     inline static uint64_t sampled_even = 0;
@@ -104,7 +106,30 @@ public:
     uint8_t logical(uint8_t physical) const;
     // Called once, before workers/recovery start. An unbound standalone map never
     // reclaims early. Bound cold callers must finish before worker grace resumes.
-    bool bind_workers(uint32_t count);
+    bool bind_workers(uint32_t count, Server* server = nullptr);
+    // The fd follows the physical worker through IO/EX role changes. Both rings
+    // may watch it, but only the active owner drains/rearms its own ring.
+    int wake_fd(uint32_t tid) const;
+    bool watch_wake(uint32_t tid, Ring& ring);
+    void consume_wake(uint32_t tid, Ring& ring);
+    void wake_workers();
+    uint64_t grace_bound_ms() const;
+    void boundary_started();
+    void boundary_finished();
+    void monitor(Server& server);
+    // Main owns this wait, never a reader. Stop abandons early reclamation;
+    // exited workers need no ack, and destruction after joins owns final grace.
+    void join_workers(Server& server, std::vector<std::thread>& workers);
+    class WorkerLifetime {
+    public:
+        WorkerLifetime(DatabaseMap& map, uint32_t tid) : map_(map), tid_(tid) {
+            map_.worker_entered(tid_);
+        }
+        ~WorkerLifetime() { map_.worker_exited(tid_); }
+    private:
+        DatabaseMap& map_;
+        uint32_t tid_;
+    };
     bool reclamation_pending() const {
         if constexpr (kSingleDatabase) return false;
 #ifdef TOMO_MDBQSBR_PAD
@@ -134,6 +159,10 @@ private:
     State& state();
     void publish(std::unique_ptr<Map> next) noexcept;
     void reclaim(Server& server);
+    void worker_exited(uint32_t tid);
+    void worker_entered(uint32_t tid);
+    bool stopping(Server& server);
+    [[noreturn]] void overdue(Server& server, const char* kind, uint64_t elapsed_ms);
     std::atomic<const void*> swapping_{nullptr};
     mutable std::atomic<uint32_t> grace_work_{0};
     std::atomic<const Map*> current_{nullptr};
@@ -149,6 +178,7 @@ static_assert(sizeof(DatabaseMap) == 120);
 struct DatabaseMapTest {
     static size_t backlog(const DatabaseMap& map);
     static uint64_t acknowledged(const DatabaseMap& map, uint32_t tid);
+    static void expire_deadline(DatabaseMap& map);
     static void maintenance(DatabaseMap& map, Server& server) { map.reclaim(server); }
 };
 #endif

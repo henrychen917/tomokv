@@ -74,6 +74,7 @@ enum class UrKind : uint8_t {
     TlsReadPoll = 14,
     TlsWritePoll = 15,
     MigrateCancel = 16, // source-ring cancellation request; original Recv CQE is the fence
+    DatabaseWake = 17,  // physical-worker database grace/boundary eventfd
 };
 
 inline uint64_t ur_tag(UrKind k, void* p) {
@@ -85,6 +86,7 @@ inline T* ur_ptr(uint64_t tag) { return reinterpret_cast<T*>(tag & ((1ULL << 48)
 
 class Ring {
 public:
+    static constexpr unsigned kWaitTimeoutMs = 50;
     Ring() = default;
     ~Ring() { shutdown(); }
     Ring(const Ring&) = delete;
@@ -229,13 +231,21 @@ public:
     // so shutdown hangs and the process has to be SIGKILLed. It also bounds the damage from any
     // missed wake — the loop recovers on the next tick instead of sleeping forever.
     template <bool ClearSendClassification = false>
-    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = 50) {
+    int submit_and_wait(unsigned want = 1, unsigned timeout_ms = kWaitTimeoutMs,
+                        int database_fd = -1) {
         if constexpr (ClearSendClassification) send_pending_ = false;
+#ifdef TOMO_MDBQSBR_LIVE_PARK
+        // Test twins only: a witnessed idle worker stays asleep beyond the
+        // client's deadline unless a real control event wakes it.
+        constexpr unsigned workers = 8; // the live proof's required gate geometry
+        timeout_ms = 2 * 3 * (2 * kWaitTimeoutMs * (workers + 1));
+#endif
         if (__builtin_expect(wake_fd_ >= 0, false)) {
             // The ex loop's park. Same contract as the uring path: block until a peer rings the
             // doorbell OR the timeout expires, so the stop flag is re-read on every tick.
-            pollfd waits[2] = {{wake_fd_, POLLIN, 0}, {shutdown_fd_, POLLIN, 0}};
-            const nfds_t count = shutdown_fd_ >= 0 ? 2 : 1;
+            pollfd waits[3] = {{wake_fd_, POLLIN, 0}, {shutdown_fd_, POLLIN, 0},
+                              {database_fd, POLLIN, 0}};
+            const nfds_t count = database_fd >= 0 ? 3 : (shutdown_fd_ >= 0 ? 2 : 1);
             const int n = ::poll(waits, count, static_cast<int>(timeout_ms));
             if (n > 0 && (waits[0].revents & POLLIN)) drain_wake_fd();
             return n < 0 ? 0 : n;

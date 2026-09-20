@@ -1715,6 +1715,10 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 self_->sig().wakes_recv++;
                 work++;
                 break;
+            case UrKind::DatabaseWake:
+                srv_->databases().consume_wake(self_->id(), ring_);
+                work++;
+                break;
             case UrKind::Shutdown:
                 // Sticky and shared: never drain it, or this loop could steal the terminal
                 // edge from another ring/epoll set. The signal handler published stop first.
@@ -1965,6 +1969,8 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
                 on_plain_send_cqe<kEp, ImmediateSendProgress,
                                   Fused && Pipeline == 1>(cqe); break;
             case UrKind::Wake: self_->sig().wakes_recv++; break;
+            case UrKind::DatabaseWake:
+                srv_->databases().consume_wake(self_->id(), ring_); break;
             case UrKind::Shutdown: break;
             case UrKind::SnapshotStart:
                 if constexpr (Fused)
@@ -2012,6 +2018,8 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
                 r7_on_tls_socket_poll<kEp, Fused, Pipeline>(
                     ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantWrite); break;
             case UrKind::Wake: self_->sig().wakes_recv++; break;
+            case UrKind::DatabaseWake:
+                srv_->databases().consume_wake(self_->id(), ring_); break;
             case UrKind::Shutdown: break;
             case UrKind::SnapshotStart:
                 if constexpr (Fused)
@@ -3636,6 +3644,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
+            DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
@@ -3724,8 +3733,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
         boot.stop();
-        for (std::thread& worker : pool)
-            if (worker.joinable()) worker.join();
+        srv.databases().join_workers(srv, pool);
     };
     if (!boot.wait_loaded(srv.shutting_down())) {
         stop_workers();
@@ -3789,7 +3797,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
     std::fflush(stdout);
 
-    for (std::thread& worker : pool) worker.join();
+    srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
     return 0;

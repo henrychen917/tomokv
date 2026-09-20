@@ -190,6 +190,14 @@ build/core-concurrency-mdbqsbr-asan: build/mdbqsbr-asan/tests/core_concurrency_u
 build/core-concurrency-mdbqsbr-tsan: build/mdbqsbr-tsan/tests/core_concurrency_unit.o $(MDBQSBR_TSAN_OBJ)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm
 build/multidb-unit: | build/mdbqsbr-unit
+# Real-boot wake proof twins, never measurement arms. Both extend only the idle
+# wait beyond the client's derived deadline; the negative removes database wakes.
+# Keep flags consistent in every implementation TU (including inline Ring code).
+.PHONY: mdbqsbr-live-arms
+mdbqsbr-live-arms:
+	$(MAKE) BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK' all
+	$(MAKE) BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/multidb-cost-unit: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(DB0_TEST_OBJ) $(wildcard src/*/*.h) Makefile

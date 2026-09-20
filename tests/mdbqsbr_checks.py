@@ -12,12 +12,12 @@ if outdir:
     outdir.mkdir(parents=True, exist_ok=True)
 
 
-def run(case, fault, witness):
+def run(case, fault, witness, failure=False):
     result = subprocess.run([binary, case, str(fault)], text=True, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
     if outdir:
         (outdir / f"{case}-{fault}.log").write_text(result.stdout)
-    if (result.returncode != 0) != bool(fault) or witness not in result.stdout:
+    if (result.returncode != 0) != bool(fault or failure) or witness not in result.stdout:
         print(result.stdout)
         raise SystemExit(f"FAIL mdbqsbr case={case} fault={fault}: missing expected result/witness")
     print(f"PASS control case={case} fault={fault} exit={result.returncode}: {witness}")
@@ -41,5 +41,11 @@ for case, fault, witness in [
     ("allocation", 7, "prepared commit performs zero allocations under denial"),
     ("journal", 8, "AOF refusal leaves old mapping live"),
     ("endpoints", 9, "COPY/MOVE endpoints use one immutable version across forced swap"),
+    ("wake", 10, "every physical worker has a readable retire doorbell"),
 ]:
     run(case, fault, witness)
+
+# A loud production deadline (not the Python subprocess deadline) must identify
+# the exact missing participant. A stopped participant follows the positive
+# shutdown selection in `all` instead and retains its maps for destruction.
+run("deadline", 0, "participant=t1 os_tid=0 ack=0 exited=0", failure=True)

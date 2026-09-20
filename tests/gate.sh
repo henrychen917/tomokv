@@ -2570,22 +2570,31 @@ job_production_units(){
   for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
+      >"$TMPDIR/mdbqsbr-live-build.log" 2>&1 && : > "$RUN_DIR/unit-ready/mdbqsbr-live-arms"
   return 0
 }
 job_multidb(){
-  local prefix mode read_local atomic label booted=0
+  local prefix mode read_local atomic label booted=0 live_ok=0
   IFS=- read -r prefix mode read_local atomic <<< "$1"
   label="multidb ($mode, read-local $read_local, atomic $atomic)"
   row_begin "$label"
+  # This existing row now includes fresh parked/load/BLPOP boots and their wake
+  # controls before the historical busy + serial-order pair. No new ledger row.
+  if unit_ready mdbqsbr-live-arms && py tests/mdbqsbr_live.py \
+      --binary "$CANDIDATE_BINARY" --parked-binary build/mdbqsbr2-park/tomokv \
+      --no-wake-binary build/mdbqsbr2-no-wake/tomokv --mode "$mode" \
+      --read-local "$read_local" --atomic "$atomic" --cores "$CORES" --port "$PORT" \
+      --output "$TMPDIR/mdbqsbr-live" >"$TMPDIR/mdbqsbr-live.log" 2>&1; then live_ok=1; fi
   local boot_fn=boot
   [ "$mode" != 1s ] || boot_fn=boot_fused
   if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --read-local "$read_local" \
         --databases 16 --enable-debug-command yes --appendonly yes --appendfsync no --save '' && booted=1 &&
       py tests/multidb.py 127.0.0.1 "$PORT" --read-local "$read_local" --persistence \
-        >"$TMPDIR/multidb.log" 2>&1; then
+        >"$TMPDIR/multidb.log" 2>&1 && [ "$live_ok" = 1 ]; then
     ok "$label"
   else
-    bad "$label" "see $TMPDIR/multidb.log and $SRVLOG"
+    bad "$label" "see $TMPDIR/mdbqsbr-live.log, $TMPDIR/multidb.log and $SRVLOG"
   fi
   row_begin "$label SWAPDB serial order"
   if [ "$booted" = 1 ] && py tests/multidb_serial.py 127.0.0.1 "$PORT" \
@@ -2617,7 +2626,7 @@ job_dependencies(){
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
-    atomic_units|netcmd_units) echo production_units;;
+    atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;

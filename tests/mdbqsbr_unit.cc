@@ -199,6 +199,40 @@ void backlog() {
     hooks_clear();
 }
 
+void wake() {
+    Server server;
+    auto& map = server.databases();
+    require(map.bind_workers(8, &server), "eight real eventfd participants");
+    require(map.swap(0, 1) && map.swap(0, 1), "retire requests a wake without network traffic");
+    for (unsigned tid = 0; tid < 8; ++tid) {
+        pollfd event{map.wake_fd(tid), POLLIN, 0};
+        require(::poll(&event, 1, 0) == 1 && (event.revents & POLLIN),
+                "every physical worker has a readable retire doorbell");
+        uint64_t count = 0;
+        require(::read(event.fd, &count, sizeof(count)) == sizeof(count) && count == 1,
+                "one rare wake; the reader path does not ring");
+        map.quiescent(server, tid);
+    }
+    map.monitor(server);
+    require(DatabaseMapTest::backlog(map) == 0, "woken workers drain final retirement");
+}
+
+void shutdown_or_deadline(bool stop) {
+    Server server;
+    auto& map = server.databases();
+    require(map.bind_workers(8, &server) && map.swap(0, 1) && map.swap(0, 1),
+            "pending retirement before stopped/missing participant");
+    for (unsigned tid = 0; tid < 8; ++tid)
+        if (tid != 1) map.quiescent(server, tid);
+    require(DatabaseMapTest::acknowledged(map, 1) == 0 && DatabaseMapTest::backlog(map) == 1,
+            "t1 has not acknowledged; queue cannot be freed");
+    DatabaseMapTest::expire_deadline(map); // no wall-clock sleep in this unit
+    if (stop) server.shutting_down().store(true);
+    map.monitor(server); // missing live t1 must abort; stopped t1 must NOT wait
+    require(stop && DatabaseMapTest::backlog(map) == 1 && !map.reclamation_pending(),
+            "shutdown retains map for destruction without demanding stopped t1 ack");
+}
+
 void failures() {
     Fixture f;
     const auto before = f.map.capture();
@@ -399,6 +433,9 @@ int main(int argc, char** argv) {
     run("park", [] { park_or_role(false); });
     run("role", [] { park_or_role(true); });
     run("backlog", backlog);
+    run("wake", wake);
+    run("shutdown", [] { shutdown_or_deadline(true); });
+    if (selection == "deadline") shutdown_or_deadline(false);
     run("allocation", failures);
     run("journal", journal);
     run("endpoints", CoreConcurrencyTest::endpoints);

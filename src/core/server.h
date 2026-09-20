@@ -345,7 +345,7 @@ public:
         // and transfer channels stay uniform per-thread arrays.
         const uint32_t nthreads = placement_.total_threads();
         if constexpr (!kSingleDatabase) {
-            if (!databases_.bind_workers(nthreads)) {
+            if (!databases_.bind_workers(nthreads, this)) {
                 std::fprintf(stderr, "fatal: could not allocate database grace participants\n");
                 return false;
             }
