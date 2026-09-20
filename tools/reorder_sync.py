@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Refresh/check R7's isolated loop copies against the current production envelopes.
+"""Shared envelope helpers and compatibility entry for tests/r7shadow_sync.py.
 
-Only method names and fresh-task drain calls change. Keeping the copies outside
-the FIFO translation units preserves their compiler input and permits a byte audit.
-This check never builds or runs an executable.
+There is one generator for the surviving fused shadow call graph. This check
+never builds or runs an executable.
 """
 from pathlib import Path
 import re
@@ -11,7 +10,6 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 EX = ('fused_baseline_pass', 'fused_pass_impl', 'fused_baseline_sweep',
       'fused_sweep_impl', 'sweep')
-IO = ('run_loop', 'sweep', 'flush_ready')
 BEGIN = '// BEGIN R7 GENERATED ENVELOPES\n'
 END = '// END R7 GENERATED ENVELOPES\n'
 

@@ -209,6 +209,7 @@ def boot(args):
                         if mode == '2s': flags += ['--ratio', '6:2']
                         with server(binary, args.cores, args.port, args.output / label, flags) as (conn, _):
                             row = info(conn, 'SERVER')
+                            assert row['thread_mode'] == mode and row['shards'] == '16', row
                             effective = value if mode == '1s' else 0
                             check_result(label, subprocess.CompletedProcess([], 0, row['reorder'] + '\n', ''),
                                          effective)
