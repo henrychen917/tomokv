@@ -223,14 +223,18 @@ void failures() {
     prepared.reset();
     require(f.map.capture().epoch == before.epoch && Hooks::allocated - Hooks::freed == 1,
             "refused prepared publication has no leak or partial commit");
+    require(f.map.swap(0, 1), "create retirement before prepared commit");
+    next = f.map.capture(); std::swap(next[0], next[1]); ++next.epoch;
     require(f.map.prepare_publish(next, prepared), "reprepare after refusal");
+    f.ack(); // Maintenance must preserve capacity reserved for the pending commit.
+    require(DatabaseMapTest::backlog(f.map) == 0, "older retirement drained between prepare and commit");
     allocation_attempts = 0; allocation_budget = 0;
     bool threw = false;
     try { f.map.publish_prepared(std::move(prepared)); }
     catch (const std::bad_alloc&) { threw = true; }
     allocation_budget = -1;
     require(!threw && allocation_attempts == 0, "prepared commit performs zero allocations under denial");
-    require(f.map.capture()[0] == 0 && f.map.capture().epoch == next.epoch,
+    require(f.map.capture()[0] == 1 && f.map.capture().epoch == next.epoch,
             "prepared commit publishes complete immutable map");
     f.ack();
     require(DatabaseMapTest::backlog(f.map) == 0, "prepared retirement reclaims without another writer");
@@ -284,6 +288,7 @@ bool wrap_record(AofProducer* p, const uint8_t* bytes) {
 
 namespace tomo {
 struct CoreConcurrencyTest {
+    inline static uint8_t expected_physical = 1;
     static void endpoints() {
         Fixture f; f.server.cfg_.databases = 16;
         for (const char* cmd : {"COPY", "MOVE"}) {
@@ -312,13 +317,19 @@ struct CoreConcurrencyTest {
     static void loop_callback(Server& server, ThreadCtx& self, unsigned path) {
         require(server.client_work_epoch(self.id()) & 1,
                 "ordinary IO/owner loop covers stamping with read-local off");
+        if (server.databases().reclamation_pending()) {
+            for (uint32_t tid = 0; tid < 8; ++tid)
+                if (tid != self.id()) server.databases().quiescent(server, tid);
+            require(DatabaseMapTest::backlog(server.databases()) == 0,
+                    "resumed role acknowledges before stamping and drains without another swap");
+        }
         const char frame[] = "*2\r\n$3\r\nGET\r\n$1\r\nk\r\n";
         Op op; uint32_t at = 0; const char* error = nullptr;
         require(resp_parse(frame, sizeof(frame) - 1, at, op, &error) == ParseResult::Ok,
                 "loop parser loads actual command frame");
         op.spec = command_lookup(op.cmd_name());
         multidb_stamp(server, op, 0);
-        require(op.physical_db == 1 && op.key().ns == 1,
+        require(op.physical_db == expected_physical && op.key().ns == expected_physical,
                 "loop stamping sees immutable map under physical participant scope");
         ++load_windows;
         require(path <= 2, "baseline/reorder/owner loop path identified");
@@ -331,22 +342,37 @@ struct CoreConcurrencyTest {
             ThreadCtx self; self.init(1, Role::Ifid, 8, 0, 0);
             IoLoop io; io.srv_ = &f.server; io.self_ = &self;
             Hooks::loop_pass = loop_callback; load_windows = 0;
+            expected_physical = 1;
             // The test hook returns before transport/control work; no ring/listener.
-            if (reorder && fused) {
-                io.r7_run_loop<false, false, true, true, 0>();
-            } else {
-                if (fused) io.run_loop<false, false, true, true, 0>();
+            const auto run_io = [&] {
+                if (reorder && fused) io.r7_run_loop<false, false, true, true, 0>();
+                else if (fused) io.run_loop<false, false, true, true, 0>();
                 else if (overlap) io.run_loop<false, false, true, false, 1>();
                 else io.run_loop<false, false, true, false, 0>();
-            }
+            };
+            run_io();
             require(load_windows == 1 && !(f.server.client_work_epoch(1) & 1),
                     "IO loop exits its complete scope once");
             // Same physical participant changes role; no epoch/ack reset.
             self.set_role(Role::Ex); self.stop_flag().store(false);
+            require(f.map.swap(0, 1), "publish during IO-to-EX role gap");
+            f.ack(1);
+            require(DatabaseMapTest::backlog(f.map) == 1,
+                    "role change cannot skip even physical participant");
+            expected_physical = 0;
             ExLoop owner; owner.srv_ = &f.server; owner.self_ = &self;
             owner.run();
             require(load_windows == 2 && !(f.server.client_work_epoch(1) & 1),
                     "IO-to-EX role tenure uses same participant and unwinds scope");
+            self.set_role(Role::Ifid); self.stop_flag().store(false);
+            require(f.map.swap(0, 1), "publish during EX-to-IO role gap");
+            f.ack(1);
+            require(DatabaseMapTest::backlog(f.map) == 1,
+                    "reverse role change still owes a fresh acknowledgement");
+            expected_physical = 1;
+            run_io();
+            require(load_windows == 3 && !(f.server.client_work_epoch(1) & 1),
+                    "EX-to-IO role tenure uses same participant and unwinds scope");
             hooks_clear();
         }
     }

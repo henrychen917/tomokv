@@ -35,6 +35,7 @@ for case, fault, witness in [
     ("role", 3, "parked/even/role-changing participant not silently exempted"),
     ("nested", 4, "held map not deleted before final dereference"),
     ("coverage", 5, "ordinary IO/owner loop covers stamping with read-local off"),
+    ("coverage", 3, "role change cannot skip even physical participant"),
     ("backlog", 6, "staggered active readers drain backlog"),
     ("backlog", 2, "staggered active readers drain backlog"),
     ("allocation", 7, "prepared commit performs zero allocations under denial"),
