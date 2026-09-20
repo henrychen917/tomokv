@@ -26,10 +26,10 @@ struct CoreConcurrencyTest {
         return {s.data(), static_cast<uint32_t>(s.size())};
     }
 
-    template <bool ReadLocal>
+    template <bool ReadLocal, bool FusedExecutor = ReadLocal>
     struct Fixture {
         Server server;
-        ExLoopT<ReadLocal> loop;
+        ExLoopT<FusedExecutor> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
         Fixture(ThreadMode mode, uint32_t overlap, int32_t reorder, uint32_t databases = 1)
@@ -83,7 +83,7 @@ struct CoreConcurrencyTest {
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
-            if constexpr (ReadLocal) if (mode == ThreadMode::Fused)
+            if constexpr (FusedExecutor) if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
             require(loop.read_local_enabled() == ReadLocal && server.atomic_enabled(), "requested owner paths");
             require((server.mode_schedule_stats() != nullptr) == (overlap != 0 || server.cfg().reorder != 0),
@@ -124,6 +124,14 @@ struct CoreConcurrencyTest {
             c.rob().publish();
             return task;
         }
+        uint32_t drain() {
+            if constexpr (FusedExecutor) {
+                if (server.cfg().reorder) return loop.template r7_drain_tasks<>(true);
+            } else {
+                require(!server.cfg().reorder, "split executor must stay FIFO");
+            }
+            return loop.template drain_tasks<>(true);
+        }
         uint64_t passes() const {
             const auto* stats = server.mode_schedule_stats();
             return stats ? stats[owner].overlap_passes.load() : 0;
@@ -152,7 +160,8 @@ struct CoreConcurrencyTest {
         op.reply.append("+OK\r\n", 5);
     }
     template <bool ReadLocal>
-    static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available) {
+    static void run(ThreadMode mode, uint32_t overlap, int32_t requested, bool expect_available,
+                    bool use_sweep = false) {
         require(reorder_available() == expect_available, "binary capability differs from expected arm");
         Fixture<ReadLocal> f(mode, overlap, requested);
         const int32_t reorder = f.server.cfg().reorder;
@@ -177,7 +186,15 @@ struct CoreConcurrencyTest {
         }
         observed.clear();
         const uint64_t before = f.passes();
-        const uint32_t drained = reorder ? f.loop.template r7_drain_tasks<>(true) : f.loop.template drain_tasks<>(true);
+        const uint32_t drained = [&] {
+            if constexpr (ReadLocal) {
+                if (use_sweep) {
+                    require(mode == ThreadMode::Fused, "sweep witness must use the fused owner");
+                    return reorder ? f.loop.template r7_sweep<>() : f.loop.template sweep<>();
+                }
+            }
+            return f.drain();
+        }();
         require(drained == count && observed.size() == count, "drain lost work or carry");
         std::vector<uint64_t> expected;
         if (reorder && r7::shadow_available()) {
@@ -248,7 +265,7 @@ struct CoreConcurrencyTest {
             std::memcpy(c.rbuf(), wire.data(), wire.size());
             c.commit_read(wire.size());
             auto parse = [&]<uint32_t B, bool SplitLocal>() {
-                if (reorder)
+                if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal) if (reorder)
                     return io.r7_parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
                 return io.parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
             };
@@ -275,8 +292,7 @@ struct CoreConcurrencyTest {
         const bool shadow = reorder && r7::shadow_available();
         require(shadows == (shadow ? 7u : 0u), "dispatch shadow stamp count/PAD/FIFO witness");
         observed.clear();
-        const uint32_t drained = reorder ? f.loop.template r7_drain_tasks<>(true)
-                                           : f.loop.template drain_tasks<>(true);
+        const uint32_t drained = f.drain();
         require(drained == total && observed.size() == total, "production three-pipe drain lost work");
         const std::vector<uint64_t> expected = shadow
             ? std::vector<uint64_t>{0,11,1,12,2,13,6,3,14,7,4,15,8,5,9,10}
@@ -290,7 +306,7 @@ struct CoreConcurrencyTest {
     }
 
     static void database_dispatch(int32_t requested) {
-        Fixture<false> f(ThreadMode::Fused, 0, requested, kSingleDatabase ? 1 : 16);
+        Fixture<false, true> f(ThreadMode::Fused, 0, requested, kSingleDatabase ? 1 : 16);
         command_bind_server(&f.server);
         IoLoop io;
         io.srv_ = &f.server;
@@ -371,76 +387,8 @@ struct CoreConcurrencyTest {
                     kSingleDatabase ? "db0" : "multidb", requested);
     }
 
-    static void automatic_inbox() {
-        Fixture<true> f(ThreadMode::Fused, 0, -1);
-        // The all-policy PAD deliberately resolves the request before creating state.
-        if (!reorder_available()) {
-            require(f.server.cfg().reorder == 0 && !f.server.mode_schedule_stats(),
-                    "PAD allocated AUTO state");
-            return;
-        }
-        auto& stats = f.server.mode_schedule_stats(f.owner);
-        r7::PolicyScope scope(stats);
-        CommandSpec short_op = *command_lookup(Slice("GET"));
-        CommandSpec long_op = *command_lookup(Slice("BITCOUNT"));
-        short_op.handler = short_op.handler_notify = record;
-        long_op.handler = long_op.handler_notify = record;
-        constexpr uint32_t count = 2 * kGenthreadExBatchOps;
-        std::vector<std::unique_ptr<Client>> clients;
-        for (uint32_t i = 0; i < count; ++i) clients.push_back(std::make_unique<Client>(-1));
-        for (uint32_t i = 0; i < clients.size(); ++i) {
-            f.client(*clients[i], i + 1);
-            Task task = f.prepare(*clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
-            auto& op = clients[i]->rob().at(task.op_id);
-            op.spec = i ? &short_op : &long_op;
-            op.hash = i;
-            require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO queue setup");
-        }
-        const auto sample = r7::InboxProbe::sample(*f.loop.self_);
-        require(sample.depth == count && sample.shorts == count - 1 && sample.longs == 1 && sample.behind == count - 1,
-                "AUTO owner probe did not observe the actual queued HOL window");
-        require(!r7::priority_enabled(stats, -1), "AUTO engaged without a sampled window");
-        for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i) {
-            require(f.loop.self_->sample_depth(1000 + 100 * i), "existing signal tick missing");
-            scope.policy.tick(*f.loop.self_, stats);
-            require(!f.loop.self_->sample_depth(1050 + 100 * i), "signal sampled per pass instead of per tick");
-        }
-        require(r7::priority_enabled(stats, -1) && (stats.reorder_auto.load() & 1) &&
-                    ((stats.reorder_auto.load() >> 1) & 0x7fffffff) == 1,
-                "production AUTO did not engage");
-        observed.clear();
-        std::vector<uint64_t> priority;
-        // The inherited oldest-task fairness turn follows one gather of priority
-        // picks. With two gathers this Long must run before the remaining shorts.
-        for (uint32_t i = 1; i <= kGenthreadExBatchOps; ++i) priority.push_back(i);
-        priority.push_back(0);
-        for (uint32_t i = kGenthreadExBatchOps + 1; i < count; ++i) priority.push_back(i);
-        require(f.loop.r7_drain_tasks<>(true) == count && observed == priority,
-                "AUTO engagement did not select the actual shadow scheduler");
-        scope.policy.tick(*f.loop.self_, stats);
-        require(!r7::priority_enabled(stats, -1) && !(stats.reorder_auto.load() & 1),
-                "empty owner inbox did not disengage AUTO");
-        for (auto& c : clients) require(c->rob().drain([](Op&) {}) == 1, "AUTO reply retirement");
-        // Re-arm the same real mixed queue while the policy is disarmed. Before another
-        // sampled window the wrapper MUST delegate to the unchanged FIFO drain.
-        for (uint32_t i = 0; i < clients.size(); ++i) {
-            Task task = f.prepare(*clients[i], {Slice(i ? "GET" : "BITCOUNT"), Slice("probe")});
-            auto& op = clients[i]->rob().at(task.op_id);
-            op.spec = i ? &short_op : &long_op;
-            op.hash = i;
-            require(f.loop.self_->post_task_quiet(0, task, f.server.thread(0).sig()), "AUTO disarmed queue");
-        }
-        observed.clear();
-        std::vector<uint64_t> fifo;
-        for (uint32_t i = 0; i < count; ++i) fifo.push_back(i);
-        require(f.loop.r7_drain_tasks<>(true) == count && observed == fifo,
-                "AUTO disarmed path retained reordering");
-        for (auto& c : clients) require(c->rob().drain([](Op&) {}) == 1, "AUTO FIFO retirement");
-        std::puts("PASS production AUTO probe, existing tick, priority engagement and FIFO disengagement");
-    }
-
     static void shadow_foreign_passes() {
-        Fixture<false> f(ThreadMode::Fused, 0, 1);
+        Fixture<false, true> f(ThreadMode::Fused, 0, 1);
         ThreadCtx& foreign = f.server.thread(1);
         require(foreign.init_task_inbox_local_fused(), "foreign fixture inbox");
         const int32_t foreign_sid = foreign.shards().front()->id();
@@ -573,17 +521,17 @@ int main(int argc, char** argv) {
     for (uint32_t overlap : {0u, 1u})
         for (uint32_t reorder : {0u, 1u})
             T::run<false>(tomo::ThreadMode::Split, overlap, reorder, std::string(argv[1]) == "on");
+    // The idle/parking sweep is shared by the fused scheduler, so trimming the
+    // split owner loop must not silently send this path through FIFO.
+    T::run<true>(tomo::ThreadMode::Fused, 0, 1, std::string(argv[1]) == "on", true);
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
         for (uint32_t overlap : {0u, 1u})
             for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<true>(mode, overlap, reorder);
     for (uint32_t overlap : {0u, 1u})
         for (uint32_t reorder : {0u, 1u}) T::shadow_pipes<false>(tomo::ThreadMode::Split, overlap, reorder);
-    T::run<true>(tomo::ThreadMode::Split, 0, -1, std::string(argv[1]) == "on");
-    T::run<false>(tomo::ThreadMode::Split, 0, -1, std::string(argv[1]) == "on");
-    T::automatic_inbox();
     T::shadow_foreign_passes();
     T::shadow_demotions(tomo::ThreadMode::Fused);
     T::shadow_demotions(tomo::ThreadMode::Split);
-    for (int32_t requested : {0, 1, -1}) T::database_dispatch(requested);
+    for (int32_t requested : {0, 1}) T::database_dispatch(requested);
     return 0;
 }

@@ -15,18 +15,13 @@ void split(int32_t requested, uint32_t overlap, const std::string& leak) {
     T::Fixture<ReadLocal> f(ThreadMode::Split, overlap, requested);
     auto& server = f.server;
     T::require(server.cfg().reorder == 0, "split init retained the raw request");
-    // The ordinary existing signal beat must not observe the R7 policy.
+    // The ordinary existing signal beat must not enter any R7 path.
     for (uint32_t i = 0; i < kGenthreadExBatchOps; ++i)
         T::require(server.thread(f.owner).sample_depth(1000 + 100 * i), "split signal beat missing");
     // Directed counterfactuals: execute the real forbidden mechanism, not the hook.
     if (leak == "parse") {
         Client client(-1);
         r7::ShadowDispatch dispatch(client);
-    } else if (leak == "policy") {
-        ModeScheduleStats stats;
-        r7::PolicyScope scope(stats);
-    } else if (leak == "sample") {
-        (void)r7::InboxProbe::sample(server.thread(f.owner));
     } else if (leak == "allocation") {
         // Allocate and free it before inspection: a null final pointer is insufficient.
         auto* p = new ModeScheduleStats[server.nthreads()];
@@ -39,8 +34,7 @@ void split(int32_t requested, uint32_t overlap, const std::string& leak) {
     const auto* stats = server.mode_schedule_stats();
     T::require((stats != nullptr) == (overlap != 0), "split schedule allocation depends on reorder");
     if (stats) for (uint32_t i = 0; i < server.nthreads(); ++i) {
-        T::require(!stats[i].reorder_policy && !stats[i].reorder_auto.load() &&
-                       !stats[i].reorder_batches.load() && !stats[i].reorder_multi_client_runs.load() &&
+        T::require(!stats[i].reorder_batches.load() && !stats[i].reorder_multi_client_runs.load() &&
                        !stats[i].reorder_permuted_runs.load() && !stats[i].reorder_max_batch.load(),
                    "split retained reorder state inside overlap storage");
     }

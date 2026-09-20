@@ -8,6 +8,7 @@ and every off-path occurrence, register, branch, immediate and layout operand.
 """
 import argparse
 import bisect
+from collections import Counter
 import json
 from pathlib import Path
 import re
@@ -86,11 +87,19 @@ if __name__ == '__main__':
     post = audit.Binary(args.post, out, literal_pools=True)
     excluded = {'pre': off_roles(pre), 'post': off_roles(post)}
     rows = audit.compare(pre, post, out)
-    assert len(rows) == 169, f'expected the 169 off-path bodies, found {len(rows)}'
+    # The boot-selected db0 runtime duplicates this inventory. The current
+    # reference has 168 bodies per variant; the old single-runtime audit had 169.
+    expected = {'tomo': 168, 'tomo_db0': 168} if any(
+        'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
+    counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
+    assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
+    def inventory(binary):
+        return {name: len(bodies) for name, bodies in binary.groups.items() if audit.category(name)}
+    assert inventory(pre) == inventory(post), 'off-path symbols/clone counts changed'
     passed = all(row['equal'] for row in rows)
     result = dict(pre=str(pre.path), post=str(post.path), pre_sha256=pre.sha256,
                   post_sha256=post.sha256, literal_pools=True, excluded_armed=excluded,
-                  rows=rows, strict_noop=passed)
+                  expected_bodies=expected, rows=rows, strict_noop=passed)
     (out / 'audit.json').write_text(json.dumps(result, indent=2) + '\n')
     for row in rows:
         if not row['equal']: print('DIFF', row['diff'], row['name'])

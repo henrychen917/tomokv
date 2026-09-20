@@ -534,10 +534,6 @@ public:
     uint32_t newest_nonzero(uint32_t producer, Extract&& extract) const {
         return q_.newest_nonzero(producer, static_cast<Extract&&>(extract));
     }
-    template <typename Visit>
-    uint32_t observe_prefix(uint32_t producer, uint32_t limit, Visit&& visit) const {
-        return q_.observe_prefix(producer, limit, static_cast<Visit&&>(visit));
-    }
     void wake(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
         if (peer_ring && blocked_.load(std::memory_order_acquire)) {
             my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr));

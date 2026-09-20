@@ -2,7 +2,7 @@
 """Check/regenerate the isolated armed IO call graph; never execute a server.
 
 This supersedes tools/reorder_sync.py for this lane: shadow dispatch must cover
-split IO, fused IO, TLS, epoll, buffered reparsing, and split read-local IO.
+fused IO, TLS, epoll, buffered reparsing, and fused read-local demotion.
 The ordinary definitions stay unchanged except for cold role-entry selectors.
 """
 import argparse
@@ -14,11 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import reorder_sync as base
 
-IO = ('run_loop', 'sweep', 'flush_ready', 'run_split', 'admit_fd', 'adopt_client',
-      'arm_tls_recv', 'collect_retire_work', 'drive_tls', 'epoll_accept', 'epoll_pass',
+IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
+      'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
       'ifid_parse_hash', 'ifid_rx', 'on_accept', 'on_cqe', 'on_recv', 'on_tls_recv',
-      'on_tls_socket_poll', 'parse_and_dispatch', 'pipeline_pass', 'pipeline_sweep',
-      'wb_observe', 'fused_demote_local_read_batch')
+      'on_tls_socket_poll', 'parse_and_dispatch', 'fused_demote_local_read_batch')
 
 
 def function(source, name, member=True):
@@ -63,8 +62,7 @@ def envelopes():
     for owner, source, methods in (('ExLoopT<Fused>', ex, base.EX), ('IoLoop', io, IO)):
         names = {name: 'r7_' + name for name in methods}
         if owner.startswith('Ex'):
-            names.update(drain_tasks='r7_drain_tasks', drain_tasks_with_filler='r7_drain_tasks_with_filler',
-                         exec_batch='r7_exec_batch')
+            names.update(drain_tasks='r7_drain_tasks', drain_tasks_with_filler='r7_drain_tasks_with_filler')
         else:
             names.update({name: 'r7_' + name for name in base.EX if name.startswith('fused_')})
         decls = []
@@ -75,8 +73,7 @@ def envelopes():
             if method == 'run_loop':
                 opening = body.index('{') + 1
                 body = body[:opening] + '''
-    r7::PolicyScope reorder_scope(srv_->mode_schedule_stats(self_->id()));
-    // Bind once at armed IO role entry, covering both fused and split readers.
+    // Bind once at armed fused IO role entry.
     if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())
         fused_executor_->bind_read_local_demotion(this,
             [](void* p, Client* client, const uint64_t* probed,
@@ -85,9 +82,6 @@ def envelopes():
                     client, probed, fallbacks, count, demoted);
             });
 ''' + body[opening:]
-                needle = 'if (self_->sample_depth(busy.start_ns() / 1000)) {'
-                assert body.count(needle) == 1
-                body = body.replace(needle, needle + '\n                    if (srv_->cfg().reorder == Config::kReorderAuto)\n                        reorder_scope.policy.tick(*self_, srv_->mode_schedule_stats(self_->id()));')
             if method == 'fused_demote_local_read_batch':
                 opening = body.index('{') + 1
                 body = body[:opening] + '''
@@ -120,17 +114,9 @@ def envelopes():
         declarations[owner] = '\n'.join(decls)
     bodies.append(base.rename(function(boot, 'IoLoop::run_fused', False),
                              {'run_fused': 'run_fused_reordered', 'run_loop': 'r7_run_loop'}))
-    rl2s = (ROOT / 'src/core/rl2s.cc').read_text()
-    split = function(rl2s, 'IoLoop::run_split_read_local_baseline', False)
-    bodies.append(base.rename(split, {'run_split_read_local_baseline': 'run_split_read_local_reordered',
-                                      'run_loop': 'r7_run_loop'}))
-    bodies.append('template void ExLoopT<false>::r7_run();\ntemplate void ExLoopT<true>::r7_run();')
     bodies.append('namespace {\n' + function(boot, 'pin_fused_thread', False) + '\n}')
     bodies.append('static ' + base.rename(function(boot, 'run_fused_server', False),
                     {'run_fused_server': 'run_fused_server_reordered', 'run_fused': 'run_fused_reordered'}))
-    bodies.append('void IoLoop::run_split_reordered() {\n'
-                  '    if (srv_->cfg().overlap_enabled()) r7_run_split<1>();\n'
-                  '    else r7_run_split<0>();\n}\n')
     return '\n\n'.join(bodies) + '\n', declarations
 
 
