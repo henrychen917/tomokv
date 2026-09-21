@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mainline-only real boots: parked SWAPDB, load, BLPOP, and bounded shutdown.
+"""Real boots: parked SWAPDB, load, BLPOP, disconnects, and bounded shutdown.
 
 Importing launches no server; serverless units live in mdbqsbr_live_test.py.
 Normal invocation owns each child PID and always reaps it, including deliberately
@@ -18,6 +18,7 @@ import resource
 import signal
 import socket
 import subprocess
+import sys
 import threading
 import time
 
@@ -159,6 +160,29 @@ def cleanup(proc):
     proc.wait(timeout=SHUTDOWN)  # owned PID only; never pkill/killall/port killing
 
 
+def disconnects(admin, args, directory):
+    # The original proof kept every connection open until SIGTERM. It could not
+    # expose reciprocal client-lifetime waits inside the ordinary IO close pass.
+    # Run the gate's own barriered p32 writers, including their round-by-round
+    # disconnects, before testing shutdown. The serverless lifetime row forces
+    # the exact reciprocal-epoch window independently of network scheduling.
+    command = [sys.executable, str(ROOT / 'tests/multidb_serial.py'),
+               '127.0.0.1', str(args.port), '--output', str(directory / 'serial.json')]
+    (directory / 'serial-command.json').write_text(json.dumps(command) + '\n')
+    with (directory / 'serial.log').open('wb') as log:
+        try:
+            result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT,
+                                    timeout=WORKERS * SHUTDOWN)
+        except subprocess.TimeoutExpired as error:
+            raise AssertionError('disconnect serial battery timed out before shutdown') from error
+    require(result.returncode == 0, f'disconnect serial battery failed; see {directory / "serial.log"}')
+    deadline = time.monotonic() + SHUTDOWN
+    while int(info(admin, 'clients')['connected_clients']) != 1:
+        require(time.monotonic() < deadline, 'disconnected clients never passed their lifetime fence')
+        time.sleep(TICK / 4)
+    require(admin.cmd('PING') == b'PONG', 'post-disconnect PING')
+
+
 def run_case(binary, args, case, arm, attempt):
     directory = args.output / f'{case}-{arm}-{attempt}'
     directory.mkdir(parents=True)
@@ -195,7 +219,11 @@ def run_case(binary, args, case, arm, attempt):
                         for row in markers), 'binary/test cadence mismatch')
             result['participants'] = {row[1]: f't{row[0]}' for row in markers}
         booting = False
-        if case == 'load':
+        if case == 'disconnect':
+            require(arm == 'production', 'disconnect proof uses the production wait cadence')
+            disconnects(admin, args, directory)
+            result['disconnects_drained'] = True
+        elif case == 'load':
             load = Conn('127.0.0.1', args.port, timeout=GRACE)
             conns.append(load)
             require(load.cmd('SELECT', 2) == b'OK', 'load namespace')
@@ -283,6 +311,8 @@ def run_case(binary, args, case, arm, attempt):
             result['failure_phase'] = 'boot'
             result['error'] = str(failure)
             raise failure from error
+        result['failure_phase'] = case
+        result['error'] = str(error)
         raise
     finally:
         halt.set()
@@ -314,14 +344,16 @@ def main():
     parser.add_argument('--cores', type=cpus, required=True)
     parser.add_argument('--port', type=int, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--case', choices=['all', 'idle', 'load', 'blpop', 'disconnect'], default='all')
     args = parser.parse_args()
     args.output = args.output.resolve()
     arms = [('production', args.binary.resolve()), ('parked', args.parked_binary.resolve()),
             ('no-wake', args.no_wake_binary.resolve())]
     for _, binary in arms:
         require(binary.is_file(), f'missing real-boot arm: {binary}')
-    for case in ['idle', 'load', 'blpop']:
-        for arm, binary in arms:
+    cases = ['idle', 'load', 'blpop', 'disconnect'] if args.case == 'all' else [args.case]
+    for case in cases:
+        for arm, binary in (arms[:1] if case == 'disconnect' else arms):
             for attempt in range(WORKERS):
                 try:
                     run_case(binary, args, case, arm, attempt)
