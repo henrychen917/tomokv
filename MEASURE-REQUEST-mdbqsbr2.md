@@ -403,3 +403,220 @@ the serverless result is not a live PASS claim. No push was made.
  tests/mdbqsbr_live_test.py  | 149 ++++++++++++++++++++++++++++++++++++++++++++
  3 files changed, 266 insertions(+), 7 deletions(-)
 ```
+
+## mdbqsbr4 — reproduced reciprocal client-close epoch deadlock (2026-09-22)
+
+Launch: `d034ac11f`, branch/worktree `cx-mdbqsbr`. Reproduced BEFORE changing
+production code. All builds/tests stayed on CPUs 112–127; servers used exactly
+112–119, and the original battery processes used 120–127. Builds used
+`taskset -c 112-127 make -j16`. No full gate, benchmark, or push was run.
+The evidence root below is `build/mdbqsbr4-evidence` in this worktree.
+
+### Reproduction commands and artifacts
+
+The PRE binaries were preserved from the failing tree before rebuilding:
+`pre/tomokv`, `pre/tomokv-asan`, `pre/tomokv-rlcachedbg`. The latter two came
+from the gate's own `build/gate-cache` binaries. `sha256.txt` identifies every
+PRE/POST binary, including the serverless negative. Each boot used a fresh
+persistence directory; exact server/client argv, PID, output, and exit status
+are retained in `command.json`, `*-command.json`, `pid`, logs, and `result.json`.
+
+These are the original commands, translated only to this lane's CPUs, private
+ports and fresh directories. `MDB4=build/mdbqsbr4-evidence`; start/stop the owned
+server around each block, not between batteries within a block:
+
+```sh
+# jobs/multidb-1s-0-1: 8 fused workers, no --ratio, 16 shards and databases.
+taskset -c 112-119 "$MDB4/pre/tomokv" --port 17964 --bind 127.0.0.1 \
+  --shards 16 --dir "$MDB4/pre-multidb/data" --thread-mode fused \
+  --atomic 1 --read-local 0 --databases 16 --enable-debug-command yes \
+  --appendonly yes --appendfsync no --save ''
+taskset -c 120-127 python3 tests/multidb.py 127.0.0.1 17964 --read-local 0 --persistence
+taskset -c 120-127 python3 tests/multidb_serial.py 127.0.0.1 17964 \
+  --output "$MDB4/pre-multidb/serial.json"
+
+# jobs/asan_batteries: exactly the same boot and battery order; default databases=1.
+taskset -c 112-119 "$MDB4/pre/tomokv-asan" --port 17964 --bind 127.0.0.1 \
+  --shards 16 --dir "$MDB4/pre-asan/data" --ratio 6:2 --atomic 1 --enable-debug-command yes
+taskset -c 120-127 python3 tests/torture.py 127.0.0.1 17964
+taskset -c 120-127 python3 tests/ryow.py 127.0.0.1 17964
+taskset -c 120-127 python3 tests/atomic_torn.py 127.0.0.1 17964
+taskset -c 120-127 python3 tests/atomic_ryow.py 127.0.0.1 17964 --no-rate-assertions
+
+# jobs/rlcache explicitly overrides the launcher's 16 shards with 64; databases=1.
+taskset -c 112-119 "$MDB4/pre/tomokv-rlcachedbg" --port 17966 --bind 127.0.0.1 \
+  --shards 16 --dir "$MDB4/pre-rlcache/data" --thread-mode fused --shards 64 \
+  --atomic 1 --read-local 1 --enable-debug-command yes
+taskset -c 120-127 python3 tests/rlcache_churn.py 127.0.0.1 17966 25 48
+```
+
+Also reproduced rlcache with the requested **16 shards**, omitting the later
+`--shards 64`: `pre-rlcache16/` and `post-rlcache16/`. Thus the finding does not
+depend on that gate-specific override. The local PID-owning reproduction drivers
+are `reproduce.py`, `post-reproduce.py`, and `rlcache16.py` in the evidence root.
+They bound subprocess waits, disable core dumps, and kill/reap only their own
+children. The server pre-exec hook permits the diagnostic sibling GDB under
+this machine's `ptrace_scope=1`; it does not alter server behavior.
+
+### All-thread stacks; waiter and missing waker
+
+GDB ran on CPUs 120–127 with `-q -nx -batch -ex 'thread apply all bt 24' -p PID`.
+`epochs.gdb` additionally records every stalled IO's physical id, all client
+work epochs, its active set, and its captured client fences. Full stacks include
+the supervisor and every worker, not just the currently selected thread:
+
+| Reproduction | Stack/state files under evidence root | Observed waiter → missing progress |
+|---|---|---|
+| serial-order | `pre-multidb/multidb_serial-stacks.txt`, `pre-multidb/final-stacks.txt` | t5 / LWP 452442 is in `client_executor_quiesced`, loading t0's epoch; t0 / LWP 452437 is itself repeating `close_client` inside `flush_ready` |
+| ASAN RYOW/torn | `pre-asan/ryow-stacks.txt`, `atomic_torn-stacks.txt`, `atomic_ryow-stacks.txt`, `epoch-cycle.txt`, `final-stacks.txt` | t2 / LWP 453818 holds 35081 and waits for t3's 24051; t3 / LWP 453819 holds 24051 and has captured t2's 35081 |
+| armed rlcache | `pre-rlcache/rlcache_churn-stacks.txt`, `epoch-cycle.txt`, `final-stacks.txt` | t2 / LWP 458334 holds 749315 and waits for t5's 1025469; t5 / LWP 458337 has captured t2's 749315; all eight workers are in the close walk |
+| 16-shard rlcache | `pre-rlcache16/rlcache_churn-stacks.txt`, `final-stacks.txt` | the same active-set close/epoch wait, without the 64-shard override |
+
+The repeating stack is:
+
+```text
+IoLoop::run_loop                     owns DatabaseWorkScope / outer odd client epoch
+  IoLoop::flush_ready                revisits the reinserted closing client
+    IoLoop::close_client             removes it, then marks it active again
+      IoLoop::client_executor_quiesced  waits for the captured foreign epoch to change
+```
+
+The missing waker is the foreign worker's **ClientWorkScope destructor release
+store at its pass boundary**. It cannot execute while that worker spins inside
+its own close walk. An eventfd wake cannot advance either stack. In the serial
+reproduction every map participant had already acknowledged request 786; the
+shutdown diagnostic shows stage=0 and ack=786 for all eight. ASAN/rlcache need
+no SWAPDB at all. The map grace acknowledgement and namespace doorbells were
+not the wait causing this cycle.
+
+### Root cause and fix
+
+The QSBR conversion extended `ClientWorkScope` over the entire IO pass. The
+existing close path erases a releasable client from `active_`, calls
+`close_client`, and leaves the cursor unchanged. `close_client` can then discover
+an unfinished foreign client epoch and reinsert the same client. This repeats
+inside the same pass. Two closing IOs can capture each other's outer epochs and
+both prevent the release store the other needs. Before whole-pass IO scopes,
+ordinary split IO did not create those mutual lifetime participants.
+
+The fix checks `client_executor_quiesced` alongside the existing asynchronous
+pub/sub fence **before erasing from the active walk**. A pending fence keeps the
+client in place and advances the cursor; a later pass retries after the worker
+has really ended its scope. The existing checks in `close_client` remain.
+No lifetime fence is waived, no reader retries, and no epoch is synthesized.
+This is a close-loop progress correction, not a QSBR design change.
+
+Production changes are one close predicate in `src/core/io_loop.h` and its
+generated counterpart in `src/core/reorder.cc`. `tests/r7shadow_sync.py` now also
+preserves the pre-existing reordered-loop test-hook identity when regenerating.
+There is no new per-operation work, reader counter, lock, knob, or layout field.
+The map reader remains one acquire pointer load; the DB0 scope still disassembles
+to `endbr64; ret`. `post-read.asm` and `post-db0-scope.asm` retain the disassembly.
+Compiling `tests/mdbqsbr_probe.cc` in both variants passed all eight required
+layout locks and the 120-byte DatabaseMap lock. This is a correctness fix;
+no performance/PAD arm or performance claim is proposed.
+
+### Regression and negative controls
+
+The existing `core concurrency lifetime` selection now forces two IO scopes
+with reciprocal captured epochs in the gate's eight-worker/16-shard fixture.
+It asserts the window is armed, runs the actual close pass, verifies both
+clients remain protected, releases one scope at a time, and verifies eventual
+reclamation even while newer scopes are active. It covers split, fused and
+reordered fused. The fused tail uses an in-memory empty CQ; no kernel ring,
+listener or worker loop is started by this test.
+
+The new test was first compiled against the unmodified PRE implementation and
+saved as `pre/core-concurrency-unit`. This command fails at its internal
+five-second watchdog with exit 1 and the following diagnostic; the outer timeout
+is only a second containment boundary:
+
+```sh
+taskset -c 112-119 timeout --kill-after=1 10 \
+  build/mdbqsbr4-evidence/pre/core-concurrency-unit close-cycle
+# ARMED close-cycle mode=2s reorder=0: reciprocal IO epoch waits
+# FAIL core concurrency: close pass did not return while peer epoch was held
+```
+
+`pre-close-cycle.log` records the failure. POST `build/core-concurrency-unit
+lifetime` passes all three armed schedules under ASAN/UBSAN with leak detection;
+see `post-lifetime.log`. A hang, early free, unarmed window or incomplete reclaim
+fails the row; there is no skip/tolerance fallback.
+
+The old live proof deliberately kept admin/load/BLPOP connections open until
+SIGTERM, then closed them after server death. It tested namespace wakes and
+shutdown without driving simultaneous ordinary client teardown. Its serverless
+loop-coverage hook likewise returned before transport/close work. Both blind
+spots are now covered: the lifetime selection drives the actual close walk, and
+`tests/mdbqsbr_live.py` adds a production `disconnect` case running the gate's
+unchanged barriered serial-order battery before shutdown. It requires all child
+connections to drain back to the single admin, then PING, three bounded swaps,
+and clean shutdown. The serial subprocess has a 21.6-second outer deadline;
+its timeout or nonzero exit always fails, never counts as a no-wake success.
+
+The extended live proof rejects the preserved PRE server too
+(`pre-live-disconnect/`): serial traffic stalls and the server's existing
+namespace watchdog aborts. All eight POST mode/read-local/atomic combinations
+pass (`post-live-disconnect/`), including client drain and zero-exit shutdown.
+The original parked/no-wake arms are unchanged and remain for mainline's rerun.
+Ten serverless live-harness checks pass, including deadline, child failure and
+undrained-client controls. The existing QSBR runner passes all 20 checks,
+including its fault/deadline controls (`post-map-units.log`).
+
+### Gate-shaped outcomes and remaining mainline work
+
+| Same battery/boot sequence | PRE | POST |
+|---|---|---|
+| multidb then serial, 1s / rl0 / atomic1 / DB16 / AOF | multidb passes; serial hangs, BrokenBarrierError after 30.16 s | both pass, clean shutdown |
+| ASAN torture | passes in this reproduction | passes |
+| ASAN RYOW, after torture | hangs; socket timeout after 31.06 s | passes |
+| ASAN atomic torn/window, same boot | times out on the already-stalled server | passes |
+| ASAN atomic RYOW, same boot | times out on the already-stalled server | passes |
+| rlcache, actual gate override: 64 shards / 48 workers / 25 s | churn finishes, post-run PING hangs | all five checks pass; 33 shard moves, local hits and cached blocks witnessed |
+| rlcache, requested 16 shards / 48 workers / 25 s | same close-cycle hang; bounded failure | all five checks pass; 6 shard moves, local hits and cached blocks witnessed; clean shutdown |
+| server termination after original reproductions | all three abort after the existing shutdown bound | all three exit 0 and emit final shutdown reports |
+
+These are correctness observations, not rate comparisons. In particular,
+torture itself did not hang in the PRE replay: RYOW subsequently opened the
+cycle, and the following batteries inherited that stalled server, as they do
+in the gate. POST ASAN logs contain no sanitizer error, and the read-local
+logs contain no sink/cache/ring ownership violation.
+
+The reported `ABBA comparison + saturation negative controls` failure has a
+separate, verified test-harness cause: `LedgerWiring.test_multidb_rows_fail_independently`
+did not stub `unit_ready`, the live proof or `CORES`, so its successful first row
+was always FAIL. Reproduced its four failures serverlessly, then updated the
+stub and added live-proof failure/skip and missing-build cases. All 14 matrix
+cases pass. No measurement or full ABBA suite was run.
+
+No gate row was added or retired, and `tests/gate.sh` was not edited.
+The lifetime collection is line 2690, ABBA self-test line 2790, and the existing
+multidb collection line 2796; all precede the quick exit at line 2819.
+Expected counts remain **quick 438 / full 454**.
+
+Builds: release and ASAN/UBSAN units via the root Makefile; instrumented server
+variants via `build/mdbqsbr4-evidence/gate-build.mk`, using exactly the gate's
+ASAN/read-local-debug flags and source list. Every build is pinned to 112–127
+with `make -j16`. Final `make -q all build/core-concurrency-unit build/mdbqsbr-unit`
+passes. The final release rebuild is byte-identical to the POST binary exercised
+above (SHA-256 `22ba8f64d697a3d178a2944df9b8d5dceb6e9f3b60bc35e01d7087a73925d573`).
+
+Mainline still owns the original full live-proof matrix, differential batteries
+and full iteration gate. The differential matrix was not independently rerun,
+and this report does not claim that all 19 original failing rows are now green.
+Run the usual gate; its existing rows automatically include both new regressions.
+No push was performed.
+
+`git diff d034ac11f --stat` (including this report):
+
+```text
+ MEASURE-REQUEST-mdbqsbr2.md    | 217 +++++++++++++++++++++++++++++++++++++++++
+ src/core/io_loop.h             |   9 +-
+ src/core/reorder.cc            |   9 +-
+ tests/core_concurrency_unit.cc |  98 ++++++++++++++++++-
+ tests/gates_test.py            |  20 ++--
+ tests/mdbqsbr_live.py          |  40 +++++++-
+ tests/mdbqsbr_live_test.py     |  30 ++++++
+ tests/r7shadow_sync.py         |   2 +
+ 8 files changed, 405 insertions(+), 20 deletions(-)
+```
