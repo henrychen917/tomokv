@@ -4,6 +4,7 @@ import argparse
 import threading
 import time
 from _lib import Conn, RespError, encode, topology
+from sortstore import check_namespace as check_sortstore_namespace
 
 
 def expect(got, wanted, label):
@@ -52,6 +53,7 @@ def main():
         expect(admin.cmd("SWAPDB", "bad", 0), RespError("ERR invalid first DB index"), "SWAP first index")
         expect(admin.cmd("SWAPDB", 0, "bad"), RespError("ERR invalid second DB index"), "SWAP second index")
         expect(admin.cmd("FLUSHALL"), b"OK", "clean dataset")
+        check_sortstore_namespace(admin)
         c = connection()
         one = connection(1)
         expect(one.cmd("SET", "md:ryow", "other-db"), b"OK", "db1 sentinel")

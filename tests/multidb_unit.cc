@@ -642,10 +642,15 @@ static void owners() {
 }
 void multidb_db0_unit();
 void mdbstamp_checks(const char* selection);
+#include "sortstore_checks.inc"
 int main(int argc, char** argv) {
     require(command_registry_init(true), "registry initialization including TLS shadows");
     if (argc == 2 && std::strcmp(argv[1], "--db0-only") == 0) {
         multidb_db0_unit();
+        return 0;
+    }
+    if (argc == 3 && std::strcmp(argv[1], "--sortstore-check") == 0) {
+        sortstore_checks(argv[2]);
         return 0;
     }
     if (argc == 3 && std::strcmp(argv[1], "--stamp-check") == 0) {
@@ -656,6 +661,7 @@ int main(int argc, char** argv) {
         owners();
         return 0;
     }
+    sortstore_checks("all");
     mdbstamp_checks("all");
     multidb_db0_unit();
     require(command_registry_init(false), "registry initialization");
