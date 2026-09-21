@@ -5102,10 +5102,11 @@ ordinary_shard_ready:
             if (idx >= active_.size() || active_.at(idx) != c) continue;
             if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
             else if (c->closing() && !tls_output && c->safe_to_release()) {
-                // Pub/sub teardown is asynchronous. Keep the client in place while home IOs
-                // acknowledge removal; erase+reinsert would turn one closing subscriber into a
-                // same-pass spin.
-                if (!pubsub_disconnect_ready(c)) { idx++; }
+                // Both teardown fences need other workers to finish their current passes.
+                // Defer in place: close_client's erase+reinsert retry would revisit this client
+                // forever while this pass holds its own DatabaseWorkScope/ClientWorkScope,
+                // so two closing IOs could each prevent the other's captured epoch from ending.
+                if (!pubsub_disconnect_ready(c) || !client_executor_quiesced(c)) { idx++; }
                 else { c->set_in_active(false); active_.erase_at(idx); close_client(c); }
             } else idx++;
         }
