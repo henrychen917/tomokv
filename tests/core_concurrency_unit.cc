@@ -282,9 +282,16 @@ struct CoreConcurrencyTest {
         peer.srv_ = &f.server;
         const uint32_t other = Fused ? 0 : 1;
         peer.self_ = &f.server.thread(other);
+        unsigned empty_cq = 0;
         if constexpr (Fused) {
             f.io.fused_executor_ = &f.loops[f.io_id];
             peer.fused_executor_ = &f.loops[other];
+            // The fused tail samples its CQ even with no work. Model an empty CQ
+            // in memory; do not initialize a kernel ring or manufacture a completion.
+            for (uint32_t tid : {f.io_id, other}) {
+                auto& cq = f.loops[tid].ring_.raw()->cq;
+                cq.khead = cq.ktail = &empty_cq;
+            }
         }
         // Two IO passes own live map/client epochs while both connections close.
         // No listener, ring, clock-based arming or fake acknowledgement is needed.

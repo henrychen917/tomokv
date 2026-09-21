@@ -2,6 +2,7 @@
 """Serverless argv and boot-diagnostic controls; no child or socket is opened."""
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -143,6 +144,35 @@ class LiveHarnessTests(unittest.TestCase):
         self.assertIn('(empty log)', message)
         self.assert_boot_receipt('no-wake', message)
         self.conn.assert_not_called()
+
+    def test_disconnect_timeout_is_a_failure_before_shutdown(self):
+        with patch.object(live.subprocess, 'run', side_effect=subprocess.TimeoutExpired('serial', 1)), \
+                self.assertRaisesRegex(AssertionError, 'disconnect serial battery timed out before shutdown'):
+            live.disconnects(Mock(), arguments(), self.output)
+
+    def test_disconnect_failure_is_not_a_wake_control_success(self):
+        with patch.object(live.subprocess, 'run', return_value=SimpleNamespace(returncode=1)), \
+                self.assertRaisesRegex(AssertionError, 'disconnect serial battery failed'):
+            live.disconnects(Mock(), arguments(), self.output)
+
+    def test_disconnect_success_requires_actual_client_drain(self):
+        admin = Mock()
+        admin.cmd.return_value = b'PONG'
+        with patch.object(live.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as run, \
+                patch.object(live, 'info', side_effect=[{'connected_clients': '2'},
+                                                      {'connected_clients': '1'}]) as info, \
+                patch.object(live.time, 'sleep'):
+            live.disconnects(admin, arguments(), self.output)
+        self.assertEqual(info.call_count, 2)
+        admin.cmd.assert_called_once_with('PING')
+        self.assertEqual(run.call_args.kwargs['timeout'], live.WORKERS * live.SHUTDOWN)
+
+    def test_undrained_clients_fail_instead_of_skipping(self):
+        with patch.object(live.subprocess, 'run', return_value=SimpleNamespace(returncode=0)), \
+                patch.object(live, 'info', return_value={'connected_clients': '2'}), \
+                patch.object(live.time, 'monotonic', side_effect=[0, live.SHUTDOWN]), \
+                self.assertRaisesRegex(AssertionError, 'disconnected clients never passed their lifetime fence'):
+            live.disconnects(Mock(), arguments(), self.output)
 
 
 if __name__ == '__main__':
