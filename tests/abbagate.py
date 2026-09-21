@@ -2138,6 +2138,32 @@ def self_test():
     from _abba_test_fixtures import quiet_record, saturation_record
     (ROOT / "build").mkdir(exist_ok=True)
 
+    def wait_pidfile(path, deadline):
+        # Creation is not publication: an old/non-atomic writer may still expose an
+        # empty or incomplete value. Keep the caller's deadline across all retries.
+        while True:
+            try:
+                return int(path.read_text())
+            except (FileNotFoundError, ValueError) as error:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise AssertionError(f"timed out waiting for complete PID in {path}") from error
+                time.sleep(min(.01, remaining))
+
+    def wait_stopped(pid, deadline):
+        status = Path(f"/proc/{pid}/stat")
+        while True:
+            try:
+                state = status.read_text().rsplit(")", 1)[1].split()[0]
+            except (FileNotFoundError, ProcessLookupError):
+                return  # Reaping can win at any read, not just the final assertion.
+            if state in {"Z", "X", "x"}:
+                return
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AssertionError(f"PID {pid} did not stop: state={state}")
+            time.sleep(min(.01, remaining))
+
     class ABBA(unittest.TestCase):
         def setUp(self):
             # read_local=0, matching the real h01 and keeping threshold tests independent of the
@@ -4135,43 +4161,102 @@ def self_test():
                 with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
                     directory = Path(tmp)
                     pidfile = directory / "compiler.pid"
-                    script = ("import subprocess,sys,time; from pathlib import Path; "
+                    script = ("import os,subprocess,sys,time; from pathlib import Path; "
                               "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
-                              f"Path({str(pidfile)!r}).write_text(str(p.pid)); time.sleep(60)")
+                              f"pidfile=Path({str(pidfile)!r}); temporary=pidfile.with_suffix('.tmp'); "
+                              "temporary.write_text(str(p.pid)); os.replace(temporary,pidfile); time.sleep(60)")
                     build = children.start([sys.executable, "-c", script], directory / "make.log", directory)
-                    deadline = time.monotonic() + 5
-                    while not pidfile.exists() and time.monotonic() < deadline:
-                        time.sleep(.01)
-                    self.assertTrue(pidfile.exists())
-                    compiler_pid = int(pidfile.read_text())
+                    compiler_pid = wait_pidfile(pidfile, time.monotonic() + 5)
                     stop_build(build)
                     self.assertIsNotNone(build.poll())
                     self.assertIsNone(outsider.poll())
                     # A killed grandchild may remain a zombie until PID 1 reaps it; it cannot do
                     # CPU work. Check that state without ever discovering a process by its argv.
-                    status = Path(f"/proc/{compiler_pid}/stat")
                     # The child must STOP; whether it is caught as a zombie (Z) or already fully
                     # reaped (X, or the status file gone) is a race this test does not control.
                     # Under the gate's 12 parallel slots the reap wins often enough that asserting
                     # Z alone is flaky -- it failed there on 2026-09-12 while passing standalone.
-                    stopped = {"Z", "X"}
-                    deadline = time.monotonic() + 5
-                    while status.exists() and time.monotonic() < deadline:
-                        if status.read_text().rsplit(")", 1)[1].split()[0] in stopped:
-                            break
-                        time.sleep(.01)
-                    try:
-                        state = status.read_text().rsplit(")", 1)[1].split()[0]
-                    except (FileNotFoundError, ProcessLookupError):
-                        state = None      # fully reaped between the check and the read
-                    if state is not None:
-                        self.assertIn(state, stopped)
+                    wait_stopped(compiler_pid, time.monotonic() + 5)
             finally:
                 if build and build.poll() is None:
                     stop_build(build)
                 children.close()
                 outsider.terminate()
                 outsider.wait(timeout=10)
+
+        def test_pidfile_empty_window_rejects_read_once_but_waits_for_publication(self):
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as tmp:
+                pidfile = Path(tmp) / "compiler.pid"
+                # Hold the empty file until BOTH readers have sampled it. The pipe
+                # handshake prevents scheduler delays from silently disarming this
+                # counterexample; the child then widens the window by 75 ms.
+                script = ("import os,sys,time; from pathlib import Path; "
+                          "pidfile=Path(sys.argv[1]); pidfile.touch(); "
+                          "assert sys.stdin.buffer.read(1)==b'P'; time.sleep(.075); "
+                          "temporary=pidfile.with_suffix('.tmp'); "
+                          "temporary.write_text(str(os.getpid())); os.replace(temporary,pidfile)")
+                child = subprocess.Popen([sys.executable, "-c", script, str(pidfile)],
+                                         stdin=subprocess.PIPE, start_new_session=True)
+                try:
+                    deadline = time.monotonic() + 5
+                    while True:
+                        try:
+                            self.assertEqual(pidfile.read_text(), "")
+                            break
+                        except FileNotFoundError:
+                            remaining = deadline - time.monotonic()
+                            self.assertGreater(remaining, 0, "child never opened the empty PID window")
+                            time.sleep(min(.01, remaining))
+                    # This IS the pre-fix read-once behaviour, on the same child.
+                    with self.assertRaises(ValueError):
+                        int(pidfile.read_text())
+                    read_text = Path.read_text
+                    released = False
+
+                    def read_and_release(path, *args, **kwargs):
+                        nonlocal released
+                        value = read_text(path, *args, **kwargs)
+                        if path == pidfile and not released:
+                            self.assertEqual(value, "", "fixed reader missed the empty window")
+                            released = True
+                            child.stdin.write(b"P")
+                            child.stdin.flush()
+                        return value
+
+                    with mock.patch.object(Path, "read_text", read_and_release):
+                        self.assertEqual(wait_pidfile(pidfile, deadline), child.pid)
+                    self.assertTrue(released)
+                    self.assertEqual(child.wait(timeout=max(.001, deadline - time.monotonic())), 0)
+                finally:
+                    child.stdin.close()
+                    if child.poll() is None:
+                        child.kill()
+                    child.wait(timeout=5)
+
+        def test_pidfile_wait_requires_a_complete_integer_before_deadline(self):
+            path = mock.Mock()
+            path.read_text.side_effect = [FileNotFoundError(), "", "partial", "123\n"]
+            with mock.patch.object(time, "sleep"):
+                self.assertEqual(wait_pidfile(path, time.monotonic() + 5), 123)
+            for unreadable in (FileNotFoundError(), "", "partial"):
+                with self.subTest(value=unreadable):
+                    path.read_text.side_effect = (unreadable if isinstance(unreadable, Exception)
+                                                 else None)
+                    path.read_text.return_value = unreadable
+                    with mock.patch.object(time, "monotonic", return_value=5), \
+                         self.assertRaisesRegex(AssertionError, "complete PID"):
+                        wait_pidfile(path, 5)
+
+        def test_stopped_child_can_be_reaped_at_any_read(self):
+            for gone in (FileNotFoundError, ProcessLookupError):
+                with self.subTest(error=gone.__name__), \
+                     mock.patch.object(Path, "read_text", side_effect=["123 (child) R", gone()]), \
+                     mock.patch.object(time, "sleep"):
+                    wait_stopped(123, time.monotonic() + 5)
+            with mock.patch.object(Path, "read_text", return_value="123 (child) R"), \
+                 mock.patch.object(time, "monotonic", return_value=5), \
+                 self.assertRaisesRegex(AssertionError, "did not stop"):
+                wait_stopped(123, 5)
 
     return 0 if unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(ABBA)).wasSuccessful() else 1
 

@@ -326,7 +326,15 @@ CommandMetadataKeysResult command_metadata_collect_keys(
         if (ascii_equal_icase(name, "sort")) {
             uint32_t destination = 0;
             for (uint32_t index = command_argument + 2; index + 1 < op.argc(); index++) {
-                if (ascii_equal_icase(op.arg(index), Slice("STORE", 5)))
+                // Redis 7.4 sortGetKeys skips option operands: a BY/GET pattern may
+                // itself be STORE. LIMIT consumes two operands, even for GETKEYS
+                // inputs that the execution parser would reject as non-integers.
+                if (ascii_equal_icase(op.arg(index), Slice("LIMIT", 5)))
+                    index += 2;
+                else if (ascii_equal_icase(op.arg(index), Slice("BY", 2)) ||
+                         ascii_equal_icase(op.arg(index), Slice("GET", 3)))
+                    index++;
+                else if (ascii_equal_icase(op.arg(index), Slice("STORE", 5)))
                     destination = index + 1;
             }
             if (destination) keys.push_back({destination, ow_update});
