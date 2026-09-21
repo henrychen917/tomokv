@@ -328,3 +328,78 @@ Repair-only reference: launch `0dfac1b7c`. Cumulative lane reference:
  tools/mdbqsbr_artifacts.py   | 166 ++++++++++++++
  23 files changed, 2561 insertions(+), 80 deletions(-)
 ```
+
+## mdbqsbr3
+
+Launch reference: `1acfe491a` on `cx-mdbqsbr`. Harness fix commit: `70dbcac00`.
+No server source, Makefile, gate row or expected row count changed.
+
+Mainline's 2026-09-21 08:50 live run passed all four `2s` combinations of
+read-local/atomic, including idle, load, BLPOP, all three arms and bounded
+shutdown. All four `1s` combinations failed at boot before exercising those
+checks: the harness always supplied `--ratio 6:2`, and the server rejected it
+with `--ratio is unavailable with --thread-mode 1s: every thread handles
+networking and execution`. These were harness boot failures, not SWAPDB results.
+
+This section corrects the earlier claim that `--ratio 6:2` applies "in every
+mode". `build_command()` now omits that pair only for `1s`; the entire `2s`
+argv is unchanged. The audit of `src/core/config.h` found two fused-specific
+validation rejections: a configured ratio and enabled `--flip-auto`. The latter
+is absent from this harness and defaults to `0`. All remaining flags are valid
+in both modes. This matches `tests/gate.sh`'s `boot_fused`, which omits the ratio
+and selects the `fused` alias of `1s`.
+
+Fixed argv per mode, for every production/parked/no-wake binary (`BIN`), port
+(`PORT`), and read-local/atomic cell (`RL`, `AT` each 0 or 1). `CORES` is the
+mainline's eight-core allocation, `0-7` in the reported run:
+
+```sh
+taskset -c "$CORES" "$BIN" --bind 127.0.0.1 --port "$PORT" --thread-mode 1s \
+  --shards 16 --databases 16 --read-local "$RL" --atomic "$AT" \
+  --enable-debug-command yes --save '' --protected-mode no
+
+taskset -c "$CORES" "$BIN" --bind 127.0.0.1 --port "$PORT" --thread-mode 2s \
+  --shards 16 --ratio 6:2 --databases 16 --read-local "$RL" --atomic "$AT" \
+  --enable-debug-command yes --save '' --protected-mode no
+```
+
+The existing live checks still require eight fused workers in `1s`, or six IO
+and two EX workers in `2s`, plus sixteen shards and sixteen databases. Each
+launch still records its exact argv in `command.json`.
+
+Launch/readiness/boot-verification exceptions now raise `BootFailure` containing
+the original error, child PID/exit status when available, and the last 25 lines
+of the combined stdout/stderr `server.log`. An empty/unreadable log is identified
+explicitly. `result.json` records `failure_phase: boot` and the same diagnostic;
+these errors cannot become the no-wake arm's expected SWAPDB timeout. Child
+cleanup and the existing arming/SWAPDB/shutdown checks remain in place.
+
+Serverless verification, all executed with `taskset -c 112-127`:
+
+| Check | Result |
+|---|---|
+| `python3 tests/mdbqsbr_live_test.py -v` | 6/6 tests pass: all eight argv cells, exact split preservation, launch/argv receipt binding, negative control, and mocked boot exit/deadline/launch errors with log diagnostics and child cleanup |
+| Frozen pre-fix argv negative control | All four fused argv cells fail the **same** `assertNotIn('--ratio', ...)` assertion; accepting any old argv would fail the unit |
+| Actual launch-baseline cross-check | Evaluated only the original argv expression from `git show 1acfe491a:tests/mdbqsbr_live.py`; it exactly matches the frozen control in all eight cells, fails the fused assertion in all four, and matches the fixed split argv in all four |
+| `make -j16 all mdbqsbr-live-arms` | Exit 0; production, parked and no-wake builds all current, with no recompilation required |
+| `git diff --check` | PASS |
+
+No server, gate, benchmark or load generator was run. The diagnostic units mock
+both process creation and connections; even an unexpected call fails locally.
+Receipts and the reproducible historical-expression check are retained under
+`build/mdbqsbr3-evidence/`: `unit.log`, `historical_control.py`,
+`historical-control.log`, and `build.log`.
+
+Mainline reruns all eight mode/read-local/atomic combinations with fresh output
+directories (72 case/arm runs: idle/load/BLPOP x production/parked/no-wake x 8),
+then the full gate. Live validation of the repaired `1s` argv remains pending;
+the serverless result is not a live PASS claim. No push was made.
+
+`git diff 1acfe491a --stat`:
+
+```text
+ MEASURE-REQUEST-mdbqsbr2.md |  75 ++++++++++++++++++++++
+ tests/mdbqsbr_live.py       |  49 ++++++++++++---
+ tests/mdbqsbr_live_test.py  | 149 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 266 insertions(+), 7 deletions(-)
+```
