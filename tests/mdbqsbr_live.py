@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Mainline-only real boots: parked SWAPDB, load, BLPOP, and bounded shutdown.
 
-No importing or --self-test path launches a server. Normal invocation owns each
-child PID and always reaps it, including deliberately broken no-wake children.
+Importing launches no server; serverless units live in mdbqsbr_live_test.py.
+Normal invocation owns each child PID and always reaps it, including deliberately
+broken no-wake children.
 The long-park positive/negative twins change only the idle timeout in both arms;
 the negative additionally removes the database eventfd writes. This makes a
 missing wake observable independently of the existing 50 ms fallback tick.
 """
 import argparse
+from collections import deque
 import json
 import os
 from pathlib import Path
@@ -31,6 +33,10 @@ SHUTDOWN = 3 * GRACE
 
 class Unarmed(AssertionError):
     pass
+
+
+class BootFailure(AssertionError):
+    """A failed launch/readiness check, never a SWAPDB negative witness."""
 
 
 def require(value, message):
@@ -85,12 +91,21 @@ def no_core_dump():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
 
-def boot(binary, args, directory, log):
+def build_command(binary, args):
+    """Match gate boot_fused: role ratios apply only to split mode."""
     command = ['taskset', '-c', args.cores, str(binary), '--bind', '127.0.0.1',
                '--port', str(args.port), '--thread-mode', args.mode,
-               '--shards', '16', '--ratio', '6:2', '--databases', '16',
-               '--read-local', str(args.read_local), '--atomic', str(args.atomic),
-               '--enable-debug-command', 'yes', '--save', '', '--protected-mode', 'no']
+               '--shards', '16']
+    if args.mode == '2s':
+        command += ['--ratio', '6:2']
+    command += ['--databases', '16', '--read-local', str(args.read_local),
+                '--atomic', str(args.atomic), '--enable-debug-command', 'yes',
+                '--save', '', '--protected-mode', 'no']
+    return command
+
+
+def boot(binary, args, directory, log):
+    command = build_command(binary, args)
     env = dict(os.environ)
     env.pop('TOMOKV_L3_DOMAINS', None)  # discover the explicitly pinned eight cores
     (directory / 'command.json').write_text(json.dumps(command) + '\n')
@@ -99,10 +114,21 @@ def boot(binary, args, directory, log):
     return proc
 
 
+def boot_failure(proc, log_path, error):
+    try:
+        with log_path.open(errors='replace') as log:
+            tail = ''.join(deque(log, maxlen=25)).rstrip() or '(empty log)'
+    except OSError as exc:
+        tail = f'(cannot read log: {exc})'
+    state = 'not started' if proc is None else f'pid={proc.pid}, exit={proc.poll()}'
+    return BootFailure(f'server boot failed ({state}): {error}\n'
+                       f'last 25 lines of {log_path} (stdout/stderr):\n{tail}')
+
+
 def connect_ready(proc, port):
     deadline = time.monotonic() + WORKERS * SHUTDOWN
     while time.monotonic() < deadline:
-        require(proc.poll() is None, 'server failed during boot; see server.log')
+        require(proc.poll() is None, 'server exited before readiness')
         conn = None
         try:
             conn = Conn('127.0.0.1', port, timeout=GRACE)
@@ -141,6 +167,7 @@ def run_case(binary, args, case, arm, attempt):
     loaded = threading.Event()
     counts = [0]
     proc = None
+    booting = True
     result = dict(case=case, arm=arm, mode=args.mode, read_local=args.read_local,
                   atomic=args.atomic, grace_seconds=GRACE, shutdown_seconds=SHUTDOWN)
     try:
@@ -167,6 +194,7 @@ def run_case(binary, args, case, arm, attempt):
             require(all(int(row[2]) == round(TICK * 1000) and int(row[3]) == round(GRACE * 1000)
                         for row in markers), 'binary/test cadence mismatch')
             result['participants'] = {row[1]: f't{row[0]}' for row in markers}
+        booting = False
         if case == 'load':
             load = Conn('127.0.0.1', args.port, timeout=GRACE)
             conns.append(load)
@@ -249,6 +277,13 @@ def run_case(binary, args, case, arm, attempt):
         require('fatal: database' not in output, 'database deadline aborted this supposedly clean run')
         print(f'PASS mdbqsbr live {case} {arm}: {json.dumps(result, sort_keys=True)}', flush=True)
         return result
+    except Exception as error:
+        if booting:
+            failure = boot_failure(proc, directory / 'server.log', error)
+            result['failure_phase'] = 'boot'
+            result['error'] = str(failure)
+            raise failure from error
+        raise
     finally:
         halt.set()
         if proc is not None:
