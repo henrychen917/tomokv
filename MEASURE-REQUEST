@@ -1,6 +1,18 @@
-aoffix supersedes this checkout's inherited measurement requests.
-Read MEASURE-REQUEST-aoffix.md for the confirmed S3/P15 diagnoses, failing and
-passing S3 evidence, PRE/S3-only/POST/kind-A PAD artifacts, and measurement cells.
-Builds and unit/self tests ran only on CPUs 112-127. No benchmark, hardware
-counter measurement, or gate ran. P15 instr/op and the 454-row iteration gate
-remain pending mainline; append results as MEASURE-RESULT in this worktree.
+mdbqsbr: MAINLINE ONLY — no measurements run in this lane.
+Full proof, logs, arm hashes and calibration gaps: MEASURE-REQUEST-mdbqsbr.md.
+Arms: build/tomokv-mdbqsbr-pre (landed mdbstamp), build/tomokv-mdbqsbr-post,
+build/tomokv-mdbqsbr-pad (kind A, aggregate text/member layout matched),
+reference /home/user/Projects/bench-bins/tomokv-headline-b8fe404e2.
+DB1/DB16 exec wrappers and both executable hashes: build/mdbqsbr-arms/manifest.json.
+ABBA cells: h05-h08,h13-h16,h21-h24,h29-h32,h37-h40,h45-h48,h53-h56,h61-h64.
+Keep all 512 connections, p1/p32, overlap=1, both reorder choices, both modes/RL choices.
+Use the recorded 32-server-core / 80-load-core placement and calibrated floors;
+uncalibrated or absent floor entries require mainline calibration before scoring.
+Regimes: DB16 no swaps; paired DB1 null; DB16 fixed periodic/repeated swaps,
+at both low reader concurrency and normal saturation. Also schedule a wider-core repeat.
+Record actual swaps/backlog, identical-arm controls, cycles/op, instr/op, IPC,
+rate and scored latency for every cell/arm. >2% identical-arm spread invalidates.
+Pass: benefit cycles/op falls; every POST rate >= PRE and reference, cycles/op
+never increases, scored latency never worsens; no averaging deficits, DB1 is parity.
+Append results as MEASURE-RESULT. Live geometry: shards=16 ratio=6:2 eight physical
+cores databases=16; 1s/2s x read-local=0/1 x atomic=0/1; record overlap/reorder.

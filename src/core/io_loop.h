@@ -89,6 +89,7 @@ public:
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
         lb_controller_armed_ = srv_->lb_controller_enabled();
         if (!ring_.init(4096)) return false;
+        if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         if (epoll_ && !init_epoll()) return false;
         wb_.bind(&ring_, this, [](void* ctx, int32_t shard, const char* ptr) {
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
@@ -365,6 +366,9 @@ public:
         // listeners are added by activate() and removed by close() in deactivate().
         if (ring_.wake_fd() < 0) return false;
         if (!ep_.add(ring_.wake_fd(), EPOLLIN, ur_tag(UrKind::Wake, nullptr))) return false;
+        const int database_fd = srv_->databases().wake_fd(self_->id());
+        if (database_fd >= 0 &&
+            !ep_.add(database_fd, EPOLLIN, ur_tag(UrKind::DatabaseWake, nullptr))) return false;
         return ring_.shutdown_fd() < 0 ||
                ep_.add(ring_.shutdown_fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr));
     }
@@ -518,6 +522,13 @@ private:
         if constexpr (IoPipe) pipe.depth.reset(sig.ops);
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            Server::DatabaseWorkScope database_work(*srv_, self_->id());
+#ifdef TOMO_MDBQSBR_TEST
+            if (DatabaseMapTestHooks::loop_pass) {
+                DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);
+                continue;
+            }
+#endif
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -958,6 +969,10 @@ private:
                     self_->sig().wakes_recv++;
                     work++;
                     break;
+                case UrKind::DatabaseWake:
+                    srv_->databases().consume_wake(self_->id(), ring_);
+                    work++;
+                    break;
                 case UrKind::Shutdown:
                     // Sticky and shared: never drain it, or this loop could steal the terminal
                     // edge from another ring/epoll set. The signal handler published stop first.
@@ -1053,6 +1068,8 @@ private:
                     on_plain_send_cqe<kEp, ImmediateSendProgress,
                                       Fused && Pipeline == 1>(cqe); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::DatabaseWake:
+                    srv_->databases().consume_wake(self_->id(), ring_); break;
                 case UrKind::Shutdown: break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
@@ -1100,6 +1117,8 @@ private:
                     on_tls_socket_poll<kEp, Fused, Pipeline>(
                         ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantWrite); break;
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
+                case UrKind::DatabaseWake:
+                    srv_->databases().consume_wake(self_->id(), ring_); break;
                 case UrKind::Shutdown: break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
@@ -1896,7 +1915,6 @@ private:
                 (client->rob().dispatch_id() > id &&
                  client->rob().at(id).state.load(std::memory_order_acquire) == OpState::Done))) {
                 srv_->database_boundary_end(*client, id);
-                flip_wake_all();
                 return 1;
             }
         }
@@ -1915,8 +1933,10 @@ private:
             }
             if (!srv_->flip_acked(self_->id(), stage) && drained)
                 srv_->flip_ack(self_->id(), stage);
-            if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage))
-                flip_publish_stage(FlipStage::DatabaseExDrain);
+            if (coordinator && srv_->flip_all_role_acked(Role::Ifid, stage)) {
+                srv_->flip_set_stage(FlipStage::DatabaseExDrain);
+                map.wake_workers();
+            }
         } else if (stage == FlipStage::DatabaseExDrain) {
             if (fused_executor_ && fused_executor_->flip_quiesced())
                 srv_->flip_ack(self_->id(), stage);
@@ -1924,7 +1944,10 @@ private:
                 bool drained = true;
                 for (uint32_t tid = 0; tid < srv_->nthreads(); ++tid)
                     if (srv_->live_executor(tid) && !srv_->flip_acked(tid, stage)) drained = false;
-                if (drained) flip_publish_stage(FlipStage::DatabaseRun);
+                if (drained) {
+                    srv_->flip_set_stage(FlipStage::DatabaseRun);
+                    map.wake_workers();
+                }
             }
         }
         // Keep the control transaction progressing even if all network peers sleep.
@@ -5079,10 +5102,11 @@ ordinary_shard_ready:
             if (idx >= active_.size() || active_.at(idx) != c) continue;
             if (done && !c->closing()) { c->set_in_active(false); active_.erase_at(idx); }
             else if (c->closing() && !tls_output && c->safe_to_release()) {
-                // Pub/sub teardown is asynchronous. Keep the client in place while home IOs
-                // acknowledge removal; erase+reinsert would turn one closing subscriber into a
-                // same-pass spin.
-                if (!pubsub_disconnect_ready(c)) { idx++; }
+                // Both teardown fences need other workers to finish their current passes.
+                // Defer in place: close_client's erase+reinsert retry would revisit this client
+                // forever while this pass holds its own DatabaseWorkScope/ClientWorkScope,
+                // so two closing IOs could each prevent the other's captured epoch from ending.
+                if (!pubsub_disconnect_ready(c) || !client_executor_quiesced(c)) { idx++; }
                 else { c->set_in_active(false); active_.erase_at(idx); close_client(c); }
             } else idx++;
         }

@@ -71,6 +71,8 @@ def envelopes():
             opening = body.index('{') + 1
             body = body[:opening] + '\n    TOMO_R7_PATH();' + body[opening:]
             if method == 'run_loop':
+                body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',
+                                    'DatabaseMapTestHooks::loop_pass(*srv_, *self_, 1);')
                 opening = body.index('{') + 1
                 body = body[:opening] + '''
     // Bind once at armed fused IO role entry.

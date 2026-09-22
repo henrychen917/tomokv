@@ -436,8 +436,9 @@ say(){ :; }
         body = gate[gate.index('job_multidb(){'):gate.index('\nunit_ready(){')]
         stub = r'''
 set -u
-CANDIDATE_BINARY=/unused; PORT=19000; SRVLOG=/unused
+CANDIDATE_BINARY=/unused; PORT=19000; SRVLOG=/unused; CORES=112-119
 row_begin(){ :; }
+unit_ready(){ return "$UNIT_RC"; }
 boot(){ return "$BOOT_RC"; }
 boot_fused(){ boot; }
 stop(){ :; }
@@ -445,6 +446,7 @@ ok(){ printf 'ok\n'; }
 bad(){ printf 'FAIL\n'; }
 py(){
   case "$1" in
+    tests/mdbqsbr_live.py) return "$LIVE_RC";;
     tests/multidb.py) return "$MULTIDB_RC";;
     tests/multidb_serial.py) return "$SERIAL_RC";;
     *) return 90;;
@@ -452,16 +454,20 @@ py(){
 }
 '''
         for mode in ('1s', '2s'):
-            for boot, multidb, serial, wanted in (
-                    (0, 0, 0, ['ok', 'ok']), (1, 0, 0, ['FAIL', 'FAIL']),
-                    (0, 1, 0, ['FAIL', 'ok']), (0, 0, 1, ['ok', 'FAIL'])):
-                with self.subTest(mode=mode, boot=boot, multidb=multidb, serial=serial), \
+            for boot, multidb, serial, live, unit, wanted in (
+                    (0, 0, 0, 0, 0, ['ok', 'ok']), (1, 0, 0, 0, 0, ['FAIL', 'FAIL']),
+                    (0, 1, 0, 0, 0, ['FAIL', 'ok']), (0, 0, 1, 0, 0, ['ok', 'FAIL']),
+                    (0, 0, 0, 1, 0, ['FAIL', 'ok']), (0, 0, 0, 3, 0, ['FAIL', 'ok']),
+                    (0, 0, 0, 0, 1, ['FAIL', 'ok'])):
+                with self.subTest(mode=mode, boot=boot, multidb=multidb, serial=serial,
+                                  live=live, unit=unit), \
                      tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
                     env = dict(os.environ, TMPDIR=tmp, BOOT_RC=str(boot),
-                               MULTIDB_RC=str(multidb), SERIAL_RC=str(serial))
+                               MULTIDB_RC=str(multidb), SERIAL_RC=str(serial),
+                               LIVE_RC=str(live), UNIT_RC=str(unit))
                     result = subprocess.run(['bash', '-c', stub + body +
                                              f'\njob_multidb multidb-{mode}-0-0\n'],
-                                            cwd=root, env=env, text=True, capture_output=True)
+                                            cwd=root, env=env, text=True, capture_output=True, timeout=10)
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertEqual(result.stdout.splitlines(), wanted)
 

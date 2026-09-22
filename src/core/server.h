@@ -170,6 +170,36 @@ public:
     uint64_t client_work_epoch(uint32_t tid) const {
         return client_work_[tid].epoch.load(std::memory_order_acquire);
     }
+    // Entire IO/owner passes, including idle callbacks, are map-reader regions.
+    // Keep ClientWorkScope's nesting/Client proof unchanged. DB0 emits no work.
+    class DatabaseWorkScope {
+    public:
+#if TOMO_SINGLE_DATABASE && !defined(TOMO_MDBQSBR_DB0_NEGATIVE)
+        DatabaseWorkScope(Server&, uint32_t) {}
+#else
+#ifdef TOMO_MDBQSBR_TEST
+        DatabaseWorkScope(Server& server, uint32_t tid) {
+            safe_point(server, tid);
+            if (DatabaseMapTestHooks::fault != DatabaseMapTestHooks::OmitIo)
+                work_.emplace(server, tid);
+        }
+#else
+        DatabaseWorkScope(Server& server, uint32_t tid)
+            : work_(safe_point(server, tid), tid) {}
+#endif
+    private:
+        static Server& safe_point(Server& server, uint32_t tid) {
+            if (__builtin_expect(server.databases_.reclamation_pending(), false))
+                server.databases_.quiescent(server, tid);
+            return server;
+        }
+#ifdef TOMO_MDBQSBR_TEST
+        std::optional<ClientWorkScope> work_;
+#else
+        ClientWorkScope work_;
+#endif
+#endif
+    };
     static constexpr uint64_t kAtomicEnabledBit = uint64_t{1} << 63;
 
     Server() = default;
@@ -314,6 +344,12 @@ public:
         // re-derived at each role change (ThreadCtx::remask_quiesced), while the client, release
         // and transfer channels stay uniform per-thread arrays.
         const uint32_t nthreads = placement_.total_threads();
+        if constexpr (!kSingleDatabase) {
+            if (!databases_.bind_workers(nthreads, this)) {
+                std::fprintf(stderr, "fatal: could not allocate database grace participants\n");
+                return false;
+            }
+        }
         if (!flipctl_.init(cfg.thread_mode == ThreadMode::Split && cfg.flip_auto != 0,
                            nthreads)) {
             std::fprintf(stderr, "fatal: could not allocate flip controller state\n");
@@ -3296,7 +3332,8 @@ private:
             std::perror("getrlimit(RLIMIT_NOFILE)");
             return false;
         }
-        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2;
+        const uint64_t reserve = 32 + placement_.ifid_threads().size() * 2 +
+            (kSingleDatabase ? 0 : placement_.total_threads()); // database doorbells
         const uint64_t wanted = static_cast<uint64_t>(cfg_.maxclients) + reserve;
         if (limit.rlim_cur < wanted) {
             rlimit raised = limit;

@@ -384,6 +384,7 @@ int main(int argc, char** argv) {
     // unrelated poked the peer.
     for (uint32_t tid : srv.placement().ex_threads())
         pool.emplace_back([&, tid] {
+            DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
@@ -451,6 +452,7 @@ int main(int argc, char** argv) {
                     self.publish_ready_role(Role::Idle);
                     if (!self.stop_flag().load(std::memory_order_relaxed)) ios[tid].deactivate();
                 } else {
+                    srv.databases().quiescent(srv, tid);
                     std::this_thread::yield();
                 }
             }
@@ -466,7 +468,7 @@ int main(int argc, char** argv) {
     }
     if (!load_ok) {
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-        for (auto& thread : pool) thread.join();
+        srv.databases().join_workers(srv, pool);
         if (srv.shutting_down().load(std::memory_order_relaxed)) {
             srv.set_loading(false);
             report_graceful_shutdown();
@@ -479,8 +481,7 @@ int main(int argc, char** argv) {
     if (srv.shutting_down().load(std::memory_order_relaxed)) {
         for (uint32_t i = 0; i < nthreads; i++)
             srv.thread(i).stop_flag().store(true, std::memory_order_relaxed);
-        for (auto& thread : pool)
-            if (thread.joinable()) thread.join();
+        srv.databases().join_workers(srv, pool);
         report_graceful_shutdown();
         return 0;
     }
@@ -492,7 +493,7 @@ int main(int argc, char** argv) {
         if (probe < 0) {
             std::perror("bind");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-            for (auto& thread : pool) thread.join();
+            srv.databases().join_workers(srv, pool);
             return 1;
         }
         ::close(probe);
@@ -503,7 +504,7 @@ int main(int argc, char** argv) {
         if (probe < 0) {
             std::perror("bind tls-port");
             for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-            for (auto& thread : pool) thread.join();
+            srv.databases().join_workers(srv, pool);
             return 1;
         }
         ::close(probe);
@@ -512,13 +513,14 @@ int main(int argc, char** argv) {
     if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
         std::fprintf(stderr, "%s\n", unix_error.c_str());
         for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-        for (auto& thread : pool) thread.join();
+        srv.databases().join_workers(srv, pool);
         return 1;
     }
 
     const uint32_t unix_owner = srv.unix_owner_tid();
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
+            DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
@@ -587,6 +589,7 @@ int main(int argc, char** argv) {
                     exs[tid].run();
                     self.publish_ready_role(Role::Idle);
                 } else {
+                    srv.databases().quiescent(srv, tid);
                     std::this_thread::yield();
                 }
             }
@@ -602,13 +605,14 @@ int main(int argc, char** argv) {
     // the default --flip-auto 0 this block does not run and allocates/schedules nothing.
     if (srv.flipctl_enabled()) {
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {
+            srv.databases().monitor(srv);
             (void)srv.flipctl_tick(now_ns() / 1000000ull);
             if (srv.shutting_down().load(std::memory_order_relaxed)) break;
             (void)signal_doorbell_wait(srv.flipctl_wait_ms());
         }
     }
 
-    for (auto& t : pool) t.join();
+    srv.databases().join_workers(srv, pool);
     report_graceful_shutdown();
     return io_boot_failed.load(std::memory_order_relaxed) ? 1 : 0;
 }

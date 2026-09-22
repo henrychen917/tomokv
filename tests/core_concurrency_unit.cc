@@ -3,6 +3,7 @@
 // the gate's 16 shards / 6 IO + 2 EX geometry; LB also models up to 64 fused owners.
 #include <atomic>
 #include <chrono>
+#include <csignal>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
@@ -10,6 +11,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <thread>
@@ -265,6 +267,99 @@ struct CoreConcurrencyTest {
         f.io.reap_dead();
         f.io.reap_dead();
         require(f.io.dead_ready_.empty(), "corpse reclaimed after channel grace");
+    }
+
+    static void close_cycle_timeout(int) {
+        constexpr char message[] = "FAIL core concurrency: close pass did not return while peer epoch was held\n";
+        const auto written = ::write(STDERR_FILENO, message, sizeof(message) - 1);
+        (void)written;
+        std::_Exit(1);
+    }
+    template <bool Fused, bool Reorder = false>
+    static void close_cycle() {
+        Fixture<Fused> f(false);
+        IoLoop peer;
+        peer.srv_ = &f.server;
+        const uint32_t other = Fused ? 0 : 1;
+        peer.self_ = &f.server.thread(other);
+        unsigned empty_cq = 0;
+        if constexpr (Fused) {
+            f.io.fused_executor_ = &f.loops[f.io_id];
+            peer.fused_executor_ = &f.loops[other];
+            // The fused tail samples its CQ even with no work. Model an empty CQ
+            // in memory; do not initialize a kernel ring or manufacture a completion.
+            for (uint32_t tid : {f.io_id, other}) {
+                auto& cq = f.loops[tid].ring_.raw()->cq;
+                cq.khead = cq.ktail = &empty_cq;
+            }
+        }
+        // Two IO passes own live map/client epochs while both connections close.
+        // No listener, ring, clock-based arming or fake acknowledgement is needed.
+        Client* clients[2];
+        IoLoop* ios[] = {&f.io, &peer};
+        for (unsigned i = 0; i < 2; ++i) {
+            Client* c = clients[i] = new Client(-1);
+            c->set_id(i + 1);
+            c->set_ifid_thread(ios[i]->self_->id());
+            c->set_wb_slot(ios[i]->self_->assign_wb_slot(c));
+            c->mark_closing();
+            f.server.client_accepted();
+            ios[i]->mark_active(c);
+        }
+        std::optional<Server::DatabaseWorkScope> first(std::in_place, f.server, f.io_id);
+        std::optional<Server::DatabaseWorkScope> second(std::in_place, f.server, other);
+        require((f.server.client_work_epoch(f.io_id) & 1) &&
+                    (f.server.client_work_epoch(other) & 1), "both outer IO epochs armed");
+        for (unsigned i = 0; i < 2; ++i) {
+            require(clients[i]->safe_to_release() &&
+                        !ios[i]->client_executor_quiesced(clients[i]),
+                    "closing ROB is empty but peer epoch must still end");
+            const uint32_t missing = ios[1 - i]->self_->id();
+            require(ios[i]->client_work_fences_.at(clients[i]).epochs[missing] ==
+                        f.server.client_work_epoch(missing), "reciprocal close wait captured");
+        }
+        std::printf("ARMED close-cycle mode=%s reorder=%u: reciprocal IO epoch waits\n",
+                    Fused ? "1s" : "2s", Reorder);
+        std::fflush(stdout);
+        struct sigaction action{}, previous{};
+        action.sa_handler = close_cycle_timeout;
+        sigemptyset(&action.sa_mask);
+        require(sigaction(SIGALRM, &action, &previous) == 0, "install close-pass watchdog");
+        alarm(5); // PRE spins inside flush_ready; timeout is a loud FAIL, never success/skip.
+        auto pass = [](IoLoop& io) {
+            if constexpr (Reorder) io.r7_flush_ready<false, true, Fused>();
+            else io.flush_ready<false, true, Fused>();
+        };
+        for (unsigned n = 0; n < 2; ++n) {
+            for (auto* io : ios) pass(*io);
+            require(f.server.live_clients() == 2 && !clients[0]->dead() && !clients[1]->dead(),
+                    "bounded pass preserves both clients while peer scopes are live");
+        }
+        first.reset();
+        pass(f.io);
+        require(!clients[0]->dead(), "one ended epoch cannot waive the other peer");
+        pass(peer);
+        require(clients[1]->dead() && f.server.live_clients() == 1,
+                "peer closes only after its captured epoch ends");
+        second.reset();
+        first.emplace(f.server, f.io_id);
+        second.emplace(f.server, other); // newer active epochs must not require global idle
+        pass(f.io);
+        require(clients[0]->dead() && f.server.live_clients() == 0,
+                "next pass closes after captured epochs end, even with newer scopes active");
+        for (auto* io : ios) {
+            io->reap_dead();
+            io->reap_dead();
+            require(io->active_.size() == 0 && io->dead_ready_.empty() && io->dead_next_.empty(),
+                    "both clients reclaimed after the normal corpse grace");
+        }
+        alarm(0);
+        require(sigaction(SIGALRM, &previous, nullptr) == 0, "restore watchdog handler");
+    }
+    static void close_cycles() {
+        close_cycle<false>();
+        close_cycle<true>();
+        close_cycle<true, true>();
     }
 
     inline static ExLoop* ack_loop = nullptr;
@@ -952,7 +1047,8 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
     if (row == "watch") T::watch_disconnect();
-    else if (row == "lifetime") T::lifetime();
+    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); }
+    else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); }
     else if (row == "lbfix") T::lb_signals();

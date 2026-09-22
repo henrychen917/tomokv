@@ -199,6 +199,7 @@ public:
             }
         }
         if (!ring_.init(1024)) return false;
+        if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
         fused_handoff_ring_ = &ring_;
         initialized_ = true;
         if (!dormant) activate();
@@ -702,6 +703,13 @@ public:
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ex) {
+            Server::DatabaseWorkScope database_work(*srv_, self_->id());
+#ifdef TOMO_MDBQSBR_TEST
+            if (DatabaseMapTestHooks::loop_pass) {
+                DatabaseMapTestHooks::loop_pass(*srv_, *self_, 2);
+                continue;
+            }
+#endif
 #ifdef TOMO_RL_CACHE_DEBUG
             if constexpr (Fused)
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
@@ -815,7 +823,8 @@ public:
                 }
                 Span idle(sig.idle_ns);
                 self_->arm_blocked();
-                ring_.submit_and_wait(1);
+                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+                if (ring_.wake_fd() >= 0) srv_->databases().consume_wake(self_->id(), ring_);
                 self_->clear_blocked();
                 continue;
             }
@@ -830,8 +839,10 @@ public:
 
             Span idle(sig.idle_ns);
             self_->arm_blocked();
-            if (!self_->any_ex_inbound()) ring_.submit_and_wait(1);
-            else                       ring_.submit_and_reap();
+            if (!self_->any_ex_inbound()) {
+                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+                if (ring_.wake_fd() >= 0) srv_->databases().consume_wake(self_->id(), ring_);
+            } else ring_.submit_and_reap();
             self_->clear_blocked();
         }
     }
@@ -3051,6 +3062,8 @@ private:
         if (ur_kind(cqe->user_data) == UrKind::Wake) self_->sig().wakes_recv++;
         else if (ur_kind(cqe->user_data) == UrKind::SnapshotStart)
             begin_snapshot(ur_ptr<SnapshotManager>(cqe->user_data));
+        else if (ur_kind(cqe->user_data) == UrKind::DatabaseWake)
+            srv_->databases().consume_wake(self_->id(), ring_);
         else if (ur_kind(cqe->user_data) == UrKind::Shutdown) return;
     }
 

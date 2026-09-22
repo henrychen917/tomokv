@@ -1,0 +1,368 @@
+#!/usr/bin/env python3
+"""Real boots: parked SWAPDB, load, BLPOP, disconnects, and bounded shutdown.
+
+Importing launches no server; serverless units live in mdbqsbr_live_test.py.
+Normal invocation owns each child PID and always reaps it, including deliberately
+broken no-wake children.
+The long-park positive/negative twins change only the idle timeout in both arms;
+the negative additionally removes the database eventfd writes. This makes a
+missing wake observable independently of the existing 50 ms fallback tick.
+"""
+import argparse
+from collections import deque
+import json
+import os
+from pathlib import Path
+import re
+import resource
+import signal
+import socket
+import subprocess
+import sys
+import threading
+import time
+
+from _lib import Conn, info, lbsignals
+
+ROOT = Path(__file__).resolve().parents[1]
+WORKERS = 8
+TICK = int(re.search(r'kWaitTimeoutMs = (\d+)',
+                    (ROOT / 'src/net/uring.h').read_text()).group(1)) / 1000
+GRACE = 2 * TICK * (WORKERS + 1)
+SHUTDOWN = 3 * GRACE
+
+
+class Unarmed(AssertionError):
+    pass
+
+
+class BootFailure(AssertionError):
+    """A failed launch/readiness check, never a SWAPDB negative witness."""
+
+
+def require(value, message):
+    if not value:
+        raise AssertionError(message)
+
+
+def cpus(value):
+    result = set()
+    for word in value.split(','):
+        if '-' in word:
+            a, b = map(int, word.split('-'))
+            result.update(range(a, b + 1))
+        else:
+            result.add(int(word))
+    require(len(result) == WORKERS, 'live proof requires exactly eight allowed cores')
+    return value
+
+
+def park_snapshot(pid):
+    """Kernel wait witness; never replace this by a guessed sleep interval."""
+    rows = {}
+    for task in (Path('/proc') / str(pid) / 'task').iterdir():
+        if int(task.name) == pid:
+            continue  # the supervisor's condition-variable wait is not a worker
+        try:
+            wait = (task / 'wchan').read_text().strip()
+            if 'io_cqring' in wait or 'io_uring' in wait or 'ep_poll' in wait:
+                rows[task.name] = wait
+        except FileNotFoundError:
+            pass
+    return rows
+
+
+def wait_parked(proc):
+    # >=4 parked workers excludes the admin's own IO and BOTH split executors:
+    # even if the admin wakes, an unrelated participant must need a doorbell.
+    deadline = time.monotonic() + SHUTDOWN
+    prior = {}
+    while time.monotonic() < deadline:
+        require(proc.poll() is None, 'server exited before parked window')
+        current = park_snapshot(proc.pid)
+        stable = {tid: wait for tid, wait in current.items() if tid in prior}
+        if len(stable) >= WORKERS // 2:
+            return stable
+        prior = current
+        time.sleep(TICK / 4)
+    raise Unarmed('fewer than four physical workers witnessed in kernel ring waits')
+
+
+def no_core_dump():
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+
+
+def build_command(binary, args):
+    """Match gate boot_fused: role ratios apply only to split mode."""
+    command = ['taskset', '-c', args.cores, str(binary), '--bind', '127.0.0.1',
+               '--port', str(args.port), '--thread-mode', args.mode,
+               '--shards', '16']
+    if args.mode == '2s':
+        command += ['--ratio', '6:2']
+    command += ['--databases', '16', '--read-local', str(args.read_local),
+                '--atomic', str(args.atomic), '--enable-debug-command', 'yes',
+                '--save', '', '--protected-mode', 'no']
+    return command
+
+
+def boot(binary, args, directory, log):
+    command = build_command(binary, args)
+    env = dict(os.environ)
+    env.pop('TOMOKV_L3_DOMAINS', None)  # discover the explicitly pinned eight cores
+    (directory / 'command.json').write_text(json.dumps(command) + '\n')
+    proc = subprocess.Popen(command, cwd=directory, env=env, stdout=log,
+                            stderr=subprocess.STDOUT, preexec_fn=no_core_dump)
+    return proc
+
+
+def boot_failure(proc, log_path, error):
+    try:
+        with log_path.open(errors='replace') as log:
+            tail = ''.join(deque(log, maxlen=25)).rstrip() or '(empty log)'
+    except OSError as exc:
+        tail = f'(cannot read log: {exc})'
+    state = 'not started' if proc is None else f'pid={proc.pid}, exit={proc.poll()}'
+    return BootFailure(f'server boot failed ({state}): {error}\n'
+                       f'last 25 lines of {log_path} (stdout/stderr):\n{tail}')
+
+
+def connect_ready(proc, port):
+    deadline = time.monotonic() + WORKERS * SHUTDOWN
+    while time.monotonic() < deadline:
+        require(proc.poll() is None, 'server exited before readiness')
+        conn = None
+        try:
+            conn = Conn('127.0.0.1', port, timeout=GRACE)
+            require(conn.cmd('PING') == b'PONG', 'owned server PING failed')
+            return conn
+        except (ConnectionError, OSError, EOFError):
+            if conn:
+                conn.close()
+            time.sleep(TICK)
+    raise AssertionError('boot deadline expired')
+
+
+def stop(proc):
+    require(proc.poll() is None, 'server crashed before shutdown')
+    start = time.monotonic()
+    proc.send_signal(signal.SIGTERM)
+    try:
+        result = proc.wait(timeout=SHUTDOWN)
+    except subprocess.TimeoutExpired as exc:
+        raise AssertionError('clean shutdown deadline expired') from exc
+    require(result == 0, f'unclean shutdown exit={result}')
+    return time.monotonic() - start
+
+
+def cleanup(proc):
+    if proc.poll() is None:
+        proc.kill()
+    proc.wait(timeout=SHUTDOWN)  # owned PID only; never pkill/killall/port killing
+
+
+def disconnects(admin, args, directory):
+    # The original proof kept every connection open until SIGTERM. It could not
+    # expose reciprocal client-lifetime waits inside the ordinary IO close pass.
+    # Run the gate's own barriered p32 writers, including their round-by-round
+    # disconnects, before testing shutdown. The serverless lifetime row forces
+    # the exact reciprocal-epoch window independently of network scheduling.
+    command = [sys.executable, str(ROOT / 'tests/multidb_serial.py'),
+               '127.0.0.1', str(args.port), '--output', str(directory / 'serial.json')]
+    (directory / 'serial-command.json').write_text(json.dumps(command) + '\n')
+    with (directory / 'serial.log').open('wb') as log:
+        try:
+            result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT,
+                                    timeout=WORKERS * SHUTDOWN)
+        except subprocess.TimeoutExpired as error:
+            raise AssertionError('disconnect serial battery timed out before shutdown') from error
+    require(result.returncode == 0, f'disconnect serial battery failed; see {directory / "serial.log"}')
+    deadline = time.monotonic() + SHUTDOWN
+    while int(info(admin, 'clients')['connected_clients']) != 1:
+        require(time.monotonic() < deadline, 'disconnected clients never passed their lifetime fence')
+        time.sleep(TICK / 4)
+    require(admin.cmd('PING') == b'PONG', 'post-disconnect PING')
+
+
+def run_case(binary, args, case, arm, attempt):
+    directory = args.output / f'{case}-{arm}-{attempt}'
+    directory.mkdir(parents=True)
+    conns, load_threads, failures = [], [], []
+    halt = threading.Event()
+    loaded = threading.Event()
+    counts = [0]
+    proc = None
+    booting = True
+    result = dict(case=case, arm=arm, mode=args.mode, read_local=args.read_local,
+                  atomic=args.atomic, grace_seconds=GRACE, shutdown_seconds=SHUTDOWN)
+    try:
+        with (directory / 'server.log').open('wb') as log:
+            proc = boot(binary, args, directory, log)
+        admin = connect_ready(proc, args.port)
+        conns.append(admin)
+        server_info = info(admin, 'server')
+        require(int(server_info['process_id']) == proc.pid, 'connection reached a different server PID')
+        require(server_info['thread_mode'] == args.mode, 'wrong boot mode')
+        topology = lbsignals(admin)
+        require(len(topology.threads) == WORKERS and len(topology.shards) == 16,
+                'boot did not preserve gate geometry')
+        roles = [thread.role for thread in topology.threads]
+        require((roles.count('io') == 6 and roles.count('ex') == 2) if args.mode == '2s'
+                else roles.count('fused') == WORKERS, 'boot did not preserve the requested ratio')
+        require(admin.cmd('CONFIG', 'GET', 'databases') == [b'databases', b'16'],
+                'boot did not enable sixteen databases')
+        if arm != 'production':
+            markers = re.findall(r'mdbqsbr worker=t(\d+) os_tid=(\d+) tick_ms=(\d+) grace_ms=(\d+)',
+                                 (directory / 'server.log').read_text(errors='replace'))
+            require(sorted(int(row[0]) for row in markers) == list(range(WORKERS)),
+                    'the positive/negative twin did not arm its long-park schedule')
+            require(all(int(row[2]) == round(TICK * 1000) and int(row[3]) == round(GRACE * 1000)
+                        for row in markers), 'binary/test cadence mismatch')
+            result['participants'] = {row[1]: f't{row[0]}' for row in markers}
+        booting = False
+        if case == 'disconnect':
+            require(arm == 'production', 'disconnect proof uses the production wait cadence')
+            disconnects(admin, args, directory)
+            result['disconnects_drained'] = True
+        elif case == 'load':
+            load = Conn('127.0.0.1', args.port, timeout=GRACE)
+            conns.append(load)
+            require(load.cmd('SELECT', 2) == b'OK', 'load namespace')
+
+            def write_load():
+                try:
+                    while not halt.is_set():
+                        value = str(counts[0]).encode()
+                        require(load.cmd('SET', 'mdbqsbr:load', value) == b'OK', 'load SET')
+                        require(load.cmd('GET', 'mdbqsbr:load') == value, 'load RYOW')
+                        counts[0] += 1
+                        if counts[0] >= WORKERS:
+                            loaded.set()
+                except BaseException as error:
+                    if not halt.is_set():
+                        failures.append(repr(error))
+                    loaded.set()
+
+            writer = threading.Thread(target=write_load, daemon=True)
+            load_threads.append(writer)
+            writer.start()
+            require(loaded.wait(SHUTDOWN) and counts[0] >= WORKERS and not failures,
+                    f'load window never opened: {failures}')
+        elif case == 'blpop':
+            waiter = Conn('127.0.0.1', args.port, timeout=GRACE)
+            conns.append(waiter)
+            waiter.send('BLPOP', 'mdbqsbr:block', 0)
+            deadline = time.monotonic() + GRACE
+            while int(info(admin, 'clients')['blocked_clients']) != 1:
+                require(time.monotonic() < deadline, 'BLPOP never parked')
+                time.sleep(TICK / 4)
+
+        result['parked'] = wait_parked(proc)
+        require(not failures, f'load stopped before the SWAPDB window: {failures}')
+        baseline = counts[0]
+        replies = []
+        # Three real swaps create two retirements even on a brand-new boot.
+        # Failure classification applies ONLY to these replies, never boot or
+        # arming. Crashes, assertion failures and unrelated timeouts stay red.
+        for index in range(3):
+            if index:
+                result[f'parked_before_{index}'] = wait_parked(proc)
+            begin = time.monotonic()
+            try:
+                reply = admin.cmd('SWAPDB', 0, 1)
+            except socket.timeout:
+                require(arm == 'no-wake' and proc.poll() is None,
+                        'SWAPDB timed out without the intended live negative')
+                result['expected_timeout'] = True
+                result['timeout_at_swap'] = index
+                result['parked_at_timeout'] = park_snapshot(proc.pid)
+                require(set(result['parked']) & set(result['parked_at_timeout']),
+                        'no original parked participant remained at the negative timeout')
+                break
+            require(reply == b'OK' and time.monotonic() - begin <= GRACE,
+                    'SWAPDB missed its reply deadline')
+            replies.append(time.monotonic() - begin)
+        else:
+            require(arm != 'no-wake', 'no-wake control answered: missing wake was not detected')
+            if case == 'load':
+                deadline = time.monotonic() + GRACE
+                while counts[0] <= baseline and not failures:
+                    require(time.monotonic() < deadline, 'load made no progress across SWAPDB')
+                    time.sleep(TICK / 4)
+                require(not failures, f'load failed: {failures}')
+            if case == 'blpop':
+                require(admin.cmd('RPUSH', 'mdbqsbr:block', 'after-swap') == 1, 'BLPOP wake source')
+                require(waiter.read() == [b'mdbqsbr:block', b'after-swap'],
+                        'blocked logical namespace did not follow SWAPDB')
+        result['reply_seconds'] = replies
+        result['load_batches'] = counts[0]
+        halt.set()
+        # Signal stop while the connections are still open, including a BLPOP
+        # and queued commands in the broken arm. No grace ack from a joined
+        # worker may be needed to finish this shutdown.
+        result['shutdown_elapsed_seconds'] = stop(proc)
+        output = (directory / 'server.log').read_text(errors='replace')
+        require('shutdown_report {' in output, 'missing clean final shutdown report')
+        require('fatal: database' not in output, 'database deadline aborted this supposedly clean run')
+        print(f'PASS mdbqsbr live {case} {arm}: {json.dumps(result, sort_keys=True)}', flush=True)
+        return result
+    except Exception as error:
+        if booting:
+            failure = boot_failure(proc, directory / 'server.log', error)
+            result['failure_phase'] = 'boot'
+            result['error'] = str(failure)
+            raise failure from error
+        result['failure_phase'] = case
+        result['error'] = str(error)
+        raise
+    finally:
+        halt.set()
+        if proc is not None:
+            # Even a failed positive/arming window cannot strand a gate server.
+            # Close only after death so no makefile reader races its own thread.
+            cleanup(proc)
+        for writer in load_threads:
+            writer.join(SHUTDOWN)
+            require(not writer.is_alive(), 'load thread did not finish within shutdown bound')
+        for conn in conns:
+            conn.close()
+        (directory / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+
+
+def main():
+    def interrupted(signum, _frame):
+        raise SystemExit(128 + signum)  # unwind run_case's owned-child cleanup
+
+    signal.signal(signal.SIGTERM, interrupted)
+    signal.signal(signal.SIGINT, interrupted)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--binary', type=Path, required=True)
+    parser.add_argument('--parked-binary', type=Path, required=True)
+    parser.add_argument('--no-wake-binary', type=Path, required=True)
+    parser.add_argument('--mode', choices=['1s', '2s'], required=True)
+    parser.add_argument('--read-local', type=int, choices=[0, 1], required=True)
+    parser.add_argument('--atomic', type=int, choices=[0, 1], required=True)
+    parser.add_argument('--cores', type=cpus, required=True)
+    parser.add_argument('--port', type=int, required=True)
+    parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--case', choices=['all', 'idle', 'load', 'blpop', 'disconnect'], default='all')
+    args = parser.parse_args()
+    args.output = args.output.resolve()
+    arms = [('production', args.binary.resolve()), ('parked', args.parked_binary.resolve()),
+            ('no-wake', args.no_wake_binary.resolve())]
+    for _, binary in arms:
+        require(binary.is_file(), f'missing real-boot arm: {binary}')
+    cases = ['idle', 'load', 'blpop', 'disconnect'] if args.case == 'all' else [args.case]
+    for case in cases:
+        for arm, binary in (arms[:1] if case == 'disconnect' else arms):
+            for attempt in range(WORKERS):
+                try:
+                    run_case(binary, args, case, arm, attempt)
+                    break
+                except Unarmed:
+                    if attempt + 1 == WORKERS:
+                        raise
+                    print(f'REARM {case} {arm}: fresh boot {attempt + 1}', flush=True)
+
+
+if __name__ == '__main__':
+    main()

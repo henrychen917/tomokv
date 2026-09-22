@@ -147,6 +147,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
+            DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
             if (cfg.pin_threads) pin_read_local_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
@@ -244,6 +245,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
                     executors[tid].run();
                     self.publish_ready_role(Role::Idle);
                 } else {
+                    srv.databases().quiescent(srv, tid);
                     std::this_thread::yield();
                 }
             }
@@ -254,8 +256,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         for (uint32_t tid = 0; tid < nthreads; tid++)
             srv.thread(tid).stop_flag().store(true, std::memory_order_relaxed);
         boot.stop();
-        for (std::thread& worker : pool)
-            if (worker.joinable()) worker.join();
+        srv.databases().join_workers(srv, pool);
     };
     if (!boot.wait_loaded(srv.shutting_down())) {
         stop_workers();
@@ -320,13 +321,14 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
 
     if (srv.flipctl_enabled()) {
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {
+            srv.databases().monitor(srv);
             (void)srv.flipctl_tick(now_ns() / 1000000ull);
             if (srv.shutting_down().load(std::memory_order_relaxed)) break;
             (void)signal_doorbell_wait(srv.flipctl_wait_ms());
         }
     }
 
-    for (std::thread& worker : pool) worker.join();
+    srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.
     report_graceful_shutdown();
     return 0;
