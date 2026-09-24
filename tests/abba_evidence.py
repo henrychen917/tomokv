@@ -8,7 +8,7 @@ import re
 
 from abba_instrument import validate_fingerprint
 from abba_saturation import (replay_saturation, require_saturation_window, SATURATION_FLOOR,
-                             RUN_SATURATION_MARGIN)
+                             RUN_SATURATION_MARGIN, saturation_exempt)
 
 ORDER = ["A", "B", "B", "A"]
 NULL_MAX_AGE = 24 * 60 * 60
@@ -180,7 +180,7 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
         require(isinstance(assessment, dict), "invalid ABBA assessment")
         require(assessment.get("verdict") == "PASS" and assessment.get("reasons") == [],
                 f"unassessed/failed ABBA cell: {cell['id']}")
-        exempt = cell["depth"] == 1 or cell.get("score") == "p999"
+        exempt = saturation_exempt(cell)
         require(assessment.get("saturation_exempt") is exempt, "invalid saturation exemption")
         # A null-control run MEASURES the loss-vs-threshold discrepancy on identical bytes -- that
         # discrepancy is the instrument's resolution, and enforcing it here would make the null
@@ -212,7 +212,7 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                 saturation = replay_saturation(run.get("saturation"), floor_pct=SATURATION_FLOOR,
                     mode=cell["mode"], thread_count=len(environment["server_cpus"]))
                 central_saturation = require_saturation_window(saturation, run)
-                if cell["depth"] > 1 and block["instances"] == assessment["instances"]:
+                if not exempt and block["instances"] == assessment["instances"]:
                     # Per-RUN, so it reproduces the min() bias the assessment moved away from: a cell
                     # sitting near the floor fails whenever any one of four samples dips under. The
                     # occupancy of the judged block is collected here and checked once, against the
@@ -305,10 +305,94 @@ def instrument(environment):
             if key not in ("port", "permitted_ports", "memtier_path")}
 
 
+def validate_campaign_evidence(report):
+    """Replay the completed frozen campaign, including raw workload witnesses.
+
+    This is stricter than the historical diagnostic report reader. Promotions
+    and their subsequent comparisons require this evidence, including exempt cells.
+    No occupancy or plateau waiver can waive completion or the intended workload.
+    """
+    from abbagate import Cell, assess, NULL_MODE, load_layout
+    from abba_workloads import require_workload_accounting, require_workload_witness
+    require(report.get("complete") is True and report.get("process_cleanup") ==
+            {"complete": True, "remaining": 0} and not report.get("error"),
+            "campaign incomplete or owned processes unreaped")
+    require(report.get("subset") == "full" and not report.get("only") and not report.get("escalate"),
+            "campaign requires full coverage without only/subset/escalation salvage")
+    for row in report["cells"]:
+        cell = Cell(**row["cell"])
+        plan = [cell.instances or 1]
+        require([block["instances"] for block in row["rounds"]] == plan,
+                f"{cell.id}: measured load ladder differs from frozen plan")
+        for block in row["rounds"]:
+            for run in block["runs"]:
+                require(run.get("instances") == block["instances"] and run.get("load_layout") ==
+                        load_layout(report["environment"]["load_cpus"], block["instances"], cell.conns),
+                        f"{cell.id}: generator layout differs from frozen plan")
+                raw = run.get("workload_raw")
+                require(isinstance(raw, dict), f"{cell.id}: missing raw workload witness")
+                witness = require_workload_witness(cell, raw["before"], raw["after"],
+                    raw["mode_before"], raw["mode_after"], raw.get("legacy_control"))
+                require(witness == run.get("workload_witness"), f"{cell.id}: workload witness differs")
+                accounting = require_workload_accounting(cell, run["whole_run_commandstats_before"],
+                    run["whole_run_commandstats_after"], run["memtier"])
+                require(accounting == run.get("whole_run_accounting"), f"{cell.id}: workload accounting differs")
+        # NULL_MODE replays saturation/load validity without applying a code-loss
+        # threshold. Two-sided resolution/integrity is checked independently below.
+        replay = assess(cell, row["rounds"], NULL_MODE)
+        require(replay["measurement_valid"] and replay["verdict"] == "PASS",
+                f"{cell.id}: raw campaign assessment failed: {replay['reasons']}")
+
+
+def validate_null_integrity(report):
+    from abbagate import MAX_SPREAD
+    # Collection records errors even when large. Publication must not turn
+    # contention or a same-binary defect into a larger permissible error band.
+    for row in null_resolution(report):
+        require(max(row["reference_spread_pct"], row["candidate_spread_pct"],
+                    row["absolute_delta_pct"]) <= MAX_SPREAD,
+                f"{row['cell']}/{row['metric']}: null exceeds spread/integrity guard")
+
+
+def validate_holdout(comparison, control, *, now):
+    """Independent two-sided check against ONLY the already frozen null errors.
+
+    This certifies observed rate/latency/tail resolution, never a prediction bound
+    or cycles/op. The diagnostic PMU's wider window/central-command denominator
+    cannot supply aligned cycles/op evidence for this instrument.
+    """
+    from abbagate import resolution_bounds
+    validate_comparison(comparison, control, now=now)
+    validate_campaign_evidence(comparison)
+    validate_null_integrity(control)
+    validate_null_integrity(comparison)
+    require(comparison["candidate"]["sha256"] == comparison["reference"]["sha256"] ==
+            control["candidate"]["sha256"], "holdout requires the frozen byte-identical binary")
+    require(comparison["coverage"] == control["coverage"], "holdout requires the complete frozen population")
+    for row in null_resolution(comparison):
+        bound = resolution_bounds(control, row["cell"])[row["metric"]]
+        require(row["absolute_delta_pct"] <= bound["abs_delta"] and
+                max(row["reference_spread_pct"], row["candidate_spread_pct"]) <= bound["spread"],
+                f"{row['cell']}/{row['metric']}: holdout exceeds frozen two-sided resolution")
+    return {"kind": "independent-null-holdout", "verdict": "PASS",
+            "control_sha256": digest(canonical(control)), "comparison_sha256": digest(canonical(comparison)),
+            "metrics": sorted({row["metric"] for row in null_resolution(control)}),
+            "cycles_op_resolution": "UNPROVEN", "full_gate_receipt": False}
+
+
 def match_null(comparison, control, *, now):
     require(comparison.get("run_kind") == "comparison", "a null collection cannot replace a regression comparison")
     started, environment = validate_measurements(comparison, now=now)
     null_started, null_environment = validate_null(control, now=now)
+    if "promotion" in control:
+        from abbagate import Cell, assess, resolution_bounds
+        validate_campaign_evidence(control)
+        validate_campaign_evidence(comparison)
+        validate_null_integrity(control)
+        for row in comparison["cells"]:
+            require(row["assessment"] == assess(Cell(**row["cell"]), row["rounds"],
+                    resolution_bounds(control, row["cell"]["id"])),
+                    f"{row['cell']['id']}: cached comparison assessment differs from raw replay")
     require(0 <= started - null_started <= NULL_MAX_AGE,
             "standing null is from the future or more than 24 hours old")
     require(null_started + control["elapsed_seconds"] <= started + 1,

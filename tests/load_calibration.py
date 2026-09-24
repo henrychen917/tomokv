@@ -172,6 +172,7 @@ def main(args):
             data_bytes=abba.workload_data_bytes(cells), key_pattern="P:P",
             atomic="per-cell", split_flip_auto=0, population_by_arm={"B": "wire"},
             python_runtime=report["instrument_fingerprint"]["python"], memtier_path=args.memtier,
+            measurements_sha256=abba.sha256(abba.ROOT / "tests/gate_measurements.json"),
             memtier_sha256=abba.sha256(Path(args.memtier)),
             memtier_version=abba.capture([args.memtier, "--version"]).stdout.strip())
         support = {name: abba.accepted(binary, name, value) for name, value in
@@ -183,7 +184,8 @@ def main(args):
             try:
                 plans, _ = abba.knob_plan(cell, {"A": support, "B": support})
                 row["knobs"] = {"B": plans["B"]}
-                ladder = sorted(set(abba.LADDER) | ({cell.instances} if cell.instances else set()))
+                ladder = ([cell.instances or 1] if abba.saturation_exempt(cell) else
+                          sorted(set(abba.LADDER) | ({cell.instances} if cell.instances else set())))
                 row["load_ladder"] = [n for n in ladder if n <= min(args.max_instances, cell.conns, len(load_physical))]
                 with persistent_cell(runner) as session:
                     for sequence, n in enumerate(row["load_ladder"], 1):
@@ -214,9 +216,13 @@ def main(args):
         require(abba.harness_fingerprint(abba.ROOT)["sha256"] == report["receipt_harness_sha256"] and
                 abba.instrument_fingerprint(abba.ROOT) == report["instrument_fingerprint"],
                 "measurement instrument changed during calibration")
+        require(abba.sha256(Path(args.memtier)) == report["environment"]["memtier_sha256"] and
+                abba.sha256(abba.ROOT / "tests/gate_measurements.json") == report["environment"]["measurements_sha256"],
+                "runtime inputs changed during calibration")
         require(report["cells"] and all(row["status"] in ("PIN", "EXEMPT") for row in report["cells"]),
                 "calibration has failed or unconfirmed cells")
-        report.update(verdict="PIN", complete=True)
+        report.update(verdict="EXEMPT" if all(abba.saturation_exempt(row["cell"])
+                      for row in report["cells"]) else "PIN", complete=True)
         publish()
         # PIN is deliberately nonzero, as a null's PARTIAL result is. It cannot
         # accidentally satisfy a shell gate or become a standing ABBA result.

@@ -73,7 +73,7 @@ from gateplan import validate_axes, read_topology, permitted_cpus, default_physi
 from gate_measurements import (load as load_measurements, ratio as measured_ratio,
                                apply_floor, configured_reference, instrument_digest)
 from gate_quiet import QuietMonitor, QuietViolation
-from abba_saturation import (RUN_SATURATION_MARGIN,
+from abba_saturation import (RUN_SATURATION_MARGIN, saturation_exempt,
                              parse_snapshot, productive_saturation, bottleneck_saturation,
                             replay_saturation, require_saturation_window, SATURATION_FLOOR,
                             self_test as saturation_self_test)
@@ -105,18 +105,6 @@ PLATEAU_TOLERANCE_PCT = 1.0
 READ_LOCAL_THRESHOLD_FLOOR_PCT = 5.0
 
 
-def saturation_exempt(cell):
-    """Cells whose verdict is a LATENCY, so an occupancy floor does not protect it.
-
-    The floor exists so a throughput regression cannot hide in server headroom. A tail-latency
-    verdict is not protected by it: p99.9 does not improve because the server is busier. Depth 1
-    was already exempt for this reason; the blocker-mix reorder cells need the same treatment and
-    for a stronger reason -- their workload DELIBERATELY idles the server on long commands, so they
-    sit at or under the floor by construction. Measured 2026-09-12 on identical bytes: t03 ran
-    92.0-96.4% occupancy across six rungs and could never pin, t01 95.4/95.5, t02 96.7/97.4,
-    t04 93.7-97.9. Requiring 95% of them asks the workload not to be what it is.
-    """
-    return cell.depth == 1 or cell.metric == "p999_ms"
 #
 # SATURATION IS ESTABLISHED BY A RATE PLATEAU, NOT BY A BUSY PERCENTAGE ALONE (owner ruling
 # 2026-09-10). Demanding >=98% busy in every run fails a candidate FOR BEING FASTER: a quicker
@@ -183,10 +171,10 @@ class Cell:
             "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}[self.score]
 
 
-def read_cells(path, *, placement=None):
+def read_cells(path, *, placement=None, measurements=None, instrument_sha256=None):
     cells = []
-    measurements = load_measurements()
-    instrument = (instrument_digest() if any(floor["status"] == "calibrated"
+    measurements = load_measurements() if measurements is None else measurements
+    instrument = (instrument_sha256 or instrument_digest() if any(floor["status"] == "calibrated"
                   for floor in measurements["load_floors"].values()) else None)
     for lineno, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip() or line.lstrip().startswith("#"):
@@ -264,7 +252,7 @@ def coverage(cells):
             "data_bytes": sorted({cell.data_bytes for cell in cells}),
             "atomic": sorted({cell.atomic for cell in cells}),
             "scores": sorted({cell.metric for cell in cells}),
-            "pending_pins": [cell.id for cell in cells if cell.depth > 1 and not cell.instances]}
+            "pending_pins": [cell.id for cell in cells if not saturation_exempt(cell) and not cell.instances]}
 
 
 def workload_data_bytes(cells):
@@ -1586,6 +1574,8 @@ class Runner:
                           cpu_pct=100 * (after_cpu - before_cpu) / ((t1 - t0) * len(self.server_cpus)),
                           info_before=before, info_after=after)
             result["central_saturation"] = require_saturation_window(result["saturation"], result)
+            result["workload_raw"] = dict(before=before_commands, after=after_commands,
+                mode_before=before_mode, mode_after=after_mode, legacy_control=legacy_control)
             result["workload_witness"] = require_workload_witness(
                 cell, before_commands, after_commands, before_mode, after_mode, legacy_control)
             totals = result["memtier"] = []
@@ -1922,6 +1912,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "split_flip_auto": 0, "memtier_path": args.memtier,
                                  "memtier_sha256": sha256(Path(args.memtier)),
                                  "memtier_version": capture([args.memtier, "--version"]).stdout.strip(),
+                                 "measurements_sha256": sha256(ROOT / "tests/gate_measurements.json"),
                                  **runner.population_environment()}
         print(f"GEOMETRY server={args.server_cores} ({len(server_physical)} physical cores) "
               f"server-smt={args.server_smt or '(reserved)'} ({len(server_cpus)} threads) "
@@ -2049,6 +2040,13 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         if instrument_fingerprint(ROOT) != report["instrument_fingerprint"]:
             invalidate_instrument("measurement instrument changed during the ABBA tier")
             raise RuntimeError(report["reason"])
+        children.close()
+        report["complete"] = not children.active
+        report["process_cleanup"] = dict(complete=not children.active, remaining=len(children.active))
+        if sha256(ROOT / "tests/gate_measurements.json") != report["environment"]["measurements_sha256"]:
+            raise RuntimeError("runtime measured inputs changed during campaign")
+        if sha256(Path(args.memtier)) != report["environment"]["memtier_sha256"]:
+            raise RuntimeError("generator changed during campaign")
         report["measurement_valid"] = diagnostic_monitor is None
         report["elapsed_seconds"] = time.monotonic() - start
         if args.escalate:
@@ -2058,7 +2056,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             # its final evidence check merely because its input was unmeasured.
             report["coverage"]["requested_pending_pins"] = report["coverage"]["pending_pins"][:]
             report["coverage"]["pending_pins"] = [row["cell"]["id"] for row in report["cells"]
-                if row["cell"]["depth"] > 1 and row.get("assessment", {}).get(
+                if not saturation_exempt(row["cell"]) and row.get("assessment", {}).get(
                     "load_selection", {}).get("status") != "CONFIRMED"]
         report["statistical_verdict"], report["worst_cell"] = overall(report["cells"])
         report["verdict"] = report["statistical_verdict"]

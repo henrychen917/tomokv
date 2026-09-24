@@ -19,6 +19,17 @@ SATURATION_FLOOR = 95.0
 RUN_SATURATION_MARGIN = 5.0
 
 
+def saturation_exempt(cell):
+    """p1 and p99.9 tails do not need a throughput floor or plateau.
+
+    Raw saturation, workload, timing and completion evidence remain mandatory.
+    Accept the serialized cell as well as the driver's dataclass so all replay
+    and import paths use this same predicate. Ordinary deep rate cells never qualify.
+    """
+    fields = cell if isinstance(cell, dict) else vars(cell)
+    return fields["depth"] == 1 or fields.get("score", "auto") == "p999"
+
+
 @dataclass(frozen=True)
 class LbSnapshot:
     stamp_ns: int

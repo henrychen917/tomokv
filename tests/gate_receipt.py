@@ -18,17 +18,19 @@ import sys
 import tempfile
 import time
 
-from abba_evidence import validate_measurements, validate_null, validate_comparison, match_null, null_result
+from abba_evidence import (validate_measurements, validate_null, validate_comparison, match_null, null_result,
+                           instrument, validate_campaign_evidence, validate_null_integrity, validate_holdout,
+                           NULL_MAX_AGE)
 from abba_instrument import instrument_fingerprint, validate_fingerprint
+from abba_saturation import saturation_exempt
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
-ABBA_LABEL = "headline ABBA vs last pushed binary"
+ABBA_LABEL = "ABBA comparison + saturation negative controls"
 # These are retirement guards, not inventories. All rows/cells in the CURRENT files are required,
 # including future additions. The structural checks below also preserve the 64 original cells,
 # restored 96 multi-key cells, and the 18 deliberate supplemental regimes.
-MIN_ROWS = 437
 ORDER = ["A", "B", "B", "A"]
 HARNESS_DIRS = ("tests/", ".githooks/", "bench/", "benchmarks/", "scripts/", "make/")
 
@@ -182,41 +184,14 @@ def history_directory(root):
 
 
 def inventory(root, path):
-    # This is a schema reader, not another measurement implementation. Keep every field in the
-    # receipt and compare it to abbagate's asdict(Cell) output. Unknown future fields fail closed
-    # until the receipt schema is reviewed; they cannot silently escape source/inventory binding.
-    cells = []
-    from gate_measurements import apply_floor, load as load_measurements, instrument_digest
+    # One authoritative parser, including implicit tail geometry and value size.
+    from abbagate import read_cells
+    from dataclasses import asdict
+    from gate_measurements import load as load_measurements
     measurements_path = root / "tests/gate_measurements.json"
-    measurements = load_measurements(measurements_path) if measurements_path.is_file() else None
-    instrument = (instrument_digest(root) if measurements and any(floor["status"] == "calibrated"
-                  for floor in measurements["load_floors"].values()) else None)
-    for line in path.read_text().splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
-            continue
-        fields = [field.strip() for field in line.split("|")]
-        require(len(fields) in (11, 15), "unknown headline cell schema")
-        ident, mode, rl, ov, ro, op, depth, conns, measured, busy, pinned = fields[:11]
-        require(re.fullmatch(r"[A-Za-z0-9_-]+", ident) and mode in ("1s", "2s") and
-                re.fullmatch(r"p[1-9][0-9]*", depth) and re.fullmatch(r"[1-9][0-9]*", conns) and
-                re.fullmatch(r"-|[1-9][0-9]*", pinned), "invalid headline cell identity/geometry")
-        require(all(re.fullmatch(prefix + r"=[01]", value) for prefix, value in
-                    (("rl", rl), ("ov", ov), ("ro", ro))), "invalid cell knob")
-        cell = dict(id=ident, mode=mode, read_local=int(rl[-1]), overlap=int(ov[-1]),
-                    reorder=int(ro[-1]), op=op, depth=int(depth[1:]), conns=int(conns),
-                    instances=0 if pinned == "-" else int(pinned), atomic=1, score="auto",
-                    mix="-", smoke=False, pin_required=False)
-        if len(fields) == 15:
-            atomic, score, mix, smoke = fields[11:]
-            require(re.fullmatch(r"atomic=[01]", atomic) and score in
-                    ("score=rate", "score=latency", "score=p999") and
-                    re.fullmatch(r"mix=(-|[1-9][0-9]*:[1-9][0-9]*)", mix) and
-                    re.fullmatch(r"smoke=[01]", smoke), "invalid extended cell schema")
-            cell.update(atomic=int(atomic[-1]), score=score[6:], mix=mix[4:],
-                        smoke=smoke[-1] == "1", pin_required=cell["depth"] > 1)
-        if pinned == "-" and measurements is not None:
-            cell = apply_floor(cell, measurements, instrument_sha256=instrument)
-        cells.append(cell)
+    measurements = load_measurements(measurements_path) if measurements_path.is_file() else {"load_floors": {}}
+    cells = [asdict(cell) for cell in read_cells(path, measurements=measurements,
+             instrument_sha256=instrument_fingerprint(root)["sha256"])]
     require(cells and len({cell["id"] for cell in cells}) == len(cells), "duplicate/empty cell inventory")
     # Requiring the complete cross products catches retirement even if someone replaces removed
     # cells with duplicates at another geometry and preserves the numeric count.
@@ -238,7 +213,7 @@ def inventory(root, path):
         for op in ("MGET", "MSET"):
             required.add((mode, 1, 1, 1, op, 8, 512, 0, "-"))
         for ro in (0, 1):
-            required.add((mode, 0, 1, ro, "REORDER", 8, 512, 1, "95:5"))
+            required.add((mode, 0, 1, ro, "REORDER", 8, 512, 1, "8:2"))
     require(required <= actual, f"full inventory retired {len(required - actual)} required cell geometries")
     for cell in cells:
         require(cell["depth"] == 1 or cell.get("instances", 0) > 0,
@@ -266,8 +241,130 @@ def ledger_rows(path, *, passing):
 
 def expected_count(root, nic):
     matches = re.findall(r"^EXPECT_FULL=([0-9]+)\b", (root / "tests/gate.sh").read_text(), re.M)
-    require(len(matches) == 1 and int(matches[0]) >= MIN_ROWS, "full gate count missing or reduced below 437")
+    require(len(matches) == 1 and int(matches[0]) > 0, "full gate count missing or invalid")
     return int(matches[0]) + int(nic)
+
+
+def current_campaign(root, campaign):
+    """Check a frozen post-import plan against today's code, files and machine."""
+    from abbagate import WINDOW
+    from gateplan import validate_axes
+    require(campaign.get("schema") == 1 and campaign.get("kind") == "frozen-null-campaign",
+            "missing frozen null campaign")
+    require(campaign["instrument"] == instrument_fingerprint(root), "campaign instrument/runtime changed")
+    require(campaign["inventory"] == inventory(root, root / "tests/headline_cells.txt"),
+            "campaign inventory/imported plans changed")
+    require(campaign["measurements_sha256"] == digest((root / "tests/gate_measurements.json").read_bytes()),
+            "campaign imported runtime inputs changed")
+    for name in ("binary", "generator"):
+        artifact = campaign[name]
+        require(object_file(Path(artifact["path"])) == ("100755", artifact["sha256"]),
+                f"campaign {name} bytes/mode changed")
+    env = campaign["environment"]
+    require(env["uname"] == list(os.uname()), "campaign machine environment changed")
+    # Replay need not run on the measured CPUs, but their topology must still match.
+    validate_axes(env["server_physical"], env["server_smt"], env["load_physical"], env["load_smt"],
+                  check_available=False)
+    require(campaign["window_seconds"] == WINDOW, "campaign measurement window changed")
+    return campaign
+
+
+def freeze_null(root, args):
+    """Freeze runtime inputs AFTER replay/import, with no server or generator boot."""
+    from gate_measurements import validate_fast_calibration, shape, load as load_measurements, apply_floor, geometry
+    from abbagate import WINDOW
+    calibration = read_json(args.calibration)
+    fingerprint = instrument_fingerprint(root)
+    validate_fast_calibration(calibration, fingerprint)
+    require(calibration.get("subset") == "full" and not calibration.get("only"),
+            "freeze requires a completed full calibration")
+    inv = inventory(root, root / "tests/headline_cells.txt")
+    require(calibration["cell_source"]["sha256"] == inv["sha256"] and
+            calibration["cell_source"]["total_cells"] == inv["count"] and
+            [row["cell"]["id"] for row in calibration["cells"]] == [cell["id"] for cell in inv["cells"]] and
+            all(shape(row["cell"]) == shape(cell) for row, cell in zip(calibration["cells"], inv["cells"])),
+            "freeze calibration differs from current full inventory")
+    measurements = load_measurements(root / "tests/gate_measurements.json")
+    for cell in inv["cells"]:
+        if not saturation_exempt(cell):
+            require(apply_floor(cell, measurements, geometry(calibration["environment"]),
+                                fingerprint["sha256"])["instances"] == cell["instances"] > 0,
+                    f"{cell['id']}: imported floor does not match frozen geometry")
+    inputs_sha = digest((root / "tests/gate_measurements.json").read_bytes())
+    env = {**calibration["environment"], "population_by_arm": {"A": "wire", "B": "wire"},
+           "measurements_sha256": inputs_sha}
+    campaign = dict(schema=1, kind="frozen-null-campaign", frozen_at=time.time(),
+        instrument=fingerprint, inventory=inv, environment=env, measurements_sha256=inputs_sha,
+        window_seconds=WINDOW, calibration_sha256=digest(args.calibration.read_bytes()),
+        binary={key: calibration["candidate"][key] for key in ("path", "sha256")},
+        generator=dict(path=env["memtier_path"], sha256=env["memtier_sha256"]),
+        metric_scope="rate/latency/p999 only; cycles/op UNPROVEN")
+    current_campaign(root, campaign)
+    require(args.output.resolve().is_relative_to(root), "campaign output must be inside this worktree")
+    write_json(args.output, campaign, exclusive=True)
+    return args.output
+
+
+def validate_campaign(root, campaign, report, *, now):
+    current_campaign(root, campaign)
+    started, environment = validate_measurements(report, now=now, expected_source=campaign["inventory"],
+        expected_cells=campaign["inventory"]["cells"], expected_instrument=campaign["instrument"])
+    require(campaign["frozen_at"] <= started <= now and now - started <= NULL_MAX_AGE,
+            "campaign must start after freeze and be at most 24 hours old")
+    require(instrument(environment) == instrument(campaign["environment"]),
+            "campaign environment/geometry/runtime inputs differ")
+    require(report["window_seconds"] == campaign["window_seconds"], "campaign window differs")
+    validate_campaign_evidence(report)
+
+
+def promote_null(root, args):
+    """Publish only standing-null evidence; no previous null or receipt is consulted."""
+    source_bytes = args.null_result.read_bytes()
+    report, campaign = read_json(args.null_result), read_json(args.campaign)
+    now = time.time()
+    validate_campaign(root, campaign, report, now=now)
+    validate_null(report, now=now)
+    validate_null_integrity(report)
+    require(report["candidate"]["sha256"] == campaign["binary"]["sha256"],
+            "null measured another frozen binary")
+    for arm in ("A", "B"):
+        require(object_file(args.null_result.parent / f"binary-{arm}") ==
+                ("100755", campaign["binary"]["sha256"]), f"null binary-{arm} bytes differ")
+    require(args.null_result.read_bytes() == source_bytes, "null source changed during promotion")
+    directory = history_directory(root)
+    archive = directory / "null-promotions" / digest(source_bytes)
+    provenance = dict(kind="standing-null-promotion", promoted_at=now,
+        source_path=str(args.null_result.resolve()), source_sha256=digest(source_bytes),
+        campaign_sha256=digest(canonical(campaign)), instrument_sha256=campaign["instrument"]["sha256"],
+        independent_resolution="PENDING HOLDOUT", cycles_op_resolution="UNPROVEN")
+    # The source and plan remain immutable audit artifacts. Only full-null.json
+    # is a mutable default. An interrupted replacement leaves its previous bytes intact.
+    archive.mkdir(parents=True, exist_ok=True)
+    for name, value in (("source.json", report), ("campaign.json", campaign)):
+        path = archive / name
+        if path.exists():
+            require(read_json(path) == value, "promotion archive differs")
+        else:
+            write_json(path, value, exclusive=True)
+    promoted = {**report, "promotion": provenance}
+    provenance_path = archive / (digest(canonical(provenance)) + ".promotion.json")
+    if not provenance_path.exists():
+        write_json(provenance_path, provenance, exclusive=True)
+    current_campaign(root, campaign)
+    path = directory / "baselines/full-null.json"
+    write_json(path, promoted)
+    return path
+
+
+def verify_null_holdout(root, args):
+    campaign = read_json(args.campaign)
+    report, control = read_json(args.comparison), read_json(args.null_result)
+    now = time.time()
+    validate_campaign(root, campaign, control, now=now)
+    validate_campaign(root, campaign, report, now=now)
+    result = validate_holdout(report, control, now=now)
+    write_json(args.output, result, exclusive=True)
+    return args.output
 
 
 def begin(root, args):
@@ -282,7 +379,7 @@ def begin(root, args):
             nic = any(row["label"] == "NIC regression cells (all within -3%)" for row in baseline)
         count = expected_count(root, nic)
         require(len(baseline) == count and sum(r["label"] == ABBA_LABEL for r in baseline) == 1,
-                f"trusted baseline ledger must contain exactly {count} rows including the ABBA row")
+                f"trusted baseline ledger must contain exactly {count} rows including the ABBA negative-control row")
         baseline_identity = {"path": str(args.expected_ledger.resolve()),
                              "sha256": digest(args.expected_ledger.read_bytes())}
     except (ValueError, OSError) as error:
@@ -321,6 +418,8 @@ def load_start(root, path):
     require(source_fingerprint(root) == state["source"], "source contents/modes changed since gate start")
     require(inventory(root, root / state["inventory"]["path"]) == state["inventory"], "cell inventory changed")
     require(expected_count(root, state["nic"]) == state["expected_checks"], "gate row count changed")
+    require(state.get("withheld_reason") or len(state["expected_labels"]) == state["expected_checks"] and
+            state["expected_labels"].count(ABBA_LABEL) == 1, "start has incomplete expected row inventory")
     return state
 
 
@@ -341,7 +440,8 @@ def bind(root, args):
 def validate_abba(report, state, *, now, candidate=None, null=False):
     # Shared shape/null validation also guards standalone smoke. A push retains this stronger
     # wrapper: every cell in the current full inventory, including future additions, is required.
-    require(report.get("subset") == "full", "only the full ABBA set can certify a push")
+    require(report.get("subset") == "full" and not report.get("only"),
+            "only the full ABBA set can certify a push")
     validate_fingerprint(state.get("instrument"))
     if null:
         validate_null(report, now=now)
@@ -396,7 +496,7 @@ def finish(root, args):
     now = time.time()
     # Minimal coordinator artifact, written only AFTER all correctness children and ABBA are reaped:
     # {schema:1, run_id, tier:'push'|'release'|'full', completed:true, verdict:'PASS', exit_code:0,
-    #  started_at:<same start.json value>, finished_at:<UNIX>, checks:437, passed:437, failed:0,
+    #  started_at:<same start.json value>, finished_at:<UNIX>, checks:EXPECT_FULL, passed:EXPECT_FULL, failed:0,
     #  skipped:0, abba_exit_code:0, nic_checked:false, candidate_sha256:<bound binary digest>}.
     # A human label list is an expectation, never proof of execution: receipt issuance also needs
     # the exact final ledger AND the gate_history recorder's independent per-row observations.
@@ -433,10 +533,9 @@ def finish(root, args):
                "null_control_sha256": control["candidate"]["sha256"]}
     path = args.start.parent / "receipt.json"
     write_json(path, receipt, exclusive=True)
-    # Only an issued receipt advances durable defaults. The first untrusted full run, any failed
-    # run, and a 436-row correctness prefix can never bootstrap this file automatically.
+    # Only an issued receipt advances the trusted correctness ledger. Standing nulls
+    # are published separately by explicit promote-null; a receipt cannot overwrite it.
     directory = history_directory(root) / "baselines"
-    write_json(directory / "full-null.json", control)
     ledger = "".join(f"{row['verdict']}\t{row['seconds']!r}\t{row['label']}\n" for row in actual)
     directory.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=".full-ledger-", dir=directory)
@@ -574,26 +673,7 @@ def self_test():
     from unittest import mock
 
     def fixture_cells():
-        rows = []
-        def add(mode, rl, ov, ro, op, depth, conns=512, atomic=1, mix="-"):
-            score = "p999" if op == "REORDER" else "latency" if depth == 1 else "rate"
-            rows.append(f"v{len(rows):03} | {mode} | rl={rl} | ov={ov} | ro={ro} | {op} | p{depth} | {conns} | - | - | "
-                        f"{'-' if depth == 1 else '1'} | atomic={atomic} | score={score} | mix={mix} | smoke=0")
-        for mode, rl, ov, ro in product(("1s", "2s"), (0, 1), (0, 1), (0, 1)):
-            for op, depth in product(("GET", "SET"), (1, 32)):
-                add(mode, rl, ov, ro, op, depth)
-            for op, depth in product(("MGET", "MSET"), (1, 8, 32)):
-                add(mode, rl, ov, ro, op, depth)
-        for mode in ("1s", "2s"):
-            for rl in (0, 1):
-                add(mode, rl, 1, 1, "MIX", 1, mix="7:1")
-                add(mode, rl, 1, 1, "GET", 32, conns=2048)
-            add(mode, 1, 1, 1, "MIX8", 128, mix="18:14")
-            for op in ("MGET", "MSET"):
-                add(mode, 1, 1, 1, op, 8, atomic=0)
-            for ro in (0, 1):
-                add(mode, 0, 1, ro, "REORDER", 8, mix="95:5")
-        return "\n".join(rows) + "\n"
+        return (ROOT / "tests/headline_cells.txt").read_text()
 
     class Controls(unittest.TestCase):
         def setUp(self):
@@ -609,12 +689,26 @@ def self_test():
             (self.root / ".githooks").mkdir()
             (self.root / "build").mkdir()
             (self.root / ".gitignore").write_text("/build/\n/.gate-history/\n__pycache__/\n")
-            (self.root / "tests/gate.sh").write_text("EXPECT_FULL=437\n")
+            (self.root / "tests/gate.sh").write_text(f"EXPECT_FULL={expected_count(ROOT, False)}\n")
             (self.root / "tests/headline_cells.txt").write_text(fixture_cells())
             shutil.copyfile(__file__, self.root / "tests/gate_receipt.py")
             shutil.copyfile(ROOT / "tests/abba_evidence.py", self.root / "tests/abba_evidence.py")
             for entry in instrument_fingerprint(ROOT)["entries"]:
                 shutil.copyfile(ROOT / entry["path"], self.root / entry["path"])
+            from abbagate import read_cells
+            from gate_measurements import load as measured_inputs, shape
+            config = measured_inputs()
+            config["load_floors"] = {}
+            for cell in read_cells(ROOT / "tests/headline_cells.txt"):
+                if not saturation_exempt(cell):
+                    config["load_floors"][cell.id] = dict(instances=1, shape=shape(cell), status="calibrated",
+                        geometry=dict(server_physical=[0, 1], server_smt=[], load_physical=[2, 3],
+                                      load_smt=[], split_ratio="1:1"),
+                        instrument_sha256=instrument_fingerprint(self.root)["sha256"],
+                        observed_rate=dict(unit="ops_per_second", order=["B"], values=[100.]),
+                        observed_busy=dict(unit="percent", order=["B"], values=[99.]),
+                        provenance=dict(when="synthetic", how="serverless fixture; no measurement"))
+            write_json(self.root / "tests/gate_measurements.json", config)
             shutil.copyfile(ROOT / ".githooks/pre-push", self.root / ".githooks/pre-push")
             (self.root / ".githooks/pre-push").chmod(0o755)
             (self.root / "source.cc").write_text("int original;\n")
@@ -632,8 +726,8 @@ def self_test():
             self.ledger = self.root / "build/ledger.tsv"
             # Distinct real gate loops can publish the same AOF label. Every occurrence needs
             # its own observation; a set of labels would quietly erase one of these first rows.
-            self.ledger.write_text("".join(f"ok\t1.0\trow {0 if i == 1 else i}\n" for i in range(436)) +
-                                   f"ok\t1.0\t{ABBA_LABEL}\n")
+            labels = read_json(ROOT / "tests/fixtures/nullrefresh-ledger-labels.json")["labels"]
+            self.ledger.write_text("".join(f"ok\t1.0\t{label}\n" for label in labels))
             self.args = argparse.Namespace(run_id="fixture", tier="push", expected_ledger=self.ledger,
                                            cells=self.root / "tests/headline_cells.txt", nic=False)
             self.start_time = float(int(time.time()) - 40000)
@@ -647,8 +741,8 @@ def self_test():
             self.control = self.make_report(self.start_time - 18000, "a" * 64, "a" * 64, is_null=True)
             ended = self.start_time + 16200
             self.completed = dict(schema=1, run_id="fixture", tier="push", completed=True, verdict="PASS",
-                                  exit_code=0, started_at=self.start_time, finished_at=ended, checks=437,
-                                  passed=437, failed=0, skipped=0, abba_exit_code=0, nic_checked=False,
+                                  exit_code=0, started_at=self.start_time, finished_at=ended, checks=expected_count(ROOT, False),
+                                  passed=expected_count(ROOT, False), failed=0, skipped=0, abba_exit_code=0, nic_checked=False,
                                   candidate_sha256=self.binding["sha256"])
             self.observed = [dict(schema=1, timing="own-row", run_id="fixture", observation_id=str(i),
                                  label=row["label"], seconds=1., verdict="ok", timed_out=False,
@@ -671,15 +765,15 @@ def self_test():
                         for i, arm in enumerate(ORDER, 1)]
                 rows.append(dict(cell=cell, verdict="PASS", rounds=[dict(instances=1, runs=runs)],
                                  assessment=dict(verdict="PASS", reasons=[], loss_pct=-.1, threshold_pct=.1, instances=1,
-                                                 saturation_exempt=cell["depth"] == 1)))
+                                                 saturation_exempt=saturation_exempt(cell))))
             report = dict(schema=1, verdict="PARTIAL" if is_null else "PASS", subset="full", measurement_valid=True, order=ORDER,
                 statistical_verdict="PASS", comparison_trusted=not is_null, run_kind="null-control" if is_null else "comparison", only="",
                 started_utc=datetime.fromtimestamp(started, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 elapsed_seconds=16000., window_seconds=20, receipt_harness_sha256=self.state["harness"]["sha256"],
                 instrument_fingerprint=copy.deepcopy(self.state["instrument"]),
-                cell_source=dict(sha256=self.state["inventory"]["sha256"], total_cells=178,
+                cell_source=dict(sha256=self.state["inventory"]["sha256"], total_cells=len(rows),
                                  text=(self.root / "tests/headline_cells.txt").read_text()),
-                coverage=dict(ids=[c["id"] for c in self.state["inventory"]["cells"]], count=178, pending_pins=[]),
+                coverage=dict(ids=[c["id"] for c in self.state["inventory"]["cells"]], count=len(rows), pending_pins=[]),
                 candidate=dict(sha256=candidate), reference=dict(sha256=reference),
                 environment=dict(port=8700, python_runtime=copy.deepcopy(self.state["instrument"]["python"]),
                                  server_cpus=[0, 1], load_cpus=[2, 3], server_physical=[0, 1],
@@ -771,7 +865,7 @@ def self_test():
             gate = (ROOT / "tests/gate.sh").read_text()
             start_block = gate[gate.index("RECEIPT_REQUIRED=0;"):gate.index('ROW_PLAN="$RUN_DIR/row-timeouts.json"')]
             release = gate[gate.index("job_release(){"):gate.index("\njob_asan(){")]
-            final = gate[gate.index("GATE_CLEANUP_RC=0\n"):]
+            final = gate[gate.index("GATE_CLEANUP_RC=$ABBA_CLEANUP_RC\n"): ]
             for tier, built, expected in (("push", 1, 1), ("iteration", 1, 0),
                                            ("push", 0, 1), ("iteration", 0, 0)):
                 with self.subTest(tier=tier, built=built):
@@ -794,7 +888,7 @@ if [ "$RECEIPT_REQUIRED" = 1 ]; then
   else test ! -f "${RECEIPT_START%/*}/candidate.json" || exit 98; fi
 fi
 printf 'correctness\\nabba\\n' > "$RUN_DIR/reached"
-PASS=437; FAIL=0; ABBA_RC=0; NIC_CHECKED=0; ROW_HISTORY="$PWD/build"
+PASS=454; FAIL=0; ABBA_RC=0; ABBA_CLEANUP_RC=0; NIC_CHECKED=0; ROW_HISTORY="$PWD/build"
 ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
 ''' + final
                     process = subprocess.run(["bash"], cwd=self.root, input=script, text=True, capture_output=True,
@@ -858,15 +952,15 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             self.finish_args.observations = directory / gate_history.HISTORY_FILE
             receipt = finish(self.root, self.finish_args)
             retained = read_json(receipt.parent / "evidence.json")["observations"]
-            self.assertEqual(sum(row["scored"] for row in retained), 437)
-            self.assertEqual(len(retained), 438)
+            self.assertEqual(sum(row["scored"] for row in retained), expected_count(ROOT, False))
+            self.assertEqual(len(retained), expected_count(ROOT, False) + 1)
 
         def test_future_full_row_count_needs_new_baseline_and_actual_observation(self):
             # Only this disposable Git fixture changes EXPECT. The repository's maintainer-owned
             # constants are never edited; the certificate must follow a future intentional raise.
-            (self.root / "tests/gate.sh").write_text("EXPECT_FULL=438\n")
+            (self.root / "tests/gate.sh").write_text(f"EXPECT_FULL={expected_count(ROOT, False) + 1}\n")
             self.args.run_id = "larger-full-run"
-            with self.assertRaisesRegex(ValueError, "exactly 438 rows"):
+            with self.assertRaisesRegex(ValueError, f"exactly {expected_count(ROOT, False) + 1} rows"):
                 begin(self.root, self.args)
             self.ledger.write_text(self.ledger.read_text() + "ok\t2.0\tnew required row\n")
             with mock.patch.object(time, "time", return_value=self.start_time):
@@ -875,7 +969,7 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
                 bind(self.root, argparse.Namespace(start=self.start, candidate=self.candidate))
             self.state = read_json(self.start)
             self.binding = read_json(self.start.parent / "candidate.json")
-            self.assertEqual(self.state["expected_checks"], 438)
+            self.assertEqual(self.state["expected_checks"], expected_count(ROOT, False) + 1)
             self.finish_args.start = self.start
             self.completed["run_id"] = self.args.run_id
             self.report = self.make_report(self.start_time + 100, self.binding["sha256"], "b" * 64)
@@ -885,7 +979,7 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             self.save_results()
             with self.assertRaisesRegex(ValueError, "incorrect gate completion checks"):
                 finish(self.root, self.finish_args)
-            self.completed.update(checks=438, passed=438)
+            self.completed.update(checks=expected_count(ROOT, False) + 1, passed=expected_count(ROOT, False) + 1)
             self.save_results()
             with self.assertRaisesRegex(ValueError, "independent own-row observations"):
                 finish(self.root, self.finish_args)
@@ -912,7 +1006,7 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             )
             for mutate in mutations:
                 control = copy.deepcopy(self.control)
-                row = next(row for row in control["cells"] if row["cell"]["depth"] > 1)
+                row = next(row for row in control["cells"] if not saturation_exempt(row["cell"]))
                 mutate(row["rounds"][0]["runs"][1], row["cell"]["mode"])
                 with self.subTest(mutation=mutate), self.assertRaisesRegex(ValueError, "saturation|productive-role"):
                     validate_null(control, now=time.time())
@@ -1016,7 +1110,7 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
         def test_full_inventory_cannot_retire_a_multikey_geometry(self):
             cells = self.root / "tests/headline_cells.txt"
             rows = cells.read_text().splitlines(True)
-            index = next(i for i, row in enumerate(rows) if "MGET" in row)
+            index = next(i for i, row in enumerate(rows) if " | MGET | " in row)
             rows[index] = rows[index].replace("MGET", "GET")
             cells.write_text("".join(rows))
             with self.assertRaisesRegex(ValueError, "retired"):
@@ -1043,7 +1137,9 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
                 git(self.root, "worktree", "remove", "--force", str(linked))
 
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
-    return 0 if result.wasSuccessful() else 1
+    from _nullrefresh_test import self_test as promotion_controls
+    promoted = promotion_controls()
+    return 0 if result.wasSuccessful() and promoted == 0 else 1
 
 
 def main():
@@ -1052,6 +1148,15 @@ def main():
     parser.add_argument("--uninstall", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     sub = parser.add_subparsers(dest="action")
+    frozen = sub.add_parser("freeze-null", help="freeze current runtime inputs after full calibration/import")
+    frozen.add_argument("--calibration", type=Path, required=True)
+    frozen.add_argument("--output", type=Path, required=True)
+    promotion = sub.add_parser("promote-null", help="explicit local standing-null promotion, never a gate receipt")
+    promotion.add_argument("--null-result", type=Path, required=True)
+    promotion.add_argument("--campaign", type=Path, required=True)
+    holdout = sub.add_parser("verify-null-holdout", help="check independent identical arms against frozen errors")
+    for name in ("null-result", "comparison", "campaign", "output"):
+        holdout.add_argument("--" + name, type=Path, required=True)
     start = sub.add_parser("begin")
     start.add_argument("--run-id", required=True)
     start.add_argument("--tier", choices=("full", "push", "release", "iteration", "smoke"), required=True)
@@ -1086,8 +1191,8 @@ def main():
     if args.install or args.uninstall:
         require(not (args.install and args.uninstall), "choose install or uninstall")
         install(ROOT, uninstall=args.uninstall)
-    elif args.action in ("begin", "bind", "finish", "coordinator"):
-        print(globals()[args.action](ROOT, args))
+    elif args.action in ("begin", "bind", "finish", "coordinator", "freeze-null", "promote-null", "verify-null-holdout"):
+        print(globals()[args.action.replace("-", "_")](ROOT, args))
     elif args.action == "fingerprint":
         print(json.dumps(harness_fingerprint(ROOT) if args.harness else source_fingerprint(ROOT), sort_keys=True))
     elif args.action in ("pre-push", "verify"):

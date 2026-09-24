@@ -17,6 +17,8 @@ import re
 import sys
 import time
 
+from abba_saturation import saturation_exempt
+
 DEFAULT = Path(__file__).with_name("gate_measurements.json")
 SHAPE = ("mode", "read_local", "overlap", "reorder", "op", "depth", "conns", "atomic", "score", "mix")
 AXES = ("server_physical", "server_smt", "load_physical", "load_smt", "split_ratio")
@@ -145,6 +147,8 @@ def instrument_digest(root=DEFAULT.parent.parent):
 def apply_floor(cell, measurements=None, placement=None, instrument_sha256=None):
     measurements = load() if measurements is None else measurements
     fields = asdict(cell) if is_dataclass(cell) else cell
+    if saturation_exempt(fields):
+        return cell  # Preserve latency workload geometry; never apply a throughput PIN.
     floor = measurements["load_floors"].get(fields["id"])
     valid = (floor is not None and floor["status"] == "calibrated" and
              shape(floor["shape"]) == shape(fields) and (placement is None or floor["geometry"] == placement))
@@ -182,7 +186,7 @@ def validate_fast_calibration(report, fingerprint):
     from abba_saturation import replay_saturation, require_saturation_window, SATURATION_FLOOR
     from load_calibration import select_calibration_floor
     require(isinstance(report, dict) and report.get("schema") == 1 and
-            report.get("run_kind") == "load-calibration" and report.get("verdict") == "PIN" and
+            report.get("run_kind") == "load-calibration" and report.get("verdict") in ("PIN", "EXEMPT") and
             report.get("complete") is True, "fast calibration did not complete with a PIN")
     require(report.get("measurement_valid") is False and report.get("normal_gate_eligible") is False and
             report.get("comparison_trusted") is False and report.get("order") == ["B"] and
@@ -231,7 +235,7 @@ def validate_fast_calibration(report, fingerprint):
     windows = 0.
     for row in rows:
         cell = Cell(**row["cell"])
-        require(row.get("status") == ("EXEMPT" if cell.depth == 1 else "PIN") and
+        require(row.get("status") == ("EXEMPT" if saturation_exempt(cell) else "PIN") and
                 not row.get("error") and not row.get("reason"), f"{cell.id}: failed calibration cell")
         rounds = row.get("rounds")
         require(isinstance(rounds, list) and rounds, f"{cell.id}: unreached calibration ladder")
@@ -265,7 +269,7 @@ def validate_fast_calibration(report, fingerprint):
         require(len(pids) == 1, f"{cell.id}: calibration rebooted between load rungs")
         selection = select_calibration_floor(replace(cell, instances=0), rounds)
         require(selection["measurement_valid"] and
-                selection["status"] == ("EXEMPT" if cell.depth == 1 else "PIN"),
+                selection["status"] == ("EXEMPT" if saturation_exempt(cell) else "PIN"),
                 f"{cell.id}: no measured saturation plateau with higher-capacity confirmation")
     require(qend - qstart >= windows, "quiet observer did not span every calibration window")
 
@@ -307,16 +311,16 @@ def import_calibration(path, measurements, cells):
     for row in report["cells"]:
         cell = Cell(**row["cell"])
         require(cell.id in current and shape(current[cell.id]) == shape(cell), f"{cell.id}: cell shape changed since calibration")
-        if cell.depth == 1:
-            continue
         require(row.get("instrument_valid", True) and not row.get("error"), f"{cell.id}: invalid measurement row")
         if fast:
             from load_calibration import select_calibration_floor
             selection = select_calibration_floor(replace(cell, instances=0), row["rounds"])
         else:
             selection = select_load_floor(replace(cell, instances=0), row["rounds"])
-        require(selection["measurement_valid"] and selection["status"] == ("PIN" if fast else "CONFIRMED"),
+        require(selection["measurement_valid"] and selection["status"] == ("EXEMPT" if saturation_exempt(cell) else "PIN" if fast else "CONFIRMED"),
                 f"{cell.id}: no measured saturation plateau with higher-capacity confirmation")
+        if saturation_exempt(cell):
+            continue  # Validated EXEMPT is evidence, never an imported throughput floor.
         count = selection["lowest_tested_qualifying_instances"]
         selected_runs = row["rounds"][selection["selected_index"]]["runs"]
         # Keep actual observations, including arm order and units, next to the
@@ -336,7 +340,8 @@ def import_calibration(path, measurements, cells):
             provenance={"when": report["started_utc"],
             "how": f"abbagate {method}; {path}; sha256={report_digest}; {binaries}; "
                    f"lowest tested qualifying instances={count}; confirmation={selection['confirmation_instances']}"})
-    require(updates, "calibration contains no deep-pipeline load floors")
+    require(updates or all(saturation_exempt(row["cell"]) for row in report["cells"]),
+            "calibration contains no deep-pipeline load floors")
     # All-or-nothing import: a red/invalid later cell must not silently salvage an
     # earlier campaign prefix. Stored floors never change the live ABBA tolerances.
     measurements["load_floors"].update(updates)
@@ -384,6 +389,8 @@ def write_calibration(path, cells, config=DEFAULT):
     config = Path(config)
     measurements = load(config)
     updated = import_calibration(path, measurements, cells)
+    if not updated:
+        return []  # All-exempt campaigns leave config bytes and load plans intact.
     temporary = config.with_suffix(".json.tmp")
     try:
         temporary.write_text(json.dumps(measurements, indent=2) + "\n")
@@ -706,7 +713,8 @@ def main():
     if args.import_calibration:
         from abbagate import read_cells
         updated = write_calibration(args.import_calibration, read_cells(args.cells), args.config)
-        print("Imported measured floors: " + ", ".join(updated))
+        print("Imported measured floors: " + ", ".join(updated) if updated else
+              "Validated all-exempt campaign; no throughput floors imported; load plans unchanged")
     else:
         print(json.dumps(load(args.config), indent=2))
     return 0
