@@ -49,11 +49,11 @@ struct CoreConcurrencyTest {
         if (!ok) { std::fprintf(stderr, "FAIL wb-rule %s: %s\n", selected, message); std::_Exit(1); }
     }
     static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
-    template <bool Fused> struct Fixture {
+    template <bool Fused, bool SplitLocal = false> struct Fixture {
         Server server;
-        ExLoopT<Fused> ex;
+        ExLoopT<Fused || SplitLocal> ex;
         IoLoop io;
-        const uint32_t owner = Fused ? 0 : 6;
+        const uint32_t owner = Fused || SplitLocal ? 0 : 6;
         uint32_t now = 1000;
         std::atomic<bool> limits{false};
         unsigned sq_head = 0;
@@ -78,7 +78,7 @@ struct CoreConcurrencyTest {
             Config config;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.shards = 16;
-            config.read_local = 0;
+            config.read_local = SplitLocal;
             config.overlap = config.atomic = 1;
             config.save.clear();
             require(server.init(config), "in-memory server state");
@@ -93,6 +93,10 @@ struct CoreConcurrencyTest {
             ex.fused_handoff_ring_ = &ex.ring_;
             ex.cached_now_ms_ = 1000;
             server.bind_owner_notify_pending(owner, &ex.notify_keyless_pending_);
+            if constexpr (SplitLocal) {
+                ex.read_local_.impl = std::make_unique<ReadLocalExImpl>();
+                require(ex.read_local_impl().deferred.init(&server, ex.self_), "split reader QSBR queue");
+            }
             ex.refresh_live_config();
             ex.slowlog_armed_ = false;
             g_ring_epoll_mode = true;
@@ -100,7 +104,7 @@ struct CoreConcurrencyTest {
             g_ring_epoll_mode = false;
             io.srv_ = &server;
             io.self_ = &server.thread(0);
-            if constexpr (Fused) {
+            if constexpr (Fused || SplitLocal) {
                 io.fused_executor_ = &ex;
                 ex.bind_fused_completion(nullptr, [](void*, Client*) {});
             }
@@ -253,6 +257,21 @@ struct CoreConcurrencyTest {
         require(f.io.wb_.stats().serves == 16 && c.rob().in_flight() == 31 && !c.serve_pending(),
                 "2s never applies fused eligibility");
     }
+    static void split_local_policy(bool sweeping) {
+        Fixture<false, true> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
+        require(f.ex.read_local_enabled() && f.server.thread_mode() == ThreadMode::Split,
+                "physical split reader is armed");
+        f.io.enqueue_serve(&c);
+        std::vector<std::unique_ptr<Client>> tails;
+        for (unsigned i = 0; i < 16; ++i) {
+            auto tail = std::make_unique<Client>(-1); f.client(*tail, i+2);
+            fill(*tail, 1, 1); f.io.enqueue_serve(tail.get()); tails.push_back(std::move(tail));
+        }
+        if (sweeping) f.io.sweep<false, false, false, true, true>();
+        else f.io.flush_ready<false, false, true, false, false, true>();
+        require(f.io.wb_.stats().serves == 16 && c.rob().in_flight() == 31 && !c.serve_pending(),
+                "2s reader capability never enables fused writeback");
+    }
     template <bool Fused> static void parse() {
         Fixture<Fused> f; Client c(-1); f.client(c, 1);
         const std::string key = f.key();
@@ -311,6 +330,8 @@ struct CoreConcurrencyTest {
         else if (name == "split-dead") dead<false>(false);
         else if (name == "progress") progress(r7);
         else if (name == "split-policy") split_policy();
+        else if (name == "split-local") split_local_policy(false);
+        else if (name == "split-local-sweep") split_local_policy(true);
         else if (name == "fused-parse") parse<true>();
         else if (name == "split-parse") parse<false>();
         else if (name == "split-ex") split_ex(false, false);

@@ -38,16 +38,17 @@ MUTANTS = {
                  "bytes += reply_bytes(op);\n        if (op.state.load(std::memory_order_acquire) != OpState::Done) break;",
                  "acquire", "reply field read before Done acquire"),
     "walk-tail": ("policy", POLICY, "while (prefix < threshold)", "while (prefix < n)", "acquire", "walk exits at successful fraction"),
-    "budget": ("phase", IO, "Fused ? ready_now : kServeBudget", "kServeBudget", "fused-budget", "exact mode-specific budget"),
-    "rotation": ("phase", IO, "pending_serve_.push_back(c);\n                    continue;", "/* removed rotation */\n                    continue;", "fifo", "deferred rotation preserves order"),
-    "head": ("phase", IO, "pending_serve_.push_back(c);\n                    continue;", "pending_serve_.push_front(c);\n                    continue;", "fifo", "younger eligible passes deferred head"),
-    "pin": ("phase", IO, "pending_serve_.push_back(c);\n                    continue;", "c->set_serve_pending(false);\n                    pending_serve_.push_back(c);\n                    continue;", "fifo", "deferred lifetime pins kept"),
-    "capture": ("phase", IO, "(!Fused || visits < ready_now)", "true", "capture", "callback cannot extend captured visit count"),
-    "visit": ("phase", IO, "visits < ready_now", "visits <= ready_now", "fifo", "deferred rotation preserves order"),
-    "dead": ("phase", IO, "!c->dead() && wb_rule::defer(*c)", "wb_rule::defer(*c)", "dead", "dead entry removed and unpinned"),
-    "work": ("phase", IO, "if (!pending_serve_.empty()) ++work; // deferred entries must get another phase", "if (false) ++work;", "progress", "deferral alone is positive work"),
-    "split-policy": ("stages", IO, "if constexpr (Fused) {\n                ++visits;", "if constexpr (true) {\n                ++visits;", "split-policy", "2s never applies fused eligibility"),
-    "split-budget": ("stages", IO, "Fused ? ready_now : kServeBudget", "ready_now", "split-budget", "exact mode-specific budget"),
+    "budget": ("phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "fused-budget", "exact mode-specific budget"),
+    "rotation": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "/* removed rotation */\n                continue;", "fifo", "deferred rotation preserves order"),
+    "head": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "loop.pending_serve_.push_front(c);\n                continue;", "fifo", "younger eligible passes deferred head"),
+    "pin": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "c->set_serve_pending(false);\n                loop.pending_serve_.push_back(c);\n                continue;", "fifo", "deferred lifetime pins kept"),
+    "capture": ("phase", POLICY, "visits < ready_now", "true", "capture", "callback cannot extend captured visit count"),
+    "visit": ("phase", POLICY, "visits < ready_now", "visits <= ready_now", "fifo", "deferred rotation preserves order"),
+    "dead": ("phase", POLICY, "!c->dead() && defer(*c)", "defer(*c)", "dead", "dead entry removed and unpinned"),
+    "work": ("phase", POLICY, "if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase", "if (false) ++work;", "progress", "deferral alone is positive work"),
+    "split-policy": ("stages", IO, "if constexpr (Fused && !SplitLocal) {\n            return work + wb_rule::Phase2", "if constexpr (true) {\n            return work + wb_rule::Phase2", "split-policy", "2s never applies fused eligibility"),
+    "split-local": ("stages", IO, "if constexpr (Fused && !SplitLocal) {\n            return work + wb_rule::Phase2", "if constexpr (Fused) {\n            return work + wb_rule::Phase2", "split-local", "2s reader capability never enables fused writeback"),
+    "split-budget": ("stages", IO, "constexpr uint32_t serve_budget = kServeBudget", "const uint32_t serve_budget = pending_serve_.size()", "split-budget", "exact mode-specific budget"),
     "split-ex": ("stages", "src/core/ex_loop.h",
                  "template <uint32_t BatchOps = kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
                  "template <uint32_t BatchOps = 2 * kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
@@ -96,7 +97,7 @@ def check(group, build):
                 for case in ("fused-budget", "fastpath", "fifo", "capture", "dead", "progress"):
                     run(build / f"wb-rule-{ns}phase-unit", case, extra=extra)
         else:
-            for case in ("split-budget", "split-dead", "split-policy", "split-ex", "split-ex-unmasked", "split-ex-timed", "fused-parse", "split-parse"):
+            for case in ("split-budget", "split-dead", "split-policy", "split-local", "split-local-sweep", "split-ex", "split-ex-unmasked", "split-ex-timed", "fused-parse", "split-parse"):
                 run(build / f"wb-rule-{ns}phase-unit", case)
     for name, (kind, _, _, _, case, assertion) in MUTANTS.items():
         if kind == group: run(build / "wb-rule-controls" / name / "unit", case, assertion)

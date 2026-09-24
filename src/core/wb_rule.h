@@ -1,6 +1,7 @@
 // The measured window4 c12 policy: one captured FIFO visit, bytes OR half a Done prefix.
 #pragma once
 #include <ratio>
+#include <type_traits>
 #include "../net/conn.h"
 
 namespace tomo::wb_rule {
@@ -68,4 +69,62 @@ inline bool defer(Connection& c) {
     if (prefix >= threshold) return false;
     return true;
 }
+// Only the fused call site instantiates this walk. Keeping its local state here
+// leaves split PHASE 2's original loop and compiler input intact.
+struct Phase2 {
+    template <bool HasTls, bool kEp, class Loop>
+    __attribute__((always_inline)) static inline uint32_t serve(Loop& loop) {
+        using ServerType = std::remove_pointer_t<decltype(loop.srv_)>;
+        uint32_t work = 0;
+        uint32_t served = 0;
+        const size_t ready_now = loop.pending_serve_.size();
+        const size_t serve_budget = ready_now;
+        size_t visits = 0;
+        while (served < serve_budget && visits < ready_now && !loop.pending_serve_.empty()) {
+            Client* c = loop.pending_serve_.front();
+            loop.pending_serve_.pop_front();
+            ++visits;
+            if (!c->dead() && defer(*c)) {
+                // Keep the lifetime pin; a younger eligible connection may pass this head.
+                loop.pending_serve_.push_back(c);
+                continue;
+            }
+            c->set_serve_pending(false);
+            // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
+            // loop.close_client finish. Only corpses (freed-pending) are skippable.
+            if (c->dead()) continue;
+            served++;
+            // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
+            // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
+            // the cold object and discards bytes instead of staging them.
+            if (__builtin_expect((loop.climon_armed_cached_ & ServerType::kClimonReply) != 0, false) &&
+                loop.climon_reply_suppressed(c)) {
+                work += loop.climon_serve_suppressed(c);
+                if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
+                continue;
+            }
+            if constexpr (HasTls) {
+                if (auto* tls = loop.tls_engine(c)) {
+                    if (loop.wb_.template serve_tls<kEp, false, true>(*c, *tls)) work++;
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        loop.template arm_tls_socket_poll<kEp>(c, tls->wanted());
+                    if (tls->failed()) loop.close_client(c, tls->output_pending() || c->send_inflight());
+                } else if (auto* slot = loop.tls_slot_conn(c); slot && slot->ktls()) {
+                    if (loop.wb_.template serve_ktls<kEp, false, true>(*c)) work++;
+                } else if (loop.wb_.template serve<kEp, false, true>(*c)) {
+                    work++;
+                }
+            } else if (loop.wb_.template serve<kEp, false, true>(*c)) {
+                work++;
+            }
+            // A synchronous send has no CQE to report a fatal errno through, so the engine latches
+            // it and the decision to tear the connection down is taken here instead. Consuming it
+            // per served connection is deliberate: a bit left set would close the NEXT one.
+            if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
+        }
+        work += served;
+        if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase
+        return work;
+    }
+};
 } // namespace tomo::wb_rule

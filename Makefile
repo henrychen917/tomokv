@@ -383,7 +383,7 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
 # Measured fused writeback rule, serverless production-path witnesses. Clause
 # mutants live only in build/ header overlays; no selector enters production.
 WB_RULE_POLICY_CONTROLS := fastpath staged-clause staged-source submitted done-bytes spill direct borrow crlf no-sum floor whole hole marker code relaxed pre-read walk-tail
-WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-budget split-ex parse
+WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse
 WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) Makefile
 WB_RULE_WRAP := -Wl,--wrap=io_uring_submit -Wl,--wrap=io_uring_submit_and_get_events
 build/wb-rule-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
