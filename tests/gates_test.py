@@ -317,6 +317,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 
 class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
+                          'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
 
@@ -361,7 +362,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -481,10 +482,10 @@ py(){
                     self.assertEqual([row[0] for row in rows], ['ok'] * 35 + ['FAIL'])
                     self.assertEqual(rows[-1][1], 'ABBA comparison + saturation negative controls')
 
-    def test_full_abba_counts_missing_refs_and_measurement_errors_as_failures(self):
-        # The ABBA row REPORTS and does not gate (owner ruling 2026-09-13): whatever the tier
-        # returns, the block emits no ledger row, so the tally is unaffected. Its numbers still
-        # print. Correctness gates.
+    def test_headline_abba_emits_zero_scored_rows(self):
+        # Headline reporting contributes no correctness row at any exit status.
+        # Full/push/release certification separately requires a trusted comparison
+        # and rc=0; gate_receipt's controls exercise that stronger condition.
         for rc in (0, 1, 2, 3):
             with self.subTest(rc=rc):
                 rows = self.run_block('performance', abba_rc=rc)
