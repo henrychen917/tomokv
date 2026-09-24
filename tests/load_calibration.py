@@ -221,6 +221,9 @@ def main(args):
                 "runtime inputs changed during calibration")
         require(report["cells"] and all(row["status"] in ("PIN", "EXEMPT") for row in report["cells"]),
                 "calibration has failed or unconfirmed cells")
+        children.close()
+        require(not children.active, "calibration owned processes are unreaped")
+        report["process_cleanup"] = dict(complete=True, remaining=0)
         report.update(verdict="EXEMPT" if all(abba.saturation_exempt(row["cell"])
                       for row in report["cells"]) else "PIN", complete=True)
         publish()
@@ -252,7 +255,7 @@ def self_test():
     from types import SimpleNamespace
     import unittest
     from unittest import mock
-    from _abba_test_fixtures import saturation_record
+    from _abba_test_fixtures import saturation_record, workload_record
 
     class Controls(unittest.TestCase):
         def setUp(self):
@@ -425,7 +428,7 @@ def self_test():
                     quiet = Quiet()
                     child = SimpleNamespace(pid=123)
                     conn = SimpleNamespace(close=lambda: closes.append("connection"))
-                    children = SimpleNamespace(close=lambda: None, stop=lambda process: closes.append(process.pid))
+                    children = SimpleNamespace(active=[], close=lambda: None, stop=lambda process: closes.append(process.pid))
                     def measure(runner, cell, arm, sequence, instances, knobs, *, _calibration, _window):
                         self.assertEqual((_window, arm), (10, "B"))
                         reused = bool(_calibration)
@@ -435,7 +438,7 @@ def self_test():
                         if failure == "rung" and instances == 2:
                             raise RuntimeError("injected rung failure")
                         run = self.block(instances, {1: 50, 2: 100, 4: 99}[instances])["runs"][0]
-                        run.update(pid=123, population_reused=reused, busy_pct=99.9,
+                        run.update(**workload_record(cell), pid=123, population_reused=reused, busy_pct=99.9,
                             artifacts=f"{cell.id}/n{instances}-{sequence}-B")
                         return run
                     fingerprint = dict(sha256="f" * 64, python={})

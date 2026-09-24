@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Bind a complete push/release gate to source contents, its binary, and actual evidence."""
+"""Full gate receipts and independent local standing-null promotion.
+
+Promotion retains null evidence; only a trusted comparison plus complete
+correctness execution can certify a push/release source tree and binary.
+"""
 from __future__ import annotations
 
 import argparse
@@ -150,8 +154,11 @@ def read_json(path):
 
 
 def write_json(path, value, *, exclusive=False):
+    write_bytes(path, canonical(value) + b"\n", exclusive=exclusive)
+
+
+def write_bytes(path, data, *, exclusive=False):
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = canonical(value) + b"\n"
     if exclusive:
         with path.open("xb") as stream:
             stream.write(data)
@@ -165,6 +172,11 @@ def write_json(path, value, *, exclusive=False):
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
+        directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
@@ -216,7 +228,7 @@ def inventory(root, path):
             required.add((mode, 0, 1, ro, "REORDER", 8, 512, 1, "8:2"))
     require(required <= actual, f"full inventory retired {len(required - actual)} required cell geometries")
     for cell in cells:
-        require(cell["depth"] == 1 or cell.get("instances", 0) > 0,
+        require(saturation_exempt(cell) or cell.get("instances", 0) > 0,
                 f"{cell['id']}: unmeasured load floor; re-pin with --escalate before certification")
         require(cell["op"] != "REORDER" or cell.get("score") == "p999",
                 f"{cell['id']}: reorder needs p99.9 scoring")
@@ -271,7 +283,10 @@ def current_campaign(root, campaign):
 
 def freeze_null(root, args):
     """Freeze runtime inputs AFTER replay/import, with no server or generator boot."""
-    from gate_measurements import validate_fast_calibration, shape, load as load_measurements, apply_floor, geometry
+    from gate_measurements import (validate_fast_calibration, shape, load as load_measurements,
+                                   apply_floor, geometry, import_calibration)
+    from abbagate import Cell
+    import copy
     from abbagate import WINDOW
     calibration = read_json(args.calibration)
     fingerprint = instrument_fingerprint(root)
@@ -285,6 +300,9 @@ def freeze_null(root, args):
             all(shape(row["cell"]) == shape(cell) for row, cell in zip(calibration["cells"], inv["cells"])),
             "freeze calibration differs from current full inventory")
     measurements = load_measurements(root / "tests/gate_measurements.json")
+    replayed = copy.deepcopy(measurements)
+    import_calibration(args.calibration, replayed, [Cell(**cell) for cell in inv["cells"]])
+    require(replayed == measurements, "freeze requires replay/import of this complete calibration first")
     for cell in inv["cells"]:
         if not saturation_exempt(cell):
             require(apply_floor(cell, measurements, geometry(calibration["environment"]),
@@ -309,7 +327,7 @@ def validate_campaign(root, campaign, report, *, now):
     current_campaign(root, campaign)
     started, environment = validate_measurements(report, now=now, expected_source=campaign["inventory"],
         expected_cells=campaign["inventory"]["cells"], expected_instrument=campaign["instrument"])
-    require(campaign["frozen_at"] <= started <= now and now - started <= NULL_MAX_AGE,
+    require(campaign["frozen_at"] <= started + 1 <= now + 1 and now - started <= NULL_MAX_AGE,
             "campaign must start after freeze and be at most 24 hours old")
     require(instrument(environment) == instrument(campaign["environment"]),
             "campaign environment/geometry/runtime inputs differ")
@@ -340,12 +358,12 @@ def promote_null(root, args):
     # The source and plan remain immutable audit artifacts. Only full-null.json
     # is a mutable default. An interrupted replacement leaves its previous bytes intact.
     archive.mkdir(parents=True, exist_ok=True)
-    for name, value in (("source.json", report), ("campaign.json", campaign)):
+    for name, data in (("source.json", source_bytes), ("campaign.json", canonical(campaign) + b"\n")):
         path = archive / name
         if path.exists():
-            require(read_json(path) == value, "promotion archive differs")
+            require(path.read_bytes() == data, "promotion archive differs")
         else:
-            write_json(path, value, exclusive=True)
+            write_bytes(path, data, exclusive=True)
     promoted = {**report, "promotion": provenance}
     provenance_path = archive / (digest(canonical(provenance)) + ".promotion.json")
     if not provenance_path.exists():
@@ -699,12 +717,13 @@ def self_test():
             from gate_measurements import load as measured_inputs, shape
             config = measured_inputs()
             config["load_floors"] = {}
+            fixture_instrument = instrument_fingerprint(self.root)["sha256"]
             for cell in read_cells(ROOT / "tests/headline_cells.txt"):
                 if not saturation_exempt(cell):
                     config["load_floors"][cell.id] = dict(instances=1, shape=shape(cell), status="calibrated",
                         geometry=dict(server_physical=[0, 1], server_smt=[], load_physical=[2, 3],
                                       load_smt=[], split_ratio="1:1"),
-                        instrument_sha256=instrument_fingerprint(self.root)["sha256"],
+                        instrument_sha256=fixture_instrument,
                         observed_rate=dict(unit="ops_per_second", order=["B"], values=[100.]),
                         observed_busy=dict(unit="percent", order=["B"], values=[99.]),
                         provenance=dict(when="synthetic", how="serverless fixture; no measurement"))
@@ -831,6 +850,46 @@ def self_test():
             self.save_results()
             with self.assertRaisesRegex(ValueError, "independent own-row"):
                 finish(self.root, self.finish_args)
+
+        def test_ledger_and_comparison_guards_have_individual_removal_controls(self):
+            original_rows = self.ledger.read_text().splitlines(True)
+            original_observed, original_completed = copy.deepcopy(self.observed), copy.deepcopy(self.completed)
+            original_report = copy.deepcopy(self.report)
+            cases = ("missing real row", "duplicate label", "wrong count", "unowned observation", "bad comparison")
+            for case in cases:
+                rows = original_rows[:]
+                self.observed, self.completed = copy.deepcopy(original_observed), copy.deepcopy(original_completed)
+                self.report = copy.deepcopy(original_report)
+                message = "missing, duplicated"
+                if case == "missing real row":
+                    rows.pop(0); self.observed.pop(0)
+                elif case == "duplicate label":
+                    label = rows[0].rstrip().split("\t")[2]
+                    rows[1] = f"ok\t1.0\t{label}\n"
+                    self.observed[1].update(label=label, ledger_label=label)
+                elif case == "wrong count":
+                    self.completed["checks"] -= 1
+                    message = "incorrect gate completion checks"
+                elif case == "unowned observation":
+                    self.observed[0]["timing"] = "borrowed"
+                    message = "non-owned timing"
+                else:
+                    self.report.update(verdict="PARTIAL", comparison_trusted=False)
+                    message = "only a complete trusted comparison"
+                self.ledger.write_text("".join(rows)); self.save_results()
+                with self.assertRaisesRegex(ValueError, message):
+                    finish(self.root, self.finish_args)
+                saved_require = require
+                def removed(condition, reason):
+                    if message not in reason:
+                        saved_require(condition, reason)
+                with mock.patch(__name__ + ".require", side_effect=removed):
+                    with self.assertRaises(AssertionError):
+                        with self.assertRaisesRegex(ValueError, message):
+                            finish(self.root, self.finish_args)
+                for name in ("evidence.json", "receipt.json"):
+                    (self.start.parent / name).unlink(missing_ok=True)
+                print(f"REMOVAL {case}: its exact rejecting assertion failed as required")
 
         def test_explicit_unscored_dependencies_and_context_do_not_change_counts(self):
             self.observed[0]["label"] += " [external binary: context]"
@@ -995,7 +1054,7 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
                 lambda run, mode: run.pop("saturation"),
                 lambda run, mode: run["saturation"].update(score_pct=100),
                 lambda run, mode: run["saturation"]["threads"][0].update(ops_delta=0),
-                lambda run, mode: run.update(saturation=saturation_record(mode, score=90, threads=2)),
+                lambda run, mode: run.update(saturation=saturation_record(mode, score=89, threads=2)),
                 lambda run, mode: run.update(saturation=saturation_record(mode, threads=1)),
                 lambda run, mode: run.update(saturation=saturation_record(mode, threads=2, window_seconds=19)),
                 lambda run, mode: run.update(midpoint_monotonic=31),

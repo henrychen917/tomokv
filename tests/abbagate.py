@@ -37,8 +37,8 @@ regression, so it cannot detect one at any repetition count. Pinned load levels 
 and must still satisfy the productive-role occupancy floor. Unpinned cells, or --escalate,
 search until EACH arm stops gaining AND its productive bottleneck role meets the floor.
 Raw legacy all-thread busy is retained but cannot penalize legitimate idle executors.
-Depth 1 is exempt and
-scored as latency -- it is round-trip bound by Little's law. Process CPU is NOT substituted for busy
+Depth 1 and p99.9 tails are exempt from the occupancy floor and plateau;
+raw saturation, workload, timing and completion evidence remain mandatory. Process CPU is NOT substituted for busy
 percentage: doing so hides exactly the unsaturated case this check exists to catch.
 
 THE VERDICT NAMES THE WORST CELL. It is the conjunction of cell verdicts; no average across GET,
@@ -819,7 +819,7 @@ def pin_main(args):
             "--pin cannot combine with --calibrate, --escalate, --collect-null or --list-cells")
     inventory = read_cells(args.cells)
     cells = selected_cells(inventory, args.subset, args.only)
-    require(all(c.depth > 1 and c.metric == "rate" for c in cells),
+    require(all(not saturation_exempt(c) and c.metric == "rate" for c in cells),
             "--pin requires deep rate-scored cells; select them with --only")
     out = (args.output or ROOT / "build" / f"variance-pin-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}").resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -1824,7 +1824,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                 raise ValueError("invalid internal pin-null probe")
             cells = [replace(cell, instances=_pin_instances[cell.id]) for cell in cells]
         report["coverage"] = coverage(cells)
-        pending = [cell.id for cell in cells if cell.pin_required and not cell.instances]
+        pending = [cell.id for cell in cells if not saturation_exempt(cell) and cell.pin_required and not cell.instances]
         if pending and not args.escalate:
             # AN UNPINNED CELL SEARCHES; IT DOES NOT VETO THE OTHER SIXTEEN. Refusing the whole
             # tier here made every cell hostage to the flakiest one: through 2026-09-12 a single
@@ -1862,7 +1862,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         if args.collect_null:
             # Copy the candidate ONCE, then derive the other arm from that frozen file. Resolving
             # a pushed reference here would create a circular prerequisite and could compare
-            # different bytes. A null proves repeatability of this instrument, not source identity.
+            # different bytes. A null records instrument error; an independent holdout must
+            # establish its observed resolution. Neither artifact proves source identity.
             binaries["B"] = out / "binary-B"
             shutil.copy2(args.candidate.resolve(), binaries["B"])
             reference = binaries["B"]
@@ -2133,7 +2134,7 @@ def self_test():
     import io
     import unittest
     from unittest import mock
-    from _abba_test_fixtures import quiet_record, saturation_record
+    from _abba_test_fixtures import quiet_record, saturation_record, workload_record
     (ROOT / "build").mkdir(exist_ok=True)
 
     def wait_pidfile(path, deadline):
@@ -2270,7 +2271,8 @@ def self_test():
                     data_bytes=64, key_pattern="P:P", atomic="per-cell", split_flip_auto=0,
                     uname=list(os.uname()), python_runtime=fingerprint["python"],
                     memtier_sha256=sha256(Path(sys.executable).resolve()), memtier_version="unit",
-                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"})
+                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"},
+                    measurements_sha256=sha256(ROOT / "tests/gate_measurements.json"))
 
                 def calibrate(options):
                     rounds = []
@@ -2278,10 +2280,11 @@ def self_test():
                         rounds.append(dict(instances=n, runs=[dict(arm="B", rate=100., latency_ms=1.,
                             busy_pct=99., commands=1000, complete=True, instances=n, pid=123,
                             artifacts=f"{cell.id}/n{n}-{i}-B", window_seconds=10., midpoint_monotonic=6.,
-                            calibration_only=True, population_reused=i > 1,
+                            calibration_only=True, population_reused=i > 1, **workload_record(cell),
                             load_layout=load_layout(environment["load_cpus"], n, cell.conns),
                             saturation=saturation_record(window_seconds=10))]))
                     report = dict(schema=1, run_kind="load-calibration", verdict="PIN", complete=True,
+                process_cleanup=dict(complete=True, remaining=0),
                         measurement_valid=False, normal_gate_eligible=False, comparison_trusted=False,
                         order=["B"], window_seconds=10, elapsed_seconds=30,
                         started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", original_gmtime(epoch)),

@@ -4,10 +4,14 @@ Every binary here is an identity artifact and is NEVER executed. CPU geometry
 is metadata; only topology is read. These are not measured results or receipts.
 """
 import argparse
+from contextlib import ExitStack
+import inspect
+import textwrap
 import copy
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
 import json
+from functools import lru_cache
 import os
 from pathlib import Path
 import shutil
@@ -18,6 +22,7 @@ from unittest import mock
 
 import abbagate as abba
 import abba_evidence as evidence
+import abba_instrument as instrument_module
 import gate_measurements as measurements
 import gate_receipt as receipt
 from abba_instrument import instrument_fingerprint
@@ -32,13 +37,18 @@ def stamp(epoch):
     return datetime.fromtimestamp(epoch, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+@lru_cache(maxsize=32)
+def fixture_layout(cpus, n, conns):
+    return abba.load_layout(list(cpus), n, conns)
+
+
 def raw_run(cell, arm, n, sequence, env, *, fast=False, score=None):
     window = 10 if fast else 20
     names = workload_command_names(cell)
     before = {f'cmdstat_{name.lower()}': 'calls=0,usec=0' for name in names}
     after = {f'cmdstat_{name.lower()}': 'calls=100,usec=100' for name in names}
     modes = {'reorder_retired': '1', 'reorder': '0'} if cell.op == 'REORDER' else {}
-    layout = abba.load_layout(env['load_cpus'], n, cell.conns)
+    layout = fixture_layout(tuple(env['load_cpus']), n, cell.conns)
     # Distribute exactly 100 completed commands per command over the generators.
     totals = []
     for i, placement in enumerate(layout):
@@ -46,7 +56,7 @@ def raw_run(cell, arm, n, sequence, env, *, fast=False, score=None):
         conns = placement['threads'] * placement['clients']
         totals.append(dict(connections=conns, outstanding_bound=conns * cell.depth,
                            reported_counts=counts, completed_hdr_counts=counts))
-    result = dict(arm=arm, instances=n, complete=True, pid=123, rate=100., busy_pct=99.,
+    result = dict(arm=arm, instances=n, data_bytes=cell.data_bytes, complete=True, pid=123, rate=100., busy_pct=99.,
         latency_ms=1., p999_ms=2., long_p999_ms=3., commands=2000,
         midpoint_monotonic=1 + window / 2, window_seconds=window,
         artifacts=f'{cell.id}/n{n}-{sequence}-{arm}', load_layout=layout,
@@ -91,7 +101,19 @@ def fixture_report(cells, fingerprint, env, source, started, binary, *, fast=Fal
     else:
         report['statistical_verdict'] = 'PASS'
         report['null_control'] = evidence.null_result(report, now=time.time())
-    return report
+    return json.loads(json.dumps(report))
+
+
+def throwaway(module, name, old, new, occurrence=0):
+    """Remove one named mechanism in memory; never edit or run a production binary."""
+    source = textwrap.dedent(inspect.getsource(getattr(module, name)))
+    offset = -1
+    for _ in range(occurrence + 1):
+        offset = source.index(old, offset + 1)
+    source = source[:offset] + new + source[offset + len(old):]
+    namespace = dict(module.__dict__)
+    exec(compile(source, f"<throwaway {name} occurrence {occurrence}>", 'exec'), namespace)
+    return mock.patch.object(module, name, namespace[name])
 
 
 class PromotionControls(unittest.TestCase):
@@ -154,7 +176,8 @@ class PromotionControls(unittest.TestCase):
     def setUp(self):
         receipt.write_json(self.source, self.report)
         self.standing.parent.mkdir(parents=True, exist_ok=True)
-        self.standing.write_bytes(b'previous good default must survive refusal\n')
+        receipt.write_json(self.standing, self.report)
+        evidence.validate_null(receipt.read_json(self.standing), now=time.time())
 
     def test_absent_and_stale_prior_null_bootstrap_without_receipt(self):
         for prior in (None, b'{"started_utc":"2000-01-01T00:00:00Z"}'):
@@ -165,7 +188,7 @@ class PromotionControls(unittest.TestCase):
                 self.assertEqual(receipt.promote_null(self.root, self.args), self.standing)
                 result = receipt.read_json(self.standing)
                 self.assertEqual((result['verdict'], result['comparison_trusted']), ('PARTIAL', False))
-                self.assertEqual(receipt.read_json(self.source), self.report)
+                self.assertTrue(receipt.read_json(self.source) == self.report, "source artifact retained")
                 self.assertTrue(list((self.standing.parent.parent / 'null-promotions').glob('*/*.promotion.json')))
                 self.assertFalse(list((self.standing.parent.parent / 'runs').glob('*/receipt.json')))
                 with self.assertRaisesRegex(ValueError, 'comparison is partial'):
@@ -176,13 +199,23 @@ class PromotionControls(unittest.TestCase):
         with mock.patch.object(receipt, 'promote_null', side_effect=ValueError('receipt-only publication needs prior comparison')):
             with self.assertRaisesRegex(ValueError, 'receipt-only'):
                 receipt.promote_null(self.root, self.args)
+        self.standing.unlink()
+        original_write = receipt.write_bytes
+        def receipt_only(path, *args, **kwargs):
+            if path != self.standing:
+                original_write(path, *args, **kwargs)
+        with mock.patch.object(receipt, 'write_bytes', side_effect=receipt_only):
+            with self.assertRaises(AssertionError):
+                self.assertTrue(receipt.promote_null(self.root, self.args).is_file(),
+                                'standalone bootstrap must publish without a prior receipt')
 
     def rejection(self, report, message):
         receipt.write_json(self.source, report)
         before = self.standing.read_bytes()
-        with self.assertRaisesRegex((ValueError, RuntimeError), message):
+        with self.assertRaisesRegex((ValueError, RuntimeError), message) as caught:
             receipt.promote_null(self.root, self.args)
         self.assertEqual(self.standing.read_bytes(), before, message)
+        return type(caught.exception), str(caught.exception)
 
     def test_mutations_reject_before_replacing_previous_default(self):
         rate_index = next(i for i, row in enumerate(self.report['cells']) if not saturation_exempt(row['cell']))
@@ -214,14 +247,51 @@ class PromotionControls(unittest.TestCase):
             ('failed run', lambda r: run(r).update(error='generator failed'), 'incomplete measurement'),
             ('missing workload', lambda r: run(r).pop('workload_raw'), 'missing raw workload'),
             ('wrong workload', lambda r: run(r)['workload_raw'].update(after={}), 'did not execute'),
+            ('value size', lambda r: run(r).update(data_bytes=1), 'value size differs'),
             ('spread integrity', lambda r: run(r).update(rate=110.), 'null control did not complete'),
         ]
         for state, mutate, message in changes:
             with self.subTest(state=state):
                 changed = copy.deepcopy(self.report)
                 mutate(changed)
-                self.rejection(changed, message)
+                rejected = self.rejection(changed, message)
                 print(f'MUTATION {state}: rejected ({message}); previous default intact')
+                # Disable the exact rejecting mechanism in this disposable fixture.
+                # A redundant later guard may still refuse; the named assertion
+                # must then fail on that DIFFERENT reason, not falsely claim coverage.
+                previous, hits = self.standing.read_bytes(), []
+                with ExitStack() as stack:
+                    for module in (receipt, evidence, instrument_module):
+                        original = module.require
+                        def removed(condition, reason, original=original):
+                            if reason == rejected[1] and not condition:
+                                hits.append(reason)
+                            else:
+                                original(condition, reason)
+                        stack.enter_context(mock.patch.object(module, 'require', side_effect=removed))
+                    if state == 'cached saturation PASS':
+                        original = evidence.replay_saturation
+                        def no_cached_check(record, **kwargs):
+                            try:
+                                return original(record, **kwargs)
+                            except ValueError as error:
+                                if str(error) != rejected[1]: raise
+                                hits.append(str(error)); return record
+                        for module in (evidence, abba):
+                            stack.enter_context(mock.patch.object(module, 'replay_saturation', side_effect=no_cached_check))
+                    if state == 'wrong workload':
+                        def no_workload(*_): hits.append(rejected[1])
+                        stack.enter_context(mock.patch.object(evidence, 'validate_workload_evidence', side_effect=no_workload))
+                    observed = None
+                    try:
+                        receipt.promote_null(self.root, self.args)
+                    except Exception as error:
+                        observed = type(error), str(error)
+                    self.assertTrue(hits, f'{state}: removal never exercised its guard')
+                    self.assertNotEqual(observed, rejected, f'{state}: exact rejection oracle survived removal')
+                self.standing.write_bytes(previous)
+                print(f'REMOVAL {state}: exact assertion failed; ' +
+                      ('accepted in throwaway' if observed is None else 'next guard: ' + observed[1][:100]))
 
     def test_removed_promotion_validation_is_detected_per_mechanism(self):
         mutations = [
@@ -256,6 +326,17 @@ class PromotionControls(unittest.TestCase):
             with self.assertRaisesRegex(OSError, 'interrupted'):
                 receipt.promote_null(self.root, self.args)
         self.assertEqual(self.standing.read_bytes(), before)
+        # Removing atomic replacement exposes a partial destination on interruption.
+        original = receipt.write_bytes
+        def non_atomic(path, *args, **kwargs):
+            if path == self.standing:
+                path.write_bytes(b'interrupted partial destination')
+                raise OSError('interrupted direct write')
+            return original(path, *args, **kwargs)
+        with mock.patch.object(receipt, 'write_bytes', side_effect=non_atomic):
+            with self.assertRaises(OSError): receipt.promote_null(self.root, self.args)
+            with self.assertRaises(AssertionError): self.assertEqual(self.standing.read_bytes(), before)
+        self.standing.write_bytes(before)
         # Corrupt one byte in an executable ELF section, never run it.
         arm = self.source.parent / 'binary-B'
         content = arm.read_bytes()
@@ -285,6 +366,61 @@ class PromotionControls(unittest.TestCase):
                 finally:
                     path.write_bytes(original)
 
+    def test_freeze_requires_full_replayed_import_and_is_immutable(self):
+        config_path = self.root / 'tests/gate_measurements.json'
+        original = config_path.read_bytes()
+        try:
+            cells = [abba.Cell(**cell) for cell in self.inv['cells']]
+            calibration = fixture_report(cells, self.fp, self.env, self.report['cell_source']['text'],
+                                         self.started - 1000, self.binary, fast=True)
+            path = self.root / 'build/calibration.json'; receipt.write_json(path, calibration)
+            args = argparse.Namespace(calibration=path, output=self.root / 'build/post-import-plan.json')
+            with self.assertRaisesRegex(ValueError, 'replay/import'):
+                receipt.freeze_null(self.root, args)
+            config = measurements.load(config_path)
+            imported = measurements.import_calibration(path, config, cells)
+            self.assertEqual(len(imported), sum(not saturation_exempt(cell) for cell in cells))
+            receipt.write_json(config_path, config)
+            self.assertEqual(receipt.freeze_null(self.root, args), args.output)
+            frozen = receipt.read_json(args.output)
+            receipt.current_campaign(self.root, frozen)
+            with self.assertRaises(FileExistsError):
+                receipt.freeze_null(self.root, args)
+            self.assertEqual(frozen['instrument'], self.fp)
+            self.assertNotEqual(frozen['measurements_sha256'], self.campaign['measurements_sha256'])
+        finally:
+            config_path.write_bytes(original)
+
+    def test_age_ladder_window_and_fixed_resolution_checks_cannot_be_bypassed(self):
+        changes = []
+        stale = copy.deepcopy(self.report)
+        shift = 90000
+        stale['started_utc'] = stamp(self.started - shift)
+        stale['quiet_box']['started_at'] -= shift
+        stale['quiet_box']['finished_at'] -= shift
+        changes.append(('age', stale, 'at most 24 hours old'))
+        ladder = copy.deepcopy(self.report)
+        row = next(row for row in ladder['cells'] if not saturation_exempt(row['cell']))
+        row['assessment']['instances'] = 2
+        row['rounds'][0]['instances'] = 2
+        for i, run in enumerate(row['rounds'][0]['runs'], 1):
+            run.update(instances=2, artifacts=f"{row['cell']['id']}/n2-{i}-{run['arm']}")
+        changes.append(('ladder', ladder, 'measured load ladder differs'))
+        window = copy.deepcopy(self.report); window['window_seconds'] = 19
+        changes.append(('window', window, 'campaign window differs'))
+        for state, report, message in changes:
+            self.rejection(report, message)
+            module = receipt if state != 'ladder' else evidence
+            saved = module.require
+            def removed(condition, reason):
+                if message not in reason:
+                    saved(condition, reason)
+            with mock.patch.object(module, 'require', side_effect=removed):
+                with self.assertRaises(AssertionError):
+                    with self.assertRaisesRegex(ValueError, message):
+                        receipt.promote_null(self.root, self.args)
+            print(f'REMOVAL {state}: exact rejecting assertion failed')
+
     def test_independent_holdout_cannot_use_its_own_error_to_widen_resolution(self):
         receipt.promote_null(self.root, self.args)
         control = receipt.read_json(self.standing)
@@ -306,6 +442,14 @@ class PromotionControls(unittest.TestCase):
         assess()  # Favorable drift can pass a one-sided code comparison.
         with self.assertRaisesRegex(ValueError, 'frozen two-sided resolution'):
             evidence.validate_holdout(comparison, control, now=time.time())
+        with throwaway(evidence, 'validate_holdout', 'row["absolute_delta_pct"] <= bound["abs_delta"]', 'True'):
+            with self.assertRaises(AssertionError):
+                with self.assertRaisesRegex(ValueError, 'frozen two-sided resolution'):
+                    evidence.validate_holdout(comparison, control, now=time.time())
+        forged = copy.deepcopy(control)
+        forged['null_control']['resolution'][0]['metric'] = 'cycles/op'
+        with self.assertRaisesRegex(ValueError, 'null control did not complete'):
+            evidence.validate_null(forged, now=time.time())
 
 
 class ExemptionControls(unittest.TestCase):
@@ -349,6 +493,50 @@ class ExemptionControls(unittest.TestCase):
                 with mock.patch.object(module, 'saturation_exempt', return_value=True):
                     with self.assertRaises(AssertionError):
                         self.assertFalse(module.saturation_exempt(cells[-1]))
+
+
+    def test_each_depth_only_branch_restoration_breaks_its_exempt_fixture(self):
+        cell = abba.Cell('tail32', '1s', 0, 1, 1, 'REORDER', 32, 512, score='p999', mix='8:2')
+        fp = instrument_fingerprint(ROOT)
+        env = copy.deepcopy(PromotionControls.env)
+        fast = fixture_report([cell], fp, env, 'tail fixture\n', int(time.time())-10000,
+                              PromotionControls.binary, fast=True)
+        normal = fixture_report([cell], fp, env, 'tail fixture\n', int(time.time())-10000,
+                                PromotionControls.binary)
+        cases = [
+            (measurements, 'validate_fast_calibration', 'saturation_exempt(cell)', 'cell.depth == 1', 0, 'row status'),
+            (measurements, 'validate_fast_calibration', 'saturation_exempt(cell)', 'cell.depth == 1', 1, 'selection status'),
+            (measurements, 'import_calibration', 'saturation_exempt(cell)', 'cell.depth == 1', 0, 'import selection'),
+            (measurements, 'import_calibration', 'saturation_exempt(cell)', 'cell.depth == 1', 1, 'import skip'),
+            (evidence, 'validate_measurements', 'if not exempt and', 'if cell["depth"] > 1 and', 0, 'replay occupancy'),
+        ]
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as tmp:
+            path = Path(tmp) / 'calibration.json'; receipt.write_json(path, fast)
+            def assertion(module):
+                if module is evidence:
+                    evidence.validate_measurements(normal, now=time.time())
+                else:
+                    self.assertEqual(measurements.import_calibration(path, measurements.load(), [cell]), [])
+            for module, name, old, new, occurrence, state in cases:
+                with self.subTest(state=state):
+                    assertion(module)
+                    with throwaway(module, name, old, new, occurrence):
+                        with self.assertRaises((ValueError, AssertionError)):
+                            assertion(module)
+                    print(f'RESTORED depth-only {state}: dedicated p999 depth32 fixture failed as required')
+
+    def test_unsaturated_depth32_rate_cannot_claim_exempt_even_when_predicate_removed(self):
+        from load_calibration import select_calibration_floor
+        cell = abba.Cell('deep_rate', '1s', 0, 1, 1, 'GET', 32, 512, score='rate')
+        env = PromotionControls.env
+        rounds = [dict(instances=n, runs=[raw_run(cell, 'B', n, i, env, fast=True, score=1)])
+                  for i, n in enumerate((1, 2), 1)]
+        def assertion():
+            self.assertEqual(select_calibration_floor(cell, rounds)['status'], 'UNPROVEN')
+        assertion()
+        with mock.patch.object(abba, 'saturation_exempt', return_value=True):
+            with self.assertRaises(AssertionError): assertion()
+        print('REMOVAL canonical predicate -> all exempt: unsaturated depth32 RATE assertion failed')
 
 
 def self_test():

@@ -174,20 +174,22 @@ def configured_reference(commit, measurements=None):
 
 
 def validate_fast_calibration(report, fingerprint):
-    """A short, single-arm ladder can authorize a PIN and nothing else.
+    """A short, single-arm ladder can authorize rate PINs or validated EXEMPT rows.
 
     Keep this separate from ABBA validation: fabricating four copies of one run
     would invent repeatability and could accidentally certify a standing null.
     Every retained rung is checked before any config entry is changed.
     """
     from abbagate import Cell
-    from abba_evidence import number, utc_seconds, validate_quiet
+    from abba_evidence import number, utc_seconds, validate_quiet, validate_workload_evidence
     from abba_instrument import validate_fingerprint
     from abba_saturation import replay_saturation, require_saturation_window, SATURATION_FLOOR
     from load_calibration import select_calibration_floor
     require(isinstance(report, dict) and report.get("schema") == 1 and
             report.get("run_kind") == "load-calibration" and report.get("verdict") in ("PIN", "EXEMPT") and
-            report.get("complete") is True, "fast calibration did not complete with a PIN")
+            report.get("complete") is True, "fast calibration did not complete with PIN/EXEMPT evidence")
+    require(report.get("process_cleanup") == {"complete": True, "remaining": 0},
+            "calibration owned processes are unreaped")
     require(report.get("measurement_valid") is False and report.get("normal_gate_eligible") is False and
             report.get("comparison_trusted") is False and report.get("order") == ["B"] and
             not report.get("null_control") and not report.get("standing_null") and not report.get("error") and
@@ -232,6 +234,10 @@ def validate_fast_calibration(report, fingerprint):
     require(all(isinstance(ident, str) and ident for ident in ids) and len(ids) == len(set(ids)) and
             coverage.get("ids") == ids and coverage.get("count") == len(ids) and len(ids) <= source["total_cells"],
             "calibration is incomplete: observed cell IDs differ from requested coverage")
+    require(report["verdict"] == ("EXEMPT" if all(saturation_exempt(row["cell"]) for row in rows) else "PIN"),
+            "all-exempt calibration cannot claim imported throughput floors")
+    require(report.get("subset") != "full" or report.get("only") or len(ids) == source["total_cells"],
+            "full calibration coverage is incomplete")
     windows = 0.
     for row in rows:
         cell = Cell(**row["cell"])
@@ -265,6 +271,7 @@ def validate_fast_calibration(report, fingerprint):
             saturation = replay_saturation(run.get("saturation"), floor_pct=SATURATION_FLOOR,
                 mode=cell.mode, thread_count=len(environment["server_cpus"]))
             require_saturation_window(saturation, run)
+            validate_workload_evidence(cell, run)
             windows += run["window_seconds"]
         require(len(pids) == 1, f"{cell.id}: calibration rebooted between load rungs")
         selection = select_calibration_floor(replace(cell, instances=0), rounds)
@@ -519,7 +526,7 @@ def self_test():
             from abbagate import Cell, load_layout
             from abba_evidence import validate_measurements
             from abba_instrument import instrument_fingerprint
-            from _abba_test_fixtures import saturation_record, quiet_record
+            from _abba_test_fixtures import saturation_record, quiet_record, workload_record
             cell = Cell(**self.cell)
             started = "2026-09-10T00:00:00Z"
             epoch = datetime.fromisoformat(started.replace("Z", "+00:00")).timestamp()
@@ -528,13 +535,14 @@ def self_test():
             rounds = []
             for index, count in enumerate((1, 2)):
                 rounds.append(dict(instances=count, runs=[dict(arm="B", complete=True,
-                    calibration_only=True, population_reused=bool(index), instances=count, pid=123,
+                    calibration_only=True, population_reused=bool(index), instances=count, pid=123, **workload_record(cell),
                     rate=100., busy_pct=99.9, latency_ms=1., commands=1000,
                     artifacts=f"{cell.id}/n{count}-{index + 1}-B", midpoint_monotonic=6, window_seconds=10.,
                     load_layout=load_layout(load_cpus, count, cell.conns),
                     saturation=saturation_record(cell.mode, window_seconds=10))]))
             source = "synthetic fast calibration cell fixture\n"
             report = dict(schema=1, run_kind="load-calibration", verdict="PIN", complete=True,
+                process_cleanup=dict(complete=True, remaining=0),
                 measurement_valid=False, normal_gate_eligible=False, comparison_trusted=False,
                 order=["B"], window_seconds=10, elapsed_seconds=100, started_utc=started,
                 instrument_fingerprint=fingerprint, candidate={"sha256": "a" * 64},
@@ -616,7 +624,7 @@ def self_test():
             from abbagate import Cell, load_layout, ORDER, assess
             from abba_instrument import instrument_fingerprint
             from abba_evidence import null_result
-            from _abba_test_fixtures import saturation_record, quiet_record
+            from _abba_test_fixtures import saturation_record, quiet_record, workload_record
             cell = Cell(**self.cell)
             rounds = []
             for count in (1, 2):

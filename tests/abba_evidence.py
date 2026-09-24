@@ -305,6 +305,22 @@ def instrument(environment):
             if key not in ("port", "permitted_ports", "memtier_path")}
 
 
+def validate_workload_evidence(cell, run):
+    from abba_workloads import require_workload_accounting, require_workload_witness
+    require(run.get("data_bytes") == cell.data_bytes, f"{cell.id}: measured workload value size differs")
+    raw = run.get("workload_raw")
+    require(isinstance(raw, dict), f"{cell.id}: missing raw workload witness")
+    try:
+        witness = require_workload_witness(cell, raw["before"], raw["after"],
+            raw["mode_before"], raw["mode_after"], raw.get("legacy_control"))
+        accounting = require_workload_accounting(cell, run["whole_run_commandstats_before"],
+            run["whole_run_commandstats_after"], run["memtier"])
+    except (RuntimeError, KeyError, TypeError) as error:
+        raise ValueError(f"{cell.id}: invalid raw workload: {error}") from error
+    require(witness == run.get("workload_witness"), f"{cell.id}: workload witness differs")
+    require(accounting == run.get("whole_run_accounting"), f"{cell.id}: workload accounting differs")
+
+
 def validate_campaign_evidence(report):
     """Replay the completed frozen campaign, including raw workload witnesses.
 
@@ -313,30 +329,26 @@ def validate_campaign_evidence(report):
     No occupancy or plateau waiver can waive completion or the intended workload.
     """
     from abbagate import Cell, assess, NULL_MODE, load_layout
-    from abba_workloads import require_workload_accounting, require_workload_witness
     require(report.get("complete") is True and report.get("process_cleanup") ==
             {"complete": True, "remaining": 0} and not report.get("error"),
             "campaign incomplete or owned processes unreaped")
     require(report.get("subset") == "full" and not report.get("only") and not report.get("escalate"),
             "campaign requires full coverage without only/subset/escalation salvage")
+    layouts = {}
     for row in report["cells"]:
         cell = Cell(**row["cell"])
         plan = [cell.instances or 1]
         require([block["instances"] for block in row["rounds"]] == plan,
                 f"{cell.id}: measured load ladder differs from frozen plan")
         for block in row["rounds"]:
+            key = (block["instances"], cell.conns)
+            if key not in layouts:
+                layouts[key] = load_layout(report["environment"]["load_cpus"], *key)
             for run in block["runs"]:
                 require(run.get("instances") == block["instances"] and run.get("load_layout") ==
-                        load_layout(report["environment"]["load_cpus"], block["instances"], cell.conns),
+                        layouts[key],
                         f"{cell.id}: generator layout differs from frozen plan")
-                raw = run.get("workload_raw")
-                require(isinstance(raw, dict), f"{cell.id}: missing raw workload witness")
-                witness = require_workload_witness(cell, raw["before"], raw["after"],
-                    raw["mode_before"], raw["mode_after"], raw.get("legacy_control"))
-                require(witness == run.get("workload_witness"), f"{cell.id}: workload witness differs")
-                accounting = require_workload_accounting(cell, run["whole_run_commandstats_before"],
-                    run["whole_run_commandstats_after"], run["memtier"])
-                require(accounting == run.get("whole_run_accounting"), f"{cell.id}: workload accounting differs")
+                validate_workload_evidence(cell, run)
         # NULL_MODE replays saturation/load validity without applying a code-loss
         # threshold. Two-sided resolution/integrity is checked independently below.
         replay = assess(cell, row["rounds"], NULL_MODE)
