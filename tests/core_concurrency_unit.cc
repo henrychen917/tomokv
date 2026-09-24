@@ -19,6 +19,7 @@
 #include <sched.h>
 
 #include "src/core/io_loop.h"
+#include "src/core/shutdown_report.h"
 
 namespace tomo {
 struct CoreConcurrencyTest {
@@ -1053,6 +1054,8 @@ int main(int argc, char** argv) {
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }
+    else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
+    else if (row == "signalacct-report-1s") { T::signalacct_report<true>(); return 0; }
     else if (row == "signalacct-post") T::signalacct_physical(false, true);
     else if (row == "signalacct") T::signalacct();
     else if (row == "lbfix") T::lb_signals();

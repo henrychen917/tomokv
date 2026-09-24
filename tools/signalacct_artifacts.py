@@ -53,9 +53,9 @@ def legacy(body):
                  '        self_->stop_flag().load(std::memory_order_relaxed), false);\n')
     body = once(body, marker, insertion + marker)
     body = once(body, '    // A close requested by the last pass',
-                '    io_tenures_.push_back(io_tenure);\n    // A close requested by the last pass')
+                '    srv_->record_io_tenure(self_->id(), io_tenure);\n    // A close requested by the last pass')
     # Reversal proves the PRE envelope is copied, not reconstructed by hand.
-    restored = body.replace(insertion, '').replace('    IoTenure tenure(sig);\n', '').replace('    io_tenures_.push_back(io_tenure);\n', '')
+    restored = body.replace(insertion, '').replace('    IoTenure tenure(sig);\n', '').replace('    srv_->record_io_tenure(self_->id(), io_tenure);\n', '')
     restored = once(restored, '    LoopSignals& sig = self_->sig();\n', '')
     restored = once(restored, '    // The disarmed specialization',
                     '    LoopSignals& sig = self_->sig();\n    // The disarmed specialization')

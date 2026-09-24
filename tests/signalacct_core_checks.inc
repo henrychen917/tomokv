@@ -97,3 +97,30 @@
                 "corrected signal changes physical victim from 1 to 2");
         signalacct_physical(false, false);
     }
+
+    template <bool Fused>
+    static void signalacct_report() {
+        Fixture<Fused> f;
+        std::vector<IoLoop> ios(8);
+        for (uint32_t tid = 0; tid < 8; ++tid) {
+            if (!Fused && tid == 7) continue; // pure EX has no synthetic IO denominator
+            auto& sig = f.server.thread(tid).sig();
+            SignalClock::time = 100;
+            IoTenure<SignalClock> first(sig);
+            sig.idle_ns += 400;
+            SignalClock::time = 1101;
+            f.server.record_io_tenure(tid, first.finish(!Fused && (tid == 0 || tid == 6), Fused || (tid != 0 && tid != 6)));
+            if (!Fused && tid == 0) {
+                // Lifetime counters also carry EX time; neither IO denominator may use it.
+                sig.busy_ns += 300; sig.idle_ns += 200;
+                SignalClock::time = 1602;
+                IoTenure<SignalClock> next(sig);
+                sig.idle_ns += 300;
+                SignalClock::time = 2603;
+                f.server.record_io_tenure(tid, next.finish(false, true));
+            }
+        }
+        auto report = collect_shutdown_report(f.server, ios);
+        print_shutdown_report_human(report);
+        print_shutdown_report_json(report);
+    }

@@ -4,6 +4,8 @@
 // EX tenures and those teardown operations are outside this interval.
 #pragma once
 
+#include <array>
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
@@ -20,6 +22,20 @@ struct IoTenureRecord {
     uint64_t busy_ns = 0, idle_ns = 0;
     uint64_t did_submit = 0, sweep_submit = 0, park = 0;
     bool role_exit = false, stopped = false;
+};
+
+// Appended to Server's cold tail, never to an array of IO loops or ThreadCtxs.
+// One owner writes each row at tenure exit; shutdown reads only after join. Keeping
+// this here preserves every IO-loop object's size, stride and existing cache lines.
+template <size_t Threads>
+class IoTenureHistory {
+public:
+    __attribute__((noinline)) void append(uint32_t tid, const IoTenureRecord& record) {
+        rows_[tid].push_back(record);
+    }
+    const std::vector<IoTenureRecord>& rows(uint32_t tid) const { return rows_[tid]; }
+private:
+    std::array<std::vector<IoTenureRecord>, Threads> rows_;
 };
 
 struct IoAccountingClock {

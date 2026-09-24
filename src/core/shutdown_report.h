@@ -169,7 +169,7 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
         row.cpu_ns = signals.cpu_ns;
         row.wakes_sent = signals.wakes_sent;
         row.wakes_recv = signals.wakes_recv;
-        row.io_tenures = io_loops[tid].io_tenures();
+        row.io_tenures = server.io_tenures(tid);
         if (report.mode_ == ShutdownReport::Mode::Fused) {
             row.role = ShutdownReport::ThreadRole::Fused;
             report.work_.unified += signals.ops;

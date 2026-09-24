@@ -1077,7 +1077,7 @@ void IoLoop::r7_run_loop() {
         }
     }
     // Append after the read-local park: diagnostic allocation must not pin QSBR.
-    io_tenures_.push_back(io_tenure);
+    srv_->record_io_tenure(self_->id(), io_tenure);
     // A close requested by the last pass's read/send path has no later flush_ready to drain it,
     // and an undrained entry would show up as a live connection in the shutdown accounting.
     if constexpr (kEp) {

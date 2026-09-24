@@ -782,7 +782,7 @@ private:
             }
         }
         // Append after the read-local park: diagnostic allocation must not pin QSBR.
-        io_tenures_.push_back(io_tenure);
+        srv_->record_io_tenure(self_->id(), io_tenure);
         // A close requested by the last pass's read/send path has no later flush_ready to drain it,
         // and an undrained entry would show up as a live connection in the shutdown accounting.
         if constexpr (kEp) {
@@ -5763,11 +5763,7 @@ ordinary_shard_ready:
     // bounded residual rotation; teardown and migration defer while either context owns a Client.
     // Cold teardown/migration state; leave all established hot member offsets intact.
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
-    // Appended cold storage: established IO member offsets are unchanged. Read only
-    // after join; role exit appends once, and a new run_loop constructs a new tenure.
-    std::vector<IoTenureRecord> io_tenures_;
 public:
-    const std::vector<IoTenureRecord>& io_tenures() const { return io_tenures_; }
     // R7 bodies are isolated from the FIFO translation units.
     class r7_ReadLocalDemotionPlan;
 // BEGIN R7 GENERATED ENVELOPES

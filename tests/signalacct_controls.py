@@ -67,6 +67,14 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     source = (ROOT / 'src/core/signalacct.h').read_text()
     mutants = {
+        'omit-entry': ('passes', 'entry/prologue cut', replace_once(source,
+            '        account(next);', '        if (next == 110) { cut_ = next; }\n        account(next);')),
+        'omit-no-work': ('passes', 'no-work non-idle', replace_once(source,
+            '        account(next);', '        if (next == 220) { cut_ = next; }\n        account(next);')),
+        'omit-zero-flush': ('zero', 'zero-pass tenure final flush', replace_once(source,
+            '        account(end);', '        /* omit final flush */')),
+        'omit-stop-park-flush': ('roles', 'IO->EX->IO excludes EX', replace_once(source,
+            '        account(end);', '        if (end != 1550) account(end);')),
         'omit-submit': ('passes', 'did-submit elapsed', replace_once(source,
             '        account(next);', '        if (next == 150) { cut_ = next; }\n        account(next);')),
         'omit-sweep': ('passes', 'sweep-submit elapsed', replace_once(source,
