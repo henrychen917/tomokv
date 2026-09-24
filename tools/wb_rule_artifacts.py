@@ -152,11 +152,12 @@ def audit(pre, post, oracle, output):
         assert all(r['passed'] for r in proofs)
         for proof in proofs: assert sha(proof['binary'])==proof['sha256']
         witnesses[group]=dict(path=str(path),sha256=sha(path),positive=sum(r['expected_exit']==0 for r in proofs),negative=sum(r['expected_exit']==1 for r in proofs))
-    result=dict(source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    result=dict(source_commit=subprocess.check_output(['git','log','-1','--format=%H','--','src','Makefile'],cwd=ROOT,text=True).strip(),
                 production_patch_sha256=hashlib.sha256(subprocess.check_output(['git','diff','3e734cf2e','--','src'],cwd=ROOT)).hexdigest(),
                 measured_inputs={str(p):sha(p) for p in (oracle/'tools/drainall_window4.patch',oracle/'tools/drainall_window4.mk',oracle/'tools/drainall_window4.py',oracle/'tools/window4/window4_study.h',ROOT/'build/drainall/window4-source.patch')},
                 source_equality=equality,code_identity=rows,witnesses=witnesses,
                 binaries=[receipt(p) for p in (pre/'tomokv',post/'tomokv',post/'tomokv-pad',Path('/home/user/Projects/cx-final/build/tomokv'))])
+    assert result['binaries'][1]['text']==result['binaries'][2]['text'], 'stale PAD size'
     output.write_text(json.dumps(result,indent=2)+'\n')
     phases=[r for r in rows if r['scope']=='split PHASE 2']
     print(f"Split PHASE 2: {sum(r['phase2_identical'] for r in phases)}/{len(phases)}; whole emitted functions {sum(r['whole_function_identical'] for r in rows)}/{len(rows)}")
