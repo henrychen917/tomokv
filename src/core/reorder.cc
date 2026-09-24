@@ -1299,11 +1299,8 @@ uint32_t IoLoop::r7_flush_ready() {
     // predicted branch on a bool; all the machinery is out-of-line and cold.
     if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-    // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
-    // fourth application of the same law (per-pass work scales with what the pass does, not
-    // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
-    // and FIFO order is arrival-order fairness across connections. Under overload the queue is
-    // the latency -- which is the correct place for overload to live; throughput stays at peak.
+    // PHASE 2 -- fused visits the captured FIFO once under the measured composite rule.
+    // Split retains its existing live-connection budget and ordinary writeback path.
     if (!pending_serve_.empty()) {
         AofManager& aof = srv_->aof();
         if (__builtin_expect(aof.configured(), false)) {
@@ -1318,10 +1315,20 @@ uint32_t IoLoop::r7_flush_ready() {
         aof_gate_target_ = 0;
     }
     uint32_t served = 0;
-    constexpr uint32_t serve_budget = Fused ? kGenthreadWbBatchConns : kServeBudget;
-    while (served < serve_budget && !pending_serve_.empty()) {
+    const size_t ready_now = pending_serve_.size();
+    const size_t serve_budget = Fused ? ready_now : kServeBudget;
+    size_t visits = 0;
+    while (served < serve_budget && (!Fused || visits < ready_now) && !pending_serve_.empty()) {
         Client* c = pending_serve_.front();
         pending_serve_.pop_front();
+        if constexpr (Fused) {
+            ++visits;
+            if (!c->dead() && wb_rule::defer(*c)) {
+                // Keep the lifetime pin; a younger eligible connection may pass this head.
+                pending_serve_.push_back(c);
+                continue;
+            }
+        }
         c->set_serve_pending(false);
         // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
         // close_client finish. Only corpses (freed-pending) are skippable.
@@ -1356,6 +1363,8 @@ uint32_t IoLoop::r7_flush_ready() {
         if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
     }
     work += served;
+    if constexpr (Fused)
+        if (!pending_serve_.empty()) ++work; // deferred entries must get another phase
     return work;
 }
 
