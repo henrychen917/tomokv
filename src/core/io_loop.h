@@ -23,6 +23,7 @@
 #include <unordered_set>
 #include <vector>
 #include "server.h"
+#include "signalacct.h"
 #include "iopipe_pipeline.h"
 #include "signal.h"
 #include "ex_loop.h"
@@ -499,6 +500,8 @@ private:
         // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
         static_assert(!Fused || SplitLocal || Pipeline == 0);
         static_assert(!SplitLocal || Fused);
+        LoopSignals& sig = self_->sig();
+        IoTenure tenure(sig);
         constexpr bool IoPipe = (!Fused || SplitLocal) && Pipeline == 1;
         if constexpr (Fused) {
             if (srv_->read_local_enabled()) {
@@ -515,13 +518,13 @@ private:
             if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
             if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
         }
-        LoopSignals& sig = self_->sig();
         // The disarmed specialization is empty. No depth history or cursor is allocated or
         // initialized by overlap 0, including when an EX thread activates an IO role after FLIP.
         [[maybe_unused]] IoPipeLoopState<IoPipe> pipe;
         if constexpr (IoPipe) pipe.depth.reset(sig.ops);
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
             if (DatabaseMapTestHooks::loop_pass) {
@@ -560,8 +563,7 @@ private:
             if constexpr (IoPipe)
                 natural_order = pipe.depth.loop_boundary(sig.ops);
             {
-                Span busy(sig.busy_ns);
-                // The work-span clock is already sampled once for this pass. Reuse that cut for
+                // The pass-boundary clock is already sampled. Reuse that same cut for
                 // every monotonic millisecond consumer instead of issuing separate clock_gettime
                 // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
                 // is milliseconds or seconds.
@@ -569,7 +571,7 @@ private:
                                         client_lb_signal_armed || lb_controller_armed ||
                                         !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
-                    cached_now_ms_ = busy.start_ns() / 1000000ull;
+                    cached_now_ms_ = pass_ns / 1000000ull;
                     cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                 }
                 if (__builtin_expect(pause_armed &&
@@ -579,7 +581,7 @@ private:
                     for (Client* c : self_->clients()) c->set_last_interaction_s(cached_now_s_);
                     client_cron_beat_ms_ = cached_now_ms_;
                 }
-                if (self_->sample_depth(busy.start_ns() / 1000)) {
+                if (self_->sample_depth(pass_ns / 1000)) {
                     // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                     // only (the placement controller deliberately uses busy/idle), so sample it
                     // on the existing 100us signal beat instead of every hot pass.
@@ -617,7 +619,7 @@ private:
                 if (__builtin_expect(!deferred_timers_.empty(), false)) {
                     // CQ processing above may have created the first timer after the prologue.
                     if (!pass_time_cached) {
-                        cached_now_ms_ = busy.start_ns() / 1000000ull;
+                        cached_now_ms_ = pass_ns / 1000000ull;
                         cached_now_s_ = static_cast<uint32_t>(cached_now_ms_ / 1000);
                         pass_time_cached = true;
                     }
@@ -671,6 +673,9 @@ private:
             // the busy path without submitting strands them in the SQ forever, and the peer
             // that is waiting on that wake never runs.
             if (did) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                tenure.did_submit();
+#endif
                 if constexpr (IoPipe) {
                     if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
                 } else {
@@ -691,6 +696,9 @@ private:
             else
                 sweep_work = sweep<HasUnix, HasTls, kEp, Fused>();
             if (sweep_work) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                tenure.sweep_submit();
+#endif
                 if constexpr (IoPipe) {
                     if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
                 } else {
@@ -699,6 +707,11 @@ private:
                 continue;
             }
 
+#ifdef TOMO_SIGNALACCT_WITNESS
+            tenure.park();
+#endif
+            // Preserve the established classification: publication, inbound recheck,
+            // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
             Span idle(sig.idle_ns);
             if constexpr (Fused) {
                 if (__builtin_expect(srv_->read_local_enabled(), false))
@@ -736,6 +749,8 @@ private:
             }
             self_->clear_blocked();
         }
+        io_tenures_.push_back(tenure.finish(self_->role() != Role::Ifid,
+            self_->stop_flag().load(std::memory_order_relaxed)));
         if constexpr (Fused) {
             // The read loop is over for this tenure. Teardown may take longer than another
             // owner's bounded retire queue can tolerate, but it performs no foreign store probe.
@@ -5724,7 +5739,11 @@ ordinary_shard_ready:
     // bounded residual rotation; teardown and migration defer while either context owns a Client.
     // Cold teardown/migration state; leave all established hot member offsets intact.
     mutable std::unordered_map<Client*, ClientWorkFence> client_work_fences_;
+    // Appended cold storage: established IO member offsets are unchanged. Read only
+    // after join; role exit appends once, and a new run_loop constructs a new tenure.
+    std::vector<IoTenureRecord> io_tenures_;
 public:
+    const std::vector<IoTenureRecord>& io_tenures() const { return io_tenures_; }
     // R7 bodies are isolated from the FIFO translation units.
     class r7_ReadLocalDemotionPlan;
 // BEGIN R7 GENERATED ENVELOPES

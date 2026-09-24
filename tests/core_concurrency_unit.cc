@@ -961,6 +961,8 @@ struct CoreConcurrencyTest {
         lb_fold_read_only<false>(); lb_fold_read_only<true>();
     }
 
+#include "signalacct_core_checks.inc"
+
     static void snapshot_forward() {
         Fixture f;
         Client client(-1);
@@ -1050,7 +1052,8 @@ int main(int argc, char** argv) {
     else if (row == "lifetime") { T::lifetime(); T::close_cycles(); }
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }
+    else if (row == "signalacct") T::signalacct();
     else if (row == "lbfix") T::lb_signals();
     else if (row == "lbfix-floor") T::lb_floor();
     else if (row == "lbfix-stationary") T::lb_stationary_all();

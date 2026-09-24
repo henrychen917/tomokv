@@ -1452,7 +1452,7 @@ py tests/spinprobe.py "$PORT" "$SRV" --idle-only >$TMPDIR/gate-idle-signals.txt 
 stop
 # shutdown invariants + fired counters, from the TERM dump
 row_begin "shutdown invariants (nothing stuck)"
-shutdown_clean \
+shutdown_clean && py tests/lbsignals.py --shutdown "$SRVLOG" \
     && ok "shutdown invariants (nothing stuck)" || bad "shutdown invariants"
 row_begin "direct-reply fired (direct=N)"
 D=$(shutdown_value wb.direct)

@@ -584,7 +584,9 @@ public:
             for (uint32_t tid = 0; tid < nthreads(); tid++) owners += owns_shards(tid);
             lb_policy_->observe_visits(visits, now, owners);
         }
-        // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
+        // Occupancy is booked busy / (busy + idle), smoothed below. IO now covers its whole
+        // loop tenure; EX keeps productive/empty-pass accounting. This fold feeds the
+        // physical FLIP victim picker as well as INFO. cpu_ns deliberately does not enter:
         // polling/spinning is scheduled CPU but does not mean the role has useful work available.
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             const LoopSignals& signal = thread(tid).sig();
