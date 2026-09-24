@@ -260,15 +260,63 @@ not run by this lane; the required mainline acceptance is **0 gating FAIL**.
 seven requested workloads and IDs from the existing headline/window studies,
 including source-file digests, with eight loaders explicit in every cell. The
 headline load-floor metadata can otherwise select a different loader count.
-Run serially on the quiet box with matched offered load. The wrapper below uses
-the gate's ABBA instrument and its existing PMU diagnostic API, retaining the real
-QuietMonitor and all workload checks. The normal CLI has no profile switch.
-Record per-cell cycles/op, instr/op and IPC for the PRE/POST ledger; an
-instruction-count-only verdict is insufficient.
+Run serially on the quiet box with matched offered load. Use the ordinary ABBA
+entry for the merit verdict and a matching identical-arm null. The separate PMU
+entry below is permanently untrusted by the instrument, even with the real
+QuietMonitor: it sets `measurement_valid=false` and cannot establish merit or
+supply a standing null. Record cycles/op, instr/op and IPC alongside the ordinary
+rate results; an instruction-count-only verdict is insufficient.
 
 ```sh
 cd /home/user/Projects/cx-final
-abba_with_counters() {
+wbrule_common=(
+  --cells /home/user/Projects/cx-wbrule/tests/wb_rule_cells.txt
+  --only h05,h06,p8g,p8s,m8g_l0,v1g_l0,d128g_l0
+  --build-reference 0 --server-cores 0-31 --server-smt ''
+  --load-cores 32-111 --load-smt '' --max-instances 8
+  --ports 7933-7940
+)
+wbrule_reference=/home/user/Projects/cx-final/build/tomokv
+wbrule_null=/home/user/Projects/cx-wbrule/build/merit-wbrule-null/results.json
+# A successful selected null has outer PARTIAL/exit 3; inspect its null_control verdict.
+taskset -c 0-111 python3 tests/abbagate.py "${wbrule_common[@]}" \
+  --candidate-binary "$wbrule_reference" --collect-null 1 \
+  --output "${wbrule_null%/results.json}"
+
+# Three independent ABBA blocks, including an A behaviour twin against the same reference.
+for wbrule_block in 1 2 3; do
+  for wbrule_arm in POST PAD; do
+    if [ "$wbrule_arm" = POST ]; then
+      wbrule_candidate=/home/user/Projects/cx-wbrule/build/tomokv
+    else
+      wbrule_candidate=/home/user/Projects/cx-wbrule/build/tomokv-pad
+    fi
+    taskset -c 0-111 python3 tests/abbagate.py "${wbrule_common[@]}" \
+      --candidate-binary "$wbrule_candidate" \
+      --reference-binary "$wbrule_reference" --null-result "$wbrule_null" \
+      --output "/home/user/Projects/cx-wbrule/build/merit-wbrule-${wbrule_block}-${wbrule_arm}"
+  done
+done
+
+# Separate optional hypothesis: compare the MGET exit against c12 itself.
+taskset -c 0-111 python3 tests/abbagate.py "${wbrule_common[@]}" \
+  --candidate-binary /home/user/Projects/cx-wbrule/build/tomokv-mgetfix \
+  --reference-binary /home/user/Projects/cx-wbrule/build/tomokv \
+  --null-result "$wbrule_null" \
+  --output /home/user/Projects/cx-wbrule/build/merit-wbrule-mgetfix
+```
+
+All selected runs remain scoped diagnostics (`--only`), so a successful run exits
+3 and cannot replace the full gate. Ordinary comparisons retain the normal
+measurement-validity and null checks; preserve any FAIL, invalid measurement or
+untrusted null. The same null may cover another binary when the instrument,
+workload and geometry match; the existing validator decides that match. Do not
+re-roll a failed block or silently reuse an output directory.
+
+Collect the paired PMU explanation separately, in the same shell and geometry:
+
+```sh
+wbrule_profile() {
   taskset -c 0-111 python3 -c '
 import sys
 sys.path.insert(0, "tests")
@@ -278,46 +326,32 @@ raise SystemExit(abba.main(abba.parse_args(),
                           diagnostic_profile=1))
 ' "$@"
 }
-# Three independent ABBA blocks, including an A behaviour twin against the same reference.
-for block in 1 2 3; do
-  for arm in POST PAD; do
-    if [ "$arm" = POST ]; then
-      candidate=/home/user/Projects/cx-wbrule/build/tomokv
-    else
-      candidate=/home/user/Projects/cx-wbrule/build/tomokv-pad
-    fi
-    abba_with_counters \
-      --cells /home/user/Projects/cx-wbrule/tests/wb_rule_cells.txt \
-      --only h05,h06,p8g,p8s,m8g_l0,v1g_l0,d128g_l0 \
-      --candidate-binary "$candidate" \
-      --reference-binary /home/user/Projects/cx-final/build/tomokv \
-      --build-reference 0 --server-cores 0-31 --server-smt '' \
-      --load-cores 32-111 --load-smt '' --max-instances 8 \
-      --ports 7933-7940 \
-      --output "/home/user/Projects/cx-wbrule/build/merit-wbrule-${block}-${arm}"
-  done
-done
-
-# Separate optional hypothesis: compare the MGET exit against c12 itself.
-abba_with_counters \
-  --cells /home/user/Projects/cx-wbrule/tests/wb_rule_cells.txt \
-  --only h05,h06,p8g,p8s,m8g_l0,v1g_l0,d128g_l0 \
+wbrule_profile "${wbrule_common[@]}" \
+  --candidate-binary /home/user/Projects/cx-wbrule/build/tomokv \
+  --reference-binary "$wbrule_reference" --null-result "$wbrule_null" \
+  --output /home/user/Projects/cx-wbrule/build/profile-wbrule-POST
+wbrule_profile "${wbrule_common[@]}" \
   --candidate-binary /home/user/Projects/cx-wbrule/build/tomokv-mgetfix \
   --reference-binary /home/user/Projects/cx-wbrule/build/tomokv \
-  --build-reference 0 --server-cores 0-31 --server-smt '' \
-  --load-cores 32-111 --load-smt '' --max-instances 8 \
-  --ports 7933-7940 \
-  --output /home/user/Projects/cx-wbrule/build/merit-wbrule-mgetfix
+  --null-result "$wbrule_null" \
+  --output /home/user/Projects/cx-wbrule/build/profile-wbrule-mgetfix
+```
 
+`tests/abba_profile.py` counts server-thread user+kernel cycles/instructions.
+Its counter intervals encompass, but do not exactly align with, the central
+command interval: retain `approx_cycles_per_central_command` and
+`approx_instructions_per_central_command` as **approximate**, including the
+recorded interval offsets. IPC uses the same grouped counter window. Do not
+present these diagnostics as exact aligned cycles/op or as a trusted rate verdict.
+Mainline must qualify the counter evidence when filling the ledger.
+
+```sh
 # Gate the primary branch only after its merit passes; this does not include the MGET branch.
 cd /home/user/Projects/cx-wbrule
 tests/gate.sh iteration
 ```
 
-The `--only`/profile merit runs are scoped diagnostics, not a full-gate receipt;
-their diagnostic completion is PARTIAL/exit 3. Inspect every measurement-validity
-result, including failures. Preserve the instrument's null/spread and saturation
-checks. Every scored c12 cell must
+Preserve the instrument's null/spread and saturation checks. Every scored c12 cell must
 meet the stable reference except the known MGET-8 p8 exception; PAD staying flat
 while POST moves supports mechanism attribution. A new loss is not averaged away.
 For MGETFIX, require an MGET improvement against c12 with no new losses in the
@@ -342,6 +376,12 @@ Retain commands/send and latency alongside the paired counters, and append the
 mainline result as MEASURE-RESULT. No measurement was awaited or scheduled by
 this lane.
 
+Handoff revalidation: all 93 strict outcomes passed again on cores 112-127;
+the source audit again reports 40/40 split PHASE 2 and 158/158 whole-function
+identities. All reported witness/receipt and binary digests still match. Both
+builds are up to date. This report's command correction changes no production
+source or executable; the root `MEASURE-REQUEST` now names this lane's artifacts.
+
 **Bound receipt digests.**
 
 | Receipt | SHA-256 |
@@ -360,17 +400,18 @@ this lane.
 `git diff 3e734cf2e --stat` (including this report):
 
 ```text
- MEASURE-REQUEST-wbrule.md     | 376 ++++++++++++++++++++++++++++++++++++++++++
+ MEASURE-REQUEST               |  38 ++--
+ MEASURE-REQUEST-wbrule.md     | 417 ++++++++++++++++++++++++++++++++++++++++++
  Makefile                      |  27 +++
  src/core/genthread_pipeline.h |   1 -
- src/core/io_loop.h            |  98 +++++------
- src/core/reorder.cc           |  91 +++++-----
- src/core/wb_rule.h            | 130 +++++++++++++++
+ src/core/io_loop.h            |  98 +++++-----
+ src/core/reorder.cc           |  91 ++++-----
+ src/core/wb_rule.h            | 130 +++++++++++++
  tests/gate.sh                 |  31 +++-
  tests/wb_rule_cells.txt       |  12 ++
- tests/wb_rule_checks.py       | 121 ++++++++++++++
- tests/wb_rule_phase_unit.cc   | 345 ++++++++++++++++++++++++++++++++++++++
- tests/wb_rule_unit.cc         | 192 +++++++++++++++++++++
- tools/wb_rule_artifacts.py    | 172 +++++++++++++++++++
- 12 files changed, 1497 insertions(+), 99 deletions(-)
+ tests/wb_rule_checks.py       | 121 ++++++++++++
+ tests/wb_rule_phase_unit.cc   | 345 ++++++++++++++++++++++++++++++++++
+ tests/wb_rule_unit.cc         | 192 +++++++++++++++++++
+ tools/wb_rule_artifacts.py    | 172 +++++++++++++++++
+ 13 files changed, 1558 insertions(+), 117 deletions(-)
 ```
