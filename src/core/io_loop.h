@@ -5155,7 +5155,8 @@ ordinary_shard_ready:
         }
         uint32_t served = 0;
         const size_t ready_now = pending_serve_.size();
-        const size_t serve_budget = Fused ? ready_now : kServeBudget;
+        const std::conditional_t<Fused, size_t, uint32_t> serve_budget =
+            Fused ? ready_now : kServeBudget;
         size_t visits = 0;
         while (served < serve_budget && (!Fused || visits < ready_now) && !pending_serve_.empty()) {
             Client* c = pending_serve_.front();
@@ -5573,6 +5574,7 @@ ordinary_shard_ready:
     // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
     // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
     // overload.
+    // Split PHASE 2 only; fused uses wb_rule and has no connection-count budget.
     static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;

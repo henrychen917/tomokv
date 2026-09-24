@@ -1316,7 +1316,8 @@ uint32_t IoLoop::r7_flush_ready() {
     }
     uint32_t served = 0;
     const size_t ready_now = pending_serve_.size();
-    const size_t serve_budget = Fused ? ready_now : kServeBudget;
+    const std::conditional_t<Fused, size_t, uint32_t> serve_budget =
+        Fused ? ready_now : kServeBudget;
     size_t visits = 0;
     while (served < serve_budget && (!Fused || visits < ready_now) && !pending_serve_.empty()) {
         Client* c = pending_serve_.front();
