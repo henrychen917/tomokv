@@ -1053,6 +1053,7 @@ int main(int argc, char** argv) {
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }
+    else if (row == "signalacct-post") T::signalacct_physical(false, true);
     else if (row == "signalacct") T::signalacct();
     else if (row == "lbfix") T::lb_signals();
     else if (row == "lbfix-floor") T::lb_floor();

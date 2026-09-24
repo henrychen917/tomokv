@@ -781,6 +781,13 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
 template <bool HasUnix, bool HasTls, bool kEp, bool Fused,
           uint8_t Pipeline, bool SplitLocal>
 void IoLoop::r7_run_loop() {
+    TOMO_R7_PATH();
+    static_assert(Pipeline <= 1);
+    // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
+    static_assert(!Fused || SplitLocal || Pipeline == 0);
+    static_assert(!SplitLocal || Fused);
+    LoopSignals& sig = self_->sig();
+    IoTenure tenure(sig);
     // Bind once at armed fused IO role entry.
     if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())
         fused_executor_->bind_read_local_demotion(this,
@@ -790,13 +797,6 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
-    TOMO_R7_PATH();
-    static_assert(Pipeline <= 1);
-    // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
-    static_assert(!Fused || SplitLocal || Pipeline == 0);
-    static_assert(!SplitLocal || Fused);
-    LoopSignals& sig = self_->sig();
-    IoTenure tenure(sig);
     constexpr bool IoPipe = (!Fused || SplitLocal) && Pipeline == 1;
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
@@ -878,7 +878,7 @@ void IoLoop::r7_run_loop() {
             }
             if (self_->sample_depth(pass_ns / 1000)) {
                 // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
-                // only (the placement controller deliberately uses busy/idle), so sample it
+                // only (model demand uses wall-idle; physical placement uses busy/idle), so sample it
                 // on the existing 100us signal beat instead of every hot pass.
                 sig.cpu_ns = thread_cpu_ns();
                 refresh_age_sampling();
@@ -968,13 +968,18 @@ void IoLoop::r7_run_loop() {
         // the busy path without submitting strands them in the SQ forever, and the peer
         // that is waiting on that wake never runs.
         if (did) {
-#ifdef TOMO_SIGNALACCT_WITNESS
-            tenure.did_submit();
-#endif
             if constexpr (IoPipe) {
-                if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
+                if (!submitted || ring_.sq_ready()) {
+                    ring_.submit_and_reap();
+#ifdef TOMO_SIGNALACCT_WITNESS
+                    tenure.did_submit();
+#endif
+                }
             } else {
                 ring_.submit_and_reap();
+#ifdef TOMO_SIGNALACCT_WITNESS
+                tenure.did_submit();
+#endif
             }
             continue;
         }
@@ -991,20 +996,22 @@ void IoLoop::r7_run_loop() {
         else
             sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused>();
         if (sweep_work) {
-#ifdef TOMO_SIGNALACCT_WITNESS
-            tenure.sweep_submit();
-#endif
             if constexpr (IoPipe) {
-                if (!submitted || ring_.sq_ready()) ring_.submit_and_reap();
+                if (!submitted || ring_.sq_ready()) {
+                    ring_.submit_and_reap();
+#ifdef TOMO_SIGNALACCT_WITNESS
+                    tenure.sweep_submit();
+#endif
+                }
             } else {
                 ring_.submit_and_reap();
+#ifdef TOMO_SIGNALACCT_WITNESS
+                tenure.sweep_submit();
+#endif
             }
             continue;
         }
 
-#ifdef TOMO_SIGNALACCT_WITNESS
-        tenure.park();
-#endif
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
@@ -1018,18 +1025,33 @@ void IoLoop::r7_run_loop() {
             // flag is only re-read at the top of the loop, so an unbounded block would make
             // shutdown depend on a connection arriving.
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound())
+                if (!self_->any_fused_inbound()) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                    tenure.park();
+#endif
                     r7_epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(50);
+                }
             } else if (!self_->any_io_inbound()) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                tenure.park();
+#endif
                 r7_epoll_pass<HasUnix, HasTls, false, Pipeline>(50);
             }
         } else {
             if constexpr (Fused) {
-                if (!self_->any_fused_inbound()) ring_.submit_and_wait(1);
-                else                            ring_.submit_and_reap();
+                if (!self_->any_fused_inbound()) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                    tenure.park();
+#endif
+                    ring_.submit_and_wait(1);
+                } else                            ring_.submit_and_reap();
             } else {
-                if (!self_->any_io_inbound()) ring_.submit_and_wait(1);
-                else                         ring_.submit_and_reap();
+                if (!self_->any_io_inbound()) {
+#ifdef TOMO_SIGNALACCT_WITNESS
+                    tenure.park();
+#endif
+                    ring_.submit_and_wait(1);
+                } else                         ring_.submit_and_reap();
             }
         }
         if constexpr (Fused) {
@@ -1044,8 +1066,8 @@ void IoLoop::r7_run_loop() {
         }
         self_->clear_blocked();
     }
-    io_tenures_.push_back(tenure.finish(self_->role() != Role::Ifid,
-        self_->stop_flag().load(std::memory_order_relaxed)));
+    const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
+        self_->stop_flag().load(std::memory_order_relaxed));
     if constexpr (Fused) {
         // The read loop is over for this tenure. Teardown may take longer than another
         // owner's bounded retire queue can tolerate, but it performs no foreign store probe.
@@ -1054,6 +1076,8 @@ void IoLoop::r7_run_loop() {
             self_->publish_read_local_parked(srv_->read_local_epoch());
         }
     }
+    // Append after the read-local park: diagnostic allocation must not pin QSBR.
+    io_tenures_.push_back(io_tenure);
     // A close requested by the last pass's read/send path has no later flush_ready to drain it,
     // and an undrained entry would show up as a live connection in the shutdown accounting.
     if constexpr (kEp) {

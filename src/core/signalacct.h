@@ -32,9 +32,10 @@ struct IoAccountingClock {
 template <class Clock = IoAccountingClock>
 class IoTenure {
 public:
-    explicit IoTenure(LoopSignals& sig) : sig_(sig) {
+    __attribute__((noinline)) explicit IoTenure(LoopSignals& sig) : sig_(sig) {
         record_.entry_ns = Clock::now();
         cut_ = record_.begin_ns = Clock::now();
+        if (cut_ < record_.entry_ns) invalid();
         busy_begin_ = sig_.busy_ns;
         idle_cut_ = idle_begin_ = sig_.idle_ns;
     }
@@ -47,12 +48,13 @@ public:
         return next;
     }
 
-    IoTenureRecord finish(bool role_exit, bool stopped) {
+    __attribute__((noinline)) IoTenureRecord finish(bool role_exit, bool stopped) {
         if (finished_) invalid();
         const uint64_t end = Clock::now();
         account(end);                     // exactly one final partial interval, even zero passes
         record_.end_ns = end;
         record_.exit_ns = Clock::now();   // independent endpoint, never a counter-derived wall
+        if (record_.exit_ns < end) invalid();
         record_.busy_ns = sig_.busy_ns - busy_begin_;
         record_.idle_ns = sig_.idle_ns - idle_begin_;
         record_.role_exit = role_exit;

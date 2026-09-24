@@ -79,7 +79,9 @@ def require_io_conservation(report, edges=False):
         mixed |= len(tenures) > 1 and any(t["role_exit"] for t in tenures[:-1])
     if not count:
         fail("no completed IO tenure; unentered window")
-    if edges and (not all(fired.values()) or not mixed):
+    required = ("did_submit", "sweep_submit", "park") + (("role_exit",) if report.get("thread_mode") == "2s" else ())
+    if edges and (not all(fired[k] for k in required) or
+                  (report.get("thread_mode") == "2s" and not mixed)):
         fail("required did-submit/sweep-submit/park/IO->EX->IO window never opened: %r mixed=%s" %
              (fired, mixed))
     return dict(tenures=count, fired=fired, mixed=mixed)

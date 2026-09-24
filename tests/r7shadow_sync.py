@@ -77,7 +77,8 @@ def envelopes():
                 assert 'busy.start_ns()' not in body
                 body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',
                                     'DatabaseMapTestHooks::loop_pass(*srv_, *self_, 1);')
-                opening = body.index('{') + 1
+                # Include the cold armed-role binding in the same IO tenure.
+                opening = body.index('IoTenure tenure(sig);') + len('IoTenure tenure(sig);')
                 body = body[:opening] + '''
     // Bind once at armed fused IO role entry.
     if constexpr (Fused) if (srv_->read_local_enabled() && r7::shadow_available())

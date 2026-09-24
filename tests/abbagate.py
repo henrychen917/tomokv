@@ -1152,7 +1152,7 @@ def busy_deltas(start, end):
     busy_between(start, end)  # Keep the same role/topology/reset validation.
     # Raw role-specific counters are diagnostic evidence, not a new saturation
     # rule. Read-local can leave split executors idle; flipctl.cc also documents
-    # io submit/reap work absent from busy_ns. Retain both counters plus the
+    # the historical submit/reap gap, now covered by IO tenure busy_ns. Retain both counters plus the
     # observed snapshot interval so live results can distinguish those cases
     # from insufficient generator capacity before anyone changes the instrument.
     return {tid: {"role": start[tid]["role"],

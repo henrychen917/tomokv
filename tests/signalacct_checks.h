@@ -7,8 +7,8 @@
 
 namespace signalacct_test {
 struct Clock {
-    inline static uint64_t time = 100;
-    static uint64_t now() { return time++; }
+    inline static uint64_t time = 100, calls = 0;
+    static uint64_t now() { ++calls; return time++; }
 };
 inline void require(bool ok, const char* state) {
     if (!ok) {
@@ -24,7 +24,7 @@ inline void conserved(const tomo::IoTenureRecord& r, const char* state) {
 }
 inline int run(const char* only = "all") {
     if (!std::strcmp(only, "all") || !std::strcmp(only, "passes")) {
-        Clock::time = 100;
+        Clock::time = 100; Clock::calls = 0;
         tomo::LoopSignals sig;
         tomo::IoTenure<Clock> tenure(sig);
         Clock::time = 110;
@@ -35,15 +35,16 @@ inline int run(const char* only = "all") {
         Clock::time = 180; tenure.pass();
         require(sig.busy_ns == 79, "sweep-submit elapsed is booked at next boundary");
         // Idle includes park publication, callbacks and resume, as on the real IO loop.
-        sig.idle_ns += 20;
+        sig.idle_ns += 10;
         Clock::time = 210; tenure.pass();
-        require(sig.busy_ns == 89 && sig.idle_ns == 20, "idle subtracted exactly once");
+        require(sig.busy_ns == 99 && sig.idle_ns == 10, "idle subtracted exactly once");
         Clock::time = 220; tenure.pass();
-        require(sig.busy_ns == 99, "no-work non-idle prologue/sweep is booked");
+        require(sig.busy_ns == 109, "no-work non-idle prologue/sweep is booked");
         Clock::time = 233;
         const auto r = tenure.finish(false, true);
-        require(r.busy_ns == 112 && r.idle_ns == 20, "final partial interval flushed once");
+        require(r.busy_ns == 122 && r.idle_ns == 10, "final partial interval flushed once");
         conserved(r, "did/sweep/idle/no-work/final-tail tenure conserves wall");
+        require(Clock::calls == 9, "five passes use five clocks plus four cold endpoint cuts");
         std::printf("signalacct passes: busy=%llu idle=%llu wall=%llu outer=%llu uncertainty=2\n",
             (unsigned long long)r.busy_ns, (unsigned long long)r.idle_ns,
             (unsigned long long)(r.end_ns-r.begin_ns), (unsigned long long)(r.exit_ns-r.entry_ns));
@@ -80,6 +81,19 @@ inline int run(const char* only = "all") {
         const auto r = zero.finish(true, true);
         require(r.busy_ns == 6 && r.idle_ns == 0, "zero-pass tenure final flush");
         conserved(r, "zero-pass tenure conserves wall");
+    }
+    if (!std::strncmp(only, "invalid-", 8)) {
+        Clock::time = 4000;
+        tomo::LoopSignals sig;
+        sig.idle_ns = 100;
+        tomo::IoTenure<Clock> tenure(sig);
+        if (!std::strcmp(only, "invalid-clock")) Clock::time = 3999;
+        if (!std::strcmp(only, "invalid-idle-reset")) sig.idle_ns = 99;
+        if (!std::strcmp(only, "invalid-idle-excess")) sig.idle_ns = 1000;
+        if (!std::strcmp(only, "invalid-busy-overflow")) sig.busy_ns = UINT64_MAX;
+        if (!std::strcmp(only, "invalid-double-finish")) tenure.finish(false, true);
+        tenure.finish(false, true);
+        require(false, "invalid accounting state was not rejected");
     }
     std::puts("PASS signalacct deterministic accounting");
     return 0;
