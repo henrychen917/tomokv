@@ -44,7 +44,7 @@ struct CoreConcurrencyTest {
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
         Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
-                uint32_t databases = 1)
+                uint32_t databases = 1, uint32_t split_io = 6)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -72,7 +72,8 @@ struct CoreConcurrencyTest {
                 io_id = thread_count - 1;
             } else {
                 require(thread_count == 8, "split fixture retains gate geometry");
-                require(server.placement_.build_even(server.topo_, 6, 2), "6:2 placement");
+                require(server.placement_.build_even(server.topo_, split_io, thread_count - split_io),
+                        "split placement");
             }
             require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
             Config config;

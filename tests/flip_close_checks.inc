@@ -1,7 +1,9 @@
 // Included in CoreConcurrencyTest: actual close/drain/planner, no worker or socket.
     static void flip_close() {
         for (const uint32_t databases : {16u, 1u}) {
-            Fixture f(false, 8, 16, databases);
+            // Start at the settled 3:5 state of the reported second FLIP. The
+            // fixture defaults to 6:2 for every other concurrency regression.
+            Fixture f(false, 8, 16, databases, 3);
             Client coordinator(-1);
             f.client(coordinator);
             f.server.thread(f.io_id).add_client(&coordinator);
@@ -25,11 +27,11 @@
                         f.server.live_clients() == 2 && closing->in_active() && !closing->dead(),
                     "FLIP close window: detached client still live behind captured epoch");
             std::string error;
-            require(f.server.flip_begin(3, 5, f.io_id, error), "admit actual FLIP at 16-shard 6:2 geometry");
+            require(f.server.flip_begin(6, 2, f.io_id, error), "admit actual FLIP 6 2 from settled 3:5");
             require(!f.server.flip_build_client_plan(&coordinator, error) &&
                         error == "ERR FLIP connection ownership count is not conserved",
                     "premature FLIP planner reproduces exact ownership-count refusal");
-            std::printf("ARMED flip-close db%u: %s (owned=1 live=2)\n", databases, error.c_str());
+            std::printf("ARMED flip-close db%u: %s (FLIP 6 2, owned=1 live=2)\n", databases, error.c_str());
             std::fflush(stdout);
             require(!f.io.flip_io_drained(), "FLIP drain must wait for detached closing client");
             require(!closing->dead() && f.server.live_clients() == 2,
