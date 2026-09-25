@@ -1,4 +1,4 @@
-// The measured window4 c12 policy: one captured FIFO visit, bytes OR half a Done prefix.
+// One writeback policy in both modes: one captured FIFO visit, bytes OR half a Done prefix.
 #pragma once
 #include <ratio>
 #include <type_traits>
@@ -69,10 +69,31 @@ inline bool defer(Connection& c) {
     if (prefix >= threshold) return false;
     return true;
 }
-// Only the fused call site instantiates this walk. Keeping its local state here
-// leaves split PHASE 2's original loop and compiler input intact.
+// Both modes use the same acquire walk and FIFO lifetime rule. Coded preserves
+// each caller's existing encoder capability; it is not a policy selector.
 struct Phase2 {
-    template <bool HasTls, bool kEp, class Loop>
+    // Overlap retains its existing stack scratch and send boundaries. The caller
+    // carries one captured visit count across chunks; callbacks cannot extend it.
+    template <class Loop, class Batch>
+    static inline uint32_t gather(Loop& loop, Batch& batch, size_t& left) {
+        if (left == SIZE_MAX) left = loop.pending_serve_.size();
+        while (left && batch.count < batch.clients.size() && !loop.pending_serve_.empty()) {
+            --left;
+            Client* client = loop.pending_serve_.front();
+            loop.pending_serve_.pop_front();
+            if (!client->dead() && defer(*client)) {
+                loop.pending_serve_.push_back(client);
+                continue;
+            }
+            client->set_serve_pending(false);
+            if (!client->dead()) {
+                batch.clients[batch.count] = client;
+                batch.submit_allowed[batch.count++] = true;
+            }
+        }
+        return batch.count;
+    }
+    template <bool HasTls, bool kEp, class Loop, bool Coded = true>
     __attribute__((always_inline)) static inline uint32_t serve(Loop& loop) {
         using ServerType = std::remove_pointer_t<decltype(loop.srv_)>;
         uint32_t work = 0;
@@ -105,16 +126,16 @@ struct Phase2 {
             }
             if constexpr (HasTls) {
                 if (auto* tls = loop.tls_engine(c)) {
-                    if (loop.wb_.template serve_tls<kEp, false, true>(*c, *tls)) work++;
+                    if (loop.wb_.template serve_tls<kEp, false, Coded>(*c, *tls)) work++;
                     if (tls->socket_userspace() && tls->has_pinned_plain())
                         loop.template arm_tls_socket_poll<kEp>(c, tls->wanted());
                     if (tls->failed()) loop.close_client(c, tls->output_pending() || c->send_inflight());
                 } else if (auto* slot = loop.tls_slot_conn(c); slot && slot->ktls()) {
-                    if (loop.wb_.template serve_ktls<kEp, false, true>(*c)) work++;
-                } else if (loop.wb_.template serve<kEp, false, true>(*c)) {
+                    if (loop.wb_.template serve_ktls<kEp, false, Coded>(*c)) work++;
+                } else if (loop.wb_.template serve<kEp, false, Coded>(*c)) {
                     work++;
                 }
-            } else if (loop.wb_.template serve<kEp, false, true>(*c)) {
+            } else if (loop.wb_.template serve<kEp, false, Coded>(*c)) {
                 work++;
             }
             // A synchronous send has no CQE to report a fatal errno through, so the engine latches

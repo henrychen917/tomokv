@@ -4524,10 +4524,9 @@ ordinary_shard_ready:
         uint32_t count = 0;
     };
 
-    // Detach one backlog-scaled connection batch from the serve FIFO. Clearing serve_pending at
-    // detach preserves the old race contract: a completion that lands while this batch is being
-    // prepared can enqueue a fresh future visit.
-    uint32_t wb_gather(WbBatch& batch) {
+    // Detach one scratch-sized chunk from the captured FIFO pass. Deferred entries
+    // retain their pins; selected entries permit a fresh future completion visit.
+    uint32_t wb_gather(WbBatch& batch, size_t& captured_left) {
         if (batch.count) std::abort();
         if (pending_serve_.empty()) {
             aof_gate_target_ = 0;
@@ -4545,26 +4544,15 @@ ordinary_shard_ready:
         }
         aof_gate_target_ = 0;
 
-        const size_t visits = std::min<size_t>(pending_serve_.size(),
-                                               kIoPipeWbBatchClients);
-        for (size_t i = 0; i < visits; i++) {
-            Client* client = pending_serve_.front();
-            pending_serve_.pop_front();
-            client->set_serve_pending(false);
-            if (!client->dead()) {
-                batch.clients[batch.count] = client;
-                batch.submit_allowed[batch.count] = true;
-                batch.count++;
-            }
-        }
-        return batch.count;
+        return wb_rule::Phase2::gather(*this, batch, captured_left);
     }
 
     // WB.OBSERVE: consume completion hints, then gather the shallow pipeline's WB batch early so
     // its state/payload prefetch can overlap IFID work.
     template <bool HasUnix, bool kEp>
-    uint32_t wb_observe(bool unmasked, WbBatch& batch) {
-        return collect_retire_work<HasUnix, kEp>(unmasked) + wb_gather(batch);
+    uint32_t wb_observe(bool unmasked, WbBatch& batch, size_t& captured_left) {
+        const auto work = collect_retire_work<HasUnix, kEp>(unmasked);
+        return work + wb_gather(batch, captured_left);
     }
 
     // WB.PF pass 1 issues hints for every potentially retireable state line. Pass 2 performs the
@@ -4891,17 +4879,18 @@ ordinary_shard_ready:
         IfidBatch ifid;
         WbBatch wb;
         uint32_t work = 0;
+        size_t captured_left = SIZE_MAX;
         if (natural_order) {
             work += ifid_rx<HasUnix, HasTls, kEp>(ifid, cursor);
             work += collect_retire_work<HasUnix, kEp>(unmasked);
             work += ifid_parse_hash<HasTls, kEp, SplitLocal>(ifid);
             work += ifid_post(ifid);
-            work += wb_gather(wb);
+            work += wb_gather(wb, captured_left);
             work += wb_serve_natural<HasTls, kEp, SplitLocal>(wb, submitted);
         } else {
             io_pipe_schedule([&]<IoPipeStage Stage>() {
                 if constexpr (Stage == IoPipeStage::WbObserve)
-                    work += wb_observe<HasUnix, kEp>(unmasked, wb);
+                    work += wb_observe<HasUnix, kEp>(unmasked, wb, captured_left);
                 else if constexpr (Stage == IoPipeStage::IfidRx)
                     work += ifid_rx<HasUnix, HasTls, kEp>(ifid, cursor);
                 else if constexpr (Stage == IoPipeStage::WbPrefetch)
@@ -4916,6 +4905,16 @@ ordinary_shard_ready:
                     work += wb_submit_reclaim<HasTls, kEp>(wb, submitted);
             });
         }
+        // Finish only the captured set, preserving the first chunk's shallow/natural
+        // weave. An AOF refusal before capture must not be retried in this pass.
+        while (captured_left != SIZE_MAX && captured_left && !pending_serve_.empty()) {
+            wb.count = 0;
+            const size_t before = captured_left;
+            work += wb_gather(wb, captured_left);
+            work += wb_serve_natural<HasTls, kEp, SplitLocal>(wb, submitted);
+            if (captured_left == before) break;
+        }
+        if (!pending_serve_.empty() && captured_left != SIZE_MAX) ++work;
         return work;
     }
 
@@ -5139,8 +5138,7 @@ ordinary_shard_ready:
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-        // PHASE 2 -- fused visits the captured FIFO once under the measured composite rule.
-        // Split retains its existing live-connection budget and ordinary writeback path.
+        // PHASE 2 -- both modes visit the captured FIFO once under the composite rule.
         if (!pending_serve_.empty()) {
             AofManager& aof = srv_->aof();
             if (__builtin_expect(aof.configured(), false)) {
@@ -5154,50 +5152,7 @@ ordinary_shard_ready:
         } else {
             aof_gate_target_ = 0;
         }
-        if constexpr (Fused && !SplitLocal) {
-            return work + wb_rule::Phase2::serve<HasTls, kEp>(*this);
-        } else {
-            uint32_t served = 0;
-            constexpr uint32_t serve_budget = kServeBudget;
-            while (served < serve_budget && !pending_serve_.empty()) {
-                Client* c = pending_serve_.front();
-                pending_serve_.pop_front();
-                c->set_serve_pending(false);
-                // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
-                // close_client finish. Only corpses (freed-pending) are skippable.
-                if (c->dead()) continue;
-                served++;
-                // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
-                // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
-                // the cold object and discards bytes instead of staging them.
-                if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-                    climon_reply_suppressed(c)) {
-                    work += climon_serve_suppressed(c);
-                    if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
-                    continue;
-                }
-                if constexpr (HasTls) {
-                    if (TlsConn* tls = tls_engine(c)) {
-                        if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
-                        if (tls->socket_userspace() && tls->has_pinned_plain())
-                            arm_tls_socket_poll<kEp>(c, tls->wanted());
-                        if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
-                    } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                        if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
-                    } else if (wb_.serve<kEp, false, Fused>(*c)) {
-                        work++;
-                    }
-                } else if (wb_.serve<kEp, false, Fused>(*c)) {
-                    work++;
-                }
-                // A synchronous send has no CQE to report a fatal errno through, so the engine latches
-                // it and the decision to tear the connection down is taken here instead. Consuming it
-                // per served connection is deliberate: a bit left set would close the NEXT one.
-                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
-            }
-            work += served;
-            return work;
-        }
+        return work + wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this);
     }
 
     void enqueue_serve(Client* c) {
@@ -5566,8 +5521,6 @@ ordinary_shard_ready:
     // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
     // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
     // overload.
-    // Split PHASE 2 only; fused uses wb_rule and has no connection-count budget.
-    static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
