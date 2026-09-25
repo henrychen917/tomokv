@@ -33,11 +33,11 @@ def main():
         directory = out / name
         with (out / (name + '.log')).open('w') as log:
             result = subprocess.run([sys.executable, 'tests/r7shadow_noop.py', str(binary),
-                                     str(other), str(directory)], cwd=ROOT,
+                                     str(other), str(directory), '--inventory', 'wbrule'], cwd=ROOT,
                                     stdout=log, stderr=subprocess.STDOUT)
         assert result.returncode == expected, (name, result.returncode)
         report = json.loads((directory / 'audit.json').read_text())
-        assert len(report['rows']) == 336
+        assert len(report['rows']) == 368
         changed = [r['name'] for r in report['rows'] if not r['equal']]
         if name == 'executable-byte':
             assert len(changed) == 1 and '::cmd_get<' in changed[0], changed
