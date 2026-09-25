@@ -1260,7 +1260,7 @@ done
 
 job_wb_rule_units(){
   local group label
-  for group in policy phase stages; do
+  for group in policy phase stages split-phase split-overlap; do
     label="writeback c12 $group witnesses + negative controls"
     row_begin "$label"
     if unit_ready wb-rule-units && taskset -c "$CORES" python3 tests/wb_rule_checks.py check "$group" \

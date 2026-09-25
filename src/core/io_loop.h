@@ -4526,7 +4526,10 @@ ordinary_shard_ready:
 
     // Detach one scratch-sized chunk from the captured FIFO pass. Deferred entries
     // retain their pins; selected entries permit a fresh future completion visit.
-    uint32_t wb_gather(WbBatch& batch, size_t& captured_left) {
+    // Defer this split-only instantiation until its schedule is instantiated;
+    // fused translation units retain their original template emission order.
+    template <class Batch>
+    uint32_t wb_gather(Batch& batch, size_t& captured_left) {
         if (batch.count) std::abort();
         if (pending_serve_.empty()) {
             aof_gate_target_ = 0;

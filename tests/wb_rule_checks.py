@@ -46,9 +46,20 @@ MUTANTS = {
     "visit": ("phase", POLICY, "visits < ready_now", "visits <= ready_now", "fifo", "deferred rotation preserves order"),
     "dead": ("phase", POLICY, "!c->dead() && defer(*c)", "defer(*c)", "dead", "dead entry removed and unpinned"),
     "work": ("phase", POLICY, "if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase", "if (false) ++work;", "progress", "deferral alone is positive work"),
-    "split-policy": ("stages", IO, "if constexpr (Fused && !SplitLocal) {\n            return work + wb_rule::Phase2", "if constexpr (true) {\n            return work + wb_rule::Phase2", "split-policy", "2s never applies fused eligibility"),
-    "split-local": ("stages", IO, "if constexpr (Fused && !SplitLocal) {\n            return work + wb_rule::Phase2", "if constexpr (Fused) {\n            return work + wb_rule::Phase2", "split-local", "2s reader capability never enables fused writeback"),
-    "split-budget": ("stages", IO, "constexpr uint32_t serve_budget = kServeBudget", "const uint32_t serve_budget = pending_serve_.size()", "split-budget", "exact mode-specific budget"),
+    "split-policy": ("split-phase", POLICY, "!c->dead() && defer(*c)", "false", "split-policy", "2s uses exact composite fraction"),
+    "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c)", "false", "split-local", "2s reader capability shares composite writeback"),
+    "split-budget": ("split-phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "split-budget", "exact mode-specific budget"),
+    "split-aof": ("split-phase", IO, "if (!aof.reply_gate_ready(aof_gate_target_)) {\n                    aof.register_send_gate_wait(self_->id());\n                    return work;", "if (false) {\n                    aof.register_send_gate_wait(self_->id());\n                    return work;", "split-aof", "AOF refusal precedes composite selection"),
+    "gather-policy": ("split-overlap", POLICY, "!client->dead() && defer(*client)", "false", "split-policy", "2s uses exact composite fraction"),
+    "gather-rotation": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "/* removed rotation */", "split-fifo", "deferred rotation preserves order"),
+    "gather-head": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "loop.pending_serve_.push_front(client);", "split-fifo", "younger eligible passes deferred head"),
+    "gather-pin": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "client->set_serve_pending(false); loop.pending_serve_.push_back(client);", "split-fifo", "deferred lifetime pins kept"),
+    "gather-capture": ("split-overlap", POLICY, "if (left == SIZE_MAX) left = loop.pending_serve_.size();", "left = loop.pending_serve_.size();", "split-capture-multi", "2s callback cannot extend captured chunks"),
+    "gather-visit": ("split-overlap", POLICY, "left = loop.pending_serve_.size();", "left = loop.pending_serve_.size() + 1;", "split-fifo", "deferred rotation preserves order"),
+    "gather-dead": ("split-overlap", POLICY, "!client->dead() && defer(*client)", "defer(*client)", "split-dead", "dead entry removed and unpinned"),
+    "gather-work": ("split-overlap", IO, "if (!pending_serve_.empty() && captured_left != SIZE_MAX) ++work;", "if (false) ++work;", "split-progress", "deferral alone is positive work"),
+    "gather-chunks": ("split-overlap", IO, "while (captured_left != SIZE_MAX && captured_left && !pending_serve_.empty())", "while (false)", "split-chunk", "2s captured pass crosses scratch bound"),
+    "gather-aof": ("split-overlap", IO, "if (!aof.reply_gate_ready(aof_gate_target_)) {\n                aof.register_send_gate_wait(self_->id());\n                return 0;", "if (false) {\n                aof.register_send_gate_wait(self_->id());\n                return 0;", "split-aof", "AOF refusal precedes composite selection"),
     "split-ex": ("stages", "src/core/ex_loop.h",
                  "template <uint32_t BatchOps = kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
                  "template <uint32_t BatchOps = 2 * kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
@@ -76,7 +87,7 @@ def emit(name, output):
         elif not dest.exists(): dest.symlink_to(path)
 
 
-def check(group, build):
+def check(group, build, controls=True):
     rows = []
     def run(binary, case, negative=None, extra=()):
         result = subprocess.run([str(binary), case, *extra], capture_output=True, text=True, timeout=45)
@@ -96,12 +107,26 @@ def check(group, build):
             for extra in ((), ("r7",)):
                 for case in ("fused-budget", "fastpath", "fifo", "capture", "dead", "progress"):
                     run(build / f"wb-rule-{ns}phase-unit", case, extra=extra)
-        else:
-            for case in ("split-budget", "split-dead", "split-policy", "split-local", "split-local-sweep", "split-ex", "split-ex-unmasked", "split-ex-timed", "fused-parse", "split-parse"):
+        elif group == "stages":
+            for case in ("split-ex", "split-ex-unmasked", "split-ex-timed", "fused-parse", "split-parse"):
                 run(build / f"wb-rule-{ns}phase-unit", case)
+        else:
+            schedules = ((),) if group == "split-phase" else (("natural",), ("shallow",))
+            for extra in schedules:
+                for case in ("split-budget", "split-dead", "split-policy", "split-local", "split-fastpath",
+                             "split-fifo", "split-capture", "split-progress", "split-chunk", "split-aof", "split-capture-multi"):
+                    run(build / f"wb-rule-{ns}phase-unit", case, extra=extra)
+            if group == "split-phase": run(build / f"wb-rule-{ns}phase-unit", "split-local-sweep")
     for name, (kind, _, _, _, case, assertion) in MUTANTS.items():
-        if kind == group: run(build / "wb-rule-controls" / name / "unit", case, assertion)
-    receipt = build / f"wb-rule-{group}-proofs.json"
+        if controls and kind == group:
+            for extra in (("natural",), ("shallow",)) if group == "split-overlap" else ((),):
+                run(build / "wb-rule-controls" / name / "unit", case, assertion, extra)
+    # Shared PHASE 2 lifecycle controls must fail in physical split too.
+    if controls and group == "split-phase":
+        for name in ("rotation", "head", "pin", "capture", "visit", "dead", "work"):
+            *_, case, assertion = MUTANTS[name]
+            run(build / "wb-rule-controls" / name / "unit", "split-" + case, assertion)
+    receipt = build / f"wb-rule-{group}{"" if controls else "-positive"}-proofs.json"
     receipt.write_text(json.dumps(rows, indent=2) + "\n")
     if not all(row["passed"] for row in rows): raise SystemExit(1)
     print(f"PASS wb-rule {group}: {len(rows)}/{len(rows)} strict outcomes")
@@ -114,8 +139,9 @@ if __name__ == "__main__":
     emit_parser.add_argument("name", choices=MUTANTS)
     emit_parser.add_argument("output", type=Path)
     check_parser = sub.add_parser("check")
-    check_parser.add_argument("group", choices=("policy", "phase", "stages"))
+    check_parser.add_argument("group", choices=("policy", "phase", "stages", "split-phase", "split-overlap"))
     check_parser.add_argument("--build", type=Path, default=ROOT / "build")
+    check_parser.add_argument("--positive-only", action="store_true", help="isolated study arm only; gate always includes controls")
     args = parser.parse_args()
     if args.command == "emit": emit(args.name, args.output)
-    else: check(args.group, args.build.resolve())
+    else: check(args.group, args.build.resolve(), not args.positive_only)
