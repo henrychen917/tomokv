@@ -326,6 +326,21 @@ def self_test():
             self.assertEqual((len(layout), sum(p["threads"] for p in layout),
                               sum(p["threads"] * p["clients"] for p in layout)), (24, 192, 512))
 
+        def test_ceiling_abba_assessment_prints_without_plateau_confirmation_fields(self):
+            from dataclasses import replace
+            for status in CEILING_STATUSES:
+                cell = replace(self.cell, instances=4, ceiling_status=status)
+                run = self.block(4, 100, 70)["runs"][0]
+                rounds = [dict(instances=4, runs=[dict(run, arm=arm) for arm in abba.ORDER])]
+                assessment = abba.assess(cell, rounds, abba.NULL_MODE)
+                self.assertEqual(assessment["verdict"], "PASS")
+                self.assertEqual(assessment["load_selection"]["status"], "CEILING")
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    abba.print_cell(dict(cell=asdict(cell), assessment=assessment))
+                self.assertIn(status, output.getvalue())
+                self.assertIn("saturation UNPROVEN; no saturated-peak floor", output.getvalue())
+
         def test_failed_empty_shortened_and_changed_workload_observations_refuse(self):
             rounds = [self.block(1), self.block(2)]
             changes = [lambda r: r.clear(), lambda r: r[1].update(runs=[]),

@@ -1678,7 +1678,10 @@ def print_cell(row):
           f"productive-role(ABBA)={','.join('?' if x is None else f'{x:.3f}' for x in a['saturation_pct_abba'])}% "
           f"instances={a['instances']} {a['verdict']}", flush=True)
     selection = a["load_selection"]
-    if selection["status"] not in ("PINNED", "EXEMPT"):
+    if selection["status"] == "CEILING":
+        print(f"  {a['ceiling_status']}: fixed ceiling load={a['instances']}; "
+              "saturation UNPROVEN; no saturated-peak floor", flush=True)
+    elif selection["status"] not in ("PINNED", "EXEMPT"):
         print(f"  load floor={selection['lowest_tested_qualifying_instances']} "
               f"({selection['status']}, lowest TESTED qualifying rung); "
               f"confirmation={selection['confirmation_instances']} "
