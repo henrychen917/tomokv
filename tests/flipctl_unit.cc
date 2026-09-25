@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "src/core/flipctl.h"
+#include "signalacct_checks.h"
 
 namespace tomo {
 
@@ -378,6 +379,7 @@ uint64_t drive(FlipFingerprintWriter& writer, XorShift& rng, uint64_t passes, ui
 }  // namespace
 
 int main(int argc, char** argv) {
+    signalacct_test::run();
     if (argc == 2 && std::strcmp(argv[1], "--rate-only") == 0)
         return FlipControllerTest::run() ? 1 : 0;
     // ---- detector rows (unchanged) --------------------------------------------------------------

@@ -71,8 +71,8 @@ struct LoopSignals {
     uint64_t iterations = 0;
 
     // ---- time (ns), time-weighted ------------------------------------------------------------
-    uint64_t busy_ns    = 0;    // wall time inside the work section
-    uint64_t idle_ns    = 0;    // wall time blocked or spinning with nothing to do
+    uint64_t busy_ns    = 0;    // IO tenure wall minus booked idle; EX productive-pass time
+    uint64_t idle_ns    = 0;    // IO park span (includes callbacks/publication); EX empty passes/waits
     uint64_t cpu_ns     = 0;    // thread CPU time; the DEFER_TASKRUN-proof busyness reading
 
     // ---- pressure ----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ struct LoopSignals {
     uint64_t depth_samples = 0; // divide to get a time-average rather than a spot reading
     uint64_t full_events   = 0; // outbound push refused: real backpressure, not a guess
 
-    // Sampled queue/age signals. Timestamps come from the loop's already-paid busy Span clock;
+    // Sampled queue/age signals. Timestamps come from the loop's already-paid pass clock;
     // queue-delay observation therefore adds no clock read or atomic to a per-operation path.
     // EWMAs use x256 fixed point so writers stay plain owner-local uint64 stores.
     uint64_t queue_delay_samples = 0;
@@ -138,7 +138,7 @@ struct LoopSignals {
 
     // Boot-latched producer sampling state. A zero rate takes the direct Channel push path: no
     // stamp writes, countdown work, arrays, or EWMA updates. cached_now_us is refreshed from
-    // Span::start_ns(), not by another clock read.
+    // the pass cut, not by another clock read.
     uint64_t cached_now_us = 0;
     uint32_t age_sample_rate = 0;
     uint32_t age_sample_countdown = 0;
@@ -198,8 +198,8 @@ private:
     }
 };
 
-// Scoped timer: accumulates wall time into a counter. One per work section, so busy/idle add up to
-// wall time by construction rather than by remembering to stop the right clock.
+// Scoped timer for independent spans, including IO idle. Disjoint spans alone do not
+// conserve a loop wall interval; IO busy accounting uses consecutive cuts in signalacct.h.
 class Span {
 public:
     explicit Span(uint64_t& sink) : sink_(sink), t0_(now_ns()) {}
