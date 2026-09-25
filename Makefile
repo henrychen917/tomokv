@@ -385,3 +385,30 @@ build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_c
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
 build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# Measured fused writeback rule, serverless production-path witnesses. Clause
+# mutants live only in build/ header overlays; no selector enters production.
+WB_RULE_POLICY_CONTROLS := fastpath staged-clause staged-source submitted done-bytes spill direct borrow crlf no-sum floor whole hole marker code relaxed pre-read walk-tail
+WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse
+WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) Makefile
+WB_RULE_WRAP := -Wl,--wrap=io_uring_submit -Wl,--wrap=io_uring_submit_and_get_events
+build/wb-rule-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
+build/wb-rule-db0-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
+build/wb-rule-phase-unit: build/tests/wb_rule_phase_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
+build/wb-rule-db0-phase-unit: build/db0/tests/wb_rule_phase_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
+$(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS))): build/wb-rule-controls/%/unit: $(WB_RULE_CONTROL_DEPS)
+	python3 tests/wb_rule_checks.py emit $* build/wb-rule-controls/$*/source
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wb-rule-controls/$*/source -I. tests/wb_rule_unit.cc -o $@ $(JELIBS)
+$(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_PHASE_CONTROLS))): build/wb-rule-controls/%/unit: $(WB_RULE_CONTROL_DEPS) $(CORE_TEST_OBJ)
+	python3 tests/wb_rule_checks.py emit $* build/wb-rule-controls/$*/source
+	$(CXX) $(CXXFLAGS) -O0 -g0 $(JEFLAGS) -Ibuild/wb-rule-controls/$*/source -I. tests/wb_rule_phase_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
+.PHONY: wb-rule-units
+wb-rule-units: build/wb-rule-units
+build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-phase-unit build/wb-rule-db0-phase-unit $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS) $(WB_RULE_PHASE_CONTROLS)))
+	@touch $@

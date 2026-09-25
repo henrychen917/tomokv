@@ -929,7 +929,7 @@ void IoLoop::r7_run_loop() {
             } else if constexpr (Fused) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
-                did += r7_flush_ready<HasTls, kEp, true, HasUnix>();
+                did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
             } else {
                 did += collect_retire_work<HasUnix, kEp>();
                 if (__builtin_expect(!routing_forward_.empty(), false))
@@ -994,7 +994,7 @@ void IoLoop::r7_run_loop() {
             sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
                 natural_order, submitted, pipe.cursor);
         else
-            sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused>();
+            sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
         if (sweep_work) {
             if constexpr (IoPipe) {
                 if (!submitted || ring_.sq_ready()) {
@@ -1097,7 +1097,7 @@ void IoLoop::r7_run_loop() {
     reap_dead();
 }
 
-template <bool HasUnix, bool HasTls, bool kEp, bool Fused>
+template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
 uint32_t IoLoop::r7_sweep() {
     TOMO_R7_PATH();
     uint32_t work = 0;
@@ -1105,7 +1105,7 @@ uint32_t IoLoop::r7_sweep() {
     if constexpr (Fused) {
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() +
-                r7_flush_ready<HasTls, kEp, true, HasUnix, true>();
+                r7_flush_ready<HasTls, kEp, true, HasUnix, true, SplitLocal>();
     } else {
         work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                 flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
@@ -1121,7 +1121,7 @@ uint32_t IoLoop::r7_sweep() {
 }
 
 template <bool HasTls, bool kEp, bool Fused, bool HasUnix,
-          bool SweepPass>
+          bool SweepPass, bool SplitLocal>
 uint32_t IoLoop::r7_flush_ready() {
     TOMO_R7_PATH();
     uint32_t work = 0;
@@ -1337,11 +1337,8 @@ uint32_t IoLoop::r7_flush_ready() {
     // predicted branch on a bool; all the machinery is out-of-line and cold.
     if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-    // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
-    // fourth application of the same law (per-pass work scales with what the pass does, not
-    // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
-    // and FIFO order is arrival-order fairness across connections. Under overload the queue is
-    // the latency -- which is the correct place for overload to live; throughput stays at peak.
+    // PHASE 2 -- fused visits the captured FIFO once under the measured composite rule.
+    // Split retains its existing live-connection budget and ordinary writeback path.
     if (!pending_serve_.empty()) {
         AofManager& aof = srv_->aof();
         if (__builtin_expect(aof.configured(), false)) {
@@ -1355,46 +1352,50 @@ uint32_t IoLoop::r7_flush_ready() {
     } else {
         aof_gate_target_ = 0;
     }
-    uint32_t served = 0;
-    constexpr uint32_t serve_budget = Fused ? kGenthreadWbBatchConns : kServeBudget;
-    while (served < serve_budget && !pending_serve_.empty()) {
-        Client* c = pending_serve_.front();
-        pending_serve_.pop_front();
-        c->set_serve_pending(false);
-        // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
-        // close_client finish. Only corpses (freed-pending) are skippable.
-        if (c->dead()) continue;
-        served++;
-        // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
-        // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
-        // the cold object and discards bytes instead of staging them.
-        if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-            climon_reply_suppressed(c)) {
-            work += climon_serve_suppressed(c);
-            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
-            continue;
-        }
-        if constexpr (HasTls) {
-            if (TlsConn* tls = tls_engine(c)) {
-                if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
-                if (tls->socket_userspace() && tls->has_pinned_plain())
-                    arm_tls_socket_poll<kEp>(c, tls->wanted());
-                if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
-            } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
+    if constexpr (Fused && !SplitLocal) {
+        return work + wb_rule::Phase2::serve<HasTls, kEp>(*this);
+    } else {
+        uint32_t served = 0;
+        constexpr uint32_t serve_budget = kServeBudget;
+        while (served < serve_budget && !pending_serve_.empty()) {
+            Client* c = pending_serve_.front();
+            pending_serve_.pop_front();
+            c->set_serve_pending(false);
+            // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
+            // close_client finish. Only corpses (freed-pending) are skippable.
+            if (c->dead()) continue;
+            served++;
+            // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
+            // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
+            // the cold object and discards bytes instead of staging them.
+            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                climon_reply_suppressed(c)) {
+                work += climon_serve_suppressed(c);
+                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+                continue;
+            }
+            if constexpr (HasTls) {
+                if (TlsConn* tls = tls_engine(c)) {
+                    if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
+                    if (tls->socket_userspace() && tls->has_pinned_plain())
+                        arm_tls_socket_poll<kEp>(c, tls->wanted());
+                    if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
+                } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
+                    if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
+                } else if (wb_.serve<kEp, false, Fused>(*c)) {
+                    work++;
+                }
             } else if (wb_.serve<kEp, false, Fused>(*c)) {
                 work++;
             }
-        } else if (wb_.serve<kEp, false, Fused>(*c)) {
-            work++;
+            // A synchronous send has no CQE to report a fatal errno through, so the engine latches
+            // it and the decision to tear the connection down is taken here instead. Consuming it
+            // per served connection is deliberate: a bit left set would close the NEXT one.
+            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
         }
-        // A synchronous send has no CQE to report a fatal errno through, so the engine latches
-        // it and the decision to tear the connection down is taken here instead. Consuming it
-        // per served connection is deliberate: a bit left set would close the NEXT one.
-        if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+        work += served;
+        return work;
     }
-    work += served;
-    return work;
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>

@@ -24,6 +24,7 @@
 #include <vector>
 #include "server.h"
 #include "signalacct.h"
+#include "wb_rule.h"
 #include "iopipe_pipeline.h"
 #include "signal.h"
 #include "ex_loop.h"
@@ -58,6 +59,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
     friend struct CoreConcurrencyTest;
+    friend struct wb_rule::Phase2;
 public:
     WbEngine& engine() { return wb_; }
     uint32_t reap_atomic_deferred() {
@@ -634,7 +636,7 @@ private:
                 } else if constexpr (Fused) {
                     if (__builtin_expect(!routing_forward_.empty(), false))
                         client_routing_cleanup_pass();
-                    did += flush_ready<HasTls, kEp, true, HasUnix>();
+                    did += flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
                 } else {
                     did += collect_retire_work<HasUnix, kEp>();
                     if (__builtin_expect(!routing_forward_.empty(), false))
@@ -699,7 +701,7 @@ private:
                 sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
                     natural_order, submitted, pipe.cursor);
             else
-                sweep_work = sweep<HasUnix, HasTls, kEp, Fused>();
+                sweep_work = sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
             if (sweep_work) {
                 if constexpr (IoPipe) {
                     if (!submitted || ring_.sq_ready()) {
@@ -4444,14 +4446,14 @@ ordinary_shard_ready:
     // ---- inbound: workers telling us a client has completed ops -----------------------------------
     // Inbound from workers: "ops are Done" -- the claimed-post fallback for a conn with no
     // ready-mask slot. Either way the answer is the same: put the client back in the active set.
-    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
     uint32_t sweep() {
         uint32_t work = 0;
         if constexpr (HasUnix) work += flush_handoffs();
         if constexpr (Fused) {
             work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                     flush_borrow_releases() +
-                    flush_ready<HasTls, kEp, true, HasUnix, true>();
+                    flush_ready<HasTls, kEp, true, HasUnix, true, SplitLocal>();
         } else {
             work += service_client_migrations<kEp>() + drain_client_transfers<kEp>(true) +
                     flush_borrow_releases() + collect_retire_work<HasUnix, kEp>(true) +
@@ -4961,7 +4963,7 @@ ordinary_shard_ready:
     // serve() here; in ex-wb and 3-stage the sender does that on its own thread and io only keeps
     // the READ side moving — reclaim the buffer once nothing points into it, and re-arm.
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
-              bool SweepPass = false>
+              bool SweepPass = false, bool SplitLocal = false>
     uint32_t flush_ready() {
         uint32_t work = 0;
         backstop_pass_ = (++flush_tick_ >= kFlushBackstopEvery);
@@ -5176,11 +5178,8 @@ ordinary_shard_ready:
         // predicted branch on a bool; all the machinery is out-of-line and cold.
         if (__builtin_expect(pubsub_pass_pending_, false)) work += pubsub_pass_flush();
 
-        // PHASE 2 -- serve AT MOST kServeBudget conns from the FIFO. Bounding the pass is the
-        // fourth application of the same law (per-pass work scales with what the pass does, not
-        // with connection count): the leftovers stay queued, did > 0 keeps the loop from parking,
-        // and FIFO order is arrival-order fairness across connections. Under overload the queue is
-        // the latency -- which is the correct place for overload to live; throughput stays at peak.
+        // PHASE 2 -- fused visits the captured FIFO once under the measured composite rule.
+        // Split retains its existing live-connection budget and ordinary writeback path.
         if (!pending_serve_.empty()) {
             AofManager& aof = srv_->aof();
             if (__builtin_expect(aof.configured(), false)) {
@@ -5194,46 +5193,50 @@ ordinary_shard_ready:
         } else {
             aof_gate_target_ = 0;
         }
-        uint32_t served = 0;
-        constexpr uint32_t serve_budget = Fused ? kGenthreadWbBatchConns : kServeBudget;
-        while (served < serve_budget && !pending_serve_.empty()) {
-            Client* c = pending_serve_.front();
-            pending_serve_.pop_front();
-            c->set_serve_pending(false);
-            // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
-            // close_client finish. Only corpses (freed-pending) are skippable.
-            if (c->dead()) continue;
-            served++;
-            // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
-            // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
-            // the cold object and discards bytes instead of staging them.
-            if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
-                climon_reply_suppressed(c)) {
-                work += climon_serve_suppressed(c);
-                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
-                continue;
-            }
-            if constexpr (HasTls) {
-                if (TlsConn* tls = tls_engine(c)) {
-                    if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
-                    if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll<kEp>(c, tls->wanted());
-                    if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
-                } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
-                    if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
+        if constexpr (Fused && !SplitLocal) {
+            return work + wb_rule::Phase2::serve<HasTls, kEp>(*this);
+        } else {
+            uint32_t served = 0;
+            constexpr uint32_t serve_budget = kServeBudget;
+            while (served < serve_budget && !pending_serve_.empty()) {
+                Client* c = pending_serve_.front();
+                pending_serve_.pop_front();
+                c->set_serve_pending(false);
+                // Closing conns MUST still be served -- their ROB has to drain before quiesce can let
+                // close_client finish. Only corpses (freed-pending) are skippable.
+                if (c->dead()) continue;
+                served++;
+                // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
+                // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
+                // the cold object and discards bytes instead of staging them.
+                if (__builtin_expect((climon_armed_cached_ & Server::kClimonReply) != 0, false) &&
+                    climon_reply_suppressed(c)) {
+                    work += climon_serve_suppressed(c);
+                    if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+                    continue;
+                }
+                if constexpr (HasTls) {
+                    if (TlsConn* tls = tls_engine(c)) {
+                        if (wb_.serve_tls<kEp, false, Fused>(*c, *tls)) work++;
+                        if (tls->socket_userspace() && tls->has_pinned_plain())
+                            arm_tls_socket_poll<kEp>(c, tls->wanted());
+                        if (tls->failed()) close_client(c, tls->output_pending() || c->send_inflight());
+                    } else if (TlsConn* slot = tls_slot_conn(c); slot && slot->ktls()) {
+                        if (wb_.serve_ktls<kEp, false, Fused>(*c)) work++;
+                    } else if (wb_.serve<kEp, false, Fused>(*c)) {
+                        work++;
+                    }
                 } else if (wb_.serve<kEp, false, Fused>(*c)) {
                     work++;
                 }
-            } else if (wb_.serve<kEp, false, Fused>(*c)) {
-                work++;
+                // A synchronous send has no CQE to report a fatal errno through, so the engine latches
+                // it and the decision to tear the connection down is taken here instead. Consuming it
+                // per served connection is deliberate: a bit left set would close the NEXT one.
+                if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
             }
-            // A synchronous send has no CQE to report a fatal errno through, so the engine latches
-            // it and the decision to tear the connection down is taken here instead. Consuming it
-            // per served connection is deliberate: a bit left set would close the NEXT one.
-            if constexpr (kEp) if (wb_.take_send_failure()) epoll_close_now(c);
+            work += served;
+            return work;
         }
-        work += served;
-        return work;
     }
 
     void enqueue_serve(Client* c) {
@@ -5602,6 +5605,7 @@ ordinary_shard_ready:
     // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
     // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
     // overload.
+    // Split PHASE 2 only; fused uses wb_rule and has no connection-count budget.
     static constexpr uint32_t kServeBudget = 16;
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
@@ -5770,10 +5774,10 @@ public:
     template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false,
               uint8_t Pipeline = 0, bool SplitLocal = false>
     void r7_run_loop();
-    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false>
+    template <bool HasUnix, bool HasTls, bool kEp, bool Fused = false, bool SplitLocal = false>
     uint32_t r7_sweep();
     template <bool HasTls, bool kEp, bool Fused = false, bool HasUnix = false,
-              bool SweepPass = false>
+              bool SweepPass = false, bool SplitLocal = false>
     uint32_t r7_flush_ready();
     template <bool kEp, bool Fused = false, uint8_t Pipeline = 0>
     void r7_admit_fd(int fd, UrKind kind);

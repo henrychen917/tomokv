@@ -9,7 +9,6 @@ namespace tomo {
 // plain-loop baseline rather than a smaller spelling of either interwoven schedule.
 inline constexpr uint32_t kGenthreadIfidBatchOps = 32;
 inline constexpr uint32_t kGenthreadExBatchOps = 32;
-inline constexpr uint32_t kGenthreadWbBatchConns = 16;
 
 // Fused overlap uses this generalized-thread geometry. These names are
 // deliberately separate from the coarse constants above so selecting the study baseline cannot
