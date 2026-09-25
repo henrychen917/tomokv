@@ -1,0 +1,12 @@
+# Existing merit workloads and IDs, with the measured eight-loader geometry explicit.
+# Headline load-floor metadata can name a different placement; do not inherit it here.
+# Source: tests/headline_cells.txt SHA256 d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+# Source: /tmp/claude-1000/window3_p8_cells.txt SHA256 16f63c2403eb2460f74ef6d895bbf4649e90a2a51b213cdd9160e3900a04040b
+p8g | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8s | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+# Source: /tmp/claude-1000/wb_depth_rl_cells.txt SHA256 ce511064a9097f0346ac08b7d3e1d7f4675906bc5542582bbf7d652a98c8e343
+m8g_l0 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+v1g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET:1024 | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d128g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET | p128 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
