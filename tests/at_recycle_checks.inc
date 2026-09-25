@@ -2,17 +2,30 @@
 // Real queues, participants, allocator and ownership transfers; no listener or load generator.
 namespace tomo {
 struct FlatStoreRegressionTest {
+    static ReadLocalRetireSink sink(FlatStore& store) {
+        return store.read_local_store_state_required().retire_sink;
+    }
     static void reclaim(void* owner, void* object, size_t capacity) {
         FlatStore::read_local_reclaim_object(owner, object, capacity);
     }
 };
 }
 namespace {
+void recycle_assert_owner_binding(FlatStore& store, const ReadLocalRetireSink& expected) {
+    const auto actual = FlatStoreRegressionTest::sink(store);
+    require(actual.context == expected.context && actual.block_cache == expected.block_cache &&
+            actual.defer == expected.defer && actual.available == expected.available &&
+            actual.defer_resize == expected.defer_resize,
+            "owner assertion: every sink binding names destination at the ownership edge");
+}
 struct RecycleSnapshot {
     uint64_t mallocs = 0, frees = 0;
     size_t bytes = 0;
     std::array<uint32_t, KvBlockCache::kClasses> nodes{};
     std::vector<void*> pointers;
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+    at_recycle::Counters witness;
+#endif
 };
 RecycleSnapshot recycle_snapshot(Fixture& f, unsigned owner) {
     RecycleSnapshot result;
@@ -34,6 +47,12 @@ RecycleSnapshot recycle_snapshot(Fixture& f, unsigned owner) {
                 "cache byte census and total bound");
         result.bytes = cache.bytes;
         result.mallocs = recycle_alloc.mallocs; result.frees = recycle_alloc.frees;
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+        result.witness = cache.witness;
+        require(result.witness.takes == result.witness.hits + result.witness.misses,
+                "witness accounts for every take");
+        cache.witness.dump(cache, "serverless-owner");
+#endif
     });
     return result;
 }
@@ -90,6 +109,13 @@ void recycle_wave(bool fused) {
                     recycle_census(f.server.shard(f.sid_a).store());
                 });
                 const auto ready = recycle_snapshot(f, f.source);
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+                require(after.witness.takes - before.witness.takes == width &&
+                        after.witness.hits - before.witness.hits == (wave ? width : 0) &&
+                        after.witness.fresh - before.witness.fresh == (wave ? 0 : width) &&
+                        ready.witness.admitted - after.witness.admitted == width,
+                        "instrumented attempts/hits/fresh allocations/admissions agree with wave census");
+#endif
                 require(ready.nodes[kv_block_class(capacity)] == width && ready.bytes == width * capacity,
                         "completed W-object wave is fully cached despite one live object");
                 std::printf("RECYCLE wave mode=%s kind=%s W=%u warm=%u takes=%u hits=%u misses=%u "
@@ -100,6 +126,27 @@ void recycle_wave(bool fused) {
                             (unsigned long long)(ready.frees - before.frees), ready.bytes, capacity);
             }
         }
+    }
+}
+// An independent PRE-behaviour oracle for the patched PAD-A fixture. Never part of POST's
+// normal suite: POST must fail this assertion, while the per-shard-cap mutant and PAD-A pass.
+void recycle_pre_cap(bool fused) {
+    for (unsigned width : {kRobWindow / 8, kRobWindow / 2, kRobWindow}) {
+        Fixture f(fused, true);
+        const auto key = f.key(f.sid_a, "pre-cap-");
+        f.set(f.sid_a, key, "value");
+        for (unsigned n = 0; n < width; ++n) f.set(f.sid_a, key, "value");
+        f.on(f.sid_a, [&] {
+            require(f.queues[f.source].size() == width && f.queues[f.source].drain_ready() == width,
+                    "PRE-cap oracle engages complete reclaim wave");
+        });
+        const auto ready = recycle_snapshot(f, f.source);
+        require(ready.pointers.size() == 1, "PRE-cap oracle admits exactly one block per wave");
+        for (unsigned n = 0; n < width; ++n) f.set(f.sid_a, key, "value");
+        const auto used = recycle_snapshot(f, f.source);
+        require(used.mallocs - ready.mallocs == width - 1 && used.bytes == 0,
+                "PRE-cap oracle has one hit and W-1 allocator misses");
+        std::printf("PASS PRE-cap oracle W=%u hits=1 misses=%u\n", width, width - 1);
     }
 }
 void recycle_pinned(bool fused) {
@@ -169,7 +216,9 @@ void recycle_borrow(bool fused) {
         recycle_alloc.watched = object; recycle_alloc.watched_freed = false;
     });
     f.set(f.sid_a, key, fresh); f.drain();
-    require(recycle_snapshot(f, f.source).bytes == 0, "borrowed raw block is rejected after grace");
+    const auto retained_cache = recycle_snapshot(f, f.source);
+    require(std::find(retained_cache.pointers.begin(), retained_cache.pointers.end(), object) ==
+            retained_cache.pointers.end(), "retained borrowed pointer must not appear in cache");
     require(std::memcmp(retained, old.data(), old.size()) == 0, "borrowed pointer bytes remain retained");
     for (unsigned n = 0; n < kRobWindow; ++n) {
         require(f.set(f.sid_a, key, fresh) != object, "borrowed object cannot be reused"); f.drain();
@@ -274,6 +323,21 @@ void recycle_shapes(bool fused) {
     require(before.pointers.size() == 1, "one sibling-supplied cached block");
     auto* sibling = f.set(sid2, b, "inline");
     require(sibling == before.pointers.front(), "two shards share the owner's exact-size cache");
+    f.drain();
+    f.on(f.sid_a, [&] { f.queues[f.source].sink()->block_cache->release_all(); });
+    const auto huge_key = f.key(f.sid_a, std::string(200000, 'h'));
+    f.on(f.sid_a, [&] {
+        auto& store = f.server.shard(f.sid_a).store();
+        auto* huge = recycle_write(store, huge_key, "h");
+        require(kv_block_class(kvobj_capacity(huge)) >= KvBlockCache::kClasses,
+                "huge-key object lies outside cache classes");
+        recycle_alloc.watched = huge; recycle_alloc.watched_freed = false;
+        recycle_write(store, huge_key, "i");
+        require(f.queues[f.source].drain_ready() == 1 && recycle_alloc.watched_freed,
+                "huge-key object reclaims through baseline free");
+        recycle_alloc.watched = nullptr;
+    });
+    require(recycle_snapshot(f, f.source).bytes == 0, "huge-key block is not admitted");
 }
 void recycle_release(bool fused) {
     for (const std::string action : {"empty", "flush", "pressure", "oom", "shutdown"}) {
@@ -323,6 +387,7 @@ void recycle_release(bool fused) {
     }
 }
 void recycle_suite(bool fused, const std::string& selected) {
+    if (selected == "pre-cap") { recycle_pre_cap(fused); return; }
     bool ran = false;
     for (auto [name, run] : std::array<std::pair<const char*, void (*)(bool)>, 7>{{{"wave", recycle_wave}, {"pinned", recycle_pinned},
              {"full", recycle_full_ring}, {"borrow", recycle_borrow}, {"bounds", recycle_bounds},

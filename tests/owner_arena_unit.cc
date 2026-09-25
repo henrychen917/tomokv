@@ -80,6 +80,9 @@ struct AllocationAudit {
 extern "C" void* __real_mallocx(size_t, int);
 extern "C" void __real_sdallocx(void*, size_t, int);
 extern "C" void* __wrap_mallocx(size_t n, int flags) {
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+    ++at_recycle::allocations.mallocx;
+#endif
     recycle_alloc.mallocs++;
     if (fail_size == n && fail_occurrence && --fail_occurrence == 0) {
         fail_size = 0;
@@ -91,6 +94,9 @@ extern "C" void* __wrap_mallocx(size_t n, int flags) {
     return memory;
 }
 extern "C" void __wrap_sdallocx(void* memory, size_t n, int flags) {
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+    ++at_recycle::allocations.sdallocx;
+#endif
     recycle_alloc.frees++;
     if (memory == recycle_alloc.watched) recycle_alloc.watched_freed = true;
     allocation_audit.freed(memory, n);
@@ -100,6 +106,7 @@ extern "C" void __wrap_sdallocx(void* memory, size_t n, int flags) {
 using namespace tomo;
 namespace {
 Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
+void recycle_assert_owner_binding(FlatStore&, const ReadLocalRetireSink&);
 unsigned arena_of(const void* memory) {
     unsigned arena = UINT32_MAX;
     size_t bytes = sizeof(arena);
@@ -231,6 +238,7 @@ struct Fixture {
                       : server.transfer_shard_quiesced(sid, source_owner, destination_owner),
                 "quiesced ownership transfer fired");
         require(server.worker_of_shard(sid) == destination_owner, "destination ownership published");
+        if (armed) recycle_assert_owner_binding(shard.store(), *queues[destination_owner].sink());
     }
     KvObj* find(int32_t sid, const std::string& key) {
         KvObj* object = nullptr;

@@ -61,7 +61,7 @@ def mirror(output, kind):
         replace(output, cache, 'void* take(size_t allocation) {',
                 'void* take(size_t allocation) {\n        ++witness.takes;')
         replace(output, cache, 'if (cls >= kClasses) return nullptr;',
-                'if (cls >= kClasses) { ++witness.misses; return nullptr; }')
+                'if (cls >= kClasses) { ++witness.misses; ++witness.outside_takes; return nullptr; }')
         replace(output, cache, 'if (!block) return nullptr;',
                 'if (!block) { ++witness.misses; return nullptr; }\n        ++witness.hits;')
         replace(output, cache, 'if (!eligible(allocation)) return false;',
@@ -132,7 +132,8 @@ def twin(source, output):
         assert body.count(select) == body.count(subtract) == 1
         # Verify the cached byte register and compare before the constant subtraction as well.
         at = body.index(subtract)
-        assert bytes.fromhex('498bb640020000 4839c6') in body[max(0, at - 20):at]
+        assert any(bytes.fromhex(load + '4839c6') in body[max(0, at - 20):at]
+                   for load in ('498bb640020000', '498bb540020000', '498bb42440020000'))
         sec = elf.sections[sym['sec']]
         file_base = sec[4] + sym['value'] - sec[3]
         for old, new in ((select, baseline), (subtract, variable)):
@@ -141,7 +142,7 @@ def twin(source, output):
             patched[off:off + len(old)] = new
             patches.append(dict(symbol=sym['name'], address=sym['value'] + body.index(old),
                                 offset=off, old=old.hex(), new=new.hex()))
-    assert len(patches) in (4, 8, 12), ('unexpected callback copies', len(patches))
+    assert len(patches) in (4, 6, 8, 12), ('unexpected callback copies', len(patches))
     text_sec = elf.sections[elf.names.index('.text')]
     assert elf.section_data(elf.names.index('.text')).count(select) == len(patches) // 2
     output.write_bytes(patched); output.chmod(source.stat().st_mode)
