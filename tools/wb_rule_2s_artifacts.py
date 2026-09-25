@@ -198,16 +198,22 @@ def audit():
         clauses[name] = hashlib.sha256(a.encode()).hexdigest()
     assert clean(body(study, 'defer_split34').replace('kSplitStudyFraction', 'kPolicyFraction')) == clean(body(post, 'defer'))
     proofs = {}
+    proof_digests = {}
     for root, tag, suffix in ((BUILD, 'half', ''), (STUDY/'build', 'three-quarter', '-positive')):
         for group in GROUPS:
             path = root/f'wb-rule-{group}{suffix}-proofs.json'
             rows = json.loads(path.read_text())
-            assert rows and all(r['passed'] and sha(r['binary']) == r['sha256'] for r in rows)
+            assert rows and all(r['passed'] for r in rows)
+            for row in rows:
+                if row['binary'] not in proof_digests:
+                    proof_digests[row['binary']] = sha(row['binary'])
+                assert proof_digests[row['binary']] == row['sha256']
             proofs[tag+'/'+group] = dict(path=str(path), sha256=sha(path), positive=sum(r['expected_exit']==0 for r in rows), negative=sum(r['expected_exit']==1 for r in rows))
     identity_rows = json.loads((BUILD/'wbrule2s-identity.json').read_text())
     assert all(r['identical'] for r in identity_rows)
     result = dict(baseline='32d27ee7562ed5a17ff889c0fe5cf250f3fdc63c',
-                  source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+                  production_commit=subprocess.check_output(['git', 'log', '-1', '--format=%H', '--', 'src', 'Makefile'], cwd=ROOT, text=True).strip(),
+                  source_sha256={name:sha(ROOT/name) for name in ('src/core/wb_rule.h', 'src/core/io_loop.h', 'src/core/reorder.cc', 'Makefile', 'tests/wb_rule_checks.py', 'tests/wb_rule_phase_unit.cc', 'tests/wb_rule_2s_cost.cc', 'tests/wb_rule_2s_cells.txt', 'tools/wb_rule_2s_artifacts.py', 'tools/wb_rule_2s_trace.cc')},
                   clause_hashes=clauses, proofs=proofs,
                   inputs={str(p):sha(p) for p in (Path('/home/user/Projects/cx-final/MEASURE-REQUEST-wbrule.md'), Path('/home/user/Projects/cx-drainall-test/MEASURE-REQUEST-window5.md'), Path('/home/user/Projects/cx-drainall-test/tools/drainall_window5.patch'))},
                   receipts={name:sha(BUILD/name) for name in ('wbrule2s-identity.json', 'wbrule2s-pads.json', 'wbrule2s-costs.json', 'wbrule2s34.patch')},

@@ -1,20 +1,7 @@
-wbrule: MAINLINE ONLY — no server, benchmark, gate or performance measurement run here.
-Full diagnosis, proofs, negative controls, hashes and exact commands: MEASURE-REQUEST-wbrule.md.
-Primary POST: build/tomokv (hard-coded physical 1s w4-c12, parse/EX 32/32, ROB 64).
-Reference: /home/user/Projects/cx-final/build/tomokv.
-PAD: build/tomokv-pad, A behaviour twin = PRE behaviour with POST aggregate .text size.
-Separate hypothesis: build/tomokv-mgetfix, commit 306e0ef5d on cx-wbrule-mgetfix;
-it is absent from the primary branch and build/tomokv and must be judged independently.
-Merit cells: h05,h06,p8g,p8s,m8g_l0,v1g_l0,d128g_l0 from tests/wb_rule_cells.txt.
-Geometry: 32 server cores 0-31, 512 connections, eight loaders on 32-111; no SMT.
-Run the ordinary ABBA entry with a matching normal identical-arm null, then three
-independent POST/reference and PAD/reference blocks. Preserve every result.
-Judge matched-load rate and qualified cycles/op, with instructions/op and IPC paired.
-Every primary cell must meet the stable reference except the known MGET-8 p8 loss.
-Collect PMU diagnostics separately: the existing profile API marks them untrusted,
-and its cycles/command and instructions/command use approximate window alignment.
-Do not use those diagnostics as a standing null or trusted merit verdict.
-Compare MGETFIX against c12 separately; it lands later only if it improves MGET
-without new losses. After primary merit acceptance: tests/gate.sh iteration.
-Gate accounting: +3 rows before the quick exit; quick 441, full/iteration 457.
-Require 0 gating FAIL. Append mainline measurements as MEASURE-RESULT.
+Lane cx-wbrule2s: read MEASURE-REQUEST-wbrule2s.md for the complete receipt and commands.
+PRE is build/wbrule2s-pre/tomokv, exactly 32d27ee75.
+Arms: build/tomokv (shared 1/2), build/tomokv-2s34 (2s-only study 3/4).
+PADs: build/tomokv-pad and build/tomokv-2s34-pad, both A: PRE-behaviour aggregate-text-size twins.
+Cells: tests/wb_rule_2s_cells.txt, all 16 against PRE and a matched identical-arm null, then the gate.
+Rate and latency decide; record cycles/op, IPC, instructions/op and commands/send. No measurements ran here.
+EXPECT_QUICK should become 443 and EXPECT_FULL 459; constants were left for the maintainer.
