@@ -5521,9 +5521,9 @@ ordinary_shard_ready:
     };
     ThreadCtx* self_ = nullptr;
     static constexpr uint32_t kFlushBackstopEvery = 64;
-    // Serves per pass. Sized so a pass's serve work stays comparable to its recv work: ~16 serves
-    // x a ~32-op prefix each is one CQ batch worth of replies. The queue, not the pass, absorbs
-    // overload.
+    // IO-owned writeback FIFO. Each composite pass visits its captured entries once;
+    // deferred entries retain serve_pending as a lifetime/deduplication pin. The
+    // overlap schedule carries the captured visit count across fixed scratch chunks.
     std::deque<Client*> pending_serve_;
     std::deque<BorrowRelease> pending_releases_;
     std::deque<Client*> pending_handoffs_;
