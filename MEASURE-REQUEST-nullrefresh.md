@@ -160,130 +160,83 @@ The complete current correctness label multiset starts and replays a receipt wit
 
 **Row arithmetic.** Constants remain quick=438/full=454. POST emission anchors: control `ok` at `tests/gate.sh:2345`, BEFORE the quick exit beginning `:2819` (exit command `:2823`); headline context `:2891`, AFTER that exit. The actual PRE launch also emits the control at `:2345` and exits quick at `:2819`; the task's 2808 audit anchor had shifted by launch, and was not used to classify rows. Headline emits zero ok/bad rows. Existing control-row expansion adds zero scored rows: quick 438+0=438; full 438+16+0=454. Optional NIC remains the existing +1. These are source/ledger counts, not a claimed gate run. Exact EXPECT_FULL from `gate.sh` and the caller's trusted label multiset replace the second 437 lower bound in begin/finish/replay. Mainline must review its baseline labels; the fixture is not authority to fabricate execution observations.
 
-**MAINLINE ONLY: exact measurement sequence.** All live/measurement results below are PENDING MAINLINE. Schedule one quiet campaign; do not run these concurrently with builds or another lane. The geometry below matches the rechecked historical environment: server 0-31, no server SMT, load 32-127 plus 160-255 SMT, split 16:16, ceiling 16. Inventory is all 181 launch cells (64 h + 96 m + 6 x + 4 c + 4 a + 7 t), including p1, p32 and the current p8 p999 cells. The serverless p999 depth32 fixture separately attacks the former depth-only branches. Calibration uses the existing 10-second search window; null/holdout/comparison use unchanged 20-second central windows, ABBA order and original workload parameters.
+**MAINLINE ONLY: nullrefresh2 campaign (supersedes the failed September 24 campaign).**
+
+Reference is now `32d27ee75`. See `MEASURE-REQUEST-nullrefresh2.md` for the evidence, verdict policy, frozen hashes and serverless proofs. Earlier sections above are the historical nullrefresh report; their hashes and 438/454 row counts describe that earlier reference. The current inherited counts are 441/457; this lane adds no gate row. This single block schedules fresh calibration, standing null and independent holdout only. Ceiling-only cells cannot certify saturated capacity or comparisons of different server bytes. No earlier failed calibration is imported or promoted. Default ceiling stays 16; 24 is a separate explicitly selected fresh campaign.
 
 ```bash
 cd /home/user/Projects/cx-nullrefresh
 set -euo pipefail
 test -z "$(git status --porcelain --untracked-files=normal)"
-RUN="$PWD/build/nullrefresh-mainline-$(date -u +%Y%m%dT%H%M%SZ)"
+git merge-base --is-ancestor 32d27ee7562ed5a17ff889c0fe5cf250f3fdc63c HEAD
+# Set NULLREFRESH_MAX_INSTANCES=24 explicitly BEFORE starting a fresh campaign.
+MAX_INSTANCES="${NULLREFRESH_MAX_INSTANCES:-16}"
+case "$MAX_INSTANCES" in 16|24) ;; *) echo 'Choose 16 or 24 instances' >&2; exit 2;; esac
+RUN="$PWD/build/nullrefresh2-mainline-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir "$RUN"
-STABLE="$PWD/build/tomokv-nullrefresh-POST"
-GEN="$PWD/build/memtier-nullrefresh-frozen"
+STABLE="$PWD/build/tomokv-nullrefresh2-POST"
+GEN="$PWD/build/memtier-nullrefresh2-frozen"
 CELLS="$PWD/tests/headline_cells.txt"
 NULL="$PWD/.gate-history/receipts/baselines/full-null.json"
 expect_rc() {
   local expected=$1 actual=0
   shift
   "$@" || actual=$?
-  test "$actual" -eq "$expected"
+  if test "$actual" -ne "$expected"; then
+    echo "Expected rc=$expected, got rc=$actual: $*" >&2
+    return 1
+  fi
 }
 COMMON=(--subset full --cells "$CELLS" --candidate "$STABLE"
         --memtier "$GEN" --server-cores 0-31 --server-smt ''
-        --load-cores 32-127 --load-smt 160-255 --max-instances 16
+        --load-cores 32-127 --load-smt 160-255 --max-instances "$MAX_INSTANCES"
         --ports 8700-8799 --port 8700 --build-reference 0)
-sha256sum "$STABLE" "$GEN" "$CELLS" > "$RUN/before-calibration.sha256"
+# Preflight binds exact 32d27ee75 server bytes and both generator binaries.
+sha256sum -c build/nullrefresh2-campaign.sha256
+cmp build/tomokv "$STABLE"
+cmp build/tailgen build/tailgen-nullrefresh2-frozen
+printf '%s\n' "$MAX_INSTANCES" > "$RUN/max-instances"
+cp build/nullrefresh2-freeze.json "$RUN/instrument-freeze.json"
 cp tests/gate_measurements.json "$RUN/before-calibration-inputs.json"
 taskset -c 112-127 python3 tests/abba_instrument.py > "$RUN/instrument.json"
-cmp build/nullrefresh-POST.instrument.json "$RUN/instrument.json"
+cmp build/nullrefresh2-POST.instrument.json "$RUN/instrument.json"
+sha256sum "$STABLE" "$GEN" "$CELLS" build/tailgen > "$RUN/before-calibration.sha256"
 
-# First collect ALL intended cells. PIN/EXEMPT is deliberately rc=3.
+# All 181 cells, fresh measurements. PIN, EXEMPT and CEILING-LIMITED use rc=3.
+# Invalid/incomplete evidence still returns rc=1 and stops this strict script.
 expect_rc 3 python3 tests/abbagate.py "${COMMON[@]}" --calibrate --output "$RUN/calibration"
-# Replay all retained raw evidence before one atomic data import.
+# Replay raw evidence atomically: PIN -> load_floors; ceiling -> ceiling_loads.
 taskset -c 112-127 python3 tests/gate_measurements.py \
   --import-calibration "$RUN/calibration/results.json" --cells "$CELLS"
 taskset -c 112-127 python3 tests/abba_instrument.py > "$RUN/after-import-instrument.json"
 cmp "$RUN/instrument.json" "$RUN/after-import-instrument.json"
 sha256sum -c "$RUN/before-calibration.sha256"
 cp tests/gate_measurements.json "$RUN/imported-inputs.json"
-# Only measured DATA may change. Commit it so the eventual receipt can certify HEAD.
 if ! git diff --quiet -- tests/gate_measurements.json; then
   git add tests/gate_measurements.json
-  git commit -m "Import nullrefresh measured load floors"
+  git commit -m "Import nullrefresh2 measured floors and ceiling observations"
 fi
 test -z "$(git status --porcelain --untracked-files=normal)"
 taskset -c 112-127 python3 tests/gate_receipt.py freeze-null \
   --calibration "$RUN/calibration/results.json" --output "$RUN/frozen-campaign.json"
 
-# Freeze -> full identical-arm collection -> explicit local promotion.
+# Explicit ceiling controls retain raw occupancy and workload checks. Saturation
+# remains UNPROVEN; only calibrated byte-identical arms may use these load plans.
 expect_rc 3 python3 tests/abbagate.py "${COMMON[@]}" --collect-null 1 --output "$RUN/null"
 sha256sum "$RUN/null/binary-A" "$RUN/null/binary-B" "$STABLE"
 taskset -c 112-127 python3 tests/gate_receipt.py promote-null \
   --campaign "$RUN/frozen-campaign.json" --null-result "$RUN/null/results.json"
 cp "$NULL" "$RUN/promoted-null.json"
 
-# NEW measurements; no --collect-null, no --only, no reusing the first run.
+# Independent full holdout at the same frozen load, with fixed two-sided bounds.
 expect_rc 0 python3 tests/abbagate.py "${COMMON[@]}" \
   --reference-binary "$STABLE" --null-result "$RUN/promoted-null.json" --output "$RUN/holdout"
 taskset -c 112-127 python3 tests/gate_receipt.py verify-null-holdout \
   --campaign "$RUN/frozen-campaign.json" --null-result "$RUN/promoted-null.json" \
   --comparison "$RUN/holdout/results.json" --output "$RUN/holdout-resolution.json"
-# A failed holdout STOPS here: no altered floor, interval, cell set or tolerance.
-
-# Ordinary source-built candidate comparison; this lane's server bytes must still equal STABLE.
-cmp build/tomokv "$STABLE"
-expect_rc 0 python3 tests/abbagate.py "${COMMON[@]}" --candidate "$PWD/build/tomokv" \
-  --reference-binary "$STABLE" --null-result "$RUN/promoted-null.json" --output "$RUN/comparison"
-
-# Owner reviews the existing full correctness ledger before using it as an expectation.
-cp /home/user/Projects/cx-final/build/gate-ledger-iteration.txt "$RUN/reviewed-correctness.tsv"
-export GATE_RECEIPT_BASELINE="$RUN/reviewed-correctness.tsv"
-export GATE_ABBA_MEMTIER="$GEN" GATE_ABBA_NULL="$RUN/promoted-null.json"
-export GATE_RECEIPT_NULL="$RUN/promoted-null.json"
-# Use the normal source build; an external --candidate-binary cannot certify this source tree.
-bash tests/gate.sh push --server-cores 0-31 --server-smt '' \
-  --load-cores 32-127 --load-smt 160-255 --reference-binary "$STABLE"
-cmp build/tomokv "$STABLE"
-# Replay the persisted full receipt for this exact committed tree; this does not push.
-taskset -c 112-127 python3 tests/gate_receipt.py verify --ref HEAD > "$RUN/full-receipt-replay.txt"
-# Mainline also replays iteration, after the full workflow, under the same quiet schedule.
-bash tests/gate.sh iteration --server-cores 0-31 --server-smt '' \
-  --load-cores 32-127 --load-smt 160-255 --reference-binary "$STABLE"
-cmp build/tomokv "$STABLE"
-```
-
-The reviewed ledger path is an explicit owner input; verify its current 454-row multiset against the committed fixture/current source before starting the full gate. Never turn the label fixture into synthetic own-row observations. The push command's normal begin/bind/coordinator/finish workflow and receipt replay must complete; report that separately from iteration. If the null ages out, changes inputs, exceeds the integrity guard or fails holdout, stop and record failure. No live result above has been inferred from unit tests.
-
-For the PRE instrument arm, use the same STABLE/GEN bytes and geometry in its frozen source directory, with a separate output directory and its own calibration evidence. Do not import POST's fingerprint-bound evidence into PRE:
-
-```bash
-PRE="$PWD/build/nullrefresh-PRE"
-PRE_RUN="$RUN/PRE-instrument"
-mkdir "$PRE_RUN"
-(
-  cd "$PRE"
-  expect_rc 3 python3 tests/abbagate.py "${COMMON[@]}" \
-    --cells "$PRE/tests/headline_cells.txt" --calibrate --output "$PRE_RUN/calibration"
-  # Expected old full import refusal on valid EXEMPT tail evidence; record the exact reason.
-  expect_rc 1 taskset -c 112-127 python3 tests/gate_measurements.py \
-    --import-calibration "$PRE_RUN/calibration/results.json" --cells "$PRE/tests/headline_cells.txt"
-  # The PRE command is absent: this serverless check returns argparse rc=2.
-  expect_rc 2 taskset -c 112-127 python3 tests/gate_receipt.py promote-null
-)
-```
-
-Run PRE and POST campaigns separately on the scheduled quiet box. If PRE calibration itself fails, retain that full failure rather than manufacturing EXEMPT/PIN evidence to reach the import step. The older calibrator's tail load-plan selection is part of the defect; do not describe rates from different load plans as matched performance. The code A/B keeps identical server bytes in EVERY arm; no PAD. The decisive benefit is closing the formerly blocked full campaign while maintaining negative-control refusals. POST success requires complete provenance/coverage, every held-out scored metric within the first null's fixed two-sided resolution, and no directional drift resolved by that fixed instrument. Promotion success alone is insufficient. The subsequent ordinary comparison must meet per-cell stable-reference parity. Owner metrics cycles/op with paired instr/op and IPC, plus rate/tails PRE/POST, are PENDING MAINLINE and require the PMU qualification above.
-
-| Arm/result | Full null bootstrap/import | Independent fixed-bound holdout | Cycles/op, instr/op, IPC | Rate/tails |
-|---|---|---|---|---|
-| PRE live instrument | PENDING MAINLINE; old refusal expected | PENDING MAINLINE | PENDING MAINLINE | PENDING MAINLINE |
-| POST live instrument | PENDING MAINLINE | PENDING MAINLINE | UNPROVEN/PENDING MAINLINE | PENDING MAINLINE |
-| Serverless benefit/neutral/deficit fixtures | Validated separately as above | Synthetic replay only | No measurements | No measurements |
-
-`sha256sum build/tomokv` is given above. `git diff 3e734cf2e00c087604fcaf145459522e6fa81f05 --stat`:
-
-```text
- MEASURE-REQUEST-nullrefresh.md                | 289 ++++++++++++++
- tests/_abba_test_fixtures.py                  |  17 +
- tests/_nullrefresh_test.py                    | 551 ++++++++++++++++++++++++++
- tests/abba_evidence.py                        | 102 ++++-
- tests/abba_saturation.py                      |  11 +
- tests/abbagate.py                             |  53 +--
- tests/fixtures/nullrefresh-ledger-labels.json | 461 +++++++++++++++++++++
- tests/gate.sh                                 |  32 +-
- tests/gate_measurements.py                    |  44 +-
- tests/gate_receipt.py                         | 344 +++++++++++-----
- tests/gates_test.py                           |  11 +-
- tests/load_calibration.py                     |  19 +-
- 12 files changed, 1771 insertions(+), 163 deletions(-)
+sha256sum -c "$RUN/before-calibration.sha256"
+taskset -c 112-127 python3 tests/abba_instrument.py > "$RUN/after-holdout-instrument.json"
+cmp "$RUN/instrument.json" "$RUN/after-holdout-instrument.json"
+# Stop here. Failed holdouts stop earlier; no subset salvage, changed tolerance,
+# gate invocation, saturation certification, or push is part of this campaign.
 ```
