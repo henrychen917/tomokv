@@ -2,6 +2,7 @@
 // jemalloc's allocation arena, and fail on the old IO-prebuild implementation. No listener,
 // io_uring initialization, workload generator, sleeps, or performance measurements.
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#define TOMO_STORE_REGRESSION_TEST
 #include "src/cmd/xshard.cc"
 #include <condition_variable>
 #include <functional>
@@ -18,6 +19,13 @@ thread_local size_t fail_size = 0;
 thread_local unsigned fail_occurrence = 0;
 thread_local bool allocation_failed = false;
 thread_local bool audit_allocations = false;
+// Unscored owner-thread allocator witness; no counters enter production objects.
+struct RecycleAllocationAudit {
+    uint64_t mallocs = 0, frees = 0;
+    void* watched = nullptr;
+    bool watched_freed = false;
+};
+thread_local RecycleAllocationAudit recycle_alloc;
 
 // Track only the two record size classes while an owner executes. Long fixture keys keep the
 // header class distinct from scatter/entry metadata. A fixed ledger avoids allocating from the
@@ -72,6 +80,7 @@ struct AllocationAudit {
 extern "C" void* __real_mallocx(size_t, int);
 extern "C" void __real_sdallocx(void*, size_t, int);
 extern "C" void* __wrap_mallocx(size_t n, int flags) {
+    recycle_alloc.mallocs++;
     if (fail_size == n && fail_occurrence && --fail_occurrence == 0) {
         fail_size = 0;
         allocation_failed = true;
@@ -82,6 +91,8 @@ extern "C" void* __wrap_mallocx(size_t n, int flags) {
     return memory;
 }
 extern "C" void __wrap_sdallocx(void* memory, size_t n, int flags) {
+    recycle_alloc.frees++;
+    if (memory == recycle_alloc.watched) recycle_alloc.watched_freed = true;
     allocation_audit.freed(memory, n);
     __real_sdallocx(memory, n, flags);
 }
@@ -544,12 +555,22 @@ void migration(Fixture& f) {
 }
 }
 
+#include "at_recycle_checks.inc"
+
 int main(int argc, char** argv) {
-    require(argc == 3, "usage: owner-arena-unit 1s|2s read-local-0|read-local-1");
+    std::setvbuf(stdout, nullptr, _IOLBF, 0);
+    require(argc == 3 || argc == 4,
+            "usage: owner-arena-unit 1s|2s read-local-0|read-local-1 [recycle-case]");
     const std::string mode = argv[1], lane = argv[2];
     require(mode == "1s" || mode == "2s", "known mode");
     require(lane == "read-local-0" || lane == "read-local-1", "known read-local arm");
     require(command_registry_init(false), "command registry initialized");
+    if (argc == 4) {
+        require(lane == "read-local-1", "directed recycle cases require an armed fixture");
+        recycle_suite(mode == "1s", argv[3]);
+        return 0;
+    }
+    if (lane == "read-local-1") recycle_suite(mode == "1s", "all");
     Fixture fixture(mode == "1s", lane == "read-local-1");
     placement_and_duplicates(fixture); aborts(fixture); immutable_retirement(fixture);
     live_cache_handoff(fixture); atomic_pool_handoff(fixture); migration(fixture);
