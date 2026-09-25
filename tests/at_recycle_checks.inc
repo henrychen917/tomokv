@@ -352,7 +352,14 @@ void recycle_release(bool fused) {
                 require(store.erase(FlatStore::hash_key(slice(key)), slice(key)), "last live key deleted");
                 require(f.queues[f.source].drain_ready() == 1, "empty-shard reclaim engaged");
             } else if (action == "flush") { store.clear(); }
-            else if (action == "shutdown") { f.queues[f.source].drain_shutdown(); }
+            else if (action == "shutdown") {
+                auto* detached = kvobj_new_string(slice(key), slice(std::string("pending")));
+                require(detached, "shutdown pending object allocated");
+                f.queues[f.source].defer(&store, detached, kvobj_capacity(detached),
+                                        &FlatStoreRegressionTest::reclaim);
+                require(f.queues[f.source].size() == 1 && f.queues[f.source].drain_shutdown() == 1,
+                        "shutdown drains pending retirements and the occupied cache");
+            }
             else {
                 const std::string large(kEmbedThreshold, 'z');
                 if (action == "oom") {
@@ -387,6 +394,17 @@ void recycle_release(bool fused) {
     }
 }
 void recycle_suite(bool fused, const std::string& selected) {
+#ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
+    if (selected == "witness-boundary") {
+        Fixture f(fused, true);
+        at_recycle::request.fetch_add(1, std::memory_order_release); f.drain();
+        const auto key = f.key(f.sid_a, "witness-");
+        for (unsigned n = 0; n < kRobWindow / 8; ++n) f.set(f.sid_a, key, "data");
+        f.drain();
+        at_recycle::request.fetch_add(1, std::memory_order_release); f.drain();
+        return;
+    }
+#endif
     if (selected == "pre-cap") { recycle_pre_cap(fused); return; }
     bool ran = false;
     for (auto [name, run] : std::array<std::pair<const char*, void (*)(bool)>, 7>{{{"wave", recycle_wave}, {"pinned", recycle_pinned},

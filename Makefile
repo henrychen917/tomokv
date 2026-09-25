@@ -280,6 +280,7 @@ l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
 .PHONY: l4prebuild-unit l4prebuild-unit-tsan
+build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile
