@@ -1725,6 +1725,12 @@ private:
             !self_->io_inbound_quiesced() ||
             srv_->pubsub_inflight() != 0 || srv_->pubsub_pending() != 0)
             return false;
+        // close_client removes a connection from ThreadCtx::clients before its
+        // lifetime fence releases live_clients. Such a connection stays active
+        // for retry. Planning before that retry would see a false ownership-count
+        // violation; committing could also strand its cleanup on a former IO.
+        for (Client* client : active_.v)
+            if (client->closing() && !client->dead()) return false;
         for (Client* client : self_->clients()) {
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();

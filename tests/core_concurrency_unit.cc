@@ -43,7 +43,8 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16)
+        Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
+                uint32_t databases = 1)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -76,6 +77,7 @@ struct CoreConcurrencyTest {
             require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
             Config config;
             config.shards = shard_count;
+            config.databases = databases;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.key_lb = config.client_lb = load_balance ? 1 : 0;
@@ -963,6 +965,7 @@ struct CoreConcurrencyTest {
     }
 
 #include "signalacct_core_checks.inc"
+#include "flip_close_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1050,7 +1053,8 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
     if (row == "watch") T::watch_disconnect();
-    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); }
+    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
+    else if (row == "flip-close") T::flip_close();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }

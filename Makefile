@@ -381,9 +381,9 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 
 # Existing route row owns IO accounting/model/physical-placement proofs.
-build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc
+build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
-build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc $(CORE_TEST_OBJ)
+build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Measured fused writeback rule, serverless production-path witnesses. Clause
