@@ -71,11 +71,12 @@ def raw_run(cell, arm, n, sequence, env, *, fast=False, score=None):
     return result
 
 
-def fixture_report(cells, fingerprint, env, source, started, binary, *, fast=False):
+def fixture_report(cells, fingerprint, env, source, started, binary, *, fast=False, ceiling_loads=None):
     rows = []
     for cell in cells:
         counts = ([cell.instances or 1] if saturation_exempt(cell) else [1, 2]) if fast else [cell.instances or 1]
-        rounds = [dict(instances=n, runs=[raw_run(cell, arm, n, rung + 1 if fast else i, env, fast=fast)
+        rounds = [dict(instances=n, runs=[raw_run(cell, arm, n, rung + 1 if fast else i, env, fast=fast,
+                                                score=70 if cell.ceiling_status else None)
                    for i, arm in enumerate(['B'] if fast else abba.ORDER, 1)]) for rung, n in enumerate(counts)]
         row = dict(cell=asdict(cell), rounds=rounds)
         if fast:
@@ -96,6 +97,8 @@ def fixture_report(cells, fingerprint, env, source, started, binary, *, fast=Fal
         coverage=abba.coverage(cells), cells=rows, environment=copy.deepcopy(env),
         quiet_box=quiet_record(cpus=env['server_cpus'] + env['load_cpus'], server_physical_cores=len(env['server_physical']),
             started_at=started + 1, finished_at=started + elapsed - 1, samples=int(elapsed) - 2))
+    if ceiling_loads:
+        report['ceiling_loads'] = copy.deepcopy(ceiling_loads)
     if fast:
         report['environment']['population_by_arm'] = {'B': 'wire'}
     else:
@@ -208,6 +211,71 @@ class PromotionControls(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 self.assertTrue(receipt.promote_null(self.root, self.args).is_file(),
                                 'standalone bootstrap must publish without a prior receipt')
+
+    def test_ceiling_import_freeze_promotion_holdout_and_forgery_controls(self):
+        from load_calibration import select_calibration_floor
+        path = self.root / 'build/ceiling-calibration.json'
+        config_path = self.root / 'tests/gate_measurements.json'
+        original = config_path.read_bytes()
+        cells = [abba.Cell(**cell) for cell in self.inv['cells']]
+        env = {**self.env, 'load_instance_ceiling': 24, 'load_physical': list(range(32, 128)),
+               'load_smt': list(range(160, 256)), 'load_cpus': list(range(32, 128)) + list(range(160, 256))}
+        fast = fixture_report(cells, self.fp, env, self.report['cell_source']['text'],
+                              self.started, self.binary, fast=True)
+        row = next(row for row in fast['cells'] if row['cell']['id'] == 'm09')
+        cell = abba.Cell(**row['cell'])
+        row['load_ladder'] = [1, 2, 4, 8, 12, 16, 24]
+        row['rounds'] = []
+        for i, n in enumerate(row['load_ladder'], 1):
+            run = raw_run(cell, 'B', n, i, env, fast=True, score=70)
+            run['rate'] = n * 100.
+            row['rounds'].append(dict(instances=n, runs=[run]))
+        row['selection'] = select_calibration_floor(cell, row['rounds'], ceiling=24)
+        row['status'] = row['selection']['status']
+        self.assertEqual(row['status'], 'LOADGEN-BOUND')
+        fast['verdict'] = 'CEILING-LIMITED'
+        receipt.write_json(path, fast)
+        config = measurements.load(config_path)
+        measurements.import_calibration(path, config, cells)
+        self.assertNotIn('m09', config['load_floors'])
+        self.assertEqual(config['ceiling_loads']['m09']['evidence']['saturated_peak_floor'], None)
+        row_index = fast['cells'].index(row)
+        for mutate in (lambda r: r['cells'][row_index]['selection']['ceiling_evidence'].update(achieved_rate=1),
+                       lambda r: r.update(verdict='PIN')):
+            broken = copy.deepcopy(fast); mutate(broken)
+            with self.assertRaises(ValueError): measurements.validate_fast_calibration(broken, self.fp)
+        try:
+            receipt.write_json(config_path, config)
+            campaign_path = self.root / 'build/ceiling-campaign.json'
+            receipt.freeze_null(self.root, argparse.Namespace(calibration=path, output=campaign_path))
+            campaign = receipt.read_json(campaign_path)
+            frozen_cells = [abba.Cell(**c) for c in campaign['inventory']['cells']]
+            started = int(campaign['frozen_at']) + 2
+            with mock.patch.object(time, 'time', return_value=started + 34000):
+                control = fixture_report(frozen_cells, self.fp, campaign['environment'],
+                    self.report['cell_source']['text'], started, self.binary, ceiling_loads=config['ceiling_loads'])
+                receipt.write_json(self.source, control)
+                args = argparse.Namespace(null_result=self.source, campaign=campaign_path)
+                receipt.promote_null(self.root, args)
+                control = receipt.read_json(self.standing)
+                comparison = fixture_report(frozen_cells, self.fp, campaign['environment'],
+                    self.report['cell_source']['text'], started + 17000, self.binary,
+                    ceiling_loads=config['ceiling_loads'])
+                comparison.update(run_kind='comparison', verdict='PASS', comparison_trusted=True)
+                comparison.pop('null_control')
+                comparison['standing_null'] = evidence.match_null(comparison, control, now=time.time())
+                result = evidence.validate_holdout(comparison, control, now=time.time())
+                self.assertEqual(result['ceiling_only_cells'], {'m09': 'LOADGEN-BOUND'})
+                for state, mutate, reason in (
+                        ('different binary', lambda r: r['candidate'].update(sha256='f'*64), 'byte-identical'),
+                        ('missing provenance', lambda r: r.pop('ceiling_loads'), 'provenance'),
+                        ('different ceiling', lambda r: r['environment'].update(load_instance_ceiling=16), 'load/geometry'),
+                        ('claimed floor', lambda r: next(x for x in r['cells'] if x['cell']['id']=='m09')['assessment'].update(capacity_claim='saturated-peak'), 'saturated peak')):
+                    broken = copy.deepcopy(comparison); mutate(broken)
+                    with self.assertRaisesRegex(ValueError, reason): evidence.validate_measurements(broken, now=time.time())
+                    print('CEILING rejected:', state)
+        finally:
+            config_path.write_bytes(original)
 
     def rejection(self, report, message):
         receipt.write_json(self.source, report)

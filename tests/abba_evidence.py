@@ -170,6 +170,8 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
             not set(environment["server_cpus"]) & set(environment["load_cpus"]), "invalid regression CPU allocation")
     for key in ("uname", "memtier_sha256", "memtier_version", "keys", "data_bytes", "key_pattern", "split_ratio", "population_by_arm"):
         require(environment.get(key), f"missing measurement environment: {key}")
+    from abba_ceiling import validate_ceiling_controls
+    validate_ceiling_controls(report, cells)
     qstart, qend = validate_quiet(report.get("quiet_box"), environment, now=now,
                                   started=started, elapsed=elapsed)
     windows = 0
@@ -182,6 +184,12 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                 f"unassessed/failed ABBA cell: {cell['id']}")
         exempt = saturation_exempt(cell)
         require(assessment.get("saturation_exempt") is exempt, "invalid saturation exemption")
+        ceiling_status = cell.get("ceiling_status", "")
+        if ceiling_status:
+            require(assessment.get("ceiling_status") == ceiling_status and
+                    assessment.get("capacity_claim") == "ceiling-load-only" and
+                    assessment.get("load_selection", {}).get("status") == "CEILING",
+                    "ceiling control claimed a saturated peak")
         # A null-control run MEASURES the loss-vs-threshold discrepancy on identical bytes -- that
         # discrepancy is the instrument's resolution, and enforcing it here would make the null
         # unable to report the very thing it exists to report. Comparison runs store a threshold
@@ -212,7 +220,7 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                 saturation = replay_saturation(run.get("saturation"), floor_pct=SATURATION_FLOOR,
                     mode=cell["mode"], thread_count=len(environment["server_cpus"]))
                 central_saturation = require_saturation_window(saturation, run)
-                if not exempt and block["instances"] == assessment["instances"]:
+                if not exempt and not ceiling_status and block["instances"] == assessment["instances"]:
                     # Per-RUN, so it reproduces the min() bias the assessment moved away from: a cell
                     # sitting near the floor fails whenever any one of four samples dips under. The
                     # occupancy of the judged block is collected here and checked once, against the
@@ -389,6 +397,8 @@ def validate_holdout(comparison, control, *, now):
     return {"kind": "independent-null-holdout", "verdict": "PASS",
             "control_sha256": digest(canonical(control)), "comparison_sha256": digest(canonical(comparison)),
             "metrics": sorted({row["metric"] for row in null_resolution(control)}),
+            "ceiling_only_cells": {row["cell"]["id"]: row["cell"]["ceiling_status"]
+                                   for row in control["cells"] if row["cell"].get("ceiling_status")},
             "cycles_op_resolution": "UNPROVEN", "full_gate_receipt": False}
 
 

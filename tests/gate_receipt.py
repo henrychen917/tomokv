@@ -305,8 +305,9 @@ def freeze_null(root, args):
     require(replayed == measurements, "freeze requires replay/import of this complete calibration first")
     for cell in inv["cells"]:
         if not saturation_exempt(cell):
-            require(apply_floor(cell, measurements, geometry(calibration["environment"]),
-                                fingerprint["sha256"])["instances"] == cell["instances"] > 0,
+            applied = apply_floor(cell, measurements, geometry(calibration["environment"]), fingerprint["sha256"])
+            require(applied["instances"] == cell["instances"] > 0 and
+                    applied.get("ceiling_status", "") == cell.get("ceiling_status", ""),
                     f"{cell['id']}: imported floor does not match frozen geometry")
     inputs_sha = digest((root / "tests/gate_measurements.json").read_bytes())
     env = {**calibration["environment"], "population_by_arm": {"A": "wire", "B": "wire"},
@@ -315,6 +316,7 @@ def freeze_null(root, args):
         instrument=fingerprint, inventory=inv, environment=env, measurements_sha256=inputs_sha,
         window_seconds=WINDOW, calibration_sha256=digest(args.calibration.read_bytes()),
         binary={key: calibration["candidate"][key] for key in ("path", "sha256")},
+        ceiling_loads=measurements.get("ceiling_loads", {}),
         generator=dict(path=env["memtier_path"], sha256=env["memtier_sha256"]),
         metric_scope="rate/latency/p999 only; cycles/op UNPROVEN")
     current_campaign(root, campaign)
@@ -332,6 +334,8 @@ def validate_campaign(root, campaign, report, *, now):
     require(instrument(environment) == instrument(campaign["environment"]),
             "campaign environment/geometry/runtime inputs differ")
     require(report["window_seconds"] == campaign["window_seconds"], "campaign window differs")
+    require(report.get("ceiling_loads", {}) == campaign.get("ceiling_loads", {}),
+            "campaign ceiling-control provenance differs")
     validate_campaign_evidence(report)
 
 

@@ -18,6 +18,7 @@ import sys
 import time
 
 from abba_saturation import saturation_exempt
+from abba_ceiling import CEILING_STATUSES, campaign_verdict, validate_ceiling_plan
 
 DEFAULT = Path(__file__).with_name("gate_measurements.json")
 SHAPE = ("mode", "read_local", "overlap", "reorder", "op", "depth", "conns", "atomic", "score", "mix")
@@ -41,7 +42,8 @@ def provenance(value, label):
 
 def load(path=DEFAULT):
     value = json.loads(Path(path).read_text())
-    require(set(value) == {"schema", "box", "geometries", "reference_binary", "load_floors"}
+    fields = {"schema", "box", "geometries", "reference_binary", "load_floors"}
+    require(set(value) in (fields, fields | {"ceiling_loads"})
             and value["schema"] == 1, "unknown measured config fields/schema")
     box = value["box"]
     require(set(box) == {"physical_cores", "smt_siblings", "memtier_instance_ceiling_ops_per_second"},
@@ -114,6 +116,9 @@ def load(path=DEFAULT):
             require(floor["observed_rate"] == dict(unit="ops_per_second", order=sample["order"], values=sample["rates"]) and
                     floor["observed_busy"] == dict(unit="percent", order=sample["order"], values=sample["busy_pct"]),
                     f"{ident}: invalid load-floor fields (observations differ from pin null)")
+    for ident, plan in value.get("ceiling_loads", {}).items():
+        validate_ceiling_plan(plan)
+        require(ident not in value["load_floors"], f"{ident}: ceiling observation also claims a load floor")
     return value
 
 
@@ -158,8 +163,15 @@ def apply_floor(cell, measurements=None, placement=None, instrument_sha256=None)
         # transitive code as well. Changing any of it conservatively recalibrates;
         # importing config DATA does not alter this code-only fingerprint.
         valid = floor["instrument_sha256"] == (instrument_sha256 or instrument_digest())
-    count = floor["instances"] if valid else 0
-    return replace(cell, instances=count) if is_dataclass(cell) else {**cell, "instances": count}
+    count, ceiling_status = (floor["instances"] if valid else 0), ""
+    plan = measurements.get("ceiling_loads", {}).get(fields["id"])
+    if not valid and plan is not None and shape(plan["shape"]) == shape(fields) and (
+            placement is None or plan["geometry"] == placement) and (
+            plan["instrument_sha256"] == (instrument_sha256 or instrument_digest())):
+        validate_ceiling_plan(plan)
+        count, ceiling_status = plan["instances"], plan["status"]
+    return (replace(cell, instances=count, ceiling_status=ceiling_status) if is_dataclass(cell) else
+            {**cell, "instances": count, "ceiling_status": ceiling_status})
 
 
 def configured_reference(commit, measurements=None):
@@ -180,13 +192,13 @@ def validate_fast_calibration(report, fingerprint):
     would invent repeatability and could accidentally certify a standing null.
     Every retained rung is checked before any config entry is changed.
     """
-    from abbagate import Cell
+    from abbagate import Cell, LADDER
     from abba_evidence import number, utc_seconds, validate_quiet, validate_workload_evidence
     from abba_instrument import validate_fingerprint
     from abba_saturation import replay_saturation, require_saturation_window, SATURATION_FLOOR
     from load_calibration import select_calibration_floor
     require(isinstance(report, dict) and report.get("schema") == 1 and
-            report.get("run_kind") == "load-calibration" and report.get("verdict") in ("PIN", "EXEMPT") and
+            report.get("run_kind") == "load-calibration" and report.get("verdict") in ("PIN", "EXEMPT", "CEILING-LIMITED") and
             report.get("complete") is True, "fast calibration did not complete with PIN/EXEMPT evidence")
     require(report.get("process_cleanup") == {"complete": True, "remaining": 0},
             "calibration owned processes are unreaped")
@@ -220,6 +232,9 @@ def validate_fast_calibration(report, fingerprint):
                 and len(cpus) == len(set(cpus)), "invalid calibration CPU allocation: " + field)
     require(not set(environment["server_cpus"]) & set(environment["load_cpus"]) and
             len(environment["server_physical"]) <= 32, "invalid calibration CPU allocation")
+    require(type(environment.get("load_instance_ceiling")) is int and
+            0 < environment["load_instance_ceiling"] <= len(environment["load_physical"]),
+            "invalid calibration instance ceiling")
     for field in ("uname", "memtier_sha256", "memtier_version", "keys", "data_bytes", "key_pattern", "split_ratio"):
         require(environment.get(field), "missing calibration environment: " + field)
     require(environment.get("population_by_arm") == {"B": "wire"},
@@ -234,14 +249,14 @@ def validate_fast_calibration(report, fingerprint):
     require(all(isinstance(ident, str) and ident for ident in ids) and len(ids) == len(set(ids)) and
             coverage.get("ids") == ids and coverage.get("count") == len(ids) and len(ids) <= source["total_cells"],
             "calibration is incomplete: observed cell IDs differ from requested coverage")
-    require(report["verdict"] == ("EXEMPT" if all(saturation_exempt(row["cell"]) for row in rows) else "PIN"),
+    require(report["verdict"] == campaign_verdict(rows),
             "all-exempt calibration cannot claim imported throughput floors")
     require(report.get("subset") != "full" or report.get("only") or len(ids) == source["total_cells"],
             "full calibration coverage is incomplete")
     windows = 0.
     for row in rows:
         cell = Cell(**row["cell"])
-        require(row.get("status") == ("EXEMPT" if saturation_exempt(cell) else "PIN") and
+        require(row.get("status") in (("EXEMPT",) if saturation_exempt(cell) else ("PIN", *CEILING_STATUSES)) and
                 not row.get("error") and not row.get("reason"), f"{cell.id}: failed calibration cell")
         rounds = row.get("rounds")
         require(isinstance(rounds, list) and rounds, f"{cell.id}: unreached calibration ladder")
@@ -274,10 +289,19 @@ def validate_fast_calibration(report, fingerprint):
             validate_workload_evidence(cell, run)
             windows += run["window_seconds"]
         require(len(pids) == 1, f"{cell.id}: calibration rebooted between load rungs")
-        selection = select_calibration_floor(replace(cell, instances=0), rounds)
+        ceiling = min(environment["load_instance_ceiling"], cell.conns, len(environment["load_physical"]))
+        selection = select_calibration_floor(replace(cell, instances=0, ceiling_status=""), rounds, ceiling=ceiling)
+        require((selection["status"] == "EXEMPT") is saturation_exempt(cell),
+                f"{cell.id}: invalid calibration exemption")
         require(selection["measurement_valid"] and
-                selection["status"] == ("EXEMPT" if saturation_exempt(cell) else "PIN"),
+                selection["status"] == row["status"],
                 f"{cell.id}: no measured saturation plateau with higher-capacity confirmation")
+        if selection["status"] in CEILING_STATUSES:
+            ladder = sorted(n for n in set(LADDER) | {ceiling} | ({cell.instances} if cell.instances else set())
+                            if n <= ceiling)
+            require(row.get("selection") == selection and
+                    [block["instances"] for block in rounds] == row.get("load_ladder") == ladder,
+                    f"{cell.id}: ceiling observation differs from replay or ladder is incomplete")
     require(qend - qstart >= windows, "quiet observer did not span every calibration window")
 
 
@@ -314,20 +338,31 @@ def import_calibration(path, measurements, cells):
     require(report.get("cells"), "empty calibration campaign")
     require([row["cell"]["id"] for row in report["cells"]] == report["coverage"]["ids"],
             "calibration is incomplete: observed cell IDs differ from requested coverage")
-    updates = {}
+    updates, ceiling_updates = {}, {}
     for row in report["cells"]:
         cell = Cell(**row["cell"])
         require(cell.id in current and shape(current[cell.id]) == shape(cell), f"{cell.id}: cell shape changed since calibration")
         require(row.get("instrument_valid", True) and not row.get("error"), f"{cell.id}: invalid measurement row")
         if fast:
             from load_calibration import select_calibration_floor
-            selection = select_calibration_floor(replace(cell, instances=0), row["rounds"])
+            ceiling = min(report["environment"]["load_instance_ceiling"], cell.conns,
+                          len(report["environment"]["load_physical"]))
+            selection = select_calibration_floor(replace(cell, instances=0, ceiling_status=""), row["rounds"], ceiling=ceiling)
         else:
             selection = select_load_floor(replace(cell, instances=0), row["rounds"])
-        require(selection["measurement_valid"] and selection["status"] == ("EXEMPT" if saturation_exempt(cell) else "PIN" if fast else "CONFIRMED"),
+        require(selection["measurement_valid"] and selection["status"] in
+                (("EXEMPT",) if saturation_exempt(cell) else ("PIN", *CEILING_STATUSES) if fast else ("CONFIRMED",)),
                 f"{cell.id}: no measured saturation plateau with higher-capacity confirmation")
         if saturation_exempt(cell):
             continue  # Validated EXEMPT is evidence, never an imported throughput floor.
+        if selection["status"] in CEILING_STATUSES:
+            ceiling_updates[cell.id] = dict(instances=selection["ceiling_evidence"]["instances"],
+                shape=shape(cell), geometry=placement, instrument_sha256=instrument,
+                status=selection["status"], evidence=selection["ceiling_evidence"],
+                calibration_sha256=report_digest, binary_sha256=report["candidate"]["sha256"],
+                provenance=dict(when=report["started_utc"], how=f"abbagate --calibrate; {path}; "
+                    f"sha256={report_digest}; identical-arm ceiling control only; saturation UNPROVEN"))
+            continue
         count = selection["lowest_tested_qualifying_instances"]
         selected_runs = row["rounds"][selection["selected_index"]]["runs"]
         # Keep actual observations, including arm order and units, next to the
@@ -347,12 +382,18 @@ def import_calibration(path, measurements, cells):
             provenance={"when": report["started_utc"],
             "how": f"abbagate {method}; {path}; sha256={report_digest}; {binaries}; "
                    f"lowest tested qualifying instances={count}; confirmation={selection['confirmation_instances']}"})
-    require(updates or all(saturation_exempt(row["cell"]) for row in report["cells"]),
+    require(updates or ceiling_updates or all(saturation_exempt(row["cell"]) for row in report["cells"]),
             "calibration contains no deep-pipeline load floors")
     # All-or-nothing import: a red/invalid later cell must not silently salvage an
     # earlier campaign prefix. Stored floors never change the live ABBA tolerances.
     measurements["load_floors"].update(updates)
-    return sorted(updates)
+    for ident in updates:
+        measurements.get("ceiling_loads", {}).pop(ident, None)
+    if ceiling_updates:
+        measurements.setdefault("ceiling_loads", {}).update(ceiling_updates)
+        for ident in ceiling_updates:
+            measurements["load_floors"].pop(ident, None)
+    return sorted(updates.keys() | ceiling_updates.keys())
 
 
 def import_variance_pin(report, path, content, measurements, cells, fingerprint):
@@ -551,7 +592,8 @@ def self_test():
                 environment={**self.placement, "port": 8700, "server_cpus": list(range(32)),
                     "load_cpus": load_cpus, "python_runtime": fingerprint["python"], "uname": ["synthetic"],
                     "memtier_sha256": "c" * 64, "memtier_version": "fixture", "keys": 2000000,
-                    "data_bytes": 64, "key_pattern": "P:P", "population_by_arm": {"B": "wire"}},
+                    "data_bytes": 64, "key_pattern": "P:P", "population_by_arm": {"B": "wire"},
+                    "load_instance_ceiling": 16},
                 quiet_box=quiet_record(cpus=list(range(32)) + load_cpus, started_at=epoch,
                     finished_at=epoch + 100, samples=101, window_seconds=10))
             with tempfile.TemporaryDirectory() as directory:
@@ -721,8 +763,11 @@ def main():
     if args.import_calibration:
         from abbagate import read_cells
         updated = write_calibration(args.import_calibration, read_cells(args.cells), args.config)
-        print("Imported measured floors: " + ", ".join(updated) if updated else
-              "Validated all-exempt campaign; no throughput floors imported; load plans unchanged")
+        config = load(args.config)
+        floors = [ident for ident in updated if ident in config["load_floors"]]
+        ceilings = [ident for ident in updated if ident in config.get("ceiling_loads", {})]
+        print("Imported saturated floors: " + (", ".join(floors) or "none"))
+        print("Imported ceiling-only controls (no saturated floor): " + (", ".join(ceilings) or "none"))
     else:
         print(json.dumps(load(args.config), indent=2))
     return 0

@@ -456,6 +456,13 @@
     "read-local ownership invariants",
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
-    "glob/scan grammar parity vs Redis 7.4"
-  ]
+    "glob/scan grammar parity vs Redis 7.4",
+    "writeback c12 policy witnesses + negative controls",
+    "writeback c12 phase witnesses + negative controls",
+    "writeback c12 stages witnesses + negative controls"
+  ],
+  "supplement": {
+    "source": "origin/cpp 32d27ee7562ed5a17ff889c0fe5cf250f3fdc63c tests/gate.sh job_wb_rule_units",
+    "purpose": "three upstream labels for the serverless fixture only; no claimed execution"
+  }
 }

@@ -130,6 +130,7 @@ READ_LOCAL_THRESHOLD_FLOOR_PCT = 5.0
 # connection shares must divide the worker count. Keep n=16 as a separate probe,
 # but selection must not credit its smaller worker pool as increased capacity.
 LADDER = (1, 2, 4, 8, 12, 16)
+AVAILABLE_LADDER = (*LADDER, 24)  # Explicit opt-in; the default ceiling remains 16.
 # Project measurement-integrity boundary, NOT the regression tolerance.
 MAX_SPREAD = 2.0
 ORDER = ("A", "B", "B", "A")
@@ -158,6 +159,7 @@ class Cell:
     smoke: bool = False
     pin_required: bool = False
     data_bytes: int = 64
+    ceiling_status: str = ""  # Fixed-load identical-arm control; never a saturated peak.
 
     def __post_init__(self):
         # The tail instrument needs 16 independent generators to avoid arrival bursts.
@@ -544,6 +546,10 @@ def select_load_floor(cell, rounds, bounds=None):
     numerical_peak = peak_index(rounds)
     pinned = bool(cell.depth > 1 and cell.instances and len(rounds) == 1 and
                   rounds[0]["instances"] == cell.instances)
+    if cell.ceiling_status:
+        from abba_ceiling import CEILING_STATUSES
+        if cell.ceiling_status not in CEILING_STATUSES or not pinned or saturation_exempt(cell):
+            invalid.append("invalid ceiling-only load plan")
     selected, confirmation = None, None
     tested = []
     for index, current in enumerate(evidence):
@@ -586,7 +592,7 @@ def select_load_floor(cell, rounds, bounds=None):
     return {"method": "lowest-tested-confirmed-rung-v1", "measurement_valid": not invalid,
             "measurement_failures": invalid,
             "status": "INVALID" if invalid else "EXEMPT" if saturation_exempt(cell) else
-                      "PINNED" if pinned else "CONFIRMED" if chosen else "UNPROVEN",
+                      "CEILING" if cell.ceiling_status else "PINNED" if pinned else "CONFIRMED" if chosen else "UNPROVEN",
             "selected_index": selected, "confirmation_index": confirmation,
             "lowest_tested_qualifying_instances": chosen["instances"] if chosen and not pinned and cell.depth > 1 else None,
             "confirmation_instances": evidence[confirmation]["instances"] if confirmation is not None else None,
@@ -633,7 +639,7 @@ def assess(cell, rounds, bounds=None):
         if bounds is not NULL_MODE and long_tail["delta_pct"] > long_threshold:
             reasons.append("long-command p99.9 regression exceeds measured reference spread")
     gain, plateau_noise = None, None
-    if not saturation_exempt(cell):
+    if not saturation_exempt(cell) and not cell.ceiling_status:
         if selection["status"] == "PINNED":
             occupancy = [saturation_score(run, cell) for run in current["runs"]]
             # Judge the BLOCK's occupancy by its mean, not by its worst single run. min() of four
@@ -670,6 +676,9 @@ def assess(cell, rounds, bounds=None):
             "fastest_gain_pct": gain, "plateau_noise_pct": plateau_noise,
             "load_selection": selection, "measurement_valid": selection["measurement_valid"],
             "saturation_exempt": saturation_exempt(cell),
+            "ceiling_status": cell.ceiling_status,
+            "capacity_claim": "ceiling-load-only" if cell.ceiling_status else
+                              "exempt" if saturation_exempt(cell) else "saturated-peak",
             "verdict": "FAIL" if reasons else "PASS", "reasons": reasons}
 
 
@@ -704,7 +713,7 @@ def select_variance_pin(evidence):
             "unknown variance-pin method/schema")
     ladder = evidence["ladder"]
     require(isinstance(ladder, list) and ladder and
-            all(type(n) is int for n in ladder) and ladder == list(LADDER[:len(ladder)]),
+            all(type(n) is int for n in ladder) and ladder == list(AVAILABLE_LADDER[:len(ladder)]),
             "variance pin requires the bounded instance ladder")
     lower, confirmation = evidence["rate_instances"], evidence["confirmation_instances"]
     require(type(lower) is int and lower in ladder and type(confirmation) is int and
@@ -799,7 +808,7 @@ def variance_pin_evidence(calibration, rate_row, noise_reports, trials, fingerpr
     require(selection["status"] == "PIN", "variance cannot replace rate-saturation evidence")
     ceiling = min(calibration["environment"]["load_instance_ceiling"], cell.conns,
                   len(calibration["environment"]["load_physical"]))
-    ladder = [n for n in LADDER if n <= ceiling]
+    ladder = [n for n in AVAILABLE_LADDER if n <= ceiling]
     evidence = dict(schema=1, method=PIN_METHOD, rate_instances=selection["lowest_tested_qualifying_instances"],
         confirmation_instances=selection["confirmation_instances"], ladder=ladder,
         binary_sha256=calibration["candidate"]["sha256"], limits=None, selected_instances=None,
@@ -847,7 +856,7 @@ def pin_main(args):
             row = dict(cell=asdict(cell), noise_reports=[], trials=[])
             report["cells"].append(row)
             ceiling = min(args.max_instances, cell.conns, len(calibration["environment"]["load_physical"]))
-            ladder = [n for n in LADDER if n <= ceiling]
+            ladder = [n for n in AVAILABLE_LADDER if n <= ceiling]
 
             def sample(n, phase, reports):
                 for repeat in range(PIN_NULL_BLOCKS):
@@ -1718,14 +1727,14 @@ def parse_args():
         "GATE_RECEIPT_NULL", ROOT / ".gate-history/receipts/baselines/full-null.json"))),
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
     p.add_argument("--calibrate", action="store_true",
-                   help="one-arm 10s load-floor search; boot/populate once per cell; PIN only, never a verdict")
+                   help="one-arm 10s search; PIN/EXEMPT/ceiling evidence only, never a performance verdict")
     p.add_argument("--pin", action="store_true",
                    help="rate search plus independent paired-null variance search; write validated floors; exit 3 on PIN")
     p.add_argument("--escalate", action="store_true",
                    help="ignore pinned load levels and search the ladder; use this to RE-PIN a cell "
                         "after the gate reports its pinned level no longer saturates")
     p.add_argument("--only", default="", help="comma-separated IDs; partial diagnostic, never a full-tier PASS")
-    p.add_argument("--max-instances", type=int, choices=LADDER, default=16,
+    p.add_argument("--max-instances", type=int, choices=AVAILABLE_LADDER, default=16,
                    help="load-instance ceiling (default 16); 1 cannot prove unpinned deep-pipeline saturation")
     return p.parse_args()
 
@@ -1820,7 +1829,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             # they cannot alter normal comparisons or borrow a ledger pin.
             if (not args.collect_null or args.escalate or diagnostic_monitor is not None or
                     set(_pin_instances) != {cell.id for cell in cells} or
-                    any(type(n) is not int or n not in LADDER for n in _pin_instances.values())):
+                    any(type(n) is not int or n not in AVAILABLE_LADDER for n in _pin_instances.values())):
                 raise ValueError("invalid internal pin-null probe")
             cells = [replace(cell, instances=_pin_instances[cell.id]) for cell in cells]
         report["coverage"] = coverage(cells)
@@ -1915,6 +1924,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "memtier_version": capture([args.memtier, "--version"]).stdout.strip(),
                                  "measurements_sha256": sha256(ROOT / "tests/gate_measurements.json"),
                                  **runner.population_environment()}
+        if not args.escalate and any(cell.ceiling_status for cell in cells):
+            from abba_ceiling import validate_ceiling_controls
+            plans = load_measurements()["ceiling_loads"]
+            report["ceiling_loads"] = {cell.id: plans[cell.id] for cell in cells if cell.ceiling_status}
+            validate_ceiling_controls(report, [asdict(cell) for cell in cells])
         print(f"GEOMETRY server={args.server_cores} ({len(server_physical)} physical cores) "
               f"server-smt={args.server_smt or '(reserved)'} ({len(server_cpus)} threads) "
               f"load={args.load_cores} load-smt={args.load_smt or '(reserved)'} "
@@ -1937,14 +1951,16 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     print(f"  {cell.id} COMPATIBILITY: {note}", flush=True)
                 pinned = cell.depth > 1 and cell.instances and not args.escalate
                 ladder = ((cell.instances,) if pinned else
-                          tuple(sorted(set(LADDER) | ({cell.instances} if args.escalate and cell.instances else set()))))
+                          tuple(sorted(set(LADDER) | ({24} if args.max_instances == 24 else set()) |
+                                       ({cell.instances} if args.escalate and cell.instances else set()))))
                 row["load_ladder"] = list(ladder)
                 # Clearing the assessment pin matters even at --max-instances=1:
                 # --escalate must prove its load floor with a higher probe, never borrow
                 # the very stored saturation evidence the caller asked to ignore.
-                assessed_cell = replace(cell, instances=0) if args.escalate else cell
+                assessed_cell = replace(cell, instances=0, ceiling_status="") if args.escalate else cell
                 if pinned:
-                    print(f"  {cell.id} PINNED load={cell.instances}; one ABBA block (4 measurements)", flush=True)
+                    label = f"{cell.ceiling_status} saturation=UNPROVEN" if cell.ceiling_status else "PINNED"
+                    print(f"  {cell.id} {label} load={cell.instances}; one ABBA block (4 measurements)", flush=True)
                     ceiling = min(args.max_instances, cell.conns, len(load_physical))
                     if cell.instances > ceiling:
                         raise ValueError(f"pinned load level {cell.instances} exceeds the instance/connection/"
