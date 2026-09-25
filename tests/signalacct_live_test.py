@@ -20,14 +20,16 @@ class Driver(unittest.TestCase):
     def attempt(self, args, report, *, boot_failed=False):
         proc = mock.Mock()
         proc.returncode = 0
-        proc.poll.side_effect = [0, 0] if boot_failed else [None, 0]
+        proc.poll.return_value = 0 if boot_failed else None
+        proc.wait.side_effect = lambda **kw: setattr(proc.poll, 'return_value', 0)
         conn = mock.Mock()
         conn.cmd.side_effect = lambda *v: b'PONG' if v == ('PING',) else b'OK'
         with (mock.patch.object(live.subprocess, 'Popen', return_value=proc) as spawn,
               mock.patch.object(live, 'Conn', return_value=conn),
               mock.patch.object(live, 'productive') as productive,
               mock.patch.object(live, 'wait_parked', return_value={'112': 'io_uring'}),
-              mock.patch.object(live, 'load_report', return_value=report)):
+              mock.patch.object(live, 'load_report', return_value=report),
+              contextlib.redirect_stderr(io.StringIO())):
             result = live.attempt(args, 1)
         return result, spawn.call_args.args[0], conn, productive, proc
 
@@ -79,6 +81,66 @@ class Driver(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, 'not exact'):
                 live.main()
             self.assertEqual(attempt.call_count, 1)
+
+    def test_flip_records_actual_wire_and_elapsed_for_errors_and_unexpected_replies(self):
+        for wire, classification in ((b'+OK\r\n', 'ok'),
+                (b'-ERR a FLIP is already in progress\r\n', 'server-error'),
+                (b'-ERR FLIP connection ownership count is not conserved\r\n', 'server-error'),
+                (b'$2\r\nNO\r\n', 'unexpected-reply')):
+            with self.subTest(wire=wire), tempfile.TemporaryDirectory(dir=live.ROOT / 'build') as directory:
+                conn = live.Conn.__new__(live.Conn)
+                conn.file = io.BytesIO(wire)
+                conn.send = mock.Mock()
+                events = []
+                with mock.patch.object(live.time, 'monotonic_ns', side_effect=[10, 345]):
+                    if classification == 'ok':
+                        live.manual_flip(conn, 6, 2, Path(directory), events)
+                    else:
+                        with self.assertRaisesRegex(AssertionError, 'manual FLIP failed:'):
+                            live.manual_flip(conn, 6, 2, Path(directory), events)
+                event = live.json.loads((Path(directory) / 'flips.json').read_text())[0]
+                self.assertEqual(event['wire_hex'], wire.hex())
+                self.assertEqual(event['wire_repr'], repr(wire))
+                self.assertEqual(event['elapsed_ns'], 335)
+                self.assertEqual(event['classification'], classification)
+                conn.send.assert_called_once_with('FLIP', 6, 2)  # Never retry a refusal.
+
+    def test_timeout_preserves_partial_wire_and_diagnostic_failure(self):
+        with tempfile.TemporaryDirectory(dir=live.ROOT / 'build') as directory:
+            directory = Path(directory)
+            (directory / 'server.log').write_bytes(b'server stderr evidence\n')
+            conn = live.Conn.__new__(live.Conn)
+            conn.file = mock.Mock()
+            conn.file.read.return_value = b'-'
+            conn.file.readline.side_effect = TimeoutError('15 second socket deadline')
+            conn.send = mock.Mock()
+            events = []
+            with mock.patch.object(live.time, 'monotonic_ns', side_effect=[10, 15_000_000_011]):
+                with self.assertRaises(TimeoutError):
+                    live.manual_flip(conn, 6, 2, directory, events)
+            self.assertEqual(events[0]['classification'], 'timeout')
+            self.assertEqual(events[0]['wire_hex'], '2d')
+            self.assertGreater(events[0]['elapsed_ns'], 15_000_000_000)
+            proc = mock.Mock()
+            proc.poll.return_value = None
+            for failed in (False, True):
+                probe = mock.Mock()
+                probe.cmd.return_value = b'flip_in_progress:1\r\nflip_target_io:6\r\nio_threads:3\r\n'
+                probe.cmd.side_effect = TimeoutError('INFO deadline') if failed else None
+                with (mock.patch.object(live, 'Conn', return_value=probe) as connect,
+                      contextlib.redirect_stderr(io.StringIO()) as stderr):
+                    live.failure_receipt(self.args(directory), directory, proc, 'manual-grow',
+                                         TimeoutError('original failure'), events)
+                receipt = live.json.loads((directory / 'failure.json').read_text())
+                self.assertIn('original failure', receipt['error'])
+                self.assertEqual(receipt['server_stderr_tail'], 'server stderr evidence\n')
+                self.assertIn('wire_hex', stderr.getvalue())
+                if failed:
+                    self.assertIn('INFO deadline', receipt['info_error'])
+                else:
+                    self.assertEqual(receipt['info_flip']['flip_in_progress'], '1')
+                connect.assert_called_once_with('127.0.0.1', 16739, timeout=2)
+                probe.close.assert_called_once()
 
 
 if __name__ == '__main__':
