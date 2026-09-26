@@ -76,8 +76,9 @@ struct KvBlockCache {
     //    cache adds at most the transient the QSBR machinery already tolerates: 768 KiB per fused
     //    owner thread, and nothing per thread that is not one.
     //
-    // Callers additionally pass a per-put ceiling (the writing shard's own live object footprint),
-    // so an empty or shrinking keyspace shrinks the cache instead of pinning its high-water mark.
+    // The store passes this owner bound for a nonempty shard, or zero for an empty shard.
+    // A tiny keyspace may therefore retain more physical bytes than its live objects. Refusing
+    // a put does not trim cached blocks; explicit release paths return that resident memory.
     static constexpr uint32_t kMaxNodesPerClass = kReadLocalRetireRingCapacity;
     static constexpr size_t kMaxBytes =
         static_cast<size_t>(kReadLocalRetireRingCapacity) * kEmbedThreshold;

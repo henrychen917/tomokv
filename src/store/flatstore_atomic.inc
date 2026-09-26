@@ -1430,7 +1430,7 @@ private:
     //
     // The cache itself belongs to the fused OWNER and is reached through the retire sink this store
     // is already bound to; the store contributes only the eligibility a shard can judge (object
-    // shape and the borrow registry) and its own live footprint as the admission ceiling. The sink
+    // shape and the borrow registry) and whether it still has live objects. The sink
     // pointer is boot-latched with `read_local_enabled_`, so the armed path needs no null test.
 
     // Post-grace return. `capacity` is the retire-time kvobj_capacity: the exact class this block
@@ -1448,10 +1448,11 @@ private:
             return false;
         // Retirement already subtracted these bytes from obj_bytes_. The cache is deliberately
         // OUTSIDE logical accounting; a later write accounts the reinitialised block exactly once,
-        // exactly as a fresh allocation would. obj_bytes_ is also the per-put ceiling: this shard
-        // may not push the owner's cache above its own live object footprint, so an emptied
-        // keyspace (FLUSHALL, a delete sweep) admits nothing at all.
-        return cache->put(object, capacity, obj_bytes_);
+        // exactly as a fresh allocation would. A nonempty shard uses the existing OWNER bound:
+        // even one live object may retain a full eligible reclaim wave (at most 768 KiB per
+        // owner, also bounded per class). An empty shard admits nothing. Refusal does not trim
+        // existing contents; FLUSH, allocation refusal, pressure refusal and shutdown release it.
+        return cache->put(object, capacity, obj_bytes_ ? KvBlockCache::kMaxBytes : 0);
     }
 
     // Armed write path. `allocation` is already good_size()-rounded.
