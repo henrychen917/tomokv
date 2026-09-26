@@ -1152,7 +1152,7 @@ def busy_deltas(start, end):
     busy_between(start, end)  # Keep the same role/topology/reset validation.
     # Raw role-specific counters are diagnostic evidence, not a new saturation
     # rule. Read-local can leave split executors idle; flipctl.cc also documents
-    # io submit/reap work absent from busy_ns. Retain both counters plus the
+    # the historical submit/reap gap, now covered by IO tenure busy_ns. Retain both counters plus the
     # observed snapshot interval so live results can distinguish those cases
     # from insufficient generator capacity before anyone changes the instrument.
     return {tid: {"role": start[tid]["role"],
@@ -1276,41 +1276,63 @@ class Runner:
     def legacy_reorder_control(self, cell, arm, knobs):
         if cell.op != 'REORDER' or arm != 'A' or 'x-ex-sched' not in knobs:
             return None
-        # Only the known legacy grammar may use this fallback. The current candidate continues
-        # to require its during-window counter. Adding telemetry to an old binary would change
+        # Only the known legacy grammar may use this missing-counter fallback.
+        # Adding telemetry to an old binary would change
         # the performance reference; instead observe actual dispatch/execution inversions on its
         # unchanged bytes, with FIFO as the negative control. This precedes population/timing.
         # LB is off in the witness to rule out producer/owner changes; measured cells retain their
         # original LB settings. This proves engagement in the directed control, not in the scored
         # interval, whose GET/BITCOUNT progress and long-service-cost checks remain mandatory.
+        return self.execution_order_control(cell, arm, read_local=0)
+
+    def read_local_reorder_control(self, cell, arm, knobs):
+        if (cell.op != 'REORDER' or cell.mode != '1s' or not cell.read_local or
+                not cell.reorder or 'reorder' not in knobs):
+            return None
+        # Keep the local lane armed in both controls: SETRANGE/INCR prove a real
+        # owner execution inversion without relying on a GET entering that queue.
+        return self.execution_order_control(cell, arm, read_local=1)
+
+    def execution_order_control(self, cell, arm, *, read_local):
         digest = sha256(self.binaries[arm])
-        key = digest, cell.mode
+        key = digest, cell.mode, read_local
         if key in self.legacy_reorder_failures:
             raise RuntimeError(self.legacy_reorder_failures[key])
         if key not in self.legacy_reorder_controls:
             from legacy_reorder_witness import run_control
-            folder = self.out / f'legacy-reorder-{arm}-{cell.mode}'
+            label = 'read-local' if read_local else 'legacy'
+            folder = self.out / f'{label}-reorder-{arm}-{cell.mode}'
             args = argparse.Namespace(server_cores=self.args.server_cores,
                 server_smt=self.args.server_smt, port=self.args.port,
-                attempts=16, blocker_bytes=16 * 1024 * 1024, blocker_count=4)
+                attempts=16, blocker_bytes=16 * 1024 * 1024, blocker_count=4,
+                read_local=read_local)
             controls = []
             for reorder in (0, 1):
                 row = run_control(args, self.binaries[arm], folder / f'reorder-{reorder}',
                                   cell.mode, reorder)
                 controls.append(row)
-                if row['verdict'] != 'PASS':
-                    reason = (f'legacy {cell.mode} reorder={reorder} control failed: '
+                valid = row['verdict'] == 'PASS'
+                if read_local:
+                    delta = row.get('preparatory_counter_delta')
+                    valid &= (row.get('armed_attempts', 0) > 0 and
+                              (row.get('inversions', 0) > 0 if reorder else row.get('inversions') == 0) and
+                              (type(delta) is int and delta > 0 if reorder else delta in (None, 0)))
+                if not valid:
+                    reason = (f'{label} {cell.mode} reorder={reorder} control failed: '
                               + row.get('reason', 'no reason'))
                     self.legacy_reorder_failures[key] = reason
                     raise RuntimeError(reason)
             if sha256(self.binaries[arm]) != digest:
-                raise RuntimeError('legacy reference changed during engagement controls')
+                raise RuntimeError('binary changed during engagement controls')
             artifact = folder / 'controls.json'
             artifact.write_text(json.dumps(controls, indent=2) + '\n')
             self.legacy_reorder_controls[key] = dict(verdict='PASS', mode=cell.mode,
                 controls=[0, 1], binary_sha256=digest, artifact=str(artifact.relative_to(self.out)),
                 artifact_sha256=sha256(artifact),
                 scope='live unscored OFF/ON execution-order control; no scored-window permutation count')
+            if read_local:
+                self.legacy_reorder_controls[key].update(read_local=1,
+                    on_counter_delta=controls[1]['preparatory_counter_delta'])
         return self.legacy_reorder_controls[key]
 
     def population_environment(self):
@@ -1381,6 +1403,7 @@ class Runner:
         profile = None
         worker_affinity = None
         legacy_control = self.legacy_reorder_control(cell, arm, knobs)
+        read_local_control = self.read_local_reorder_control(cell, arm, knobs)
         folder = self.out / cell.id / f"n{instances}-{sequence}-{arm}"
         folder.mkdir(parents=True)
         layout = load_layout(self.load_cpus, instances, cell.conns)
@@ -1512,6 +1535,7 @@ class Runner:
             result["thread_roles"] = roles
             before_mode = info(conn, "server") if cell.op == "REORDER" else {}
             before_commands = info(conn, "commandstats")
+            result.update(mode_before=before_mode, commandstats_before=before_commands)
             # The added /proc reads lie OUTSIDE the unchanged central stats/timer window.
             # Save each raw endpoint immediately so an exit/reset preserves partial evidence.
             generator_cpu = result["generator_cpu"] = {
@@ -1561,6 +1585,7 @@ class Runner:
             after_lb_at = time.monotonic()
             after_commands = info(conn, "commandstats")
             after_mode = info(conn, "server") if cell.op == "REORDER" else {}
+            result.update(mode_after=after_mode, commandstats_after=after_commands)
             if any(p.poll() is not None for p in generators):
                 raise RuntimeError(f"load generator ended inside the {window}-second window")
             if int(info(conn, "clients")["connected_clients"]) != cell.conns + 1:
@@ -1587,7 +1612,8 @@ class Runner:
                           info_before=before, info_after=after)
             result["central_saturation"] = require_saturation_window(result["saturation"], result)
             result["workload_witness"] = require_workload_witness(
-                cell, before_commands, after_commands, before_mode, after_mode, legacy_control)
+                cell, before_commands, after_commands, before_mode, after_mode, legacy_control,
+                read_local_control)
             totals = result["memtier"] = []
             for i, p in enumerate(generators):
                 if p.wait(timeout=30):
@@ -2585,6 +2611,42 @@ def self_test():
             with self.assertRaisesRegex(RuntimeError, 'BITCOUNT did not execute'):
                 require_workload_witness(cell, before, {**after, 'cmdstat_bitcount': 'calls=10'}, {}, {}, control)
 
+        def test_armed_zero_permutations_need_directed_control_and_live_batches(self):
+            cell = replace(self.cell, mode='1s', op='REORDER', read_local=1, reorder=1)
+            before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
+            after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
+            mode = dict(reorder='1', read_local='1', reorder_shadow='1',
+                        reorder_permuted_runs='0', reorder_batches='10')
+            end = {**mode, 'reorder_batches': '20'}
+            control = dict(verdict='PASS', mode='1s', read_local=1, controls=[0, 1],
+                           on_counter_delta=1, binary_sha256='a' * 64, artifact_sha256='b' * 64)
+            def witness(c=cell, b=before, a=after, start=mode, finish=end, proof=control):
+                return require_workload_witness(c, b, a, start, finish, read_local_control=proof)
+            evidence = witness()
+            self.assertEqual(evidence['reorder_permuted_runs'], 0)
+            self.assertIn('unobserved', evidence['reorder_witness'])
+            self.assertEqual(evidence['reorder_batches'], 10)
+            for field, value in (('verdict', 'FAIL'), ('mode', '2s'), ('read_local', 0),
+                                 ('controls', [1]), ('on_counter_delta', 0),
+                                 ('binary_sha256', ''), ('artifact_sha256', '')):
+                with self.subTest(field=field), self.assertRaisesRegex(RuntimeError, 'OFF/ON control required'):
+                    witness(proof={**control, field: value})
+            with self.assertRaisesRegex(RuntimeError, 'OFF/ON control required'):
+                witness(proof=None)
+            for field, value in (('mode', '2s'), ('read_local', 0)):
+                with self.assertRaises(RuntimeError): witness(c=replace(cell, **{field: value}))
+            for field in ('reorder', 'read_local', 'reorder_shadow'):
+                with self.assertRaises(RuntimeError): witness(finish={**end, field: '0'})
+            for batches in ('10', '9'):
+                with self.assertRaisesRegex(RuntimeError, 'batches did not progress'):
+                    witness(finish={**end, 'reorder_batches': batches})
+            with self.assertRaisesRegex(RuntimeError, 'BITCOUNT did not execute'):
+                witness(a={**after, 'cmdstat_bitcount': 'calls=10'})
+            with self.assertRaisesRegex(RuntimeError, 'permutation witness'):
+                witness(start={**mode, 'reorder_permuted_runs': '1'})
+            with self.assertRaisesRegex(RuntimeError, 'unavailable'):
+                witness(finish={k: v for k, v in end.items() if k != 'reorder_permuted_runs'})
+
         @staticmethod
         def accounting_document(counts, reported=None):
             import base64
@@ -3012,6 +3074,47 @@ def self_test():
                 with self.assertRaisesRegex(RuntimeError, 'reorder=1 control failed'):
                     runner.legacy_reorder_control(cell, 'A', {'x-ex-sched': 1})
                 self.assertEqual(calls, [0, 1], 'failed engagement controls were retried into green')
+
+        def test_read_local_control_binds_bytes_mode_and_both_arms(self):
+            from types import SimpleNamespace
+            import legacy_reorder_witness
+            cell = replace(self.cell, mode='1s', op='REORDER', read_local=1, reorder=1)
+            for broken in (None, 'off-inverts', 'on-inert', 'on-counter-missing', 'unreached'):
+                with self.subTest(broken=broken), tempfile.TemporaryDirectory() as tmp:
+                    folder = Path(tmp)
+                    binary = folder / 'binary'
+                    binary.write_bytes(b'exact current bytes')
+                    runner = Runner(SimpleNamespace(server_cores='112-119', server_smt='',
+                        load_cores='120-127', load_smt='', port=9090), folder, {'A': binary, 'B': binary}, None)
+                    calls = []
+                    def run(args, exact_binary, out, mode, reorder):
+                        self.assertEqual(args.read_local, 1)
+                        self.assertEqual(exact_binary, binary)
+                        self.assertEqual(mode, '1s')
+                        calls.append(reorder)
+                        row = dict(verdict='PASS', armed_attempts=1, inversions=reorder,
+                                   preparatory_counter_delta=reorder)
+                        if broken == 'off-inverts' and not reorder: row['inversions'] = 1
+                        if broken == 'on-inert' and reorder: row['inversions'] = 0
+                        if broken == 'on-counter-missing' and reorder: row['preparatory_counter_delta'] = None
+                        if broken == 'unreached': row['armed_attempts'] = 0
+                        out.mkdir(parents=True)
+                        return row
+                    with mock.patch.object(legacy_reorder_witness, 'run_control', side_effect=run):
+                        for arm in ('A', 'B'):
+                            if broken:
+                                with self.assertRaisesRegex(RuntimeError, 'control failed'):
+                                    runner.read_local_reorder_control(cell, arm, {'reorder': 1})
+                            else:
+                                proof = runner.read_local_reorder_control(cell, arm, {'reorder': 1})
+                                self.assertEqual(proof['binary_sha256'], sha256(binary))
+                                self.assertEqual(proof['on_counter_delta'], 1)
+                                self.assertEqual(proof['artifact_sha256'], sha256(folder / proof['artifact']))
+                        self.assertEqual(calls, [0] if broken in ('off-inverts', 'unreached') else [0, 1])
+                        if broken: self.assertFalse(runner.legacy_reorder_controls)
+                    for other in (replace(cell, read_local=0), replace(cell, reorder=0),
+                                  replace(cell, mode='2s'), replace(cell, op='GET')):
+                        self.assertIsNone(runner.read_local_reorder_control(other, 'A', {'reorder': 1}))
 
         def test_long_tail_cannot_regress_behind_short_tail_improvement(self):
             cell = replace(self.cell, op="REORDER", score="p999", mix="95:5", instances=1)

@@ -58,8 +58,9 @@ def parse_snapshot(raw: bytes) -> LbSnapshot:
 def bottleneck_saturation(start: LbSnapshot, end: LbSnapshot, *, floor_pct: float) -> dict:
     """Preserve the exact counters behind a productive-role occupancy score.
 
-    flipctl.cc:684 documents I/O submit/reap work outside busy_ns. Its wall-idle
-    demand signal includes that missing work. ex_loop.h:788 books empty polling
+    flipctl.cc documents the historical (2026-09-06) I/O submit/reap gap. IO
+    tenure accounting now includes it; the wall-idle demand signal is unchanged.
+    ex_loop.h books empty polling
     passes as idle; CPU time alone would misclassify those spinners as useful work.
     We therefore try min(wall-idle, CPU), with a workload-progress witness, and
     average over ALL threads in each role. Dropping inactive peers or taking the

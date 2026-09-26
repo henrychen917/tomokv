@@ -17,6 +17,7 @@ IO = "src/core/io_loop.h"
 
 # name: (group, file, exact source, replacement, case, required assertion)
 MUTANTS = {
+    "scatter-exit": ("policy", POLICY, "if (op.zc_ptr && op.zc_shard == Op::kScatterStateMarker) return false;", "/* removed scatter exit */", "markers", "Done scatter enters ordinary serve"),
     "fastpath": ("policy", POLICY, "if (n <= 1)", "if (false)", "fastpath", "fast path reads no staging or slots"),
     "staged-clause": ("policy", POLICY, "if (bytes >= kWbufInline) return false;\n    const auto head", "if (false) return false;\n    const auto head", "staged", "staged byte threshold"),
     "staged-source": ("policy", POLICY, "c.buffered_output_bytes()", "c.fill_buf().size()", "staged", "staged fill/send remainder/segments"),
@@ -34,8 +35,8 @@ MUTANTS = {
     "code": ("policy", POLICY, "op.reply_code_ ? code_bytes(op)", "op.reply_code_ ? 0", "codes", "coded lengths match production encoder"),
     "relaxed": ("policy", POLICY, "std::memory_order_acquire", "std::memory_order_relaxed", "acquire", "Done load must acquire"),
     "pre-read": ("policy", POLICY,
-                 "if (op.state.load(std::memory_order_acquire) != OpState::Done) break;\n        bytes += reply_bytes(op);",
-                 "bytes += reply_bytes(op);\n        if (op.state.load(std::memory_order_acquire) != OpState::Done) break;",
+                 "if (op.state.load(std::memory_order_acquire) != OpState::Done) break;",
+                 "(void)reply_bytes(op);\n        if (op.state.load(std::memory_order_acquire) != OpState::Done) break;",
                  "acquire", "reply field read before Done acquire"),
     "walk-tail": ("policy", POLICY, "while (prefix < threshold)", "while (prefix < n)", "acquire", "walk exits at successful fraction"),
     "budget": ("phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "fused-budget", "exact mode-specific budget"),

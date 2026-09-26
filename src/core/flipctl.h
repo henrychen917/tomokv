@@ -300,6 +300,7 @@ public:
 
 private:
     friend struct FlipControllerTest;
+    friend struct CoreConcurrencyTest;
 
     enum class Phase : uint8_t {
         Disabled = 0,

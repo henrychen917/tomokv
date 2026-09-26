@@ -132,7 +132,8 @@ def retired_reorder(mode):
     return True
 
 
-def require_workload_witness(cell, before, after, mode_before, mode_after, legacy_control=None):
+def require_workload_witness(cell, before, after, mode_before, mode_after, legacy_control=None,
+                            read_local_control=None):
     evidence = {}
     for name in workload_command_names(cell):
         bc, bt = command_stat(before, name)
@@ -165,8 +166,32 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
             evidence['legacy_reorder_control'] = legacy_control
             return evidence
         permutations = int(mode_after[field]) - int(mode_before[field])
-        if permutations < 0 or (cell.reorder and permutations == 0) or (not cell.reorder and permutations):
+        if permutations < 0 or (not cell.reorder and permutations):
             raise RuntimeError(f"reorder={cell.reorder} permutation witness failed: delta={permutations}")
+        if cell.reorder and permutations == 0:
+            # Clean GETs leave the owner queues entirely when read-local is armed.
+            # A Long-only queue correctly stays FIFO, even with outstanding blockers.
+            # Do not infer a missed opportunity from command mix or claim engagement:
+            # require a directed, same-binary armed OFF/ON execution-order control.
+            # Its FIFO arm is the negative control; failed/unreached controls are red.
+            control = read_local_control or {}
+            if (cell.mode != "1s" or cell.read_local != 1 or
+                    any(mode.get("reorder") != "1" or mode.get("read_local") != "1" or
+                        mode.get("reorder_shadow") != "1" for mode in (mode_before, mode_after)) or
+                    control.get("verdict") != "PASS" or control.get("mode") != cell.mode or
+                    control.get("read_local") != 1 or control.get("controls") != [0, 1] or
+                    control.get("on_counter_delta", 0) <= 0 or
+                    len(control.get("binary_sha256", "")) != 64 or
+                    len(control.get("artifact_sha256", "")) != 64):
+                raise RuntimeError("reorder=1 permutation witness failed: delta=0; "
+                                   "live read-local OFF/ON control required")
+            batches = "reorder_batches"
+            if (batches not in mode_before or batches not in mode_after or
+                    int(mode_after[batches]) <= int(mode_before[batches])):
+                raise RuntimeError("read-local reorder scheduler batches did not progress")
+            evidence["reorder_witness"] = "unobserved in scored window; directed armed OFF/ON control passed"
+            evidence["read_local_reorder_control"] = control
+            evidence[batches] = int(mode_after[batches]) - int(mode_before[batches])
         evidence["reorder_permuted_runs"] = permutations
     return evidence
 

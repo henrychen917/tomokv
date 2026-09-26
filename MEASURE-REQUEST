@@ -1,7 +1,17 @@
-Lane cx-wbrule2s: read MEASURE-REQUEST-wbrule2s.md for the complete receipt and commands.
-PRE is build/wbrule2s-pre/tomokv, exactly 32d27ee75.
-Arms: build/tomokv (shared 1/2), build/tomokv-2s34 (2s-only study 3/4).
-PADs: build/tomokv-pad and build/tomokv-2s34-pad, both A: PRE-behaviour aggregate-text-size twins.
-Cells: tests/wb_rule_2s_cells.txt, all 16 against PRE and a matched identical-arm null, then the gate.
-Rate and latency decide; record cycles/op, IPC, instructions/op and commands/send. No measurements ran here.
-EXPECT_QUICK should become 443 and EXPECT_FULL 459; constants were left for the maintainer.
+signalacct2: MAINLINE ONLY — lane built/tested serverlessly on 112-127 only.
+Full evidence, arm hashes and exact commands: MEASURE-REQUEST-signalacct2.md.
+Frozen PRE: 32d27ee75, build/tomokv-signalacct-pre. Old performance A/B is VOID.
+POST: build/tomokv = build/tomokv-signalacct-post; witness is correctness-only.
+PAD-A: kind A behavior twin, PRE IO accounting in PAIR-POST's exact text/data layout.
+Both pair arms include the closing-client FLIP drain fix; compare release to PAIR-POST too.
+Confirmed serverless refusal: ERR FLIP connection ownership count is not conserved.
+Fix and removal control are committed separately from the diagnostic harness.
+Historical eight failures returned non-OK replies; exact old bytes were not retained.
+First collect new receipts on the archived original arm, then rerun all 72 live cells.
+Strict PRE/POST byte check remains FAIL, 274/368; 80 intended and 14 collateral changes.
+Only the expected writeback-specialization inventory was expanded; no bytes ignored.
+Performance: explicit frozen binaries, fresh matched nulls, 72 h/m cells, three blocks.
+Live geometry: 0-7, shards16, split6:2. Reviewed ABBA geometry: 0-31, split16:16.
+Pending: live attribution/acceptance, performance, gate, merge. No push.
+Gate rows added: zero; inherited EXPECT counts remain quick441/full457.
+Append mainline measurements as MEASURE-RESULT.
