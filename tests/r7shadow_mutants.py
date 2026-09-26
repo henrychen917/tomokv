@@ -8,6 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 assert set(os.sched_getaffinity(0)) <= set(range(112, 128)), 'pin this unit builder to CPUs 112-127'
 source = (ROOT / 'src/core/reorder.h').read_text()
 mutants = {
+    'no-counter': (source.replace('if (i != oldest_) witness = ReorderResult{1, 1};',
+                                  'if (i != oldest_) witness = ReorderResult{1, 0};'),
+                   'three-pipe permutation did not engage'),
     'no-shadow': (source.replace('} else if (newest_ < task.op_id) {', '} else if (false) {'),
                   'own-pipe shadows were not armed'),
     'no-clear': (source.replace('if (!shadow_pending(n.task)) {', 'if (false) {').replace('if (shadow_bit(n.task) && !shadow_pending(n.task))', 'if (false)'),

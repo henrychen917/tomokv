@@ -749,7 +749,7 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
 // HEADROOM: the idle share of its busiest thread. Returns false while the window carries no
 // evidence; the caller keeps measuring rather than inventing a prior.
 //
-// WORK IS WALL MINUS IDLE. The loops' busy_ns is not the whole of their work: the io loop closes
+// WORK IS WALL MINUS IDLE. Historical evidence (2026-09-06): the io loop closed
 // its busy span before ring_.submit_and_reap(), so the io_uring_enter syscall -- the kernel
 // moving the bytes, which is io work -- was booked as neither busy nor idle. Measured on the
 // guard's own snapshots (single-key 1:1, 40 s): one io thread booked 16.4 s busy + 0.2 s idle of
@@ -757,7 +757,10 @@ void FlipController::measure_flip(Server& server, uint64_t now_ms) {
 // 0.51, and the model moved 2:2 -> 1:3 (measured -52%) and came back. idle_ns is the quantity both
 // loops book faithfully: the io loop's blocked wait after an empty sweep, the ex loop's empty
 // passes and blocked wait (ex_loop.h). The wall is the controller's own tick clock, the same for
-// every thread of the window, so nothing new is read on the hot path.
+// every thread of the window, so nothing new is read on the hot path. IO tenure accounting
+// now includes submit/reap; this model deliberately remains wall-minus-idle. The historical
+// numbers were not reproduced by that cleanup. IO idle still includes epoll callbacks and
+// park publication/resumption, not merely the blocking syscall.
 bool FlipController::sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
                                         double& io_headroom, double& ex_headroom) {
     const double wall = now_ms > maneuver_mark_ms_

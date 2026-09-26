@@ -29,6 +29,7 @@
 
 #include "../net/conn.h"
 #include "server.h"
+#include "signalacct.h"
 
 namespace tomo {
 
@@ -54,6 +55,7 @@ private:
         uint64_t wakes_recv = 0;
         uint32_t tid = 0;
         ThreadRole role = ThreadRole::Idle;
+        std::vector<IoTenureRecord> io_tenures;
     };
 
     struct Work {
@@ -167,6 +169,7 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
         row.cpu_ns = signals.cpu_ns;
         row.wakes_sent = signals.wakes_sent;
         row.wakes_recv = signals.wakes_recv;
+        row.io_tenures = server.io_tenures(tid);
         if (report.mode_ == ShutdownReport::Mode::Fused) {
             row.role = ShutdownReport::ThreadRole::Fused;
             report.work_.unified += signals.ops;
@@ -286,6 +289,17 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
                     row.busy_ns / 1e6, row.idle_ns / 1e6, row.cpu_ns / 1e6,
                     static_cast<unsigned long long>(row.wakes_sent),
                     static_cast<unsigned long long>(row.wakes_recv));
+        for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
+            const auto& t = row.io_tenures[tenure];
+            std::printf("io_tenure t%u/%zu busy_ns=%llu idle_ns=%llu entry_ns=%llu "
+                        "begin_ns=%llu end_ns=%llu exit_ns=%llu role_exit=%u stopped=%u\n",
+                        row.tid, tenure, static_cast<unsigned long long>(t.busy_ns),
+                        static_cast<unsigned long long>(t.idle_ns),
+                        static_cast<unsigned long long>(t.entry_ns),
+                        static_cast<unsigned long long>(t.begin_ns),
+                        static_cast<unsigned long long>(t.end_ns),
+                        static_cast<unsigned long long>(t.exit_ns), t.role_exit, t.stopped);
+        }
     }
 
 #ifdef TOMO_WEDGE_FORENSICS
@@ -391,7 +405,7 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
         if (index) std::putchar(',');
         std::printf("{\"tid\":%u,\"role\":\"%s\",\"ops\":%llu,\"iterations\":%llu,"
                     "\"busy_ns\":%llu,\"idle_ns\":%llu,\"cpu_ns\":%llu,"
-                    "\"wake_tx\":%llu,\"wake_rx\":%llu}",
+                    "\"wake_tx\":%llu,\"wake_rx\":%llu,\"io_tenures\":[",
                     row.tid, shutdown_thread_role_json(row.role),
                     static_cast<unsigned long long>(row.ops),
                     static_cast<unsigned long long>(row.iterations),
@@ -400,6 +414,25 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
                     static_cast<unsigned long long>(row.cpu_ns),
                     static_cast<unsigned long long>(row.wakes_sent),
                     static_cast<unsigned long long>(row.wakes_recv));
+        for (size_t tenure = 0; tenure < row.io_tenures.size(); ++tenure) {
+            const auto& t = row.io_tenures[tenure];
+            if (tenure) std::putchar(',');
+            std::printf("{\"entry_ns\":%llu,\"begin_ns\":%llu,\"end_ns\":%llu,"
+                        "\"exit_ns\":%llu,\"busy_ns\":%llu,\"idle_ns\":%llu,"
+                        "\"role_exit\":%s,\"stopped\":%s,\"did_submit\":%llu,"
+                        "\"sweep_submit\":%llu,\"park\":%llu}",
+                        static_cast<unsigned long long>(t.entry_ns),
+                        static_cast<unsigned long long>(t.begin_ns),
+                        static_cast<unsigned long long>(t.end_ns),
+                        static_cast<unsigned long long>(t.exit_ns),
+                        static_cast<unsigned long long>(t.busy_ns),
+                        static_cast<unsigned long long>(t.idle_ns),
+                        t.role_exit ? "true" : "false", t.stopped ? "true" : "false",
+                        static_cast<unsigned long long>(t.did_submit),
+                        static_cast<unsigned long long>(t.sweep_submit),
+                        static_cast<unsigned long long>(t.park));
+        }
+        std::printf("]}");
     }
     const ShutdownReport::Wb& wb = report.wb_;
     std::printf("],\"wb\":{\"retired\":%llu,\"direct\":%llu,"

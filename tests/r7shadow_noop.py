@@ -10,6 +10,7 @@ import argparse
 import bisect
 from collections import Counter
 import json
+from itertools import product
 from pathlib import Path
 import re
 import sys
@@ -79,6 +80,8 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
+    parser.add_argument('--inventory', choices=('r7', 'wbrule'), default='r7',
+                        help='wbrule additionally requires all 32 physical split-local WB bodies')
     args = parser.parse_args()
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
@@ -91,6 +94,19 @@ if __name__ == '__main__':
     # reference has 168 bodies per variant; the old single-runtime audit had 169.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
+    if args.inventory == 'wbrule':
+        assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
+        # wbrule carries SplitLocal through flush_ready. These sixteen additional
+        # instantiations per runtime keep physical 2s writeback separate from 1s.
+        # Require each exact name and retain ALL old and new byte comparisons.
+        for namespace in expected:
+            added = {'unsigned int ' + namespace + '::IoLoop::flush_ready<' +
+                     ', '.join((tls, ep, 'true', unix, sweep, 'true')) + '>()'
+                     for tls, ep, unix, sweep in product(('false', 'true'), repeat=4)}
+            for binary in (pre, post):
+                found = {name for name in binary.groups if name in added}
+                assert found == added, f'missing physical split-local WB bodies: {added - found}'
+            expected[namespace] += len(added)
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
@@ -99,7 +115,7 @@ if __name__ == '__main__':
     passed = all(row['equal'] for row in rows)
     result = dict(pre=str(pre.path), post=str(post.path), pre_sha256=pre.sha256,
                   post_sha256=post.sha256, literal_pools=True, excluded_armed=excluded,
-                  expected_bodies=expected, rows=rows, strict_noop=passed)
+                  expected_bodies=expected, inventory=args.inventory, rows=rows, strict_noop=passed)
     (out / 'audit.json').write_text(json.dumps(result, indent=2) + '\n')
     for row in rows:
         if not row['equal']: print('DIFF', row['diff'], row['name'])

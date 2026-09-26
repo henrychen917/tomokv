@@ -1,0 +1,9 @@
+# Diagnostic inventory only; no gate row or EXPECT count changes.
+# t05/t06 are exactly the headline armed 1s pair, 16 generators by REORDER default.
+t05 | 1s | rl=1 | ov=1 | ro=1 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
+t06 | 1s | rl=1 | ov=1 | ro=0 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
+# Preserve the Window6 matrix rows verbatim, and add explicit ON companions.
+l9_8 | 1s | rl=0 | ov=1 | ro=0 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=9:1 | smoke=0
+l9_32 | 1s | rl=0 | ov=1 | ro=0 | REORDER | p32 | 512 | - | - | - | atomic=1 | score=p999 | mix=9:1 | smoke=0
+l9_8_on | 1s | rl=0 | ov=1 | ro=1 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=9:1 | smoke=0
+l9_32_on | 1s | rl=0 | ov=1 | ro=1 | REORDER | p32 | 512 | - | - | - | atomic=1 | score=p999 | mix=9:1 | smoke=0

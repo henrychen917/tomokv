@@ -26,6 +26,7 @@
 #include "shard.h"
 #include "thread.h"
 #include "flipctl.h"
+#include "signalacct.h"
 #include "weighted_lb.h"
 #include "placement.h"
 #include "config.h"        // struct Config: every runtime knob, one home
@@ -465,6 +466,12 @@ public:
         return true;
     }
 
+    void record_io_tenure(uint32_t tid, const IoTenureRecord& record) {
+        io_accounting_history_.append(tid, record);
+    }
+    const std::vector<IoTenureRecord>& io_tenures(uint32_t tid) const {
+        return io_accounting_history_.rows(tid);
+    }
     const Config&    cfg()        const { return cfg_; }
     ThreadMode thread_mode() const { return cfg_.thread_mode; }
     const char* thread_mode_name() const {
@@ -584,7 +591,9 @@ public:
             for (uint32_t tid = 0; tid < nthreads(); tid++) owners += owns_shards(tid);
             lb_policy_->observe_visits(visits, now, owners);
         }
-        // Occupancy is 1 - measured idle over the same window. cpu_ns deliberately does not enter:
+        // Occupancy is booked busy / (busy + idle), smoothed below. IO now covers its whole
+        // loop tenure; EX keeps productive/empty-pass accounting. This fold feeds the
+        // physical FLIP victim picker as well as INFO. cpu_ns deliberately does not enter:
         // polling/spinning is scheduled CPU but does not mean the role has useful work available.
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             const LoopSignals& signal = thread(tid).sig();
@@ -3726,6 +3735,8 @@ private:
     // CONFIG copies into this storage; arbitrarily many updates or a stopped reader cannot grow it.
     std::unique_ptr<LiveConfigMailbox[]> live_config_mailboxes_;
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
+    // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
+    alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
 };
 
 }  // namespace tomo

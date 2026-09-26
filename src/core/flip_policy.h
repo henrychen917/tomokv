@@ -36,11 +36,13 @@
 // first cut; this revision gives each of them the quantity it was missing, in units:
 //
 //   SIGNAL. Role demand is measured as WORK = wall - idle per thread (flip_role_work), not as the
-//      loops' busy_ns. The io loop closes its busy span before ring_.submit_and_reap(), so the
+//      loops' busy_ns. In that 2026-09-06 measurement the io loop closed its busy span
+//      before ring_.submit_and_reap(), so the
 //      io_uring_enter syscall -- the kernel moving the bytes, which is io work -- was booked as
 //      neither busy nor idle: 23.5 s of a 40 s window on one single-key io thread. The busy share
 //      read io = 0.32 on a workload whose work share is 0.51, and the model moved 2:2 -> 1:3
-//      (measured -52%) and came back. idle_ns is the one quantity both loops book faithfully.
+//      (measured -52%) and came back. IO tenure accounting now includes that gap; the model remains wall-minus-idle.
+//      The inherited measurement above is not a result of the accounting cleanup.
 //
 //   COST GATE, in commands over the horizon the workload has demonstrated (flip_cost_gate). A move
 //      must pay for itself: kappa g_low R0 (T_stat - T_black) > margin [C_xfer (1 + P_miss) +

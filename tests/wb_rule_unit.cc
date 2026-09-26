@@ -104,7 +104,9 @@ static void markers() {
         op.zc_ptr = reinterpret_cast<const char*>(1);
         op.zc_shard = marker; op.zc_len = UINT32_MAX;
         require(wb_rule::reply_bytes(op) == 0, "retire-state poison is not payload");
-        require(wb_rule::defer(c), "one scatter ROB slot cannot open p8 fraction");
+        if (marker == Op::kScatterStateMarker)
+            require(!wb_rule::defer(c), "Done scatter enters ordinary serve");
+        else require(wb_rule::defer(c), "other retire hooks keep the measured rule");
         for (unsigned i = 1; i < 4; ++i) c.rob().at(i).state.store(OpState::Done);
         require(!wb_rule::defer(c), "four command slots open p8 half");
     }

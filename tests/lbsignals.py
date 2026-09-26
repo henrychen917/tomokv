@@ -19,6 +19,14 @@ import time
 
 import _lib
 
+# Existing battery's post-shutdown leg; the caller owns TERM and the final log.
+# It uses the same independent endpoint checker as the shutdown invariants row.
+if len(sys.argv) >= 3 and sys.argv[1] == "--shutdown":
+    from shutdown_report import load_report, require_io_conservation
+    result = require_io_conservation(load_report(sys.argv[2]), edges="--edges" in sys.argv[3:])
+    print("LBSIGNALS IO tenure conservation:", result, flush=True)
+    raise SystemExit(0)
+
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 SANE_AGE_US = 60_000_000
 AGE_FIELDS = ("queue_delay_ewma_us", "oldest_age_us", "oldest_age_ewma_us",

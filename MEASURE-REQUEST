@@ -1,20 +1,17 @@
-wbrule: MAINLINE ONLY — no server, benchmark, gate or performance measurement run here.
-Full diagnosis, proofs, negative controls, hashes and exact commands: MEASURE-REQUEST-wbrule.md.
-Primary POST: build/tomokv (hard-coded physical 1s w4-c12, parse/EX 32/32, ROB 64).
-Reference: /home/user/Projects/cx-final/build/tomokv.
-PAD: build/tomokv-pad, A behaviour twin = PRE behaviour with POST aggregate .text size.
-Separate hypothesis: build/tomokv-mgetfix, commit 306e0ef5d on cx-wbrule-mgetfix;
-it is absent from the primary branch and build/tomokv and must be judged independently.
-Merit cells: h05,h06,p8g,p8s,m8g_l0,v1g_l0,d128g_l0 from tests/wb_rule_cells.txt.
-Geometry: 32 server cores 0-31, 512 connections, eight loaders on 32-111; no SMT.
-Run the ordinary ABBA entry with a matching normal identical-arm null, then three
-independent POST/reference and PAD/reference blocks. Preserve every result.
-Judge matched-load rate and qualified cycles/op, with instructions/op and IPC paired.
-Every primary cell must meet the stable reference except the known MGET-8 p8 loss.
-Collect PMU diagnostics separately: the existing profile API marks them untrusted,
-and its cycles/command and instructions/command use approximate window alignment.
-Do not use those diagnostics as a standing null or trusted merit verdict.
-Compare MGETFIX against c12 separately; it lands later only if it improves MGET
-without new losses. After primary merit acceptance: tests/gate.sh iteration.
-Gate accounting: +3 rows before the quick exit; quick 441, full/iteration 457.
-Require 0 gating FAIL. Append mainline measurements as MEASURE-RESULT.
+signalacct2: MAINLINE ONLY — lane built/tested serverlessly on 112-127 only.
+Full evidence, arm hashes and exact commands: MEASURE-REQUEST-signalacct2.md.
+Frozen PRE: 32d27ee75, build/tomokv-signalacct-pre. Old performance A/B is VOID.
+POST: build/tomokv = build/tomokv-signalacct-post; witness is correctness-only.
+PAD-A: kind A behavior twin, PRE IO accounting in PAIR-POST's exact text/data layout.
+Both pair arms include the closing-client FLIP drain fix; compare release to PAIR-POST too.
+Confirmed serverless refusal: ERR FLIP connection ownership count is not conserved.
+Fix and removal control are committed separately from the diagnostic harness.
+Historical eight failures returned non-OK replies; exact old bytes were not retained.
+First collect new receipts on the archived original arm, then rerun all 72 live cells.
+Strict PRE/POST byte check remains FAIL, 274/368; 80 intended and 14 collateral changes.
+Only the expected writeback-specialization inventory was expanded; no bytes ignored.
+Performance: explicit frozen binaries, fresh matched nulls, 72 h/m cells, three blocks.
+Live geometry: 0-7, shards16, split6:2. Reviewed ABBA geometry: 0-31, split16:16.
+Pending: live attribution/acceptance, performance, gate, merge. No push.
+Gate rows added: zero; inherited EXPECT counts remain quick441/full457.
+Append mainline measurements as MEASURE-RESULT.

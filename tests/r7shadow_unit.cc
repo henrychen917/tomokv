@@ -61,6 +61,22 @@ void three_pipes() {
     std::printf("PASS three pipes B=%zu: six unshadowed shorts, three longs, seven shadowed shorts\n", B);
 }
 
+void long_only_scope() {
+    Pipe a, b;
+    Task tasks[kGenthreadExBatchOps];
+    tasks[0] = a.add(long_op, 0);
+    tasks[1] = b.add(long_op, 1);
+    require(a.client.rob().at(0).state.load() == OpState::Issued &&
+            b.client.rob().at(0).state.load() == OpState::Issued,
+            "long-only scope never contained pending blockers");
+    // The owner population after clean GETs take the read-local lane can be
+    // entirely Long. Different clients and pending blockers still imply no pick.
+    auto result = ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 2);
+    require(result.permuted_runs == 0 && tasks[0].enqueue_us_low == 0 &&
+            tasks[1].enqueue_us_low == 1, "homogeneous Long scope invented a permutation");
+    std::puts("PASS pending Long-only scope: FIFO and zero permutations are correct");
+}
+
 void completion_and_newest() {
     Pipe a, b, c;
     Task first = a.add(long_op, 1);
@@ -263,6 +279,7 @@ void bounded_service() {
 } // namespace
 
 int main() {
+    long_only_scope();
     three_pipes<kGenthreadExBatchOps>();
     three_pipes<kGenthreadPipelineExBatchOps>();
     completion_and_newest();

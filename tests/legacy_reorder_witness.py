@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Unscored, standalone execution-order witness for an unchanged legacy binary.
+"""Unscored execution-order witness on unchanged server bytes, with FIFO control.
 
-The current candidate still requires its during-window permutation counter. The
-unchanged legacy reference, which has no such counter, uses this live OFF/ON
+The unchanged legacy reference, which has no permutation counter, uses this live OFF/ON
 control plus command progress in the measured interval; it makes no claim to
 count permutations in that interval. Both modes passed the OFF/ON live controls
 on c8e61f646 and the current binary on 2026-09-10, at32servercores.
@@ -28,6 +27,13 @@ MONITOR runs before a potentially refused enqueue (4560 versus 5251). Duplicate
 or missing tagged events, queue-full counters, migration, changed client counts,
 or a foreign producer all invalidate the attempt; none is interpreted as a
 scheduler permutation. Fresh keys and drained ROBs re-arm every bounded attempt.
+
+With --read-local 1, SETRANGE key 0 1 competes with INCR on a fresh "0".
+INCR is an owner-executed SmallMulti write in the armed registry: it cannot
+escape to the local GET lane. A result/final value of 1 proves INCR ran first;
+2 proves SETRANGE ran first. The same MONITOR/admission/topology controls apply.
+This supports an explicitly UNOBSERVED scored-window result for armed 1s GET /
+BITCOUNT cells; it does not claim an opportunity or permutation in that window.
 """
 from __future__ import annotations
 
@@ -196,26 +202,35 @@ def collect_until(monitor, client_address, fence):
 
 
 def judge_attempt(*, key, writer, reader, events, write_reply, read_reply, final_reply,
-                  before, after, producer, client_producers):
+                  before, after, producer, client_producers, read_local=0):
     unchanged(before, after)
     require(set(client_producers.values()) == {producer}, "writer/reader/monitor/blocker do not share a producer")
-    require(write_reply == len(OLD), "SETRANGE did not execute exactly")
-    require(read_reply in (OLD, NEW), "GET returned neither allowed state")
-    require(final_reply == NEW, "final state does not prove the write completed")
+    if read_local:
+        require(write_reply == 1, "SETRANGE did not execute exactly")
+        require(type(read_reply) is int and read_reply in (1, 2), "INCR returned neither allowed state")
+        require(final_reply == str(read_reply).encode(), "final state does not prove both writes completed")
+        replacement, reader_command, inverted = "1", "INCR", read_reply == 1
+    else:
+        require(write_reply == len(OLD), "SETRANGE did not execute exactly")
+        require(read_reply in (OLD, NEW), "GET returned neither allowed state")
+        require(final_reply == NEW, "final state does not prove the write completed")
+        replacement, reader_command, inverted = "X", "GET", read_reply == OLD
     tagged = [(index, event) for index, event in enumerate(events) if key in event["args"][1:]]
     writes = [index for index, event in tagged if event["address"] == writer and
-              event["args"] == ["SETRANGE", key, "0", "X"]]
-    reads = [index for index, event in tagged if event["address"] == reader and event["args"] == ["GET", key]]
+              event["args"] == ["SETRANGE", key, "0", replacement]]
+    reads = [index for index, event in tagged if event["address"] == reader and
+             event["args"] == [reader_command, key]]
     require(len(writes) == len(reads) == 1, "tagged commands were missing or replayed before admission")
     # Final-state GET from the control connection is allowed, but no other command
     # can modify this fresh nonce key or manufacture the observed state transition.
     require(all(event["args"] == ["GET", key] or
-                (event["address"] == writer and event["args"] == ["SETRANGE", key, "0", "X"])
+                (event["address"] == reader and event["args"] == [reader_command, key]) or
+                (event["address"] == writer and event["args"] == ["SETRANGE", key, "0", replacement])
                 for _, event in tagged), "unexpected operation touched the witness key")
     armed = writes[0] < reads[0]
-    return {"armed": armed, "inversion": armed and read_reply == OLD,
+    return {"armed": armed, "inversion": armed and inverted,
             "dispatch_indices": {"write": writes[0], "read": reads[0]},
-            "read_state": read_reply.decode(), "final_state": final_reply.decode()}
+            "read_state": read_reply if read_local else read_reply.decode(), "final_state": final_reply.decode()}
 
 
 def finish_control(attempts, reorder):
@@ -230,9 +245,9 @@ def finish_control(attempts, reorder):
             "scope": "directed engagement only; no during-measurement permutation count"}
 
 
-def translated_knobs(binary, mode, reorder):
+def translated_knobs(binary, mode, reorder, read_local=0):
     result = {}
-    for name, value in (("thread-mode", mode), ("read-local", 0), ("overlap", 1), ("reorder", reorder)):
+    for name, value in (("thread-mode", mode), ("read-local", read_local), ("overlap", 1), ("reorder", reorder)):
         if abba.accepted(binary, name, value):
             result[name] = value
         else:
@@ -252,7 +267,9 @@ def translated_knobs(binary, mode, reorder):
 
 
 def run_control(args, binary, out, mode, reorder):
-    knobs = translated_knobs(binary, mode, reorder)
+    read_local = getattr(args, "read_local", 0)
+    knobs = translated_knobs(binary, mode, reorder, read_local)
+    initial_value = b"0" if read_local else OLD
     nthreads = len(abba.cpus(args.server_cores) + abba.cpus(args.server_smt))
     ex = nthreads // 2
     server_args = ["--atomic", "1", "--flip-auto", "0",
@@ -270,6 +287,12 @@ def run_control(args, binary, out, mode, reorder):
             for name, value in {**knobs, "flip-auto": 0, "atomic": 1}.items():
                 require(control.must("CONFIG", "GET", name) == [name.encode(), str(value).encode()],
                         f"boot did not apply {name}={value}")
+            if read_local:
+                identity = abba.info(control, "server")
+                row["boot_info"] = identity
+                # CONFIG reports the request; INFO reports whether the lane actually armed.
+                require(identity.get("read_local") == "1" and identity.get("thread_mode") == mode and
+                        identity.get("reorder") == str(reorder), "directed control mode/lane did not arm")
             require(control.must("DBSIZE") == 0, "diagnostic boot is not fresh")
             initial = topology(control)
             producer, clients, placed, captures = same_producer_clients(control, args.port, stack, initial)
@@ -285,7 +308,7 @@ def run_control(args, binary, out, mode, reorder):
             fresh = []
             for attempt in range(args.attempts):
                 key, shard = owned_key(control, f"witness-{mode}-{reorder}-{attempt}", owner, owner_count)
-                require(control.must("SET", key, OLD) == b"OK", "fresh-state seed failed")
+                require(control.must("SET", key, initial_value) == b"OK", "fresh-state seed failed")
                 fresh.append((key, shard))
             # Seed distinct unused keys before MONITOR is armed. A remote control
             # producer's feed may arrive after a local fence; keeping its SETs out
@@ -295,7 +318,7 @@ def run_control(args, binary, out, mode, reorder):
             counter_before = abba.info(control, "server").get("reorder_permuted_runs")
             peers = {name: producer for name in ("writer", "reader", "monitor", "blocker")}
             for attempt, (key, shard) in enumerate(fresh):
-                require(control.must("GET", key) == OLD, "attempt did not start from its fresh old state")
+                require(control.must("GET", key) == initial_value, "attempt did not start from its fresh old state")
                 versions_before = no_snapshot_versions(control)
                 before = topology(control)
                 require(before["shards"][shard]["owner"] == owner, "witness key left the chosen owner")
@@ -307,8 +330,8 @@ def run_control(args, binary, out, mode, reorder):
                 count = args.blocker_count if args.blocker_bytes else 0
                 if count:
                     blocker.raw(encode("BITCOUNT", block_key) * count)
-                writer.send("SETRANGE", key, 0, "X")
-                reader.send("GET", key)
+                writer.send("SETRANGE", key, 0, "1" if read_local else "X")
+                reader.send("INCR" if read_local else "GET", key)
                 write_reply, read_reply = writer.read(), reader.read()
                 for _ in range(count):
                     require(blocker.read() == args.blocker_bytes * 8, "long gather-window command failed")
@@ -323,7 +346,8 @@ def run_control(args, binary, out, mode, reorder):
                 row["attempts"].append(record)
                 record.update(judge_attempt(key=key, writer=address(writer), reader=address(reader),
                     events=events, write_reply=write_reply, read_reply=read_reply, final_reply=final_reply,
-                    before=before, after=after, producer=producer, client_producers=peers))
+                    before=before, after=after, producer=producer, client_producers=peers,
+                    read_local=read_local))
                 if not reorder:
                     require(not record["inversion"], "FIFO negative control inverted; fixture/model is invalid")
                 (out / "result.json").write_text(json.dumps(row, indent=2) + "\n")
@@ -347,6 +371,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path)
     parser.add_argument("--mode", choices=("both", "1s", "2s"), default="both")
+    parser.add_argument("--read-local", type=int, choices=(0, 1), default=0)
     for name in ("server-cores", "load-cores", "load-smt"):
         parser.add_argument("--" + name, default=None)
     parser.add_argument("--server-smt", default="")
@@ -444,6 +469,26 @@ def self_test():
             with self.assertRaisesRegex(WitnessError, "never witnessed"):
                 finish_control([result] * 16, 1)
 
+        def test_armed_write_control_requires_both_values_and_dispatch_order(self):
+            events = [monitor_event(b'1.000001 [0 127.0.0.1:1] "SETRANGE" "K" "0" "1"'),
+                      monitor_event(b'1.000002 [0 127.0.0.1:2] "INCR" "K"')]
+            for value in (1, 2):
+                row = self.judge(events=events, read_local=1, write_reply=1,
+                                 read_reply=value, final_reply=str(value).encode())
+                self.assertEqual(row['inversion'], value == 1)
+                self.assertEqual(finish_control([row], int(value == 1))['verdict'], 'PASS')
+                with self.assertRaises(WitnessError):
+                    finish_control([row], int(value != 1))
+                with self.assertRaisesRegex(WitnessError, 'final state'):
+                    self.judge(events=events, read_local=1, write_reply=1,
+                               read_reply=value, final_reply=str(3 - value).encode())
+            row = self.judge(events=events[::-1], read_local=1, write_reply=1, read_reply=1, final_reply=b'1')
+            with self.assertRaisesRegex(WitnessError, 'no admitted'):
+                finish_control([row] * 16, 1)
+            for wrong in (events[:1], events * 2, events + [events[1]]):
+                with self.assertRaises(WitnessError):
+                    self.judge(events=wrong, read_local=1, write_reply=1, read_reply=1, final_reply=b'1')
+
         def test_arrival_order_without_admission_order_is_unreached(self):
             result = self.judge(events=list(reversed(self.events)))
             self.assertFalse(result["armed"])
@@ -503,9 +548,11 @@ def self_test():
             # Drive run_control's real client placement, requests, MONITOR parser,
             # fences, fresh keys and verdict. Replace only the server/transport.
             # A fake server which never permutes must make the ON loop red.
-            for reorder, permutes, expected in ((0, False, "PASS"), (1, True, "PASS"),
-                                                (1, False, "FAIL"), (0, True, "FAIL")):
-                with self.subTest(reorder=reorder, permutes=permutes), tempfile.TemporaryDirectory() as tmp:
+            cases = [(local, reorder, permutes, expected) for local in (0, 1)
+                     for reorder, permutes, expected in ((0, False, "PASS"), (1, True, "PASS"),
+                                                        (1, False, "FAIL"), (0, True, "FAIL"))]
+            for local, reorder, permutes, expected in cases:
+                with self.subTest(read_local=local, reorder=reorder, permutes=permutes), tempfile.TemporaryDirectory() as tmp:
                     engine = SimpleNamespace(db={}, clients=0, next_client=0, monitor=None,
                                              pending=None, stamp=0, permutations=0, requests=[], config={})
                     class FakeConn:
@@ -539,7 +586,8 @@ def self_test():
                                 answer = (f"lbver 1 stamp_ns {engine.stamp}\nthread 0 fused 0 {engine.clients} 0 0 0 0 0 0 0 0 masked_lane_full_events 0\n"
                                           "thread 1 fused 0 0 0 0 0 0 0 0 0 0 masked_lane_full_events 0\nshard 0 1 0 0 0 0 0\n").encode()
                             elif name == "INFO":
-                                answer = (f"reorder_permuted_runs:{engine.permutations}\r\n"
+                                answer = (f"read_local:{local}\r\nthread_mode:1s\r\nreorder:{reorder}\r\n"
+                                          f"reorder_permuted_runs:{engine.permutations}\r\n"
                                           "atomic_groups:0\r\natomic_inflight:0\r\natomic_entries:0\r\n"
                                           "atomic_pending_entries:0\r\nscript_intents_live:0\r\n").encode()
                             elif name == "SET":
@@ -551,19 +599,25 @@ def self_test():
                             elif name == "ECHO": answer = encoded[1]
                             elif name == "BITCOUNT": answer = len(engine.db[encoded[1]]) * 8
                             elif name == "SETRANGE":
-                                engine.pending = (self, encoded[1])
+                                engine.pending = (self, encoded[1], encoded[3])
                                 return
-                            elif name == "GET":
-                                answer = engine.db[encoded[1]]
+                            elif name in ("GET", "INCR"):
+                                def short():
+                                    if name == "GET": return engine.db[encoded[1]]
+                                    value = int(engine.db[encoded[1]]) + 1
+                                    engine.db[encoded[1]] = str(value).encode()
+                                    return value
                                 if engine.pending:
-                                    writer_conn, key = engine.pending
-                                    engine.db[key] = NEW
-                                    writer_conn.replies.append(len(NEW))
+                                    writer_conn, key, replacement = engine.pending
+                                    if permutes: answer = short()
+                                    engine.db[key] = replacement + engine.db[key][1:]
+                                    writer_conn.replies.append(len(engine.db[key]))
                                     engine.pending = None
                                     if permutes:
                                         engine.permutations += 1
                                     else:
-                                        answer = engine.db[encoded[1]]
+                                        answer = short()
+                                else: answer = short()
                             else: raise AssertionError(encoded)
                             self.replies.append(answer)
 
@@ -591,8 +645,8 @@ def self_test():
                         finally:
                             control.close()
                     args = SimpleNamespace(server_cores="0-1", server_smt="", port=1,
-                                           attempts=3, blocker_bytes=64, blocker_count=1)
-                    knobs = {"thread-mode": "1s", "read-local": 0, "overlap": 1, "reorder": reorder}
+                                           attempts=3, blocker_bytes=64, blocker_count=1, read_local=local)
+                    knobs = {"thread-mode": "1s", "read-local": local, "overlap": 1, "reorder": reorder}
                     real_conn = Conn
                     # The real RESP reader above must remain reachable after the
                     # module's connection constructor is replaced by FakeConn.

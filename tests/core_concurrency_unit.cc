@@ -19,6 +19,7 @@
 #include <sched.h>
 
 #include "src/core/io_loop.h"
+#include "src/core/shutdown_report.h"
 
 namespace tomo {
 struct CoreConcurrencyTest {
@@ -42,7 +43,8 @@ struct CoreConcurrencyTest {
         uint32_t source = Fused ? 0 : 6;
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
-        Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16)
+        Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
+                uint32_t databases = 1, uint32_t split_io = 6)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -70,11 +72,13 @@ struct CoreConcurrencyTest {
                 io_id = thread_count - 1;
             } else {
                 require(thread_count == 8, "split fixture retains gate geometry");
-                require(server.placement_.build_even(server.topo_, 6, 2), "6:2 placement");
+                require(server.placement_.build_even(server.topo_, split_io, thread_count - split_io),
+                        "split placement");
             }
             require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
             Config config;
             config.shards = shard_count;
+            config.databases = databases;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.key_lb = config.client_lb = load_balance ? 1 : 0;
@@ -961,6 +965,9 @@ struct CoreConcurrencyTest {
         lb_fold_read_only<false>(); lb_fold_read_only<true>();
     }
 
+#include "signalacct_core_checks.inc"
+#include "flip_close_checks.inc"
+
     static void snapshot_forward() {
         Fixture f;
         Client client(-1);
@@ -1047,10 +1054,15 @@ int main(int argc, char** argv) {
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
     if (row == "watch") T::watch_disconnect();
-    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); }
+    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
+    else if (row == "flip-close") T::flip_close();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }
+    else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
+    else if (row == "signalacct-report-1s") { T::signalacct_report<true>(); return 0; }
+    else if (row == "signalacct-post") T::signalacct_physical(false, true);
+    else if (row == "signalacct") T::signalacct();
     else if (row == "lbfix") T::lb_signals();
     else if (row == "lbfix-floor") T::lb_floor();
     else if (row == "lbfix-stationary") T::lb_stationary_all();

@@ -62,6 +62,9 @@ inline bool defer(Connection& c) {
     while (prefix < threshold) {
         const auto& op = rob.at(head + prefix);
         if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
+        // Separate measured candidate: assembly stays in ordinary WB, in ROB order.
+        // A Done scatter's byte size is unknown here; do not traverse its sub-ops.
+        if (op.zc_ptr && op.zc_shard == Op::kScatterStateMarker) return false;
         bytes += reply_bytes(op);
         if (bytes >= kWbufInline) return false;
         ++prefix;
