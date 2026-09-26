@@ -14,6 +14,9 @@
 
 static const char* selected;
 static unsigned submissions = 0, submitted_sends = 0;
+// Test grammar only: each invocation drives one production IO schedule.
+static unsigned split_schedule = 0; // 0 coarse, 1 natural, 2 shallow
+static constexpr unsigned split_fraction_num = 1, split_fraction_den = 2;
 extern "C" int __wrap_io_uring_submit(io_uring* ring) {
     const unsigned count = ring->sq.sqe_tail - ring->sq.sqe_head;
     if (count > ring->sq.ring_entries) std::abort();
@@ -34,6 +37,9 @@ extern "C" int __wrap_io_uring_submit_and_get_events(io_uring* ring) {
 }
 
 namespace tomo {
+static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
+static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
+static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
 // C++ explicit instantiation permits naming a private member here. This test-only
 // accessor installs the historical synthetic SQ without editing Ring or its layout.
 struct RingSqAccess {
@@ -44,6 +50,15 @@ template <RingSqAccess::Type Member> struct RingSqMember {
     friend RingSqAccess::Type ring_sq(RingSqAccess) { return Member; }
 };
 template struct RingSqMember<&Ring::r_>;
+#define AOF_ACCESS(Name, Type, Member) \
+    struct Name { using Ptr = Type AofManager::*; friend Ptr member(Name); }; \
+    template <Name::Ptr P> struct Name##Member { friend Name::Ptr member(Name) { return P; } }; \
+    template struct Name##Member<&AofManager::Member>;
+AOF_ACCESS(AofConfigured, bool, configured_)
+AOF_ACCESS(AofRecording, std::atomic<bool>, recording_)
+AOF_ACCESS(AofPosted, std::atomic<uint64_t>, posted_sequence_)
+AOF_ACCESS(AofDurable, std::atomic<uint64_t>, durable_sequence_)
+#undef AOF_ACCESS
 struct CoreConcurrencyTest {
     static void require(bool ok, const char* message) {
         if (!ok) { std::fprintf(stderr, "FAIL wb-rule %s: %s\n", selected, message); std::_Exit(1); }
@@ -159,15 +174,21 @@ struct CoreConcurrencyTest {
                             std::memory_order_release);
         }
     }
-    template <bool Fused> static unsigned phase(Fixture<Fused>& f, bool r7 = false) {
-        if constexpr (Fused) if (r7) return f.io.template r7_flush_ready<false, false, true>();
-        return f.io.template flush_ready<false, false, Fused>();
+    template <bool Fused, bool SplitLocal> static unsigned phase(Fixture<Fused, SplitLocal>& f, bool r7 = false) {
+        if constexpr (Fused) {
+            if (r7) return f.io.template r7_flush_ready<false, false, true>();
+        } else if (split_schedule) {
+            bool submitted = false; size_t cursor = 0;
+            return f.io.template pipeline_pass<false, false, false, SplitLocal>(
+                true, split_schedule == 1, submitted, cursor);
+        }
+        return f.io.template flush_ready<false, false, Fused || SplitLocal, false, false, SplitLocal>();
     }
     template <bool Fused> static void budget(bool r7) {
         Fixture<Fused> f;
         std::vector<std::unique_ptr<Client>> clients;
         constexpr unsigned count = 96;
-        constexpr unsigned expected = Fused ? count : 16;
+        constexpr unsigned expected = count;
         for (unsigned i = 0; i < count; ++i) {
             auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
             fill(*c, 1, 1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
@@ -180,10 +201,10 @@ struct CoreConcurrencyTest {
             require(clients[i]->serve_pending() == (i >= expected), "served pin cleared; suffix pinned");
             require(clients[i]->rob().in_flight() == unsigned(i >= expected), "budget retires exact prefix");
         }
-        if constexpr (Fused) require(submissions > 1 && submitted_sends >= count-8, "SQ full continues");
+        require(submissions > 1 && submitted_sends >= count-8, "SQ full continues");
     }
-    static void fastpath(bool r7) {
-        Fixture<true> f;
+    template <bool Fused = true> static void fastpath(bool r7) {
+        Fixture<Fused> f;
         Client staged(-1), issued(-1); f.client(staged, 1); f.client(issued, 2);
         staged.fill_buf().append("+PUSH\r\n", 7); fill(issued, 1, 0);
         f.io.enqueue_serve(&staged); f.io.enqueue_serve(&issued); phase(f, r7);
@@ -191,8 +212,8 @@ struct CoreConcurrencyTest {
         require(staged.send_inflight() && !staged.serve_pending(), "zero-inflight output sent");
         require(issued.rob().in_flight() == 1 && !issued.send_inflight(), "p1 never retires Issued");
     }
-    static void fifo(bool r7) {
-        Fixture<true> f;
+    template <bool Fused = true> static void fifo(bool r7) {
+        Fixture<Fused> f;
         Client a(-1), b(-1), c(-1);
         f.client(a, 1); f.client(b, 2); f.client(c, 3);
         fill(a, 32, 1); fill(b, 32, 0); fill(c, 1, 1);
@@ -206,12 +227,12 @@ struct CoreConcurrencyTest {
         require(f.io.pending_serve_.size() == 2, "pin deduplicates future notification");
         require(a.rob().in_flight() == 32 && b.rob().in_flight() == 32, "deferred prefix not retired");
     }
-    static void capture(bool r7) {
-        Fixture<true> f;
+    template <bool Fused = true> static void capture(bool r7) {
+        Fixture<Fused> f;
         Client a(-1), b(-1), added(-1);
         f.client(a, 1); f.client(b, 2); f.client(added, 3);
         fill(a, 32, 0); fill(b, 1, 1); fill(added, 1, 1);
-        struct Context { Fixture<true>* f; Client* added; unsigned calls = 0; } ctx{&f, &added};
+        struct Context { Fixture<Fused>* f; Client* added; unsigned calls = 0; } ctx{&f, &added};
         b.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
         added.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
         f.io.wb_.bind(&f.io.ring_, nullptr, [](void*, int32_t, const char*) {},
@@ -234,8 +255,8 @@ struct CoreConcurrencyTest {
         require(!corpse.serve_pending() && f.io.pending_serve_.empty(), "dead entry removed and unpinned");
         require(f.io.wb_.stats().serves == 1 && live.rob().quiesced(), "dead entry consumes no service");
     }
-    static void progress(bool r7) {
-        Fixture<true> f;
+    template <bool Fused = true> static void progress(bool r7) {
+        Fixture<Fused> f;
         require(phase(f, r7) == 0, "empty fixture has no unrelated work");
         Client c(-1); f.client(c, 1); fill(c, 32, 1); f.io.enqueue_serve(&c);
         require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0, "deferral alone is positive work");
@@ -244,18 +265,29 @@ struct CoreConcurrencyTest {
         require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");
     }
     static void split_policy() {
-        Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
-        f.io.enqueue_serve(&c);
-        // Eligible tails let a wrongly widened selector terminate at the split
-        // budget, so the control fails an assertion rather than just timing out.
-        std::vector<std::unique_ptr<Client>> tails;
-        for (unsigned i = 0; i < 16; ++i) {
-            auto tail = std::make_unique<Client>(-1); f.client(*tail, i+2);
-            fill(*tail, 1, 1); f.io.enqueue_serve(tail.get()); tails.push_back(std::move(tail));
+        // Exercise the wiring, ceil boundary and early-return rule in every IO schedule.
+        for (unsigned n : {2u, 3u, 4u, 7u, 8u, 31u, 32u, 63u, 64u}) {
+            const unsigned threshold = (n * split_fraction_num + split_fraction_den - 1) / split_fraction_den;
+            for (unsigned prefix : {threshold-1, threshold}) {
+                Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, n, prefix);
+                f.io.enqueue_serve(&c); phase(f);
+                const bool deferred = prefix < threshold;
+                require(c.rob().in_flight() == (deferred ? n : n-prefix) &&
+                        c.serve_pending() == deferred,
+                        "2s uses exact composite fraction");
+            }
         }
-        phase(f);
-        require(f.io.wb_.stats().serves == 16 && c.rob().in_flight() == 31 && !c.serve_pending(),
-                "2s never applies fused eligibility");
+        for (unsigned bytes : {511u, 512u, 513u}) {
+            Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
+            std::string payload(bytes-5, 'b'); c.rob().at(0).reply.append(payload.data(), payload.size());
+            f.io.enqueue_serve(&c); phase(f);
+            require(c.rob().in_flight() == (bytes < 512 ? 32u : 31u), "2s Done byte clause");
+        }
+        Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 32, 32);
+        c.rob().at(0).state.store(OpState::Issued, std::memory_order_release);
+        c.rob().at(1).reply.append(std::string(512, 'h').data(), 512);
+        f.io.enqueue_serve(&c); phase(f);
+        require(c.rob().in_flight() == 32 && c.serve_pending(), "2s hole cannot be crossed");
     }
     static void split_local_policy(bool sweeping) {
         Fixture<false, true> f; Client c(-1); f.client(c, 1); fill(c, 32, 1);
@@ -263,14 +295,69 @@ struct CoreConcurrencyTest {
                 "physical split reader is armed");
         f.io.enqueue_serve(&c);
         std::vector<std::unique_ptr<Client>> tails;
-        for (unsigned i = 0; i < 16; ++i) {
+        for (unsigned i = 0; i < 96; ++i) {
             auto tail = std::make_unique<Client>(-1); f.client(*tail, i+2);
             fill(*tail, 1, 1); f.io.enqueue_serve(tail.get()); tails.push_back(std::move(tail));
         }
         if (sweeping) f.io.sweep<false, false, false, true, true>();
-        else f.io.flush_ready<false, false, true, false, false, true>();
-        require(f.io.wb_.stats().serves == 16 && c.rob().in_flight() == 31 && !c.serve_pending(),
-                "2s reader capability never enables fused writeback");
+        else phase(f);
+        require(f.io.wb_.stats().serves == 96 && c.rob().in_flight() == 32 && c.serve_pending(),
+                "2s reader capability shares composite writeback");
+    }
+    static void split_chunk() {
+        Fixture<false> f; Client partial(-1); f.client(partial, 1); fill(partial, 32, 1);
+        f.io.enqueue_serve(&partial);
+        std::vector<std::unique_ptr<Client>> tails;
+        for (unsigned i = 0; i < 96; ++i) {
+            auto c = std::make_unique<Client>(-1); f.client(*c, i+2); fill(*c, 1, 1);
+            f.io.enqueue_serve(c.get()); tails.push_back(std::move(c));
+        }
+        phase(f);
+        require(f.io.wb_.stats().serves == 96, "2s captured pass crosses scratch bound");
+        require(f.io.pending_serve_.size() == 1 && f.io.pending_serve_.front() == &partial &&
+                partial.rob().in_flight() == 32 && partial.serve_pending(), "2s partial head stays pinned");
+        for (auto& c : tails) require(c->rob().quiesced() && !c->serve_pending(), "2s all eligible tails retired");
+    }
+    static void split_capture_multi() {
+        Fixture<false> f; Client partial(-1), added(-1);
+        f.client(partial, 1); f.client(added, 2); fill(partial, 32, 0); fill(added, 1, 1);
+        f.io.enqueue_serve(&partial);
+        struct Context { Fixture<false>* f; Client* added; unsigned calls = 0; } ctx{&f, &added};
+        f.io.wb_.bind(&f.io.ring_, nullptr, [](void*, int32_t, const char*) {},
+            &ctx, [](void* raw, Client&, Op& op) {
+                auto& c = *static_cast<Context*>(raw); ++c.calls; op.zc_ptr = nullptr;
+                c.f->io.enqueue_serve(c.added);
+            }, &f.limits, nullptr, [](void*, Client&) { return false; }, &f.now, &f.io.self_->sig());
+        std::vector<std::unique_ptr<Client>> originals;
+        for (unsigned i = 0; i < 65; ++i) {
+            auto c = std::make_unique<Client>(-1); f.client(*c, i+3); fill(*c, 1, 1);
+            c->rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
+            f.io.enqueue_serve(c.get()); originals.push_back(std::move(c));
+        }
+        added.rob().at(0).zc_ptr = reinterpret_cast<const char*>(&ctx);
+        phase(f);
+        require(ctx.calls == 65 && added.rob().in_flight() == 1 && added.serve_pending(),
+                "2s callback cannot extend captured chunks");
+        require(f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &partial &&
+                f.io.pending_serve_[1] == &added, "2s deferred and callback FIFO order");
+    }
+    static void split_aof() {
+        Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, 1, 1); f.io.enqueue_serve(&c);
+        auto& aof = f.server.aof();
+        aof.*member(AofConfigured{}) = true;
+        (aof.*member(AofRecording{})).store(true);
+        aof.set_fsync_policy(AppendFsyncPolicy::Always);
+        (aof.*member(AofPosted{})).store(1);
+        require(!aof.reply_gate_ready(1), "AOF refusal armed");
+        phase(f);
+        require(c.rob().in_flight() == 1 && c.serve_pending() && f.io.wb_.stats().serves == 0,
+                "AOF refusal precedes composite selection");
+        require(f.io.aof_gate_target_ == 1, "AOF target retained");
+        (aof.*member(AofDurable{})).store(1, std::memory_order_release);
+        phase(f);
+        require(c.rob().quiesced() && !c.serve_pending(), "AOF release needs no fresh enqueue");
+        aof.*member(AofConfigured{}) = false;
+        (aof.*member(AofRecording{})).store(false);
     }
     template <bool Fused> static void parse() {
         Fixture<Fused> f; Client c(-1); f.client(c, 1);
@@ -320,6 +407,10 @@ struct CoreConcurrencyTest {
         require(argc == 2 || argc == 3, "usage: wb-rule-phase-unit CASE [r7]");
         selected = argv[1]; const std::string name = selected;
         const bool r7 = argc == 3 && std::string(argv[2]) == "r7";
+        if (argc == 3 && !r7) {
+            require(std::string(argv[2]) == "natural" || std::string(argv[2]) == "shallow", "known split schedule");
+            split_schedule = std::string(argv[2]) == "natural" ? 1 : 2;
+        }
         require(command_registry_init(false), "command registry");
         if (name == "fused-budget") budget<true>(r7);
         else if (name == "split-budget") budget<false>(false);
@@ -330,6 +421,13 @@ struct CoreConcurrencyTest {
         else if (name == "split-dead") dead<false>(false);
         else if (name == "progress") progress(r7);
         else if (name == "split-policy") split_policy();
+        else if (name == "split-fastpath") fastpath<false>(false);
+        else if (name == "split-fifo") fifo<false>(false);
+        else if (name == "split-capture") capture<false>(false);
+        else if (name == "split-progress") progress<false>(false);
+        else if (name == "split-chunk") split_chunk();
+        else if (name == "split-aof") split_aof();
+        else if (name == "split-capture-multi") split_capture_multi();
         else if (name == "split-local") split_local_policy(false);
         else if (name == "split-local-sweep") split_local_policy(true);
         else if (name == "fused-parse") parse<true>();
