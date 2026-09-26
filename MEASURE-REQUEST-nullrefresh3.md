@@ -53,9 +53,16 @@ Calibration remains `measurement_valid=false`, `comparison_trusted=false`, `norm
 |---|---|---|
 | ABBA / saturation / calibration self-tests | 100 / 10 / 9 PASS | `nullrefresh3-abba.log` |
 | Calibration importer | 11 PASS | `nullrefresh3-measurements.log` |
+| Receipt + full campaign import/freeze/promotion/holdout controls | 17 + 12 PASS | `nullrefresh3-receipt.log` |
+| Instrument fingerprint controls | 5 PASS | `nullrefresh3-instrument.log` |
+| Directed reorder witness controls | 11 PASS | `nullrefresh3-reorder-witness.log` |
+| History / process / quiet / background / tailgen controls | 55 / 12 / 8 / 11 / 3 PASS | `nullrefresh3-{history,process,quiet,background,tailgen}.log` |
+| Serverless shell/scheduler fixtures | 56 PASS | `nullrefresh3-gates.log` |
 | Diagnostic and fail-stop controls | 7 PASS | `nullrefresh3-preflight-controls.log` |
 
-The diagnostic controls exercise the real nullrefresh2 → nullrefresh3 merge difference; additions, removals, mode/hash changes; Python-only changes; malformed/missing manifests; and serialization changes. Removing either the file-diff output or the mismatch failure causes the corresponding assertion to fail. Exact current/frozen manifests and binary copies match, all entries in `nullrefresh3-campaign.sha256` pass, and `bash -n build/nullrefresh3-campaign.sh` passes. The remaining receipt/promotion, instrument, witness, history, process, quiet, background, tailgen and shell-fixture checks are being completed before final handoff.
+All 327 serverless tests passed. The receipt suite includes the full 181-cell synthetic ceiling import/freeze/promotion/holdout case and its forgery controls; none of that synthetic evidence is imported into the real campaign. The ABBA suite includes the merged `t05` zero-natural-permutation witness control and its invalid-proof/nonprogressing-batch failures. The diagnostic controls exercise the real nullrefresh2 → nullrefresh3 merge difference; additions, removals, mode/hash changes; Python-only changes; malformed/missing manifests; and serialization changes. Removing either the file-diff output or the mismatch failure causes the corresponding assertion to fail.
+
+Exact current/frozen manifests and binary copies match, all entries in `nullrefresh3-campaign.sha256` pass, and shell syntax plus `git diff --check` pass. The report fence equals `build/nullrefresh3-campaign.sh` exactly. The exact campaign preflight also passed serverlessly with only its output-directory label changed; substituting the historical manifest returned rc=1, printed all four changed paths with both hashes and never reached the continuation marker. Logs: `build/nullrefresh3-preflight.log` and `build/nullrefresh3-stale-preflight.log`. The frozen manifest equals the current-tree manifest captured by the failed run 3 byte for byte. These checks establish build and serverless behavior only; the new live campaign remains pending mainline.
 
 Gate rows added or retired: zero. `tests/gate.sh` is unchanged by this lane; quick=441 and full=457 remain unchanged. Neither EXPECT constant is edited.
 
