@@ -1,0 +1,20 @@
+# Split breadth for the mainline; no candidate rate or live result is asserted.
+# Baseline geometry: 32 server cores -> 16 IO : 16 EX; 8 throughput loaders.
+# Source headline_cells.txt SHA256 d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350
+h53 | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+h54 | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+w2g8 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+w2s8 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h22 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+w2c4kg1 | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+w2c4ks1 | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+w2c4kg8 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+w2c4ks8 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+w2c4kg32 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+w2c4ks32 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+m62 | 2s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+m65 | 2s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+# Preserve the tail instrument: 16 generators; 8:2 GET:BITCOUNT, p8; offered load 716800/s.
+t03 | 2s | rl=0 | ov=1 | ro=0 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
+t04 | 2s | rl=0 | ov=1 | ro=1 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
