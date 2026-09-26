@@ -1,5 +1,5 @@
 // IO accounting owns [begin_ns,end_ns) of ONE invocation of the IO loop. Consecutive
-// pass cuts include the prologue, submit/reap, sweep and every continue edge. The
+// publication cuts include the prologue, submit/reap, sweep and every continue edge. The
 // final cut precedes read-local teardown, close draining and persistence shutdown.
 // EX tenures and those teardown operations are outside this interval.
 #pragma once
@@ -42,10 +42,14 @@ struct IoAccountingClock {
     static uint64_t now() { return now_ns(); }
 };
 
-// Owner-local stack state only. No ThreadCtx field, per-operation instrumentation,
-// normal-pass allocation or cold diagnostic store. Clock injection exercises this
-// exact implementation deterministically; production uses CLOCK_MONOTONIC.
-template <class Clock = IoAccountingClock>
+// Owner-local stack state only. Keep the clock every pass: cron, queue-age stamps
+// and the depth beat already consume it. Book the COMPLETE elapsed interval only
+// once per 100us signal window, not once per pass. Uneven passes and parked time
+// are never extrapolated from a sampled turn. finish() always flushes the remainder.
+// This has the same cadence as ThreadCtx::sample_depth; the controller's window is
+// much longer. There is no per-client state, allocation, runtime knob or layout change.
+// WindowNs=0 is the eager test/control specialization; production uses the default.
+template <class Clock = IoAccountingClock, uint64_t WindowNs = 100000>
 class IoTenure {
 public:
     __attribute__((noinline)) explicit IoTenure(LoopSignals& sig) : sig_(sig) {
@@ -60,7 +64,10 @@ public:
 
     uint64_t pass() {
         const uint64_t next = Clock::now();
-        account(next);
+        if (__builtin_expect(next >= publish_at_, false)) {
+            account(next);
+            publish_at_ = next + WindowNs;
+        }
         return next;
     }
 
@@ -91,7 +98,10 @@ private:
         std::fputs("invalid IO accounting cuts/counters\n", stderr);
         std::abort();
     }
-    void account(uint64_t next) {
+    // Keep the conservation checks and shared-counter store out of ordinary
+    // passes. Inlining this block enlarged every IO specialization and kept its
+    // accounting state live across recv/dispatch/send even when nothing changed.
+    __attribute__((noinline)) void account(uint64_t next) {
         const uint64_t idle = sig_.idle_ns;
         // CLOCK_MONOTONIC and owner-only counters never reset. uint64 nanoseconds
         // last 584 years; wrap is nevertheless an error, not a negative clamp.
@@ -109,6 +119,7 @@ private:
 
     LoopSignals& sig_;
     uint64_t cut_, idle_cut_, busy_begin_, idle_begin_;
+    uint64_t publish_at_ = 0; // publish the entry/prologue at the first pass
     IoTenureRecord record_;
     bool finished_ = false;
 };
