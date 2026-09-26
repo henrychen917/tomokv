@@ -258,7 +258,7 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
 EXPECT_QUICK=441
-EXPECT_FULL=457                 # ABBA row reports and is not counted; self-test row remains.
+EXPECT_FULL=459                 # ABBA row reports and is not counted; self-test row remains.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1260,7 +1260,7 @@ done
 
 job_wb_rule_units(){
   local group label
-  for group in policy phase stages; do
+  for group in policy phase stages split-phase split-overlap; do
     label="writeback c12 $group witnesses + negative controls"
     row_begin "$label"
     if unit_ready wb-rule-units && taskset -c "$CORES" python3 tests/wb_rule_checks.py check "$group" \
