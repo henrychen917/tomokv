@@ -1151,13 +1151,6 @@ private:
         Server::debug_stall_us(debug_fanout_defer_us_);
     }
 
-    // Fixed policy, reached only after a failed window. Keeping this cold selection opaque to
-    // IPA retains the old second-attempt code solely for the offline kind-A PAD control. Release
-    // always demotes; the PAD changes this function's immediate in both database runtimes.
-    // There is no runtime knob, allocation, or successful-read instruction for this selection.
-    __attribute__((noinline, noipa, cold))
-    static bool local_mget_topology_demote() { return true; }
-
     PreparedLocalRead prepare_captured_local_mget(Op& op) {
         static constexpr uint32_t kAttempts = 2;
         const uint32_t key_count = op.argc() - 1;
@@ -1294,15 +1287,21 @@ private:
             read_local_clear_reply(op);
             if (attempt + 1 < kAttempts) {
 #ifdef TOMO_CORE_CONCURRENCY_TEST
-                if (!test_retry_local_mget_ && local_mget_topology_demote()) break;
-#else
-                if (local_mget_topology_demote()) break;
+                if (!test_retry_local_mget_)
 #endif
+                // Unconditional cold demotion. The annotation emits no bytes; the offline
+                // kind-A PAD replaces only this jump with a same-width NOP to restore PRE's
+                // retry in POST's exact layout. No successful-read instruction or runtime knob.
+                asm goto(".local tomo_rltopo_demote_%=\n"
+                         "tomo_rltopo_demote_%=:\n\t"
+                         "jmp %l[owner_demotion]\n"
+                         : : : : owner_demotion);
                 self_->read_local_stats().mget_generation_retries++;
             }
         }
         // Owner ruling 2026-09-27: topology churn is an owner demotion, never a reader retry.
         // The same rule applies to a changed atomic window, preserving untorn MGET replies.
+    owner_demotion:
         return {local_mget_final_reason(
             op, route_hashes, route_shards, key_count, cached_routes, transient)};
     }

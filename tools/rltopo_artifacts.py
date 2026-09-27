@@ -58,21 +58,28 @@ def pad(pre, post, output):
     elf = Elf(post)
     patched = bytearray(elf.data)
     patches = []
-    for symbol in elf.functions().values():
-        if 'local_mget_topology_demote' not in symbol['name']:
+    for symbol in elf.symbols:
+        if not symbol['name'].startswith('tomo_rltopo_demote_'):
             continue
         section = elf.sections[symbol['sec']]
         offset = section[4] + symbol['value'] - section[3]
-        body = elf.body(symbol)
-        if body.startswith(bytes.fromhex('f3 0f 1e fa')):
-            offset += 4
-            body = body[4:]
-        assert body == bytes.fromhex('b8 01 00 00 00 c3'), 'expected fixed true policy; ret'
-        patched[offset + 1] = 0
-        patches.append(dict(symbol=symbol['name'], offset=offset + 1))
-    expected = 2 if any(n.startswith('_ZN8tomo_db0') for n in elf.functions()) else 1
-    assert len(patches) == expected, 'every linked database runtime needs the control'
-    assert sum(a != b for a, b in zip(elf.data, patched)) == expected
+        opcode = elf.data[offset]
+        assert opcode in (0xeb, 0xe9), 'expected unconditional demotion jump'
+        width = 2 if opcode == 0xeb else 5
+        nop = bytes.fromhex('66 90' if width == 2 else '0f 1f 44 00 00')
+        patched[offset:offset + width] = nop
+        patches.append(dict(symbol=symbol['name'], offset=offset,
+                            original=elf.data[offset:offset + width].hex(), replacement=nop.hex()))
+    assert patches, 'missing cold demotion annotations'
+    for prefix in ('_ZN4tomo', '_ZN8tomo_db0'):
+        bodies = [s for n, s in elf.functions().items() if n.startswith(prefix) and
+                  'prepare_captured_local_mget' in n]
+        if not any(n.startswith(prefix) for n in elf.functions()):
+            continue
+        assert bodies and all(any(s['value'] <= label['value'] < s['value'] + s['size']
+                                  for label in elf.symbols
+                                  if label['name'].startswith('tomo_rltopo_demote_'))
+                              for s in bodies), 'each MGET body must carry a cold demotion'
     output.write_bytes(patched)
     output.chmod(post.stat().st_mode)
     twin = Elf(output)
