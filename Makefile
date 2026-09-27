@@ -226,7 +226,7 @@ build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(
 
 # Inspect real record/header allocation arenas on pinned owner threads, including abort cleanup
 # and quiesced shard handoff. JE=1 is required; no server or io_uring instance is started.
-build/owner-arena-unit: tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+build/owner-arena-unit: tests/owner_arena_unit.cc tests/at_recycle_checks.inc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
@@ -280,6 +280,7 @@ l4prebuild-unit-tsan: build/l4prebuild-unit-tsan
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-0
 	TSAN_OPTIONS=halt_on_error=1:exitcode=66 setarch x86_64 -R ./build/l4prebuild-unit-tsan 2s read-local-1
 .PHONY: l4prebuild-unit l4prebuild-unit-tsan
+build/l4prebuild-unit build/l4prebuild-unit-tsan: tests/at_recycle_checks.inc
 
 # Load drivers: not part of `all`, kept compiling here so they cannot rot unnoticed.
 build/benchtxn: tools/benchtxn.cc Makefile
@@ -389,7 +390,7 @@ build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core
 # Measured fused writeback rule, serverless production-path witnesses. Clause
 # mutants live only in build/ header overlays; no selector enters production.
 WB_RULE_POLICY_CONTROLS := scatter-exit fastpath staged-clause staged-source submitted done-bytes spill direct borrow crlf no-sum floor whole hole marker code relaxed pre-read walk-tail
-WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse
+WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse split-aof gather-policy gather-rotation gather-head gather-pin gather-capture gather-visit gather-dead gather-work gather-chunks gather-aof
 WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) Makefile
 WB_RULE_WRAP := -Wl,--wrap=io_uring_submit -Wl,--wrap=io_uring_submit_and_get_events
 build/wb-rule-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile

@@ -2415,7 +2415,7 @@ private:
     // The write is about to be REFUSED. Eviction either could not run or did not get this shard
     // under budget, so the armed-write block cache is the last physical memory we can hand back
     // before telling the client no. It is deliberately NOT released while eviction is succeeding:
-    // the cache is already bounded by the shard's own live footprint, so releasing it on every
+    // the cache has structural per-owner bounds, so releasing it on every
     // over-budget write would only make the next write allocate again -- the same allocator call
     // count as before the cache existed, plus the walk. Always returns false, so the refusing
     // call sites read as one statement.
