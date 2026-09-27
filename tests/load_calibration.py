@@ -182,6 +182,8 @@ def main(args):
             measurements_sha256=abba.sha256(abba.ROOT / "tests/gate_measurements.json"),
             memtier_sha256=abba.sha256(Path(args.memtier)),
             memtier_version=abba.capture([args.memtier, "--version"]).stdout.strip())
+        from abba_reorder_control import attach
+        attach(runner, report, cells)
         support = {name: abba.accepted(binary, name, value) for name, value in
             (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0))}
         report["accepted_knobs"] = {"B": support}

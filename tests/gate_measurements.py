@@ -286,7 +286,7 @@ def validate_fast_calibration(report, fingerprint):
             saturation = replay_saturation(run.get("saturation"), floor_pct=SATURATION_FLOOR,
                 mode=cell.mode, thread_count=len(environment["server_cpus"]))
             require_saturation_window(saturation, run)
-            validate_workload_evidence(cell, run)
+            validate_workload_evidence(cell, run, report=report)
             windows += run["window_seconds"]
         require(len(pids) == 1, f"{cell.id}: calibration rebooted between load rungs")
         ceiling = min(environment["load_instance_ceiling"], cell.conns, len(environment["load_physical"]))

@@ -313,18 +313,25 @@ def instrument(environment):
             if key not in ("port", "permitted_ports", "memtier_path")}
 
 
-def validate_workload_evidence(cell, run):
+def validate_workload_evidence(cell, run, *, report=None):
     from abba_workloads import require_workload_accounting, require_workload_witness
+    from abba_reorder_control import validate_proof, refusal_hint
     require(run.get("data_bytes") == cell.data_bytes, f"{cell.id}: measured workload value size differs")
     raw = run.get("workload_raw")
     require(isinstance(raw, dict), f"{cell.id}: missing raw workload witness")
     try:
+        proof = raw.get("read_local_control")
+        if proof is not None:
+            binary = (report["candidate" if run["arm"] == "B" else "reference"]["sha256"]
+                      if report else None)
+            validate_proof(proof, binary_sha256=binary)
         witness = require_workload_witness(cell, raw["before"], raw["after"],
-            raw["mode_before"], raw["mode_after"], raw.get("legacy_control"))
+            raw["mode_before"], raw["mode_after"], raw.get("legacy_control"), proof)
         accounting = require_workload_accounting(cell, run["whole_run_commandstats_before"],
             run["whole_run_commandstats_after"], run["memtier"])
-    except (RuntimeError, KeyError, TypeError) as error:
-        raise ValueError(f"{cell.id}: invalid raw workload: {error}") from error
+    except (RuntimeError, ValueError, OSError, KeyError, TypeError) as error:
+        hint = refusal_hint(cell.id, report) if cell.op == "REORDER" and cell.read_local and cell.reorder else ""
+        raise ValueError(f"{cell.id}: invalid raw workload: {error}{hint}") from error
     require(witness == run.get("workload_witness"), f"{cell.id}: workload witness differs")
     require(accounting == run.get("whole_run_accounting"), f"{cell.id}: workload accounting differs")
 
@@ -356,7 +363,7 @@ def validate_campaign_evidence(report):
                 require(run.get("instances") == block["instances"] and run.get("load_layout") ==
                         layouts[key],
                         f"{cell.id}: generator layout differs from frozen plan")
-                validate_workload_evidence(cell, run)
+                validate_workload_evidence(cell, run, report=report)
         # NULL_MODE replays saturation/load validity without applying a code-loss
         # threshold. Two-sided resolution/integrity is checked independently below.
         replay = assess(cell, row["rounds"], NULL_MODE)

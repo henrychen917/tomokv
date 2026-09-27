@@ -1266,6 +1266,7 @@ class Runner:
         self.load_cpus = sorted(cpus(args.load_cores) + cpus(args.load_smt))
         self.legacy_reorder_controls = {}
         self.legacy_reorder_failures = {}
+        self.campaign_reorder_controls = None
         self.profile_factory = None  # Diagnostic opt-in only: no default PMCs or profile objects.
         self.worker_affinity_factory = None
         self.load_startup_seconds = 0  # Diagnostic allowance; normal generator lifetime stays 28s.
@@ -1286,6 +1287,11 @@ class Runner:
         if (cell.op != 'REORDER' or cell.mode != '1s' or not cell.read_local or
                 not cell.reorder or 'reorder' not in knobs):
             return None
+        if self.campaign_reorder_controls is not None:
+            proof = self.campaign_reorder_controls.get(cell.id)
+            if not proof or proof['binary_sha256'] != sha256(self.binaries[arm]):
+                raise RuntimeError(f'{cell.id}: frozen read-local control missing or measured other bytes')
+            return proof
         # Keep the local lane armed in both controls: SETRANGE/INCR prove a real
         # owner execution inversion without relying on a GET entering that queue.
         return self.execution_order_control(cell, arm, read_local=1)
@@ -1324,7 +1330,7 @@ class Runner:
             artifact = folder / 'controls.json'
             artifact.write_text(json.dumps(controls, indent=2) + '\n')
             self.legacy_reorder_controls[key] = dict(verdict='PASS', mode=cell.mode,
-                controls=[0, 1], binary_sha256=digest, artifact=str(artifact.relative_to(self.out)),
+                controls=[0, 1], binary_sha256=digest, artifact=str(artifact.resolve()),
                 artifact_sha256=sha256(artifact),
                 scope='live unscored OFF/ON execution-order control; no scored-window permutation count')
             if read_local:
@@ -1609,7 +1615,8 @@ class Runner:
                           info_before=before, info_after=after)
             result["central_saturation"] = require_saturation_window(result["saturation"], result)
             result["workload_raw"] = dict(before=before_commands, after=after_commands,
-                mode_before=before_mode, mode_after=after_mode, legacy_control=legacy_control)
+                mode_before=before_mode, mode_after=after_mode, legacy_control=legacy_control,
+                read_local_control=read_local_control)
             result["workload_witness"] = require_workload_witness(
                 cell, before_commands, after_commands, before_mode, after_mode, legacy_control,
                 read_local_control)
@@ -1757,6 +1764,10 @@ def parse_args():
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
     p.add_argument("--calibrate", action="store_true",
                    help="one-arm 10s search; PIN/EXEMPT/ceiling evidence only, never a performance verdict")
+    p.add_argument("--collect-reorder-controls", action="store_true",
+                   help="collect campaign read-local OFF/ON workloads and directed scheduler controls")
+    p.add_argument("--reorder-controls", type=Path,
+                   help="reuse the immutable pre-campaign read-local control receipt")
     p.add_argument("--pin", action="store_true",
                    help="rate search plus independent paired-null variance search; write validated floors; exit 3 on PIN")
     p.add_argument("--escalate", action="store_true",
@@ -1770,6 +1781,9 @@ def parse_args():
 
 def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
          diagnostic_pin_load_workers=0, diagnostic_load_startup_seconds=0, _pin_instances=None):
+    if getattr(args, "collect_reorder_controls", False):
+        from abba_reorder_control import collect
+        return collect(args)
     if getattr(args, "pin", False):
         if diagnostic_monitor is not None or diagnostic_profile or diagnostic_pin_load_workers or diagnostic_load_startup_seconds:
             raise ValueError("pin search cannot use diagnostic measurement overrides")
@@ -1953,6 +1967,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "memtier_version": capture([args.memtier, "--version"]).stdout.strip(),
                                  "measurements_sha256": sha256(ROOT / "tests/gate_measurements.json"),
                                  **runner.population_environment()}
+        from abba_reorder_control import attach
+        attach(runner, report, cells)
         if not args.escalate and any(cell.ceiling_status for cell in cells):
             from abba_ceiling import validate_ceiling_controls
             plans = load_measurements()["ceiling_loads"]
@@ -2873,6 +2889,8 @@ def self_test():
                     args = SimpleNamespace(server_cores="0-1", server_smt="", load_cores="2-3", load_smt="",
                                            port=9090, memtier="never-executed-memtier")
                     runner = Runner(args, directory, {"A": Path("never-executed-server")}, children)
+                    preparatory_proof = {"fixture": "retain the exact pre-window proof in raw evidence"}
+                    runner.read_local_reorder_control = mock.Mock(return_value=preparatory_proof)
                     class Affinity:
                         def __init__(inner, folder):
                             inner.record = {"status": "INCOMPLETE", "normal_gate_eligible": False}
@@ -2970,6 +2988,8 @@ def self_test():
                             self.assertEqual(result["whole_run_accounting"]["commands"]["GET"]["server_calls"], 10000)
                     self.assertEqual(events[0], ("commandstats", 0, 0))
                     retained = json.loads((directory / cell.id / "n2-1-A/measurement.json").read_text())
+                    if retained["complete"]:
+                        self.assertEqual(retained["workload_raw"]["read_local_control"], preparatory_proof)
                     self.assertEqual(retained["complete"], not bool(corruption) and profile_mode in (0, "on") and
                                      affinity_mode in (0, "fixed", "floating"))
                     self.assertEqual(stopped, [124, 125, 123])

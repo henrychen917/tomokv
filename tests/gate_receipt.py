@@ -24,7 +24,7 @@ import time
 
 from abba_evidence import (validate_measurements, validate_null, validate_comparison, match_null, null_result,
                            instrument, validate_campaign_evidence, validate_null_integrity, validate_holdout,
-                           NULL_MAX_AGE)
+                           NULL_MAX_AGE, utc_seconds)
 from abba_instrument import instrument_fingerprint, validate_fingerprint
 from abba_saturation import saturation_exempt
 
@@ -278,6 +278,19 @@ def current_campaign(root, campaign):
     validate_axes(env["server_physical"], env["server_smt"], env["load_physical"], env["load_smt"],
                   check_available=False)
     require(campaign["window_seconds"] == WINDOW, "campaign measurement window changed")
+    if campaign.get("reorder_controls"):
+        from abba_reorder_control import validate_binding, needs_proof, refusal_hint
+        from abbagate import Cell
+        cells = [Cell(**cell) for cell in campaign["inventory"]["cells"]]
+        try:
+            validate_binding(campaign["reorder_controls"], cells=cells,
+                fingerprint=campaign["instrument"], binary_sha256=campaign["binary"]["sha256"],
+                environment=env, before=campaign["frozen_at"])
+        except (ValueError, RuntimeError, OSError, KeyError, TypeError) as error:
+            raise ValueError(f"frozen read-local receipt invalid: {error}" + refusal_hint(
+                ','.join(cell.id for cell in cells if needs_proof(cell)),
+                dict(candidate=campaign['binary'], environment=env,
+                     cell_source=dict(path=str(root / campaign['inventory']['path']))))) from error
     return campaign
 
 
@@ -289,6 +302,9 @@ def freeze_null(root, args):
     import copy
     from abbagate import WINDOW
     calibration = read_json(args.calibration)
+    from abba_reorder_control import identity, validate_report
+    binding = identity(args.reorder_controls) if getattr(args, "reorder_controls", None) else None
+    validate_report(calibration, binding, before=utc_seconds(calibration["started_utc"]))
     fingerprint = instrument_fingerprint(root)
     validate_fast_calibration(calibration, fingerprint)
     require(calibration.get("subset") == "full" and not calibration.get("only"),
@@ -319,6 +335,8 @@ def freeze_null(root, args):
         ceiling_loads=measurements.get("ceiling_loads", {}),
         generator=dict(path=env["memtier_path"], sha256=env["memtier_sha256"]),
         metric_scope="rate/latency/p999 only; cycles/op UNPROVEN")
+    if binding:
+        campaign["reorder_controls"] = binding
     current_campaign(root, campaign)
     require(args.output.resolve().is_relative_to(root), "campaign output must be inside this worktree")
     write_json(args.output, campaign, exclusive=True)
@@ -327,6 +345,9 @@ def freeze_null(root, args):
 
 def validate_campaign(root, campaign, report, *, now):
     current_campaign(root, campaign)
+    from abba_reorder_control import validate_report
+    from abba_evidence import utc_seconds
+    validate_report(report, campaign.get("reorder_controls"), before=utc_seconds(report["started_utc"]))
     started, environment = validate_measurements(report, now=now, expected_source=campaign["inventory"],
         expected_cells=campaign["inventory"]["cells"], expected_instrument=campaign["instrument"])
     require(campaign["frozen_at"] <= started + 1 <= now + 1 and now - started <= NULL_MAX_AGE,
@@ -721,6 +742,7 @@ def self_test():
             from gate_measurements import load as measured_inputs, shape
             config = measured_inputs()
             config["load_floors"] = {}
+            config["ceiling_loads"] = {}
             fixture_instrument = instrument_fingerprint(self.root)["sha256"]
             for cell in read_cells(ROOT / "tests/headline_cells.txt"):
                 if not saturation_exempt(cell):
@@ -1214,6 +1236,8 @@ def main():
     frozen = sub.add_parser("freeze-null", help="freeze current runtime inputs after full calibration/import")
     frozen.add_argument("--calibration", type=Path, required=True)
     frozen.add_argument("--output", type=Path, required=True)
+    frozen.add_argument("--reorder-controls", type=Path,
+                        help="immutable read-local control receipt collected before calibration")
     promotion = sub.add_parser("promote-null", help="explicit local standing-null promotion, never a gate receipt")
     promotion.add_argument("--null-result", type=Path, required=True)
     promotion.add_argument("--campaign", type=Path, required=True)

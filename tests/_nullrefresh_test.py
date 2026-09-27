@@ -15,6 +15,7 @@ from functools import lru_cache
 import os
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 import time
 import unittest
@@ -25,6 +26,7 @@ import abba_evidence as evidence
 import abba_instrument as instrument_module
 import gate_measurements as measurements
 import gate_receipt as receipt
+import abba_reorder_control as reorder_control
 from abba_instrument import instrument_fingerprint
 from abba_saturation import saturation_exempt
 from abba_workloads import workload_command_names, require_workload_witness, require_workload_accounting
@@ -119,6 +121,53 @@ def throwaway(module, name, old, new, occurrence=0):
     return mock.patch.object(module, name, namespace[name])
 
 
+def armed_workload(cell, run, proof=None):
+    mode = dict(reorder_retired='0', reorder=str(cell.reorder), read_local=str(cell.read_local))
+    end = dict(mode)
+    if cell.reorder:
+        mode.update(reorder_shadow='1', reorder_permuted_runs='0', reorder_batches='10')
+        end = {**mode, 'reorder_batches': '20', 'reorder_permuted_runs': '0' if cell.read_local else '1'}
+    raw = run['workload_raw']
+    raw.update(mode_before=mode, mode_after=end, read_local_control=proof)
+    run['workload_witness'] = require_workload_witness(cell, raw['before'], raw['after'], mode, end,
+                                                     read_local_control=proof)
+
+
+def control_fixture(folder, cells, fp, env, binary, completed):
+    """Synthetic proof artifacts; no executable or network boundary is crossed."""
+    folder.mkdir()
+    topology = dict(stamp_ns=1, shards={'0': dict(owner=1, migrations=0)},
+                    threads={'0': dict(role='fused', clients=4, full=0, masked_full=0)})
+    directed = []
+    for ro in (0, 1):
+        attempt = dict(armed=True, inversion=bool(ro), before=topology,
+                       after={**topology, 'stamp_ns': 2}, versions_before={'atomic_groups': 0},
+                       versions_after={'atomic_groups': 0})
+        directed.append(dict(verdict='PASS', mode='1s', reorder=ro,
+            knobs={'read-local': 1, 'reorder': ro}, boot_info={'read_local': '1'},
+            armed_attempts=1, inversions=ro, preparatory_counter_delta=ro, attempts=[attempt]))
+    path = folder / 'directed.json'
+    receipt.write_json(path, directed)
+    proof = dict(verdict='PASS', mode='1s', read_local=1, controls=[0, 1],
+        on_counter_delta=1, binary_sha256=binary['sha256'], artifact=str(path),
+        artifact_sha256=abba.sha256(path), scope='synthetic directed control, never measured')
+    targets = [cell for cell in cells if reorder_control.controlled(cell)]
+    variants = [variant for cell in targets for variant in reorder_control.pair(cell)]
+    workloads = fixture_report(variants, fp, env, ''.join(reorder_control.cell_line(c) for c in variants),
+                               completed - 1000, binary, fast=True)
+    for row in workloads['cells']:
+        cell = abba.Cell(**row['cell'])
+        armed_workload(cell, row['rounds'][0]['runs'][0], proof if reorder_control.needs_proof(cell) else None)
+    path = folder / 'workloads.json'
+    receipt.write_json(path, workloads)
+    control = dict(schema=1, kind='read-local-reorder-controls', verdict='PASS', completed_at=completed,
+        cells=[asdict(c) for c in targets], instrument=fp, binary_sha256=binary['sha256'],
+        workloads=reorder_control.identity(path), proofs={c.id: proof for c in targets if reorder_control.needs_proof(c)})
+    path = folder / 'receipt.json'
+    receipt.write_json(path, control)
+    return reorder_control.identity(path), proof, control, workloads
+
+
 class PromotionControls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -147,6 +196,7 @@ class PromotionControls(unittest.TestCase):
         config = measurements.load()
         cells = abba.read_cells(ROOT / 'tests/headline_cells.txt')
         config['load_floors'] = {}
+        config['ceiling_loads'] = {}
         for cell in cells:
             if not saturation_exempt(cell):
                 config['load_floors'][cell.id] = dict(instances=1, shape=measurements.shape(cell),
@@ -181,6 +231,194 @@ class PromotionControls(unittest.TestCase):
         self.standing.parent.mkdir(parents=True, exist_ok=True)
         receipt.write_json(self.standing, self.report)
         evidence.validate_null(receipt.read_json(self.standing), now=time.time())
+
+    def controls(self):
+        temporary = tempfile.TemporaryDirectory(dir=self.root / 'build')
+        self.addCleanup(temporary.cleanup)
+        return control_fixture(Path(temporary.name) / 'controls',
+            [abba.Cell(**c) for c in self.inv['cells']], self.fp, self.env, self.binary, self.started - 100)
+
+    def armed_report(self, binding, proof, *, started=None):
+        result = fixture_report([abba.Cell(**c) for c in self.inv['cells']], self.fp, self.env,
+            self.report['cell_source']['text'], self.started if started is None else started, self.binary)
+        result['reorder_controls'] = binding
+        for row in result['cells']:
+            cell = abba.Cell(**row['cell'])
+            if reorder_control.controlled(cell):
+                for run in row['rounds'][0]['runs']:
+                    armed_workload(cell, run, proof if reorder_control.needs_proof(cell) else None)
+        return result
+
+    def test_read_local_zero_permutations_promote_and_holdout_with_frozen_control(self):
+        binding, proof, _, _ = self.controls()
+        report = self.armed_report(binding, proof)
+        campaign = {**self.campaign, 'reorder_controls': binding}
+        campaign_path = self.root / 'build/armed-campaign.json'
+        receipt.write_json(campaign_path, campaign)
+        receipt.write_json(self.source, report)
+        args = argparse.Namespace(campaign=campaign_path, null_result=self.source)
+        receipt.promote_null(self.root, args)
+        promoted = receipt.read_json(self.standing)
+        self.assertEqual(promoted['reorder_controls'], binding)
+        self.assertEqual(receipt.read_json(self.source), report)
+        comparison = self.armed_report(binding, proof, started=self.started + 17000)
+        comparison.update(run_kind='comparison', verdict='PASS', comparison_trusted=True)
+        comparison.pop('null_control')
+        comparison['standing_null'] = evidence.match_null(comparison, promoted, now=time.time())
+        receipt.validate_campaign(self.root, campaign, comparison, now=time.time())
+        self.assertEqual(evidence.validate_holdout(comparison, promoted, now=time.time())['verdict'], 'PASS')
+
+    def test_read_local_raw_proof_replay_and_per_guard_removal(self):
+        binding, proof, _, _ = self.controls()
+        report = self.armed_report(binding, proof)
+        row = next(row for row in report['cells'] if row['cell']['id'] == 't05')
+        cell, run = abba.Cell(**row['cell']), row['rounds'][0]['runs'][0]
+        evidence.validate_workload_evidence(cell, run, report=report)
+        # Reproduce campaign 4: a good summary cannot stand in for omitted raw evidence.
+        broken = copy.deepcopy(run)
+        broken['workload_raw'].pop('read_local_control')
+        with self.assertRaisesRegex(ValueError, 'workload_raw.read_local_control') as failure:
+            evidence.validate_workload_evidence(cell, broken, report=report)
+        self.assertIn('--collect-reorder-controls', str(failure.exception))
+        command = next(line.strip() for line in str(failure.exception).splitlines() if line.startswith('  python3'))
+        import shlex
+        argv = shlex.split(command)
+        self.assertEqual(abba.cpus(argv[argv.index('--load-cores') + 1]), self.env['load_physical'])
+        with throwaway(evidence, 'validate_workload_evidence', 'raw.get("legacy_control"), proof)',
+                       'raw.get("legacy_control"))'):
+            with self.assertRaisesRegex(ValueError, 'live read-local OFF/ON'):
+                evidence.validate_workload_evidence(cell, run, report=report)
+        for change, reason in (({'after': {}}, 'did not execute'),
+            ({'mode_after': {**run['workload_raw']['mode_after'], 'reorder_batches': '10'}}, 'batches'),
+            ({'read_local_control': {**proof, 'binary_sha256': '0' * 64}}, 'binary SHA-256'),
+            ({'read_local_control': {**proof, 'on_counter_delta': 0}}, 'on_counter_delta'),
+            ({'read_local_control': {**proof, 'artifact_sha256': '0' * 64}}, 'artifact changed')):
+            with self.subTest(reason=reason):
+                broken = copy.deepcopy(run)
+                broken['workload_raw'].update(change)
+                with self.assertRaisesRegex(ValueError, reason):
+                    evidence.validate_workload_evidence(cell, broken, report=report)
+
+    def test_read_local_receipt_inventory_time_geometry_and_artifact_guards(self):
+        binding, proof, control, workloads = self.controls()
+        cells = [abba.Cell(**c) for c in self.inv['cells']]
+        def validate(item=binding, **changes):
+            options = dict(cells=cells, fingerprint=self.fp, binary_sha256=self.binary['sha256'],
+                           environment=self.env, before=self.started)
+            return reorder_control.validate_binding(item, **{**options, **changes})
+        self.assertEqual(validate(), {'t05': proof})
+        for changed in ({'binary_sha256': 'f' * 64}, {'before': self.started - 1000},
+                        {'environment': {**self.env, 'load_cpus': [1]}}, {'cells': cells[:-1]}):
+            with self.subTest(changed=changed), self.assertRaises(ValueError): validate(**changed)
+        path = Path(binding['path'])
+        for key, value in (('completed_at', time.time() - 90000), ('proofs', {}), ('verdict', 'FAIL')):
+            receipt.write_json(path, {**control, key: value})
+            with self.subTest(key=key), self.assertRaises(ValueError): validate(reorder_control.identity(path))
+        receipt.write_json(path, control)
+        workload_path = Path(control['workloads']['path'])
+        # Altering a raw workload also invalidates its artifact binding.
+        receipt.write_json(workload_path, {**workloads, 'complete': False})
+        with self.assertRaisesRegex(ValueError, 'artifact changed'): validate()
+        receipt.write_json(workload_path, workloads)
+        directed = Path(proof['artifact'])
+        rows = receipt.read_json(directed)
+        for arm, change in ((0, {'inversions': 1}), (1, {'armed_attempts': 0}),
+                            (1, {'preparatory_counter_delta': 0})):
+            broken = copy.deepcopy(rows); broken[arm].update(change)
+            receipt.write_json(directed, broken)
+            with self.subTest(arm=arm, change=change), self.assertRaises((ValueError, RuntimeError)):
+                reorder_control.validate_proof({**proof, 'artifact_sha256': abba.sha256(directed)})
+
+    def test_read_local_campaign_missing_or_supplementary_proof_cannot_repair_collection(self):
+        binding, proof, _, _ = self.controls()
+        report = self.armed_report(binding, proof)
+        for binding_override in (None, {**binding, 'sha256': 'f' * 64}):
+            with self.subTest(binding=binding_override), self.assertRaises(ValueError):
+                reorder_control.validate_report(report, binding_override, before=self.started)
+        broken = copy.deepcopy(report)
+        next(row for row in broken['cells'] if row['cell']['id'] == 't05')['rounds'][0]['runs'][0]['workload_raw'].pop('read_local_control')
+        with self.assertRaisesRegex(ValueError, 'raw read-local evidence differs'):
+            reorder_control.validate_report(broken, binding, before=self.started)
+        # A later passing control cannot be backdated into the original collection.
+        path = Path(binding['path']); control = receipt.read_json(path)
+        receipt.write_json(path, {**control, 'completed_at': self.started + 100})
+        late = reorder_control.identity(path)
+        report['reorder_controls'] = late
+        with self.assertRaisesRegex(ValueError, 'before collection/freeze'):
+            reorder_control.validate_report(report, late, before=self.started)
+
+    def test_read_local_receipt_reused_without_rerunning_directed_controls(self):
+        binding, proof, _, _ = self.controls()
+        report = self.armed_report(binding, proof)
+        args = argparse.Namespace(server_cores='0-31', server_smt='', load_cores='32-111',
+                                  load_smt='160-239', port=8700, reorder_controls=Path(binding['path']))
+        runner = abba.Runner(args, self.root / 'build', {'A': Path(self.binary['path']),
+                            'B': Path(self.binary['path'])}, None)
+        reorder_control.attach(runner, report, [abba.Cell(**c) for c in self.inv['cells']])
+        cell = abba.Cell(**next(c for c in self.inv['cells'] if c['id'] == 't05'))
+        with mock.patch.object(runner, 'execution_order_control', side_effect=AssertionError('must reuse')):
+            for arm in ('A', 'B', 'B', 'A'):
+                self.assertEqual(runner.read_local_reorder_control(cell, arm, {'reorder': 1}), proof)
+            with self.assertRaisesRegex(RuntimeError, 'missing'):
+                runner.read_local_reorder_control(replace(cell, id='new-cell'), 'B', {'reorder': 1})
+
+    def test_read_local_collection_uses_real_workload_path_once_and_retains_failures(self):
+        import load_calibration
+        _, _, _, workloads = self.controls()
+        for broken in (False, True):
+            with self.subTest(broken=broken), tempfile.TemporaryDirectory(dir=self.root / 'build') as tmp:
+                argv = ['abbagate.py', '--collect-reorder-controls', '--candidate', self.binary['path'],
+                        '--cells', str(self.root / 'tests/headline_cells.txt'), '--output', str(Path(tmp) / 'control')]
+                with mock.patch.object(sys, 'argv', argv):
+                    args = abba.parse_args()
+                def collect_workloads(options):
+                    self.assertTrue(options.calibrate)
+                    self.assertFalse(options.collect_reorder_controls)
+                    self.assertIsNone(options.reorder_controls)
+                    self.assertEqual(options.cells.read_text(), workloads['cell_source']['text'])
+                    options.output.mkdir()
+                    receipt.write_json(options.output / 'results.json', workloads)
+                    return 1 if broken else 3
+                with mock.patch.object(load_calibration, 'main', side_effect=collect_workloads) as collector, \
+                     mock.patch.object(abba.Children, 'start', side_effect=AssertionError('no processes in fixture')):
+                    if broken:
+                        with self.assertRaisesRegex(ValueError, 'control failed'): abba.main(args)
+                        self.assertFalse((args.output / 'receipt.json').exists())
+                    else:
+                        self.assertEqual(abba.main(args), 0)
+                        control = receipt.read_json(args.output / 'receipt.json')
+                        self.assertEqual([cell['id'] for cell in control['cells']], ['t05', 't06'])
+                        self.assertEqual(set(control['proofs']), {'t05'})
+                    collector.assert_called_once()
+                    self.assertTrue((args.output / 'workloads/results.json').is_file())
+
+    def test_read_local_freeze_binds_precalibration_receipt_and_requires_it(self):
+        binding, proof, _, _ = self.controls()
+        cells = [abba.Cell(**cell) for cell in self.inv['cells']]
+        fast = fixture_report(cells, self.fp, self.env, self.report['cell_source']['text'],
+                              self.started, self.binary, fast=True)
+        fast['reorder_controls'] = binding
+        for row in fast['cells']:
+            cell = abba.Cell(**row['cell'])
+            if reorder_control.controlled(cell):
+                armed_workload(cell, row['rounds'][0]['runs'][0], proof if reorder_control.needs_proof(cell) else None)
+        path = self.root / 'build/armed-calibration.json'
+        receipt.write_json(path, fast)
+        config_path = self.root / 'tests/gate_measurements.json'
+        original = config_path.read_bytes()
+        try:
+            config = measurements.load(config_path)
+            measurements.import_calibration(path, config, cells)
+            receipt.write_json(config_path, config)
+            args = argparse.Namespace(calibration=path, output=self.root / 'build/armed-freeze.json')
+            with self.assertRaisesRegex(ValueError, 't05: missing frozen read-local'):
+                receipt.freeze_null(self.root, args)
+            args.reorder_controls = Path(binding['path'])
+            receipt.freeze_null(self.root, args)
+            self.assertEqual(receipt.read_json(args.output)['reorder_controls'], binding)
+            with self.assertRaises((ValueError, FileExistsError)): receipt.freeze_null(self.root, args)
+        finally:
+            config_path.write_bytes(original)
 
     def test_absent_and_stale_prior_null_bootstrap_without_receipt(self):
         for prior in (None, b'{"started_utc":"2000-01-01T00:00:00Z"}'):
@@ -348,7 +586,7 @@ class PromotionControls(unittest.TestCase):
                         for module in (evidence, abba):
                             stack.enter_context(mock.patch.object(module, 'replay_saturation', side_effect=no_cached_check))
                     if state == 'wrong workload':
-                        def no_workload(*_): hits.append(rejected[1])
+                        def no_workload(*_, **__): hits.append(rejected[1])
                         stack.enter_context(mock.patch.object(evidence, 'validate_workload_evidence', side_effect=no_workload))
                     observed = None
                     try:
