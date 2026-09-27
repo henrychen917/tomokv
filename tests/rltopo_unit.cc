@@ -28,7 +28,10 @@ void* operator new(size_t size, std::align_val_t alignment, const std::nothrow_t
 
 namespace tomo {
 struct CoreConcurrencyTest {
-    enum class Fault { None, NoFlip, Retry, NoCount, DirtyReply, NoOom, WrongArmReason };
+    enum class Fault {
+        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
+        KeepChanging, NoOom, WrongArmReason, NoArmFence, NoArmRecovery
+    };
     enum class Window { Capture, Copy, Open };
     inline static Fault fault = Fault::None;
     inline static FlatStore* changing = nullptr;
@@ -205,16 +208,20 @@ struct CoreConcurrencyTest {
         unsigned tasks = f.server.thread(f.owner_id).drain_tasks([&](const Task& task) {
             require(task.client == &client && task.op_id == client.rob().flush_id(),
                     "owner receives same ROB operation");
+            if (fault == Fault::DropOwner) return;
             require(f.owner.execute(task), "owner completes demoted read");
         });
         require(tasks == 1 && op.state.load() == OpState::Done, "exactly one owner hop and completion");
         std::string expected;
         if (keys) expected = "*" + std::to_string(keys) + "\r\n";
         for (unsigned i = 0; i < (keys ? keys : 1); ++i) expected += "$5\r\nvalue\r\n";
+        if (fault == Fault::CorruptReply) op.reply.append("bad", 3);
         require(std::string(op.reply.data(), op.reply.size()) == expected, "owner reply intact");
-        require(client.rob().drain([](Op&) {}) == 1, "single ROB retirement");
+        const unsigned retired = fault == Fault::NoRetire ? 0 : client.rob().drain([](Op&) {});
+        require(retired == 1, "single ROB retirement");
         Client clean(-1);
         Op& clean_op = f.enqueue(clean, keys);
+        if (fault == Fault::KeepChanging) guard.emplace(changing->read_local_table_guard());
         require(f.reader.drain_local_reads() == 1 && clean_op.state.load() == OpState::Done &&
                     stats.hits == 1 && stats.fallbacks() == 1,
                 "next stable read stays local without another demotion");
@@ -239,6 +246,10 @@ struct CoreConcurrencyTest {
         rob.publish();
         if (oom) require(refused_sidecars == 1 && stats.arm.sidecars == 0,
                          "sidecar allocation refusal fired");
+        if (fault == Fault::NoArmFence) {
+            write->state.store(OpState::Done);
+            rob.drain([](Op&) {});
+        }
         require(rob.read_local_write_conflicts(2, read_local_command_touches_hash),
                 "disjoint read is fenced during accepted transient");
         auto reason = IoLoop::read_local_write_fallback_reason(rob);
@@ -248,6 +259,14 @@ struct CoreConcurrencyTest {
                 "accepted transient attributed to arm counter");
         write->state.store(OpState::Done);
         require(rob.drain([](Op&) {}) == 1, "retire pre-arming write");
+        if (fault == Fault::NoArmRecovery) {
+            Op* next = rob.acquire_read_local();
+            require(next != nullptr, "control ROB slot");
+            next->hash = 2;
+            next->state.store(OpState::Issued);
+            rob.mark_current_write();
+            rob.publish();
+        }
         require(!rob.read_local_write_conflicts(2, read_local_command_touches_hash),
                 "arm transient ends at ROB retirement");
     }
@@ -297,12 +316,23 @@ struct CoreConcurrencyTest {
                 : "private reply cleared before demotion";
             negative(broken, message, [&] { topology(mode, 1, Window::Capture, false); });
         }
+        for (auto [broken, message] : {
+                std::pair{Fault::DropOwner, "exactly one owner hop and completion"},
+                std::pair{Fault::CorruptReply, "owner reply intact"},
+                std::pair{Fault::NoRetire, "single ROB retirement"},
+                std::pair{Fault::KeepChanging, "next stable read stays local without another demotion"}})
+            negative(broken, message, [&] { topology(mode, 1, Window::Capture, false); });
         arm(false);
         arm(true);
         negative(Fault::NoOom, "sidecar allocation refusal fired", [] { arm(true); });
-        for (bool oom : {false, true})
+        for (bool oom : {false, true}) {
             negative(Fault::WrongArmReason, "accepted transient attributed to arm counter",
                      [&] { arm(oom); });
+            negative(Fault::NoArmFence, "disjoint read is fenced during accepted transient",
+                     [&] { arm(oom); });
+            negative(Fault::NoArmRecovery, "arm transient ends at ROB retirement",
+                     [&] { arm(oom); });
+        }
     }
 };
 } // namespace tomo

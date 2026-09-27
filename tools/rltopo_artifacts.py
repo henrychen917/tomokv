@@ -24,7 +24,8 @@ def category(name):
             '::read_local_capture_in(', '::read_local_validate(',
             '::prepare_local_read(', '::drain_local_reads_bounded_impl<')):
         return 'point read'
-    if '::parse_and_dispatch<' in name or '::fused_pass_impl<' in name:
+    if any(part in name for part in ('::parse_and_dispatch<', '::fused_pass_impl<',
+                                    '::r7_parse_and_dispatch<', '::r7_fused_pass_impl<')):
         return 'dispatch and schedule'
     if '::cmd_get(' in name or '::cmd_get<' in name:
         return 'GET handler'
@@ -130,7 +131,9 @@ extern "C" size_t cache_info(const tomo::ThreadCtx* t) {
                          pre_bytes=len(before[0]), post_bytes=len(after[0]),
                          pre_instructions=len(assembly['pre']),
                          post_instructions=len(assembly['post'])))
-        assert not any('lock ' in ins or 'xchg' in ins for ins in assembly['post']), \
+        # xchg %ax,%ax is GCC's alignment NOP, not a memory exchange.
+        assert not any('lock ' in ins or ('xchg' in ins and '(' in ins)
+                       for ins in assembly['post']), \
             'single-owner cache must not acquire an atomic RMW'
     assert b.canonical(b.functions()['cache_info']) != negative.canonical(
         negative.functions()['cache_info']), 'added-fence negative control must be detected'
