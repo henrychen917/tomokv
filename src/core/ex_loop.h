@@ -1292,7 +1292,7 @@ private:
                 // Unconditional cold demotion. The annotation emits no bytes; the offline
                 // kind-A PAD replaces only this jump with a same-width NOP to restore PRE's
                 // retry in POST's exact layout. No successful-read instruction or runtime knob.
-                asm goto(".local tomo_rltopo_demote_%=\n"
+                asm inline goto(".local tomo_rltopo_demote_%=\n"
                          "tomo_rltopo_demote_%=:\n\t"
                          "jmp %l[owner_demotion]\n"
                          : : : : owner_demotion);
