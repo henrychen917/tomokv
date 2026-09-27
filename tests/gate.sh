@@ -1256,6 +1256,21 @@ for core_row in watch lifetime drain route snapshot config notify; do
     bad "core concurrency $core_row" "see $TMPDIR/gate-core-$core_row.txt, $TMPDIR/tsan-core-concurrency-tsan-$core_row.log, and $RUN_DIR/jobs/production_units/build.log and $RUN_DIR/jobs/core_tsan_build/build.log"
   fi
 done
+# Two topology witnesses, collected with core_units BEFORE the quick-tier exit.
+# Each mode runs its own forced-window, retry-restored and missing-window controls.
+for mode in 1s 2s; do
+  row_begin "read-local topology demotion ($mode)"
+  if unit_ready rltopo-unit && \
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/rltopo-unit "$mode" \
+          >"$TMPDIR/gate-rltopo-$mode.txt" 2>&1 && \
+      rg -Fxq "PASS rltopo $mode (demotions, zero retries, negative controls, arm transients)" \
+          "$TMPDIR/gate-rltopo-$mode.txt"; then
+    ok "read-local topology demotion ($mode)"
+  else
+    bad "read-local topology demotion ($mode)" "see $TMPDIR/gate-rltopo-$mode.txt and $RUN_DIR/jobs/production_units/build.log"
+  fi
+done
 }
 
 job_wb_rule_units(){
@@ -2581,10 +2596,11 @@ job_production_units(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
-      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/wb-rule-units >"$TMPDIR/build.log" 2>&1
+      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
+      build/wb-rule-units build/rltopo-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units rltopo-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \

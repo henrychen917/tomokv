@@ -118,12 +118,12 @@ enum class ReadLocalFallbackReason : uint8_t {
     ContextRoute,           // scatter/script/all-shard or conservative broad-owner route
     ContextKeymissNotify,   // MGET miss must retain owner-side notification behavior
     InflightWrite,
-    ArmTransient,           // pre-arming writes still in flight
+    ArmTransient,           // pre-arming writes or sidecar exhaustion, bounded by ROB retirement
     AtomicPending,
     Missing,
     Typed,
     Expired,
-    SeqChurn,
+    SeqChurn,               // topology demotion to owners, never a local retry
     Generation,
     LaneFull,
 };
@@ -186,7 +186,7 @@ struct ReadLocalStats {
     uint64_t mget_fallback_typed = 0;
     uint64_t mget_fallback_expired = 0;
     uint64_t mget_fallback_seq_churn = 0;
-    uint64_t mget_generation_retries = 0;
+    uint64_t mget_generation_retries = 0; // retained INFO witness: zero in production
     uint64_t mget_fallback_generation = 0;
     uint64_t mget_fallback_lane_full = 0;
 
