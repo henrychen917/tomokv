@@ -43,7 +43,7 @@ def mirror(output, kind):
     elif kind == 'no-class':
         replace(output, cache, ' || class_nodes[cls] == kMaxNodesPerClass', '')
     elif kind == 'no-bytes':
-        replace(output, cache, 'if (allocation > limit - (bytes < limit ? bytes : limit)) return false;',
+        replace(output, cache, 'if (allocation > limit - (cached_bytes < limit ? cached_bytes : limit)) return false;',
                 'if (ceiling == 0) return false; (void)limit;')
     elif kind == 'never-release':
         replace(output, cache, 'void release_all() {', 'void release_all() { return;')
@@ -69,8 +69,8 @@ def mirror(output, kind):
         replace(output, cache, 'if (cls >= kClasses || class_nodes[cls] == kMaxNodesPerClass) return false;',
                 'if (cls >= kClasses) { ++witness.outside_classes; return false; }\n'
                 '        if (class_nodes[cls] == kMaxNodesPerClass) { ++witness.class_full; return false; }')
-        replace(output, cache, 'if (allocation > limit - (bytes < limit ? bytes : limit)) return false;',
-                'if (allocation > limit - (bytes < limit ? bytes : limit)) {\n'
+        replace(output, cache, 'if (allocation > limit - (cached_bytes < limit ? cached_bytes : limit)) return false;',
+                'if (allocation > limit - (cached_bytes < limit ? cached_bytes : limit)) {\n'
                 '            if (!ceiling) ++witness.empty; else ++witness.bytes_full; return false; }\n'
                 '        ++witness.admitted;')
         replace(output, cache, 'void release_all() {',

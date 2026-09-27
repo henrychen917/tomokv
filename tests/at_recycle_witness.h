@@ -20,6 +20,12 @@ struct Counters {
     unsigned last_request = 0;
     template<class Cache> void dump(const Cache& cache, const char* event) {
         const auto alloc = allocations;
+        // The witness also supports archived PRE sources whose gauge was plain size_t.
+        const size_t cached_bytes = [&] {
+            if constexpr (requires { cache.bytes.load(std::memory_order_relaxed); })
+                return cache.bytes.load(std::memory_order_relaxed);
+            else return cache.bytes;
+        }();
         // One complete line per cache. Only the owner (or main after pool.join) reads the lists.
         flockfile(stderr);
         std::fprintf(stderr, "AT_RECYCLE {\"event\":\"%s\",\"ticket\":%u,\"tid\":%ld,\"cache\":\"%p\","
@@ -35,7 +41,7 @@ struct Counters {
           (unsigned long long)borrowed, (unsigned long long)undersize, (unsigned long long)outside_classes,
           (unsigned long long)class_full, (unsigned long long)empty, (unsigned long long)bytes_full,
           (unsigned long long)fresh, (unsigned long long)fresh_failed,
-          (unsigned long long)alloc.mallocx, (unsigned long long)alloc.sdallocx, cache.bytes);
+          (unsigned long long)alloc.mallocx, (unsigned long long)alloc.sdallocx, cached_bytes);
         for (unsigned cls = 0; cls < Cache::kClasses; ++cls) {
             size_t bytes = 0;
             for (auto* b = cache.heads[cls]; b; b = b->next) bytes += b->allocation;

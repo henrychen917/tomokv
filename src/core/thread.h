@@ -988,12 +988,12 @@ public:
     // Bytes this owner is holding in its armed-write block cache: allocated from the allocator's
     // point of view, free from the keyspace's. Deliberately NOT in used_memory / MEMORY STATS /
     // the maxmemory budget, so INFO reports it on its own line. Read by INFO from another thread
-    // under the same exception the read-local telemetry already takes: an owner-written plain
-    // counter, sampled for a statistic that is allowed to be one owner pass stale.
+    // with a relaxed atomic load: staleness is allowed, a C++ data race is not. The lists and
+    // per-class counters remain private to their owner.
     size_t read_local_block_cache_bytes() const {
         if (!read_local_state_) return 0;
         const KvBlockCache* cache = read_local_state_->retire_sink.block_cache;
-        return cache ? cache->bytes : 0;
+        return cache ? cache->bytes.load(std::memory_order_relaxed) : 0;
     }
     // Two loads instead of a scan of every channel. Used to re-check after arming the blocked flag.
     // Asked ONLY on the way to sleep, which is why it can afford to be thorough. The mask is the fast
