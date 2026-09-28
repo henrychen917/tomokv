@@ -1,0 +1,11 @@
+# Mainline-only diagnostic cells. No gate emissions or EXPECT count changes.
+# Preserve the headline IDs and geometry; h05/h06 are 1s p32 in this tree.
+t03 | 2s | rl=0 | ov=1 | ro=0 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
+t04 | 2s | rl=0 | ov=1 | ro=1 | REORDER | p8 | 512 | - | - | - | atomic=1 | score=p999 | mix=8:2 | smoke=1
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+# Split equivalents plus the requested p8 throughput controls, both GET and SET.
+h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+h22 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+signalacct_get8 | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+signalacct_set8 | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
