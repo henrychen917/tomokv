@@ -1871,10 +1871,17 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // carry one cut at atomic mode 0 as well. A forced child inside EXEC borrows the transaction's
     // registered cut later and therefore must not register its private scatter pool here.
     const bool sort_deref_snapshot = !force_atomic && kind == Kind::Sort && sort_options.deref;
+    // Atomic-OFF MSETNX is a conditional writer, like execute_cross_part's EXEC variant:
+    // probe the latest committed values, not a read snapshot. The safe watermark can trail a
+    // completed FLUSHALL's origin-less tombstones while commit publications overlap. A cut
+    // below those tombstones resurrects the preceding EXEC's values and incorrectly answers 0.
+    // Keeping UINT64_MAX also gives phase two's plain-version preparation the latest base.
+    // Atomic-ON MSETNX retains its existing snapshot and install/abort protocol.
+    const bool latest_msetnx = kind == Kind::Msetnx && !atomic_write;
     const bool needs_snapshot = kind == Kind::Script || sort_deref_snapshot ||
         (!force_atomic && (tracking || read_fanout) &&
          (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
-         !(atomic_write && kind == Kind::Mset));
+         !(atomic_write && kind == Kind::Mset) && !latest_msetnx);
     if (kind == Kind::Script &&
         !pool.can_register_snapshot(server.script_crossshard_cut_slots())) {
         if (routes != route_stack) delete[] routes;
@@ -1978,7 +1985,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     state->aof_reload_base = std::move(aof_reload_base);
     state->aof_reload_increments = std::move(aof_reload_increments);
     // MSET is a blind replacement. Registering a read cut for it only pins predecessors across a
-    // deep pipeline; MSETNX and delete still need their one dispatch snapshot for existence.
+    // deep pipeline; atomic-ON MSETNX and delete keep their dispatch snapshot for existence.
     // A read that IO already stamped reuses that exact cut, so a plain read and a multi-key read
     // prepared back to back on one connection cannot disagree about which of them is older.
     if (needs_snapshot) {
