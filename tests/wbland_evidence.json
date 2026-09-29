@@ -1,0 +1,3784 @@
+{
+  "base": "9c4717da03b9340377926277f8eb99cea9f5ab5a",
+  "implementation": "fe2afd2de",
+  "witnesses": "4024bdbef",
+  "affinity": "112-127",
+  "server_or_benchmark_or_gate_run": false,
+  "artifacts": {
+    "pre": {
+      "path": "/home/user/Projects/cx-wbland/build/wbland-pre-src/build/tomokv",
+      "sha256": "e2dbc007f39aab291f824a3872d3c01747423e12ce9caf1cc601555991b4c189",
+      "text": 7577489,
+      "tdata": 112,
+      "tbss": 480
+    },
+    "reference": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-9c4717da0",
+      "sha256": "84ddb8abba4d8c32196edadb860da45114379490432a900dfee76efb71bfdd72",
+      "text": 7577489,
+      "tdata": 112,
+      "tbss": 480
+    },
+    "arms": [
+      {
+        "name": "tomokv",
+        "arm_word": "0x0",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv",
+        "sha256": "3ced0605f055a4dd9e780f68c1490fcaada17635b591d588a617a1c8a9a376f3",
+        "text": 7611245,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pol0",
+        "arm_word": "0x1",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pol0",
+        "sha256": "2f7e51745fa46c65a2f05786bea839b0389c2b73088ce3a52414f6fff8874753",
+        "text": 7611245,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pol1",
+        "arm_word": "0x2",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pol1",
+        "sha256": "80579dc393be8cb62e1f5dc0f11044d43a03bafde074a8116a18f2b62a20343a",
+        "text": 7611245,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pad",
+        "arm_word": "0x80000000",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pad",
+        "sha256": "a9a0ba03d62dc1423ca50d32317d140e08b0f5b2f9e0d448e782611e861fc254",
+        "text": 7611245,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-auto2s-probe",
+        "arm_word": "0x100",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-auto2s-probe",
+        "sha256": "2455238e30f2401ac1db3f51ca321ffd7ef1547c7c80b0c7a00a5b64b106e182",
+        "text": 7611245,
+        "tdata": 112,
+        "tbss": 480
+      }
+    ],
+    "selector_offsets": [
+      412613,
+      4100661
+    ],
+    "exact_layout": true,
+    "pad_kind": "A: PRE half-rule behavior in exact candidate layout",
+    "caveat": "new fixed-policy dispatch remains; require pol1-vs-PRE null",
+    "text_delta": 33756
+  },
+  "proofs": {
+    "wb-rule-policy": {
+      "positive": 18,
+      "negative": 19,
+      "outcomes": [
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fraction",
+          "passed": true,
+          "stdout": "PASS wb-rule fraction\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule staged",
+          "passed": true,
+          "stdout": "PASS wb-rule staged\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule submitted",
+          "passed": true,
+          "stdout": "PASS wb-rule submitted\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule bytes",
+          "passed": true,
+          "stdout": "PASS wb-rule bytes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule holes",
+          "passed": true,
+          "stdout": "PASS wb-rule holes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule markers",
+          "passed": true,
+          "stdout": "PASS wb-rule markers\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule codes",
+          "passed": true,
+          "stdout": "PASS wb-rule codes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-unit",
+          "sha256": "f3f8f5564fb0805e9e4a60afa4ee9a46debe197f5eb3d5e915d1720082a017e9",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule acquire",
+          "passed": true,
+          "stdout": "PASS wb-rule acquire\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fraction",
+          "passed": true,
+          "stdout": "PASS wb-rule fraction\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule staged",
+          "passed": true,
+          "stdout": "PASS wb-rule staged\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule submitted",
+          "passed": true,
+          "stdout": "PASS wb-rule submitted\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule bytes",
+          "passed": true,
+          "stdout": "PASS wb-rule bytes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule holes",
+          "passed": true,
+          "stdout": "PASS wb-rule holes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule markers",
+          "passed": true,
+          "stdout": "PASS wb-rule markers\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule codes",
+          "passed": true,
+          "stdout": "PASS wb-rule codes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-unit",
+          "sha256": "7d20ef18c1d5cdb97462d1dfe8d6a066b231d5feb39d94d71d83b9bf2eb77cf4",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule acquire",
+          "passed": true,
+          "stdout": "PASS wb-rule acquire\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/scatter-exit/unit",
+          "sha256": "6602a144c7777889e451ea749160eade47194a4dc21feed938304a7e7f49d8c4",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule markers: Done scatter enters ordinary serve",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule markers: Done scatter enters ordinary serve\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/fastpath/unit",
+          "sha256": "8bdd46cb6b75a82078f9f1dca67f3b3142b5da7df856e5a6d391d2ee4b5c6b9f",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fastpath: fast path reads no staging or slots",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fastpath: fast path reads no staging or slots\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/staged-clause/unit",
+          "sha256": "ab159d27c5122b1e4c7f92464e287c7bada3d9edb93317c6ae312467313947d8",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule staged: staged byte threshold",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule staged: staged byte threshold\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/staged-source/unit",
+          "sha256": "652eccd757e620f4263538b9afd180d1b15cb4c46cc74a61197650d2487327cc",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule staged: staged fill/send remainder/segments",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule staged: staged fill/send remainder/segments\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/submitted/unit",
+          "sha256": "283745d931a94fef7fe96f19d9c4a470b1f20aa536ec2965c7680682ad900e27",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule submitted: submitted bytes excluded",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule submitted: submitted bytes excluded\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/done-bytes/unit",
+          "sha256": "babb47af7f8d1b94bad7af267dee630912be9035f8edd4ac2bbaf5fc1e42fbe0",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: Done prefix byte threshold",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: Done prefix byte threshold\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/spill/unit",
+          "sha256": "2f4034e562527c197c085d89a8f0e4859e15f8a3cec7eb844ea357e44122d43a",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/direct/unit",
+          "sha256": "d3038e26838ac350733bc7dfe26b6f3e77b0d173943dd58b51145003bdef8fec",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/borrow/unit",
+          "sha256": "17e125b17f13f390ccddf976c27748db9f5173d8141fed04ccc659fdfa6c9859",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/crlf/unit",
+          "sha256": "83def568e87f9f49a74456307644e3ae027cd019b7e610517be354c6bddbb4da",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/no-sum/unit",
+          "sha256": "d62c0084b7975051c3b83f6510c204478154e24ae74885c51dd25877fab86cac",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: Done prefix bytes accumulate across slots",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: Done prefix bytes accumulate across slots\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/floor/unit",
+          "sha256": "a29a993b012061826e0f08cebd79b743103ec0f2fd1fa5f24f9de31730f5b2d1",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/whole/unit",
+          "sha256": "c642d449be1a986203f3979a6c80abbfd4b5c6a1b82cfe35c7f61ba618a8a11f",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/hole/unit",
+          "sha256": "c42dbf23ec8479f18f41d0821431f726f200bb65e07855cc891cd99bf60ea74b",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule holes: first hole stops fraction and bytes",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule holes: first hole stops fraction and bytes\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/marker/unit",
+          "sha256": "69d25d12a89ec19066a013fa067e42e2f115cd2b15b772a6e36a9abea8bb18b2",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule markers: retire-state poison is not payload",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule markers: retire-state poison is not payload\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/code/unit",
+          "sha256": "034203b789263b4ae464f4789c2649fa232090ef73c35c0bffe077086c4fe9af",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule codes: coded lengths match production encoder",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule codes: coded lengths match production encoder\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/relaxed/unit",
+          "sha256": "91dcebf97d584ad0d0163e2c74c3750fcd470057908f4957c8a0fdaa207643b4",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: Done load must acquire",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: Done load must acquire\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/pre-read/unit",
+          "sha256": "3d30df95e4f73f3447e4423ccf0a8c58373ef2cd04291a6d58be6e1387afaeee",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: reply field read before Done acquire",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: reply field read before Done acquire\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/walk-tail/unit",
+          "sha256": "de055afc40e27d84de07bfbb305e8a2d69d76e01ce695655b65aec94e659d5fe",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: walk exits at successful fraction",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: walk exits at successful fraction\n"
+        }
+      ]
+    },
+    "wb-rule-phase": {
+      "positive": 24,
+      "negative": 8,
+      "outcomes": [
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fused-budget",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "capture",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule capture",
+          "passed": true,
+          "stdout": "PASS wb-rule capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "dead",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule dead",
+          "passed": true,
+          "stdout": "PASS wb-rule dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "progress",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule progress",
+          "passed": true,
+          "stdout": "PASS wb-rule progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fused-budget",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fastpath",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fifo",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "capture",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule capture",
+          "passed": true,
+          "stdout": "PASS wb-rule capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "dead",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule dead",
+          "passed": true,
+          "stdout": "PASS wb-rule dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "progress",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule progress",
+          "passed": true,
+          "stdout": "PASS wb-rule progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fused-budget",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "capture",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule capture",
+          "passed": true,
+          "stdout": "PASS wb-rule capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "dead",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule dead",
+          "passed": true,
+          "stdout": "PASS wb-rule dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "progress",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule progress",
+          "passed": true,
+          "stdout": "PASS wb-rule progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fused-budget",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fastpath",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fifo",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "capture",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule capture",
+          "passed": true,
+          "stdout": "PASS wb-rule capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "dead",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule dead",
+          "passed": true,
+          "stdout": "PASS wb-rule dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "progress",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule progress",
+          "passed": true,
+          "stdout": "PASS wb-rule progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/budget/unit",
+          "sha256": "4d29269a5d32dce2e95c4cbc591de39948ffd518898414f1ed52593a85d3dbcb",
+          "case": "fused-budget",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fused-budget: exact mode-specific budget",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fused-budget: exact mode-specific budget\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/rotation/unit",
+          "sha256": "f7b70a63396cbd042729694344f46ae41d4f99034e0fca23019cac08d40d49ac",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/head/unit",
+          "sha256": "bf784db7e647e077cfb7d92d37466890a897a10a883108c5193a57ce239be05f",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fifo: younger eligible passes deferred head",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fifo: younger eligible passes deferred head\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/pin/unit",
+          "sha256": "d1607f323831b1a13f9b18bd47af1d6ddff44775f707f53a814bb5d273a77141",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fifo: deferred lifetime pins kept",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fifo: deferred lifetime pins kept\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/capture/unit",
+          "sha256": "db4b24d8e2cc80e75114caf59de3e90f0658a8d994cec74fdb264398975f3e40",
+          "case": "capture",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule capture: callback cannot extend captured visit count",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule capture: callback cannot extend captured visit count\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/visit/unit",
+          "sha256": "a5e2daf3b1e6d593aa50aef33c31a43c1d2b43b2f313fbf7902267bec794c31f",
+          "case": "fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/dead/unit",
+          "sha256": "2fc544ad7db2640a681277c4054f2bc9885fb1c114678a7e22ad0154ddd7605c",
+          "case": "dead",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule dead: dead entry removed and unpinned",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule dead: dead entry removed and unpinned\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/work/unit",
+          "sha256": "096b6d9134a9540147321071362b64ca8f2bab59bdd099dc946c8d472d4a375f",
+          "case": "progress",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule progress: deferral alone is positive work",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule progress: deferral alone is positive work\n"
+        }
+      ]
+    },
+    "wb-rule-stages": {
+      "positive": 10,
+      "negative": 2,
+      "outcomes": [
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-ex",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-ex-unmasked",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex-unmasked",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex-unmasked\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-ex-timed",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex-timed",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex-timed\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "fused-parse",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-parse",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-parse\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-parse",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-parse",
+          "passed": true,
+          "stdout": "PASS wb-rule split-parse\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-ex",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-ex-unmasked",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex-unmasked",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex-unmasked\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-ex-timed",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-ex-timed",
+          "passed": true,
+          "stdout": "PASS wb-rule split-ex-timed\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "fused-parse",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fused-parse",
+          "passed": true,
+          "stdout": "PASS wb-rule fused-parse\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-parse",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-parse",
+          "passed": true,
+          "stdout": "PASS wb-rule split-parse\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/split-ex/unit",
+          "sha256": "f1e5a7c76d534dfa5cc7d5f000aab0b617da046950ba50ce1c3cafecf9e338dc",
+          "case": "split-ex",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-ex: default split EX chunk remains 32",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-ex: default split EX chunk remains 32\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/parse/unit",
+          "sha256": "9a23c1023f19d84e75d90015dcf372860d817d811d19eed1819120f18e95b129",
+          "case": "fused-parse",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fused-parse: unchanged parser quantum",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fused-parse: unchanged parser quantum\n"
+        }
+      ]
+    },
+    "wb-rule-split-phase": {
+      "positive": 24,
+      "negative": 11,
+      "outcomes": [
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-budget",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-dead",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-policy",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-local",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-progress",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-chunk",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-aof",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture-multi",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-local-sweep",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local-sweep",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local-sweep\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-budget",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-dead",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-policy",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-local",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-progress",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-chunk",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-aof",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture-multi",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-local-sweep",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local-sweep",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local-sweep\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/split-policy/unit",
+          "sha256": "3fab10d0e49c99320e2d6d2dafb5fa0c374bde3e7dde001f87f42f95f7cd3e73",
+          "case": "split-policy",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-policy: 2s uses exact composite fraction",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-policy: 2s uses exact composite fraction\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/split-local/unit",
+          "sha256": "5ae2b777b074bdff2b1e1cbe61a9c61278dc5c1b4becd2757786cfda80a9cf2a",
+          "case": "split-local",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-local: 2s reader capability shares composite writeback",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-local: 2s reader capability shares composite writeback\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/split-budget/unit",
+          "sha256": "d99400c5aab938f8f8adcb32d1569b033842b95bba22ca634cc50200a667b42a",
+          "case": "split-budget",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-budget: exact mode-specific budget",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-budget: exact mode-specific budget\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/split-aof/unit",
+          "sha256": "02caba2f8ab845f1b606c0af931c101c2be29744cacc3b4ba33486fc94b0ffc6",
+          "case": "split-aof",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-aof: AOF refusal precedes composite selection",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-aof: AOF refusal precedes composite selection\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/rotation/unit",
+          "sha256": "f7b70a63396cbd042729694344f46ae41d4f99034e0fca23019cac08d40d49ac",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/head/unit",
+          "sha256": "bf784db7e647e077cfb7d92d37466890a897a10a883108c5193a57ce239be05f",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: younger eligible passes deferred head",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: younger eligible passes deferred head\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/pin/unit",
+          "sha256": "d1607f323831b1a13f9b18bd47af1d6ddff44775f707f53a814bb5d273a77141",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred lifetime pins kept",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred lifetime pins kept\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/capture/unit",
+          "sha256": "db4b24d8e2cc80e75114caf59de3e90f0658a8d994cec74fdb264398975f3e40",
+          "case": "split-capture",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-capture: callback cannot extend captured visit count",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-capture: callback cannot extend captured visit count\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/visit/unit",
+          "sha256": "a5e2daf3b1e6d593aa50aef33c31a43c1d2b43b2f313fbf7902267bec794c31f",
+          "case": "split-fifo",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/dead/unit",
+          "sha256": "2fc544ad7db2640a681277c4054f2bc9885fb1c114678a7e22ad0154ddd7605c",
+          "case": "split-dead",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-dead: dead entry removed and unpinned",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-dead: dead entry removed and unpinned\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/work/unit",
+          "sha256": "096b6d9134a9540147321071362b64ca8f2bab59bdd099dc946c8d472d4a375f",
+          "case": "split-progress",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-progress: deferral alone is positive work",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-progress: deferral alone is positive work\n"
+        }
+      ]
+    },
+    "wb-rule-split-overlap": {
+      "positive": 44,
+      "negative": 20,
+      "outcomes": [
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-budget",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-dead",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-policy",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-local",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fastpath",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-progress",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-chunk",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-aof",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture-multi",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-budget",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-dead",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-policy",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-local",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fastpath",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-progress",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-chunk",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-aof",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "split-capture-multi",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-budget",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-dead",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-policy",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-local",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fastpath",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-progress",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-chunk",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-aof",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture-multi",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-budget",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-budget",
+          "passed": true,
+          "stdout": "PASS wb-rule split-budget\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-dead",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-dead",
+          "passed": true,
+          "stdout": "PASS wb-rule split-dead\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-policy",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-policy",
+          "passed": true,
+          "stdout": "PASS wb-rule split-policy\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-local",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-local",
+          "passed": true,
+          "stdout": "PASS wb-rule split-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fastpath",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-fifo",
+          "passed": true,
+          "stdout": "PASS wb-rule split-fifo\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-progress",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-progress",
+          "passed": true,
+          "stdout": "PASS wb-rule split-progress\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-chunk",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-chunk",
+          "passed": true,
+          "stdout": "PASS wb-rule split-chunk\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-aof",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-aof",
+          "passed": true,
+          "stdout": "PASS wb-rule split-aof\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "split-capture-multi",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule split-capture-multi",
+          "passed": true,
+          "stdout": "PASS wb-rule split-capture-multi\n",
+          "stderr": ""
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-policy/unit",
+          "sha256": "1020da1133371ab49311773ac365db4ac511989eeb92216ef37c0e9804abeb24",
+          "case": "split-policy",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-policy: 2s uses exact composite fraction",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-policy: 2s uses exact composite fraction\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-policy/unit",
+          "sha256": "1020da1133371ab49311773ac365db4ac511989eeb92216ef37c0e9804abeb24",
+          "case": "split-policy",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-policy: 2s uses exact composite fraction",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-policy: 2s uses exact composite fraction\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-rotation/unit",
+          "sha256": "17a96cd27141d050e38e646102a4f0e7081cf7299b56b9bf7486c787290b3cd8",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-rotation/unit",
+          "sha256": "17a96cd27141d050e38e646102a4f0e7081cf7299b56b9bf7486c787290b3cd8",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-head/unit",
+          "sha256": "36dc7beb7e207d739687921e5df52c9bd369fc808b995191afc9febe34fe1bd7",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: younger eligible passes deferred head",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: younger eligible passes deferred head\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-head/unit",
+          "sha256": "36dc7beb7e207d739687921e5df52c9bd369fc808b995191afc9febe34fe1bd7",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: younger eligible passes deferred head",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: younger eligible passes deferred head\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-pin/unit",
+          "sha256": "bfa9fc45d08afc7a7bb8722db0878723122e7d3e79abca3ad09b3d136dc0bfcd",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred lifetime pins kept",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred lifetime pins kept\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-pin/unit",
+          "sha256": "bfa9fc45d08afc7a7bb8722db0878723122e7d3e79abca3ad09b3d136dc0bfcd",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred lifetime pins kept",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred lifetime pins kept\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-capture/unit",
+          "sha256": "4075beb6d6cbe8cb14b38c9464049f55b032e3cc438c4f613688c1b3ba06d11b",
+          "case": "split-capture-multi",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-capture/unit",
+          "sha256": "4075beb6d6cbe8cb14b38c9464049f55b032e3cc438c4f613688c1b3ba06d11b",
+          "case": "split-capture-multi",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-visit/unit",
+          "sha256": "b2df7ddbdb7de8f15256fa348fded3859a72ef98c5af04539fb7bfe412f286b1",
+          "case": "split-fifo",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-visit/unit",
+          "sha256": "b2df7ddbdb7de8f15256fa348fded3859a72ef98c5af04539fb7bfe412f286b1",
+          "case": "split-fifo",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-dead/unit",
+          "sha256": "e2880104032dee4185f1136a0b6408668249f71cadd006346aa2e3c94d348e87",
+          "case": "split-dead",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-dead: dead entry removed and unpinned",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-dead: dead entry removed and unpinned\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-dead/unit",
+          "sha256": "e2880104032dee4185f1136a0b6408668249f71cadd006346aa2e3c94d348e87",
+          "case": "split-dead",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-dead: dead entry removed and unpinned",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-dead: dead entry removed and unpinned\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-work/unit",
+          "sha256": "3eed6c68095819b2e8f36132ad9d73a69da21c3c3d03f5ae8ef21aed6c0f0dc7",
+          "case": "split-progress",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-progress: deferral alone is positive work",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-progress: deferral alone is positive work\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-work/unit",
+          "sha256": "3eed6c68095819b2e8f36132ad9d73a69da21c3c3d03f5ae8ef21aed6c0f0dc7",
+          "case": "split-progress",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-progress: deferral alone is positive work",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-progress: deferral alone is positive work\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-chunks/unit",
+          "sha256": "4a8e6619317be24645f2da6673982417e534ab2afcf2c467b201f2768cd693ed",
+          "case": "split-chunk",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-chunks/unit",
+          "sha256": "4a8e6619317be24645f2da6673982417e534ab2afcf2c467b201f2768cd693ed",
+          "case": "split-chunk",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-aof/unit",
+          "sha256": "8a0545f38b2941c84a47ebe04f4b88a1220836e21cef3c5a8afb5d0b07faeb51",
+          "case": "split-aof",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-aof: AOF refusal precedes composite selection",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-aof: AOF refusal precedes composite selection\n"
+        },
+        {
+          "binary": "/home/user/Projects/cx-wbland/build/wb-rule-controls/gather-aof/unit",
+          "sha256": "8a0545f38b2941c84a47ebe04f4b88a1220836e21cef3c5a8afb5d0b07faeb51",
+          "case": "split-aof",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule split-aof: AOF refusal precedes composite selection",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule split-aof: AOF refusal precedes composite selection\n"
+        }
+      ]
+    },
+    "wbland-detector": {
+      "positive": 18,
+      "negative": 15,
+      "outcomes": [
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "endpoints",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland endpoints",
+          "passed": true,
+          "stdout": "PASS wbland endpoints\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "trickle",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland trickle",
+          "passed": true,
+          "stdout": "PASS wbland trickle\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "saturated",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland saturated",
+          "passed": true,
+          "stdout": "PASS wbland saturated\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland ramp",
+          "passed": true,
+          "stdout": "RAMP blocks=22 f256=0\nPASS wbland ramp\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "window",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland window",
+          "passed": true,
+          "stdout": "PASS wbland window\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "fixed",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland fixed",
+          "passed": true,
+          "stdout": "PASS wbland fixed\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "exits",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland exits",
+          "passed": true,
+          "stdout": "PASS wbland exits\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "grammar",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland grammar",
+          "passed": true,
+          "stdout": "PASS wbland grammar\n",
+          "stderr": "--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n"
+        },
+        {
+          "binary": "build/wbland-unit",
+          "sha256": "21783606d88a1b7373b0a62aa1fbc4842792599778e378d4668a0cdfb9b9fe39",
+          "case": "publication",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland publication",
+          "passed": true,
+          "stdout": "PASS wbland publication\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "endpoints",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland endpoints",
+          "passed": true,
+          "stdout": "PASS wbland endpoints\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "trickle",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland trickle",
+          "passed": true,
+          "stdout": "PASS wbland trickle\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "saturated",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland saturated",
+          "passed": true,
+          "stdout": "PASS wbland saturated\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland ramp",
+          "passed": true,
+          "stdout": "RAMP blocks=22 f256=0\nPASS wbland ramp\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "window",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland window",
+          "passed": true,
+          "stdout": "PASS wbland window\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "fixed",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland fixed",
+          "passed": true,
+          "stdout": "PASS wbland fixed\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "exits",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland exits",
+          "passed": true,
+          "stdout": "PASS wbland exits\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "grammar",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland grammar",
+          "passed": true,
+          "stdout": "PASS wbland grammar\n",
+          "stderr": "--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n--wb-policy wants -1, 0 or 1\n"
+        },
+        {
+          "binary": "build/wbland-db0-unit",
+          "sha256": "8302f0c1e990294df7dd9c934ce2a85e16759bf91c3f652547e1314c15b1bd48",
+          "case": "publication",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wbland publication",
+          "passed": true,
+          "stdout": "PASS wbland publication\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-controls/per-pass/unit",
+          "sha256": "f27899da76b2a2de17af18bea2c961a533bf02846d87a29a9af7c86c06a77a52",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland ramp: ramp holds dial between full block boundaries",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland ramp: ramp holds dial between full block boundaries\n"
+        },
+        {
+          "binary": "build/wbland-controls/always-busy/unit",
+          "sha256": "ead5c6e7be4a8009d74ad4b940f624d97e98f0c2f06998048b23b484b465c719",
+          "case": "trickle",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland trickle: trickle fraction stays near zero",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland trickle: trickle fraction stays near zero\n"
+        },
+        {
+          "binary": "build/wbland-controls/always-idle/unit",
+          "sha256": "cc3143a1e3ee4d1bd85e9de5b504f6dc35890db3c512b78da1b315ee87178638",
+          "case": "saturated",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland saturated: two busy blocks reach one",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland saturated: two busy blocks reach one\n"
+        },
+        {
+          "binary": "build/wbland-controls/switch/unit",
+          "sha256": "c75c96de2232243c450dccd02533c602afbb0dac64859fd3b578ac4207f3fd85",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland ramp: ramp uses two completed weighted blocks",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland ramp: ramp uses two completed weighted blocks\n"
+        },
+        {
+          "binary": "build/wbland-controls/reversed/unit",
+          "sha256": "1ff39085176cf9f536a91a0460c10cd65d243e200b3d455a9b57c6218afc6993",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland ramp: ramp uses two completed weighted blocks",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland ramp: ramp uses two completed weighted blocks\n"
+        },
+        {
+          "binary": "build/wbland-controls/one-block/unit",
+          "sha256": "f5e4300e4baab2abab960490963538a2bb3d24161a2cab75a4fac5f64af69e66",
+          "case": "ramp",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland ramp: ramp uses two completed weighted blocks",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland ramp: ramp uses two completed weighted blocks\n"
+        },
+        {
+          "binary": "build/wbland-controls/window-one/unit",
+          "sha256": "001badd1c013e69709566558f2199fea990cefe27715f4153d232b7b525edbce",
+          "case": "window",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland window: ownership cannot shorten current block",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland window: ownership cannot shorten current block\n"
+        },
+        {
+          "binary": "build/wbland-controls/unweighted/unit",
+          "sha256": "fe0f53bd22d4f9ae763163109b235c5efaa16a022e4ae0dfe9b47531d9bee3ac",
+          "case": "window",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland window: two blocks weighted by duration rather than mean of fractions",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland window: two blocks weighted by duration rather than mean of fractions\n"
+        },
+        {
+          "binary": "build/wbland-controls/flushall/unit",
+          "sha256": "47c88646aaf83cecc832a08b99a957e3fcec3db2afd6c582b8954483542f019e",
+          "case": "endpoints",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland endpoints: zero serves every prefix",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland endpoints: zero serves every prefix\n"
+        },
+        {
+          "binary": "build/wbland-controls/half/unit",
+          "sha256": "4a0123165fcecf033c13d71821dc5ea91f139384a07881ea761bc35ffbd518ad",
+          "case": "endpoints",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland endpoints: policy one is exact landed half",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland endpoints: policy one is exact landed half\n"
+        },
+        {
+          "binary": "build/wbland-controls/whole/unit",
+          "sha256": "807ca4b337b7383431614fe3c29dae0b0de18cfef6eb4fe82e89ea68dcb28de5",
+          "case": "endpoints",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland endpoints: saturated AUTO uses whole contiguous pipe",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland endpoints: saturated AUTO uses whole contiguous pipe\n"
+        },
+        {
+          "binary": "build/wbland-controls/finished/unit",
+          "sha256": "cd61d6eccbf251b024243c67a0b7d8dd43b33a3243aea0638db26b356793c5c3",
+          "case": "exits",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland exits: finished pipe exits at busy endpoint",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland exits: finished pipe exits at busy endpoint\n"
+        },
+        {
+          "binary": "build/wbland-controls/empty/unit",
+          "sha256": "8297340c54880f560b5721b3cc663e986060d4e054bd7ed834817d4288987533",
+          "case": "exits",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland exits: nothing in flight exits at busy endpoint",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland exits: nothing in flight exits at busy endpoint\n"
+        },
+        {
+          "binary": "build/wbland-controls/split-auto/unit",
+          "sha256": "a89305c64995038e5bc44b6df02a7d5af268043f5a62fb855563618e0b7db9dd",
+          "case": "fixed",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland fixed: split AUTO retains measured half rule",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland fixed: split AUTO retains measured half rule\n"
+        },
+        {
+          "binary": "build/wbland-controls/byte-limit/unit",
+          "sha256": "0c96395cca1eb889434b99042482799610ea3edbd068ac0b3e6eae537c2270b0",
+          "case": "exits",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wbland exits: 512 bytes open busy pipe",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wbland exits: 512 bytes open busy pipe\n"
+        }
+      ]
+    },
+    "wbland-clauses": {
+      "positive": 18,
+      "negative": 19,
+      "outcomes": [
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fraction",
+          "passed": true,
+          "stdout": "PASS wb-rule fraction\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule staged",
+          "passed": true,
+          "stdout": "PASS wb-rule staged\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule submitted",
+          "passed": true,
+          "stdout": "PASS wb-rule submitted\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule bytes",
+          "passed": true,
+          "stdout": "PASS wb-rule bytes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule holes",
+          "passed": true,
+          "stdout": "PASS wb-rule holes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule markers",
+          "passed": true,
+          "stdout": "PASS wb-rule markers\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule codes",
+          "passed": true,
+          "stdout": "PASS wb-rule codes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-unit",
+          "sha256": "f5b1d3e39cef06274a52b3b04393cb2f330e4ef1b691c97eb1173f502f18a71e",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule acquire",
+          "passed": true,
+          "stdout": "PASS wb-rule acquire\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fastpath",
+          "passed": true,
+          "stdout": "PASS wb-rule fastpath\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule fraction",
+          "passed": true,
+          "stdout": "PASS wb-rule fraction\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule staged",
+          "passed": true,
+          "stdout": "PASS wb-rule staged\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule submitted",
+          "passed": true,
+          "stdout": "PASS wb-rule submitted\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule bytes",
+          "passed": true,
+          "stdout": "PASS wb-rule bytes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule holes",
+          "passed": true,
+          "stdout": "PASS wb-rule holes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule markers",
+          "passed": true,
+          "stdout": "PASS wb-rule markers\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule codes",
+          "passed": true,
+          "stdout": "PASS wb-rule codes\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-db0-clause-unit",
+          "sha256": "901e5606a2e0cb88997041ffc2dcf3fd3c983b63eedd8518e7d9ca4fe7706918",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule acquire",
+          "passed": true,
+          "stdout": "PASS wb-rule acquire\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wbland-clause-controls/scatter-exit/unit",
+          "sha256": "ce1ae594fbf8ef5e3f6fd8b55e8dc19c263ab2f8b4e8ec9bcb59aa33413bdf9d",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule markers: Done scatter enters ordinary serve",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule markers: Done scatter enters ordinary serve\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/fastpath/unit",
+          "sha256": "cc2fe92391ab93abe367d175bdba732a3e5e6f736876205024e70a46ee7638a0",
+          "case": "fastpath",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fastpath: fast path reads no staging or slots",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fastpath: fast path reads no staging or slots\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/staged-clause/unit",
+          "sha256": "fbe6f95dac163967123d0cc111fc430d5b50b16edc21ca2e8ef69d866953e5a3",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule staged: staged byte threshold",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule staged: staged byte threshold\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/staged-source/unit",
+          "sha256": "4f986463f1e16ddd119d7e06ce15567dc3f92a67594c554e07b1145fe899c5dd",
+          "case": "staged",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule staged: staged fill/send remainder/segments",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule staged: staged fill/send remainder/segments\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/submitted/unit",
+          "sha256": "8ed702f56fd0975004e20147559c358b796965e4563e8825eaf34a6d9cbd78e4",
+          "case": "submitted",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule submitted: submitted bytes excluded",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule submitted: submitted bytes excluded\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/done-bytes/unit",
+          "sha256": "546480b4c4eb9156d7c5604012e7e5041f92d00313e9fa2d6c3035894bed9ae7",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: Done prefix byte threshold",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: Done prefix byte threshold\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/spill/unit",
+          "sha256": "861cae597e4f88a8774e9f01aa0003f8d1209cb56900c93476453ccf06ba9252",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/direct/unit",
+          "sha256": "1c09f34032cc6018307fcf7096caeb6dcdb0cb234138c010e7a9e3bee1a88a07",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/borrow/unit",
+          "sha256": "2df086a06278b790ea93bf6d3f36b08a023bb93764dad7d76592a643cf925591",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/crlf/unit",
+          "sha256": "d3ce83316c371d99c7d22e0b9fb910debea78bba85c42e4a7d04a1a943ab0ac7",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: spill/direct/borrow including CRLF",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: spill/direct/borrow including CRLF\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/no-sum/unit",
+          "sha256": "26be35ede59da26e32a4eb9094e84c7988b1be191713e3b4f21b2aac85475c59",
+          "case": "bytes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule bytes: Done prefix bytes accumulate across slots",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule bytes: Done prefix bytes accumulate across slots\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/floor/unit",
+          "sha256": "c6c5ab88cbaa52db5ca5a2adaf871124459e3799b146e52ada54e847327f9ec9",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/whole/unit",
+          "sha256": "b5da3fd0c24b2559a16fa13a9a1efc58f5c764397f7f191a2629f3f23b596be6",
+          "case": "fraction",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule fraction: ceil half for every n=1..64 and prefix\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/hole/unit",
+          "sha256": "a76807ff489ca55b71c489e86122bf4f5019712fd124c03782c21da5ad1bcfc1",
+          "case": "holes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule holes: first hole stops fraction and bytes",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule holes: first hole stops fraction and bytes\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/marker/unit",
+          "sha256": "88d9b4480de7435a573189b0b4c8ecb5f6766760a79945630ca1872b38fd079d",
+          "case": "markers",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule markers: retire-state poison is not payload",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule markers: retire-state poison is not payload\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/code/unit",
+          "sha256": "bab9836f10dff2408da3a2d47d8d75ba483ce228a3fe1348be3734738ef92eba",
+          "case": "codes",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule codes: coded lengths match production encoder",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule codes: coded lengths match production encoder\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/relaxed/unit",
+          "sha256": "9fd815ef8251fb13c729bc4833e0e5f43b42d6e3f17190b597d27b9034f2aa20",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: Done load must acquire",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: Done load must acquire\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/pre-read/unit",
+          "sha256": "fa568d9ba525f95dd0c8c6bc023e45d66ff2feda290c5df0ba24d8c0cca6a473",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: reply field read before Done acquire",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: reply field read before Done acquire\n"
+        },
+        {
+          "binary": "build/wbland-clause-controls/walk-tail/unit",
+          "sha256": "1fce2a85f5e037674f0ff34cb2b0baef4814cd368b1f6d14834498a99357e120",
+          "case": "acquire",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule acquire: walk exits at successful fraction",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule acquire: walk exits at successful fraction\n"
+        }
+      ]
+    },
+    "wbland-paths": {
+      "positive": 28,
+      "negative": 3,
+      "outcomes": [
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-fused",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-fused",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-fused\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-fused",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-fused",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-fused\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split-probe",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local-probe",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split-probe",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local-probe",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-split-probe",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-phase-unit",
+          "sha256": "bd917db85953bef7bcd3c3b77c12ab8f015789b9c7ab6a98be7f33ba003a8945",
+          "case": "wbland-local-probe",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-fused",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-fused",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-fused\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-fused",
+          "extra": [
+            "r7"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-fused",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-fused\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split-probe",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local-probe",
+          "extra": [],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split-probe",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local-probe",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-split-probe",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-split-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-split-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-db0-phase-unit",
+          "sha256": "40d20eddd2229a507d24485396ca88cde2fc4efb52a3c182b663f2f9a4fbf746",
+          "case": "wbland-local-probe",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 0,
+          "exit": 0,
+          "required": "PASS wb-rule wbland-local-probe",
+          "passed": true,
+          "stdout": "PASS wb-rule wbland-local-probe\n",
+          "stderr": ""
+        },
+        {
+          "binary": "build/wb-rule-controls/split-policy/unit",
+          "sha256": "3fab10d0e49c99320e2d6d2dafb5fa0c374bde3e7dde001f87f42f95f7cd3e73",
+          "case": "wbland-fused",
+          "extra": [],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule wbland-fused: wb-policy exact retirement in every physical schedule",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule wbland-fused: wb-policy exact retirement in every physical schedule\n"
+        },
+        {
+          "binary": "build/wb-rule-controls/gather-policy/unit",
+          "sha256": "1020da1133371ab49311773ac365db4ac511989eeb92216ef37c0e9804abeb24",
+          "case": "wbland-split",
+          "extra": [
+            "natural"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule\n"
+        },
+        {
+          "binary": "build/wb-rule-controls/gather-policy/unit",
+          "sha256": "1020da1133371ab49311773ac365db4ac511989eeb92216ef37c0e9804abeb24",
+          "case": "wbland-split",
+          "extra": [
+            "shallow"
+          ],
+          "expected_exit": 1,
+          "exit": 1,
+          "required": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule",
+          "passed": true,
+          "stdout": "",
+          "stderr": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule\n"
+        }
+      ]
+    }
+  },
+  "command_identity": [
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "tomo::cmd_get_notify(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "tomo::cmd_set_notify(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "tomo_db0::cmd_get_tls(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "tomo_db0::cmd_get_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "tomo_db0::cmd_set_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    }
+  ],
+  "config_parser_exit": 0,
+  "netcmd_config_exit": 0,
+  "gate_expected_current": {
+    "quick": 441,
+    "full": 459
+  },
+  "gate_expected_requested": {
+    "quick": 444,
+    "full": 462
+  }
+}
