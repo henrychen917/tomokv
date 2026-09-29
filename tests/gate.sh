@@ -258,7 +258,7 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
 EXPECT_QUICK=441
-EXPECT_FULL=459                 # ABBA row reports and is not counted; self-test row remains.
+EXPECT_FULL=461                 # +2 rltopo rows; ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1264,7 +1264,7 @@ for mode in 1s 2s; do
       ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
       taskset -c "$CORES" ./build/rltopo-unit "$mode" \
           >"$TMPDIR/gate-rltopo-$mode.txt" 2>&1 && \
-      rg -Fxq "PASS rltopo $mode (demotions, zero retries, negative controls, arm transients)" \
+      grep -Fxq "PASS rltopo $mode (demotions, zero retries, negative controls, arm transients)" \
           "$TMPDIR/gate-rltopo-$mode.txt"; then
     ok "read-local topology demotion ($mode)"
   else

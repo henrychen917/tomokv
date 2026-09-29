@@ -1304,7 +1304,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class TSANWiring(unittest.TestCase):
-    def run_rows(self, kind='core', failure='', ready=True):
+    def run_rows(self, kind='core', failure='', ready=True, topology_failure=''):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         helpers = gate[gate.index('tsan_unit(){'):gate.index('\njob_production_units(){')]
@@ -1315,7 +1315,9 @@ CORE_TSAN=/unused-core-tsan; WAITS_TSAN=/unused-waits-tsan; CORES=0-7
 quiet_wait(){ :; }
 row_begin(){ :; }
 taskset(){ timeout "$@"; }
-unit_ready(){ return 0; }
+unit_ready(){ [ "$1" != rltopo-unit ] || [ "$TOPOLOGY_FAILURE" != build ]; }
+# The gate's non-interactive PATH need not contain ripgrep, even if the developer's does.
+rg(){ echo 'rg: command not found' >&2; return 127; }
 ok(){ printf 'ok\t%s\n' "$1" >> "$RUN_DIR/rows"; }
 bad(){ printf 'FAIL\t%s\n' "$1" >> "$RUN_DIR/rows"; }
 timeout(){
@@ -1333,7 +1335,17 @@ timeout(){
       else printf 'waits unit: PASS\n'; fi;;
     *)
       printf 'control\t%s\n' "$selected" >> "$RUN_DIR/calls"
-      [ "$FAILURE" != control ] || return 1;;
+      [ "$FAILURE" != control ] || return 1
+      if [[ "$argv" == *./build/rltopo-unit* ]]; then
+        local suffix=
+        case "$TOPOLOGY_FAILURE" in
+          witness) return 0;;
+          wrong-mode) selected=invalid;;
+          suffix) suffix=' unexpected';;
+        esac
+        printf 'PASS rltopo %s (demotions, zero retries, negative controls, arm transients)%s\n' "$selected" "$suffix"
+        [ "$TOPOLOGY_FAILURE" != runtime ] || return 1
+      fi;;
   esac
 }
 '''
@@ -1345,7 +1357,8 @@ timeout(){
                 for name in ('core-concurrency-tsan', 'waits-unit-tsan'):
                     (directory / 'unit-ready' / name).touch()
             result = subprocess.run(['bash', '-c', stub + helpers + body + '\n' + first.split('(')[0]],
-                cwd=directory, env=dict(os.environ, RUN_DIR=temporary, TMPDIR=temporary, FAILURE=failure),
+                cwd=directory, env=dict(os.environ, RUN_DIR=temporary, TMPDIR=temporary,
+                                       FAILURE=failure, TOPOLOGY_FAILURE=topology_failure),
                 capture_output=True, text=True, timeout=5)
             self.assertEqual(result.returncode, 0, result.stderr)
             return [line.split('\t') for line in (directory / 'rows').read_text().splitlines()], \
@@ -1354,20 +1367,32 @@ timeout(){
     def test_core_rows_execute_both_matching_controls(self):
         rows, calls = self.run_rows()
         selections = 'watch lifetime drain route snapshot config notify'.split()
-        self.assertEqual(rows, [['ok', 'core concurrency ' + case] for case in selections])
+        self.assertEqual(rows, [['ok', 'core concurrency ' + case] for case in selections] +
+                         [['ok', f'read-local topology demotion ({mode})'] for mode in ('1s', '2s')])
         self.assertEqual([case for mode, case in calls if mode == 'tsan'], selections)
-        self.assertEqual(len([1 for mode, _ in calls if mode == 'control']), 7)
+        self.assertEqual([case for mode, case in calls if mode == 'control'], selections + ['1s', '2s'])
 
     def test_core_runtime_report_unavailability_and_missing_witness_all_fail(self):
         for failure in ('runtime', 'report', 'unavailable', 'witness', 'control'):
             with self.subTest(failure=failure):
-                rows, calls = self.run_rows(failure=failure)
-                self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
+                # Poison the independent topology witnesses too: this job now emits nine rows.
+                rows, calls = self.run_rows(failure=failure, topology_failure='witness')
+                self.assertEqual([row[0] for row in rows], ['FAIL'] * 9)
                 if failure == 'control':
                     self.assertTrue(all(mode == 'control' for mode, _ in calls))
-        rows, calls = self.run_rows(ready=False)
-        self.assertEqual([row[0] for row in rows], ['FAIL'] * 7)
+        rows, calls = self.run_rows(ready=False, topology_failure='witness')
+        self.assertEqual([row[0] for row in rows], ['FAIL'] * 9)
         self.assertTrue(all(mode == 'control' for mode, _ in calls))
+
+    def test_topology_rows_require_ready_success_and_exact_witness(self):
+        for failure in ('build', 'runtime', 'witness', 'wrong-mode', 'suffix'):
+            with self.subTest(failure=failure):
+                rows, calls = self.run_rows(topology_failure=failure)
+                self.assertEqual([row[0] for row in rows], ['ok'] * 7 + ['FAIL'] * 2)
+                self.assertEqual(rows[-2:], [['FAIL', f'read-local topology demotion ({mode})']
+                                            for mode in ('1s', '2s')])
+                self.assertEqual([case for mode, case in calls if case in ('1s', '2s')],
+                                 [] if failure == 'build' else ['1s', '2s'])
 
     def test_waits_keeps_existing_rows_and_adds_one_tsan_execution(self):
         rows, calls = self.run_rows(kind='waits')
