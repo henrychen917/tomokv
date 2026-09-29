@@ -23,6 +23,7 @@
 // lands on — and a shard ownership handoff simply changes which owner's cache serves it next,
 // without any cache ever becoming cross-thread.
 #pragma once
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -117,7 +118,8 @@ struct KvBlockCache {
             std::fprintf(stderr,
                 "\nRLCACHE-VIOLATION double-put: block %p allocation %zu class %u already "
                 "resident (cache %p, class_nodes %u, bytes %zu)\n",
-                memory, allocation, cls, static_cast<void*>(this), class_nodes[cls], bytes);
+                memory, allocation, cls, static_cast<void*>(this), class_nodes[cls],
+                bytes.load(std::memory_order_relaxed));
             std::fflush(stderr);
             std::abort();
         }
@@ -127,7 +129,8 @@ struct KvBlockCache {
             std::fprintf(stderr,
                 "\nRLCACHE-VIOLATION take-of-nonresident: block %p allocation %zu class %u "
                 "(cache %p, class_nodes %u, bytes %zu)\n",
-                memory, allocation, cls, static_cast<void*>(this), class_nodes[cls], bytes);
+                memory, allocation, cls, static_cast<void*>(this), class_nodes[cls],
+                bytes.load(std::memory_order_relaxed));
             std::fflush(stderr);
             std::abort();
         }
@@ -191,14 +194,15 @@ struct KvBlockCache {
 #endif
         FreeBlock* block = heads[cls];
         if (!block) return nullptr;
-        if (block->allocation != allocation || !class_nodes[cls] || bytes < allocation)
+        const size_t cached_bytes = bytes.load(std::memory_order_relaxed);
+        if (block->allocation != allocation || !class_nodes[cls] || cached_bytes < allocation)
             std::abort();
 #ifdef TOMO_RL_CACHE_DEBUG
         dbg_leave(block, allocation, cls);
 #endif
         heads[cls] = block->next;
         class_nodes[cls]--;
-        bytes -= allocation;
+        bytes.store(cached_bytes - allocation, std::memory_order_relaxed);
         return block;
     }
 
@@ -209,7 +213,8 @@ struct KvBlockCache {
         const uint32_t cls = kv_block_class(allocation);
         if (cls >= kClasses || class_nodes[cls] == kMaxNodesPerClass) return false;
         const size_t limit = ceiling < kMaxBytes ? ceiling : kMaxBytes;
-        if (allocation > limit - (bytes < limit ? bytes : limit)) return false;
+        const size_t cached_bytes = bytes.load(std::memory_order_relaxed);
+        if (allocation > limit - (cached_bytes < limit ? cached_bytes : limit)) return false;
         // An immediate double-return would splice the list into a self-loop, which take() would
         // only notice much later (when class_nodes hits 0 with a non-null head). The allocator's
         // own double-free detector is what caught this class of bug before the cache existed; say
@@ -225,7 +230,7 @@ struct KvBlockCache {
         block->allocation = allocation;
         heads[cls] = block;
         class_nodes[cls]++;
-        bytes += allocation;
+        bytes.store(cached_bytes + allocation, std::memory_order_relaxed);
         return true;
     }
 
@@ -234,7 +239,7 @@ struct KvBlockCache {
 #ifdef TOMO_RL_CACHE_DEBUG
         dbg_check_owner("release_all", false);
 #endif
-        if (!bytes) return;
+        if (!bytes.load(std::memory_order_relaxed)) return;
         for (uint32_t cls = 0; cls < kClasses; cls++) {
             while (FreeBlock* block = heads[cls]) {
                 heads[cls] = block->next;
@@ -245,12 +250,13 @@ struct KvBlockCache {
             }
             class_nodes[cls] = 0;
         }
-        bytes = 0;
+        bytes.store(0, std::memory_order_relaxed);
     }
 
     FreeBlock* heads[kClasses] = {};
     uint32_t class_nodes[kClasses] = {};
-    size_t bytes = 0;
+    // Only the owner writes; INFO may sample concurrently. No atomic RMW is needed.
+    std::atomic<size_t> bytes{0};
 };
 
 }  // namespace tomo

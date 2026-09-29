@@ -465,7 +465,8 @@ void live_cache_handoff(Fixture& f) {
         CacheState state{};
         f.workers[tid]->call([&] {
             const auto& cache = *f.queues[tid].sink()->block_cache;
-            state = {cache.heads[cls], cache.class_nodes[cls], cache.bytes};
+            state = {cache.heads[cls], cache.class_nodes[cls],
+                     cache.bytes.load(std::memory_order_relaxed)};
         });
         return state;
     };

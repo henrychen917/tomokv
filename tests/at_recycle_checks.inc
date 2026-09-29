@@ -43,9 +43,10 @@ RecycleSnapshot recycle_snapshot(Fixture& f, unsigned owner) {
             }
             require(result.nodes[cls] == cache.class_nodes[cls], "class occupancy census");
         }
-        require(walked_bytes == cache.bytes && cache.bytes <= KvBlockCache::kMaxBytes,
+        const size_t cached_bytes = cache.bytes.load(std::memory_order_relaxed);
+        require(walked_bytes == cached_bytes && cached_bytes <= KvBlockCache::kMaxBytes,
                 "cache byte census and total bound");
-        result.bytes = cache.bytes;
+        result.bytes = cached_bytes;
         result.mallocs = recycle_alloc.mallocs; result.frees = recycle_alloc.frees;
 #ifdef TOMO_AT_RECYCLE_WITNESS_ENABLED
         result.witness = cache.witness;
