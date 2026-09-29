@@ -853,6 +853,8 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
+    inline static void (*test_local_read_copied_)() = nullptr;
+    inline static bool test_retry_local_mget_ = false;
 #endif
 
     bool read_local_enabled() const {
@@ -1033,8 +1035,11 @@ private:
     ReadLocalFallbackReason local_mget_window_close(
             const LocalMgetWindow& window, const uint64_t* touched, const uint64_t* hashes,
             const int32_t* shards, uint32_t key_count) const {
-        // Formal seqlock hygiene: keep the value loads above on the near side of the re-reads
-        // below. Free on x86.
+        // Keep the value loads before this single validation. A changed window demotes the
+        // command to its owners; it never starts another local attempt. Free on x86.
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_local_read_copied_) test_local_read_copied_();
+#endif
         std::atomic_thread_fence(std::memory_order_acquire);
         if (!window.use_epochs) {
             for (uint32_t sid = 0; sid < srv_->nshards(); sid++) {
@@ -1059,8 +1064,8 @@ private:
         return ReadLocalFallbackReason::None;
     }
 
-    // After the bounded attempts, prefer the actionable atomic reason if one queried key won the
-    // final race; otherwise report the last transient reason observed.
+    // Attribute a failed single attempt to an explicit atomic conflict if one is now visible;
+    // otherwise retain its topology/window reason for the ordinary owner demotion counter.
     ReadLocalFallbackReason local_mget_final_reason(
             const Op& op, const uint64_t* hashes, const int32_t* shards, uint32_t key_count,
             bool cached_routes, ReadLocalFallbackReason transient) const {
@@ -1176,10 +1181,10 @@ private:
 
             transient = local_mget_window_open(
                 window, touched, route_hashes, route_shards, key_count, cached_routes);
-            bool retry = transient != ReadLocalFallbackReason::None;
-            if (!retry) reply_array_header(op.sink(), key_count);
+            bool demote = transient != ReadLocalFallbackReason::None;
+            if (!demote) reply_array_header(op.sink(), key_count);
 
-            for (uint32_t first = 0; first < key_count && !retry;
+            for (uint32_t first = 0; first < key_count && !demote;
                  first += kReadLocalPrefetchKeys) {
                 const uint32_t count = std::min<uint32_t>(
                     key_count - first, kReadLocalPrefetchKeys);
@@ -1205,7 +1210,7 @@ private:
                             hashes[offset], op.arg(first + offset + 1));
                 }
 
-                for (uint32_t offset = 0; offset < count && !retry; offset++) {
+                for (uint32_t offset = 0; offset < count && !demote; offset++) {
                     const int32_t shard_id = shards[offset];
                     FlatStore& store = srv_->shard(shard_id).store();
                     const FlatStore::ReadLocalPrefetchCapture& capture =
@@ -1216,7 +1221,7 @@ private:
                     }
                     if (capture.result == FlatStore::ReadLocalProbeResult::Churn) {
                         transient = ReadLocalFallbackReason::SeqChurn;
-                        retry = true;
+                        demote = true;
                         break;
                     }
                     if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
@@ -1224,7 +1229,7 @@ private:
                         prepared.keyspace_misses++;
                         if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                             transient = ReadLocalFallbackReason::SeqChurn;
-                            retry = true;
+                            demote = true;
                         }
                         continue;
                     }
@@ -1253,7 +1258,7 @@ private:
                     } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
                         if (!read_local_reply_string(op, object, flags)) {
                             transient = ReadLocalFallbackReason::SeqChurn;
-                            retry = true;
+                            demote = true;
                             break;
                         }
                     } else {
@@ -1261,10 +1266,10 @@ private:
                         return {ReadLocalFallbackReason::Typed};
                     }
                     prepared.keyspace_hits++;
-                    // Account only for a key this pass accepted, before any retry or demotion.
+                    // Account only for a key this pass accepted, before demotion.
                     if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
-                        retry = true;
+                        demote = true;
                     } else if (__builtin_expect(maxmemory_enabled_, false)) {
                         note_local_read_access(op, object, flags);
                     }
@@ -1273,16 +1278,30 @@ private:
 
             // C0 performs each probe's topology validation. This one outer close then validates
             // every queried cell across the complete multi-shard capture/copy interval.
-            if (!retry) {
+            if (!demote) {
                 transient = local_mget_window_close(
                     window, touched, route_hashes, route_shards, key_count);
-                retry = transient != ReadLocalFallbackReason::None;
+                demote = transient != ReadLocalFallbackReason::None;
             }
-            if (!retry) return prepared;
+            if (!demote) return prepared;
             read_local_clear_reply(op);
-            if (attempt + 1 < kAttempts)
+            if (attempt + 1 < kAttempts) {
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+                if (!test_retry_local_mget_)
+#endif
+                // Unconditional cold demotion. The annotation emits no bytes; the offline
+                // kind-A PAD replaces only this jump with a same-width NOP to restore PRE's
+                // retry in POST's exact layout. No successful-read instruction or runtime knob.
+                asm inline goto(".local tomo_rltopo_demote_%=\n"
+                         "tomo_rltopo_demote_%=:\n\t"
+                         "jmp %l[owner_demotion]\n"
+                         : : : : owner_demotion);
                 self_->read_local_stats().mget_generation_retries++;
+            }
         }
+        // Owner ruling 2026-09-27: topology churn is an owner demotion, never a reader retry.
+        // The same rule applies to a changed atomic window, preserving untorn MGET replies.
+    owner_demotion:
         return {local_mget_final_reason(
             op, route_hashes, route_shards, key_count, cached_routes, transient)};
     }
@@ -1301,6 +1320,9 @@ private:
             return prepare_captured_local_mget(op);
         }
         FlatStore& store = *home;
+        // The legacy string-copy loop has no reachable retry: read_local_reply_string returns true.
+        // Keep its source shape to preserve GET code generation; topology failures break directly
+        // to the owner demotion below. tests/rltopo_unit.cc forces both failure boundaries.
         static constexpr uint32_t kRetries = 3;
         ReadLocalCaptureBuffer<1> local_capture;
         // A mixed GET/MGET chunk executes in program order. Its point reads capture here so a
@@ -1359,6 +1381,9 @@ private:
                 return {ReadLocalFallbackReason::Typed};
             }
 
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+            if (test_local_read_copied_) test_local_read_copied_();
+#endif
             if (!store.read_local_validate(probe_state)) {
                 read_local_clear_reply(op);
                 break;
@@ -1468,7 +1493,7 @@ private:
             consumed += count;
 
             // Pure point chunks retain the widest I0/C0/E0 overlap. A mixed chunk captures and
-            // consumes each command in program order below: MGET may retry and recapture, so
+            // consumes each command in program order below: MGET captures its own window, so
             // pre-capturing a following GET could otherwise let that later command regress.
             const bool point_capture_batch = mget_mask == 0;
             if (point_capture_batch) {

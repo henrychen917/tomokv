@@ -969,6 +969,9 @@ public:
             // the old-table match/stopper is the last word that decided the complete lookup.
             if (old_slot) slot = old_slot;
         }
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_read_local_captured) test_read_local_captured(*this);
+#endif
         const uint64_t final_state = read_local_state_acquire();
         if (!read_local_probe_sequence_equal(final_state, state)) {
             return {foreign_read_key_unsafe(final_state, hash)
@@ -979,6 +982,11 @@ public:
         return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing,
                 slot, object, state};
     }
+
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+    // Deterministic topology interleaving, absent from release code and object layouts.
+    inline static void (*test_read_local_captured)(const FlatStore&) = nullptr;
+#endif
 
     bool     rehashing() const { return tab_[1] != nullptr; }
     // Owner-only observation: DEBUG REHASH-STATE runs on shard 0's owner, so these real
