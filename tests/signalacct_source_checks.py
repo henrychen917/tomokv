@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Serverless IO scope/idle/R7 source proofs against the frozen launch reference."""
+import argparse
 import hashlib
 import json
 import os
@@ -23,8 +24,15 @@ def idle_tokens(source):
 
 
 def main():
+    global OUT
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--reference', type=Path, default=ROOT / 'build/signalacct-pre')
+    parser.add_argument('--output', type=Path, default=OUT)
+    args = parser.parse_args()
     assert set(os.sched_getaffinity(0)) <= set(range(112, 128)), 'pin to CPUs 112-127'
-    pre = ROOT / 'build/signalacct-pre'
+    pre = args.reference.resolve()
+    OUT = args.output.resolve()
+    OUT.mkdir(parents=True, exist_ok=True)
     before = (pre / 'src/core/io_loop.h').read_text()
     after = (ROOT / 'src/core/io_loop.h').read_text()
     assert idle_tokens(before) == idle_tokens(after), 'IO idle boundaries/callback ordering changed'

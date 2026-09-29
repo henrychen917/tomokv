@@ -26,7 +26,7 @@ inline int run(const char* only = "all") {
     if (!std::strcmp(only, "all") || !std::strcmp(only, "passes")) {
         Clock::time = 100; Clock::calls = 0;
         tomo::LoopSignals sig;
-        tomo::IoTenure<Clock> tenure(sig);
+        tomo::IoTenure<Clock, 0> tenure(sig);
         Clock::time = 110;
         require(tenure.pass() == 110 && sig.busy_ns == 9, "entry/prologue cut");
         // Productive pass includes dispatch, submit/reap, and its continue edge.
@@ -72,6 +72,34 @@ inline int run(const char* only = "all") {
         std::printf("signalacct roles: IO1=%llu EX=500 IO2=%llu busy2=%llu idle2=%llu\n",
             (unsigned long long)(a.end_ns-a.begin_ns), (unsigned long long)(b.end_ns-b.begin_ns),
             (unsigned long long)b.busy_ns, (unsigned long long)b.idle_ns);
+    }
+    if (!std::strcmp(only, "all") || !std::strcmp(only, "window")) {
+        Clock::time = 100; Clock::calls = 0;
+        tomo::LoopSignals sig;
+        tomo::IoTenure<Clock> tenure(sig);
+        Clock::time = 110; tenure.pass();
+        require(sig.busy_ns == 9, "window entry/prologue published");
+        // Uneven productive/sweep/park passes, including an entire idle span.
+        // No elapsed interval is dropped or multiplied by a sampling weight.
+        Clock::time = 120; tenure.pass();
+        Clock::time = 90000; tenure.pass();
+        sig.idle_ns += 5000;
+        Clock::time = 100109; tenure.pass();
+        require(sig.busy_ns == 9, "window suppresses intermediate shared busy stores");
+        Clock::time = 100110; tenure.pass();
+        require(sig.busy_ns == 95009, "window includes all uneven passes and subtracts idle once");
+        sig.idle_ns += 170000; // a long wait spans more than one publication window
+        Clock::time = 300000; tenure.pass();
+        require(sig.busy_ns == 124899, "long pass publishes complete actual wall");
+        Clock::time = 300050; tenure.pass();
+        require(sig.busy_ns == 124899, "new window suppresses a burst after the long pass");
+        Clock::time = 300080;
+        const auto r = tenure.finish(true, false);
+        require(r.busy_ns == 124979 && r.idle_ns == 175000,
+                "window final partial interval flushed on role exit");
+        conserved(r, "window conserves wall despite unequal pass lengths");
+        require(Clock::calls == 11, "window uses one clock per pass and four endpoints");
+        std::puts("PASS signalacct window: seven passes, three publications, exact final flush");
     }
     if (!std::strcmp(only, "all") || !std::strcmp(only, "zero")) {
         Clock::time = 2000;
