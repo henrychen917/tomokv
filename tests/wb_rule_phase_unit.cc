@@ -65,6 +65,7 @@ struct CoreConcurrencyTest {
     }
     static Slice slice(const std::string& s) { return {s.data(), static_cast<uint32_t>(s.size())}; }
     template <bool Fused, bool SplitLocal = false> struct Fixture {
+        wb_rule::State wb_policy;
         Server server;
         ExLoopT<Fused || SplitLocal> ex;
         IoLoop io;
@@ -74,7 +75,7 @@ struct CoreConcurrencyTest {
         unsigned sq_head = 0;
         unsigned cq_head = 0, cq_tail = 0;
         std::array<io_uring_sqe, 8> sqes{};
-        Fixture() {
+        explicit Fixture(int policy = 1, uint32_t arm = 0) : wb_policy(policy, Fused, arm) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof cpus, &cpus) == 0, "read affinity");
@@ -92,11 +93,14 @@ struct CoreConcurrencyTest {
             require(server.placement_.reserve_runtime_roles(8), "roles");
             Config config;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
+            config.wb_policy = policy;
             config.shards = 16;
             config.read_local = SplitLocal;
             config.overlap = config.atomic = 1;
             config.save.clear();
             require(server.init(config), "in-memory server state");
+            require(bool(server.wb_policy_signal(0)) == wb_rule::adaptive(policy, Fused),
+                    "fixed modes allocate no policy publications");
             for (unsigned tid = 0; tid < 8; ++tid) {
                 ThreadCtx& thread = server.thread(tid);
                 require(Fused ? thread.init_task_inbox_local_fused()
@@ -119,6 +123,7 @@ struct CoreConcurrencyTest {
             g_ring_epoll_mode = false;
             io.srv_ = &server;
             io.self_ = &server.thread(0);
+            io.wb_policy_ = &wb_policy;
             if constexpr (Fused || SplitLocal) {
                 io.fused_executor_ = &ex;
                 ex.bind_fused_completion(nullptr, [](void*, Client*) {});
@@ -403,6 +408,35 @@ struct CoreConcurrencyTest {
         for (auto& c : clients) require(c->rob().at(0).state.load() == OpState::Done, "all GETs Done");
         require(f.ex.self_->ex_inbound_quiesced(), "EX sources retired");
     }
+    template <bool Fused, bool Local = false, bool Probe = false> static void wbland_policies(bool r7) {
+        for (int policy : {-1, 0, 1}) for (unsigned busy : {0u, 64u, 128u, 192u, 256u}) {
+            Fixture<Fused, Local> f(policy, Probe ? 1u << 8 : 0);
+            f.wb_policy.pass(0, 0, 16);
+            for (unsigned p = 1; p <= 32; ++p)
+                f.wb_policy.pass(p*256, p*(256-busy), 16);
+            std::vector<std::unique_ptr<Client>> clients;
+            // More than the overlap scratch capacity: every captured chunk matters.
+            for (unsigned i = 0; i < 96; ++i) {
+                auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
+                fill(*c, 32, i%32+1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
+            }
+            Client staged(-1); f.client(staged, 97); staged.fill_buf().append("+OK\r\n", 5);
+            f.io.enqueue_serve(&staged);
+            phase(f, r7);
+            unsigned served = 1;
+            const unsigned fraction = policy == 0 ? 0 : policy == -1 && (Fused || Probe) ? busy : 128;
+            for (unsigned i = 0; i < clients.size(); ++i) {
+                const unsigned prefix = i%32+1;
+                const bool admitted = prefix >= (32*fraction+255)/256;
+                require(clients[i]->rob().in_flight() == (admitted ? 32-prefix : 32),
+                        "wb-policy exact retirement in every physical schedule");
+                require(clients[i]->serve_pending() == !admitted, "wb-policy retains deferred pins");
+                served += admitted;
+            }
+            require(staged.send_inflight() && !staged.serve_pending(), "wb-policy empty pipe sends");
+            require(f.io.wb_.stats().serves == served, "wb-policy serves each admission once");
+        }
+    }
     static int run(int argc, char** argv) {
         require(argc == 2 || argc == 3, "usage: wb-rule-phase-unit CASE [r7]");
         selected = argv[1]; const std::string name = selected;
@@ -412,7 +446,12 @@ struct CoreConcurrencyTest {
             split_schedule = std::string(argv[2]) == "natural" ? 1 : 2;
         }
         require(command_registry_init(false), "command registry");
-        if (name == "fused-budget") budget<true>(r7);
+        if (name == "wbland-fused") wbland_policies<true>(r7);
+        else if (name == "wbland-split") wbland_policies<false>(false);
+        else if (name == "wbland-local") wbland_policies<false, true>(false);
+        else if (name == "wbland-split-probe") wbland_policies<false, false, true>(false);
+        else if (name == "wbland-local-probe") wbland_policies<false, true, true>(false);
+        else if (name == "fused-budget") budget<true>(r7);
         else if (name == "split-budget") budget<false>(false);
         else if (name == "fastpath") fastpath(r7);
         else if (name == "fifo") fifo(r7);

@@ -413,3 +413,26 @@ $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_PHASE_CONTROLS))
 wb-rule-units: build/wb-rule-units
 build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-phase-unit build/wb-rule-db0-phase-unit $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS) $(WB_RULE_PHASE_CONTROLS)))
 	@touch $@
+
+# Adaptive linear writeback: all fixtures are serverless; gate owns execution.
+WBLAND_CONTROLS := per-pass always-busy always-idle switch reversed one-block window-one unweighted flushall half whole finished empty split-auto byte-limit
+build/wbland-unit: tests/wbland_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
+build/wbland-db0-unit: tests/wbland_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
+build/wbland-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
+build/wbland-db0-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
+$(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))): build/wbland-controls/%/unit: tests/wbland_checks.py tests/wbland_unit.cc $(WB_RULE_CONTROL_DEPS)
+	python3 tests/wbland_checks.py emit $* build/wbland-controls/$*/source
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-controls/$*/source -I. tests/wbland_unit.cc -o $@ $(JELIBS)
+$(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS))): build/wbland-clause-controls/%/unit: tests/wbland_clause_unit.cc $(WB_RULE_CONTROL_DEPS)
+	python3 tests/wb_rule_checks.py emit $* build/wbland-clause-controls/$*/source
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-clause-controls/$*/source -I. tests/wbland_clause_unit.cc -o $@ $(JELIBS)
+.PHONY: wbland-units
+wbland-units: build/wbland-units
+build/wbland-units: build/wbland-unit build/wbland-db0-unit build/wbland-clause-unit build/wbland-db0-clause-unit build/wb-rule-units $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))) $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS)))
+	@touch $@
