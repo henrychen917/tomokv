@@ -1,13 +1,112 @@
-// One writeback policy in both modes: one captured FIFO visit, bytes OR half a Done prefix.
+// One captured FIFO visit: bytes OR a contiguous Done fraction, chosen by the IO owner.
 #pragma once
-#include <ratio>
+#include <cstdio>
+#include <string>
 #include <type_traits>
 #include "../net/conn.h"
 
 namespace tomo::wb_rule {
-// Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
-// section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
-inline constexpr std::ratio<1, 2> kPolicyFraction{};
+inline constexpr unsigned scale = 256;
+
+// Cold artifact selector, patched only by tools/wbland_artifacts.py. Low byte:
+// default policy + 1. Bit 8: unmeasured split-AUTO probe. Bit 31: PAD A (half rule).
+// Production is zero: AUTO in fused, the landed half rule in split pending measurement.
+__attribute__((noinline, noclone)) inline uint32_t build_arm() {
+    uint32_t word;
+    asm volatile("mov $0, %0" : "=a"(word));
+    return word;
+}
+inline int default_policy() { return int(build_arm() & 255) - 1; }
+inline bool adaptive(int policy, bool fused, uint32_t arm = build_arm()) {
+    return policy == -1 && (fused || (arm & (1u << 8))) && !(arm & (1u << 31));
+}
+
+// pol2-k1's window: freeze W=max(1, owned connections) for each complete block;
+// combine the current and previous blocks by duration, then hold f for the next W
+// passes. Two blocks provide the measured smoothing/history. Ownership changes
+// affect only the next block. No decision before two blocks; a new IO tenure resets.
+struct Window {
+    size_t remaining = 1, width = 1;
+    uint64_t wall_start = 0, idle_start = 0, previous_wall = 0, previous_idle = 0;
+    uint64_t windows = 0;
+    unsigned busy = 0;
+    bool seeded = false, previous_valid = false;
+
+    __attribute__((noinline)) bool close(uint64_t wall, uint64_t idle, size_t owned) {
+        width = std::max<size_t>(1, owned);
+        remaining = width;
+        if (!seeded) {
+            wall_start = wall; idle_start = idle; seeded = true;
+            return false;
+        }
+        const uint64_t elapsed = wall - wall_start, asleep = idle - idle_start;
+        wall_start = wall; idle_start = idle;
+        if (!elapsed) return false;
+        if (asleep > elapsed) std::abort(); // existing accounting contract
+        ++windows;
+        const bool ready = previous_valid;
+        if (ready) {
+            const unsigned __int128 total = (unsigned __int128)elapsed + previous_wall;
+            const unsigned __int128 rest = (unsigned __int128)asleep + previous_idle;
+            busy = unsigned((total - rest) * scale / total);
+        }
+        previous_wall = elapsed; previous_idle = asleep; previous_valid = true;
+        return ready;
+    }
+    bool due() { return --remaining == 0; }
+};
+
+// INFO sees only beat publications, never the owner stack. One packet makes the
+// dial/busy/active fields coherent without a reader retry or seqlock. Counters are
+// independent diagnostic snapshots. Fixed policies allocate no publication rows.
+struct alignas(64) Published {
+    std::atomic<uint64_t> packet{0}, windows{0}, width{0};
+};
+struct State {
+    const bool dynamic;
+    unsigned fraction;
+    Window window;
+
+    explicit State(int policy, bool fused, uint32_t arm = build_arm())
+        : dynamic(adaptive(policy, fused, arm)),
+          fraction((arm & (1u << 31)) ? 128 : dynamic || policy == 0 ? 0 : 128) {}
+
+    // Already-paid pass cut and idle signal; only local countdown/dial writes.
+    void pass(uint64_t wall, uint64_t idle, size_t owned) {
+        if (dynamic && window.due() && window.close(wall, idle, owned))
+            fraction = window.busy;
+    }
+    void publish(Published* out, bool active = true) const {
+        if (!out) return;
+        const uint64_t packet = uint64_t(window.busy) | uint64_t(fraction) << 9 |
+                                uint64_t(active) << 18;
+        out->windows.store(window.windows, std::memory_order_relaxed);
+        out->width.store(window.width, std::memory_order_relaxed);
+        out->packet.store(packet, std::memory_order_relaxed);
+    }
+};
+
+inline void info(std::string& body, int policy, bool fused, const Published* rows,
+                 unsigned threads) {
+    const uint32_t arm = build_arm();
+    const State state(policy, fused, arm);
+    char line[256];
+    std::snprintf(line, sizeof line, "# Writeback\r\nwb_policy:%d\r\nwb_adaptive:%u\r\n"
+        "wb_fixed_f256:%d\r\nwb_split_probe:%u\r\nwb_pad:%u\r\n", policy,
+        unsigned(state.dynamic), state.dynamic ? -1 : int(state.fraction),
+        unsigned(bool(arm & (1u << 8))), unsigned(bool(arm & (1u << 31))));
+    body += line;
+    for (unsigned tid = 0; rows && tid < threads; ++tid) {
+        const auto& row = rows[tid];
+        const uint64_t packet = row.packet.load(std::memory_order_relaxed);
+        std::snprintf(line, sizeof line, "wb_thread_%u:active=%u,busy256=%u,f256=%u,"
+            "window_passes=%llu,windows=%llu\r\n", tid, unsigned((packet >> 18) & 1),
+            unsigned(packet & 511), unsigned((packet >> 9) & 511),
+            (unsigned long long)row.width.load(std::memory_order_relaxed),
+            (unsigned long long)row.windows.load(std::memory_order_relaxed));
+        body += line;
+    }
+}
 
 // IO-owned sizes only; exclude submitted send/segment bytes from the next batch.
 // buffered_output_bytes() already walks the existing segment queue, without a
@@ -47,14 +146,15 @@ inline size_t reply_bytes(const Operation& op) {
 }
 
 template <class Connection>
-inline bool defer(Connection& c) {
+inline bool defer(Connection& c, unsigned fraction = 128) {
+    if (fraction == 0) return false; // policy 0 and AUTO's exact idle endpoint
     auto& rob = c.rob();
     const unsigned n = rob.in_flight();
     if (n <= 1) return false; // staged-only, pubsub, and p1 use ordinary serve
     size_t bytes = staged_bytes(c);
     if (bytes >= kWbufInline) return false;
     const auto head = rob.flush_id();
-    const unsigned threshold = (n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den;
+    const unsigned threshold = (n * fraction + scale - 1) / scale;
     unsigned prefix = 0;
     // Both counters belong to IO, but Done can have holes. Neither head/tail nor
     // the threshold slot alone proves a contiguous prefix. At most ROB slots,
@@ -84,7 +184,7 @@ struct Phase2 {
             --left;
             Client* client = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
-            if (!client->dead() && defer(*client)) {
+            if (!client->dead() && defer(*client, loop.wb_policy_ ? loop.wb_policy_->fraction : 128)) {
                 loop.pending_serve_.push_back(client);
                 continue;
             }
@@ -108,7 +208,7 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
-            if (!c->dead() && defer(*c)) {
+            if (!c->dead() && defer(*c, loop.wb_policy_ ? loop.wb_policy_->fraction : 128)) {
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;

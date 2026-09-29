@@ -797,6 +797,9 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    wb_rule::State wb_policy(srv_->cfg().wb_policy, Fused && !SplitLocal);
+    wb_policy_ = &wb_policy;
+    auto* wb_signal = srv_->wb_policy_signal(self_->id());
     constexpr bool IoPipe = (!Fused || SplitLocal) && Pipeline == 1;
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
@@ -820,6 +823,7 @@ void IoLoop::r7_run_loop() {
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ifid) {
         const uint64_t pass_ns = tenure.pass();
+        wb_policy.pass(pass_ns, sig.idle_ns, self_->clients().size());
         Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
         if (DatabaseMapTestHooks::loop_pass) {
@@ -877,6 +881,7 @@ void IoLoop::r7_run_loop() {
                 client_cron_beat_ms_ = cached_now_ms_;
             }
             if (self_->sample_depth(pass_ns / 1000)) {
+                wb_policy.publish(wb_signal);
                 // CLOCK_THREAD_CPUTIME_ID can require a real syscall. cpu_ns is diagnostic
                 // only (model demand uses wall-idle; physical placement uses busy/idle), so sample it
                 // on the existing 100us signal beat instead of every hot pass.
@@ -1068,6 +1073,8 @@ void IoLoop::r7_run_loop() {
     }
     const auto io_tenure = tenure.finish(self_->role() != Role::Ifid,
         self_->stop_flag().load(std::memory_order_relaxed));
+    wb_policy.publish(wb_signal, false);
+    wb_policy_ = nullptr;
     if constexpr (Fused) {
         // The read loop is over for this tenure. Teardown may take longer than another
         // owner's bounded retire queue can tolerate, but it performs no foreign store probe.

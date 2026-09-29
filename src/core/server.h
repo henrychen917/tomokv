@@ -273,6 +273,8 @@ public:
             return false;
         }
         cfg_ = cfg;
+        if (wb_rule::adaptive(cfg.wb_policy, cfg.thread_mode == ThreadMode::Fused))
+            wb_policy_signals_ = std::make_unique<wb_rule::Published[]>(placement_.total_threads());
         cfg_.reorder = reorder_available() ? reorder_for_mode(cfg_.reorder, cfg_.thread_mode) : 0;
         if (cfg.shards == 0 || cfg.shards > 256) {
             std::fprintf(stderr, "shards must be between 1 and 256\n");
@@ -474,6 +476,13 @@ public:
     }
     const Config&    cfg()        const { return cfg_; }
     ThreadMode thread_mode() const { return cfg_.thread_mode; }
+    wb_rule::Published* wb_policy_signal(uint32_t tid) {
+        return wb_policy_signals_ ? &wb_policy_signals_[tid] : nullptr;
+    }
+    void wb_policy_info(std::string& body) const {
+        wb_rule::info(body, cfg_.wb_policy, cfg_.thread_mode == ThreadMode::Fused,
+                      wb_policy_signals_.get(), nthreads());
+    }
     const char* thread_mode_name() const {
         return cfg_.thread_mode == ThreadMode::Fused ? "1s" : "2s";
     }
@@ -3737,6 +3746,7 @@ private:
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
     // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
+    std::unique_ptr<wb_rule::Published[]> wb_policy_signals_;
 };
 
 }  // namespace tomo

@@ -339,6 +339,7 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.read_local), true});
     g_config.push_back({"reorder", ConfigKind::Signed,
                         std::to_string(static_cast<int32_t>(cfg.reorder)), true});
+    g_config.push_back({"wb-policy", ConfigKind::Signed, std::to_string(cfg.wb_policy), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
     g_config.push_back({"flip-auto", ConfigKind::Unsigned,
@@ -2675,6 +2676,7 @@ void cmd_info(Shard&, Op& op) {
             }
         }
     }
+    if (g_server && info_section(op, "WRITEBACK")) g_server->wb_policy_info(body);
     if (g_server && info_section(op, "LB", false)) lbsignals_info_section(*g_server, body);
     reply_verbatim(op.sink(), Slice(body.data(), body.size()), "txt", op.resp3());
 }
