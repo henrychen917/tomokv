@@ -60,11 +60,11 @@ def arms():
     for row in rows: print(row['name'],row['sha256'])
 
 
-def identity():
+def identity(pre_build):
     rows=[]
     for ns in ('src','db0/src'):
         for file in ('cmd/t_string.o','cmd/t_string_notify.o'):
-            a,b=Elf(BUILD/'wbland-pre-src/build'/ns/file),Elf(BUILD/ns/file)
+            a,b=Elf(pre_build/ns/file),Elf(BUILD/ns/file)
             before,after=a.functions(),b.functions(); names=sorted(before.keys() | after.keys())
             labels=subprocess.check_output(['c++filt'],input='\n'.join(names)+'\n',text=True).splitlines()
             for name,label in zip(names,labels):
@@ -79,4 +79,8 @@ def identity():
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=('arms','identity'))
-    {'arms':arms,'identity':identity}[p.parse_args().action]()
+    p.add_argument('--pre-build', type=Path, default=BUILD/'wbland-pre-src/build',
+                   help='matched mainline object directory for command identity')
+    args=p.parse_args()
+    if args.action=='arms': arms()
+    else: identity(args.pre_build.resolve())
