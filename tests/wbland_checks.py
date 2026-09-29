@@ -110,6 +110,7 @@ def check(group, build):
         for name, (case, assertion, _, _) in MUTANTS.items():
             run(build/'wbland-controls'/name/'unit', case, assertion)
         source()
+        subprocess.run(['python3', 'tests/wbland2_checks.py', 'check'], cwd=ROOT, check=True)
     elif group == 'clauses':
         # Same original clause deletions compiled through the runtime AUTO dial.
         for name, (kind, _, _, _, case, assertion) in legacy.MUTANTS.items():

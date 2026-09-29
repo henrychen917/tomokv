@@ -21,16 +21,18 @@ inline bool adaptive(int policy, bool fused, uint32_t arm = build_arm()) {
     return policy == -1 && (fused || (arm & (1u << 8))) && !(arm & (1u << 31));
 }
 
-// pol2-k1's window: freeze W=max(1, owned connections) for each complete block;
-// combine the current and previous blocks by duration, then hold f for the next W
-// passes. Two blocks provide the measured smoothing/history. Ownership changes
-// affect only the next block. No decision before two blocks; a new IO tenure resets.
+// Literal Window from cx-wbmode 60e4221ec:src/core/wbmode.h (pol2-k1).
+// W=max(1, owned) is frozen for a block; combine two completed blocks by
+// duration. The raw saturated flag belongs to the study's switching arm; it
+// is retained for source parity but does not select this linear policy.
+// Feed EVERY pass timestamp and current idle counter, exactly as the study:
+// IoTenure's 100us busy-counter publication is not a writeback decision clock.
 struct Window {
     size_t remaining = 1, width = 1;
     uint64_t wall_start = 0, idle_start = 0, previous_wall = 0, previous_idle = 0;
     uint64_t windows = 0;
     unsigned busy = 0;
-    bool seeded = false, previous_valid = false;
+    bool seeded = false, previous_valid = false, saturated = false;
 
     __attribute__((noinline)) bool close(uint64_t wall, uint64_t idle, size_t owned) {
         width = std::max<size_t>(1, owned);
@@ -42,12 +44,14 @@ struct Window {
         const uint64_t elapsed = wall - wall_start, asleep = idle - idle_start;
         wall_start = wall; idle_start = idle;
         if (!elapsed) return false;
-        if (asleep > elapsed) std::abort(); // existing accounting contract
+        // Same bounds as IoTenure; do not silently turn invalid accounting into load.
+        if (asleep > elapsed) std::abort();
         ++windows;
         const bool ready = previous_valid;
         if (ready) {
             const unsigned __int128 total = (unsigned __int128)elapsed + previous_wall;
             const unsigned __int128 rest = (unsigned __int128)asleep + previous_idle;
+            saturated = rest == 0; // raw ns, never the rounded fixed-point fraction
             busy = unsigned((total - rest) * scale / total);
         }
         previous_wall = elapsed; previous_idle = asleep; previous_valid = true;
@@ -71,7 +75,8 @@ struct State {
         : dynamic(adaptive(policy, fused, arm)),
           fraction((arm & (1u << 31)) ? 128 : dynamic || policy == 0 ? 0 : 128) {}
 
-    // Already-paid pass cut and idle signal; only local countdown/dial writes.
+    // Study policy 2, exponent 1: curve(window.busy, 1) is window.busy.
+    // Already-paid per-pass timestamp and idle signal; no busy-publication gate.
     void pass(uint64_t wall, uint64_t idle, size_t owned) {
         if (dynamic && window.due() && window.close(wall, idle, owned))
             fraction = window.busy;
