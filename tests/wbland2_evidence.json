@@ -1,0 +1,370 @@
+{
+  "source_commit": "7dbc115f8a211982fe31cebd40e280dcfffcb2dc",
+  "mainline": "37eeb5e90be9997805cfe2456021ad07dc0c18f9",
+  "merge_commit": "5e909a315",
+  "detector_and_replay_commit": "158a943c1e627d6eb2c2e835b0bb4afe27d72b1a",
+  "affinity": "112-127",
+  "server_runs": 0,
+  "benchmark_runs": 0,
+  "gate_runs": 0,
+  "status": "No detector semantic mismatch found; live trace and tail acceptance outstanding",
+  "source_proof": {
+    "60e4221ec:src/core/wbmode.h": "3bdb86ea7f66f5722b95e0180fc8c946dd4b74dbfbf5c9b77cdee6e6188b2eda",
+    "60e4221ec:src/core/signalacct.h": "fe722b9ae61dee3311435c79f28254ed40d194bec55a68843659612ebede6506",
+    "f6d2e969f:src/core/wb_rule.h": "f5be1c94e32bbe9d8f76b014eb512ac65608687e3049a64ae5c29b9956797134",
+    "selection_and_phase2_unchanged_from_wbland1": true,
+    "mainline_37_sha256": "ba5ec37b90bc0f8f92a2dad0931befc85e1ab2a491182861cd612822f65a8869"
+  },
+  "replay": {
+    "study_commit": "60e4221ec5cf36425eb339d3eca608c1a1e64a6d",
+    "previous_commit": "f6d2e969f",
+    "trace": "/home/user/Projects/cx-wbland/build/wbland2/synthetic-burst.csv",
+    "trace_sha256": "d6c8e85106c84c03d40f99789c83d82460061df49c5fc3470561ccecdcfff4d8",
+    "provenance": "synthetic, not live-recorded",
+    "reference_sha256": "471ce5b504c746057dab079d474f282ae84edd2ad7691b9a477f5e39f33aa1c5",
+    "rows": [
+      {
+        "binary": "build/wbland2-replay",
+        "sha256": "7cd6ad27ccdd2a80f78cc9a53cae41e926242a5fa6580166cad964c5cde7dc68",
+        "negative_control": false,
+        "exit": 0,
+        "stdout": "PASS wbland2 replay: rows=18771 tenures=2 windows=8029 transitions=2837 candidate_mismatches=0 wbland1_mismatches=0 busy_counter_differences=15000 cut_gated_differences=14177 idle_endpoint=1 full_endpoint=1\nCONTROL first_difference_row=33 wall_ns=297984 pol2_f256=65 cut_gated_f256=0\n",
+        "stderr": ""
+      },
+      {
+        "binary": "build/wbland2-replay",
+        "sha256": "7cd6ad27ccdd2a80f78cc9a53cae41e926242a5fa6580166cad964c5cde7dc68",
+        "negative_control": true,
+        "exit": 1,
+        "stdout": "",
+        "stderr": "FAIL wbland2 replay: candidate f sequence equals pinned pol2-k1 on every pass\n"
+      },
+      {
+        "binary": "build/wbland2-db0-replay",
+        "sha256": "f2830337b7f4687bcfeb3ab3f37a9b68c8991b56466731c500955f7abe9d2ef7",
+        "negative_control": false,
+        "exit": 0,
+        "stdout": "PASS wbland2 replay: rows=18771 tenures=2 windows=8029 transitions=2837 candidate_mismatches=0 wbland1_mismatches=0 busy_counter_differences=15000 cut_gated_differences=14177 idle_endpoint=1 full_endpoint=1\nCONTROL first_difference_row=33 wall_ns=297984 pol2_f256=65 cut_gated_f256=0\n",
+        "stderr": ""
+      },
+      {
+        "binary": "build/wbland2-db0-replay",
+        "sha256": "f2830337b7f4687bcfeb3ab3f37a9b68c8991b56466731c500955f7abe9d2ef7",
+        "negative_control": true,
+        "exit": 1,
+        "stdout": "",
+        "stderr": "FAIL wbland2 replay: candidate f sequence equals pinned pol2-k1 on every pass\n"
+      }
+    ],
+    "sequence_sha256": "08145128f450f54b56c6354ff88a0f4a26cf86d651e414569438bb1ec9bfe997"
+  },
+  "costs": [
+    {
+      "arm": "pre",
+      "case": "fixed",
+      "instructions": 4,
+      "executable_instructions": 4,
+      "library_instructions": 0
+    },
+    {
+      "arm": "pre",
+      "case": "pass",
+      "instructions": 9,
+      "executable_instructions": 9,
+      "library_instructions": 0
+    },
+    {
+      "arm": "pre",
+      "case": "close",
+      "instructions": 94,
+      "executable_instructions": 77,
+      "library_instructions": 17
+    },
+    {
+      "arm": "post",
+      "case": "fixed",
+      "instructions": 4,
+      "executable_instructions": 4,
+      "library_instructions": 0
+    },
+    {
+      "arm": "post",
+      "case": "pass",
+      "instructions": 9,
+      "executable_instructions": 9,
+      "library_instructions": 0
+    },
+    {
+      "arm": "post",
+      "case": "close",
+      "instructions": 97,
+      "executable_instructions": 80,
+      "library_instructions": 17
+    },
+    {
+      "arm": "pol2",
+      "case": "fixed",
+      "instructions": 4,
+      "executable_instructions": 4,
+      "library_instructions": 0
+    },
+    {
+      "arm": "pol2",
+      "case": "pass",
+      "instructions": 9,
+      "executable_instructions": 9,
+      "library_instructions": 0
+    },
+    {
+      "arm": "pol2",
+      "case": "close",
+      "instructions": 108,
+      "executable_instructions": 91,
+      "library_instructions": 17
+    }
+  ],
+  "artifacts": {
+    "pre": {
+      "path": "/home/user/Projects/cx-wbland/build/wbland-pre-src/build/tomokv",
+      "sha256": "e2dbc007f39aab291f824a3872d3c01747423e12ce9caf1cc601555991b4c189",
+      "text": 7577489,
+      "tdata": 112,
+      "tbss": 480
+    },
+    "reference": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-9c4717da0",
+      "sha256": "84ddb8abba4d8c32196edadb860da45114379490432a900dfee76efb71bfdd72",
+      "text": 7577489,
+      "tdata": 112,
+      "tbss": 480
+    },
+    "arms": [
+      {
+        "name": "tomokv",
+        "arm_word": "0x0",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv",
+        "sha256": "5b0aa57973ecfea83fe3d47d3560d523db133564b9308a8ec550f1aea7f096d3",
+        "text": 7608109,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pol0",
+        "arm_word": "0x1",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pol0",
+        "sha256": "be72d796cc9fbdb13c5f5b6f25a1c4daf4d921e05d6a27e532b4274c31082940",
+        "text": 7608109,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pol1",
+        "arm_word": "0x2",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pol1",
+        "sha256": "eefe0f0173ad88d6d5a4bc49044cdac6a1de145d726eff6e177a2e9920cd9ffe",
+        "text": 7608109,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-pad",
+        "arm_word": "0x80000000",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-pad",
+        "sha256": "24228d3445be5535a3e1d98c3b77bbb7c4137203d68b8e6fd088169d0467c90c",
+        "text": 7608109,
+        "tdata": 112,
+        "tbss": 480
+      },
+      {
+        "name": "tomokv-auto2s-probe",
+        "arm_word": "0x100",
+        "path": "/home/user/Projects/cx-wbland/build/tomokv-auto2s-probe",
+        "sha256": "bea143c3d783ce33c86c12fd32860c8cdd265dc1e2953083639704e4ae1c8b67",
+        "text": 7608109,
+        "tdata": 112,
+        "tbss": 480
+      }
+    ],
+    "selector_offsets": [
+      412501,
+      4099157
+    ],
+    "exact_layout": true,
+    "pad_kind": "A: PRE half-rule behavior in exact candidate layout",
+    "caveat": "new fixed-policy dispatch remains; require pol1-vs-PRE null",
+    "text_delta": 30620
+  },
+  "additional_references": [
+    {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-37eeb5e90",
+      "sha256": "ba5ec37b90bc0f8f92a2dad0931befc85e1ab2a491182861cd612822f65a8869",
+      "text": 7576545,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "/home/user/Projects/cx-wbmode/build/tomokv-pol2-k1",
+      "sha256": "7df8c94a99728144d2ef1db230a12a4394e23da5f93f91d464bc753477a8c710",
+      "text": 7604488,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/wbland2/tomokv-wbland1",
+      "sha256": "3ced0605f055a4dd9e780f68c1490fcaada17635b591d588a617a1c8a9a376f3",
+      "text": 7611245,
+      "tdata": 112,
+      "tbss": 480
+    }
+  ],
+  "strict_outcomes": {
+    "wbland-clauses-proofs.json": {
+      "outcomes": 37,
+      "passed": 37,
+      "sha256": "52c750f836549c782035506857491578175f3d40096b82134942c9fc33ea91f6"
+    },
+    "wbland-detector-proofs.json": {
+      "outcomes": 33,
+      "passed": 33,
+      "sha256": "008538f84dacbbeb6a3d74dcc2acecb70e1fcc27a4775f017b148ef37b03c0ef"
+    },
+    "wbland-paths-proofs.json": {
+      "outcomes": 31,
+      "passed": 31,
+      "sha256": "37fd218407e9bce59f3de127bb1b9719450b6f2d78f5d187ae4e4176d05467de"
+    },
+    "wb-rule-phase-proofs.json": {
+      "outcomes": 32,
+      "passed": 32,
+      "sha256": "2c90ff6fe59d702125fbf392242b050079bf59f9552e5d9139ab93a7231f337e"
+    },
+    "wb-rule-policy-proofs.json": {
+      "outcomes": 37,
+      "passed": 37,
+      "sha256": "8e44d395f7168d69ac01fdb212c70b9c0761ed5f017e4ec431ccda082b27cf0a"
+    },
+    "wb-rule-split-overlap-proofs.json": {
+      "outcomes": 64,
+      "passed": 64,
+      "sha256": "fcae4b71346db9826449cb27a7775eb12820ff1642504509a9ca97f4b72050e4"
+    },
+    "wb-rule-split-phase-proofs.json": {
+      "outcomes": 35,
+      "passed": 35,
+      "sha256": "068dab00e44e59c2197c87395020a38e8caefe410b718608f38832646be08ffb"
+    },
+    "wb-rule-stages-proofs.json": {
+      "outcomes": 12,
+      "passed": 12,
+      "sha256": "845fb2f33ffdcca5e08a139c1a33575da396d1c9e1199770a16979e27fc88672"
+    }
+  },
+  "command_identity_vs_37": [
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "tomo::cmd_get_notify(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "name": "tomo::cmd_set_notify(tomo::Shard&, tomo::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "tomo_db0::cmd_get_tls(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "tomo_db0::cmd_get_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "name": "tomo_db0::cmd_set_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+      "identical": true
+    }
+  ],
+  "command_identity_vs_9c": {
+    "matched": 14,
+    "total": 16,
+    "differences": [
+      "tomo::cmd_set_notify",
+      "tomo_db0::cmd_set_notify"
+    ],
+    "sha256": "d7dd78bcb80d53074457ebb462f20ba68be5661e4520b56812ac6cddf11eda5a",
+    "matched_37_instead": true
+  },
+  "extra_checks": {
+    "config_parser": true,
+    "netcmd_config": true,
+    "gate_shell_syntax": true,
+    "generated_r7_parity": true
+  },
+  "gate_counts": {
+    "new_rows_this_task": 0,
+    "inherited_wbland_rows": 3,
+    "collect_line": 2742,
+    "quick_exit_line": 2871,
+    "stored_quick": 441,
+    "stored_full": 461,
+    "required_quick": 446,
+    "required_full": 464
+  }
+}
