@@ -80,6 +80,7 @@ from abba_saturation import (RUN_SATURATION_MARGIN, saturation_exempt,
 from gate_receipt import harness_fingerprint, read_json
 from abba_evidence import match_null, null_result
 from abba_instrument import instrument_fingerprint
+from abba_binaries import stage as stage_binaries, space_check, executable as require_binary
 from abba_workloads import (retired_reorder, workload_arguments, prepare_long_keys, merged_tail,
                             require_workload_witness, workload_command_names,
                             memtier_workload_counts, require_workload_accounting)
@@ -840,10 +841,10 @@ def pin_main(args):
         path.write_text(json.dumps(report, indent=2) + "\n")
 
     try:
-        frozen = out / "binary"
-        shutil.copy2(args.candidate.resolve(), frozen)
+        store, binaries = stage_binaries(args, out, {"A": args.candidate, "B": args.candidate}, report)
+        frozen = binaries["B"]
         fingerprint = instrument_fingerprint(ROOT)
-        options = {**vars(args), "pin": False, "candidate": frozen}
+        options = {**vars(args), "pin": False, "candidate": frozen, "binary_store": store.root}
         calibration_args = argparse.Namespace(**{**options, "output": out / "rate-search"})
         rc = calibration_main(calibration_args)
         calibration = read_json(calibration_args.output / "results.json")
@@ -932,10 +933,10 @@ class Children:
     def __init__(self):
         self.active = []
 
-    def start(self, argv, log, cwd):
+    def start(self, argv, log, cwd, *, pass_fds=()):
         with log.open("w") as stream:
             p = subprocess.Popen([str(a) for a in argv], cwd=cwd, stdout=stream,
-                                 stderr=subprocess.STDOUT, start_new_session=True)
+                                 stderr=subprocess.STDOUT, start_new_session=True, pass_fds=pass_fds)
         self.active.append(p)
         return p
 
@@ -1053,6 +1054,7 @@ def resolve_reference(args, out):
 
 
 def accepted(binary, name, value):
+    require_binary(binary)
     p = capture([binary, f"--{name}", str(value), "--help"], timeout=10)
     if p.returncode == 0 and "usage:" in p.stdout:
         return True
@@ -1267,9 +1269,19 @@ class Runner:
         self.legacy_reorder_controls = {}
         self.legacy_reorder_failures = {}
         self.campaign_reorder_controls = None
+        self.binary_store = None
+        self.binary_cells = set()
         self.profile_factory = None  # Diagnostic opt-in only: no default PMCs or profile objects.
         self.worker_affinity_factory = None
         self.load_startup_seconds = 0  # Diagnostic allowance; normal generator lifetime stays 28s.
+
+    def verify_binary(self, cell, arm):
+        if self.binary_store is not None:
+            key = cell.id, arm
+            if key not in self.binary_cells:
+                space_check(self.out, artifacts=0)
+            self.binary_store.verify(arm, self.binaries[arm], full=key not in self.binary_cells)
+            self.binary_cells.add(key)
 
     def legacy_reorder_control(self, cell, arm, knobs):
         if cell.op != 'REORDER' or arm != 'A' or 'x-ex-sched' not in knobs:
@@ -1311,6 +1323,7 @@ class Runner:
                 read_local=read_local)
             controls = []
             for reorder in (0, 1):
+                self.verify_binary(cell, arm)
                 row = run_control(args, self.binaries[arm], folder / f'reorder-{reorder}',
                                   cell.mode, reorder)
                 controls.append(row)
@@ -1403,6 +1416,7 @@ class Runner:
         reused = bool(_calibration)
         if reused and _calibration["cell"] != asdict(cell):
             raise ValueError("calibration session cannot outlive its cell")
+        self.verify_binary(cell, arm)
         profile = None
         worker_affinity = None
         legacy_control = self.legacy_reorder_control(cell, arm, knobs)
@@ -1447,10 +1461,18 @@ class Runner:
                     populate_seconds=0.)
             else:
                 self.prepare_data(cell, arm, folder)
-                srv = self.children.start(command, log, folder)
+                self.verify_binary(cell, arm)
+                if self.binary_store is not None:
+                    srv = self.binary_store.start(self.children, command, log, folder, arm)
+                    result["executable_launch"] = "verified-open-file-descriptor"
+                else:
+                    srv = self.children.start(command, log, folder)
                 deadline = time.monotonic() + 30
                 while True:
                     if srv.poll() is not None:
+                        # Also diagnose an unlink between the pre-boot check and
+                        # taskset's exec, rather than reporting opaque exit 127.
+                        self.verify_binary(cell, arm)
                         raise RuntimeError(f"server exited {srv.returncode}: {log.read_text()[-1000:]}")
                     try:
                         conn = Conn("127.0.0.1", self.args.port, timeout=10)
@@ -1646,6 +1668,7 @@ class Runner:
             result["whole_run_accounting"] = require_workload_accounting(
                 cell, result["whole_run_commandstats_before"], result["whole_run_commandstats_after"], totals)
             total_rate = sum(t["rate"] for t in totals)
+            self.verify_binary(cell, arm)
             result.update(complete=True, memtier=totals, memtier_rate=total_rate,
                           latency_ms=sum(t["latency_ms"] * t["rate"] for t in totals) / total_rate)
             if cell.metric == "p999_ms":
@@ -1757,6 +1780,8 @@ def parse_args():
                    help="optional single port inside --ports; standalone default 8700")
     p.add_argument("--memtier", default=os.getenv("GATE_ABBA_MEMTIER", "memtier_benchmark"))
     p.add_argument("--output", type=Path, default=None)
+    p.add_argument("--binary-store", type=Path,
+                   help="campaign RUN with frozen binaries.json; phase aliases are hard links only")
     p.add_argument("--collect-null", type=int, choices=(0, 1), default=0,
                    help="1 freezes one executable into identical arms and collects a null; always PARTIAL/exit 3")
     p.add_argument("--null-result", type=Path, default=Path(os.getenv("GATE_ABBA_NULL", os.getenv(
@@ -1910,31 +1935,22 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         report["quiet_box"] = quiet.evidence()
         if not args.candidate.is_file() or not os.access(args.candidate, os.X_OK):
             raise RuntimeError(f"candidate executable unavailable: {args.candidate}")
-        binaries = {}
         if args.collect_null:
-            # Copy the candidate ONCE, then derive the other arm from that frozen file. Resolving
-            # a pushed reference here would create a circular prerequisite and could compare
-            # different bytes. A null records instrument error; an independent holdout must
-            # establish its observed resolution. Neither artifact proves source identity.
-            binaries["B"] = out / "binary-B"
-            shutil.copy2(args.candidate.resolve(), binaries["B"])
-            reference = binaries["B"]
+            # Both arm names bind one campaign snapshot; never resolve a pushed
+            # reference for an identical-byte instrument control.
+            reference = args.candidate.resolve()
             provenance = {"source": "byte-identical null control", "commit": "not-a-code-comparison",
                           "sha256": sha256(reference)}
-            copies = (("A", reference),)
         else:
             reference, provenance = resolve_reference(args, out)
-            copies = (("A", reference), ("B", args.candidate.resolve()))
         report["reference"] = provenance
-        for arm, source in copies:
-            dest = out / f"binary-{arm}"
-            shutil.copy2(source, dest)
-            binaries[arm] = dest
+        store, binaries = stage_binaries(args, out,
+            {"A": reference, "B": args.candidate.resolve()}, report)
         report["candidate"] = {"path": str(args.candidate.resolve()), "sha256": sha256(binaries["B"]),
                                "workspace_commit": git("rev-parse", "HEAD"),
                                "workspace_status": git("status", "--short")}
         if sha256(binaries["A"]) != provenance["sha256"]:
-            raise RuntimeError("reference changed while copying")
+            raise RuntimeError("reference changed while freezing campaign binaries")
         print(f"REFERENCE {provenance['source']} {provenance['commit']} sha256={provenance['sha256']}", flush=True)
         print(f"CANDIDATE {args.candidate} sha256={report['candidate']['sha256']}", flush=True)
         args.memtier = shutil.which(args.memtier)
@@ -1942,6 +1958,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             raise RuntimeError("memtier_benchmark not available")
         args.memtier = str(Path(args.memtier).resolve())
         runner = Runner(args, out, binaries, children)
+        runner.binary_store = store
         runner.load_startup_seconds = diagnostic_load_startup_seconds
         if diagnostic_pin_load_workers:
             from abba_worker_affinity import WorkerAffinity
@@ -2109,6 +2126,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             raise RuntimeError("runtime measured inputs changed during campaign")
         if sha256(Path(args.memtier)) != report["environment"]["memtier_sha256"]:
             raise RuntimeError("generator changed during campaign")
+        for arm, binary in binaries.items():
+            store.verify(arm, binary)
         report["measurement_valid"] = diagnostic_monitor is None
         report["elapsed_seconds"] = time.monotonic() - start
         if args.escalate:
@@ -4410,6 +4429,7 @@ if __name__ == "__main__":
         import contextlib
         from unittest import mock
         from load_calibration import self_test as calibration_self_test
+        from abba_binaries import self_test as binaries_self_test
         # Guard the default AND configured live candidates even when an individual
         # fixture clears the environment. A warm build must not mask a missing stub.
         live_candidates = {os.path.abspath(ROOT / "build/tomokv"), os.path.abspath(args.candidate)}
@@ -4429,7 +4449,7 @@ if __name__ == "__main__":
         with contextlib.ExitStack() as guards:
             for owner, name in ((Path, "stat"), (Path, "open"), (os, "access")):
                 guards.enter_context(mock.patch.object(owner, name, guard_candidate_access(getattr(owner, name))))
-            rc = max(self_test(), saturation_self_test(), calibration_self_test())
+            rc = max(self_test(), saturation_self_test(), calibration_self_test(), binaries_self_test())
         # main() records exceptions as failed reports; a test expecting some other
         # failure must not swallow a forbidden probe and make this control green.
         if live_probes:

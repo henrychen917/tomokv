@@ -165,14 +165,15 @@ def main(args):
             window_seconds=abba.WINDOW, ports=(args.port,), sample_artifact=out / "quiet-samples.jsonl")
         quiet.start()
         require(args.candidate.is_file() and os.access(args.candidate, os.X_OK), "candidate executable unavailable")
-        binary = out / "binary-B"
-        shutil.copy2(args.candidate.resolve(), binary)
+        store, binaries = abba.stage_binaries(args, out, {"B": args.candidate}, report)
+        binary = binaries["B"]
         report["candidate"] = dict(path=str(args.candidate.resolve()), sha256=abba.sha256(binary),
             workspace_commit=abba.git("rev-parse", "HEAD"), workspace_status=abba.git("status", "--short"))
         args.memtier = shutil.which(args.memtier)
         require(args.memtier, "memtier_benchmark not available")
         args.memtier = str(Path(args.memtier).resolve())
         runner = abba.Runner(args, out, {"B": binary}, children)
+        runner.binary_store = store
         report["environment"] = dict(uname=list(os.uname()), **placement, server_cpus=server_cpus,
             load_cpus=load_cpus, load_instance_ceiling=min(args.max_instances, len(load_physical)),
             port=args.port, permitted_ports=permitted_ports, keys=abba.KEYS,
@@ -236,6 +237,7 @@ def main(args):
         require(abba.sha256(Path(args.memtier)) == report["environment"]["memtier_sha256"] and
                 abba.sha256(abba.ROOT / "tests/gate_measurements.json") == report["environment"]["measurements_sha256"],
                 "runtime inputs changed during calibration")
+        store.verify("B", binary)
         require(report["cells"] and all(row["status"] in ("PIN", "EXEMPT", *CEILING_STATUSES) for row in report["cells"]),
                 "calibration has failed or unconfirmed cells")
         children.close()
