@@ -225,7 +225,6 @@ struct KvObj {
         return t;
     }
     bool has_ttl() const { return expire_at_ms() >= 0; }
-    TtlState ttl_state() const { return TtlState{expire_at_ms(), has_ttl_slot()}; }
     int64_t read_local_expire_at_ms(uint8_t stable_flags) const {
         if (!(stable_flags & KvObjFlags::HasTtl)) return -1;
         int64_t t;

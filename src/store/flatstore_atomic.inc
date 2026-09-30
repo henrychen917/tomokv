@@ -1514,393 +1514,25 @@ private:
     bool atomic_collapse(uint64_t floor, uint64_t cleanup_cutoff) {
         if (__builtin_expect(read_local_enabled_, false))
             return atomic_collapse_read_local(floor, cleanup_cutoff);
-        if (!atomic_pending_ || !atomic_pending_->live || snapshot_active_) return false;
-        uint64_t occurrences = 0;
-        AtomicEntry* first_unselected = atomic_pending_->head;
-        while (first_unselected) {
-            AtomicEntry* entry = first_unselected;
-            const bool aborted = entry->group_epoch && entry->group_aborted &&
-                entry->group_aborted->load(std::memory_order_acquire);
-            const uint64_t epoch = atomic_epoch(*entry);
-            if (!aborted && (!epoch || epoch >= floor || epoch > cleanup_cutoff))
-                break;
-            if (occurrences > UINT64_MAX - entry->count) return false;
-            occurrences += entry->count;
-            first_unselected = entry->next;
-        }
-        if (!occurrences) return false;
-
-        // Only an actual key overlap whose commit tickets invert needs argmax collapse. Masks reject
-        // almost all inverted entry pairs; when no such pair exists, the prefix reduces to freeing
-        // parked predecessors and unlinking group entries. The usual monotonic case touches no key,
-        // hash, table slot, or transient map.
-        bool direct = true;
-        uint64_t previous_epoch = 0;
-        for (AtomicEntry* entry = atomic_pending_->head; entry != first_unselected;
-             entry = entry->next) {
-            if ((entry->group_epoch && entry->group_aborted &&
-                 entry->group_aborted->load(std::memory_order_acquire)) ||
-                atomic_epoch(*entry) < previous_epoch) {
-                direct = false;
-                break;
-            }
-            previous_epoch = atomic_epoch(*entry);
-        }
-        // Install order and ticket order are normally the same. Only an inversion needs the
-        // pairwise membership/exact-key proof that the inverted entries do not overlap.
-        if (!direct) {
-            direct = true;
-            for (AtomicEntry* later = atomic_pending_->head;
-                 later != first_unselected && direct; later = later->next) {
-                if (later->group_epoch && later->group_aborted &&
-                    later->group_aborted->load(std::memory_order_acquire)) {
-                    direct = false;
-                    break;
-                }
-                const uint64_t later_epoch = atomic_epoch(*later);
-                for (AtomicEntry* earlier = atomic_pending_->head; earlier != later;
-                     earlier = earlier->next) {
-                    if (atomic_epoch(*earlier) <= later_epoch ||
-                        !(earlier->membership & later->membership)) continue;
-                    for (uint32_t i = 0; i < earlier->count && direct; i++) {
-                        const uint64_t hash = atomic_entry_hash(*earlier, i);
-                        if (!(later->membership & atomic_membership_bit(hash))) continue;
-                        const Slice key = atomic_entry_key(*earlier, i);
-                        for (uint32_t j = 0; j < later->count; j++) {
-                            if (atomic_entry_hash(*later, j) == hash &&
-                                atomic_entry_key(*later, j).key_eq(key)) {
-                                direct = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!direct) break;
-                }
-            }
-        }
-        if (direct) {
-            atomic_pending_->cleanup_fast += occurrences;
-            AtomicEntry* entry = atomic_pending_->head;
-            while (entry != first_unselected) {
-                AtomicEntry* next = entry->next;
-                for (uint32_t i = 0; i < entry->count; i++) {
-                    if (KvObj* parked = entry->parked()[i]) {
-                        atomic_gauge_sub(kvobj_size(parked));
-                        retire_detached_obj(parked);
-                        entry->parked()[i] = nullptr;
-                    }
-                }
-                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
-                read_local_pending_unpublish(*entry);
-                if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
-                    entry->group_refs->fetch_sub(1, std::memory_order_release);
-                if (atomic_records_freed_) (*atomic_records_freed_)++;
-                atomic_pending_->live--;
-                atomic_unlink_conn(*entry);
-                atomic_free_entry(entry);
-                entry = next;
-            }
-            atomic_pending_->head = first_unselected;
-            if (first_unselected) first_unselected->prev = nullptr;
-            else atomic_pending_->tail = nullptr;
-            if (!atomic_pending_->live && !atomic_pending_->script_intent_count &&
-                atomic_activity_)
-                atomic_activity_->fetch_sub(1, std::memory_order_release);
-            if (atomic_promotions_) *atomic_promotions_ += occurrences;
-            return true;
-        }
-
-        // Detect overlap only inside the reclaimable prefix. A successor after the prefix already
-        // parks the prefix's last installed candidate, so a committed non-overlapping entry needs
-        // no table probe or chain surgery at all.
-        bool overlap = false;
-        uint64_t seen_bits = 0;
-        if (occurrences > atomic_seen_keys_.max_size()) return false;
-        try {
-            atomic_seen_keys_.clear();
-            atomic_seen_keys_.reserve(static_cast<size_t>(occurrences));
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
-        for (AtomicEntry* entry = atomic_pending_->head;
-             entry != first_unselected && !overlap;
-             entry = entry->next) {
-            for (uint32_t i = 0; i < entry->count; i++) {
-                const uint64_t hash = atomic_entry_hash(*entry, i);
-                const Slice key = atomic_entry_key(*entry, i);
-                const uint64_t bit = atomic_membership_bit(hash);
-                if (seen_bits & bit) {
-                    for (const AtomicSeenKey& seen : atomic_seen_keys_) {
-                        if (seen.hash == hash && seen.key.key_eq(key)) {
-                            overlap = true;
-                            break;
-                        }
-                    }
-                }
-                if (overlap) break;
-                atomic_seen_keys_.push_back(AtomicSeenKey{hash, key});
-                seen_bits |= bit;
-            }
-        }
-        if (!overlap) {
-            if (!atomic_prepare_rollback_capacity(first_unselected)) return false;
-            atomic_pending_->cleanup_slow += occurrences;
-            uint64_t promoted = 0;
-            AtomicEntry* entry = atomic_pending_->head;
-            while (entry != first_unselected) {
-                AtomicEntry* next = entry->next;
-                const bool aborted = entry->group_epoch && entry->group_aborted &&
-                    entry->group_aborted->load(std::memory_order_acquire);
-                for (uint32_t i = 0; i < entry->count; i++) {
-                    const uint64_t hash = atomic_entry_hash(*entry, i);
-                    const Slice key = atomic_entry_key(*entry, i);
-                    KvObj* parked = entry->parked()[i];
-                    if (aborted) {
-                        KvObj* replacement = atomic_live_value(parked);
-                        AtomicEntry* boundary = nullptr;
-                        uint32_t boundary_index = 0;
-                        const uint64_t bit = atomic_membership_bit(hash);
-                        for (AtomicEntry* scan = first_unselected; scan && !boundary;
-                             scan = scan->next) {
-                            if (!(scan->membership & bit)) continue;
-                            for (uint32_t j = 0; j < scan->count; j++) {
-                                if (atomic_entry_hash(*scan, j) == hash &&
-                                    atomic_entry_key(*scan, j).key_eq(key)) {
-                                    boundary = scan;
-                                    boundary_index = j;
-                                    break;
-                                }
-                            }
-                        }
-                        if (boundary) {
-                            KvObj* loser = boundary->parked()[boundary_index];
-                            if (loser) atomic_gauge_sub(kvobj_size(loser));
-                            if (loser != replacement) retire_detached_obj(loser);
-                            boundary->parked()[boundary_index] = replacement;
-                            if (parked && parked != replacement) {
-                                atomic_gauge_sub(kvobj_size(parked));
-                                retire_detached_obj(parked);
-                            }
-                        } else {
-                            KvObj* physical = atomic_find_physical(hash, key);
-                            if (physical != replacement) {
-                                if (__builtin_expect(atomic_tripwire_enabled(), false))
-                                    atomic_tripwire_collapse_write(hash, physical == nullptr,
-                                                                   replacement == nullptr,
-                                                                   atomic_epoch(*entry));
-                                KvObj* loser = atomic_exchange_physical(hash, key, replacement);
-                                if (loser != physical) std::abort();
-                                retire_detached_obj(loser);
-                            }
-                            if (parked) {
-                                atomic_gauge_sub(kvobj_size(parked));
-                                if (parked != replacement) retire_detached_obj(parked);
-                            }
-                        }
-                    } else if (parked) {
-                        atomic_gauge_sub(kvobj_size(parked));
-                        retire_detached_obj(parked);
-                    }
-                    entry->parked()[i] = nullptr;
-                    promoted++;
-                }
-                // Grouped hashes live in ScatterState; close before its last owner pin can drop.
-                read_local_pending_unpublish(*entry);
-                if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
-                    entry->group_refs->fetch_sub(1, std::memory_order_release);
-                if (atomic_records_freed_) (*atomic_records_freed_)++;
-                atomic_pending_->live--;
-                atomic_unlink_conn(*entry);
-                atomic_free_entry(entry);
-                entry = next;
-            }
-            atomic_pending_->head = first_unselected;
-            if (first_unselected) first_unselected->prev = nullptr;
-            else atomic_pending_->tail = nullptr;
-            if (!atomic_pending_->live && !atomic_pending_->script_intent_count &&
-                atomic_activity_)
-                atomic_activity_->fetch_sub(1, std::memory_order_release);
-            if (atomic_promotions_) *atomic_promotions_ += promoted;
-            return true;
-        }
-
-        // Actual overlap is rare, but install order and commit-ticket order may invert. Collapse
-        // the prefix by committed argmax, then splice its winner into the first unselected
-        // occurrence (or the physical table when no successor exists).
-        uint64_t table_cap = 8;
-        if (occurrences > UINT64_MAX / uint64_t{2}) return false;
-        const uint64_t wanted_slots = occurrences * uint64_t{2};
-        while (table_cap < wanted_slots) {
-            table_cap *= uint64_t{2};
-            if (table_cap > UINT32_MAX) return false;
-        }
-        if (occurrences > UINT64_MAX - occurrences / uint64_t{2}) return false;
-        const uint64_t retire_slots = occurrences + occurrences / uint64_t{2};
-        if (occurrences > atomic_collapse_keys_.max_size() ||
-            table_cap > atomic_collapse_slots_.max_size() ||
-            retire_slots > atomic_collapse_retire_.max_size()) return false;
-        try {
-            atomic_collapse_keys_.clear();
-            atomic_collapse_keys_.reserve(static_cast<size_t>(occurrences));
-            atomic_collapse_slots_.assign(static_cast<size_t>(table_cap), AtomicCollapseSlot{});
-            atomic_collapse_retire_.clear();
-            atomic_collapse_retire_.reserve(static_cast<size_t>(retire_slots));
-        } catch (const std::bad_alloc&) {
-            return false;
-        }
-        atomic_pending_->cleanup_slow += occurrences;
-        const uint32_t table_mask = static_cast<uint32_t>(table_cap - 1);
-        auto key_index = [&](uint64_t hash, Slice key, KvObj* base) -> uint32_t {
-            uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table_mask;
-            for (;;) {
-                AtomicCollapseSlot& item = atomic_collapse_slots_[slot];
-                if (!item.index) {
-                    atomic_collapse_keys_.push_back(AtomicCollapseKey{hash, key, base});
-                    item.hash = hash;
-                    item.index = static_cast<uint32_t>(atomic_collapse_keys_.size());
-                    return item.index - 1;
-                }
-                AtomicCollapseKey& found = atomic_collapse_keys_[item.index - 1];
-                if (item.hash == hash && found.key.key_eq(key)) return item.index - 1;
-                slot = (slot + 1) & table_mask;
-            }
-        };
-        auto consider = [&](AtomicCollapseKey& key, AtomicEntry& owner, KvObj* candidate) {
-            const bool aborted = owner.group_epoch && owner.group_aborted &&
-                owner.group_aborted->load(std::memory_order_acquire);
-            if (aborted) return;
-            uint64_t epoch = atomic_epoch(owner);
-            // PROGRAM ORDER BEATS TICKET ORDER WITHIN ONE CONNECTION.
-            // This walk visits a key's records in list order, and for records from the SAME
-            // connection that order IS the client's program order: owner tasks are posted to a
-            // shard in arrival order and drained in order, so a connection's later command
-            // cannot install ahead of its earlier one on the same owner.
-            // Their commit TICKETS may still invert, because a cross-shard unit draws its ticket
-            // only when its LAST fragment has installed: a wide MSET/DEL group that is still
-            // waiting on other shards can be overtaken at the ticket counter by a MULTI/EXEC the
-            // same connection sent afterwards. Ranking those two by raw ticket then re-installed
-            // the OLDER group's value over the newer transaction's, destroying a write EXEC had
-            // already acknowledged -- reproduced at 246/1120.
-            // Repairing the epoch to be monotone per connection removes the inversion without
-            // reordering anything across connections, where the ticket remains the only truth.
-            if (key.prev_set && owner.origin_conn_id == key.prev_conn_id &&
-                epoch < key.prev_epoch)
-                epoch = key.prev_epoch;
-            key.prev_conn_id = owner.origin_conn_id;
-            key.prev_epoch = epoch;
-            key.prev_set = true;
-            if (!key.winner_set || epoch >= key.winner_epoch) {
-                key.winner = candidate;
-                key.winner_epoch = epoch;
-                key.winner_set = true;
-            }
-        };
-        for (AtomicEntry* entry = atomic_pending_->head; entry != first_unselected;
-             entry = entry->next) {
-            for (uint32_t i = 0; i < entry->count; i++) {
-                const uint64_t hash = atomic_entry_hash(*entry, i);
-                const Slice key = atomic_entry_key(*entry, i);
-                const uint32_t index = key_index(hash, key, entry->parked()[i]);
-                AtomicCollapseKey& collapse = atomic_collapse_keys_[index];
-                if (collapse.previous) consider(collapse, *collapse.previous,
-                                                entry->parked()[i]);
-                collapse.previous = entry;
-            }
-        }
-
-        uint32_t restore = 0;
-        for (AtomicCollapseKey& key : atomic_collapse_keys_) {
-            const uint64_t bit = atomic_membership_bit(key.hash);
-            for (AtomicEntry* scan = first_unselected; scan && !key.boundary;
-                 scan = scan->next) {
-                if (!(scan->membership & bit)) continue;
-                for (uint32_t i = 0; i < scan->count; i++) {
-                    if (atomic_entry_hash(*scan, i) == key.hash &&
-                        atomic_entry_key(*scan, i).key_eq(key.key)) {
-                        key.boundary = scan;
-                        key.boundary_index = i;
-                        break;
-                    }
-                }
-            }
-            key.physical = key.boundary ? key.boundary->parked()[key.boundary_index]
-                                        : atomic_find_physical(key.hash, key.key);
-            consider(key, *key.previous, key.physical);
-            if (!key.winner_set) key.winner = key.base;
-            key.winner = atomic_live_value(key.winner);
-            if (!key.boundary && key.winner && !key.physical) restore++;
-        }
-        if (restore && !atomic_prepare_capacity(restore)) return false;
-
-        for (AtomicCollapseKey& key : atomic_collapse_keys_) {
-            if (key.boundary) {
-                KvObj*& slot = key.boundary->parked()[key.boundary_index];
-                if (slot != key.winner) {
-                    if (__builtin_expect(atomic_tripwire_enabled(), false))
-                        atomic_tripwire_collapse_write(key.hash, slot == nullptr,
-                                                       key.winner == nullptr,
-                                                       key.winner_epoch);
-                    if (slot) {
-                        atomic_gauge_sub(kvobj_size(slot));
-                        atomic_collapse_retire_.push_back(slot);
-                    }
-                    slot = key.winner;
-                }
-            } else if (key.physical != key.winner) {
-                if (__builtin_expect(atomic_tripwire_enabled(), false))
-                    atomic_tripwire_collapse_write(key.hash, key.physical == nullptr,
-                                                   key.winner == nullptr, key.winner_epoch);
-                key.physical_loser = atomic_exchange_physical(key.hash, key.key, key.winner);
-                if (key.physical_loser != key.physical) std::abort();
-            }
-        }
-        for (AtomicEntry* entry = atomic_pending_->head; entry != first_unselected;
-             entry = entry->next) {
-            for (uint32_t i = 0; i < entry->count; i++) {
-                KvObj* parked = entry->parked()[i];
-                if (!parked) continue;
-                AtomicCollapseKey& key = atomic_collapse_keys_[key_index(
-                    atomic_entry_hash(*entry, i), atomic_entry_key(*entry, i), nullptr)];
-                if (!(key.boundary && parked == key.winner))
-                            atomic_gauge_sub(kvobj_size(parked));
-                if (parked != key.winner) atomic_collapse_retire_.push_back(parked);
-                entry->parked()[i] = nullptr;
-            }
-        }
-        for (AtomicCollapseKey& key : atomic_collapse_keys_)
-            if (key.physical_loser) atomic_collapse_retire_.push_back(key.physical_loser);
-        std::sort(atomic_collapse_retire_.begin(), atomic_collapse_retire_.end());
-        atomic_collapse_retire_.erase(
-            std::unique(atomic_collapse_retire_.begin(), atomic_collapse_retire_.end()),
-            atomic_collapse_retire_.end());
-        for (KvObj* object : atomic_collapse_retire_) retire_detached_obj(object);
-
-        AtomicEntry* entry = atomic_pending_->head;
-        uint32_t freed_entries = 0;
-        while (entry != first_unselected) {
-            AtomicEntry* next = entry->next;
-            // Grouped hashes live in ScatterState; close before its last owner pin can drop.
-            read_local_pending_unpublish(*entry);
-            if (entry->group_refs && (!entry->owner_refs || --*entry->owner_refs == 0))
-                entry->group_refs->fetch_sub(1, std::memory_order_release);
-            if (atomic_records_freed_) (*atomic_records_freed_)++;
-            freed_entries++;
-            atomic_unlink_conn(*entry);
-            atomic_free_entry(entry);
-            entry = next;
-        }
-        atomic_pending_->head = first_unselected;
-        if (first_unselected) first_unselected->prev = nullptr;
-        else atomic_pending_->tail = nullptr;
-        atomic_pending_->live -= freed_entries;
-        if (!atomic_pending_->live && !atomic_pending_->script_intent_count && atomic_activity_)
-            atomic_activity_->fetch_sub(1, std::memory_order_release);
-        if (atomic_promotions_) *atomic_promotions_ += occurrences;
-        return true;
+        return atomic_collapse_impl<false>(floor, cleanup_cutoff);
     }
 
-
     bool atomic_collapse_read_local(uint64_t floor, uint64_t cleanup_cutoff) {
+        return atomic_collapse_impl<true>(floor, cleanup_cutoff);
+    }
+
+    // Inline into the existing wrappers so factoring does not add a call boundary.
+    // ReadLocal selects retirement at compile time: a detached armed value must
+    // reach the owner's QSBR sink before its storage can be reclaimed or reused.
+    template <bool ReadLocal>
+    __attribute__((always_inline)) bool atomic_collapse_impl(uint64_t floor,
+                                                           uint64_t cleanup_cutoff) {
+        constexpr auto retire = ReadLocal ? &FlatStore::retire_detached_obj_read_local
+                                          : &FlatStore::retire_detached_obj;
+        constexpr auto free_entry = ReadLocal ? &FlatStore::atomic_free_entry_read_local
+                                              : &FlatStore::atomic_free_entry;
+        constexpr auto exchange = ReadLocal ? &FlatStore::atomic_exchange_physical_read_local
+                                            : &FlatStore::atomic_exchange_physical;
         if (!atomic_pending_ || !atomic_pending_->live || snapshot_active_) return false;
         uint64_t occurrences = 0;
         AtomicEntry* first_unselected = atomic_pending_->head;
@@ -1973,7 +1605,7 @@ private:
                 for (uint32_t i = 0; i < entry->count; i++) {
                     if (KvObj* parked = entry->parked()[i]) {
                         atomic_gauge_sub(kvobj_size(parked));
-                        retire_detached_obj_read_local(parked);
+                        (this->*retire)(parked);
                         entry->parked()[i] = nullptr;
                     }
                 }
@@ -1984,7 +1616,7 @@ private:
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
                 atomic_pending_->live--;
                 atomic_unlink_conn(*entry);
-                atomic_free_entry_read_local(entry);
+                (this->*free_entry)(entry);
                 entry = next;
             }
             atomic_pending_->head = first_unselected;
@@ -2062,11 +1694,11 @@ private:
                         if (boundary) {
                             KvObj* loser = boundary->parked()[boundary_index];
                             if (loser) atomic_gauge_sub(kvobj_size(loser));
-                            if (loser != replacement) retire_detached_obj_read_local(loser);
+                            if (loser != replacement) (this->*retire)(loser);
                             boundary->parked()[boundary_index] = replacement;
                             if (parked && parked != replacement) {
                                 atomic_gauge_sub(kvobj_size(parked));
-                                retire_detached_obj_read_local(parked);
+                                (this->*retire)(parked);
                             }
                         } else {
                             KvObj* physical = atomic_find_physical(hash, key);
@@ -2075,20 +1707,18 @@ private:
                                     atomic_tripwire_collapse_write(hash, physical == nullptr,
                                                                    replacement == nullptr,
                                                                    atomic_epoch(*entry));
-                                KvObj* loser =
-                                    atomic_exchange_physical_read_local(hash, key, replacement);
+                                KvObj* loser = (this->*exchange)(hash, key, replacement);
                                 if (loser != physical) std::abort();
-                                retire_detached_obj_read_local(loser);
+                                (this->*retire)(loser);
                             }
                             if (parked) {
                                 atomic_gauge_sub(kvobj_size(parked));
-                                if (parked != replacement)
-                                    retire_detached_obj_read_local(parked);
+                                if (parked != replacement) (this->*retire)(parked);
                             }
                         }
                     } else if (parked) {
                         atomic_gauge_sub(kvobj_size(parked));
-                        retire_detached_obj_read_local(parked);
+                        (this->*retire)(parked);
                     }
                     entry->parked()[i] = nullptr;
                     promoted++;
@@ -2100,7 +1730,7 @@ private:
                 if (atomic_records_freed_) (*atomic_records_freed_)++;
                 atomic_pending_->live--;
                 atomic_unlink_conn(*entry);
-                atomic_free_entry_read_local(entry);
+                (this->*free_entry)(entry);
                 entry = next;
             }
             atomic_pending_->head = first_unselected;
@@ -2239,8 +1869,7 @@ private:
                 if (__builtin_expect(atomic_tripwire_enabled(), false))
                     atomic_tripwire_collapse_write(key.hash, key.physical == nullptr,
                                                    key.winner == nullptr, key.winner_epoch);
-                key.physical_loser =
-                    atomic_exchange_physical_read_local(key.hash, key.key, key.winner);
+                key.physical_loser = (this->*exchange)(key.hash, key.key, key.winner);
                 if (key.physical_loser != key.physical) std::abort();
             }
         }
@@ -2263,9 +1892,7 @@ private:
         atomic_collapse_retire_.erase(
             std::unique(atomic_collapse_retire_.begin(), atomic_collapse_retire_.end()),
             atomic_collapse_retire_.end());
-        for (KvObj* object : atomic_collapse_retire_) {
-            retire_detached_obj_read_local(object);
-        }
+        for (KvObj* object : atomic_collapse_retire_) (this->*retire)(object);
 
         AtomicEntry* entry = atomic_pending_->head;
         uint32_t freed_entries = 0;
@@ -2278,7 +1905,7 @@ private:
             if (atomic_records_freed_) (*atomic_records_freed_)++;
             freed_entries++;
             atomic_unlink_conn(*entry);
-            atomic_free_entry_read_local(entry);
+            (this->*free_entry)(entry);
             entry = next;
         }
         atomic_pending_->head = first_unselected;
