@@ -26,6 +26,17 @@ __attribute__((noinline)) void operator delete(void* p, std::size_t) noexcept { 
 void* operator new[](std::size_t size) { return ::operator new(size); }
 void operator delete[](void* p) noexcept { std::free(p); }
 void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
+// Keep nothrow allocations in the same malloc/free domain as this fixture's
+// throwing allocator. ASAN otherwise supplies nothrow new while our delete
+// frees its result, reporting an allocator mismatch in read-local teardown.
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
+    try { return ::operator new(size); } catch (const std::bad_alloc&) { return nullptr; }
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
+    return ::operator new(size, std::nothrow);
+}
+void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
 using namespace tomo;
 namespace {
