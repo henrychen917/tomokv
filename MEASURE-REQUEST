@@ -1,17 +1,19 @@
-signalacct2: MAINLINE ONLY — lane built/tested serverlessly on 112-127 only.
-Full evidence, arm hashes and exact commands: MEASURE-REQUEST-signalacct2.md.
-Frozen PRE: 32d27ee75, build/tomokv-signalacct-pre. Old performance A/B is VOID.
-POST: build/tomokv = build/tomokv-signalacct-post; witness is correctness-only.
-PAD-A: kind A behavior twin, PRE IO accounting in PAIR-POST's exact text/data layout.
-Both pair arms include the closing-client FLIP drain fix; compare release to PAIR-POST too.
-Confirmed serverless refusal: ERR FLIP connection ownership count is not conserved.
-Fix and removal control are committed separately from the diagnostic harness.
-Historical eight failures returned non-OK replies; exact old bytes were not retained.
-First collect new receipts on the archived original arm, then rerun all 72 live cells.
-Strict PRE/POST byte check remains FAIL, 274/368; 80 intended and 14 collateral changes.
-Only the expected writeback-specialization inventory was expanded; no bytes ignored.
-Performance: explicit frozen binaries, fresh matched nulls, 72 h/m cells, three blocks.
-Live geometry: 0-7, shards16, split6:2. Reviewed ABBA geometry: 0-31, split16:16.
-Pending: live attribution/acceptance, performance, gate, merge. No push.
-Gate rows added: zero; inherited EXPECT counts remain quick441/full457.
-Append mainline measurements as MEASURE-RESULT.
+wbland3 — adaptive writeback deleted; fixed policies 0/1, default 1.
+Read MEASURE-REQUEST-wbland3.md for the removal inventory, code audit and hashes.
+Supersedes wbland/wbland2 adaptive measurement requests; no adaptive gain claim remains.
+PRE: REF 37eeb5e90 source rebuilt at build/wbland3/pre-src/build/tomokv.
+POST: build/tomokv. LATENCY: build/tomokv-pol0. PAD A: build/tomokv-pad.
+PAD A is a behavior twin: REF half behavior with the candidate knob read/layout.
+After deletion PAD is byte-identical to POST; no PAD/probe selector bit survives.
+REF-vs-POST .text exact in 25/40 objects, all .text.* exact in 23/40; +2208 B linked text.
+GET/SET: 16/16 opcode and relocation identities. Layout locks/offset assertions compile.
+Request: mainline's 14-cell generic PAD-controlled null, tests/wbland_merit_cells.txt.
+Decide per-cell matched-load rate/latency against a fresh null; record cycles/op, IPC, instr/op.
+Keep the 4096-connection cells. Both modes/database variants need mainline boot/gate checks.
+CONFIG GET/REWRITE retain the boot value; SET remains rejected as in wbland1.
+248/248 writeback outcomes pass, including 86 strictly rejected negative controls.
+Additional db0 CONFIG fixture fails at tracking swap(0,1), identically on PRE and POST.
+Lane row delta now +2 quick/+2 full, down from +3/+3; EXPECT constants untouched.
+With the inherited topology quick correction, mainline totals should be 445 quick/463 full.
+All builds/serverless checks: taskset -c 112-127, make -j16. No live runs or push.
+Live results PENDING MAINLINE; append MEASURE-RESULT. Stop at this report.

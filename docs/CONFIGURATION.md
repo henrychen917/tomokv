@@ -63,6 +63,7 @@ There is no universal meaning for `0` or `-1`: use the rule in the individual ro
 
 | Name | Default | Valid values and meaning | Runtime | Origin / effect |
 | --- | --- | --- | --- | --- |
+| `wb-policy` | `1` | `0`: LATENCY, flush every ready connection each pass. `1`: the composite half rule from 37eeb5e90. Both policies allocate no writeback policy state. | Boot/GET/REWRITE | Tomo / T |
 | `thread-mode` | `2s` | `2s` / `split`: separate IO and executor threads; `1s` / `fused`: every selected thread does both. | Boot/GET | Tomo / B |
 | `ratio` | derived | Positive `io:ex` logical-thread counts, spread over L3 domains. Split only; total must fit allowed CPUs and the 128-thread bound. | Boot | Tomo / T |
 | `place` | derived | Comma-separated `ifid@CPU,ex@CPU,...`, with decimal allowed CPU IDs. In fused mode the role labels only select CPUs. | Boot | Tomo / T |
@@ -76,6 +77,14 @@ There is no universal meaning for `0` or `-1`: use the rule in the individual ro
 | `hash` | `mix64` | `mix64` or `siphash` (SipHash-1-2). Boot-randomized hash material controls routing and store lookup; persistence recovery restores saved hash material. | Boot | Tomo / T |
 | `zc-min` | `16384` | `u32` bytes. `0` disables borrowed-value single-key GET replies; positive values set the minimum string length. MGET gather separately uses `min(zc-min, 1024)`, including when zero; see below. | Live | Tomo / T |
 | `script-instruction-limit` | `100000` | `u64` Lua VM instructions, checked at 1000-instruction hook intervals. `0` is unlimited. Exceeding the budget aborts the activation; this is not Redis's `lua-time-limit` or `busy-reply-threshold`. | Boot/GET | Tomo / B |
+
+Policy 1 serves when nothing remains in flight (including the ordinary p1 path),
+the contiguous Done prefix reaches `ceil(in_flight / 2)`, staged plus acquired
+Done reply bytes reach 512 bytes (`kWbufInline`), or the acquired prefix reaches
+an MGET scatter reply. Policy 0 serves every ready head each captured pass.
+Both policies apply in 1s and 2s, including overlap and read-local schedules.
+`INFO WRITEBACK` reports `wb_policy`. `CONFIG SET wb-policy` remains rejected
+as boot-only; select `0` or `1` at boot. Adaptive `-1` is no longer accepted.
 
 Without placement overrides, split mode divides the allowed CPUs evenly, with
 IO taking the extra CPU. Under SMT it divides complete sibling pairs, with both

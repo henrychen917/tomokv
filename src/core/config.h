@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 
+#include "wb_rule.h"
 #include "../base/slice.h"       // Slice (notify flag parsing)
 #include "../cmd/notify.h"       // parse_notify_flags
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
@@ -422,8 +423,9 @@ struct Config {
     // Null means "started without a config file", which is exactly the
     // condition CONFIG REWRITE reports as an error.
     const char* conf_path = nullptr;
-    // The knob collapse leaves 80 bytes spare; retain the project's 624-byte layout lock.
-    uint8_t layout_reserved[80]{};
+    // Boot-only writeback policy; consume reserved bytes, preserving all prior offsets.
+    int32_t wb_policy = wb_rule::default_policy();
+    uint8_t layout_reserved[76]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -838,6 +840,14 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--wb-policy")) {
+            const char* value = next(nullptr);
+            if (!value || (std::strcmp(value, "0") && std::strcmp(value, "1"))) {
+                std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
+                return kConfigError;
+            }
+            cfg.wb_policy = std::atoi(value);
+        }
         else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
                 std::fprintf(stderr, "--key-lb wants 0 or 1\n");
@@ -1069,6 +1079,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
                         "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
+                        "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1129,6 +1140,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.wb_policy < 0 || cfg.wb_policy > 1) {
+        std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
+        return kConfigError;
+    }
     if (cfg.key_lb > 1 || cfg.client_lb > 1) {
         std::fprintf(stderr, "--key-lb and --client-lb want 0 or 1\n");
         return kConfigError;
