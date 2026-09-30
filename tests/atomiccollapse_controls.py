@@ -39,6 +39,12 @@ CONTROLS = [
      '            atomic_collapse_retire_.end());',
      '        // negative control: duplicate retire remains in the worklist', 'winners',
      'duplicate loser: unique worklist contains one owned payload'),
+    ('deduplicate-armed', ATOMIC,
+     '        atomic_collapse_retire_.erase(\n'
+     '            std::unique(atomic_collapse_retire_.begin(), atomic_collapse_retire_.end()),\n'
+     '            atomic_collapse_retire_.end());',
+     '        // negative control: duplicate retire remains in the worklist', 'winners',
+     'duplicate loser: each payload retired exactly once'),
     ('allocation', ATOMIC, 'catch (const std::bad_alloc&) {\n            return false;',
      'catch (const std::bad_alloc&) {\n            return true;', 'allocation',
      'allocation refusal: all entries, ownership, accounting and retire state preserved'),
@@ -84,7 +90,7 @@ CONTROLS = [
 ]
 
 
-def generate():
+def generate(only=None):
     OUT.mkdir(parents=True, exist_ok=True)
     plan = (ROOT / 'build/atomiccollapse/PRE/freeze/build-plan.txt').read_text()
     objects = re.findall(r' -c \S+ -o build/(src/\S+\.o)', plan)
@@ -96,6 +102,8 @@ def generate():
                '-o', 'unit', '-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
     rows = []
     for name, file, old, new, selection, assertion in CONTROLS:
+        if only and name != only:
+            continue
         tree = OUT / name
         shutil.copytree(ROOT / 'src', tree / 'src', dirs_exist_ok=True)
         (tree / 'tests').mkdir(exist_ok=True)
@@ -112,11 +120,21 @@ def generate():
         assert count > 0, name
         source = source[:start] + body.replace(old, new) + source[end:]
         path.write_text(source)
+        if name == 'deduplicate-armed':
+            # Reach the armed sink before the unarmed duplicate-list assertion
+            # terminates the same mutation. Both use the real loser worklist.
+            test = tree / TEST
+            text = test.read_text()
+            assert 'for (bool armed : {false, true})' in text
+            test.write_text(text.replace('for (bool armed : {false, true})', 'for (bool armed : {true})'))
         rows.append(dict(name=name, path=file, substitutions=count, selection=selection,
                          assertion=assertion, sha256=hashlib.sha256(source.encode()).hexdigest(),
                          tests_sha256={test: hashlib.sha256((tree / 'tests' / test).read_bytes()).hexdigest()
                                        for test in ('atomic_survivors_unit.cc', 'atomiccollapse_checks.inc')},
                          source=old, replacement=new, command=command))
+    assert rows, 'unknown control selection'
+    if only and (OUT / 'manifest.json').exists():
+        rows = [r for r in json.loads((OUT / 'manifest.json').read_text()) if r['name'] != only] + rows
     make = '.PHONY: all\nall: ' + ' '.join(r['name'] + '/unit' for r in rows) + '\n\n'
     for row in rows:
         make += row['name'] + '/unit: ' + ' '.join(row['name'] + '/' + path for path in
@@ -157,6 +175,10 @@ def run():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('generate', 'run'))
+    parser.add_argument('--only', help='regenerate one control, preserving the other frozen artifacts')
     args = parser.parse_args()
     assert os.sched_getaffinity(0) <= set(range(112, 128)), 'run under taskset -c 112-127'
-    (generate if args.action == 'generate' else run)()
+    if args.action == 'generate':
+        generate(args.only)
+    else:
+        run()
