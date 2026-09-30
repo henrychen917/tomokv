@@ -572,7 +572,7 @@
   },
   "load_floors": {
     "h01": {
-      "instances": 4,
+      "instances": 8,
       "shape": {
         "mode": "1s",
         "read_local": 0,
@@ -819,7 +819,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -827,7 +827,7 @@
           "B"
         ],
         "values": [
-          27716006.52315707
+          27688883.325087667
         ]
       },
       "observed_busy": {
@@ -840,8 +840,8 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "h02": {
@@ -1092,7 +1092,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -1100,7 +1100,7 @@
           "B"
         ],
         "values": [
-          26496624.563473493
+          26703783.117546715
         ]
       },
       "observed_busy": {
@@ -1113,12 +1113,12 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h03": {
-      "instances": 8,
+      "instances": 4,
       "shape": {
         "mode": "1s",
         "read_local": 0,
@@ -1365,7 +1365,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -1373,7 +1373,7 @@
           "B"
         ],
         "values": [
-          28477157.046940513
+          27187560.6690341
         ]
       },
       "observed_busy": {
@@ -1386,8 +1386,8 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=8; confirmation=12"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h04": {
@@ -1638,7 +1638,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -1646,7 +1646,7 @@
           "B"
         ],
         "values": [
-          26511782.42578655
+          26845325.930911183
         ]
       },
       "observed_busy": {
@@ -1659,8 +1659,8 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h05": {
@@ -1911,7 +1911,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -1919,7 +1919,7 @@
           "B"
         ],
         "values": [
-          27324856.123802047
+          27372989.984405268
         ]
       },
       "observed_busy": {
@@ -1932,12 +1932,12 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h06": {
-      "instances": 8,
+      "instances": 4,
       "shape": {
         "mode": "1s",
         "read_local": 0,
@@ -2184,7 +2184,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -2192,7 +2192,7 @@
           "B"
         ],
         "values": [
-          27272257.8850326
+          26997502.4430375
         ]
       },
       "observed_busy": {
@@ -2205,12 +2205,12 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=8; confirmation=12"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h07": {
-      "instances": 4,
+      "instances": 8,
       "shape": {
         "mode": "1s",
         "read_local": 0,
@@ -2457,7 +2457,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -2465,7 +2465,7 @@
           "B"
         ],
         "values": [
-          27913089.665190905
+          27959646.1619145
         ]
       },
       "observed_busy": {
@@ -2478,8 +2478,8 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "h08": {
@@ -2730,7 +2730,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -2738,7 +2738,7 @@
           "B"
         ],
         "values": [
-          26972479.440702893
+          26908194.90820056
         ]
       },
       "observed_busy": {
@@ -2751,8 +2751,8 @@
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h09": {
@@ -3003,7 +3003,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -3011,7 +3011,7 @@
           "B"
         ],
         "values": [
-          55631618.381387666
+          53534889.14867736
         ]
       },
       "observed_busy": {
@@ -3020,16 +3020,16 @@
           "B"
         ],
         "values": [
-          99.99354040348491
+          99.99972186000402
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h10": {
-      "instances": 2,
+      "instances": 4,
       "shape": {
         "mode": "1s",
         "read_local": 1,
@@ -3276,7 +3276,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -3284,7 +3284,7 @@
           "B"
         ],
         "values": [
-          25435937.48767564
+          25382437.79204377
         ]
       },
       "observed_busy": {
@@ -3293,12 +3293,12 @@
           "B"
         ],
         "values": [
-          99.98347996021698
+          100.0
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h11": {
@@ -3549,7 +3549,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -3557,7 +3557,7 @@
           "B"
         ],
         "values": [
-          53605038.7298389
+          54605498.138130814
         ]
       },
       "observed_busy": {
@@ -3566,12 +3566,12 @@
           "B"
         ],
         "values": [
-          99.99800777651824
+          99.9992539032027
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h12": {
@@ -3822,7 +3822,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -3830,7 +3830,7 @@
           "B"
         ],
         "values": [
-          24737364.20204059
+          24933961.59655459
         ]
       },
       "observed_busy": {
@@ -3839,12 +3839,12 @@
           "B"
         ],
         "values": [
-          99.98839355488234
+          99.97011276184399
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h13": {
@@ -4095,7 +4095,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -4103,7 +4103,7 @@
           "B"
         ],
         "values": [
-          52871285.132328644
+          54711576.17804429
         ]
       },
       "observed_busy": {
@@ -4112,16 +4112,16 @@
           "B"
         ],
         "values": [
-          99.99999534743124
+          99.99969820222336
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h14": {
-      "instances": 4,
+      "instances": 2,
       "shape": {
         "mode": "1s",
         "read_local": 1,
@@ -4368,7 +4368,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -4376,7 +4376,7 @@
           "B"
         ],
         "values": [
-          25230880.94646845
+          25180694.831338607
         ]
       },
       "observed_busy": {
@@ -4385,12 +4385,12 @@
           "B"
         ],
         "values": [
-          100.0
+          99.97228608049264
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h15": {
@@ -4641,7 +4641,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -4649,7 +4649,7 @@
           "B"
         ],
         "values": [
-          56534715.7310647
+          53125785.29641725
         ]
       },
       "observed_busy": {
@@ -4658,12 +4658,12 @@
           "B"
         ],
         "values": [
-          99.99640588943828
+          99.9990992106156
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h16": {
@@ -4914,7 +4914,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -4922,7 +4922,7 @@
           "B"
         ],
         "values": [
-          24695590.898440275
+          24918519.220015585
         ]
       },
       "observed_busy": {
@@ -4931,16 +4931,16 @@
           "B"
         ],
         "values": [
-          99.97330594657367
+          99.95878170487643
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h17": {
-      "instances": 8,
+      "instances": 4,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -5187,7 +5187,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -5195,7 +5195,7 @@
           "B"
         ],
         "values": [
-          28141316.026460376
+          28002347.753734145
         ]
       },
       "observed_busy": {
@@ -5204,12 +5204,12 @@
           "B"
         ],
         "values": [
-          98.60088211696875
+          99.30732663512383
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=8; confirmation=12"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h18": {
@@ -5460,7 +5460,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -5468,7 +5468,7 @@
           "B"
         ],
         "values": [
-          26470841.385113068
+          26969596.658202186
         ]
       },
       "observed_busy": {
@@ -5477,16 +5477,16 @@
           "B"
         ],
         "values": [
-          99.22679506395875
+          99.60917091958426
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h19": {
-      "instances": 8,
+      "instances": 4,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -5733,7 +5733,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -5741,7 +5741,7 @@
           "B"
         ],
         "values": [
-          28069328.595476467
+          28052995.01095336
         ]
       },
       "observed_busy": {
@@ -5750,12 +5750,12 @@
           "B"
         ],
         "values": [
-          98.56013332545146
+          99.32673809169955
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=8; confirmation=12"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h20": {
@@ -6006,7 +6006,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -6014,7 +6014,7 @@
           "B"
         ],
         "values": [
-          26422055.672167554
+          26897413.875851307
         ]
       },
       "observed_busy": {
@@ -6023,16 +6023,16 @@
           "B"
         ],
         "values": [
-          98.95043121177198
+          99.61605248401676
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h21": {
-      "instances": 2,
+      "instances": 4,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -6279,7 +6279,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -6287,7 +6287,7 @@
           "B"
         ],
         "values": [
-          28688825.579255182
+          30475558.774853773
         ]
       },
       "observed_busy": {
@@ -6296,12 +6296,12 @@
           "B"
         ],
         "values": [
-          96.44528144020354
+          97.23186042818517
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h22": {
@@ -6552,7 +6552,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -6560,7 +6560,7 @@
           "B"
         ],
         "values": [
-          27504957.48192431
+          29132025.49831926
         ]
       },
       "observed_busy": {
@@ -6569,12 +6569,12 @@
           "B"
         ],
         "values": [
-          96.77121702578975
+          97.44540548731577
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h23": {
@@ -6825,7 +6825,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -6833,7 +6833,7 @@
           "B"
         ],
         "values": [
-          28593817.807007596
+          30213392.514691878
         ]
       },
       "observed_busy": {
@@ -6842,12 +6842,12 @@
           "B"
         ],
         "values": [
-          96.47658113090934
+          97.20715665691608
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h24": {
@@ -7098,7 +7098,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -7106,7 +7106,7 @@
           "B"
         ],
         "values": [
-          27508817.947694264
+          29080792.866483055
         ]
       },
       "observed_busy": {
@@ -7115,16 +7115,16 @@
           "B"
         ],
         "values": [
-          96.80185278340201
+          97.46735526771833
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h25": {
-      "instances": 4,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -7371,7 +7371,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -7379,7 +7379,7 @@
           "B"
         ],
         "values": [
-          30521082.39563515
+          29188384.364649322
         ]
       },
       "observed_busy": {
@@ -7388,16 +7388,16 @@
           "B"
         ],
         "values": [
-          50.35440133674464
+          50.2070891640348
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "h26": {
-      "instances": 4,
+      "instances": 2,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -7644,7 +7644,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -7652,7 +7652,7 @@
           "B"
         ],
         "values": [
-          25715221.873042013
+          25324221.715811234
         ]
       },
       "observed_busy": {
@@ -7661,12 +7661,12 @@
           "B"
         ],
         "values": [
-          99.97639777863023
+          99.90816463830654
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "h27": {
@@ -7917,7 +7917,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -7925,7 +7925,7 @@
           "B"
         ],
         "values": [
-          32488223.866856072
+          29081702.213711776
         ]
       },
       "observed_busy": {
@@ -7934,12 +7934,12 @@
           "B"
         ],
         "values": [
-          50.15077839521493
+          50.22997132742151
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h28": {
@@ -8190,7 +8190,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -8198,7 +8198,7 @@
           "B"
         ],
         "values": [
-          25475370.323832642
+          26014785.30679073
         ]
       },
       "observed_busy": {
@@ -8207,16 +8207,16 @@
           "B"
         ],
         "values": [
-          99.94804384519709
+          99.99287838360355
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h29": {
-      "instances": 4,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -8463,7 +8463,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -8471,7 +8471,7 @@
           "B"
         ],
         "values": [
-          29512094.395374004
+          29831735.39210574
         ]
       },
       "observed_busy": {
@@ -8480,16 +8480,16 @@
           "B"
         ],
         "values": [
-          50.20560040263004
+          50.23137885306719
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "h30": {
-      "instances": 2,
+      "instances": 4,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -8736,7 +8736,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -8744,7 +8744,7 @@
           "B"
         ],
         "values": [
-          26545476.689078756
+          28469621.890708603
         ]
       },
       "observed_busy": {
@@ -8753,16 +8753,16 @@
           "B"
         ],
         "values": [
-          97.22291073767587
+          98.90231509188519
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h31": {
-      "instances": 8,
+      "instances": 4,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -9009,7 +9009,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -9017,7 +9017,7 @@
           "B"
         ],
         "values": [
-          30692223.35592465
+          29647036.689810175
         ]
       },
       "observed_busy": {
@@ -9026,12 +9026,12 @@
           "B"
         ],
         "values": [
-          50.35768711607195
+          50.22893055073906
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=8; confirmation=12"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "h32": {
@@ -9282,7 +9282,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -9290,7 +9290,7 @@
           "B"
         ],
         "values": [
-          26349395.680096168
+          28300340.27901566
         ]
       },
       "observed_busy": {
@@ -9299,12 +9299,12 @@
           "B"
         ],
         "values": [
-          97.88485315764478
+          98.89641297390908
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "m47": {
@@ -9555,7 +9555,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -9563,7 +9563,7 @@
           "B"
         ],
         "values": [
-          1138879.8923661658
+          1167020.1276235848
         ]
       },
       "observed_busy": {
@@ -9572,12 +9572,12 @@
           "B"
         ],
         "values": [
-          99.98610314685143
+          99.98137902942476
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m92": {
@@ -9828,7 +9828,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -9836,7 +9836,7 @@
           "B"
         ],
         "values": [
-          1777013.9804619432
+          1776993.7299703793
         ]
       },
       "observed_busy": {
@@ -9845,12 +9845,12 @@
           "B"
         ],
         "values": [
-          50.17224041181555
+          50.177136961820594
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "t01": {
@@ -10197,7 +10197,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -10205,7 +10205,7 @@
           "B"
         ],
         "values": [
-          2271443.391738301
+          2253898.948048121
         ]
       },
       "observed_busy": {
@@ -10214,16 +10214,16 @@
           "B"
         ],
         "values": [
-          99.99988129118881
+          99.99906810281077
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m51": {
-      "instances": 1,
+      "instances": 2,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -10470,7 +10470,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -10478,7 +10478,7 @@
           "B"
         ],
         "values": [
-          2140010.7069767504
+          1774898.230456922
         ]
       },
       "observed_busy": {
@@ -10487,12 +10487,12 @@
           "B"
         ],
         "values": [
-          84.06183150942348
+          99.13792770248163
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m02": {
@@ -10743,7 +10743,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -10751,7 +10751,7 @@
           "B"
         ],
         "values": [
-          2573629.9500044445
+          2568492.269773323
         ]
       },
       "observed_busy": {
@@ -10760,12 +10760,12 @@
           "B"
         ],
         "values": [
-          99.76268977286703
+          99.7913330989822
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m05": {
@@ -11016,7 +11016,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -11024,7 +11024,7 @@
           "B"
         ],
         "values": [
-          1628157.1086051424
+          1648448.2834368052
         ]
       },
       "observed_busy": {
@@ -11033,12 +11033,12 @@
           "B"
         ],
         "values": [
-          99.86294238654541
+          99.85299783704876
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m06": {
@@ -11289,7 +11289,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -11297,7 +11297,7 @@
           "B"
         ],
         "values": [
-          1619456.9075929134
+          1650619.2905945736
         ]
       },
       "observed_busy": {
@@ -11306,12 +11306,12 @@
           "B"
         ],
         "values": [
-          99.99834374663617
+          99.99693308205734
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m08": {
@@ -11562,7 +11562,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -11570,7 +11570,7 @@
           "B"
         ],
         "values": [
-          2048744.1493849894
+          2060420.6477806538
         ]
       },
       "observed_busy": {
@@ -11579,12 +11579,12 @@
           "B"
         ],
         "values": [
-          99.78957883261116
+          99.79303082712406
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m09": {
@@ -11835,7 +11835,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -11843,7 +11843,7 @@
           "B"
         ],
         "values": [
-          1710331.5060569902
+          1714109.9234393714
         ]
       },
       "observed_busy": {
@@ -11852,12 +11852,12 @@
           "B"
         ],
         "values": [
-          99.99993015834744
+          99.99982950020147
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m11": {
@@ -12108,7 +12108,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -12116,7 +12116,7 @@
           "B"
         ],
         "values": [
-          1222925.9993979721
+          1239109.0983909513
         ]
       },
       "observed_busy": {
@@ -12125,12 +12125,12 @@
           "B"
         ],
         "values": [
-          99.96907799564492
+          99.95508217215061
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m12": {
@@ -12381,7 +12381,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -12389,7 +12389,7 @@
           "B"
         ],
         "values": [
-          1231459.9590960217
+          1235271.1976310196
         ]
       },
       "observed_busy": {
@@ -12398,12 +12398,12 @@
           "B"
         ],
         "values": [
-          99.9976989637253
+          99.99626659046646
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m14": {
@@ -12654,7 +12654,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -12662,7 +12662,7 @@
           "B"
         ],
         "values": [
-          2536597.954130953
+          2535080.8700131783
         ]
       },
       "observed_busy": {
@@ -12671,12 +12671,12 @@
           "B"
         ],
         "values": [
-          99.7681953472224
+          99.77307972604882
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m15": {
@@ -12927,7 +12927,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -12935,7 +12935,7 @@
           "B"
         ],
         "values": [
-          2257972.139442639
+          2153419.8033268275
         ]
       },
       "observed_busy": {
@@ -12944,12 +12944,12 @@
           "B"
         ],
         "values": [
-          99.99975955340967
+          99.99927465200666
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m17": {
@@ -13200,7 +13200,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -13208,7 +13208,7 @@
           "B"
         ],
         "values": [
-          1627768.5724208467
+          1645638.7604873956
         ]
       },
       "observed_busy": {
@@ -13217,12 +13217,12 @@
           "B"
         ],
         "values": [
-          99.86589068793666
+          99.73525633024987
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m18": {
@@ -13473,7 +13473,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -13481,7 +13481,7 @@
           "B"
         ],
         "values": [
-          1626937.8365071078
+          1663099.3832932804
         ]
       },
       "observed_busy": {
@@ -13490,12 +13490,12 @@
           "B"
         ],
         "values": [
-          99.99681965686015
+          99.99544477811821
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m20": {
@@ -13746,7 +13746,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -13754,7 +13754,7 @@
           "B"
         ],
         "values": [
-          2046544.083786
+          2029780.2276778151
         ]
       },
       "observed_busy": {
@@ -13763,12 +13763,12 @@
           "B"
         ],
         "values": [
-          99.79595060161796
+          99.81016242548836
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m21": {
@@ -14019,7 +14019,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -14027,7 +14027,7 @@
           "B"
         ],
         "values": [
-          1768410.5319888403
+          1804842.416699565
         ]
       },
       "observed_busy": {
@@ -14036,12 +14036,12 @@
           "B"
         ],
         "values": [
-          99.99987883061685
+          99.99992084880475
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m23": {
@@ -14292,7 +14292,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -14300,7 +14300,7 @@
           "B"
         ],
         "values": [
-          1233803.8138215207
+          1236790.7224389992
         ]
       },
       "observed_busy": {
@@ -14309,12 +14309,12 @@
           "B"
         ],
         "values": [
-          99.96583640136846
+          99.95378739184305
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m24": {
@@ -14565,7 +14565,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -14573,7 +14573,7 @@
           "B"
         ],
         "values": [
-          1228905.7982911519
+          1254591.711714167
         ]
       },
       "observed_busy": {
@@ -14582,12 +14582,12 @@
           "B"
         ],
         "values": [
-          99.99710049376978
+          99.9933151564834
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m26": {
@@ -14838,7 +14838,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -14846,7 +14846,7 @@
           "B"
         ],
         "values": [
-          3367301.8057410587
+          3407660.2613390074
         ]
       },
       "observed_busy": {
@@ -14855,12 +14855,12 @@
           "B"
         ],
         "values": [
-          99.940175703768
+          99.93101740458147
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m27": {
@@ -15111,7 +15111,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -15119,7 +15119,7 @@
           "B"
         ],
         "values": [
-          3396744.2349084364
+          3508385.1116986508
         ]
       },
       "observed_busy": {
@@ -15128,12 +15128,12 @@
           "B"
         ],
         "values": [
-          99.99216337946335
+          99.99813899582283
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m29": {
@@ -15384,7 +15384,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -15392,7 +15392,7 @@
           "B"
         ],
         "values": [
-          1495844.0725801494
+          1532705.348951003
         ]
       },
       "observed_busy": {
@@ -15401,12 +15401,12 @@
           "B"
         ],
         "values": [
-          99.89328912958985
+          99.87550850321601
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m30": {
@@ -15657,7 +15657,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -15665,7 +15665,7 @@
           "B"
         ],
         "values": [
-          1491351.8477024096
+          1522354.7787785276
         ]
       },
       "observed_busy": {
@@ -15674,12 +15674,12 @@
           "B"
         ],
         "values": [
-          99.99792194493577
+          99.99374549488493
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m32": {
@@ -15930,7 +15930,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -15938,7 +15938,7 @@
           "B"
         ],
         "values": [
-          3349542.076761479
+          3403473.8309123516
         ]
       },
       "observed_busy": {
@@ -15947,12 +15947,12 @@
           "B"
         ],
         "values": [
-          99.92616470107096
+          99.95186414302908
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m33": {
@@ -16203,7 +16203,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -16211,7 +16211,7 @@
           "B"
         ],
         "values": [
-          3471917.6245122505
+          3396617.3509656973
         ]
       },
       "observed_busy": {
@@ -16220,12 +16220,12 @@
           "B"
         ],
         "values": [
-          99.99679871995917
+          99.9923161532299
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m35": {
@@ -16476,7 +16476,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -16484,7 +16484,7 @@
           "B"
         ],
         "values": [
-          1141297.5656722428
+          1169381.4503987816
         ]
       },
       "observed_busy": {
@@ -16493,12 +16493,12 @@
           "B"
         ],
         "values": [
-          99.97840938492568
+          99.98583994905182
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m36": {
@@ -16749,7 +16749,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -16757,7 +16757,7 @@
           "B"
         ],
         "values": [
-          1125494.498344374
+          1181876.5179851553
         ]
       },
       "observed_busy": {
@@ -16766,12 +16766,12 @@
           "B"
         ],
         "values": [
-          99.99700333762372
+          99.99150486489185
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m38": {
@@ -17022,7 +17022,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -17030,7 +17030,7 @@
           "B"
         ],
         "values": [
-          3355763.0416363915
+          3357926.3992635533
         ]
       },
       "observed_busy": {
@@ -17039,12 +17039,12 @@
           "B"
         ],
         "values": [
-          99.94087873980044
+          99.95386307413439
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m39": {
@@ -17295,7 +17295,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -17303,7 +17303,7 @@
           "B"
         ],
         "values": [
-          3457998.9588777744
+          3386845.0526520354
         ]
       },
       "observed_busy": {
@@ -17312,12 +17312,12 @@
           "B"
         ],
         "values": [
-          99.99272863498325
+          99.99862132733635
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m41": {
@@ -17568,7 +17568,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -17576,7 +17576,7 @@
           "B"
         ],
         "values": [
-          1501963.3085927085
+          1528569.8570447627
         ]
       },
       "observed_busy": {
@@ -17585,12 +17585,12 @@
           "B"
         ],
         "values": [
-          99.88665477976677
+          99.89054427540259
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m42": {
@@ -17841,7 +17841,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -17849,7 +17849,7 @@
           "B"
         ],
         "values": [
-          1483370.9807853948
+          1534570.1146494995
         ]
       },
       "observed_busy": {
@@ -17858,12 +17858,12 @@
           "B"
         ],
         "values": [
-          99.99249785165384
+          99.99210213559101
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m44": {
@@ -18114,7 +18114,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -18122,7 +18122,7 @@
           "B"
         ],
         "values": [
-          3363984.12082179
+          3402459.4361572973
         ]
       },
       "observed_busy": {
@@ -18131,12 +18131,12 @@
           "B"
         ],
         "values": [
-          99.90764802272724
+          99.94672542219438
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m45": {
@@ -18387,7 +18387,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -18395,7 +18395,7 @@
           "B"
         ],
         "values": [
-          3415908.989153893
+          3368481.3694201526
         ]
       },
       "observed_busy": {
@@ -18404,12 +18404,12 @@
           "B"
         ],
         "values": [
-          99.99367892102778
+          100.0
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m48": {
@@ -18660,7 +18660,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -18668,7 +18668,7 @@
           "B"
         ],
         "values": [
-          1135509.9725493162
+          1186779.282833131
         ]
       },
       "observed_busy": {
@@ -18677,16 +18677,16 @@
           "B"
         ],
         "values": [
-          99.99743486206447
+          99.99172157807507
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m50": {
-      "instances": 1,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -18933,7 +18933,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -18941,7 +18941,7 @@
           "B"
         ],
         "values": [
-          2381092.9367642133
+          2541552.2759235203
         ]
       },
       "observed_busy": {
@@ -18950,12 +18950,12 @@
           "B"
         ],
         "values": [
-          86.77428558588986
+          99.79754113496658
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "m53": {
@@ -19206,7 +19206,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -19214,7 +19214,7 @@
           "B"
         ],
         "values": [
-          1294893.180198037
+          1236361.8576674396
         ]
       },
       "observed_busy": {
@@ -19223,12 +19223,12 @@
           "B"
         ],
         "values": [
-          80.42044575956163
+          95.10093461039361
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m54": {
@@ -19479,7 +19479,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -19487,7 +19487,7 @@
           "B"
         ],
         "values": [
-          1296873.5607070886
+          1220712.70710628
         ]
       },
       "observed_busy": {
@@ -19496,16 +19496,16 @@
           "B"
         ],
         "values": [
-          78.73881457478844
+          96.4062348485463
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m56": {
-      "instances": 1,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -19752,7 +19752,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -19760,7 +19760,7 @@
           "B"
         ],
         "values": [
-          2382875.097611592
+          2518256.503612163
         ]
       },
       "observed_busy": {
@@ -19769,12 +19769,12 @@
           "B"
         ],
         "values": [
-          87.01491937156558
+          99.83841742668632
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "m57": {
@@ -20025,7 +20025,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -20033,7 +20033,7 @@
           "B"
         ],
         "values": [
-          2129472.9795505134
+          1955272.503622586
         ]
       },
       "observed_busy": {
@@ -20042,12 +20042,12 @@
           "B"
         ],
         "values": [
-          84.21148469269492
+          98.6418686880424
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m59": {
@@ -20298,7 +20298,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -20306,7 +20306,7 @@
           "B"
         ],
         "values": [
-          1307540.4148779812
+          1228846.163635619
         ]
       },
       "observed_busy": {
@@ -20315,12 +20315,12 @@
           "B"
         ],
         "values": [
-          80.78225796618119
+          95.37324039270628
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m60": {
@@ -20571,7 +20571,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -20579,7 +20579,7 @@
           "B"
         ],
         "values": [
-          1294440.9060195812
+          1206595.4369057855
         ]
       },
       "observed_busy": {
@@ -20588,16 +20588,16 @@
           "B"
         ],
         "values": [
-          78.74708831794946
+          96.40578693608931
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m62": {
-      "instances": 1,
+      "instances": 2,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -20844,7 +20844,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -20852,7 +20852,7 @@
           "B"
         ],
         "values": [
-          2394321.403581281
+          2433191.71728905
         ]
       },
       "observed_busy": {
@@ -20861,16 +20861,16 @@
           "B"
         ],
         "values": [
-          86.95592293658584
+          99.47261335185621
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m63": {
-      "instances": 1,
+      "instances": 2,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -21117,7 +21117,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -21125,7 +21125,7 @@
           "B"
         ],
         "values": [
-          2105983.6846539467
+          2041913.3539391998
         ]
       },
       "observed_busy": {
@@ -21134,12 +21134,12 @@
           "B"
         ],
         "values": [
-          85.55567829057473
+          99.02474262852972
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "m65": {
@@ -21390,7 +21390,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -21398,7 +21398,7 @@
           "B"
         ],
         "values": [
-          1293869.2797898857
+          1245751.2702926337
         ]
       },
       "observed_busy": {
@@ -21407,12 +21407,12 @@
           "B"
         ],
         "values": [
-          80.63426107125439
+          93.84085728495148
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m66": {
@@ -21663,7 +21663,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -21671,7 +21671,7 @@
           "B"
         ],
         "values": [
-          1288223.602657189
+          1232030.3364103846
         ]
       },
       "observed_busy": {
@@ -21680,16 +21680,16 @@
           "B"
         ],
         "values": [
-          78.31057474256345
+          94.59903308081726
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m68": {
-      "instances": 1,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 0,
@@ -21936,7 +21936,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -21944,7 +21944,7 @@
           "B"
         ],
         "values": [
-          2394899.9897223455
+          2522370.8769713673
         ]
       },
       "observed_busy": {
@@ -21953,12 +21953,12 @@
           "B"
         ],
         "values": [
-          87.41952182791735
+          99.41067913909349
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "m69": {
@@ -22209,7 +22209,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -22217,7 +22217,7 @@
           "B"
         ],
         "values": [
-          2096742.943506244
+          2062302.35774303
         ]
       },
       "observed_busy": {
@@ -22226,12 +22226,12 @@
           "B"
         ],
         "values": [
-          85.39904152060802
+          99.12293387791449
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m71": {
@@ -22482,7 +22482,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -22490,7 +22490,7 @@
           "B"
         ],
         "values": [
-          1304443.0916007422
+          1245833.946519234
         ]
       },
       "observed_busy": {
@@ -22499,12 +22499,12 @@
           "B"
         ],
         "values": [
-          80.3820825000338
+          93.85752397827514
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m72": {
@@ -22755,7 +22755,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -22763,7 +22763,7 @@
           "B"
         ],
         "values": [
-          1293152.5138341757
+          1237388.496274511
         ]
       },
       "observed_busy": {
@@ -22772,12 +22772,12 @@
           "B"
         ],
         "values": [
-          78.67760318995583
+          94.42748166552602
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m74": {
@@ -23028,7 +23028,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -23036,7 +23036,7 @@
           "B"
         ],
         "values": [
-          1743118.1984731706
+          1824192.21095628
         ]
       },
       "observed_busy": {
@@ -23045,12 +23045,12 @@
           "B"
         ],
         "values": [
-          50.16852710199319
+          50.16592691398326
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m75": {
@@ -23301,7 +23301,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -23309,7 +23309,7 @@
           "B"
         ],
         "values": [
-          1812855.8534236564
+          1883231.0942445865
         ]
       },
       "observed_busy": {
@@ -23318,12 +23318,12 @@
           "B"
         ],
         "values": [
-          50.29756326318195
+          50.29988868868667
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m77": {
@@ -23574,7 +23574,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -23582,7 +23582,7 @@
           "B"
         ],
         "values": [
-          1170197.2996908599
+          1128271.341692302
         ]
       },
       "observed_busy": {
@@ -23591,12 +23591,12 @@
           "B"
         ],
         "values": [
-          77.4980094747189
+          94.50456660186704
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m78": {
@@ -23847,7 +23847,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -23855,7 +23855,7 @@
           "B"
         ],
         "values": [
-          1166282.1150039916
+          1117449.8731795077
         ]
       },
       "observed_busy": {
@@ -23864,12 +23864,12 @@
           "B"
         ],
         "values": [
-          75.32841348337787
+          93.5413920409357
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m80": {
@@ -24120,7 +24120,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -24128,7 +24128,7 @@
           "B"
         ],
         "values": [
-          1749477.768357766
+          1846269.1937983695
         ]
       },
       "observed_busy": {
@@ -24137,12 +24137,12 @@
           "B"
         ],
         "values": [
-          50.17493110208058
+          50.1636970923806
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m81": {
@@ -24393,7 +24393,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -24401,7 +24401,7 @@
           "B"
         ],
         "values": [
-          1788301.209746325
+          1887826.9477882502
         ]
       },
       "observed_busy": {
@@ -24410,12 +24410,12 @@
           "B"
         ],
         "values": [
-          50.300103050797034
+          50.28732826642164
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m83": {
@@ -24666,7 +24666,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -24674,7 +24674,7 @@
           "B"
         ],
         "values": [
-          1154892.5651425081
+          1126865.3139168494
         ]
       },
       "observed_busy": {
@@ -24683,12 +24683,12 @@
           "B"
         ],
         "values": [
-          77.12998793953881
+          94.47169966873354
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m84": {
@@ -24939,7 +24939,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -24947,7 +24947,7 @@
           "B"
         ],
         "values": [
-          1147618.8045134116
+          1121504.2428658449
         ]
       },
       "observed_busy": {
@@ -24956,12 +24956,12 @@
           "B"
         ],
         "values": [
-          75.03299381547356
+          93.1112559785362
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m86": {
@@ -25212,7 +25212,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -25220,7 +25220,7 @@
           "B"
         ],
         "values": [
-          1752641.9964045295
+          1770010.0423775061
         ]
       },
       "observed_busy": {
@@ -25229,12 +25229,12 @@
           "B"
         ],
         "values": [
-          50.17230646122733
+          50.167509438047446
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m87": {
@@ -25485,7 +25485,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -25493,7 +25493,7 @@
           "B"
         ],
         "values": [
-          1774680.444214404
+          1827443.4376013628
         ]
       },
       "observed_busy": {
@@ -25502,12 +25502,12 @@
           "B"
         ],
         "values": [
-          50.28925804061353
+          50.29306549023355
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m89": {
@@ -25758,7 +25758,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -25766,7 +25766,7 @@
           "B"
         ],
         "values": [
-          1170476.3367499516
+          1138752.6569737894
         ]
       },
       "observed_busy": {
@@ -25775,12 +25775,12 @@
           "B"
         ],
         "values": [
-          77.45615702856368
+          94.09466656309631
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m90": {
@@ -26031,7 +26031,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -26039,7 +26039,7 @@
           "B"
         ],
         "values": [
-          1166471.9048335254
+          1123221.7559349693
         ]
       },
       "observed_busy": {
@@ -26048,12 +26048,12 @@
           "B"
         ],
         "values": [
-          75.38428913435361
+          93.17168127193996
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m93": {
@@ -26304,7 +26304,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -26312,7 +26312,7 @@
           "B"
         ],
         "values": [
-          1768470.2161266678
+          1813340.9806987606
         ]
       },
       "observed_busy": {
@@ -26321,12 +26321,12 @@
           "B"
         ],
         "values": [
-          50.29925994417829
+          50.29853310554776
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m95": {
@@ -26577,7 +26577,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -26585,7 +26585,7 @@
           "B"
         ],
         "values": [
-          1174586.5454058142
+          1133152.5773599206
         ]
       },
       "observed_busy": {
@@ -26594,12 +26594,12 @@
           "B"
         ],
         "values": [
-          77.52391850231737
+          93.21592575757258
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "m96": {
@@ -26850,7 +26850,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -26858,7 +26858,7 @@
           "B"
         ],
         "values": [
-          1157331.8429491248
+          1103023.2545037463
         ]
       },
       "observed_busy": {
@@ -26867,16 +26867,16 @@
           "B"
         ],
         "values": [
-          75.59698676075739
+          93.11436320211399
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "x06": {
-      "instances": 2,
+      "instances": 8,
       "shape": {
         "mode": "2s",
         "read_local": 1,
@@ -27123,7 +27123,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -27131,7 +27131,7 @@
           "B"
         ],
         "values": [
-          1597090.6040343354
+          1628485.379060348
         ]
       },
       "observed_busy": {
@@ -27140,16 +27140,16 @@
           "B"
         ],
         "values": [
-          94.8383039120849
+          95.20556028955018
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=8; confirmation=12"
       }
     },
     "c01": {
-      "instances": 4,
+      "instances": 2,
       "shape": {
         "mode": "1s",
         "read_local": 0,
@@ -27396,7 +27396,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -27404,7 +27404,7 @@
           "B"
         ],
         "values": [
-          24795428.510890342
+          24477452.932839017
         ]
       },
       "observed_busy": {
@@ -27413,12 +27413,12 @@
           "B"
         ],
         "values": [
-          100.0
+          99.73295743776315
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "c02": {
@@ -27669,7 +27669,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -27677,7 +27677,7 @@
           "B"
         ],
         "values": [
-          32546123.411755968
+          32186290.21869487
         ]
       },
       "observed_busy": {
@@ -27686,12 +27686,12 @@
           "B"
         ],
         "values": [
-          100.0
+          99.99992784881763
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=4; confirmation=8"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=4; confirmation=8"
       }
     },
     "c03": {
@@ -27942,7 +27942,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -27950,7 +27950,7 @@
           "B"
         ],
         "values": [
-          27074731.476764765
+          26940060.542744037
         ]
       },
       "observed_busy": {
@@ -27959,12 +27959,12 @@
           "B"
         ],
         "values": [
-          97.41868075102616
+          97.56291432802581
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "c04": {
@@ -28215,7 +28215,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -28223,7 +28223,7 @@
           "B"
         ],
         "values": [
-          13440529.886134438
+          13309283.717659293
         ]
       },
       "observed_busy": {
@@ -28232,12 +28232,12 @@
           "B"
         ],
         "values": [
-          50.21071228500322
+          50.16312127325479
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "a01": {
@@ -28488,7 +28488,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -28496,7 +28496,7 @@
           "B"
         ],
         "values": [
-          3346958.680069496
+          3345405.1502611195
         ]
       },
       "observed_busy": {
@@ -28505,12 +28505,12 @@
           "B"
         ],
         "values": [
-          99.90894314180552
+          99.89821024222094
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=2; confirmation=4"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=2; confirmation=4"
       }
     },
     "a02": {
@@ -28761,7 +28761,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -28769,7 +28769,7 @@
           "B"
         ],
         "values": [
-          1881003.6785649534
+          1865636.2228000562
         ]
       },
       "observed_busy": {
@@ -28778,12 +28778,12 @@
           "B"
         ],
         "values": [
-          99.81090006025417
+          99.80317322363828
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "a03": {
@@ -29034,7 +29034,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -29042,7 +29042,7 @@
           "B"
         ],
         "values": [
-          1770545.0031404109
+          1760161.9058939791
         ]
       },
       "observed_busy": {
@@ -29051,12 +29051,12 @@
           "B"
         ],
         "values": [
-          50.18132865637419
+          50.16845581097449
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     },
     "a04": {
@@ -29307,7 +29307,7 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "calibrated",
       "observed_rate": {
         "unit": "ops_per_second",
@@ -29315,7 +29315,7 @@
           "B"
         ],
         "values": [
-          2158613.6197170857
+          2182686.8092685747
         ]
       },
       "observed_busy": {
@@ -29324,12 +29324,12 @@
           "B"
         ],
         "values": [
-          80.24693650994959
+          99.42399315854797
         ]
       },
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; candidate=378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2; lowest tested qualifying instances=1; confirmation=2"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate (single-arm, persistent server, PIN only); /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; candidate=ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133; lowest tested qualifying instances=1; confirmation=2"
       }
     }
   },
@@ -29582,28 +29582,28 @@
         ],
         "split_ratio": "16:16"
       },
-      "instrument_sha256": "626762386e0e18019593522657ca1ab236b56312797a4a37c2eb935b357e6776",
+      "instrument_sha256": "cc6c06bde1ce7939b7f001489fde7287476c4086929f51badf774811d087dd36",
       "status": "CEILING-UNCONFIRMED",
       "evidence": {
         "status": "CEILING-UNCONFIRMED",
         "instances": 16,
-        "achieved_rate": 1810987.607260406,
+        "achieved_rate": 1844064.0503528812,
         "previous_instances": 12,
-        "previous_rate": 1753563.0727183921,
-        "slope_pct": 3.2747344783552013,
-        "slope_ops_per_instance": 14356.133635503473,
-        "server_occupancy_pct": 99.9948634181365,
+        "previous_rate": 1814431.6082491113,
+        "slope_pct": 1.633152882095379,
+        "slope_ops_per_instance": 7408.110525942466,
+        "server_occupancy_pct": 99.99649702967938,
         "worker_threads": 128,
         "previous_worker_threads": 192,
         "higher_worker_capacity": false,
         "reason": "occupied-without-confirmation",
         "saturated_peak_floor": null
       },
-      "calibration_sha256": "87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931",
-      "binary_sha256": "378407db49e8fa059840e70722fd0ef24cf58183b7982be69e4b5fa980849df2",
+      "calibration_sha256": "546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c",
+      "binary_sha256": "ef52de792f72ab8dae240fcd8194e1f14aa94b3828dc7e512eea7256b50c1133",
       "provenance": {
-        "when": "2026-09-26T14:53:08Z",
-        "how": "abbagate --calibrate; /home/user/Projects/cx-nullrefresh/build/nullrefresh3-mainline-20260926T145307Z/calibration/results.json; sha256=87fe792b2628654a756672fc0088ffb423d4a52d2e8dd59f196e8fe229c75931; identical-arm ceiling control only; saturation UNPROVEN"
+        "when": "2026-09-29T22:45:15Z",
+        "how": "abbagate --calibrate; /home/user/Projects/cx-nullrefresh/build/nullrefresh5-mainline-20260929T224208Z/calibration/results.json; sha256=546d0f542aba5cb88d0af789be8ac68cbe67a05918a430ddd073bc418281793c; identical-arm ceiling control only; saturation UNPROVEN"
       }
     }
   }
