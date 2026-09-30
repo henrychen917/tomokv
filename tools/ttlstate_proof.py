@@ -7,6 +7,7 @@ executable bytes, allocated data, relocation targets, and linked addresses.
 """
 
 import argparse
+from collections import Counter, defaultdict
 import hashlib
 import json
 import os
@@ -102,6 +103,30 @@ def addresses(elf):
     return sorted(rows)
 
 
+def compare_addresses(before, after):
+    old, new = Counter(addresses(before)), Counter(addresses(after))
+    removed, added = list((old - new).elements()), list((new - old).elements())
+    groups = []
+    for rows in (removed, added):
+        by_address = defaultdict(list)
+        for table, (name, info, other, section, value, size) in rows:
+            # Existing KvObj/RL topology asm uses %= for local patch-marker names. GCC may
+            # renumber these even when every emitted byte/address is unchanged.
+            # Permit ONLY spelling changes, retaining every address and attribute.
+            if not (table == ".symtab" and info == 0 and other == 0 and size == 0 and
+                    re.fullmatch(r"tomo_(?:multidb2_pad|rltopo_demote)_[0-9]+", name)):
+                return False, []
+            by_address[(table, info, other, section, value, size)].append(name)
+        groups.append(by_address)
+    a, b = groups
+    if a.keys() != b.keys() or any(len(a[key]) != len(b[key]) for key in a):
+        return False, []
+    renamed = [dict(attributes=key, pre=old_name, post=new_name)
+               for key in sorted(a)
+               for old_name, new_name in zip(sorted(a[key]), sorted(b[key]))]
+    return True, renamed
+
+
 def selected_sections(elf, flag):
     rows = {}
     for index, (section, name) in enumerate(zip(elf.sections, elf.names)):
@@ -151,7 +176,8 @@ def compare_files(before, after):
         errors.append("no executable sections found")
     if relocations(a) != relocations(b):
         errors.append("allocated relocation targets differ")
-    if addresses(a) != addresses(b):
+    address_equal, renamed_labels = compare_addresses(a, b)
+    if not address_equal:
         errors.append("allocated symbol addresses/identities differ")
     if a.data[16:32] != b.data[16:32] or program_headers(a) != program_headers(b):
         errors.append("ELF kind/machine/entry or program headers differ")
@@ -159,12 +185,15 @@ def compare_files(before, after):
     old = {name: i for i, name in enumerate(a.names)}
     new = {name: i for i, name in enumerate(b.names)}
     for name in sorted(old.keys() | new.keys()):
-        if name not in old or name not in new or \
+        if name not in old or name not in new:
+            different_sections.append(name)
+        elif a.sections[old[name]][1] != 8 and \
                 a.section_data(old[name]) != b.section_data(new[name]):
             different_sections.append(name)
     return dict(okay=not errors, before=str(before), after=str(after), errors=errors,
                 pre_sha256=digest(a.data), post_sha256=digest(b.data),
                 whole_file_equal=a.data == b.data, executable=executable,
+                address_equal=address_equal, renamed_local_labels=renamed_labels,
                 relocation_count=len(relocations(a)), symbol_count=len(addresses(a)),
                 different_sections=different_sections)
 
@@ -245,7 +274,8 @@ def controls(root, pre_header, binary, obj, output):
     for name, source_path, kind in (("executable-byte", binary, "text"),
                                    ("text-subsection-byte", obj, "subsection"),
                                    ("relocation-target", obj, "relocation"),
-                                   ("linked-address", binary, "symbol")):
+                                   ("linked-address", binary, "symbol"),
+                                   ("local-label-address", binary, "label")):
         elf = Elf(source_path)
         data = bytearray(elf.data)
         if kind in ("text", "subsection"):
@@ -263,7 +293,9 @@ def controls(root, pre_header, binary, obj, output):
         else:
             table, index = next((table, index) for table, symbols in elf.tables.items()
                                for index, symbol in enumerate(symbols)
-                               if symbol["info"] & 15 == 2 and symbol["size"] and
+                               if (symbol["name"].startswith("tomo_multidb2_pad_")
+                                   if kind == "label" else
+                                   symbol["info"] & 15 == 2 and symbol["size"]) and
                                0 < symbol["sec"] < len(elf.sections) and
                                elf.sections[symbol["sec"]][2] & 4)
             offset = elf.sections[table][4] + index * elf.sections[table][9] + 8
