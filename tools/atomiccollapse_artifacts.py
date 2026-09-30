@@ -124,6 +124,52 @@ def normalize(reference, out):
          normalization='dispatch; three operation names; wrapper name; whitespace; single retire-loop braces'))
 
 
+def factor(reference, candidate, out):
+    """Prove the shared body by expansion, and generate an independent kind-A source."""
+    out.mkdir(parents=True, exist_ok=True)
+    before = subprocess.check_output(['git', 'show', str(reference) + ':src/store/flatstore_atomic.inc']).decode()
+    after = candidate.read_text()
+    start = before.index('    bool atomic_collapse(')
+    middle = before.index('    bool atomic_collapse_read_local(', start)
+    end = before.index('    void atomic_promote_all_for_shutdown()', middle)
+    template = after.index('    template <bool ReadLocal>\n    __attribute__((always_inline)) bool atomic_collapse_impl')
+    shared = after.index('        if (!atomic_pending_', template)
+    finish = after.index('    void atomic_promote_all_for_shutdown()', shared)
+    assert before[:start] == after[:start] and before[end:] == after[finish:], 'unrelated source changed'
+    # Comments and token spellings are retained. Whitespace and the armed
+    # single-statement loop's redundant braces are the only formatting changes.
+    original = []
+    for body in (before[start:middle], before[middle:end]):
+        body = body[body.index('        if (!atomic_pending_'):].rstrip()
+        original.append(body[:-1].rstrip())  # drop the wrapper's closing brace
+    body = after[shared:finish].rstrip()[:-1].rstrip()
+    lexer = r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\w+|[^\s]'
+    rows = []
+    for read_local, old in enumerate(original):
+        expanded = body
+        for short, name in (('retire', 'retire_detached_obj'), ('free_entry', 'atomic_free_entry'),
+                            ('exchange', 'atomic_exchange_physical')):
+            expanded = expanded.replace('(this->*' + short + ')', name + ('_read_local' if read_local else ''))
+        old = old.replace('for (KvObj* object : atomic_collapse_retire_) {\n'
+                          '            retire_detached_obj_read_local(object);\n        }',
+                          'for (KvObj* object : atomic_collapse_retire_) retire_detached_obj_read_local(object);')
+        tokens = [[' '.join(t.split()) for t in re.findall(lexer, s, re.S)] for s in (old, expanded)]
+        diff = '\n'.join(difflib.unified_diff(*tokens, fromfile='PRE', tofile='expanded POST'))
+        (out / f'expanded-{read_local}.diff').write_text(diff)
+        assert tokens[0] == tokens[1], diff
+        rows.append(dict(read_local=bool(read_local), tokens=len(tokens[0]), identical_source_tokens=True))
+    save(out / 'source-proof.json', rows)
+    # Generated copy only: TWO complete frozen PRE bodies, selected as a whole.
+    # No operation selector or handwritten alternate algorithm is used in PAD.
+    header = after[template:after.index('        constexpr auto retire', template)]
+    generated = (after[:template] + header + '        if constexpr (ReadLocal) {\n' + original[1] +
+                 '\n        } else {\n' + original[0] + '\n        }\n    }\n\n' + after[finish:])
+    (out / 'generated-flatstore_atomic.inc').write_text(generated)
+    save(out / 'pad-source.json', dict(kind='A: behaviour twin', reference=str(reference),
+         mapping='Complete original armed/unarmed bodies in candidate template/wrapper context; layout must be verified after building',
+         sha256=digest(generated.encode())))
+
+
 def snapshot(root, out, plan):
     out.mkdir(parents=True, exist_ok=True)
     objects = re.findall(r' -c \S+ -o build/(\S+\.o)', plan.read_text())
@@ -209,11 +255,13 @@ def negative(pre, out):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('normalize', 'snapshot', 'compare', 'negative'))
+    parser.add_argument('action', choices=('normalize', 'factor', 'snapshot', 'compare', 'negative'))
     parser.add_argument('paths', nargs='+', type=Path)
     args = parser.parse_args()
     if args.action == 'normalize':
         normalize(str(args.paths[0]), args.paths[1])
+    elif args.action == 'factor':
+        factor(*args.paths)
     elif args.action == 'snapshot':
         snapshot(*args.paths)
     elif args.action == 'compare':
