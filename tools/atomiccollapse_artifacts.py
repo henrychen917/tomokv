@@ -167,8 +167,8 @@ def snapshot(root, out, plan):
 
 
 def compare(pre, post, output):
-    paths = sorted(p.relative_to(pre) for p in pre.rglob('*.o')) + [Path('tomokv')]
-    assert paths[:-1] == sorted(p.relative_to(post) for p in post.rglob('*.o')), 'object inventory changed'
+    paths = sorted(p.relative_to(pre) for p in pre.rglob('*.o') if p.is_file()) + [Path('tomokv')]
+    assert paths[:-1] == sorted(p.relative_to(post) for p in post.rglob('*.o') if p.is_file()), 'object inventory changed'
     rows = []
     for relative in paths:
         a, b = Elf(pre / relative), Elf(post / relative)
@@ -198,6 +198,8 @@ def negative(pre, out):
     data[section[4]] ^= 1
     (out / 'tomokv').write_bytes(data)
     for source in pre.rglob('*.o'):
+        if not source.is_file():
+            continue
         target = out / source.relative_to(pre)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.hardlink_to(source)
