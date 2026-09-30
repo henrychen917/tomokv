@@ -826,6 +826,9 @@ private:
     // per-key order by construction (a read and a write of one key share one owner queue), so
     // demoting here is exactly as strong as the ring would have been -- it just costs a task.
     __attribute__((noinline)) bool read_local_arm() {
+        // Owner ruling 2026-09-27 accepts this bounded transient for both pre-arming writes
+        // and sidecar exhaustion (mark_current_write resets to Unarmed on allocation failure).
+        // Both enter ArmFence here and are counted as read_local_fallback_arm_transient.
         const uint64_t dispatch = dispatch_.load(std::memory_order_relaxed);
         const uint64_t flush = flush_id();
         if (read_local_arm_state_ == kReadLocalUnarmed) {
