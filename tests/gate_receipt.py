@@ -24,7 +24,7 @@ import time
 
 from abba_evidence import (validate_measurements, validate_null, validate_comparison, match_null, null_result,
                            instrument, validate_campaign_evidence, validate_null_integrity, validate_holdout,
-                           NULL_MAX_AGE, utc_seconds)
+                           null_resolution, resolution_summary, resolution_text, NULL_MAX_AGE, utc_seconds)
 from abba_instrument import instrument_fingerprint, validate_fingerprint
 from abba_saturation import saturation_exempt
 
@@ -301,6 +301,7 @@ def freeze_null(root, args):
     from abbagate import Cell
     import copy
     from abbagate import WINDOW
+    from abba_null_sampling import policy
     calibration = read_json(args.calibration)
     from abba_reorder_control import identity, validate_report
     binding = identity(args.reorder_controls) if getattr(args, "reorder_controls", None) else None
@@ -334,7 +335,7 @@ def freeze_null(root, args):
         binary={key: calibration["candidate"][key] for key in ("path", "sha256")},
         ceiling_loads=measurements.get("ceiling_loads", {}),
         generator=dict(path=env["memtier_path"], sha256=env["memtier_sha256"]),
-        metric_scope="rate/latency/p999 only; cycles/op UNPROVEN")
+        metric_scope="rate/latency/p999 only; cycles/op UNPROVEN", null_sampling_policy=policy())
     if binding:
         campaign["reorder_controls"] = binding
     current_campaign(root, campaign)
@@ -357,6 +358,9 @@ def validate_campaign(root, campaign, report, *, now):
     require(report["window_seconds"] == campaign["window_seconds"], "campaign window differs")
     require(report.get("ceiling_loads", {}) == campaign.get("ceiling_loads", {}),
             "campaign ceiling-control provenance differs")
+    if report.get("run_kind") == "null-control":
+        require(report.get("null_sampling_policy") == campaign.get("null_sampling_policy"),
+                "campaign null sampling policy differs")
     validate_campaign_evidence(report)
 
 
@@ -396,7 +400,18 @@ def promote_null(root, args):
     current_campaign(root, campaign)
     path = directory / "baselines/full-null.json"
     write_json(path, promoted)
+    print("Standing null: " + resolution_text(resolution_summary(promoted)))
     return path
+
+
+def replay_null(path):
+    """Read historical raw blocks without granting current provenance or promotion."""
+    report = read_json(path)
+    rows = null_resolution(report)
+    replay = dict(kind="null-resolution-replay", reporting_only=True, promotable=False,
+                  source_sha256=digest(path.read_bytes()), resolution=rows)
+    replay["summary"] = resolution_summary({**report, "null_control": {"resolution": rows}})
+    return replay
 
 
 def verify_null_holdout(root, args):
@@ -531,6 +546,10 @@ def finish(root, args):
     require(state.get("baseline") is not None and not state.get("withheld_reason"),
             (state.get("withheld_reason") or "missing trusted baseline") +
             "; completed full-run evidence is retained, but its rows are not automatically trusted")
+    report, control = read_json(args.abba_result), read_json(args.null_result)
+    summary = resolution_summary(report, control)
+    print("Receipt ABBA: " + resolution_text(summary))
+    require(not summary["unresolved_cells"], "receipt withheld: " + resolution_text(summary))
     candidate = read_json(args.start.parent / "candidate.json")
     require(candidate.get("start_sha256") == digest(args.start.read_bytes()) and
             candidate.get("source_sha256") == state["source"]["sha256"], "candidate binding is from another run")
@@ -557,7 +576,6 @@ def finish(root, args):
     require(Counter(row["label"] for row in actual) == Counter(state["expected_labels"]),
             "gate rows are missing, duplicated, or different from the trusted full baseline")
     observed = observations(args.observations, state, actual, ended)
-    report, control = read_json(args.abba_result), read_json(args.null_result)
     started, environment = validate_abba(report, state, now=ended, candidate=candidate)
     require(started + 1 >= candidate["bound_at"], "ABBA predates this candidate binding")
     validate_abba(control, state, now=ended, null=True)
@@ -573,7 +591,7 @@ def finish(root, args):
     receipt = {"schema": SCHEMA, "kind": "full-gate-receipt", "verdict": "PASS", "run_id": state["run_id"],
                "source": state["source"], "candidate": candidate, "inventory": state["inventory"],
                "completed_at": ended, "evidence_sha256": digest(evidence_path.read_bytes()),
-               "null_control_sha256": control["candidate"]["sha256"]}
+               "null_control_sha256": control["candidate"]["sha256"], "resolution_summary": summary}
     path = args.start.parent / "receipt.json"
     write_json(path, receipt, exclusive=True)
     # Only an issued receipt advances the trusted correctness ledger. Standing nulls
@@ -1074,6 +1092,28 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
             self.save_results()
             self.assertTrue(finish(self.root, self.finish_args).is_file())
 
+        def test_unresolved_cell_names_withhold_receipt_even_with_forged_pass_coordinator(self):
+            from _nullrefresh_test import throwaway
+            import abba_evidence
+            row = self.control["cells"][0]
+            metric = row["assessment"]["metric"]
+            row["rounds"][0]["runs"][0][metric] *= 1.1
+            self.control["null_control"] = null_result(self.control, now=time.time())
+            self.report["standing_null"] = match_null(self.report, self.control, now=time.time())
+            self.save_results()
+            ident = row["cell"]["id"]
+            with self.assertRaisesRegex(ValueError, "receipt withheld: .*UNRESOLVED=1") as caught:
+                finish(self.root, self.finish_args)
+            self.assertIn(ident, str(caught.exception))
+            self.assertFalse((self.start.parent / "receipt.json").exists(), "UNRESOLVED minted a receipt")
+            # Remove ONLY the receipt's guard. The deeper comparison guard must
+            # still refuse, but the exact receipt-stage refusal oracle is lost.
+            with throwaway(sys.modules[__name__], 'finish', 'not summary["unresolved_cells"]', 'True'):
+                with self.assertRaises(AssertionError):
+                    with self.assertRaisesRegex(ValueError, 'receipt withheld:'):
+                        finish(self.root, self.finish_args)
+            print(f'UNRESOLVED {ident}: receipt withheld despite PASS coordinator; guard removal changes exact refusal')
+
         def test_standing_null_replays_saturation_instead_of_cached_pass(self):
             from _abba_test_fixtures import saturation_record
             mutations = (
@@ -1241,6 +1281,8 @@ def main():
     promotion = sub.add_parser("promote-null", help="explicit local standing-null promotion, never a gate receipt")
     promotion.add_argument("--null-result", type=Path, required=True)
     promotion.add_argument("--campaign", type=Path, required=True)
+    sub.add_parser("replay-null", help="historical status table for reporting; never promotion").add_argument("results", type=Path)
+    sub.add_parser("resolution-summary", help="name resolving/unresolved cells in a report").add_argument("results", type=Path)
     holdout = sub.add_parser("verify-null-holdout", help="check independent identical arms against frozen errors")
     for name in ("null-result", "comparison", "campaign", "output"):
         holdout.add_argument("--" + name, type=Path, required=True)
@@ -1282,6 +1324,13 @@ def main():
         print(globals()[args.action.replace("-", "_")](ROOT, args))
     elif args.action == "fingerprint":
         print(json.dumps(harness_fingerprint(ROOT) if args.harness else source_fingerprint(ROOT), sort_keys=True))
+    elif args.action == "replay-null":
+        print(json.dumps(replay_null(args.results), indent=2, allow_nan=False))
+    elif args.action == "resolution-summary":
+        report = read_json(args.results)
+        summary = report.get("resolution_summary")
+        require(isinstance(summary, dict), "resolution summary unavailable; no PASS evidence")
+        print(resolution_text(summary))
     elif args.action in ("pre-push", "verify"):
         if args.action == "verify":
             updates = [(ref, git(ROOT, "rev-parse", "--verify", ref).decode().strip()) for ref in (args.ref or ["HEAD"])]

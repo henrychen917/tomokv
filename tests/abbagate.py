@@ -443,7 +443,9 @@ def resolution_bounds(control, cell_id):
                  cannot honestly be tighter than what the same binary repeats to;
     abs_delta  : the largest |paired delta| on identical bytes -- the threshold cannot honestly
                  be tighter than the instrument's own between-arm error.
-    Both are MAXIMUMS over every block the null ran, so an unselected noisy probe still counts.
+    Spreads are maxima over every block. Repeats at the same load pool signed
+    differences over all reference sums before taking |delta|. Distinct load
+    probes remain separate rows and the largest pooled error is inherited.
     """
     if not control:
         return None
@@ -455,6 +457,9 @@ def resolution_bounds(control, cell_id):
         b = bounds.setdefault(r["metric"], {"spread": 0.0, "abs_delta": 0.0})
         b["spread"] = max(b["spread"], r.get("reference_spread_pct", 0.0), r.get("candidate_spread_pct", 0.0))
         b["abs_delta"] = max(b["abs_delta"], r.get("absolute_delta_pct", 0.0))
+        if "status" in r:
+            b["status"] = ("UNRESOLVED" if "UNRESOLVED" in (b.get("status"), r["status"])
+                           else "RESOLVING")
     return bounds
 
 
@@ -669,6 +674,9 @@ def assess(cell, rounds, bounds=None):
             # comparisons above, never the envelope of whichever arm happens to be fastest.
             gain = max(chosen["arm_gains_pct"].values())
             plateau_noise = max(chosen["arm_repeatability_pct"].values())
+    scored = [cell.metric] + (["long_p999_ms"] if cell.metric == "p999_ms" else [])
+    unresolved = bool(bounds and bounds is not NULL_MODE and any(
+        bounds.get(metric, {}).get("status") == "UNRESOLVED" for metric in scored))
     return {**p, "throughput": rate, "long_tail": long_tail, "instances": current["instances"],
             "busy_pct_abba": [r["busy_pct"] for r in current["runs"]],
             "saturation_pct_abba": [saturation_score(run, cell) if not selection["measurement_failures"]
@@ -680,7 +688,7 @@ def assess(cell, rounds, bounds=None):
             "ceiling_status": cell.ceiling_status,
             "capacity_claim": "ceiling-load-only" if cell.ceiling_status else
                               "exempt" if saturation_exempt(cell) else "saturated-peak",
-            "verdict": "FAIL" if reasons else "PASS", "reasons": reasons}
+            "verdict": "FAIL" if reasons else "UNRESOLVED" if unresolved else "PASS", "reasons": reasons}
 
 
 def saturation_done(cell, rounds, bounds=None):
@@ -899,12 +907,13 @@ def pin_main(args):
 
 
 def overall(rows):
-    failed = [r for r in rows if r["verdict"] != "PASS"]
-    pool = failed or rows
+    failed = [r for r in rows if r["verdict"] not in ("PASS", "UNRESOLVED")]
+    unresolved = [r for r in rows if r["verdict"] == "UNRESOLVED"]
+    pool = failed or unresolved or rows
     # A precondition/error failure outranks a throughput win elsewhere.
     worst = max(pool, key=lambda r: (not bool(r.get("assessment")),
                                     r.get("assessment", {}).get("margin_pct", 0)))
-    return ("FAIL" if failed else "PASS"), worst["cell"]["id"]
+    return ("FAIL" if failed else "UNRESOLVED" if unresolved else "PASS"), worst["cell"]["id"]
 
 
 def manifest_reference(directory, commit):
@@ -1837,6 +1846,9 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                       measurement_valid=False)
     if args.collect_null:
         report["null_control"] = {"verdict": "FAIL", "reason": "control has not completed"}
+        if not args.escalate and diagnostic_monitor is None:
+            from abba_null_sampling import policy
+            report["null_sampling_policy"] = policy()
     children = Children()
     quiet = None
     rc = 1
@@ -2091,6 +2103,19 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         # floor candidate at all.
                         if not args.escalate or incomplete or not still_climbing:
                             break
+                if "null_sampling_policy" in report and row["verdict"] == "PASS":
+                    from abba_null_sampling import collect
+                    def repeat_measure(arm, sequence, instances):
+                        quiet.check()
+                        result = runner.measure(cell, arm, sequence, instances, plans[arm])
+                        quiet.check()
+                        return result
+                    def persist_sampling():
+                        report["quiet_box"] = quiet.evidence()
+                        report["elapsed_seconds"] = time.monotonic() - start
+                        (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
+                    collect(assessed_cell, row, repeat_measure, persist_sampling)
+                    print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
             except (InterruptedError, QuietViolation):
                 raise
             except NotComparable as e:
@@ -2141,7 +2166,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     "load_selection", {}).get("status") != "CONFIRMED"]
         report["statistical_verdict"], report["worst_cell"] = overall(report["cells"])
         report["verdict"] = report["statistical_verdict"]
-        if report["statistical_verdict"] == "PASS":
+        if report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
             report["verdict"] = "PARTIAL"
             if diagnostic_monitor is not None:
                 report["null_control"] = {"verdict": "UNTRUSTED", "reason":
@@ -2164,15 +2189,20 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     # Retain the exact accepted control beside this comparison. Receipts use this
                     # frozen file, never a default path that another successful run may replace.
                     (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
-                    if not args.only:
+                    if not args.only and report["statistical_verdict"] == "PASS":
                         report["comparison_trusted"] = True
                         report["verdict"] = "PASS"
+                    elif report["statistical_verdict"] == "UNRESOLVED":
+                        report["verdict"] = "UNRESOLVED"
                 except (OSError, ValueError, TypeError, KeyError) as error:
                     report["standing_null"] = {"status": "UNTRUSTED", "reason": str(error)}
                     print(f"ABBA UNTRUSTED: {error}; raw assessments retained", flush=True)
+        from abba_evidence import resolution_summary, resolution_text
+        report["resolution_summary"] = resolution_summary(report, None if args.collect_null else control)
+        print("ABBA resolution: " + resolution_text(report["resolution_summary"]), flush=True)
         print(f"ABBA {args.subset} {report['verdict']} worst={report['worst_cell']} "
               f"({len(cells)}/{report['cell_source']['total_cells']} cells); results={out / 'results.json'}", flush=True)
-        rc = 1 if report["verdict"] == "FAIL" else 3 if report["verdict"] == "PARTIAL" else 0
+        rc = 1 if report["verdict"] == "FAIL" else 3 if report["verdict"] in ("PARTIAL", "UNRESOLVED") else 0
     except Skip as e:
         report.update(verdict="SKIP", reason=str(e))
         print(f"ABBA SKIP — NOT A PASS: {e}", file=sys.stderr, flush=True)
@@ -4180,6 +4210,18 @@ def self_test():
                     rows = [r for r in noisy_null["null_control"]["resolution"] if r["metric"] == "rate"]
                     self.assertTrue(rows and all(abs(r["absolute_delta_pct"] - 1.) < 1e-6 for r in rows))
                     self.assertTrue(all(r["within_reference_spread"] is False for r in rows))
+                rc, calls, unresolved_control, _ = run(collect=True, candidate_rate=103)
+                self.assertEqual((rc, len(calls), unresolved_control["verdict"]), (3, 16, "PARTIAL"))
+                self.assertEqual(unresolved_control["resolution_summary"]["unresolved_cells"], ["n1", "n2"])
+                rc, calls, unresolved, _ = run(control=unresolved_control)
+                self.assertEqual((rc, len(calls), unresolved["statistical_verdict"], unresolved["verdict"]),
+                                 (3, 8, "UNRESOLVED", "UNRESOLVED"))
+                self.assertFalse(unresolved["comparison_trusted"])
+                self.assertEqual(unresolved["resolution_summary"]["pass_evidence_cells"], [])
+                with self.assertRaisesRegex(ValueError, "comparison reporting-only"):
+                    validate_comparison(unresolved, unresolved_control, now=epoch + ticks[0])
+                rc, calls, loss, _ = run(control=unresolved_control, candidate_rate=90)
+                self.assertEqual((rc, len(calls), loss["verdict"]), (1, 8, "FAIL"))
                 rc, calls, improvement, _ = run(control=control, candidate_rate=101)
                 self.assertEqual((rc, len(calls), improvement["verdict"]), (0, 8, "PASS"))
                 binary.write_bytes(b"a later candidate may reuse this instrument control")

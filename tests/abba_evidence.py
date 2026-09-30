@@ -114,8 +114,9 @@ def validate_quiet(quiet, environment, *, now, started, elapsed):
 def validate_measurements(report, *, now, expected_source=None, expected_cells=None, harness=None, candidate=None,
                           expected_instrument=None):
     require(isinstance(report, dict), "ABBA evidence must be a JSON object")
-    require(report.get("schema") == 1 and report.get("statistical_verdict") == "PASS" and
-            report.get("verdict") in ("PASS", "PARTIAL"), "ABBA measurements did not all pass")
+    outcomes = ("PASS", "UNRESOLVED") if report.get("run_kind") == "comparison" else ("PASS",)
+    require(report.get("schema") == 1 and report.get("statistical_verdict") in outcomes and
+            report.get("verdict") in (*outcomes, "PARTIAL"), "ABBA measurements did not all pass")
     require(report.get("measurement_valid") is True, "ABBA measurement validity was not certified")
     require(report.get("run_kind") in ("comparison", "null-control") and
             report.get("normal_gate_eligible", True) is True,
@@ -176,11 +177,18 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                                   started=started, elapsed=elapsed)
     windows = 0
     for cell, row in zip(cells, rows):
-        require(row.get("verdict") == "PASS" and row.get("instrument_valid", True) is True,
+        if "null_sampling_policy" in report:
+            require(report.get("run_kind") == "null-control", "comparison cannot borrow null repeats")
+            from abba_null_sampling import validate
+            validate(row, report["null_sampling_policy"])
+        else:
+            require(not row.get("null_repeats") and "null_sampling_plan" not in row,
+                    "null repeats lack a frozen sampling policy")
+        require(row.get("verdict") in outcomes and row.get("instrument_valid", True) is True,
                 f"nonpassing ABBA cell: {cell['id']}")
         assessment = row.get("assessment", {})
         require(isinstance(assessment, dict), "invalid ABBA assessment")
-        require(assessment.get("verdict") == "PASS" and assessment.get("reasons") == [],
+        require(assessment.get("verdict") == row["verdict"] and assessment.get("reasons") == [],
                 f"unassessed/failed ABBA cell: {cell['id']}")
         exempt = saturation_exempt(cell)
         require(assessment.get("saturation_exempt") is exempt, "invalid saturation exemption")
@@ -203,11 +211,11 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                 f"unreached ABBA cell: {cell['id']}")
         require(sum(block.get("instances") == assessment.get("instances") for block in rounds) == 1,
                 "assessment does not identify exactly one measured load block")
-        for block in rounds:
+        for block in rounds + row.get("null_repeats", []):
             runs = block.get("runs", [])
             require(isinstance(runs, list) and all(isinstance(run, dict) for run in runs), "invalid ABBA runs")
             require([run.get("arm") for run in runs] == ORDER, "incomplete or reordered ABBA measurements")
-            for index, run in enumerate(runs, 1):
+            for index, run in enumerate(runs, 1 + block.get("sample_offset", 0)):
                 require(run.get("complete") is True and not run.get("error") and
                         run.get("artifacts") == f"{cell['id']}/n{block['instances']}-{index}-{run['arm']}",
                         f"incomplete measurement: {cell['id']}")
@@ -255,6 +263,7 @@ def null_resolution(report):
     certification still needs measured calibration with independent validation,
     or an improved instrument; passing one null does not establish its resolution.
     """
+    from abbagate import MAX_SPREAD
     evidence = []
     for row in report["cells"]:
         cell = row["cell"]
@@ -262,25 +271,34 @@ def null_resolution(report):
                   "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}.get(cell.get("score", "auto"))
         require(metric is not None, f"unknown scored null metric: {cell['id']}")
         metrics = [metric] + (["long_p999_ms"] if metric == "p999_ms" else [])
-        for block in row["rounds"]:
-            runs = block["runs"]
-            require([run.get("arm") for run in runs] == ORDER, "incomplete or reordered null block")
-            for scored in metrics:
-                a1, b1, b2, a2 = [number(run.get(scored), "null " + scored, positive=True) for run in runs]
+        grouped = {}
+        for block in row["rounds"] + row.get("null_repeats", []):
+            grouped.setdefault(block["instances"], []).append(block)
+        for instances, blocks in grouped.items():
+            metrics_evidence = {scored: [] for scored in metrics}
+            for block in blocks:
+                runs = block["runs"]
+                require([run.get("arm") for run in runs] == ORDER, "incomplete or reordered null block")
+                for scored in metrics:
+                    metrics_evidence[scored].append([
+                        number(run.get(scored), "null " + scored, positive=True) for run in runs])
+            for scored, samples in metrics_evidence.items():
+                # Pool SIGNED paired differences, weighted by their reference sums.
+                # Every equally long block contributes all four samples, including
+                # the pilot. Absolute value is taken only after pooling: averaging
+                # absolute errors estimates noise magnitude, not the arm bias.
+                a1, b1, b2, a2 = [sum(values[index] for values in samples) for index in range(len(ORDER))]
                 denominator = number(a1 + a2, "null reference sum", positive=True)
                 delta = signed_number(100 * ((b1 - a1) + (b2 - a2)) / denominator, "null paired delta")
-                threshold = number(200 * abs(a1 - a2) / denominator, "null reference spread")
-                cand_denominator = number(b1 + b2, "null candidate sum", positive=True)
-                candidate_spread = number(200 * abs(b1 - b2) / cand_denominator, "null candidate spread")
-                # OWNER RULING (2026-09-11, item 7): the null MEASURES the instrument's resolution on
-                # identical bytes; it does not pass or fail on it. On this box a 15-cell null failed
-                # 10 cells against the flat rules -- paired deltas of 0.6-1.0% against thresholds of
-                # 0.2-0.6%, and p99.9 spreads of 3-7% against a flat 2% -- which means the rules
-                # claimed resolution the instrument does not have. Recording, not requiring, turns
-                # that into the per-cell floor a comparison must respect (see resolution_bounds).
-                evidence.append(dict(cell=cell["id"], instances=block["instances"], metric=scored,
+                threshold = number(max(200 * abs(a - d) / (a + d) for a, b, c, d in samples),
+                                   "null reference spread")
+                candidate_spread = number(max(200 * abs(b - c) / (b + c) for a, b, c, d in samples),
+                                          "null candidate spread")
+                evidence.append(dict(cell=cell["id"], instances=instances, metric=scored,
                                      delta_pct=delta, absolute_delta_pct=abs(delta),
                                      reference_spread_pct=threshold, candidate_spread_pct=candidate_spread,
+                                     status="RESOLVING" if max(threshold, candidate_spread, abs(delta)) <= MAX_SPREAD
+                                            else "UNRESOLVED",
                                      within_reference_spread=abs(delta) <= threshold))
     return evidence
 
@@ -355,7 +373,14 @@ def validate_campaign_evidence(report):
         plan = [cell.instances or 1]
         require([block["instances"] for block in row["rounds"]] == plan,
                 f"{cell.id}: measured load ladder differs from frozen plan")
-        for block in row["rounds"]:
+        if "null_sampling_policy" in report:
+            require(report.get("run_kind") == "null-control", "comparison cannot borrow null repeats")
+            from abba_null_sampling import validate
+            validate(row, report["null_sampling_policy"])
+        else:
+            require(not row.get("null_repeats") and "null_sampling_plan" not in row,
+                    "null repeats lack a frozen sampling policy")
+        for block in row["rounds"] + row.get("null_repeats", []):
             key = (block["instances"], cell.conns)
             if key not in layouts:
                 layouts[key] = load_layout(report["environment"]["load_cpus"], *key)
@@ -364,6 +389,9 @@ def validate_campaign_evidence(report):
                         layouts[key],
                         f"{cell.id}: generator layout differs from frozen plan")
                 validate_workload_evidence(cell, run, report=report)
+            replay = assess(cell, [block], NULL_MODE)
+            require(replay["measurement_valid"] and replay["verdict"] == "PASS",
+                    f"{cell.id}: raw campaign block failed: {replay['reasons']}")
         # NULL_MODE replays saturation/load validity without applying a code-loss
         # threshold. Two-sided resolution/integrity is checked independently below.
         replay = assess(cell, row["rounds"], NULL_MODE)
@@ -372,13 +400,40 @@ def validate_campaign_evidence(report):
 
 
 def validate_null_integrity(report):
-    from abbagate import MAX_SPREAD
-    # Collection records errors even when large. Publication must not turn
-    # contention or a same-binary defect into a larger permissible error band.
-    for row in null_resolution(report):
-        require(max(row["reference_spread_pct"], row["candidate_spread_pct"],
-                    row["absolute_delta_pct"]) <= MAX_SPREAD,
-                f"{row['cell']}/{row['metric']}: null exceeds spread/integrity guard")
+    # Integrity means complete, finite raw evidence, not a veto on the very
+    # resolution this experiment measures. Publication also replays the campaign,
+    # identities and workload witnesses. Large errors remain visible UNRESOLVED.
+    rows = null_resolution(report)
+    require(bool(rows), "empty null resolution")
+    if report.get("run_kind") == "null-control":
+        require(report.get("null_control", {}).get("resolution") == rows,
+                "published null resolution/status differs from raw evidence")
+    return rows
+
+
+def resolution_summary(report, control=None):
+    """Name every cell and scored row; unresolved observations never earn PASS."""
+    source = control if control is not None else report
+    rows = ((source.get("null_control") or {}).get("resolution", [])
+            if isinstance(source, dict) else [])
+    selected = {row["cell"]["id"] for row in report.get("cells", [])}
+    statuses = {status: sorted({f"{row['cell']}/{row['metric']}" for row in rows
+                if row["cell"] in selected and row.get("status") == status})
+                for status in ("RESOLVING", "UNRESOLVED")}
+    unresolved = sorted({name.split("/")[0] for name in statuses["UNRESOLVED"]})
+    resolving = sorted({name.split("/")[0] for name in statuses["RESOLVING"]} - set(unresolved))
+    passed = sorted(row["cell"]["id"] for row in report.get("cells", [])
+                    if report.get("run_kind") == "comparison" and row.get("verdict") == "PASS" and
+                    row["cell"]["id"] in resolving)
+    return dict(resolving_cells=resolving, unresolved_cells=unresolved,
+                resolving_rows=statuses["RESOLVING"], unresolved_rows=statuses["UNRESOLVED"],
+                pass_evidence_cells=passed)
+
+
+def resolution_text(summary):
+    return "; ".join(f"{label}={len(summary[key])} [{','.join(summary[key])}]" for label, key in
+                     (("RESOLVING", "resolving_cells"), ("UNRESOLVED", "unresolved_cells"),
+                      ("PASS evidence", "pass_evidence_cells")))
 
 
 def validate_holdout(comparison, control, *, now):
@@ -389,7 +444,14 @@ def validate_holdout(comparison, control, *, now):
     cannot supply aligned cycles/op evidence for this instrument.
     """
     from abbagate import resolution_bounds
-    validate_comparison(comparison, control, now=now)
+    summary = resolution_summary(comparison, control)
+    if summary["unresolved_cells"]:
+        matched = match_null(comparison, control, now=now)
+        require(comparison.get("standing_null") == matched and comparison.get("verdict") == "UNRESOLVED"
+                and comparison.get("comparison_trusted") is False,
+                "unresolved holdout must remain reporting-only")
+    else:
+        validate_comparison(comparison, control, now=now)
     validate_campaign_evidence(comparison)
     validate_null_integrity(control)
     validate_null_integrity(comparison)
@@ -401,7 +463,8 @@ def validate_holdout(comparison, control, *, now):
         require(row["absolute_delta_pct"] <= bound["abs_delta"] and
                 max(row["reference_spread_pct"], row["candidate_spread_pct"]) <= bound["spread"],
                 f"{row['cell']}/{row['metric']}: holdout exceeds frozen two-sided resolution")
-    return {"kind": "independent-null-holdout", "verdict": "PASS",
+    return {"kind": "independent-null-holdout", "verdict": "UNRESOLVED" if summary["unresolved_cells"] else "PASS",
+            "resolution_summary": summary,
             "control_sha256": digest(canonical(control)), "comparison_sha256": digest(canonical(comparison)),
             "metrics": sorted({row["metric"] for row in null_resolution(control)}),
             "ceiling_only_cells": {row["cell"]["id"]: row["cell"]["ceiling_status"]
@@ -449,6 +512,8 @@ def match_null(comparison, control, *, now):
 
 
 def validate_comparison(comparison, control, *, now):
+    summary = resolution_summary(comparison, control)
+    require(not summary["unresolved_cells"], "comparison reporting-only: " + resolution_text(summary))
     require(comparison.get("verdict") == "PASS" and comparison.get("comparison_trusted") is True and
             not comparison.get("only"), "comparison is partial or lacks standing-null certification")
     matched = match_null(comparison, control, now=now)

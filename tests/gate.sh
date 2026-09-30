@@ -2938,10 +2938,11 @@ ABBA_RC=$?
 # stronger: complete correctness evidence AND trusted full comparison rc=0.
 # Null collection's PARTIAL/rc=3 is never successful comparison certification.
 case "$ABBA_RC" in
-  0) say "headline ABBA" "measured; no cell regressed (reporting only, not gating)";;
-  3) say "headline ABBA" "did not run (no reference / skipped); reporting only, not gating";;
+  0) say "headline ABBA" "measured; resolving comparison complete (reporting only, not gating)";;
+  3) say "headline ABBA" "UNRESOLVED/PARTIAL/SKIP; no full PASS evidence (reporting only, not gating)";;
   *) say "headline ABBA" "measured; see per-cell numbers above and results.json (reporting only, not gating)";;
 esac
+python3 tests/gate_receipt.py resolution-summary "$ABBA_OUTPUT/results.json" || :
 
 row_finish
 ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}

@@ -27,6 +27,7 @@ import abba_instrument as instrument_module
 import gate_measurements as measurements
 import gate_receipt as receipt
 import abba_reorder_control as reorder_control
+import abba_null_sampling as sampling
 from abba_instrument import instrument_fingerprint
 from abba_saturation import saturation_exempt
 from abba_workloads import workload_command_names, require_workload_witness, require_workload_accounting
@@ -119,6 +120,25 @@ def throwaway(module, name, old, new, occurrence=0):
     namespace = dict(module.__dict__)
     exec(compile(source, f"<throwaway {name} occurrence {occurrence}>", 'exec'), namespace)
     return mock.patch.object(module, name, namespace[name])
+
+
+def sampled_fixture(report):
+    """Finish the exact pilot-sized schedule with synthetic copies, never servers."""
+    report['null_sampling_policy'] = sampling.policy()
+    extra = 0
+    for row in report['cells']:
+        def measure(arm, sequence, instances):
+            run = copy.deepcopy(row['rounds'][0]['runs'][(sequence - 1) % len(abba.ORDER)])
+            run['artifacts'] = f"{row['cell']['id']}/n{instances}-{sequence}-{arm}"
+            return run
+        sampling.collect(abba.Cell(**row['cell']), row, measure, lambda: None)
+        extra += len(row['null_repeats']) * len(abba.ORDER) * report['window_seconds']
+    report['elapsed_seconds'] += extra
+    report['quiet_box']['finished_at'] += extra
+    report['quiet_box']['cpu_samples'] += int(extra)
+    report['quiet_box']['samples'] += int(extra)
+    report['null_control'] = evidence.null_result(report, now=time.time())
+    return report
 
 
 def armed_workload(cell, run, proof=None):
@@ -492,6 +512,7 @@ class PromotionControls(unittest.TestCase):
             with mock.patch.object(time, 'time', return_value=started + 34000):
                 control = fixture_report(frozen_cells, self.fp, campaign['environment'],
                     self.report['cell_source']['text'], started, self.binary, ceiling_loads=config['ceiling_loads'])
+                sampled_fixture(control)
                 receipt.write_json(self.source, control)
                 args = argparse.Namespace(null_result=self.source, campaign=campaign_path)
                 receipt.promote_null(self.root, args)
@@ -610,11 +631,17 @@ class PromotionControls(unittest.TestCase):
             if mutate:
                 mutate(changed)
             else:
-                # All cached evidence is internally consistent: only the fixed
-                # integrity ceiling, not a stale cached null result, rejects it.
-                row = next(row for row in changed['cells'] if not saturation_exempt(row['cell']))
-                row['rounds'][0]['runs'][0]['rate'] = 110.
-                changed['null_control'] = evidence.null_result(changed, now=time.time())
+                # Integrity now protects the recorded status, not a magnitude
+                # ceiling. Exercise its exact guard independently of validate_null.
+                changed['null_control']['resolution'][0]['status'] = 'UNRESOLVED'
+                with self.assertRaisesRegex(ValueError, 'resolution/status differs'):
+                    evidence.validate_null_integrity(changed)
+                with mock.patch.object(evidence, 'null_resolution', return_value=changed['null_control']['resolution']):
+                    with self.assertRaises(AssertionError):
+                        with self.assertRaisesRegex(ValueError, 'resolution/status differs'):
+                            evidence.validate_null_integrity(changed)
+                print('REMOVAL validate_null_integrity raw-status replay: exact rejection assertion failed')
+                continue
             receipt.write_json(self.source, changed)
             with self.assertRaises(ValueError):
                 receipt.promote_null(self.root, self.args)
@@ -697,6 +724,70 @@ class PromotionControls(unittest.TestCase):
         finally:
             config_path.write_bytes(original)
 
+    def test_unresolved_complete_campaign_freezes_promotes_and_cannot_earn_pass(self):
+        config_path = self.root / 'tests/gate_measurements.json'
+        original = config_path.read_bytes()
+        try:
+            cells = [abba.Cell(**cell) for cell in self.inv['cells']]
+            calibration = fixture_report(cells, self.fp, self.env, self.report['cell_source']['text'],
+                                         self.started - 1000, self.binary, fast=True)
+            path = self.root / 'build/unresolved-calibration.json'
+            receipt.write_json(path, calibration)
+            config = measurements.load(config_path)
+            measurements.import_calibration(path, config, cells)
+            receipt.write_json(config_path, config)
+            frozen = self.root / 'build/unresolved-campaign.json'
+            receipt.freeze_null(self.root, argparse.Namespace(calibration=path, output=frozen))
+            campaign = receipt.read_json(frozen)
+            started = int(campaign['frozen_at']) + 2
+            with mock.patch.object(time, 'time', return_value=started + 34000):
+                control = fixture_report([abba.Cell(**c) for c in campaign['inventory']['cells']],
+                    self.fp, campaign['environment'], self.report['cell_source']['text'], started, self.binary)
+                noisy = next(row for row in control['cells'] if row['cell']['id'] == 'h01')
+                for run, value in zip(noisy['rounds'][0]['runs'], (98., 101., 101., 102.)):
+                    run['rate'] = value
+                noisy['assessment'] = abba.assess(abba.Cell(**noisy['cell']), noisy['rounds'], abba.NULL_MODE)
+                sampled_fixture(control)
+                receipt.write_json(self.source, control)
+                receipt.promote_null(self.root, argparse.Namespace(null_result=self.source, campaign=frozen))
+                promoted = receipt.read_json(self.standing)
+                summary = evidence.resolution_summary(promoted)
+                self.assertEqual(summary['unresolved_cells'], ['h01'], 'UNRESOLVED promotion lost the noisy cell')
+                self.assertEqual(len(summary['resolving_cells']), len(cells) - 1)
+                # Restoring the old magnitude veto must break the successful promotion assertion.
+                def old_guard(report):
+                    for row in evidence.null_resolution(report):
+                        evidence.require(max(row['reference_spread_pct'], row['candidate_spread_pct'],
+                                             row['absolute_delta_pct']) <= abba.MAX_SPREAD, 'removed magnitude veto')
+                with mock.patch.object(receipt, 'validate_null_integrity', side_effect=old_guard):
+                    with self.assertRaisesRegex(ValueError, 'removed magnitude veto'):
+                        receipt.promote_null(self.root, argparse.Namespace(null_result=self.source, campaign=frozen))
+                comparison = fixture_report([abba.Cell(**c) for c in campaign['inventory']['cells']],
+                    self.fp, campaign['environment'], self.report['cell_source']['text'], started + 17000, self.binary)
+                comparison.update(run_kind='comparison', verdict='UNRESOLVED', statistical_verdict='UNRESOLVED')
+                comparison.pop('null_control')
+                for row in comparison['cells']:
+                    row['assessment'] = abba.assess(abba.Cell(**row['cell']), row['rounds'],
+                                                   abba.resolution_bounds(promoted, row['cell']['id']))
+                    row['verdict'] = row['assessment']['verdict']
+                comparison['standing_null'] = evidence.match_null(comparison, promoted, now=time.time())
+                summary = evidence.resolution_summary(comparison, promoted)
+                self.assertEqual(len(summary['pass_evidence_cells']), len(cells) - 1)
+                self.assertNotIn('h01', summary['pass_evidence_cells'], 'UNRESOLVED cell counted as PASS')
+                with self.assertRaisesRegex(ValueError, 'comparison reporting-only: .*UNRESOLVED=1 \\[h01\\]'):
+                    evidence.validate_comparison(comparison, promoted, now=time.time())
+                self.assertEqual(evidence.validate_holdout(comparison, promoted, now=time.time())['verdict'], 'UNRESOLVED')
+                changed = copy.deepcopy(comparison)
+                changed.update(verdict='PASS', comparison_trusted=True)
+                with throwaway(evidence, 'validate_comparison', 'not summary["unresolved_cells"]', 'True'):
+                    # The other raw validators still work, but this exact refusal is gone.
+                    with self.assertRaises(AssertionError):
+                        with self.assertRaisesRegex(ValueError, 'comparison reporting-only:'):
+                            evidence.validate_comparison(changed, promoted, now=time.time())
+                print('UNRESOLVED freeze/promote + comparison: 180 PASS evidence, h01 reporting-only; old veto/refusal-removal detected')
+        finally:
+            config_path.write_bytes(original)
+
     def test_age_ladder_window_and_fixed_resolution_checks_cannot_be_bypassed(self):
         changes = []
         stale = copy.deepcopy(self.report)
@@ -756,6 +847,123 @@ class PromotionControls(unittest.TestCase):
         forged['null_control']['resolution'][0]['metric'] = 'cycles/op'
         with self.assertRaisesRegex(ValueError, 'null control did not complete'):
             evidence.validate_null(forged, now=time.time())
+
+
+class NullpublishControls(unittest.TestCase):
+    def row(self, values):
+        cell = abba.Cell('resolution', '1s', 0, 1, 1, 'GET', 1, 512, score='latency')
+        runs = [raw_run(cell, arm, 1, index, PromotionControls.env)
+                for index, arm in enumerate(abba.ORDER, 1)]
+        for run, value in zip(runs, values):
+            run['latency_ms'] = value
+        return cell, dict(cell=asdict(cell), rounds=[dict(instances=1, runs=runs)])
+
+    def collect(self, values, extra):
+        cell, row = self.row(values)
+        calls, frozen = [], []
+        def persist():
+            frozen.append(copy.deepcopy(row['null_sampling_plan']))
+        def measure(arm, sequence, instances):
+            self.assertTrue(frozen, 'repeat requested before exact plan persistence')
+            self.assertEqual(row['null_sampling_plan'], frozen[0], 'plan changed after sampling began')
+            calls.append((arm, sequence, instances))
+            run = raw_run(cell, arm, instances, sequence, PromotionControls.env)
+            run['latency_ms'] = extra[(sequence - 1) % len(abba.ORDER)]
+            return run
+        sampling.collect(cell, row, measure, persist)
+        sampling.validate(row, sampling.policy())
+        return cell, row, calls
+
+    def test_cv_permits_fixed_repeats_and_all_signed_deltas_pool_to_resolving(self):
+        def assertion():
+            _, row, calls = self.collect((99.5, 102.5, 103.5, 100.5), (99.5, 99.5, 100.5, 100.5))
+            self.assertEqual(row['null_sampling_plan']['planned_blocks'], 2, 'permitted-CV plan must be two blocks')
+            self.assertEqual(len(calls), 4, 'fixed repeat block did not complete')
+            metric = evidence.null_resolution({'cells': [row]})[0]
+            self.assertEqual(metric['status'], 'RESOLVING', 'pooled delta must resolve after all planned samples')
+            self.assertAlmostEqual(metric['absolute_delta_pct'], 1.5)
+        assertion()
+        with throwaway(evidence, 'null_resolution', 'row["rounds"] + row.get("null_repeats", [])', 'row["rounds"]'):
+            with self.assertRaises(AssertionError): assertion()
+        print('CV-permitted: two blocks, pooled |delta| 1.5%, RESOLVING; removing all-block pooling fails exact assertion')
+
+    def test_unattainable_cv_stops_at_frozen_budget_and_raw_maximum_never_shrinks(self):
+        def assertion():
+            _, row, calls = self.collect((90., 100., 100., 110.), (100., 100., 100., 100.))
+            plan = row['null_sampling_plan']
+            self.assertEqual(plan['metrics'][0]['required_samples_per_arm'], 25)
+            self.assertEqual((plan['planned_blocks'], plan['budget_limited'], len(calls)), (4, True, 12))
+            metric = evidence.null_resolution({'cells': [row]})[0]
+            self.assertEqual((metric['status'], metric['reference_spread_pct']), ('UNRESOLVED', 20.))
+        assertion()
+        with throwaway(sampling, 'collect', 'range(1, row["null_sampling_plan"]["planned_blocks"])', 'range(1, 2)'):
+            with self.assertRaisesRegex(ValueError, 'incomplete fixed null sampling plan'): assertion()
+        with throwaway(evidence, 'null_resolution', 'samples),\n                                   "null reference spread"',
+                       'samples[-1:]),\n                                   "null reference spread"'):
+            with self.assertRaises(AssertionError): assertion()
+        print('CV 10%: needs 25 samples/arm, cap 8; all 4 blocks retained, UNRESOLVED; truncation/max-removal detected')
+
+    def test_repeat_plan_cannot_be_missing_truncated_reordered_or_refitted(self):
+        _, row, _ = self.collect((90., 100., 100., 110.), (100.,) * 4)
+        for name, mutate, reason in (
+            ('missing plan', lambda r: r.pop('null_sampling_plan'), 'plan differs from pilot'),
+            ('truncated repeats', lambda r: r['null_repeats'].pop(), 'incomplete fixed null sampling plan'),
+            ('reordered repeats', lambda r: r['null_repeats'].reverse(), 'repeat order/load differs'),
+            ('refitted plan', lambda r: r['null_sampling_plan'].update(planned_blocks=2), 'plan differs from pilot')):
+            broken = copy.deepcopy(row); mutate(broken)
+            with self.subTest(state=name), self.assertRaisesRegex(ValueError, reason):
+                sampling.validate(broken, sampling.policy())
+            with mock.patch.object(sampling, 'validate'):
+                with self.assertRaises(AssertionError):
+                    with self.assertRaisesRegex(ValueError, reason): sampling.validate(broken, sampling.policy())
+            print(f'{name}: REFUSED ({reason}); removing plan validation breaks exact oracle')
+
+    def test_unresolved_nonloss_is_reporting_only_and_beyond_floor_still_fails(self):
+        cell, row = self.row((100.,) * 4)
+        bounds = {'latency_ms': dict(spread=4., abs_delta=1., status='UNRESOLVED')}
+        def assertion():
+            assessment = abba.assess(cell, row['rounds'], bounds)
+            self.assertEqual(assessment['verdict'], 'UNRESOLVED', 'non-loss on unresolved null cannot PASS')
+            self.assertEqual(abba.overall([dict(cell=asdict(cell), assessment=assessment, verdict=assessment['verdict'])])[0],
+                             'UNRESOLVED', 'overall cannot certify reporting-only rows')
+        assertion()
+        with throwaway(abba, 'assess', 'if unresolved else "PASS"', 'if False else "PASS"'):
+            with self.assertRaises(AssertionError): assertion()
+        for run in row['rounds'][0]['runs']:
+            if run['arm'] == 'B': run['latency_ms'] = 101.5
+        def loss_assertion():
+            result = abba.assess(cell, row['rounds'], bounds)
+            self.assertEqual((result['verdict'], result['reasons']),
+                ('FAIL', ['paired regression exceeds measured reference spread']), '1.5% loss must FAIL a 1% floor')
+        loss_assertion()
+        with throwaway(abba, 'assess', 'loss > threshold', 'False'):
+            with self.assertRaises(AssertionError): loss_assertion()
+        print('UNRESOLVED non-loss/overall + beyond-floor FAIL; removing status or loss guard fails exact oracle')
+
+    def test_replay_is_reporting_only_and_rejects_nonfinite_nonpositive_or_incomplete_blocks(self):
+        _, row = self.row((90., 100., 100., 110.))
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as tmp:
+            path = Path(tmp) / 'results.json'
+            receipt.write_json(path, {'cells': [row]})
+            result = receipt.replay_null(path)
+            self.assertEqual((result['kind'], result['reporting_only'], result['promotable']),
+                             ('null-resolution-replay', True, False))
+            with self.assertRaisesRegex(ValueError, 'ABBA measurements did not all pass'):
+                evidence.validate_null(result, now=time.time())
+        for value in (0., -1., float('inf'), float('nan')):
+            broken = copy.deepcopy(row); broken['rounds'][0]['runs'][0]['latency_ms'] = value
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'invalid null latency_ms'):
+                evidence.null_resolution({'cells': [broken]})
+        for values in ([0, 1, 2], [0, 3, 1, 2]):
+            broken = copy.deepcopy(row)
+            broken['rounds'][0]['runs'] = [broken['rounds'][0]['runs'][index] for index in values]
+            with self.assertRaisesRegex(ValueError, 'incomplete or reordered null block'):
+                evidence.null_resolution({'cells': [broken]})
+        with throwaway(receipt, 'replay_null', 'promotable=False', 'promotable=True'):
+            with tempfile.TemporaryDirectory(dir=ROOT / 'build') as tmp:
+                path = Path(tmp) / 'results.json'; receipt.write_json(path, {'cells': [row]})
+                with self.assertRaises(AssertionError): self.assertFalse(receipt.replay_null(path)['promotable'])
+        print('Replay has no promotion identity; invalid raw values/ORDER refused; reporting-only marker removal detected')
 
 
 class ExemptionControls(unittest.TestCase):
@@ -848,7 +1056,7 @@ class ExemptionControls(unittest.TestCase):
 def self_test():
     suite = unittest.TestSuite()
     # Exemption fixtures use only immutable metadata retained by PromotionControls.
-    for cls in (PromotionControls, ExemptionControls):
+    for cls in (PromotionControls, NullpublishControls, ExemptionControls):
         suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(cls))
     return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1
 
