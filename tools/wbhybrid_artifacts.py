@@ -262,7 +262,8 @@ def paths():
     objects = [arg for arg in link if arg.endswith('.o') and not arg.endswith('/main.o')]
     libraries = link[link.index('-o') + 2:]
     original = (ROOT / 'tests/wb_rule_phase_unit.cc').read_text()
-    rows, pad_rows = [], []
+    rows, pad_rows, jobs = [], [], []
+    make = ['.PHONY: all', 'all:']
     for name, small in ARMS.items():
         source = STUDY / name
         # The real existing physical-schedule witness; sweep six pipe depths.
@@ -275,6 +276,8 @@ def paths():
         fixture = replace(fixture, 'prefix >= 16;',
             'prefix >= (depth <= WBHYBRID_EXPECT_SMALL ? depth : depth/2 + depth%2);')
         fixture = replace(fixture, '(admitted ? 32-prefix : 32)', '(admitted ? depth-prefix : depth)')
+        fixture = replace(fixture, 'config.wb_policy = policy;',
+                          'config.wb_policy = policy;\n            config.databases = kSingleDatabase ? 1 : 4;')
         fixture_path = source / 'phase.cc'
         fixture_path.write_text(fixture)
         for db0 in (False, True):
@@ -287,15 +290,23 @@ def paths():
                     '-I' + str(source), '-I' + str(ROOT), str(fixture_path), *deps,
                     '-o', str(output), *libraries,
                     '-Wl,--wrap=io_uring_submit', '-Wl,--wrap=io_uring_submit_and_get_events']
-                subprocess.run(cmd, check=True)
-                if twin:
-                    pad_rows.append(pad(output, binary, small, (source / POLICY).read_text()))
-                for args in ((), ('r7',)):
-                    rows.append(run_case(binary, 'wbland-fused', args=args, marker='wb-rule'))
-                for args in ((), ('natural',), ('shallow',)):
-                    for case in ('wbland-split', 'wbland-local'):
-                        rows.append(run_case(binary, case, args=args, marker='wb-rule'))
-                print('PASS physical schedules:', binary.name, flush=True)
+                make += [f'all: {output}', f'{output}: {fixture_path} ' + ' '.join(deps),
+                         '\t' + shlex.join(cmd)]
+                jobs.append((small, source, output, binary, twin))
+    makefile = STUDY / 'paths.mk'
+    makefile.write_text('\n'.join(make) + '\n')
+    with (STUDY / 'paths-build.log').open('w') as log:
+        subprocess.run(['make', '-j16', '-f', str(makefile)], cwd=ROOT,
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+    for small, source, output, binary, twin in jobs:
+        if twin:
+            pad_rows.append(pad(output, binary, small, (source / POLICY).read_text()))
+        for args in ((), ('r7',)):
+            rows.append(run_case(binary, 'wbland-fused', args=args, marker='wb-rule'))
+        for args in ((), ('natural',), ('shallow',)):
+            for case in ('wbland-split', 'wbland-local'):
+                rows.append(run_case(binary, case, args=args, marker='wb-rule'))
+        print('PASS physical schedules:', binary.name, flush=True)
     write_json('paths.json', rows)
     write_json('pad-path-sites.json', pad_rows)
 
@@ -369,23 +380,39 @@ def launch_identity():
 
 def audit():
     assert not subprocess.check_output(['git', 'diff', BASE, '--', 'src', 'Makefile', 'tests/gate.sh'], cwd=ROOT)
-    groups = {}
+    groups, digests = {}, {}
+    def checked_sha(path):
+        path = Path(path)
+        if path not in digests:
+            digests[path] = sha(path)
+        return digests[path]
     for name in ('proofs', 'paths'):
         rows = json.loads((STUDY / (name + '.json')).read_text())
-        assert rows and all(r['passed'] and sha(ROOT / r['binary']) == r['sha256'] for r in rows)
+        assert rows and all(r['passed'] and checked_sha(ROOT / r['binary']) == r['sha256'] for r in rows)
         groups[name] = dict(positive=sum(r['expected_exit'] == 0 for r in rows),
                             negative=sum(r['expected_exit'] == 1 for r in rows))
     for name in ('wb-rule-policy', 'wb-rule-phase', 'wb-rule-stages', 'wb-rule-split-phase',
                  'wb-rule-split-overlap', 'wbland-clauses', 'wbland-paths'):
         path = BUILD / (name + '-proofs.json')
         rows = json.loads(path.read_text())
-        assert rows and all(r['passed'] and sha(ROOT / r['binary']) == r['sha256'] for r in rows)
+        assert rows and all(r['passed'] and checked_sha(ROOT / r['binary']) == r['sha256'] for r in rows)
         groups[name] = dict(positive=sum(r['expected_exit'] == 0 for r in rows),
                            negative=sum(r['expected_exit'] == 1 for r in rows), sha256=sha(path))
     binaries = json.loads((STUDY / 'binaries.json').read_text())
     assert all(sha(ROOT / row['path']) == row['sha256'] for row in binaries)
     for name, small in ARMS.items():
         assert (STUDY / name / POLICY).read_text() == policy(small)[1]
+    for row in json.loads((STUDY / 'pads.json').read_text()):
+        elf = Elf(ROOT / row['candidate']['path'])
+        rules = [s for n, s in elf.functions().items() if '7wb_rule5defer' in n]
+        assert len(rules) == len(row['sites']) == 2
+        assert all(sum(s['value'] <= site['address'] < s['value'] + s['size']
+                       for site in row['sites']) == 1 for s in rules)
+        twin = bytearray((ROOT / row['pad']['path']).read_bytes())
+        for site in row['sites']:
+            assert twin[site['offset']] == 1
+            twin[site['offset']] = elf.data[site['offset']]
+        assert twin == elf.data
     costs_data = json.loads((STUDY / 'costs.json').read_text())
     ref = {r['case']: r['instructions'] for r in costs_data['rows'] if r['arm'] == 'ref'}
     for row in costs_data['rows']:
@@ -395,7 +422,8 @@ def audit():
             assert row['instructions'] <= ref[row['case']] + 1, row
     write_json('audit.json', dict(launch=LAUNCH, base=BASE, groups=groups, binaries=binaries,
         inputs={name: sha(ROOT / name) for name in ('tools/wbhybrid_artifacts.py', 'tests/wbhybrid_unit.cc',
-                                                  POLICY, 'tools/wb_rule_2s_trace.cc')},
+                                                  'tests/wbhybrid_cells.txt', POLICY,
+                                                  'tools/wb_rule_2s_trace.cc')},
         receipts={p.name: sha(p) for p in sorted(STUDY.glob('*.json')) if p.name != 'audit.json'},
         selector_same_prefix_max_extra_instructions=1))
     print('PASS frozen artifact audit:', json.dumps(groups), flush=True)
