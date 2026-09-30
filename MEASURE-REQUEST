@@ -1,19 +1,21 @@
-wbland3 — adaptive writeback deleted; fixed policies 0/1, default 1.
-Read MEASURE-REQUEST-wbland3.md for the removal inventory, code audit and hashes.
-Supersedes wbland/wbland2 adaptive measurement requests; no adaptive gain claim remains.
-PRE: REF 37eeb5e90 source rebuilt at build/wbland3/pre-src/build/tomokv.
-POST: build/tomokv. LATENCY: build/tomokv-pol0. PAD A: build/tomokv-pad.
-PAD A is a behavior twin: REF half behavior with the candidate knob read/layout.
-After deletion PAD is byte-identical to POST; no PAD/probe selector bit survives.
-REF-vs-POST .text exact in 25/40 objects, all .text.* exact in 23/40; +2208 B linked text.
-GET/SET: 16/16 opcode and relocation identities. Layout locks/offset assertions compile.
-Request: mainline's 14-cell generic PAD-controlled null, tests/wbland_merit_cells.txt.
-Decide per-cell matched-load rate/latency against a fresh null; record cycles/op, IPC, instr/op.
-Keep the 4096-connection cells. Both modes/database variants need mainline boot/gate checks.
-CONFIG GET/REWRITE retain the boot value; SET remains rejected as in wbland1.
-248/248 writeback outcomes pass, including 86 strictly rejected negative controls.
-Additional db0 CONFIG fixture fails at tracking swap(0,1), identically on PRE and POST.
-Lane row delta now +2 quick/+2 full, down from +3/+3; EXPECT constants untouched.
-With the inherited topology quick correction, mainline totals should be 445 quick/463 full.
-All builds/serverless checks: taskset -c 112-127, make -j16. No live runs or push.
-Live results PENDING MAINLINE; append MEASURE-RESULT. Stop at this report.
+wbhybrid: complete small pipes, half rule otherwise. Performance PENDING MAINLINE.
+Read MEASURE-REQUEST-wbhybrid.md for mechanism, hashes, proofs and acceptance.
+REF: build/tomokv (merged BASE 5b3d9c429; half rule, policy 1 unchanged).
+Candidates: build/tomokv-hyb8, build/tomokv-hyb16, build/tomokv-hyb32.
+PAD A behaviour twins: corresponding build/tomokv-hyb{8,16,32}-pad.
+Each PAD differs by two selector-immediate bytes only; all other ELF bytes identical.
+Rule is PIECEWISE n<=S ? n : ceil(n/2), not the inequivalent max/min formula.
+S is explicitly a measured constant; no honest existing-sizing derivation was found.
+72/72 non-rule-dependent objects identical to merged REF in every arm.
+Literal launch identity has two mandatory-merge exceptions: both xshard.o variants.
+378 strict offline outcomes pass, including 92 required assertion failures.
+88 ptrace receipts: equal-prefix selector cost <= +1 instruction; longer small-pipe walks reported.
+1s/2s and databases=1/4 path fixtures passed; live boot/gate remains mainline-owned.
+Measure all REF/hybrid/PAD arms: low-load p32@256K, p8@256K/512K, 3 rounds;
+21 saturation cells in tests/wbhybrid_cells.txt (14 generic + 5 reorder-on + 2 at 4096 conns);
+bursts floors 0/0.4/0.7, reorder 0/1, four samples per arm/cell;
+NIC-AB GET/SET p8/p32 and calib/nic-latency.sh at 60/80%, ABBA x2.
+Retain S=16 low-load, p8 throughput and p8 wire-latency gains (about +/-3% p99 spread),
+with no floored-burst loss or p32 regression. Never-worse => hardcode; consistent loss => DELETE/TRADE.
+All builds/serverless checks used cores 112-127. No server, benchmark, gate, measurement or push.
+Gate row delta 0/0; EXPECT constants unchanged. Append live results as MEASURE-RESULT.
