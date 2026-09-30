@@ -1,15 +1,19 @@
-wbland2 — detector parity audit; required mainline 37eeb5e90 merged first.
-Read MEASURE-REQUEST-wbland2.md for the detector discrepancy, replay, costs, arms and SHA-256s.
-Pinned pol2-k1 and original wbland already produce identical f on identical pass inputs.
-The 100us accounting publication does not gate their per-pass timestamps or detector calls.
-Replay is synthetic (18771 passes, zero candidate/original mismatches); live recording is missing.
-The deliberately cut-gated mutant differs and is rejected; it is not the original wbland detector.
-build/tomokv defaults to adaptive linear AUTO in 1s; AUTO in 2s pins the half rule.
-Arms: tomokv-pol0, tomokv-pol1, tomokv-pad (A: behavior twin), tomokv-auto2s-probe.
-Acceptance: same-session 931K 9:1 burst, at least 8 samples/arm in each reorder state;
-AUTO p99 must be within 2 percentage points of the exact pol2-k1 study arm in both states.
-Same merit + 4096, both ladders, ramp, 25GbE and split cells; pol1 vs matched mainline must be null.
-No new wbland2 rows. Inherited quick-row arithmetic requires EXPECT_QUICK 441->446;
-EXPECT_FULL 461->464. Constants were not edited; topology contributes the additional quick +2.
-All lane builds/serverless checks ran on 112-127; make -j16. No server, load generator or gate ran.
-Append quiet-box results as MEASURE-RESULT. No push. No tail fix or performance acceptance claimed.
+wbland3 — adaptive writeback deleted; fixed policies 0/1, default 1.
+Read MEASURE-REQUEST-wbland3.md for the removal inventory, code audit and hashes.
+Supersedes wbland/wbland2 adaptive measurement requests; no adaptive gain claim remains.
+PRE: REF 37eeb5e90 source rebuilt at build/wbland3/pre-src/build/tomokv.
+POST: build/tomokv. LATENCY: build/tomokv-pol0. PAD A: build/tomokv-pad.
+PAD A is a behavior twin: REF half behavior with the candidate knob read/layout.
+After deletion PAD is byte-identical to POST; no PAD/probe selector bit survives.
+REF-vs-POST .text exact in 25/40 objects, all .text.* exact in 23/40; +2208 B linked text.
+GET/SET: 16/16 opcode and relocation identities. Layout locks/offset assertions compile.
+Request: mainline's 14-cell generic PAD-controlled null, tests/wbland_merit_cells.txt.
+Decide per-cell matched-load rate/latency against a fresh null; record cycles/op, IPC, instr/op.
+Keep the 4096-connection cells. Both modes/database variants need mainline boot/gate checks.
+CONFIG GET/REWRITE retain the boot value; SET remains rejected as in wbland1.
+248/248 writeback outcomes pass, including 86 strictly rejected negative controls.
+Additional db0 CONFIG fixture fails at tracking swap(0,1), identically on PRE and POST.
+Lane row delta now +2 quick/+2 full, down from +3/+3; EXPECT constants untouched.
+With the inherited topology quick correction, mainline totals should be 445 quick/463 full.
+All builds/serverless checks: taskset -c 112-127, make -j16. No live runs or push.
+Live results PENDING MAINLINE; append MEASURE-RESULT. Stop at this report.
