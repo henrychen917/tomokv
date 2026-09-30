@@ -136,6 +136,10 @@ def factor(reference, candidate, out):
     shared = after.index('        if (!atomic_pending_', template)
     finish = after.index('    void atomic_promote_all_for_shutdown()', shared)
     assert before[:start] == after[:start] and before[end:] == after[finish:], 'unrelated source changed'
+    for short, name in (('retire', 'retire_detached_obj'), ('free_entry', 'atomic_free_entry'),
+                        ('exchange', 'atomic_exchange_physical')):
+        expected = f'constexpr auto {short} = ReadLocal ? &FlatStore::{name}_read_local : &FlatStore::{name};'
+        assert expected in ' '.join(after[template:shared].split()), f'wrong compile-time selector: {short}'
     # Comments and token spellings are retained. Whitespace and the armed
     # single-statement loop's redundant braces are the only formatting changes.
     original = []
@@ -145,11 +149,13 @@ def factor(reference, candidate, out):
     body = after[shared:finish].rstrip()[:-1].rstrip()
     lexer = r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\w+|[^\s]'
     rows = []
+    expanded_bodies = []
     for read_local, old in enumerate(original):
         expanded = body
         for short, name in (('retire', 'retire_detached_obj'), ('free_entry', 'atomic_free_entry'),
                             ('exchange', 'atomic_exchange_physical')):
             expanded = expanded.replace('(this->*' + short + ')', name + ('_read_local' if read_local else ''))
+        expanded_bodies.append(expanded)
         old = old.replace('for (KvObj* object : atomic_collapse_retire_) {\n'
                           '            retire_detached_obj_read_local(object);\n        }',
                           'for (KvObj* object : atomic_collapse_retire_) retire_detached_obj_read_local(object);')
@@ -168,6 +174,14 @@ def factor(reference, candidate, out):
     save(out / 'pad-source.json', dict(kind='A: behaviour twin', reference=str(reference),
          mapping='Complete original armed/unarmed bodies in candidate template/wrapper context; layout must be verified after building',
          sha256=digest(generated.encode())))
+    inverse = (before[:start] + before[start:before.index('        if (!atomic_pending_', start)] +
+               expanded_bodies[0] + '\n    }\n\n\n' +
+               before[middle:before.index('        if (!atomic_pending_', middle)] +
+               expanded_bodies[1] + '\n    }\n\n' + before[end:])
+    (out / 'generated-inverse-flatstore_atomic.inc').write_text(inverse)
+    save(out / 'inverse-source.json', dict(kind='B: inverse control',
+         mapping='POST body expanded at compile time into PRE wrappers; PRE text size/layout must be verified after building',
+         sha256=digest(inverse.encode())))
 
 
 def snapshot(root, out, plan):
@@ -212,14 +226,21 @@ def snapshot(root, out, plan):
     print(f'Captured {len(objects)} objects and final executable under {out}')
 
 
+def object_paths(root):
+    return sorted(p.relative_to(root) for base in (root / 'src', root / 'db0')
+                  for p in base.rglob('*.o') if p.is_file())
+
+
 def compare(pre, post, output):
-    paths = sorted(p.relative_to(pre) for p in pre.rglob('*.o') if p.is_file()) + [Path('tomokv')]
-    assert paths[:-1] == sorted(p.relative_to(post) for p in post.rglob('*.o') if p.is_file()), 'object inventory changed'
+    paths = object_paths(pre) + [Path('tomokv')]
+    assert paths[:-1] == object_paths(post), 'object inventory changed'
     rows = []
     for relative in paths:
         a, b = Elf(pre / relative), Elf(post / relative)
         x, y = a.executable(), b.executable()
-        sections = {name: x.get(name) == y.get(name) for name in sorted(x.keys() | y.keys())}
+        sections = {name: x.get(name) == y.get(name) and name in x and name in y and
+                    a.section(a.names.index(name)) == b.section(b.names.index(name))
+                    for name in sorted(x.keys() | y.keys())}
         row = dict(path=str(relative), executable=sections,
                    relocations_equal=a.relocations() == b.relocations(),
                    functions_equal=sorted(a.functions, key=str) == sorted(b.functions, key=str),
@@ -243,9 +264,8 @@ def negative(pre, out):
     data = bytearray(elf.data)
     data[section[4]] ^= 1
     (out / 'tomokv').write_bytes(data)
-    for source in pre.rglob('*.o'):
-        if not source.is_file():
-            continue
+    for relative in object_paths(pre):
+        source = pre / relative
         target = out / source.relative_to(pre)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.hardlink_to(source)
