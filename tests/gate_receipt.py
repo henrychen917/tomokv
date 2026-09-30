@@ -1094,9 +1094,9 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
 
         def test_unresolved_cell_names_withhold_receipt_even_with_forged_pass_coordinator(self):
             from _nullrefresh_test import throwaway
-            import abba_evidence
+            from abbagate import Cell
             row = self.control["cells"][0]
-            metric = row["assessment"]["metric"]
+            metric = Cell(**row["cell"]).metric
             row["rounds"][0]["runs"][0][metric] *= 1.1
             self.control["null_control"] = null_result(self.control, now=time.time())
             self.report["standing_null"] = match_null(self.report, self.control, now=time.time())
