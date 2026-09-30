@@ -26,7 +26,7 @@ CONTROLS = [
     ('cutoff', ATOMIC, 'epoch > cleanup_cutoff', 'epoch >= cleanup_cutoff', 'boundaries',
      'cleanup cutoff equality: eligible prefix reclaimed'),
     ('undecided', ATOMIC, '!epoch || epoch >= floor', 'epoch >= floor', 'boundaries',
-     'undecided boundary: no cleanup past epoch zero'),
+     'undecided boundary: linked suffix and its owner reference retained'),
     ('winner', ATOMIC, 'epoch >= key.winner_epoch', 'epoch < key.winner_epoch', 'winners',
      'collapse winner: exact logical value/tombstone'),
     ('program-order', ATOMIC, 'epoch = key.prev_epoch;', '(void)epoch;', 'winners',
@@ -38,7 +38,7 @@ CONTROLS = [
      '            std::unique(atomic_collapse_retire_.begin(), atomic_collapse_retire_.end()),\n'
      '            atomic_collapse_retire_.end());',
      '        // negative control: duplicate retire remains in the worklist', 'winners',
-     'duplicate loser: direct pool contains each reclaimed value once'),
+     'duplicate loser: unique worklist contains one owned payload'),
     ('allocation', ATOMIC, 'catch (const std::bad_alloc&) {\n            return false;',
      'catch (const std::bad_alloc&) {\n            return true;', 'allocation',
      'allocation refusal: all entries, ownership, accounting and retire state preserved'),
@@ -48,8 +48,13 @@ CONTROLS = [
      'if (first_unselected) {}', 'boundaries',
      'undecided boundary: linked suffix and its owner reference retained'),
     ('accounting', ATOMIC, '*atomic_promotions_ += occurrences;',
-     '*atomic_promotions_ += occurrences + 1;', 'boundaries',
-     'undecided boundary: linked suffix and its owner reference retained'),
+     '*atomic_promotions_ += occurrences + 1;', 'winners',
+     'collapse accounting: records/promotions/version bytes/live bytes exact, no underflow'),
+    ('intent', ATOMIC, '!atomic_pending_->script_intent_count &&', '', 'intent',
+     'intent collapse: freeing last version preserves live reservation and activity'),
+    ('expiry', ATOMIC, 'key.winner = atomic_live_value(key.winner);',
+     '// negative control: keep expired winner', 'winners',
+     'collapse accounting: records/promotions/version bytes/live bytes exact, no underflow'),
     ('armed-direct', ATOMIC, '= ReadLocal ?', '= false ?', 'pinned',
      'armed pinned: loser must reach QSBR sink before any storage reuse'),
     ('unarmed-sink', ATOMIC, '= ReadLocal ?', '= true ?', 'pinned',
@@ -109,10 +114,14 @@ def generate():
         path.write_text(source)
         rows.append(dict(name=name, path=file, substitutions=count, selection=selection,
                          assertion=assertion, sha256=hashlib.sha256(source.encode()).hexdigest(),
+                         tests_sha256={test: hashlib.sha256((tree / 'tests' / test).read_bytes()).hexdigest()
+                                       for test in ('atomic_survivors_unit.cc', 'atomiccollapse_checks.inc')},
                          source=old, replacement=new, command=command))
     make = '.PHONY: all\nall: ' + ' '.join(r['name'] + '/unit' for r in rows) + '\n\n'
     for row in rows:
-        make += row['name'] + '/unit:\n\tcd ' + shlex.quote(str(OUT / row['name'])) + ' && ' + \
+        make += row['name'] + '/unit: ' + ' '.join(row['name'] + '/' + path for path in
+                (row['path'], 'tests/atomic_survivors_unit.cc', 'tests/atomiccollapse_checks.inc')) + \
+                '\n\tcd ' + shlex.quote(str(OUT / row['name'])) + ' && ' + \
                 shlex.join(command) + ' > build.log 2>&1\n\n'
     (OUT / 'Makefile').write_text(make)
     (OUT / 'manifest.json').write_text(json.dumps(rows, indent=2) + '\n')

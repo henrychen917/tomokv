@@ -5,6 +5,7 @@ namespace tomo {
 struct FlatStoreRegressionTest {
     static AtomicPendingState* pending(FlatStore& s) { return s.atomic_pending_; }
     static size_t versions(const FlatStore& s) { return s.atomic_version_bytes_; }
+    static size_t losers(const FlatStore& s) { return s.atomic_collapse_retire_.size(); }
 };
 } // namespace tomo
 
@@ -178,6 +179,9 @@ void collapse_winners(Server& server, bool armed, uint8_t ns, bool same_conn,
     }
     const auto live_bytes = expected ? final_size : 0;
     f.empty(boundary ? 3 : 2, boundary ? 3 : 2, live_bytes);
+    if (duplicate)
+        require(FlatStoreRegressionTest::losers(f.s()) == 1,
+                "duplicate loser: unique worklist contains one owned payload");
     if (duplicate && !armed)
         require(FlatStoreRegressionTest::pending(f.s())->cached_value_bytes == final_capacity,
                 "duplicate loser: direct pool contains each reclaimed value once");
@@ -248,10 +252,26 @@ void collapse_pinned(Server& server, bool armed, uint8_t ns) {
             "released pin: actual reclaim returns exact allocation to owner pool");
 }
 
+void collapse_intent(Server& server, bool armed, uint8_t ns) {
+    CollapseDecision a;
+    CollapseFixture f(server, armed, ns); f.seed();
+    KvObj* final = f.install(a, "last", 11, 1);
+    require(f.s().atomic_script_pin(f.hash(), f.k()) && f.intents == 1 && f.activity == 1,
+            "intent collapse: script reservation and version share one active shard");
+    require(f.s().atomic_sweep(2, 1, 1) == 1 && !f.s().atomic_pending_entries() &&
+            f.s().atomic_has_script_intent(f.hash(), f.k()) && f.intents == 1 && f.activity == 1,
+            "intent collapse: freeing last version preserves live reservation and activity");
+    f.winner("last");
+    f.s().atomic_script_unpin(f.hash(), f.k());
+    require(f.intents == 0 && f.activity == 0, "intent collapse: final unpin releases activity exactly once");
+    f.empty(1, 1, kvobj_size(final)); f.drain();
+}
+
 void atomiccollapse_checks(const std::string& selection = "all") {
     const auto selected = [&](const char* name) { return selection == "all" || selection == name; };
     require(selection == "all" || selection == "pinned" || selection == "boundaries" ||
-            selection == "winners" || selection == "allocation" || selection == "snapshot_teardown",
+            selection == "winners" || selection == "allocation" || selection == "snapshot_teardown" ||
+            selection == "intent",
             "known collapse assertion group");
     for (ThreadMode mode : {ThreadMode::Fused, ThreadMode::Split}) {
         for (unsigned databases : {1u, 3u}) {
@@ -277,6 +297,7 @@ void atomiccollapse_checks(const std::string& selection = "all") {
                 }
                 if (selected("allocation")) collapse_allocation(server, armed, ns);
                 if (selected("snapshot_teardown")) collapse_snapshot_teardown(server, armed, ns);
+                if (selected("intent")) collapse_intent(server, armed, ns);
             }
         }
     }
