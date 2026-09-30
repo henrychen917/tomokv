@@ -237,7 +237,7 @@ def snapshot(root, out, plan):
 
 
 def object_paths(root):
-    return sorted(p.relative_to(root) for base in (root / 'src', root / 'db0')
+    return sorted(p.relative_to(root) for base in (root / 'src', root / 'db0/src')
                   for p in base.rglob('*.o') if p.is_file())
 
 
