@@ -136,6 +136,16 @@ def factor(reference, candidate, out):
     shared = after.index('        if (!atomic_pending_', template)
     finish = after.index('    void atomic_promote_all_for_shutdown()', shared)
     assert before[:start] == after[:start] and before[end:] == after[finish:], 'unrelated source changed'
+    wrappers = '''bool atomic_collapse(uint64_t floor, uint64_t cleanup_cutoff) {
+        if (__builtin_expect(read_local_enabled_, false))
+            return atomic_collapse_read_local(floor, cleanup_cutoff);
+        return atomic_collapse_impl<false>(floor, cleanup_cutoff);
+    }
+    bool atomic_collapse_read_local(uint64_t floor, uint64_t cleanup_cutoff) {
+        return atomic_collapse_impl<true>(floor, cleanup_cutoff);
+    }'''
+    wrapper_end = after.index('    // Inline into the existing wrappers', start)
+    assert ' '.join(after[start:wrapper_end].split()) == ' '.join(wrappers.split()), 'changed collapse wrappers'
     for short, name in (('retire', 'retire_detached_obj'), ('free_entry', 'atomic_free_entry'),
                         ('exchange', 'atomic_exchange_physical')):
         expected = f'constexpr auto {short} = ReadLocal ? &FlatStore::{name}_read_local : &FlatStore::{name};'
