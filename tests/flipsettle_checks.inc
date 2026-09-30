@@ -76,9 +76,9 @@ static void flipsettle(const char* site, uint32_t databases = 1) {
     w.command_class[0] = 200;
     w.command_class[1] = 800;
     c.shift_detector_.observe(w);
-    require(c.shift_detector_.anchored() && c.shift_detector_.jitter() > 0 &&
-            c.shift_detector_.noise_samples() > 0 && c.shift_detector_.last_distance() > 0,
-            "flipsettle detector seed must be live (never skip an unentered window)");
+    // An unentered learning window is a failure, including in the fixture itself.
+    flipsettle_check(site, "detector-seed", c.shift_detector_.anchored() && c.shift_detector_.jitter() > 0 &&
+            c.shift_detector_.noise_samples() > 0 && c.shift_detector_.last_distance() > 0);
     c.signal_sample_rate_.store(23, std::memory_order_release);
     c.anchor_sampling_disabled_ = false;
     c.rate_window_ms_ = 29;

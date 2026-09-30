@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate throwaway controller mutants and run the existing serverless transition checks."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import shlex
@@ -95,6 +96,11 @@ def main():
 }
 '''
     (out / 'driver.cc').write_text(driver)
+    unseeded = (ROOT / 'tests/flipsettle_checks.inc').read_text()
+    assert unseeded.count('c.shift_detector_.observe(w);') == 3
+    (out / 'unseeded.inc').write_text(unseeded.replace('c.shift_detector_.observe(w);', ';'))
+    (out / 'unseeded.cc').write_text(driver.replace('"tests/flipsettle_checks.inc"',
+                                                  '"' + str(out / 'unseeded.inc') + '"'))
     flags = ['-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-I' + str(ROOT)]
     objects = sorted(p for p in (arm / 'src').rglob('*.o')
@@ -129,9 +135,13 @@ def main():
         recipe(exe, [obj, out / 'driver.o', *objects],
                ['g++', '-pthread', str(out / 'driver.o'), str(obj), *map(str, objects),
                 '-o', str(exe), *libs])
+    unseeded_exe = out / 'unseeded.unit'
+    recipe(unseeded_exe, [out / 'unseeded.cc', out / 'unseeded.inc', *objects, arm / 'src/core/flipctl.o'],
+           ['g++', *flags, str(out / 'unseeded.cc'), *map(str, objects),
+            str(arm / 'src/core/flipctl.o'), '-o', str(unseeded_exe), *libs])
     (out / 'Makefile').write_text('\n'.join(lines) + '\n')
-    with (out / 'build.log').open('w') as log:
-        selected = ([] if args.positive_only else targets) + [str(p) for _, _, p in positives]
+    with (out / ('positive-build.log' if args.positive_only else 'build.log')).open('w') as log:
+        selected = ([] if args.positive_only else targets + [str(unseeded_exe)]) + [str(p) for _, _, p in positives]
         subprocess.run(['make', '-j16', '-f', str(out / 'Makefile'), *selected], cwd=ROOT,
                        stdout=log, stderr=subprocess.STDOUT, check=True)
     traces = {}
@@ -145,12 +155,13 @@ def main():
         assert traces['PRE', ns] == traces['POST', ns] == traces['PAD-A', ns], ns
     (out / 'positive-results.json').write_text(json.dumps([
         dict(arm=label, namespace=ns, rc=0, traces_equal=True,
-             sha256=__import__('hashlib').sha256(exe.read_bytes()).hexdigest())
+             sha256=hashlib.sha256(exe.read_bytes()).hexdigest())
         for label, ns, exe in positives], indent=2) + '\n')
     print('PRE/POST/PAD-A: identical transition traces in normal (databases 1/4) and db0', flush=True)
     if args.positive_only:
         return
     results = []
+    mutants.append(dict(name='unseeded', cases=[(s, 'detector-seed') for s in SITES]))
     for m in mutants:
         for site, field in m['cases']:
             command = [str(out / (m['name'] + '.unit')), site]
