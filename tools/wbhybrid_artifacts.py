@@ -414,8 +414,10 @@ def audit():
             twin[site['offset']] = elf.data[site['offset']]
         assert twin == elf.data
     costs_data = json.loads((STUDY / 'costs.json').read_text())
+    assert checked_sha(STUDY / 'instruction-trace') == costs_data['tracer_sha256']
     ref = {r['case']: r['instructions'] for r in costs_data['rows'] if r['arm'] == 'ref'}
     for row in costs_data['rows']:
+        assert checked_sha(STUDY / (row['arm'] + '-unit')) == row['binary_sha256']
         n, done, byte_count, pol, scatter = map(int, row['case'].split('-')[1:])
         # Same visited-prefix witnesses price ONLY selection, not the changed rule's walk.
         if done <= 1 or n > max(ARMS.values()):
