@@ -107,7 +107,24 @@ The current instrument SHA-256 is `183bcb6585b545a2e0e168451c143e6098978024b3367
 | `build/tailgen-nullpublish-frozen` | 2911008 | `613a6a7e115ba522753a37015a2dbb799325e915030a9f8c3ae95c3a8f4a2d05` |
 | `build/memtier-nullpublish-frozen` | 616272 | `9b6ee614dae154c64b17a067a10236b3e6532f7ca52c43b547b87101556dd7d4` |
 
-SERVERLESS_CHECKS_PENDING
+**359 serverless tests passed**, with no skips. The set comparable to nullrefresh5's 205 tests is now **213** (seven new integrated tests plus the campaign-6 replay proof); the other 146 cover the remaining gate-row serverless batteries. `build/nullpublish-checks.json` records final log hashes and counts.
+
+| Check | Passing test counts | Final log under build/ |
+|---|---:|---|
+| ABBA + saturation + calibration + binary storage | 100 + 10 + 9 + 16 = 135 | `nullpublish-abba-final.log` |
+| Receipt + full campaign/sampling controls | 18 + 25 = 43 | `nullpublish-receipt-final.log` |
+| Calibration importer | 11 | `nullpublish-measurements-final.log` |
+| Instrument fingerprint | 5 | `nullpublish-instrument-final.log` |
+| Directed reorder witness | 11 | `nullpublish-reorder-final.log` |
+| Exact campaign preflight diagnostic/negative controls | 7 | `nullpublish-preflight-final.log` |
+| Campaign-6 map + classification-removal control | 1 | `nullpublish-replay-final.log` |
+| Quiet observer / background environment | 8 + 11 | `nullpublish-quiet-final.log`, `nullpublish-background-final.log` |
+| History / process ownership / shell gate wiring | 55 + 12 + 57 | `nullpublish-history-final.log`, `nullpublish-process-final.log`, `nullpublish-gates-final.log` |
+| Tailgen instrument | 3 | `nullpublish-tailgen-final.log` |
+
+The 18 receipt tests include an explicit UNRESOLVED refusal even with a forged PASS coordinator. The 25 full-campaign controls include complete freeze/promotion, the resolving and budget-limited repeat paths, and all preexisting workload/identity refusals. The original floor test function and its expected outputs are byte-for-byte unchanged from f66331825. Earlier development runs exposed the 459-label fixture, unintended repeat entry into variance-pin trials, and a minimal receipt fixture without a cached metric field; each was corrected before the passing final runs. Runs invalidated by an instrument edit were discarded and repeated on frozen file bytes.
+
+Both final shell files pass syntax checks. The report fence equals `build/nullpublish-campaign.sh` byte-for-byte. The campaign's actual **preflight prefix only** also passed on cores 112–127 (`build/nullpublish-preflight-only.log`), ending at `PREFLIGHT-COMPLETE` before any control, calibration, server or generator. It retained its artifacts in `build/nullpublish-mainline-20260930T181418Z/`, including the one-payload shared binary store; this directory is a serverless preflight, not campaign 7. The stale-manifest negative controls refuse before continuation. `git diff --check` and artifact checksums pass. Campaign-6 source SHA-256 remained `501cefeeba9d1f3bb9a2d07ddfd8e6a9f641c422f1758c24f6d0d4fcadfecbb5`.
 
 The final serverless assertions name their exercised state and exact failure. Mutation/removal controls use disposable fixtures or in-memory function replacements and never execute a production server:
 
@@ -295,4 +312,28 @@ sha256sum -c "$RUN/binary-manifest.sha256"
 
 **Requested diff against 37eeb5e90 (including the continuing lane).**
 
-DIFF_STAT_PENDING
+```text
+ MEASURE-REQUEST-nullpublish.md                |   339 +
+ MEASURE-REQUEST-nullrefresh.md                |   242 +
+ MEASURE-REQUEST-nullrefresh2.md               |   163 +
+ MEASURE-REQUEST-nullrefresh3.md               |   203 +
+ MEASURE-REQUEST-nullrefresh4.md               |   206 +
+ MEASURE-REQUEST-nullrefresh5.md               |   224 +
+ tests/_abba_test_fixtures.py                  |    17 +
+ tests/_nullrefresh_test.py                    |  1065 +
+ tests/abba_binaries.py                        |   469 +
+ tests/abba_ceiling.py                         |    79 +
+ tests/abba_evidence.py                        |   226 +-
+ tests/abba_null_sampling.py                   |    81 +
+ tests/abba_reorder_control.py                 |   240 +
+ tests/abba_saturation.py                      |    11 +
+ tests/abbagate.py                             |   238 +-
+ tests/fixtures/nullrefresh-ledger-labels.json |   476 +
+ tests/gate.sh                                 |    26 +-
+ tests/gate_measurements.json                  | 27774 +++++++++++++++++++++++-
+ tests/gate_measurements.py                    |   107 +-
+ tests/gate_receipt.py                         |   425 +-
+ tests/gates_test.py                           |    11 +-
+ tests/load_calibration.py                     |   117 +-
+ 22 files changed, 31371 insertions(+), 1368 deletions(-)
+```
