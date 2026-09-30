@@ -192,6 +192,7 @@ def pad(pre, post, archive, out):
     assert fa == fb, 'PAD must match EVERY linked function address and size, not just text size'
     regions = [fa[ns + '14FlipController6settleERNS_6ServerEjm'] for ns in ('_ZN4tomo', '_ZN8tomo_db0')]
     changed_bytes = 0
+    tick_differences = []
     for i, sec in enumerate(a.sections):
         if not sec[2] & 4: continue
         j = b.names.index(a.names[i])
@@ -199,17 +200,27 @@ def pad(pre, post, archive, out):
         for offset, (left, right) in enumerate(zip(a.section_data(i), b.section_data(j))):
             if left == right: continue
             address = sec[3] + offset
-            assert any(start <= address < start + size for start, size, _ in regions), hex(address)
+            if not any(start <= address < start + size for start, size, _ in regions):
+                # Factoring also reverses the operands of this equality-only comparison in
+                # each tick. Preserve PRE's instruction in PAD and report the changed byte.
+                assert a.section_data(i)[offset - 2:offset + 3] == bytes.fromhex('48 39 c6 75 e5')
+                assert b.section_data(j)[offset - 2:offset + 3] == bytes.fromhex('48 39 f0 75 e5')
+                fn, = [n for n, (start, size, _) in fa.items() if start <= address < start + size]
+                assert '14FlipController4tickERNS_6ServerEm' in fn
+                tick_differences.append(dict(function=fn, address=address,
+                                             offset=address - fa[fn][0], pre_byte=left, post_byte=right))
             changed_bytes += 1
+    assert len(tick_differences) == 2
     receipt = dict(kind='A: PRE behaviour with POST text size and function layout',
                    pre_sha256=digest((pre / 'tomokv').read_bytes()),
                    post_sha256=digest(b.data), pad_sha256=digest(a.data),
                    linked_function_addresses_and_sizes_equal=True, function_count=len(fa),
                    executable_section_layouts_equal=True,
-                   executable_differences_confined_to_two_settle_bodies=True,
+                   executable_differences_confined_to_two_settle_bodies_and_two_cmp_bytes=True,
+                   tick_differences=tick_differences,
                    changed_executable_bytes=changed_bytes, assembly_proofs=proofs)
     write_json(out / 'layout.json', receipt)
-    print(f'Kind-A PAD: {len(fa)} function addresses/sizes match POST; only two settle bodies differ')
+    print(f'Kind-A PAD: {len(fa)} function addresses/sizes match POST; two settle bodies and two cmp bytes differ')
 
 
 def main():

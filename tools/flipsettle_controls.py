@@ -18,6 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=ROOT / 'build/cleanup-flipsettle/controls')
     parser.add_argument('--arm', type=Path, default=ROOT / 'build/cleanup-flipsettle/POST')
+    parser.add_argument('--positive-only', action='store_true')
     args = parser.parse_args()
     out, arm = args.out.resolve(), args.arm.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -105,6 +106,22 @@ def main():
         lines.extend([str(target) + ': ' + ' '.join(map(str, deps)), '\t' + shlex.join(command)])
     recipe(out / 'driver.o', [out / 'driver.cc', ROOT / 'tests/flipsettle_checks.inc'],
            ['g++', *flags, '-c', str(out / 'driver.cc'), '-o', str(out / 'driver.o')])
+    recipe(out / 'driver-db0.o', [out / 'driver.cc', ROOT / 'tests/flipsettle_checks.inc'],
+           ['g++', *flags, '-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0',
+            '-c', str(out / 'driver.cc'), '-o', str(out / 'driver-db0.o')])
+    positives = []
+    for label in ['PRE', 'POST', 'PAD-A']:
+        directory = arm.parent / label
+        normal = sorted(p for p in (directory / 'src').rglob('*.o') if p != directory / 'src/main.o')
+        for ns in ['normal', 'db0']:
+            driver_obj = out / ('driver.o' if ns == 'normal' else 'driver-db0.o')
+            # Lua is deliberately shared and only emitted by the normal namespace objects.
+            all_objects = normal if ns == 'normal' else sorted(
+                p for p in (directory / 'db0/src').rglob('*.o') if p != directory / 'db0/src/main.o') + normal
+            exe = directory / ('transitions-' + ns)
+            recipe(exe, [driver_obj, *all_objects],
+                   ['g++', '-pthread', str(driver_obj), *map(str, all_objects), '-o', str(exe), *libs])
+            positives.append((label, ns, exe))
     for m in mutants:
         obj, exe = out / (m['name'] + '.o'), out / (m['name'] + '.unit')
         recipe(obj, [m['source']], ['g++', *flags, '-iquote', str(ROOT / 'src/core'),
@@ -114,8 +131,25 @@ def main():
                 '-o', str(exe), *libs])
     (out / 'Makefile').write_text('\n'.join(lines) + '\n')
     with (out / 'build.log').open('w') as log:
-        subprocess.run(['make', '-j16', '-f', str(out / 'Makefile')], cwd=ROOT,
+        selected = ([] if args.positive_only else targets) + [str(p) for _, _, p in positives]
+        subprocess.run(['make', '-j16', '-f', str(out / 'Makefile'), *selected], cwd=ROOT,
                        stdout=log, stderr=subprocess.STDOUT, check=True)
+    traces = {}
+    for label, ns, exe in positives:
+        p = subprocess.run([str(exe), 'all'], cwd=ROOT, capture_output=True, text=True)
+        (exe.parent / (exe.name + '.log')).write_text(p.stdout + p.stderr)
+        assert p.returncode == 0, (label, ns, p.stderr)
+        assert p.stdout.count('TRACE flipsettle ') == (8 if ns == 'normal' else 4)
+        traces[label, ns] = p.stdout
+    for ns in ['normal', 'db0']:
+        assert traces['PRE', ns] == traces['POST', ns] == traces['PAD-A', ns], ns
+    (out / 'positive-results.json').write_text(json.dumps([
+        dict(arm=label, namespace=ns, rc=0, traces_equal=True,
+             sha256=__import__('hashlib').sha256(exe.read_bytes()).hexdigest())
+        for label, ns, exe in positives], indent=2) + '\n')
+    print('PRE/POST/PAD-A: identical transition traces in normal (databases 1/4) and db0', flush=True)
+    if args.positive_only:
+        return
     results = []
     for m in mutants:
         for site, field in m['cases']:
