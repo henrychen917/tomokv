@@ -63,7 +63,7 @@ There is no universal meaning for `0` or `-1`: use the rule in the individual ro
 
 | Name | Default | Valid values and meaning | Runtime | Origin / effect |
 | --- | --- | --- | --- | --- |
-| `wb-policy` | `-1` | `0`: flush every ready connection each pass (measured saturation throughput loss 10–22%). `1`: fixed composite, fraction 1/2 (the 9c4717da0 reference). `-1`: adaptive linear fraction = IO owner windowed busy fraction, 0 at idle to 1 at saturation; winner on burst tail and p8 throughput. AUTO in 2s currently retains policy 1 pending split-signal measurement. Both fixed modes allocate no policy state on the heap. | Boot/GET/REWRITE | Tomo / T |
+| `wb-policy` | `1` | `0`: LATENCY, flush every ready connection each pass. `1`: the composite half rule from 37eeb5e90. Both policies allocate no writeback policy state. | Boot/GET/REWRITE | Tomo / T |
 | `thread-mode` | `2s` | `2s` / `split`: separate IO and executor threads; `1s` / `fused`: every selected thread does both. | Boot/GET | Tomo / B |
 | `ratio` | derived | Positive `io:ex` logical-thread counts, spread over L3 domains. Split only; total must fit allowed CPUs and the 128-thread bound. | Boot | Tomo / T |
 | `place` | derived | Comma-separated `ifid@CPU,ex@CPU,...`, with decimal allowed CPU IDs. In fused mode the role labels only select CPUs. | Boot | Tomo / T |
@@ -78,17 +78,13 @@ There is no universal meaning for `0` or `-1`: use the rule in the individual ro
 | `zc-min` | `16384` | `u32` bytes. `0` disables borrowed-value single-key GET replies; positive values set the minimum string length. MGET gather separately uses `min(zc-min, 1024)`, including when zero; see below. | Live | Tomo / T |
 | `script-instruction-limit` | `100000` | `u64` Lua VM instructions, checked at 1000-instruction hook intervals. `0` is unlimited. Exceeding the budget aborts the activation; this is not Redis's `lua-time-limit` or `busy-reply-threshold`. | Boot/GET | Tomo / B |
 
-Writeback keeps the 512-byte (`kWbufInline`) clause, empty/p1 and finished-pipe
-exits, and the MGET scatter exit in both modes. Adaptive AUTO combines two
-completed blocks of `max(1, owned connections)` passes, weighted by elapsed
-time, and holds the fraction until the next block closes. It uses the existing
-wall-minus-idle signal, adds no clock, and starts at fraction zero each IO tenure.
-The 2026-09-27/28 competition measured burst p99 −15.3%/−10.0% at 931K with
-reorder off/on and GET/SET p8 +14%/+14% over 25GbE against the half rule; these
-are competition results, not a claim that this production build has been gated.
-`INFO WRITEBACK` reports the requested policy, whether adaptation is active,
-and the per-owner busy/fraction dial and block counts on the existing diagnostic
-beat. `CONFIG SET wb-policy` is rejected; select it at boot.
+Policy 1 serves when nothing remains in flight (including the ordinary p1 path),
+the contiguous Done prefix reaches `ceil(in_flight / 2)`, staged plus acquired
+Done reply bytes reach 512 bytes (`kWbufInline`), or the acquired prefix reaches
+an MGET scatter reply. Policy 0 serves every ready head each captured pass.
+Both policies apply in 1s and 2s, including overlap and read-local schedules.
+`INFO WRITEBACK` reports `wb_policy`. `CONFIG SET wb-policy` remains rejected
+as boot-only; select `0` or `1` at boot. Adaptive `-1` is no longer accepted.
 
 Without placement overrides, split mode divides the allowed CPUs evenly, with
 IO taking the extra CPU. Under SMT it divides complete sibling pairs, with both

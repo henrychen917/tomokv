@@ -43,10 +43,14 @@ void knob_matrix() {
     for (const auto& [name, value] : {
              std::pair{"hll-sparse-max-bytes", "1024"}, {"aof-load-truncated", "no"},
              {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
-             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "-1"}}) {
+             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
+    }
+    for (const char* policy : {"0", "1", "-1", "2"}) {
+        set({"CONFIG", "SET", "wb-policy", policy}, false);
+        get("wb-policy", "1");
     }
     const struct {
         const char* name; const char* alias; const char* tomo_alias;
@@ -182,7 +186,7 @@ void test_config_rewrite() {
                                   "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",
                                   "unixsocket build/unused-knob-matrix.sock\n"})
         check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
-    check(body.find("wb-policy -1\n") != std::string::npos, "writeback policy survives rewrite");
+    check(body.find("wb-policy 1\n") != std::string::npos, "writeback policy survives rewrite");
     std::vector<std::string> loaded;
     check(tomo::load_conf_file(path, loaded), "rewritten config loads");
     auto password = std::find(loaded.begin(), loaded.end(), "--requirepass");

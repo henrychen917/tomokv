@@ -842,9 +842,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         }
         else if (!std::strcmp(a, "--wb-policy")) {
             const char* value = next(nullptr);
-            if (!value || (std::strcmp(value, "-1") && std::strcmp(value, "0") &&
-                           std::strcmp(value, "1"))) {
-                std::fprintf(stderr, "--wb-policy wants -1, 0 or 1\n");
+            if (!value || (std::strcmp(value, "0") && std::strcmp(value, "1"))) {
+                std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
                 return kConfigError;
             }
             cfg.wb_policy = std::atoi(value);
@@ -1080,8 +1079,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "             (split/fused are mode aliases)\n"
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
                         "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
-                        "    --wb-policy -1|0|1 (default -1) adaptive linear|flush-all|fixed half\n"
-                        "      AUTO in 2s keeps fixed half pending split-signal measurement\n"
+                        "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1142,8 +1140,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
-    if (cfg.wb_policy < -1 || cfg.wb_policy > 1) {
-        std::fprintf(stderr, "--wb-policy wants -1, 0 or 1\n");
+    if (cfg.wb_policy < 0 || cfg.wb_policy > 1) {
+        std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
         return kConfigError;
     }
     if (cfg.key_lb > 1 || cfg.client_lb > 1) {

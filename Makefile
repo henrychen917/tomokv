@@ -421,8 +421,8 @@ wb-rule-units: build/wb-rule-units
 build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-phase-unit build/wb-rule-db0-phase-unit $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS) $(WB_RULE_PHASE_CONTROLS)))
 	@touch $@
 
-# Adaptive linear writeback: all fixtures are serverless; gate owns execution.
-WBLAND_CONTROLS := per-pass always-busy always-idle switch reversed one-block window-one unweighted flushall half whole finished empty split-auto byte-limit
+# Fixed writeback policies: all fixtures are serverless; gate owns execution.
+WBLAND_CONTROLS := flushall half empty byte-limit
 build/wbland-unit: tests/wbland_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
@@ -441,12 +441,5 @@ $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CON
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-clause-controls/$*/source -I. tests/wbland_clause_unit.cc -o $@ $(JELIBS)
 .PHONY: wbland-units
 wbland-units: build/wbland-units
-build/wbland-units: build/wbland-unit build/wbland-db0-unit build/wbland-clause-unit build/wbland-db0-clause-unit build/wbland2-replay build/wbland2-db0-replay build/wb-rule-units $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))) $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS)))
+build/wbland-units: build/wbland-unit build/wbland-db0-unit build/wbland-clause-unit build/wbland-db0-clause-unit build/wb-rule-units $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))) $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS)))
 	@touch $@
-
-build/wbland2/reference.h: tests/wbland2_checks.py src/core/wb_rule.h
-	python3 tests/wbland2_checks.py reference
-build/wbland2-replay: tests/wbland2_replay.cc build/wbland2/reference.h $(wildcard src/*/*.h) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
-build/wbland2-db0-replay: tests/wbland2_replay.cc build/wbland2/reference.h $(wildcard src/*/*.h) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)

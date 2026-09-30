@@ -1289,8 +1289,8 @@ job_wb_rule_units(){
 
 job_wbland_units(){
   local group label
-  for group in detector clauses paths; do
-    label="writeback adaptive linear $group witnesses + negative controls"
+  for group in clauses paths; do
+    label="writeback policy $group witnesses + negative controls"
     row_begin "$label"
     if unit_ready wbland-units && taskset -c "$CORES" python3 tests/wbland_checks.py check "$group" \
         >"$TMPDIR/wbland-$group.log" 2>&1; then
@@ -2738,7 +2738,7 @@ collect_job core_units
 
 collect_job wb_rule_units
 
-# wbland: three rows before the quick exit; maintainer-owned EXPECT counts +3/+3.
+# wbland: two rows before the quick exit; maintainer-owned EXPECT counts +2/+2.
 collect_job wbland_units
 
 

@@ -1,10 +1,9 @@
-// Reuse every original clause/read-order witness with a runtime-derived fraction.
+// Reuse every REF clause/read-order witness with a runtime policy read.
 #include "src/core/wb_rule.h"
 namespace tomo::wb_rule {
 template <class C> bool wbland_clause(C& c) {
-    State s(-1, true, 0);
-    s.pass(0, 0, 1); s.pass(256, 128, 1); s.pass(512, 256, 1);
-    return defer(c, s.fraction);
+    volatile int policy = 1;
+    return defer(c, policy);
 }
 }
 #define defer wbland_clause
