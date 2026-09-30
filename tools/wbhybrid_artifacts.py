@@ -257,6 +257,59 @@ def costs():
                                 tracer_sha256=sha(tracer), rows=rows))
 
 
+def paths():
+    _, link = commands()
+    objects = [arg for arg in link if arg.endswith('.o') and not arg.endswith('/main.o')]
+    libraries = link[link.index('-o') + 2:]
+    original = (ROOT / 'tests/wb_rule_phase_unit.cc').read_text()
+    rows, pad_rows = [], []
+    for name, small in ARMS.items():
+        source = STUDY / name
+        # The real existing physical-schedule witness; sweep six pipe depths.
+        # Only its independent expectation/fixture sizes change, never production calls.
+        fixture = replace(original, 'for (int policy : {0, 1}) {',
+            'for (unsigned depth : {8u, 16u, 17u, 32u, 33u, 64u})\n'
+            '        for (int policy : {0, 1}) {')
+        fixture = replace(fixture, 'fill(*c, 32, i%32+1);', 'fill(*c, depth, i%depth+1);')
+        fixture = replace(fixture, 'const unsigned prefix = i%32+1;', 'const unsigned prefix = i%depth+1;')
+        fixture = replace(fixture, 'prefix >= 16;',
+            'prefix >= (depth <= WBHYBRID_EXPECT_SMALL ? depth : depth/2 + depth%2);')
+        fixture = replace(fixture, '(admitted ? 32-prefix : 32)', '(admitted ? depth-prefix : depth)')
+        fixture_path = source / 'phase.cc'
+        fixture_path.write_text(fixture)
+        for db0 in (False, True):
+            flags = FLAGS + (['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0'] if db0 else [])
+            deps = [str(source / p) for p in objects if db0 or not p.startswith('build/db0/')]
+            for twin in (False, True):
+                binary = STUDY / (name + ('-db0' if db0 else '') + ('-pad' if twin else '') + '-phase')
+                output = binary.with_suffix('.raw') if twin else binary
+                cmd = flags + [f'-DWBHYBRID_EXPECT_SMALL={0 if twin else small}',
+                    '-I' + str(source), '-I' + str(ROOT), str(fixture_path), *deps,
+                    '-o', str(output), *libraries,
+                    '-Wl,--wrap=io_uring_submit', '-Wl,--wrap=io_uring_submit_and_get_events']
+                subprocess.run(cmd, check=True)
+                if twin:
+                    pad_rows.append(pad(output, binary, small, (source / POLICY).read_text()))
+                for args in ((), ('r7',)):
+                    rows.append(run_case(binary, 'wbland-fused', args=args, marker='wb-rule'))
+                for args in ((), ('natural',), ('shallow',)):
+                    for case in ('wbland-split', 'wbland-local'):
+                        rows.append(run_case(binary, case, args=args, marker='wb-rule'))
+                print('PASS physical schedules:', binary.name, flush=True)
+    write_json('paths.json', rows)
+    write_json('pad-path-sites.json', pad_rows)
+
+
+def legacy():
+    for script, groups in (('wb_rule_checks.py', ('policy', 'phase', 'stages', 'split-phase', 'split-overlap')),
+                           ('wbland_checks.py', ('clauses', 'paths'))):
+        for group in groups:
+            with (STUDY / (script[:-3] + '-' + group + '.log')).open('w') as log:
+                subprocess.run(['python3', str(ROOT / 'tests' / script), 'check', group],
+                               cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+            print('PASS unchanged legacy witnesses:', script, group, flush=True)
+
+
 def identity():
     deps = json.loads((STUDY / 'dependencies.json').read_text())
     rows = []
@@ -282,9 +335,76 @@ def identity():
         caveat='The required merge imported unrelated mainline changes. Isolation is against merged BASE; literal launch identity is audited separately.'))
 
 
+def launch_identity():
+    """Keep the mandatory merge's effects separate from the study's effects."""
+    source = STUDY / 'launch-src'
+    compiles, _ = commands()
+    deps = json.loads((STUDY / 'dependencies.json').read_text())
+    def runtime(elf):
+        sections = {}
+        for i, (name, section) in enumerate(zip(elf.names, elf.sections)):
+            if not section[2] & 2:  # SHF_ALLOC only; exclude cwd-dependent DWARF
+                continue
+            data = b'' if section[1] == 8 else elf.section_data(i)  # NOBITS
+            relocs = [(off, kind, sym['name'],
+                       elf.names[sym['sec']] if sym['sec'] < len(elf.names) else sym['sec'],
+                       sym['value'], addend) for off, kind, sym, addend in elf.relocs.get(i, [])]
+            sections[name] = (section[1], section[2], section[5], data.hex(), relocs)
+        return sections
+    rows = []
+    for obj in compiles:
+        before, after = runtime(Elf(source / obj)), runtime(Elf(ROOT / obj))
+        rows.append(dict(object=obj, includes_rule=obj in deps['affected'],
+            runtime_identical=before == after,
+            changed_sections=[key for key in sorted(before.keys() | after.keys())
+                              if before.get(key) != after.get(key)]))
+    output = BUILD / 'tomokv-wbhybrid-launch'
+    shutil.copy2(source / 'build/tomokv', output)
+    write_json('launch-identity.json', dict(launch=LAUNCH, merged_base=BASE,
+        method='Exact SHF_ALLOC section bytes/sizes plus relocation identities; omit cwd-dependent DWARF and symbol-table ordinals',
+        launch_binary=receipt(output), ref_binary=receipt(BUILD / 'tomokv'), rows=rows))
+    changed = [r for r in rows if not r['runtime_identical'] and not r['includes_rule']]
+    print(f'Launch -> mandatory merge: {len(changed)} changed runtime objects outside wb_rule.h closure', flush=True)
+
+
+def audit():
+    assert not subprocess.check_output(['git', 'diff', BASE, '--', 'src', 'Makefile', 'tests/gate.sh'], cwd=ROOT)
+    groups = {}
+    for name in ('proofs', 'paths'):
+        rows = json.loads((STUDY / (name + '.json')).read_text())
+        assert rows and all(r['passed'] and sha(ROOT / r['binary']) == r['sha256'] for r in rows)
+        groups[name] = dict(positive=sum(r['expected_exit'] == 0 for r in rows),
+                            negative=sum(r['expected_exit'] == 1 for r in rows))
+    for name in ('wb-rule-policy', 'wb-rule-phase', 'wb-rule-stages', 'wb-rule-split-phase',
+                 'wb-rule-split-overlap', 'wbland-clauses', 'wbland-paths'):
+        path = BUILD / (name + '-proofs.json')
+        rows = json.loads(path.read_text())
+        assert rows and all(r['passed'] and sha(ROOT / r['binary']) == r['sha256'] for r in rows)
+        groups[name] = dict(positive=sum(r['expected_exit'] == 0 for r in rows),
+                           negative=sum(r['expected_exit'] == 1 for r in rows), sha256=sha(path))
+    binaries = json.loads((STUDY / 'binaries.json').read_text())
+    assert all(sha(ROOT / row['path']) == row['sha256'] for row in binaries)
+    for name, small in ARMS.items():
+        assert (STUDY / name / POLICY).read_text() == policy(small)[1]
+    costs_data = json.loads((STUDY / 'costs.json').read_text())
+    ref = {r['case']: r['instructions'] for r in costs_data['rows'] if r['arm'] == 'ref'}
+    for row in costs_data['rows']:
+        n, done, byte_count, pol, scatter = map(int, row['case'].split('-')[1:])
+        # Same visited-prefix witnesses price ONLY selection, not the changed rule's walk.
+        if done <= 1 or n > max(ARMS.values()):
+            assert row['instructions'] <= ref[row['case']] + 1, row
+    write_json('audit.json', dict(launch=LAUNCH, base=BASE, groups=groups, binaries=binaries,
+        inputs={name: sha(ROOT / name) for name in ('tools/wbhybrid_artifacts.py', 'tests/wbhybrid_unit.cc',
+                                                  POLICY, 'tools/wb_rule_2s_trace.cc')},
+        receipts={p.name: sha(p) for p in sorted(STUDY.glob('*.json')) if p.name != 'audit.json'},
+        selector_same_prefix_max_extra_instructions=1))
+    print('PASS frozen artifact audit:', json.dumps(groups), flush=True)
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('action', choices=('builds', 'pads', 'proofs', 'costs', 'identity'))
+    p.add_argument('action', choices=('builds', 'pads', 'proofs', 'costs', 'paths', 'legacy',
+                                     'identity', 'launch_identity', 'audit'))
     args = p.parse_args()
     pinned()
     STUDY.mkdir(exist_ok=True)
