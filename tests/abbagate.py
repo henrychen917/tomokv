@@ -1846,7 +1846,9 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                       measurement_valid=False)
     if args.collect_null:
         report["null_control"] = {"verdict": "FAIL", "reason": "control has not completed"}
-        if not args.escalate and diagnostic_monitor is None:
+        # The independent --pin workflow already fixes PIN_NULL_BLOCKS per
+        # trial. Its internal one-block invocations must keep that contract.
+        if not args.escalate and diagnostic_monitor is None and _pin_instances is None:
             from abba_null_sampling import policy
             report["null_sampling_policy"] = policy()
     children = Children()
