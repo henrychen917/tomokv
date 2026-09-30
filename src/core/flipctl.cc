@@ -665,10 +665,8 @@ void FlipController::record(uint32_t split, double rate) {
     readings_.push_back(Reading{split, rate});
 }
 
-// Every path that stops seeking lands here: leave the split alone, forget the maneuver's learning
-// state, and let Settling cut a fresh anchor from wherever the server is now.
-void FlipController::enter_settling() {
-    phase_ = Phase::Settling;
+// Only the shared learning state: callers retain their phase, sampling and rate-window edges.
+inline void FlipController::reset_settling_learning() {
     shift_detector_.reset();
     anchor_signature_samples_ = 0;
     maneuver_signature_samples_ = 0;
@@ -677,6 +675,13 @@ void FlipController::enter_settling() {
     anchor_learning_rate_min_ = 0;
     anchor_learning_rate_max_ = 0;
     anchor_learning_rate_samples_ = 0;
+}
+
+// Every path that stops seeking lands here: leave the split alone, forget the maneuver's learning
+// state, and let Settling cut a fresh anchor from wherever the server is now.
+void FlipController::enter_settling() {
+    phase_ = Phase::Settling;
+    reset_settling_learning();
     rate_window_ms_ = 0;
     previous_subwindow_valid_ = false;
 }
@@ -1226,14 +1231,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
         if (completed) {
             phase_ = after_flip_;
             if (phase_ == Phase::Settling) {
-                shift_detector_.reset();
-                anchor_signature_samples_ = 0;
-                maneuver_signature_samples_ = 0;
-                anchor_learning_rate_jitter_ = 0;
-                anchor_learning_rate_sum_ = 0;
-                anchor_learning_rate_min_ = 0;
-                anchor_learning_rate_max_ = 0;
-                anchor_learning_rate_samples_ = 0;
+                reset_settling_learning();
             }
             rate_window_ms_ = 0;
             previous_subwindow_valid_ = false;
@@ -1258,14 +1256,7 @@ bool FlipController::tick(Server& server, uint64_t now_ms) {
             // anchored fingerprint only after every owner has observed the dormant rate, otherwise
             // the controller detects its own disarm edge as a workload shift.
             signal_sample_rate_.store(0, std::memory_order_release);
-            shift_detector_.reset();
-            anchor_signature_samples_ = 0;
-            maneuver_signature_samples_ = 0;
-            anchor_learning_rate_jitter_ = 0;
-            anchor_learning_rate_sum_ = 0;
-            anchor_learning_rate_min_ = 0;
-            anchor_learning_rate_max_ = 0;
-            anchor_learning_rate_samples_ = 0;
+            reset_settling_learning();
             anchor_sampling_disabled_ = true;
             rate_window_ms_ = 0;
             previous_subwindow_valid_ = false;
