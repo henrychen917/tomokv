@@ -13,6 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import reorder_sync as base
+from iotemplates_proof import removal_inventory
 
 IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
       'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
@@ -135,4 +136,5 @@ if __name__ == '__main__':
     for owner, filename in [('ExLoopT<Fused>', 'ex_loop.h'), ('IoLoop', 'io_loop.h')]:
         base.update(ROOT / 'src/core' / filename,
                     ''.join('    ' + line + '\n' for line in declarations[owner].splitlines()), args.write)
+    removal_inventory(ROOT)
     print('R7 shadow production envelopes: current')
