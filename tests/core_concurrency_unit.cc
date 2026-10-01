@@ -967,6 +967,7 @@ struct CoreConcurrencyTest {
 
 #include "signalacct_core_checks.inc"
 #include "flip_close_checks.inc"
+#include "flipsettle_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1058,7 +1059,9 @@ int main(int argc, char** argv) {
     else if (row == "flip-close") T::flip_close();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); }
+    else if (row == "flipsettle") T::flipsettle_all();
+    else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
     else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
     else if (row == "signalacct-report-1s") { T::signalacct_report<true>(); return 0; }
     else if (row == "signalacct-post") T::signalacct_physical(false, true);

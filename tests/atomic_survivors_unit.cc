@@ -2,7 +2,9 @@
 // Includes the real owner implementation so phases and allocation failures can be interleaved
 // deterministically. No worker is started, no socket is opened, and no clock race is required.
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#define TOMO_STORE_REGRESSION_TEST
 #include "src/cmd/xshard.cc"
+#include "src/core/read_local.h"
 #include <cstdio>
 #include <type_traits>
 
@@ -24,6 +26,17 @@ __attribute__((noinline)) void operator delete(void* p, std::size_t) noexcept { 
 void* operator new[](std::size_t size) { return ::operator new(size); }
 void operator delete[](void* p) noexcept { std::free(p); }
 void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
+// Keep nothrow allocations in the same malloc/free domain as this fixture's
+// throwing allocator. ASAN otherwise supplies nothrow new while our delete
+// frees its result, reporting an allocator mismatch in read-local teardown.
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
+    try { return ::operator new(size); } catch (const std::bad_alloc&) { return nullptr; }
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
+    return ::operator new(size, std::nothrow);
+}
+void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
 using namespace tomo;
 namespace {
@@ -456,6 +469,8 @@ void stage_flag(Server& server) {
 }
 }
 
+#include "atomiccollapse_checks.inc"
+
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
     require(command_registry_init(false), "command registry");
@@ -469,7 +484,8 @@ int main(int argc, char** argv) {
     std::string acl_error;
     require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
     const std::string name = argv[1];
-    if (name == "admission") admission(server);
+    if (name == "admission") { admission(server); atomiccollapse_checks(); }
+    else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);

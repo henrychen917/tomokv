@@ -350,6 +350,7 @@ private:
     bool boot_load_stable(Server& server, uint64_t now_ms);
     MovementStamp movement_stamp(const Server& server) const;
     uint64_t total_commands(const Server& server) const;
+    void reset_settling_learning();
     void enter_settling();
     bool sample_role_demand(Server& server, uint64_t now_ms, double& io_frac,
                             double& io_headroom, double& ex_headroom);

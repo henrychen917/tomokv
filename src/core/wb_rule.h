@@ -1,6 +1,8 @@
 // One writeback policy in both modes: one captured FIFO visit, bytes OR half a Done prefix.
 #pragma once
+#include <cstdio>
 #include <ratio>
+#include <string>
 #include <type_traits>
 #include "../net/conn.h"
 
@@ -8,6 +10,20 @@ namespace tomo::wb_rule {
 // Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
 // section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
+
+// Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
+// tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
+__attribute__((noinline, noclone)) inline int default_policy() {
+    int policy;
+    asm volatile("mov $1, %0" : "=a"(policy));
+    return policy;
+}
+
+inline void info(std::string& body, int policy) {
+    char line[64];
+    std::snprintf(line, sizeof line, "# Writeback\r\nwb_policy:%d\r\n", policy);
+    body += line;
+}
 
 // IO-owned sizes only; exclude submitted send/segment bytes from the next batch.
 // buffered_output_bytes() already walks the existing segment queue, without a
@@ -47,7 +63,8 @@ inline size_t reply_bytes(const Operation& op) {
 }
 
 template <class Connection>
-inline bool defer(Connection& c) {
+inline bool defer(Connection& c, int policy = 1) {
+    if (policy == 0) return false; // LATENCY: every ready head on every captured pass
     auto& rob = c.rob();
     const unsigned n = rob.in_flight();
     if (n <= 1) return false; // staged-only, pubsub, and p1 use ordinary serve
@@ -84,7 +101,7 @@ struct Phase2 {
             --left;
             Client* client = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
-            if (!client->dead() && defer(*client)) {
+            if (!client->dead() && defer(*client, loop.srv_->cfg().wb_policy)) {
                 loop.pending_serve_.push_back(client);
                 continue;
             }
@@ -108,7 +125,7 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
-            if (!c->dead() && defer(*c)) {
+            if (!c->dead() && defer(*c, loop.srv_->cfg().wb_policy)) {
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;
