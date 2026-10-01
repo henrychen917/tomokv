@@ -44,6 +44,8 @@ MUTANTS={
   'lanefull','ordered reply has exact value'),
  'omit-reset-baseline':(INFO,'        read_local.defer_quota = minus_baseline(\n            read_local.defer_quota, baseline.read_local.defer_quota);',
   '        /* omitted surviving quota baseline */','lanefull-info','surviving aggregate/baseline mismatch'),
+ 'omit-saturation':(INFO,'    return live >= base ? live - base : 0;',
+  '    return live - base;', 'lanefull-info','surviving aggregate/baseline mismatch'),
  'omit-aggregate':(INFO,'    total.defer_lane_full += local.defer_lane_full;','    /* omitted surviving aggregation */',
   'lanefull-info','surviving aggregate/baseline mismatch'),
  'omit-total':(THREAD,'               fallback_generation;','               0;',
