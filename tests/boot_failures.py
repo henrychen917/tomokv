@@ -218,12 +218,6 @@ def verify(case, text, rc, workers, split_plain):
                 'tls-busy': 'probe-failed', 'unix-attach': 'attach-failed',
                 'stop-loaded': 'Loaded', 'stop-ready': 'Ready', 'ready-order': 'activation-enter'}
     assert events(text, required[case]), 'intended failure/state never fired: ' + required[case]
-    entered = events(text, 'worker-enter')
-    exited = events(text, 'worker-exit')
-    assert entered and len(entered) == len(set(entered)), 'missing/duplicate worker arrivals'
-    assert sorted(entered) == sorted(exited) and events(text, 'joined'), 'all arrivals must exit and be joined'
-    expected = 2 if split_plain and case in ('load-fail', 'plain-busy', 'tls-busy', 'stop-loaded') else workers
-    assert len(entered) == expected, 'wrong exercised worker geometry'
     if case == 'load-fail':
         assert events(text, 'owned-load-failed'), 'owned persistence load failure never fired'
         assert not events(text, 'probe-enter') and not events(text, 'activation-enter'), 'load barrier bypassed'
@@ -238,6 +232,12 @@ def verify(case, text, rc, workers, split_plain):
         assert events(text, 'Loaded' if case == 'stop-loaded' else 'Ready'), 'requested stop phase never entered'
     if case == 'ready-order':
         assert len(events(text, 'activation-enter')) in (6, 8), 'every IO activation must be held'
+    entered = events(text, 'worker-enter')
+    exited = events(text, 'worker-exit')
+    assert entered and len(entered) == len(set(entered)), 'missing/duplicate worker arrivals'
+    assert sorted(entered) == sorted(exited) and events(text, 'joined'), 'all arrivals must exit and be joined'
+    expected = 2 if split_plain and case in ('load-fail', 'plain-busy', 'tls-busy', 'stop-loaded') else workers
+    assert len(entered) == expected, 'wrong exercised worker geometry'
     assert not events(text, 'accepting-worker'), 'accepting worker crossed failed/stopped boot'
     assert not events(text, 'ready-announcement') and not re.search(r'^listening ', text, re.M), 'early readiness advertisement'
     assert rc == (0 if case.startswith('stop-') or case == 'ready-order' else 1), 'incorrect boot exit status'
