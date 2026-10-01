@@ -101,8 +101,7 @@ def envelopes():
                 body = body[:opening] + '''
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
-        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, TargetedIfid,
-            SuppressOrdinaryActiveMark, IofusedPrivateQueue, SplitLocal>(c);
+        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
     r7::ShadowDispatch shadow_dispatch(*c);
 ''' + body[opening:]
                 needle = 'Task t{c, rob.dispatch_id(), -1, nullptr};'

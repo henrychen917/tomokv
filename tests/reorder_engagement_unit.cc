@@ -266,8 +266,8 @@ struct CoreConcurrencyTest {
             c.commit_read(wire.size());
             auto parse = [&]<uint32_t B, bool SplitLocal>() {
                 if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal) if (reorder)
-                    return io.r7_parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
-                return io.parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
+                    return io.r7_parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&c);
+                return io.parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&c);
             };
             const auto result = mode == ThreadMode::Fused
                 ? parse.template operator()<kGenthreadIfidBatchOps, false>()
@@ -462,7 +462,7 @@ struct CoreConcurrencyTest {
         std::memcpy(a.rbuf(), wire.data(), wire.size()); a.commit_read(wire.size());
         const auto parsed = mode == ThreadMode::Fused
             ? (armed ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a))
-            : io.parse_and_dispatch<false, 0, true, false, false, false, true>(&a);
+            : io.parse_and_dispatch<false, 0, true, true>(&a);
         require(parsed == IoLoop::DispatchResult::Progress && a.rob().dispatch_id() == 3 &&
                     a.rob().pending_read_local(1), "clean GET did not enter the real local lane");
         const uint64_t id = 1;
@@ -474,7 +474,7 @@ struct CoreConcurrencyTest {
         std::memcpy(b.rbuf(), write.data(), write.size()); b.commit_read(write.size());
         if (armed) io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
         else if (mode == ThreadMode::Fused) io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
-        else io.parse_and_dispatch<false, 0, true, false, false, false, true>(&b);
+        else io.parse_and_dispatch<false, 0, true, true>(&b);
         std::vector<Task> tasks;
         require(f.loop.self_->drain_tasks_unmasked([&](const Task& t) { tasks.push_back(t); }) == 4,
                 "demotion fixture owner wave missing");
