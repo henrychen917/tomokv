@@ -13,12 +13,38 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import reorder_sync as base
-from iotemplates_proof import removal_inventory
 
 IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
       'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
       'ifid_parse_hash', 'ifid_rx', 'on_accept', 'on_cqe', 'on_recv', 'on_tls_recv',
       'on_tls_socket_poll', 'parse_and_dispatch', 'fused_demote_local_read_batch')
+
+
+def removal_inventory(root):
+    root = Path(root)
+    removed = ('Targeted' + 'Ifid', 'SuppressOrdinary' + 'ActiveMark',
+               'mark_active_' + 'known', 'multi_dispatch_entry_' + 'iofused',
+               'multi_owner_pass_entry_' + 'iofused')
+    hits = []
+    for path in sorted((root / 'src').rglob('*')):
+        if path.suffix not in ('.h', '.cc', '.inc'):
+            continue
+        for line, text in enumerate(path.read_text().splitlines(), 1):
+            if any(re.search(r'\b' + name + r'\b', text) for name in removed):
+                hits.append((str(path.relative_to(root)), line, text))
+    assert not hits, ('removed IO interface reintroduced', hits)
+    for filename in ('src/core/io_loop.h', 'src/core/reorder.cc'):
+        text = (root / filename).read_text()
+        # The similarly named live executor and MULTI implementation templates
+        # are intentionally outside the IO parser's interface/body.
+        for match in re.finditer(r'(?:DispatchResult|IoLoop::DispatchResult) '
+                                r'(?:IoLoop::)?(?:r7_)?parse_and_dispatch\(', text):
+            start = text.rfind('template <', 0, match.start())
+            interface = text[start:text.find(')', match.end()) + 1]
+            assert 'IofusedPrivateQueue' not in interface, 'removed private-queue IO parameter'
+    parser = function((root / 'src/core/io_loop.h').read_text(), 'parse_and_dispatch')
+    assert 'IofusedPrivateQueue' not in parser, 'removed private-queue IO body'
+    return dict(okay=True, removed=list(removed), scope='all production C++ source')
 
 
 def function(source, name, member=True):

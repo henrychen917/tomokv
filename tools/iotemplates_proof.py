@@ -40,31 +40,9 @@ def reference(path):
 
 
 def removal_inventory(root):
-    root = Path(root)
-    removed = ('Targeted' + 'Ifid', 'SuppressOrdinary' + 'ActiveMark',
-               'mark_active_' + 'known', 'multi_dispatch_entry_' + 'iofused',
-               'multi_owner_pass_entry_' + 'iofused')
-    hits = []
-    for path in sorted((root / 'src').rglob('*')):
-        if path.suffix not in ('.h', '.cc', '.inc'):
-            continue
-        for line, text in enumerate(path.read_text().splitlines(), 1):
-            if any(re.search(r'\b' + name + r'\b', text) for name in removed):
-                hits.append((str(path.relative_to(root)), line, text))
-    assert not hits, ('removed IO interface reintroduced', hits)
-    for filename in ('src/core/io_loop.h', 'src/core/reorder.cc'):
-        text = (root / filename).read_text()
-        # The similarly named live executor and MULTI implementation templates
-        # are intentionally outside the IO parser's interface/body.
-        for match in re.finditer(r'(?:DispatchResult|IoLoop::DispatchResult) '
-                                r'(?:IoLoop::)?(?:r7_)?parse_and_dispatch\(', text):
-            start = text.rfind('template <', 0, match.start())
-            end = text.find('\n    uint32_t flush_ifid_posts', match.end())
-            if filename.endswith('reorder.cc'):
-                end = text.find('\nvoid IoLoop::run_fused_reordered', match.end())
-            interface = text[start:text.find(')', match.end()) + 1]
-            assert 'IofusedPrivateQueue' not in interface, 'removed private-queue IO parameter'
-    return dict(okay=True, removed=list(removed), scope='all production C++ source')
+    sys.path.insert(0, str(ROOT / 'tests'))
+    from r7shadow_sync import removal_inventory as check
+    return check(root)
 
 
 def parser_calls(text):
@@ -168,7 +146,7 @@ def source_controls():
     header = tree / 'src/core/io_loop.h'
     original = header.read_text()
     for name in ('Targeted' + 'Ifid', 'SuppressOrdinary' + 'ActiveMark',
-                 'IofusedPrivateQueue', 'multi_dispatch_entry_' + 'iofused',
+                 'IofusedPrivateQueue', 'mark_active_' + 'known', 'multi_dispatch_entry_' + 'iofused',
                  'multi_owner_pass_entry_' + 'iofused'):
         if name == 'IofusedPrivateQueue':
             changed = original.replace('bool SplitLocal = false>\n    DispatchResult parse_and_dispatch',
@@ -245,10 +223,249 @@ def elf_controls():
     save(out / 'results.json', rows)
 
 
+def fixture_build(tree, objects_arm, output, db0=False, reorder_object=None):
+    rows = json.loads((OUT / 'frozen/object-inventory.json').read_text())
+    prefix = 'build/db0/' if db0 else 'build/src/'
+    objects = [OUT / objects_arm / 'artifacts' / Path(row['object']).relative_to('build')
+               for row in rows if row['source'] != 'src/main.cc' and
+               (db0 or row['object'].startswith(prefix))]
+    # DB0 library order is the same as the production test target.
+    if db0:
+        objects.sort(key=lambda p: (0 if '/db0/' in str(p) else 1, str(p)))
+    if reorder_object:
+        objects = [p for p in objects if not str(p).endswith('/src/core/reorder.o')]
+        objects.insert(0, reorder_object)
+    argv = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native',
+            '-pthread', '-DTOMO_JEMALLOC', '-I.']
+    if db0:
+        argv += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
+    argv += ['tests/reorder_engagement_unit.cc', *map(str, objects), '-o', str(output),
+             '-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
+    run(argv, str(output) + '-build.log', cwd=tree)
+
+
+def controls():
+    out = OUT / 'runtime-controls'
+    tree = out / 'source'
+    tree.mkdir(parents=True, exist_ok=True)
+    for directory in ('src', 'tests'):
+        shutil.copytree(ROOT / directory, tree / directory, dirs_exist_ok=True)
+    if not (tree / 'third_party').exists():
+        (tree / 'third_party').symlink_to(ROOT / 'third_party', target_is_directory=True)
+    header = tree / 'src/core/io_loop.h'
+    text = header.read_text()
+    text = text.replace('namespace tomo {', '''namespace tomo {
+inline bool iotemplates_fault(const char* name) {
+    const char* selected = std::getenv("IOTEMPLATES_FAULT");
+    return selected && std::strcmp(selected, name) == 0;
+}
+''', 1)
+    needle = '            touch_worker(worker_id);\n            mark_active(c);'
+    assert text.count(needle) == 1
+    text = text.replace(needle, '            touch_worker(worker_id);\n'
+                        '            if (!iotemplates_fault("omit-dispatch-mark")) mark_active(c);')
+    needle = '            conn.advance_parse(consumed);\n            sig.ops++;\n            flip_fingerprint_note'
+    assert text.count(needle) == 1
+    text = text.replace(needle, '            if (!iotemplates_fault("omit-advance")) conn.advance_parse(consumed);\n'
+                        '            sig.ops++;\n            flip_fingerprint_note')
+    needle = '            return owner.post_task_quiet(self_id, task, sig);'
+    assert text.count(needle) == 1
+    text = text.replace(needle, '            return iotemplates_fault("omit-owner-post") ||\n'
+                        '                   owner.post_task_quiet(self_id, task, sig);')
+    start = text.index('    void fused_executor_completion(')
+    end = text.index('\n    }', start)
+    body = text[start:end].replace('enqueue_serve(client);',
+                                  'if (!iotemplates_fault("omit-serve")) enqueue_serve(client);')
+    body = body.replace('!client || client->dead()',
+                        '!client || (!iotemplates_fault("admit-dead-serve") && client->dead())')
+    text = text[:start] + body + text[end:]
+    start = text.index('    void mark_active(Client* c) {')
+    end = text.index('\n    }', start)
+    body = text[start:end].replace('if (c->dead())', 'if (!iotemplates_fault("admit-dead") && c->dead())')
+    body = body.replace('if (c->in_active())', 'if (!iotemplates_fault("duplicate-active") && c->in_active())')
+    text = text[:start] + body + text[end:]
+    header.write_text(text)
+    driver = tree / 'tests/reorder_engagement_unit.cc'
+    text = driver.read_text()
+    assert text.count('const uint32_t prefix = wire.size() - 1;') == 1
+    text = text.replace('const uint32_t prefix = wire.size() - 1;',
+        'const uint32_t prefix = wire.size() - (iotemplates_fault("unentered-frame") ? 0 : 1);')
+    start = text.index('    static void io_dispatch_membership(')
+    end = text.index('    static void io_dispatch_membership_all()', start)
+    body = text[start:end].replace('require(f.loop.self_->post_task_quiet(',
+                                   'require(!iotemplates_fault("refuse-requeue") && f.loop.self_->post_task_quiet(')
+    body = body.replace('require(f.drain() == 1',
+                        'require((iotemplates_fault("omit-owner-drain") ? 0 : f.drain()) == 1')
+    body = body.replace('client.rob().drain([](Op&) {}) == 1',
+                        '(iotemplates_fault("omit-retire") ? 0 : client.rob().drain([](Op&) {})) == 1')
+    driver.write_text(text[:start] + body + text[end:])
+    binary = out / 'membership-controls'
+    fixture_build(tree, 'POST', binary)
+    run([binary, 'on', 'shadow'], out / 'positive.log')
+    rows = []
+    for fault, message in (
+            ('omit-dispatch-mark', 'iotemplates dispatched frame has active membership'),
+            ('admit-dead', 'iotemplates dead client never enters active or serve set'),
+            ('admit-dead-serve', 'iotemplates dead client never enters active or serve set'),
+            ('duplicate-active', 'iotemplates active membership is deduplicated'),
+            ('omit-serve', 'iotemplates active membership is deduplicated'),
+            ('omit-advance', 'iotemplates completed frame made parser progress'),
+            ('omit-owner-post', 'iotemplates completed frame posted exactly one owner task'),
+            ('refuse-requeue', 'iotemplates requeue owner task'),
+            ('omit-owner-drain', 'iotemplates owner progress and ordered retirement'),
+            ('omit-retire', 'iotemplates owner progress and ordered retirement'),
+            ('unentered-frame', 'iotemplates incomplete frame entered without dispatch or active membership')):
+        result = subprocess.run([str(binary), 'iotemplates'], capture_output=True, text=True,
+                                env=dict(os.environ, IOTEMPLATES_FAULT=fault))
+        (out / (fault + '.log')).write_text(result.stdout + result.stderr)
+        expected = 'FAIL R7 engagement: ' + message
+        assert result.returncode == 1 and expected in result.stderr, (fault, result.returncode, result.stderr)
+        rows.append(dict(control=fault, exit=1, exact_failure=expected))
+    generated = tree / 'src/core/reorder.cc'
+    text = generated.read_text()
+    assert text.count('shadow_dispatch.stamp(t);') == 1
+    generated.write_text(text.replace('shadow_dispatch.stamp(t);', '(void)t;'))
+    obj = out / 'no-stamp.o'
+    argv = next(row['argv'] for row in json.loads((OUT / 'frozen/object-inventory.json').read_text())
+                if row['object'] == 'build/src/core/reorder.o')[:]
+    argv[argv.index('-o') + 1] = str(obj)
+    run(argv, out / 'no-stamp-build.log', cwd=tree)
+    stamped = out / 'no-stamp-unit'
+    fixture_build(tree, 'POST', stamped, reorder_object=obj)
+    log = run([stamped, 'on', 'shadow'], out / 'no-stamp.log', expected=1)
+    expected = 'FAIL R7 engagement: dispatch shadow stamp count/PAD/FIFO witness'
+    assert expected in log
+    rows.append(dict(control='omit real generated shadow stamp', exit=1, exact_failure=expected))
+    save(out / 'results.json', rows)
+
+
+def arm_fixtures(arm):
+    out = OUT / (arm + '-fixtures')
+    tree = out / 'source'
+    tree.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(OUT / 'frozen/reference.tar') as archive:
+        archive.extractall(tree, filter='data')
+    # PAD A retains the original false arms with the new interface; PAD B uses
+    # the inversely restored interface. Compile each fixture against its arm.
+    if arm.startswith('PAD-'):
+        shutil.copytree(OUT / (arm + '-source/src'), tree / 'src', dirs_exist_ok=True)
+    text = (ROOT / 'tests/reorder_engagement_unit.cc').read_text()
+    if arm in ('PRE', 'PAD-B'):
+        def restore(match):
+            args = [s.strip() for s in match[2].split(',')]
+            if len(args) == 4:
+                args = args[:3] + ['false', 'false', 'false', args[3]]
+            return match[1] + '<' + ', '.join(args) + '>('
+        text = CALL.sub(restore, text)
+        text = text.replace('io.fused_executor_completion(', 'io.fused_executor_completion<false>(')
+    (tree / 'tests/reorder_engagement_unit.cc').write_text(text)
+    for db0 in (False, True):
+        binary = out / ('engagement-db0' if db0 else 'engagement')
+        fixture_build(tree, arm, binary, db0=db0)
+        run([binary, 'on', 'shadow'], str(binary) + '.log')
+    save(out / 'results.json', dict(okay=True, arm=arm, namespaces=['normal', 'db0'],
+                                   interface_adapter_only=arm in ('PRE', 'PAD-B')))
+
+
+def pad(kind):
+    """Source controls, never executable patching or an unrelated R7 PAD.
+
+    A constant-propagates PRE's inventoried false arguments while retaining its
+    dead constexpr arms. Uncalled wrappers become inline (no emitted roots).
+    B inversely restores precisely the removed compile-time residue to POST;
+    those false parameters/dead functions are source padding, with PRE layout.
+    Both must pass their complete layout/byte comparison after the build.
+    """
+    arm = 'PAD-' + kind
+    source = OUT / (arm + '-source')
+    source.mkdir(exist_ok=True)
+    if kind == 'A':
+        with tarfile.open(OUT / 'frozen/reference.tar') as archive:
+            archive.extractall(source, filter='data')
+        header = source / 'src/core/io_loop.h'
+        text = header.read_text()
+        text = text.replace('    template <bool TargetedIfid>\n    void fused_executor_completion',
+                            '    void fused_executor_completion')
+        text = text.replace('bool HasUnix, bool kEp, bool TargetedIfid = false', 'bool HasUnix, bool kEp')
+        text = text.replace('              bool TargetedIfid = false,\n'
+                            '              bool SuppressOrdinaryActiveMark = false,\n'
+                            '              bool IofusedPrivateQueue = false, bool SplitLocal = false>',
+                            '              bool SplitLocal = false>')
+        text = re.sub(r'mark_active_known<[^>]+>', 'mark_active', text)
+        text = text.replace('0, true, false, false, false, SplitLocal>', '0, true, SplitLocal>')
+        text = text.replace('fused_executor_completion<false>', 'fused_executor_completion')
+        start = text.index('    DispatchResult parse_and_dispatch(')
+        end = text.index('    uint32_t flush_ifid_posts()', start)
+        body = text[start:end]
+        for name in ('TargetedIfid', 'SuppressOrdinaryActiveMark', 'IofusedPrivateQueue'):
+            body = re.sub(r'\b' + name + r'\b', 'false', body)
+        text = text[:start] + body + text[end:]
+        header.write_text(text)
+        for name in ('src/core/genthread.cc', 'src/core/rl2s.cc'):
+            path = source / name
+            path.write_text(path.read_text().replace('fused_executor_completion<false>', 'fused_executor_completion'))
+        for name in ('src/cmd/multi.h', 'src/cmd/multi.inc'):
+            path = source / name
+            path.write_text(re.sub(r'^(bool|uint32_t) (multi_(?:dispatch|owner_pass)_entry_iofused\()',
+                                   r'inline \1 \2', path.read_text(), flags=re.M))
+        generator = source / 'tests/r7shadow_sync.py'
+        generator.write_text(generator.read_text().replace(
+            'return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, TargetedIfid,\n'
+            '            SuppressOrdinaryActiveMark, IofusedPrivateQueue, SplitLocal>(c);',
+            'return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);'))
+        run(['python3', 'tests/r7shadow_sync.py', '--write'], OUT / (arm + '-generate.log'), cwd=source)
+        expected = 'POST'
+    else:
+        # An exact inverse mechanical substitution, retained as a patch receipt.
+        archive = OUT / 'POST-source.tar'
+        with archive.open('wb') as target:
+            subprocess.run(['git', 'archive', '5bd61cca9'], cwd=ROOT, stdout=target, check=True)
+        with tarfile.open(archive) as tar:
+            tar.extractall(source, filter='data')
+        patch = subprocess.check_output(['git', 'diff', BASE, '5bd61cca9', '--', 'src', 'tests/r7shadow_sync.py'], cwd=ROOT)
+        (OUT / 'PAD-B-inverse.patch').write_bytes(patch)
+        subprocess.run(['patch', '-p1', '-R'], input=patch, cwd=source, check=True, stdout=subprocess.PIPE)
+        # Bind the inverse to every PRE production source, not a size guess.
+        for path in (source / 'src').rglob('*'):
+            if path.is_file():
+                assert path.read_text() == reference(str(path.relative_to(source)))
+        expected = 'PRE'
+    inventory = json.loads((OUT / 'frozen/object-inventory.json').read_text())
+    commands = []
+    for row in inventory:
+        dest = source / row['object']
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(OUT / 'PRE/artifacts' / Path(row['object']).relative_to('build'), dest)
+        if any(Path(p).name in ('io_loop.h', 'multi.h', 'multi.inc') for p in row['dependencies']):
+            commands.append((row['object'], row['argv']))
+    makefile = source / 'pad-build.mk'
+    makefile.write_text('all: ' + ' '.join(p for p, _ in commands) + '\n.PHONY: all\n' +
+                       ''.join(p + ':\n\t' + shlex.join(argv) + ' > ' + p + '.log 2>&1\n'
+                               for p, argv in commands))
+    run(['make', '-B', '-j16', '-f', 'pad-build.mk'], OUT / (arm + '-build.log'), cwd=source)
+    link = next(line for line in (OUT / 'frozen/make-dry-run.txt').read_text().splitlines()
+                if line.startswith('g++ ') and ' -o build/tomokv ' in line and ' -c ' not in line)
+    run(shlex.split(link), OUT / (arm + '-link.log'), cwd=source)
+    save(OUT / (arm + '-source-proof.json'), dict(kind=kind, base=BASE, rebuilt=commands,
+         source=str(source), behavior='PRE false policies, unchanged live arms' if kind == 'A' else
+         'POST behavior with the exact deleted, uninstantiated source residue restored',
+         expected_layout=expected, executable_patch=False, nop_footer=False))
+    previous = Path.cwd()
+    try:
+        os.chdir(source)
+        capture(OUT / 'frozen/object-inventory.json', OUT / arm, [])
+    finally:
+        os.chdir(previous)
+    result = compare_arms(OUT / arm, OUT / expected)
+    save(OUT / ('identity-' + arm + '-' + expected + '.json'), result)
+    assert result['okay'], arm + ' has no matched layout yet; inspect the raw failures'
+
+
 def main():
     assert set(os.sched_getaffinity(0)) <= set(range(112, 128)), 'pin to CPUs 112-127'
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('source', 'policies', 'source-controls', 'identity', 'elf-controls'))
+    parser.add_argument('command', choices=('source', 'policies', 'source-controls', 'identity', 'elf-controls',
+                                          'pad-a', 'pad-b', 'controls', 'pre-fixtures', 'pad-a-fixtures', 'pad-b-fixtures'))
     args = parser.parse_args()
     if args.command == 'source':
         save(OUT / 'removal-inventory.json', removal_inventory(ROOT))
@@ -258,6 +475,12 @@ def main():
         source_controls()
     elif args.command == 'elf-controls':
         elf_controls()
+    elif args.command in ('pad-a', 'pad-b'):
+        pad(args.command[-1].upper())
+    elif args.command == 'controls':
+        controls()
+    elif args.command.endswith('-fixtures'):
+        arm_fixtures(args.command.removesuffix('-fixtures').upper())
     else:
         result = compare_arms(OUT / 'PRE', OUT / 'POST')
         save(OUT / 'identity.json', result)
