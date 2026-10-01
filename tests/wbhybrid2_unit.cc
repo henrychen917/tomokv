@@ -47,7 +47,8 @@ static void finish(Client& c) {
 static void table() {
     unsigned cells = 0;
     for (unsigned start : {0u, 61u}) for (unsigned n = 0; n <= 64; ++n)
-        for (unsigned done = 0; done <= n; ++done) for (unsigned waits = 0; waits <= 3; ++waits) {
+        for (unsigned ready = 0; ready <= n; ++ready) for (unsigned waits = 0; waits <= 3; ++waits) {
+            const unsigned done = n - ready;
             Client c(-1); fill(c, start, start); finish(c); fill(c, n, done); count(c, waits);
             require(!wb_rule::defer(c, 0), "policy zero bypass");
             const bool expected = n > 1 && done < threshold(n, waits);
@@ -105,7 +106,7 @@ static bool visit(Loop& loop) {
 }
 static void enqueue(Loop& loop, Client& c) { c.set_serve_pending(true); loop.pending_serve_.push_back(&c); }
 static void lifetime() {
-    for (unsigned waits = 0; waits <= 3; ++waits) for (int exit = 0; exit < 6; ++exit) {
+    for (unsigned waits : {3u, 2u, 1u, 0u}) for (int exit = 0; exit < 6; ++exit) {
         Loop loop; Client c(-1); count(c, waits);
         fill(c, exit == 1 ? 1 : 8, exit == 1 ? 0 : 8);
         if (exit == 2) c.fill_buf().append(std::string(512, 's').data(), 512);

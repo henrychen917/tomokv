@@ -9,6 +9,7 @@ import difflib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import shlex
 import subprocess
@@ -73,18 +74,23 @@ def sources(delay):
 def builds():
     assert not subprocess.check_output(['git', 'diff', BASE, '--', 'src', 'Makefile'], cwd=ROOT)
     compiles, link = old.commands()
-    deps = {obj: (ROOT / obj).with_suffix('.d').read_text().replace('\\\n', ' ').split()
+    # GCC retains spelling such as src/core/../net/conn.h. Normalize before
+    # selecting the closure, otherwise a Client constructor can keep the old type.
+    deps = {obj: {os.path.normpath(p.rstrip(':')) for p in
+            (ROOT / obj).with_suffix('.d').read_text().replace('\\\n', ' ').split()}
             for obj in compiles}
     rows = []
     for name, delay in ARMS.items():
         source = STUDY / name
         source.mkdir(exist_ok=True)
         for tree in ('src', 'third_party'):
-            shutil.copytree(ROOT / tree, source / tree, dirs_exist_ok=True)
+            if not (source / tree).exists():
+                shutil.copytree(ROOT / tree, source / tree)
         shutil.copy2(ROOT / 'Makefile', source / 'Makefile')
         patch = ''
         for path, text in sources(delay).items():
-            (source / path).write_text(text)
+            if (source / path).read_text() != text:
+                (source / path).write_text(text)
             patch += ''.join(difflib.unified_diff((ROOT / path).read_text().splitlines(True),
                 text.splitlines(True), fromfile='a/' + path, tofile='b/' + path))
         (STUDY / (name + '.patch')).write_text(patch)
@@ -116,10 +122,48 @@ def builds():
 
 
 def pad(binary, target, header):
-    # The predecessor's DWARF + decoded-instruction selector audit also applies
-    # to our boolean selector, on its source line. Never patch counter compares.
-    locator = header.replace('const bool complete =', 'const unsigned threshold =')
-    return old.pad(binary, target, 16, locator)
+    # Same selector patch as the predecessor, restricted to the actual outlined
+    # defer symbols. This avoids decoding unrelated megabytes of server text.
+    elf = Elf(binary)
+    line_number = next(i for i, line in enumerate(header.splitlines(), 1)
+                       if 'const bool complete = n <= kSmallPipe' in line)
+    symbols = [s for n, s in elf.functions().items() if '7wb_rule5defer' in n]
+    assert symbols, binary
+    sites = []
+    for symbol in symbols:
+        source_line, pending = None, None
+        disasm = subprocess.check_output(['objdump', '-dwl',
+            f'--start-address={symbol["value"]}',
+            f'--stop-address={symbol["value"] + symbol["size"]}', str(binary)], text=True)
+        for line in disasm.splitlines():
+            match = re.search(r'([^\s]+\.(?:h|cc)):(\d+)', line)
+            if match: source_line = (match[1], int(match[2]))
+            insn = re.match(r'\s*([0-9a-f]+):\s+((?:[0-9a-f]{2} )+)\s*(.*)', line)
+            if not insn: continue
+            address, raw, asm = int(insn[1], 16), bytes.fromhex(insn[2]), insn[3]
+            if pending is not None:
+                assert re.match(r'(jbe|ja|cmovbe|cmova)\s', asm), asm
+                pending['select'] = asm; sites.append(pending); pending = None
+            if source_line and source_line[0].endswith('/' + POLICY) and source_line[1] == line_number:
+                if re.match(r'cmp\s+\$0x10,%[a-z0-9]+$', asm):
+                    opcode = raw[1:] if 0x40 <= raw[0] <= 0x4f else raw
+                    assert len(opcode) == 3 and opcode[0] == 0x83 and opcode[1] & 0xf8 == 0xf8
+                    sec = elf.sections[symbol['sec']]
+                    offset = sec[4] + address - sec[3] + len(raw) - 1
+                    pending = dict(address=address, offset=offset, instruction=asm,
+                                   source=source_line, symbol=symbol['name'])
+        assert pending is None
+    assert len(sites) == len(symbols), (binary, sites, symbols)
+    data = bytearray(elf.data)
+    for site in sites:
+        assert data[site['offset']] == 16
+        data[site['offset']] = 1
+    target.write_bytes(data); target.chmod(binary.stat().st_mode)
+    changed = [i for i, (a, b) in enumerate(zip(elf.data, data)) if a != b]
+    assert changed == sorted(s['offset'] for s in sites)
+    return dict(kind='A: half-rule behaviour, exact candidate ELF layout and instruction shape',
+                candidate=receipt(binary), pad=receipt(target), sites=sites,
+                differing_bytes=len(changed), scope='Every other ELF byte identical; retained build ID, use SHA-256')
 
 
 def pads():
@@ -181,10 +225,186 @@ def proofs():
     write_json('pad-unit-sites', pad_rows)
 
 
+def paths():
+    _, link = old.commands()
+    objects = [arg for arg in link if arg.endswith('.o') and not arg.endswith('/main.o')]
+    libraries = link[link.index('-o') + 2:]
+    original = (ROOT / 'tests/wb_rule_phase_unit.cc').read_text()
+    begin = original.index('    template <bool Fused, bool Local = false> static void wbland_policies')
+    end = original.index('    static int run(', begin)
+    fixture = original[:begin] + '#include "tests/wbhybrid2_paths.inc"\n' + original[end:]
+    fixture = replace(fixture, 'config.wb_policy = policy;',
+                      'config.wb_policy = policy;\n            config.databases = kSingleDatabase ? 1 : 4;')
+    fixture_path = STUDY / 'phase.cc'
+    fixture_path.write_text(fixture)
+    make, jobs = ['.PHONY: all', 'all:'], []
+    for name, delay in ARMS.items():
+        source = STUDY / name
+        for db0 in (False, True):
+            flags = old.FLAGS + (['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0'] if db0 else [])
+            deps = [str(source / p) for p in objects if db0 or not p.startswith('build/db0/')]
+            for twin in (False, True) if delay else (False,):
+                binary = STUDY / (name + ('-db0' if db0 else '') + ('-pad' if twin else '') + '-phase')
+                output = binary.with_suffix('.raw') if twin else binary
+                cmd = flags + [f'-DWBHYBRID2_DELAY={delay}', f'-DWBHYBRID2_SMALL={0 if twin else 16}',
+                    '-I' + str(source), '-I' + str(ROOT), str(fixture_path), *deps,
+                    '-o', str(output), *libraries,
+                    '-Wl,--wrap=io_uring_submit', '-Wl,--wrap=io_uring_submit_and_get_events']
+                make += [f'all: {output}', f'{output}: {fixture_path} ' + ' '.join(deps),
+                         '\t' + shlex.join(cmd)]
+                jobs.append((source, output, binary, twin))
+    makefile = STUDY / 'paths.mk'
+    makefile.write_text('\n'.join(make) + '\n')
+    with (STUDY / 'paths-build.log').open('w') as log:
+        subprocess.run(['make', '-j16', '-f', str(makefile)], cwd=ROOT,
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+    rows, pad_rows = [], []
+    for source, output, binary, twin in jobs:
+        if twin:
+            pad_rows.append(pad(output, binary, (source / POLICY).read_text()))
+        for args in ((), ('r7',)):
+            rows.append(old.run_case(binary, 'wbland-fused', args=args, marker='wb-rule'))
+        for args in ((), ('natural',), ('shallow',)):
+            for case in ('wbland-split', 'wbland-local'):
+                rows.append(old.run_case(binary, case, args=args, marker='wb-rule'))
+        print('PASS repeated physical schedules:', binary.name, flush=True)
+    write_json('paths', rows)
+    write_json('pad-path-sites', pad_rows)
+
+
+def costs():
+    tracer = STUDY / 'instruction-trace'
+    subprocess.run(old.FLAGS + [str(ROOT / 'tools/wb_rule_2s_trace.cc'), '-o', str(tracer)], check=True)
+    fixtures = [(1, 0, 0, 1, 0), (64, 1, 0, 0, 0), (64, 0, 512, 1, 0)]
+    fixtures += [(n, done, 0, 1, 0) for n in (4, 8, 16, 17, 32, 64) for done in (0, 1, n//2, n)]
+    fixtures += [(8, 1, 0, 1, 1)]
+    rows = []
+    for name in ('ref', *ARMS):
+        for db0 in (False, True):
+            binary = STUDY / (name + ('-db0' if db0 else '') + '-unit')
+            elf = Elf(binary)
+            symbol = elf.functions()['wbhybrid2_defer']
+            sec = elf.sections[elf.names.index('.text')]
+            for fixture in fixtures:
+                for waits in range(4):
+                    case = 'trace-' + '-'.join(map(str, (*fixture, waits)))
+                    result = subprocess.run([str(tracer), str(binary), case, f'{symbol["value"]:x}',
+                        f'{sec[3]:x}', f'{sec[5]:x}', str(int(elf.kind == 3))],
+                        text=True, capture_output=True, timeout=60)
+                    assert result.returncode == 0 and f'PASS wbhybrid2 {case}' in result.stdout, result.stdout + result.stderr
+                    count = json.loads(next(line[6:] for line in result.stdout.splitlines() if line.startswith('TRACE=')))
+                    rows.append(dict(arm=name, db0=db0, case=case, **count, binary_sha256=sha(binary)))
+            print('PASS instruction receipts:', binary.name, flush=True)
+    write_json('costs', dict(scope='Single defer invocation; ptrace instruction count, no clocks, PMU or load',
+                            tracer_sha256=sha(tracer), rows=rows))
+
+
+def identity():
+    deps = json.loads((STUDY / 'dependencies.json').read_text())
+    rows = []
+    for record in deps:
+        name = record['arm']; source = STUDY / name
+        changed = [str(p.relative_to(ROOT)) for tree in ('src', 'third_party')
+                   for p in (ROOT / tree).rglob('*') if p.is_file() and
+                   p.read_bytes() != (source / p.relative_to(ROOT)).read_bytes()]
+        assert sorted(changed) == sorted([POLICY, CLIENT] if ARMS[name] else [POLICY]), changed
+        assert (ROOT / 'Makefile').read_bytes() == (source / 'Makefile').read_bytes()
+        for obj in record['reused']:
+            assert sha(ROOT / record['donor'] / obj) == sha(source / obj), (name, obj)
+        for obj in record['affected']:
+            assert (ROOT / obj).with_suffix('.d').read_text() == (source / obj).with_suffix('.d').read_text()
+        rows.append(dict(arm=name, changed_sources=changed, donor=record['donor'],
+                         reused_objects=len(record['reused']), affected_objects=len(record['affected'])))
+    predecessor = Path('/home/user/Projects/cx-wbhybrid/build/tomokv-hyb16')
+    a, b = Elf(predecessor), Elf(BUILD / 'tomokv-hyb16-d0')
+    before, after = (e.section_data(e.names.index('.text')) for e in (a, b))
+    assert before == after, 'D0 must retain predecessor .text exactly'
+    write_json('identity', dict(source=rows, predecessor=receipt(predecessor) if predecessor.is_relative_to(ROOT)
+        else dict(path=str(predecessor), sha256=sha(predecessor)), d0=receipt(BUILD / 'tomokv-hyb16-d0'),
+        predecessor_text_identical=True, text_bytes=len(before),
+        launch_runtime_source_identical=not subprocess.check_output(['git', 'diff', LAUNCH, '--', 'src', 'Makefile'], cwd=ROOT)))
+    print('PASS source scope, immutable objects, and predecessor D0 .text identity', flush=True)
+
+
+def layout():
+    rows = []
+    for name in ('ref', 'hyb16-d1', 'hyb16-d2'):
+        binary = BUILD / ('tomokv' if name == 'ref' else 'tomokv-' + name)
+        for ns in ('tomo', 'tomo_db0'):
+            text = subprocess.check_output(['gdb', '-nx', '-batch', str(binary),
+                '-ex', f'ptype /o {ns}::Client'], text=True, stderr=subprocess.STDOUT)
+            (STUDY / f'{name}-{ns}-layout.txt').write_text(text)
+            probe = (f"python import gdb,json; t=gdb.lookup_type('{ns}::Client'); "
+                "print('LAYOUT='+json.dumps({'bytes':t.sizeof, 'fields':{f.name:"
+                "[f.bitpos//8,f.type.sizeof] for f in t.fields() if hasattr(f,'bitpos')}}))")
+            raw = subprocess.check_output(['gdb', '-nx', '-batch', str(binary), '-ex', probe], text=True)
+            data = json.loads(next(line[7:] for line in raw.splitlines() if line.startswith('LAYOUT=')))
+            assert data['bytes'] == 1984 and 'rob_' in data['fields'] and 'tls_slot_' in data['fields']
+            rows.append(dict(arm=name, namespace=ns, **data))
+    ref = rows[0]['fields']
+    for row in rows:
+        assert {k: v for k, v in row['fields'].items() if k != 'wb_deferrals_'} == ref
+        if row['arm'] != 'ref': assert row['fields']['wb_deferrals_'] == [72, 1]
+    write_json('layout', rows)
+    print('PASS every Client member offset/width; counter consumes byte 72 padding in both namespaces', flush=True)
+
+
+def code_identity():
+    """Audit all emitted bodies, not just handpicked hot symbols."""
+    compiles, _ = old.commands()
+    rows = []
+    for name in ARMS:
+        changed, total, missing = [], 0, []
+        for obj in compiles:
+            pre, post = ROOT / obj, STUDY / name / obj
+            if sha(pre) == sha(post):
+                continue  # separately sealed whole objects
+            a, b = Elf(pre), Elf(post)
+            af, bf = a.functions(), b.functions()
+            for symbol in sorted(af.keys() | bf.keys()):
+                total += 1
+                if symbol not in af or symbol not in bf:
+                    missing.append(dict(object=obj, symbol=symbol, before=symbol in af, after=symbol in bf))
+                    continue
+                # canonical() compares instruction bytes and exact relocation
+                # targets, ignoring only linker addresses/constant ordinals.
+                if a.canonical(af[symbol]) != b.canonical(bf[symbol]):
+                    changed.append(dict(object=obj, symbol=symbol,
+                        before=af[symbol]['size'], after=bf[symbol]['size']))
+        names = [r['symbol'] for r in changed + missing]
+        readable = subprocess.check_output(['c++filt'], input='\n'.join(names) + '\n', text=True).splitlines()
+        for row, demangled in zip(changed + missing, readable): row['name'] = demangled
+        rows.append(dict(arm=name, compared=total, changed=changed, missing=missing))
+        print('Code audit:', name, total, 'bodies;', len(changed), 'changed;', len(missing), 'added/removed', flush=True)
+        write_json('code-identity', rows)
+
+
+def legacy_hybrid():
+    rows = []
+    for name, small in (('ref', 0), ('hyb16-d0', 16), ('hyb16-d1', 0), ('hyb16-d2', 0)):
+        source = ROOT if name == 'ref' else STUDY / name
+        for db0 in (False, True):
+            binary = STUDY / (name + ('-db0' if db0 else '') + '-legacy-hybrid')
+            raw = binary.with_suffix('.raw') if name in ('hyb16-d1', 'hyb16-d2') else binary
+            old.compile_unit(source, raw, small, db0)
+            if raw != binary: pad(raw, binary, (source / POLICY).read_text())
+            for case in ('table', 'exits'): rows.append(old.run_case(binary, case))
+    source = STUDY / 'legacy-s17'
+    shutil.copytree(ROOT / 'src', source / 'src', dirs_exist_ok=True)
+    (source / POLICY).write_text(old.policy(17)[1])
+    for db0 in (False, True):
+        binary = STUDY / ('legacy-s17' + ('-db0' if db0 else '') + '-unit')
+        old.compile_unit(source, binary, 16, db0)
+        rows.append(old.run_case(binary, 'table', 'piecewise threshold table'))
+    write_json('legacy-hybrid', rows)
+    print('PASS unchanged wbhybrid oracle, exits and strict S+1 controls', flush=True)
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('action', choices=('builds', 'pads', 'proofs'))
+    p.add_argument('action', choices=('builds', 'pads', 'proofs', 'paths', 'costs', 'identity', 'layout', 'legacy',
+                                     'code_identity', 'legacy_hybrid'))
     args = p.parse_args()
     old.pinned()
     STUDY.mkdir(parents=True, exist_ok=True)
-    globals()[args.action]()
+    (old.legacy if args.action == 'legacy' else globals()[args.action])()
