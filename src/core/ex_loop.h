@@ -855,6 +855,7 @@ private:
     inline static void (*test_after_drain_ack_)() = nullptr;
     inline static void (*test_local_read_copied_)() = nullptr;
     inline static bool test_retry_local_mget_ = false;
+    inline static uint32_t test_local_get_reply_attempts_ = 0;
 #endif
 
     bool read_local_enabled() const {
@@ -968,9 +969,8 @@ private:
         return op.spec && command_is_read_local_mget(*op.spec);
     }
 
-    static bool read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
+    static void read_local_reply_string(Op& op, const KvObj* object, uint8_t stable_flags) {
         reply_bulk(op.sink(), object->read_local_str_value(stable_flags));
-        return true;
     }
 
     uint32_t read_local_task_demotion_demand(const Op& op) const {
@@ -1256,11 +1256,7 @@ private:
                             text, object->read_local_int_value(flags));
                         reply_bulk(op.sink(), Slice(text, length));
                     } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                        if (!read_local_reply_string(op, object, flags)) {
-                            transient = ReadLocalFallbackReason::SeqChurn;
-                            demote = true;
-                            break;
-                        }
+                        read_local_reply_string(op, object, flags);
                     } else {
                         read_local_clear_reply(op);
                         return {ReadLocalFallbackReason::Typed};
@@ -1320,10 +1316,6 @@ private:
             return prepare_captured_local_mget(op);
         }
         FlatStore& store = *home;
-        // The legacy string-copy loop has no reachable retry: read_local_reply_string returns true.
-        // Keep its source shape to preserve GET code generation; topology failures break directly
-        // to the owner demotion below. tests/rltopo_unit.cc forces both failure boundaries.
-        static constexpr uint32_t kRetries = 3;
         ReadLocalCaptureBuffer<1> local_capture;
         // A mixed GET/MGET chunk executes in program order. Its point reads capture here so a
         // later GET can never retain a version older than the preceding MGET returned.
@@ -1333,20 +1325,18 @@ private:
             captured = &local_capture.entries[0];
         }
 
-        for (uint32_t attempt = 0; attempt < kRetries; attempt++) {
-            const FlatStore::ReadLocalProbeResult result = captured->result;
-            const KvObj* object = captured->object;
-            const uint64_t probe_state = captured->state;
-            if (result == FlatStore::ReadLocalProbeResult::AtomicPending) {
-                read_local_clear_reply(op);
-                return {ReadLocalFallbackReason::AtomicPending};
-            }
-            if (result == FlatStore::ReadLocalProbeResult::Missing) {
-                read_local_clear_reply(op);
-                return {ReadLocalFallbackReason::Missing};
-            }
-            if (result == FlatStore::ReadLocalProbeResult::Churn) break;
-
+        const FlatStore::ReadLocalProbeResult result = captured->result;
+        const KvObj* object = captured->object;
+        const uint64_t probe_state = captured->state;
+        if (result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+            read_local_clear_reply(op);
+            return {ReadLocalFallbackReason::AtomicPending};
+        }
+        if (result == FlatStore::ReadLocalProbeResult::Missing) {
+            read_local_clear_reply(op);
+            return {ReadLocalFallbackReason::Missing};
+        }
+        if (result != FlatStore::ReadLocalProbeResult::Churn) {
             if (!object) std::abort();
             // Keep the observed word's address as part of the snapshot, but consume only the
             // decoded immutable object. Loading through slot here would chase a newer version.
@@ -1364,6 +1354,9 @@ private:
                 }
             }
 
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+            ++test_local_get_reply_attempts_;
+#endif
             read_local_clear_reply(op);
             const Enc encoding = object->encoding();
             if (encoding == Enc::Int) {
@@ -1372,10 +1365,7 @@ private:
                     text, object->read_local_int_value(flags));
                 reply_bulk(op.sink(), Slice(text, length));
             } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                if (!read_local_reply_string(op, object, flags)) {
-                    read_local_clear_reply(op);
-                    continue;
-                }
+                read_local_reply_string(op, object, flags);
             } else {
                 read_local_clear_reply(op);
                 return {ReadLocalFallbackReason::Typed};
@@ -1384,17 +1374,16 @@ private:
 #ifdef TOMO_CORE_CONCURRENCY_TEST
             if (test_local_read_copied_) test_local_read_copied_();
 #endif
-            if (!store.read_local_validate(probe_state)) {
-                read_local_clear_reply(op);
-                break;
+            if (store.read_local_validate(probe_state)) {
+                // One predicted-not-taken test on the same per-pass byte the owner path tests,
+                // after the validate that makes this read final. See note_local_read_access().
+                if (__builtin_expect(maxmemory_enabled_, false))
+                    note_local_read_access(op, object, flags);
+                return {ReadLocalFallbackReason::None, 1, 0};
             }
-            // One predicted-not-taken test on the same per-pass byte the owner path tests, after
-            // the validate that makes this read final. See note_local_read_access().
-            if (__builtin_expect(maxmemory_enabled_, false))
-                note_local_read_access(op, object, flags);
-            return {ReadLocalFallbackReason::None, 1, 0};
         }
 
+        // Both a failed capture and a failed final validation demote through the same cleanup.
         read_local_clear_reply(op);
         const uint64_t state = store.read_local_state_acquire();
         if (store.foreign_read_key_unsafe(state, op.hash))
