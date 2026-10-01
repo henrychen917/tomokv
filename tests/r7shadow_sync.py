@@ -44,6 +44,12 @@ def removal_inventory(root):
             assert 'IofusedPrivateQueue' not in interface, 'removed private-queue IO parameter'
     parser = function((root / 'src/core/io_loop.h').read_text(), 'parse_and_dispatch')
     assert 'IofusedPrivateQueue' not in parser, 'removed private-queue IO body'
+    for directory in ('src', 'tests'):
+        for path in (root / directory).rglob('*'):
+            if path.suffix not in ('.h', '.cc', '.inc'):
+                continue
+            for call in re.finditer(r'\b(?:r7_)?parse_and_dispatch\s*<([^>]*)>\s*\(', path.read_text()):
+                assert len(call[1].split(',')) <= 4, ('obsolete IO call arity', str(path), call[0])
     return dict(okay=True, removed=list(removed), scope='all production C++ source')
 
 

@@ -59,8 +59,9 @@ def policies(root=ROOT, destination=None, negative=False):
     root = Path(root)
     destination = Path(destination or OUT / 'policies')
     destination.mkdir(parents=True, exist_ok=True)
-    files = ['src/core/io_loop.h', 'src/core/reorder.cc',
-             'tests/reorder_engagement_unit.cc', 'tests/core_concurrency_unit.cc']
+    found = subprocess.check_output(['git', 'grep', '-l', 'parse_and_dispatch', BASE, '--', 'src', 'tests'],
+                                    cwd=ROOT, text=True).splitlines()
+    files = [p.split(':', 1)[1] for p in found if Path(p).suffix in ('.h', '.cc', '.inc')]
     rows, assertions = [], []
     for path in files:
         old, new = parser_calls(reference(path)), parser_calls((root / path).read_text())
@@ -100,7 +101,7 @@ consteval auto post() {
     return std::array<unsigned, 6>{NoBorrow, BatchOps, IoPipe, SplitLocal,
                                    Fused, Fused && (NEW_CODED)};
 }
-template <bool Fused, bool SplitLocal, bool IoPipe, bool NoBorrow,
+template <bool Fused, bool SplitLocal, bool IoPipe, bool NoBorrow, bool ReadLocal,
           uint32_t BatchOps, uint32_t B> consteval bool callers() {
     constexpr bool TargetedIfid=false, SuppressOrdinaryActiveMark=false, IofusedPrivateQueue=false;
 ASSERTIONS
@@ -108,7 +109,7 @@ ASSERTIONS
 }
 '''.replace('OLD_FUSED', old_fused).replace('NEW_FUSED', new_fused).replace(
         'OLD_CODED', old_coded).replace('NEW_CODED', new_coded).replace('ASSERTIONS', '\n'.join(assertions))
-    for booleans in itertools.product(('false', 'true'), repeat=4):
+    for booleans in itertools.product(('false', 'true'), repeat=5):
         for batch, b in itertools.product(('0', 'kGenthreadIfidBatchOps'), repeat=2):
             source += 'static_assert(callers<' + ','.join((*booleans, batch, b)) + '>());\n'
     witness = destination / 'policies.cc'
@@ -130,7 +131,7 @@ ASSERTIONS
         b = re.findall(preserved, (root / filename).read_text())
         assert a == b, ('boot/transport/Fused/SplitLocal/Coded policy sites changed', filename)
     save(destination / 'result.json', dict(okay=True, negative_rejected=negative,
-         callers=rows, context_combinations=64, namespaces=logs,
+         callers=rows, context_combinations=128, namespaces=logs,
          ordinary_park='epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(50)',
          claim='real source call arguments and Fused/ROB expressions compile equal to frozen PRE'))
 
@@ -166,6 +167,14 @@ def source_controls():
     text = test.read_text()
     needle = 'parse_and_dispatch<false, 0, true, true>(&a)'
     assert text.count(needle) == 1
+    test.write_text(text.replace(needle, 'parse_and_dispatch<false, 0, true, false, false, false, true>(&a)'))
+    try:
+        removal_inventory(tree)
+    except AssertionError as error:
+        assert 'obsolete IO call arity' in str(error)
+        results.append(dict(control='restore old test call arity', rejected=True, diagnostic=str(error)))
+    else:
+        raise AssertionError('old test call arity was accepted')
     test.write_text(text.replace(needle, 'parse_and_dispatch<false, 0, true>(&a)'))
     policies(tree, out / 'dropped-splitlocal', negative=True)
     results.append(dict(control='drop true SplitLocal', rejected=True,
