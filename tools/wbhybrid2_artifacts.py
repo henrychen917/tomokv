@@ -539,7 +539,7 @@ def audit():
                    'Exact-layout PAD A twins isolate policy behaviour within each native layout.',
         inputs={str(p.relative_to(ROOT)): sha(p) for p in (Path(__file__).resolve(),
             ROOT / 'tests/wbhybrid2_unit.cc', ROOT / 'tests/wbhybrid2_paths.inc',
-            ROOT / 'tests/wbhybrid2_codes.cc')},
+            ROOT / 'tests/wbhybrid2_codes.cc', ROOT / 'tests/wbhybrid2_cells.txt')},
         receipts={p.name: sha(p) for p in sorted(STUDY.glob('*.json')) if p.name != 'audit.json'})
     write_json('audit', result)
     (ROOT / 'tests/wbhybrid2_evidence.json').write_text(json.dumps(result, indent=2) + '\n')
