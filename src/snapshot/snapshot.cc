@@ -92,7 +92,6 @@ bool queue_snapshot_write(Ring& ring, SnapshotIoRequest& request) {
     io_uring_prep_writev(sqe, request.fd, request.vectors,
                          static_cast<unsigned>(request.vector_count), request.offset);
     sqe->user_data = ur_tag(UrKind::SnapshotIo, &request);
-    ring.note_pending();
     return true;
 }
 
@@ -614,7 +613,6 @@ bool SnapshotManager::submit_sync_uring(Ring& ring, int fd, uint8_t role) {
     io_uring_prep_fsync(sqe, fd,
                         role == SnapshotIoDirectorySync ? 0 : IORING_FSYNC_DATASYNC);
     sqe->user_data = ur_tag(UrKind::SnapshotIo, request);
-    ring.note_pending();
     io_inflight_++;
     return true;
 }
