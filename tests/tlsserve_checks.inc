@@ -162,6 +162,10 @@ template <bool Coded> void okay_reply(Op& op) {
 template <Transport T, bool Ep, bool Coded, unsigned Call>
 void matrix() {
     for (bool track : {false, true}) {
+        const std::string config = std::to_string(T) + "/" + std::to_string(track) + "/" +
+            std::to_string(Ep) + "/" + std::to_string(Coded) + "/" + std::to_string(Call);
+        const char* only_config = std::getenv("TLSERVE_CONFIG");
+        if (only_config && config != only_config) continue;
         auto run = [&](const char* name, auto test) {
             if (!selected(name)) return;
             context = std::string(name) + " transport=" + std::to_string(T) +
@@ -282,7 +286,9 @@ void matrix() {
                 require(f.sqes[0].user_data == ur_tag(UrKind::TlsSend, &f.c) &&
                         f.sqes[0].len == 10 && f.c.send_inflight() &&
                         f.ring.send_pending() == (Call == 1), "tls-send-and-classification");
-            require(f.tls.output_pending() && f.c.nothing_to_write(), "cipher-frontier-unchanged");
+            const char* cipher = nullptr;
+            require(f.tls.peek_output(cipher) == 10 && std::string(cipher, 10) == "ciphertext" &&
+                    f.c.nothing_to_write(), "cipher-frontier-unchanged");
             f.accounting(0, 0);
         });
     }
