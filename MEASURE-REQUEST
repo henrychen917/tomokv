@@ -1,21 +1,25 @@
-wbhybrid: complete small pipes, half rule otherwise. Performance PENDING MAINLINE.
-Read MEASURE-REQUEST-wbhybrid.md for mechanism, hashes, proofs and acceptance.
-REF: build/tomokv (merged BASE 5b3d9c429; half rule, policy 1 unchanged).
-Candidates: build/tomokv-hyb8, build/tomokv-hyb16, build/tomokv-hyb32.
-PAD A behaviour twins: corresponding build/tomokv-hyb{8,16,32}-pad.
-Each PAD differs by two selector-immediate bytes only; all other ELF bytes identical.
-Rule is PIECEWISE n<=S ? n : ceil(n/2), not the inequivalent max/min formula.
-S is explicitly a measured constant; no honest existing-sizing derivation was found.
-72/72 non-rule-dependent objects identical to merged REF in every arm.
-Literal launch identity has two mandatory-merge exceptions: both xshard.o variants.
-378 strict offline outcomes pass, including 92 required assertion failures.
-88 ptrace receipts: equal-prefix selector cost <= +1 instruction; longer small-pipe walks reported.
-1s/2s and databases=1/4 path fixtures passed; live boot/gate remains mainline-owned.
-Measure all REF/hybrid/PAD arms: low-load p32@256K, p8@256K/512K, 3 rounds;
-21 saturation cells in tests/wbhybrid_cells.txt (14 generic + 5 reorder-on + 2 at 4096 conns);
-bursts floors 0/0.4/0.7, reorder 0/1, four samples per arm/cell;
-NIC-AB GET/SET p8/p32 and calib/nic-latency.sh at 60/80%, ABBA x2.
-Retain S=16 low-load, p8 throughput and p8 wire-latency gains (about +/-3% p99 spread),
-with no floored-burst loss or p32 regression. Never-worse => hardcode; consistent loss => DELETE/TRADE.
-All builds/serverless checks used cores 112-127. No server, benchmark, gate, measurement or push.
-Gate row delta 0/0; EXPECT constants unchanged. Append live results as MEASURE-RESULT.
+wbhybrid2: bounded completion wait, S=16. Performance PENDING MAINLINE.
+Read MEASURE-REQUEST-wbhybrid2.md for the rule, layout proof, hashes and pass bar.
+
+REF: build/tomokv-wbhybrid2-ref (landed half rule on BASE 5b3d9c429).
+Arms: build/tomokv-hyb16-d0, build/tomokv-hyb16-d1, build/tomokv-hyb16-d2.
+PAD A behaviour twins: build/tomokv-hyb16-d1-pad and build/tomokv-hyb16-d2-pad.
+d0 .text matches predecessor hyb16 exactly. Each PAD changes two immediate bytes.
+Client counter consumes padding byte 72; size 1984 and all existing offsets hold.
+Default checkout stays on REF. No runtime D knob or performance verdict is added.
+
+All six arms, priority order:
+1. Floor-0.4 bursts, reorder 0/1, eight samples per arm/state, including PADs.
+2. Floors 0 and 0.7, reorder 0/1, four samples per arm/state.
+3. Low-load GET p32@256K and p8@512K, three rounds each.
+4. The 14 generic ABBA cells in tests/wbhybrid2_cells.txt.
+5. NIC-LAT GET/SET p8/p32 at 60%/80%, ABBA x2 with the same offered loads.
+
+Never worse than half in any class, especially floor-0.4 short p99/p99.9;
+retain most of d0's burst p50 gain and the p8, low-load and wire gains.
+Otherwise return the D-versus-tail-versus-gain trade curve to the owner.
+Source/outside-closure identity passes; strict all-body identity has compiler
+exceptions explicitly listed in the report. Use each exact PAD to price them.
+No server, benchmark, gate, timed measurement or push was run by this lane.
+Builds/serverless checks: CPUs 112-127. Gate row delta: 0 quick / 0 full.
+Append mainline results as MEASURE-RESULT.
