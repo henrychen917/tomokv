@@ -732,6 +732,17 @@ def self_test():
     import shutil
     import unittest
     from unittest import mock
+    from gate_ledger_fixture import validate_fixture, self_test as fixture_controls
+
+    # Fail once, with the source-declared missing/extra labels, before any of the
+    # receipt fixtures call begin(). A partial gate ledger cannot redefine this list.
+    try:
+        labels = validate_fixture(ROOT)
+    except (ValueError, OSError, KeyError) as error:
+        print(f"RECEIPT FIXTURE REFUSED: {error}", file=sys.stderr)
+        return 1
+    if fixture_controls():
+        return 1
 
     def fixture_cells():
         return (ROOT / "tests/headline_cells.txt").read_text()
@@ -789,7 +800,6 @@ def self_test():
             self.ledger = self.root / "build/ledger.tsv"
             # Distinct real gate loops can publish the same AOF label. Every occurrence needs
             # its own observation; a set of labels would quietly erase one of these first rows.
-            labels = read_json(ROOT / "tests/fixtures/nullrefresh-ledger-labels.json")["labels"]
             self.ledger.write_text("".join(f"ok\t1.0\t{label}\n" for label in labels))
             self.args = argparse.Namespace(run_id="fixture", tier="push", expected_ledger=self.ledger,
                                            cells=self.root / "tests/headline_cells.txt", nic=False)
