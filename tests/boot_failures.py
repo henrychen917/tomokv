@@ -20,11 +20,12 @@ ROOT = Path(__file__).resolve().parents[1]
 ARMS = ('witness', 'bypass-probe', 'bypass-load', 'early-ready', 'omit-fd-close', 'omit-worker-join')
 HEADER = r'''
 #pragma once
+#include <atomic>
 extern "C" void boot_event(const char*, int = -1, int = 0);
 extern "C" bool boot_case(const char*);
 extern "C" bool boot_control(const char*);
-extern "C" void boot_stage(const char*);
-extern "C" void boot_activation();
+extern "C" void boot_stage(const char*, const std::atomic<bool>&);
+extern "C" void boot_activation(const std::atomic<bool>&);
 extern "C" bool boot_attach(int);
 struct BootWorkerScope {
     int tid;
@@ -67,14 +68,24 @@ static void pause_for_driver() {
     boot_event("unentered-release-timeout");
     _exit(95);
 }
-extern "C" void boot_stage(const char* phase) {
+static void observe_stop(const std::atomic<bool>& stop) {
+    for (unsigned attempt = 0; attempt < 3000; ++attempt) {
+        if (stop.load(std::memory_order_relaxed)) { boot_event("stop-observed"); return; }
+        ::usleep(5000);
+    }
+    boot_event("unentered-stop-timeout");
+    _exit(96);
+}
+extern "C" void boot_stage(const char* phase, const std::atomic<bool>& stop) {
     boot_event(phase);
     if ((!std::strcmp(phase, "Loaded") && boot_case("stop-loaded")) ||
-        (!std::strcmp(phase, "Ready") && boot_case("stop-ready"))) pause_for_driver();
+        (!std::strcmp(phase, "Ready") && boot_case("stop-ready"))) {
+        pause_for_driver(); observe_stop(stop);
+    }
 }
-extern "C" void boot_activation() {
+extern "C" void boot_activation(const std::atomic<bool>& stop) {
     boot_event("activation-enter");
-    if (boot_case("ready-order")) pause_for_driver();
+    if (boot_case("ready-order")) { pause_for_driver(); observe_stop(stop); }
 }
 extern "C" bool boot_attach(int fd) {
     if (!boot_case("unix-attach")) return true;
@@ -121,7 +132,7 @@ def build(arm_root):
     s = replace(s, '    bool attach_listener(int fd) {',
                 '    bool attach_listener(int fd) {\n        if (!boot_attach(fd)) return false;', 1)
     s = replace(s, '    bool activate() {',
-                '    bool activate() {\n        boot_activation();', 1)
+                '    bool activate() {\n        boot_activation(srv_->shutting_down());', 1)
     path.write_text(s)
     changed = ['src/main.cc', 'src/core/genthread.cc', 'src/core/rl2s.cc', 'src/core/reorder.cc']
     for name in changed:
@@ -144,7 +155,7 @@ def build(arm_root):
             # Generic split has no Ready rendezvous. This hook exposes that fact;
             # it does not invent one or label worker launch as an acknowledgement.
             s = replace(s, '    print_ready_listeners(cfg, unix_listener.bound());',
-                        '    boot_stage("Ready");\n    print_ready_listeners(cfg, unix_listener.bound());', 1)
+                        '    boot_stage("Ready", srv.shutting_down());\n    print_ready_listeners(cfg, unix_listener.bound());', 1)
         else:
             s = replace(s, '    if (!boot.wait_loaded(srv.shutting_down())) {',
                         '    if (!boot_control("bypass-load") && !boot.wait_loaded(srv.shutting_down())) {', 1)
@@ -152,11 +163,11 @@ def build(arm_root):
                         '    if (boot_control("early-ready")) print_ready_listeners(cfg, unix_listener.bound());\n'
                         '    if (!boot.advance_ready(srv.shutting_down()) ||', 1)
             s = replace(s, '        !boot.advance_running(srv.shutting_down())) {',
-                        '        (boot_stage("Ready"), false) ||\n'
+                        '        (boot_stage("Ready", srv.shutting_down()), false) ||\n'
                         '        !boot.advance_running(srv.shutting_down())) {', 1)
         # Main has an additional loading=false in its interrupted-load unwind.
         anchor = '    }\n    srv.set_loading(false);'
-        s = replace(s, anchor, '    }\n    boot_stage("Loaded");\n    srv.set_loading(false);', 1)
+        s = replace(s, anchor, '    }\n    boot_stage("Loaded", srv.shutting_down());\n    srv.set_loading(false);', 1)
         path.write_text(s)
     path = source / 'src/snapshot/snapshot.cc'
     s = path.read_text()
@@ -232,6 +243,8 @@ def verify(case, text, rc, workers, split_plain):
         assert events(text, 'Loaded' if case == 'stop-loaded' else 'Ready'), 'requested stop phase never entered'
     if case == 'ready-order':
         assert len(events(text, 'activation-enter')) in (6, 8), 'every IO activation must be held'
+    if case.startswith('stop-') or case == 'ready-order':
+        assert events(text, 'stop-observed'), 'signal stop flag was never observed'
     entered = events(text, 'worker-enter')
     exited = events(text, 'worker-exit')
     assert entered and len(entered) == len(set(entered)), 'missing/duplicate worker arrivals'
@@ -274,6 +287,7 @@ def self_test():
                        'unix-attach': event('attach-failed', value=43) + event('fd-close', value=43),
                        'stop-loaded': event('Loaded'), 'stop-ready': event('Ready'),
                        'ready-order': event('activation-enter') * (6 if split else 8)}[case]
+            if case.startswith('stop-') or case == 'ready-order': witness += event('stop-observed')
             rc = 0 if case.startswith('stop-') or case == 'ready-order' else 1
             good = arrival + witness + exits
             verify(case, good, rc, 8, split)
@@ -292,6 +306,8 @@ def self_test():
                 mutations += [(good.replace(event('fd-close', value=43), ''), rc, 'correct fd exactly once'),
                               (good + event('fd-close', value=43), rc, 'correct fd exactly once'),
                               (good.replace(event('fd-close', value=43), event('fd-close', value=44)), rc, 'correct fd exactly once')]
+            if case.startswith('stop-') or case == 'ready-order':
+                mutations.append((good.replace(event('stop-observed'), ''), rc, 'signal stop flag was never observed'))
             for text, status, required in mutations:
                 try: verify(case, text, status, 8, split)
                 except AssertionError as error: assert required in str(error), (case, required, error)
