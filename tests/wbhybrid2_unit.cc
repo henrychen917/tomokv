@@ -8,6 +8,7 @@
 
 using namespace tomo;
 static constexpr unsigned delay = WBHYBRID2_DELAY, small = WBHYBRID2_SMALL;
+static constexpr unsigned wait_limit = delay + 1 > 3 ? delay + 1 : 3;
 static const char* selected;
 static void require(bool ok, const char* why) {
     if (!ok) { std::fprintf(stderr, "FAIL wbhybrid2 %s: %s\n", selected, why); std::exit(1); }
@@ -47,7 +48,7 @@ static void finish(Client& c) {
 static void table() {
     unsigned cells = 0;
     for (unsigned start : {0u, 61u}) for (unsigned n = 0; n <= 64; ++n)
-        for (unsigned ready = 0; ready <= n; ++ready) for (unsigned waits = 0; waits <= 3; ++waits) {
+        for (unsigned ready = 0; ready <= n; ++ready) for (unsigned waits = 0; waits <= wait_limit; ++waits) {
             const unsigned done = n - ready;
             Client c(-1); fill(c, start, start); finish(c); fill(c, n, done); count(c, waits);
             require(!wb_rule::defer(c, 0), "policy zero bypass");
@@ -63,10 +64,10 @@ static void table() {
 #endif
             ++cells;
         }
-    std::printf("table_cells=%u policies=0,1 wraps=0,61 counts=0..3\n", cells);
+    std::printf("table_cells=%u policies=0,1 wraps=0,61 counts=0..%u\n", cells, wait_limit);
 }
 static void exits() {
-    for (unsigned n = 2; n <= 64; ++n) for (unsigned waits = 0; waits <= 3; ++waits) {
+    for (unsigned n = 2; n <= 64; ++n) for (unsigned waits = 0; waits <= wait_limit; ++waits) {
         Client c(-1); fill(c, n, 1); count(c, waits);
         auto& op = c.rob().at(c.rob().flush_id());
         op.reply.append(std::string(511, 'x').data(), 511);
@@ -125,7 +126,8 @@ static bool visit(Loop& loop) {
 }
 static void enqueue(Loop& loop, Client& c) { c.set_serve_pending(true); loop.pending_serve_.push_back(&c); }
 static void lifetime() {
-    for (unsigned waits : {3u, 2u, 1u, 0u}) for (int exit = 0; exit < 6; ++exit) {
+    for (unsigned remaining = wait_limit + 1; remaining; --remaining) for (int exit = 0; exit < 6; ++exit) {
+        const unsigned waits = remaining - 1;
         Loop loop; Client c(-1); count(c, waits);
         fill(c, exit == 1 ? 1 : 8, exit == 1 ? 0 : 8);
         if (exit == 2) c.fill_buf().append(std::string(512, 's').data(), 512);
@@ -157,7 +159,10 @@ static void lifetime() {
     }
     if (delay && small) {
         Loop stalled; Client c(-1); fill(c, 8, 0); enqueue(stalled, c);
-        for (unsigned i = 0; i < 1024; ++i) require(!visit(stalled), "unfinished head stays queued");
+        for (unsigned i = 0; i < 1024; ++i) {
+            require(!visit(stalled), "unfinished head stays queued");
+            require(count(c) == (i + 1 < delay ? i + 1 : delay), "every visit saturates at D");
+        }
         require(count(c) == delay, "saturation cannot wrap after 1024 visits");
     }
 }

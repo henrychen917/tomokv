@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     if (argc != 2) return 2;
     selected = argv[1]; unsigned done, waits, shape;
     require(std::sscanf(selected, "codes-%u-%u-%u", &done, &waits, &shape) == 3 &&
-            done <= 2 && waits <= 3 && shape >= 1 && shape <= 3, "coded fixture grammar");
+            done <= 2 && waits <= wait_limit && shape >= 1 && shape <= 3, "coded fixture grammar");
     Client c(-1); fill(c, 8, done); count(c, waits);
     for (unsigned i = 0; i < done; ++i) {
         auto& op = c.rob().at(c.rob().flush_id() + i);
