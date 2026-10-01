@@ -1533,7 +1533,6 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         }
         io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
         s->user_data = ur_tag(UrKind::TlsRecv, c);
-        ring_.note_pending();
         c->set_recv_armed(true);
     }
 }

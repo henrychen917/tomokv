@@ -825,7 +825,6 @@ private:
         io_uring_prep_multishot_accept(s, listener, nullptr, nullptr, 0);
         s->user_data = ur_tag(
             kind, reinterpret_cast<void*>(static_cast<uintptr_t>(accept_generation_)));
-        ring_.note_pending();
         accept_armed_ref(kind) = true;
         if (unix_socket) unix_accept_pending_ = false;
         else if (tls_socket) tls_accept_pending_ = false;
@@ -856,7 +855,6 @@ private:
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
         io_uring_prep_recv(s, c->fd(), dst, avail, 0);
         s->user_data = ur_tag(UrKind::Recv, c);
-        ring_.note_pending();
         c->set_recv_armed(true);
     }
 
@@ -931,7 +929,6 @@ private:
             }
             io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
             s->user_data = ur_tag(UrKind::TlsRecv, c);
-            ring_.note_pending();
             c->set_recv_armed(true);
         }
     }
@@ -958,7 +955,6 @@ private:
             io_uring_prep_poll_add(s, c->fd(), mask);
             s->user_data = ur_tag(wanted == TlsOp::WantWrite
                                       ? UrKind::TlsWritePoll : UrKind::TlsReadPoll, c);
-            ring_.note_pending();
             // Reuse the existing kernel-reference fence: a poll CQE names Client just like recv.
             tls->set_poll_armed(wanted, true);
             c->set_recv_armed(true);
@@ -1227,7 +1223,6 @@ private:
                 sqe, ur_tag(kind, reinterpret_cast<void*>(
                                       static_cast<uintptr_t>(accept_cancel_generation_))), 0);
             sqe->user_data = ur_tag(UrKind::MigrateCancel, nullptr);
-            ring_.note_pending();
             submitted = true;
         };
         cancel(UrKind::Accept, accept_armed_, accept_cancel_submitted_);
@@ -1683,7 +1678,6 @@ private:
                     if (!sqe) { self_->sig().sqe_starved++; i++; continue; }
                     io_uring_prep_cancel64(sqe, ur_tag(UrKind::Recv, client), 0);
                     sqe->user_data = ur_tag(UrKind::MigrateCancel, client);
-                    ring_.note_pending();
                     migration.cancel_submitted = true;
                     work++;
                 }
