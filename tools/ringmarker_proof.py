@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serverless removal inventory and negative controls for the raw ELF checker.
+"""Serverless removal inventory, raw ELF controls, and a same-layout kind-A PAD.
 
 Capture/compare arms with tools/ttlstate_proof.py, the existing unnormalized byte,
 allocated-data, relocation-target, address and entry-point checker. This driver
@@ -17,8 +17,9 @@ import struct
 import subprocess
 import sys
 import tarfile
+import tempfile
 
-from ttlstate_proof import Elf, save
+from ttlstate_proof import Elf, capture, compare_files, save
 
 
 MARKER = "note_" + "pending"
@@ -140,7 +141,56 @@ def controls(root, archive, binary, obj, db0_obj, output):
             assert reason in detail["errors"], (name, detail)
         results.append(dict(control=name, returncode=result.returncode, expected=expected,
                             exact_rejection=reason, report=str(report)))
+    for name, reason in (("linked-function-address", "allocated symbol addresses/identities differ"),
+                         ("linked-entry-point", "ELF kind/machine/entry or program headers differ"),
+                         ("allocated-data-byte", "allocated .rodata: bytes differ")):
+        destination = output / ("rejected-PAD-" + name)
+        log_path = output / ("pad-guard-" + name + ".log")
+        with log_path.open("w") as log:
+            result = subprocess.run([sys.executable, str(script), "pad", str(binary),
+                                     str(output / (name + ".NEVER-RUN")), str(destination),
+                                     "--output", str(destination) + ".json"],
+                                    stdout=log, stderr=subprocess.STDOUT)
+        assert result.returncode == 1 and reason in log_path.read_text(), name
+        assert not destination.exists(), "invalid layout/data must not create a PAD arm"
+        results.append(dict(control="pad-guard-" + name, returncode=result.returncode,
+                            expected=1, exact_rejection=reason, arm_created=False))
     return dict(okay=True, results=results, executed_elf_arms=False)
+
+
+def pad(pre, post, output):
+    """A PRE copy is a kind-A twin only after proving POST has the same layout."""
+    pre, post, output = Path(pre).resolve(), Path(post).resolve(), Path(output).resolve()
+    comparison = compare_files(pre, post)
+    executable = {row["section"] for row in comparison["executable"]}
+    permitted = {f"{label} {name}: bytes differ"
+                 for label in ("executable", "allocated") for name in executable}
+    assert set(comparison["errors"]) <= permitted, comparison["errors"]
+    # Check the exact function name/address/size table as well as the checker's
+    # allocated-symbol audit (which permits spelling-only local asm-label changes).
+    def functions(path):
+        return sorted((s["name"], s["info"], s["value"], s["size"])
+                      for s in Elf(path).symbols if s["info"] & 15 == 2)
+    assert functions(pre) == functions(post), "PRE/POST function tables differ"
+    # Reuse the existing raw dump writer without changing the production binary.
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".pad-capture-", dir=output.parent) as tmp:
+        work = Path(tmp)
+        (work / "build").mkdir()
+        shutil.copy2(pre, work / "build/tomokv")
+        (work / "objects.json").write_text("[]\n")
+        cwd = Path.cwd()
+        try:
+            os.chdir(work)
+            capture("objects.json", output, [])
+        finally:
+            os.chdir(cwd)
+    identity = compare_files(pre, output / "artifacts/tomokv")
+    assert identity["okay"] and identity["whole_file_equal"], "PAD must be an exact PRE copy"
+    return dict(okay=True, kind="A: PRE behavior with POST text size/layout",
+                method="separate, unmodified PRE copy; all POST function addresses/layout match",
+                pre_pad=identity, pre_post=comparison, function_count=len(functions(pre)),
+                post_function_table_equal=True, mainline_controlled_null="PENDING MAINLINE")
 
 
 def main():
@@ -153,14 +203,19 @@ def main():
     p = sub.add_parser("controls")
     for arg in ("root", "pre_archive", "binary", "object", "db0_object", "destination"):
         p.add_argument(arg)
+    p = sub.add_parser("pad")
+    for arg in ("pre", "post", "destination"):
+        p.add_argument(arg)
     for p in sub.choices.values():
         p.add_argument("--output", required=True)
     args = parser.parse_args()
     if args.command == "source":
         result = source(args.root, args.expect)
-    else:
+    elif args.command == "controls":
         result = controls(args.root, args.pre_archive, args.binary, args.object,
                           args.db0_object, args.destination)
+    else:
+        result = pad(args.pre, args.post, args.destination)
     save(args.output, result)
     print(("PASS" if result["okay"] else "FAIL"), args.command, args.output)
     return 0 if result["okay"] else 1
