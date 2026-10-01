@@ -48,6 +48,8 @@ def main():
         ('gate-stop-bypassed', gate,
          'return phase_ != Phase::Stopping && !stop.load(std::memory_order_relaxed) &&',
          'return phase_ == Phase::Stopping ||', 'joins all arrivals'),
+        ('failed-load-allowed-ready', gate, ' || failed_) return false;',
+         ') return false;', 'failed load prevents listener phase'),
     ]
     results = []
     for name, path, before, after, diagnostic in controls:
