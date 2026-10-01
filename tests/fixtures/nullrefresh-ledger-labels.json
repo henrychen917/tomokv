@@ -463,7 +463,9 @@
     "writeback c12 split-phase witnesses + negative controls",
     "writeback c12 split-overlap witnesses + negative controls",
     "read-local topology demotion (1s)",
-    "read-local topology demotion (2s)"
+    "read-local topology demotion (2s)",
+    "writeback policy clauses witnesses + negative controls",
+    "writeback policy paths witnesses + negative controls"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -472,5 +474,9 @@
   "rltopo_supplement": {
     "source": "37eeb5e90 tests/gate.sh:1270, emitted twice before the quick-tier exit",
     "purpose": "two upstream labels for the serverless fixture only; no claimed execution"
+  },
+  "wbland_supplement": {
+    "source": "5b3d9c429 tests/gate.sh job_wbland_units (clauses, paths), emitted before the quick-tier exit; EXPECT_FULL 463",
+    "purpose": "two upstream labels for the serverless fixture only; no claimed execution (mainline bookkeeping 2026-10-01)"
   }
 }
