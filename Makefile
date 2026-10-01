@@ -444,3 +444,9 @@ $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CON
 wbland-units: build/wbland-units
 build/wbland-units: build/wbland-unit build/wbland-db0-unit build/wbland-clause-unit build/wbland-db0-clause-unit build/wb-rule-units $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))) $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS)))
 	@touch $@
+
+# cleanup-lanefull extends the existing core route row; no new gate emission.
+build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o build/signalacct-core-unit: tests/lanefull_checks.inc
+# Fast direct-call db0 variant; both database implementations retain their existing object flags.
+build/lanefull-db0-unit: tests/core_concurrency_unit.cc tests/lanefull_checks.inc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm

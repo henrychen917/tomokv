@@ -1578,7 +1578,8 @@ py tests/bplus.py 127.0.0.1 "$PORT" >$TMPDIR/gate-bplus.txt 2>&1 \
     || bad "B+ held-group GET/MGET filter battery" "see $TMPDIR/gate-bplus.txt"
 # Lane admission on the same armed boot: 32 connections per fused thread each pipelining 64 GETs
 # oversubscribe the 1024-entry lane; the excess must be deferred and re-parsed locally (counters
-# fire), never demoted to an owner task (fallback_lane_full stays 0), with order/RYOW intact.
+# fire), exact clean local completions, retired INFO keys absent, and mixed order/RYOW intact.
+# The existing core route row observes actual owner-task publication under deterministic pressure.
 row_begin "read-local lane admission battery"
 py tests/read_local_lane.py 127.0.0.1 "$PORT" >$TMPDIR/gate-read-local-lane.txt 2>&1 \
     && ok "read-local lane admission battery" \

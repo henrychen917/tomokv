@@ -3492,6 +3492,9 @@ ordinary_shard_ready:
             // inbox space.
             break;
         }
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+        if (test_owner_publication_) test_owner_publication_(t);
+#endif
         if constexpr (Fused) {
             // Count only after the owner task is irrevocably queued. A refused SPSC push
             // unpublishes and reparses this frame; charging before it would double-count and

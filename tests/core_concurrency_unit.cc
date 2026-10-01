@@ -44,7 +44,7 @@ struct CoreConcurrencyTest {
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
         Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
-                uint32_t databases = 1, uint32_t split_io = 6)
+                uint32_t databases = 1, uint32_t split_io = 6, bool read_local = false)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -79,6 +79,7 @@ struct CoreConcurrencyTest {
             Config config;
             config.shards = shard_count;
             config.databases = databases;
+            config.read_local = read_local;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.key_lb = config.client_lb = load_balance ? 1 : 0;
@@ -968,6 +969,7 @@ struct CoreConcurrencyTest {
 #include "signalacct_core_checks.inc"
 #include "flip_close_checks.inc"
 #include "flipsettle_checks.inc"
+#include "lanefull_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1059,7 +1061,9 @@ int main(int argc, char** argv) {
     else if (row == "flip-close") T::flip_close();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); }
+    else if (row == "lanefull") T::lanefull_all();
+    else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "flipsettle") T::flipsettle_all();
     else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
     else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
