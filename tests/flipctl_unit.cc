@@ -8,6 +8,11 @@
 
 namespace tomo {
 
+template <class T>
+concept HasStationarityReport = requires(T report) { report.stationary_s; };
+static_assert(!HasStationarityReport<FlipctlReport>,
+              "unused stationarity report member must remain absent");
+
 // No Server, sockets or worker threads. Feed completed command counts and elapsed tick windows
 // through the controller's production rate arithmetic, pairing, trigger rule, learner and report.
 // After a confirmation, clear the streak as start_maneuver does and keep the anchor in place:
