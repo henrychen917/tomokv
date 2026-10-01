@@ -1629,5 +1629,174 @@
     "expect_full_unchanged": 461,
     "requested_quick_with_inherited_topology_correction": 445,
     "requested_full": 463
+  },
+  "wblandfix": {
+    "baseline": "90ba908d3",
+    "merged_origin_cpp": "2a9e48403",
+    "implementation_commits": [
+      "2471e9698",
+      "dcc23d365"
+    ],
+    "affinity": "112-127",
+    "server_or_benchmark_or_gate_run": false,
+    "scope": "tests only; earlier REF/artifact/object-text entries remain historical landing evidence, not live source assertions",
+    "source_oracle": "whitespace-normalized calls and immediate guards, scoped plumbing fragments, no uncovered watched references, token bans, and current-tree R7 parity",
+    "historical_source_equality": false,
+    "rule_oracle": "existing policy 0/1 endpoint, clause/read-order and physical-path tables plus unchanged production mutation controls",
+    "call_anchors_at_baseline": [
+      {
+        "file": "src/core/io_loop.h",
+        "method": "wb_gather",
+        "guard_line": 4578,
+        "call_line": 4595,
+        "expression": "wb_rule::Phase2::gather(*this, batch, captured_left)",
+        "count": 1
+      },
+      {
+        "file": "src/core/io_loop.h",
+        "method": "flush_ready",
+        "guard_line": 5190,
+        "call_line": 5203,
+        "expression": "wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this)",
+        "count": 1
+      },
+      {
+        "file": "src/core/reorder.cc",
+        "method": "r7_flush_ready",
+        "guard_line": 1341,
+        "call_line": 1354,
+        "expression": "wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this)",
+        "count": 1
+      },
+      {
+        "file": "src/net/wb.h",
+        "count": 0
+      }
+    ],
+    "checks": {
+      "clauses": {
+        "passed": 60,
+        "total": 60,
+        "positive": 28,
+        "negative_controls": 32,
+        "receipt": "build/wbland-clauses-proofs.json",
+        "sha256": "082642a893c8e70463697c2354199e5ba0845e66aee508d5951f6ace24895070"
+      },
+      "paths": {
+        "passed": 19,
+        "total": 19,
+        "positive": 16,
+        "negative_controls": 3,
+        "receipt": "build/wbland-paths-proofs.json",
+        "sha256": "d502e16438e7de0f453716ceb69414c12afe30a7d0fc3d828a86f428d5f21b77"
+      },
+      "cleanup_boot_clauses": {
+        "passed": 60,
+        "total": 60,
+        "positive": 28,
+        "negative_controls": 32,
+        "receipt": "build/wblandfix-cleanup-boot-clauses-proofs.json",
+        "sha256": "88dc7f43badba80e30a5be8c478985e4772cece01591dbe6b6015049a34a86f7"
+      }
+    },
+    "source_controls": [
+      {
+        "case": "source-reorder-arguments",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/reorder.cc: Phase2 call set (count/arguments)",
+        "passed": true
+      },
+      {
+        "case": "source-reorder-unrelated",
+        "expected_exit": 0,
+        "exit": 0,
+        "required": "PASS wbland source:",
+        "passed": true
+      },
+      {
+        "case": "source-io-extra-call",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/io_loop.h: Phase2 call set (count/arguments)",
+        "passed": true
+      },
+      {
+        "case": "source-rule-detector",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/wb_rule.h: banned token struct Window",
+        "passed": true
+      },
+      {
+        "case": "source-reorder-guard",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/reorder.cc: r7_flush_ready anchored writeback site",
+        "passed": true
+      },
+      {
+        "case": "source-io-stray-rule",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/io_loop.h: unanchored writeback reference wb_rule",
+        "passed": true
+      },
+      {
+        "case": "source-rule-clock",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/wb_rule.h: banned token now_ns(",
+        "passed": true
+      },
+      {
+        "case": "source-rule-allocation",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/wb_rule.h: banned token new",
+        "passed": true
+      },
+      {
+        "case": "source-io-clock",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/core/io_loop.h:flush_ready: banned token now_ns(",
+        "passed": true
+      },
+      {
+        "case": "source-engine-clock",
+        "expected_exit": 1,
+        "exit": 1,
+        "required": "FAIL wbland source: src/net/wb.h: banned token now_ns(",
+        "passed": true
+      },
+      {
+        "case": "source-rule-equivalent",
+        "expected_exit": 0,
+        "exit": 0,
+        "required": "PASS wbland source:",
+        "passed": true
+      }
+    ],
+    "cleanup_boot": {
+      "root": "/home/user/Projects/cx-cleanup-boot",
+      "head": "fab03f469",
+      "checker": "/home/user/Projects/cx-wblandfix/tests/wbland_checks.py",
+      "binaries": "pre-existing cleanup-boot/build serverless units",
+      "read_only": true,
+      "exit": 0,
+      "receipt_location": "inside cx-wblandfix/build; source-control overlays are also confined there"
+    },
+    "gate": {
+      "row_begin_line": 1294,
+      "success_emission_line": 1297,
+      "failure_emission_line": 1299,
+      "collect_line": 2742,
+      "quick_exit_line": 2871,
+      "row_delta_quick": 0,
+      "row_delta_full": 0,
+      "expect_quick_unchanged": 446,
+      "expect_full_unchanged": 463
+    }
   }
 }
