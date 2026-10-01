@@ -70,7 +70,7 @@ struct CoreConcurrencyTest {
         uint32_t owner_id, reader_id;
         int32_t sid;
         std::string key;
-        Fixture(ThreadMode mode) : owner_id(mode == ThreadMode::Fused ? 0 : 6),
+        Fixture(ThreadMode mode, uint32_t databases = 1) : owner_id(mode == ThreadMode::Fused ? 0 : 6),
                                    reader_id(mode == ThreadMode::Fused ? 7 : 0) {
             cpu_set_t allowed;
             CPU_ZERO(&allowed);
@@ -90,6 +90,7 @@ struct CoreConcurrencyTest {
             require(server.placement_.reserve_runtime_roles(8), "fixture roles");
             Config cfg;
             cfg.thread_mode = mode;
+            cfg.databases = databases;
             cfg.shards = 16;
             cfg.read_local = cfg.atomic = cfg.key_lb = cfg.client_lb = 1;
             cfg.flip_auto = 0;
@@ -174,6 +175,141 @@ struct CoreConcurrencyTest {
             return *op;
         }
     };
+
+    // Exact private-reply and demotion contracts for the single-attempt cleanup. Mutants in
+    // tools/readreply_proof.py change the real header, never these expected results.
+    inline static uint64_t readreply_hash = 0;
+    inline static bool readreply_publish_conflict = false;
+    inline static bool readreply_use_epochs = false;
+    static void readreply_copied() {
+        if (fault == Fault::NoFlip) return;
+        if (readreply_publish_conflict) {
+            if (!flips++) changing->foreign_read_scope_open(readreply_hash);
+        } else if (readreply_use_epochs) {
+            if (!flips++) {
+                changing->foreign_read_scope_open(readreply_hash);
+                changing->foreign_read_scope_close(readreply_hash);
+            }
+        } else {
+            flip();
+        }
+    }
+
+    static void readreply_case(ThreadMode mode, uint32_t databases, bool mget,
+                               const std::string& state) {
+        Fixture f(mode, databases);
+        FlatStore& store = f.server.shard(f.sid).store();
+        const uint64_t hash = FlatStore::hash_key(slice(f.key));
+        const std::string label = std::string(mget ? "MGET/" : "GET/") + state;
+        auto check = [&](bool okay, const char* contract) {
+            require(okay, ("readreply " + label + ": " + contract).c_str());
+        };
+        std::string value("raw\0\r\npayload", 13);
+        if (state == "external") value = std::string(513, 'x') + "\r\n";
+        if (state == "empty") value.clear();
+        if (state == "integer") value = "-9223372036854775808";
+        const int64_t deadline = state == "expired" ? 1000 : state == "ttl-live" ? 1001 : -1;
+        KvObj* object = state == "integer"
+            ? kvobj_new_int(slice(f.key), INT64_MIN)
+            : kvobj_new_string(slice(f.key), slice(value), deadline, state == "persisted");
+        require(object && store.insert(hash, object) == FlatStore::InsertResult::Inserted,
+                "readreply fixture replacement");
+        object->set_eviction_meta(3);
+        const Enc encoding = object->encoding();
+        check(encoding == (state == "integer" ? Enc::Int : state == "external" ? Enc::Extern : Enc::Raw),
+              "requested encoding entered");
+        // No concurrent user of this fixture. Restore deliberately invalid header tags below
+        // before destruction; the capture and reply implementation still see the real tags.
+        if (state == "typed") object->type = static_cast<uint8_t>(Type::Hash);
+        if (state == "encoding") object->enc = static_cast<uint8_t>(Enc::Compact);
+        if (state == "missing") require(store.erase(hash, slice(f.key)), "readreply fixture erase");
+        Op op;
+        require(op.push_arg(Slice(mget ? "MGET" : "GET")) && op.push_arg(slice(f.key)) &&
+                    (!mget || op.push_arg(slice(f.key))), "readreply fixture argv");
+        op.spec = command_lookup(op.arg(0));
+        op.hash = hash;
+        op.shard = f.sid;
+        op.reply.append("stale", 5);
+        op.reply_code_ = static_cast<uint8_t>(ReplyCode::Int);
+        op.reply_ival_ = 42;
+        op.zc_ptr = "stale";
+        op.zc_len = 5;
+        op.zc_shard = f.sid;
+        f.reader.maxmemory_enabled_ = true;
+        f.reader.foreign_touch_policy_ = ExLoopT<true>::kForeignTouchLru;
+        f.reader.cached_lru_clock_ = 9;
+        ExLoopT<true>::test_local_get_reply_attempts_ = 0;
+        changing = &store;
+        readreply_hash = hash;
+        readreply_publish_conflict = state == "tail-pending";
+        readreply_use_epochs = mget;
+        flips = captures = 0;
+        leave_open = false;
+        if (state == "pending") store.foreign_read_scope_open(hash);
+        if (state == "churn" || state == "churn-pending") {
+            guard.emplace(store.read_local_table_guard());
+            check(FlatStore::read_local_table_mutating(store.read_local_state_acquire()),
+                  "topology window entered");
+        }
+        auto capture = store.read_local_prefetch_capture(hash, slice(f.key));
+        if (state == "churn-pending") store.foreign_read_scope_open(hash);
+        if (state == "invalid" || state == "tail-pending")
+            ExLoopT<true>::test_local_read_copied_ = readreply_copied;
+        const auto result = f.reader.prepare_local_read(op, mget ? nullptr : &store, mget,
+                                                        mget ? nullptr : &capture);
+        // This counts entries into the real GET emission path, including integer replies.
+        // The restored-continue mutant must fail here even when its final bytes are correct.
+        check(ExLoopT<true>::test_local_get_reply_attempts_ <= 1,
+              "at most one GET reply attempt");
+        if (state == "invalid" || state == "tail-pending")
+            check(flips == 1, "copy window entered exactly once");
+        ReadLocalFallbackReason reason = ReadLocalFallbackReason::None;
+        if (state == "typed" || state == "encoding") reason = ReadLocalFallbackReason::Typed;
+        if (state == "expired") reason = ReadLocalFallbackReason::Expired;
+        if (state == "missing" && !mget) reason = ReadLocalFallbackReason::Missing;
+        if (state == "pending" || state == "tail-pending" || state == "churn-pending")
+            reason = ReadLocalFallbackReason::AtomicPending;
+        if (state == "churn") reason = ReadLocalFallbackReason::SeqChurn;
+        if (state == "invalid") reason = mget ? ReadLocalFallbackReason::Generation
+                                              : ReadLocalFallbackReason::SeqChurn;
+        check(result.fallback == reason, "exact final fallback reason");
+        std::string expected;
+        if (reason == ReadLocalFallbackReason::None) {
+            if (mget) expected = "*2\r\n";
+            for (unsigned i = 0; i < (mget ? 2u : 1u); ++i)
+                expected += state == "missing" ? "$-1\r\n"
+                    : "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
+        }
+        check(std::string(op.reply.data(), op.reply.size()) == expected, "exact private reply bytes");
+        check(op.reply_code_ == 0 && op.zc_ptr == nullptr && op.zc_len == 0 && op.zc_shard == -1,
+              "reply code and borrowed state cleared");
+        const bool success = reason == ReadLocalFallbackReason::None;
+        check(result.keyspace_hits == (success && state != "missing" ? (mget ? 2u : 1u) : 0u) &&
+                  result.keyspace_misses == (success && state == "missing" ? 2u : 0u),
+              "exact accepted hit and miss counts");
+        if (state != "missing" && state != "encoding") {
+            // MGET records each accepted value before its outer window closes. GET records
+            // access only after final validation; retain this intentional ordering difference.
+            const bool touched = success || (mget && (state == "invalid" || state == "tail-pending"));
+            check(object->eviction_meta() == (touched ? 9 : 3), "access metadata ordering");
+        }
+        ExLoopT<true>::test_local_read_copied_ = nullptr;
+        if (state == "pending" || state == "tail-pending" || state == "churn-pending")
+            store.foreign_read_scope_close(hash);
+        guard.reset();
+        if (state == "typed") object->type = static_cast<uint8_t>(Type::String);
+        if (state == "encoding") object->enc = static_cast<uint8_t>(encoding);
+        std::printf("PASS readreply %s db=%u\n", label.c_str(), databases);
+    }
+
+    static void readreply_all(ThreadMode mode) {
+        for (uint32_t databases : {1u, 4u})
+            for (bool mget : {false, true})
+                for (const char* state : {"raw", "integer", "external", "empty", "typed", "encoding",
+                        "ttl-live", "expired", "persisted", "missing", "pending", "churn", "invalid",
+                        "tail-pending", "churn-pending"})
+                    readreply_case(mode, databases, mget, state);
+    }
 
     static void topology(ThreadMode mode, unsigned keys, Window window, bool open) {
         Fixture f(mode);
@@ -301,6 +437,7 @@ struct CoreConcurrencyTest {
     }
 
     static void run(ThreadMode mode) {
+        readreply_all(mode);
         for (bool open : {false, true}) {
             topology(mode, 0, Window::Capture, open);
             topology(mode, 0, Window::Copy, open);
@@ -339,9 +476,12 @@ struct CoreConcurrencyTest {
 
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
-    T::require(argc == 2 && (std::string(argv[1]) == "1s" || std::string(argv[1]) == "2s"),
-               "usage: rltopo-unit 1s|2s");
+    T::require((argc == 2 || (argc == 5 && std::string(argv[2]) == "readreply")) &&
+                   (std::string(argv[1]) == "1s" || std::string(argv[1]) == "2s"),
+               "usage: rltopo-unit 1s|2s [readreply GET|MGET STATE]");
     T::require(tomo::command_registry_init(false), "command registry");
-    T::run(std::string(argv[1]) == "1s" ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split);
+    const auto mode = std::string(argv[1]) == "1s" ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split;
+    if (argc == 5) T::readreply_case(mode, 1, std::string(argv[3]) == "MGET", argv[4]);
+    else T::run(mode);
     std::printf("PASS rltopo %s (demotions, zero retries, negative controls, arm transients)\n", argv[1]);
 }

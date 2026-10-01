@@ -1,3 +1,4 @@
+#include "core/boot_support.h"
 // main.cc — boot, thread launch, pinning, shutdown.
 //
 // Split mode keeps the pure 2s design. Fused startup is isolated in genthread.cc so boot mode
@@ -333,17 +334,7 @@ int main(int argc, char** argv) {
     }
 
     srv.topo().dump(stdout);
-    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                " thread-mode=2s, overlap=%u, %s, alloc=%s\n", srv.nthreads(),
-                srv.placement().ifid_threads().size(), srv.placement().ex_threads().size(),
-                cfg.shards, cfg.overlap,
-                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
-    for (const ThreadPlacement& p : srv.placement().threads()) {
-        const char* role = p.role == Role::Ifid ? "ifid" : p.role == Role::Ex ? "ex" : "idle";
-        std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu\n", p.id, role, p.cpu,
-                    p.domain, srv.thread(p.id).shards().size());
-    }
-    std::fflush(stdout);
+    print_boot_presentation(srv);
 
     // Placement decides every cpu directly. Pinning is relative to the process's ALLOWED set by
     // construction because both discovery and --place validation intersect with sched affinity.
@@ -487,27 +478,17 @@ int main(int argc, char** argv) {
     }
 
     // Probe only after boot load. Each io thread then opens its own SO_REUSEPORT listener.
-    if (cfg.port) {
-        const int probe = IoLoop::make_reuseport_listener(
-            cfg.bind_addr, cfg.port, srv.cfg().tcp_backlog);
-        if (probe < 0) {
-            std::perror("bind");
-            for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-            srv.databases().join_workers(srv, pool);
-            return 1;
-        }
-        ::close(probe);
+    if (!probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener)) {
+        std::perror("bind");
+        for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        srv.databases().join_workers(srv, pool);
+        return 1;
     }
-    if (cfg.tls_port) {
-        const int probe = IoLoop::make_reuseport_listener(
-            cfg.bind_addr, cfg.tls_port, srv.cfg().tcp_backlog, true);
-        if (probe < 0) {
-            std::perror("bind tls-port");
-            for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
-            srv.databases().join_workers(srv, pool);
-            return 1;
-        }
-        ::close(probe);
+    if (!probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener)) {
+        std::perror("bind tls-port");
+        for (uint32_t i = 0; i < nthreads; i++) srv.thread(i).stop_flag().store(true);
+        srv.databases().join_workers(srv, pool);
+        return 1;
     }
     std::string unix_error;
     if (!unix_listener.open(cfg.tcp_backlog, unix_error, cfg.unixsocketperm)) {
@@ -595,10 +576,7 @@ int main(int argc, char** argv) {
             }
         });
 
-    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
-    std::fflush(stdout);
+    print_ready_listeners(cfg, unix_listener.bound());
 
     // The automatic split controller has exactly one writer: this main/monitor thread. Worker
     // loops only publish owner-local counters and execute the unchanged FLIP stage machine. With
