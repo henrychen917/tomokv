@@ -121,6 +121,12 @@ def main():
     elif a.cmd=='compare':
         if not compare(a.pre,a.post,a.out):raise SystemExit(1)
     elif a.cmd=='twin':schema_twin(a.base,a.out,a.kind)
-    else:corrupt_control(a.elf,a.out)
+    else:
+        corrupt_control(a.elf,a.out)
+        # Exercise this command's complete checker as well as the shared raw-byte checker.
+        result=compare_files(a.elf,a.out/'one-executable-byte-changed.DO-NOT-RUN')
+        assert not result['okay'] and any(x['section']=='.text' and not x['raw_equal']
+                                          for x in result['executable'])
+        write_json(a.out/'full-checker-negative-control.json',result)
 
 if __name__=='__main__':main()
