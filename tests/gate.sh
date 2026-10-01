@@ -779,6 +779,7 @@ feature_armed_job(){
     ARMED_MODE=$(printf '%s\n' "$ARMED_INFO" | sed -n 's/^thread_mode://p')
     ARMED_RL=$(printf '%s\n' "$ARMED_INFO" | sed -n 's/^read_local://p')
     [ "$ARMED_MODE" = 1s ] && [ "$ARMED_RL" = 1 ] \
+        && grep -Eq '^tomokv-cpp: .*thread-mode=1s,.*read-local=1([,[:space:]]|$)' "$SRVLOG" \
         && ok "fused+armed boot line (atomic $AT)" \
         || bad "fused+armed boot line (atomic $AT)" "wire mode=$ARMED_MODE read_local=$ARMED_RL"
   else
@@ -1538,6 +1539,7 @@ local AT=${1##*-}
     FUSED_MODE=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^thread_mode://p')
     FUSED_OVERLAP=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^overlap://p')
     [ "$FUSED_MODE" = 1s ] && [ "$FUSED_OVERLAP" = 0 ] \
+        && grep -Eq '^tomokv-cpp: .*thread-mode=1s,.*read-local=0([,[:space:]]|$)' "$SRVLOG" \
         && ok "fused boot line (atomic $AT)" \
         || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE overlap=$FUSED_OVERLAP"
   else

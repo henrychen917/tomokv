@@ -16,7 +16,7 @@ namespace tomo {
 // armed state, never the requested Config::read_local value.
 template <typename ServerState>
 [[gnu::cold, gnu::noinline]]
-void print_boot_presentation(const ServerState& srv, std::FILE* out = stdout) {
+void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
     const Config& cfg = srv.cfg();
     const bool fused = cfg.thread_mode == ThreadMode::Fused;
     const bool read_local = srv.read_local_enabled();
