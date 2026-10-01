@@ -1,25 +1,19 @@
-wbhybrid2: bounded completion wait, S=16. Performance PENDING MAINLINE.
-Read MEASURE-REQUEST-wbhybrid2.md for the rule, layout proof, hashes and pass bar.
+wbhybrid2b: D3/D4 extension of frozen S=16/D2. Performance PENDING MAINLINE.
+Read MEASURE-REQUEST-wbhybrid2b.md for SHA-256, byte offsets, proofs, costs and cells.
 
-REF: build/tomokv-wbhybrid2-ref (landed half rule on BASE 5b3d9c429).
-Arms: build/tomokv-hyb16-d0, build/tomokv-hyb16-d1, build/tomokv-hyb16-d2.
-PAD A behaviour twins: build/tomokv-hyb16-d1-pad and build/tomokv-hyb16-d2-pad.
-d0 .text matches predecessor hyb16 exactly. Each PAD changes two immediate bytes.
-Client counter consumes padding byte 72; size 1984 and all existing offsets hold.
-Default checkout stays on REF. No runtime D knob or performance verdict is added.
+New arms: build/tomokv-hyb16-d3 and build/tomokv-hyb16-d4.
+PAD A behaviour twins: build/tomokv-hyb16-d3-pad and build/tomokv-hyb16-d4-pad.
+Frozen REF: build/tomokv-wbhybrid2-ref; keep D2 as an in-session comparator.
+Each new arm differs from D2 only in two D immediate bytes; each PAD changes
+exactly two selector bytes. Counter remains Client byte 72 with the same resets.
+Production source matches the merged mainline; build/tomokv stays the half rule.
 
-All six arms, priority order:
 1. Floor-0.4 bursts, reorder 0/1, eight samples per arm/state, including PADs.
-2. Floors 0 and 0.7, reorder 0/1, four samples per arm/state.
-3. Low-load GET p32@256K and p8@512K, three rounds each.
-4. The 14 generic ABBA cells in tests/wbhybrid2_cells.txt.
-5. NIC-LAT GET/SET p8/p32 at 60%/80%, ABBA x2 with the same offered loads.
+2. Low-load GET p32@256K and p8@512K, three complete rounds per arm/cell.
+3. The 14 generic ABBA cells in tests/wbhybrid2_cells.txt.
+Judge tails against contemporary same-binary/PAD spread, then compare gain to D2.
 
-Never worse than half in any class, especially floor-0.4 short p99/p99.9;
-retain most of d0's burst p50 gain and the p8, low-load and wire gains.
-Otherwise return the D-versus-tail-versus-gain trade curve to the owner.
-Source/outside-closure identity passes; strict all-body identity has compiler
-exceptions explicitly listed in the report. Use each exact PAD to price them.
-No server, benchmark, gate, timed measurement or push was run by this lane.
-Builds/serverless checks: CPUs 112-127. Gate row delta: 0 quick / 0 full.
-Append mainline results as MEASURE-RESULT.
+LIMITATION: inherited D2 counter path exceeds +/-1 instruction versus REF
+(e.g. 101 vs 92 on n=32, Done=1). D3/D4 preserve D2's equivalent-branch count.
+No server, benchmark, gate or push was run. All offline work used CPUs 112-127.
+Gate row delta: 0 quick / 0 full; EXPECT counts unchanged. Append MEASURE-RESULT.
