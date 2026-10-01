@@ -260,7 +260,7 @@ struct FlipctlReport {
     double last_flip_lost = 0;    // commands the last flip cost
     uint64_t last_flip_moved = 0; // connections the last flip moved
     double flip_ticks = 0;        // mean controller ticks a flip stays in flight
-    double stationary_s = 0;      // seconds the current workload has held still
+    double layout_padding = 0;   // inert: preserve report offsets and generated code
     std::string refine_decision = "none";  // the local verdict at the last landing (see refine)
     uint32_t refine_steps = 0;    // extra steps taken after a delivered move, this maneuver
 };
