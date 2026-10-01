@@ -120,7 +120,7 @@ noreserve:
 
 # Server-less unit binaries: the config parser and the flip controller. `make unit` builds and
 # runs both (neither boots a server). tests/gate.sh's parser row is the same program.
-build/config-parser-test: tests/config_parser_test.cc $(wildcard src/*/*.h) Makefile
+build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
 build/flipctl-unit: tests/flipctl_unit.cc tests/signalacct_checks.h src/core/flipctl.cc $(wildcard src/*/*.h) Makefile
