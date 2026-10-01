@@ -855,6 +855,7 @@ private:
     inline static void (*test_after_drain_ack_)() = nullptr;
     inline static void (*test_local_read_copied_)() = nullptr;
     inline static bool test_retry_local_mget_ = false;
+    inline static uint32_t test_local_get_reply_attempts_ = 0;
 #endif
 
     bool read_local_enabled() const {
@@ -1353,6 +1354,9 @@ private:
                 }
             }
 
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+            ++test_local_get_reply_attempts_;
+#endif
             read_local_clear_reply(op);
             const Enc encoding = object->encoding();
             if (encoding == Enc::Int) {
