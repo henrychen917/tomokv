@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import struct
 import subprocess
@@ -108,6 +109,37 @@ def cfg():
                                          edges={k: sorted(v) for k, v in edges.items()}, checks=checked))
 
 
+def source_proof():
+    with tarfile.open(OUT / 'freeze/reference.tar') as archive:
+        pre = archive.extractfile('src/core/ex_loop.h').read().decode()
+    post = (ROOT / 'src/core/ex_loop.h').read_text()
+    start = '    PreparedLocalRead prepare_captured_local_mget('
+    end = '    // Build one local reply but do not publish Done.'
+    before = pre[pre.index(start):pre.index(end)]
+    after = post[post.index(start):post.index(end)]
+    dead = '''                        if (!read_local_reply_string(op, object, flags)) {
+                            transient = ReadLocalFallbackReason::SeqChurn;
+                            demote = true;
+                            break;
+                        }'''
+    assert before.count(dead) == 1
+    assert before.replace(dead, '                        read_local_reply_string(op, object, flags);') == after
+    start = '    PreparedLocalRead prepare_local_read('
+    end = '    // Consume at most `op_budget`'
+    get = post[post.index(start):post.index(end)]
+    code = re.sub(r'//[^\n]*', '', get)
+    assert not re.search(r'\b(for|while|continue|break)\b', code)
+    assert get.count('if (!object) std::abort();') == 1
+    assert get.count('if (!captured->slot) std::abort();') == 1
+    assert get.count('read_local_prefetch_capture(op.hash, op.key())') == 1
+    assert get.count('store.read_local_validate(probe_state)') == 1
+    assert 'static void read_local_reply_string(' in post
+    assert '!read_local_reply_string(' not in post
+    save(OUT / 'source-proof.json', dict(mget_verbatim_except_dead_conditional=True,
+         get_has_no_loop_or_continue=True, capture_object_and_slot_assertions_retained=True,
+         one_capture_site_and_one_final_validation=True, helper_returns_void=True))
+
+
 def controls():
     out = OUT / 'controls'
     tree = out / 'source'
@@ -149,6 +181,8 @@ inline bool readreply_fault(const char* name) {
     body = body.replace(anchor, '        if (readreply_fault("accept-invalid")) return ReadLocalFallbackReason::None;\n' + anchor)
     body = body.replace('return {ReadLocalFallbackReason::AtomicPending};',
                         'return {readreply_fault("wrong-pending") ? ReadLocalFallbackReason::Missing : ReadLocalFallbackReason::AtomicPending};')
+    body = body.replace('return ReadLocalFallbackReason::AtomicPending;',
+                        'return readreply_fault("wrong-pending") ? transient : ReadLocalFallbackReason::AtomicPending;')
     body = body.replace('return {ReadLocalFallbackReason::Missing};',
                         'return {readreply_fault("accept-missing") ? ReadLocalFallbackReason::None : ReadLocalFallbackReason::Missing};')
     body = body.replace('reply_null(op.sink(), op.resp3());',
@@ -211,7 +245,7 @@ inline bool readreply_fault(const char* name) {
                 ('accept-encoding', ['encoding'], 'exact final fallback reason'),
                 ('accept-expired', ['expired'], 'exact final fallback reason'),
                 ('accept-invalid', ['invalid'], 'exact final fallback reason'),
-                ('wrong-pending', ['pending'], 'exact final fallback reason'),
+                ('wrong-pending', ['pending', 'tail-pending', 'churn-pending'], 'exact final fallback reason'),
                 ('omit-clear', ['raw', 'typed', 'expired', 'churn'], 'reply code and borrowed state cleared'),
                 ('wrong-counts', ['raw'], 'exact accepted hit and miss counts'),
                 ('omit-touch', ['raw'], 'access metadata ordering'),
@@ -239,10 +273,78 @@ inline bool readreply_fault(const char* name) {
                                    positive_modes=['1s', '2s'], controls=rows))
 
 
+def pad():
+    """Kind A, independently generated from frozen PRE, retaining its GET loop/body.
+
+    The CFG proves the old helper's only return is true. Express its two consumers
+    as (emit(), false), retaining both original recovery bodies and the complete
+    old loop/cleanup. Discard that unused true return to expose the void emission
+    to GCC, matching POST's inlining decisions. These are exact PRE semantics;
+    no candidate body, old R7 PAD, patched machine code or NOP footer is copied.
+    This is a pure refactor: PAD/POST identity is an honest possible outcome, not
+    evidence of an optimization benefit. PRE/PAD still needs mainline's null.
+    """
+    cfg()
+    source = OUT / 'PAD-A-source'
+    source.mkdir(exist_ok=True)
+    with tarfile.open(OUT / 'freeze/reference.tar') as archive:
+        archive.extractall(source, filter='data')
+    header = source / 'src/core/ex_loop.h'
+    pre = header.read_text()
+    before = 'if (!read_local_reply_string(op, object, flags)) {'
+    assert pre.count(before) == 2
+    generated = pre.replace(before, 'if ((read_local_reply_string(op, object, flags), false)) {')
+    a = generated.index('    static bool read_local_reply_string(')
+    b = generated.index('\n    uint32_t read_local_task_demotion_demand', a)
+    helper = generated[a:b]
+    assert helper.count('return true;') == 1 and 'return false;' not in helper
+    generated = generated[:a] + helper.replace('static bool', 'static void', 1).replace(
+        '        return true;\n', '') + generated[b:]
+    assert 'static constexpr uint32_t kRetries = 3;' in generated
+    assert 'for (uint32_t attempt = 0; attempt < kRetries; attempt++) {' in generated
+    header.write_text(generated)
+    save(OUT / 'pad-source-proof.json', dict(kind='A: behavior twin',
+         reference=(OUT / 'freeze/reference-sha.txt').read_text().strip(),
+         pre_header_sha256=hashlib.sha256(pre.encode()).hexdigest(),
+         generated_header_sha256=hashlib.sha256(generated.encode()).hexdigest(),
+         mapping='Frozen PRE with both false consumers made explicit and the unused true return discarded; original GET loop, recovery bodies and cleanup retained verbatim',
+         candidate_source_copied=False, machine_code_patched=False, layout='must be checked after link'))
+    rows = json.loads((OUT / 'freeze/object-inventory.json').read_text())
+    commands = []
+    for row in rows:
+        dest = source / row['object']
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(OUT / 'PRE/artifacts' / Path(row['object']).relative_to('build'), dest)
+        if row['includes_ex_loop']:
+            commands.append((row['object'], row['command']))
+    makefile = source / 'pad-build.mk'
+    makefile.write_text('all: ' + ' '.join(obj for obj, _ in commands) + '\n.PHONY: all\n' +
+                       ''.join(obj + ':\n\t' + cmd + ' > ' + obj + '.log 2>&1\n'
+                               for obj, cmd in commands))
+    with (OUT / 'pad-a-build.log').open('w') as log:
+        subprocess.run(['make', '-B', '-j16', '-f', 'pad-build.mk'], cwd=source,
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+        link = next(line for line in (OUT / 'freeze/build-commands.txt').read_text().splitlines()
+                    if ' -o build/tomokv ' in line and ' -c ' not in line)
+        subprocess.run(shlex.split(link), cwd=source, stdout=log, stderr=subprocess.STDOUT, check=True)
+    from ttlstate_proof import capture
+    previous = Path.cwd()
+    try:
+        os.chdir(source)
+        capture(OUT / 'freeze/object-inventory.json', OUT / 'PAD-A', [])
+    finally:
+        os.chdir(previous)
+    result = compare_arms(OUT / 'PAD-A', OUT / 'POST')
+    save(OUT / 'identity-PAD-POST.json', result)
+    # Requiring the full checker is stronger than only comparing the function
+    # address table: all executable/allocated bytes, relocations and entry match.
+    assert result['okay'], 'PAD needs further layout work; do not claim a matched control'
+
+
 def main():
     assert set(os.sched_getaffinity(0)) <= set(range(112, 128)), 'pin to CPUs 112-127'
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command', choices=['identity', 'elf-controls', 'cfg', 'controls'])
+    p.add_argument('command', choices=['identity', 'elf-controls', 'cfg', 'source', 'controls', 'pad'])
     args = p.parse_args()
     if args.command == 'identity':
         result = compare_arms(OUT / 'PRE', OUT / 'POST')
@@ -253,6 +355,10 @@ def main():
         elf_controls()
     elif args.command == 'controls':
         controls()
+    elif args.command == 'pad':
+        pad()
+    elif args.command == 'source':
+        source_proof()
     else:
         cfg()
     print('PASS', args.command)
