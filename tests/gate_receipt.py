@@ -142,14 +142,14 @@ def tree_fingerprint(root, revision):
     return fingerprint_entries(entries)
 
 
-def read_json(path):
+def read_json(path, *, content=None):
     def pairs(values):
         result = {}
         for key, value in values:
             require(key not in result, f"duplicate JSON key {key} in {path}")
             result[key] = value
         return result
-    return json.loads(path.read_text(), object_pairs_hook=pairs,
+    return json.loads(path.read_text() if content is None else content, object_pairs_hook=pairs,
                       parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"invalid {value}")))
 
 
@@ -406,10 +406,11 @@ def promote_null(root, args):
 
 def replay_null(path):
     """Read historical raw blocks without granting current provenance or promotion."""
-    report = read_json(path)
+    content = path.read_bytes()
+    report = read_json(path, content=content)
     rows = null_resolution(report)
     replay = dict(kind="null-resolution-replay", reporting_only=True, promotable=False,
-                  source_sha256=digest(path.read_bytes()), resolution=rows)
+                  source_sha256=digest(content), resolution=rows)
     replay["summary"] = resolution_summary({**report, "null_control": {"resolution": rows}})
     return replay
 
@@ -937,7 +938,7 @@ def self_test():
                 def removed(condition, reason):
                     if message not in reason:
                         saved_require(condition, reason)
-                with mock.patch(__name__ + ".require", side_effect=removed):
+                with mock.patch(__name__ + ".require", new=removed):
                     with self.assertRaises(AssertionError):
                         with self.assertRaisesRegex(ValueError, message):
                             finish(self.root, self.finish_args)
@@ -1274,7 +1275,8 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
     from _nullrefresh_test import self_test as promotion_controls
     promoted = promotion_controls()
-    return 0 if result.wasSuccessful() and promoted == 0 else 1
+    refrozen = subprocess.run([sys.executable, str(ROOT / "tests/nullpublish_refreeze_test.py")]).returncode
+    return 0 if result.wasSuccessful() and promoted == 0 and refrozen == 0 else 1
 
 
 def main():

@@ -205,10 +205,15 @@ class PromotionControls(unittest.TestCase):
         binary = cls.root / 'build/frozen-server'
         shutil.copy2(shutil.which('true'), binary)  # ELF identity fixture, never run.
         cls.binary = dict(path=str(binary), sha256=receipt.object_file(binary)[1])
+        # Keep all 181 cells and every raw ABBA block. Two server threads are
+        # sufficient to retain both split roles; duplicating their counters 16x
+        # only inflates JSON/copies/replay in each mutation control. The separate
+        # saturation suite retains inactive-peer and many-thread role checks.
+        # Geometry here is metadata, never an instruction to run on these CPUs.
         cls.env = dict(uname=list(os.uname()), python_runtime=cls.fp['python'],
-            server_physical=list(range(32)), server_smt=[], server_cpus=list(range(32)),
-            load_physical=list(range(32, 112)), load_smt=list(range(160, 240)),
-            load_cpus=list(range(32, 112)) + list(range(160, 240)), split_ratio='16:16',
+            server_physical=[0, 1], server_smt=[], server_cpus=[0, 1],
+            load_physical=list(range(2, 18)), load_smt=[],
+            load_cpus=list(range(2, 18)), split_ratio='1:1',
             port=8700, permitted_ports=[8700], load_instance_ceiling=16,
             keys=2000000, data_bytes=64, key_pattern='P:P', atomic='per-cell', split_flip_auto=0,
             memtier_path=str(binary), memtier_sha256=cls.binary['sha256'], memtier_version='identity fixture; never executed',
@@ -370,8 +375,8 @@ class PromotionControls(unittest.TestCase):
     def test_read_local_receipt_reused_without_rerunning_directed_controls(self):
         binding, proof, _, _ = self.controls()
         report = self.armed_report(binding, proof)
-        args = argparse.Namespace(server_cores='0-31', server_smt='', load_cores='32-111',
-                                  load_smt='160-239', port=8700, reorder_controls=Path(binding['path']))
+        args = argparse.Namespace(server_cores='0-1', server_smt='', load_cores='2-17',
+                                  load_smt='', port=8700, reorder_controls=Path(binding['path']))
         runner = abba.Runner(args, self.root / 'build', {'A': Path(self.binary['path']),
                             'B': Path(self.binary['path'])}, None)
         reorder_control.attach(runner, report, [abba.Cell(**c) for c in self.inv['cells']])
@@ -595,7 +600,10 @@ class PromotionControls(unittest.TestCase):
                                 hits.append(reason)
                             else:
                                 original(condition, reason)
-                        stack.enter_context(mock.patch.object(module, 'require', side_effect=removed))
+                        # These guards are called for every raw numeric field.
+                        # Record only the explicit hits below, not a Mock call
+                        # object for each successfully validated scalar.
+                        stack.enter_context(mock.patch.object(module, 'require', new=removed))
                     if state == 'cached saturation PASS':
                         original = evidence.replay_saturation
                         def no_cached_check(record, **kwargs):
@@ -605,10 +613,10 @@ class PromotionControls(unittest.TestCase):
                                 if str(error) != rejected[1]: raise
                                 hits.append(str(error)); return record
                         for module in (evidence, abba):
-                            stack.enter_context(mock.patch.object(module, 'replay_saturation', side_effect=no_cached_check))
+                            stack.enter_context(mock.patch.object(module, 'replay_saturation', new=no_cached_check))
                     if state == 'wrong workload':
                         def no_workload(*_, **__): hits.append(rejected[1])
-                        stack.enter_context(mock.patch.object(evidence, 'validate_workload_evidence', side_effect=no_workload))
+                        stack.enter_context(mock.patch.object(evidence, 'validate_workload_evidence', new=no_workload))
                     observed = None
                     try:
                         receipt.promote_null(self.root, self.args)
@@ -812,7 +820,7 @@ class PromotionControls(unittest.TestCase):
             def removed(condition, reason):
                 if message not in reason:
                     saved(condition, reason)
-            with mock.patch.object(module, 'require', side_effect=removed):
+            with mock.patch.object(module, 'require', new=removed):
                 with self.assertRaises(AssertionError):
                     with self.assertRaisesRegex(ValueError, message):
                         receipt.promote_null(self.root, self.args)
@@ -850,6 +858,61 @@ class PromotionControls(unittest.TestCase):
 
 
 class NullpublishControls(unittest.TestCase):
+    def test_campaign6_compact_replay_preserves_exact_map_and_classification_control(self):
+        path = ROOT / 'tests/fixtures/nullpublish-campaign6-compact.json'
+        compact = receipt.read_json(path)
+        self.assertEqual(compact['parent']['sha256'],
+                         '501cefeeba9d1f3bb9a2d07ddfd8e6a9f641c422f1758c24f6d0d4fcadfecbb5')
+
+        def assertion():
+            result = receipt.replay_null(path)
+            rows = result['resolution']
+            self.assertEqual((len(rows), sum(r['status'] == 'RESOLVING' for r in rows),
+                              sum(r['status'] == 'UNRESOLVED' for r in rows)), (188, 141, 47))
+            by_key = {(r['cell'], r['metric'], r['instances']): r for r in rows}
+            self.assertEqual(len(compact['expected']), len(by_key))
+            for expected in compact['expected']:
+                actual = by_key[expected['cell'], expected['metric'], int(expected['instances'])]
+                self.assertEqual(actual['status'], expected['status_at_MAX_SPREAD_2'])
+                for field in ('reference_spread_pct', 'candidate_spread_pct'):
+                    self.assertEqual(f"{actual[field]:.3f}", expected[field])
+                self.assertEqual(f"{actual['delta_pct']:.3f}", expected['paired_delta_pct'])
+            t00 = next(r for r in rows if (r['cell'], r['metric']) == ('t00', 'p999_ms'))
+            self.assertEqual(f"{t00['reference_spread_pct']:.2f}", '11.68')
+            self.assertFalse(result['promotable'])
+            self.assertTrue(result['reporting_only'])
+            self.assertEqual(result['summary']['pass_evidence_cells'], [])
+            with self.assertRaises(ValueError):
+                evidence.validate_null(compact, now=time.time())
+
+        assertion()
+        with throwaway(evidence, 'null_resolution',
+                       'max(threshold, candidate_spread, abs(delta)) <= MAX_SPREAD', 'True'), \
+             mock.patch.object(receipt, 'null_resolution', new=lambda report: evidence.null_resolution(report)):
+            with self.assertRaises(AssertionError):
+                assertion()
+        print('Campaign 6 compact replay: 188/141/47, t00 11.68%; classification removal detected; no PASS evidence')
+
+    def test_replay_reads_once_and_hashes_exactly_the_parsed_bytes(self):
+        _, row = self.row((90., 100., 100., 110.))
+        with tempfile.TemporaryDirectory(dir=ROOT / 'build') as tmp:
+            path = Path(tmp) / 'results.json'
+            content = receipt.canonical({'cells': [row]})
+            path.write_bytes(content)
+            calls, read = [], Path.read_bytes
+
+            def once(target):
+                calls.append(target)
+                self.assertEqual(calls, [path], 'historical report was read more than once')
+                return read(target)
+
+            with mock.patch.object(Path, 'read_bytes', new=once), \
+                 mock.patch.object(Path, 'read_text', side_effect=AssertionError('unexpected second text read')):
+                result = receipt.replay_null(path)
+            self.assertEqual(calls, [path])
+            self.assertEqual(result['source_sha256'], receipt.digest(content))
+            self.assertFalse(result['promotable'])
+
     def row(self, values):
         cell = abba.Cell('resolution', '1s', 0, 1, 1, 'GET', 1, 512, score='latency')
         runs = [raw_run(cell, arm, 1, index, PromotionControls.env)
