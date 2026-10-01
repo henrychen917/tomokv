@@ -40,7 +40,10 @@ def sources(delay):
         'inline constexpr unsigned kSmallPipe = 16;\n'
         f'inline constexpr unsigned kDeferVisits = {delay};')
     rule = replace(rule, f'    const unsigned threshold = n <= kSmallPipe ? n : {old.HALF};',
-        '    const bool complete = n <= kSmallPipe && c.wb_deferrals() < kDeferVisits;\n'
+        '    // Keep this per-visit predicate off the encoder\'s register set. A live\n'
+        '    // register here spills once per integer reply; one stack byte keeps all\n'
+        '    // additional work at the visit boundary (locked by code-costs receipts).\n'
+        '    const volatile bool complete = n <= kSmallPipe && c.wb_deferrals() < kDeferVisits;\n'
         f'    const unsigned threshold = complete ? n : {old.HALF};')
     rule = replace(rule, '    if (prefix >= threshold) return false;\n    return true;',
         '    if (prefix >= threshold) return false;\n'
@@ -126,7 +129,7 @@ def pad(binary, target, header):
     # defer symbols. This avoids decoding unrelated megabytes of server text.
     elf = Elf(binary)
     line_number = next(i for i, line in enumerate(header.splitlines(), 1)
-                       if 'const bool complete = n <= kSmallPipe' in line)
+                       if 'bool complete = n <= kSmallPipe' in line)
     symbols = [s for n, s in elf.functions().items() if '7wb_rule5defer' in n]
     assert symbols, binary
     sites = []
@@ -195,14 +198,14 @@ def proofs():
         for db0 in (False, True):
             binary = STUDY / (name + ('-db0' if db0 else '') + '-unit')
             compile_unit(source, binary, delay, db0, small=0 if name == 'ref' else 16)
-            for case in ('table', 'exits', 'lifetime'):
+            for case in ('table', 'exits', 'lifetime', 'lifetime-serve'):
                 rows.append(run(binary, case))
             if delay:
                 raw = binary.with_name(binary.name + '-pad-raw')
                 twin = binary.with_name(binary.name + '-pad')
                 compile_unit(source, raw, delay, db0, small=0)
                 pad_rows.append(pad(raw, twin, (source / POLICY).read_text()))
-                for case in ('table', 'exits', 'lifetime'):
+                for case in ('table', 'exits', 'lifetime', 'lifetime-serve'):
                     rows.append(run(twin, case))
                 for mutation, case, failure in (
                     ('early', 'table', 'bounded decision table'),
@@ -220,6 +223,7 @@ def proofs():
                     mutant = binary.with_name(binary.name + '-' + mutation)
                     compile_unit(control, mutant, delay, db0)
                     rows.append(run(mutant, case, failure))
+                    if mutation == 'no-reset': rows.append(run(mutant, 'lifetime-serve', failure))
         print('PASS table/exits/lifetime and controls:', name, flush=True)
     write_json('proofs', rows)
     write_json('pad-unit-sites', pad_rows)
@@ -351,6 +355,24 @@ def layout():
 
 def code_identity():
     """Audit all emitted bodies, not just handpicked hot symbols."""
+    class AuditElf(Elf):
+        def canonical(self, symbol):
+            # The inherited hot-symbol audit never encountered R_X86_64_TPOFF32
+            # (23). The complete audit includes cold TLS users as well.
+            saved = self.relocs.get(symbol['sec'], [])
+            tls = [r for r in saved if r[1] == 23]
+            self.relocs[symbol['sec']] = [r for r in saved if r[1] != 23]
+            try:
+                body, targets = super().canonical(symbol)
+            finally:
+                self.relocs[symbol['sec']] = saved
+            body = bytearray(body)
+            for offset, kind, target, addend in tls:
+                at = offset - symbol['value']
+                if 0 <= at < len(body):
+                    body[at:at+4] = bytes(4)
+                    targets.append((at, kind, self.target(target, addend, kind)))
+            return bytes(body), sorted(targets, key=lambda r: r[0])
     compiles, _ = old.commands()
     rows = []
     for name in ARMS:
@@ -359,7 +381,7 @@ def code_identity():
             pre, post = ROOT / obj, STUDY / name / obj
             if sha(pre) == sha(post):
                 continue  # separately sealed whole objects
-            a, b = Elf(pre), Elf(post)
+            a, b = AuditElf(pre), AuditElf(post)
             af, bf = a.functions(), b.functions()
             for symbol in sorted(af.keys() | bf.keys()):
                 total += 1
@@ -400,10 +422,134 @@ def legacy_hybrid():
     print('PASS unchanged wbhybrid oracle, exits and strict S+1 controls', flush=True)
 
 
+def code_costs():
+    tracer = STUDY / 'instruction-trace'
+    rows = []
+    for arm, delay in {'ref': 0, **ARMS}.items():
+        source = ROOT if arm == 'ref' else STUDY / arm
+        for db0 in (False, True):
+            binary = STUDY / (arm + ('-db0' if db0 else '') + '-codes')
+            flags = old.FLAGS + (['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0'] if db0 else [])
+            subprocess.run(flags + [f'-DWBHYBRID2_DELAY={delay}', f'-DWBHYBRID2_SMALL={0 if arm == "ref" else 16}',
+                f'-DWBHYBRID2_COUNTER={int(delay > 0)}', '-I' + str(source), '-I' + str(ROOT),
+                str(ROOT / 'tests/wbhybrid2_codes.cc'), '-o', str(binary), '-ljemalloc'], check=True)
+            elf = Elf(binary); symbol = elf.functions()['wbhybrid2_defer']; sec = elf.sections[elf.names.index('.text')]
+            for done in range(3):
+                for waits in (0, 2):
+                    for shape in (1, 2, 3):
+                        case = f'codes-{done}-{waits}-{shape}'
+                        r = subprocess.run([str(tracer), str(binary), case, f'{symbol["value"]:x}',
+                            f'{sec[3]:x}', f'{sec[5]:x}', str(int(elf.kind == 3))], capture_output=True, text=True, timeout=60)
+                        assert r.returncode == 0 and f'PASS wbhybrid2 {case}' in r.stdout, r.stdout + r.stderr
+                        count = json.loads(next(line[6:] for line in r.stdout.splitlines() if line.startswith('TRACE=')))
+                        rows.append(dict(arm=arm, db0=db0, case=case, binary=str(binary.relative_to(ROOT)),
+                                         sha256=sha(binary), **count))
+    write_json('code-costs', rows)
+    print('PASS 144 GET/OK/integer instruction receipts, both namespaces', flush=True)
+
+
+def audit():
+    assert not subprocess.check_output(['git', 'diff', BASE, '--', 'src', 'Makefile'], cwd=ROOT)
+    assert not subprocess.check_output(['git', 'diff', 'origin/cpp', '--', 'tests/gate.sh'], cwd=ROOT)
+    cache = {}
+    def digest(path):
+        path = Path(path)
+        if path not in cache: cache[path] = sha(path)
+        return cache[path]
+    groups = {}
+    files = [(name, STUDY / (name + '.json')) for name in ('proofs', 'paths', 'legacy-hybrid')]
+    files += [(name, BUILD / (name + '-proofs.json')) for name in (
+        'wb-rule-policy', 'wb-rule-phase', 'wb-rule-stages', 'wb-rule-split-phase',
+        'wb-rule-split-overlap', 'wbland-clauses', 'wbland-paths')]
+    for name, path in files:
+        rows = json.loads(path.read_text())
+        assert rows and all(r['passed'] and digest(ROOT / r['binary']) == r['sha256'] for r in rows)
+        groups[name] = dict(positive=sum(r['expected_exit'] == 0 for r in rows),
+                           negative=sum(r['expected_exit'] == 1 for r in rows), sha256=digest(path))
+    for name, delay in ARMS.items():
+        assert all((STUDY / name / path).read_text() == text for path, text in sources(delay).items())
+    binaries = json.loads((STUDY / 'binaries.json').read_text())
+    assert all(digest(ROOT / r['path']) == r['sha256'] for r in binaries)
+    for name in ('pads', 'pad-unit-sites', 'pad-path-sites'):
+        for row in json.loads((STUDY / (name + '.json')).read_text()):
+            before = (ROOT / row['candidate']['path']).read_bytes()
+            after = bytearray((ROOT / row['pad']['path']).read_bytes())
+            assert digest(ROOT / row['candidate']['path']) == row['candidate']['sha256']
+            assert digest(ROOT / row['pad']['path']) == row['pad']['sha256']
+            for site in row['sites']:
+                assert before[site['offset']] == 16 and after[site['offset']] == 1
+                after[site['offset']] = 16
+            assert before == after
+            if name == 'pads': assert row['differing_bytes'] == len(row['sites']) == 2
+    costs = json.loads((STUDY / 'costs.json').read_text())
+    assert digest(STUDY / 'instruction-trace') == costs['tracer_sha256']
+    counts = {}
+    for row in costs['rows']:
+        binary = STUDY / (row['arm'] + ('-db0' if row['db0'] else '') + '-unit')
+        assert digest(binary) == row['binary_sha256'] and row['library_instructions'] == 0
+        counts[(row['arm'], row['db0'], row['case'])] = row['instructions']
+    assert len(counts) == 896
+    code_costs = json.loads((STUDY / 'code-costs.json').read_text())
+    assert len(code_costs) == 144 and all(digest(ROOT / r['binary']) == r['sha256'] for r in code_costs)
+    coded_counts = {(r['arm'], r['db0'], r['case']): r['instructions'] for r in code_costs}
+    for arm in ('hyb16-d1', 'hyb16-d2'):
+        for db0 in (False, True):
+            for waits in (0, 2):
+                for shape in (1, 2, 3):
+                    deltas = [coded_counts[(arm, db0, f'codes-{done}-{waits}-{shape}')] -
+                              coded_counts[('hyb16-d0', db0, f'codes-{done}-{waits}-{shape}')]
+                              for done in range(3)]
+                    assert len(set(deltas)) == 1, ('per-reply overhead', arm, db0, waits, shape, deltas)
+    for arm in ('ref', *ARMS):
+        for db0 in (False, True):
+            for waits in range(4):
+                for stem in ('1-0-0-1-0', '64-1-0-0-0', '64-0-512-1-0'):
+                    case = f'trace-{stem}-{waits}'
+                    assert counts[(arm, db0, case)] == counts[('ref', db0, case)]
+                for n in (4, 8, 16, 17, 32, 64):
+                    # Every extra acquired Done in this unchanged empty-reply walk
+                    # costs the same 26 instructions. State work is per visit only.
+                    assert counts[(arm, db0, f'trace-{n}-1-0-1-0-{waits}')] - \
+                           counts[(arm, db0, f'trace-{n}-0-0-1-0-{waits}')] == 26
+    code = json.loads((STUDY / 'code-identity.json').read_text())
+    assert [r['arm'] for r in code] == list(ARMS)
+    disassembly = {}
+    for arm in ('ref', *ARMS):
+        binary = BUILD / ('tomokv-wbhybrid2-ref' if arm == 'ref' else 'tomokv-' + arm)
+        elf = Elf(binary)
+        for name, symbol in elf.functions().items():
+            if '7wb_rule5defer' not in name: continue
+            ns = 'db0' if 'tomo_db0' in name else 'multi'
+            output = STUDY / f'{arm}-{ns}-defer.asm'
+            output.write_text(subprocess.check_output(['objdump', '-dwC',
+                f'--start-address={symbol["value"]}',
+                f'--stop-address={symbol["value"] + symbol["size"]}', str(binary)], text=True))
+            disassembly[output.name] = dict(sha256=sha(output), symbol_bytes=symbol['size'])
+    result = dict(launch=LAUNCH, reference=BASE, groups=groups, binaries=binaries,
+        instruction_receipts=len(counts), coded_instruction_receipts=len(code_costs), per_extra_done_instructions=26,
+        extra_work_per_scanned_get_ok_integer_reply=0,
+        early_exit_instruction_delta=0, disassembly=disassembly,
+        identity=json.loads((STUDY / 'identity.json').read_text()),
+        layout=json.loads((STUDY / 'layout.json').read_text()),
+        strict_all_body_identity=False,
+        code_audit=[dict(arm=r['arm'], compared=r['compared'], changed=len(r['changed']),
+                        added_or_removed=len(r['missing'])) for r in code],
+        limitation='Native compiler bodies outside the intended stores/rule also change, including d0. '
+                   'Source scope and whole objects outside the include closure pass; full code-body identity does not. '
+                   'Exact-layout PAD A twins isolate policy behaviour within each native layout.',
+        inputs={str(p.relative_to(ROOT)): sha(p) for p in (Path(__file__).resolve(),
+            ROOT / 'tests/wbhybrid2_unit.cc', ROOT / 'tests/wbhybrid2_paths.inc',
+            ROOT / 'tests/wbhybrid2_codes.cc')},
+        receipts={p.name: sha(p) for p in sorted(STUDY.glob('*.json')) if p.name != 'audit.json'})
+    write_json('audit', result)
+    (ROOT / 'tests/wbhybrid2_evidence.json').write_text(json.dumps(result, indent=2) + '\n')
+    print('PASS frozen correctness, PAD, layout and instruction audit; strict code identity exceptions recorded', flush=True)
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('action', choices=('builds', 'pads', 'proofs', 'paths', 'costs', 'identity', 'layout', 'legacy',
-                                     'code_identity', 'legacy_hybrid'))
+                                     'code_identity', 'legacy_hybrid', 'code_costs', 'audit'))
     args = p.parse_args()
     old.pinned()
     STUDY.mkdir(parents=True, exist_ok=True)

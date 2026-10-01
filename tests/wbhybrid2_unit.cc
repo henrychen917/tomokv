@@ -97,10 +97,29 @@ static void exits() {
         require(wb_rule::defer(hole), "head hole blocks every threshold");
     }
 }
-struct ServerStub { struct Config { int wb_policy = 1; } config; const Config& cfg() { return config; } };
-struct Loop { std::deque<Client*> pending_serve_; ServerStub server; ServerStub* srv_ = &server; };
+struct ServerStub {
+    static constexpr unsigned kClimonReply = 1;
+    struct Config { int wb_policy = 1; } config;
+    const Config& cfg() { return config; }
+};
+struct WbStub {
+    unsigned calls = 0;
+    template <bool, bool, bool> bool serve(Client&) { ++calls; return false; }
+};
+struct Loop {
+    std::deque<Client*> pending_serve_; ServerStub server; ServerStub* srv_ = &server;
+    unsigned climon_armed_cached_ = 0; WbStub wb_;
+    bool climon_reply_suppressed(Client*) { return false; }
+    unsigned climon_serve_suppressed(Client*) { return 0; }
+};
 struct Batch { std::array<Client*, 1> clients{}; std::array<bool, 1> submit_allowed{}; unsigned count = 0; };
+static bool serve_path;
 static bool visit(Loop& loop) {
+    if (serve_path) {
+        const unsigned before = loop.wb_.calls;
+        wb_rule::Phase2::serve<false, false>(loop);
+        return loop.wb_.calls != before;
+    }
     size_t left = SIZE_MAX; Batch batch;
     return wb_rule::Phase2::gather(loop, batch, left) != 0;
 }
@@ -161,8 +180,11 @@ int main(int argc, char** argv) {
     selected = argv[1]; const std::string name = selected;
     if (name == "table") table();
     else if (name == "exits") exits();
-    else if (name == "lifetime") lifetime();
+    else if (name == "lifetime" || name == "lifetime-serve") {
+        serve_path = name == "lifetime-serve"; lifetime();
+    }
     else if (name.starts_with("trace-")) trace(name);
     else require(false, "known fixture");
     std::printf("PASS wbhybrid2 %s\n", selected);
+    return 0;
 }

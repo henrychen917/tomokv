@@ -7,6 +7,13 @@ static unsigned wb_waits(Client& c) {
     (void)c; return 0;
 #endif
 }
+static bool wb_can_wait(unsigned waits) {
+#if WBHYBRID2_DELAY
+    return waits < WBHYBRID2_DELAY;
+#else
+    (void)waits; return true;
+#endif
+}
 template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
     for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u}) for (int policy : {0, 1}) {
         Fixture<Fused, Local> f(policy);
@@ -24,8 +31,7 @@ template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
             for (unsigned i = 0; i < clients.size(); ++i) {
                 Client& c = *clients[i];
                 const unsigned prefix = i%depth+1;
-                const bool complete = depth <= WBHYBRID2_SMALL &&
-                    (!WBHYBRID2_DELAY || waits[i] < WBHYBRID2_DELAY);
+                const bool complete = depth <= WBHYBRID2_SMALL && wb_can_wait(waits[i]);
                 const unsigned need = complete ? depth : depth/2 + depth%2;
                 if (queued[i] && (policy == 0 || prefix >= need)) {
                     queued[i] = false; waits[i] = 0; ++total_served;
