@@ -214,6 +214,10 @@ def events(text, name):
 
 def verify(case, text, rc, workers, split_plain):
     # Witness absence is always a failure, including timeout/early parser refusal.
+    required = {'load-fail': 'owned-load-failed', 'plain-busy': 'probe-failed',
+                'tls-busy': 'probe-failed', 'unix-attach': 'attach-failed',
+                'stop-loaded': 'Loaded', 'stop-ready': 'Ready', 'ready-order': 'activation-enter'}
+    assert events(text, required[case]), 'intended failure/state never fired: ' + required[case]
     entered = events(text, 'worker-enter')
     exited = events(text, 'worker-exit')
     assert entered and len(entered) == len(set(entered)), 'missing/duplicate worker arrivals'
@@ -232,6 +236,8 @@ def verify(case, text, rc, workers, split_plain):
         assert events(text, 'fd-close') == failed, 'failed Unix attach must close the correct fd exactly once'
     if case in ('stop-loaded', 'stop-ready'):
         assert events(text, 'Loaded' if case == 'stop-loaded' else 'Ready'), 'requested stop phase never entered'
+    if case == 'ready-order':
+        assert len(events(text, 'activation-enter')) in (6, 8), 'every IO activation must be held'
     assert not events(text, 'accepting-worker'), 'accepting worker crossed failed/stopped boot'
     assert not events(text, 'ready-announcement') and not re.search(r'^listening ', text, re.M), 'early readiness advertisement'
     assert rc == (0 if case.startswith('stop-') or case == 'ready-order' else 1), 'incorrect boot exit status'
@@ -253,6 +259,47 @@ def free_port():
         return s.getsockname()[1]
 
 
+def self_test():
+    """Oracle controls only; these do not claim any live mechanism has fired."""
+    def event(name, tid=-1, value=0):
+        return f'BOOT event={name} tid={tid} value={value}\n'
+    checks = 0
+    for split in (False, True):
+        for case in ('load-fail', 'plain-busy', 'tls-busy', 'unix-attach', 'stop-loaded', 'stop-ready', 'ready-order'):
+            count = 2 if split and case in ('load-fail', 'plain-busy', 'tls-busy', 'stop-loaded') else 8
+            arrival = ''.join(event('worker-enter', i) for i in range(count))
+            exits = ''.join(event('worker-exit', i) for i in range(count)) + event('joined')
+            witness = {'load-fail': event('owned-load-failed'), 'plain-busy': event('probe-failed'),
+                       'tls-busy': event('probe-failed', value=1),
+                       'unix-attach': event('attach-failed', value=43) + event('fd-close', value=43),
+                       'stop-loaded': event('Loaded'), 'stop-ready': event('Ready'),
+                       'ready-order': event('activation-enter') * (6 if split else 8)}[case]
+            rc = 0 if case.startswith('stop-') or case == 'ready-order' else 1
+            good = arrival + witness + exits
+            verify(case, good, rc, 8, split)
+            mutations = [
+                (arrival + exits, rc, 'intended failure/state never fired'),
+                (good.replace(event('joined'), ''), rc, 'all arrivals'),
+                (good.replace(event('worker-exit', 0), ''), rc, 'all arrivals'),
+                (good + event('accepting-worker', 0), rc, 'accepting worker'),
+                (good + event('ready-announcement'), rc, 'early readiness'),
+                (good, 1 - rc, 'incorrect boot exit status'),
+            ]
+            if case == 'load-fail': mutations.append((good + event('probe-enter'), rc, 'load barrier bypassed'))
+            if case in ('plain-busy', 'tls-busy'):
+                mutations.append((good + event('activation-enter'), rc, 'failed probe reached worker activation'))
+            if case == 'unix-attach':
+                mutations += [(good.replace(event('fd-close', value=43), ''), rc, 'correct fd exactly once'),
+                              (good + event('fd-close', value=43), rc, 'correct fd exactly once'),
+                              (good.replace(event('fd-close', value=43), event('fd-close', value=44)), rc, 'correct fd exactly once')]
+            for text, status, required in mutations:
+                try: verify(case, text, status, 8, split)
+                except AssertionError as error: assert required in str(error), (case, required, error)
+                else: raise AssertionError('oracle accepted mutation: ' + case + ' / ' + required)
+                checks += 1
+    print(f'Live-log oracle: 14 synthetic valid traces; {checks} bad/unentered traces rejected (live results pending)')
+
+
 def run(args):
     # Explicitly invoked by the maintainer. No automatic caller from gate or unit.
     out = args.output.resolve()
@@ -262,9 +309,10 @@ def run(args):
                     '-subj', '/CN=localhost', '-keyout', str(key), '-out', str(cert)],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
     base = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
-            '--thread-mode', args.mode, '--ratio', '6:2', '--shards', '16', '--databases', str(args.databases),
+            '--thread-mode', args.mode, '--shards', '16', '--databases', str(args.databases),
             '--read-local', str(args.read_local), '--reorder', str(args.reorder), '--net-io', args.net_io,
             '--flip-auto', '0']
+    if args.mode == '2s': base += ['--ratio', '6:2']
     cases = args.cases.split(',')
     results = []
     for case in cases:
@@ -284,11 +332,13 @@ def run(args):
             command += ['--tls-port', str(tls_port), '--tls-cert-file', str(cert),
                         '--tls-key-file', str(key), '--tls-auth-clients', 'no']
         if case == 'unix-attach':
-            command += ['--unixsocket', str(directory / 'server.sock'), '--unixsocketperm', '0600']
+            # Relative to the fresh child's cwd, avoiding AF_UNIX's 108-byte
+            # path limit even when the artifact directory has a long name.
+            command += ['--unixsocket', 'server.sock', '--unixsocketperm', '0600']
         if case == 'load-fail':
             # Produce a real readable snapshot before injecting the owned decode failure.
             with (directory / 'fixture.log').open('w') as f:
-                fixture = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT,
+                fixture = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT, cwd=directory,
                                            env={k: v for k, v in os.environ.items() if not k.startswith('TOMO_BOOT_')})
                 try:
                     wait_for(fixture, directory / 'fixture.log', lambda s: 'listening on ' in s, 'snapshot fixture')
@@ -308,7 +358,7 @@ def run(args):
             assert (directory / 'dump.tomo').exists(), 'actual snapshot fixture missing'
         env = dict(os.environ, TOMO_BOOT_CASE=case, TOMO_BOOT_RELEASE=str(release))
         with log.open('w') as f:
-            process = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT, env=env)
+            process = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT, env=env, cwd=directory)
             try:
                 if case in ('stop-loaded', 'stop-ready', 'ready-order'):
                     phase = 'Loaded' if case == 'stop-loaded' else 'Ready'
@@ -338,6 +388,7 @@ def main():
     sub = p.add_subparsers(dest='action', required=True)
     b = sub.add_parser('build')
     b.add_argument('--output', type=Path, default=ROOT / 'build/cleanup-boot/live')
+    sub.add_parser('self-test', help='serverless oracle controls only')
     r = sub.add_parser('run', help='MAINLINE ONLY: starts real servers')
     r.add_argument('--binary', required=True, type=Path)
     r.add_argument('--output', required=True, type=Path)
@@ -350,6 +401,7 @@ def main():
     r.add_argument('--cases', default='load-fail,plain-busy,tls-busy,unix-attach,stop-loaded,stop-ready,ready-order')
     args = p.parse_args()
     if args.action == 'build': build(args.output.resolve())
+    elif args.action == 'self-test': self_test()
     elif not run(args): raise SystemExit(1)
 
 
