@@ -22,7 +22,7 @@ from ttlstate_proof import (addresses, compare_addresses, compare_arms, compare_
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/cleanup-flipreport'
 MEMBER = '    double stationary_s = 0;      // seconds the current workload has held still\n'
-PADDING = '    double layout_padding = 0;   // inert: preserve report offsets and generated code\n'
+PADDING = '    double layout_padding = 0;   // inert: preserve report size and subsequent offsets\n'
 ASSIGNMENT = '    report.stationary_s = 0;\n'
 
 
