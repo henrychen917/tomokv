@@ -36,6 +36,14 @@ from _abba_test_fixtures import quiet_record, saturation_record
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def fixture_measurements(path=measurements.DEFAULT):
+    """Synthetic two-role geometry, confined to disposable fixture configs."""
+    config = measurements.load(path)
+    config['geometries']['abba']['2'] = dict(io=1, ex=1,
+        provenance=dict(when='synthetic', how='serverless fixture; no measurement'))
+    return config
+
+
 def stamp(epoch):
     return datetime.fromtimestamp(epoch, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -212,13 +220,13 @@ class PromotionControls(unittest.TestCase):
         # Geometry here is metadata, never an instruction to run on these CPUs.
         cls.env = dict(uname=list(os.uname()), python_runtime=cls.fp['python'],
             server_physical=[0, 1], server_smt=[], server_cpus=[0, 1],
-            load_physical=list(range(2, 18)), load_smt=[],
-            load_cpus=list(range(2, 18)), split_ratio='1:1',
+            load_physical=list(range(32, 64)), load_smt=[],
+            load_cpus=list(range(32, 64)), split_ratio='1:1',
             port=8700, permitted_ports=[8700], load_instance_ceiling=16,
             keys=2000000, data_bytes=64, key_pattern='P:P', atomic='per-cell', split_flip_auto=0,
             memtier_path=str(binary), memtier_sha256=cls.binary['sha256'], memtier_version='identity fixture; never executed',
             population_by_arm={'A': 'wire', 'B': 'wire'})
-        config = measurements.load()
+        config = fixture_measurements()
         cells = abba.read_cells(ROOT / 'tests/headline_cells.txt')
         config['load_floors'] = {}
         config['ceiling_loads'] = {}
@@ -375,7 +383,7 @@ class PromotionControls(unittest.TestCase):
     def test_read_local_receipt_reused_without_rerunning_directed_controls(self):
         binding, proof, _, _ = self.controls()
         report = self.armed_report(binding, proof)
-        args = argparse.Namespace(server_cores='0-1', server_smt='', load_cores='2-17',
+        args = argparse.Namespace(server_cores='0-1', server_smt='', load_cores='32-63',
                                   load_smt='', port=8700, reorder_controls=Path(binding['path']))
         runner = abba.Runner(args, self.root / 'build', {'A': Path(self.binary['path']),
                             'B': Path(self.binary['path'])}, None)
@@ -432,7 +440,7 @@ class PromotionControls(unittest.TestCase):
         config_path = self.root / 'tests/gate_measurements.json'
         original = config_path.read_bytes()
         try:
-            config = measurements.load(config_path)
+            config = fixture_measurements(config_path)
             measurements.import_calibration(path, config, cells)
             receipt.write_json(config_path, config)
             args = argparse.Namespace(calibration=path, output=self.root / 'build/armed-freeze.json')
@@ -498,7 +506,7 @@ class PromotionControls(unittest.TestCase):
         self.assertEqual(row['status'], 'LOADGEN-BOUND')
         fast['verdict'] = 'CEILING-LIMITED'
         receipt.write_json(path, fast)
-        config = measurements.load(config_path)
+        config = fixture_measurements(config_path)
         measurements.import_calibration(path, config, cells)
         self.assertNotIn('m09', config['load_floors'])
         self.assertEqual(config['ceiling_loads']['m09']['evidence']['saturated_peak_floor'], None)
@@ -571,7 +579,8 @@ class PromotionControls(unittest.TestCase):
             ('ladder', lambda r: r['cells'][0]['rounds'][0].update(instances=8), 'measured load block'),
             ('window', lambda r: r.update(window_seconds=21), 'shortened measurement'),
             ('cached saturation PASS', lambda r: run(r)['saturation'].update(score_pct=100), 'saturation'),
-            ('raw unsaturated rate', lambda r: run(r).update(saturation=saturation_record('1s', score=1)), 'productive-role'),
+            ('raw unsaturated rate', lambda r: run(r).update(saturation=saturation_record('1s', score=1,
+                threads=len(self.env['server_cpus']))), 'productive-role'),
             ('quiet missing', lambda r: r.update(quiet_box=None), 'quiet-box'),
             ('quiet span', lambda r: r['quiet_box'].update(finished_at=self.started+2), 'span all measurement windows'),
             ('unreaped', lambda r: r['process_cleanup'].update(remaining=1), 'unreaped'),
@@ -718,7 +727,7 @@ class PromotionControls(unittest.TestCase):
             args = argparse.Namespace(calibration=path, output=self.root / 'build/post-import-plan.json')
             with self.assertRaisesRegex(ValueError, 'replay/import'):
                 receipt.freeze_null(self.root, args)
-            config = measurements.load(config_path)
+            config = fixture_measurements(config_path)
             imported = measurements.import_calibration(path, config, cells)
             self.assertEqual(len(imported), sum(not saturation_exempt(cell) for cell in cells))
             receipt.write_json(config_path, config)
@@ -741,7 +750,7 @@ class PromotionControls(unittest.TestCase):
                                          self.started - 1000, self.binary, fast=True)
             path = self.root / 'build/unresolved-calibration.json'
             receipt.write_json(path, calibration)
-            config = measurements.load(config_path)
+            config = fixture_measurements(config_path)
             measurements.import_calibration(path, config, cells)
             receipt.write_json(config_path, config)
             frozen = self.root / 'build/unresolved-campaign.json'
@@ -1042,7 +1051,7 @@ class ExemptionControls(unittest.TestCase):
                 report = fixture_report(selected, fp, env, 'synthetic real-shape cells\n', int(time.time())-10000,
                                         PromotionControls.binary, fast=True)
                 receipt.write_json(path, report)
-                config = measurements.load(); prior = copy.deepcopy(config)
+                config = fixture_measurements(); prior = copy.deepcopy(config)
                 imported = measurements.import_calibration(path, config, selected)
                 expected = [cell.id for cell in selected if not saturation_exempt(cell)]
                 self.assertEqual(imported, expected)
@@ -1064,7 +1073,7 @@ class ExemptionControls(unittest.TestCase):
             report['cells'][-1]['status'] = 'EXEMPT'
             receipt.write_json(path, report)
             with self.assertRaisesRegex(ValueError, 'failed calibration cell'):
-                measurements.import_calibration(path, measurements.load(), cells)
+                measurements.import_calibration(path, fixture_measurements(), cells)
             self.assertFalse(saturation_exempt(cells[-1]))
             for module in (measurements, evidence, abba):
                 with mock.patch.object(module, 'saturation_exempt', return_value=True):
@@ -1093,7 +1102,7 @@ class ExemptionControls(unittest.TestCase):
                 if module is evidence:
                     evidence.validate_measurements(normal, now=time.time())
                 else:
-                    self.assertEqual(measurements.import_calibration(path, measurements.load(), [cell]), [])
+                    self.assertEqual(measurements.import_calibration(path, fixture_measurements(), [cell]), [])
             for module, name, old, new, occurrence, state in cases:
                 with self.subTest(state=state):
                     assertion(module)
