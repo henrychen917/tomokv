@@ -28,11 +28,9 @@ def body(text, start, end):
     return text[text.index(start):text.index(end, text.index(start))]
 
 
-def source():
+def verify_source(post):
     pre = reference()
-    post = (ROOT / 'src/store/flatstore.h').read_text()
     start = '    ReadLocalPrefetchCapture read_local_prefetch_capture('
-    end = '\n    void prefetch('
     # Restrict to the method itself, before the existing test-hook declaration.
     a = body(pre, start, '\n#ifdef TOMO_CORE_CONCURRENCY_TEST\n    // Deterministic')
     b = body(post, start, '\n#if defined(TOMO_CORE_CONCURRENCY_TEST) || defined(TOMO_PROBEADAPTER_TEST)\n    // Deterministic')
@@ -44,19 +42,51 @@ def source():
     a = body(pre, '    const KvObj* read_local_capture_in(', '\n    static void read_local_prefetch_object(')
     b = body(post, '    const KvObj* read_local_capture_in(', '\n    static void read_local_prefetch_object(')
     assert strip(a) == strip(b), 'capture walk changed beyond rationale comment'
-    assert 'read_local_find_in(' not in post
+    assert 'read_local_find_in(' not in post, 'obsolete independent walk remains'
     adapter = body(post, '    ReadLocalProbe read_local_probe(', '\n#ifdef TOMO_PROBEADAPTER_TEST')
     assert strip(adapter) == strip('''
     ReadLocalProbe read_local_probe(uint64_t hash, Slice key) const {
         const auto capture = read_local_prefetch_capture(hash, key);
         return {capture.result, capture.object, capture.state};
     }
-    ''')
+    '''), 'adapter is not the exact projection'
     assertion = 'assert((pointer & ~kPtrMask) == 0'
     assert pre[:pre.index(assertion)].count('\n') == post[:post.index(assertion)].count('\n'), 'release assert line changed'
-    save(OUT / 'source-proof.json', dict(capture_verbatim_except_test_hooks=True,
+    return dict(capture_verbatim_except_test_hooks=True,
          capture_walk_verbatim_except_comment=True, obsolete_walk_absent=True,
-         adapter_exact_projection=True, release_assert_line_preserved=True))
+         adapter_exact_projection=True, release_assert_line_preserved=True)
+
+
+def source():
+    post = (ROOT / 'src/store/flatstore.h').read_text()
+    save(OUT / 'source-proof.json', verify_source(post))
+    controls = [
+        ('drop-prefetch', '        if (object) read_local_prefetch_object(object);', '',
+         'production capture changed beyond test-only witnesses'),
+        ('change-disabled', '{ReadLocalProbeResult::Churn, nullptr, nullptr, 0}',
+         '{ReadLocalProbeResult::Churn, nullptr, nullptr, 1}', 'production capture changed beyond test-only witnesses'),
+        ('change-key-compare', 'object->read_local_key(flags).key_mem_eq(key)',
+         'object->read_local_key(flags).key_eq(key)', 'capture walk changed beyond rationale comment'),
+        ('change-bound', 'for (uint32_t probes = 0; probes <= table.cap; probes++)',
+         'for (uint32_t probes = 0; probes < table.cap; probes++)', 'capture walk changed beyond rationale comment'),
+        ('drop-adapter-state', 'return {capture.result, capture.object, capture.state};',
+         'return {capture.result, capture.object, 0};', 'adapter is not the exact projection'),
+        ('keep-legacy-walk', '    const KvObj* read_local_capture_in(',
+         '    // read_local_find_in( retained\n    const KvObj* read_local_capture_in(', 'obsolete independent walk remains'),
+        ('drop-source-spacer', '    // embeds __LINE__. Removing this space changes executable assertion arguments.\n\n',
+         '    // embeds __LINE__. Removing this space changes executable assertion arguments.\n', 'release assert line changed'),
+    ]
+    rows = []
+    for name, old, new, expected in controls:
+        mutated = replace_once(post, old, new)
+        try:
+            verify_source(mutated)
+        except AssertionError as error:
+            assert str(error) == expected, (name, str(error))
+        else:
+            raise AssertionError('source control accepted: ' + name)
+        rows.append(dict(control=name, rejected=True, assertion=expected))
+    save(OUT / 'source-controls.json', rows)
 
 
 def elf_controls():
@@ -134,16 +164,16 @@ namespace tomo {''')
                         'return {capture.result, probeadapter_fault("drop-object") ? nullptr : capture.object, '
                         'probeadapter_fault("drop-state") ? 0 : capture.state};')
     start = text.index('    ReadLocalPrefetchCapture read_local_prefetch_capture(')
-    end = text.index('\n#if defined(TOMO_CORE_CONCURRENCY_TEST)', text.index('    }', start))
+    end = text.index('\n#if defined(TOMO_CORE_CONCURRENCY_TEST) || defined(TOMO_PROBEADAPTER_TEST)\n    // Deterministic', start)
     capture = text[start:end]
     capture = replace_once(capture, 'if (test_read_local_capture_entered)',
                            'if (!probeadapter_fault("no-entry") && test_read_local_capture_entered)')
     capture = replace_once(capture, 'if (test_read_local_captured)',
                            'if (!probeadapter_fault("no-walk") && test_read_local_captured)')
     capture = replace_once(capture, '{ReadLocalProbeResult::Churn, nullptr, nullptr, 0}',
-                           '{probeadapter_fault("disabled-missing") ? ReadLocalProbeResult::Missing : ReadLocalProbeResult::Churn, nullptr, nullptr, 0}')
+                           '{probeadapter_fault("disabled-missing") ? ReadLocalProbeResult::Missing : ReadLocalProbeResult::Churn, nullptr, nullptr, probeadapter_fault("disabled-state") ? 1u : 0u}')
     capture = replace_once(capture, '{ReadLocalProbeResult::AtomicPending, nullptr, nullptr, state}',
-                           '{probeadapter_fault("pending-missing") ? ReadLocalProbeResult::Missing : ReadLocalProbeResult::AtomicPending, nullptr, nullptr, state}')
+                           '{probeadapter_fault("pending-missing") ? ReadLocalProbeResult::Missing : probeadapter_fault("pending-churn") ? ReadLocalProbeResult::Churn : ReadLocalProbeResult::AtomicPending, nullptr, nullptr, state}')
     capture = replace_once(capture, 'if (!read_local_state_eligible(state))',
                            'if (!probeadapter_fault("accept-odd") && !read_local_state_eligible(state))')
     capture = replace_once(capture, 'if (!read_local_probe_sequence_equal(final_state, state))',
@@ -155,7 +185,23 @@ namespace tomo {''')
     header.write_text(text[:start] + capture + text[end:])
     checks = tree / 'tests/probeadapter_checks.h'
     text = checks.read_text()
+    text = replace_once(text, '    const auto capture = store.read_local_prefetch_capture(hash, key);',
+                        '    if (const char* caller = std::getenv("PROBEADAPTER_CALLER"))\n'
+                        '        if (std::strcmp(caller, state) == 0) setenv("PROBEADAPTER_FAULT", "legacy", 1);\n'
+                        '    const auto capture = store.read_local_prefetch_capture(hash, key);')
+    text = replace_once(text, 'check(store.prepare_read_local(),',
+                        'check(!probeadapter_fault("no-preparation") && store.prepare_read_local(),')
+    text = replace_once(text, 'object = tomo::kvobj_new_string(key, Slice("value"));',
+                        'object = probeadapter_fault("no-hit-insertion") ? nullptr : tomo::kvobj_new_string(key, Slice("value"));')
+    text = replace_once(text, 'auto* value = tomo::kvobj_new_string(key, Slice("grow"));',
+                        'auto* value = probeadapter_fault("no-grow-insertion") ? nullptr : tomo::kvobj_new_string(key, Slice("grow"));')
     text = replace_once(text, 'witness.resize = true;', 'witness.resize = !probeadapter_fault("no-transition");')
+    text = replace_once(text, '    witness.database = database;',
+                        '    witness.database = database;\n'
+                        '    if (probeadapter_fault("no-transition-entry")) Store::test_read_local_capture_entered = nullptr;')
+    text = replace_once(text, '    a.arm(); b.arm();',
+                        '    a.arm(); b.arm();\n'
+                        '    if (probeadapter_fault("different-twin-generation")) { auto guard = b.store.read_local_table_guard(); }')
     text = replace_once(text, '    f.store.foreign_read_scope_open(f.hash);',
                         '    if (!probeadapter_fault("no-pending-window")) f.store.foreign_read_scope_open(f.hash);')
     text = replace_once(text, '        auto guard = f.store.read_local_table_guard();',
@@ -185,6 +231,8 @@ namespace tomo {''')
     makefile = ['all: ' + str(tree / 'build/rehash-waits-unit') + ' ' + str(tree / 'build/multidb-unit')]
     for p in plans:
         deps = [str(tree / name) for name in wanted if name.endswith('.o')] if p['target'].endswith('/multidb-unit') else []
+        deps += [str(header), str(checks)]
+        deps += [str(tree / word) for word in p['argv'] if word.endswith('.cc')]
         makefile += [p['target'] + ': ' + ' '.join(deps), '\t' + shlex.join(p['argv'])]
     (tree / 'controls.mk').write_text('\n'.join(makefile) + '\n')
     save(out / 'build-plan.json', plans)
@@ -205,7 +253,9 @@ def run_controls():
         'drop-object': 'exact result/object/state projection',
         'drop-state': 'exact result/object/state projection',
         'disabled-missing': 'exact capture walk count',
+        'disabled-state': 'exact semantic result/object/state',
         'pending-missing': 'exact capture walk count',
+        'pending-churn': 'exact semantic result/object/state',
         'accept-odd': 'exact semantic result/object/state',
         'accept-invalid': 'invalid topology returns Churn/null/current state',
         'hit-missing': 'exact semantic result/object/state',
@@ -214,10 +264,16 @@ def run_controls():
         'no-transition': 'real resize entered within 128 insertions',
         'no-pending-window': 'unsafe-key window entered',
         'no-odd-window': 'odd topology window entered',
+        'no-preparation': 'read-local preparation succeeds',
+        'no-hit-insertion': 'known Hit insertion succeeds',
+        'no-grow-insertion': 'bounded grow insertion succeeds',
+        'no-transition-entry': 'capture entered and walked exactly once',
+        'different-twin-generation': 'exact result/object/state projection across fresh twins',
     }
     rows = []
     env = dict(os.environ)
     env.pop('PROBEADAPTER_FAULT', None)
+    env.pop('PROBEADAPTER_CALLER', None)
     for driver, binary, selection in drivers:
         path = tree / 'build' / binary
         for fault in [None, *faults]:
@@ -230,6 +286,19 @@ def run_controls():
                 assert 'FAIL probeadapter ' in result.stderr and faults[fault] in result.stderr, (label, result.stderr)
             rows.append(dict(driver=driver, fault=fault, exit=result.returncode, assertion=result.stderr.strip(),
                              binary_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    for caller, binary, arguments in [
+            ('rehash foreign', 'rehash-waits-unit', ['foreign']),
+            ('multidb prebuilt TTL', 'multidb-unit', []),
+            ('multidb identity', 'multidb-unit', []),
+            ('db0 identity', 'multidb-unit', ['--db0-only'])]:
+        path = tree / 'build' / binary
+        result = subprocess.run([str(path), *arguments], env=dict(env, PROBEADAPTER_CALLER=caller),
+                                capture_output=True, text=True, timeout=60)
+        expected = f'FAIL probeadapter {caller}: capture entered exactly once'
+        (out / ('caller-' + caller.replace(' ', '-') + '.log')).write_text(result.stdout + result.stderr)
+        assert result.returncode == 1 and expected in result.stderr, (caller, result.returncode, result.stderr)
+        rows.append(dict(driver=caller, fault='legacy-historical-caller', exit=result.returncode,
+                         assertion=expected, binary_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
     save(out / 'results.json', rows)
 
 
