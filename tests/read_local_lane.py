@@ -36,8 +36,8 @@ Checks (all counter deltas over this battery's own traffic -- the vacuous-valida
   no demote  clean traffic completes 100% locally; the serverless core route fixture also
              observes actual owner publication (zero), independent of telemetry
   fair share read_local_defer_quota      > 0   the pressure window armed and divided the lane
-  local      read_local_hits delta >= 95% of the shared GETs (the rest may fall back for reasons
-             unrelated to capacity, e.g. sequence churn from the RYOW writes below)
+  local      clean GETs: exact hit count and zero fallbacks; separate mixed-write traffic keeps
+             the original >=95% shared-GET floor for legitimate RYOW/sequence fallbacks
   order      every connection receives every reply, in order, with the expected value; the SET
              that follows the deferred GETs on the same connection and the GET behind it prove
              frame order and read-your-own-write survive a deferral

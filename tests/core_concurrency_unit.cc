@@ -1056,6 +1056,12 @@ int main(int argc, char** argv) {
     T::require(argc == 2, "select one regression row");
     T::require(tomo::command_registry_init(false), "command registry initialization");
     const std::string row = argv[1];
+#ifdef TOMO_LANEFULL_ONLY
+    if (row == "lanefull") T::lanefull_all();
+    else if (row == "lanefull-info") T::lanefull_info_all();
+    else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
+    else T::require(false, "select lanefull or lanefull-info");
+#else
     if (row == "watch") T::watch_disconnect();
     else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
     else if (row == "flip-close") T::flip_close();
@@ -1064,6 +1070,7 @@ int main(int argc, char** argv) {
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); }
     else if (row == "lanefull") T::lanefull_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
+    else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
     else if (row == "flipsettle") T::flipsettle_all();
     else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
     else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }
@@ -1091,5 +1098,6 @@ int main(int argc, char** argv) {
     } else if (row == "notify") {
         for (bool range : {false, true}) { T::transfer_notify<false>(range); T::transfer_notify<true>(range); }
     } else T::require(false, "unknown regression row");
+    #endif
     std::printf("PASS core concurrency %s (state assertions fired)\n", argv[1]);
 }

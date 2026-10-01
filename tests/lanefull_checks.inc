@@ -10,7 +10,7 @@
         reader.srv_ = &f.server;
         reader.self_ = &f.server.thread(f.io_id);
         reader.fused_handoff_ring_ = &reader.ring_;
-        reader.cached_now_ms_ = realtime_ms();
+        reader.cached_now_ms_ = reader.realtime_ms();
         reader.read_local_.impl = std::make_unique<ReadLocalExImpl>();
         auto& lane = reader.read_local_impl();
         lane.lane = std::make_unique<ReadLocalExImpl::LaneEntry[]>(kInboxSlots);
@@ -35,7 +35,8 @@
         for (uint32_t sid = 0; sid < f.server.nshards(); ++sid)
             f.server.shard(sid).store().configure_read_local(true, *lane.deferred.sink());
         const unsigned count = mget ? 12 : 2, depth = mget ? 4 : 32;
-        auto clients = std::make_unique<Client[]>(count);
+        struct TestClient : Client { TestClient() : Client(-1) {} };
+        auto clients = std::make_unique<TestClient[]>(count);
         for (unsigned i = 0; i < count; ++i) {
             f.client(clients[i]); clients[i].set_id(100 + i);
             f.io.mark_active(&clients[i]);
@@ -208,7 +209,7 @@
         {"read_local_write_ring_sidecars", 312, false, false},
         {"read_local_write_ring_records", 320, false, false},
     };
-    static void lanefull_info(uint32_t databases) {
+    static void lanefull_info(uint32_t databases, bool legacy_schema = false) {
         Fixture<true> f(false, 8, 16, databases, 6, true);
         command_bind_server(&f.server);
         for (uint32_t t = 0; t < 8; ++t) f.server.thread(t).read_local_stats() = {};
@@ -228,7 +229,10 @@
             // Presence is explicit; absence is never parsed as the numeric zero.
             for (const char* key : {"read_local_fallback_lane_full:",
                                     "read_local_mget_fallback_lane_full:"})
-                require(body.find(key) == std::string::npos, "lanefull INFO: retired key present");
+                if (legacy_schema)
+                    require(body.find(std::string(key) + "0\r\n") != std::string::npos,
+                            "lanefull INFO: PRE schema must retain both zero rows");
+                else require(body.find(key) == std::string::npos, "lanefull INFO: retired key present");
             uint64_t fallback = 0, mget_fallback = 0;
             const auto exact = [&](const char* key, uint64_t value) {
                 const std::string row = std::string("\r\n") + key + ":" +
@@ -259,9 +263,9 @@
         std::printf("PASS lanefull INFO db=%u counters=%zu aggregate/reset/increment/saturation\n",
                     databases, std::size(lane_counters));
     }
-    static void lanefull_info_all() {
-        lanefull_info(1);
-        if constexpr (!kSingleDatabase) lanefull_info(4);
+    static void lanefull_info_all(bool legacy_schema = false) {
+        lanefull_info(1, legacy_schema);
+        if constexpr (!kSingleDatabase) lanefull_info(4, legacy_schema);
     }
     static void lanefull_all() {
         for (uint32_t databases : {1u, 4u}) {
