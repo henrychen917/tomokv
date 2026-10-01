@@ -5,8 +5,10 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import wb_rule_checks as legacy
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -101,7 +103,8 @@ def cpp_tokens(text):
 
 
 def occurrences(code, part):
-    return [i for i in range(len(code) - len(part) + 1) if code[i:i+len(part)] == part]
+    return [i for i in range(len(code) - len(part) + 1)
+            if code[i] == part[0] and code[i:i+len(part)] == part]
 
 
 def method_span(code, name):
@@ -209,13 +212,77 @@ def source():
     print('PASS wbland source: anchored calls/guards, no stray policy references or detector, R7 parity')
 
 
-def check(group, build):
+# These controls exercise the checker itself in copied, disposable source trees.
+# A positive unrelated edit must still run R7 parity. No source tree under test
+# (in particular --root pointing at another lane) is modified.
+SOURCE_CONTROLS = {
+    'reorder-arguments': (R7, SERVE, SERVE.replace('Fused>', 'true>'),
+                          f'{R7}: Phase2 call set (count/arguments)'),
+    'reorder-unrelated': (R7, '', '\n// Unrelated boot-banner documentation edit.\n', None),
+    'io-extra-call': (IO, 'return ' + GATHER + ';', GATHER + '; return ' + GATHER + ';',
+                      f'{IO}: Phase2 call set (count/arguments)'),
+    'rule-detector': (POLICY, '', '\nstruct Window {};\n', f'{POLICY}: banned token struct Window'),
+    'reorder-guard': (R7, 'if (!pending_serve_.empty()) {', 'if (pending_serve_.empty()) {',
+                       f'{R7}: r7_flush_ready anchored writeback site'),
+    'io-stray-rule': (IO, 'void enqueue_serve(Client* c) {',
+                      'void enqueue_serve(Client* c) { wb_rule::defer(*c);',
+                      f'{IO}: unanchored writeback reference wb_rule'),
+    'rule-clock': (POLICY, 'if (policy == 0) return false;',
+                   '(void)now_ns(); if (policy == 0) return false;', f'{POLICY}: banned token now_ns('),
+    'rule-allocation': (POLICY, 'char line[64];', 'char line[64]; (void)new char;',
+                        f'{POLICY}: banned token new'),
+    'io-clock': (IO, 'uint32_t flush_ready() {', 'uint32_t flush_ready() { (void)now_ns();',
+                 f'{IO}:flush_ready: banned token now_ns('),
+    'engine-clock': (WB, '', '\ninline auto wbland_clock() { return now_ns(); }\n',
+                     f'{WB}: banned token now_ns('),
+    'rule-equivalent': (POLICY, 'if (n <= 1) return false;', 'if (n < 2) return false;', None),
+}
+
+
+def source_controls(work):
+    rows = []
+    inputs = (POLICY, WB, IO, R7, 'src/core/server.h', 'src/core/ex_loop.h',
+              'src/core/genthread.cc', 'tests/r7shadow_sync.py', 'tools/reorder_sync.py')
+    with tempfile.TemporaryDirectory(prefix='wbland-source-', dir=work) as temporary:
+        overlay = Path(temporary)
+        for path in inputs:
+            target = overlay/path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT/path, target)
+        for name, (path, old, new, assertion) in SOURCE_CONTROLS.items():
+            original = (ROOT/path).read_text()
+            if old:
+                assert original.count(old) == 1, f'{name}: source mutation site changed'
+                changed = original.replace(old, new)
+            else:
+                changed = original + new
+            (overlay/path).write_text(changed)
+            r = subprocess.run([sys.executable, '-B', str(Path(__file__).resolve()),
+                                '--root', str(overlay), 'source'],
+                               capture_output=True, text=True, timeout=60)
+            expected = 1 if assertion else 0
+            marker = f'FAIL wbland source: {assertion}' if assertion else 'PASS wbland source:'
+            ok = r.returncode == expected and marker in r.stdout + r.stderr
+            rows.append(dict(case='source-' + name, source=path,
+                             source_sha256=hashlib.sha256(changed.encode()).hexdigest(),
+                             expected_exit=expected, exit=r.returncode, required=marker,
+                             passed=ok, stdout=r.stdout, stderr=r.stderr))
+            print(f'{"PASS" if ok else "FAIL"} clauses source/{name} exit={r.returncode}', flush=True)
+            if not ok: print(r.stdout + r.stderr, flush=True)
+            (overlay/path).write_text(original)
+    return rows
+
+
+def check(group, build, proofs=None):
+    proofs = proofs or build/f'wbland-{group}-proofs.json'
+    proofs.parent.mkdir(parents=True, exist_ok=True)
     rows = []
     def run(binary, case, assertion=None, extra=(), prefix='wbland'):
         r = subprocess.run([str(binary), case, *extra], capture_output=True, text=True, timeout=60)
         marker = f'FAIL {prefix} {case}: {assertion}' if assertion else f'PASS {prefix} {case}'
         ok = r.returncode == (1 if assertion else 0) and marker in r.stdout+r.stderr
-        rows.append(dict(binary=str(binary.relative_to(ROOT)), sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+        rows.append(dict(binary=str(binary.relative_to(ROOT) if binary.is_relative_to(ROOT) else binary),
+                         sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                          case=case, extra=extra, expected_exit=1 if assertion else 0, exit=r.returncode,
                          required=marker, passed=ok, stdout=r.stdout, stderr=r.stderr))
         print(f'{"PASS" if ok else "FAIL"} {group} {binary.parent.name}/{binary.name} {case} {" ".join(extra)}', flush=True)
@@ -238,6 +305,7 @@ def check(group, build):
         # Same original clause deletions compiled through the runtime policy read.
         for name, (kind, _, _, _, case, assertion) in legacy.MUTANTS.items():
             if kind == 'policy': run(build/'wbland-clause-controls'/name/'unit', case, assertion, prefix='wb-rule')
+        rows.extend(source_controls(proofs.parent))
     else:
         # Real schedules must notice when knob selection is bypassed or ignored.
         for name, case, assertion in (
@@ -246,17 +314,26 @@ def check(group, build):
             # R7 is linked separately: a header overlay mutates FIFO/overlap only.
             for extra in (((),) if name == 'split-policy' else (('natural',), ('shallow',))):
                 run(build/'wb-rule-controls'/name/'unit', case, assertion, extra, prefix='wb-rule')
-    (build/f'wbland-{group}-proofs.json').write_text(json.dumps(rows, indent=2)+'\n')
+    proofs.write_text(json.dumps(rows, indent=2)+'\n')
     if not all(r['passed'] for r in rows): raise SystemExit(1)
     print(f'PASS wbland {group}: {len(rows)}/{len(rows)} strict outcomes')
 
 
 if __name__ == '__main__':
-    p=argparse.ArgumentParser(description=__doc__); sub=p.add_subparsers(dest='action', required=True)
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--root', type=Path, default=ROOT, help='source tree to check (read-only)')
+    sub=p.add_subparsers(dest='action', required=True)
     e=sub.add_parser('emit'); e.add_argument('name', choices=MUTANTS); e.add_argument('output', type=Path)
     c=sub.add_parser('check'); c.add_argument('group', choices=('clauses', 'paths'))
-    c.add_argument('--build', type=Path, default=ROOT/'build')
+    c.add_argument('--build', type=Path, help='unit binaries; default ROOT/build')
+    c.add_argument('--proofs', type=Path, help='receipt path; default BUILD/wbland-GROUP-proofs.json')
     sub.add_parser('source'); a=p.parse_args()
-    if a.action == 'emit': emit(a.name, a.output)
-    elif a.action == 'source': source()
-    else: check(a.group, a.build.resolve())
+    ROOT = a.root.resolve()
+    legacy.ROOT = ROOT
+    try:
+        if a.action == 'emit': emit(a.name, a.output)
+        elif a.action == 'source': source()
+        else: check(a.group, (a.build or ROOT/'build').resolve(), a.proofs)
+    except AssertionError as error:
+        print(f'FAIL wbland {a.action}: {error}', file=sys.stderr)
+        raise SystemExit(1)
