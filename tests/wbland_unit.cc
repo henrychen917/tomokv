@@ -16,11 +16,16 @@ static void fill(Client& c, unsigned n, unsigned done) {
     }
 }
 static void endpoints() {
-    for (unsigned n = 0; n <= 64; ++n) for (unsigned done = 0; done <= n; ++done) {
+    for (unsigned n = 0; n <= 64; ++n) for (unsigned done = 0; done <= n; ++done)
+        for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
         Client c(-1); fill(c, n, done);
+        c.wb_deferrals() = waits;
         require(!wb_rule::defer(c, 0), "zero serves every prefix");
-        require(wb_rule::defer(c, 1) == (n > 1 && done < (n+1)/2),
-                "policy one is exact landed half");
+        require(c.wb_deferrals() == waits, "zero bypass leaves count alone");
+        const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+                            ? n : (n+1)/2;
+        require(wb_rule::defer(c, 1) == (n > 1 && done < need),
+                "policy one is exact bounded hybrid");
     }
 }
 static void exits() {

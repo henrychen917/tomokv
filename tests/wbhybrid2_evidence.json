@@ -1,0 +1,1274 @@
+{
+  "launch": "018d23a4cac8f32a4eb56915ca394d80576b5883",
+  "reference": "5b3d9c4292bf8b332d493beb485266ecc5a289aa",
+  "groups": {
+    "proofs": {
+      "positive": 48,
+      "negative": 16,
+      "sha256": "cead096c682643fa3de8314a56ed3705c87be0b43febf0cb418bc799474b324b"
+    },
+    "paths": {
+      "positive": 80,
+      "negative": 0,
+      "sha256": "c2a5ad827763cbd4b3546b821710945ce643e451f142061d27155866ce0b9bbc"
+    },
+    "legacy-hybrid": {
+      "positive": 16,
+      "negative": 2,
+      "sha256": "04f3b476ac4e13350aeceb33b473ce4f55d67c51b298f9039f73959a427afe0b"
+    },
+    "wb-rule-policy": {
+      "positive": 18,
+      "negative": 19,
+      "sha256": "0d3f9dedf3372659413df4a027db113b2f1d23a48944f504504b5f7862b88241"
+    },
+    "wb-rule-phase": {
+      "positive": 24,
+      "negative": 8,
+      "sha256": "a690954f6f285356758b3b8a7a8ccfda42bb02658317de8aa17fc6d167fe266e"
+    },
+    "wb-rule-stages": {
+      "positive": 10,
+      "negative": 2,
+      "sha256": "68890bad1c2ed05c2f98193bc5005213a236989e51966fdb41fd4323fd2e3255"
+    },
+    "wb-rule-split-phase": {
+      "positive": 24,
+      "negative": 11,
+      "sha256": "9f23f1086f1fba887eb521dcae8a184ad240aab76c107be0a83f12dde1800ff5"
+    },
+    "wb-rule-split-overlap": {
+      "positive": 44,
+      "negative": 20,
+      "sha256": "afd4e10f8003b9f31716c55c01ece6b87d3465f2ad64d73fdde1ecbd3ca80c28"
+    },
+    "wbland-clauses": {
+      "positive": 26,
+      "negative": 23,
+      "sha256": "4570697db73f912e1af2a31164ad1b9a00e6526c615850356513ce80eabc26c9"
+    },
+    "wbland-paths": {
+      "positive": 16,
+      "negative": 3,
+      "sha256": "af1ca153522f5905543dbf680c24a81115536b4d49ea98b51df87a65653cb089"
+    }
+  },
+  "binaries": [
+    {
+      "path": "build/tomokv-wbhybrid2-ref",
+      "sha256": "70f51c094e2971219ea53fd056caa1d1fd7736045cbb9a81dea909fcbefb3e34",
+      "text": 7564593,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-d0",
+      "sha256": "649ee2e19105fcfd4565b972f08e6b07cbd90808a0f0080d4ab4f47af57cf67c",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-d1",
+      "sha256": "18f4d74a9ee8a7be8cd258938387a54c48144a1c0b6be9c2e1953dd3b12c47f6",
+      "text": 7564609,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-d1-pad",
+      "sha256": "2ff77003403d7bca3c847f9f8b075f4a0d8ef62e39e3d255fa7984034687f2db",
+      "text": 7564609,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-d2",
+      "sha256": "e2c6860b1fdcc1bc68291d5f1ed46f1b8076c69c3687f9c8c8352642bcb637e5",
+      "text": 7564609,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-d2-pad",
+      "sha256": "d13a3586c3f020314c3ed6989a77cb339f1791f3e69e8404419df42ce1c40f1a",
+      "text": 7564609,
+      "tdata": 112,
+      "tbss": 480
+    }
+  ],
+  "instruction_receipts": 896,
+  "coded_instruction_receipts": 144,
+  "per_extra_done_instructions": 26,
+  "extra_work_per_scanned_get_ok_integer_reply": 0,
+  "early_exit_instruction_delta": 0,
+  "disassembly": {
+    "ref-multi-defer.asm": {
+      "sha256": "d95c448992982e39d252613707d03b2e449c60f6c5278e6752adf3a4e14da6f0",
+      "symbol_bytes": 817
+    },
+    "ref-db0-defer.asm": {
+      "sha256": "6c86ed6eabbbbf53e3aa2a083872052a3c8f4c1256fc02d3e8af96993bfd4162",
+      "symbol_bytes": 817
+    },
+    "hyb16-d0-multi-defer.asm": {
+      "sha256": "bb94929df359640124b88cbece4aae252b57702d2252dacf308ff07abc7d9bec",
+      "symbol_bytes": 777
+    },
+    "hyb16-d0-db0-defer.asm": {
+      "sha256": "c69c1a96ce40213cee7fceeb92f8e34999f098a6d7068f390832b697cfd9f2b8",
+      "symbol_bytes": 777
+    },
+    "hyb16-d1-multi-defer.asm": {
+      "sha256": "b5b0431b1c3db8fbdbf0e14ec0f46d23ad06e4840f2868e7d21568031b41947f",
+      "symbol_bytes": 857
+    },
+    "hyb16-d1-db0-defer.asm": {
+      "sha256": "02472a75755d2df61f87b67acc8446ed459e4b81a90d735af63f96bc7f4fb550",
+      "symbol_bytes": 857
+    },
+    "hyb16-d2-multi-defer.asm": {
+      "sha256": "4a28ebc9fe87e48793691dafa3fd16b516078d7b9662f68d11916308eb17305a",
+      "symbol_bytes": 857
+    },
+    "hyb16-d2-db0-defer.asm": {
+      "sha256": "51e98d155db10dda4b8edd5d5badd0ffc16fcb5c1266215ff075c93dc7ecc9e6",
+      "symbol_bytes": 857
+    }
+  },
+  "identity": {
+    "source": [
+      {
+        "arm": "hyb16-d0",
+        "changed_sources": [
+          "src/core/wb_rule.h"
+        ],
+        "donor": ".",
+        "reused_objects": 44,
+        "affected_objects": 40
+      },
+      {
+        "arm": "hyb16-d1",
+        "changed_sources": [
+          "src/net/conn.h",
+          "src/core/wb_rule.h"
+        ],
+        "donor": ".",
+        "reused_objects": 44,
+        "affected_objects": 40
+      },
+      {
+        "arm": "hyb16-d2",
+        "changed_sources": [
+          "src/net/conn.h",
+          "src/core/wb_rule.h"
+        ],
+        "donor": "build/wbhybrid2/hyb16-d1",
+        "reused_objects": 44,
+        "affected_objects": 40
+      }
+    ],
+    "predecessor": {
+      "path": "/home/user/Projects/cx-wbhybrid/build/tomokv-hyb16",
+      "sha256": "4a1546643215f03ccf4024b23eb03ebee9cedff1cb083f91e5551ebc0c3c01e9"
+    },
+    "d0": {
+      "path": "build/tomokv-hyb16-d0",
+      "sha256": "649ee2e19105fcfd4565b972f08e6b07cbd90808a0f0080d4ab4f47af57cf67c",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    "predecessor_text_identical": true,
+    "text_bytes": 7564433,
+    "launch_runtime_source_identical": true
+  },
+  "layout": [
+    {
+      "arm": "ref",
+      "namespace": "tomo",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    },
+    {
+      "arm": "ref",
+      "namespace": "tomo_db0",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    },
+    {
+      "arm": "hyb16-d1",
+      "namespace": "tomo",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "wb_deferrals_": [
+          72,
+          1
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    },
+    {
+      "arm": "hyb16-d1",
+      "namespace": "tomo_db0",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "wb_deferrals_": [
+          72,
+          1
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    },
+    {
+      "arm": "hyb16-d2",
+      "namespace": "tomo",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "wb_deferrals_": [
+          72,
+          1
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    },
+    {
+      "arm": "hyb16-d2",
+      "namespace": "tomo_db0",
+      "bytes": 1984,
+      "fields": {
+        "fd_": [
+          0,
+          4
+        ],
+        "rlen_": [
+          4,
+          4
+        ],
+        "rpos_": [
+          8,
+          4
+        ],
+        "last_interaction_s_": [
+          12,
+          4
+        ],
+        "rbuf_": [
+          16,
+          8
+        ],
+        "rcap_": [
+          24,
+          8
+        ],
+        "wsent_": [
+          32,
+          8
+        ],
+        "fill_": [
+          40,
+          1
+        ],
+        "recv_armed_": [
+          41,
+          1
+        ],
+        "send_inflight_": [
+          42,
+          1
+        ],
+        "segmented_send_": [
+          43,
+          1
+        ],
+        "send_requested_": [
+          44,
+          4
+        ],
+        "serve_pending_": [
+          48,
+          1
+        ],
+        "in_active_": [
+          49,
+          1
+        ],
+        "closing_": [
+          50,
+          1
+        ],
+        "dead_": [
+          51,
+          1
+        ],
+        "barrier_owners_": [
+          52,
+          1
+        ],
+        "parse_backpressure_": [
+          53,
+          1
+        ],
+        "subscriber_mode_": [
+          54,
+          1
+        ],
+        "connection_flags_": [
+          55,
+          1
+        ],
+        "obuf_bytes_": [
+          56,
+          8
+        ],
+        "atomic_groups_io_": [
+          64,
+          4
+        ],
+        "session_": [
+          68,
+          4
+        ],
+        "wb_deferrals_": [
+          72,
+          1
+        ],
+        "rob_": [
+          128,
+          192
+        ],
+        "buf_": [
+          320,
+          1072
+        ],
+        "segments_": [
+          1392,
+          216
+        ],
+        "send_iov_": [
+          1608,
+          256
+        ],
+        "send_msg_": [
+          1864,
+          56
+        ],
+        "retire_queued_": [
+          1920,
+          1
+        ],
+        "wb_slot_": [
+          1924,
+          4
+        ],
+        "ifid_thread_": [
+          1928,
+          4
+        ],
+        "multi_session_": [
+          1936,
+          8
+        ],
+        "watch_generation_": [
+          1944,
+          8
+        ],
+        "watched_refs_": [
+          1952,
+          4
+        ],
+        "watch_dirty_": [
+          1956,
+          1
+        ],
+        "id_": [
+          1960,
+          8
+        ],
+        "obuf_soft_since_s_": [
+          1968,
+          4
+        ],
+        "obuf_tracking_": [
+          1972,
+          1
+        ],
+        "authenticated_": [
+          1973,
+          1
+        ],
+        "acl_user_idx_": [
+          1976,
+          4
+        ],
+        "tls_slot_": [
+          1980,
+          4
+        ]
+      }
+    }
+  ],
+  "strict_all_body_identity": false,
+  "code_audit": [
+    {
+      "arm": "hyb16-d0",
+      "compared": 12071,
+      "changed": 33,
+      "added_or_removed": 0
+    },
+    {
+      "arm": "hyb16-d1",
+      "compared": 12073,
+      "changed": 180,
+      "added_or_removed": 3
+    },
+    {
+      "arm": "hyb16-d2",
+      "compared": 12073,
+      "changed": 180,
+      "added_or_removed": 3
+    }
+  ],
+  "limitation": "Native compiler bodies outside the intended stores/rule also change, including d0. Source scope and whole objects outside the include closure pass; full code-body identity does not. Exact-layout PAD A twins isolate policy behaviour within each native layout.",
+  "inputs": {
+    "tools/wbhybrid2_artifacts.py": "2adf9ebd06c6c87d2d3e5ad2d5ce04a00c11a41b2e462dee92ce8f7a7bf237fb",
+    "tests/wbhybrid2_unit.cc": "7fb2178bdf8eee60af2c5d9ea984aab8638d98c2b42e80bb12688995954bac35",
+    "tests/wbhybrid2_paths.inc": "fc1545c4e4cea3ca4cf4d8dcc5ce78b9ea10bc35c28adba4bba140252e344886",
+    "tests/wbhybrid2_codes.cc": "ee3f9b8574c8cd4cf65bd70b36328ebcacf8704f550ea14b283d07f6581e67d9",
+    "tests/wbhybrid2_cells.txt": "4ba8e280573563d6382b2a9d1256d889d09d3b93267cc813a19b5f6235bd3c98"
+  },
+  "receipts": {
+    "binaries.json": "0441bb1c4570c6a60d2e56da891fbe0dbf4a6ecb2260e5d24293883cb379e34e",
+    "code-costs.json": "ee18dbfad2fc8948a86fbe769b865c4918e291e499b56b7966597b7947884170",
+    "code-identity.json": "a97ac3d95b7a8f10329b3995c8d7a8ddf45f4e2778a7e73a50b1d4e9aa631613",
+    "costs.json": "4d1148d0aff50166732e1ac84b19a7826fe14bf51b7fc9d9bfcd60984dd4820b",
+    "dependencies.json": "b17cf6f276fdb3cac3a5cc4857009c04a351107148729455a9163bfc104f452a",
+    "identity.json": "8229c6d74b98a8c09acb6567a5b167e155ac983ff55896c4735e7bad47588097",
+    "layout.json": "ef6445b5c6d5d3e5972d28c8d1fdbbd7c74c7a3b00c373983d226ef20bf48995",
+    "legacy-hybrid.json": "04f3b476ac4e13350aeceb33b473ce4f55d67c51b298f9039f73959a427afe0b",
+    "pad-path-sites.json": "c03e74019cc0d095ca461a902ecba47aaa13d506fb6b3615bfe43fa0445c21c3",
+    "pad-unit-sites.json": "970ad14f4d775c7fe0f449081c92b424b8d965bafb82c78ae73420b355c87e63",
+    "pads.json": "0195ff4dc877008f8ad0cb8b139a8c0585922b515dd76eecadd1f5a8b81fccee",
+    "paths.json": "c2a5ad827763cbd4b3546b821710945ce643e451f142061d27155866ce0b9bbc",
+    "proofs.json": "cead096c682643fa3de8314a56ed3705c87be0b43febf0cb418bc799474b324b"
+  }
+}

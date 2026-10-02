@@ -586,6 +586,10 @@ public:
 
     // Membership in its io thread's active set, as a FLAG rather than a search; and whether this
     // conn's ready bit fired since io last served it. Plain bools — one thread.
+    // IO-owned across the pending-serve FIFO lifetime, including tail rotations.
+    uint8_t& wb_deferrals() { return wb_deferrals_; }
+    static constexpr size_t wb_deferrals_offset();
+    static constexpr size_t wb_rob_offset();
     bool serve_pending() const { return serve_pending_; }
     void set_serve_pending(bool v) { serve_pending_ = v; }
     // An in-flight all-shards scatter (FLUSHALL/FLUSHDB/CONFIG SET fan-out) is a parse barrier:
@@ -825,6 +829,7 @@ private:
     // line executors read on every completion.
     uint32_t  atomic_groups_io_ = 0;    // 64..67
     Session   session_;                 // 68..71
+    uint8_t   wb_deferrals_ = 0;         // 72: existing IO-only padding before ROB
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;
@@ -861,6 +866,11 @@ private:
     uint32_t tls_slot_ = kNoTlsSlot;     // 1980: out-of-line TlsConn handle
 };
 
+constexpr size_t Client::wb_deferrals_offset() { return offsetof(Client, wb_deferrals_); }
+constexpr size_t Client::wb_rob_offset() { return offsetof(Client, rob_); }
+static_assert(Client::wb_deferrals_offset() == 72);
+static_assert(Client::wb_rob_offset() == 128);
+static_assert(Client::wb_deferrals_offset() / 64 == 1);
 constexpr size_t Client::acl_user_idx_offset() { return offsetof(Client, acl_user_idx_); }
 static_assert(Client::acl_user_idx_offset() + sizeof(uint32_t) <= sizeof(Client));
 constexpr size_t Client::connection_flags_offset() { return offsetof(Client, connection_flags_); }

@@ -1,0 +1,456 @@
+{
+  "launch": "e49471fa5620b747c18f4364ce990441bfe0ea64",
+  "base": "5b3d9c4292bf8b332d493beb485266ecc5a289aa",
+  "groups": {
+    "proofs": {
+      "positive": 28,
+      "negative": 6
+    },
+    "paths": {
+      "positive": 96,
+      "negative": 0
+    },
+    "wb-rule-policy": {
+      "positive": 18,
+      "negative": 19,
+      "sha256": "8fcd9bda55a112f5b19daffb47799539ceb3ceffbcb4f83ec7ba172ccd418b8e"
+    },
+    "wb-rule-phase": {
+      "positive": 24,
+      "negative": 8,
+      "sha256": "9ba4729d5b2bd7baee4a140ffca056a895806edf818274867274455926e76482"
+    },
+    "wb-rule-stages": {
+      "positive": 10,
+      "negative": 2,
+      "sha256": "6c21051a23ac40d44cf83f3890d29204b238ad13f45c5e0dfc84d7a265393922"
+    },
+    "wb-rule-split-phase": {
+      "positive": 24,
+      "negative": 11,
+      "sha256": "8003b911eed8ef6fea415d3bec07a5843ae4eb11d29316f17982711d6a868d2e"
+    },
+    "wb-rule-split-overlap": {
+      "positive": 44,
+      "negative": 20,
+      "sha256": "ecd07aa93f0cfb85c3b6c845c225b798c6c8f6387c1a9dceca4b2c78bc9bcc35"
+    },
+    "wbland-clauses": {
+      "positive": 26,
+      "negative": 23,
+      "sha256": "a0c472cbdb6b550aece223c4e9682b3ceac48abe1c95fd1358dc0cf2dfe1964c"
+    },
+    "wbland-paths": {
+      "positive": 16,
+      "negative": 3,
+      "sha256": "f3bc4b3bad8975d1e33deda04af2d8b807342f6c9d1e8d6664053dcbef7011b3"
+    }
+  },
+  "binaries": [
+    {
+      "path": "build/tomokv",
+      "sha256": "9517886811efa53a269f1fd08b431357b6035100c5f3cccfce23718fd0bc919c",
+      "text": 7564593,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb8",
+      "sha256": "4b6e076b107d808d70625901c92dacfd49e3c3cdd5aee4308804addf161e6f4e",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb8-pad",
+      "sha256": "9cfb160ae378c4ca627811502672ae0e5a9f5bf8151d8da320ceaa9270d2bde0",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16",
+      "sha256": "4a1546643215f03ccf4024b23eb03ebee9cedff1cb083f91e5551ebc0c3c01e9",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb16-pad",
+      "sha256": "f80d56bb31e2632aad74ac9d5f9dfa7f60068756b21fc8a2db71a9b28c100738",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb32",
+      "sha256": "317647381cb1ce62d7a6f8b8f6337832626ac6cc36df8ed2edd2e3994950c9ea",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    },
+    {
+      "path": "build/tomokv-hyb32-pad",
+      "sha256": "86e92333dcb86e77c560ea1ff2a71c7013743c6146875a123a6280e7d900d1b2",
+      "text": 7564433,
+      "tdata": 112,
+      "tbss": 480
+    }
+  ],
+  "inputs": {
+    "tools/wbhybrid_artifacts.py": "47c2287575955c9ac4b9673fb6eece28ff1a4e699a69cfe0dd29d271fa404b95",
+    "tests/wbhybrid_unit.cc": "6ed2235a014a39c278ff298e26cd46bf23d159e9da05c77825d8e4ff55e8b386",
+    "tests/wbhybrid_cells.txt": "c6f50fefda682a93e34bf87ab9f59db9e7cc1697292a159ce0ca0d6817ad6174",
+    "src/core/wb_rule.h": "f76e66c8bd8d4ea6cd18351ed4812292a0893bc914ac4d38fb85488aa5fb5374",
+    "tools/wb_rule_2s_trace.cc": "01d495849e7162c122dc983c68ed7707c3b19f2d0b70d1ae49a3c2a28cb66b55"
+  },
+  "receipts": {
+    "binaries.json": "3eac8a4e2455a00992ec4b696030326f74399c00ea28b5a05756c183dc0bda4a",
+    "costs.json": "de41bc98eb7bfa63524f723cf3be6b6131177aa2137e957b46a0fa844f589813",
+    "dependencies.json": "6295c00f51f8bd34edf98c47bc932e6604ffcd9fe3a4b4cc9e17a29d0f3db92d",
+    "identity.json": "97b7c431c204282053f2d2199d9c2afbe3f15b293a19ea40f10d8e11ba184180",
+    "launch-identity.json": "51c0a742187812354a9f227d5e08af843bd2e83ddfa2ee786deae6d3cdf867ba",
+    "pad-path-sites.json": "d62c300b7d35109ffa699b9d5349cf0e3141557a384ded9d0c360aa17aeb394b",
+    "pad-unit-sites.json": "580b3047acd3159df47667e1e96e31d3d133466807dadd180b4086ac15cc9f18",
+    "pads.json": "568fde9dc43c91e85d770a180c26cf43a686cb59cc3d84d9749046c62c349451",
+    "paths.json": "9b64d9f36a4f07372d1cecfb73793268530289c8859fbb1b35ce049813995dc8",
+    "proofs.json": "97185d3eed431a97e78ee0e11814cf2a6e909b619c5767391acfe11ec1af89e2"
+  },
+  "selector_same_prefix_max_extra_instructions": 1,
+  "implementation_commit": "3be478fe73652c27d9d96c2c6c3b9c82664c55dd",
+  "affinity": "112-127",
+  "make_jobs": 16,
+  "rule": "n <= S ? n : ceil(n/2); n<=1 bypass; 512-byte and scatter exits unchanged",
+  "small_derivation": "Measured constants; no honest existing sizing derivation. Ledger row required before hardcoding.",
+  "launch_binary": {
+    "path": "build/tomokv-wbhybrid-launch",
+    "sha256": "cd7916150ac1f4a2398563bc8c4f748c364960fa72340e18bc147347c9651c30",
+    "text": 7578753,
+    "tdata": 112,
+    "tbss": 480
+  },
+  "launch_identity_exceptions_outside_rule": [
+    "build/src/cmd/xshard.o",
+    "build/db0/src/cmd/xshard.o"
+  ],
+  "negative_controls": [
+    {
+      "binary": "build/wbhybrid/hyb8-unit-off-by-one",
+      "sha256": "9ea307c85c21750e14fc46dc9d88edfeb579bb508d115a9772787d780c581322",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=9 done=5 S=8 threshold=5 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    },
+    {
+      "binary": "build/wbhybrid/hyb8-db0-unit-off-by-one",
+      "sha256": "3d21c49be9a05664ef301182e6601c424829095b1bdbeebd3bd7f454d32be338",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=9 done=5 S=8 threshold=5 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    },
+    {
+      "binary": "build/wbhybrid/hyb16-unit-off-by-one",
+      "sha256": "cf28a3c25a95c9c06670fe339001bdc53ee3a36001185ff4212eb127200147a7",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=17 done=9 S=16 threshold=9 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    },
+    {
+      "binary": "build/wbhybrid/hyb16-db0-unit-off-by-one",
+      "sha256": "9ee9a1240c3f9546838000ddb9c637f9310fe6ae749a88eaa67ef5c7a28ec536",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=17 done=9 S=16 threshold=9 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    },
+    {
+      "binary": "build/wbhybrid/hyb32-unit-off-by-one",
+      "sha256": "fbcb80b4cf4b69ec6ff27af207082a54914380d7ddba85120b1c21820772f716",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=33 done=17 S=32 threshold=17 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    },
+    {
+      "binary": "build/wbhybrid/hyb32-db0-unit-off-by-one",
+      "sha256": "124d3733a446771bbc10438eb076a8ebe54cf3de771169b22fce94d68392a582",
+      "case": "table",
+      "args": [],
+      "expected_exit": 1,
+      "exit": 1,
+      "required": "FAIL wbhybrid table: piecewise threshold table",
+      "passed": true,
+      "stdout": "",
+      "stderr": "n=33 done=17 S=32 threshold=17 start=0\nFAIL wbhybrid table: piecewise threshold table\n"
+    }
+  ],
+  "path_binaries": {
+    "build/wbhybrid/hyb16-db0-pad-phase": "d46c929683db1197826c75c1a369cbb2f63e6be4122cd8fabb59c0b67d96f739",
+    "build/wbhybrid/hyb16-db0-phase": "d27c0bb96daf78e0491dfc5a30ef07a907fee1c287bf41a1dec9e3d1063cd923",
+    "build/wbhybrid/hyb16-pad-phase": "fb3d6fa627c7537cd88d75ab99449f12e85b8da0a34eb5704b6ab0ce996fd75e",
+    "build/wbhybrid/hyb16-phase": "49d78e5dcc7ed98b8ad93ace5f67d70698ccf18e5ce9742d3efb088c3649bef3",
+    "build/wbhybrid/hyb32-db0-pad-phase": "a5b528c8296d6920340839fe85e5ace6aa54847c336c56a69fdfcd08cdc57a6b",
+    "build/wbhybrid/hyb32-db0-phase": "df85205d377a3d3a0c1d8d6e5702e0f1500201ba0a5ef39981fd00464ae23d6c",
+    "build/wbhybrid/hyb32-pad-phase": "3af0f275cb964f5314a3d8635bb165b753f5a89417e871393fbeac5aac23a4fc",
+    "build/wbhybrid/hyb32-phase": "218ad1fc97d4917b716001d7aa68846c78b849d3e3cc0c856c9705c93b156d6c",
+    "build/wbhybrid/hyb8-db0-pad-phase": "57c67ea00eef7d3c9bafeb1c05721560607517c335a7b5eaa07a2da51498872d",
+    "build/wbhybrid/hyb8-db0-phase": "cc96800c0c52fd774d22605e4d17b56e4acb2e978903290b4a5cee24a8f7a2db",
+    "build/wbhybrid/hyb8-pad-phase": "3522b8910852d7819695f70226e7ac67eb96f04522b04de112c284f1bc385c2b",
+    "build/wbhybrid/hyb8-phase": "bd85b4f4b660e53eb53e500117fd8d95265ab290c9c42d05de195dc284cc3643"
+  },
+  "path_geometry": {
+    "databases": {
+      "tomo": 4,
+      "tomo_db0": 1
+    },
+    "shards": 16,
+    "split_io_ex": [
+      6,
+      2
+    ],
+    "clients": 96,
+    "depths": [
+      8,
+      16,
+      17,
+      32,
+      33,
+      64
+    ],
+    "policies": [
+      0,
+      1
+    ]
+  },
+  "instruction_columns": [
+    "ref",
+    "hyb8",
+    "hyb16",
+    "hyb32"
+  ],
+  "instruction_receipts": [
+    {
+      "case": "trace-1-0-0-1-0",
+      "instructions": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "case": "trace-64-1-0-0-0",
+      "instructions": [
+        7,
+        7,
+        7,
+        7
+      ]
+    },
+    {
+      "case": "trace-64-0-512-1-0",
+      "instructions": [
+        34,
+        34,
+        34,
+        34
+      ]
+    },
+    {
+      "case": "trace-8-0-0-1-0",
+      "instructions": [
+        66,
+        65,
+        65,
+        65
+      ]
+    },
+    {
+      "case": "trace-8-1-0-1-0",
+      "instructions": [
+        92,
+        91,
+        91,
+        91
+      ]
+    },
+    {
+      "case": "trace-8-8-0-1-0",
+      "instructions": [
+        160,
+        263,
+        263,
+        263
+      ]
+    },
+    {
+      "case": "trace-16-0-0-1-0",
+      "instructions": [
+        66,
+        67,
+        65,
+        65
+      ]
+    },
+    {
+      "case": "trace-16-1-0-1-0",
+      "instructions": [
+        92,
+        93,
+        91,
+        91
+      ]
+    },
+    {
+      "case": "trace-16-16-0-1-0",
+      "instructions": [
+        264,
+        265,
+        471,
+        471
+      ]
+    },
+    {
+      "case": "trace-17-0-0-1-0",
+      "instructions": [
+        66,
+        67,
+        67,
+        65
+      ]
+    },
+    {
+      "case": "trace-17-1-0-1-0",
+      "instructions": [
+        92,
+        93,
+        93,
+        91
+      ]
+    },
+    {
+      "case": "trace-17-17-0-1-0",
+      "instructions": [
+        290,
+        291,
+        291,
+        497
+      ]
+    },
+    {
+      "case": "trace-32-0-0-1-0",
+      "instructions": [
+        66,
+        67,
+        67,
+        65
+      ]
+    },
+    {
+      "case": "trace-32-1-0-1-0",
+      "instructions": [
+        92,
+        93,
+        93,
+        91
+      ]
+    },
+    {
+      "case": "trace-32-32-0-1-0",
+      "instructions": [
+        472,
+        473,
+        473,
+        887
+      ]
+    },
+    {
+      "case": "trace-33-0-0-1-0",
+      "instructions": [
+        66,
+        67,
+        67,
+        67
+      ]
+    },
+    {
+      "case": "trace-33-1-0-1-0",
+      "instructions": [
+        92,
+        93,
+        93,
+        93
+      ]
+    },
+    {
+      "case": "trace-33-33-0-1-0",
+      "instructions": [
+        498,
+        499,
+        499,
+        499
+      ]
+    },
+    {
+      "case": "trace-64-0-0-1-0",
+      "instructions": [
+        66,
+        67,
+        67,
+        67
+      ]
+    },
+    {
+      "case": "trace-64-1-0-1-0",
+      "instructions": [
+        92,
+        93,
+        93,
+        93
+      ]
+    },
+    {
+      "case": "trace-64-64-0-1-0",
+      "instructions": [
+        888,
+        889,
+        889,
+        889
+      ]
+    },
+    {
+      "case": "trace-64-1-0-1-1",
+      "instructions": [
+        70,
+        71,
+        71,
+        71
+      ]
+    }
+  ],
+  "library_instructions": 0,
+  "performance": "PENDING MAINLINE; no live work run"
+}

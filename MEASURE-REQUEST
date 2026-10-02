@@ -1,19 +1,19 @@
-wbland3 — adaptive writeback deleted; fixed policies 0/1, default 1.
-Read MEASURE-REQUEST-wbland3.md for the removal inventory, code audit and hashes.
-Supersedes wbland/wbland2 adaptive measurement requests; no adaptive gain claim remains.
-PRE: REF 37eeb5e90 source rebuilt at build/wbland3/pre-src/build/tomokv.
-POST: build/tomokv. LATENCY: build/tomokv-pol0. PAD A: build/tomokv-pad.
-PAD A is a behavior twin: REF half behavior with the candidate knob read/layout.
-After deletion PAD is byte-identical to POST; no PAD/probe selector bit survives.
-REF-vs-POST .text exact in 25/40 objects, all .text.* exact in 23/40; +2208 B linked text.
-GET/SET: 16/16 opcode and relocation identities. Layout locks/offset assertions compile.
-Request: mainline's 14-cell generic PAD-controlled null, tests/wbland_merit_cells.txt.
-Decide per-cell matched-load rate/latency against a fresh null; record cycles/op, IPC, instr/op.
-Keep the 4096-connection cells. Both modes/database variants need mainline boot/gate checks.
-CONFIG GET/REWRITE retain the boot value; SET remains rejected as in wbland1.
-248/248 writeback outcomes pass, including 86 strictly rejected negative controls.
-Additional db0 CONFIG fixture fails at tracking swap(0,1), identically on PRE and POST.
-Lane row delta now +2 quick/+2 full, down from +3/+3; EXPECT constants untouched.
-With the inherited topology quick correction, mainline totals should be 445 quick/463 full.
-All builds/serverless checks: taskset -c 112-127, make -j16. No live runs or push.
-Live results PENDING MAINLINE; append MEASURE-RESULT. Stop at this report.
+wbhybrid2b: D3/D4 extension of frozen S=16/D2. Performance PENDING MAINLINE.
+Read MEASURE-REQUEST-wbhybrid2b.md for SHA-256, byte offsets, proofs, costs and cells.
+
+New arms: build/tomokv-hyb16-d3 and build/tomokv-hyb16-d4.
+PAD A behaviour twins: build/tomokv-hyb16-d3-pad and build/tomokv-hyb16-d4-pad.
+Frozen REF: build/tomokv-wbhybrid2-ref; keep D2 as an in-session comparator.
+Each new arm differs from D2 only in two D immediate bytes; each PAD changes
+exactly two selector bytes. Counter remains Client byte 72 with the same resets.
+Production source matches the merged mainline; build/tomokv stays the half rule.
+
+1. Floor-0.4 bursts, reorder 0/1, eight samples per arm/state, including PADs.
+2. Low-load GET p32@256K and p8@512K, three complete rounds per arm/cell.
+3. The 14 generic ABBA cells in tests/wbhybrid2_cells.txt.
+Judge tails against contemporary same-binary/PAD spread, then compare gain to D2.
+
+LIMITATION: inherited D2 counter path exceeds +/-1 instruction versus REF
+(e.g. 101 vs 92 on n=32, Done=1). D3/D4 preserve D2's equivalent-branch count.
+No server, benchmark, gate or push was run. All offline work used CPUs 112-127.
+Gate row delta: 0 quick / 0 full; EXPECT counts unchanged. Append MEASURE-RESULT.

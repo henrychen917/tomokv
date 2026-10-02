@@ -16,7 +16,6 @@ static const char* selected;
 static unsigned submissions = 0, submitted_sends = 0;
 // Test grammar only: each invocation drives one production IO schedule.
 static unsigned split_schedule = 0; // 0 coarse, 1 natural, 2 shallow
-static constexpr unsigned split_fraction_num = 1, split_fraction_den = 2;
 extern "C" int __wrap_io_uring_submit(io_uring* ring) {
     const unsigned count = ring->sq.sqe_tail - ring->sq.sqe_head;
     if (count > ring->sq.ring_entries) std::abort();
@@ -93,6 +92,7 @@ struct CoreConcurrencyTest {
             Config config;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.wb_policy = policy;
+            config.databases = kSingleDatabase ? 1 : 4;
             config.shards = 16;
             config.read_local = SplitLocal;
             config.overlap = config.atomic = 1;
@@ -267,10 +267,13 @@ struct CoreConcurrencyTest {
     }
     static void split_policy() {
         // Exercise the wiring, ceil boundary and early-return rule in every IO schedule.
-        for (unsigned n : {2u, 3u, 4u, 7u, 8u, 31u, 32u, 63u, 64u}) {
-            const unsigned threshold = (n * split_fraction_num + split_fraction_den - 1) / split_fraction_den;
+        for (unsigned n : {2u, 3u, 4u, 7u, 8u, 16u, 17u, 31u, 32u, 63u, 64u})
+            for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
+            const unsigned threshold = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+                                     ? n : (n+1)/2;
             for (unsigned prefix : {threshold-1, threshold}) {
                 Fixture<false> f; Client c(-1); f.client(c, 1); fill(c, n, prefix);
+                c.wb_deferrals() = waits;
                 f.io.enqueue_serve(&c); phase(f);
                 const bool deferred = prefix < threshold;
                 require(c.rob().in_flight() == (deferred ? n : n-prefix) &&
@@ -405,29 +408,75 @@ struct CoreConcurrencyTest {
         require(f.ex.self_->ex_inbound_quiesced(), "EX sources retired");
     }
     template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
-        for (int policy : {0, 1}) {
+        for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u}) for (int policy : {0, 1}) {
             Fixture<Fused, Local> f(policy);
             std::vector<std::unique_ptr<Client>> clients;
-            // More than the overlap scratch capacity: every captured chunk matters.
-            for (unsigned i = 0; i < 96; ++i) {
+            std::array<bool, 96> queued; queued.fill(true);
+            std::array<unsigned, 96> waits{};
+            for (unsigned i = 0; i < queued.size(); ++i) {
                 auto c = std::make_unique<Client>(-1); f.client(*c, i+1);
-                fill(*c, 32, i%32+1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
+                fill(*c, depth, i%depth+1); f.io.enqueue_serve(c.get()); clients.push_back(std::move(c));
             }
             Client staged(-1); f.client(staged, 97); staged.fill_buf().append("+OK\r\n", 5);
             f.io.enqueue_serve(&staged);
-            phase(f, r7);
-            unsigned served = 1;
-            for (unsigned i = 0; i < clients.size(); ++i) {
-                const unsigned prefix = i%32+1;
-                const bool admitted = policy == 0 || prefix >= 16;
-                require(clients[i]->rob().in_flight() == (admitted ? 32-prefix : 32),
-                        "wb-policy exact retirement in every physical schedule");
-                require(clients[i]->serve_pending() == !admitted, "wb-policy retains deferred pins");
-                served += admitted;
+            unsigned total_served = 1;
+            for (unsigned pass = 0; pass <= wb_rule::kCompleteVisits; ++pass) {
+                phase(f, r7);
+                require(staged.send_inflight() && !staged.serve_pending(), "wb-policy empty pipe sends");
+                unsigned pending = 0;
+                for (unsigned i = 0; i < clients.size(); ++i) {
+                    Client& c = *clients[i];
+                    const unsigned prefix = i%depth+1;
+                    const bool complete = depth <= wb_rule::kSmallPipe && waits[i] < wb_rule::kCompleteVisits;
+                    const unsigned need = complete ? depth : depth/2 + depth%2;
+                    if (queued[i] && (policy == 0 || prefix >= need)) {
+                        queued[i] = false; waits[i] = 0; ++total_served;
+                    } else if (queued[i] && complete) ++waits[i];
+                    require(c.rob().in_flight() == (queued[i] ? depth : depth-prefix),
+                            "wb-policy exact retirement in every physical schedule");
+                    require(c.serve_pending() == queued[i], "wb-policy retains deferred pins");
+                    require(c.wb_deferrals() == waits[i], "physical serve resets and deferral saturates");
+                    pending += queued[i];
+                }
+                require(f.io.pending_serve_.size() == pending, "captured FIFO count");
+                unsigned previous = 0;
+                for (Client* c : f.io.pending_serve_) {
+                    require(c->id() > previous, "FIFO rotations preserve deferred relative order");
+                    previous = c->id();
+                }
+                require(f.io.wb_.stats().serves == total_served, "one visit per captured client");
             }
-            require(staged.send_inflight() && !staged.serve_pending(), "wb-policy empty pipe sends");
-            require(f.io.wb_.stats().serves == served, "wb-policy serves each admission once");
+            // Complete remaining work and empty the FIFO before giving the SAME
+            // connections a new short pipe. Old sends may still be outstanding.
+            for (auto& c : clients) {
+                for (unsigned i = 0; i < c->rob().in_flight(); ++i)
+                    c->rob().at(c->rob().flush_id()+i).state.store(OpState::Done, std::memory_order_release);
+                f.io.enqueue_serve(c.get());
+            }
+            phase(f, r7);
+            require(f.io.pending_serve_.empty(), "complete pipes leave FIFO");
+            for (auto& c : clients) {
+                require(c->rob().in_flight() == 0 && c->wb_deferrals() == 0, "completion resets count");
+                fill(*c, 8, 4); f.io.enqueue_serve(c.get());
+            }
+            phase(f, r7);
+            for (auto& c : clients) {
+                const bool complete = policy != 0;
+                require(c->rob().in_flight() == (complete ? 8u : 4u),
+                        "served connection completes again next pipe");
+                require(c->wb_deferrals() == unsigned(complete), "new pipe wait count");
+            }
         }
+        // Dead entries bypass defer() but must clear a nonzero wait count, and closing
+        // live entries must still drain. Exercise the physical envelope, including R7.
+        Fixture<Fused, Local> f;
+        Client dead(-1), closing(-1); f.client(dead, 1); f.client(closing, 2);
+        dead.wb_deferrals() = closing.wb_deferrals() = wb_rule::kCompleteVisits;
+        dead.mark_dead(); closing.mark_closing(); fill(closing, 1, 1);
+        f.io.enqueue_serve(&dead); f.io.enqueue_serve(&closing); phase(f, r7);
+        require(f.io.pending_serve_.empty() && !dead.serve_pending() && !closing.serve_pending(), "dead/closing pins released");
+        require(dead.wb_deferrals() == 0 && closing.wb_deferrals() == 0 && closing.rob().in_flight() == 0,
+                "dead and closing exits reset physical counter");
     }
     static int run(int argc, char** argv) {
         require(argc == 2 || argc == 3, "usage: wb-rule-phase-unit CASE [r7]");
