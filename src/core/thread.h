@@ -125,7 +125,6 @@ enum class ReadLocalFallbackReason : uint8_t {
     Expired,
     SeqChurn,               // topology demotion to owners, never a local retry
     Generation,
-    LaneFull,
 };
 
 // Fused read-local telemetry is written only by the physical thread that owns this context.
@@ -159,13 +158,13 @@ struct ReadLocalStats {
     uint64_t fallback_expired = 0;
     uint64_t fallback_seq_churn = 0;
     uint64_t fallback_generation = 0;
-    uint64_t fallback_lane_full = 0;
+    // Inert slots preserve all surviving telemetry offsets; not counters or RSS savings.
+    std::byte reserved_lane_full[8]{};
     // Lane ADMISSION deferrals. Frames the armed parser left unconsumed at rpos, to be
     // re-parsed by a later pass of the same thread, because the local-read lane had no room
     // (defer_lane_full) or because the connection already held its fair share of a lane under
     // pressure (defer_quota). Neither is a fallback: the read still completes locally, and no
-    // cross-thread owner task is ever created for lack of lane capacity. fallback_lane_full is
-    // kept for INFO continuity and is 0 by construction since the parser stopped demoting here.
+    // cross-thread owner task is ever created for lack of lane capacity.
     uint64_t defer_lane_full = 0;
     uint64_t defer_quota = 0;
 
@@ -188,7 +187,7 @@ struct ReadLocalStats {
     uint64_t mget_fallback_seq_churn = 0;
     uint64_t mget_generation_retries = 0; // retained INFO witness: zero in production
     uint64_t mget_fallback_generation = 0;
-    uint64_t mget_fallback_lane_full = 0;
+    std::byte reserved_mget_lane_full[8]{};
 
     // Arm-on-demand volume: how many connections a local read armed, how many RYOW sidecars that
     // cost, and how many writes were committed into a ring. A pure-write bench arm must show all
@@ -201,7 +200,7 @@ struct ReadLocalStats {
                fallback_inflight_write + fallback_arm_transient +
                fallback_atomic_pending + fallback_missing +
                fallback_typed + fallback_expired + fallback_seq_churn +
-               fallback_generation + fallback_lane_full;
+               fallback_generation;
     }
 
     uint64_t mget_fallbacks() const {
@@ -209,7 +208,7 @@ struct ReadLocalStats {
                mget_fallback_inflight_write + mget_fallback_arm_transient +
                mget_fallback_atomic_pending +
                mget_fallback_typed + mget_fallback_expired + mget_fallback_seq_churn +
-               mget_fallback_generation + mget_fallback_lane_full;
+               mget_fallback_generation;
     }
 
     void note_fallback(ReadLocalFallbackReason reason, bool mget = false) {
@@ -240,7 +239,6 @@ struct ReadLocalStats {
             case ReadLocalFallbackReason::Expired: fallback_expired++; break;
             case ReadLocalFallbackReason::SeqChurn: fallback_seq_churn++; break;
             case ReadLocalFallbackReason::Generation: fallback_generation++; break;
-            case ReadLocalFallbackReason::LaneFull: fallback_lane_full++; break;
             case ReadLocalFallbackReason::None: std::abort();
         }
         if (!mget) return;
@@ -276,7 +274,6 @@ struct ReadLocalStats {
             case ReadLocalFallbackReason::Expired: mget_fallback_expired++; break;
             case ReadLocalFallbackReason::SeqChurn: mget_fallback_seq_churn++; break;
             case ReadLocalFallbackReason::Generation: mget_fallback_generation++; break;
-            case ReadLocalFallbackReason::LaneFull: mget_fallback_lane_full++; break;
             // A local MGET miss is an invariant success. Keep a hard edge here so a future caller
             // cannot silently turn it into a reasoned MGET fallback counter.
             case ReadLocalFallbackReason::Missing:
@@ -284,6 +281,12 @@ struct ReadLocalStats {
         }
     }
 };
+
+static_assert(offsetof(ReadLocalStats, reserved_lane_full) == 144);
+static_assert(offsetof(ReadLocalStats, defer_lane_full) == 152);
+static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 296);
+static_assert(offsetof(ReadLocalStats, arm) == 304);
+static_assert(sizeof(ReadLocalStats) == 328);
 
 // Read-local publication and telemetry are absent from baseline ThreadCtx allocations. The
 // lone owning pointer is placed in ThreadCtx's established tail padding below.
