@@ -1645,7 +1645,6 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.fallback_expired += local.fallback_expired;
     total.fallback_seq_churn += local.fallback_seq_churn;
     total.fallback_generation += local.fallback_generation;
-    total.fallback_lane_full += local.fallback_lane_full;
     total.defer_lane_full += local.defer_lane_full;
     total.defer_quota += local.defer_quota;
     total.mget_local_hits += local.mget_local_hits;
@@ -1666,7 +1665,6 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_seq_churn += local.mget_fallback_seq_churn;
     total.mget_generation_retries += local.mget_generation_retries;
     total.mget_fallback_generation += local.mget_fallback_generation;
-    total.mget_fallback_lane_full += local.mget_fallback_lane_full;
 }
 
 void collect_stat_totals(StatBaseline& out) {
@@ -1963,8 +1961,6 @@ void cmd_info(Shard&, Op& op) {
             read_local.fallback_seq_churn, baseline.read_local.fallback_seq_churn);
         read_local.fallback_generation = minus_baseline(
             read_local.fallback_generation, baseline.read_local.fallback_generation);
-        read_local.fallback_lane_full = minus_baseline(
-            read_local.fallback_lane_full, baseline.read_local.fallback_lane_full);
         read_local.defer_lane_full = minus_baseline(
             read_local.defer_lane_full, baseline.read_local.defer_lane_full);
         read_local.defer_quota = minus_baseline(
@@ -2011,9 +2007,6 @@ void cmd_info(Shard&, Op& op) {
         read_local.mget_fallback_generation = minus_baseline(
             read_local.mget_fallback_generation,
             baseline.read_local.mget_fallback_generation);
-        read_local.mget_fallback_lane_full = minus_baseline(
-            read_local.mget_fallback_lane_full,
-            baseline.read_local.mget_fallback_lane_full);
     }
     const uint64_t connected = g_server ? g_server->live_clients() : 0;
 
@@ -2580,7 +2573,6 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_fallback_expired:%llu\r\n"
                 "read_local_fallback_seq_churn:%llu\r\n"
                 "read_local_fallback_generation:%llu\r\n"
-                "read_local_fallback_lane_full:%llu\r\n"
                 "read_local_defer_lane_full:%llu\r\n"
                 "read_local_defer_quota:%llu\r\n",
                 static_cast<unsigned long long>(read_local.hits),
@@ -2605,7 +2597,6 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.fallback_expired),
                 static_cast<unsigned long long>(read_local.fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.fallback_generation),
-                static_cast<unsigned long long>(read_local.fallback_lane_full),
                 static_cast<unsigned long long>(read_local.defer_lane_full),
                 static_cast<unsigned long long>(read_local.defer_quota));
         appendf(body,
@@ -2625,8 +2616,7 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_expired:%llu\r\n"
                 "read_local_mget_fallback_seq_churn:%llu\r\n"
                 "read_local_mget_generation_retries:%llu\r\n"
-                "read_local_mget_fallback_generation:%llu\r\n"
-                "read_local_mget_fallback_lane_full:%llu\r\n",
+                "read_local_mget_fallback_generation:%llu\r\n",
                 static_cast<unsigned long long>(read_local.mget_local_hits),
                 static_cast<unsigned long long>(read_local.mget_fallbacks()),
                 static_cast<unsigned long long>(read_local.mget_fallback_multi),
@@ -2645,8 +2635,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_expired),
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_generation_retries),
-                static_cast<unsigned long long>(read_local.mget_fallback_generation),
-                static_cast<unsigned long long>(read_local.mget_fallback_lane_full));
+                static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";

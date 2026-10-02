@@ -59,6 +59,11 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
     friend struct CoreConcurrencyTest;
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+    // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
+    // No observer storage, branch or call exists in release builds.
+    inline static void (*test_owner_publication_)(const Task&) = nullptr;
+#endif
     friend struct wb_rule::Phase2;
 public:
     WbEngine& engine() { return wb_; }
@@ -4249,6 +4254,9 @@ ordinary_shard_ready:
                 // inbox space.
                 break;
             }
+#ifdef TOMO_CORE_CONCURRENCY_TEST
+            if (test_owner_publication_) test_owner_publication_(t);
+#endif
             if constexpr (Fused) {
                 // Count only after the owner task is irrevocably queued. A refused SPSC push
                 // unpublishes and reparses this frame; charging before it would double-count and
