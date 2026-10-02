@@ -970,6 +970,7 @@ struct CoreConcurrencyTest {
 #include "flip_close_checks.inc"
 #include "flipsettle_checks.inc"
 #include "lanefull_checks.inc"
+#include "flipreport_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1067,10 +1068,12 @@ int main(int argc, char** argv) {
     else if (row == "flip-close") T::flip_close();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
-    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); }
+    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
     else if (row == "lanefull") T::lanefull_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
+    else if (row == "flipreport") T::flipreport_all();
+    else if (row == "flipreport-wire") T::flipreport_all(true);
     else if (row == "flipsettle") T::flipsettle_all();
     else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
     else if (row == "signalacct-report-2s") { T::signalacct_report<false>(); return 0; }

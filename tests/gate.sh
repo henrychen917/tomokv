@@ -31,7 +31,8 @@
 #   Such external binaries remain valid perf/iteration diagnostics but cannot earn a source receipt.
 #   Push/release/full also require a source/binary-bound local receipt. GATE_RECEIPT_BASELINE
 #   selects a trusted full ledger; GATE_RECEIPT_NULL selects a recent full byte-identical ABBA
-#   control. Defaults come only from a previous certified receipt. On first use, every check still
+#   control. The ledger default comes from a certified receipt; explicit promote-null
+#   publishes the standing control independently. On first use, every check still
 #   runs; missing baseline/null evidence withholds the receipt and makes the final gate nonzero.
 #   The owner reviews that completed full ledger before explicitly using it as the next baseline.
 #
@@ -2386,6 +2387,8 @@ row_begin "ABBA comparison + saturation negative controls" "with-scheduler-contr
 py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_quiet.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_measurements.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/gate_receipt.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/abba_instrument.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/background_environment_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
@@ -2950,23 +2953,16 @@ python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
 ABBA_PID=$!
 wait "$ABBA_PID"
 ABBA_RC=$?
-# ABBA REPORTS. CORRECTNESS GATES. (Owner ruling 2026-09-13: gate work stops here.)
-# The tier runs on every version and its per-cell numbers print above and land in results.json;
-# read them. It does not decide the gate, for two measured reasons:
-#   * its own per-row timeout is derived from the row's history, and that history is dominated by
-#     runs that aborted before measuring (median 0.42s) -- so every genuine measurement was killed
-#     at 30s. Three overnight rounds, three identical timeouts.
-#   * its calibrate -> import -> gate loop has not closed once in two days; one cell's failed
-#     calibration ("t01: failed calibration cell") declines the whole import, and the tier then
-#     searches every ladder from scratch, which no timeout budget survives.
-# Correctness (437 rows, 12 slots, ~9 min) has been green since 2026-09-12 and is what protects a
-# merge. Numbers you can trust to gate on again come from the read-local observability lane first
-# (SLOWLOG never sees lane reads; no read_local_hits are recorded), not from more tier machinery.
+# The headline reports measurements and emits ZERO scored correctness rows.
+# Iteration uses correctness for its tally. A full/push/release receipt remains
+# stronger: complete correctness evidence AND trusted full comparison rc=0.
+# Null collection's PARTIAL/rc=3 is never successful comparison certification.
 case "$ABBA_RC" in
-  0) say "headline ABBA" "measured; no cell regressed (reporting only, not gating)";;
-  3) say "headline ABBA" "did not run (no reference / skipped); reporting only, not gating";;
+  0) say "headline ABBA" "measured; resolving comparison complete (reporting only, not gating)";;
+  3) say "headline ABBA" "UNRESOLVED/PARTIAL/SKIP; no full PASS evidence (reporting only, not gating)";;
   *) say "headline ABBA" "measured; see per-cell numbers above and results.json (reporting only, not gating)";;
 esac
+python3 tests/gate_receipt.py resolution-summary "$ABBA_OUTPUT/results.json" || :
 
 row_finish
 ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}

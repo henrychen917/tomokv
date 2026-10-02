@@ -13,6 +13,7 @@ can substitute for this new manifest. Nonstandard unresolvable imports and local
 symlinks fail closed instead of hiding an executable dependency outside the scope.
 """
 import ast
+from functools import lru_cache
 import hashlib
 import json
 import os
@@ -80,41 +81,55 @@ def local_modules(root, name, *, relative_to=None):
     return set()
 
 
+@lru_cache(maxsize=128)
+def syntax_imports(relative, content):
+    """Cache only syntax, keyed by exact bytes; never cache a file's identity.
+
+    Every fingerprint still reads/hashes all dependencies, checks symlinks and
+    modes, and resolves imports against today's filesystem. In particular, a new
+    local module can shadow a formerly standard-library import without changing
+    its importer's bytes. Neither mtimes nor previous manifests are evidence.
+    """
+    imports = []
+    for node in ast.walk(ast.parse(content, filename=relative)):
+        if isinstance(node, ast.Import):
+            imports.extend((alias.name, None, True) for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            base = Path(relative).parent
+            for _ in range(max(0, node.level - 1)):
+                base = base.parent
+            base = base if node.level else None
+            imports.append((node.module or "", base, True))
+            imports.extend((".".join(filter(None, (node.module, alias.name))), base, False)
+                           for alias in node.names if alias.name != "*")
+        elif isinstance(node, ast.Call) and (
+                isinstance(node.func, ast.Name) and node.func.id == "__import__" or
+                isinstance(node.func, ast.Attribute) and node.func.attr == "import_module"):
+            require(node.args and isinstance(node.args[0], ast.Constant) and
+                    isinstance(node.args[0].value, str),
+                    f"unresolved dynamic instrument import in {relative}")
+            imports.append((node.args[0].value, None, True))
+    return tuple(dict.fromkeys(imports))
+
+
 def instrument_fingerprint(root):
     root = Path(root).resolve()
-    pending, entries = set(ROOTS), {}
+    pending, entries, resolved = set(ROOTS), {}, {}
     while pending:
         relative = pending.pop()
         if relative in entries:
             continue
         content, mode = read_file(root, relative)
         entries[relative] = dict(path=relative, mode=mode, sha256=sha256(content))
-        tree = ast.parse(content, filename=relative)
-        for node in ast.walk(tree):
-            imports = []
-            if isinstance(node, ast.Import):
-                imports = [(alias.name, None, True) for alias in node.names]
-            elif isinstance(node, ast.ImportFrom):
-                base = Path(relative).parent
-                for _ in range(max(0, node.level - 1)):
-                    base = base.parent
-                base = base if node.level else None
-                imports = [(node.module or "", base, True)]
-                imports += [(".".join(filter(None, (node.module, alias.name))), base, False)
-                            for alias in node.names if alias.name != "*"]
-            elif isinstance(node, ast.Call) and (
-                    isinstance(node.func, ast.Name) and node.func.id == "__import__" or
-                    isinstance(node.func, ast.Attribute) and node.func.attr == "import_module"):
-                require(node.args and isinstance(node.args[0], ast.Constant) and
-                        isinstance(node.args[0].value, str),
-                        f"unresolved dynamic instrument import in {relative}")
-                imports = [(node.args[0].value, None, True)]
-            for name, base, required in imports:
-                found = local_modules(root, name, relative_to=base)
-                if not found and required:
-                    require(base is None and name.split(".")[0] in sys.stdlib_module_names,
-                            f"unresolved nonstandard instrument import {name!r} in {relative}")
-                pending.update(found - entries.keys())
+        for name, base, required in syntax_imports(relative, content):
+            key = (name, base)
+            if key not in resolved:
+                resolved[key] = local_modules(root, name, relative_to=base)
+            found = resolved[key]
+            if not found and required:
+                require(base is None and name.split(".")[0] in sys.stdlib_module_names,
+                        f"unresolved nonstandard instrument import {name!r} in {relative}")
+            pending.update(found - entries.keys())
     payload = dict(schema=SCHEMA, scope=SCOPE, roots=list(ROOTS), python=python_identity(),
                    entries=[entries[name] for name in sorted(entries)])
     return {**payload, "sha256": sha256(canonical(payload))}
@@ -208,6 +223,31 @@ def self_test():
             self.assertIn("tests/another_instrument_helper.py", paths)
             second.write_text("value = 2\n")
             self.assertNotEqual(instrument_fingerprint(self.root)["sha256"], before["sha256"])
+
+        def test_warm_syntax_cache_resolves_new_local_modules_on_every_call(self):
+            # json is already imported by the unchanged roots. Warming their
+            # syntax must not hide a newly created local json module.
+            instrument_fingerprint(self.root)
+            path = self.root / "tests/json.py"
+            path.write_text("# synthetic local module, never imported\n")
+            after = instrument_fingerprint(self.root)
+            self.assertIn("tests/json.py", {entry["path"] for entry in after["entries"]})
+            self.assertNotEqual(after["sha256"], self.before["sha256"])
+            path.unlink()
+            self.assertEqual(instrument_fingerprint(self.root), self.before)
+
+        def test_warm_syntax_cache_uses_bytes_even_with_same_size_and_mtime(self):
+            path = self.root / "tests/_lib.py"
+            before, original = path.stat(), path.read_bytes()
+            instrument_fingerprint(self.root)
+            changed = original.replace(b"import socket", b"import shutil", 1)
+            self.assertNotEqual(changed, original)
+            self.assertEqual(len(changed), len(original))
+            path.write_bytes(changed)
+            os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+            self.assertNotEqual(instrument_fingerprint(self.root), self.before)
+            path.write_bytes(original)
+            self.assertEqual(instrument_fingerprint(self.root), self.before)
 
         def test_missing_symlinked_and_unresolved_dependencies_fail_closed(self):
             path = self.root / "tests/gate_history.py"

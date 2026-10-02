@@ -780,34 +780,85 @@ private:
     //   genthread_*              fused-only: run_loop reaches run_fused_iofused_loop
     // With Coded=false every coded block below is deleted by `if constexpr`, so a 2s instantiation
     // is the pre-reply-code function, not a variant of it.
+    // One source for retirement, staging, OOB flush, limits and accounting. Keep the existing
+    // template/lambda contexts: moving this body behind another C++ function changes GCC's
+    // inlining decisions and symbol/layout contracts. This local source expansion preserves
+    // those contexts and all existing if-constexpr specializations; it adds no runtime choice.
+    // BeforeRetire, StageBorrow and the final pump are the only transport-specific statements.
+    // Retire hooks materialize cross-shard state before examining the resulting borrow. Seal
+    // older fill bytes before segments; direct bytes precede spills; coded replies render at
+    // the fill frontier or materialize into the current segment, just as before.
+#define TOMO_WB_SERVE_BODY(BeforeRetire, StageBorrow, ...) \
+        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed)); \
+        stats_.serves++; \
+        Client& conn = c; \
+        if constexpr (TrackOutput) conn.start_obuf_tracking(); \
+        else conn.stop_obuf_tracking(); \
+        draining_ = &c; \
+        const uint32_t retired = c.rob().drain([&](Op& op) { \
+            BeforeRetire \
+            if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op); \
+            if (op.zc_ptr) { \
+                conn.seal_fill_segment(); \
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op); \
+                conn.append_buf_segment(op.direct, op.direct_len, \
+                                        op.reply.data(), op.reply.size()); \
+                StageBorrow \
+                if (op.direct_len) stats_.direct++; \
+                return; \
+            } \
+            if (conn.has_pending_segments()) { \
+                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op); \
+                conn.append_buf_segment(op.direct, op.direct_len, \
+                                        op.reply.data(), op.reply.size()); \
+                if (op.direct_len) stats_.direct++; \
+            } else { \
+                if constexpr (Coded) { \
+                    if (op.reply_code_) { \
+                        stage_coded_reply<TrackOutput>(conn, op); \
+                        if (!op.reply.empty()) { \
+                            if constexpr (TrackOutput) \
+                                conn.append_fill(op.reply.data(), op.reply.size()); \
+                            else conn.fill_buf().append(op.reply.data(), op.reply.size()); \
+                        } \
+                        return; \
+                    } \
+                } \
+                if (op.direct_len) { \
+                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len); \
+                    else conn.fill_buf().commit_raw(op.direct_len); \
+                    stats_.direct++; \
+                } \
+                if (!op.reply.empty()) { \
+                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size()); \
+                    else conn.fill_buf().append(op.reply.data(), op.reply.size()); \
+                } \
+            } \
+        }); \
+        draining_ = nullptr; \
+        bool did = retired != 0; \
+        did |= flush_deferred_oob(conn); \
+        if constexpr (TrackOutput) { \
+            if (limit_fn_(limit_ctx_, c)) { \
+                if (submit_allowed) *submit_allowed = false; \
+                stats_.retired += retired; \
+                if (!retired) stats_.serves_empty++; \
+                return true; \
+            } \
+        } \
+        if constexpr (Submit) \
+            __VA_ARGS__ \
+        stats_.retired += retired; \
+        if (!retired) stats_.serves_empty++; \
+        return did;
+
     template <bool TrackOutput, bool TlsNoBorrow, bool kEp, bool Submit, bool ClassifySend,
               bool Coded>
     bool serve_impl(Client& c, bool* submit_allowed = nullptr) {
-        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
-        stats_.serves++;
-        Client& conn = c;
-        if constexpr (TrackOutput) conn.start_obuf_tracking();
-        else conn.stop_obuf_tracking();
-        draining_ = &c;
-        const uint32_t retired = c.rob().drain([&](Op& op) {
+        TOMO_WB_SERVE_BODY(
             if constexpr (TlsNoBorrow) {
                 if (op.no_borrow()) note_zc_suppressed_tls();
-            }
-            // Cross-shard completion publishes descriptors/state, not bytes.  The connection's IO
-            // owner turns those into the final ordered reply here, before the generic staging path
-            // inspects the (possibly repurposed) zero-copy fields.
-            // Plain commands have no sidecar and take exactly the pre-notify zc_ptr branch. Special
-            // command state, borrowed values, and armed notification batches all already use this
-            // field, so their retirement hook nests behind that existing test.
-            if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);
-            if (op.zc_ptr) {
-                // Anything already staged is older than this op. Once sealed, every subsequent
-                // reply uses segments until the queue drains, so no fill-buffer append can jump a
-                // borrowed value that is only partially written.
-                conn.seal_fill_segment();
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
+            },
                 if constexpr (TlsNoBorrow) {
                     conn.append_buf_segment(op.zc_ptr, op.zc_len);
                     release(op.zc_shard, op.zc_ptr);
@@ -815,137 +866,24 @@ private:
                 } else {
                     conn.append_borrow_segment(op.zc_ptr, op.zc_len, op.zc_shard);
                 }
-                conn.append_static_segment(kCrlf, sizeof(kCrlf));
-                if (op.direct_len) stats_.direct++;
-                return;
-            }
-
-            // Direct bytes are already in the fill buffer; publishing the length is the whole
-            // "copy". A reply that outgrew the region spilled to op.reply -- emit it AFTER the
-            // direct part so the RESP stream stays in order.
-            if (conn.has_pending_segments()) {
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
-                if (op.direct_len) stats_.direct++;
-            } else {
-                // Coded reply: render at the fill frontier, one constant-length store by the
-                // thread that owns the buffer. The whole block is deleted for Coded=false, and
-                // what remains below is the pre-reply-code text, instruction for instruction.
-                if constexpr (Coded) {
-                    if (op.reply_code_) {
-                        stage_coded_reply<TrackOutput>(conn, op);
-                        if (!op.reply.empty()) {
-                            if constexpr (TrackOutput)
-                                conn.append_fill(op.reply.data(), op.reply.size());
-                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
-                        }
-                        return;
-                    }
-                }
-                if (op.direct_len) {
-                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
-                    else conn.fill_buf().commit_raw(op.direct_len);
-                    stats_.direct++;
-                }
-                if (!op.reply.empty()) {
-                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size());
-                    else conn.fill_buf().append(op.reply.data(), op.reply.size());
-                }
-            }
-        });
-        draining_ = nullptr;
-        bool did = retired != 0;
-        did |= flush_deferred_oob(conn);
-        if constexpr (TrackOutput) {
-            if (limit_fn_(limit_ctx_, c)) {
-                if (submit_allowed) *submit_allowed = false;
-                stats_.retired += retired;
-                if (!retired) stats_.serves_empty++;
-                return true;
-            }
-        }
-        if constexpr (Submit)
-            if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);
-        stats_.retired += retired;
-        // A serve that retires nothing: the POLLING paths (flush_ready, the backstop) finding
-        // nothing, which is expected and cheap.
-        if (!retired) stats_.serves_empty++;
-        return did;
+                conn.append_static_segment(kCrlf, sizeof(kCrlf));,
+            if (!conn.nothing_to_write()) did |= pump<kEp, ClassifySend>(c);)
     }
 
     template <bool TrackOutput, bool kEp, bool Submit, bool ClassifySend, bool Coded>
     bool serve_tls_impl(Client& c, TlsConn& tls, bool* submit_allowed = nullptr) {
-        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed));
-        stats_.serves++;
-        Client& conn = c;
-        if constexpr (TrackOutput) conn.start_obuf_tracking();
-        else conn.stop_obuf_tracking();
-        draining_ = &c;
-        const uint32_t retired = c.rob().drain([&](Op& op) {
-            if (op.no_borrow()) note_zc_suppressed_tls();
-            if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);
-            if (op.zc_ptr) {
-                conn.seal_fill_segment();
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
+        // Userspace TLS seals CRLF before release; kTLS above releases before CRLF.
+        // Ciphertext can remain after all plaintext has drained. Submit=false skips this pump.
+        TOMO_WB_SERVE_BODY(
+            if (op.no_borrow()) note_zc_suppressed_tls();,
                 conn.append_buf_segment(op.zc_ptr, op.zc_len);
                 conn.append_static_segment(kCrlf, sizeof(kCrlf));
                 release(op.zc_shard, op.zc_ptr);
-                note_zc_suppressed_tls();
-                if (op.direct_len) stats_.direct++;
-                return;
-            }
-            if (conn.has_pending_segments()) {
-                if constexpr (Coded) if (op.reply_code_) op_materialise_code(op);
-                conn.append_buf_segment(op.direct, op.direct_len,
-                                        op.reply.data(), op.reply.size());
-                if (op.direct_len) stats_.direct++;
-            } else {
-                // Coded reply: render at the fill frontier, one constant-length store by the
-                // thread that owns the buffer. The whole block is deleted for Coded=false, and
-                // what remains below is the pre-reply-code text, instruction for instruction.
-                if constexpr (Coded) {
-                    if (op.reply_code_) {
-                        stage_coded_reply<TrackOutput>(conn, op);
-                        if (!op.reply.empty()) {
-                            if constexpr (TrackOutput)
-                                conn.append_fill(op.reply.data(), op.reply.size());
-                            else conn.fill_buf().append(op.reply.data(), op.reply.size());
-                        }
-                        return;
-                    }
-                }
-                if (op.direct_len) {
-                    if constexpr (TrackOutput) conn.commit_fill(op.direct_len);
-                    else conn.fill_buf().commit_raw(op.direct_len);
-                    stats_.direct++;
-                }
-                if (!op.reply.empty()) {
-                    if constexpr (TrackOutput) conn.append_fill(op.reply.data(), op.reply.size());
-                    else conn.fill_buf().append(op.reply.data(), op.reply.size());
-                }
-            }
-        });
-        draining_ = nullptr;
-        bool did = retired != 0;
-        did |= flush_deferred_oob(conn);
-        if constexpr (TrackOutput) {
-            if (limit_fn_(limit_ctx_, c)) {
-                if (submit_allowed) *submit_allowed = false;
-                stats_.retired += retired;
-                if (!retired) stats_.serves_empty++;
-                return true;
-            }
-        }
-        if constexpr (Submit)
+                note_zc_suppressed_tls();,
             if (!conn.nothing_to_write() || tls.output_pending())
-                did |= pump_tls<kEp, ClassifySend>(c, tls);
-        stats_.retired += retired;
-        if (!retired) stats_.serves_empty++;
-        return did;
+                did |= pump_tls<kEp, ClassifySend>(c, tls);)
     }
+#undef TOMO_WB_SERVE_BODY
     template <bool kEp, bool ClassifySend = false>
     bool submit_legacy(Client& c, size_t total, size_t sent) {
       if constexpr (kEp) { bool did = false; (void)write_legacy_epoll(c, total, sent, did); return did; }

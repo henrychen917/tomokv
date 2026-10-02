@@ -5,10 +5,12 @@ These deliberately poison valid evidence. Run manually while developing the harn
 do not add ledger rows or replace the live feature/performance cells.
 """
 import contextlib
+from concurrent.futures import ThreadPoolExecutor
 import copy
 import io
 import json
 import os
+import queue
 from pathlib import Path
 import shlex
 import shutil
@@ -317,6 +319,7 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 
 class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
+                          'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
 
@@ -361,7 +364,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -481,10 +484,10 @@ py(){
                     self.assertEqual([row[0] for row in rows], ['ok'] * 35 + ['FAIL'])
                     self.assertEqual(rows[-1][1], 'ABBA comparison + saturation negative controls')
 
-    def test_full_abba_counts_missing_refs_and_measurement_errors_as_failures(self):
-        # The ABBA row REPORTS and does not gate (owner ruling 2026-09-13): whatever the tier
-        # returns, the block emits no ledger row, so the tally is unaffected. Its numbers still
-        # print. Correctness gates.
+    def test_headline_abba_emits_zero_scored_rows(self):
+        # Headline reporting contributes no correctness row at any exit status.
+        # Full/push/release certification separately requires a trusted comparison
+        # and rc=0; gate_receipt's controls exercise that stronger condition.
         for rc in (0, 1, 2, 3):
             with self.subTest(rc=rc):
                 rows = self.run_block('performance', abba_rc=rc)
@@ -880,9 +883,48 @@ collect_job(){
         if len(cls.canonical) != len(set(cls.canonical)):
             raise AssertionError('collector inventory repeats a job')
 
-    def run_scheduler(self, *, reverse=False, slots=None, failure='', behavior='', ordered=True,
+        # Every scenario still executes the real scheduler over its COMPLETE
+        # source-declared inventory. Prepare independent disposable fixtures on
+        # disjoint CPU groups instead of serializing hundreds of Python starts
+        # per scenario. Identical scenarios share one immutable class fixture.
+        cpus = sorted(os.sched_getaffinity(0))
+        workers = min(4, max(1, len(cpus) // 4))
+        cls.cpu_groups = queue.Queue()
+        for index in range(workers):
+            cls.cpu_groups.put(cpus[index * 4:(index + 1) * 4])
+        pool = ThreadPoolExecutor(max_workers=workers)
+        cls.addClassCleanup(pool.shutdown, wait=True, cancel_futures=True)
+        scenarios = [
+            {}, dict(reverse=True), dict(slots=3, ordered=False), dict(slots=1),
+            dict(slots=3, ordered=False, failure='core_tsan_build', behavior='before-affinity'),
+            *(dict(failure='flipctl', behavior=kind) for kind in ('empty', 'red', 'return')),
+            dict(failure=cls.canonical[-1], behavior='crash'),
+            dict(slots=3, ordered=False, delayed_completion=True),
+            dict(slots=3, ordered=False, delayed_completion=True, remove_atomic_publication=True),
+            dict(slots=2, ordered=False, remove_atomic_dependency=True),
+            dict(slots=2, ordered=False, failure='release', behavior='crash'),
+            dict(slots=2, ordered=False, dependency_probe=True),
+            dict(slots=2, ordered=False, dependency_probe=True, add_asan_dependency=True),
+        ]
+        probe = cls('test_one_slot_uses_the_same_queue_without_losing_coverage')
+        cls.fixtures = {tuple(sorted(options.items())): pool.submit(probe.prepare_fixture, options)
+                        for options in scenarios}
+
+    def prepare_fixture(self, options):
+        cpus = self.cpu_groups.get()
+        try:
+            return self._run_scheduler(_cpus=cpus, **options)
+        finally:
+            self.cpu_groups.put(cpus)
+
+    def run_scheduler(self, **options):
+        prepared = self.fixtures.get(tuple(sorted(options.items())))
+        return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+
+    def _run_scheduler(self, *, reverse=False, slots=None, failure='', behavior='', ordered=True,
                       delayed_completion=False, dependency_probe=False,
-                      remove_atomic_dependency=False, add_asan_dependency=False):
+                      remove_atomic_dependency=False, add_asan_dependency=False,
+                      remove_atomic_publication=False, _cpus=None):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
         ledger_functions = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
@@ -906,8 +948,13 @@ cleanup(){ row_unwatch; [ -z "${name:-}" ] || : > "$TMPDIR/cleaned"; }
 reap_children(){ :; } # Real teardown is covered by gate_history's owned-process controls.
 '''
         if delayed_completion:
-            # Widen the real open-before-write window past the collector's polling interval.
-            # Readers must wait for publication even when the writer is descheduled here.
+            # The printf hook runs AFTER shell redirection opens the file but
+            # BEFORE a single completion byte is written. Check the public name
+            # synchronously in that exact window; it must still be absent. A
+            # direct-to-done mutant below makes this fast assertion fail.
+            # Optional timing stress retains the old 0.6s descheduling window:
+            # TOMO_GATE_SLOW_PUBLICATION=1 python3 tests/gates_test.py
+            # The gate does not set this opt-in; no default proof depends on sleep.
             # Filter the completion record's format/three integer fields BEFORE readlink: a
             # wrapper that forks for every printf adds work to every label/ledger operation.
             # With 97 fixture workers on one CPU that instrumentation itself exhausted 45s,
@@ -925,12 +972,20 @@ printf(){
       # checking markers below makes a narrowed hook that never opens the window fail.
       builtin printf '%s\\t%s\\t%s\\n' "$writer_pid" "$CLEANUP_OWNER" "$EPOCHREALTIME" \\
           >> "$RUN_DIR/delayed-publication/$family"
-      sleep .6;;
+      if [ -e "$RUN_DIR/jobs/$family/done" ]; then
+        echo 'completion visible before its record was written' >&2
+        exit 29
+      fi
+      [ "${TOMO_GATE_SLOW_PUBLICATION:-0}" != 1 ] || sleep .6;;
     esac
   fi
   builtin printf "$@"
 }
 '''
+        if remove_atomic_publication:
+            old = '> "$TMPDIR/done.tmp"\n  mv "$TMPDIR/done.tmp" "$TMPDIR/done"'
+            self.assertIn(old, scheduler)
+            scheduler = scheduler.replace(old, '> "$TMPDIR/done"', 1)
         # File barriers force the opposite completion order without relying on sleep durations
         # or machine scheduling. No stub opens a socket or invokes a server/build/benchmark.
         stub = '''
@@ -1066,7 +1121,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             # the unchanged 45s deadline under correctness contention. Use up to four
             # permitted CPUs so publication is exercised concurrently, while an explicit
             # caller affinity still limits the fixture. No jobs or assertions are removed.
-            fixture_cpus = list(map(str, sorted(os.sched_getaffinity(0))[:min(4, count)]))
+            fixture_cpus = list(map(str, (_cpus or sorted(os.sched_getaffinity(0)))[:min(4, count)]))
             cpu_list = ','.join(fixture_cpus)
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
@@ -1240,6 +1295,18 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         # window while the collector runs; 97 synchronized shells on one CPU only add contention.
         result = self.run_scheduler(slots=3, ordered=False, delayed_completion=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
+        with self.assertRaises(AssertionError) as failure:
+            self.run_scheduler(slots=3, ordered=False, delayed_completion=True,
+                               remove_atomic_publication=True)
+        message = str(failure.exception)
+        self.assertIn('Scheduler failure artifacts: ', message)
+        saved = Path(message.split('Scheduler failure artifacts: ', 1)[1].strip())
+        try:
+            self.assertTrue(any('completion visible before its record was written' in path.read_text()
+                                for path in (saved / 'jobs').glob('*/output.log')),
+                            'direct-publication mutant never reached the open-before-write window')
+        finally:
+            shutil.rmtree(saved)
 
     def test_limited_workers_reuse_slots_without_losing_or_repeating_jobs(self):
         result = self.run_scheduler(slots=3, ordered=False)

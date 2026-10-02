@@ -391,7 +391,7 @@ public:
         if (completed_locally) {
             // Error lowering can finish an MGET locally; release its fence through the
             // ordinary completion wake in both O1 modes.
-            loop_->fused_executor_completion<false>(client_);
+            loop_->fused_executor_completion(client_);
         }
         count_ = 0;  // every prepared scatter/marker is now owned by its published Op
         if (reserved_current_worker_ < 0) {
@@ -1486,7 +1486,7 @@ void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
     // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
     // conn -- it would sit accepted and silent forever (audit finding). The active set's
     // phase-1 re-arms it until the recv lands; one wasted visit if the arm succeeded.
-    mark_active_known<Fused && Pipeline != 0>(c);
+    mark_active(c);
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
@@ -1533,7 +1533,6 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         }
         io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
         s->user_data = ur_tag(UrKind::TlsRecv, c);
-        ring_.note_pending();
         c->set_recv_armed(true);
     }
 }
@@ -1748,7 +1747,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                         c->set_recv_armed(false);
                     }
                 }
-                mark_active_known<Fused && Pipeline != 0>(c);
+                mark_active(c);
                 work++;
                 break;
             }
@@ -1838,21 +1837,21 @@ uint32_t IoLoop::r7_ifid_parse_hash(IfidBatch& batch) {
                 const uint32_t rpos_before = conn.rpos();
                 if constexpr (HasTls) {
                     if (c->is_tls())
-                        dispatch_result = r7_parse_and_dispatch<true, 0, true, false, false, false, SplitLocal>(c);
+                        dispatch_result = r7_parse_and_dispatch<true, 0, true, SplitLocal>(c);
                     else
-                        dispatch_result = r7_parse_and_dispatch<false, 0, true, false, false, false, SplitLocal>(c);
+                        dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
                 } else {
-                    dispatch_result = r7_parse_and_dispatch<false, 0, true, false, false, false, SplitLocal>(c);
+                    dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
                 }
                 if (conn.rpos() != rpos_before) work++;
             } else {
                 if constexpr (HasTls) {
                     if (c->is_tls())
-                        dispatch_result = r7_parse_and_dispatch<true, 0, true, false, false, false, SplitLocal>(c);
+                        dispatch_result = r7_parse_and_dispatch<true, 0, true, SplitLocal>(c);
                     else
-                        dispatch_result = r7_parse_and_dispatch<false, 0, true, false, false, false, SplitLocal>(c);
+                        dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
                 } else {
-                    dispatch_result = r7_parse_and_dispatch<false, 0, true, false, false, false, SplitLocal>(c);
+                    dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
                 }
                 if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true))
                     work++;
@@ -2073,7 +2072,7 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     }
     // Deliberately NOT re-armed here. r7_flush_ready() re-arms AFTER it may have reset the read
     // buffer; arming first would leave the kernel holding a pointer that the reset then moves.
-    mark_active_known<Fused && Pipeline != 0>(c);
+    mark_active(c);
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
@@ -2098,7 +2097,7 @@ void IoLoop::r7_on_tls_recv(Client* c, int res) {
     self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
     c->set_last_interaction_s(cached_now_s_);
     (void)r7_drive_tls<kEp, Fused, Pipeline>(c);
-    mark_active_known<Fused && Pipeline != 0>(c);
+    mark_active(c);
 }
 
 template <bool kEp, bool Fused, uint8_t Pipeline>
@@ -2111,26 +2110,22 @@ void IoLoop::r7_on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
     if (c->dead()) return;
     if (c->closing() || res < 0) { close_client(c); return; }
     (void)r7_drive_tls<kEp, Fused, Pipeline>(c);
-    mark_active_known<Fused && Pipeline != 0>(c);
+    mark_active(c);
 }
 
 template <bool NoBorrow, uint32_t BatchOps, bool IoPipe,
-          bool TargetedIfid,
-          bool SuppressOrdinaryActiveMark,
-          bool IofusedPrivateQueue, bool SplitLocal>
+          bool SplitLocal>
 IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
-        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, TargetedIfid,
-            SuppressOrdinaryActiveMark, IofusedPrivateQueue, SplitLocal>(c);
+        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
     r7::ShadowDispatch shadow_dispatch(*c);
 
     TOMO_R7_PATH();
     // Split readers and fused overlap need the same ROB hazards, MGET fence,
     // admission, and demotion protocol as the baseline fused reader.
-    static constexpr bool Fused = SplitLocal || IofusedPrivateQueue || (
-        BatchOps == kGenthreadIfidBatchOps &&
-        !IoPipe && !TargetedIfid && !SuppressOrdinaryActiveMark);
+    static constexpr bool Fused = SplitLocal || (
+        BatchOps == kGenthreadIfidBatchOps && !IoPipe);
     [[maybe_unused]] const bool read_local_enabled =
         Fused && __builtin_expect(srv_->read_local_enabled(), false);
     Client& conn = *c;
@@ -2141,25 +2136,13 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     const uint32_t pass_rlen = conn.rlen();
     const uint32_t self_id = self_->id();
     auto task_free_slots = [&](ThreadCtx& owner) {
-        if constexpr (IofusedPrivateQueue) {
-            return owner.iofused_task_free_slots(self_id);
-        } else {
-            return owner.task_free_slots(self_id);
-        }
+        return owner.task_free_slots(self_id);
     };
     auto post_task_quiet = [&](ThreadCtx& owner, const Task& task) {
-        if constexpr (IofusedPrivateQueue) {
-            return owner.post_iofused_task_quiet(self_id, task, sig);
-        } else {
-            return owner.post_task_quiet(self_id, task, sig);
-        }
+        return owner.post_task_quiet(self_id, task, sig);
     };
     auto post_tasks_quiet = [&](ThreadCtx& owner, const Task* tasks, uint32_t count) {
-        if constexpr (IofusedPrivateQueue) {
-            return owner.post_iofused_tasks_quiet(self_id, tasks, count, sig);
-        } else {
-            return owner.post_tasks_quiet(self_id, tasks, count, sig);
-        }
+        return owner.post_tasks_quiet(self_id, tasks, count, sig);
     };
     DispatchResult result = DispatchResult::Progress;
     bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
@@ -2224,7 +2207,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         if constexpr (Fused) {
             op = read_local_enabled
                 ? rob.acquire_read_local(conn.op_route_flags())
-                : rob.acquire<!IofusedPrivateQueue>(conn.op_route_flags());
+                : rob.acquire<true>(conn.op_route_flags());
             // Preserve the old unarmed overlap parser's byte replies. acquire_read_local
             // above uses the existing coded fused arm; overlap WB already handles codes.
         } else {
@@ -2818,11 +2801,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
                         ReadLocalFallbackReason::Multi,
                         command_is_read_local_mget(*spec));
             }
-            if constexpr (IofusedPrivateQueue) {
-                if (multi_dispatch_entry_iofused(*this, conn, *op, consumed)) continue;
-            } else {
-                if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
-            }
+            if (multi_dispatch_entry(*this, conn, *op, consumed)) continue;
         }
         const bool config_scatter = (spec->flags & CmdFlags::ConfigRoute) &&
                                     command_config_routes_all_shards(*op);
@@ -2838,7 +2817,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
                 climon_reset_client(c, *op);
                 pubsub_start_reset(c, *op);
                 sig.ops++;
-                mark_active_known<TargetedIfid>(c);
+                mark_active(c);
                 break;
             }
             if (op->resp3()) goto subscriber_checks_done;
@@ -2874,7 +2853,7 @@ subscriber_checks_done:
             const PubSubStartResult result = pubsub_start_command(c, *op);
             if (result == PubSubStartResult::Async) {
                 sig.ops++;
-                mark_active_known<TargetedIfid>(c);
+                mark_active(c);
                 if (__builtin_expect(c->scatter_barrier(), false)) break;
                 continue;
             }
@@ -2932,14 +2911,14 @@ subscriber_checks_done:
                     op->state.store(OpState::Done, std::memory_order_release);
                     rob.publish();
                     enqueue_serve(c);
-                    mark_active_known<TargetedIfid>(c);
+                    mark_active(c);
                     continue;
                 }
                 flip_client_ = c;
                 flip_op_id_ = rob.dispatch_id();
                 flip_epoch_local_ = srv_->flip_epoch();
                 rob.publish();              // sole unfinished op on the coordinator connection
-                mark_active_known<TargetedIfid>(c);
+                mark_active(c);
                 break;
             }
             // DEBUG SLEEP parks only this connection. The unfinished ROB slot preserves
@@ -2973,7 +2952,7 @@ subscriber_checks_done:
                         // As with WAIT, retirement releases the barrier only after the timer's
                         // reply has been staged and the ROB becomes quiescent.
                         barrier_arm(c, BarrierOwner::Sleep);
-                        mark_active_known<TargetedIfid>(c);
+                        mark_active(c);
                         break;
                     }
                     if (sleep == DebugSleepResult::Deferred)
@@ -2992,7 +2971,7 @@ subscriber_checks_done:
                     op->state.store(OpState::Done, std::memory_order_release);
                     rob.publish();
                     enqueue_serve(c);
-                    mark_active_known<TargetedIfid>(c);
+                    mark_active(c);
                     continue;
                 }
             }
@@ -3020,7 +2999,7 @@ subscriber_checks_done:
                         // the WAIT reply's staging. Owner bit named so the release is
                         // attributable; the release site is deliberately unchanged.
                         barrier_arm(c, BarrierOwner::Wait);
-                        mark_active_known<TargetedIfid>(c);
+                        mark_active(c);
                         break;
                     }
                 } else if (wait == WaitCommandResult::Immediate) {
@@ -3034,7 +3013,7 @@ subscriber_checks_done:
                 op->state.store(OpState::Done, std::memory_order_release);
                 rob.publish();
                 enqueue_serve(c);
-                mark_active_known<TargetedIfid>(c);
+                mark_active(c);
                 continue;
             }
             // RESET clears this lane's connection state (monitor mode, tracking registration,
@@ -3068,7 +3047,7 @@ subscriber_checks_done:
             op->state.store(OpState::Done, std::memory_order_release);
             rob.publish();
             enqueue_serve(c);
-            mark_active_known<TargetedIfid>(c);
+            mark_active(c);
             if (c->closing()) { result = DispatchResult::Closed; break; }
             if (acl_command) break;
             if (op->cmd_name().eq_icase("select") || op->cmd_name().eq_icase("reset")) break;
@@ -3172,7 +3151,7 @@ subscriber_checks_done:
             // means something, instead of being a number nothing was ever able to move.
             if (__builtin_expect(srv_->debug_barrier_hold_armed(), false))
                 barrier_arm(c, BarrierOwner::Debug);
-            mark_active_known<TargetedIfid>(c);
+            mark_active(c);
             break;
         }
 
@@ -3286,7 +3265,7 @@ nonblocking_dispatch:
                             read_local_fallback_reason, true);
                 head_candidate = false;
                 if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
-                mark_active_known<TargetedIfid>(c);
+                mark_active(c);
                 continue;
             }
 
@@ -3349,7 +3328,7 @@ nonblocking_dispatch:
             sig.ops++;
             head_candidate = false;
             if (scatter_dispatch.barrier) barrier_arm(c, BarrierOwner::Scatter);
-            mark_active_known<TargetedIfid>(c);
+            mark_active(c);
             continue;
         }
         }
@@ -3426,7 +3405,7 @@ ordinary_shard_ready:
                     conn.advance_parse(consumed);
                     sig.ops++;
                     flip_fingerprint_note(*spec, *op);
-                    mark_active_known<TargetedIfid>(c);
+                    mark_active(c);
                     read_local_batch = !read_local_mget_candidate;
                     // Fill at most the existing fused IFID quantum; intervening ordinary frames
                     // simply end this run. MGET holds a one-command cut fence until local
@@ -3509,12 +3488,7 @@ ordinary_shard_ready:
         sig.ops++;
         flip_fingerprint_note(*spec, *op);
         touch_worker(worker_id);
-        // Unified pipeline 1 entered with a live active client and its batch tail decides once
-        // whether input/backpressure requires another IFID visit. Repeating the same active
-        // and queue-dedupe checks for every op was pure per-op work; the other schedules retain
-        // their existing mark here.
-        if constexpr (!SuppressOrdinaryActiveMark)
-            mark_active_known<TargetedIfid>(c);
+        mark_active(c);
     }
     if constexpr (!IoPipe) {
         // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
@@ -3683,7 +3657,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
                 executors[tid].bind_fused_completion(
                     &ios[tid],
                     [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
+                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
                     });
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
