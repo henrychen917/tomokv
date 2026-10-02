@@ -1,3 +1,4 @@
+#include "probeadapter_checks.h"
 // Real FlatStore + real QSBR queue, without worker threads or sockets. Each child pins one
 // non-parked participant and fills all 4096 entries. A one-second alarm bounds the attempted
 // read; the parent treats that deadline as FAILURE except in the explicit blocking control.
@@ -141,7 +142,7 @@ static const KvObj* lookup(FlatStore& store, const char* kind, const std::string
     if (!std::strcmp(kind, "tracked")) return store.atomic_find_tracked(h, k);
     if (!std::strcmp(kind, "resolve")) return store.atomic_resolve(h, k, UINT64_MAX);
     if (!std::strcmp(kind, "foreign")) {
-        const auto result = store.read_local_probe(h, k);
+        const auto result = probeadapter::probe(store, h, k, "rehash foreign");
         require(result.result == FlatStore::ReadLocalProbeResult::Hit ||
                 result.result == FlatStore::ReadLocalProbeResult::Missing,
                 "foreign lookup must execute, never decline/skip");
@@ -432,6 +433,9 @@ static int maintenance_checks() {
 int main(int argc, char** argv) {
     require(argc == 2, "usage: rehash-waits-unit lookups|retirement|expiry|<lookup>");
     const std::string selection = argv[1];
+    if (selection == "probeadapter" || selection == "lookups" || selection == "retirement" || selection == "foreign")
+        probeadapter::states(0);
+    if (selection == "probeadapter") return 0;
     if (selection == "maintenance") return maintenance_checks();
     bool ok = run("blocking-control", true);
     if (selection == "lookups" || selection == "retirement") {

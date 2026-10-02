@@ -47,6 +47,17 @@ def canonical(name):
             end += 1
         if depth: raise ValueError('unclosed demangled template')
         parts.append(name[begin:end-1].strip())
+        # IO cleanup removes exactly three false policies, keeping SplitLocal in
+        # its explicit fourth position. This is symbol correspondence only; the
+        # instruction comparison below remains strict and is not a raw ELF proof.
+        if method in ('parse_and_dispatch', 'r7_parse_and_dispatch') and len(parts) == 7:
+            if parts[3:6] != ['false', 'false', 'false']: continue
+            parts = parts[:3] + parts[6:]
+            name = name[:match.end()] + ', '.join(parts) + name[end-1:]
+            continue
+        if method == 'collect_retire_work' and len(parts) == 3 and parts[2] == 'false':
+            name = name[:match.end()] + ', '.join(parts[:2]) + name[end-1:]
+            continue
         expected=POLICIES.get(method)
         if method == 'sweep': expected=5
         if expected != len(parts): continue
@@ -322,6 +333,12 @@ def compare(pre,post,out):
     return records
 
 def self_test():
+    for ns in ('tomo', 'tomo_db0'):
+        a = ns + '::IoLoop::parse_and_dispatch<false, 0u, true, false, false, false, true>(X)'
+        b = ns + '::IoLoop::parse_and_dispatch<false, 0u, true, true>(X)'
+        assert canonical(a) == b
+        assert canonical(a.replace('true, false, false, false', 'true, true, false, false')) != b
+        assert canonical(a.replace('false, true>(X)', 'false, false>(X)')) != b
     assert canonical('void tomo::ExLoopT<true>::run<false>()')=='tomo::ExLoopT<true>::run()'
     assert canonical('void tomo::ExLoopT<true>::run<true>()')=='void tomo::ExLoopT<true>::run<true>()'
     a='unsigned int tomo::ExLoopT<true>::fused_pass_impl<128u, true, true, true, false, tomo::IoLoop::genthread_three_way_pass<false, false, false, false>(X)::{lambda()#1}, false>(X*)'

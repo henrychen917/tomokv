@@ -1,3 +1,4 @@
+#include "probeadapter_checks.h"
 // Linked into the existing multidb gate row, using the production DB-0 objects.
 #include "src/core/server.h"
 #include "src/net/resp.h"
@@ -10,7 +11,9 @@ using namespace tomo;
 static void require(bool ok, const char* label) {
     if (!ok) { std::fprintf(stderr, "FAIL db0 variant: %s\n", label); std::exit(1); }
 }
+void multidb_db0_probeadapter_checks() { probeadapter::states(0); }
 void multidb_db0_unit() {
+    multidb_db0_probeadapter_checks();
     static_assert(kSingleDatabase && sizeof(KeyIdentity) == 4);
     static_assert(sizeof(Slice) == 16 && sizeof(Op) == 336 && sizeof(Client) == 1984);
     static_assert(sizeof(ThreadCtx) == 1408 && sizeof(Shard) == 1440 && sizeof(FlatStore) == 944);
@@ -60,7 +63,7 @@ void multidb_db0_unit() {
             require(kvobj_request_size(object) == sizeof(KvObj) + length + value.size() +
                     (length >= 255 ? 4 : 0), "legacy allocation geometry");
             if (armed) {
-                const auto probe = shard.store().read_local_probe(hash, name);
+                const auto probe = probeadapter::probe(shard.store(), hash, name, "db0 identity");
                 require(probe.result == FlatStore::ReadLocalProbeResult::Hit && probe.object == object,
                         "read-local uses legacy identity");
             }

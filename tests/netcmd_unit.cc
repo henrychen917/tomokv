@@ -6,6 +6,7 @@
 #include "src/cmd/xshard.cc"
 #pragma GCC diagnostic pop
 #include <filesystem>
+#include "tlsserve_checks.inc"
 
 long netcmd_fail_after = -1;
 size_t netcmd_fail_size = 0;
@@ -124,6 +125,7 @@ struct NetcmdRegression {
     }
 
     static void output() {
+        tlsserve_test::run();
         Sender sender;
         Client client(-1); WbEngine wb;
         sender.bind(wb);

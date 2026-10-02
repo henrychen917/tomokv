@@ -44,7 +44,7 @@ struct CoreConcurrencyTest {
         const auto parse = [&](Client* client) {
             (void)io.template parse_and_dispatch<false,
                 Fused ? kGenthreadIfidBatchOps : 0, !Fused,
-                false, false, false, !Fused && ReadLocal>(client);
+                !Fused && ReadLocal>(client);
         };
         const auto accepted = [&](int fd, bool direct, uint64_t generation) {
             if (direct) io.template admit_fd<true, Fused>(fd, UrKind::Accept);

@@ -159,7 +159,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                 executors[tid].bind_fused_completion(
                     &ios[tid],
                     [](void* p, Client* client) {
-                        static_cast<IoLoop*>(p)->fused_executor_completion<false>(client);
+                        static_cast<IoLoop*>(p)->fused_executor_completion(client);
                     });
                 if (srv.read_local_enabled())
                     executors[tid].bind_read_local_demotion(
