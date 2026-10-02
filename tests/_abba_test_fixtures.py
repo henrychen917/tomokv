@@ -30,3 +30,20 @@ def quiet_record(*, cpus=tuple(range(128)), samples=2, started_at=0., finished_a
             **({"sampled_physical_cores": sampled_physical_cores} if sampled_physical_cores else {}),
             cpu_budget_seconds=.0015 * (sampled_physical_cores or server_physical_cores) * window_seconds,
             peak_rolling=dict(cpu_ticks=0, cpu_seconds=0.)))
+
+
+def workload_record(cell):
+    """Complete raw workload endpoints for serverless calibration replay."""
+    from abba_workloads import workload_command_names, require_workload_witness, require_workload_accounting
+    names = workload_command_names(cell)
+    before = {f'cmdstat_{name.lower()}': 'calls=0,usec=0' for name in names}
+    after = {f'cmdstat_{name.lower()}': 'calls=100,usec=100' for name in names}
+    mode = {'reorder_retired': '1', 'reorder': '0'} if cell.op == 'REORDER' else {}
+    counts = {name: 100 for name in names}
+    totals = [dict(connections=cell.conns, outstanding_bound=cell.conns * cell.depth,
+                   reported_counts=counts, completed_hdr_counts=counts)]
+    return dict(data_bytes=cell.data_bytes,
+        workload_raw=dict(before=before, after=after, mode_before=mode, mode_after=mode),
+        workload_witness=require_workload_witness(cell, before, after, mode, mode),
+        whole_run_commandstats_before=before, whole_run_commandstats_after=after, memtier=totals,
+        whole_run_accounting=require_workload_accounting(cell, before, after, totals))
