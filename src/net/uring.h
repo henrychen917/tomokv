@@ -326,10 +326,6 @@ public:
         return consumed;
     }
 
-    // Kept as the common marker at SQE producer sites. liburing owns the real pending count; the
-    // former shadow counter had no consumer and added a load/add/store to every prepared SQE.
-    void note_pending() {}
-
     // SEND-bearing batches are latency carrying: a request/response client cannot create the next
     // arrival until this SQE reaches the kernel. Keep only that classification rather than
     // restoring the generic per-SQE shadow counter removed by the instruction-diet stack.
@@ -364,7 +360,6 @@ public:
         if (!s) return false;
         io_uring_prep_msg_ring(s, target.r_.ring_fd, 0, tag, 0);
         s->user_data = ur_tag(UrKind::Wake, nullptr);
-        note_pending();
         return true;
     }
 

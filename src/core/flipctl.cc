@@ -1387,7 +1387,6 @@ FlipctlReport FlipController::report() const {
     report.last_flip_lost = last_flip_lost_;
     report.last_flip_moved = last_flip_moved_;
     report.flip_ticks = cost_.flips ? cost_.flip_ticks() : 0;
-    report.stationary_s = 0;
     report.refine_decision = refine_decision_;
     report.refine_steps = refine_steps_;
     return report;

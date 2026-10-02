@@ -95,7 +95,6 @@ io_uring_sqe* queue_aof_write(Ring& ring, AofIoRequest& request) {
     io_uring_prep_writev(sqe, request.fd, vectors + request.vector_index,
                          static_cast<unsigned>(request.vector_count), request.offset);
     sqe->user_data = ur_tag(UrKind::AofIo, &request);
-    ring.note_pending();
     return sqe;
 }
 
@@ -108,7 +107,6 @@ io_uring_sqe* queue_aof_sync(Ring& ring, AofIoRequest& request, bool drain) {
     // tail sync without a current write targets only the already-completed written frontier.
     (void)drain;
     sqe->user_data = ur_tag(UrKind::AofIo, &request);
-    ring.note_pending();
     return sqe;
 }
 

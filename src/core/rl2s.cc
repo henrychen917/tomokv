@@ -1,3 +1,4 @@
+#include "boot_support.h"
 // rl2s.cc — split placement with a shard-less fused-capable IO tier.
 // All reader-lane scheduling and split role-tenure wiring for this feature live here.
 // The ordinary split runtime and the 1s boot sequence remain independent.
@@ -101,17 +102,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
     if (cfg.thread_mode != ThreadMode::Split || !srv.read_local_enabled()) std::abort();
-    std::printf("tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                " thread-mode=2s, overlap=%u, reorder=%d, read-local=1, %s, alloc=%s\n",
-                nthreads, srv.placement().ifid_threads().size(),
-                srv.placement().ex_threads().size(), cfg.shards, cfg.overlap, static_cast<int32_t>(cfg.reorder),
-                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
-    for (const ThreadPlacement& placement : srv.placement().threads())
-        std::printf("  thread t%u: role=%s cpu=%d L3=%u shards=%zu read-local=%u\n",
-                    placement.id, placement.role == Role::Ifid ? "ifid" : "ex",
-                    placement.cpu, placement.domain, srv.thread(placement.id).shards().size(),
-                    placement.role == Role::Ifid ? 1u : 0u);
-    std::fflush(stdout);
+    print_boot_presentation(srv);
 
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
@@ -273,16 +264,9 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
         return 0;
     }
 
-    auto probe_listener = [&](uint32_t port, bool tls) {
-        if (!port) return true;
-        const int probe = IoLoop::make_reuseport_listener(
-            cfg.bind_addr, port, cfg.tcp_backlog, tls);
-        if (probe < 0) return false;
-        ::close(probe);
-        return true;
-    };
-    const bool port_ok = probe_listener(cfg.port, false);
-    const bool tls_port_ok = port_ok && probe_listener(cfg.tls_port, true);
+    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener);
+    const bool tls_port_ok = port_ok &&
+        probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -314,10 +298,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     }
 
     // Reached only after every ring, sink and listener is ready and no stop edge was taken.
-    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
-    std::fflush(stdout);
+    print_ready_listeners(cfg, unix_listener.bound());
 
     if (srv.flipctl_enabled()) {
         while (!srv.shutting_down().load(std::memory_order_relaxed)) {

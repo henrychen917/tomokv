@@ -2,6 +2,7 @@
 // tests/r7shadow_sync.py checks the copied envelopes against the current mainline methods.
 #include "genthread.h"
 #include "fused_boot_gate.h"
+#include "boot_support.h"
 #include "shutdown_report.h"
 #include "../net/unix_listener.h"
 #include "ex_loop.h"
@@ -1532,7 +1533,6 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         }
         io_uring_prep_recv(s, c->fd(), dst, static_cast<unsigned>(avail), 0);
         s->user_data = ur_tag(UrKind::TlsRecv, c);
-        ring_.note_pending();
         c->set_recv_armed(true);
     }
 }
@@ -3569,15 +3569,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
                      ShutdownReportFinalLine& final_report) {
     const Config& cfg = srv.cfg();
     const uint32_t nthreads = srv.nthreads();
-    std::printf("tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
-                " overlap=%u (executor prefetch; ordinary IO), %s, alloc=%s\n", nthreads, cfg.shards,
-                cfg.overlap,
-                cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring", alloc_backend());
-    for (const ThreadPlacement& placement : srv.placement().threads())
-        std::printf("  thread t%u: role=unified cpu=%d L3=%u shards=%zu send=self\n",
-                    placement.id, placement.cpu, placement.domain,
-                    srv.thread(placement.id).shards().size());
-    std::fflush(stdout);
+    print_boot_presentation(srv);
 
     std::vector<std::thread> pool;
     std::vector<IoLoop> ios(nthreads);
@@ -3721,16 +3713,9 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
         return 0;
     }
 
-    auto probe_listener = [&](uint32_t port, bool tls) {
-        if (!port) return true;
-        const int probe = IoLoop::make_reuseport_listener(
-            cfg.bind_addr, port, cfg.tcp_backlog, tls);
-        if (probe < 0) return false;
-        ::close(probe);
-        return true;
-    };
-    const bool port_ok = probe_listener(cfg.port, false);
-    const bool tls_port_ok = port_ok && probe_listener(cfg.tls_port, true);
+    const bool port_ok = probe_boot_listener(cfg, cfg.port, false, IoLoop::make_reuseport_listener);
+    const bool tls_port_ok = port_ok &&
+        probe_boot_listener(cfg, cfg.tls_port, true, IoLoop::make_reuseport_listener);
     if (!port_ok || !tls_port_ok) {
         std::perror(port_ok ? "bind tls-port" : "bind");
         stop_workers();
@@ -3763,10 +3748,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
 
     // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
     // `if (!stopping)` guard around these lines is now the gate's own postcondition.
-    if (cfg.port) std::printf("listening on %s:%u\n", cfg.bind_addr, cfg.port);
-    if (cfg.tls_port) std::printf("listening with TLS on %s:%u\n", cfg.bind_addr, cfg.tls_port);
-    if (unix_listener.bound()) std::printf("listening on unix:%s\n", cfg.unixsocket);
-    std::fflush(stdout);
+    print_ready_listeners(cfg, unix_listener.bound());
 
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.

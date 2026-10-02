@@ -10,6 +10,7 @@
 #include "src/core/config.h"
 #include "src/core/placement.h"
 #include "src/core/weighted_lb.h"
+#include "boot_support_checks.inc"
 
 static_assert(tomo::cfg_default_shards(1) == 8);
 static_assert(tomo::cfg_default_shards(2) == 16);
@@ -76,6 +77,7 @@ std::string rejection_text(std::initializer_list<const char*> values,
 }  // namespace
 
 int main() {
+    boot_support_checks::run();
     char path[] = "/tmp/tomokv-config-parser.XXXXXX";
     const int fd = ::mkstemp(path);
     if (fd < 0) fail("mkstemp failed");
