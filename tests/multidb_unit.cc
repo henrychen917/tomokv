@@ -1,3 +1,4 @@
+#include "probeadapter_checks.h"
 // Real command/store identity checks without listeners, rings, or worker loops.
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
 #include "src/cmd/xshard.cc"
@@ -74,7 +75,7 @@ static void prebuilt_ttl(bool armed) {
             require(run(server, shard, db, {"PTTL", key}) == ":" + std::to_string(ttl) + "\r\n",
                     "prebuilt TTL PTTL");
             if (armed) {
-                const auto probe = shard.store().read_local_probe(hash, identity);
+                const auto probe = probeadapter::probe(shard.store(), hash, identity, "multidb prebuilt TTL");
                 require(probe.result == FlatStore::ReadLocalProbeResult::Hit && probe.object == object,
                         "prebuilt replacement remains readable in read-local lane");
             }
@@ -153,7 +154,7 @@ static void layout_and_store(bool armed) {
             require(object && object->key().key_eq(composite), "stored composite identity");
             require(object->key_namespace() == db, "physical namespace in record");
             if (armed) {
-                const auto probe = shard.store().read_local_probe(FlatStore::hash_key(composite), composite);
+                const auto probe = probeadapter::probe(shard.store(), FlatStore::hash_key(composite), composite, "multidb identity");
                 require(probe.result == FlatStore::ReadLocalProbeResult::Hit && probe.object == object,
                         "foreign read resolves exact namespace without a retry");
             }
@@ -641,10 +642,20 @@ static void owners() {
     std::puts("PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH");
 }
 void multidb_db0_unit();
+void multidb_db0_probeadapter_checks();
 void mdbstamp_checks(const char* selection);
 #include "sortstore_checks.inc"
 int main(int argc, char** argv) {
     require(command_registry_init(true), "registry initialization including TLS shadows");
+    if (argc == 2 && std::strcmp(argv[1], "--probeadapter-db0-only") == 0) {
+        multidb_db0_probeadapter_checks();
+        return 0;
+    }
+    if (argc == 1 || (argc == 2 && std::strcmp(argv[1], "--probeadapter-only") == 0)) {
+        probeadapter::states(0);
+        probeadapter::states(3);
+        if (argc == 2) return 0;
+    }
     if (argc == 2 && std::strcmp(argv[1], "--db0-only") == 0) {
         multidb_db0_unit();
         return 0;
