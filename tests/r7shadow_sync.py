@@ -20,6 +20,39 @@ IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
       'on_tls_socket_poll', 'parse_and_dispatch', 'fused_demote_local_read_batch')
 
 
+def removal_inventory(root):
+    root = Path(root)
+    removed = ('Targeted' + 'Ifid', 'SuppressOrdinary' + 'ActiveMark',
+               'mark_active_' + 'known', 'multi_dispatch_entry_' + 'iofused',
+               'multi_owner_pass_entry_' + 'iofused')
+    hits = []
+    for path in sorted((root / 'src').rglob('*')):
+        if path.suffix not in ('.h', '.cc', '.inc'):
+            continue
+        for line, text in enumerate(path.read_text().splitlines(), 1):
+            if any(re.search(r'\b' + name + r'\b', text) for name in removed):
+                hits.append((str(path.relative_to(root)), line, text))
+    assert not hits, ('removed IO interface reintroduced', hits)
+    for filename in ('src/core/io_loop.h', 'src/core/reorder.cc'):
+        text = (root / filename).read_text()
+        # The similarly named live executor and MULTI implementation templates
+        # are intentionally outside the IO parser's interface/body.
+        for match in re.finditer(r'(?:DispatchResult|IoLoop::DispatchResult) '
+                                r'(?:IoLoop::)?(?:r7_)?parse_and_dispatch\(', text):
+            start = text.rfind('template <', 0, match.start())
+            interface = text[start:text.find(')', match.end()) + 1]
+            assert 'IofusedPrivateQueue' not in interface, 'removed private-queue IO parameter'
+    parser = function((root / 'src/core/io_loop.h').read_text(), 'parse_and_dispatch')
+    assert 'IofusedPrivateQueue' not in parser, 'removed private-queue IO body'
+    for directory in ('src', 'tests'):
+        for path in (root / directory).rglob('*'):
+            if path.suffix not in ('.h', '.cc', '.inc'):
+                continue
+            for call in re.finditer(r'\b(?:r7_)?parse_and_dispatch\s*<([^>]*)>\s*\(', path.read_text()):
+                assert len(call[1].split(',')) <= 4, ('obsolete IO call arity', str(path), call[0])
+    return dict(okay=True, removed=list(removed), scope='all production C++ source')
+
+
 def function(source, name, member=True):
     if not member:
         return base.function(source, name, False)
@@ -101,8 +134,7 @@ def envelopes():
                 body = body[:opening] + '''
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
-        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, TargetedIfid,
-            SuppressOrdinaryActiveMark, IofusedPrivateQueue, SplitLocal>(c);
+        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
     r7::ShadowDispatch shadow_dispatch(*c);
 ''' + body[opening:]
                 needle = 'Task t{c, rob.dispatch_id(), -1, nullptr};'
@@ -136,4 +168,5 @@ if __name__ == '__main__':
     for owner, filename in [('ExLoopT<Fused>', 'ex_loop.h'), ('IoLoop', 'io_loop.h')]:
         base.update(ROOT / 'src/core' / filename,
                     ''.join('    ' + line + '\n' for line in declarations[owner].splitlines()), args.write)
+    removal_inventory(ROOT)
     print('R7 shadow production envelopes: current')

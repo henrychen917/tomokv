@@ -767,8 +767,8 @@ feature_split_job(){
 # ---- FUSED + read-local ARMED: the recommended read-heavy posture runs the whole feature list ----
 # The fused boots above never arm the local read lane, so until this leg no gate row had run a
 # feature battery on the path that serves every clean GET/MGET in that posture. The boot row asserts
-# the WIRE says so: INFO server thread_mode:1s AND read_local:1 -- the effective lane state, not the
-# knob, which CONFIG GET also echoes on a split boot where it is inert. The shutdown row is the
+# the WIRE says so: INFO server thread_mode:1s AND read_local:1 -- the effective lane state, and the
+# boot banner must agree with that resolved state. The shutdown row is the
 # leg's vacuity guard: the lane's own hit counters must have moved during the batteries, or the 32
 # rows between ran on the owner path and proved nothing about the armed one.
 feature_armed_job(){
@@ -779,8 +779,9 @@ feature_armed_job(){
     ARMED_MODE=$(printf '%s\n' "$ARMED_INFO" | sed -n 's/^thread_mode://p')
     ARMED_RL=$(printf '%s\n' "$ARMED_INFO" | sed -n 's/^read_local://p')
     [ "$ARMED_MODE" = 1s ] && [ "$ARMED_RL" = 1 ] \
+        && grep -Eq '^tomokv-cpp: .*thread-mode=1s,.*read-local=1([,[:space:]]|$)' "$SRVLOG" \
         && ok "fused+armed boot line (atomic $AT)" \
-        || bad "fused+armed boot line (atomic $AT)" "wire mode=$ARMED_MODE read_local=$ARMED_RL"
+        || bad "fused+armed boot line (atomic $AT)" "wire mode=$ARMED_MODE read_local=$ARMED_RL; banner must agree; see $SRVLOG"
   else
     bad "fused+armed boot line (atomic $AT)" "server did not boot; see $SRVLOG"
   fi
@@ -1538,8 +1539,9 @@ local AT=${1##*-}
     FUSED_MODE=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^thread_mode://p')
     FUSED_OVERLAP=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^overlap://p')
     [ "$FUSED_MODE" = 1s ] && [ "$FUSED_OVERLAP" = 0 ] \
+        && grep -Eq '^tomokv-cpp: .*thread-mode=1s,.*read-local=0([,[:space:]]|$)' "$SRVLOG" \
         && ok "fused boot line (atomic $AT)" \
-        || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE overlap=$FUSED_OVERLAP"
+        || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE overlap=$FUSED_OVERLAP; banner must say read-local=0; see $SRVLOG"
   else
     bad "fused boot line (atomic $AT)" "server did not boot; see $SRVLOG"
   fi
