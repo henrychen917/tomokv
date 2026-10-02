@@ -17,6 +17,12 @@ IO = "src/core/io_loop.h"
 
 # name: (group, file, exact source, replacement, case, required assertion)
 MUTANTS = {
+    "small-early": ("completion", POLICY, "n <= kSmallPipe", "n < kSmallPipe", "table", "bounded decision table"),
+    "small-late": ("completion", POLICY, "n <= kSmallPipe", "n <= kSmallPipe + 1", "table", "bounded decision table"),
+    "visits-early": ("completion", POLICY, "c.wb_deferrals() < kCompleteVisits", "c.wb_deferrals() < kCompleteVisits - 1", "table", "bounded decision table"),
+    "visits-late": ("completion", POLICY, "c.wb_deferrals() < kCompleteVisits", "c.wb_deferrals() <= kCompleteVisits", "table", "bounded decision table"),
+    "gather-reset": ("completion", POLICY, "client->wb_deferrals() = 0;", "/* removed gather reset */", "lifetime", "served connection completes again next pipe"),
+    "serve-reset": ("completion", POLICY, "c->wb_deferrals() = 0;", "/* removed serve reset */", "lifetime-serve", "served connection completes again next pipe"),
     "scatter-exit": ("policy", POLICY, "if (op.zc_ptr && op.zc_shard == Op::kScatterStateMarker) return false;", "/* removed scatter exit */", "markers", "Done scatter enters ordinary serve"),
     "fastpath": ("policy", POLICY, "if (n <= 1)", "if (false)", "fastpath", "fast path reads no staging or slots"),
     "staged-clause": ("policy", POLICY, "if (bytes >= kWbufInline) return false;\n    const auto head", "if (false) return false;\n    const auto head", "staged", "staged byte threshold"),
@@ -28,8 +34,8 @@ MUTANTS = {
     "borrow": ("policy", POLICY, "size_t(op.zc_len) + 2", "0", "bytes", "spill/direct/borrow including CRLF"),
     "crlf": ("policy", POLICY, "size_t(op.zc_len) + 2", "size_t(op.zc_len)", "bytes", "spill/direct/borrow including CRLF"),
     "no-sum": ("policy", POLICY, "bytes += reply_bytes(op);", "bytes = reply_bytes(op);", "bytes", "Done prefix bytes accumulate across slots"),
-    "floor": ("policy", POLICY, "n * kPolicyFraction.num + kPolicyFraction.den - 1", "n * kPolicyFraction.num", "fraction", "ceil half for every n=1..64 and prefix"),
-    "whole": ("policy", POLICY, "(n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den", "n", "fraction", "ceil half for every n=1..64 and prefix"),
+    "floor": ("policy", POLICY, "n * kPolicyFraction.num + kPolicyFraction.den - 1", "n * kPolicyFraction.num", "fraction", "bounded hybrid for every n=1..64, prefix and count"),
+    "whole": ("policy", POLICY, "(n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den", "n", "fraction", "bounded hybrid for every n=1..64, prefix and count"),
     "hole": ("policy", POLICY, "!= OpState::Done) break;", "!= OpState::Done) { ++prefix; continue; }", "holes", "first hole stops fraction and bytes"),
     "marker": ("policy", POLICY, "op.zc_ptr && op.zc_shard >= 0", "op.zc_ptr", "markers", "retire-state poison is not payload"),
     "code": ("policy", POLICY, "op.reply_code_ ? code_bytes(op)", "op.reply_code_ ? 0", "codes", "coded lengths match production encoder"),

@@ -1,6 +1,6 @@
 // Price real reply encodings without a server or clocks; reuse the same boundary.
-#define main unused_wbhybrid2_main
-#include "wbhybrid2_unit.cc"
+#define main unused_completion_main
+#include "wb_rule_completion_unit.cc"
 #undef main
 int main(int argc, char** argv) {
     if (argc != 2) return 2;
@@ -14,6 +14,6 @@ int main(int argc, char** argv) {
         else if (shape == 2) op.reply.append(std::string(71, 'g').data(), 71);
         else { op.reply_code_ = static_cast<uint8_t>(ReplyCode::Int); op.reply_ival_ = 12345; }
     }
-    require(wbhybrid2_defer(&c, 1), "below half and byte threshold");
-    std::printf("PASS wbhybrid2 %s\n", selected);
+    require(wb_completion_defer(&c, 1), "below half and byte threshold");
+    std::printf("PASS wb-completion %s\n", selected);
 }

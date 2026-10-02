@@ -179,7 +179,7 @@ def envelope(path, expected_calls, plumbing, guarded):
 MUTANTS = {
     'flushall': ('endpoints', 'zero serves every prefix',
                  'if (policy == 0) return false;', 'if (policy == 0) policy = 1;'),
-    'half': ('endpoints', 'policy one is exact landed half',
+    'half': ('endpoints', 'policy one is exact bounded hybrid',
              'std::ratio<1, 2>', 'std::ratio<1, 1>'),
     'empty': ('exits', 'nothing in flight exits under half rule',
               'if (n <= 1) return false;', 'if (n == 0) return true; if (n == 1) return false;'),
@@ -292,12 +292,21 @@ def check(group, build, proofs=None):
             for case in CASES: run(build/f'wbland-{ns}unit', case)
             for case in ('fastpath', 'fraction', 'staged', 'submitted', 'bytes', 'holes', 'markers', 'codes', 'acquire'):
                 run(build/f'wbland-{ns}clause-unit', case, prefix='wb-rule')
+            for case in ('table', 'exits'):
+                run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
         else:
+            for case in ('lifetime', 'lifetime-serve'):
+                run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
             binary = build/f'wb-rule-{ns}phase-unit'
             for extra in ((), ('r7',)): run(binary, 'wbland-fused', extra=extra, prefix='wb-rule')
             for extra in ((), ('natural',), ('shallow',)):
                 for case in ('wbland-split', 'wbland-local'):
                     run(binary, case, extra=extra, prefix='wb-rule')
+    for name, (kind, _, _, _, case, assertion) in legacy.MUTANTS.items():
+        if kind == 'completion' and (case == 'table') == (group == 'clauses'):
+            for ns in ('', 'db0-'):
+                run(build/'wb-rule-completion-controls'/name/f'{ns}unit',
+                    case, assertion, prefix='wb-completion')
     if group == 'clauses':
         for name, (case, assertion, _, _) in MUTANTS.items():
             run(build/'wbland-controls'/name/'unit', case, assertion)

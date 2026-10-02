@@ -7,29 +7,22 @@
 #include "src/core/wb_rule.h"
 
 using namespace tomo;
-static constexpr unsigned delay = WBHYBRID2_DELAY, small = WBHYBRID2_SMALL;
-static constexpr unsigned wait_limit = delay + 1 > 3 ? delay + 1 : 3;
+static constexpr unsigned delay = wb_rule::kCompleteVisits, small = wb_rule::kSmallPipe;
+static constexpr unsigned wait_limit = delay;
+static_assert(small == 16 && delay == 3, "measured production constants changed");
 static const char* selected;
 static void require(bool ok, const char* why) {
-    if (!ok) { std::fprintf(stderr, "FAIL wbhybrid2 %s: %s\n", selected, why); std::exit(1); }
+    if (!ok) { std::fprintf(stderr, "FAIL wb-completion %s: %s\n", selected, why); std::exit(1); }
 }
 void tomo::multi_session_destroy(MultiSession* p) { require(!p, "unexpected MULTI"); }
 static void count(Client& c, unsigned value) {
-#if WBHYBRID2_COUNTER
     c.wb_deferrals() = value;
-#else
-    (void)c; (void)value;
-#endif
 }
 static unsigned count(Client& c) {
-#if WBHYBRID2_COUNTER
     return c.wb_deferrals();
-#else
-    (void)c; return 0;
-#endif
 }
 static bool completion(unsigned n, unsigned waits) {
-    return n <= small && (!delay || waits < delay);
+    return n <= small && waits < delay;
 }
 static unsigned threshold(unsigned n, unsigned waits) {
     return completion(n, waits) ? n : n / 2 + n % 2;
@@ -58,10 +51,8 @@ static void table() {
                              n, done, waits, delay, small, start);
                 require(false, "bounded decision table");
             }
-#if WBHYBRID2_COUNTER
             require(count(c) == waits + unsigned(expected && completion(n, waits)),
                     "count only completion deferrals; saturated without wrap");
-#endif
             ++cells;
         }
     std::printf("table_cells=%u policies=0,1 wraps=0,61 counts=0..%u\n", cells, wait_limit);
@@ -143,21 +134,19 @@ static void lifetime() {
             if (exit == 3) c.rob().at(c.rob().flush_id()).zc_ptr = nullptr;
             finish(c); c.fill_buf().clear(); fill(c, 8, 4);
             loop.server.config.wb_policy = 1; enqueue(loop, c);
-            require(visit(loop) == (small == 0), "served connection completes again next pipe");
+            require(!visit(loop), "served connection completes again next pipe");
         } else require(count(c) == 0, "dead exit resets count");
     }
     Loop loop; Client slow(-1), younger(-1); fill(slow, 8, 4); fill(younger, 1, 1);
     enqueue(loop, slow); enqueue(loop, younger);
     require(visit(loop), "younger eligible connection passes deferred head");
-    if (small) {
+    {
         require(loop.pending_serve_.size() == 1 && loop.pending_serve_.front() == &slow,
                 "captured visit rotates only once");
-        if (delay) {
-            for (unsigned i = 1; i < delay; ++i) require(!visit(loop), "D further visits");
-            require(visit(loop) && count(slow) == 0, "fallback visit serves and resets");
-        } else require(!visit(loop), "d0 waits for completion");
+        for (unsigned i = 1; i < delay; ++i) require(!visit(loop), "D further visits");
+        require(visit(loop) && count(slow) == 0, "fallback visit serves and resets");
     }
-    if (delay && small) {
+    {
         Loop stalled; Client c(-1); fill(c, 8, 0); enqueue(stalled, c);
         for (unsigned i = 0; i < 1024; ++i) {
             require(!visit(stalled), "unfinished head stays queued");
@@ -166,7 +155,7 @@ static void lifetime() {
         require(count(c) == delay, "saturation cannot wrap after 1024 visits");
     }
 }
-extern "C" __attribute__((noinline, noclone)) bool wbhybrid2_defer(Client* c, int policy) {
+extern "C" __attribute__((noinline, noclone)) bool wb_completion_defer(Client* c, int policy) {
     return wb_rule::defer(*c, policy);
 }
 static void trace(const std::string& name) {
@@ -177,7 +166,7 @@ static void trace(const std::string& name) {
     if (bytes) c.fill_buf().append(std::string(bytes, 's').data(), bytes);
     if (scatter) { require(done, "scatter Done"); auto& op = c.rob().at(c.rob().flush_id());
         op.zc_ptr = reinterpret_cast<const char*>(1); op.zc_shard = Op::kScatterStateMarker; }
-    require(wbhybrid2_defer(&c, policy) == (policy && n > 1 && bytes < 512 && !scatter &&
+    require(wb_completion_defer(&c, policy) == (policy && n > 1 && bytes < 512 && !scatter &&
         done < threshold(n, waits)), "trace decision");
 }
 int main(int argc, char** argv) {
@@ -190,6 +179,6 @@ int main(int argc, char** argv) {
     }
     else if (name.starts_with("trace-")) trace(name);
     else require(false, "known fixture");
-    std::printf("PASS wbhybrid2 %s\n", selected);
+    std::printf("PASS wb-completion %s\n", selected);
     return 0;
 }

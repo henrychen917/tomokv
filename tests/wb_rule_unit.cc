@@ -27,13 +27,17 @@ static void fill(Client& c, unsigned n, unsigned prefix) {
     }
 }
 static void fraction() {
-    // Every boundary, every prefix, including odd ceil rounding and real 63 -> 0 wrap.
-    for (unsigned n = 1; n <= 64; ++n) for (unsigned prefix = 0; prefix <= n; ++prefix) {
+    // Every boundary/prefix/count, including odd ceil rounding and real 63 -> 0 wrap.
+    for (unsigned n = 1; n <= 64; ++n) for (unsigned prefix = 0; prefix <= n; ++prefix)
+        for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
         Client c(-1);
         fill(c, 61, 61); c.rob().drain([](Op&) {});
         fill(c, n, prefix);
-        const bool expected = n > 1 && prefix < (n / 2 + n % 2);
-        require(wb_rule::defer(c) == expected, "ceil half for every n=1..64 and prefix");
+        c.wb_deferrals() = waits;
+        const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+                            ? n : n / 2 + n % 2;
+        const bool expected = n > 1 && prefix < need;
+        require(wb_rule::defer(c) == expected, "bounded hybrid for every n=1..64, prefix and count");
     }
 }
 static void staged() {
@@ -108,7 +112,11 @@ static void markers() {
             require(!wb_rule::defer(c), "Done scatter enters ordinary serve");
         else require(wb_rule::defer(c), "other retire hooks keep the measured rule");
         for (unsigned i = 1; i < 4; ++i) c.rob().at(i).state.store(OpState::Done);
-        require(!wb_rule::defer(c), "four command slots open p8 half");
+        c.wb_deferrals() = 0;
+        require(wb_rule::defer(c) == (marker != Op::kScatterStateMarker),
+                "four command slots wait for p8 completion before bound");
+        c.wb_deferrals() = wb_rule::kCompleteVisits;
+        require(!wb_rule::defer(c), "four command slots open p8 half at bound");
     }
 }
 static void codes() {
@@ -161,6 +169,8 @@ struct ObservedClient {
         ObservedOp& at(unsigned i) { ++probes; require(i < n, "walk stays in flight"); return ops[i]; }
     } ring;
     unsigned staged_reads = 0;
+    uint8_t deferrals = 0;
+    uint8_t& wb_deferrals() { return deferrals; }
     auto& rob() { return ring; }
     bool send_inflight() { ++staged_reads; return false; }
     struct Fill { size_t size() const { return 0; } } fill;
