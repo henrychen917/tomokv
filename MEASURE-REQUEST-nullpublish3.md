@@ -76,7 +76,66 @@ No-op idempotence follows the ancestry rule: once a generated re-freeze commit h
 The real server has **not** been re-frozen in this lane: campaign 7 is for the maintainer after the writeback constant lands. The managed block below is deliberately pending; the campaign preflight requires the new schema-3 freeze and rejects the old artifacts. The current provisional fence equals `build/nullpublish-campaign.sh`, and both pass `bash -n`. After the mainline command runs, the same equality is checked again before commit. Both campaign arms use the newly frozen POST; the calibration, controls, bounded null collection, promotion and independent holdout contracts below are retained.
 
 <!-- nullpublish-freeze:start -->
-Pending re-freeze on landed mainline.
+```json
+{
+  "artifacts": [
+    {
+      "bytes": 177015840,
+      "mode": 509,
+      "path": "build/tomokv-nullpublish-POST",
+      "sha256": "9a2015290b396e69095d2b909404c981810ce4c8ab92370a3f5fcf95b39b94f9"
+    },
+    {
+      "bytes": 2911008,
+      "mode": 509,
+      "path": "build/tailgen-nullpublish-frozen",
+      "sha256": "613a6a7e115ba522753a37015a2dbb799325e915030a9f8c3ae95c3a8f4a2d05"
+    },
+    {
+      "bytes": 616272,
+      "mode": 493,
+      "path": "build/memtier-nullpublish-frozen",
+      "sha256": "9b6ee614dae154c64b17a067a10236b3e6532f7ca52c43b547b87101556dd7d4"
+    },
+    {
+      "bytes": 4575,
+      "mode": 436,
+      "path": "build/nullpublish-POST.instrument.json",
+      "sha256": "c0bfe33b3173fb300658b15afcd726a077f092a84aa6a7ee55c65c612bd07527"
+    },
+    {
+      "bytes": 22584,
+      "mode": 436,
+      "path": "tests/headline_cells.txt",
+      "sha256": "d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350"
+    },
+    {
+      "bytes": 504953,
+      "mode": 436,
+      "path": "tests/gate_measurements.json",
+      "sha256": "de8a1076e86cb04d946f8f55118158dbfd0260dc9dba9069d966d3632c8aab5b"
+    }
+  ],
+  "build_command": "make -B -j16 build/tomokv build/tailgen",
+  "build_cpus": "112-127",
+  "campaign_arms": {
+    "A": "build/tomokv-nullpublish-POST",
+    "B": "build/tomokv-nullpublish-POST"
+  },
+  "inputs": {
+    "build_tree": "3a896c6d2860353c9b256fa915667ac9a39c5692b8e32067771fc836f588e9e8",
+    "cells_sha256": "d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350",
+    "instrument_sha256": "c0bfe33b3173fb300658b15afcd726a077f092a84aa6a7ee55c65c612bd07527",
+    "measurements_sha256": "de8a1076e86cb04d946f8f55118158dbfd0260dc9dba9069d966d3632c8aab5b",
+    "memtier_sha256": "9b6ee614dae154c64b17a067a10236b3e6532f7ca52c43b547b87101556dd7d4",
+    "refreeze_sha256": "9984dd07ac9cc537691175956f96980deb734fd2082ad9968f67fac1f97cfc52"
+  },
+  "kind": "nullpublish-build-freeze",
+  "measurements_run": false,
+  "schema": 3,
+  "source_commit": "6fd07a0aab77cab00787195221c34909ac34806d"
+}
+```
 <!-- nullpublish-freeze:end -->
 
 **Per-test profile detail.** PRE and POST here use the same import-safe timer (`build/nullpublish3-receipt-timing.py`) and CPU allocation. Each duration includes setup, body and cleanup. The final column lists the largest instrumented PRE categories, not an additive decomposition: fingerprinting contains some JSON encoding, and untimed residual work includes deepcopy, validators, subprocesses and cleanup. The separate suite table includes class setup and the new re-freeze subprocess. Raw per-test data is in `build/nullpublish3-before.per-test.json` and `build/nullpublish3-after.per-test.json`.
@@ -142,7 +201,7 @@ Pending re-freeze on landed mainline.
 ```bash
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-FROZEN_COMMIT=08d1dd2dbb1d549c83eeb5a8f4792c6b9bd6230b
+FROZEN_COMMIT=6fd07a0aab77cab00787195221c34909ac34806d
 # Set NULLREFRESH_MAX_INSTANCES=24 explicitly BEFORE a fresh campaign, if desired.
 MAX_INSTANCES="${NULLREFRESH_MAX_INSTANCES:-16}"
 case "$MAX_INSTANCES" in 16|24) ;; *) echo 'Choose 16 or 24 instances' >&2; exit 2;; esac
