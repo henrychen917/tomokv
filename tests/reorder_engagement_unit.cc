@@ -233,6 +233,84 @@ struct CoreConcurrencyTest {
                     reorder ? (r7::shadow_available() ? "shadow priority" : "R7 4:1") : "FIFO");
     }
 
+    // The ordinary and generated parsers must retain the same active-set work.
+    // Fresh fixtures make an unentered incomplete-frame window an assertion failure.
+    template <bool ReadLocal, bool FusedExecutor = ReadLocal>
+    static void io_dispatch_membership(ThreadMode mode, uint32_t overlap, int32_t requested) {
+        Fixture<ReadLocal, FusedExecutor> f(mode, overlap, requested);
+        IoLoop io;
+        io.srv_ = &f.server;
+        io.self_ = &f.server.thread(mode == ThreadMode::Fused ? f.owner : 0);
+        if constexpr (ReadLocal) io.fused_executor_ = &f.loop;
+        Client client(-1), dead(-1);
+        f.client(client, 1);
+        const std::string key = f.key();
+        const std::string wire = "*3\r\n$3\r\nSET\r\n$" + std::to_string(key.size()) +
+                                 "\r\n" + key + "\r\n$1\r\nv\r\n";
+        auto parse = [&]<uint32_t B, bool SplitLocal>() {
+            if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal)
+                if (f.server.cfg().reorder)
+                    return io.r7_parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&client);
+            return io.parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&client);
+        };
+        auto dispatch = [&] {
+            return mode == ThreadMode::Fused
+                ? parse.template operator()<kGenthreadIfidBatchOps, false>()
+                : ReadLocal ? parse.template operator()<0, true>()
+                            : parse.template operator()<0, false>();
+        };
+        const uint32_t prefix = wire.size() - 1;
+        std::memcpy(client.rbuf(), wire.data(), prefix);
+        client.commit_read(prefix);
+        require(dispatch() == IoLoop::DispatchResult::NeedInput && client.rpos() == 0 &&
+                    client.rob().quiesced() && io.active_.size() == 0 && !client.in_active(),
+                "iotemplates incomplete frame entered without dispatch or active membership");
+        std::memcpy(client.rbuf() + prefix, wire.data() + prefix, 1);
+        client.commit_read(1);
+        require(dispatch() == IoLoop::DispatchResult::Progress && client.rpos() == wire.size() &&
+                    client.rob().in_flight() == 1,
+                "iotemplates completed frame made parser progress");
+        require(client.in_active() && io.active_.size() == 1 && io.active_.at(0) == &client,
+                "iotemplates dispatched frame has active membership");
+        io.mark_active(&client);
+        io.fused_executor_completion(&client);
+        require(client.in_active() && client.serve_pending() && io.active_.size() == 1,
+                "iotemplates active membership is deduplicated");
+        dead.mark_dead();
+        io.mark_active(&dead);
+        io.fused_executor_completion(&dead);
+        require(!dead.in_active() && !dead.serve_pending() && io.active_.size() == 1,
+                "iotemplates dead client never enters active or serve set");
+        std::vector<Task> tasks;
+        f.loop.self_->drain_tasks_unmasked([&](const Task& task) { tasks.push_back(task); });
+        require(tasks.size() == 1 && tasks[0].client == &client && tasks[0].op_id == 0,
+                "iotemplates completed frame posted exactly one owner task");
+        CommandSpec spec = *command_lookup(Slice("SET"));
+        spec.handler = spec.handler_notify = record;
+        client.rob().at(0).spec = &spec;
+        client.rob().at(0).hash = 17;
+        require(f.loop.self_->post_task_quiet(io.self_->id(), tasks[0], io.self_->sig()),
+                "iotemplates requeue owner task");
+        observed.clear();
+        require(f.drain() == 1 && observed == std::vector<uint64_t>{17} &&
+                    client.rob().drain([](Op&) {}) == 1,
+                "iotemplates owner progress and ordered retirement");
+        std::printf("PASS iotemplates membership %s rl=%u ov=%u ro=%d\n",
+                    mode == ThreadMode::Fused ? "1s" : "2s", ReadLocal, overlap, requested);
+    }
+
+    static void io_dispatch_membership_all() {
+        for (auto mode : {ThreadMode::Fused, ThreadMode::Split})
+            for (uint32_t overlap : {0u, 1u})
+                for (int32_t requested : {0, 1, -1}) {
+                    if (mode == ThreadMode::Fused)
+                        io_dispatch_membership<false, true>(mode, overlap, requested);
+                    else
+                        io_dispatch_membership<false>(mode, overlap, requested);
+                    io_dispatch_membership<true>(mode, overlap, requested);
+                }
+    }
+
     template <bool ReadLocal>
     static void shadow_pipes(ThreadMode mode, uint32_t overlap, uint32_t requested) {
         Fixture<ReadLocal> f(mode, overlap, requested);
@@ -266,8 +344,8 @@ struct CoreConcurrencyTest {
             c.commit_read(wire.size());
             auto parse = [&]<uint32_t B, bool SplitLocal>() {
                 if constexpr (B == kGenthreadIfidBatchOps && !SplitLocal) if (reorder)
-                    return io.r7_parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
-                return io.parse_and_dispatch<false, B, SplitLocal, false, false, false, SplitLocal>(&c);
+                    return io.r7_parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&c);
+                return io.parse_and_dispatch<false, B, SplitLocal, SplitLocal>(&c);
             };
             const auto result = mode == ThreadMode::Fused
                 ? parse.template operator()<kGenthreadIfidBatchOps, false>()
@@ -462,7 +540,7 @@ struct CoreConcurrencyTest {
         std::memcpy(a.rbuf(), wire.data(), wire.size()); a.commit_read(wire.size());
         const auto parsed = mode == ThreadMode::Fused
             ? (armed ? io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a) : io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&a))
-            : io.parse_and_dispatch<false, 0, true, false, false, false, true>(&a);
+            : io.parse_and_dispatch<false, 0, true, true>(&a);
         require(parsed == IoLoop::DispatchResult::Progress && a.rob().dispatch_id() == 3 &&
                     a.rob().pending_read_local(1), "clean GET did not enter the real local lane");
         const uint64_t id = 1;
@@ -474,7 +552,7 @@ struct CoreConcurrencyTest {
         std::memcpy(b.rbuf(), write.data(), write.size()); b.commit_read(write.size());
         if (armed) io.r7_parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
         else if (mode == ThreadMode::Fused) io.parse_and_dispatch<false, kGenthreadIfidBatchOps>(&b);
-        else io.parse_and_dispatch<false, 0, true, false, false, false, true>(&b);
+        else io.parse_and_dispatch<false, 0, true, true>(&b);
         std::vector<Task> tasks;
         require(f.loop.self_->drain_tasks_unmasked([&](const Task& t) { tasks.push_back(t); }) == 4,
                 "demotion fixture owner wave missing");
@@ -509,11 +587,17 @@ struct CoreConcurrencyTest {
 
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
+    if (argc == 2 && std::string(argv[1]) == "iotemplates") {
+        T::require(tomo::command_registry_init(false), "command registry");
+        T::io_dispatch_membership_all();
+        return 0;
+    }
     T::require(argc == 3 && (std::string(argv[1]) == "on" || std::string(argv[1]) == "off") &&
                    (std::string(argv[2]) == "shadow" || std::string(argv[2]) == "r7"),
                "supply independently expected capabilities: on|off shadow|r7");
     T::require(tomo::r7::shadow_available() == (std::string(argv[2]) == "shadow"), "shadow capability");
     T::require(tomo::command_registry_init(false), "command registry");
+    T::io_dispatch_membership_all();
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split})
         for (uint32_t overlap : {0u, 1u})
             for (uint32_t reorder : {0u, 1u})

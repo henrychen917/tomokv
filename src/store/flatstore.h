@@ -897,33 +897,30 @@ public:
         if (read_local_enabled_) foreign_read_poison_close();
     }
 
+    // Unit-test view of the same capture consumed by the production read-local lane.
     ReadLocalProbe read_local_probe(uint64_t hash, Slice key) const {
-        if (__builtin_expect(!read_local_enabled_, false)) return {};
-        const uint64_t state = read_local_state_acquire();
-        if (foreign_read_key_unsafe(state, hash))
-            return {ReadLocalProbeResult::AtomicPending, nullptr, state};
-        if (!read_local_state_eligible(state))
-            return {ReadLocalProbeResult::Churn, nullptr, state};
-
-        ReadLocalTopology topology;
-        if (!read_local_snapshot_topology(state, topology)) {
-            const uint64_t changed = read_local_state_acquire();
-            return {foreign_read_key_unsafe(changed, hash)
-                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
-                    nullptr, changed};
-        }
-
-        const KvObj* object = read_local_find_in(topology.tables[0], hash, key);
-        if (!object) object = read_local_find_in(topology.tables[1], hash, key);
-        const uint64_t final_state = read_local_state_acquire();
-        if (!read_local_probe_sequence_equal(final_state, state)) {
-            return {foreign_read_key_unsafe(final_state, hash)
-                        ? ReadLocalProbeResult::AtomicPending : ReadLocalProbeResult::Churn,
-                    nullptr, final_state};
-        }
-        return {object ? ReadLocalProbeResult::Hit : ReadLocalProbeResult::Missing,
-                object, state};
+        const auto capture = read_local_prefetch_capture(hash, key);
+        return {capture.result, capture.object, capture.state};
     }
+
+#ifdef TOMO_PROBEADAPTER_TEST
+    // Serverless entry witness, including disabled and unsafe-key early returns.
+    // Static test state adds no field, store allocation, or release instruction.
+    // The existing captured hook below witnesses the later topology-check window.
+    inline static void (*test_read_local_capture_entered)(const FlatStore&) = nullptr;
+#endif
+
+    // Preserve the source span through the capture entry: pack()'s release assert
+    // embeds __LINE__. Removing this space changes executable assertion arguments.
+
+
+
+
+
+
+
+
+
 
     bool read_local_validate(uint64_t state) const {
         return read_local_enabled_ && read_local_state_eligible(state) &&
@@ -944,6 +941,9 @@ public:
     }
 
     ReadLocalPrefetchCapture read_local_prefetch_capture(uint64_t hash, Slice key) const {
+#ifdef TOMO_PROBEADAPTER_TEST
+        if (test_read_local_capture_entered) test_read_local_capture_entered(*this);
+#endif
         if (__builtin_expect(!read_local_enabled_, false))
             return {ReadLocalProbeResult::Churn, nullptr, nullptr, 0};
         const uint64_t state = read_local_state_acquire();
@@ -969,7 +969,7 @@ public:
             // the old-table match/stopper is the last word that decided the complete lookup.
             if (old_slot) slot = old_slot;
         }
-#ifdef TOMO_CORE_CONCURRENCY_TEST
+#if defined(TOMO_CORE_CONCURRENCY_TEST) || defined(TOMO_PROBEADAPTER_TEST)
         if (test_read_local_captured) test_read_local_captured(*this);
 #endif
         const uint64_t final_state = read_local_state_acquire();
@@ -983,7 +983,7 @@ public:
                 slot, object, state};
     }
 
-#ifdef TOMO_CORE_CONCURRENCY_TEST
+#if defined(TOMO_CORE_CONCURRENCY_TEST) || defined(TOMO_PROBEADAPTER_TEST)
     // Deterministic topology interleaving, absent from release code and object layouts.
     inline static void (*test_read_local_captured)(const FlatStore&) = nullptr;
 #endif
@@ -3268,12 +3268,15 @@ private:
         return read_local_probe_sequence_equal(read_local_state_acquire(), state);
     }
 
-    const KvObj* read_local_find_in(const ReadLocalTable& table, uint64_t hash, Slice key) const {
+    const KvObj* read_local_capture_in(const ReadLocalTable& table, uint64_t hash, Slice key,
+                                       const uint64_t*& captured_slot) const {
+        captured_slot = nullptr;
         if (!table.slots || !table.cap) return nullptr;
         const uint16_t tag = tag_of(hash);
         uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table.mask;
         for (uint32_t probes = 0; probes <= table.cap; probes++) {
-            const uint64_t word = read_local_slot_load(table.slots + slot);
+            captured_slot = table.slots + slot;
+            const uint64_t word = read_local_slot_load(captured_slot);
             if (word == 0) return nullptr;
             const KvObj* object = ptr_of(word);
             if (object && tag_of_word(word) == tag) {
@@ -3288,31 +3291,10 @@ private:
                 //     key_eq    1789.7   1814.1   1848.3
                 //     memcmp    1764.2   1783.2   1813.1     (-25.5, -30.9, -35.2)
                 // The unarmed replay the inline compare was tuned on never reaches this function,
-                // which is how it came to be converted: read_local_find_in and
-                // read_local_capture_in only run with --read-local 1 in fused mode.
+                // which is how it came to be converted. This capture walk runs only
+                // with the read-local lane armed.
                 // Both spellings are exact byte equality over the same bytes, so no path can
                 // answer differently; only the inlining policy differs.
-                if (object->read_local_key(flags).key_mem_eq(key)) return object;
-            }
-            slot = (slot + 1) & table.mask;
-        }
-        return nullptr;
-    }
-
-    const KvObj* read_local_capture_in(const ReadLocalTable& table, uint64_t hash, Slice key,
-                                       const uint64_t*& captured_slot) const {
-        captured_slot = nullptr;
-        if (!table.slots || !table.cap) return nullptr;
-        const uint16_t tag = tag_of(hash);
-        uint32_t slot = static_cast<uint32_t>(mix64(hash)) & table.mask;
-        for (uint32_t probes = 0; probes <= table.cap; probes++) {
-            captured_slot = table.slots + slot;
-            const uint64_t word = read_local_slot_load(captured_slot);
-            if (word == 0) return nullptr;
-            const KvObj* object = ptr_of(word);
-            if (object && tag_of_word(word) == tag) {
-                const uint8_t flags = object->read_local_flags();
-                // memcmp, for the reason spelled out in read_local_find_in above.
                 if (object->read_local_key(flags).key_mem_eq(key)) return object;
             }
             slot = (slot + 1) & table.mask;

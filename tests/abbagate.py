@@ -37,8 +37,8 @@ regression, so it cannot detect one at any repetition count. Pinned load levels 
 and must still satisfy the productive-role occupancy floor. Unpinned cells, or --escalate,
 search until EACH arm stops gaining AND its productive bottleneck role meets the floor.
 Raw legacy all-thread busy is retained but cannot penalize legitimate idle executors.
-Depth 1 is exempt and
-scored as latency -- it is round-trip bound by Little's law. Process CPU is NOT substituted for busy
+Depth 1 and p99.9 tails are exempt from the occupancy floor and plateau;
+raw saturation, workload, timing and completion evidence remain mandatory. Process CPU is NOT substituted for busy
 percentage: doing so hides exactly the unsaturated case this check exists to catch.
 
 THE VERDICT NAMES THE WORST CELL. It is the conjunction of cell verdicts; no average across GET,
@@ -73,13 +73,14 @@ from gateplan import validate_axes, read_topology, permitted_cpus, default_physi
 from gate_measurements import (load as load_measurements, ratio as measured_ratio,
                                apply_floor, configured_reference, instrument_digest)
 from gate_quiet import QuietMonitor, QuietViolation
-from abba_saturation import (RUN_SATURATION_MARGIN,
+from abba_saturation import (RUN_SATURATION_MARGIN, saturation_exempt,
                              parse_snapshot, productive_saturation, bottleneck_saturation,
                             replay_saturation, require_saturation_window, SATURATION_FLOOR,
                             self_test as saturation_self_test)
 from gate_receipt import harness_fingerprint, read_json
 from abba_evidence import match_null, null_result
 from abba_instrument import instrument_fingerprint
+from abba_binaries import stage as stage_binaries, space_check, executable as require_binary
 from abba_workloads import (retired_reorder, workload_arguments, prepare_long_keys, merged_tail,
                             require_workload_witness, workload_command_names,
                             memtier_workload_counts, require_workload_accounting)
@@ -105,18 +106,6 @@ PLATEAU_TOLERANCE_PCT = 1.0
 READ_LOCAL_THRESHOLD_FLOOR_PCT = 5.0
 
 
-def saturation_exempt(cell):
-    """Cells whose verdict is a LATENCY, so an occupancy floor does not protect it.
-
-    The floor exists so a throughput regression cannot hide in server headroom. A tail-latency
-    verdict is not protected by it: p99.9 does not improve because the server is busier. Depth 1
-    was already exempt for this reason; the blocker-mix reorder cells need the same treatment and
-    for a stronger reason -- their workload DELIBERATELY idles the server on long commands, so they
-    sit at or under the floor by construction. Measured 2026-09-12 on identical bytes: t03 ran
-    92.0-96.4% occupancy across six rungs and could never pin, t01 95.4/95.5, t02 96.7/97.4,
-    t04 93.7-97.9. Requiring 95% of them asks the workload not to be what it is.
-    """
-    return cell.depth == 1 or cell.metric == "p999_ms"
 #
 # SATURATION IS ESTABLISHED BY A RATE PLATEAU, NOT BY A BUSY PERCENTAGE ALONE (owner ruling
 # 2026-09-10). Demanding >=98% busy in every run fails a candidate FOR BEING FASTER: a quicker
@@ -142,6 +131,7 @@ def saturation_exempt(cell):
 # connection shares must divide the worker count. Keep n=16 as a separate probe,
 # but selection must not credit its smaller worker pool as increased capacity.
 LADDER = (1, 2, 4, 8, 12, 16)
+AVAILABLE_LADDER = (*LADDER, 24)  # Explicit opt-in; the default ceiling remains 16.
 # Project measurement-integrity boundary, NOT the regression tolerance.
 MAX_SPREAD = 2.0
 ORDER = ("A", "B", "B", "A")
@@ -170,6 +160,7 @@ class Cell:
     smoke: bool = False
     pin_required: bool = False
     data_bytes: int = 64
+    ceiling_status: str = ""  # Fixed-load identical-arm control; never a saturated peak.
 
     def __post_init__(self):
         # The tail instrument needs 16 independent generators to avoid arrival bursts.
@@ -183,10 +174,10 @@ class Cell:
             "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}[self.score]
 
 
-def read_cells(path, *, placement=None):
+def read_cells(path, *, placement=None, measurements=None, instrument_sha256=None):
     cells = []
-    measurements = load_measurements()
-    instrument = (instrument_digest() if any(floor["status"] == "calibrated"
+    measurements = load_measurements() if measurements is None else measurements
+    instrument = (instrument_sha256 or instrument_digest() if any(floor["status"] == "calibrated"
                   for floor in measurements["load_floors"].values()) else None)
     for lineno, line in enumerate(path.read_text().splitlines(), 1):
         if not line.strip() or line.lstrip().startswith("#"):
@@ -264,7 +255,7 @@ def coverage(cells):
             "data_bytes": sorted({cell.data_bytes for cell in cells}),
             "atomic": sorted({cell.atomic for cell in cells}),
             "scores": sorted({cell.metric for cell in cells}),
-            "pending_pins": [cell.id for cell in cells if cell.depth > 1 and not cell.instances]}
+            "pending_pins": [cell.id for cell in cells if not saturation_exempt(cell) and not cell.instances]}
 
 
 def workload_data_bytes(cells):
@@ -452,7 +443,9 @@ def resolution_bounds(control, cell_id):
                  cannot honestly be tighter than what the same binary repeats to;
     abs_delta  : the largest |paired delta| on identical bytes -- the threshold cannot honestly
                  be tighter than the instrument's own between-arm error.
-    Both are MAXIMUMS over every block the null ran, so an unselected noisy probe still counts.
+    Spreads are maxima over every block. Repeats at the same load pool signed
+    differences over all reference sums before taking |delta|. Distinct load
+    probes remain separate rows and the largest pooled error is inherited.
     """
     if not control:
         return None
@@ -464,6 +457,9 @@ def resolution_bounds(control, cell_id):
         b = bounds.setdefault(r["metric"], {"spread": 0.0, "abs_delta": 0.0})
         b["spread"] = max(b["spread"], r.get("reference_spread_pct", 0.0), r.get("candidate_spread_pct", 0.0))
         b["abs_delta"] = max(b["abs_delta"], r.get("absolute_delta_pct", 0.0))
+        if "status" in r:
+            b["status"] = ("UNRESOLVED" if "UNRESOLVED" in (b.get("status"), r["status"])
+                           else "RESOLVING")
     return bounds
 
 
@@ -556,6 +552,10 @@ def select_load_floor(cell, rounds, bounds=None):
     numerical_peak = peak_index(rounds)
     pinned = bool(cell.depth > 1 and cell.instances and len(rounds) == 1 and
                   rounds[0]["instances"] == cell.instances)
+    if cell.ceiling_status:
+        from abba_ceiling import CEILING_STATUSES
+        if cell.ceiling_status not in CEILING_STATUSES or not pinned or saturation_exempt(cell):
+            invalid.append("invalid ceiling-only load plan")
     selected, confirmation = None, None
     tested = []
     for index, current in enumerate(evidence):
@@ -598,7 +598,7 @@ def select_load_floor(cell, rounds, bounds=None):
     return {"method": "lowest-tested-confirmed-rung-v1", "measurement_valid": not invalid,
             "measurement_failures": invalid,
             "status": "INVALID" if invalid else "EXEMPT" if saturation_exempt(cell) else
-                      "PINNED" if pinned else "CONFIRMED" if chosen else "UNPROVEN",
+                      "CEILING" if cell.ceiling_status else "PINNED" if pinned else "CONFIRMED" if chosen else "UNPROVEN",
             "selected_index": selected, "confirmation_index": confirmation,
             "lowest_tested_qualifying_instances": chosen["instances"] if chosen and not pinned and cell.depth > 1 else None,
             "confirmation_instances": evidence[confirmation]["instances"] if confirmation is not None else None,
@@ -645,7 +645,7 @@ def assess(cell, rounds, bounds=None):
         if bounds is not NULL_MODE and long_tail["delta_pct"] > long_threshold:
             reasons.append("long-command p99.9 regression exceeds measured reference spread")
     gain, plateau_noise = None, None
-    if not saturation_exempt(cell):
+    if not saturation_exempt(cell) and not cell.ceiling_status:
         if selection["status"] == "PINNED":
             occupancy = [saturation_score(run, cell) for run in current["runs"]]
             # Judge the BLOCK's occupancy by its mean, not by its worst single run. min() of four
@@ -674,6 +674,9 @@ def assess(cell, rounds, bounds=None):
             # comparisons above, never the envelope of whichever arm happens to be fastest.
             gain = max(chosen["arm_gains_pct"].values())
             plateau_noise = max(chosen["arm_repeatability_pct"].values())
+    scored = [cell.metric] + (["long_p999_ms"] if cell.metric == "p999_ms" else [])
+    unresolved = bool(bounds and bounds is not NULL_MODE and any(
+        bounds.get(metric, {}).get("status") == "UNRESOLVED" for metric in scored))
     return {**p, "throughput": rate, "long_tail": long_tail, "instances": current["instances"],
             "busy_pct_abba": [r["busy_pct"] for r in current["runs"]],
             "saturation_pct_abba": [saturation_score(run, cell) if not selection["measurement_failures"]
@@ -682,7 +685,10 @@ def assess(cell, rounds, bounds=None):
             "fastest_gain_pct": gain, "plateau_noise_pct": plateau_noise,
             "load_selection": selection, "measurement_valid": selection["measurement_valid"],
             "saturation_exempt": saturation_exempt(cell),
-            "verdict": "FAIL" if reasons else "PASS", "reasons": reasons}
+            "ceiling_status": cell.ceiling_status,
+            "capacity_claim": "ceiling-load-only" if cell.ceiling_status else
+                              "exempt" if saturation_exempt(cell) else "saturated-peak",
+            "verdict": "FAIL" if reasons else "UNRESOLVED" if unresolved else "PASS", "reasons": reasons}
 
 
 def saturation_done(cell, rounds, bounds=None):
@@ -716,7 +722,7 @@ def select_variance_pin(evidence):
             "unknown variance-pin method/schema")
     ladder = evidence["ladder"]
     require(isinstance(ladder, list) and ladder and
-            all(type(n) is int for n in ladder) and ladder == list(LADDER[:len(ladder)]),
+            all(type(n) is int for n in ladder) and ladder == list(AVAILABLE_LADDER[:len(ladder)]),
             "variance pin requires the bounded instance ladder")
     lower, confirmation = evidence["rate_instances"], evidence["confirmation_instances"]
     require(type(lower) is int and lower in ladder and type(confirmation) is int and
@@ -811,7 +817,7 @@ def variance_pin_evidence(calibration, rate_row, noise_reports, trials, fingerpr
     require(selection["status"] == "PIN", "variance cannot replace rate-saturation evidence")
     ceiling = min(calibration["environment"]["load_instance_ceiling"], cell.conns,
                   len(calibration["environment"]["load_physical"]))
-    ladder = [n for n in LADDER if n <= ceiling]
+    ladder = [n for n in AVAILABLE_LADDER if n <= ceiling]
     evidence = dict(schema=1, method=PIN_METHOD, rate_instances=selection["lowest_tested_qualifying_instances"],
         confirmation_instances=selection["confirmation_instances"], ladder=ladder,
         binary_sha256=calibration["candidate"]["sha256"], limits=None, selected_instances=None,
@@ -831,7 +837,7 @@ def pin_main(args):
             "--pin cannot combine with --calibrate, --escalate, --collect-null or --list-cells")
     inventory = read_cells(args.cells)
     cells = selected_cells(inventory, args.subset, args.only)
-    require(all(c.depth > 1 and c.metric == "rate" for c in cells),
+    require(all(not saturation_exempt(c) and c.metric == "rate" for c in cells),
             "--pin requires deep rate-scored cells; select them with --only")
     out = (args.output or ROOT / "build" / f"variance-pin-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}").resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -843,10 +849,10 @@ def pin_main(args):
         path.write_text(json.dumps(report, indent=2) + "\n")
 
     try:
-        frozen = out / "binary"
-        shutil.copy2(args.candidate.resolve(), frozen)
+        store, binaries = stage_binaries(args, out, {"A": args.candidate, "B": args.candidate}, report)
+        frozen = binaries["B"]
         fingerprint = instrument_fingerprint(ROOT)
-        options = {**vars(args), "pin": False, "candidate": frozen}
+        options = {**vars(args), "pin": False, "candidate": frozen, "binary_store": store.root}
         calibration_args = argparse.Namespace(**{**options, "output": out / "rate-search"})
         rc = calibration_main(calibration_args)
         calibration = read_json(calibration_args.output / "results.json")
@@ -859,7 +865,7 @@ def pin_main(args):
             row = dict(cell=asdict(cell), noise_reports=[], trials=[])
             report["cells"].append(row)
             ceiling = min(args.max_instances, cell.conns, len(calibration["environment"]["load_physical"]))
-            ladder = [n for n in LADDER if n <= ceiling]
+            ladder = [n for n in AVAILABLE_LADDER if n <= ceiling]
 
             def sample(n, phase, reports):
                 for repeat in range(PIN_NULL_BLOCKS):
@@ -901,12 +907,13 @@ def pin_main(args):
 
 
 def overall(rows):
-    failed = [r for r in rows if r["verdict"] != "PASS"]
-    pool = failed or rows
+    failed = [r for r in rows if r["verdict"] not in ("PASS", "UNRESOLVED")]
+    unresolved = [r for r in rows if r["verdict"] == "UNRESOLVED"]
+    pool = failed or unresolved or rows
     # A precondition/error failure outranks a throughput win elsewhere.
     worst = max(pool, key=lambda r: (not bool(r.get("assessment")),
                                     r.get("assessment", {}).get("margin_pct", 0)))
-    return ("FAIL" if failed else "PASS"), worst["cell"]["id"]
+    return ("FAIL" if failed else "UNRESOLVED" if unresolved else "PASS"), worst["cell"]["id"]
 
 
 def manifest_reference(directory, commit):
@@ -935,10 +942,10 @@ class Children:
     def __init__(self):
         self.active = []
 
-    def start(self, argv, log, cwd):
+    def start(self, argv, log, cwd, *, pass_fds=()):
         with log.open("w") as stream:
             p = subprocess.Popen([str(a) for a in argv], cwd=cwd, stdout=stream,
-                                 stderr=subprocess.STDOUT, start_new_session=True)
+                                 stderr=subprocess.STDOUT, start_new_session=True, pass_fds=pass_fds)
         self.active.append(p)
         return p
 
@@ -1056,6 +1063,7 @@ def resolve_reference(args, out):
 
 
 def accepted(binary, name, value):
+    require_binary(binary)
     p = capture([binary, f"--{name}", str(value), "--help"], timeout=10)
     if p.returncode == 0 and "usage:" in p.stdout:
         return True
@@ -1269,9 +1277,20 @@ class Runner:
         self.load_cpus = sorted(cpus(args.load_cores) + cpus(args.load_smt))
         self.legacy_reorder_controls = {}
         self.legacy_reorder_failures = {}
+        self.campaign_reorder_controls = None
+        self.binary_store = None
+        self.binary_cells = set()
         self.profile_factory = None  # Diagnostic opt-in only: no default PMCs or profile objects.
         self.worker_affinity_factory = None
         self.load_startup_seconds = 0  # Diagnostic allowance; normal generator lifetime stays 28s.
+
+    def verify_binary(self, cell, arm):
+        if self.binary_store is not None:
+            key = cell.id, arm
+            if key not in self.binary_cells:
+                space_check(self.out, artifacts=0)
+            self.binary_store.verify(arm, self.binaries[arm], full=key not in self.binary_cells)
+            self.binary_cells.add(key)
 
     def legacy_reorder_control(self, cell, arm, knobs):
         if cell.op != 'REORDER' or arm != 'A' or 'x-ex-sched' not in knobs:
@@ -1289,6 +1308,11 @@ class Runner:
         if (cell.op != 'REORDER' or cell.mode != '1s' or not cell.read_local or
                 not cell.reorder or 'reorder' not in knobs):
             return None
+        if self.campaign_reorder_controls is not None:
+            proof = self.campaign_reorder_controls.get(cell.id)
+            if not proof or proof['binary_sha256'] != sha256(self.binaries[arm]):
+                raise RuntimeError(f'{cell.id}: frozen read-local control missing or measured other bytes')
+            return proof
         # Keep the local lane armed in both controls: SETRANGE/INCR prove a real
         # owner execution inversion without relying on a GET entering that queue.
         return self.execution_order_control(cell, arm, read_local=1)
@@ -1308,6 +1332,7 @@ class Runner:
                 read_local=read_local)
             controls = []
             for reorder in (0, 1):
+                self.verify_binary(cell, arm)
                 row = run_control(args, self.binaries[arm], folder / f'reorder-{reorder}',
                                   cell.mode, reorder)
                 controls.append(row)
@@ -1327,7 +1352,7 @@ class Runner:
             artifact = folder / 'controls.json'
             artifact.write_text(json.dumps(controls, indent=2) + '\n')
             self.legacy_reorder_controls[key] = dict(verdict='PASS', mode=cell.mode,
-                controls=[0, 1], binary_sha256=digest, artifact=str(artifact.relative_to(self.out)),
+                controls=[0, 1], binary_sha256=digest, artifact=str(artifact.resolve()),
                 artifact_sha256=sha256(artifact),
                 scope='live unscored OFF/ON execution-order control; no scored-window permutation count')
             if read_local:
@@ -1400,6 +1425,7 @@ class Runner:
         reused = bool(_calibration)
         if reused and _calibration["cell"] != asdict(cell):
             raise ValueError("calibration session cannot outlive its cell")
+        self.verify_binary(cell, arm)
         profile = None
         worker_affinity = None
         legacy_control = self.legacy_reorder_control(cell, arm, knobs)
@@ -1444,10 +1470,18 @@ class Runner:
                     populate_seconds=0.)
             else:
                 self.prepare_data(cell, arm, folder)
-                srv = self.children.start(command, log, folder)
+                self.verify_binary(cell, arm)
+                if self.binary_store is not None:
+                    srv = self.binary_store.start(self.children, command, log, folder, arm)
+                    result["executable_launch"] = "verified-open-file-descriptor"
+                else:
+                    srv = self.children.start(command, log, folder)
                 deadline = time.monotonic() + 30
                 while True:
                     if srv.poll() is not None:
+                        # Also diagnose an unlink between the pre-boot check and
+                        # taskset's exec, rather than reporting opaque exit 127.
+                        self.verify_binary(cell, arm)
                         raise RuntimeError(f"server exited {srv.returncode}: {log.read_text()[-1000:]}")
                     try:
                         conn = Conn("127.0.0.1", self.args.port, timeout=10)
@@ -1611,6 +1645,9 @@ class Runner:
                           cpu_pct=100 * (after_cpu - before_cpu) / ((t1 - t0) * len(self.server_cpus)),
                           info_before=before, info_after=after)
             result["central_saturation"] = require_saturation_window(result["saturation"], result)
+            result["workload_raw"] = dict(before=before_commands, after=after_commands,
+                mode_before=before_mode, mode_after=after_mode, legacy_control=legacy_control,
+                read_local_control=read_local_control)
             result["workload_witness"] = require_workload_witness(
                 cell, before_commands, after_commands, before_mode, after_mode, legacy_control,
                 read_local_control)
@@ -1640,6 +1677,7 @@ class Runner:
             result["whole_run_accounting"] = require_workload_accounting(
                 cell, result["whole_run_commandstats_before"], result["whole_run_commandstats_after"], totals)
             total_rate = sum(t["rate"] for t in totals)
+            self.verify_binary(cell, arm)
             result.update(complete=True, memtier=totals, memtier_rate=total_rate,
                           latency_ms=sum(t["latency_ms"] * t["rate"] for t in totals) / total_rate)
             if cell.metric == "p999_ms":
@@ -1705,7 +1743,10 @@ def print_cell(row):
           f"productive-role(ABBA)={','.join('?' if x is None else f'{x:.3f}' for x in a['saturation_pct_abba'])}% "
           f"instances={a['instances']} {a['verdict']}", flush=True)
     selection = a["load_selection"]
-    if selection["status"] not in ("PINNED", "EXEMPT"):
+    if selection["status"] == "CEILING":
+        print(f"  {a['ceiling_status']}: fixed ceiling load={a['instances']}; "
+              "saturation UNPROVEN; no saturated-peak floor", flush=True)
+    elif selection["status"] not in ("PINNED", "EXEMPT"):
         print(f"  load floor={selection['lowest_tested_qualifying_instances']} "
               f"({selection['status']}, lowest TESTED qualifying rung); "
               f"confirmation={selection['confirmation_instances']} "
@@ -1748,26 +1789,35 @@ def parse_args():
                    help="optional single port inside --ports; standalone default 8700")
     p.add_argument("--memtier", default=os.getenv("GATE_ABBA_MEMTIER", "memtier_benchmark"))
     p.add_argument("--output", type=Path, default=None)
+    p.add_argument("--binary-store", type=Path,
+                   help="campaign RUN with frozen binaries.json; phase aliases are hard links only")
     p.add_argument("--collect-null", type=int, choices=(0, 1), default=0,
                    help="1 freezes one executable into identical arms and collects a null; always PARTIAL/exit 3")
     p.add_argument("--null-result", type=Path, default=Path(os.getenv("GATE_ABBA_NULL", os.getenv(
         "GATE_RECEIPT_NULL", ROOT / ".gate-history/receipts/baselines/full-null.json"))),
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
     p.add_argument("--calibrate", action="store_true",
-                   help="one-arm 10s load-floor search; boot/populate once per cell; PIN only, never a verdict")
+                   help="one-arm 10s search; PIN/EXEMPT/ceiling evidence only, never a performance verdict")
+    p.add_argument("--collect-reorder-controls", action="store_true",
+                   help="collect campaign read-local OFF/ON workloads and directed scheduler controls")
+    p.add_argument("--reorder-controls", type=Path,
+                   help="reuse the immutable pre-campaign read-local control receipt")
     p.add_argument("--pin", action="store_true",
                    help="rate search plus independent paired-null variance search; write validated floors; exit 3 on PIN")
     p.add_argument("--escalate", action="store_true",
                    help="ignore pinned load levels and search the ladder; use this to RE-PIN a cell "
                         "after the gate reports its pinned level no longer saturates")
     p.add_argument("--only", default="", help="comma-separated IDs; partial diagnostic, never a full-tier PASS")
-    p.add_argument("--max-instances", type=int, choices=LADDER, default=16,
+    p.add_argument("--max-instances", type=int, choices=AVAILABLE_LADDER, default=16,
                    help="load-instance ceiling (default 16); 1 cannot prove unpinned deep-pipeline saturation")
     return p.parse_args()
 
 
 def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
          diagnostic_pin_load_workers=0, diagnostic_load_startup_seconds=0, _pin_instances=None):
+    if getattr(args, "collect_reorder_controls", False):
+        from abba_reorder_control import collect
+        return collect(args)
     if getattr(args, "pin", False):
         if diagnostic_monitor is not None or diagnostic_profile or diagnostic_pin_load_workers or diagnostic_load_startup_seconds:
             raise ValueError("pin search cannot use diagnostic measurement overrides")
@@ -1796,6 +1846,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                       measurement_valid=False)
     if args.collect_null:
         report["null_control"] = {"verdict": "FAIL", "reason": "control has not completed"}
+        # The independent --pin workflow already fixes PIN_NULL_BLOCKS per
+        # trial. Its internal one-block invocations must keep that contract.
+        if not args.escalate and diagnostic_monitor is None and _pin_instances is None:
+            from abba_null_sampling import policy
+            report["null_sampling_policy"] = policy()
     children = Children()
     quiet = None
     rc = 1
@@ -1856,11 +1911,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             # they cannot alter normal comparisons or borrow a ledger pin.
             if (not args.collect_null or args.escalate or diagnostic_monitor is not None or
                     set(_pin_instances) != {cell.id for cell in cells} or
-                    any(type(n) is not int or n not in LADDER for n in _pin_instances.values())):
+                    any(type(n) is not int or n not in AVAILABLE_LADDER for n in _pin_instances.values())):
                 raise ValueError("invalid internal pin-null probe")
             cells = [replace(cell, instances=_pin_instances[cell.id]) for cell in cells]
         report["coverage"] = coverage(cells)
-        pending = [cell.id for cell in cells if cell.pin_required and not cell.instances]
+        pending = [cell.id for cell in cells if not saturation_exempt(cell) and cell.pin_required and not cell.instances]
         if pending and not args.escalate:
             # AN UNPINNED CELL SEARCHES; IT DOES NOT VETO THE OTHER SIXTEEN. Refusing the whole
             # tier here made every cell hostage to the flakiest one: through 2026-09-12 a single
@@ -1894,30 +1949,22 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         report["quiet_box"] = quiet.evidence()
         if not args.candidate.is_file() or not os.access(args.candidate, os.X_OK):
             raise RuntimeError(f"candidate executable unavailable: {args.candidate}")
-        binaries = {}
         if args.collect_null:
-            # Copy the candidate ONCE, then derive the other arm from that frozen file. Resolving
-            # a pushed reference here would create a circular prerequisite and could compare
-            # different bytes. A null proves repeatability of this instrument, not source identity.
-            binaries["B"] = out / "binary-B"
-            shutil.copy2(args.candidate.resolve(), binaries["B"])
-            reference = binaries["B"]
+            # Both arm names bind one campaign snapshot; never resolve a pushed
+            # reference for an identical-byte instrument control.
+            reference = args.candidate.resolve()
             provenance = {"source": "byte-identical null control", "commit": "not-a-code-comparison",
                           "sha256": sha256(reference)}
-            copies = (("A", reference),)
         else:
             reference, provenance = resolve_reference(args, out)
-            copies = (("A", reference), ("B", args.candidate.resolve()))
         report["reference"] = provenance
-        for arm, source in copies:
-            dest = out / f"binary-{arm}"
-            shutil.copy2(source, dest)
-            binaries[arm] = dest
+        store, binaries = stage_binaries(args, out,
+            {"A": reference, "B": args.candidate.resolve()}, report)
         report["candidate"] = {"path": str(args.candidate.resolve()), "sha256": sha256(binaries["B"]),
                                "workspace_commit": git("rev-parse", "HEAD"),
                                "workspace_status": git("status", "--short")}
         if sha256(binaries["A"]) != provenance["sha256"]:
-            raise RuntimeError("reference changed while copying")
+            raise RuntimeError("reference changed while freezing campaign binaries")
         print(f"REFERENCE {provenance['source']} {provenance['commit']} sha256={provenance['sha256']}", flush=True)
         print(f"CANDIDATE {args.candidate} sha256={report['candidate']['sha256']}", flush=True)
         args.memtier = shutil.which(args.memtier)
@@ -1925,6 +1972,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             raise RuntimeError("memtier_benchmark not available")
         args.memtier = str(Path(args.memtier).resolve())
         runner = Runner(args, out, binaries, children)
+        runner.binary_store = store
         runner.load_startup_seconds = diagnostic_load_startup_seconds
         if diagnostic_pin_load_workers:
             from abba_worker_affinity import WorkerAffinity
@@ -1948,7 +1996,15 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "split_flip_auto": 0, "memtier_path": args.memtier,
                                  "memtier_sha256": sha256(Path(args.memtier)),
                                  "memtier_version": capture([args.memtier, "--version"]).stdout.strip(),
+                                 "measurements_sha256": sha256(ROOT / "tests/gate_measurements.json"),
                                  **runner.population_environment()}
+        from abba_reorder_control import attach
+        attach(runner, report, cells)
+        if not args.escalate and any(cell.ceiling_status for cell in cells):
+            from abba_ceiling import validate_ceiling_controls
+            plans = load_measurements()["ceiling_loads"]
+            report["ceiling_loads"] = {cell.id: plans[cell.id] for cell in cells if cell.ceiling_status}
+            validate_ceiling_controls(report, [asdict(cell) for cell in cells])
         print(f"GEOMETRY server={args.server_cores} ({len(server_physical)} physical cores) "
               f"server-smt={args.server_smt or '(reserved)'} ({len(server_cpus)} threads) "
               f"load={args.load_cores} load-smt={args.load_smt or '(reserved)'} "
@@ -1971,14 +2027,16 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     print(f"  {cell.id} COMPATIBILITY: {note}", flush=True)
                 pinned = cell.depth > 1 and cell.instances and not args.escalate
                 ladder = ((cell.instances,) if pinned else
-                          tuple(sorted(set(LADDER) | ({cell.instances} if args.escalate and cell.instances else set()))))
+                          tuple(sorted(set(LADDER) | ({24} if args.max_instances == 24 else set()) |
+                                       ({cell.instances} if args.escalate and cell.instances else set()))))
                 row["load_ladder"] = list(ladder)
                 # Clearing the assessment pin matters even at --max-instances=1:
                 # --escalate must prove its load floor with a higher probe, never borrow
                 # the very stored saturation evidence the caller asked to ignore.
-                assessed_cell = replace(cell, instances=0) if args.escalate else cell
+                assessed_cell = replace(cell, instances=0, ceiling_status="") if args.escalate else cell
                 if pinned:
-                    print(f"  {cell.id} PINNED load={cell.instances}; one ABBA block (4 measurements)", flush=True)
+                    label = f"{cell.ceiling_status} saturation=UNPROVEN" if cell.ceiling_status else "PINNED"
+                    print(f"  {cell.id} {label} load={cell.instances}; one ABBA block (4 measurements)", flush=True)
                     ceiling = min(args.max_instances, cell.conns, len(load_physical))
                     if cell.instances > ceiling:
                         raise ValueError(f"pinned load level {cell.instances} exceeds the instance/connection/"
@@ -2047,6 +2105,19 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         # floor candidate at all.
                         if not args.escalate or incomplete or not still_climbing:
                             break
+                if "null_sampling_policy" in report and row["verdict"] == "PASS":
+                    from abba_null_sampling import collect
+                    def repeat_measure(arm, sequence, instances):
+                        quiet.check()
+                        result = runner.measure(cell, arm, sequence, instances, plans[arm])
+                        quiet.check()
+                        return result
+                    def persist_sampling():
+                        report["quiet_box"] = quiet.evidence()
+                        report["elapsed_seconds"] = time.monotonic() - start
+                        (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
+                    collect(assessed_cell, row, repeat_measure, persist_sampling)
+                    print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
             except (InterruptedError, QuietViolation):
                 raise
             except NotComparable as e:
@@ -2075,6 +2146,15 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         if instrument_fingerprint(ROOT) != report["instrument_fingerprint"]:
             invalidate_instrument("measurement instrument changed during the ABBA tier")
             raise RuntimeError(report["reason"])
+        children.close()
+        report["complete"] = not children.active
+        report["process_cleanup"] = dict(complete=not children.active, remaining=len(children.active))
+        if sha256(ROOT / "tests/gate_measurements.json") != report["environment"]["measurements_sha256"]:
+            raise RuntimeError("runtime measured inputs changed during campaign")
+        if sha256(Path(args.memtier)) != report["environment"]["memtier_sha256"]:
+            raise RuntimeError("generator changed during campaign")
+        for arm, binary in binaries.items():
+            store.verify(arm, binary)
         report["measurement_valid"] = diagnostic_monitor is None
         report["elapsed_seconds"] = time.monotonic() - start
         if args.escalate:
@@ -2084,11 +2164,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             # its final evidence check merely because its input was unmeasured.
             report["coverage"]["requested_pending_pins"] = report["coverage"]["pending_pins"][:]
             report["coverage"]["pending_pins"] = [row["cell"]["id"] for row in report["cells"]
-                if row["cell"]["depth"] > 1 and row.get("assessment", {}).get(
+                if not saturation_exempt(row["cell"]) and row.get("assessment", {}).get(
                     "load_selection", {}).get("status") != "CONFIRMED"]
         report["statistical_verdict"], report["worst_cell"] = overall(report["cells"])
         report["verdict"] = report["statistical_verdict"]
-        if report["statistical_verdict"] == "PASS":
+        if report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
             report["verdict"] = "PARTIAL"
             if diagnostic_monitor is not None:
                 report["null_control"] = {"verdict": "UNTRUSTED", "reason":
@@ -2111,15 +2191,20 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     # Retain the exact accepted control beside this comparison. Receipts use this
                     # frozen file, never a default path that another successful run may replace.
                     (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
-                    if not args.only:
+                    if not args.only and report["statistical_verdict"] == "PASS":
                         report["comparison_trusted"] = True
                         report["verdict"] = "PASS"
+                    elif report["statistical_verdict"] == "UNRESOLVED":
+                        report["verdict"] = "UNRESOLVED"
                 except (OSError, ValueError, TypeError, KeyError) as error:
                     report["standing_null"] = {"status": "UNTRUSTED", "reason": str(error)}
                     print(f"ABBA UNTRUSTED: {error}; raw assessments retained", flush=True)
+        from abba_evidence import resolution_summary, resolution_text
+        report["resolution_summary"] = resolution_summary(report, None if args.collect_null else control)
+        print("ABBA resolution: " + resolution_text(report["resolution_summary"]), flush=True)
         print(f"ABBA {args.subset} {report['verdict']} worst={report['worst_cell']} "
               f"({len(cells)}/{report['cell_source']['total_cells']} cells); results={out / 'results.json'}", flush=True)
-        rc = 1 if report["verdict"] == "FAIL" else 3 if report["verdict"] == "PARTIAL" else 0
+        rc = 1 if report["verdict"] == "FAIL" else 3 if report["verdict"] in ("PARTIAL", "UNRESOLVED") else 0
     except Skip as e:
         report.update(verdict="SKIP", reason=str(e))
         print(f"ABBA SKIP — NOT A PASS: {e}", file=sys.stderr, flush=True)
@@ -2161,7 +2246,7 @@ def self_test():
     import io
     import unittest
     from unittest import mock
-    from _abba_test_fixtures import quiet_record, saturation_record
+    from _abba_test_fixtures import quiet_record, saturation_record, workload_record
     (ROOT / "build").mkdir(exist_ok=True)
 
     def wait_pidfile(path, deadline):
@@ -2298,7 +2383,8 @@ def self_test():
                     data_bytes=64, key_pattern="P:P", atomic="per-cell", split_flip_auto=0,
                     uname=list(os.uname()), python_runtime=fingerprint["python"],
                     memtier_sha256=sha256(Path(sys.executable).resolve()), memtier_version="unit",
-                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"})
+                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"},
+                    measurements_sha256=sha256(ROOT / "tests/gate_measurements.json"))
 
                 def calibrate(options):
                     rounds = []
@@ -2306,10 +2392,11 @@ def self_test():
                         rounds.append(dict(instances=n, runs=[dict(arm="B", rate=100., latency_ms=1.,
                             busy_pct=99., commands=1000, complete=True, instances=n, pid=123,
                             artifacts=f"{cell.id}/n{n}-{i}-B", window_seconds=10., midpoint_monotonic=6.,
-                            calibration_only=True, population_reused=i > 1,
+                            calibration_only=True, population_reused=i > 1, **workload_record(cell),
                             load_layout=load_layout(environment["load_cpus"], n, cell.conns),
                             saturation=saturation_record(window_seconds=10))]))
                     report = dict(schema=1, run_kind="load-calibration", verdict="PIN", complete=True,
+                process_cleanup=dict(complete=True, remaining=0),
                         measurement_valid=False, normal_gate_eligible=False, comparison_trusted=False,
                         order=["B"], window_seconds=10, elapsed_seconds=30,
                         started_utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", original_gmtime(epoch)),
@@ -2853,6 +2940,8 @@ def self_test():
                     args = SimpleNamespace(server_cores="0-1", server_smt="", load_cores="2-3", load_smt="",
                                            port=9090, memtier="never-executed-memtier")
                     runner = Runner(args, directory, {"A": Path("never-executed-server")}, children)
+                    preparatory_proof = {"fixture": "retain the exact pre-window proof in raw evidence"}
+                    runner.read_local_reorder_control = mock.Mock(return_value=preparatory_proof)
                     class Affinity:
                         def __init__(inner, folder):
                             inner.record = {"status": "INCOMPLETE", "normal_gate_eligible": False}
@@ -2950,6 +3039,8 @@ def self_test():
                             self.assertEqual(result["whole_run_accounting"]["commands"]["GET"]["server_calls"], 10000)
                     self.assertEqual(events[0], ("commandstats", 0, 0))
                     retained = json.loads((directory / cell.id / "n2-1-A/measurement.json").read_text())
+                    if retained["complete"]:
+                        self.assertEqual(retained["workload_raw"]["read_local_control"], preparatory_proof)
                     self.assertEqual(retained["complete"], not bool(corruption) and profile_mode in (0, "on") and
                                      affinity_mode in (0, "fixed", "floating"))
                     self.assertEqual(stopped, [124, 125, 123])
@@ -4121,6 +4212,18 @@ def self_test():
                     rows = [r for r in noisy_null["null_control"]["resolution"] if r["metric"] == "rate"]
                     self.assertTrue(rows and all(abs(r["absolute_delta_pct"] - 1.) < 1e-6 for r in rows))
                     self.assertTrue(all(r["within_reference_spread"] is False for r in rows))
+                rc, calls, unresolved_control, _ = run(collect=True, candidate_rate=103)
+                self.assertEqual((rc, len(calls), unresolved_control["verdict"]), (3, 16, "PARTIAL"))
+                self.assertEqual(unresolved_control["resolution_summary"]["unresolved_cells"], ["n1", "n2"])
+                rc, calls, unresolved, _ = run(control=unresolved_control)
+                self.assertEqual((rc, len(calls), unresolved["statistical_verdict"], unresolved["verdict"]),
+                                 (3, 8, "UNRESOLVED", "UNRESOLVED"))
+                self.assertFalse(unresolved["comparison_trusted"])
+                self.assertEqual(unresolved["resolution_summary"]["pass_evidence_cells"], [])
+                with self.assertRaisesRegex(ValueError, "comparison reporting-only"):
+                    validate_comparison(unresolved, unresolved_control, now=epoch + ticks[0])
+                rc, calls, loss, _ = run(control=unresolved_control, candidate_rate=90)
+                self.assertEqual((rc, len(calls), loss["verdict"]), (1, 8, "FAIL"))
                 rc, calls, improvement, _ = run(control=control, candidate_rate=101)
                 self.assertEqual((rc, len(calls), improvement["verdict"]), (0, 8, "PASS"))
                 binary.write_bytes(b"a later candidate may reuse this instrument control")
@@ -4370,6 +4473,7 @@ if __name__ == "__main__":
         import contextlib
         from unittest import mock
         from load_calibration import self_test as calibration_self_test
+        from abba_binaries import self_test as binaries_self_test
         # Guard the default AND configured live candidates even when an individual
         # fixture clears the environment. A warm build must not mask a missing stub.
         live_candidates = {os.path.abspath(ROOT / "build/tomokv"), os.path.abspath(args.candidate)}
@@ -4389,7 +4493,7 @@ if __name__ == "__main__":
         with contextlib.ExitStack() as guards:
             for owner, name in ((Path, "stat"), (Path, "open"), (os, "access")):
                 guards.enter_context(mock.patch.object(owner, name, guard_candidate_access(getattr(owner, name))))
-            rc = max(self_test(), saturation_self_test(), calibration_self_test())
+            rc = max(self_test(), saturation_self_test(), calibration_self_test(), binaries_self_test())
         # main() records exceptions as failed reports; a test expecting some other
         # failure must not swallow a forbidden probe and make this control green.
         if live_probes:

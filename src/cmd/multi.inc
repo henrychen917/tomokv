@@ -1824,10 +1824,6 @@ bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consume
     return multi_dispatch_entry_impl<false>(loop, client, op, consumed);
 }
 
-bool multi_dispatch_entry_iofused(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
-    return multi_dispatch_entry_impl<true>(loop, client, op, consumed);
-}
-
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op) {
     command_set_local_context(&client, loop.self_);
     snapshot_bind_io(loop.self_, &loop.ring_);
@@ -1912,10 +1908,6 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
 
 uint32_t multi_owner_pass_entry(IoLoop& loop) {
     return multi_owner_pass_entry_impl<false>(loop);
-}
-
-uint32_t multi_owner_pass_entry_iofused(IoLoop& loop) {
-    return multi_owner_pass_entry_impl<true>(loop);
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {

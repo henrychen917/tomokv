@@ -5,7 +5,8 @@ A rung asks only whether more generator workers still increase throughput. Keep
 one populated server alive for the cell and vary generators alone. The first
 saturated rung followed by a non-increasing, higher-worker rung is a PIN. A
 single observation cannot estimate repeatability, so no tolerance is invented:
-strictly increasing observations keep searching and an unconfirmed ceiling fails.
+strictly increasing observations keep searching. An unconfirmed ceiling is an
+explicit fixed-load observation, never a saturated-peak floor.
 The normal 20-second paired ABBA path retains its own repeatability-based rule.
 """
 from contextlib import contextmanager
@@ -20,6 +21,7 @@ import sys
 import time
 
 import abbagate as abba
+from abba_ceiling import CEILING_STATUSES, ceiling_observation, campaign_verdict
 
 WINDOW = 10
 
@@ -32,7 +34,7 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def select_calibration_floor(cell, rounds):
+def select_calibration_floor(cell, rounds, *, ceiling=None):
     """Replay one-arm observations; serialized PINs never establish their own floor."""
     require(rounds, "no calibration observations")
     previous = 0
@@ -85,12 +87,17 @@ def select_calibration_floor(cell, rounds):
                     above["rate"] < current["rate"] * (1 + PLATEAU_TOLERANCE_PCT / 100)):
                 selected, confirmation = index, index + 1
                 break
-    return dict(method="one-arm-observed-peak-v1", measurement_valid=True,
+    result = dict(method="one-arm-observed-peak-v1", measurement_valid=True,
         status="EXEMPT" if abba.saturation_exempt(cell) else "PIN" if selected is not None else "UNPROVEN",
         selected_index=selected, confirmation_index=confirmation,
         lowest_tested_qualifying_instances=rows[selected]["instances"] if selected is not None else None,
         confirmation_instances=rows[confirmation]["instances"] if confirmation is not None else None,
         generator_headroom="UNPROVEN", tested_rungs=rows)
+    if selected is None:
+        observation = ceiling_observation(rows, ceiling)
+        if observation is not None:
+            result.update(status=observation["status"], ceiling_evidence=observation)
+    return result
 
 
 @contextmanager
@@ -158,22 +165,26 @@ def main(args):
             window_seconds=abba.WINDOW, ports=(args.port,), sample_artifact=out / "quiet-samples.jsonl")
         quiet.start()
         require(args.candidate.is_file() and os.access(args.candidate, os.X_OK), "candidate executable unavailable")
-        binary = out / "binary-B"
-        shutil.copy2(args.candidate.resolve(), binary)
+        store, binaries = abba.stage_binaries(args, out, {"B": args.candidate}, report)
+        binary = binaries["B"]
         report["candidate"] = dict(path=str(args.candidate.resolve()), sha256=abba.sha256(binary),
             workspace_commit=abba.git("rev-parse", "HEAD"), workspace_status=abba.git("status", "--short"))
         args.memtier = shutil.which(args.memtier)
         require(args.memtier, "memtier_benchmark not available")
         args.memtier = str(Path(args.memtier).resolve())
         runner = abba.Runner(args, out, {"B": binary}, children)
+        runner.binary_store = store
         report["environment"] = dict(uname=list(os.uname()), **placement, server_cpus=server_cpus,
             load_cpus=load_cpus, load_instance_ceiling=min(args.max_instances, len(load_physical)),
             port=args.port, permitted_ports=permitted_ports, keys=abba.KEYS,
             data_bytes=abba.workload_data_bytes(cells), key_pattern="P:P",
             atomic="per-cell", split_flip_auto=0, population_by_arm={"B": "wire"},
             python_runtime=report["instrument_fingerprint"]["python"], memtier_path=args.memtier,
+            measurements_sha256=abba.sha256(abba.ROOT / "tests/gate_measurements.json"),
             memtier_sha256=abba.sha256(Path(args.memtier)),
             memtier_version=abba.capture([args.memtier, "--version"]).stdout.strip())
+        from abba_reorder_control import attach
+        attach(runner, report, cells)
         support = {name: abba.accepted(binary, name, value) for name, value in
             (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0))}
         report["accepted_knobs"] = {"B": support}
@@ -183,23 +194,32 @@ def main(args):
             try:
                 plans, _ = abba.knob_plan(cell, {"A": support, "B": support})
                 row["knobs"] = {"B": plans["B"]}
-                ladder = sorted(set(abba.LADDER) | ({cell.instances} if cell.instances else set()))
-                row["load_ladder"] = [n for n in ladder if n <= min(args.max_instances, cell.conns, len(load_physical))]
+                ladder = ([cell.instances or 1] if abba.saturation_exempt(cell) else
+                          sorted(set(abba.LADDER) | ({cell.instances} if cell.instances else set())))
+                ceiling = min(args.max_instances, cell.conns, len(load_physical))
+                if not abba.saturation_exempt(cell):
+                    ladder = sorted(set(ladder) | {ceiling})
+                row["load_ladder"] = [n for n in ladder if n <= ceiling]
                 with persistent_cell(runner) as session:
                     for sequence, n in enumerate(row["load_ladder"], 1):
                         quiet.check()
                         run = runner.measure(cell, "B", sequence, n, plans["B"], _calibration=session, _window=WINDOW)
                         row["rounds"].append(dict(instances=n, runs=[run]))
                         quiet.check()
-                        row["selection"] = select_calibration_floor(cell, row["rounds"])
+                        row["selection"] = select_calibration_floor(cell, row["rounds"], ceiling=ceiling)
                         row["status"] = row["selection"]["status"]
                         publish()
                         if row["status"] in ("PIN", "EXEMPT"):
                             break
-                require(row["status"] in ("PIN", "EXEMPT"), "ceiling reached without a saturated peak and higher-worker confirmation")
+                require(row["status"] in ("PIN", "EXEMPT", *CEILING_STATUSES), "ceiling reached without a saturated peak and higher-worker confirmation")
+                observed = row["selection"].get("ceiling_evidence")
+                detail = (f" ceiling={observed['instances']} rate={observed['achieved_rate']:.3f} "
+                          f"slope={observed['slope_pct']:+.4f}% occupancy={observed['server_occupancy_pct']:.4f}% "
+                          f"workers={observed['previous_worker_threads']}->{observed['worker_threads']} "
+                          f"reason={observed['reason']}; saturated_peak_floor=None" if observed else "")
                 print(f"CALIBRATION {cell.id} {row['status']} instances="
                       f"{row['selection']['lowest_tested_qualifying_instances']} "
-                      f"confirmation={row['selection']['confirmation_instances']}; no performance verdict", flush=True)
+                      f"confirmation={row['selection']['confirmation_instances']}{detail}; no performance verdict", flush=True)
             except (InterruptedError, abba.QuietViolation):
                 raise
             except Exception as error:
@@ -214,9 +234,16 @@ def main(args):
         require(abba.harness_fingerprint(abba.ROOT)["sha256"] == report["receipt_harness_sha256"] and
                 abba.instrument_fingerprint(abba.ROOT) == report["instrument_fingerprint"],
                 "measurement instrument changed during calibration")
-        require(report["cells"] and all(row["status"] in ("PIN", "EXEMPT") for row in report["cells"]),
+        require(abba.sha256(Path(args.memtier)) == report["environment"]["memtier_sha256"] and
+                abba.sha256(abba.ROOT / "tests/gate_measurements.json") == report["environment"]["measurements_sha256"],
+                "runtime inputs changed during calibration")
+        store.verify("B", binary)
+        require(report["cells"] and all(row["status"] in ("PIN", "EXEMPT", *CEILING_STATUSES) for row in report["cells"]),
                 "calibration has failed or unconfirmed cells")
-        report.update(verdict="PIN", complete=True)
+        children.close()
+        require(not children.active, "calibration owned processes are unreaped")
+        report["process_cleanup"] = dict(complete=True, remaining=0)
+        report.update(verdict=campaign_verdict(report["cells"]), complete=True)
         publish()
         # PIN is deliberately nonzero, as a null's PARTIAL result is. It cannot
         # accidentally satisfy a shell gate or become a standing ABBA result.
@@ -246,7 +273,7 @@ def self_test():
     from types import SimpleNamespace
     import unittest
     from unittest import mock
-    from _abba_test_fixtures import saturation_record
+    from _abba_test_fixtures import saturation_record, workload_record
 
     class Controls(unittest.TestCase):
         def setUp(self):
@@ -286,6 +313,37 @@ def self_test():
             for placement in rounds[1]["runs"][0]["load_layout"]:
                 placement.update(threads=8, clients=32)
             self.assertEqual(select_calibration_floor(self.cell, rounds)["status"], "UNPROVEN")
+
+        def test_ceiling_classification_keeps_slope_occupancy_and_never_a_floor(self):
+            for score, rates, expected in ((70, (50, 100), "LOADGEN-BOUND"),
+                    (99.9, (50, 100), "CEILING-UNCONFIRMED"),
+                    (70, (100, 99), "CEILING-UNCONFIRMED")):
+                rounds = [self.block(n, rate, score) for n, rate in zip((1, 2), rates)]
+                result = select_calibration_floor(self.cell, rounds, ceiling=2)
+                self.assertEqual(result["status"], expected)
+                self.assertIsNone(result["lowest_tested_qualifying_instances"])
+                self.assertIsNone(result["confirmation_index"])
+                self.assertEqual(result["ceiling_evidence"]["achieved_rate"], rates[-1])
+                self.assertAlmostEqual(result["ceiling_evidence"]["server_occupancy_pct"], score)
+                self.assertEqual(select_calibration_floor(self.cell, rounds, ceiling=4)["status"], "UNPROVEN")
+            layout = abba.load_layout(list(range(32, 128)) + list(range(160, 256)), 24, 512)
+            self.assertEqual((len(layout), sum(p["threads"] for p in layout),
+                              sum(p["threads"] * p["clients"] for p in layout)), (24, 192, 512))
+
+        def test_ceiling_abba_assessment_prints_without_plateau_confirmation_fields(self):
+            from dataclasses import replace
+            for status in CEILING_STATUSES:
+                cell = replace(self.cell, instances=4, ceiling_status=status)
+                run = self.block(4, 100, 70)["runs"][0]
+                rounds = [dict(instances=4, runs=[dict(run, arm=arm) for arm in abba.ORDER])]
+                assessment = abba.assess(cell, rounds, abba.NULL_MODE)
+                self.assertEqual(assessment["verdict"], "PASS")
+                self.assertEqual(assessment["load_selection"]["status"], "CEILING")
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    abba.print_cell(dict(cell=asdict(cell), assessment=assessment))
+                self.assertIn(status, output.getvalue())
+                self.assertIn("saturation UNPROVEN; no saturated-peak floor", output.getvalue())
 
         def test_failed_empty_shortened_and_changed_workload_observations_refuse(self):
             rounds = [self.block(1), self.block(2)]
@@ -389,7 +447,7 @@ def self_test():
                     self.assertEqual(last["calibration_only"], True)
 
         def test_real_dispatch_emits_pin_only_and_retains_failed_rung_or_late_quiet(self):
-            for failure in (None, "rung", "quiet"):
+            for failure in (None, "rung", "quiet", "loadgen", "legacy-ceiling"):
                 with self.subTest(failure=failure), tempfile.TemporaryDirectory() as temporary:
                     directory = Path(temporary)
                     binary = directory / "binary"
@@ -419,7 +477,7 @@ def self_test():
                     quiet = Quiet()
                     child = SimpleNamespace(pid=123)
                     conn = SimpleNamespace(close=lambda: closes.append("connection"))
-                    children = SimpleNamespace(close=lambda: None, stop=lambda process: closes.append(process.pid))
+                    children = SimpleNamespace(active=[], close=lambda: None, stop=lambda process: closes.append(process.pid))
                     def measure(runner, cell, arm, sequence, instances, knobs, *, _calibration, _window):
                         self.assertEqual((_window, arm), (10, "B"))
                         reused = bool(_calibration)
@@ -428,12 +486,17 @@ def self_test():
                         events.append((instances, reused))
                         if failure == "rung" and instances == 2:
                             raise RuntimeError("injected rung failure")
-                        run = self.block(instances, {1: 50, 2: 100, 4: 99}[instances])["runs"][0]
-                        run.update(pid=123, population_reused=reused, busy_pct=99.9,
+                        limited = failure in ("loadgen", "legacy-ceiling")
+                        run = self.block(instances, instances * 50 if limited else {1: 50, 2: 100, 4: 99}[instances],
+                                         70 if limited else 99.9)["runs"][0]
+                        run.update(**workload_record(cell), pid=123, population_reused=reused, busy_pct=99.9,
                             artifacts=f"{cell.id}/n{instances}-{sequence}-B")
                         return run
                     fingerprint = dict(sha256="f" * 64, python={})
                     original_window = abba.WINDOW
+                    output = io.StringIO()
+                    legacy = (mock.patch("load_calibration.ceiling_observation", return_value=None)
+                              if failure == "legacy-ceiling" else contextlib.nullcontext())
                     with mock.patch.multiple(abba, QuietMonitor=mock.Mock(return_value=quiet),
                             Children=mock.Mock(return_value=children), accepted=mock.Mock(return_value=True),
                             check_placement=mock.Mock(), git=mock.Mock(return_value="fixture"),
@@ -441,11 +504,23 @@ def self_test():
                             instrument_fingerprint=mock.Mock(return_value=fingerprint)), \
                          mock.patch.object(abba.Runner, "measure", measure), \
                          mock.patch.object(os, "sched_setaffinity"), mock.patch.dict(os.environ, {}, clear=True), \
-                         contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                        self.assertEqual(abba.main(args), 3 if failure is None else 1)
+                         contextlib.redirect_stdout(output), contextlib.redirect_stderr(output), legacy:
+                        rc = abba.main(args)
+                        self.assertEqual(rc, 3 if failure in (None, "loadgen") else 1)
                     report = json.loads((directory / "out/results.json").read_text())
-                    self.assertEqual(report["verdict"], "PIN" if failure is None else "FAIL")
-                    self.assertEqual(report["complete"], failure is None)
+                    self.assertEqual(report["verdict"], "CEILING-LIMITED" if failure == "loadgen" else
+                                     "PIN" if failure is None else "FAIL")
+                    self.assertEqual(report["complete"], failure in (None, "loadgen"))
+                    if failure in ("loadgen", "legacy-ceiling"):
+                        import subprocess
+                        # Execute the campaign's strict shell contract with the observed rc.
+                        shell = 'set -euo pipefail\nexpect_rc() { local expected=$1 actual=0; shift; "$@" || actual=$?; test "$actual" -eq "$expected"; }\nexpect_rc 3 bash -c "exit $1"\necho CAMPAIGN-CONTINUED\n'
+                        check = subprocess.run(["bash", "-c", shell, "fixture", str(rc)], text=True, capture_output=True)
+                        self.assertEqual(check.returncode, 0 if failure == "loadgen" else 1)
+                        self.assertEqual("CAMPAIGN-CONTINUED" in check.stdout, failure == "loadgen")
+                        self.assertIn("LOADGEN-BOUND" if failure == "loadgen" else
+                                      "calibration has failed or unconfirmed cells", output.getvalue())
+                        print(f"CEILING fixture {failure}: calibration rc={rc}, strict campaign rc={check.returncode}")
                     self.assertEqual(report["run_kind"], "load-calibration")
                     self.assertEqual(report["order"], ["B"])
                     self.assertEqual(report["window_seconds"], 10)
