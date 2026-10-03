@@ -14,10 +14,13 @@ import re
 import struct
 import subprocess
 import sys
+import tarfile
+import io
 
 from lbstall_artifacts import Elf
 
 ROOT = Path(__file__).resolve().parents[1]
+FROZEN_POST = '7dc81148e2f19af536d7fc267b541bd7f1f95668'
 
 
 def save(path, value):
@@ -68,6 +71,8 @@ def tables(elf, out, label):
 
 def post_plan(source):
     elf = Elf(source)
+    if '.rlfence' in elf.names:
+        return island_plan(source, elf)
     # Aliased lambda ordinals denote the same physical helper. Require both
     # database namespaces and both Fair variants, exactly once per address.
     pattern = re.compile(r'_ZZNK?(4tomo|8tomo_db0)7ExLoopTILb1EE30drain_local_reads_bounded_implILb([01])EEEjjENKUljE[0-9]*_clEj')
@@ -102,6 +107,56 @@ def post_plan(source):
                           sequence_address=address + start, sequence=sequence.hex(),
                           disassembly=found_as_json(found)))
     assert variants == {(ns, b) for ns in ('4tomo', '8tomo_db0') for b in ('0', '1')}
+    return dict(kind='A: behaviour twin', source_sha256=sha(elf.data), patches=plans)
+
+
+def island_plan(source, elf):
+    """Cover the entire ALT island section, including its return edges.
+
+    This also accepts serverless unit ELFs, whose islands use other registers
+    and ROB placements. Every emitted island must have the same six operations;
+    never find/patch arbitrary byte patterns outside instruction boundaries.
+    """
+    section = elf.sections[elf.names.index('.rlfence')]
+    text = subprocess.check_output(['objdump', '-dw', '-j', '.rlfence', str(source)], text=True)
+    rows = instructions(text)
+    assert rows and len(rows) % 6 == 0, 'ALT complete island instruction inventory'
+    assert rows[0][0] == section[3] and rows[-1][0] + len(rows[-1][1]) == section[3] + section[5]
+    for one, two in zip(rows, rows[1:]):
+        assert one[0] + len(one[1]) == two[0], 'ALT unaccounted island bytes'
+    plans = []
+    funcs = [s for s in elf.symbols if s['info'] & 15 == 2 and s['size']]
+    for i in range(0, len(rows), 6):
+        load, bt, branch, store, retire, back = rows[i:i + 6]
+        match = re.fullmatch(r'mov\s+(.+),%rsi', load[2])
+        assert match, ('ALT fence load', load)
+        operand = match[1]
+        match = re.fullmatch(r'bt\s+%rsi,(%[a-z0-9]+)', bt[2])
+        assert match, ('ALT slot membership', bt)
+        bits_reg = match[1]
+        assert re.fullmatch(r'movq\s+\$0xffffffffffffffff,' + re.escape(operand), store[2]), ('ALT fence store', store)
+        assert re.fullmatch(r'andn\s+%[a-z0-9]+,' + re.escape(bits_reg) + ',' + re.escape(bits_reg), retire[2]), ('ALT retire', retire)
+        assert branch[1][0] == 0x73 and len(branch[1]) == 2
+        assert branch[0] + 2 + struct.unpack('<b', branch[1][1:])[0] == retire[0], 'ALT skip target'
+        assert len(back[1]) == 5 and back[1][0] == 0xe9, 'ALT return edge'
+        continuation = back[0] + 5 + struct.unpack('<i', back[1][1:])[0]
+        entry = continuation - 5
+        callers = [s for s in funcs if s['value'] <= entry < s['value'] + s['size']]
+        assert callers, 'ALT unowned entry'
+        caller = sorted(callers, key=lambda s: s['name'])[0]
+        sec = elf.sections[caller['sec']]
+        offset = sec[4] + entry - sec[3]
+        raw = elf.data[offset:offset + 5]
+        assert raw[0] == 0xe9 and entry + 5 + struct.unpack('<i', raw[1:])[0] == load[0], 'ALT island entry/return pairing'
+        plans.append(dict(symbol=caller['name'], aliases=sorted(s['name'] for s in callers),
+                          address=branch[0], offset=section[4] + branch[0] - section[3],
+                          before=branch[1].hex(), after=(b'\xeb' + branch[1][1:]).hex(),
+                          target=retire[0], entry=entry, continuation=continuation,
+                          sequence_address=load[0],
+                          purpose='PRE: bypass fence store; still retire pending bits',
+                          disassembly=found_as_json([(a, raw, asm) for a, raw, asm, _ in rows[i:i + 6]])))
+    if source.name == 'tomokv':
+        assert len(plans) == 4 and all('drain_local_reads_bounded_impl' in p['symbol'] for p in plans), 'ALT server island inventory'
     return dict(kind='A: behaviour twin', source_sha256=sha(elf.data), patches=plans)
 
 
@@ -154,7 +209,7 @@ def pad(source, output):
     controls = {}
     first = plan['patches'][0]
     missing = bytearray(changed)
-    missing[first['offset']] = 0x73
+    missing[first['offset']] = bytes.fromhex(first['before'])[0]
     one_byte = bytearray(changed)
     one_byte[before.sections[before.names.index('.text')][4]] ^= 1
     for name, data, expected in (
@@ -228,6 +283,64 @@ def audit(pre, post, out):
           f'{len(changed)} symbol size/inventory changes; see {out}/audit.json')
 
 
+def prepare_alt(source):
+    assert source.resolve().is_relative_to(ROOT / 'build'), 'keep the source overlay in this worktree/build'
+    assert not source.exists(), 'refusing to replace an existing source overlay'
+    archive = subprocess.check_output(['git', 'archive', FROZEN_POST, 'src', 'third_party',
+                                      'Makefile', 'tests/rlfence_unit.cc',
+                                      'tests/read_local_write_ring_unit.cc'], cwd=ROOT)
+    source.mkdir(parents=True)
+    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+        tar.extractall(source, filter='data')
+    patch = ROOT / 'docs/rlfence2/alt.patch'
+    subprocess.run(['patch', '--batch', '-p1', '-d', str(source)],
+                   input=patch.read_bytes(), check=True)
+    save(source / 'source-receipt.json', dict(commit=FROZEN_POST, archive_sha256=sha(archive),
+         patch=str(patch.relative_to(ROOT)), patch_sha256=sha(patch.read_bytes()),
+         files={p: sha((source / p).read_bytes()) for p in ('Makefile', 'src/net/rob.h', 'src/core/ex_loop.h')}))
+    print(f'Prepared {source}; build with taskset -c 112-127 make -j16 -C {source} BUILD_ROOT=ABSOLUTE_OUTPUT all build/rlfence-unit build/read-local-write-ring-unit')
+
+
+def h05_proof(pre, alt, audit_file, out):
+    before, after = Elf(pre), Elf(alt)
+    report = json.loads(audit_file.read_text())
+    assert report['pre']['binary_sha256'] == sha(before.data)
+    assert report['post']['binary_sha256'] == sha(after.data)
+    wanted = {
+        '_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv': 0x90,
+        '_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv': 0x70,
+        '_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE': 0x1b0,
+    }
+    old, new = before.functions(), after.functions()
+    rows = []
+    for name, loop in wanted.items():
+        a, b = old[name], new[name]
+        assert (a['value'], a['size']) == (b['value'], b['size']), ('h05 layout moved', name)
+        comparison = [r for r in report['instruction_comparisons']
+                      if r['pre_address'] == hex(a['value']) and r['post_address'] == hex(b['value'])]
+        assert len(comparison) == 1 and comparison[0]['equal'], ('h05 instructions changed', name)
+        assert before.body(a) == after.body(b), ('h05 literal instruction bytes changed', name)
+        rows.append(dict(symbol=name, address=hex(a['value']), size=a['size'],
+                         loop_head=hex(a['value'] + loop), loop_mod64=(a['value'] + loop) % 64,
+                         raw_bytes_equal=before.body(a) == after.body(b),
+                         normalized_instructions_equal=True))
+    commands = [r for r in report['instruction_comparisons']
+                if 'tomo_db0::' in r['name'] and '::cmd_get<' in r['name']]
+    assert commands and all(r['equal'] and r['pre_address'] == r['post_address'] for r in commands)
+    # GCC folds <false,false> into the exported cmd_get_tls body. The other
+    # three template bodies retain their anonymous-namespace names.
+    clean = [s for n, s in old.items() if n.startswith('_ZN8tomo_db0') and '11cmd_get_tlsE' in n]
+    assert len(clean) == 1, 'clean GET handler inventory'
+    a = clean[0]; b = new[a['name']]
+    assert (a['value'], a['size']) == (b['value'], b['size']) and before.body(a) == after.body(b), 'clean GET handler changed'
+    commands.append(dict(symbol=a['name'], address=hex(a['value']), size=a['size'], raw_bytes_equal=True))
+    save(out, dict(scope='Default database, TCP/uring, no TLS/Unix, fused FIFO h05 loop/flush/GET parser and GET handlers',
+         pre_sha256=sha(before.data), alt_sha256=sha(after.data), hot_functions=rows,
+         get_handler_comparisons=commands, whole_binary_layout_equal=False,
+         caveat='External call displacements are resolved by target identity. Other TLS/epoll/R7 bodies can differ; see full audit.'))
+    print('PASS h05: exact PRE function addresses/sizes/loop heads and normalized instructions; GET handlers retained')
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest='action', required=True)
@@ -238,10 +351,19 @@ if __name__ == '__main__':
     s.add_argument('plan', type=Path)
     s = sub.add_parser('audit')
     s.add_argument('pre', type=Path); s.add_argument('post', type=Path); s.add_argument('out', type=Path)
+    s = sub.add_parser('prepare-alt')
+    s.add_argument('source', type=Path)
+    s = sub.add_parser('h05-proof')
+    s.add_argument('pre', type=Path); s.add_argument('alt', type=Path)
+    s.add_argument('audit', type=Path); s.add_argument('out', type=Path)
     args = p.parse_args()
     if args.action == 'pad':
         pad(args.source,args.output)
     elif args.action == 'verify':
         verify(args.source,args.output,json.loads(args.plan.read_text()))
-    else:
+    elif args.action == 'audit':
         audit(args.pre,args.post,args.out)
+    elif args.action == 'prepare-alt':
+        prepare_alt(args.source)
+    else:
+        h05_proof(args.pre,args.alt,args.audit,args.out)

@@ -1,0 +1,11 @@
+{
+  "archive_sha256": "389bae5381079996b9d9362833f0b61d2987c92da757e09f5056636dc20e025c",
+  "commit": "7dc81148e2f19af536d7fc267b541bd7f1f95668",
+  "files": {
+    "Makefile": "41b02e286d18d5a978ed3e3d79fc46bee816a165c7ce19c295722952ee12ff49",
+    "src/core/ex_loop.h": "8f89bcface95c328d233517ada26adf8be7685c98974e16fab58dd20c6e90af7",
+    "src/net/rob.h": "a0a47162c18c4bd7862cdc88c55b00a02a36477a4dd9a4774e8a95be77c2a8ae"
+  },
+  "patch": "docs/rlfence2/alt.patch",
+  "patch_sha256": "8f43d5256caad103fe9d47ec6ee927a15ec9ab5d3280fd86d9896e60d5ace228"
+}
