@@ -1030,7 +1030,7 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(50);
+                    r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
@@ -1246,26 +1246,26 @@ uint32_t IoLoop::r7_flush_ready() {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 }
                 if (conn.rpos() != rpos_before) work++;
             } else {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 }
                 if (__builtin_expect(
                         dispatch_result != DispatchResult::NeedInput, true))
