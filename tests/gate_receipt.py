@@ -458,7 +458,9 @@ def match_standing_null(root, args):
     """Serverless gate-path dry run; historical time is prominently reporting-only."""
     from abba_standing_null import read_null
     from abba_holdout import rejudge
+    from abba_evidence import match_null_identity
     report, control = read_json(args.comparison), read_null(args.null_result)
+    match_null_identity(report, control)
     target = args.worktree.resolve() if args.worktree else root
     require(instrument_fingerprint(target) == report["instrument_fingerprint"],
             "dry-run target instrument differs from measured comparison")

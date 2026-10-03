@@ -142,7 +142,11 @@ class PublicationControls(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from datetime import datetime, timezone
-        cls.control = standing.read_null(ROOT / 'tests/standing-null/current.json')
+        # Keep this regression tied to campaign 7 even after current.json is
+        # deliberately advanced to a future independently validated campaign.
+        cls.control = standing.read_null(ROOT / 'tests/standing-null/'
+            '3dcdaa497a4f1e2a670342e17daa27bb9c36e9a2cbc633196d134d85b65efb9a-'
+            '8a56ccba5a53802f23645efed184407954cf75e7992b3c37d0e03e735a099764.receipt.json')
         cls.comparison = copy.deepcopy(dict(cls.control))
         report = cls.comparison
         report.pop('null_control')

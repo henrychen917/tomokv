@@ -1949,7 +1949,10 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             try:
                 from abba_standing_null import read_null
                 control = read_null(args.null_result)
-            except (OSError, ValueError) as error:
+                from abba_evidence import match_null_identity
+                match_null_identity(report, control)
+            except (OSError, ValueError, TypeError, KeyError) as error:
+                control = None
                 control_error = f"standing null unavailable: {args.null_result}: {error}"
                 print("ABBA UNTRUSTED: " + control_error + "; all measurements still run", flush=True)
         if holdout:
@@ -4178,7 +4181,8 @@ def self_test():
                 original_gmtime = time.gmtime
                 sequence = [0]
 
-                def run(*, collect=False, subset="full", control=None, candidate_rate=100, only="", escalate=False):
+                def run(*, collect=False, subset="full", control=None, candidate_rate=100, only="", escalate=False,
+                        holdout=False):
                     sequence[0] += 1
                     out = directory / f"run-{sequence[0]}"
                     null_path = directory / "standing.json"
@@ -4188,7 +4192,8 @@ def self_test():
                         null_path.unlink(missing_ok=True)
                     argv = ["abbagate.py", "--candidate", str(binary), "--cells", str(source), "--output", str(out),
                         "--memtier", sys.executable, "--server-cores", "0-31", "--load-cores", "32-127", "--load-smt", "",
-                        "--subset", subset, "--collect-null", str(int(collect)), "--null-result", str(null_path)]
+                        "--subset", subset, "--collect-null", str(int(collect)), "--null-result", str(null_path),
+                        "--null-holdout", str(int(holdout))]
                     if only:
                         argv += ["--only", only]
                     if escalate:
@@ -4206,14 +4211,13 @@ def self_test():
                     quiet.evidence.side_effect = evidence
                     quiet.close.side_effect = evidence
                     def measure(_runner, cell, arm, index, instances, knobs):
+                        from _nullrefresh_test import raw_run
                         calls.append((cell.id, instances, arm))
                         ticks[0] += WINDOW + 8
-                        return dict(arm=arm, rate=100 if arm == "A" else candidate_rate, busy_pct=99.9,
-                            saturation=saturation_record(cell.mode),
-                            midpoint_monotonic=11,
-                            latency_ms=1, complete=True, commands=2000, pid=123, window_seconds=WINDOW,
-                            instances=instances, load_layout=load_layout(_runner.load_cpus, instances, cell.conns),
-                            artifacts=f"{cell.id}/n{instances}-{index}-{arm}")
+                        result = raw_run(cell, arm, instances, index,
+                                         dict(load_cpus=_runner.load_cpus, server_cpus=_runner.server_cpus))
+                        result.update(rate=100 if arm == "A" else candidate_rate, busy_pct=99.9)
+                        return result
                     provenance = dict(source="fake reference", commit="0" * 40, sha256=sha256(binary))
                     with mock.patch.object(Runner, "measure", measure), \
                          mock.patch(__name__ + ".resolve_reference", return_value=(binary, provenance)) as resolve, \
@@ -4259,6 +4263,30 @@ def self_test():
                 rc, calls, unresolved_control, _ = run(collect=True, candidate_rate=103)
                 self.assertEqual((rc, len(calls), unresolved_control["verdict"]), (3, 16, "PARTIAL"))
                 self.assertEqual(unresolved_control["resolution_summary"]["unresolved_cells"], ["n1", "n2"])
+                rc, calls, held, held_out = run(control=unresolved_control, holdout=True)
+                self.assertEqual((rc, len(calls), held["statistical_verdict"], held["verdict"]),
+                                 (0, 16, "PASS", "PASS"), held)
+                self.assertFalse(held["comparison_trusted"])
+                self.assertEqual(held["standing_null"]["status"], "MATCHED")
+                self.assertEqual(read_json(held_out / "holdout-resolution.json")["verdict"], "PASS")
+                def outside_floor_assertion():
+                    rc, calls, held, held_out = run(control=unresolved_control, holdout=True, candidate_rate=90)
+                    self.assertEqual((rc, len(calls), held["statistical_verdict"]), (1, 16, "FAIL"))
+                    self.assertTrue((held_out / "holdout-resolution.json").is_file(),
+                                    "outside-floor holdout must reach its resolution artifact")
+                    self.assertEqual(read_json(held_out / "holdout-resolution.json")["verdict"], "FAIL")
+                outside_floor_assertion()
+                from _nullrefresh_test import throwaway
+                with throwaway(sys.modules[__name__], "main", "if holdout:\n            # Matching",
+                               "if False:\n            # Matching") as removed:
+                    # The driver must see run()'s fake boot/quiet/clock globals;
+                    # a copied namespace would freeze their unpatched versions.
+                    import types
+                    driver = types.FunctionType(removed.__code__, globals(), argdefs=removed.__defaults__)
+                    driver.__kwdefaults__ = removed.__kwdefaults__
+                    with mock.patch.object(sys.modules[__name__], "main", driver):
+                        with self.assertRaisesRegex(AssertionError, "outside-floor holdout must reach"):
+                            outside_floor_assertion()
                 rc, calls, unresolved, _ = run(control=unresolved_control)
                 self.assertEqual((rc, len(calls), unresolved["statistical_verdict"], unresolved["verdict"]),
                                  (3, 8, "UNRESOLVED", "UNRESOLVED"))
@@ -4295,6 +4323,7 @@ def self_test():
                                  (3, 8, "PASS", "PARTIAL"))
                 defects = {
                     "failed unselected cell": lambda c: c["cells"][1].update(verdict="FAIL"),
+                    "missing inventory": lambda c: c.pop("cell_source"),
                     "instrument": lambda c: c["instrument_fingerprint"].update(sha256="f" * 64),
                     "old hash only": lambda c: c.pop("instrument_fingerprint"),
                     "generator": lambda c: c["environment"].update(memtier_sha256="f" * 64),

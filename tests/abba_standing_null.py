@@ -61,6 +61,7 @@ def read_null(path):
     from gate_receipt import read_json
     path = Path(path)
     value = read_json(path)
+    require(isinstance(value, dict), "standing null must be a JSON object")
     if value.get("kind") != "tracked-standing-null":
         return value
     require(value.get("schema") == 1 and value.get("independent_resolution") in ("PASS", "PENDING HOLDOUT"),

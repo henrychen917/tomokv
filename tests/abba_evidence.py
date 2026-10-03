@@ -469,15 +469,20 @@ def match_null(comparison, control, *, now):
         return _match_null(comparison, control, now=now)
 
 
-def _match_null(comparison, control, *, now):
-    require(comparison.get("run_kind") in ("comparison", "null-holdout"),
-            "a null collection cannot replace a regression comparison")
-    # Identify stale artifacts before replaying cached assessments against them.
+def match_null_identity(comparison, control):
+    """Reject a stale default before it can supply assessment floors."""
+    require(isinstance(control, dict), "standing null must be a JSON object")
     require(comparison.get("instrument_fingerprint") == control.get("instrument_fingerprint"),
             "null instrument differs; recollect with the current fingerprint (archived null remains historical)")
     require(comparison["cell_source"]["sha256"] == control["cell_source"]["sha256"] and
             comparison["cell_source"]["total_cells"] == control["cell_source"]["total_cells"],
             "null inventory differs; publish a null covering the current inventory")
+
+
+def _match_null(comparison, control, *, now):
+    require(comparison.get("run_kind") in ("comparison", "null-holdout"),
+            "a null collection cannot replace a regression comparison")
+    match_null_identity(comparison, control)
     started, environment = validate_measurements(comparison, now=now)
     null_started, null_environment = validate_null(control, now=now)
     if "promotion" in control or comparison.get("run_kind") == "null-holdout":
