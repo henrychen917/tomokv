@@ -376,6 +376,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ex_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());   // after pinning: sched_getcpu is only now truthful
@@ -502,6 +503,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());

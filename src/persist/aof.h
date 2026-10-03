@@ -27,12 +27,19 @@ class Config;
 enum class AppendFsyncPolicy : uint8_t;
 enum class PersistIoEngine : uint8_t;
 class FlatStore;
+class Client;
 class Op;
 class Ring;
 class Server;
 class Shard;
 class SnapshotLoadPlan;
 class ThreadCtx;
+
+#ifdef TOMO_PERSISTFIX_TEST
+struct PersistFixHooks {
+    inline static void (*shutdown_wait)() = nullptr;
+};
+#endif
 
 inline constexpr uint32_t kAofChunkBytes = 64 * 1024;
 
@@ -286,8 +293,55 @@ public:
     void fail(const char* message);
     bool wait_until_drained(uint32_t timeout_ms);
 
+    // AOF-only completion batches. Done is the retirement capability: publishing it before
+    // durability is unsafe even if a notification is delayed (IO may already be serving).
+    bool defer_completion(uint32_t producer, Op& op, Client* client);
+    bool completions_pending(uint32_t producer) const;
+    uint32_t finish_completions(uint32_t producer, bool all_posted,
+                                void* context, void (*notify)(void*, Client*));
+    void worker_shutdown(uint32_t tid);
+    class WorkerLifetime {
+    public:
+        WorkerLifetime(AofManager& manager, uint32_t tid) : manager_(manager), tid_(tid) {}
+        ~WorkerLifetime() { manager_.worker_shutdown(tid_); }
+    private:
+        AofManager& manager_;
+        uint32_t tid_;
+    };
+    struct PersistenceReport {
+        bool enabled = false, recording = false, failed = false, drain_gave_up = false;
+        uint64_t posted = 0, flushed = 0, durable = 0, refused = 0;
+        uint64_t pending_chunks = 0, records_written = 0, producers_with_pending = 0;
+        uint64_t producers_stopped = 0, producers_expected = 0, completions_pending = 0;
+    };
+    PersistenceReport persistence_report() const; // after joins only
+    void debug_ack_window(uint32_t producer, Ring& ring);
+    void debug_arm_ack_window(uint32_t producer, Slice key);
+    void note_buffered(int32_t sid);
+
 private:
-    using ChunkChan = Channel<AofChunk*, 64>;
+    friend struct PersistFixTest;
+    struct Completion {
+        Op* op;
+        Client* client;
+        uint64_t target = UINT64_MAX;
+        std::vector<uint64_t> dependencies; // only completions which may finish on another owner
+    };
+    struct ChunkChan : Channel<AofChunk*, 64> {
+        // Owner-private until stopped. Lives with the already optional channel allocation;
+        // no locked object (including AofManager/Server) grows and AOF-off allocates nothing.
+        std::deque<Completion> completions;
+        size_t stamped = 0;
+        uint64_t refused = 0;
+        bool pending_at_stop = false;
+        bool drain_gave_up = false;
+        std::atomic<uint64_t> buffered{0}, published{0};
+        std::atomic<bool> execution_stopped{false};
+        std::atomic<bool> stopped{false};
+        const char* debug_window = nullptr;
+        bool debug_armed = false;
+    };
+    bool producers_stopped() const;
     using OpenStreamToken = AofStreamOwner::OpenToken;
     using LargeStreamToken = AofStreamOwner::LargeToken;
     bool write_header_normal();
