@@ -1030,7 +1030,7 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(50);
+                    r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
@@ -1246,26 +1246,26 @@ uint32_t IoLoop::r7_flush_ready() {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 }
                 if (conn.rpos() != rpos_before) work++;
             } else {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                 }
                 if (__builtin_expect(
                         dispatch_result != DispatchResult::NeedInput, true))
@@ -1608,13 +1608,14 @@ bool IoLoop::r7_drive_tls(Client* c) {
         size_t avail = 0;
         bool may_grow = c->rob().quiesced();
         char* dst = c->read_space(
-            kRecvChunk, avail, may_grow, proto_max_bulk_len_);
+            kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
         if (!dst) break;
         const TlsIoResult result = tls->read_plain(dst, avail);
         if (result.op == TlsOp::Progress) {
             // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
             // the BIO in on_tls_recv and can never reach this cursor.
             c->commit_read(result.bytes);
+            if (query_buffer_exceeded(*c)) { close_client(c); return false; }
             self_->sig().tls_plaintext_input_bytes += result.bytes;
             decrypted = true;
             if (tls->output_pending()) {
@@ -2044,6 +2045,11 @@ void IoLoop::r7_on_recv(Client* c, int res) {
         // bytes which won the race with cancellation but do not parse them on the losing owner.
         if (res > 0) {
             c->commit_read(static_cast<size_t>(res));
+            if (query_buffer_exceeded(*c)) {
+                cancel_client_transfer<kEp>(c);
+                close_client(c);
+                return;
+            }
             (void)finish_client_transfer<kEp>(c);
         } else if (res == -ECANCELED) {
             (void)finish_client_transfer<kEp>(c);
@@ -2059,6 +2065,7 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     if (c->dead()) return;
     if (res <= 0) { close_client(c); return; }
     c->commit_read(static_cast<size_t>(res));
+    if (query_buffer_exceeded(*c)) { close_client(c); return; }
     c->set_last_interaction_s(cached_now_s_);
     if constexpr (Pipeline == 0) {
         if constexpr (HasTls) {
@@ -2129,6 +2136,10 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     [[maybe_unused]] const bool read_local_enabled =
         Fused && __builtin_expect(srv_->read_local_enabled(), false);
     Client& conn = *c;
+    if (__builtin_expect(query_buffer_exceeded(conn), false)) {
+        close_client(c); // Redis query-buffer overflow closes without a protocol reply.
+        return DispatchResult::Error;
+    }
     Rob<kRobWindow>& rob = c->rob();
     LoopSignals& sig = self_->sig();
     const uint32_t pass_rpos = conn.rpos();
@@ -2245,7 +2256,9 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         // +83 instr/op lesson behind this split.
         bool security_check = auth_required && !conn.authenticated();
         ParseResult pr;
-        if (__builtin_expect(security_check, false)) {
+        if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
+            pr = resp_parse_inline(pass_rbuf, pass_rlen, pos, *op, &err, conn.inline_scanned());
+        } else if (__builtin_expect(security_check, false)) {
             pr = resp_parse_limited(
                 pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
         } else if (__builtin_expect(default_bulk_limit, true)) {
@@ -2274,7 +2287,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             break;
         }
         if (pr == ParseResult::Error) {
-            finish_locally(c, *op, err ? err : "ERR protocol error");
+            if (op->reply.size()) finish_prebuilt(c, *op);
+            else finish_locally(c, *op, err ? err : "ERR protocol error");
             conn.advance_parse(pass_rlen - conn.rpos());
             c->mark_closing();
             result = DispatchResult::Error;

@@ -738,7 +738,7 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(50);
+                        epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50);
                     }
                 } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
@@ -842,6 +842,19 @@ private:
     // unchanged: `stuck` in flush_ready keeps a connection in the active set while it is false, so
     // a read that stopped for lack of buffer space is retried; and safe_to_release refuses to free
     // a connection while it is true.
+    uint64_t query_buffer_limit(const Client& c) const {
+        return __builtin_expect((srv_->security_flags() & Server::kSecurityAuth) &&
+                                !c.authenticated(), false)
+            ? std::min<uint64_t>(client_query_buffer_limit_, 1024 * 1024)
+            : client_query_buffer_limit_;
+    }
+    uint64_t queued_query_bytes(const Client& c) const {
+        return __builtin_expect(c.multi_session() != nullptr, false) ? multi_session_query_bytes(c) : 0;
+    }
+    bool query_buffer_exceeded(const Client& c) const {
+        return c.query_buffer_exceeded(query_buffer_limit(c), queued_query_bytes(c));
+    }
+
     template <bool kEp>
     void arm_recv(Client* c) {
         if (c->recv_armed() || c->closing() || find_client_migration(c)) return;
@@ -851,7 +864,7 @@ private:
         // points into. See Conn::read_space.
         const bool may_grow = c->rob().quiesced();
         char* dst = c->read_space(
-            kRecvChunk, avail, may_grow, proto_max_bulk_len_);
+            kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -870,12 +883,13 @@ private:
         for (;;) {
             size_t avail = 0;
             char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced(),
-                                      proto_max_bulk_len_);
+                                      proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) return;              // no usable space: stay un-armed so a later pass retries
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
             if (n > 0) {
                 self_->sig().epoll_recvs++;
                 c->commit_read(static_cast<size_t>(n));
+                if (query_buffer_exceeded(*c)) { epoll_request_close(c); return; }
                 c->set_last_interaction_s(cached_now_s_);
                 if (static_cast<size_t>(n) < avail) { c->set_recv_armed(true); return; }
                 continue;                  // filled the offer: there may be more behind it
@@ -2282,6 +2296,11 @@ private:
             // bytes which won the race with cancellation but do not parse them on the losing owner.
             if (res > 0) {
                 c->commit_read(static_cast<size_t>(res));
+                if (query_buffer_exceeded(*c)) {
+                    cancel_client_transfer<kEp>(c);
+                    close_client(c);
+                    return;
+                }
                 (void)finish_client_transfer<kEp>(c);
             } else if (res == -ECANCELED) {
                 (void)finish_client_transfer<kEp>(c);
@@ -2297,6 +2316,7 @@ private:
         if (c->dead()) return;
         if (res <= 0) { close_client(c); return; }
         c->commit_read(static_cast<size_t>(res));
+        if (query_buffer_exceeded(*c)) { close_client(c); return; }
         c->set_last_interaction_s(cached_now_s_);
         if constexpr (Pipeline == 0) {
             if constexpr (HasTls) {
@@ -2383,13 +2403,14 @@ private:
             size_t avail = 0;
             bool may_grow = c->rob().quiesced();
             char* dst = c->read_space(
-                kRecvChunk, avail, may_grow, proto_max_bulk_len_);
+                kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) break;
             const TlsIoResult result = tls->read_plain(dst, avail);
             if (result.op == TlsOp::Progress) {
                 // Only decrypted bytes enter the RESP buffer. Ciphertext counts are committed to
                 // the BIO in on_tls_recv and can never reach this cursor.
                 c->commit_read(result.bytes);
+                if (query_buffer_exceeded(*c)) { close_client(c); return false; }
                 self_->sig().tls_plaintext_input_bytes += result.bytes;
                 decrypted = true;
                 if (tls->output_pending()) {
@@ -2912,6 +2933,10 @@ private:
         [[maybe_unused]] const bool read_local_enabled =
             Fused && __builtin_expect(srv_->read_local_enabled(), false);
         Client& conn = *c;
+        if (__builtin_expect(query_buffer_exceeded(conn), false)) {
+            close_client(c); // Redis query-buffer overflow closes without a protocol reply.
+            return DispatchResult::Error;
+        }
         Rob<kRobWindow>& rob = c->rob();
         LoopSignals& sig = self_->sig();
         const uint32_t pass_rpos = conn.rpos();
@@ -3028,7 +3053,9 @@ private:
             // +83 instr/op lesson behind this split.
             bool security_check = auth_required && !conn.authenticated();
             ParseResult pr;
-            if (__builtin_expect(security_check, false)) {
+            if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
+                pr = resp_parse_inline(pass_rbuf, pass_rlen, pos, *op, &err, conn.inline_scanned());
+            } else if (__builtin_expect(security_check, false)) {
                 pr = resp_parse_limited(
                     pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
             } else if (__builtin_expect(default_bulk_limit, true)) {
@@ -3057,7 +3084,8 @@ private:
                 break;
             }
             if (pr == ParseResult::Error) {
-                finish_locally(c, *op, err ? err : "ERR protocol error");
+                if (op->reply.size()) finish_prebuilt(c, *op);
+                else finish_locally(c, *op, err ? err : "ERR protocol error");
                 conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
                 result = DispatchResult::Error;
@@ -5061,26 +5089,26 @@ ordinary_shard_ready:
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                                true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                                false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     }
                     if (conn.rpos() != rpos_before) work++;
                 } else {
                     if constexpr (HasTls) {
                         if (c->is_tls())
                             dispatch_result = parse_and_dispatch<
-                                true, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                                true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                         else
                             dispatch_result = parse_and_dispatch<
-                                false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                                false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     } else {
                         dispatch_result = parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
                     }
                     if (__builtin_expect(
                             dispatch_result != DispatchResult::NeedInput, true))
@@ -5385,6 +5413,7 @@ ordinary_shard_ready:
         notify_armed_ = notify_config_armed_ || save_config_armed_ ||
                         climon_armed_cached_ != 0;
         proto_max_bulk_len_ = snapshot.proto_max_bulk_len;
+        client_query_buffer_limit_ = snapshot.client_query_buffer_limit;
         // Connection-local commands never reach an executor, so the IO thread owns their timing.
         // Same snapshot, same pass, no extra load.
         slowlog_arm_.slowlog_us = snapshot.slowlog_log_slower_than;
@@ -5743,6 +5772,8 @@ public:
 // END R7 GENERATED ENVELOPES
     void run_fused_reordered();
 
+    // Cold config cache at the tail: established IO members retain their offsets.
+    uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
 };
 
 }  // namespace tomo
