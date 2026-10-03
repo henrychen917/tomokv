@@ -2491,6 +2491,7 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"

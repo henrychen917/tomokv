@@ -33,7 +33,8 @@ class Subset(unittest.TestCase):
 
     def test_unknown_empty_and_wrong_tier_fail_before_workers(self):
         for spec, tier in [('debug-2', 'full'), ('   ', 'full'), ('*', 'full'),
-                           ('differ-split', 'quick'), ('asan_batteries', 'quick')]:
+                           ('differ-split', 'quick'), ('asan_batteries', 'quick'),
+                           ('production_units', 'full')]:
             result = select(spec, tier=tier)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertEqual(result.stdout, '')

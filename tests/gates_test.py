@@ -322,7 +322,7 @@ class LedgerWiring(unittest.TestCase):
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
-                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/tailgen_stall.py')
+                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
@@ -365,7 +365,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"

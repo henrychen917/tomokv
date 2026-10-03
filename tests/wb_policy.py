@@ -10,6 +10,8 @@ from contextlib import closing
 import json
 from pathlib import Path
 import subprocess
+import sys
+import tempfile
 
 import _lib
 
@@ -26,15 +28,35 @@ def check_replies(actual, expected, label):
 
 
 def traces():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
+    from lbstall_artifacts import Elf
     for suffix in ('', '-db0'):
+        binary = Path(f'build/wb-rule{suffix}-completion-unit')
         for n, done, staged, _policy, scatter in STANDARD:
             for policy in (0, 1):
                 for count in range(4):
                     case = f'trace-{n}-{done}-{staged}-{policy}-{scatter}-{count}'
-                    result = subprocess.run([f'build/wb-rule{suffix}-completion-unit', case],
+                    result = subprocess.run([str(binary), case],
                                             text=True, capture_output=True, timeout=10)
                     if result.returncode or f'PASS wb-completion {case}' not in result.stdout:
                         raise AssertionError(f'exact writeback fixture {suffix}/{case}: {result.stdout}{result.stderr}')
+        # Throwaway executable control: an always-defer wrapper must fail the
+        # policy-zero assertion. Only a serverless unit is patched/executed.
+        elf = Elf(binary)
+        symbol = elf.functions()['wb_completion_defer']
+        assert symbol['size'] >= 6
+        section = elf.sections[symbol['sec']]
+        offset = section[4] + symbol['value'] - section[3]
+        broken = bytearray(elf.data)
+        broken[offset:offset + 6] = b'\xb8\x01\x00\x00\x00\xc3'  # return true
+        with tempfile.TemporaryDirectory(prefix='wb-policy-control-') as directory:
+            mutant = Path(directory) / 'always-defer'
+            mutant.write_bytes(broken)
+            mutant.chmod(0o700)
+            result = subprocess.run([str(mutant), 'trace-64-1-0-0-0-0'],
+                                    text=True, capture_output=True, timeout=10)
+            assert result.returncode == 1 and 'trace decision' in result.stderr, result
+        print(f'PASS policy-zero always-defer control rejected ({suffix or "multi"}): trace decision')
     print('PASS 22 exact states x 2 policies x 4 counts x 2 namespaces (serverless)')
 
 

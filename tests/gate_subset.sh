@@ -11,6 +11,8 @@ select_jobs(){
   [ "${#requested[@]}" -gt 0 ] || { echo 'GATE_ONLY_JOBS is empty' >&2; return 2; }
   for name in "${requested[@]}"; do
     case "$name" in
+      production_units|core_tsan_build|waits_tsan_build|tailgen_build)
+        echo "$name is a build-only prerequisite; select its consuming correctness job" >&2; return 2;;
       differ-split) wanted[differ-split-0]=1; wanted[differ-split-1]=1; wanted[differ-equivalence]=1;;
       differ-armed) wanted[differ-armed-0]=1; wanted[differ-armed-1]=1;;
       *)
