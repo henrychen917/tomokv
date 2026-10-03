@@ -1,0 +1,50 @@
+{
+  "binary_sha256": "2b51893af7dc9a1071db5a0bd07f329c3e02df938789a46599bafd7cbf9fc8c8",
+  "covered_calls": 8,
+  "ex_loop_sha256": "8f89bcface95c328d233517ada26adf8be7685c98974e16fab58dd20c6e90af7",
+  "physical_helpers": 4,
+  "rows": [
+    {
+      "address": 6932976,
+      "calls": [
+        6958275,
+        6959048
+      ],
+      "helper": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "parent": "_ZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj"
+    },
+    {
+      "address": 6949904,
+      "calls": [
+        6975580,
+        6976288
+      ],
+      "helper": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "parent": "_ZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjj"
+    },
+    {
+      "address": 3160800,
+      "calls": [
+        3186240,
+        3187000
+      ],
+      "helper": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "parent": "_ZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj"
+    },
+    {
+      "address": 3177792,
+      "calls": [
+        3203799,
+        3204512
+      ],
+      "helper": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "parent": "_ZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjj"
+    }
+  ],
+  "source_commit": "d64c65d379afa9637fb7c62bfea143b93899e352",
+  "source_completion_calls": 2,
+  "source_mask_uses": [
+    "d64c65d379afa9637fb7c62bfea143b93899e352:src/core/ex_loop.h:1558:                rob.complete_pending_read_local_mask(prefix_bits);",
+    "d64c65d379afa9637fb7c62bfea143b93899e352:src/net/rob.h:393:    void complete_pending_read_local_mask(uint64_t bits) {"
+  ]
+}

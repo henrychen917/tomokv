@@ -1,0 +1,10 @@
+  removed INFO keys absent (not zero-valued)           ok read_local_fallback_lane_full, read_local_mget_fallback_lane_full
+  clean GETs: exact local completions, zero fallbacks, ordered replies and liveness ok 6144 reads in each of control/cap/reset
+  the CAP fired: capped deferrals > uncapped, fair-share quota > 0 ok control={'read_local_hits': 6144, 'read_local_fallbacks': 0, 'read_local_defer_lane_full': 0, 'read_local_defer_quota': 0} capped={'read_local_hits': 6144, 'read_local_fallbacks': 0, 'read_local_defer_lane_full': 672, 'read_local_defer_quota': 672}
+  cap reset restores derived-lane pressure             ok control={'read_local_hits': 6144, 'read_local_fallbacks': 0, 'read_local_defer_lane_full': 0, 'read_local_defer_quota': 0} restored={'read_local_hits': 6144, 'read_local_fallbacks': 0, 'read_local_defer_lane_full': 0, 'read_local_defer_quota': 0}
+  mixed order + RYOW across deferral: every expected reply ok 
+  mixed liveness: every round completes                ok slowest=0.001s
+  mixed shared GETs served locally (>= 95%%)           ok hits=6240 of 6144; fallbacks=0
+  mixed cap reset: local, ordered and live             ok 
+read_local_lane PASS (checks=8 skips=0)
+read_local_lane serverless transient PASS (one settle round; exact reset deltas)

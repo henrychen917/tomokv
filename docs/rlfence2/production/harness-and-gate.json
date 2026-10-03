@@ -1,0 +1,79 @@
+{
+  "mget-fence": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "mget-fence"
+    ],
+    "exit": 0,
+    "assertion": "PASS (checks=2 skips=0)"
+  },
+  "mget-fence-old": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "mget-fence-old"
+    ],
+    "exit": 1,
+    "assertion": "RL1: N MGET lane hits before ROB retirement: got 1, want 8"
+  },
+  "mget-fence-unarmed": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "mget-fence-unarmed"
+    ],
+    "exit": 1,
+    "assertion": "MGET fence window never opened after 3 fresh arms (p8)"
+  },
+  "mget-fence-stale": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "mget-fence-stale"
+    ],
+    "exit": 1,
+    "assertion": "MGET pipeline replies/order/RYOW:"
+  },
+  "transient": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "transient"
+    ],
+    "exit": 0,
+    "assertion": "PASS"
+  },
+  "delayed-drain": {
+    "command": [
+      "python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "delayed-drain"
+    ],
+    "exit": 0,
+    "assertion": "PASS"
+  },
+  "gate_rows": {
+    "declared_full": 479,
+    "upstream_full": 476,
+    "delta_quick": 3,
+    "delta_full": 3,
+    "row_lines": {
+      "read-local MGET fence symmetry unit": 1247,
+      "read-local MGET fence battery (1s)": 1658,
+      "read-local MGET fence battery (2s)": 1664
+    },
+    "collection_lines": {
+      "ring_unit": 2848,
+      "bplus": 2909
+    },
+    "quick_exit_line": 2990,
+    "fixture_and_expect_untouched": true
+  }
+}
