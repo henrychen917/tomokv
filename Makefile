@@ -55,13 +55,24 @@ build/persistfix/unit.o: tests/persistfix_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PERSISTFIX_TEST -I. -c $< -o $@
 build/persistfix-unit: build/persistfix/unit.o build/persistfix/aof-test.o $(PERSISTFIX_CORE)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
-build/persistfix-controls/%/aof.o: tools/persistfix_controls.py src/persist/aof.cc $(wildcard src/*/*.h) Makefile
-	python3 tools/persistfix_controls.py $* build/persistfix-controls/$*/aof.cc
+build/persistfix-controls/%/aof.cc: tools/persistfix_controls.py src/persist/aof.cc Makefile
+	python3 tools/persistfix_controls.py $* $@
+build/persistfix-controls/%/aof.o: build/persistfix-controls/%/aof.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PERSISTFIX_TEST -Isrc/persist -I. -c build/persistfix-controls/$*/aof.cc -o $@
+build/persistfix-controls/%/db0-aof.o: build/persistfix-controls/%/aof.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -DTOMO_PERSISTFIX_TEST -Isrc/persist -I. -c $< -o $@
 build/persistfix-controls/%/unit: build/persistfix-controls/%/aof.o build/persistfix/unit.o $(PERSISTFIX_CORE)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 .PHONY: persistfix-units
-persistfix-units: build/persistfix-unit $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/unit)
+persistfix-units: build/persistfix-units
+build/persistfix-units: build/persistfix-unit $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/unit)
+	@touch $@
+.SECONDARY: $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/aof.o)
+.SECONDARY: $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/aof.cc)
+build/persistfix-controls/%/tomokv: build/persistfix-controls/%/aof.o build/persistfix-controls/%/db0-aof.o $(filter-out build/src/persist/aof.o,$(OBJ)) $(filter-out build/db0/src/persist/aof.o,$(DB0_OBJ))
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+.PHONY: persistfix-live-controls
+persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persistfix-controls/old-close/tomokv
 
 $(BIN): $(OBJ) $(DB0_OBJ)
 	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm

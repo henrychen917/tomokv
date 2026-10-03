@@ -33,7 +33,7 @@ enum class OpState : uint8_t {
     Free   = 0,   // slot is reusable
     Issued = 1,   // IO published it; the owning worker may take it
     Done   = 2,   // worker finished; reply is complete and safe to read
-    AofWait = 3,  // split owner finished; persistence still owns the completion
+    AofWait = 3,  // owner finished; persistence still owns the completion
 };
 
 // Most commands are 2-3 arguments (GET k / SET k v / DEL k). Spill only for the multi-key forms.

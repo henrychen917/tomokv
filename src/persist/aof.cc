@@ -2138,7 +2138,6 @@ bool AofManager::wait_until_drained(uint32_t timeout_ms) {
 }
 
 void AofManager::note_buffered(int32_t sid) {
-    if (server_->thread_mode() == ThreadMode::Fused) return;
     // Chunk creation, not an operation stamp. A sealed chunk is never extended.
     // Shard migration already requires the source to post before relinquishing it.
     auto& counter = chunk_in_[server_->worker_of_shard(sid)].buffered;
@@ -2146,28 +2145,25 @@ void AofManager::note_buffered(int32_t sid) {
 }
 
 bool AofManager::defer_completion(uint32_t producer, Op& op, Client* client) {
-    if (!configured_ || server_->thread_mode() == ThreadMode::Fused ||
-        fsync_policy() != AppendFsyncPolicy::Always ||
-        !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return false;
+    if (!configured_ || fsync_policy() != AppendFsyncPolicy::Always ||
+        (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+         !op.has_multi_state())) return false; // EXEC's public spec is ConnLocal|Transaction
     // Blocking completion can be offered by the last task and by a registry wake.
-    // Claim it once; ordinary completions have a single publisher. Issued/AofWait
-    // both pin the ROB slot and Client until the owning IO can observe Done.
-    OpState expected = OpState::Issued;
-    if (!op.state.compare_exchange_strong(expected, OpState::AofWait,
-                                          std::memory_order_acq_rel))
-        return expected == OpState::AofWait || expected == OpState::Done;
+    // Only that path needs a claim. Ordinary completions retain their single-owner
+    // release store: no added RMW on SET. Both states pin the ROB slot and Client.
+    if (op.has_blocking_state()) {
+        OpState expected = OpState::Issued;
+        if (!op.state.compare_exchange_strong(expected, OpState::AofWait,
+                                              std::memory_order_acq_rel))
+            return expected == OpState::AofWait || expected == OpState::Done;
+    } else {
+        op.state.store(OpState::AofWait, std::memory_order_release);
+    }
     try {
-        Completion completion{&op, client, UINT64_MAX, {}};
-        // A non-atomic scatter or blocking pop can finish on a different owner
-        // from its last mutation. Snapshot chunk generations after the command's
-        // final-fragment acquire, without reading another owner's staging state.
-        if (op.has_scatter_state() || op.has_multi_state() || op.has_blocking_state()) {
-            completion.dependencies.reserve(nthreads_);
-            for (uint32_t tid = 0; tid < nthreads_; ++tid)
-                completion.dependencies.push_back(
-                    chunk_in_[tid].buffered.load(std::memory_order_acquire));
-        }
-        chunk_in_[producer].completions.push_back(std::move(completion));
+        ChunkChan& channel = chunk_in_[producer];
+        channel.pending.push_back({&op, client});
+        channel.pending_remote |= op.has_scatter_state() || op.has_multi_state() ||
+                                  op.has_blocking_state();
     } catch (const std::bad_alloc&) {
         // Never manufacture a successful acknowledgement after losing its receipt.
         fail("out of memory retaining AOF completion");
@@ -2176,7 +2172,8 @@ bool AofManager::defer_completion(uint32_t producer, Op& op, Client* client) {
 }
 
 bool AofManager::completions_pending(uint32_t producer) const {
-    return chunk_in_ && !chunk_in_[producer].completions.empty();
+    return chunk_in_ && (!chunk_in_[producer].pending.empty() ||
+                        !chunk_in_[producer].completions.empty());
 }
 
 uint32_t AofManager::finish_completions(uint32_t producer, bool all_posted,
@@ -2186,37 +2183,66 @@ uint32_t AofManager::finish_completions(uint32_t producer, bool all_posted,
     if (all_posted)
         channel.published.store(channel.buffered.load(std::memory_order_relaxed),
                                 std::memory_order_release);
-    if (channel.completions.empty() || failed()) return 0;
-    if (all_posted && channel.stamped < channel.completions.size()) {
-        for (; channel.stamped < channel.completions.size(); ++channel.stamped) {
-            auto& completion = channel.completions[channel.stamped];
-            bool posted = true;
-            for (size_t tid = 0; tid < completion.dependencies.size(); ++tid)
-                posted &= chunk_in_[tid].published.load(std::memory_order_acquire) >=
-                          completion.dependencies[tid];
-            if (!posted) break;
-            completion.target = posted_sequence();
+    if (failed()) return 0;
+    if (all_posted && !channel.pending.empty()) {
+        try {
+            CompletionBatch batch;
+            // A non-atomic scatter or blocking pop can finish on a different
+            // owner from its last mutation. Snapshot generations once per batch,
+            // after final-fragment acquires, never foreign staging memory.
+            if (channel.pending_remote) {
+                batch.dependencies = std::make_unique<uint64_t[]>(nthreads_);
+                for (uint32_t tid = 0; tid < nthreads_; ++tid)
+                    batch.dependencies[tid] =
+                        chunk_in_[tid].buffered.load(std::memory_order_acquire);
+            }
+            channel.completions.push_back(std::move(batch));
+            channel.completions.back().entries.swap(channel.pending);
+            channel.pending.swap(channel.reusable);
+            channel.pending_remote = false;
+        } catch (const std::bad_alloc&) {
+            fail("out of memory retaining AOF completion batch");
+            return 0;
         }
     }
+    if (channel.completions.empty()) return 0;
     uint32_t work = 0;
-    while (channel.stamped) {
-        const Completion& front = channel.completions.front();
+    // sweep() and snapshot-control callers need the same Client lifetime bracket
+    // as execute(): Done can let the IO owner start its deferred-close grace.
+    Server::ClientWorkScope client_work(*server_, producer);
+    while (!channel.completions.empty()) {
+        CompletionBatch& front = channel.completions.front();
+        if (front.target == UINT64_MAX) {
+            bool posted = true;
+            if (front.dependencies) {
+                for (uint32_t tid = 0; tid < nthreads_; ++tid)
+                    posted &= chunk_in_[tid].published.load(std::memory_order_acquire) >=
+                              front.dependencies[tid];
+            }
+            if (!posted) return work + 1; // remote owners still need publication service
+            front.target = posted_sequence(); // ONE frontier per pass, no per-op sequence stamp
+            front.dependencies.reset();
+        }
         if (!reply_gate_ready(front.target)) {
             register_send_gate_wait(producer);
             // Register before the second acquire: a writer racing this registration
             // either wakes us or has already published the frontier we now observe.
             if (!reply_gate_ready(front.target)) break;
         }
-        Op* op = front.op;
-        Client* client = front.client;
+        CompletionBatch ready = std::move(front);
         channel.completions.pop_front();
-        --channel.stamped;
-        op->state.store(OpState::Done, std::memory_order_release);
-        notify(context, client);
-        ++work;
+        // Detach before callbacks: a fused notification can retire the Op and
+        // re-enter owner work. Never touch a completion after publishing its Done.
+        for (const Completion& completion : ready.entries) {
+            completion.op->state.store(OpState::Done, std::memory_order_release);
+            notify(context, completion.client);
+            ++work;
+        }
+        ready.entries.clear();
+        if (ready.entries.capacity() > channel.reusable.capacity())
+            ready.entries.swap(channel.reusable);
     }
-    // Unposted remote generations need owner service; durability uses writer wakes.
-    return work + (channel.stamped < channel.completions.size());
+    return work;
 }
 
 bool AofManager::producers_stopped() const {
@@ -2226,11 +2252,19 @@ bool AofManager::producers_stopped() const {
     return true;
 }
 
+static void aof_debug_marker(const char* path, const char* suffix) {
+    if (!path) return;
+    FILE* file = std::fopen((std::string(path) + suffix).c_str(), "w");
+    if (!file) std::abort();
+    std::fclose(file);
+}
+
 void AofManager::worker_shutdown(uint32_t tid) {
     if (!configured_ || !chunk_in_) return;
     ThreadCtx& self = server_->thread(tid);
     Ring* ring = self.ring();
     ChunkChan& channel = chunk_in_[tid];
+    if (writer_is(tid)) aof_debug_marker(channel.debug_window, ".stopping");
     channel.execution_stopped.store(true, std::memory_order_release);
     // Recovery can fail before main has even created the IO workers. No AOF
     // producer was enabled then, so there is no writer/producer rendezvous to do.
@@ -2290,7 +2324,9 @@ AofManager::PersistenceReport AofManager::persistence_report() const {
         report.refused += channel.refused;
         report.producers_with_pending += channel.pending_at_stop;
         report.producers_stopped += channel.stopped.load(std::memory_order_acquire);
-        report.completions_pending += channel.completions.size();
+        report.completions_pending += channel.pending.size();
+        for (const auto& batch : channel.completions)
+            report.completions_pending += batch.entries.size();
         report.drain_gave_up |= channel.drain_gave_up;
     }
     return report;
@@ -2301,7 +2337,8 @@ AofManager::PersistenceReport AofManager::persistence_report() const {
 // either witnesses an old-code ACK and requests SIGKILL here, or releases posting
 // and kills immediately after the new-code ACK. No sleeps on normal AOF paths.
 void AofManager::debug_arm_ack_window(uint32_t producer, Slice key) {
-    if (chunk_in_ && chunk_in_[producer].debug_window && key.n == 17 && std::memcmp(key.p, "persistfix:window", 17) == 0)
+    if (chunk_in_ && chunk_in_[producer].debug_window && key.n >= 18 &&
+        std::memcmp(key.p, "persistfix:window:", 18) == 0)
         chunk_in_[producer].debug_armed = true;
 }
 
@@ -2313,7 +2350,7 @@ void AofManager::debug_ack_window(uint32_t producer, Ring& ring) {
     ring.submit_and_reap(); // publish the OLD code's notify before holding its executor
     FILE* marker = std::fopen((path + ".entered").c_str(), "w");
     if (!marker) std::abort();
-    std::fprintf(marker, "%u\n", producer);
+    std::fprintf(marker, "%u %u\n", producer, writer_tid_);
     std::fclose(marker);
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(15);
     while (::access((path + ".release").c_str(), F_OK) != 0) {
@@ -2376,6 +2413,7 @@ void AofManager::writer_shutdown(ThreadCtx& writer, Ring& ring) {
     fd_ = -1;
     recording_.store(false, std::memory_order_release);
     writer_ring_.store(nullptr, std::memory_order_release);
+    aof_debug_marker(chunk_in_[writer.id()].debug_window, ".closed");
 }
 
 void AofManager::discard_chunks() {

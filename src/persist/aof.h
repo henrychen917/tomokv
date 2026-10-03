@@ -321,17 +321,18 @@ public:
 
 private:
     friend struct PersistFixTest;
-    struct Completion {
-        Op* op;
-        Client* client;
+    struct Completion { Op* op; Client* client; };
+    struct CompletionBatch {
+        std::vector<Completion> entries;
         uint64_t target = UINT64_MAX;
-        std::vector<uint64_t> dependencies; // only completions which may finish on another owner
+        std::unique_ptr<uint64_t[]> dependencies; // only batches with cross-owner completions
     };
     struct ChunkChan : Channel<AofChunk*, 64> {
         // Owner-private until stopped. Lives with the already optional channel allocation;
         // no locked object (including AofManager/Server) grows and AOF-off allocates nothing.
-        std::deque<Completion> completions;
-        size_t stamped = 0;
+        std::vector<Completion> pending, reusable;
+        bool pending_remote = false;
+        std::deque<CompletionBatch> completions;
         uint64_t refused = 0;
         bool pending_at_stop = false;
         bool drain_gave_up = false;

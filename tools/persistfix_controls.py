@@ -28,6 +28,12 @@ def emit(name, output):
         # replace_body retains the while condition; remove the now empty loop.
         source = source.replace('    while (!producers_stopped()) {\n\n}',
                                 '    // Negative control: writer closes before producer stop.')
+        source = replace_body(source, 'void AofManager::worker_shutdown(', '''    if (!configured_ || !chunk_in_) return;
+    if (writer_is(tid)) {
+        aof_debug_marker(chunk_in_[tid].debug_window, ".stopping");
+        ThreadCtx& self = server_->thread(tid);
+        if (self.ring()) writer_shutdown(self, *self.ring());
+    }''')
     elif name == 'no-refusal':
         old = 'const uint64_t refused = ++chunk_in_[producer].refused;'
         assert source.count(old) == 1

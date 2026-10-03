@@ -1239,6 +1239,14 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
 }
 
 job_core_units(){
+# PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
+row_begin "AOF publication/shutdown witnesses + negative controls"
+if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
+    >"$TMPDIR/persistfix-unit.log" 2>&1; then
+  ok "AOF publication/shutdown witnesses + negative controls"
+else
+  bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
+fi
 # SURVIVING core concurrency regressions. Seven rows, all ABOVE the quick-tier exit.
 # Each selection asserts its hazardous state; ASAN/UBSAN and bounded interleaving hooks
 # make a broken mechanism fail. The fixture starts no server and opens no listener.
@@ -2131,12 +2139,31 @@ settle
 boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always recovery boot ($NET_IO)"
-row_begin "AOF always acknowledged-prefix recovery"
+row_begin "AOF always recovery after quiescent SIGKILL"
 py tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512 \
     >>$TMPDIR/gate-aof-always.txt 2>&1 \
-    && ok "AOF always acknowledged-prefix recovery" \
-    || bad "AOF always acknowledged-prefix recovery" "see $TMPDIR/gate-aof-always.txt"
+    && ok "AOF always recovery after quiescent SIGKILL" \
+    || bad "AOF always recovery after quiescent SIGKILL" "see $TMPDIR/gate-aof-always.txt"
 stop
+
+# Four rows per engine, eight total; this job is collected BEFORE the quick exit.
+# Each script owns fresh data, both boots and its exact child PID. No existing data
+# or server is reused, including by the deliberately broken mainline control arms.
+for PERSIST_MODE in 2s 1s; do
+  for PERSIST_CASE in kill term; do
+    row_begin "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/persistfix.py --binary "$CANDIDATE_BINARY" --mode "$PERSIST_MODE" \
+        --case "$PERSIST_CASE" --net-io "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --artifacts "$TMPDIR/persistfix" \
+        >"$TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log" 2>&1; then
+      ok "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)"
+    else
+      bad "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)" \
+          "see $TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log"
+    fi
+  done
+done
 
 AOF_EVERY_DIR=$(mktemp -d "$TMPDIR/gate-aof-everysec-${NET_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
@@ -2617,10 +2644,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \

@@ -16,7 +16,7 @@ namespace tomo {
 struct PersistFixTest {
     Server server;
     AofManager& aof = server.aof();
-    CommandSpec spec{};
+    CommandSpec spec{"SET", 3, 3, CmdFlags::Write, nullptr, 1, 1, 1};
     unsigned notifications = 0;
 
     PersistFixTest() {
