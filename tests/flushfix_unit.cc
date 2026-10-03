@@ -15,8 +15,8 @@ static void require(bool ok, const char* claim) {
     if (!ok) { std::fprintf(stderr, "FAIL flushfix: %s\n", claim); std::exit(1); }
 }
 
-static void add(Shard& shard, Slice key) {
-    auto* object = kvobj_new_string(key, Slice("v", 1));
+static void add(Shard& shard, Slice key, int64_t deadline = -1) {
+    auto* object = kvobj_new_string(key, Slice("v", 1), deadline);
     require(object, "seed allocation");
     require(shard.store().insert(FlatStore::hash_key(key), object) == FlatStore::InsertResult::Inserted,
             "seed insertion");
@@ -31,7 +31,39 @@ static void flush(Shard& shard, uint8_t db, const char* verb = "FLUSHDB") {
     op.spec->handler(shard, op);
 }
 
+void flushfix_expiry() {
+    require(command_registry_init(false), "registry");
+    // The production notification registry is append-only and boot-lived.
+    // Register this store once with a sink of the same lifetime; Shard::init
+    // would first register its server sink and hide a second binding.
+    static Shard shard;
+    shard.store().bind_expired_counter(&shard.stats().expired);
+    shard.set_cached_now_ms(1000);
+    shard.set_notify_mask(NOTIFY_SAVE);
+    static unsigned notifications = 0;
+    static FlatNotifySink sink{&notifications,
+        [](void*, uint32_t cls) { return cls == NOTIFY_EXPIRED; },
+        [](void* context, uint32_t cls, NotifyEventId event, Slice key) {
+            require(cls == NOTIFY_EXPIRED && event == NotifyEventId::Expired &&
+                    key.sv() == "elapsed", "exact expired notification");
+            ++*static_cast<unsigned*>(context);
+        }};
+    notify_bind_flat_store(&shard.store(), &sink);
+    const uint8_t db = kSingleDatabase ? 0 : 15;
+    add(shard, Slice("elapsed", 7, db), 999);
+    add(shard, Slice("future", 6, db), 2000);
+    require(shard.store().size() == 2 && shard.stats().expired == 0,
+            "elapsed physical key present before flush");
+    flush(shard, db);
+    require(notifications == 1 && shard.stats().expired == 1,
+            "FLUSHDB retains lazy-expiry notification and counter");
+    require(shard.store().size() == 0 && shard.save_changes() == 1,
+            "expiry walk preserves clear and dirty accounting");
+    std::printf("PASS flushfix expiry: %s\n", kSingleDatabase ? "db0" : "multi");
+}
+
 void flushfix_semantics() {
+    flushfix_expiry();
     require(command_registry_init(false), "registry");
     for (bool armed : {false, true}) for (bool snapshot : {false, true}) {
         struct Cache { KvBlockCache blocks; ~Cache() { blocks.release_all(); } } cache;
@@ -83,7 +115,11 @@ void flushfix_semantics() {
             require(shard.store().snapshot_active() && shard.store().snapshot_preimages() == 400,
                     "all flush preimages prepared under active capture");
         }
+        const auto capture_capacity = shard.store().capacity();
         flush(shard, db);
+        if (snapshot)
+            require(shard.store().snapshot_active() && shard.store().capacity() == capture_capacity,
+                    "flush preserves the active snapshot table geometry");
         const unsigned left = kSingleDatabase ? 0 : 1;
         require(shard.store().size() == left && shard.published_size() == left,
                 "every buffered and overflow key removed, other database preserved");
@@ -160,11 +196,13 @@ void flushfix_memory(bool all) {
 namespace tomo_db0 {
 void flushfix_semantics();
 void flushfix_memory(bool);
+void flushfix_expiry();
 }
 int main(int argc, char** argv) {
     if (argc != 2) return 2;
     const std::string which = argv[1];
     if (which == "semantics") { tomo_db0::flushfix_semantics(); tomo::flushfix_semantics(); }
+    else if (which == "expiry") { tomo_db0::flushfix_expiry(); tomo::flushfix_expiry(); }
     else if (which == "memory-db0") tomo_db0::flushfix_memory(false);
     else if (which == "memory-multi") tomo::flushfix_memory(false);
     else if (which == "memory-all") tomo_db0::flushfix_memory(true);
