@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=447
-EXPECT_FULL=464                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=448
+EXPECT_FULL=465                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1195,6 +1195,12 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 
 job_config_unit(){
 quiet_wait
+row_begin "configuration docs match parser"
+taskset -c "$CORES" python3 tests/docs_drift.py --self-test >"$TMPDIR/docs-drift.log" 2>&1 \
+    && ok "configuration docs match parser" \
+    || bad "configuration docs match parser" "see $TMPDIR/docs-drift.log"
+# docsregen: +1 quick and +1 full; config_unit is collected before the quick exit.
+# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
 row_begin "Redis config quoting + mid-value #"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o $TMPDIR/tomokv-config-parser-test \
     && taskset -c "$CORES" $TMPDIR/tomokv-config-parser-test \
