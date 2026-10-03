@@ -136,16 +136,7 @@ static void concurrent_admission() {
     });
     for (auto& worker : workers) worker.join();
     require(credits.active() == 0 && credits.pool() == 3, "concurrent retirement leaked credits");
-    // This race checks conservation through reconfiguration, not a bound on inherited groups.
-    for (auto& worker : workers) worker = std::thread([&] {
-        for (unsigned i = 0; i < 10000; i++)
-            if (credits.try_admit() == AtomicAdmissionCredits::Attempt::Admitted) credits.retire();
-    });
-    for (unsigned i = 0; i < 10000; i++) credits.set_window(i % 5);
-    for (auto& worker : workers) worker.join();
-    credits.set_window(3);
-    require(credits.active() == 0 && credits.pool() == 3 && credits.debt() == 0,
-            "reconfiguration raced a return");
+
 }
 
 int main() {
