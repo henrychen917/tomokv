@@ -193,16 +193,18 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             error = "placement transition is in progress";
             return StartResult::Busy;
         }
-        // A failed final save releases its held owners asynchronously. Do not broadcast a new
-        // epoch until each has drained and can accept SnapshotStart again.
-        if (server.shutdown_snapshot_holds()) {
-            error = "previous shutdown snapshot is still draining";
-            return StartResult::Busy;
-        }
         Phase expected = Phase::Idle;
         if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
                                             std::memory_order_acq_rel)) {
             error = "Background save already in progress";
+            return StartResult::Busy;
+        }
+        // Check AFTER acquiring Idle: otherwise a concurrent epoch can add a held owner and
+        // fail between an earlier counter load and this CAS. All old capture acknowledgements
+        // precede Idle, so acquiring it makes every outstanding shutdown hold visible here.
+        if (server.shutdown_snapshot_holds()) {
+            error = "previous shutdown snapshot is still draining";
+            phase_.store(Phase::Idle, std::memory_order_release);
             return StartResult::Busy;
         }
         server.set_shutdown_snapshot_active(shutdown);

@@ -14,6 +14,14 @@ def owner(conn):
     return conn.must('DEBUG', 'IO-THREAD')
 
 
+def expect_push(conn, expected, assertion):
+    try:
+        got = conn.read()
+    except (OSError, EOFError) as error:
+        raise AssertionError(assertion + ': invalidation missing') from error
+    require(got == expected, assertion + f': got {got!r}')
+
+
 def pair(host, port):
     held = {}
     try:
@@ -54,9 +62,9 @@ def witness(args, writer, kind):
                 continue
             before = int(info(writer, 'STATS')['tracking_invalidations'])
             writer.must('SET', key, 'first')
-            require(a.read() == [b'invalidate', [key.encode()]], 'owner i initially receives invalidation')
+            expect_push(a, [b'invalidate', [key.encode()]], 'owner i initially receives invalidation')
             writer.must('SET', other, 'first')
-            require(b.read() == [b'invalidate', [other.encode()]], 'owner i+64 initially receives invalidation')
+            expect_push(b, [b'invalidate', [other.encode()]], 'owner i+64 initially receives invalidation')
             if kind == 'expiry':
                 writer.must('SET', key, 'expires', 'PX', 2000)
             a.must('GET', key)
@@ -69,7 +77,7 @@ def witness(args, writer, kind):
             elif kind == 'flush':
                 writer.must('FLUSHDB')
             expected = [b'invalidate', None if kind == 'flush' else [key.encode()]]
-            require(a.read() == expected, f'{kind}: disarm retains delivery to owner i')
+            expect_push(a, expected, f'{kind}: disarm retains delivery to owner i')
             require(int(info(writer, 'STATS')['tracking_invalidations']) >= before + 3,
                     'tracking invalidation counter witnessed both arms and post-disarm delivery')
             print(f'{kind}: PASS owners={owners}, fresh_roll={roll + 1}', flush=True)
