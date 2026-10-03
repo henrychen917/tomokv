@@ -12,13 +12,15 @@ struct LiveConfigSnapshot {
     MaxmemoryPolicy policy;
     uint32_t samples;
     uint32_t notify_events;
-    bool tracking_armed;
+    uint32_t debug_fanout_defer_us;
     int64_t slowlog_log_slower_than;
     uint32_t latency_monitor_threshold;
     bool save_armed;
+    bool tracking_armed;
     uint64_t proto_max_bulk_len;
-    uint32_t debug_fanout_defer_us;
+    uint64_t client_query_buffer_limit;
 };
+static_assert(sizeof(LiveConfigSnapshot) == 64, "Live config must fit its existing mailbox footprint");
 
 struct ClientLimitsConfigSnapshot {
     uint64_t version = 0;

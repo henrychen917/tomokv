@@ -635,18 +635,34 @@ uint64_t multidb_size(Shard& shard, uint8_t physical, uint64_t cut) {
 }
 
 void multidb_flush(Shard& shard, uint8_t physical) {
-    std::vector<std::string> keys;
+    // A SCAN count bounds homes, not keys: a single collision run may exceed it.
+    // Keep a fixed batch and revisit the same cursor if any matching key did not
+    // fit. The reverse-binary cursor also survives erase() starting/finishing a
+    // shrink between batches.
+    //
+    // Borrow identities only until this owner's immediate erase loop. No other
+    // command runs here, and rehash moves slots, not objects. Each remaining key
+    // stays alive until its own erase, including with snapshot/read-local armed.
+    // Unlike vector<string>, this materialisation cannot throw even at OOM and
+    // needs no extra allocation for an arbitrarily long key.
+    std::array<Slice, 256> keys;
     uint64_t cursor = 0;
     do {
-        cursor = shard.store().scan(cursor, 256, [&](KvObj* object) {
-            if (object->key_namespace() == physical)
-                keys.emplace_back(object->key().sv());
+        size_t count = 0;
+        bool overflow = false;
+        const uint64_t next = shard.store().scan(cursor, keys.size(), [&](KvObj* object) {
+            if (object->key_namespace() != physical) return;
+            if (count == keys.size()) overflow = true;
+            else keys[count++] = object->key();
         });
-    } while (cursor);
-    for (const auto& owned : keys) {
-        Slice key(owned.data(), owned.size(), physical);
-        shard.store().erase(FlatStore::hash_key(key), key);
-    }
+        for (size_t i = 0; i < count; ++i) {
+            const Slice key = keys[i];
+            shard.store().erase(FlatStore::hash_key(key), key);
+        }
+        if (overflow) continue;
+        cursor = next;
+        if (!cursor) break;
+    } while (true);
     shard.publish_size();
 }
 

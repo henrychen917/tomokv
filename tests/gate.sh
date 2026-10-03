@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=449
-EXPECT_FULL=466                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=456
+EXPECT_FULL=473                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar wait_units readonly
+              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1360,6 +1360,16 @@ row_begin "storage deadline-sidecar regression"
 }
 
 job_atomic_units(){
+# ST1/ST10: two rows collected here, before the quick-tier exit (+2 quick/full).
+for FLUSHFIX_CASE in flush headers; do
+  row_begin "flushfix $FLUSHFIX_CASE witnesses"
+  if unit_ready flushfix-units && taskset -c "$CORES" python3 tests/flushfix_checks.py check "$FLUSHFIX_CASE" \
+      >"$TMPDIR/flushfix-$FLUSHFIX_CASE.log" 2>&1; then
+    ok "flushfix $FLUSHFIX_CASE witnesses"
+  else
+    bad "flushfix $FLUSHFIX_CASE witnesses" "see $TMPDIR/flushfix-$FLUSHFIX_CASE.log"
+  fi
+done
 row_begin "multidb serverless owners"
 unit_ready multidb-unit && taskset -c "$CORES" ./build/multidb-unit \
     >"$TMPDIR/multidb-unit.log" 2>&1 \
@@ -1405,6 +1415,35 @@ for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub rece
       && ok "netcmd $NETCMD_CASE regression" \
       || bad "netcmd $NETCMD_CASE regression" "see $TMPDIR/gate-netcmd-$NETCMD_CASE.txt"
 done
+row_begin "NET1 serverless bounds + scan + reclamation"
+unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
+    && ok "NET1 serverless bounds + scan + reclamation" \
+    || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netcap(){
+# Four live rows, collected before the quick exit. Same eight-core/16-shard geometry;
+# fixed client ownership makes the second-connection IO-thread claim observable.
+local mode engine label booted
+for mode in 1s 2s; do for engine in uring epoll; do
+  label="NET1 inline + query cap ($mode, $engine)"
+  row_begin "$label"
+  booted=0
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --net-io "$engine" --enable-debug-command yes \
+        --client-lb 0 --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --net-io "$engine" --enable-debug-command yes \
+        --client-lb 0 --save '' && booted=1
+  fi
+  if [ "$booted" = 1 ] && py tests/netcap.py 127.0.0.1 "$PORT" \
+      >"$TMPDIR/gate-netcap-$mode-$engine.txt" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/gate-netcap-$mode-$engine.txt and $SRVLOG"
+  fi
+  stop
+done; done
 }
 
 job_acl_metadata(){
@@ -2647,12 +2686,12 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
+      build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit flushfix-units splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2788,6 +2827,10 @@ collect_job storage_units
 collect_job atomic_units
 
 collect_job netcmd_units
+
+# NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+collect_job netcap
 
 collect_job acl_metadata
 

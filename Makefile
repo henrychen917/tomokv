@@ -168,6 +168,34 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# ST1/ST10 serverless proofs. PRE objects are kept by the lane before editing;
+# the control target substitutes just the two command objects in both images.
+FLUSHFIX_UNIT_OBJ := build/tests/flushfix_unit.o build/db0/tests/flushfix_unit.o
+FLUSHFIX_COMMAND_OBJ := build/src/cmd/t_server.o build/src/cmd/multidb.o build/db0/src/cmd/t_server.o build/db0/src/cmd/multidb.o
+build/flushfix-unit: $(FLUSHFIX_UNIT_OBJ) $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/flushfix-pre-unit: $(FLUSHFIX_UNIT_OBJ) $(filter-out $(FLUSHFIX_COMMAND_OBJ),$(DB0_TEST_OBJ) $(CORE_TEST_OBJ)) $(addprefix build/flushfix/pre/,$(patsubst build/%,%,$(FLUSHFIX_COMMAND_OBJ)))
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/flushfix/pre-source/.emitted: tests/flushfix_checks.py
+	python3 tests/flushfix_checks.py emit-pre build/flushfix/pre-source
+build/flushfix/pre/src/cmd/%.o: build/flushfix/pre-source/.emitted
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. -c build/flushfix/pre-source/src/cmd/$*.cc -o $@
+build/flushfix/pre/db0/src/cmd/%.o: build/flushfix/pre-source/.emitted
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c build/flushfix/pre-source/src/cmd/$*.cc -o $@
+build/kvobj-header-unit: tests/kvobj_header_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
+build/kvobj-header-db0-unit: tests/kvobj_header_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
+FLUSHFIX_HEADER_SITES := raw int string typeval embedded reheader
+build/flushfix-header-controls/%/unit: tests/kvobj_header_unit.cc tests/flushfix_checks.py $(wildcard src/*/*.h) Makefile
+	python3 tests/flushfix_checks.py emit-header $* build/flushfix-header-controls/$*/source
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/flushfix-header-controls/$*/source -I. $< -o $@ $(JELIBS)
+build/flushfix-units: build/flushfix-unit build/kvobj-header-unit build/kvobj-header-db0-unit $(addprefix build/flushfix-header-controls/,$(addsuffix /unit,$(FLUSHFIX_HEADER_SITES)))
+	@touch $@
 # Link-only witnesses: no allocation/metadata counters enter production objects.
 MDBSTAMP_WRAP := -Wl,--wrap=_ZN4tomo24command_metadata_resolveERNS_2OpEj \
   -Wl,--wrap=_ZN4tomo29command_metadata_collect_keysERNS_2OpEjRKNS_15CommandMetadataERSt6vectorINS_18CommandKeyMetadataESaIS6_EE \
@@ -475,3 +503,7 @@ build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_c
 # Fast direct-call db0 variant; both database implementations retain their existing object flags.
 build/lanefull-db0-unit: tests/core_concurrency_unit.cc tests/lanefull_checks.inc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
+# NET1 bounds, linear scan, and actual deferred client reclamation; no server is started.
+build/netcap-unit: build/tests/netcap_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=free

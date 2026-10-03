@@ -395,6 +395,7 @@ void init_config(const Config& cfg) {
                         std::to_string(cfg.tracking_table_max_keys), true});
     g_config.push_back({"databases", ConfigKind::Unsigned, std::to_string(cfg.databases), true});
     add_config("proto-max-bulk-len", ConfigKind::Bytes, cfg.proto_max_bulk_len);
+    add_config("client-query-buffer-limit", ConfigKind::Bytes, cfg.client_query_buffer_limit);
     add_config("zc-min", ConfigKind::Unsigned, cfg.zc_min);
     add_config("atomic", ConfigKind::Unsigned, cfg.atomic);
     for (uint32_t i = 0; i < EncodingConfig::Count; i++)
@@ -531,6 +532,11 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         }
         case ConfigKind::Bytes: {
             uint64_t value = 0;
+            if (!std::strcmp(entry.name, "client-query-buffer-limit")) {
+                if (!cfg_parse_query_buffer_limit(input.p, input.n, value, error)) return false;
+                out = std::to_string(value);
+                return true;
+            }
             if (!parse_bytes(input, value)) return false;
             if (!std::strcmp(entry.name, "proto-max-bulk-len") &&
                 (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported)) return false;
@@ -599,7 +605,8 @@ bool collect_config_updates(Op& op,
         const bool legacy_compact = encoding >= 0 && EncodingConfig::legacy(encoding, op.arg(i));
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
-        if (item->kind == ConfigKind::Encoding && !legacy_compact) {
+        if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            !std::strcmp(item->name, "client-query-buffer-limit")) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
@@ -1468,6 +1475,11 @@ void cmd_config(Shard& sh, Op& op) {
                         std::abort();
                     g_server->set_proto_max_bulk_len(value);
                     g_proto_max_bulk_len.store(value, std::memory_order_relaxed);
+                } else if (!std::strcmp(update.first->name, "client-query-buffer-limit")) {
+                    uint64_t value = 0;
+                    if (!parse_u64(Slice(update.second.data(), update.second.size()), value))
+                        std::abort();
+                    g_server->set_client_query_buffer_limit(value);
                 }
             }
             LiveConfigSnapshot desired =
@@ -2690,7 +2702,19 @@ void cmd_dbsize(Shard&, Op& op) {
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
 void cmd_flush(Shard& sh, Op& op) {
     const bool changed = sh.store().size() != 0;
-    if (op.cmd_name().eq_icase("flushdb")) {
+    const bool flushdb = op.cmd_name().eq_icase("flushdb");
+    if constexpr (kSingleDatabase) {
+        if (flushdb) {
+            // The old materialisation also reaped elapsed keys (notifications,
+            // expired counter and AOF DEL). Keep those effects without copying
+            // any keys, then use the namespace-wide clear below.
+            uint64_t cursor = 0;
+            do {
+                cursor = sh.store().scan(cursor, 256, [](KvObj*) {});
+            } while (cursor);
+        }
+    }
+    if (!kSingleDatabase && flushdb) {
         multidb_flush(sh, op.physical_db);
     } else if (sh.store().snapshot_active()) {
         // The scatter snapshot gate has serialized every frozen pre-image before this handler is
