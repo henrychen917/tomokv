@@ -478,7 +478,9 @@
     "read-local ownership invariants",
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
-    "glob/scan grammar parity vs Redis 7.4"
+    "glob/scan grammar parity vs Redis 7.4",
+    "plain-write lost updates (atomic 0)",
+    "plain-write lost updates (atomic 1)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -551,5 +553,9 @@
       ],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
-  ]
+  ],
+  "atomfix_supplement": {
+    "source": "tests/gate.sh job_debug, emitted for atomic 0 and 1 before the quick-tier exit; combined with hexpirefix, proposed EXPECT_FULL 466",
+    "purpose": "two labels for the serverless fixture only; live execution remains with mainline"
+  }
 }

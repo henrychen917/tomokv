@@ -627,7 +627,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     }
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
-        const uint64_t snapshot = state.server->atomic_snapshot();
+        const uint64_t snapshot = UINT64_MAX;
         const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
         shard.store().atomic_promote_key(
             key.hash, key_slice, state.server->atomic_read_floor(), cleanup_cutoff);
