@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=459
-EXPECT_FULL=476                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=461
+EXPECT_FULL=478                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1718,7 +1718,21 @@ job_debug(){
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
 local AT=${1##*-}
   boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
       || bad "debug-surface boot (atomic $AT)"
+  # AT1/AT2: exact owner interleavings plus live, witnessed EXEC/hop/wakeup races. Both
+  # debug jobs are collected BEFORE the quick exit: +2 quick, +2 full.
+  # EXPECT_* remains maintainer-owned. Boot-only balancers are disabled here; the
+  # battery verifies its mode with CONFIG GET and never CONFIG SETs an immutable knob.
+  row_begin "plain-write lost updates (atomic $AT)"
+  py tests/atomic_plain.py --self-test >$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit "plain_$AT" \
+          >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && py tests/atomic_plain.py 127.0.0.1 $PORT --atomic "$AT" \
+          >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && ok "plain-write lost updates (atomic $AT)" \
+      || bad "plain-write lost updates (atomic $AT)" "see $TMPDIR/gate-atomic-plain-$AT.txt"
   # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARD proves the group
   # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
   # `atomic` itself as well, so it covers both modes from either boot.
@@ -2790,6 +2804,7 @@ job_dependencies(){
     core_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
+    debug-*) echo 'release production_units';;
     climonfix|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
