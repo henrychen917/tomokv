@@ -77,6 +77,37 @@ pick bound is a wall-time latency guarantee; see `src/core/wb_rule.h:75` and
 
 ## Network and TLS
 
+automatically and falls back to OpenSSL; there is no `tls-ktls` switch. TLS 1.2
+can offload both TX and RX. TLS 1.3 retains OpenSSL's receive record layer so
+KeyUpdate and other post-handshake messages cannot enter the RESP parser. TomoKV
+does **not** install a TLS 1.3 RX key from the initial client traffic secret or
+promote TLS 1.3 to its raw receive path. With OpenSSL 3.0 this means userspace RX;
+if a newer OpenSSL installs RX itself, its record layer remains responsible for
+control records and re-keying.
+
+TLS 1.3 TX offload is retained when OpenSSL and the kernel support it. On OpenSSL
+3.0/3.1, TomoKV reinstalls the TX key on requested KeyUpdates using the updated
+server traffic secret; this requires a kernel that supports replacing `TLS_TX`
+keys on an established socket. AES-128-GCM, AES-256-GCM, ChaCha20-Poly1305 and
+AES-128-CCM are covered. A failed reinstall closes the connection before further
+application writes and reports `kTLS TX re-key failed`; kernels without TX re-key
+support cannot claim TLS 1.3 KeyUpdate compatibility with TX offload. OpenSSL
+3.2+ owns TX re-keying in its record layer. Software TLS needs no kernel TLS
+support and keeps the same RESP behavior.
+
+`INFO STATS` exposes cumulative `tls_ktls_rx_declined_13` (successful socket-BIO
+TLS 1.3 handshakes retained by OpenSSL) and `tls_ktls_tx_rekeys` (successful TX
+reinstalls by TomoKV's OpenSSL 3.0/3.1 compatibility path). Neither counts failed
+handshakes. `tls_ktls_active` still means **bidirectional raw offload**, so a TLS
+1.3 TX-only connection contributes to `tls_ktls_fallback`, not that gauge.
+
+Paper wording for the OpenSSL 3.0 build, after the directed kernel checks pass:
+“TLS 1.2/1.3 with kernel TLS TX offload on kernels supporting TX re-keying; RX
+offload for TLS 1.2, with TLS 1.3 RX and KeyUpdate handled by OpenSSL.” Do not
+claim TomoKV implements TLS 1.3 RX offload with re-key handling. See
+[tls.cc](../src/net/tls.cc) and the directed [KeyUpdate witness](../tests/ktls_keyupdate.cc).
+
+
 Defaults: `src/core/config.h:316`, `:395`; reference: `tomokv.conf:27`.
 All TLS fields are boot-only. A nonzero TLS port needs a certificate and key;
 client-auth yes/optional also needs a CA file or directory. Enabled TCP and TLS
