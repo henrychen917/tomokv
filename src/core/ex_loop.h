@@ -735,7 +735,6 @@ private:
     inline static void (*test_after_done_)(Client*) = nullptr;
     inline static void (*test_after_drain_ack_)() = nullptr;
     inline static void (*test_local_read_copied_)() = nullptr;
-    inline static bool test_retry_local_mget_ = false;
     inline static uint32_t test_local_get_reply_attempts_ = 0;
 #endif
 
@@ -1014,7 +1013,6 @@ private:
     }
 
     PreparedLocalRead prepare_captured_local_mget(Op& op) {
-        static constexpr uint32_t kAttempts = 2;
         const uint32_t key_count = op.argc() - 1;
         if (!key_count || srv_->nshards() > LocalMgetWindow::kMaxShards) std::abort();
 
@@ -1035,131 +1033,113 @@ private:
         const int64_t command_now_ms = cached_now_ms_;
         if (__builtin_expect(debug_fanout_defer_us_ != 0, false)) debug_fanout_stall_local();
 
-        ReadLocalFallbackReason transient = ReadLocalFallbackReason::Generation;
-        for (uint32_t attempt = 0; attempt < kAttempts; attempt++) {
-            LocalMgetWindow window;
-            PreparedLocalRead prepared;
-            read_local_clear_reply(op);
+        LocalMgetWindow window;
+        PreparedLocalRead prepared;
+        read_local_clear_reply(op);
 
-            transient = local_mget_window_open(
-                window, touched, route_hashes, route_shards, key_count, cached_routes);
-            bool demote = transient != ReadLocalFallbackReason::None;
-            if (!demote) reply_array_header(op.sink(), key_count);
+        ReadLocalFallbackReason transient = local_mget_window_open(
+            window, touched, route_hashes, route_shards, key_count, cached_routes);
+        bool demote = transient != ReadLocalFallbackReason::None;
+        if (!demote) reply_array_header(op.sink(), key_count);
 
-            for (uint32_t first = 0; first < key_count && !demote;
-                 first += kReadLocalPrefetchKeys) {
-                const uint32_t count = std::min<uint32_t>(
-                    key_count - first, kReadLocalPrefetchKeys);
-                uint64_t hashes[kReadLocalPrefetchKeys];
-                int32_t shards[kReadLocalPrefetchKeys];
-                ReadLocalCaptureBuffer<kReadLocalPrefetchKeys> captures;
+        for (uint32_t first = 0; first < key_count && !demote;
+             first += kReadLocalPrefetchKeys) {
+            const uint32_t count = std::min<uint32_t>(
+                key_count - first, kReadLocalPrefetchKeys);
+            uint64_t hashes[kReadLocalPrefetchKeys];
+            int32_t shards[kReadLocalPrefetchKeys];
+            ReadLocalCaptureBuffer<kReadLocalPrefetchKeys> captures;
 
-                // I0 warms every home word in this bounded window. C0 then performs the complete
-                // key-verified walk and prefetches the exact object's value before E0 copies it.
-                for (uint32_t offset = 0; offset < count; offset++) {
-                    if (cached_routes) {
-                        hashes[offset] = route_hashes[first + offset];
-                        shards[offset] = route_shards[first + offset];
-                    } else {
-                        hashes[offset] = FlatStore::hash_key(op.arg(first + offset + 1));
-                        shards[offset] = srv_->router().shard_of(hashes[offset]);
-                    }
-                    srv_->shard(shards[offset]).store().read_local_prefetch(hashes[offset]);
+            // I0 warms every home word in this bounded window. C0 then performs the complete
+            // key-verified walk and prefetches the exact object's value before E0 copies it.
+            for (uint32_t offset = 0; offset < count; offset++) {
+                if (cached_routes) {
+                    hashes[offset] = route_hashes[first + offset];
+                    shards[offset] = route_shards[first + offset];
+                } else {
+                    hashes[offset] = FlatStore::hash_key(op.arg(first + offset + 1));
+                    shards[offset] = srv_->router().shard_of(hashes[offset]);
                 }
-                for (uint32_t offset = 0; offset < count; offset++) {
-                    captures.entries[offset] =
-                        srv_->shard(shards[offset]).store().read_local_prefetch_capture(
-                            hashes[offset], op.arg(first + offset + 1));
+                srv_->shard(shards[offset]).store().read_local_prefetch(hashes[offset]);
+            }
+            for (uint32_t offset = 0; offset < count; offset++) {
+                captures.entries[offset] =
+                    srv_->shard(shards[offset]).store().read_local_prefetch_capture(
+                        hashes[offset], op.arg(first + offset + 1));
+            }
+
+            for (uint32_t offset = 0; offset < count && !demote; offset++) {
+                const int32_t shard_id = shards[offset];
+                FlatStore& store = srv_->shard(shard_id).store();
+                const FlatStore::ReadLocalPrefetchCapture& capture =
+                    captures.entries[offset];
+                if (capture.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::AtomicPending};
                 }
-
-                for (uint32_t offset = 0; offset < count && !demote; offset++) {
-                    const int32_t shard_id = shards[offset];
-                    FlatStore& store = srv_->shard(shard_id).store();
-                    const FlatStore::ReadLocalPrefetchCapture& capture =
-                        captures.entries[offset];
-                    if (capture.result == FlatStore::ReadLocalProbeResult::AtomicPending) {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::AtomicPending};
-                    }
-                    if (capture.result == FlatStore::ReadLocalProbeResult::Churn) {
-                        transient = ReadLocalFallbackReason::SeqChurn;
-                        demote = true;
-                        break;
-                    }
-                    if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
-                        reply_null(op.sink(), op.resp3());
-                        prepared.keyspace_misses++;
-                        if (!window.use_epochs && !store.read_local_validate(capture.state)) {
-                            transient = ReadLocalFallbackReason::SeqChurn;
-                            demote = true;
-                        }
-                        continue;
-                    }
-
-                    const KvObj* object = capture.object;
-                    if (!capture.slot || !object) std::abort();
-                    const uint8_t flags = object->read_local_flags();
-                    if (static_cast<Type>(object->type) != Type::String) {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::Typed};
-                    }
-                    if (flags & KvObjFlags::HasTtl) {
-                        const int64_t deadline = object->read_local_expire_at_ms(flags);
-                        if (deadline >= 0 && deadline <= command_now_ms) {
-                            read_local_clear_reply(op);
-                            return {ReadLocalFallbackReason::Expired};
-                        }
-                    }
-
-                    const Enc encoding = object->encoding();
-                    if (encoding == Enc::Int) {
-                        char text[24];
-                        const uint32_t length = i64_to_dec(
-                            text, object->read_local_int_value(flags));
-                        reply_bulk(op.sink(), Slice(text, length));
-                    } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
-                        read_local_reply_string(op, object, flags);
-                    } else {
-                        read_local_clear_reply(op);
-                        return {ReadLocalFallbackReason::Typed};
-                    }
-                    prepared.keyspace_hits++;
-                    // Account only for a key this pass accepted, before demotion.
+                if (capture.result == FlatStore::ReadLocalProbeResult::Churn) {
+                    transient = ReadLocalFallbackReason::SeqChurn;
+                    demote = true;
+                    break;
+                }
+                if (capture.result == FlatStore::ReadLocalProbeResult::Missing) {
+                    reply_null(op.sink(), op.resp3());
+                    prepared.keyspace_misses++;
                     if (!window.use_epochs && !store.read_local_validate(capture.state)) {
                         transient = ReadLocalFallbackReason::SeqChurn;
                         demote = true;
-                    } else if (__builtin_expect(maxmemory_enabled_, false)) {
-                        note_local_read_access(op, object, flags);
+                    }
+                    continue;
+                }
+
+                const KvObj* object = capture.object;
+                if (!capture.slot || !object) std::abort();
+                const uint8_t flags = object->read_local_flags();
+                if (static_cast<Type>(object->type) != Type::String) {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Typed};
+                }
+                if (flags & KvObjFlags::HasTtl) {
+                    const int64_t deadline = object->read_local_expire_at_ms(flags);
+                    if (deadline >= 0 && deadline <= command_now_ms) {
+                        read_local_clear_reply(op);
+                        return {ReadLocalFallbackReason::Expired};
                     }
                 }
-            }
 
-            // C0 performs each probe's topology validation. This one outer close then validates
-            // every queried cell across the complete multi-shard capture/copy interval.
-            if (!demote) {
-                transient = local_mget_window_close(
-                    window, touched, route_hashes, route_shards, key_count);
-                demote = transient != ReadLocalFallbackReason::None;
-            }
-            if (!demote) return prepared;
-            read_local_clear_reply(op);
-            if (attempt + 1 < kAttempts) {
-#ifdef TOMO_CORE_CONCURRENCY_TEST
-                if (!test_retry_local_mget_)
-#endif
-                // Unconditional cold demotion. The annotation emits no bytes; the offline
-                // kind-A PAD replaces only this jump with a same-width NOP to restore PRE's
-                // retry in POST's exact layout. No successful-read instruction or runtime knob.
-                asm inline goto(".local tomo_rltopo_demote_%=\n"
-                         "tomo_rltopo_demote_%=:\n\t"
-                         "jmp %l[owner_demotion]\n"
-                         : : : : owner_demotion);
-                self_->read_local_stats().mget_generation_retries++;
+                const Enc encoding = object->encoding();
+                if (encoding == Enc::Int) {
+                    char text[24];
+                    const uint32_t length = i64_to_dec(
+                        text, object->read_local_int_value(flags));
+                    reply_bulk(op.sink(), Slice(text, length));
+                } else if (encoding == Enc::Raw || encoding == Enc::Extern) {
+                    read_local_reply_string(op, object, flags);
+                } else {
+                    read_local_clear_reply(op);
+                    return {ReadLocalFallbackReason::Typed};
+                }
+                prepared.keyspace_hits++;
+                // Account only for a key this pass accepted, before demotion.
+                if (!window.use_epochs && !store.read_local_validate(capture.state)) {
+                    transient = ReadLocalFallbackReason::SeqChurn;
+                    demote = true;
+                } else if (__builtin_expect(maxmemory_enabled_, false)) {
+                    note_local_read_access(op, object, flags);
+                }
             }
         }
-        // Owner ruling 2026-09-27: topology churn is an owner demotion, never a reader retry.
-        // The same rule applies to a changed atomic window, preserving untorn MGET replies.
-    owner_demotion:
+
+        // C0 performs each probe's topology validation. This one outer close then validates
+        // every queried cell across the complete multi-shard capture/copy interval.
+        if (!demote) {
+            transient = local_mget_window_close(
+                window, touched, route_hashes, route_shards, key_count);
+            demote = transient != ReadLocalFallbackReason::None;
+        }
+        if (!demote) return prepared;
+        read_local_clear_reply(op);
+        // Topology churn or a changed atomic window demotes to the owner after one capture.
         return {local_mget_final_reason(
             op, route_hashes, route_shards, key_count, cached_routes, transient)};
     }

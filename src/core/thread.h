@@ -185,7 +185,6 @@ struct ReadLocalStats {
     uint64_t mget_fallback_typed = 0;
     uint64_t mget_fallback_expired = 0;
     uint64_t mget_fallback_seq_churn = 0;
-    uint64_t mget_generation_retries = 0; // retained INFO witness: zero in production
     uint64_t mget_fallback_generation = 0;
     std::byte reserved_mget_lane_full[8]{};
 
@@ -284,9 +283,9 @@ struct ReadLocalStats {
 
 static_assert(offsetof(ReadLocalStats, reserved_lane_full) == 144);
 static_assert(offsetof(ReadLocalStats, defer_lane_full) == 152);
-static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 296);
-static_assert(offsetof(ReadLocalStats, arm) == 304);
-static_assert(sizeof(ReadLocalStats) == 328);
+static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 288);
+static_assert(offsetof(ReadLocalStats, arm) == 296);
+static_assert(sizeof(ReadLocalStats) == 320);
 
 // Read-local publication and telemetry are absent from baseline ThreadCtx allocations. The
 // lone owning pointer is placed in ThreadCtx's established tail padding below.
@@ -298,10 +297,10 @@ struct ReadLocalThreadState {
     // an enabled boot knob from a live parser/executor lane. No per-operation publication.
     std::atomic<bool> lane_active{false};
 };
-static_assert(offsetof(ReadLocalThreadState, lane_active) == 376,
+static_assert(offsetof(ReadLocalThreadState, lane_active) == 368,
               "resize retirement adds two cold sink hooks to the optional sidecar");
-static_assert(sizeof(ReadLocalThreadState) == 384,
-              "resize retirement grows only the armed sidecar by 16 bytes, never ThreadCtx");
+static_assert(sizeof(ReadLocalThreadState) == 376,
+              "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
 class ThreadCtx {
 public:

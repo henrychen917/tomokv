@@ -147,7 +147,6 @@ struct CoreConcurrencyTest {
             guard.reset();
             FlatStore::test_read_local_captured = nullptr;
             ExLoopT<true>::test_local_read_copied_ = nullptr;
-            ExLoopT<true>::test_retry_local_mget_ = false;
             owner.read_local_impl().deferred.drain_shutdown();
             for (Shard* sh : server.thread(owner_id).shards()) sh->store().configure_read_local(false, {});
         }
@@ -317,20 +316,20 @@ struct CoreConcurrencyTest {
         changing = &f.server.shard(f.sid).store();
         captures = flips = 0;
         leave_open = open;
-        ExLoopT<true>::test_retry_local_mget_ = fault == Fault::Retry;
         if (window == Window::Capture) FlatStore::test_read_local_captured = captured;
         else if (window == Window::Copy) ExLoopT<true>::test_local_read_copied_ = flip;
         else flip();
+        // Restore a reader retry in the fixture, outside production code. The capture
+        // hook counts actual probes, so this must fail even though INFO has no retry row.
+        if (fault == Fault::Retry) (void)f.reader.prepare_captured_local_mget(op);
         require(f.reader.drain_local_reads() == 1, "one lane operation consumed");
         require(flips == 1, "forced topology window fired exactly once");
         const auto& stats = f.server.thread(f.reader_id).read_local_stats();
-        std::printf("rltopo keys=%u window=%u open=%u captures=%u retries=%llu demotions=%llu\n",
+        std::printf("rltopo keys=%u window=%u open=%u captures=%u demotions=%llu\n",
                     keys, static_cast<unsigned>(window), open, captures,
-                    static_cast<unsigned long long>(stats.mget_generation_retries),
                     static_cast<unsigned long long>(stats.fallback_seq_churn + stats.fallback_generation));
         std::fflush(stdout);
-        require(stats.mget_generation_retries == 0 &&
-                    (window != Window::Capture || captures == (keys ? keys : 1)),
+        require(window != Window::Capture || captures == (keys ? keys : 1),
                 "zero Churn/SeqChurn retries");
         require(stats.fallback_seq_churn + stats.fallback_generation == 1 && stats.fallbacks() == 1 &&
                     stats.hits == 0 && (!keys || stats.mget_fallbacks() == 1),
