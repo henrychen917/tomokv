@@ -1633,6 +1633,17 @@ job_debug(){
 local AT=${1##*-}
   boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
       || bad "debug-surface boot (atomic $AT)"
+  # AT1/AT2: exact owner interleavings plus live, witnessed EXEC/hop/wakeup races. Both
+  # debug jobs are collected BEFORE the quick exit: +2 quick, +2 full (448 / 465).
+  # EXPECT_* remains maintainer-owned. The battery explicitly sets and verifies its mode.
+  row_begin "plain-write lost updates (atomic $AT)"
+  unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit "plain_$AT" \
+          >$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && py tests/atomic_plain.py 127.0.0.1 $PORT --atomic "$AT" \
+          >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && ok "plain-write lost updates (atomic $AT)" \
+      || bad "plain-write lost updates (atomic $AT)" "see $TMPDIR/gate-atomic-plain-$AT.txt"
   # scriptatomic needs the armed boot for its cross-shard section (DEBUG SHARD proves the group
   # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
   # `atomic` itself as well, so it covers both modes from either boot.
@@ -2679,6 +2690,7 @@ job_dependencies(){
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
+    debug-*) echo 'release production_units';;
     wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;

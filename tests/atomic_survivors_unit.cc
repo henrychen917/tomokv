@@ -470,11 +470,14 @@ void stage_flag(Server& server) {
 }
 
 #include "atomiccollapse_checks.inc"
+#include "atomic_plain_checks.inc"
 
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
     require(command_registry_init(false), "command registry");
     Config cfg;
+    const std::string name = argv[1];
+    if (name.starts_with("plain_")) cfg.atomic = name.ends_with("_1") ? 1 : 0;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
     // Exercise the fixed production instruction budget, including caught-limit failure.
@@ -483,8 +486,8 @@ int main(int argc, char** argv) {
     command_bind_server(&server);
     std::string acl_error;
     require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
-    const std::string name = argv[1];
-    if (name == "admission") { admission(server); atomiccollapse_checks(); }
+    if (name.starts_with("plain_")) atomic_plain_checks(server, name);
+    else if (name == "admission") { admission(server); atomiccollapse_checks(); }
     else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");

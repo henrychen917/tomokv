@@ -27,6 +27,7 @@
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
 #include "multi.h"
+#include "xshard.h"
 
 #include <algorithm>
 #include <arpa/inet.h>

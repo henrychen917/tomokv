@@ -465,7 +465,9 @@
     "read-local topology demotion (1s)",
     "read-local topology demotion (2s)",
     "writeback policy clauses witnesses + negative controls",
-    "writeback policy paths witnesses + negative controls"
+    "writeback policy paths witnesses + negative controls",
+    "plain-write lost updates (atomic 0)",
+    "plain-write lost updates (atomic 1)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -478,5 +480,9 @@
   "wbland_supplement": {
     "source": "5b3d9c429 tests/gate.sh job_wbland_units (clauses, paths), emitted before the quick-tier exit; EXPECT_FULL 463",
     "purpose": "two upstream labels for the serverless fixture only; no claimed execution (mainline bookkeeping 2026-10-01)"
+  },
+  "atomfix_supplement": {
+    "source": "tests/gate.sh job_debug, emitted for atomic 0 and 1 before the quick-tier exit; proposed EXPECT_FULL 465",
+    "purpose": "two labels for the serverless fixture only; live execution remains with mainline"
   }
 }
