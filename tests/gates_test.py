@@ -321,7 +321,8 @@ class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
-                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
+                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
+                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
@@ -364,7 +365,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -925,17 +926,20 @@ collect_job(){
     def _run_scheduler(self, *, reverse=False, slots=None, failure='', behavior='', ordered=True,
                       delayed_completion=False, dependency_probe=False,
                       remove_atomic_dependency=False, add_asan_dependency=False,
-                      remove_atomic_publication=False, _cpus=None):
+                      remove_atomic_publication=False, only_jobs=None, _cpus=None):
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
+        canonical = self.canonical if only_jobs is None else ['release', *only_jobs.split()]
+        helpers = self.helper_jobs if only_jobs is None else frozenset()
         ledger_functions = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
         placement = gate[gate.index('set_slot(){'):gate.index('\nset_slot 0')]
         scheduler = gate[gate.index('WORKER_PIDS=()'):gate.index('# ---- 0. preflight:')]
-        order = self.canonical[::-1] if reverse else self.canonical
-        order = [name for name in order if name != 'atomic_batteries'] + ['atomic_batteries']
+        order = canonical[::-1] if reverse else canonical
+        order = [name for name in order if name != 'atomic_batteries'] + (
+            ['atomic_batteries'] if 'atomic_batteries' in canonical else [])
         prelude = '''set -u
 PASS=0; FAIL=0; TIER=full; CORES=0; LOAD_CORES=0; PORT=19000; GATE_RATIO=6:2; ALL_BUILD_CORES=0
-GATE_PARTIAL=0
+GATE_PARTIAL=${WIRE_PARTIAL:-0}
 source tests/gate_subset.sh
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; ROW_T=$(date +%s.%N)
 : > "$LEDGER"; : > "$TIMINGS"
@@ -1114,11 +1118,12 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
             directory = Path(tmp)
             env = dict(os.environ, RUN_DIR=tmp, FAILED_JOB=failure, FAILURE_BEHAVIOR=behavior,
+                       WIRE_PARTIAL=str(int(only_jobs is not None)), GATE_ONLY_JOBS=only_jobs or '',
                        FORCE_ORDER=str(int(ordered)), DEPENDENCY_PROBE=str(int(dependency_probe)),
                        REMOVE_ATOMIC_DEPENDENCY=str(int(remove_atomic_dependency)),
                        ADD_ASAN_DEPENDENCY=str(int(add_asan_dependency)),
                        GATE_FEATURE_OUTPUT=str(directory / 'features'))
-            count = slots or len(self.canonical) + 1
+            count = slots or len(canonical) + 1
             # The full-inventory order probes synchronize about 100 real shells. Pinning
             # all of them to one CPU serialized their watchdog/ledger work and exhausted
             # the unchanged 45s deadline under correctness contention. Use up to four
@@ -1129,7 +1134,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
-                'CANONICAL=(' + ' '.join(map(shlex.quote, self.canonical)) + ')',
+                'CANONICAL=(' + ' '.join(map(shlex.quote, canonical)) + ')',
                 'COMPLETION_ORDER=(' + ' '.join(map(shlex.quote, order)) + ')',
                 'SLOT_CORES=(' + ' '.join(slot_cpus) + ')',
                 'SLOT_LOAD_CORES=(' + ' '.join(slot_cpus) + ')',
@@ -1141,8 +1146,10 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 saved = preserve_scheduler_failure(root, directory, script, stdout, stderr)
                 return f'\nScheduler failure artifacts: {saved}\n'
             try:
+                script_path = directory / 'scheduler.sh'
+                script_path.write_text(script)
                 result = subprocess.run(['timeout', '--kill-after=2', '45', 'taskset', '-c', cpu_list,
-                                         'bash', '-c', script], cwd=root, env=env,
+                                         'bash', str(script_path)], cwd=root, env=env,
                                         text=True, capture_output=True, timeout=50)
             except subprocess.TimeoutExpired as exc:
                 def as_text(value):
@@ -1158,10 +1165,10 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 # Collector rows enumerate scored jobs. The three build prerequisites do
                 # not emit rows in this fixture, but must still run and finalize cleanly:
                 # inspecting only directories that happen to exist can miss a deleted job.
-                expected_jobs = set(self.canonical) | self.helper_jobs
+                expected_jobs = set(canonical) | helpers
                 self.assertEqual({job.name for job in (directory / 'jobs').iterdir()}, expected_jobs)
                 self.assertEqual({job.name for job in (directory / 'started').iterdir()}, expected_jobs)
-                for helper in self.helper_jobs:
+                for helper in helpers:
                     job = directory / 'jobs' / helper
                     self.assertEqual((job / 'done').read_text(), '0\t0\t0\n', helper)
                     self.assertTrue((job / 'cleaned').exists(), helper)
@@ -1192,9 +1199,9 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 self.assertEqual(len(row), 3)
                 self.assertGreaterEqual(float(row[1]), 0)
             counts = tuple(map(int, (directory / 'counts').read_text().split()))
-            expected = ((len(self.canonical), 1) if behavior == 'return' else
-                        (len(self.canonical) - 1, 1) if behavior in ('empty', 'red', 'crash') or remove_atomic_dependency or add_asan_dependency else
-                        (len(self.canonical), 0))
+            expected = ((len(canonical), 1) if behavior == 'return' else
+                        (len(canonical) - 1, 1) if behavior in ('empty', 'red', 'crash') or remove_atomic_dependency or add_asan_dependency else
+                        (len(canonical), 0))
             dependency_reached = (directory / 'dependency-probe-reached').exists()
             dependency_handshake = (directory / 'dependency-handshake').exists()
             dependency_failure = ((directory / 'dependency-failure').read_text()
@@ -1221,6 +1228,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                                  if path.parent.name in self.helper_jobs},
                         cleaned={path.parent.name for path in (directory / 'jobs').glob('*/cleaned')
                                  if path.parent.name not in self.helper_jobs})
+
+    def test_partial_jobs_use_the_real_scheduler_and_finalizers(self):
+        result = self._run_scheduler(slots=2, ordered=False, only_jobs='debug-0 debug-1')
+        self.assertEqual(result['counts'], (3, 0), result['output'])
+        self.assertEqual(set(result['completion']), {'release', 'debug-0', 'debug-1'})
+        self.assertEqual(result['ledger'], b'ok\tcorrectness family release\n'
+                         b'ok\tcorrectness family debug-0\nok\tcorrectness family debug-1\n')
 
     def test_failure_evidence_survives_a_named_pipe_in_the_fixture(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1357,10 +1357,11 @@ job_reorder_identity(){
       && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
 }
 job_wb_policy(){
-  local mode policy boot_fn rc=0 label='writeback policies 0/1: 22 standard fixtures'
+  local label='writeback policies 0/1: 22 standard fixtures'
+  local mode policy boot_fn rc=0
   # One scored row owns four boots and compares independent policy lifetimes.
   row_begin "$label"
-  unit_ready wb-rule-units && py tests/wb_policy.py --traces >"$TMPDIR/traces.log" 2>&1 || rc=1
+  unit_ready wbland-units && py tests/wb_policy.py --traces >"$TMPDIR/traces.log" 2>&1 || rc=1
   for mode in 1s 2s; do
     boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
     for policy in 1 0; do
