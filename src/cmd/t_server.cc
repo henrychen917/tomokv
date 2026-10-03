@@ -2685,7 +2685,7 @@ void cmd_dbsize(Shard&, Op& op) {
 // idle shard would advertise its pre-flush count forever (DBSIZE stuck at stale totals).
 void cmd_flush(Shard& sh, Op& op) {
     const bool changed = sh.store().size() != 0;
-    if (op.cmd_name().eq_icase("flushdb")) {
+    if (!kSingleDatabase && op.cmd_name().eq_icase("flushdb")) {
         multidb_flush(sh, op.physical_db);
     } else if (sh.store().snapshot_active()) {
         // The scatter snapshot gate has serialized every frozen pre-image before this handler is
