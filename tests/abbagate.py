@@ -1793,6 +1793,8 @@ def parse_args():
                    help="campaign RUN with frozen binaries.json; phase aliases are hard links only")
     p.add_argument("--collect-null", type=int, choices=(0, 1), default=0,
                    help="1 freezes one executable into identical arms and collects a null; always PARTIAL/exit 3")
+    p.add_argument("--null-holdout", type=int, choices=(0, 1), default=0,
+                   help="1 checks identical arms against fixed published floors and copies the null's block plan")
     p.add_argument("--null-result", type=Path, default=Path(os.getenv("GATE_ABBA_NULL", os.getenv(
         "GATE_RECEIPT_NULL", ROOT / ".gate-history/receipts/baselines/full-null.json"))),
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
@@ -1838,6 +1840,12 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
               "window_seconds": WINDOW, "order": list(ORDER), "cells": [], "output": str(out),
               "subset": args.subset, "only": args.only, "escalate": args.escalate,
               "run_kind": "null-control" if args.collect_null else "comparison", "comparison_trusted": False}
+    holdout = bool(getattr(args, "null_holdout", 0))
+    if holdout:
+        if (args.collect_null or args.escalate or args.only or args.subset != "full" or
+                diagnostic_monitor is not None or _pin_instances is not None):
+            raise ValueError("holdout requires a full frozen identical-binary comparison without diagnostic overrides")
+        report["run_kind"] = "null-holdout"
     if diagnostic_monitor is not None:
         # Internal-only background qualification may observe the real measurement loop while
         # auditing an unvalidated quiet-screening rule. It must NEVER transiently publish a
@@ -1942,6 +1950,18 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             except (OSError, ValueError) as error:
                 control_error = f"standing null unavailable: {args.null_result}: {error}"
                 print("ABBA UNTRUSTED: " + control_error + "; all measurements still run", flush=True)
+        if holdout:
+            from abba_holdout import CONTRACT, plan as holdout_plan
+            from abba_evidence import validate_null
+            if control_error:
+                raise ValueError(control_error)
+            validate_null(control, now=time.time())
+            if (report["instrument_fingerprint"] != control["instrument_fingerprint"] or
+                    report["cell_source"]["sha256"] != control["cell_source"]["sha256"] or
+                    [asdict(cell) for cell in cells] != [row["cell"] for row in control["cells"]]):
+                raise ValueError("holdout null fingerprint/inventory differs; re-freeze before measuring")
+            report.update(holdout_contract=CONTRACT, holdout_plan=holdout_plan(control))
+            (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
         quiet_options = {"own_root_pid": os.getpid(), "window_seconds": WINDOW,
                          "ports": (args.port,), "sample_artifact": out / "quiet-samples.jsonl"}
         quiet = (diagnostic_monitor or QuietMonitor)(server_cpus, load_cpus, **quiet_options)
@@ -1963,6 +1983,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         report["candidate"] = {"path": str(args.candidate.resolve()), "sha256": sha256(binaries["B"]),
                                "workspace_commit": git("rev-parse", "HEAD"),
                                "workspace_status": git("status", "--short")}
+        if holdout and not (report["candidate"]["sha256"] == provenance["sha256"] == control["candidate"]["sha256"]):
+            raise ValueError("holdout requires the published null's byte-identical binary in both arms")
         if sha256(binaries["A"]) != provenance["sha256"]:
             raise RuntimeError("reference changed while freezing campaign binaries")
         print(f"REFERENCE {provenance['source']} {provenance['commit']} sha256={provenance['sha256']}", flush=True)
@@ -2062,7 +2084,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         if diagnostic_monitor is not None:
                             quiet.set_phase("between-measurements")
                         quiet.check()
-                    bounds = NULL_MODE if args.collect_null else resolution_bounds(control, cell.id)
+                    bounds = NULL_MODE if args.collect_null or holdout else resolution_bounds(control, cell.id)
                     row["assessment"] = assess(assessed_cell, row["rounds"], bounds)
                     row["verdict"] = row["assessment"]["verdict"]
                     print_cell(row)
@@ -2105,8 +2127,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         # floor candidate at all.
                         if not args.escalate or incomplete or not still_climbing:
                             break
-                if "null_sampling_policy" in report and row["verdict"] == "PASS":
-                    from abba_null_sampling import collect
+                if holdout or "null_sampling_policy" in report and row["verdict"] == "PASS":
                     def repeat_measure(arm, sequence, instances):
                         quiet.check()
                         result = runner.measure(cell, arm, sequence, instances, plans[arm])
@@ -2116,8 +2137,15 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         report["quiet_box"] = quiet.evidence()
                         report["elapsed_seconds"] = time.monotonic() - start
                         (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
-                    collect(assessed_cell, row, repeat_measure, persist_sampling)
-                    print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
+                    if holdout:
+                        from abba_holdout import collect
+                        collect(assessed_cell, row, control, repeat_measure, persist_sampling)
+                        print(f"  {cell.id} HOLDOUT sampling: {report['holdout_plan'][cell.id]}", flush=True)
+                        print_cell(row)
+                    else:
+                        from abba_null_sampling import collect
+                        collect(assessed_cell, row, repeat_measure, persist_sampling)
+                        print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
             except (InterruptedError, QuietViolation):
                 raise
             except NotComparable as e:
@@ -2168,7 +2196,18 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     "load_selection", {}).get("status") != "CONFIRMED"]
         report["statistical_verdict"], report["worst_cell"] = overall(report["cells"])
         report["verdict"] = report["statistical_verdict"]
-        if report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
+        if holdout:
+            # Matching and independent validation must run even after an outside-
+            # floor FAIL. Such a result is evidence, not an unreachable verifier.
+            from abba_evidence import validate_holdout
+            report["standing_null"] = match_null(report, control, now=time.time())
+            (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
+            result = validate_holdout(report, control, now=time.time())
+            report["holdout_resolution"] = result
+            report["verdict"] = result["verdict"]
+            (out / "holdout-resolution.json").write_text(json.dumps(result, indent=2) + "\n")
+            print(f"HOLDOUT {result['verdict']}: fixed published floors; not a code-comparison PASS", flush=True)
+        elif report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
             report["verdict"] = "PARTIAL"
             if diagnostic_monitor is not None:
                 report["null_control"] = {"verdict": "UNTRUSTED", "reason":

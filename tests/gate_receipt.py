@@ -419,9 +419,36 @@ def verify_null_holdout(root, args):
     campaign = read_json(args.campaign)
     report, control = read_json(args.comparison), read_json(args.null_result)
     now = time.time()
-    validate_campaign(root, campaign, control, now=now)
-    validate_campaign(root, campaign, report, now=now)
-    result = validate_holdout(report, control, now=now)
+    historical = bool(getattr(args, "replay", 0))
+    original = None
+    if historical:
+        from abba_holdout import rejudge
+        original = dict(source_sha256=digest(args.comparison.read_bytes()),
+            statistical_verdict=report["statistical_verdict"], verdict=report["verdict"],
+            failed_cells=[row["cell"]["id"] for row in report["cells"] if row["verdict"] == "FAIL"])
+        # Historical time is explicit provenance, never substituted into a live
+        # promotion or gate receipt. Original measured identities stay intact.
+        now = utc_seconds(report["started_utc"]) + report["elapsed_seconds"] + 1
+        for measured in (control, report):
+            require(measured["instrument_fingerprint"] == campaign["instrument"] and
+                    measured["cell_source"]["sha256"] == campaign["inventory"]["sha256"] and
+                    [row["cell"] for row in measured["cells"]] == campaign["inventory"]["cells"],
+                    "historical campaign fingerprint/inventory differs")
+            require(instrument(measured["environment"]) == instrument(campaign["environment"]) and
+                    measured["window_seconds"] == campaign["window_seconds"] and
+                    measured["candidate"]["sha256"] == campaign["binary"]["sha256"] and
+                    campaign["frozen_at"] <= utc_seconds(measured["started_utc"]) + 1,
+                    "historical campaign geometry/binary/window/freeze differs")
+        rejudge(report, control)
+        report["standing_null"] = match_null(report, control, now=now)
+    else:
+        validate_campaign(root, campaign, control, now=now)
+        validate_campaign(root, campaign, report, now=now)
+    result = validate_holdout(report, control, now=now, historical=historical)
+    if historical:
+        result.update(replay=dict(original=original, as_of=now,
+            evaluated_by=instrument_fingerprint(root), measured_by=report["instrument_fingerprint"],
+            note="serverless reinterpretation of saved samples; not a new independent holdout"))
     write_json(args.output, result, exclusive=True)
     return args.output
 
@@ -1275,8 +1302,10 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
     from _nullrefresh_test import self_test as promotion_controls
     promoted = promotion_controls()
+    from nullpublish4_test import self_test as holdout_controls
+    held = holdout_controls()
     refrozen = subprocess.run([sys.executable, str(ROOT / "tests/nullpublish_refreeze_test.py")]).returncode
-    return 0 if result.wasSuccessful() and promoted == 0 and refrozen == 0 else 1
+    return 0 if result.wasSuccessful() and promoted == 0 and held == 0 and refrozen == 0 else 1
 
 
 def main():
@@ -1298,6 +1327,8 @@ def main():
     holdout = sub.add_parser("verify-null-holdout", help="check independent identical arms against frozen errors")
     for name in ("null-result", "comparison", "campaign", "output"):
         holdout.add_argument("--" + name, type=Path, required=True)
+    holdout.add_argument("--replay", type=int, choices=(0, 1), default=0,
+                         help="1 rejudges historical raw samples; writes reporting-only PENDING HOLDOUT evidence")
     start = sub.add_parser("begin")
     start.add_argument("--run-id", required=True)
     start.add_argument("--tier", choices=("full", "push", "release", "iteration", "smoke"), required=True)
@@ -1332,7 +1363,11 @@ def main():
     if args.install or args.uninstall:
         require(not (args.install and args.uninstall), "choose install or uninstall")
         install(ROOT, uninstall=args.uninstall)
-    elif args.action in ("begin", "bind", "finish", "coordinator", "freeze-null", "promote-null", "verify-null-holdout"):
+    elif args.action == "verify-null-holdout":
+        path = verify_null_holdout(ROOT, args)
+        print(path)
+        return 0 if read_json(path)["verdict"] == "PASS" else 1
+    elif args.action in ("begin", "bind", "finish", "coordinator", "freeze-null", "promote-null"):
         print(globals()[args.action.replace("-", "_")](ROOT, args))
     elif args.action == "fingerprint":
         print(json.dumps(harness_fingerprint(ROOT) if args.harness else source_fingerprint(ROOT), sort_keys=True))
