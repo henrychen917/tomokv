@@ -1,376 +1,254 @@
 # Configuration
 
-The startup source of truth is [Config, parse_config_args, and validate_config](../src/core/config.h),
-with file selection in [main.cc](../src/main.cc). The runtime table and setters
-are in [t_server.cc](../src/cmd/t_server.cc). Defaults below describe the current
-source, including options that are absent from `--help`.
+Regenerated from `src/core/config.h` (Config, `parse_config_args`, and
+`EncodingConfig::settings`) and [tomokv.conf](../tomokv.conf), checked against
+`src/cmd/t_server.cc:308` for CONFIG and `src/cmd/t_server.cc:2013` for INFO.
+The tables cover **68 canonical CONFIG entries, seven additional boot directives,
+and nine encoding aliases**. Each accepted spelling has its own row.
+`tests/docs_drift.py` compares these names with the parser; it does not validate
+the prose, defaults, grammar, or INFO mappings.
 
-## Syntax and runtime changes
+Pass the config file as the **first positional argument**, then CLI overrides:
+`./build/tomokv local.conf --port 7000` (`src/main.cc:164`). File lines use
+`name value...`; only a trimmed line beginning with `#` is a comment. Single and
+double quotes follow the loader's Redis-style token grammar; double quotes
+recognize escapes including `\xHH` (`src/core/config.h:1235`).
 
-Use separate CLI tokens, such as `--maxmemory 1gb`. `--name=value` is not
-accepted. In a file, write `maxmemory 1gb`. Supply the file as the first bare
-argument or with `--conf FILE`; the server does not automatically search for
-`tomokv.conf`. File values are applied first, CLI values second.
+**R** marks a Redis-compatible name/grammar; the row explicitly records TomoKV
+limits or differences in behavior, defaults, and mutability. It is not a claim
+of complete Redis equivalence. **T** marks a TomoKV-only directive/alias.
+**Live** means CONFIG SET is supported; **Boot/GET** means CONFIG GET reports it
+but SET refuses it; **Boot** means absent from the CONFIG table. INFO `—` means
+no direct setting field; where useful, a row explicitly labels a related counter.
+INFO server mappings are at `src/cmd/t_server.cc:2029`; persistence counters at
+`:2209`, slowlog/latency counters at `:2356`, and `wb_policy` at
+`src/core/wb_rule.h:31`. Use CONFIG GET for values without an INFO setting field.
 
-File parsing supports single and double quotes. Double quotes recognize escaped
-characters and `\xHH`; single quotes recognize `\'`. A `#` begins a comment only
-as the first non-whitespace character of a line. Do not append inline comments
-to settings. Empty values need `""`. There is no `include` directive. The loader
-reads through a fixed 4096-byte line buffer, so keep configuration lines short.
-
-For example, save this as `local.conf`:
-
-```conf
-bind 127.0.0.1
-port 6379
-thread-mode 2s
-ratio 2:2
-shards 16
-atomic 1
-save ""
-```
-
-```sh
-./build/tomokv --conf local.conf
-```
-
-This example requires at least four allowed CPUs. It enables grouped multi-key
-execution and disables periodic snapshots; those are explicit overrides.
-
-In the tables:
-
-- **Live** means `CONFIG GET` and `CONFIG SET` are implemented.
-- **Boot/GET** means startup-only and reported by `CONFIG GET`; runtime setting
-  is rejected.
-- **Boot** means no entry in the runtime CONFIG table.
-- **B** means behavior: command semantics, accepted inputs, authentication,
-  persistence, or an execution/backend selection changes.
-- **T** means tuning: placement policy, representation, sampling, or copying
-  changes. Timing, resource use, and diagnostics can still differ.
-- **R** means a Redis configuration name/grammar is supported, with differences
-  stated explicitly. It does not imply identical internals or mutability.
-  **Tomo** marks TomoKV-specific options.
-
-`u32` is `0..4294967295`; `u64` is `0..18446744073709551615`;
-`i64` is `-9223372036854775808..9223372036854775807`. Unless a row says otherwise,
-unsigned numeric settings use decimal digits with no sign. Memory values accept
-bare bytes or `b`, decimal `k/m/g`, or binary `kb/mb/gb`, case-insensitively.
-`1m` is 1,000,000 bytes; `1mb` is 1,048,576 bytes. Memory parsing uses unsigned
-64-bit arithmetic; overflowing inputs are not reliably rejected (see FINDINGS).
-There is no universal meaning for `0` or `-1`: use the rule in the individual row.
+Grammar shorthand: **u32** = unsigned decimal 0..4294967295; **u64** = unsigned
+decimal 0..18446744073709551615; **i64** = signed decimal -9223372036854775808..
+9223372036854775807. **Memory** = decimal bytes (optional `b`), decimal `k/m/g`,
+or binary `kb/mb/gb`, case-insensitive. It accepts no signs or surrounding
+whitespace; overflow follows the parser's unsigned saturation/multiply behavior
+(`src/core/config.h:70`, `:452`, `:464`, `:479`). Encoding and stream exceptions
+are specified below. Use Redis's yes/no spellings for shared boolean settings;
+CONFIG SET also accepts 0/1 (`src/cmd/t_server.cc:505`).
 
 ## Threads, placement, and execution
 
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `wb-policy` | `1` | `0`: LATENCY, flush every ready connection each pass. `1`: bounded small-pipe completion (`kSmallPipe=16`, `kCompleteVisits=3`), then half. Neither policy allocates state; policy 1 uses one byte of existing Client padding. | Boot/GET/REWRITE | Tomo / T |
-| `thread-mode` | `2s` | `2s` / `split`: separate IO and executor threads; `1s` / `fused`: every selected thread does both. | Boot/GET | Tomo / B |
-| `ratio` | derived | Positive `io:ex` logical-thread counts, spread over L3 domains. Split only; total must fit allowed CPUs and the 128-thread bound. | Boot | Tomo / T |
-| `place` | derived | Comma-separated `ifid@CPU,ex@CPU,...`, with decimal allowed CPU IDs. In fused mode the role labels only select CPUs. | Boot | Tomo / T |
-| `shards` | `-1` | `-1` derives `min(8 × initial executor count, 256)`; explicit `1..256` fixes the shard count. Resolved before loading persistence. | Boot | Tomo / B |
-| `--no-pin`; file `pin no` | pinning on | Valueless CLI switch disables CPU pinning. File `pin yes` leaves the default on; it does not undo an earlier `pin no`. | Boot | Tomo / T |
-| `lb` | `1` | `0` or `1`. Enables key and client balancing together. `0` allocates no LB policy, sampling/census sidecars, or observation windows. | Boot/GET | Tomo / T |
-| `flip-auto` | `0` | `0` or `1`. Enables the automatic IO/executor role controller; `1` requires split mode. `0` leaves its dynamic state and fingerprint writer inactive. Manual `FLIP` is separate. | Boot/GET | Tomo / T |
-| `flip-work-window` | `100` | `u32`. Mean parse passes per fingerprint sample. A selected pass contributes all its commands; `1` samples every pass, `0` disables fingerprinting. Only active with `flip-auto 1`. | Boot/GET | Tomo / T |
-| `read-local` | `0` | `0` or `1`. Eligible GET/MGET execution on the connection thread; effective only with `thread-mode 1s` and `x-overlap 0`. Other modes accept `1`, log a notice, and use owner tasks. `0` allocates no read-local state. | Boot/GET | Tomo / B |
-| `atomic` | `0` | `0` or `1`. Enables epoch-MVCC for ordinary grouped multi-shard mutations. `EXEC` and staged scripts may force groups even at `0`; disabling does not discard live group state. | Live | Tomo / B |
-| `hash` | `mix64` | `mix64` or `siphash` (SipHash-1-2). Boot-randomized hash material controls routing and store lookup; persistence recovery restores saved hash material. | Boot | Tomo / T |
-| `zc-min` | `16384` | `u32` bytes. `0` disables borrowed-value single-key GET replies; positive values set the minimum string length. MGET gather separately uses `min(zc-min, 1024)`, including when zero; see below. | Live | Tomo / T |
-| `script-instruction-limit` | `100000` | `u64` Lua VM instructions, checked at 1000-instruction hook intervals. `0` is unlimited. Exceeding the budget aborts the activation; this is not Redis's `lua-time-limit` or `busy-reply-threshold`. | Boot/GET | Tomo / B |
+Defaults: `src/core/config.h:292`, `:329`, `:350`, `:366`, `:375`, `:387`, `:427`;
+annotated reference: `tomokv.conf:105`. Placement validation additionally checks
+the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 
-Policy 1 uses ordinary serve for `in_flight <= 1`. Otherwise it waits for the
-whole contiguous Done pipe when `in_flight <= kSmallPipe` (16) and the connection
-has made fewer than `kCompleteVisits` (3) completion deferrals since its last
-serve; after that, or for a larger pipe, it needs `ceil(in_flight / 2)` Done
-replies. Staged plus acquired Done reply bytes reaching 512 bytes (`kWbufInline`)
-or an acquired MGET scatter reply also allow serve. A deferred FIFO entry keeps
-its lifetime pin and gets only one visit per captured pass. Its byte counter
-saturates at 3 and resets on serve or FIFO removal; the bound counts visits, not
-time. Policy 0 serves every ready head each captured pass.
+| Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `thread-mode` | T | `2s` or `1s`; aliases `split`, `fused` | `2s` | Boot/GET | `thread_mode` | Separate IO/executor roles or both on each thread; `src/core/config.h:783`. |
+| `ratio` | T | Positive `io:ex` counts | Unset; even split in 2s | Boot | `io_threads`, `ex_threads` (current) | Whole-server role counts; rejected in 1s; `src/core/config.h:810`, `:1163`. |
+| `place` | T | Comma-separated `ifid@CPU` / `ex@CPU` | Derived from allowed CPUs | Boot | `thread_cpus` | Explicit placement; mutually exclusive with ratio within a source, CLI replaces file choice; `src/core/config.h:1063`. |
+| `shards` | T | `-1` or integer 1..256 | `-1` → min(8 × executors, 256) | Boot | `shards` | Initial migration units; resolved before recovery; `src/core/config.h:441`, `:826`. |
+| `shard-home` | T | Complete comma-separated `shard:executor_tid` map | Round-robin | Boot | `shard_home`; `shard_owners` (current) | Dense placement thread IDs, not CPU IDs; empty owners allowed; `src/core/config.h:1055`, `src/core/placement.h:178`. |
+| `no-pin` | T | Valueless CLI switch | Absent: pinning on | Boot | `pin_threads` | Disable worker CPU pinning; `src/core/config.h:1056`. |
+| `overlap` | T | u32, 0 or 1 | `0` | Boot/GET | `overlap`, `overlap_enabled` | 2s owner prefetch and IO overlap; eligible 1s owner batches prefetch regardless; `src/core/config.h:326`, `:795`. |
+| `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
+| `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
+| `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
+| `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
+| `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
+| `flip-auto` | T | u32, 0 or 1 | `0` | Boot/GET | `flip_auto`, `flip_fingerprint_window` (derived) | Automatic IO/executor split controller; 1s rejects 1; `src/core/config.h:863`, `:1168`. |
+| `hash` | T | `mix64` or `siphash` | `mix64` | Boot | `hash` | Select key hash implementation; `src/core/config.h:1057`. |
+| `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Single GET borrow threshold (0 disables); scatter cutover has a separate zero caveat below; `src/core/config.h:1042`. |
+| `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable the optional multi-key epoch-MVCC path; EXEC/script atomic machinery has separate admission; `src/core/config.h:1049`, `src/cmd/scatter_engine.inc:1742`. |
 
-Both constants are MEASURED, not derived from existing batch or reply sizes:
-constants ledger addendum 12 (2026-10-02), rows `S=16 KEEP` and
-`D=3 DERIVE-BY-MEASUREMENT`; PLAN-SERIAL 2026-10-02 06:54, D-curve row 3.
-The deciding cells were p8 GET/SET/read-local SET saturation, p8@512K low-load
-attainment, and floor-0.4 burst tails in both reorder states. See
-[the landing report](../MEASURE-REQUEST-wbhybrid3.md) for the measurements and
-pending production merit checks.
-Both policies apply in 1s and 2s, including overlap and read-local schedules.
-`INFO WRITEBACK` reports `wb_policy`. `CONFIG SET wb-policy` remains rejected
-as boot-only; select `0` or `1` at boot. Adaptive `-1` is no longer accepted.
+The file-only spelling `pin yes` leaves the default alone; `pin no` translates
+to the valueless `--no-pin`. A later `pin yes` does not undo an earlier `pin no`
+(`src/core/config.h:1342`). `--help` prints usage and exits; it is not a knob.
 
-Without placement overrides, split mode divides the allowed CPUs evenly, with
-IO taking the extra CPU. Under SMT it divides complete sibling pairs, with both
-logical CPUs of a pair in the same role. Fused mode selects all allowed CPUs.
-Split needs both roles; fused needs at least one thread. At most 128 threads may
-be provisioned. If the allowed topology contains complete SMT pairs, selected
-CPUs must have their reciprocal siblings selected, and split role counts must
-be even. CPU topology and validation are in
-[topology.h](../src/base/topology.h) and [placement.h](../src/core/placement.h).
+Read-local works with overlap 0 or 1 in both modes; split IO remains shard-less
+(`src/core/rl2s.cc:72`, `:213`). A quota refusal or full lane **defers the frame,
+never demotes it**: bytes remain unconsumed until lane work drains
+(`src/core/io_loop.h:3443`). Safety/ordering failures can still require owner
+execution. RYOW uses the connection's live write-ring predicate, including its
+arming fence, precise hashes/keysets and conservative overflow generation
+(`src/net/rob.h:557`, `:644`). See [Local reads](ARCHITECTURE.md#local-reads).
 
-`ratio` and `place` conflict within one input source. A CLI placement setting
-replaces the other kind of placement supplied by the file. Automatic shard
-resolution uses the initial executor count; later role changes do not resize
-the shard set. Explicit shard counts are needed for recovery across different
-initial thread geometries.
+`reorder_retired=1` in 2s describes mode restriction, not removal of the 1s
+mechanism (`src/cmd/t_server.cc:2038`). Neither writeback deferrals nor reorder's
+pick bound is a wall-time latency guarantee; see `src/core/wb_rule.h:75` and
+`src/core/reorder.h:441`.
 
-`zc-min 0` does not disable every internal borrow: MGET gather uses a zero copy
-cutover in that case and borrows nonempty, non-integer string payloads. This is
-distinct from disabling the single-key GET borrowed-reply path. The exact branch
-is in [scatter_engine.inc](../src/cmd/scatter_engine.inc).
+## Network and TLS
 
-The only environment override read by server code is **`TOMOKV_L3_DOMAINS`**
-(default unset). It supplies L3 groups when discovery is unsuitable:
-comma-separated domains, with `-` for a range and `+` joining ranges inside a
-domain, for example `0-3+8-11,4-7+12-15`. CPUs must be unique and in the allowed
-affinity mask. This is a boot-only TomoKV placement override, not a CONFIG key.
+Defaults: `src/core/config.h:316`, `:395`; reference: `tomokv.conf:27`.
+All TLS fields are boot-only. A nonzero TLS port needs a certificate and key;
+client-auth yes/optional also needs a CA file or directory. Enabled TCP and TLS
+ports must differ (`src/core/config.h:1182`). Empty TLS protocol/cipher settings
+select the built-in defaults, not the example file paths in tomokv.conf
+(`src/net/tls.cc:37`, `:148`).
 
-### Study options
+| Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `port` | R | Integer 0..65535 | `6379` | Boot/GET | `tcp_port` | Plain TCP listener; 0 disables it; `src/core/config.h:603`. |
+| `bind` | R | Single address string | `127.0.0.1` | Boot/GET | — | Single IPv4 bind address, not Redis's address list; `src/core/config.h:646`, `src/core/io_loop.h:162`. |
+| `unixsocket` | R | Path string | Unset | Boot/GET | — | Optional Unix listener; `src/core/config.h:647`. |
+| `unixsocketperm` | R | Octal mode 0..777 | `0` | Boot/GET | — | 0 preserves umask; otherwise chmod the socket; `src/core/config.h:125`, `:648`. |
+| `net-io` | T | `uring` or `epoll` (case-insensitive) | `uring` | Boot/GET | `net_io`, `multiplexing_api` | Network engine also selects uring/syscall persistence; `src/core/config.h:445`, `:974`. |
+| `maxclients` | R | Integer 1..4294967295 | `10000` | Live | — | Accept admission ceiling; concurrent acceptors can overshoot; `src/core/config.h:654`, `tomokv.conf:59`. |
+| `timeout` | R | Integer 0..2147483647 seconds | `0` | Live | — | Idle normal-client timeout, 0 off; blocked/pubsub exempt; `src/core/config.h:660`, `tomokv.conf:64`. |
+| `tcp-keepalive` | R | Integer 0..2147483647 seconds | `300` | Live | — | TCP keepalive for newly accepted clients; 0 off; `src/core/config.h:666`. |
+| `tcp-backlog` | R | Integer 0..2147483647 | `511` | Boot/GET | — | listen backlog, kernel may cap it; `src/core/config.h:672`, `src/cmd/t_server.cc:615`. |
+| `client-output-buffer-limit` | R | Repeated `class hard soft seconds`; memory bytes, seconds 0..2147483647 | `normal 0 0 0`; `replica 256mb 64mb 60`; `pubsub 32mb 8mb 60` | Live | — | Classes normal, replica/slave, pubsub; replica round-trips as slave but is inert; `src/core/config.h:182`, `:678`. |
+| `tls-port` | R | Integer 0..65535 | `0` | Boot/GET | — | Independent TLS listener; 0 allocates no TLS context; `src/core/config.h:611`. |
+| `tls-cert-file` | R | PEM path | Unset | Boot/GET | — | Server certificate chain; `src/core/config.h:619`. |
+| `tls-key-file` | R | PEM path | Unset | Boot/GET | — | Server private key; `src/core/config.h:620`. |
+| `tls-ca-cert-file` | R | PEM path | Unset | Boot/GET | — | Trusted client CA file; `src/core/config.h:621`. |
+| `tls-ca-cert-dir` | R | CA directory path | Unset | Boot/GET | — | Trusted client CA directory; `src/core/config.h:622`. |
+| `tls-auth-clients` | R | `yes`, `no`, `optional` (case-insensitive) | `yes` | Boot/GET | — | Require, omit, or optionally verify client certificates; `src/core/config.h:623`. |
+| `tls-protocols` | R | Quoted space-separated TLSv1/TLSv1.1/TLSv1.2/TLSv1.3, case-insensitive | Empty → TLSv1.2 + TLSv1.3 | Boot/GET | — | Allowed protocol versions; `src/core/config.h:634`, `src/net/tls.cc:37`. |
+| `tls-ciphers` | R | OpenSSL cipher-list string | Empty → `ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256` | Boot/GET | — | TLS ≤1.2 cipher list; `src/core/config.h:635`, `src/net/tls.cc:150`. |
+| `tls-ciphersuites` | R | OpenSSL TLS 1.3 suite-list string | Empty → `TLS_AES_128_GCM_SHA256` | Boot/GET | — | TLS 1.3 suites; `src/core/config.h:636`, `src/net/tls.cc:157`. |
+| `tls-prefer-server-ciphers` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | — | Prefer server cipher order; `src/core/config.h:637`. |
 
-These are accepted options, despite being omitted from help and the reference
-configuration. They change scheduling, not the number of architectural stages.
+Output limits count TomoKV's growable buffers and retained borrow segments;
+hard closes at `>=`, soft closes after a continuous interval `> seconds`,
+and zero disables each threshold (`tomokv.conf:94`, `src/core/io_loop.h:5306`).
 
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `x-overlap` | `0` | `0`: ordinary rotation. `1`: interleaved IO/writeback schedule in split, interleaved IO/executor/writeback work in fused. `2`: gated unified three-way work schedule, fused only. | Boot/GET | Tomo / T |
-| `x-ex-sched` | `0` | `0`: FIFO executor batch order. `1`: reorder eligible batch runs by connection-head rank and static command-length class, preserving dependency boundaries. | Boot/GET | Tomo / T |
+## Persistence, databases, and memory
 
-Fused `x-overlap 1` and `2` require `net-io uring`; split rejects `2` and permits
-its `1` schedule with either backend. `2` emits an experimental-schedule warning.
-Read-local admission requires `x-overlap 0`. Implementations are in
-[iopipe_pipeline.h](../src/core/iopipe_pipeline.h),
-[genthread_pipeline.h](../src/core/genthread_pipeline.h),
-[io_loop.h](../src/core/io_loop.h), and [ex_loop.h](../src/core/ex_loop.h).
+Defaults: `src/core/config.h:342`, `:360`, `:371`; reference: `tomokv.conf:187`,
+`:246`, `:292`. `dir`, `dbfilename`, and `tcp-backlog` are explicitly rejected
+by CONFIG SET even though their table entries lack the immutable flag
+(`src/cmd/t_server.cc:615`).
 
-## Networking and client limits
+| Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `dir` | R | Nonempty directory path | `.` | Boot/GET | — | Persistence directory; `src/core/config.h:953`, `:1211`. |
+| `dbfilename` | R | Nonempty filename without `/` | `dump.tomo` | Boot/GET | — | Snapshot filename, also selected automatically at boot; `src/core/config.h:954`, `src/main.cc:249`. |
+| `save` | R | Repeatable positive seconds / u64 changes pairs; empty string disables | `3600 1 300 100 60 10000` | Live | Related: `rdb_changes_since_last_save`, `rdb_scheduled_saves` | Periodic snapshot clauses; first clause in a new source replaces prior source's schedule; `src/core/config.h:145`, `:905`. |
+| `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | `aof_enabled` | Enable multipart AOF; runtime toggle unsupported; `src/core/config.h:955`. |
+| `appendfsync` | R | `always`, `everysec`, `no` (case-insensitive) | `everysec` | Live | Related: `aof_fsyncs` | AOF batch sync policy; `src/core/config.h:964`, `tomokv.conf:273`. |
+| `appendfilename` | R | Nonempty name without `/` | `appendonly.aof` | Boot/GET | — | AOF name prefix; `src/core/config.h:983`, `:1216`. |
+| `appenddirname` | R | Nonempty name without `/` | `appendonlydir` | Boot/GET | — | Multipart AOF subdirectory under dir; `src/core/config.h:984`, `:1216`. |
+| `auto-aof-rewrite-percentage` | R | u32 percent | `100` | Live | Related: `aof_auto_rewrite_triggers` | Growth trigger, 0 disables automatic rewrite; `src/core/config.h:985`. |
+| `auto-aof-rewrite-min-size` | R | Memory, u64 bytes | `64mb` (67108864) | Live | Related: `aof_current_size` | Minimum size for automatic rewrite; `src/core/config.h:991`. |
+| `aof-use-rdb-preamble` | R | Only `yes` (case-insensitive) | `yes` | Live, fixed value | — | Base is a TomoKV snapshot, not a Redis RDB; `no` refused; `src/core/config.h:997`, `src/cmd/t_server.cc:609`. |
+| `aof-timestamp-enabled` | R | `yes` or `no` (case-insensitive) | `no` | Live | — | Write AOF timestamp annotations; `src/core/config.h:1004`. |
+| `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Boot/GET | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict; `src/core/config.h:1013`, `tomokv.conf:287`. |
+| `databases` | R | Integer 1..256 | `1` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
+| `proto-max-bulk-len` | R | Memory, 1048576..4294901759 bytes | `512mb` (536870912) | Live | — | Request bulk-length bound, capped by TomoKV's Slice ABI; `src/core/config.h:140`, `:941`. |
+| `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap; `src/core/config.h:869`. |
+| `maxmemory-policy` | R | `noeviction`, `allkeys-lru`, `allkeys-lfu`, `allkeys-random`, `volatile-lru`, `volatile-lfu`, `volatile-random`, `volatile-ttl` | `noeviction` | Live | — | Eviction policy; `src/core/config.h:875`, `src/store/eviction.h:36`. |
+| `maxmemory-samples` | R | Integer 1..64 | `5` | Live | — | Eviction sample width; `src/core/config.h:882`. |
 
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `bind` | `127.0.0.1` | One numeric IPv4 address; `0.0.0.0` binds all IPv4 interfaces. No hostname, address list, or IPv6 listener parsing. | Boot | R, narrower / B |
-| `port` | `6379` | `0..65535`; `0` disables plaintext TCP. | Boot | R / B |
-| `unixsocket` | unset | Filesystem socket path; unset/empty disables it. The listener owns path cleanup and rejects unsuitable existing paths. | Boot | R / B |
-| `net-io` | `uring` | `uring` or `epoll`, case-insensitive. Epoll makes no io_uring syscalls and derives syscall persistence. Backend selection is explicit, not an automatic fallback. | Boot/GET | Tomo / B |
-| `maxclients` | `10000` | `1..4294967295`. Acceptance limit; startup may reduce it to fit the open-file limit. Independent acceptors make this a pre-allocation safety check, not an exact reservation boundary. | Live | R / B |
-| `timeout` | `0` | `0..2147483647` seconds. `0` disables idle expiry. Normal clients close after strictly more idle seconds; blocked and RESP2 subscriber clients are exempt. | Live | R / B |
-| `tcp-keepalive` | `300` | `0..2147483647` seconds. Applied to new TCP clients; `0` skips keepalive setup. | Live, new clients | R / T |
-| `tcp-backlog` | `511` | `0..2147483647`, passed to `listen`; the kernel may cap it. | Boot/GET | R / T |
-| `client-output-buffer-limit` | see below | One or more `CLASS HARD SOFT SECONDS` clauses. Class is `normal`, `pubsub`, `replica` or `slave`. HARD/SOFT use memory syntax; SECONDS is `0..2147483647`. | Live | R, accounting differs / B |
-| `proto-max-bulk-len` | `536870912` | Memory value from `1048576` through `4294901759` bytes (`UINT32_MAX - 65536`). Bounds request bulk lengths. | Live | R, bounded by 32-bit slices / B |
-| `databases` | `1` | Only `1` accepted, including by CONFIG SET. The sole valid protocol database index is zero. | Live, fixed value | R, restricted / B |
+Recovery uses AOF first when enabled; when no AOF base or increment recovery
+plan exists, startup tries `<dir>/<dbfilename>`. Missing snapshot means empty startup; unreadable or invalid
+snapshot fails startup (`src/main.cc:236`, `:249`). Choose a fresh directory for
+an empty example. The save schedule describes periodic saves; it alone does not
+establish shutdown durability (see `src/cmd/server_tail.cc:249`, `src/main.cc:65`).
 
-Output buffer defaults are `normal 0 0 0`, `replica 268435456 67108864 60`, and
-`pubsub 33554432 8388608 60`. Repeated clauses merge by class. A zero byte
-threshold disables that check. The hard bound triggers at or above the limit;
-the soft bound must remain exceeded for strictly more than the configured
-seconds. Staged reply buffers and borrowed segments count toward usage.
-`replica`/`slave` round-trips as `slave` but has no enforcement target because no
-replication connection class exists. See [conn.h](../src/net/conn.h).
+## Collection encodings
 
-## Authentication and TLS
+The seven canonical rows and nine aliases come directly from
+`src/core/config.h:247`; defaults are at `:256`, parsing at `:534`, and shard
+limit application at `:269`. Reference comments: `tomokv.conf:304`.
+**Count64** means canonical decimal 0..9223372036854775807 (no leading `+` or
+redundant zeroes). Hash/zset memory limits accept empty strings and bare units
+as zero, with a 9223372036854775807 ceiling. Legacy compact aliases instead take
+bare u32 decimal, including leading zeroes. Internal collection limits saturate
+at u32; a CONFIG update does not eagerly rebuild existing collections.
 
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `requirepass` | unset/empty | Password for the default user; empty removes that password requirement. Named users use ACL rules. | Live | R / B |
-| `protected-mode` | `1` / `yes` | Startup: `0`, `1`, `no`, `yes` in lowercase. CONFIG SET also accepts case-insensitive words. Controls the unauthenticated remote-client protection check. | Live | R / B |
-| `enable-debug-command` | `no` | `no`, `yes`, or `local` in lowercase. `local` permits loopback and Unix-socket peers. | Boot/GET | R / B |
-| `aclfile` | unset/empty | ACL file path used at boot and by ACL LOAD/SAVE. Empty disables file-backed ACL loading/saving. | Boot/GET | R / B |
-| `user` | no definitions | Repeatable `user NAME RULE...`; uses the ACL rule parser. CLI form is `--user NAME RULE...`, ending at the next `--` option. | Boot; runtime rules via ACL | R / B |
-| `acl-pubsub-default` | `resetchannels` | `resetchannels` or `allchannels`, case-insensitive. Default channel permissions for ACL users. | Live | R / B |
-| `acllog-max-len` | `128` | `u64` entries per IO owner's ACL log; `0` retains none. | Live | R, per-owner bound / B |
-| `tls-port` | `0` | `0..65535`. `0` allocates no TLS context or connection state. Nonzero enables a separate TLS listener and must differ from nonzero `port`. | Boot/GET | R / B |
-| `tls-cert-file` | unset/empty | PEM server certificate-chain path; required when TLS is enabled. | Boot/GET | R / B |
-| `tls-key-file` | unset/empty | PEM private-key path; required when TLS is enabled. | Boot/GET | R / B |
-| `tls-ca-cert-file` | unset/empty | Trusted CA file. | Boot/GET | R / B |
-| `tls-ca-cert-dir` | unset/empty | OpenSSL CA directory. | Boot/GET | R / B |
-| `tls-auth-clients` | `yes` | Case-insensitive `yes` (require certificate), `optional` (verify if supplied), `no` (do not require one). `yes`/`optional` require a CA file or directory. | Boot/GET | R / B |
-| `tls-protocols` | empty: TLS 1.2 + 1.3 | Space-separated case-insensitive `TLSv1`, `TLSv1.1`, `TLSv1.2`, `TLSv1.3`; quote the list. Availability also depends on OpenSSL policy. | Boot/GET | R / B |
-| `tls-ciphers` | empty: see below | OpenSSL cipher-list string for TLS through 1.2. Explicit nonempty input replaces the built-in list. | Boot/GET | R, Tomo default / B |
-| `tls-ciphersuites` | empty: `TLS_AES_128_GCM_SHA256` | OpenSSL TLS 1.3 ciphersuite list. | Boot/GET | R, Tomo default / B |
-| `tls-prefer-server-ciphers` | `no` | Case-insensitive `yes` or `no`. | Boot/GET | R / B |
+| Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:248`. |
+| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:249`. |
+| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:250`, `src/store/typeval.h:33`. |
+| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:251`. |
+| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:252`. |
+| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:253`. |
+| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:254`. |
+| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:248`. |
+| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:249`. |
+| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:250`. |
+| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:253`. |
+| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:254`. |
+| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:248`. |
+| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:249`. |
+| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:253`. |
+| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:254`. |
+| `hll-sparse-max-bytes` | R | Memory, 0..4294967295 bytes | `3000` | Boot/GET | — | Sparse HLL promotion cutoff; 0 forces dense on sparse growth; `src/core/config.h:1022`, `tomokv.conf:333`. |
+| `stream-node-max-bytes` | R | Memory, 0..4294967295; empty/bare unit = 0 | `4096` | Live | — | Stream macro-node byte rollover, 0 disables this axis; `src/core/config.h:503`, `:1031`, `src/store/typeval.h:50`. |
+| `stream-node-max-entries` | R | Canonical decimal 0..4294967295 | `100` | Live | — | Stream macro-node entry rollover, 0 disables this axis; `src/core/config.h:1031`, `src/store/typeval.h:50`. |
 
-`aclfile` and inline `user` definitions cannot be combined. ACL parsing,
-selectors, command categories, key patterns, channel patterns, and password
-rules are in [acl.cc](../src/cmd/acl.cc). Quote shell-sensitive CLI ACL tokens;
-file quoting follows the configuration grammar above.
+Aliases share canonical CONFIG storage (`src/cmd/t_server.cc:428`). CONFIG GET
+with `*` emits the 68 canonical names plus nine aliases (`:1380`). Integer sets
+retain a separate fixed 128-entry bound (`tomokv.conf:330`); the string-set
+listpack controls do not change it. Use the listed defaults when reproducing
+results, rather than assuming every default equals the Redis reference.
 
-The default TLS <=1.2 cipher list is
-`ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256`.
-All TLS settings are immutable after boot. The implementation attempts kTLS
-automatically and falls back to OpenSSL; there is no `tls-ktls` switch. TLS 1.2
-can offload both TX and RX. TLS 1.3 retains OpenSSL's receive record layer so
-KeyUpdate and other post-handshake messages cannot enter the RESP parser. TomoKV
-does **not** install a TLS 1.3 RX key from the initial client traffic secret or
-promote TLS 1.3 to its raw receive path. With OpenSSL 3.0 this means userspace RX;
-if a newer OpenSSL installs RX itself, its record layer remains responsible for
-control records and re-keying.
+## Security, notifications, and observability
 
-TLS 1.3 TX offload is retained when OpenSSL and the kernel support it. On OpenSSL
-3.0/3.1, TomoKV reinstalls the TX key on requested KeyUpdates using the updated
-server traffic secret; this requires a kernel that supports replacing `TLS_TX`
-keys on an established socket. AES-128-GCM, AES-256-GCM, ChaCha20-Poly1305 and
-AES-128-CCM are covered. A failed reinstall closes the connection before further
-application writes and reports `kTLS TX re-key failed`; kernels without TX re-key
-support cannot claim TLS 1.3 KeyUpdate compatibility with TX offload. OpenSSL
-3.2+ owns TX re-keying in its record layer. Software TLS needs no kernel TLS
-support and keeps the same RESP behavior.
+Defaults: `src/core/config.h:333`, `:383`, `:389`, `:411`;
+reference: `tomokv.conf:202`, `:344`, `:376`.
 
-`INFO STATS` exposes cumulative `tls_ktls_rx_declined_13` (successful socket-BIO
-TLS 1.3 handshakes retained by OpenSSL) and `tls_ktls_tx_rekeys` (successful TX
-reinstalls by TomoKV's OpenSSL 3.0/3.1 compatibility path). Neither counts failed
-handshakes. `tls_ktls_active` still means **bidirectional raw offload**, so a TLS
-1.3 TX-only connection contributes to `tls_ktls_fallback`, not that gauge.
+| Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
+| --- | --- | --- | --- | --- | --- | --- |
+| `requirepass` | R | String | Empty | Live | — | Default-user password; existing connections keep their authentication latch until RESET; `src/core/config.h:704`, `tomokv.conf:346`. |
+| `protected-mode` | R | `yes`, `no`, `1`, `0` (boot literals) | `yes` | Live | — | Refuse non-loopback clients without a configured password; GET emits yes/no; `src/core/config.h:762`. |
+| `enable-debug-command` | R | `no`, `yes`, `local` (boot literals) | `no` | Boot/GET | — | DEBUG access policy; local allows loopback/Unix clients; `src/core/config.h:773`. |
+| `aclfile` | R | Path string | Unset | Boot/GET | — | ACL LOAD/SAVE path; mutually exclusive with inline users; `src/core/config.h:705`, `:1203`. |
+| `user` | R | Repeatable `name rule...` | No inline definitions | Boot | — | Redis root ACL rules; selectors are unsupported; use ACL SETUSER live; `src/core/config.h:706`, `tomokv.conf:356`. |
+| `acl-pubsub-default` | R | `allchannels` or `resetchannels` (case-insensitive) | `resetchannels` | Live | — | Channel permission of new/reset users; `src/core/config.h:724`. |
+| `acllog-max-len` | R | u64 | `128` | Live | — | ACL LOG capacity per IO thread; 0 disables storage; `src/core/config.h:733`. |
+| `notify-keyspace-events` | R | Flag string: `K E g $ l s h z x e t d m n A`; empty off | Empty | Live | — | K/E channel kinds, event classes; A expands to g$lshzxetd and excludes m/n; `src/core/config.h:889`, `src/cmd/notify.h:66`. |
+| `tracking-table-max-keys` | R | u64 | `1000000` | Boot/GET | — | Remembered-key bound per IO owner, 0 unlimited; allocated on CLIENT TRACKING use; `src/core/config.h:899`, `src/cmd/t_server.cc:391`. |
+| `slowlog-log-slower-than` | R | i64 microseconds ≥-1 | `10000` | Live | Related: `slowlog_batches_timed`, `slowlog_entries_recorded` | -1 disables log, 0 logs all; default arms batch timing; `src/core/config.h:739`, `src/cmd/slowlog.h:27`. |
+| `slowlog-max-len` | R | u64 | `128` | Live | — | Entries per recording thread; SLOWLOG LEN may exceed this number; 0 retains none; `src/core/config.h:747`, `tomokv.conf:393`. |
+| `latency-monitor-threshold` | R | Canonical decimal 0..4294967295 milliseconds | `0` | Live | Related: `latency_events_recorded` | Command latency samples, 0 off; shares timing arming with slowlog; `src/core/config.h:753`, `src/cmd/slowlog.h:27`. |
 
-Paper wording for the OpenSSL 3.0 build, after the directed kernel checks pass:
-“TLS 1.2/1.3 with kernel TLS TX offload on kernels supporting TX re-keying; RX
-offload for TLS 1.2, with TLS 1.3 RX and KeyUpdate handled by OpenSSL.” Do not
-claim TomoKV implements TLS 1.3 RX offload with re-key handling. See
-[tls.cc](../src/net/tls.cc) and the directed [KeyUpdate witness](../tests/ktls_keyupdate.cc).
+## CONFIG and limits of this reference
 
-## Persistence
+CONFIG GET/SET use the table in `src/cmd/t_server.cc:308`. REWRITE requires a
+startup file (`src/cmd/server_tail.cc:674`), preserves its directives outside
+that table (`:681`), canonicalizes encoding aliases (`:694`), and quotes/escapes
+values (`:653`, `:723`). It writes save clauses separately and skips the fixed
+AOF preamble declaration (`:643`, `:707`). This is not an export of CLI-only
+placement overrides. See [FINDINGS](FINDINGS.md#configuration-round-tripping).
 
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `dir` | `.` | Nonempty directory for snapshots and AOF storage. | Boot/GET | R / B |
-| `dbfilename` | `dump.tomo` | Nonempty filename without `/`; snapshot save target under `dir`. Does not select automatic boot loading. | Boot/GET | R, Tomo format/default / B |
-| `load` | unset | Nonempty explicit TomoKV snapshot path. Read before listeners start, unless AOF recovery takes precedence. | Boot | Tomo / B |
-| `save` | `3600 1 300 100 60 10000` | Seconds/changes pairs; seconds `1..u64 max`, changes `u64`. A satisfied clause schedules a snapshot. Empty string disables the schedule, not manual SAVE/BGSAVE. | Live | R / B |
-| `appendonly` | `no` | Case-insensitive `yes` or `no`. Enables TomoKV AOF recording and recovery at boot. | Boot/GET | R name, boot-only / B |
-| `appendfsync` | `everysec` | Case-insensitive `always`, `everysec`, `no`. Controls AOF fsync policy: durable reply gating, periodic syncing, or no periodic fsync. | Live | R / B |
-| `appendfilename` | `appendonly.aof` | Nonempty name without `/`; prefix for AOF manifest/log files. | Boot/GET | R / B |
-| `appenddirname` | `appendonlydir` | Nonempty name without `/`, below `dir`. | Boot/GET | R / B |
-| `auto-aof-rewrite-percentage` | `100` | `u32` growth percentage; `0` disables automatic rewriting. | Live | R / T |
-| `auto-aof-rewrite-min-size` | `67108864` | Memory value; minimum size for automatic rewrite consideration. | Live | R / T |
-| `aof-use-rdb-preamble` | `yes` | Only case-insensitive `yes`. Fixed declaration: the base is a **TomoKV snapshot**, not Redis RDB. | Live, fixed value | R name, different format / B |
-| `aof-timestamp-enabled` | `no` | Startup accepts case-insensitive `yes`/`no`; CONFIG SET additionally accepts `0`/`1`. Enables timestamp records. | Live | R / B |
+The single-GET zero-copy gate and scatter gather cutover differ at zero:
+`src/cmd/t_string.cc:354` tests whether zc-min is enabled, whereas
+`src/cmd/scatter_engine.inc:2985` takes `min(zc-min, ValueSlot::kInline)`.
+Thus zero cannot be advertised as disabling all scatter borrow allocations.
 
-Within a source, repeated nonempty `save` directives append clauses; an empty
-directive clears them. The first `save` supplied by the CLI replaces the file's
-schedule. Repeating `--save` on the CLI follows the same rule.
+## Worked example
 
-Snapshots need explicit `--load` on restart. AOF recovery reads the manifest
-under `dir/appenddirname`, its snapshot base if present, and its incremental
-files. Recovery requires the saved shard count and restores saved hash material.
-Changing CPU geometry with `shards -1` can therefore make a saved file refuse
-to load. See [snapshot.cc](../src/snapshot/snapshot.cc),
-[aof.cc](../src/persist/aof.cc), and [main.cc](../src/main.cc).
+Save the following as `build/docs-example.conf` (create `build/` first). It
+uses real directives and leaves the shipped save/slowlog defaults armed:
 
-## Memory and encodings
-
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `maxmemory` | `0` | Memory value; `0` disables eviction-limit work. A positive budget is divided by shard count; it does not cover all process allocations or cap RSS. | Live | R, accounting differs / B |
-| `maxmemory-policy` | `noeviction` | `noeviction`, `allkeys-lru`, `allkeys-lfu`, `allkeys-random`, `volatile-lru`, `volatile-lfu`, `volatile-random`, `volatile-ttl`; case-insensitive. | Live | R / B |
-| `maxmemory-samples` | `5` | `1..64` candidates. | Live | R, bounded / T |
-| `hash-max-compact-entries` | `512` | `u32` entries before expansion. | Live | Tomo / T |
-| `hash-max-compact-value` | `64` | `u32` bytes for the field/value size threshold. | Live | Tomo / T |
-| `list-max-compact-entries` | `4294967295` | `u32` entries; default imposes no smaller entry-count threshold. | Live | Tomo / T |
-| `list-max-compact-value` | `8192` | `u32` bytes of **aggregate list payload**, not maximum element length. | Live | Tomo / T |
-| `set-max-compact-entries` | `128` | `u32` members before expansion. | Live | Tomo / T |
-| `set-max-compact-value` | `64` | `u32` member bytes. | Live | Tomo / T |
-| `zset-max-compact-entries` | `128` | `u32` members before expansion. | Live | Tomo / T |
-| `zset-max-compact-value` | `64` | `u32` member bytes. | Live | Tomo / T |
-| `stream-node-max-bytes` | `4096` | `u32` macro-node rollover budget; `0` disables this axis. See runtime-range caveat below. | Live | R / T |
-| `stream-node-max-entries` | `100` | `u32` macro-node entry budget; `0` disables this axis. See runtime-range caveat below. | Live | R / T |
-
-Compact limits govern subsequent representation decisions, not an immediate
-rewrite of the dataset. Exceeding a limit promotes a compact collection; there
-is no automatic conversion back to compact form. Zero is a literal compact
-limit, not "unlimited." These names are not aliases for Redis's listpack or
-quicklist settings. Stream limits instead control when a new macro-node starts.
-See [typeval.h](../src/store/typeval.h) and the corresponding `t_*.cc` handlers.
-
-LRU uses a fixed five-bit clock with 256-second buckets; LFU also uses five-bit
-metadata. The policy names match Redis, but the internal precision and memory
-accounting do not. No `lru-clock-shift` runtime setting remains.
-
-## Notifications, tracking, and observation
-
-| Name | Default | Valid values and meaning | Runtime | Origin / effect |
-| --- | --- | --- | --- | --- |
-| `notify-keyspace-events` | empty | Any combination of `K E g $ l s h z x e t m d n A`, without spaces. Empty disables notifications. `K`/`E` select channel forms; the other letters select event classes. | Live | R / B |
-| `tracking-table-max-keys` | `1000000` | `u64` keys per IO owner's tracking table; `0` means unlimited. Allocates tracking state only when clients enable tracking. | Boot/GET | R, per-owner and boot-only / B |
-| `slowlog-log-slower-than` | `10000` | `-1..i64 max` microseconds. `-1` disables slow logging; `0` logs every eligible execution. | Live | R / B |
-| `slowlog-max-len` | `128` | `u64` log entries; `0` retains none. | Live | R / B |
-| `latency-monitor-threshold` | `0` | `u32` milliseconds; `0` disables monitoring. See runtime-range caveat below. | Live | R / B |
-
-`A` includes ordinary mutation classes, expiration, eviction, and the accepted
-module flag `d`, but excludes key misses `m` and new-key events `n`. Accepting
-`d` does not enable modules. A delivery route still needs `K` or `E`. For
-example, `Eg` selects generic key-event notifications. Tracking and scheduled
-save observations use internal observer bits, separate from these configured
-pub/sub flags. See [notify.h](../src/cmd/notify.h),
-[tracking.cc](../src/cmd/tracking.cc), and [slowlog.cc](../src/cmd/slowlog.cc).
-
-## Configuration administration and limits
-
-`--conf FILE` and a bare first file argument are startup controls, default unset.
-`--help` is a valueless startup control that prints usage and exits; it does not
-start the server. Neither is a CONFIG key. They are TomoKV invocation controls,
-with the bare-file convention also familiar from Redis.
-
-Runtime examples, with `redis-cli` connected to the server:
-
-```text
-CONFIG GET thread-mode read-local atomic
-CONFIG SET atomic 1
-CONFIG SET save ""
-CONFIG SET maxmemory 1gb maxmemory-policy allkeys-lru
+```conf
+bind 127.0.0.1
+port 6399
+thread-mode 2s
+shards 16
+overlap 0
+read-local 0
+key-lb 1
+client-lb 1
+reorder 0
+save 3600 1
+save 300 100
+save 60 10000
+slowlog-log-slower-than 10000
 ```
 
-Multi-pair CONFIG SET validates values before dispatching owner updates. Boot-only
-keys in the runtime table return an immutable-parameter error. Keys such as
-`port`, `bind`, `ratio`, `place`, `shards`, `hash`, `load`, and `user` are not in
-that table; use startup configuration or the relevant ACL command instead.
+Mainline verification command, from the repository root, with a fresh data
+directory and the gate's eight-core 6 IO + 2 executor geometry:
 
-**CONFIG REWRITE does not preserve the complete startup configuration.** It
-replaces the loaded file with the runtime CONFIG table, omitting boot-only keys
-that are absent from that table, inline ACL users, and comments. It also writes
-nonempty string values without escaping/quoting, so values with spaces or quote
-characters may not reload. It errors if no configuration file was loaded.
-Maintain a complete configuration file directly when preserving startup settings
-matters. These implementation defects are recorded in
-[FINDINGS](FINDINGS.md#configuration-round-tripping).
+```bash
+DOCS_DATA_DIR=$(mktemp -d /tmp/tomokv-docsregen.XXXXXX)
+taskset -c 0-7 ./build/tomokv build/docs-example.conf --ratio 6:2 --dir "$DOCS_DATA_DIR"
+```
 
-**Runtime-range caveat:** CONFIG SET currently accepts `u64` values for the two
-`stream-node-max-*` options and `latency-monitor-threshold`, then narrows them
-to 32 bits. Startup rejects values beyond `u32`. Keep them within `u32`; the
-larger values can make CONFIG GET disagree with effective behavior. See
-[FINDINGS](FINDINGS.md#configuration-validation).
-
-## Build controls and derived limits
-
-The [Makefile](../Makefile) exposes these build controls; none is a runtime CONFIG
-key:
-
-| Variable | Default | Meaning / values |
-| --- | --- | --- |
-| `CXX` | `g++` | C++ compiler command; the normal build contains a GCC-specific `--param`. |
-| `CXXFLAGS` | `-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread` | Compiler flags. Replacing them must retain the required language and threading support. |
-| `LDLIBS` | `-luring -pthread`, with Makefile additions `-lssl -lcrypto` | Link libraries; the link recipe additionally supplies allocator libraries and `-lm`. A command-line override needs to include the complete required list. |
-| `JE` | `1` | Exact `1` selects jemalloc; use `0` for the libc allocator path. Other values also take the non-jemalloc Makefile branch. |
-| `JEDIR` | `/home/user/Projects/refs/jemalloc/_install` | jemalloc prefix when the system header is absent; expects `include/` and `lib/libjemalloc.a`. |
-
-These change build/allocator behavior; compiler flags also control optimization
-and instrumentation. Make does not record variable changes in dependency files;
-clean before changing them. The sanitizer and negative-control targets are
-separate research/test builds, not runtime settings.
-
-The following formerly configurable choices are now fixed or derived in code:
-
-| Choice | Current rule | Source |
-| --- | --- | --- |
-| Atomic admission window | `min(16 × resolved shards, 1024)` | [server.h](../src/core/server.h) |
-| Script staging bytes | 4 MiB if boot `maxmemory` is zero; otherwise `max(4 MiB, min(maxmemory / shards / 16, 64 MiB))` | [server.h](../src/core/server.h) |
-| Script workbench / conflict retries / cut slots | Twice staging bytes / 8 / 4 per IO | [server.h](../src/core/server.h) |
-| Persistence IO engine | uring with `net-io uring`; syscalls with epoll | [config.h](../src/core/config.h) |
-| Read-local capture, filter, interleave, recycling | Enabled as part of the armed local-read implementation | [ex_loop.h](../src/core/ex_loop.h), [flatstore.h](../src/store/flatstore.h) |
-| LB sampling, imbalance band, move cap, cooldown | Derived from traffic, quiet jitter, and transfer duration; observation tick 1000 ms, decision spans three ticks | [weighted_lb.h](../src/core/weighted_lb.h) |
-| ROB / embedded string / scatter inline / common arena | 64 ops / 192 bytes / 1024 bytes / 16384 bytes | [rob.h](../src/net/rob.h), [kvobj.h](../src/store/kvobj.h), [scatter_engine.inc](../src/cmd/scatter_engine.inc), [xshard.h](../src/cmd/xshard.h) |
-
-The headers also retain compile-time research selectors
-`TOMO_TTL_DEADLINE_SIDECAR` (`0` default, `1` prototype) and
-`TOMO_READ_LOCAL_SET_TAX_VARIANT` (`0` default, `1`/`3` experimental in-place
-overwrite; `2` is rejected). They are not runtime choices. The nondefault SET
-variants conflict with the stated immutable-reader contract and are identified
-in [FINDINGS](FINDINGS.md#reader-contract); the normal Makefile build leaves
-them off.
+From another terminal: `redis-cli -p 6399 PING`,
+`redis-cli -p 6399 CONFIG GET databases`, and `redis-cli -p 6399 INFO server`.
+Expect PONG, databases=1, thread_mode=2s, shards=16, overlap=0, read_local=0,
+key_lb=1, client_lb=1, reorder=0. Stop with `redis-cli -p 6399 SHUTDOWN NOSAVE`.
+The parser and serverless geometry check can validate this example without a
+listener; live boot and these replies are maintainer-run checks.
