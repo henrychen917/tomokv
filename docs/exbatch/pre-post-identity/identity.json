@@ -7,7 +7,7 @@
     "text_bytes": 7731025
   },
   "caveat": "Literal bytes; no displacement masking. Duplicate names paired by address order. Static backward branches are not a profile. DWARF/build ID excluded from executable identity.",
-  "differences": "differing-functions.json",
+  "differences": "differing-functions.json.gz",
   "differing_functions": 10136,
   "exact_function_table_and_executable_sections": false,
   "executable_sections": [
