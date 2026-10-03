@@ -106,18 +106,19 @@ static void admission_accounting() {
     for (unsigned i = 0; i < 3; i++)
         require(credits.try_admit() == Attempt::Admitted, "initial reservation");
     require(credits.try_admit() == Attempt::Full, "full window must refuse");
-    credits.set_window(1);
-    require(credits.active() == 3 && credits.debt() == 2 && credits.pool() == 0,
-            "shrinking must retain existing groups as debt");
-    credits.retire(); credits.retire();
-    require(credits.debt() == 0 && !credits.can_admit(), "window admitted at its limit");
-    credits.set_window(0);
+    require(credits.active() == 3 && credits.debt() == 0 && credits.pool() == 0,
+            "full derived window accounting");
+    credits.retire();
+    require(credits.active() == 2 && credits.pool() == 1 && credits.can_admit(),
+            "retirement did not restore one credit");
     require(credits.try_admit() == Attempt::Admitted && credits.debt() == 0,
-            "unlimited window retained debt");
-    credits.set_window(7);
-    require(credits.pool() == 5 && credits.active() == 2, "reconfigure lost active groups");
-    credits.retire(); credits.retire();
-    require(credits.pool() == 7 && credits.active() == 0, "retirement stranded a credit");
+            "returned credit cannot be reused");
+    credits.retire(); credits.retire(); credits.retire();
+    require(credits.pool() == 3 && credits.active() == 0, "retirement stranded a credit");
+    credits.init(0);
+    require(credits.try_admit() == Attempt::Admitted && credits.debt() == 0,
+            "unlimited initialized window refused admission");
+    credits.retire();
 }
 
 static void concurrent_admission() {
