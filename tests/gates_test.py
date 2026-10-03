@@ -930,8 +930,14 @@ collect_job(){
                       _gate_path=None):
         root = Path(__file__).resolve().parent.parent
         gate = (_gate_path or root / 'tests/gate.sh').read_text()
-        canonical = self.canonical if only_jobs is None else ['release', *only_jobs.split()]
-        helpers = self.helper_jobs if only_jobs is None else frozenset()
+        canonical, helpers = self.canonical, self.helper_jobs
+        if only_jobs is not None:
+            from gate_subset_test import select
+            selected = select(only_jobs)
+            self.assertEqual(selected.returncode, 0, selected.stderr)
+            jobs = selected.stdout.splitlines()
+            helpers = self.helper_jobs.intersection(jobs)
+            canonical = [job for job in jobs if job not in helpers]
         ledger_functions = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
         placement = gate[gate.index('set_slot(){'):gate.index('\nset_slot 0')]
         scheduler = gate[gate.index('WORKER_PIDS=()'):gate.index('# ---- 0. preflight:')]
@@ -1234,6 +1240,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self._run_scheduler(slots=2, ordered=False, only_jobs='debug-0 debug-1')
         self.assertEqual(result['counts'], (3, 0), result['output'])
         self.assertEqual(set(result['completion']), {'release', 'debug-0', 'debug-1'})
+        self.assertEqual(result['helpers'], {'production_units'})
         self.assertEqual(result['ledger'], b'ok\tcorrectness family release\n'
                          b'ok\tcorrectness family debug-0\nok\tcorrectness family debug-1\n')
 
@@ -1404,6 +1411,43 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_recovery_requires_owned_pid_reply_and_records_the_peer(self):
+        import persistfix
+        from unittest.mock import Mock
+
+        with tempfile.TemporaryDirectory() as temporary:
+            run = persistfix.Run(SimpleNamespace(artifacts=Path(temporary), mode='1s',
+                                                case='kill', port=19000))
+            run.process = SimpleNamespace(pid=12345, poll=lambda: None)
+            run.log_path = run.root / 'server-2.log'
+            run.log_path.touch()  # Reproduce the landing's empty recovery log.
+            peer = Mock()
+            with patch.object(persistfix, 'Resp', return_value=peer):
+                # Connect succeeded; the endpoint has not answered a protocol request.
+                peer.cmd.side_effect = ConnectionResetError('pre-start connection')
+                self.assertFalse(run.ready())
+                peer.close.assert_called_once()
+                peer.reset_mock()
+                peer.cmd.side_effect = None
+                peer.cmd.return_value = b'# Server\r\nprocess_id:12345\r\n'
+                self.assertTrue(run.ready())
+                peer.cmd.assert_called_once_with('INFO', 'Server')
+                peer.close.assert_called_once()
+                for reply in (b'process_id:54321\r\n', b'# Server\r\n'):
+                    peer.cmd.return_value = reply
+                    for action in (run.ready, run.client):
+                        peer.reset_mock()
+                        with self.assertRaisesRegex(AssertionError, 'persistence peer PID mismatch'):
+                            action()
+                        peer.close.assert_called_once()
+                        self.assertEqual(run.clients, [])
+            events = [json.loads(line) for line in (run.root / 'processes.jsonl').read_text().splitlines()]
+            self.assertEqual(events[0]['event'], 'unanswered_peer')
+            self.assertIn('ConnectionResetError', events[0]['error'])
+            self.assertEqual([row['observed_pid'] for row in events[1:]],
+                             ['12345', '54321', '54321', None, None])
+            self.assertTrue(all(row['pid'] == 12345 and row['port'] == 19000 for row in events))
+
     def test_driver_reuses_stopped_port_but_refuses_live_listener(self):
         import errno
         import socket

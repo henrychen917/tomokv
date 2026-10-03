@@ -234,9 +234,20 @@ def self_test():
             after = N(threads=[N(tid=t.tid, ops=(64 if t.tid == tid else 0) +
                                   (64 // owners if t.role in ('fused', 'ex') else 0))
                                for t in base])
-            conn = N(raw=lambda data: None, read=lambda: b'x' * 128)
-            with patch.object(_lib, 'lbsignals', side_effect=[snap, snap, after]):
-                assert probe_owner(None, conn, set(tids), request, 64) == tid
+            sent = False
+            samples = 0
+            def send(data):
+                nonlocal sent
+                assert data == request, 'ordinary GET arming probe changed'
+                sent = True
+            def capture(_):
+                nonlocal samples
+                if sent: samples += 1
+                return after if samples > 1 else snap
+            conn = N(raw=send, read=lambda: b'x' * 128)
+            with patch.object(_lib, 'lbsignals', side_effect=capture):
+                assert probe_owner(None, conn, set(tids), request, 64) == tid, \
+                    'ordinary GET probe failed to identify actual IO owner'
         # Model the old local CLIENT ID probe: replies arrive but no ops charge.
         # A missing window must stay absent, even with all owners in the schema.
         with patch.object(_lib, 'lbsignals', return_value=snap), \
