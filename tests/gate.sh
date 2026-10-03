@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units persistfix_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1262,6 +1262,39 @@ if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_c
 else
   bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
 fi
+}
+
+job_exbatch_units(){
+  local group label
+  for group in publication watch metadata; do
+    label="exbatch $group unit + negative controls"
+    row_begin "$label"
+    if unit_ready exbatch-unit && unit_ready exbatch-db0-unit && \
+        taskset -c "$CORES" python3 tests/exbatch_checks.py "$group" \
+          >"$TMPDIR/exbatch-$group.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/exbatch-$group.log"
+    fi
+  done
+}
+
+job_exbatch_live(){
+  local mode label launch_fn
+  for mode in 1s 2s; do
+    label="exbatch publication and WATCH lifecycle ($mode)"
+    row_begin "$label"
+    launch_fn=boot; [ "$mode" != 1s ] || launch_fn=boot_fused
+    if "$launch_fn" "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --databases 4 \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+        --save '' --appendonly no && \
+        py tests/exbatch.py 127.0.0.1 "$PORT" >"$TMPDIR/exbatch-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/exbatch-$mode.log and $SRVLOG"
+    fi
+    stop
+  done
 }
 
 job_core_units(){
@@ -2769,10 +2802,11 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
+      build/exbatch-unit build/exbatch-db0-unit \
       build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2833,7 +2867,7 @@ job_dependencies(){
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
-    persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2895,6 +2929,11 @@ collect_job filter_unit
 collect_job ring_unit
 
 collect_job persistfix_units
+
+# EX1/EX3/EX6: three unit rows and two live rows, all before the quick exit.
+# Mainline owns EXPECT constants and nullrefresh-ledger-labels.json (+5/+5).
+collect_job exbatch_units
+collect_job exbatch_live
 
 collect_job core_units
 

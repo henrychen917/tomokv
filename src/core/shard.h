@@ -571,6 +571,8 @@ private:
 
 struct ShardLayoutLock {
     static constexpr size_t watch_offset = offsetof(Shard, has_watches_);
+    static constexpr size_t watchers_offset = offsetof(Shard, watchers_);
+    static constexpr size_t reservations_offset = offsetof(Shard, watch_reservations_);
     static constexpr size_t store_offset = offsetof(Shard, store_);
     static constexpr size_t stats_offset = offsetof(Shard, stats_);
 };
@@ -579,6 +581,8 @@ struct ShardLayoutLock {
 static_assert(sizeof(Shard) == 1440);
 static_assert(kNumBuckets <= UINT16_MAX);
 static_assert(ShardLayoutLock::watch_offset == 8);
+static_assert(ShardLayoutLock::watchers_offset == 1216);
+static_assert(ShardLayoutLock::reservations_offset == 1272);
 static_assert(ShardLayoutLock::store_offset == 56);
 static_assert(ShardLayoutLock::stats_offset == 1000);
 

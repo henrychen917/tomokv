@@ -13,11 +13,15 @@
 namespace {
 bool count_allocations = false;
 size_t allocations = 0;
+int fail_after = -1;
+bool dump_wire = false;
 void check(bool yes, const char* why) {
     if (!yes) { std::fprintf(stderr, "FAIL exbatch: %s\n", why); std::exit(1); }
 }
 }
 void* operator new(size_t n) {
+    if (fail_after == 0) throw std::bad_alloc();
+    if (fail_after > 0) --fail_after;
     if (count_allocations) ++allocations;
     if (void* p = std::malloc(n ? n : 1)) return p;
     throw std::bad_alloc();
@@ -148,10 +152,64 @@ void watch_lifecycle() {
     std::puts("PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters");
 }
 
+void watch_loads() {
+    const long page = sysconf(_SC_PAGESIZE);
+    void* memory = mmap(nullptr, page * 2, PROT_READ | PROT_WRITE,
+                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    check(memory != MAP_FAILED, "map cold WATCH fixture");
+    // Header remains accessible; the maps at 1216/1272 are wholly on page two.
+    auto* sh = new(static_cast<char*>(memory) + page - 1200) Shard;
+    const pid_t child = fork();
+    check(child >= 0, "fork WATCH load witness");
+    if (child == 0) {
+        rlimit limit{0, 0}; setrlimit(RLIMIT_CORE, &limit);
+        if (mprotect(static_cast<char*>(memory) + page, page, PROT_NONE)) std::_Exit(2);
+        for (unsigned i = 0; i < 64; ++i) if (watches(*sh)) std::_Exit(3);
+        std::_Exit(0);
+    }
+    int status = 0;
+    check(waitpid(child, &status, 0) == child, "wait WATCH load witness");
+    check(WIFEXITED(status) && WEXITSTATUS(status) == 0,
+          "unarmed WATCH gate must not read either cold map (inaccessible page)");
+    sh->~Shard(); munmap(memory, page * 2);
+    std::puts("PASS exbatch watch-loads: cold map page inaccessible");
+}
+
+void watch_oom() {
+    unsigned failures = 0, successes = 0;
+    for (bool reservation : {false, true}) {
+        for (int budget = 0; budget < 8; ++budget) {
+            Client client(-1); Shard sh;
+            const auto generation = client.next_watch_generation();
+            const Slice key("oom-watch");
+            const auto owned = database_owned_key(key);
+            std::atomic<uint64_t> epoch{1}; std::atomic<uint32_t> refs{0};
+            bool added = false;
+            fail_after = budget;
+            try {
+                if (reservation) {
+                    Shard::WatchReservation item;
+                    item.epoch = &epoch; item.refs = &refs;
+                    added = sh.watch_append_reservation(owned, item);
+                } else added = sh.watch_add(key, &client, generation);
+            } catch (const std::bad_alloc&) {}
+            fail_after = -1;
+            check(watches(sh) == added, "allocation failure preserves WATCH cache truth");
+            if (added) ++successes; else ++failures;
+            if (reservation) check(sh.watch_finalize_reservation(owned), "retire OOM reservation fixture");
+            else sh.watch_remove(key, &client, generation);
+            check(!watches(sh) && refs == 0, "OOM fixture leaves empty registries");
+        }
+    }
+    check(failures > 0 && successes > 0, "allocation failure window and successful arm both observed");
+    std::printf("PASS exbatch watch-oom: %u failed allocations, %u successful arms\n", failures, successes);
+}
+
 const CommandMetadata* linear(Slice name) {
     for (uint32_t i = 0; i < command_metadata_size(); ++i) {
         const auto* row = command_metadata_at(i);
-        if (name.eq_icase(command_metadata_name(*row))) return row;
+        const auto candidate = command_metadata_name(*row);
+        if (name.eq_icase(std::string_view(candidate.p, candidate.n))) return row;
     }
     return nullptr;
 }
@@ -175,6 +233,11 @@ const CommandMetadata* legacy_resolve(Op& op, uint32_t argument) {
 }
 uint64_t wire_hash = 1469598103934665603ull;
 void hash_wire(const Op& op) {
+    if (dump_wire) {
+        const uint64_t length = op.reply.size();
+        check(std::fwrite(&length, sizeof(length), 1, stdout) == 1, "wire length output");
+        check(std::fwrite(op.reply.data(), 1, length, stdout) == length, "wire bytes output");
+    }
     for (size_t i = 0; i < op.reply.size(); ++i) {
         wire_hash ^= static_cast<unsigned char>(op.reply.data()[i]); wire_hash *= 1099511628211ull;
     }
@@ -235,8 +298,12 @@ int main(int argc, char** argv) {
     check(command_registry_init(false), "command registry");
     const std::string selection(argv[1]);
     if (selection == "publication") publication();
-    else if (selection == "watch") watch_lifecycle();
-    else if (selection == "metadata" || selection == "wire") metadata(selection == "metadata");
+    else if (selection == "watch") { watch_lifecycle(); watch_oom(); }
+    else if (selection == "watch-loads") watch_loads();
+    else if (selection == "metadata" || selection == "wire") {
+        dump_wire = selection == "wire";
+        metadata(selection == "metadata");
+    }
     else check(false, "unknown selection");
     std::printf("layouts Op=%zu Client=%zu ThreadCtx=%zu Shard=%zu FlatStore=%zu Rob=%zu AtomicEntry=%zu Config=%zu\n",
         sizeof(Op), sizeof(Client), sizeof(ThreadCtx), sizeof(Shard), sizeof(FlatStore),
