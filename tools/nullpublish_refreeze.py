@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild and commit campaign 7's freeze; never run a server or load generator.
+"""Rebuild and commit the next null campaign's freeze; never run workloads.
 
 Run this on the landed mainline with tools/nullpublish_refreeze.py. All children
 inherit cores 112-127. A second invocation on a landed, unchanged freeze is a
@@ -70,7 +70,18 @@ def input_identity(root, manifest, generator):
                 cells_sha256=sha(root / 'tests/headline_cells.txt'),
                 measurements_sha256=sha(root / 'tests/gate_measurements.json'),
                 refreeze_sha256=sha(root / 'tools/nullpublish_refreeze.py'),
+                campaign_template_sha256=hashlib.sha256(re.sub(r'^FROZEN_COMMIT=[0-9a-f]{40}$',
+                    'FROZEN_COMMIT=' + '0' * 40, campaign((root / REPORT).read_text()), flags=re.M).encode()).hexdigest(),
                 memtier_sha256=sha(generator))
+
+
+def generate_script(root):
+    """Regenerate the reviewable script only; cannot create/refresh a freeze."""
+    script = campaign((root / REPORT).read_text())
+    (root / SCRIPT).parent.mkdir(parents=True, exist_ok=True)
+    (root / SCRIPT).write_text(script)
+    subprocess.run(['bash', '-n', str(root / SCRIPT)], check=True)
+    return root / SCRIPT
 
 
 def check(root, *, current_instrument=None):
@@ -134,7 +145,7 @@ def refreeze(root, generator):
     with tempfile.TemporaryDirectory(prefix='nullpublish-refreeze-', dir=build) as temporary:
         stage = Path(temporary)
         with (build / 'nullpublish-refreeze-build.log').open('w') as log:
-            subprocess.run(['make', '-B', '-j16', 'build/tomokv', 'build/tailgen'],
+            subprocess.run(['taskset', '-c', '112-127', 'make', '-j16', '-B', 'build/tomokv', 'build/tailgen'],
                            cwd=root, stdout=log, stderr=subprocess.STDOUT, check=True)
         for source, destination in ((root / 'build/tomokv', ARTIFACTS[0]),
                                     (root / 'build/tailgen', ARTIFACTS[1]), (generator, ARTIFACTS[2])):
@@ -153,7 +164,7 @@ def refreeze(root, generator):
                                   mode=path.stat().st_mode & 0o777))
         freeze = dict(schema=3, kind='nullpublish-build-freeze', source_commit=head,
                       inputs=inputs, artifacts=artifacts, build_cpus='112-127',
-                      build_command='make -B -j16 build/tomokv build/tailgen', measurements_run=False,
+                      build_command='taskset -c 112-127 make -j16 -B build/tomokv build/tailgen', measurements_run=False,
                       campaign_arms={'A': ARTIFACTS[0], 'B': ARTIFACTS[0]})
         updated = report.replace(campaign(report), script)
         start, end = updated.index(BEGIN), updated.index(END) + len(END)
@@ -177,10 +188,15 @@ def refreeze(root, generator):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='serverless preflight only; never rebuild or commit')
+    parser.add_argument('--generate-script', action='store_true',
+                        help='regenerate and syntax-check the report fence only; landed refreeze still required')
     parser.add_argument('--memtier', type=Path, default=Path(shutil.which('memtier_benchmark') or '/usr/bin/memtier_benchmark'))
     args = parser.parse_args()
     os.sched_setaffinity(0, set(range(112, 128)))
-    if args.check:
+    require(not (args.check and args.generate_script), 'choose --check or --generate-script')
+    if args.generate_script:
+        print(generate_script(ROOT))
+    elif args.check:
         check(ROOT)
         print('Frozen artifacts, inputs and report fence match')
     else:
