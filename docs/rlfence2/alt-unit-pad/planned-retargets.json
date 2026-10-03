@@ -1,0 +1,241 @@
+{
+  "kind": "A: behaviour twin",
+  "patches": [
+    {
+      "address": 14768,
+      "after": "eb08",
+      "aliases": [
+        "_ZN12_GLOBAL__N_18completeERN4tomo3RobILj64EEENS_4SiteEm"
+      ],
+      "before": "7308",
+      "continuation": 5521,
+      "disassembly": [
+        {
+          "address": 14760,
+          "bytes": "488b7768",
+          "instruction": "mov    0x68(%rdi),%rsi"
+        },
+        {
+          "address": 14764,
+          "bytes": "480fa3f2",
+          "instruction": "bt     %rsi,%rdx"
+        },
+        {
+          "address": 14768,
+          "bytes": "7308",
+          "instruction": "jae    39ba <_ZN4tomo3RobILj64EE34read_local_write_conflicts_pendingIRFbRKNS_2OpEmEEEbmOT_+0x34a>"
+        },
+        {
+          "address": 14770,
+          "bytes": "48c74768ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdi)"
+        },
+        {
+          "address": 14778,
+          "bytes": "c4e2e8f2d1",
+          "instruction": "andn   %rcx,%rdx,%rdx"
+        },
+        {
+          "address": 14783,
+          "bytes": "e9cddbffff",
+          "instruction": "jmp    1591 <_ZN12_GLOBAL__N_18completeERN4tomo3RobILj64EEENS_4SiteEm+0x81>"
+        }
+      ],
+      "entry": 5516,
+      "offset": 14768,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 14760,
+      "symbol": "_ZN12_GLOBAL__N_18completeERN4tomo3RobILj64EEENS_4SiteEm",
+      "target": 14778
+    },
+    {
+      "address": 14800,
+      "after": "eb0c",
+      "aliases": [
+        "_ZN12_GLOBAL__N_18symmetryEv"
+      ],
+      "before": "730c",
+      "continuation": 7679,
+      "disassembly": [
+        {
+          "address": 14788,
+          "bytes": "488bb424a8000000",
+          "instruction": "mov    0xa8(%rsp),%rsi"
+        },
+        {
+          "address": 14796,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 14800,
+          "bytes": "730c",
+          "instruction": "jae    39de <_ZN4tomo3RobILj64EE34read_local_write_conflicts_pendingIRFbRKNS_2OpEmEEEbmOT_+0x36e>"
+        },
+        {
+          "address": 14802,
+          "bytes": "48c78424a8000000ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0xa8(%rsp)"
+        },
+        {
+          "address": 14814,
+          "bytes": "c4e2f8f2c2",
+          "instruction": "andn   %rdx,%rax,%rax"
+        },
+        {
+          "address": 14819,
+          "bytes": "e917e4ffff",
+          "instruction": "jmp    1dff <_ZN12_GLOBAL__N_18symmetryEv+0x15f>"
+        }
+      ],
+      "entry": 7674,
+      "offset": 14800,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 14788,
+      "symbol": "_ZN12_GLOBAL__N_18symmetryEv",
+      "target": 14814
+    },
+    {
+      "address": 14836,
+      "after": "eb0c",
+      "aliases": [
+        "_ZN12_GLOBAL__N_18symmetryEv"
+      ],
+      "before": "730c",
+      "continuation": 8723,
+      "disassembly": [
+        {
+          "address": 14824,
+          "bytes": "488bb424a8000000",
+          "instruction": "mov    0xa8(%rsp),%rsi"
+        },
+        {
+          "address": 14832,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 14836,
+          "bytes": "730c",
+          "instruction": "jae    3a02 <_ZN4tomo3RobILj64EE34read_local_write_conflicts_pendingIRFbRKNS_2OpEmEEEbmOT_+0x392>"
+        },
+        {
+          "address": 14838,
+          "bytes": "48c78424a8000000ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0xa8(%rsp)"
+        },
+        {
+          "address": 14850,
+          "bytes": "c4e2f8f2c2",
+          "instruction": "andn   %rdx,%rax,%rax"
+        },
+        {
+          "address": 14855,
+          "bytes": "e907e8ffff",
+          "instruction": "jmp    2213 <_ZN12_GLOBAL__N_18symmetryEv+0x573>"
+        }
+      ],
+      "entry": 8718,
+      "offset": 14836,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 14824,
+      "symbol": "_ZN12_GLOBAL__N_18symmetryEv",
+      "target": 14850
+    },
+    {
+      "address": 14872,
+      "after": "eb0c",
+      "aliases": [
+        "_ZN12_GLOBAL__N_18symmetryEv"
+      ],
+      "before": "730c",
+      "continuation": 8822,
+      "disassembly": [
+        {
+          "address": 14860,
+          "bytes": "488bb424a8000000",
+          "instruction": "mov    0xa8(%rsp),%rsi"
+        },
+        {
+          "address": 14868,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 14872,
+          "bytes": "730c",
+          "instruction": "jae    3a26 <_ZN4tomo3RobILj64EE34read_local_write_conflicts_pendingIRFbRKNS_2OpEmEEEbmOT_+0x3b6>"
+        },
+        {
+          "address": 14874,
+          "bytes": "48c78424a8000000ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0xa8(%rsp)"
+        },
+        {
+          "address": 14886,
+          "bytes": "c4e2f8f2c2",
+          "instruction": "andn   %rdx,%rax,%rax"
+        },
+        {
+          "address": 14891,
+          "bytes": "e946e8ffff",
+          "instruction": "jmp    2276 <_ZN12_GLOBAL__N_18symmetryEv+0x5d6>"
+        }
+      ],
+      "entry": 8817,
+      "offset": 14872,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 14860,
+      "symbol": "_ZN12_GLOBAL__N_18symmetryEv",
+      "target": 14886
+    },
+    {
+      "address": 14908,
+      "after": "eb0c",
+      "aliases": [
+        "_ZN12_GLOBAL__N_18pipelineEj"
+      ],
+      "before": "730c",
+      "continuation": 10629,
+      "disassembly": [
+        {
+          "address": 14896,
+          "bytes": "488bb424a8000000",
+          "instruction": "mov    0xa8(%rsp),%rsi"
+        },
+        {
+          "address": 14904,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 14908,
+          "bytes": "730c",
+          "instruction": "jae    3a4a <_ZN4tomo3RobILj64EE34read_local_write_conflicts_pendingIRFbRKNS_2OpEmEEEbmOT_+0x3da>"
+        },
+        {
+          "address": 14910,
+          "bytes": "48c78424a8000000ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0xa8(%rsp)"
+        },
+        {
+          "address": 14922,
+          "bytes": "c4e2f8f2c2",
+          "instruction": "andn   %rdx,%rax,%rax"
+        },
+        {
+          "address": 14927,
+          "bytes": "e931efffff",
+          "instruction": "jmp    2985 <_ZN12_GLOBAL__N_18pipelineEj+0x425>"
+        }
+      ],
+      "entry": 10624,
+      "offset": 14908,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 14896,
+      "symbol": "_ZN12_GLOBAL__N_18pipelineEj",
+      "target": 14922
+    }
+  ],
+  "source_sha256": "b24e4fbd06f5fecbaae56815b2c379049cd0b1faa6b34d2ce41ca95e1d9216d1"
+}

@@ -1,0 +1,50 @@
+{
+  "binary_sha256": "933e6857b8529adc195f7b8fe4e09223f2b3855881726ae7e175e943998ae155",
+  "covered_calls": 8,
+  "ex_loop_sha256": "8f89bcface95c328d233517ada26adf8be7685c98974e16fab58dd20c6e90af7",
+  "physical_helpers": 4,
+  "rows": [
+    {
+      "address": 6853088,
+      "calls": [
+        6878419,
+        6879192
+      ],
+      "helper": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "parent": "_ZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj"
+    },
+    {
+      "address": 6870032,
+      "calls": [
+        6895724,
+        6896432
+      ],
+      "helper": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "parent": "_ZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjj"
+    },
+    {
+      "address": 3156320,
+      "calls": [
+        3181792,
+        3182552
+      ],
+      "helper": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "parent": "_ZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjj"
+    },
+    {
+      "address": 3173328,
+      "calls": [
+        3199351,
+        3200064
+      ],
+      "helper": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "parent": "_ZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjj"
+    }
+  ],
+  "source_commit": "7dc81148e2f19af536d7fc267b541bd7f1f95668",
+  "source_completion_calls": 2,
+  "source_mask_uses": [
+    "7dc81148e2f19af536d7fc267b541bd7f1f95668:src/core/ex_loop.h:1558:                rob.complete_pending_read_local_mask(prefix_bits);",
+    "7dc81148e2f19af536d7fc267b541bd7f1f95668:src/net/rob.h:365:    void complete_pending_read_local_mask(uint64_t bits) {"
+  ]
+}

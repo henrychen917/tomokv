@@ -1,0 +1,17 @@
+[
+  {
+    "case": "mget-fence-old",
+    "exit": 1,
+    "assertion": "RL1: N MGET lane hits before ROB retirement: got 1, want 8"
+  },
+  {
+    "case": "mget-fence-unarmed",
+    "exit": 1,
+    "assertion": "MGET fence window never opened after 3 fresh arms"
+  },
+  {
+    "case": "mget-fence-stale",
+    "exit": 1,
+    "assertion": "MGET pipeline replies/order/RYOW:"
+  }
+]

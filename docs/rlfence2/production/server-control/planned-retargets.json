@@ -1,0 +1,198 @@
+{
+  "kind": "A: behaviour twin",
+  "patches": [
+    {
+      "address": 7830617,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "continuation": 3160862,
+      "disassembly": [
+        {
+          "address": 7830609,
+          "bytes": "488b7268",
+          "instruction": "mov    0x68(%rdx),%rsi"
+        },
+        {
+          "address": 7830613,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 7830617,
+          "bytes": "7308",
+          "instruction": "jae    777c63 <_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv+0x13a3>"
+        },
+        {
+          "address": 7830619,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        },
+        {
+          "address": 7830627,
+          "bytes": "c4e2f8f2c1",
+          "instruction": "andn   %rcx,%rax,%rax"
+        },
+        {
+          "address": 7830632,
+          "bytes": "e9b1beb8ff",
+          "instruction": "jmp    303b1e <_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj+0x3e>"
+        }
+      ],
+      "entry": 3160857,
+      "offset": 7830617,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 7830609,
+      "symbol": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "target": 7830627
+    },
+    {
+      "address": 7830645,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "continuation": 3177854,
+      "disassembly": [
+        {
+          "address": 7830637,
+          "bytes": "488b7268",
+          "instruction": "mov    0x68(%rdx),%rsi"
+        },
+        {
+          "address": 7830641,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 7830645,
+          "bytes": "7308",
+          "instruction": "jae    777c7f <_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv+0x13bf>"
+        },
+        {
+          "address": 7830647,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        },
+        {
+          "address": 7830655,
+          "bytes": "c4e2f8f2c1",
+          "instruction": "andn   %rcx,%rax,%rax"
+        },
+        {
+          "address": 7830660,
+          "bytes": "e9f500b9ff",
+          "instruction": "jmp    307d7e <_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj+0x3e>"
+        }
+      ],
+      "entry": 3177849,
+      "offset": 7830645,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 7830637,
+      "symbol": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "target": 7830655
+    },
+    {
+      "address": 7830673,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "continuation": 6933038,
+      "disassembly": [
+        {
+          "address": 7830665,
+          "bytes": "488b7268",
+          "instruction": "mov    0x68(%rdx),%rsi"
+        },
+        {
+          "address": 7830669,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 7830673,
+          "bytes": "7308",
+          "instruction": "jae    777c9b <_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv+0x13db>"
+        },
+        {
+          "address": 7830675,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        },
+        {
+          "address": 7830683,
+          "bytes": "c4e2f8f2c1",
+          "instruction": "andn   %rcx,%rax,%rax"
+        },
+        {
+          "address": 7830688,
+          "bytes": "e9894df2ff",
+          "instruction": "jmp    69ca2e <_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj+0x3e>"
+        }
+      ],
+      "entry": 6933033,
+      "offset": 7830673,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 7830665,
+      "symbol": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "target": 7830683
+    },
+    {
+      "address": 7830701,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "continuation": 6949966,
+      "disassembly": [
+        {
+          "address": 7830693,
+          "bytes": "488b7268",
+          "instruction": "mov    0x68(%rdx),%rsi"
+        },
+        {
+          "address": 7830697,
+          "bytes": "480fa3f0",
+          "instruction": "bt     %rsi,%rax"
+        },
+        {
+          "address": 7830701,
+          "bytes": "7308",
+          "instruction": "jae    777cb7 <_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv+0x13f7>"
+        },
+        {
+          "address": 7830703,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        },
+        {
+          "address": 7830711,
+          "bytes": "c4e2f8f2c1",
+          "instruction": "andn   %rcx,%rax,%rax"
+        },
+        {
+          "address": 7830716,
+          "bytes": "e98d8ff2ff",
+          "instruction": "jmp    6a0c4e <_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj+0x3e>"
+        }
+      ],
+      "entry": 6949961,
+      "offset": 7830701,
+      "purpose": "PRE: bypass fence store; still retire pending bits",
+      "sequence_address": 7830693,
+      "symbol": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "target": 7830711
+    }
+  ],
+  "source_sha256": "2b51893af7dc9a1071db5a0bd07f329c3e02df938789a46599bafd7cbf9fc8c8"
+}

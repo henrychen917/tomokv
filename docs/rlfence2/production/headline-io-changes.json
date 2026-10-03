@@ -1,0 +1,236 @@
+[
+  {
+    "category": "io",
+    "diff": "000.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "post_address": "0x6e9270",
+    "post_aliases": [
+      "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+      "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const"
+    ],
+    "post_instructions": 196,
+    "post_size": 852,
+    "pre_address": "0x6e91c0",
+    "pre_aliases": [
+      "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+      "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const"
+    ],
+    "pre_instructions": 182,
+    "pre_size": 772
+  },
+  {
+    "category": "io",
+    "diff": "002.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "post_address": "0x6e7bf0",
+    "post_aliases": [
+      "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+      "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const"
+    ],
+    "post_instructions": 182,
+    "post_size": 772,
+    "pre_address": "0x6e7af0",
+    "pre_aliases": [
+      "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+      "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const"
+    ],
+    "pre_instructions": 196,
+    "pre_size": 852
+  },
+  {
+    "category": "io",
+    "diff": "013.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+    "post_address": "0x34f060",
+    "post_aliases": [
+      "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+      "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const"
+    ],
+    "post_instructions": 196,
+    "post_size": 852,
+    "pre_address": "0x34efc0",
+    "pre_aliases": [
+      "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+      "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const"
+    ],
+    "pre_instructions": 182,
+    "pre_size": 772
+  },
+  {
+    "category": "io",
+    "diff": "165.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<false, true, false, true>(bool, bool, bool&, unsigned long&)",
+    "post_address": "0x704da0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<false, true, false, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "post_instructions": 215,
+    "post_size": 937,
+    "pre_address": "0x707b50",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<false, true, false, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "pre_instructions": 215,
+    "pre_size": 962
+  },
+  {
+    "category": "io",
+    "diff": "167.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<false, true, true, true>(bool, bool, bool&, unsigned long&)",
+    "post_address": "0x7078e0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<false, true, true, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "post_instructions": 207,
+    "post_size": 905,
+    "pre_address": "0x704fb0",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<false, true, true, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "pre_instructions": 208,
+    "pre_size": 929
+  },
+  {
+    "category": "io",
+    "diff": "173.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<true, true, false, true>(bool, bool, bool&, unsigned long&)",
+    "post_address": "0x70a4b0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<true, true, false, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "post_instructions": 215,
+    "post_size": 937,
+    "pre_address": "0x70a3f0",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<true, true, false, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "pre_instructions": 215,
+    "pre_size": 962
+  },
+  {
+    "category": "io",
+    "diff": "175.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<true, true, true, true>(bool, bool, bool&, unsigned long&)",
+    "post_address": "0x70d0d0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<true, true, true, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "post_instructions": 208,
+    "post_size": 929,
+    "pre_address": "0x70d030",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::pipeline_pass<true, true, true, true>(bool, bool, bool&, unsigned long&)"
+    ],
+    "pre_instructions": 207,
+    "pre_size": 905
+  },
+  {
+    "category": "io",
+    "diff": "185.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "post_address": "0x766ef0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()"
+    ],
+    "post_instructions": 677,
+    "post_size": 3046,
+    "pre_address": "0x766db0",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()"
+    ],
+    "pre_instructions": 688,
+    "pre_size": 3120
+  },
+  {
+    "category": "io",
+    "diff": "187.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "post_address": "0x7661f0",
+    "post_aliases": [
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()"
+    ],
+    "post_instructions": 677,
+    "post_size": 3046,
+    "pre_address": "0x766070",
+    "pre_aliases": [
+      "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()"
+    ],
+    "pre_instructions": 688,
+    "pre_size": 3120
+  },
+  {
+    "category": "io",
+    "diff": "257.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "post_address": "0x3cec90",
+    "post_aliases": [
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()"
+    ],
+    "post_instructions": 818,
+    "post_size": 3690,
+    "pre_address": "0x3c9080",
+    "pre_aliases": [
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()"
+    ],
+    "pre_instructions": 813,
+    "pre_size": 3680
+  },
+  {
+    "category": "io",
+    "diff": "259.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "post_address": "0x3c9170",
+    "post_aliases": [
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()"
+    ],
+    "post_instructions": 813,
+    "post_size": 3680,
+    "pre_address": "0x3cfeb0",
+    "pre_aliases": [
+      "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()"
+    ],
+    "pre_instructions": 818,
+    "pre_size": 3690
+  },
+  {
+    "category": "io",
+    "diff": "293.diff",
+    "equal": false,
+    "instance": 0,
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()",
+    "post_address": "0x6c8680",
+    "post_aliases": [
+      "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()"
+    ],
+    "post_instructions": 1007,
+    "post_size": 5154,
+    "pre_address": "0x6c8590",
+    "pre_aliases": [
+      "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()"
+    ],
+    "pre_instructions": 1005,
+    "pre_size": 5143
+  }
+]

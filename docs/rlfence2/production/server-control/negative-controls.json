@@ -1,0 +1,17 @@
+{
+  "missing-retarget": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true,
+    "sha256": "0abf34cc4f33aec25f462a58bdabb97c6fe8a607c70c46de399fcd2d29928cf3"
+  },
+  "moved-symbol": {
+    "assertion": "PAD symbol table moved",
+    "rejected": true,
+    "sha256": "7e5f6cfa77788c84e6860c1f1243504e8989b589bd672eaf5835c80cae1bf360"
+  },
+  "one-byte": {
+    "assertion": "PAD unplanned byte change",
+    "rejected": true,
+    "sha256": "d6005d354d9f8cc0f5c3e34674a236911c17ab245783fddfea272f6961fdfbc4"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "negative-unit": {
+    "exit": 1,
+    "expected_assertion": "all three completion sites clear the covered MGET fence before retirement",
+    "output": "FAIL rlfence: all three completion sites clear the covered MGET fence before retirement\n"
+  },
+  "negative-pipeline": {
+    "exit": 1,
+    "expected_assertion": "N MGETs complete locally before any ROB retirement",
+    "output": "FAIL rlfence: N MGETs complete locally before any ROB retirement\nrlfence pipeline N=8 lane_completions=1 retired=0\n"
+  }
+}

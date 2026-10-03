@@ -1,0 +1,4 @@
+PASS rlfence symmetry (3 sites, 128 slot positions, partial/mixed/empty masks)
+rlfence pipeline N=8 lane_completions=8 retired=0
+rlfence pipeline N=32 lane_completions=32 retired=0
+PASS rlfence (completion symmetry, pipelined MGET, RYOW, Rob<64>=192)

@@ -1,0 +1,179 @@
+{
+  "instruction_identity": {
+    "passed": 325,
+    "total": 334
+  },
+  "changed": [
+    {
+      "category": "io",
+      "diff": "015.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)",
+      "post_address": "0x699210",
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)"
+      ],
+      "post_instructions": 3652,
+      "post_size": 18951,
+      "pre_address": "0x6992c0",
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)"
+      ],
+      "pre_instructions": 3662,
+      "pre_size": 19021
+    },
+    {
+      "category": "io",
+      "diff": "025.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)",
+      "post_address": "0x69dc20",
+      "post_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)"
+      ],
+      "post_instructions": 3629,
+      "post_size": 18783,
+      "pre_address": "0x69dd10",
+      "pre_aliases": [
+        "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)"
+      ],
+      "pre_instructions": 3639,
+      "pre_size": 18822
+    },
+    {
+      "category": "io",
+      "diff": "059.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]",
+      "post_address": "0x2f1550",
+      "post_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "post_instructions": 2049,
+      "post_size": 10144,
+      "pre_address": "0x2f1550",
+      "pre_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "pre_instructions": 2043,
+      "pre_size": 10118
+    },
+    {
+      "category": "io",
+      "diff": "061.diff",
+      "equal": false,
+      "instance": 2,
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]",
+      "post_address": "0x397d00",
+      "post_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "post_instructions": 2047,
+      "post_size": 10150,
+      "pre_address": "0x397cd0",
+      "pre_aliases": [
+        "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]"
+      ],
+      "pre_instructions": 2054,
+      "pre_size": 10208
+    },
+    {
+      "category": "io",
+      "diff": "151.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "post_address": "0x73eba0",
+      "post_aliases": [
+        "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()"
+      ],
+      "post_instructions": 672,
+      "post_size": 3155,
+      "pre_address": "0x73d930",
+      "pre_aliases": [
+        "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()"
+      ],
+      "pre_instructions": 662,
+      "pre_size": 3100
+    },
+    {
+      "category": "io",
+      "diff": "217.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "post_address": "0x3b6d10",
+      "post_aliases": [
+        "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()"
+      ],
+      "post_instructions": 665,
+      "post_size": 3123,
+      "pre_address": "0x3b6d30",
+      "pre_aliases": [
+        "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()"
+      ],
+      "pre_instructions": 710,
+      "pre_size": 3362
+    },
+    {
+      "category": "io",
+      "diff": "265.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()",
+      "post_address": "0x6baa00",
+      "post_aliases": [
+        "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()"
+      ],
+      "post_instructions": 1009,
+      "post_size": 5170,
+      "pre_address": "0x6bab20",
+      "pre_aliases": [
+        "void tomo::IoLoop::run_loop<true, false, false, true, (unsigned char)0, false>()"
+      ],
+      "pre_instructions": 1007,
+      "pre_size": 5154
+    },
+    {
+      "category": "io",
+      "diff": "275.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, (unsigned char)0, false>()",
+      "post_address": "0x6b8980",
+      "post_aliases": [
+        "void tomo::IoLoop::run_loop<true, true, false, true, (unsigned char)0, false>()"
+      ],
+      "post_instructions": 1018,
+      "post_size": 5213,
+      "pre_address": "0x6b8aa0",
+      "pre_aliases": [
+        "void tomo::IoLoop::run_loop<true, true, false, true, (unsigned char)0, false>()"
+      ],
+      "pre_instructions": 1017,
+      "pre_size": 5205
+    },
+    {
+      "category": "io",
+      "diff": "322.diff",
+      "equal": false,
+      "instance": 0,
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, (unsigned char)0, true>()",
+      "post_address": "0x36e650",
+      "post_aliases": [
+        "void tomo_db0::IoLoop::run_loop<true, false, true, true, (unsigned char)0, true>()"
+      ],
+      "post_instructions": 1149,
+      "post_size": 5647,
+      "pre_address": "0x370600",
+      "pre_aliases": [
+        "void tomo_db0::IoLoop::run_loop<true, false, true, true, (unsigned char)0, true>()"
+      ],
+      "pre_instructions": 1150,
+      "pre_size": 5655
+    }
+  ]
+}
