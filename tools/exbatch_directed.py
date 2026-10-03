@@ -194,19 +194,59 @@ __attribute__((destructor)) static void finish(void) {
 }
 '''
 
+ZERO_REPLY_UNIT = r'''
+int main(int argc, char **argv) {
+    if (argc != 2) return 2;
+    if (!strcmp(argv[1], "empty")) return 0;
+    atomic_store(&connections, 1);
+    states[64000].active = 1; /* memory-only parser fixture, no socket */
+    if (!strcmp(argv[1], "bad")) consume(64000, ":1\r\n", 4);
+    else if (!strcmp(argv[1], "error")) consume(64000, "-ERR\r\n", 6);
+    else if (!strcmp(argv[1], "partial")) consume(64000, ":0\r", 3);
+    else {
+        const char good[] = ":0\r\n:0\r\n:0\r\n";
+        for (int chunk = 1; chunk <= 12; ++chunk)
+            for (int at = 0; at < 12; at += chunk)
+                consume(64000, good + at, chunk < 12-at ? chunk : 12-at);
+        char one[] = ":0", two[] = "\r\n:0\r\n";
+        struct iovec vec[] = {{one, 2}, {two, 6}};
+        consume_iov(64000, vec, 2, 8);
+    }
+    return 0;
+}
+'''
 
-def guard_build_argv(folder):
-    return ["taskset", "-c", "8-23", "cc", "-std=c11", "-O2", "-shared", "-fPIC", "-Wall", "-Wextra", "-Werror",
-            "-o", str(folder / "zero-reply.so"), str(folder / "zero-reply.c"), "-ldl"]
+
+def guard_build_argv(folder, unit=False):
+    name = "guard-unit" if unit else "zero-reply"
+    return ["taskset", "-c", "8-23", "cc", "-std=c11", "-O2", *([] if unit else ["-shared", "-fPIC"]),
+            "-Wall", "-Wextra", "-Werror", "-o", str(folder / (name if unit else name + ".so")),
+            str(folder / (name + ".c")), "-ldl"]
 
 
 def prepare_guard(folder):
     folder.mkdir()
     (folder / "zero-reply.c").write_text(ZERO_REPLY_GUARD)
+    (folder / "guard-unit.c").write_text(ZERO_REPLY_GUARD + ZERO_REPLY_UNIT)
     with (folder / "build.log").open("wb") as log:
         subprocess.run(guard_build_argv(folder), check=True, stdout=log, stderr=subprocess.STDOUT)
+        subprocess.run(guard_build_argv(folder, unit=True), check=True, stdout=log, stderr=subprocess.STDOUT)
+    controls = []
+    for mode in ("good", "bad", "error", "partial", "empty"):
+        receipt = folder / (mode + ".json")
+        proc = subprocess.run(["taskset", "-c", "8", str(folder / "guard-unit"), mode],
+                              env={**os.environ, "EXBATCH_ZERO_RECEIPT": str(receipt)},
+                              capture_output=True, text=True, timeout=10)
+        require(proc.returncode == (0 if mode == "good" else 86), "native guard positive/negative control failed: " + mode)
+        if mode == "good":
+            check_zero_receipt(receipt, 38, 1)
+        else:
+            require("EXBATCH ZERO-REPLY GUARD FAILED:" in proc.stderr, "native guard negative control did not fire")
+        controls.append(dict(mode=mode, exit_status=proc.returncode, stderr=proc.stderr))
+    save(folder / "unit-checks.json", controls)
     return dict(path=str(folder / "zero-reply.so"), sha256=digest(folder / "zero-reply.so"),
-                source_sha256=digest(folder / "zero-reply.c"), build_argv=guard_build_argv(folder))
+                source_sha256=digest(folder / "zero-reply.c"), build_argv=guard_build_argv(folder),
+                unit_sha256=digest(folder / "guard-unit"), unit_checks=controls)
 
 
 def guard_environment(guard, folder, label):
@@ -397,7 +437,9 @@ def parse_memtier(path, cell, log):
         require(bytes_rx["EXEC"] == counts["EXEC"] * len(b"*1\r\n+OK\r\n"), "EXEC payload is not [OK]")
         result.update(exec_aborts=miss, committed_transactions=hit)
     if cell["id"].startswith("exbatch_publish_"):
-        hits = stats["Per-Key Misses"]["GET"]
+        get_buckets = [v for k, v in stats["Per-Key Misses"].items() if k.split()[0].upper() == "GET"]
+        require(len(get_buckets) == 1, "missing exact GET hit/miss counters")
+        hits = get_buckets[0]
         require(hits["Total Misses"] == 0 and hits["Total Hits"] == completed["GET"], "GET missed warm keys")
     return result
 
@@ -834,7 +876,8 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         base, regime = cell["id"].rsplit("_", 1)
         require(boot["read_local"] == ("1" if regime == "f1" else "0"), "effective read-local posture differs")
         for name, value in {"pin_threads": "1", "net_io": "uring", "atomic": "1",
-                            "key_lb": "1", "client_lb": "1", "flip_auto": "0"}.items():
+                            "key_lb": "1", "client_lb": "1", "flip_auto": "0", "shards": "16",
+                            "overlap": "1", "reorder": "0", "thread_mode": "2s" if regime == "s0" else "1s"}.items():
             require(boot[name] == value, f"effective boot {name} differs from recipe")
         require(conn.must("DBSIZE") == 0, "server did not boot with fresh empty state")
         if base == BASES[0]:
@@ -1063,6 +1106,10 @@ def dry_run(cells, identities, output, blocks):
     if any(c["id"].startswith(BASES[3]) for c in cells):
         print("# write embedded zero-reply C source; compile and SHA-bind before quiet preflight")
         print(shlex.join(guard_build_argv(output / "guard")))
+        print(shlex.join(guard_build_argv(output / "guard", unit=True)))
+        for mode in ("good", "bad", "error", "partial", "empty"):
+            print(shlex.join(["env", f"EXBATCH_ZERO_RECEIPT={output / 'guard' / (mode + '.json')}",
+                              "taskset", "-c", "8", str(output / "guard/guard-unit"), mode]))
     for arm, identity in identities.items():
         source = identity["path"]
         identity["path"] = str(output / "arms" / arm / "tomokv")
@@ -1425,7 +1472,8 @@ def self_test():
                 now = [1000.]
                 processes, dbsizes, endpoints, lb_calls = [], [0, 1000000, 1000000], [0, 0, 80000, 80000], []
                 boot = dict(process_id="123", read_local="0", pin_threads="1", net_io="uring", atomic="1",
-                            key_lb="1", client_lb="1", flip_auto="0", thread_cpus=",".join(f"{i}:{i}" for i in range(8)))
+                            key_lb="1", client_lb="1", flip_auto="0", shards="16", overlap="1", reorder="0",
+                            thread_mode="1s", thread_cpus=",".join(f"{i}:{i}" for i in range(8)))
 
                 class Process:
                     pid = 123
