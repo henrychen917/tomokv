@@ -1,19 +1,58 @@
 # MEASURE-REQUEST-gaterows — round 3 wave B
 
 Branch/worktree: `cx-gaterows`, `/home/user/Projects/cx-gaterows`.
-Launch HEAD: `e279aeb4cf08ae2c39f26be679388b872fed4667`.
-First command was the required fetch/merge; it fast-forwarded to
-`b47544aad6cb8a81f835f54145b2387beade0bc7`. A second fetch/merge before this
-report returned “Already up to date.” No push, server, benchmark, load generator,
-or live gate was run. Builds used `taskset -c 112-127 make -j16`; executable
-serverless checks used CPUs 112–127. No agents were delegated.
+Original launch HEAD: `e279aeb4cf08ae2c39f26be679388b872fed4667`.
+Addendum gaterows2 launch HEAD: `4bd6601fd8b6121b23bfdeacf2add5a3950c55cd`.
+The original required fetch/merge fast-forwarded to `b47544aad6`.
+The addendum's first command fetched and merged current `origin/cpp`,
+`068fdb816d63d9adf4bbfd2aa5a11d57cd7c4615`; conflict resolution is described below.
+No push, server, benchmark, load generator, or live gate was run. Builds used
+`taskset -c 112-127 make -j16`; executable serverless checks used CPUs 112–127.
+No agents were delegated.
 
 The deliverable adds **eight rows, +8 quick / +8 full**, and a partial job
-selector. **Maintainer counts should become 455 / 472**, from 447 / 464 at the
-synchronized base. `EXPECT_QUICK` and `EXPECT_FULL` are unchanged. All 464
+selector. **Maintainer counts should become 467 / 484**, from **459 / 476** at
+current `origin/cpp`. `EXPECT_QUICK` and `EXPECT_FULL` are unchanged. All 476
 pre-existing full labels retain their order and multiplicity. This lane changes
-no production source: `git diff b47544aad -- src` is empty. The launch diff below
-also includes the mandatory upstream HEXPIRE fix; it is not this lane's source edit.
+no production source: `git diff origin/cpp -- src` is empty. The launch diff below
+includes mandatory upstream changes; those are not this lane's source edits.
+
+## Addendum gaterows2 — merge resolution
+
+`tests/gates_test.py` keeps both `only_jobs` and `_gate_path` in
+`SchedulerWiring._run_scheduler`, reads the supplied gate path when present, and
+executes the generated scheduler from a temporary script file. Both the partial
+job/finalizer test and `test_large_gate_script_avoids_single_argument_limit`
+remain. The latter injects 64 KiB into the actual scheduler slice and requires
+the executed script to exceed 128 KiB. The overlapping temporary-file writes
+were deduplicated to mainline's implementation.
+
+The gate's additive job, production-unit build, unit-ready, dependency and
+collector lists retain both sides: this lane's eight rows and mainline's
+splitlocal, netcap, kTLS and flushfix work. The knob assertions retain both
+writeback coverage and the incoming query-buffer grammar checks.
+
+The rebuild also exposed a stale R7 receipt inventory: the landed splitlocal
+forwarding emits **14 additional audited bodies per database runtime**, so the
+historical `wbrule` inventory of 184 per runtime correctly refused the new 198.
+`tests/r7shadow_noop.py` now has a separate `splitlocal` inventory, selected by
+the current-tree receipt. For each runtime it requires both new parser entries,
+their eight closures and four ordinary-parser clones, alongside the existing
+32 physical split-local writeback bodies across both runtimes. It still checks
+every ordinary body's instructions and clone multiplicity. The historical
+`r7` and `wbrule` inventories remain unchanged. A new disposable missing-parser
+control must fail at `missing split-local parser bodies`.
+
+`tests/fixtures/nullrefresh-ledger-labels.json` is taken from `origin/cpp`
+**byte for byte**, then left unchanged as instructed. The source inventory is
+484 labels; removing exactly this lane's eight labels yields mainline's entire
+476-label list in the same order. Both EXPECT assignments also match mainline.
+The resulting fixture check deliberately fails with `EXPECT_FULL=476,
+fixture=476, source declarations=484`, the eight new labels missing and no
+extra labels. Mainline fixture-sync and the maintainer's +8/+8 count update
+remain landing steps; no fixture or count bypass was introduced.
+
+Post-merge proof results and exact reproduction commands are recorded below.
 
 ## What was wrong and what changed
 
@@ -26,7 +65,7 @@ also includes the mandatory upstream HEXPIRE fix; it is not this lane's source e
 | CT21, `tests/lbsignals.py:218–220`; no balanced stationary row | `lb-stationary-1s` and `lb-stationary-2s` boot both balancers on, flip off. One live connection per client-serving thread and one key per shard issue the same paced GET rounds. DEBUG LBSIGNALS checks active, balanced thread/shard traffic; INFO checks enabled controllers and advancing ticks. After 12 seconds of stabilization, a fresh **full 30-second** assertion window permits **zero bucket moves and zero client moves**. Three bounded fresh connection/key re-arms; failure to open the window is FAIL. Gathers are recorded separately: the owner's thrash definition is moves, not planning. Corrected the old lbsignals comment to describe the two actual tests. The existing `rlcache` churn row remains the positive movement control. |
 | NET31, unreferenced `tests/netio.py`; IO16 feature-product omission | Two directed epoll rows, one per thread mode. Each first runs the same battery on uring as the zero-epoll-counter control, then boots epoll once and requires its counters to fire. Re-arm, partial-write byte equality, doorbell latency, churn and teardown checks remain intact. Added serverless controls for the shared engine-identity assertions. The 32-way feature product stays unchanged. |
 | RO21/RO22, `tests/wbland_checks.py:211`, `tests/r7shadow_sync.py:108–110` | Independent `reorder_sync` row. Removed the two assertions that froze the old accounting spellings. The generated twin inherits the ordinary envelope's current accounting. A scratch ordinary-envelope accounting change is rejected while its twin is stale, then passes after regeneration. |
-| RO20/EX23, `Makefile:360`, `tests/reorder_noop.py:8–15,64,87–88` | Independent engagement and FIFO-twin identity rows; reproducible via `make reorder-checks`. Engagement runs the real parser/ROB/executor order oracle in both database runtimes, plus a disabled-capability executable control. The audit's four nonexistent IO symbols and un-emitted inline policy entries are removed. Every remaining policy method must exist in each namespace in both binaries; unexpected template arity and missing methods fail. The current identity row checks 368 ordinary function bodies and rejects missing-symbol/opcode mutations. |
+| RO20/EX23, `Makefile:360`, `tests/reorder_noop.py:8–15,64,87–88` | Independent engagement and FIFO-twin identity rows; reproducible via `make reorder-checks`. Engagement runs the real parser/ROB/executor order oracle in both database runtimes, plus a disabled-capability executable control. The audit's four nonexistent IO symbols and un-emitted inline policy entries are removed. Every remaining policy method must exist in each namespace in both binaries; unexpected template arity and missing methods fail. The synchronized identity row audits 396 ordinary function bodies and rejects missing-symbol/parser/opcode mutations. |
 | EX20/EX21/EX24, `src/cmd/t_server.cc:2313,2429,2618,2637`, `src/core/shutdown_report.h:422–433` | **Retained pending a null, because the deletion probe failed this lane's exact hot-byte requirement.** No production layout/counter fields or consumer fixtures were changed. Per-field reasons and the measured byte comparison are below. |
 | Added task (6), `tests/gate.sh` scheduler/collector and receipt startup | `GATE_ONLY_JOBS` accepts whitespace/comma-separated **job names**, adds transitive prerequisites, and uses the normal `run_job`, watchdog, port, boot, finalizer and collector contracts. Unknown/unavailable jobs and direct requests for unscored build helpers fail. `differ-split` / `differ-armed` expand to their necessary children. Partial atomic work retains release dependency; it does not pull in the entire full inventory. A PARTIAL run never enters EXPECT, ABBA, NIC, or receipt begin/bind/finish paths. |
 
@@ -70,7 +109,7 @@ comparison is separate mainline work. The eight rows here do not count WB20 as c
 
 ## Zero-only publication probe (EX20 / EX21 / EX24)
 
-A throwaway patch removed only the two INFO strings/printf arguments and made
+A throwaway patch on the original `b47544aad` base removed only the two INFO strings/printf arguments and made
 the three shutdown fields conditional on `TOMO_SIGNALACCT_WITNESS`. It retained
 all counter storage, offsets and hot-path writes. It compiled successfully.
 
@@ -83,9 +122,11 @@ Only **82/446** audited raw function bodies were byte-identical (the inventory
 includes armed bodies). Relative addresses were not masked in this check. This
 is evidence of changed code placement, not a measured performance regression.
 It fails the lane's stricter permission to land source edits only with exact
-hot-byte identity. The patch was restored; the final production executable is
-byte-identical to PRE, SHA-256
+hot-byte identity. The patch was restored; the original lane's production
+executable was byte-identical to its PRE, SHA-256
 `9fba8bdf52b32f25466554d08f55f1e199cab1ae1793677a842db12511f3544f`.
+These are historical probe results, not hashes of the post-merge rebuild.
+The synchronized candidate retains no lane-owned production-source change.
 
 | Retained field | Why it is debt; why retained in this lane |
 | --- | --- |
@@ -108,8 +149,8 @@ measurement for its final, tests-only binary.
 
 ## Rows and exact counts
 
-All eight `collect_job` emissions are at `tests/gate.sh:2863–2868`, **above**
-the quick exit at line 2997. Line positions, rather than thread-mode inference,
+All eight `collect_job` emissions are at `tests/gate.sh:2944–2949`, **above**
+the quick tally/exit at lines 3087–3088. Line positions, rather than thread-mode inference,
 determine the quick delta.
 
 | Selector job | Stable ledger label | Quick | Full |
@@ -122,15 +163,14 @@ determine the quick delta.
 | `lb-stationary-2s` | stationary balanced LB holds still (2s) | +1 | +1 |
 | `netio-1s` | epoll directed correctness (1s) | +1 | +1 |
 | `netio-2s` | epoll directed correctness (2s) | +1 | +1 |
-| Total | 447 → **455**, 464 → **472** | **+8** | **+8** |
+| Total | 459 → **467**, 476 → **484** | **+8** | **+8** |
 
-`tests/fixtures/nullrefresh-ledger-labels.json` now contains the 472 reviewed
-labels in source order. The actual fixture checker deliberately exits 1 with
-`EXPECT_FULL=464, fixture=472, source declarations=472`, **no missing or extra
-labels**. It passes when the prospective 472 is supplied to an in-memory copy
-of the checker input. No tracked EXPECT value was edited. Mainline must apply
-the +8/+8 count adjustment before the complete landing gate. The selector can
-run the new jobs before that adjustment, because PARTIAL runs never score EXPECT.
+`tests/fixtures/nullrefresh-ledger-labels.json` retains mainline's 476 labels.
+The source checker names exactly the eight missing labels above; its expected
+failure is preserved in `build/gaterows2-inventory.json`. Mainline must run its
+fixture-sync and apply the +8/+8 count adjustment before the complete landing
+gate. The selector can run the new jobs before those updates because PARTIAL
+runs never score EXPECT.
 
 The existing ABBA self-test row now also runs the subset, writeback reply,
 stationary counter/window and network identity controls. It remains one row.
@@ -138,9 +178,9 @@ Knob assertions extend their existing row(s). No full/quick row was retired.
 
 IO16 remains an owner decision. Adding epoll to the **32-cell product** adds
 **32 rows to each tier** (24 successful boot cells plus 8 fused/flip refusals),
-so after this lane that would be **487 quick / 504 full**. It need not duplicate
-the three topology rows. For a time proxy, the current mainline's saved
-`/home/user/Projects/cx-final/build/gate-ledger-iteration.txt` contains 32 product
+so after this lane that would be **499 quick / 516 full**. It need not duplicate
+the three topology rows. For a time proxy, the ledger read during the original
+lane run at `/home/user/Projects/cx-final/build/gate-ledger-iteration.txt` contained 32 product
 rows totaling **30.95 seconds = 0.516 job-minutes** (max 1.26 s per row).
 SHA-256 read: `443e0c6b2b2cabe602605081c10dba7f1c04bb81f07e99222ae7ede07da814d3`.
 A similar epoll product would thus cost roughly **0.52 additional aggregate
@@ -152,23 +192,30 @@ measured here; 0.52 minutes is a serial-work estimate, not an epoll timing claim
 
 | Positive proof | Throwaway negative / required failure | Result |
 | --- | --- | --- |
-| Release build; final binary SHA equals PRE exactly | Publication-only source deletion compared without relocation masking | Final exact identity; deletion probe rejected as above |
+| Original release build; original binary SHA equals PRE exactly | Publication-only source deletion compared without relocation masking | Historical exact identity; deletion probe rejected as above |
 | 352 writeback trace fixtures | Patch the serverless unit's defer wrapper to return true: policy 0 must exit **1**, `trace decision`, in both namespaces | PASS |
 | Writeback reply comparator | Wrong, missing and reordered reply data → `writeback reply parity` | PASS |
 | R7 production engagement in both namespaces; FIFO twin with correct expected capability | FIFO-disabled executable passed as expected ON → exit **1**, `binary capability differs from expected arm` | PASS |
-| R7 strict ordinary-body FIFO-twin receipt, **368/368** | Remove a real policy method → `missing policy symbol`; mutate an opcode → strict identity false | PASS |
+| R7 strict ordinary-body FIFO-twin receipt, **396/396** | Remove a real policy method → `missing policy symbol`; remove a split-local parser → `missing split-local parser bodies`; mutate an opcode → strict identity false | PASS |
 | Current generated-envelope parity | Change ordinary accounting to use `busy.start_ns()`: stale twin → `stale R7 envelope`; regenerate → current | PASS |
 | Stationary move/tick/traffic validators | One bucket/client move → `stationary LB moved after stabilization`; no ticks/rounds → `window never opened`; silent owner/shard → traffic assertion | PASS |
 | netio shared identity validator, valid epoll and uring observations | Wrong engine, absent counters, epoll zeros, nonzero uring counters → respective A1/A2/A3 assertions | PASS |
 | Subset selector, **7 serverless tests** | Unknown/tier-ineligible/empty/helper-only selection refuses; failed helper cannot disappear; PARTIAL ledger rejected by receipt parser | PASS |
-| Full gate harness, **58 serverless tests** | Existing scheduler/verdict/teardown controls, plus real partial scheduling/finalizers and full inventory/order checks | PASS |
-| Full collector source inventory | After removing precisely the eight new labels, the ordered list equals the original 464 labels | PASS |
+| Full gate harness, **59 serverless tests** | Existing scheduler/verdict/teardown controls, real partial scheduling/finalizers, full inventory/order checks, and the >128 KiB script control | PASS |
+| Docs drift: **85 parser spellings** and eight controls | Fake/missing/duplicate rows, missing alias, new parser option and empty document must fail named assertions | PASS |
+| Full collector source inventory | After removing precisely the eight new labels, the ordered list equals current mainline's 476 labels; upstream fixture bytes and EXPECT assignments unchanged | PASS |
 | Shell syntax, Python compilation, `git diff --check` | — | PASS |
 
-The gate harness grew past Linux's per-argument limit in its serverless scheduler
-fixture. That fixture now writes its shell script to its own temporary file
-instead of passing the entire script as one `bash -c` argument; the actual
-scheduler and assertions are unchanged. Logs:
+The first post-merge gate-harness run overlapped this lane's full rebuild and
+hit six existing 45-second scheduler deadlines (rc 124). Its evidence is kept
+in `build/gaterows2-gates-test.log` and `build/scheduler-failure-*`.
+After the rebuild, the **whole 59-test suite passed in 88.826 s** without
+changing any deadline or assertion; see `build/gaterows2-gates-test-final.log`.
+Post-merge build and writeback trace logs are `build/gaterows2-build.log` and
+`build/gaterows2-wb-traces.log`. The final R7 checks use
+`build/gaterows2-reorder-final.log` and `build/reorder-checks/`.
+
+Original-run logs:
 `build/gaterows-{pre-build,final-build,gates-test,reorder-receipt,engagement-multi,engagement-db0,wb-traces}.log`.
 Detailed identity and executable-control receipts are in
 `build/gaterows-reorder-receipt/` and `build/gaterows-engagement/`.
@@ -184,6 +231,7 @@ taskset -c 112-127 python3 tests/lb_stationary.py --self-test
 taskset -c 112-127 python3 tests/netio.py --self-test
 taskset -c 112-127 python3 tests/gate_subset_test.py
 taskset -c 112-127 python3 tests/gates_test.py
+taskset -c 112-127 python3 tests/docs_drift.py --self-test
 taskset -c 112-127 bash -n tests/gate.sh tests/gate_subset.sh
 ```
 
@@ -225,7 +273,7 @@ boot sequence; it does not skip assertions within that family. Build-only helper
 are added automatically and cannot be requested as stand-alone passing rows.
 The coordinator's tailgen/ABBA/NIC sections are outside job selection.
 
-After mainline changes the counts to **455/472**, run the normal landing gate:
+After mainline fixture-sync and count changes to **467/484**, run the normal landing gate:
 
 ```sh
 tests/gate.sh iteration --server-cores 0-31 --load-cores 32-111 --ports 16379-16390
@@ -248,8 +296,8 @@ Implementation commits before this report:
 - `bb989fef2` — executable writeback and shared engine negative controls.
 - `64b981908` — stationary traffic validation and completed-result wording.
 
-`git diff e279aeb4cf08ae2c39f26be679388b872fed4667 --stat` (includes the mandatory
-upstream merge; lane-only review starts at `b47544aad`):
+`git diff e279aeb4cf08ae2c39f26be679388b872fed4667 --stat` (original launch,
+including mandatory upstream merges; lane-only review is `git diff origin/cpp`):
 
 <!-- GATEROWS_STAT -->
 ```text

@@ -926,9 +926,10 @@ collect_job(){
     def _run_scheduler(self, *, reverse=False, slots=None, failure='', behavior='', ordered=True,
                       delayed_completion=False, dependency_probe=False,
                       remove_atomic_dependency=False, add_asan_dependency=False,
-                      remove_atomic_publication=False, only_jobs=None, _cpus=None):
+                      remove_atomic_publication=False, only_jobs=None, _cpus=None,
+                      _gate_path=None):
         root = Path(__file__).resolve().parent.parent
-        gate = (root / 'tests/gate.sh').read_text()
+        gate = (_gate_path or root / 'tests/gate.sh').read_text()
         canonical = self.canonical if only_jobs is None else ['release', *only_jobs.split()]
         helpers = self.helper_jobs if only_jobs is None else frozenset()
         ledger_functions = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
@@ -1142,12 +1143,12 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             ])
             script = '\n'.join((prelude, arrays, ledger_functions, placement, scheduler,
                                 'trap stop_workers EXIT', stub))
+            script_path = directory / 'scheduler.sh'
+            script_path.write_text(script)
             def preserve_failure(stdout='', stderr=''):
                 saved = preserve_scheduler_failure(root, directory, script, stdout, stderr)
                 return f'\nScheduler failure artifacts: {saved}\n'
             try:
-                script_path = directory / 'scheduler.sh'
-                script_path.write_text(script)
                 result = subprocess.run(['timeout', '--kill-after=2', '45', 'taskset', '-c', cpu_list,
                                          'bash', str(script_path)], cwd=root, env=env,
                                         text=True, capture_output=True, timeout=50)
@@ -1213,7 +1214,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                     (dependency_handshake == add_asan_dependency))):
                 output += preserve_failure(result.stdout, result.stderr)
             return dict(ledger=(''.join(f'{v}\t{label}\n' for v, duration, label in timed_rows)).encode(),
-                        output=output, counts=counts,
+                        output=output, counts=counts, script_bytes=len(script.encode()),
                         fixture_cpus=set(fixture_cpus), observed_cpus=observed_cpus,
                         dependency_reached=dependency_reached,
                         dependency_handshake=dependency_handshake,
@@ -1235,6 +1236,21 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         self.assertEqual(set(result['completion']), {'release', 'debug-0', 'debug-1'})
         self.assertEqual(result['ledger'], b'ok\tcorrectness family release\n'
                          b'ok\tcorrectness family debug-0\nok\tcorrectness family debug-1\n')
+
+    def test_large_gate_script_avoids_single_argument_limit(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        marker = '\nWORKER_PIDS=()\n'
+        self.assertEqual(gate.count(marker), 1)
+        # Put exactly 64 KiB inside the scheduler slice, not after its end marker.
+        padding = ('#' + 'x' * 62 + '\n') * 1024
+        with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
+            gate_path = Path(tmp) / 'gate.sh'
+            gate_path.write_text(gate.replace(marker, marker + padding, 1))
+            result = self.run_scheduler(_gate_path=gate_path, slots=3, ordered=False)
+        self.assertGreater(result['script_bytes'], 128 * 1024)
+        self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
+        self.assertCountEqual(result['completion'], self.canonical)
 
     def test_failure_evidence_survives_a_named_pipe_in_the_fixture(self):
         with tempfile.TemporaryDirectory() as tmp:

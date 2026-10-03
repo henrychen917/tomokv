@@ -1,10 +1,11 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "de62abacf25a09a3e9a3349c5dbe1ac61dedda1b01ee5db4b2d8cf21ad67c201",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; includes eight gaterows additions pending the maintainer count update",
+  "source_sha256": "e5fa82101d18dd142c6269b489e302f8adc84c17c0e39d90e3a3081f3fad989a",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
+    "configuration docs match parser",
     "Redis config quoting + mid-value #",
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
@@ -25,14 +26,7 @@
     "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
-    "R7 generated envelope parity",
-    "R7 production engagement (both database runtimes)",
-    "R7 FIFO twin off-path identity + negative controls",
-    "writeback policies 0/1: 22 standard fixtures",
-    "stationary balanced LB holds still (1s)",
-    "stationary balanced LB holds still (2s)",
-    "epoll directed correctness (1s)",
-    "epoll directed correctness (2s)",
+    "splitlocal template forwarding + old-argument controls",
     "storage unlinked regression",
     "storage randomkey regression",
     "storage rehash regression",
@@ -45,6 +39,8 @@
     "storage field-index-failure regression",
     "storage hash-bytes regression",
     "storage deadline-sidecar regression",
+    "flushfix flush witnesses",
+    "flushfix headers witnesses",
     "multidb serverless owners",
     "multidb global namespace boundary",
     "atomic survivors unit build",
@@ -75,6 +71,11 @@
     "netcmd receive regression",
     "netcmd config regression",
     "netcmd hexpire-oom regression",
+    "NET1 serverless bounds + scan + reclamation",
+    "NET1 inline + query cap (1s, uring)",
+    "NET1 inline + query cap (1s, epoll)",
+    "NET1 inline + query cap (2s, uring)",
+    "NET1 inline + query cap (2s, epoll)",
     "generated Redis 7.4 ACL categories",
     "reject --mode (flag deleted)",
     "reject --spread",
@@ -392,13 +393,16 @@
     "AOF control frame never inside a large record (atomic 0)",
     "AOF control frame never inside a large record (atomic 1)",
     "TLS ephemeral CA/server/client certificates",
+    "NET2 serverless RX policy and KeyUpdate controls",
     "reject TLS listener without certificate",
     "reject invalid tls-protocols",
     "reject invalid tls-ciphers",
     "TLS client-auth yes matrix",
     "TLS yes shutdown invariants",
     "TLS client-auth optional matrix",
-    "kTLS engaged live (default boot)",
+    "kTLS TLS 1.2 engaged live (default boot)",
+    "TLS 1.3 KeyUpdate survives (NET2)",
+    "TLS 1.3 userspace KeyUpdate survives (NET2)",
     "TLS optional shutdown invariants",
     "TLS pipeline/torn-record/coexistence battery",
     "TLS shutdown invariants",
@@ -495,6 +499,56 @@
         "netcmd hexpire-oom regression"
       ],
       "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:05",
+      "added": [
+        "configuration docs match parser"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:18",
+      "added": [
+        "splitlocal template forwarding + old-argument controls"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:52",
+      "added": [
+        "NET1 inline + query cap (1s, epoll)",
+        "NET1 inline + query cap (1s, uring)",
+        "NET1 inline + query cap (2s, epoll)",
+        "NET1 inline + query cap (2s, uring)",
+        "NET1 serverless bounds + scan + reclamation"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 22:05",
+      "added": [
+        "flushfix flush witnesses",
+        "flushfix headers witnesses"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 22:31",
+      "added": [
+        "NET2 serverless RX policy and KeyUpdate controls",
+        "TLS 1.3 KeyUpdate survives (NET2)",
+        "TLS 1.3 userspace KeyUpdate survives (NET2)",
+        "kTLS TLS 1.2 engaged live (default boot)"
+      ],
+      "removed": [
+        "kTLS engaged live (default boot)"
+      ],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
   ]

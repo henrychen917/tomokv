@@ -1762,6 +1762,7 @@ def print_cell(row):
 
 
 def parse_args():
+    from abba_standing_null import default_path
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--subset", choices=("smoke", "full"), default="full",
@@ -1793,8 +1794,10 @@ def parse_args():
                    help="campaign RUN with frozen binaries.json; phase aliases are hard links only")
     p.add_argument("--collect-null", type=int, choices=(0, 1), default=0,
                    help="1 freezes one executable into identical arms and collects a null; always PARTIAL/exit 3")
+    p.add_argument("--null-holdout", type=int, choices=(0, 1), default=0,
+                   help="1 checks identical arms against fixed published floors and copies the null's block plan")
     p.add_argument("--null-result", type=Path, default=Path(os.getenv("GATE_ABBA_NULL", os.getenv(
-        "GATE_RECEIPT_NULL", ROOT / ".gate-history/receipts/baselines/full-null.json"))),
+        "GATE_RECEIPT_NULL", default_path(ROOT)))),
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
     p.add_argument("--calibrate", action="store_true",
                    help="one-arm 10s search; PIN/EXEMPT/ceiling evidence only, never a performance verdict")
@@ -1838,6 +1841,12 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
               "window_seconds": WINDOW, "order": list(ORDER), "cells": [], "output": str(out),
               "subset": args.subset, "only": args.only, "escalate": args.escalate,
               "run_kind": "null-control" if args.collect_null else "comparison", "comparison_trusted": False}
+    holdout = bool(getattr(args, "null_holdout", 0))
+    if holdout:
+        if (args.collect_null or args.escalate or args.only or args.subset != "full" or
+                diagnostic_monitor is not None or _pin_instances is not None):
+            raise ValueError("holdout requires a full frozen identical-binary comparison without diagnostic overrides")
+        report["run_kind"] = "null-holdout"
     if diagnostic_monitor is not None:
         # Internal-only background qualification may observe the real measurement loop while
         # auditing an unvalidated quiet-screening rule. It must NEVER transiently publish a
@@ -1938,10 +1947,26 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         control, control_error = None, None
         if not args.collect_null:
             try:
-                control = read_json(args.null_result)
-            except (OSError, ValueError) as error:
+                from abba_standing_null import read_null
+                control = read_null(args.null_result)
+                from abba_evidence import match_null_identity
+                match_null_identity(report, control)
+            except (OSError, ValueError, TypeError, KeyError) as error:
+                control = None
                 control_error = f"standing null unavailable: {args.null_result}: {error}"
                 print("ABBA UNTRUSTED: " + control_error + "; all measurements still run", flush=True)
+        if holdout:
+            from abba_holdout import CONTRACT, plan as holdout_plan
+            from abba_evidence import validate_null
+            if control_error:
+                raise ValueError(control_error)
+            validate_null(control, now=time.time())
+            if (report["instrument_fingerprint"] != control["instrument_fingerprint"] or
+                    report["cell_source"]["sha256"] != control["cell_source"]["sha256"] or
+                    [asdict(cell) for cell in cells] != [row["cell"] for row in control["cells"]]):
+                raise ValueError("holdout null fingerprint/inventory differs; re-freeze before measuring")
+            report.update(holdout_contract=CONTRACT, holdout_plan=holdout_plan(control))
+            (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
         quiet_options = {"own_root_pid": os.getpid(), "window_seconds": WINDOW,
                          "ports": (args.port,), "sample_artifact": out / "quiet-samples.jsonl"}
         quiet = (diagnostic_monitor or QuietMonitor)(server_cpus, load_cpus, **quiet_options)
@@ -1963,6 +1988,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         report["candidate"] = {"path": str(args.candidate.resolve()), "sha256": sha256(binaries["B"]),
                                "workspace_commit": git("rev-parse", "HEAD"),
                                "workspace_status": git("status", "--short")}
+        if holdout and not (report["candidate"]["sha256"] == provenance["sha256"] == control["candidate"]["sha256"]):
+            raise ValueError("holdout requires the published null's byte-identical binary in both arms")
         if sha256(binaries["A"]) != provenance["sha256"]:
             raise RuntimeError("reference changed while freezing campaign binaries")
         print(f"REFERENCE {provenance['source']} {provenance['commit']} sha256={provenance['sha256']}", flush=True)
@@ -2062,7 +2089,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         if diagnostic_monitor is not None:
                             quiet.set_phase("between-measurements")
                         quiet.check()
-                    bounds = NULL_MODE if args.collect_null else resolution_bounds(control, cell.id)
+                    bounds = NULL_MODE if args.collect_null or holdout else resolution_bounds(control, cell.id)
                     row["assessment"] = assess(assessed_cell, row["rounds"], bounds)
                     row["verdict"] = row["assessment"]["verdict"]
                     print_cell(row)
@@ -2105,8 +2132,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         # floor candidate at all.
                         if not args.escalate or incomplete or not still_climbing:
                             break
-                if "null_sampling_policy" in report and row["verdict"] == "PASS":
-                    from abba_null_sampling import collect
+                if holdout or "null_sampling_policy" in report and row["verdict"] == "PASS":
                     def repeat_measure(arm, sequence, instances):
                         quiet.check()
                         result = runner.measure(cell, arm, sequence, instances, plans[arm])
@@ -2116,8 +2142,15 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                         report["quiet_box"] = quiet.evidence()
                         report["elapsed_seconds"] = time.monotonic() - start
                         (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
-                    collect(assessed_cell, row, repeat_measure, persist_sampling)
-                    print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
+                    if holdout:
+                        from abba_holdout import collect
+                        collect(assessed_cell, row, control, repeat_measure, persist_sampling)
+                        print(f"  {cell.id} HOLDOUT sampling: {report['holdout_plan'][cell.id]}", flush=True)
+                        print_cell(row)
+                    else:
+                        from abba_null_sampling import collect
+                        collect(assessed_cell, row, repeat_measure, persist_sampling)
+                        print(f"  {cell.id} NULL sampling: {row['null_sampling_plan']}", flush=True)
             except (InterruptedError, QuietViolation):
                 raise
             except NotComparable as e:
@@ -2168,7 +2201,19 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     "load_selection", {}).get("status") != "CONFIRMED"]
         report["statistical_verdict"], report["worst_cell"] = overall(report["cells"])
         report["verdict"] = report["statistical_verdict"]
-        if report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
+        if holdout:
+            # Matching and independent validation must run even after an outside-
+            # floor FAIL. Such a result is evidence, not an unreachable verifier.
+            from abba_evidence import validate_holdout
+            report["standing_null"] = match_null(report, control, now=time.time())
+            from abba_standing_null import retain
+            retain(control, out / "null-control.json")
+            result = validate_holdout(report, control, now=time.time())
+            report["holdout_resolution"] = result
+            report["verdict"] = result["verdict"]
+            (out / "holdout-resolution.json").write_text(json.dumps(result, indent=2) + "\n")
+            print(f"HOLDOUT {result['verdict']}: fixed published floors; not a code-comparison PASS", flush=True)
+        elif report["statistical_verdict"] in ("PASS", "UNRESOLVED"):
             report["verdict"] = "PARTIAL"
             if diagnostic_monitor is not None:
                 report["null_control"] = {"verdict": "UNTRUSTED", "reason":
@@ -2188,9 +2233,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     if control_error:
                         raise ValueError(control_error)
                     report["standing_null"] = match_null(report, control, now=time.time())
+                    print(f"ABBA standing null TRUSTED: {report['standing_null']['sha256']}", flush=True)
                     # Retain the exact accepted control beside this comparison. Receipts use this
                     # frozen file, never a default path that another successful run may replace.
-                    (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
+                    from abba_standing_null import retain
+                    retain(control, out / "null-control.json")
                     if not args.only and report["statistical_verdict"] == "PASS":
                         report["comparison_trusted"] = True
                         report["verdict"] = "PASS"
@@ -4134,7 +4181,8 @@ def self_test():
                 original_gmtime = time.gmtime
                 sequence = [0]
 
-                def run(*, collect=False, subset="full", control=None, candidate_rate=100, only="", escalate=False):
+                def run(*, collect=False, subset="full", control=None, candidate_rate=100, only="", escalate=False,
+                        holdout=False):
                     sequence[0] += 1
                     out = directory / f"run-{sequence[0]}"
                     null_path = directory / "standing.json"
@@ -4144,7 +4192,8 @@ def self_test():
                         null_path.unlink(missing_ok=True)
                     argv = ["abbagate.py", "--candidate", str(binary), "--cells", str(source), "--output", str(out),
                         "--memtier", sys.executable, "--server-cores", "0-31", "--load-cores", "32-127", "--load-smt", "",
-                        "--subset", subset, "--collect-null", str(int(collect)), "--null-result", str(null_path)]
+                        "--subset", subset, "--collect-null", str(int(collect)), "--null-result", str(null_path),
+                        "--null-holdout", str(int(holdout))]
                     if only:
                         argv += ["--only", only]
                     if escalate:
@@ -4162,14 +4211,13 @@ def self_test():
                     quiet.evidence.side_effect = evidence
                     quiet.close.side_effect = evidence
                     def measure(_runner, cell, arm, index, instances, knobs):
+                        from _nullrefresh_test import raw_run
                         calls.append((cell.id, instances, arm))
                         ticks[0] += WINDOW + 8
-                        return dict(arm=arm, rate=100 if arm == "A" else candidate_rate, busy_pct=99.9,
-                            saturation=saturation_record(cell.mode),
-                            midpoint_monotonic=11,
-                            latency_ms=1, complete=True, commands=2000, pid=123, window_seconds=WINDOW,
-                            instances=instances, load_layout=load_layout(_runner.load_cpus, instances, cell.conns),
-                            artifacts=f"{cell.id}/n{instances}-{index}-{arm}")
+                        result = raw_run(cell, arm, instances, index,
+                                         dict(load_cpus=_runner.load_cpus, server_cpus=_runner.server_cpus))
+                        result.update(rate=100 if arm == "A" else candidate_rate, busy_pct=99.9)
+                        return result
                     provenance = dict(source="fake reference", commit="0" * 40, sha256=sha256(binary))
                     with mock.patch.object(Runner, "measure", measure), \
                          mock.patch(__name__ + ".resolve_reference", return_value=(binary, provenance)) as resolve, \
@@ -4215,6 +4263,30 @@ def self_test():
                 rc, calls, unresolved_control, _ = run(collect=True, candidate_rate=103)
                 self.assertEqual((rc, len(calls), unresolved_control["verdict"]), (3, 16, "PARTIAL"))
                 self.assertEqual(unresolved_control["resolution_summary"]["unresolved_cells"], ["n1", "n2"])
+                rc, calls, held, held_out = run(control=unresolved_control, holdout=True)
+                self.assertEqual((rc, len(calls), held["statistical_verdict"], held["verdict"]),
+                                 (0, 16, "PASS", "PASS"), held)
+                self.assertFalse(held["comparison_trusted"])
+                self.assertEqual(held["standing_null"]["status"], "MATCHED")
+                self.assertEqual(read_json(held_out / "holdout-resolution.json")["verdict"], "PASS")
+                def outside_floor_assertion():
+                    rc, calls, held, held_out = run(control=unresolved_control, holdout=True, candidate_rate=90)
+                    self.assertEqual((rc, len(calls), held["statistical_verdict"]), (1, 16, "FAIL"))
+                    self.assertTrue((held_out / "holdout-resolution.json").is_file(),
+                                    "outside-floor holdout must reach its resolution artifact")
+                    self.assertEqual(read_json(held_out / "holdout-resolution.json")["verdict"], "FAIL")
+                outside_floor_assertion()
+                from _nullrefresh_test import throwaway
+                with throwaway(sys.modules[__name__], "main", "if holdout:\n            # Matching",
+                               "if False:\n            # Matching") as removed:
+                    # The driver must see run()'s fake boot/quiet/clock globals;
+                    # a copied namespace would freeze their unpatched versions.
+                    import types
+                    driver = types.FunctionType(removed.__code__, globals(), argdefs=removed.__defaults__)
+                    driver.__kwdefaults__ = removed.__kwdefaults__
+                    with mock.patch.object(sys.modules[__name__], "main", driver):
+                        with self.assertRaisesRegex(AssertionError, "outside-floor holdout must reach"):
+                            outside_floor_assertion()
                 rc, calls, unresolved, _ = run(control=unresolved_control)
                 self.assertEqual((rc, len(calls), unresolved["statistical_verdict"], unresolved["verdict"]),
                                  (3, 8, "UNRESOLVED", "UNRESOLVED"))
@@ -4251,6 +4323,7 @@ def self_test():
                                  (3, 8, "PASS", "PARTIAL"))
                 defects = {
                     "failed unselected cell": lambda c: c["cells"][1].update(verdict="FAIL"),
+                    "missing inventory": lambda c: c.pop("cell_source"),
                     "instrument": lambda c: c["instrument_fingerprint"].update(sha256="f" * 64),
                     "old hash only": lambda c: c.pop("instrument_fingerprint"),
                     "generator": lambda c: c["environment"].update(memtier_sha256="f" * 64),

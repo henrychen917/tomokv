@@ -109,6 +109,8 @@ struct MultiSession {
     bool queue_error = false;
     uint64_t next_queue_op_id = 0;
     std::vector<MultiQueuedCommand> queue;
+    uint64_t query_bytes = 0; // Redis query accounting: argv payload plus one pointer per arg
+    void clear_queue() { queue.clear(); query_bytes = 0; }
     std::vector<MultiWatchedKey> watched;
     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
 };
@@ -1464,7 +1466,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             session->active = true;
             session->queue_error = false;
             session->next_queue_op_id = client.rob().dispatch_id() + 1;
-            session->queue.clear();
+            session->clear_queue();
             reply_ok(op.sink());
         }
         return MultiIoAction::LocalDone;
@@ -1548,7 +1550,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         }
         session->active = false;
         session->queue_error = false;
-        session->queue.clear();
+        session->clear_queue();
         if (session->watched.empty()) {
             client.next_watch_generation();
             client.clear_watch_dirty();
@@ -1582,7 +1584,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             server.atomic_retire_group(owner_io, generation);
             reply_err(op.sink(), "ERR out of memory");
             session->active = false;
-            session->queue.clear();
+            session->clear_queue();
             return MultiIoAction::LocalDone;
         }
         state->admitted = true;
@@ -1596,7 +1598,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
             destroy_multi_state(state);
             reply_err(op.sink(), "ERR out of memory");
             session->active = false;
-            session->queue.clear();
+            session->clear_queue();
             return MultiIoAction::LocalDone;
         }
         if ((!state->write_keys.empty() || state->database_publish) && server.aof().recording()) {
@@ -1610,7 +1612,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
                 session->active = false;
-                session->queue.clear();
+                session->clear_queue();
                 return MultiIoAction::LocalDone;
             }
             state->aof_group = aof_create_group(server.aof(), participants);
@@ -1618,13 +1620,13 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
                 destroy_multi_state(state);
                 reply_err(op.sink(), "ERR out of memory");
                 session->active = false;
-                session->queue.clear();
+                session->clear_queue();
                 return MultiIoAction::LocalDone;
             }
         }
         session->active = false;
         session->queue_error = false;
-        session->queue.clear();
+        session->clear_queue();
         for (const MultiWatchedKey& key : state->watched) add_shard(state->shards, key.shard);
         if (state->shards.empty()) {
             if (state->final_reply == MultiFinalReply::ExecAbort)
@@ -1665,6 +1667,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         reply_err(op.sink(), "ERR out of memory");
         return MultiIoAction::LocalDone;
     }
+    for (const std::string& arg : session->queue.back().argv)
+        session->query_bytes += arg.size() + sizeof(void*);
     reply_simple(op.sink(), "QUEUED");
     return MultiIoAction::LocalDone;
 }
@@ -2247,7 +2251,7 @@ MultiExecState* multi_prepare_close(Server& server, Client& client, uint32_t own
     }
     session->active = false;
     session->queue_error = false;
-    session->queue.clear();
+    session->clear_queue();
     if (session->watched.empty()) return nullptr;
     MultiExecState* state = prepare_unwatch_state(
         server, client, owner_io, *session, MultiStateKind::Close, MultiFinalReply::Ok);
@@ -2283,6 +2287,11 @@ uint64_t multi_session_memory(const Client& client) {
     for (const MultiQueuedCommand& command : session->queue)
         for (const std::string& arg : command.argv) bytes += arg.size();
     return bytes;
+}
+
+uint64_t multi_session_query_bytes(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    return session ? session->query_bytes : 0;
 }
 
 namespace {

@@ -28,6 +28,40 @@ try:
             raise AssertionError("retired CONFIG name is visible: " + name)
         if not isinstance(conn.cmd("CONFIG", "SET", name, "0"), _lib.RespError):
             raise AssertionError("retired CONFIG name remains writable: " + name)
+    # Redis 7.4 has a fixed PROTO_INLINE_MAX_SIZE, not a proto-max-inline knob.
+    if conn.must("CONFIG", "GET", "proto-max-inline") != []:
+        raise AssertionError("invented proto-max-inline CONFIG surface")
+    if conn.cmd("CONFIG", "SET", "proto-max-inline", "65536") != _lib.RespError(
+            b"ERR Unknown option or number of arguments for CONFIG SET - 'proto-max-inline'"):
+        raise AssertionError("proto-max-inline SET differs from Redis 7.4")
+    query_name = "client-query-buffer-limit"
+    if values.get(query_name.encode()) != b"1073741824":
+        raise AssertionError("query-buffer limit default differs from Redis's 1gb")
+    try:
+        for spelling, expected in (("1mb", "1048576"), ("2m", "2000000"),
+                                   ("1GB", "1073741824"), ("001048576B", "1048576"),
+                                   ("9223372036854775807", "9223372036854775807")):
+            conn.must("CONFIG", "SET", query_name, spelling)
+            if conn.must("CONFIG", "GET", query_name) != [query_name.encode(), expected.encode()]:
+                raise AssertionError("query-buffer memory grammar round trip: " + spelling)
+        before = conn.must("CONFIG", "GET", query_name)
+        prefix = "ERR CONFIG SET failed (possibly related to argument '%s') - " % query_name
+        for spelling, reason in [
+                (s, "argument must be between 1048576 and 9223372036854775807 inclusive")
+                for s in ("0", "1048575", "1m", "9223372036854775808", "", "mb")] + [
+                (s, "argument must be a memory value")
+                for s in ("-1", "+1048576", "1.5mb", "1MiB", " 1mb")]:
+            if conn.cmd("CONFIG", "SET", query_name, spelling) != _lib.RespError(prefix + reason):
+                raise AssertionError("query-buffer error grammar: " + repr(spelling))
+            if conn.must("CONFIG", "GET", query_name) != before:
+                raise AssertionError("rejected query-buffer SET changed the limit")
+        if conn.cmd("CONFIG", "SET", query_name, "1mb", query_name, "2mb") != _lib.RespError(
+                b"ERR duplicate configuration parameter"):
+            raise AssertionError("duplicate query-buffer SET accepted")
+        if conn.must("CONFIG", "GET", query_name) != before:
+            raise AssertionError("duplicate query-buffer SET changed the limit")
+    finally:
+        conn.must("CONFIG", "SET", query_name, values[query_name.encode()])
     for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
                            ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0"),

@@ -344,27 +344,36 @@ taskset -c 112-127 python3 tests/gate_receipt.py promote-null \
 cp "$NULL" "$RUN/promoted-null.json"
 sha256sum -c "$RUN/reorder-control-receipt.sha256"
 
-# Independent full holdout at the same frozen load and fixed two-sided bounds.
-HOLDOUT_RC=$(taskset -c 112-127 python3 - "$RUN/promoted-null.json" <<'PYEXPECTED'
-import json
-import sys
-report = json.load(open(sys.argv[1]))
-print(3 if any(row['status'] == 'UNRESOLVED' for row in report['null_control']['resolution']) else 0)
-PYEXPECTED
-)
-# UNRESOLVED/rc=3 is reporting-only. A regression/invalid measurement (rc=1)
-# still stops here; no successful receipt or push is inferred from this holdout.
-expect_rc "$HOLDOUT_RC" python3 tests/abbagate.py "${COMMON[@]}" \
-  --reference-binary "$STABLE" --null-result "$RUN/promoted-null.json" --output "$RUN/holdout"
+# Independent full holdout: fixed max(published |pooled delta|, published
+# spread, metric quantum), for BOTH signs and for measurement validity.
+# Copy the null's per-cell count: 2 samples/arm/block, 1-4 blocks/cell;
+# the existing cap is 4 blocks (8 samples/arm), with budget_limited retained.
+# Always run the verifier, including after rc=1, so failures remain reviewable.
+HOLDOUT_RC=0
+python3 tests/abbagate.py "${COMMON[@]}" --null-holdout 1 \
+  --reference-binary "$STABLE" --null-result "$RUN/promoted-null.json" \
+  --output "$RUN/holdout" || HOLDOUT_RC=$?
+VERIFY_RC=0
 taskset -c 112-127 python3 tests/gate_receipt.py verify-null-holdout \
   --campaign "$RUN/frozen-campaign.json" --null-result "$RUN/promoted-null.json" \
-  --comparison "$RUN/holdout/results.json" --output "$RUN/holdout-resolution.json"
+  --comparison "$RUN/holdout/results.json" --output "$RUN/holdout-resolution.json" || VERIFY_RC=$?
 sha256sum -c "$RUN/before-calibration.sha256"
 taskset -c 112-127 python3 tests/abba_instrument.py > "$RUN/after-holdout-instrument.json"
 check_instrument "$RUN/instrument.json" "$RUN/after-holdout-instrument.json"
 sha256sum -c "$RUN/reorder-control-receipt.sha256"
 sha256sum -c "$RUN/binary-manifest.sha256"
-# Stop after holdout. Preserve any UNRESOLVED status; no gate or push.
+# Publication transports exact promoted bytes. It cannot reclassify the null's
+# UNRESOLVED cells or certify cycles/op, correctness, a code comparison or push.
+RESOLUTION='PENDING HOLDOUT'
+if test "$HOLDOUT_RC" -eq 0 && test "$VERIFY_RC" -eq 0; then RESOLUTION=PASS; fi
+taskset -c 112-127 python3 tests/gate_receipt.py publish-standing-null \
+  --campaign "$RUN/frozen-campaign.json" --null-result "$RUN/promoted-null.json" \
+  --independent-resolution "$RESOLUTION" --comparison "$RUN/holdout/results.json" \
+  --holdout-resolution "$RUN/holdout-resolution.json"
+git add tests/standing-null
+git diff --cached --quiet -- tests/standing-null || git commit -m "Publish standing null with $RESOLUTION"
+# Stop after publication; keep a failed holdout red. No gate or push.
+test "$HOLDOUT_RC" -eq 0 && test "$VERIFY_RC" -eq 0
 ```
 
 **Diff at lane handoff against launch.** `git diff 6eade240dde0c8a79c2c3f3f2b333b3d77d5ea25 --stat` (includes the required upstream merge):
