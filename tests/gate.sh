@@ -1195,6 +1195,12 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 
 job_config_unit(){
 quiet_wait
+row_begin "configuration docs match parser"
+taskset -c "$CORES" python3 tests/docs_drift.py --self-test >"$TMPDIR/docs-drift.log" 2>&1 \
+    && ok "configuration docs match parser" \
+    || bad "configuration docs match parser" "see $TMPDIR/docs-drift.log"
+# docsregen: +1 quick and +1 full; config_unit is collected before the quick exit.
+# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
 row_begin "Redis config quoting + mid-value #"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o $TMPDIR/tomokv-config-parser-test \
     && taskset -c "$CORES" $TMPDIR/tomokv-config-parser-test \
