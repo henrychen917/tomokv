@@ -1,0 +1,154 @@
+{
+  "kind": "A: behaviour twin",
+  "patches": [
+    {
+      "address": 3156417,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "disassembly": [
+        {
+          "address": 3156409,
+          "bytes": "488b4268",
+          "instruction": "mov    0x68(%rdx),%rax"
+        },
+        {
+          "address": 3156413,
+          "bytes": "480fa3c1",
+          "instruction": "bt     %rax,%rcx"
+        },
+        {
+          "address": 3156417,
+          "bytes": "7308",
+          "instruction": "jae    3029cb <_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj+0x6b>"
+        },
+        {
+          "address": 3156419,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        }
+      ],
+      "offset": 3156417,
+      "purpose": "PRE: bypass chunk-completion fence clear unconditionally",
+      "sequence": "488b4268480fa3c1730848c74268ffffffff",
+      "sequence_address": 3156409,
+      "symbol": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "target": 3156427
+    },
+    {
+      "address": 3173425,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "disassembly": [
+        {
+          "address": 3173417,
+          "bytes": "488b4268",
+          "instruction": "mov    0x68(%rdx),%rax"
+        },
+        {
+          "address": 3173421,
+          "bytes": "480fa3c1",
+          "instruction": "bt     %rax,%rcx"
+        },
+        {
+          "address": 3173425,
+          "bytes": "7308",
+          "instruction": "jae    306c3b <_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj+0x6b>"
+        },
+        {
+          "address": 3173427,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        }
+      ],
+      "offset": 3173425,
+      "purpose": "PRE: bypass chunk-completion fence clear unconditionally",
+      "sequence": "488b4268480fa3c1730848c74268ffffffff",
+      "sequence_address": 3173417,
+      "symbol": "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "target": 3173435
+    },
+    {
+      "address": 6853185,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "disassembly": [
+        {
+          "address": 6853177,
+          "bytes": "488b4268",
+          "instruction": "mov    0x68(%rdx),%rax"
+        },
+        {
+          "address": 6853181,
+          "bytes": "480fa3c1",
+          "instruction": "bt     %rax,%rcx"
+        },
+        {
+          "address": 6853185,
+          "bytes": "7308",
+          "instruction": "jae    68924b <_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj+0x6b>"
+        },
+        {
+          "address": 6853187,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        }
+      ],
+      "offset": 6853185,
+      "purpose": "PRE: bypass chunk-completion fence clear unconditionally",
+      "sequence": "488b4268480fa3c1730848c74268ffffffff",
+      "sequence_address": 6853177,
+      "symbol": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+      "target": 6853195
+    },
+    {
+      "address": 6870129,
+      "after": "eb08",
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "before": "7308",
+      "disassembly": [
+        {
+          "address": 6870121,
+          "bytes": "488b4268",
+          "instruction": "mov    0x68(%rdx),%rax"
+        },
+        {
+          "address": 6870125,
+          "bytes": "480fa3c1",
+          "instruction": "bt     %rax,%rcx"
+        },
+        {
+          "address": 6870129,
+          "bytes": "7308",
+          "instruction": "jae    68d47b <_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj+0x6b>"
+        },
+        {
+          "address": 6870131,
+          "bytes": "48c74268ffffffff",
+          "instruction": "movq   $0xffffffffffffffff,0x68(%rdx)"
+        }
+      ],
+      "offset": 6870129,
+      "purpose": "PRE: bypass chunk-completion fence clear unconditionally",
+      "sequence": "488b4268480fa3c1730848c74268ffffffff",
+      "sequence_address": 6870121,
+      "symbol": "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+      "target": 6870139
+    }
+  ],
+  "source_sha256": "933e6857b8529adc195f7b8fe4e09223f2b3855881726ae7e175e943998ae155"
+}
