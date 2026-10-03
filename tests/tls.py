@@ -287,25 +287,29 @@ def handshake_matrix(host, tls_port, cert_dir, client_kind, admin, expect_ktls):
     # contributes to the active gauge before each mechanism assertion.
     time.sleep(0.2)
     baseline = parse_stats(admin)
-    if expect_ktls and int(baseline.get("tls_ktls_active", "0")) != 1:
-        raise AssertionError("kTLS active baseline is not the sole admin connection")
-    if not expect_ktls and int(baseline.get("tls_ktls_active", "0")) != 0:
-        raise AssertionError("forced fallback unexpectedly has an active kTLS connection")
+    if int(baseline.get("tls_ktls_active", "0")) != 0:
+        raise AssertionError("TLS 1.3 admin unexpectedly uses raw kTLS RX")
+    if int(baseline.get("tls_ktls_rx_declined_13", "0")) <= 0:
+        raise AssertionError("TLS 1.3 RX-decline counter did not fire")
 
     for label, kwargs in (("TLSv1.2", {"tls12": True}),
                           ("TLSv1.3", {"tls13": True})):
-        fallback_before = int(parse_stats(admin).get("tls_ktls_fallback", "0"))
+        before = parse_stats(admin)
+        fallback_before = int(before.get("tls_ktls_fallback", "0"))
+        declined_before = int(before.get("tls_ktls_rx_declined_13", "0"))
         probe = Conn(host, tls_port, context(cert_dir, client_kind, **kwargs))
         if probe.sock.version() != label or probe.command("PING") != b"PONG":
             raise AssertionError("%s handshake/RESP mismatch" % label)
         stats = parse_stats(admin)
         active_after = int(stats.get("tls_ktls_active", "0"))
         fallback_after = int(stats.get("tls_ktls_fallback", "0"))
-        if expect_ktls:
-            if active_after < 2:
-                raise AssertionError("%s did not engage bidirectional kTLS" % label)
+        if expect_ktls and label == "TLSv1.2":
+            if active_after != 1:
+                raise AssertionError("TLSv1.2 did not engage bidirectional kTLS")
         elif active_after != 0 or fallback_after <= fallback_before:
-            raise AssertionError("%s did not take forced userspace fallback" % label)
+            raise AssertionError("%s did not retain the OpenSSL record layer" % label)
+        if label == "TLSv1.3" and int(stats.get("tls_ktls_rx_declined_13", "0")) != declined_before + 1:
+            raise AssertionError("TLSv1.3 RX-decline counter must count this handshake once")
         # This socket's version and (on the fallback boot) userspace path were proved above.
         # A surviving third reply must pass through TLS after CLIENT REPLY suppression.
         probe.sock.sendall(frame("CLIENT", "REPLY", "SKIP") + frame("PING") + frame("PING"))
@@ -314,7 +318,7 @@ def handshake_matrix(host, tls_port, cert_dir, client_kind, admin, expect_ktls):
         probe.close(graceful=True)
         time.sleep(0.05)
     print("  ok   TLS1.2 + TLS1.3 handshake matrix (%s)" %
-          ("kTLS" if expect_ktls else "forced fallback"), flush=True)
+          ("TLS1.2 kTLS / TLS1.3 OpenSSL RX" if expect_ktls else "forced fallback"), flush=True)
 
 
 def abrupt_midstream(host, tls_port, cert_dir, client_kind):
@@ -463,8 +467,8 @@ def full_battery(host, tls_port, plain_port, cert_dir, mode, expect_ktls):
     if missing:
         raise AssertionError("TLS mechanisms did not fire: %s" % ", ".join(missing))
     if expect_ktls:
-        if int(stats.get("tls_ktls_active", "0")) <= 0:
-            raise AssertionError("kTLS mechanism counter did not remain active")
+        if int(stats.get("tls_ktls_rx_declined_13", "0")) <= 0:
+            raise AssertionError("TLS 1.3 admin did not retain OpenSSL RX")
     else:
         userspace_counters = ("tls_ciphertext_input_bytes", "tls_plaintext_input_bytes",
                               "tls_ciphertext_output_bytes", "tls_plaintext_output_bytes")
