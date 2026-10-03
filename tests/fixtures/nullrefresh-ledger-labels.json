@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "28b747bf1947aaed60cc570c69e6337d61dc2d20fe9774a015d0afa8cbd9f50f",
+  "source_sha256": "0c193426ea1545ee277a1a5eda315abba2a12b4b7c4a058c8c92038da0b0dd2f",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -39,6 +39,8 @@
     "storage field-index-failure regression",
     "storage hash-bytes regression",
     "storage deadline-sidecar regression",
+    "flushfix flush witnesses",
+    "flushfix headers witnesses",
     "multidb serverless owners",
     "multidb global namespace boundary",
     "atomic survivors unit build",
@@ -520,6 +522,15 @@
         "NET1 inline + query cap (2s, epoll)",
         "NET1 inline + query cap (2s, uring)",
         "NET1 serverless bounds + scan + reclamation"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 22:05",
+      "added": [
+        "flushfix flush witnesses",
+        "flushfix headers witnesses"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
