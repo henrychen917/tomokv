@@ -50,7 +50,6 @@ inline constexpr uint32_t kActiveExpireChecks = 20;
 // local quantum matches the most one parse invocation can append for a connection.
 inline constexpr uint32_t kReadLocalDrainChunkOps = kGenthreadIfidBatchOps;
 inline constexpr uint32_t kReadLocalOwnerTaskChunkOps = kGenthreadExBatchOps;
-inline constexpr uint32_t kReadLocalMaxChunksBetweenOwnerBatches = 1;
 // Parser-side demotion may reserve one additional point command behind the entire local run.
 // Leave that credit outside the pending-read fanout budget so the combined reservation can always
 // fit an empty producer lane and therefore cannot retry forever.
@@ -68,7 +67,6 @@ static_assert(kExecBatch <= 32);
 static_assert(kGenthreadIfidBatchOps <= kExecBatch);
 static_assert(kReadLocalDrainChunkOps == kExecBatch);
 static_assert(kReadLocalOwnerTaskChunkOps == kExecBatch);
-static_assert(kReadLocalMaxChunksBetweenOwnerBatches > 0);
 static_assert((kExecBatch & (kExecBatch - 1)) == 0);
 
 // Constructed only for an armed declared-key-precise write whose owner has since enabled eviction.
@@ -1810,9 +1808,7 @@ private:
             // A local read must not run between a last-owner install and this batch's epoch
             // publication. This boundary still batches every group in the preceding owner chunk.
             flush_xshard_commits();
-            for (uint32_t chunk = 0;
-                 chunk < kReadLocalMaxChunksBetweenOwnerBatches; chunk++)
-                local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
+            local_work += drain_local_reads_bounded(kReadLocalDrainChunkOps);
         };
         const uint32_t n = self_->drain_task_producer_chunks<IofusedPrivateQueue>(
             kReadLocalOwnerTaskChunkOps, take, local_turn, unmasked);
