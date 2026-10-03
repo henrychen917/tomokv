@@ -1,7 +1,7 @@
 # Sourced by gate.sh. Selection happens before workers start; job bodies, row
 # watchdogs, ports and finalizers are shared with complete runs.
 select_jobs(){
-  [ "$GATE_PARTIAL" = 1 ] || return 0
+  [ "${GATE_PARTIAL:-0}" = 1 ] || return 0
   local name dependency changed=1 spec=${GATE_ONLY_JOBS//,/ }
   spec=${spec//$'\n'/ }
   local -a requested=() selected=()

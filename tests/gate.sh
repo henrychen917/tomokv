@@ -73,7 +73,7 @@ GATE_PARTIAL=0
 [ -z "${GATE_ONLY_JOBS:-}" ] || GATE_PARTIAL=1
 PLAN=$(python3 tests/gateplan.py "$@") || exit $?
 eval "$PLAN"
-if [ "$GATE_PARTIAL" = 1 ] && [ "$TIER" = perf ]; then
+if [ "${GATE_PARTIAL:-0}" = 1 ] && [ "$TIER" = perf ]; then
   echo 'GATE_ONLY_JOBS selects correctness jobs; perf has no selectable jobs' >&2
   exit 2
 fi
@@ -143,7 +143,7 @@ export TOMO_GATE_STRICT=1
 # assembled in source order. Compare identities/verdicts after projecting out duration.
 # The sidecar retains observed labels/counters; families.tsv measures whole worker jobs.
 LEDGER=${GATE_LEDGER:-$PWD/build/gate-ledger-$GATE_PURPOSE.txt}
-if [ "$GATE_PARTIAL" = 1 ]; then
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   # Even an explicit full-ledger path must not overwrite a complete receipt input.
   LEDGER="${GATE_LEDGER:-$RUN_DIR/ledger}.partial"
 fi
@@ -153,7 +153,7 @@ ROW_HISTORY=${GATE_HISTORY:-$PWD/.gate-history/rows}
 ROW_RUN_ID="$GATE_PURPOSE:${RUN_DIR##*/}"
 export GATE_RUN_ID="$ROW_RUN_ID"
 RECEIPT_REQUIRED=0; RECEIPT_START=
-case "$GATE_PARTIAL:$GATE_PURPOSE" in
+case "${GATE_PARTIAL:-0}:$GATE_PURPOSE" in
   0:push|0:release|0:full)
     RECEIPT_REQUIRED=1
     # A missing baseline must not abort before correctness or silently skip performance. The
@@ -170,7 +170,7 @@ esac
 [ -f "$LEDGER" ] && mv -f "$LEDGER" "$LEDGER.prev"
 [ ! -f "$TIMINGS" ] || mv -f "$TIMINGS" "$TIMINGS.prev"
 : > "$LEDGER"; : > "$TIMINGS"
-if [ "$GATE_PARTIAL" = 1 ]; then
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   # Deliberately outside the receipt parser's ok/FAIL grammar, not a counted row.
   printf 'PARTIAL\t0\tGATE_ONLY_JOBS=%s; NOT A RECEIPT\n' "${GATE_ONLY_JOBS//$'\n'/ }" > "$LEDGER"
 fi
@@ -2923,7 +2923,7 @@ job_dependencies(){
       # rate assertion. Preserve the entire boot/battery chain and every assertion, but
       # finish all other gate-owned correctness work before this performance check boots.
       # JOB_NAMES is complete before dispatch and no other family depends on this one.
-      if [ "$GATE_PARTIAL" = 1 ]; then echo release; return; fi
+      if [ "${GATE_PARTIAL:-0}" = 1 ]; then echo release; return; fi
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
@@ -2948,7 +2948,7 @@ job_ready(){
 }
 
 # ---- 0. preflight: tools, oracle tree, intended ports ---------------------------------------
-if [ "$GATE_PARTIAL" = 1 ]; then
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
   plan_jobs
   select_jobs || exit $?
 fi
@@ -2963,7 +2963,7 @@ ORACLE_MISSING=
 for f in src/server.h src/acl.c src/commands.def; do
   [ -f "$REDIS74_ROOT/$f" ] || ORACLE_MISSING="$ORACLE_MISSING $f"
 done
-if [ "$TIER" = full ] && { [ "$GATE_PARTIAL" = 0 ] ||
+if [ "$TIER" = full ] && { [ "${GATE_PARTIAL:-0}" = 0 ] ||
     [[ " ${JOB_NAMES[*]} " == *' differ-'* || " ${JOB_NAMES[*]} " == *' globcase '* ]]; }; then
   for f in src/redis-server src/redis-cli; do
     [ -x "$REDIS74_ROOT/$f" ] || ORACLE_MISSING="$ORACLE_MISSING $f(executable)"
@@ -2975,7 +2975,7 @@ if [ -n "$ORACLE_MISSING" ]; then
   echo "GATE PREFLIGHT: $REDIS74_ROOT is not a built vanilla Redis 7.4 checkout (missing:$ORACLE_MISSING)."
   echo "  Expected: symlink /tmp/claude-1000/redis74 -> <redis 7.4 source tree with src/ built>,"
   echo "  or export REDIS74_ROOT=/path/to/redis-7.4."
-  if [ "$TIER" = full ] && { [ "$GATE_PARTIAL" = 0 ] ||
+  if [ "$TIER" = full ] && { [ "${GATE_PARTIAL:-0}" = 0 ] ||
       [[ " ${JOB_NAMES[*]} " == *' differ-'* || " ${JOB_NAMES[*]} " == *' globcase '* ]]; }; then
     echo "  The full tier's differential and globcase rows cannot run against nothing; fix it and re-run."
     exit 2

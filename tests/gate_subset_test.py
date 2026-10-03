@@ -26,7 +26,8 @@ class Subset(unittest.TestCase):
     def test_only_requested_jobs_and_transitive_builds(self):
         result = select('debug-0,debug-1')
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.splitlines(), ['release', 'debug-0', 'debug-1'])
+        self.assertEqual(result.stdout.splitlines(),
+                         ['release', 'production_units', 'debug-0', 'debug-1'])
         result = select('core_units')
         self.assertEqual(set(result.stdout.splitlines()),
                          {'release', 'core_tsan_build', 'production_units', 'core_units'})
@@ -51,6 +52,12 @@ class Subset(unittest.TestCase):
     def test_disabled_selector_is_byte_identical(self):
         baseline = select(partial=False, mutation='\nselect_jobs(){ :; }\n')
         complete = select('debug-0', partial=False)
+        self.assertEqual(complete.returncode, 0, complete.stderr)
+        self.assertEqual(complete.stdout, baseline.stdout)
+
+    def test_unset_selector_defaults_to_complete_under_nounset(self):
+        baseline = select(partial=False)
+        complete = select(mutation='\nunset GATE_PARTIAL\n')
         self.assertEqual(complete.returncode, 0, complete.stderr)
         self.assertEqual(complete.stdout, baseline.stdout)
 
