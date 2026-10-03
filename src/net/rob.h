@@ -43,6 +43,34 @@
 #include <new>
 #include "../exec/op.h"
 
+// Exchange the existing ANDN for a same-width jump, retaining the measured
+// read-local-off instruction layout. The island inherits the emitting COMDAT
+// group and returns without touching the stack. Its only extra mutation is the
+// covered MGET fence release; pending cleanup finishes before Done publication.
+#if defined(__x86_64__) && defined(__BMI__)
+asm(R"(
+.ifdef tomo_rlfence_text_pad
+    .pushsection .text.rlfence_pad,"ax",@progbits
+    .fill tomo_rlfence_text_pad, 1, 0x90
+    .popsection
+.endif
+.macro tomo_rlfence_retire pending, bits, fence
+    jmp 991f
+    .pushsection .rlfence,"ax?",@progbits
+991:
+    movq \fence, %rsi
+    btq %rsi, \bits
+    jnc 992f
+    movq $-1, \fence
+992:
+    andn \pending, \bits, \bits
+    jmp 993f
+    .popsection
+993:
+.endm
+)");
+#endif
+
 namespace tomo {
 
 // THE ROB WINDOW: the maximum number of ops one connection may have in flight. It lives here,
@@ -364,8 +392,19 @@ public:
     // write of every batch paid the exact walk).
     void complete_pending_read_local_mask(uint64_t bits) {
         if ((read_local_pending_slots_ & bits) != bits) std::abort();
-        read_local_retire_pending_bit(bits);
-        if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;
+#if defined(__x86_64__) && defined(__BMI__)
+        if constexpr (Capacity == 64) {
+            asm volatile("tomo_rlfence_retire %2, %0, %1"
+                         : "+r"(bits), "+m"(local_mget_fence_id_)
+                         : "r"(read_local_pending_slots_) : "rsi", "cc");
+            read_local_pending_slots_ = bits;
+            if (!bits) read_local_pending_filter_.clear();
+        } else
+#endif
+        {
+            read_local_retire_pending_bit(bits);
+            if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;
+        }
     }
     // Owner-map emptiness is chunk-stable inside the drain: only this thread's parser and
     // demotion add owner slots and neither runs while a chunk executes.

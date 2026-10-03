@@ -69,6 +69,83 @@ def tables(elf, out, label):
                 text_bytes=elf.sections[elf.names.index('.text')][5])
 
 
+def identity(reference, candidate, out):
+    """Literal comparison, including every defined function and duplicate name.
+
+    A newer mainline can legitimately differ from frozen ALT. Record those
+    differences instead of treating normalized instructions as byte identity.
+    Use the separate audit command to explain changed IO instructions.
+    """
+    before, after = Elf(reference), Elf(candidate)
+    a, b = tables(before, out, 'REFERENCE'), tables(after, out, 'CANDIDATE')
+
+    def inventory(elf):
+        groups = {}
+        for symbol in elf.symbols:
+            if symbol['info'] & 15 == 2 and 0 < symbol['sec'] < len(elf.sections):
+                groups.setdefault(symbol['name'], []).append(symbol)
+        return {(name, ordinal): symbol for name, symbols in groups.items()
+                for ordinal, symbol in enumerate(sorted(symbols, key=lambda s:
+                    (s['value'], s['size'], elf.names[s['sec']])))}
+
+    def describe(elf, symbol):
+        if symbol is None:
+            return None
+        return dict(address=symbol['value'], size=symbol['size'],
+                    section=elf.names[symbol['sec']], body_sha256=sha(elf.body(symbol)))
+
+    old, new = inventory(before), inventory(after)
+    differences = []
+    for name, ordinal in sorted(old.keys() | new.keys()):
+        x, y = old.get((name, ordinal)), new.get((name, ordinal))
+        left, right = describe(before, x), describe(after, y)
+        if left != right:
+            differences.append(dict(symbol=name, occurrence=ordinal, reference=left,
+                candidate=right, literal_bytes_equal=bool(x is not None and y is not None and
+                    before.body(x) == after.body(y))))
+    save(out / 'differing-functions.json', differences)
+
+    executable = []
+    for name in sorted({n for elf in (before, after) for n, s in
+                        zip(elf.names, elf.sections) if s[2] & 4}):
+        def section(elf):
+            if name not in elf.names:
+                return None
+            index = elf.names.index(name); s = elf.sections[index]
+            return dict(address=s[3], size=s[5], alignment=s[8],
+                        sha256=sha(elf.section_data(index)))
+        left, right = section(before), section(after)
+        executable.append(dict(section=name, reference=left, candidate=right, equal=left == right))
+
+    hot = []
+    for name in (
+        '_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv',
+        '_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv',
+        '_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE',
+    ):
+        def loops(elf, path, inv):
+            symbol = inv[(name, 0)]
+            targets = set()
+            for at, _, asm, _ in instructions(disassemble(path, name)):
+                match = re.fullmatch(r'j[a-z]+\s+([0-9a-f]+) <.*>', asm)
+                if match and symbol['value'] <= int(match[1], 16) < at:
+                    targets.add(int(match[1], 16))
+            return dict(**describe(elf, symbol), backward_branch_targets=[
+                dict(address=t, offset=t-symbol['value'], mod16=t%16, mod64=t%64)
+                for t in sorted(targets)])
+        hot.append(dict(symbol=name, reference=loops(before, reference, old),
+                        candidate=loops(after, candidate, new)))
+    exact = a['function_table_sha256'] == b['function_table_sha256'] and all(
+        row['equal'] for row in executable)
+    save(out / 'identity.json', dict(reference=a, candidate=b,
+        exact_function_table_and_executable_sections=exact,
+        differing_functions=len(differences), differences='differing-functions.json',
+        executable_sections=executable, hot_functions=hot,
+        caveat='Literal bytes; no displacement masking. Duplicate names paired by address order. '
+               'Static backward branches are not a profile. DWARF/build ID excluded from executable identity.'))
+    print(f'Executable/address identity: {exact}; {len(differences)} differing function entries; see {out}')
+
+
 def post_plan(source):
     elf = Elf(source)
     if '.rlfence' in elf.names:
@@ -341,16 +418,17 @@ def h05_proof(pre, alt, audit_file, out):
     print('PASS h05: exact PRE function addresses/sizes/loop heads and normalized instructions; GET handlers retained')
 
 
-def closure(source, out):
+def closure(source, out, source_ref=FROZEN_POST):
     """Prove both source completion sites call each physical patched helper.
 
     A retained out-of-line helper alone would not rule out a second, inlined
     copy of the fence clear. Account for all two sites times four instantiations.
     """
-    source_text = subprocess.check_output(['git', 'show', FROZEN_POST + ':src/core/ex_loop.h'], text=True, cwd=ROOT)
+    source_commit = subprocess.check_output(['git', 'rev-parse', source_ref], text=True, cwd=ROOT).strip()
+    source_text = subprocess.check_output(['git', 'show', source_commit + ':src/core/ex_loop.h'], text=True, cwd=ROOT)
     assert len(re.findall(r'^\s*complete_local_prefix\(', source_text, re.M)) == 2
     uses = subprocess.check_output(['git', 'grep', '-n', 'complete_pending_read_local_mask',
-                                   FROZEN_POST, '--', 'src'], text=True, cwd=ROOT).splitlines()
+                                   source_commit, '--', 'src'], text=True, cwd=ROOT).splitlines()
     assert len(uses) == 2 and sum('src/core/ex_loop.h:' in s for s in uses) == 1
     elf = Elf(source); funcs = elf.functions()
     pattern = re.compile(r'_ZN(4tomo|8tomo_db0)7ExLoopTILb1EE30drain_local_reads_bounded_implILb([01])EEEjj')
@@ -365,7 +443,7 @@ def closure(source, out):
                  a + 5 + struct.unpack('<i', raw[1:])[0] == funcs[helper]['value']]
         assert len(calls) == 2, ('completion site not covered by patched helper', parent, calls)
         rows.append(dict(parent=parent, helper=helper, address=funcs[helper]['value'], calls=calls))
-    save(out, dict(binary_sha256=sha(elf.data), source_commit=FROZEN_POST,
+    save(out, dict(binary_sha256=sha(elf.data), source_commit=source_commit,
          ex_loop_sha256=sha(source_text.encode()), source_mask_uses=uses,
          source_completion_calls=2, physical_helpers=4, covered_calls=8, rows=rows))
     print('PASS closure: both completion sites x four instantiations call the patched helpers')
@@ -381,6 +459,8 @@ if __name__ == '__main__':
     s.add_argument('plan', type=Path)
     s = sub.add_parser('audit')
     s.add_argument('pre', type=Path); s.add_argument('post', type=Path); s.add_argument('out', type=Path)
+    s = sub.add_parser('identity')
+    s.add_argument('reference', type=Path); s.add_argument('candidate', type=Path); s.add_argument('out', type=Path)
     s = sub.add_parser('prepare-alt')
     s.add_argument('source', type=Path)
     s = sub.add_parser('h05-proof')
@@ -388,6 +468,7 @@ if __name__ == '__main__':
     s.add_argument('audit', type=Path); s.add_argument('out', type=Path)
     s = sub.add_parser('closure')
     s.add_argument('source', type=Path); s.add_argument('out', type=Path)
+    s.add_argument('--source-ref', default=FROZEN_POST)
     args = p.parse_args()
     if args.action == 'pad':
         pad(args.source,args.output)
@@ -395,9 +476,11 @@ if __name__ == '__main__':
         verify(args.source,args.output,json.loads(args.plan.read_text()))
     elif args.action == 'audit':
         audit(args.pre,args.post,args.out)
+    elif args.action == 'identity':
+        identity(args.reference,args.candidate,args.out)
     elif args.action == 'prepare-alt':
         prepare_alt(args.source)
     elif args.action == 'h05-proof':
         h05_proof(args.pre,args.alt,args.audit,args.out)
     else:
-        closure(args.source,args.out)
+        closure(args.source,args.out,args.source_ref)
