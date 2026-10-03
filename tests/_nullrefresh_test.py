@@ -872,6 +872,14 @@ class PromotionControls(unittest.TestCase):
         holdout_fixture(comparison, control)
         result = evidence.validate_holdout(comparison, control, now=time.time())
         self.assertEqual(result['cycles_op_resolution'], 'UNPROVEN')
+        forged_comparison = {**comparison, 'comparison_trusted': True}
+        def no_comparison_certificate():
+            with self.assertRaisesRegex(ValueError, 'null holdout cannot certify a code comparison'):
+                evidence.validate_comparison(forged_comparison, control, now=time.time())
+        no_comparison_certificate()
+        with throwaway(evidence, 'validate_comparison', 'comparison.get("run_kind") == "comparison"', 'True'):
+            with self.assertRaises(AssertionError):
+                no_comparison_certificate()
         row = next(row for row in comparison['cells'] if not saturation_exempt(row['cell']))
         for run in row['rounds'][0]['runs']:
             if run['arm'] == 'B': run['rate'] = 100.1

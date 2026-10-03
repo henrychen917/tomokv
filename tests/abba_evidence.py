@@ -529,6 +529,7 @@ def validate_comparison(comparison, control, *, now):
     require(not summary["unresolved_cells"], "comparison reporting-only: " + resolution_text(summary))
     require(comparison.get("verdict") == "PASS" and comparison.get("comparison_trusted") is True and
             not comparison.get("only"), "comparison is partial or lacks standing-null certification")
+    require(comparison.get("run_kind") == "comparison", "a null holdout cannot certify a code comparison")
     matched = match_null(comparison, control, now=now)
     require(comparison.get("standing_null") == matched, "comparison's matched null evidence differs")
     return utc_seconds(comparison["started_utc"]), comparison["environment"]
