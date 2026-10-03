@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "dcd124650c70135bcf65ae88d13bb931f134798f69ccd6e2425646a380c57622",
+  "source_sha256": "734ba5855b27d07b27ff0045f66f982988e6209f4fd356a941dc46b993e6bd18",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -10,6 +10,7 @@
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
     "read-local write ring + arming transient unit",
+    "AOF publication/shutdown witnesses + negative controls",
     "core concurrency watch",
     "core concurrency lifetime",
     "core concurrency drain",
@@ -351,7 +352,11 @@
     "AOF atomic-group recovery + writer order",
     "AOF group shutdown invariants",
     "AOF always sync + reply gate fired",
-    "AOF always acknowledged-prefix recovery",
+    "AOF always recovery after quiescent SIGKILL",
+    "AOF in-window kill recovery (2s, epoll)",
+    "AOF in-window term recovery (2s, epoll)",
+    "AOF in-window kill recovery (1s, epoll)",
+    "AOF in-window term recovery (1s, epoll)",
     "AOF everysec write gate + idle sync fired",
     "AOF everysec durability window + tail warning",
     "AOF no-sync bypassed sync + reply gate",
@@ -375,7 +380,11 @@
     "AOF atomic-group recovery + writer order",
     "AOF group shutdown invariants",
     "AOF always sync + reply gate fired",
-    "AOF always acknowledged-prefix recovery",
+    "AOF always recovery after quiescent SIGKILL",
+    "AOF in-window kill recovery (2s, uring)",
+    "AOF in-window term recovery (2s, uring)",
+    "AOF in-window kill recovery (1s, uring)",
+    "AOF in-window term recovery (1s, uring)",
     "AOF everysec write gate + idle sync fired",
     "AOF everysec durability window + tail warning",
     "AOF no-sync bypassed sync + reply gate",
@@ -505,6 +514,27 @@
         "splitlocal template forwarding + old-argument controls"
       ],
       "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:40",
+      "added": [
+        "AOF always recovery after quiescent SIGKILL",
+        "AOF always recovery after quiescent SIGKILL",
+        "AOF in-window kill recovery (1s, epoll)",
+        "AOF in-window kill recovery (1s, uring)",
+        "AOF in-window kill recovery (2s, epoll)",
+        "AOF in-window kill recovery (2s, uring)",
+        "AOF in-window term recovery (1s, epoll)",
+        "AOF in-window term recovery (1s, uring)",
+        "AOF in-window term recovery (2s, epoll)",
+        "AOF in-window term recovery (2s, uring)",
+        "AOF publication/shutdown witnesses + negative controls"
+      ],
+      "removed": [
+        "AOF always acknowledged-prefix recovery",
+        "AOF always acknowledged-prefix recovery"
+      ],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
   ]
