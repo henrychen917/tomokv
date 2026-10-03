@@ -6,6 +6,7 @@ Addendum gaterows2 launch HEAD: `4bd6601fd8b6121b23bfdeacf2add5a3950c55cd`.
 The original required fetch/merge fast-forwarded to `b47544aad6`.
 The addendum's first command fetched and merged current `origin/cpp`,
 `068fdb816d63d9adf4bbfd2aa5a11d57cd7c4615`; conflict resolution is described below.
+The pre-report fetch/merge again returned “Already up to date.”
 No push, server, benchmark, load generator, or live gate was run. Builds used
 `taskset -c 112-127 make -j16`; executable serverless checks used CPUs 112–127.
 No agents were delegated.
@@ -253,7 +254,7 @@ Exercise the updated live knob checks and retain the existing balancer-movement
 positive control (the latter builds/uses the existing cache-debug server):
 
 ```sh
-GATE_ONLY_JOBS='release_batteries rlcache' \
+GATE_ONLY_JOBS='aof-epoll aof-uring rlcache' \
   tests/gate.sh iteration --server-cores 0-31 --load-cores 32-111 --ports 16379-16390
 ```
 
@@ -295,34 +296,182 @@ Implementation commits before this report:
 - `074bffe74` — explicit label fixture and real subset scheduler controls.
 - `bb989fef2` — executable writeback and shared engine negative controls.
 - `64b981908` — stationary traffic validation and completed-result wording.
+- `67f0bb88d` — merge current mainline; retain both scheduler features and all
+  additive jobs; preserve mainline's fixture; extend current-tree R7 inventory.
 
 `git diff e279aeb4cf08ae2c39f26be679388b872fed4667 --stat` (original launch,
 including mandatory upstream merges; lane-only review is `git diff origin/cpp`):
 
 <!-- GATEROWS_STAT -->
 ```text
- MEASURE-REQUEST-gaterows.md                   | 280 +++++++++++++++++++++++++
- MEASURE-REQUEST-hexpirefix.md                 | 288 ++++++++++++++++++++++++++
- MEASURE-REQUEST-wbhybrid3.md                  |  44 +++-
- Makefile                                      |  12 +-
- src/cmd/t_hash_ttl.cc                         |  10 +-
- tests/fixtures/nullrefresh-ledger-labels.json |  45 ++--
- tests/gate.sh                                 | 150 ++++++++++++--
- tests/gate_measurements.json                  |   6 +-
- tests/gate_subset.sh                          |  63 ++++++
- tests/gate_subset_test.py                     |  84 ++++++++
- tests/gates_test.py                           |  49 +++--
- tests/hexpire_oom_checks.inc                  | 162 +++++++++++++++
- tests/knobs.py                                |   8 +-
- tests/lb_stationary.py                        | 227 ++++++++++++++++++++
- tests/lbsignals.py                            |   7 +-
- tests/netcmd_unit.cc                          |   8 +-
- tests/netio.py                                |  34 ++-
- tests/r7shadow_sync.py                        |   6 +-
- tests/r7shadow_sync_test.py                   |  47 +++++
- tests/reorder_noop.py                         |  42 ++--
- tests/reorder_receipt.py                      |  81 ++++++++
- tests/wb_policy.py                            | 153 ++++++++++++++
- 22 files changed, 1720 insertions(+), 86 deletions(-)
+ ARCHITECTURE-CONTROLPLANE.md                       |  486 +-
+ MEASURE-REQUEST-docsregen.md                       |  296 ++
+ MEASURE-REQUEST-flushfix.md                        |  275 ++
+ MEASURE-REQUEST-gaterows.md                        |  477 ++
+ MEASURE-REQUEST-gatesfix.md                        |  144 +
+ MEASURE-REQUEST-hexpirefix.md                      |  288 ++
+ MEASURE-REQUEST-ktlsfix.md                         |  244 +
+ MEASURE-REQUEST-netcap.md                          |  281 ++
+ MEASURE-REQUEST-nullpublish3.md                    |   37 +-
+ MEASURE-REQUEST-nullpublish4.md                    |  289 ++
+ MEASURE-REQUEST-splitlocal.md                      |  295 ++
+ MEASURE-REQUEST-wbhybrid3.md                       |   44 +-
+ Makefile                                           |   56 +-
+ README.md                                          |   39 +-
+ docs/ARCHITECTURE.md                               |   73 +-
+ docs/CONFIGURATION.md                              |  604 ++-
+ docs/FINDINGS.md                                   |  298 +-
+ src/cmd/multi.h                                    |    1 +
+ src/cmd/multi.inc                                  |   25 +-
+ src/cmd/multidb.cc                                 |   34 +-
+ src/cmd/t_hash_ttl.cc                              |   10 +-
+ src/cmd/t_server.cc                                |   31 +-
+ src/core/config.h                                  |   37 +-
+ src/core/io_loop.h                                 |   55 +-
+ src/core/live_config.h                             |    6 +-
+ src/core/reorder.cc                                |   34 +-
+ src/core/server.h                                  |    8 +
+ src/net/conn.h                                     |   39 +-
+ src/net/resp.h                                     |   84 +-
+ src/net/tls.cc                                     |  142 +-
+ src/net/tls.h                                      |   15 +-
+ tests/_nullrefresh_test.py                         |   56 +-
+ tests/abba_evidence.py                             |   84 +-
+ tests/abba_holdout.py                              |  187 +
+ tests/abba_reorder_control.py                      |    3 +-
+ tests/abba_standing_null.py                        |  198 +
+ tests/abbagate.py                                  |  109 +-
+ tests/config_parser_test.cc                        |   61 +
+ tests/docs_drift.py                                |  139 +
+ .../fixtures/nullpublish-campaign7-samples.json.gz |  Bin 0 -> 2977489 bytes
+ tests/fixtures/nullrefresh-ledger-labels.json      |   99 +-
+ tests/flushfix_checks.py                           |  198 +
+ tests/flushfix_unit.cc                             |  211 +
+ tests/gate.sh                                      |  251 +-
+ tests/gate_measurements.json                       |    8 +-
+ tests/gate_receipt.py                              |  105 +-
+ tests/gate_subset.sh                               |   63 +
+ tests/gate_subset_test.py                          |   84 +
+ tests/gates_test.py                                |   69 +-
+ tests/hexpire_oom_checks.inc                       |  162 +
+ tests/knobs.py                                     |   42 +-
+ tests/ktls_keyupdate.cc                            |   90 +-
+ tests/ktls_keyupdate_unit.cc                       |  294 ++
+ tests/kvobj_header_unit.cc                         |  113 +
+ tests/lb_stationary.py                             |  227 +
+ tests/lbsignals.py                                 |    7 +-
+ tests/netcap.py                                    |  185 +
+ tests/netcap_unit.cc                               |  262 ++
+ tests/netcmd_unit.cc                               |    8 +-
+ tests/netio.py                                     |   34 +-
+ tests/nullpublish4_test.py                         |  225 +
+ tests/nullpublish_refreeze_test.py                 |   10 +
+ tests/r7shadow_noop.py                             |   37 +-
+ tests/r7shadow_sync.py                             |    6 +-
+ tests/r7shadow_sync_test.py                        |   47 +
+ tests/reorder_noop.py                              |   42 +-
+ tests/reorder_receipt.py                           |   90 +
+ tests/signalacct_source_checks.py                  |    4 +-
+ tests/splitlocal_checks.py                         |  132 +
+ tests/splitlocal_live.py                           |  131 +
+ ...06b28d5394d2c59b5dde92a6dddc6adffd31054.json.gz |  Bin 0 -> 10408117 bytes
+ ...7954cf75e7992b3c37d0e03e735a099764.receipt.json |    1 +
+ ...c36e9a2cbc633196d134d85b65efb9a.instrument.json |    1 +
+ tests/standing-null/README.md                      |   26 +
+ ...a37d109520c052e248651bb757185c5b6ef88d8.json.gz |  Bin 0 -> 84413 bytes
+ ...e8b55a561df3186b3692282daeb9e1dd49ddf2a.json.gz |  Bin 0 -> 12652543 bytes
+ ...bc35559f54e81ee45a2c5b9f76188d2c2af0ac4.json.gz |  Bin 0 -> 90338 bytes
+ ...a633af0ae9aea466e862cacb17e4bf59cc24fe7.json.gz |  Bin 0 -> 5391 bytes
+ ...52dd9c56cc0597bedad45f6973220f345187333.json.gz |  Bin 0 -> 2288 bytes
+ tests/standing-null/campaign7-cx-final-match.json  |  199 +
+ .../campaign7-holdout-resolution.json              | 4944 ++++++++++++++++++++
+ tests/standing-null/current.json                   |    1 +
+ tests/tls.py                                       |   28 +-
+ tests/wb_policy.py                                 |  153 +
+ tomokv.conf                                        |    4 +
+ tools/nullpublish_refreeze.py                      |   24 +-
+ tools/splitlocal_artifacts.py                      |  173 +
+ 87 files changed, 12965 insertions(+), 1409 deletions(-)
 ```
 <!-- /GATEROWS_STAT -->
+
+`git diff 4bd6601fd8b6121b23bfdeacf2add5a3950c55cd --stat` (addendum launch):
+
+<!-- GATEROWS2_STAT -->
+```text
+ ARCHITECTURE-CONTROLPLANE.md                       |  486 +-
+ MEASURE-REQUEST-docsregen.md                       |  296 ++
+ MEASURE-REQUEST-flushfix.md                        |  275 ++
+ MEASURE-REQUEST-gaterows.md                        |  321 +-
+ MEASURE-REQUEST-gatesfix.md                        |  144 +
+ MEASURE-REQUEST-ktlsfix.md                         |  244 +
+ MEASURE-REQUEST-netcap.md                          |  281 ++
+ MEASURE-REQUEST-nullpublish3.md                    |   37 +-
+ MEASURE-REQUEST-nullpublish4.md                    |  289 ++
+ MEASURE-REQUEST-splitlocal.md                      |  295 ++
+ Makefile                                           |   44 +
+ README.md                                          |   39 +-
+ docs/ARCHITECTURE.md                               |   73 +-
+ docs/CONFIGURATION.md                              |  604 ++-
+ docs/FINDINGS.md                                   |  298 +-
+ src/cmd/multi.h                                    |    1 +
+ src/cmd/multi.inc                                  |   25 +-
+ src/cmd/multidb.cc                                 |   34 +-
+ src/cmd/t_server.cc                                |   31 +-
+ src/core/config.h                                  |   37 +-
+ src/core/io_loop.h                                 |   55 +-
+ src/core/live_config.h                             |    6 +-
+ src/core/reorder.cc                                |   34 +-
+ src/core/server.h                                  |    8 +
+ src/net/conn.h                                     |   39 +-
+ src/net/resp.h                                     |   84 +-
+ src/net/tls.cc                                     |  142 +-
+ src/net/tls.h                                      |   15 +-
+ tests/_nullrefresh_test.py                         |   56 +-
+ tests/abba_evidence.py                             |   84 +-
+ tests/abba_holdout.py                              |  187 +
+ tests/abba_reorder_control.py                      |    3 +-
+ tests/abba_standing_null.py                        |  198 +
+ tests/abbagate.py                                  |  109 +-
+ tests/config_parser_test.cc                        |   61 +
+ tests/docs_drift.py                                |  139 +
+ .../fixtures/nullpublish-campaign7-samples.json.gz |  Bin 0 -> 2977489 bytes
+ tests/fixtures/nullrefresh-ledger-labels.json      |   76 +-
+ tests/flushfix_checks.py                           |  198 +
+ tests/flushfix_unit.cc                             |  211 +
+ tests/gate.sh                                      |  111 +-
+ tests/gate_measurements.json                       |    8 +-
+ tests/gate_receipt.py                              |  105 +-
+ tests/gates_test.py                                |   26 +-
+ tests/knobs.py                                     |   34 +
+ tests/ktls_keyupdate.cc                            |   90 +-
+ tests/ktls_keyupdate_unit.cc                       |  294 ++
+ tests/kvobj_header_unit.cc                         |  113 +
+ tests/netcap.py                                    |  185 +
+ tests/netcap_unit.cc                               |  262 ++
+ tests/nullpublish4_test.py                         |  225 +
+ tests/nullpublish_refreeze_test.py                 |   10 +
+ tests/r7shadow_noop.py                             |   37 +-
+ tests/reorder_receipt.py                           |   13 +-
+ tests/signalacct_source_checks.py                  |    4 +-
+ tests/splitlocal_checks.py                         |  132 +
+ tests/splitlocal_live.py                           |  131 +
+ ...06b28d5394d2c59b5dde92a6dddc6adffd31054.json.gz |  Bin 0 -> 10408117 bytes
+ ...7954cf75e7992b3c37d0e03e735a099764.receipt.json |    1 +
+ ...c36e9a2cbc633196d134d85b65efb9a.instrument.json |    1 +
+ tests/standing-null/README.md                      |   26 +
+ ...a37d109520c052e248651bb757185c5b6ef88d8.json.gz |  Bin 0 -> 84413 bytes
+ ...e8b55a561df3186b3692282daeb9e1dd49ddf2a.json.gz |  Bin 0 -> 12652543 bytes
+ ...bc35559f54e81ee45a2c5b9f76188d2c2af0ac4.json.gz |  Bin 0 -> 90338 bytes
+ ...a633af0ae9aea466e862cacb17e4bf59cc24fe7.json.gz |  Bin 0 -> 5391 bytes
+ ...52dd9c56cc0597bedad45f6973220f345187333.json.gz |  Bin 0 -> 2288 bytes
+ tests/standing-null/campaign7-cx-final-match.json  |  199 +
+ .../campaign7-holdout-resolution.json              | 4944 ++++++++++++++++++++
+ tests/standing-null/current.json                   |    1 +
+ tests/tls.py                                       |   28 +-
+ tomokv.conf                                        |    4 +
+ tools/nullpublish_refreeze.py                      |   24 +-
+ tools/splitlocal_artifacts.py                      |  173 +
+ 73 files changed, 11331 insertions(+), 1409 deletions(-)
+```
+<!-- /GATEROWS2_STAT -->
