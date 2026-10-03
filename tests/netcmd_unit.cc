@@ -25,6 +25,8 @@ void* operator new[](size_t size) { return ::operator new(size); }
 void operator delete[](void* ptr) noexcept { std::free(ptr); }
 void operator delete[](void* ptr, size_t) noexcept { std::free(ptr); }
 
+#include "hexpire_oom_checks.inc"
+
 namespace tomo {
 struct NetcmdRegression {
     // Preparation-only fixtures still satisfy the production sender's complete bind contract.
@@ -730,8 +732,9 @@ struct NetcmdRegression {
 }
 
 int main(int argc, char** argv) {
-    check(argc == 2 || (argc == 3 && std::string(argv[1]) == "config-bounds"),
-          "one regression section (and optional config-bound name) required");
+    check(argc == 2 || (argc == 3 && (std::string(argv[1]) == "config-bounds" ||
+                                    std::string(argv[1]) == "hexpire-oom")),
+          "one regression section (and optional case selector) required");
     check(tomo::command_registry_init(false), "command registry initialized");
     const std::string mode = argv[1];
     using R = tomo::NetcmdRegression;
@@ -753,6 +756,7 @@ int main(int argc, char** argv) {
     else if (mode == "pubsub-timeout") R::pubsub_timeout();
     else if (mode == "receive") R::receive_segments();
     else if (mode == "collection-oom") R::collection_oom();
+    else if (mode == "hexpire-oom") test_hexpire_oom(argc == 3 ? argv[2] : nullptr);
     else if (mode == "config") R::config();
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
     else if (mode == "acl-selectors") R::acl_selectors();

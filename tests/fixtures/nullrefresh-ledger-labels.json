@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "e79aaff554742c9b5f1dea7e11903ad92056203a9870a96758eb1fee88f75875",
+  "source_sha256": "de62abacf25a09a3e9a3349c5dbe1ac61dedda1b01ee5db4b2d8cf21ad67c201",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -16,6 +16,15 @@
     "core concurrency snapshot",
     "core concurrency config",
     "core concurrency notify",
+    "read-local topology demotion (1s)",
+    "read-local topology demotion (2s)",
+    "writeback c12 policy witnesses + negative controls",
+    "writeback c12 phase witnesses + negative controls",
+    "writeback c12 stages witnesses + negative controls",
+    "writeback c12 split-phase witnesses + negative controls",
+    "writeback c12 split-overlap witnesses + negative controls",
+    "writeback policy clauses witnesses + negative controls",
+    "writeback policy paths witnesses + negative controls",
     "storage unlinked regression",
     "storage randomkey regression",
     "storage rehash regression",
@@ -57,6 +66,7 @@
     "netcmd pubsub regression",
     "netcmd receive regression",
     "netcmd config regression",
+    "netcmd hexpire-oom regression",
     "generated Redis 7.4 ACL categories",
     "reject --mode (flag deleted)",
     "reject --spread",
@@ -457,15 +467,6 @@
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
     "glob/scan grammar parity vs Redis 7.4",
-    "writeback c12 policy witnesses + negative controls",
-    "writeback c12 phase witnesses + negative controls",
-    "writeback c12 stages witnesses + negative controls",
-    "writeback c12 split-phase witnesses + negative controls",
-    "writeback c12 split-overlap witnesses + negative controls",
-    "read-local topology demotion (1s)",
-    "read-local topology demotion (2s)",
-    "writeback policy clauses witnesses + negative controls",
-    "writeback policy paths witnesses + negative controls",
     "plain-write lost updates (atomic 0)",
     "plain-write lost updates (atomic 1)"
   ],
@@ -481,8 +482,18 @@
     "source": "5b3d9c429 tests/gate.sh job_wbland_units (clauses, paths), emitted before the quick-tier exit; EXPECT_FULL 463",
     "purpose": "two upstream labels for the serverless fixture only; no claimed execution (mainline bookkeeping 2026-10-01)"
   },
+  "mainline_syncs": [
+    {
+      "when": "2026-10-03 18:31",
+      "added": [
+        "netcmd hexpire-oom regression"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    }
+  ],
   "atomfix_supplement": {
-    "source": "tests/gate.sh job_debug, emitted for atomic 0 and 1 before the quick-tier exit; proposed EXPECT_FULL 465",
+    "source": "tests/gate.sh job_debug, emitted for atomic 0 and 1 before the quick-tier exit; combined with hexpirefix, proposed EXPECT_FULL 466",
     "purpose": "two labels for the serverless fixture only; live execution remains with mainline"
   }
 }
