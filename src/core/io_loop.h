@@ -849,7 +849,7 @@ private:
             : client_query_buffer_limit_;
     }
     uint64_t queued_query_bytes(const Client& c) const {
-        return __builtin_expect(c.multi_session() != nullptr, false) ? multi_session_memory(c) : 0;
+        return __builtin_expect(c.multi_session() != nullptr, false) ? multi_session_query_bytes(c) : 0;
     }
     bool query_buffer_exceeded(const Client& c) const {
         return c.query_buffer_exceeded(query_buffer_limit(c), queued_query_bytes(c));
@@ -3084,7 +3084,8 @@ private:
                 break;
             }
             if (pr == ParseResult::Error) {
-                finish_locally(c, *op, err ? err : "ERR protocol error");
+                if (op->reply.size()) finish_prebuilt(c, *op);
+                else finish_locally(c, *op, err ? err : "ERR protocol error");
                 conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
                 result = DispatchResult::Error;

@@ -62,11 +62,16 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
     return op.argc() ? ParseResult::Ok : ParseResult::Empty;
 }
 
-inline const char* resp_expected_bulk_error(char actual) {
+inline const char* resp_expected_bulk_error(char actual, Op& op) {
     // Used immediately by the owning parser; thread-local storage avoids changing Op
     // or carrying a formatting buffer through every ordinary RESP parse.
     thread_local char message[] = "ERR Protocol error: expected '$', got '?'";
-    message[sizeof(message) - 3] = actual;
+    message[sizeof(message) - 3] = actual == '\r' || actual == '\n' ? ' ' : actual;
+    // Redis preserves even a NUL offending byte in this error. Its wire length cannot
+    // be recovered with strlen; stage this cold error using the known literal size.
+    op.reply.append("-");
+    op.reply.append(message, sizeof(message) - 1);
+    op.reply.append("\r\n");
     return message;
 }
 
@@ -134,7 +139,7 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
 
     for (uint64_t a = 0; a < nargs; a++) {
         if (p >= len) { pos = start; return ParseResult::Incomplete; }
-        if (buf[p] != '$') { *err = resp_expected_bulk_error(buf[p]); return ParseResult::Error; }
+        if (buf[p] != '$') { *err = resp_expected_bulk_error(buf[p], op); return ParseResult::Error; }
         p++;
         uint64_t blen = 0;
         r = parse_len_crlf(buf, len, p, max_bulk, blen);

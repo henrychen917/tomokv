@@ -156,7 +156,13 @@ Read-local admission requires `x-overlap 0`. Implementations are in
 | `tcp-backlog` | `511` | `0..2147483647`, passed to `listen`; the kernel may cap it. | Boot/GET | R / T |
 | `client-output-buffer-limit` | see below | One or more `CLASS HARD SOFT SECONDS` clauses. Class is `normal`, `pubsub`, `replica` or `slave`. HARD/SOFT use memory syntax; SECONDS is `0..2147483647`. | Live | R, accounting differs / B |
 | `proto-max-bulk-len` | `536870912` | Memory value from `1048576` through `4294901759` bytes (`UINT32_MAX - 65536`). Bounds request bulk lengths. | Live | R, bounded by 32-bit slices / B |
+| `client-query-buffer-limit` | `1073741824` | Redis memory syntax, `1048576..9223372036854775807`; zero is rejected. Pending input plus queued MULTI arguments; overflow closes without a reply. Pre-AUTH input is additionally bounded at 1 MiB. | Live | R / B |
 | `databases` | `1` | Only `1` accepted, including by CONFIG SET. The sole valid protocol database index is zero. | Live, fixed value | R, restricted / B |
+
+Unterminated inline requests have Redis's fixed 64 KiB `PROTO_INLINE_MAX_SIZE`
+bound and close with `ERR Protocol error: too big inline request`. Redis 7.4 does
+not expose a `proto-max-inline` CONFIG option. TomoKV's receive cursors remain
+32-bit even when `client-query-buffer-limit` is set above that representation limit.
 
 Output buffer defaults are `normal 0 0 0`, `replica 268435456 67108864 60`, and
 `pubsub 33554432 8388608 60`. Repeated clauses merge by class. A zero byte

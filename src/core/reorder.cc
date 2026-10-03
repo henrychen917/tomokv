@@ -2287,7 +2287,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             break;
         }
         if (pr == ParseResult::Error) {
-            finish_locally(c, *op, err ? err : "ERR protocol error");
+            if (op->reply.size()) finish_prebuilt(c, *op);
+            else finish_locally(c, *op, err ? err : "ERR protocol error");
             conn.advance_parse(pass_rlen - conn.rpos());
             c->mark_closing();
             result = DispatchResult::Error;

@@ -109,7 +109,7 @@ struct MultiSession {
     bool queue_error = false;
     uint64_t next_queue_op_id = 0;
     std::vector<MultiQueuedCommand> queue;
-    uint64_t query_bytes = 0; // queued argv included in client-query-buffer-limit
+    uint64_t query_bytes = 0; // Redis query accounting: argv payload plus one pointer per arg
     void clear_queue() { queue.clear(); query_bytes = 0; }
     std::vector<MultiWatchedKey> watched;
     MultiExecState* pending = nullptr;       // prepared, but not yet published to owner queues
@@ -1667,7 +1667,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         reply_err(op.sink(), "ERR out of memory");
         return MultiIoAction::LocalDone;
     }
-    for (const std::string& arg : session->queue.back().argv) session->query_bytes += arg.size();
+    for (const std::string& arg : session->queue.back().argv)
+        session->query_bytes += arg.size() + sizeof(void*);
     reply_simple(op.sink(), "QUEUED");
     return MultiIoAction::LocalDone;
 }
@@ -2280,6 +2281,15 @@ uint32_t multi_session_watch_size(const Client& client) {
 }
 
 uint64_t multi_session_memory(const Client& client) {
+    const MultiSession* session = client.multi_session();
+    if (!session) return 0;
+    uint64_t bytes = 0;
+    for (const MultiQueuedCommand& command : session->queue)
+        for (const std::string& arg : command.argv) bytes += arg.size();
+    return bytes;
+}
+
+uint64_t multi_session_query_bytes(const Client& client) {
     const MultiSession* session = client.multi_session();
     return session ? session->query_bytes : 0;
 }

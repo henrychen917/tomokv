@@ -124,6 +124,18 @@ void framing() {
         check(resp_parse(input, std::strlen(input), pos, op, &error) == ParseResult::Error &&
               error && std::string(error) == expected, "Redis framing error text");
     }
+    for (unsigned byte = 0; byte != 256; ++byte) {
+        if (byte == '$') continue;
+        const char input[] = {'*', '1', '\r', '\n', static_cast<char>(byte)};
+        Op op; uint32_t pos = 0; const char* error = nullptr;
+        check(resp_parse(input, sizeof(input), pos, op, &error) == ParseResult::Error,
+              "every non-dollar bulk prefix rejected");
+        std::string expected = "-ERR Protocol error: expected '$', got '";
+        expected += byte == '\r' || byte == '\n' ? ' ' : static_cast<char>(byte);
+        expected += "'\r\n";
+        check(std::string(op.reply.data(), op.reply.size()) == expected,
+              "binary offending byte preserved and CR/LF sanitized in framing error");
+    }
 }
 #endif
 }
@@ -156,17 +168,31 @@ struct NetcmdRegression {
         command_bind_server(&server);
         loop.srv_ = &server; loop.self_ = &self;
         auto get = [&] { return command(shard, {"CONFIG", "GET", "client-query-buffer-limit"}); };
-        check(get() == "*2\r\n$24\r\nclient-query-buffer-limit\r\n$10\r\n1073741824\r\n", "CONFIG query limit default");
+        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$10\r\n1073741824\r\n", "CONFIG query limit default");
         check(command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "2mb"}).empty(), "CONFIG query limit accepted");
         loop.refresh_notify_config();
         check(loop.client_query_buffer_limit_ == 2097152, "NET1: CONFIG SET reaches IO committed snapshot");
-        check(get() == "*2\r\n$24\r\nclient-query-buffer-limit\r\n$7\r\n2097152\r\n", "CONFIG query limit normalized GET");
+        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$7\r\n2097152\r\n", "CONFIG query limit normalized GET");
         const auto before = get();
         const auto rejected = command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "0"});
         check(rejected == "-ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive\r\n",
               "CONFIG query limit exact range error");
         check(get() == before, "rejected CONFIG SET leaves published value intact");
         check(command(shard, {"CONFIG", "GET", "proto-max-inline"}) == "*0\r\n", "Redis has no proto-max-inline knob");
+        Client queued(-1); MultiExecState* dispatch = nullptr;
+        auto multi = [&](std::initializer_list<const char*> args) {
+            Op op;
+            for (const char* arg : args) check(op.push_arg(Slice(arg, std::strlen(arg))), "MULTI argv");
+            op.spec = command_lookup(op.cmd_name());
+            check(multi_handle_io(server, queued, op, 0, dispatch) == MultiIoAction::LocalDone,
+                  "serverless MULTI transition handled locally");
+        };
+        multi({"MULTI"}); multi({"ECHO", "abc"});
+        check(multi_session_query_bytes(queued) == 7 + 2 * sizeof(void*),
+              "query limit counts queued payload and Redis argv pointer allowance");
+        check(multi_session_memory(queued) == 7, "existing CLIENT memory reporting unchanged");
+        multi({"DISCARD"});
+        check(multi_session_query_bytes(queued) == 0, "discard clears queued query accounting");
         command_bind_server(nullptr);
     }
     static void inline_close() {
@@ -217,6 +243,7 @@ struct NetcmdRegression {
 }
 #endif
 int main(int argc, char** argv) {
+    check(tomo::command_registry_init(false), "command registry initialized");
     const std::string which = argc > 1 ? argv[1] : "all";
     if (which == "all" || which == "inline") inline_limit();
 #ifndef TOMO_NETCAP_OLD
