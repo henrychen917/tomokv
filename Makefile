@@ -338,7 +338,7 @@ clean:
 # omit their production objects from this serverless binary. No server threads or gate are started.
 NETCMD_TEST_SRC := tests/netcmd_unit.cc tests/netcmd_stream_unit.cc tests/netcmd_zset_unit.cc tests/netcmd_config_unit.cc
 NETCMD_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/tests/%.o)
-build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc
+build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc tests/hexpire_oom_checks.inc
 NETCMD_LIB_OBJ := $(filter-out build/src/main.o build/src/cmd/xshard.o build/src/cmd/t_stream_groups.o build/src/cmd/t_zset.o build/src/cmd/server_tail.o,$(OBJ))
 build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
