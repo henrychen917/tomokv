@@ -27,9 +27,18 @@ round-robin to executors.
 
 `1s` has no IO/executor ratio to change, so it rejects `--ratio`, `--flip-auto 1`,
 and runtime `FLIP`. Both modes retain cross-thread owner dispatch. The optional
-local-read lane is active only in `1s` with `x-overlap 0`. The other accepted
-study schedules interleave work inside these two architectures; they are
-described in [CONFIGURATION.md](CONFIGURATION.md#study-options).
+local-read lane runs in both modes: the 2s entry selects a dedicated runtime
+whose IO threads remain shard-less (`src/main.cc:325`, `src/core/rl2s.cc:97`,
+`:213`). Both overlap settings are supported (`src/core/rl2s.cc:72`). See
+[CONFIGURATION.md](CONFIGURATION.md#threads-placement-and-execution).
+
+The shipped posture is `thread-mode 2s`, `overlap 0`, `read-local 0`,
+`key-lb 1`, `client-lb 1`, and `reorder 0` (`src/core/config.h:306`, `:329`,
+`:350`, `:387`). Periodic snapshots use Redis's three clauses,
+`save 3600 1`, `save 300 100`, `save 60 10000` (`src/core/config.h:347`).
+Slowlog is armed: `slowlog-log-slower-than 10000`, `slowlog-max-len 128`,
+and `latency-monitor-threshold 0` (`src/core/config.h:418`,
+`src/cmd/slowlog.h:27`). These are defaults, not a benchmark configuration.
 
 ## Ownership and routing
 
@@ -61,7 +70,7 @@ flowchart LR
     E --> R[Complete the Op in its ROB]
     R --> W[Connection IO: retire and send]
     W --> C
-    N -. Eligible fused GET or MGET .-> L[Local read lane]
+    N -. Eligible GET or MGET in either mode .-> L[Local read lane]
     L --> R
 ```
 
@@ -200,15 +209,30 @@ Admission, outstanding-write tracking, and demotion are in
 [io_loop.h](../src/core/io_loop.h), [rob.h](../src/net/rob.h), and
 [read_local.h](../src/core/read_local.h). Execution is in
 [ex_loop.h](../src/core/ex_loop.h). Only eligible GET/MGET commands enter this
-lane. Connection state, outstanding overlapping writes, broad owner routes,
-notification requirements, and capacity can send them to ordinary owner tasks.
-The write-history sidecar is armed on demand, not allocated for every connection.
+lane, in both 1s and 2s (`src/main.cc:325`, `src/core/rl2s.cc:72`). Connection
+state, outstanding overlapping writes, broad owner routes, and notification or
+store-safety requirements can send them to ordinary owner tasks
+(`src/core/io_loop.h:3390`). **Capacity pressure defers, never demotes.** Quota
+refusal and lane-full admission both end the parse pass with the frame still
+unconsumed; no local or owner task has been published (`src/core/io_loop.h:3443`).
+
+RYOW is checked by `Rob::read_local_write_conflicts(hash, keyset_touches_hash)`
+(`src/net/rob.h:557`). It first resolves the arming fence, then rejects harmless
+probes through the inactive/staged state and tag filter. Its exact path prunes
+retired writes and tests staged/ring hashes, precise keysets, and the live
+conservative overflow generation (`src/net/rob.h:644`). The ring has 64 entries,
+derived from the ROB window (`src/net/rob.h:73`); entries name still-live ROB
+operations. The first read arms tracking; pre-arming writes fence reads until
+retirement (`src/net/rob.h:808`). The sidecar is allocated on the first write
+of an armed connection, not at accept (`src/net/rob.h:689`). Cross-client order
+is not a connection RYOW dependency.
 
 If a later write overlaps unresolved local reads, the parser first demotes the
 affected reads and their transitive key-overlap set into owner queues in program
 order. It reserves queue capacity before publishing that change. Conservative
-write sets demote conservatively; unrelated precise reads may remain local.
-Completed replies still retire through the same ROB.
+write sets demote conservatively; unrelated precise reads may remain local
+(`src/core/io_loop.h:2500`, `:2726`). This safety demotion is distinct from lane
+admission deferral. Completed replies still retire through the same ROB.
 
 The reader synchronization claim is deliberately narrow. **Ordinary
 nonstructural immutable replacements publish only their own slot to readers.**
@@ -216,8 +240,10 @@ They do not change a shard-wide validation sequence. A local GET captures a
 key-checked immutable object and validates `probe_sequence`, the table-topology
 word. Structural moves and atomic physical exchanges bracket changes to that
 word; an interfering change makes the active captured GET path decline to the
-owner instead of recapturing in a loop. QSBR makes the captured object's lifetime
-safe even if the slot has since changed.
+owner instead of recapturing in a loop (`src/store/flatstore.h:943`,
+`src/core/ex_loop.h:1311`). QSBR makes the captured object's lifetime safe even
+if the slot has since changed. Armed in-place overwrite is unconditionally
+refused (`src/store/flatstore.h:2712`).
 
 An atomic candidate can be physically present before it is logically visible.
 [foreign_read_safety.h](../src/store/foreign_read_safety.h) therefore publishes
@@ -231,12 +257,15 @@ uses a short table guard to close a probe-versus-publication race.
 MGET copies a private aggregate reply before accepting its window. For up to
 128 keys it brackets the copy with **every queried filter-cell epoch**, while
 each individual probe validates topology. Larger MGETs instead compare table
-generations across touched shards. Stable misses produce nil elements; expired
-values or unsafe keys force owner execution. The active implementation permits
-two complete attempts: one retry, then fallback. This conflicts with an absolute
-no-reader-retry claim and is recorded in [FINDINGS](FINDINGS.md#reader-contract).
-It is not an unbounded retry loop. No broad claim that every read is immune to
-every write or control-plane pause follows from this lane.
+generations across touched shards (`src/core/ex_loop.h:1009`, `:1035`). Stable
+misses produce nil elements; expired values or unsafe keys force owner execution.
+Production takes one local attempt: failed validation clears the private reply
+and unconditionally jumps to owner demotion before the retained retry body
+(`src/core/ex_loop.h:1282`). The two-attempt loop remains a measurement/test
+control, not the shipped retry behavior. Per-operation sequence validation
+still exists; its relationship to the no-seqlock law is recorded in
+[FINDINGS](FINDINGS.md#reader-contract). No universal progress claim follows
+from these checks.
 
 ## Persistence and side effects
 
@@ -269,8 +298,10 @@ monitoring, and authorization respectively.
 
 The continuous balancer and the role controller have different jobs:
 
-- `lb 1` enables key-demand sampling, client census, and movement while retaining
-  the current IO/executor counts. [weighted_lb.h](../src/core/weighted_lb.h)
+- `key-lb 1` and `client-lb 1` independently enable shard-demand sampling and
+  client census/movement while retaining the current IO/executor counts. Both
+  default on (`src/core/config.h:306`, `:851`).
+  [weighted_lb.h](../src/core/weighted_lb.h)
   partitions sampled demand while enforcing count balance; its policy derives
   sampling rates, jitter bands, move caps, and cooldowns. The controller in
   [server.h](../src/core/server.h) requires sustained evidence and coordinates
@@ -296,8 +327,8 @@ balancing but has no role-split actuator.
 
 The current source asserts these byte sizes: `Op` 336, `Client` 1984,
 `ThreadCtx` 1408, `Shard` 1440, `FlatStore` 944, `Rob<64>` 192,
-`AtomicEntry` 144, and `Config` **528**. The last differs from the older 624-byte
-context. These assertions constrain hot-object layout; optional state often
+`AtomicEntry` 144, and `Config` **624** (`src/core/config.h:430`). These assertions
+constrain object layout; optional state often
 lives behind owner-managed sidecars.
 
 Many mechanisms are header-defined for specialization. The `.inc` files are

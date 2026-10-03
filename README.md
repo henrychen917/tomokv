@@ -8,7 +8,7 @@ thread placement, and memory reclamation.
 
 Each shard has one executor owner. The server can separate networking from
 execution (`2s`) or give each thread both responsibilities (`1s`). An optional
-local-read lane in `1s` reads immutable string values on the connection's thread;
+local-read lane in both modes reads immutable string values on the connection's thread;
 unsafe reads use the shard owner. Cross-shard commands use scatter/gather, with
 epoch-MVCC for grouped execution. Shards and connections can move between threads
 while the server runs.
@@ -111,7 +111,7 @@ has commented examples. Either invocation reads it, then applies CLI overrides:
 
 ```sh
 ./build/tomokv tomokv.conf --ratio 2:2 --shards 16 --atomic 1
-./build/tomokv --conf tomokv.conf --ratio 2:2 --shards 16 --atomic 1 --port 7000
+./build/tomokv tomokv.conf --ratio 2:2 --shards 16 --atomic 1 --port 7000
 ```
 
 Important defaults, before any overrides:
@@ -120,8 +120,8 @@ Important defaults, before any overrides:
 | --- | --- |
 | `thread-mode` | `2s`; even IO/executor split over allowed CPUs |
 | `shards` | `-1`: `min(8 × initial executor count, 256)` |
-| `read-local`, `atomic`, `flip-auto` | `0` |
-| `lb` | `1`: key and client balancing together |
+| `read-local`, `overlap`, `reorder`, `atomic`, `flip-auto` | `0` |
+| `key-lb`, `client-lb` | `1`: independent key and client balancing |
 | `net-io` | `uring` |
 | `bind`, `port` | `127.0.0.1`, `6379` |
 | `tls-port`, `unixsocket` | `0` (TLS off), unset |
@@ -131,31 +131,32 @@ Important defaults, before any overrides:
 | `save` | `3600 1 300 100 60 10000` |
 | `dir`, `dbfilename` | `.`, `dump.tomo` |
 | `appendonly`, `appendfsync` | `no`, `everysec` |
-| `script-instruction-limit` | `100000` Lua VM instructions |
+| `slowlog-log-slower-than`, `slowlog-max-len` | `10000` microseconds (armed), `128` per recording thread |
 
 [CONFIGURATION.md](docs/CONFIGURATION.md) lists every boot option, accepted
-value, default, and runtime mutability, including the study options omitted
-from `--help`. `CONFIG GET *` reports the runtime configuration table, which is
-a subset of the boot options. `CONFIG REWRITE` has preservation and quoting
-limitations documented there.
+value, default, and runtime mutability. `CONFIG GET *` reports the runtime
+configuration table, which is a subset of the boot options. `CONFIG REWRITE`
+quotes values and preserves original directives outside that table; it does
+not export CLI-only placement overrides (`src/cmd/server_tail.cc:653`, `:681`).
 
 Periodic snapshots are enabled by default. Use `--save ""` to disable the
-schedule; explicit `SAVE` and `BGSAVE` remain available. **An existing
-`dump.tomo` is not loaded automatically.** After a successful save and after
-stopping the old process, recover its 16-shard snapshot with:
+schedule; explicit `SAVE` and `BGSAVE` remain available. Startup automatically
+loads `<dir>/<dbfilename>` when AOF recovery supplies no data
+(`src/main.cc:245`). After a successful save and after stopping the old process,
+recover its 16-shard snapshot with:
 
 ```sh
-./build/tomokv --ratio 2:2 --shards 16 --atomic 1 --load ./dump.tomo
+./build/tomokv --ratio 2:2 --shards 16 --atomic 1 --dir . --dbfilename dump.tomo
 ```
 
 `--appendonly yes` enables the append-only log and its boot recovery. Keep the
 same `dir`, `appenddirname`, `appendfilename`, and shard count across restarts.
-An existing AOF recovery plan takes precedence over `--load`. Snapshot and AOF
+An existing AOF recovery plan takes precedence over the snapshot. Snapshot and AOF
 files are TomoKV formats, not Redis RDB or Redis AOF files.
 
 ## Compatibility
 
-The checked-out source registers **246 top-level command names**, including
+The checked-out source registers **245 top-level command names**, including
 aliases, standalone error handlers, and TomoKV's `FLIP`. The supplied project
 context's count of 243 differs from the current tables; the static count is
 recorded in [FINDINGS](docs/FINDINGS.md#command-inventory). A registered name
@@ -198,9 +199,11 @@ The main boundaries are:
 The local-read property is specific: ordinary nonstructural string replacements
 publish only their own slot to readers and retain old values until a QSBR grace
 period. A captured local GET validates table topology and declines to the owner
-on structural interference. The current local MGET implementation can retry its
-whole validation window once. See the [read-path explanation](docs/ARCHITECTURE.md#local-reads)
-and the recorded conflict with the project's no-reader-retry law in
+on structural interference. Production MGET also demotes after one failed local
+attempt (`src/core/ex_loop.h:1282`). Capacity admission defers instead of
+demoting (`src/core/io_loop.h:3443`). See the
+[read-path explanation](docs/ARCHITECTURE.md#local-reads) and the remaining
+per-operation sequence-validation concern in
 [FINDINGS](docs/FINDINGS.md#reader-contract).
 
 ## Source navigation
