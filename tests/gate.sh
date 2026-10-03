@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=454
-EXPECT_FULL=471                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=456
+EXPECT_FULL=473                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1360,6 +1360,16 @@ row_begin "storage deadline-sidecar regression"
 }
 
 job_atomic_units(){
+# ST1/ST10: two rows collected here, before the quick-tier exit (+2 quick/full).
+for FLUSHFIX_CASE in flush headers; do
+  row_begin "flushfix $FLUSHFIX_CASE witnesses"
+  if unit_ready flushfix-units && taskset -c "$CORES" python3 tests/flushfix_checks.py check "$FLUSHFIX_CASE" \
+      >"$TMPDIR/flushfix-$FLUSHFIX_CASE.log" 2>&1; then
+    ok "flushfix $FLUSHFIX_CASE witnesses"
+  else
+    bad "flushfix $FLUSHFIX_CASE witnesses" "see $TMPDIR/flushfix-$FLUSHFIX_CASE.log"
+  fi
+done
 row_begin "multidb serverless owners"
 unit_ready multidb-unit && taskset -c "$CORES" ./build/multidb-unit \
     >"$TMPDIR/multidb-unit.log" 2>&1 \
@@ -2664,10 +2674,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit flushfix-units splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
