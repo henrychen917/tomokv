@@ -90,6 +90,7 @@ def live(args):
     # owns scheduling and starts only this test's isolated, disposable server.
     import os
     import resource
+    import signal
     import tempfile
     import time
     from _lib import Conn, encode
@@ -120,6 +121,7 @@ def live(args):
                 assert connection is not None, "server never became ready"
                 info = fields(connection.must("INFO", "SERVER"))
                 assert int(info["process_id"]) == process.pid, "connected to an unrelated server"
+                resource.prlimit(process.pid, resource.RLIMIT_CORE, (0, 0))
                 db = 0 if args.databases == 1 else 15
                 if db:
                     assert connection.must("SET", "sentinel", "other-db") == b"OK"
@@ -136,7 +138,18 @@ def live(args):
                 cap = pages * os.sysconf("SC_PAGE_SIZE") + 2 * 1024 * 1024
                 resource.prlimit(process.pid, resource.RLIMIT_AS, (cap, previous[1]))
                 print(f"ARMED live: pid={process.pid} keys={args.keys} key_bytes={args.key_bytes} cap={cap}", flush=True)
-                assert connection.must("FLUSHDB") == b"OK", "FLUSHDB did not complete under RLIMIT_AS"
+                try:
+                    reply = connection.must("FLUSHDB")
+                except (EOFError, OSError):
+                    if not args.expect_terminate:
+                        raise AssertionError("FLUSHDB did not complete under RLIMIT_AS")
+                    assert process.wait(timeout=10) == -signal.SIGABRT, "PRE did not abort in terminate"
+                    assert "std::bad_alloc" in (path / "server.log").read_text(errors="replace"), \
+                        "PRE aborted for a different reason"
+                    print("PASS live negative control: armed FLUSHDB terminates with std::bad_alloc")
+                    return
+                assert not args.expect_terminate, "PRE survived: the live memory window did not discriminate"
+                assert reply == b"OK", "FLUSHDB did not complete under RLIMIT_AS"
                 assert connection.must("PING") == b"PONG" and connection.must("DBSIZE") == 0, \
                     "server died or FLUSHDB left keys under RLIMIT_AS"
                 resource.prlimit(process.pid, resource.RLIMIT_AS, previous)
@@ -171,6 +184,8 @@ if __name__ == "__main__":
     live_parser.add_argument("--databases", type=int, choices=(1, 16), required=True)
     live_parser.add_argument("--keys", type=int, default=262144)
     live_parser.add_argument("--key-bytes", type=int, default=4096)
+    live_parser.add_argument("--expect-terminate", action="store_true",
+                             help="PRE only: require the armed flush to abort with std::bad_alloc")
     args = parser.parse_args()
     if args.action == "emit-header":
         emit_header(args.site, args.output)
