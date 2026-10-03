@@ -59,7 +59,10 @@ void flushfix_semantics() {
         }
         require(seeded == 400 && shard.store().capacity() == 1024,
                 "overfull scan home armed on the 1024-slot table");
-        if (!kSingleDatabase) add(shard, Slice("other", 5, 0));
+        char other_bytes[32] = "other";
+        const Slice other(other_bytes, 5);
+        if (!kSingleDatabase) add(shard, other);
+        const auto rehashes = shard.stats().rehashes;
         if (snapshot) {
             require(shard.store().snapshot_prepare(1, 1000) == FlatStore::SnapshotWriteResult::Ready &&
                     shard.store().snapshot_mark(0, 1000), "capture armed");
@@ -86,8 +89,11 @@ void flushfix_semantics() {
                 "every buffered and overflow key removed, other database preserved");
         require(shard.save_changes() == 1, "one dirty change per nonempty shard");
         if (!kSingleDatabase)
-            require(shard.store().find(FlatStore::hash_key(Slice("other", 5)), Slice("other", 5)),
+            require(shard.store().find(FlatStore::hash_key(other), other),
                     "other database value remains readable");
+        if (!kSingleDatabase && !snapshot)
+            require(shard.stats().rehashes > rehashes,
+                    "chunk erases actually crossed a shrink boundary");
         if (snapshot) {
             for (unsigned retry = 0; shard.store().snapshot_active() && retry < 1000; ++retry) {
                 shard.store().snapshot_progress(4096, 4096);
@@ -129,9 +135,12 @@ void flushfix_memory(bool all) {
     cap = previous;
     cap.rlim_cur = pages * sysconf(_SC_PAGESIZE) + 2 * 1024 * 1024;
     require(cap.rlim_cur <= cap.rlim_max && setrlimit(RLIMIT_AS, &cap) == 0, "arm RLIMIT_AS");
+    struct rusage before, after;
+    require(getrusage(RUSAGE_SELF, &before) == 0, "read pre-flush peak RSS");
     std::set_terminate([] {
         constexpr char failure[] = "FAIL flushfix: FLUSHDB completes under RLIMIT_AS (uncaught allocation failure)\n";
-        (void)::write(STDERR_FILENO, failure, sizeof(failure) - 1);
+        const auto written = ::write(STDERR_FILENO, failure, sizeof(failure) - 1);
+        (void)written;
         std::_Exit(1);
     });
     flush(shard, db, all ? "FLUSHALL" : "FLUSHDB");
@@ -139,9 +148,11 @@ void flushfix_memory(bool all) {
     const unsigned left = all || kSingleDatabase ? 0 : 1;
     require(shard.store().size() == left && shard.published_size() == left,
             "FLUSHDB completes under RLIMIT_AS");
-    std::printf("PASS flushfix memory: %s %s keys=%u key-bytes=%u headroom=2097152 cap=%llu\n",
+    require(getrusage(RUSAGE_SELF, &after) == 0, "read post-flush peak RSS");
+    std::printf("PASS flushfix memory: %s %s keys=%u key-bytes=%u headroom=2097152 cap=%llu peak-rss-kib=%ld->%ld\n",
                 kSingleDatabase ? "db0" : "multi", all ? "FLUSHALL" : "FLUSHDB",
-                count, key_bytes, static_cast<unsigned long long>(cap.rlim_cur));
+                count, key_bytes, static_cast<unsigned long long>(cap.rlim_cur),
+                before.ru_maxrss, after.ru_maxrss);
 }
 } // namespace tomo
 
