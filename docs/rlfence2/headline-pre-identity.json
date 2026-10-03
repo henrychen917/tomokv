@@ -1,0 +1,69 @@
+{
+  "address_equal": true,
+  "after": "build/tomokv-rlfence-pre",
+  "before": "/home/user/Projects/bench-bins/tomokv-headline-e279aeb4c",
+  "different_sections": [
+    ".debug_info",
+    ".debug_line",
+    ".debug_line_str",
+    ".note.gnu.build-id"
+  ],
+  "errors": [],
+  "executable": [
+    {
+      "bytes": 13,
+      "layout_equal": true,
+      "post_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8",
+      "pre_sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8",
+      "raw_equal": true,
+      "section": ".fini"
+    },
+    {
+      "bytes": 27,
+      "layout_equal": true,
+      "post_sha256": "fd6e8b4b2b99be9ef41b3efe08f742910bb6663a3db8e0805508ab7ca51d1091",
+      "pre_sha256": "fd6e8b4b2b99be9ef41b3efe08f742910bb6663a3db8e0805508ab7ca51d1091",
+      "raw_equal": true,
+      "section": ".init"
+    },
+    {
+      "bytes": 4880,
+      "layout_equal": true,
+      "post_sha256": "9737c752ed0a50e9be93f57f336b3b084797a3e46405a77704addd00a4f0e4a2",
+      "pre_sha256": "9737c752ed0a50e9be93f57f336b3b084797a3e46405a77704addd00a4f0e4a2",
+      "raw_equal": true,
+      "section": ".plt"
+    },
+    {
+      "bytes": 32,
+      "layout_equal": true,
+      "post_sha256": "d5d5dca92cdcd721b0b67a48621bdf77de360a154c6e7301ac0936155b6c6b30",
+      "pre_sha256": "d5d5dca92cdcd721b0b67a48621bdf77de360a154c6e7301ac0936155b6c6b30",
+      "raw_equal": true,
+      "section": ".plt.got"
+    },
+    {
+      "bytes": 4864,
+      "layout_equal": true,
+      "post_sha256": "ef66727ffe6fc7724d9c13b360608b41a384f5f310f6bf920ef3c27f8e407214",
+      "pre_sha256": "ef66727ffe6fc7724d9c13b360608b41a384f5f310f6bf920ef3c27f8e407214",
+      "raw_equal": true,
+      "section": ".plt.sec"
+    },
+    {
+      "bytes": 7554449,
+      "layout_equal": true,
+      "post_sha256": "e5fde530532d87fb21f06b2032306efa44b1a67a8c3c590b03a36a18534b8e92",
+      "pre_sha256": "e5fde530532d87fb21f06b2032306efa44b1a67a8c3c590b03a36a18534b8e92",
+      "raw_equal": true,
+      "section": ".text"
+    }
+  ],
+  "okay": true,
+  "post_sha256": "8f0f3add5043003f6b6bfbe16a69c9e3edf7bc8c50be49caa7e28d05dbb15c26",
+  "pre_sha256": "9d1aabd59c9b760695e8119871f7d0de21b2f661529dcc469fa7df867627e08d",
+  "relocation_count": 3786,
+  "renamed_local_labels": [],
+  "symbol_count": 10634,
+  "whole_file_equal": false
+}
