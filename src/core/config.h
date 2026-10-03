@@ -122,6 +122,29 @@ inline bool cfg_parse_memory(const char* input, uint64_t& out) {
     return input && cfg_parse_memory(input, std::strlen(input), out);
 }
 
+inline bool cfg_parse_query_buffer_limit(const char* input, size_t length, uint64_t& out,
+                                          const char*& error) {
+    // Redis memtoull consumes a C string, including its empty-number -> zero behavior.
+    // Keep these details local to the new knob; other knobs retain their existing grammar.
+    if (const void* nul = std::memchr(input, 0, length))
+        length = static_cast<const char*>(nul) - input;
+    const bool zero = !length || cfg_memory_suffix(input, length, "b") ||
+        cfg_memory_suffix(input, length, "k") || cfg_memory_suffix(input, length, "kb") ||
+        cfg_memory_suffix(input, length, "m") || cfg_memory_suffix(input, length, "mb") ||
+        cfg_memory_suffix(input, length, "g") || cfg_memory_suffix(input, length, "gb");
+    if (zero) out = 0;
+    else if (!cfg_parse_memory(input, length, out)) {
+        error = "argument must be a memory value";
+        return false;
+    }
+    if (out < 1024 * 1024 || out > LONG_MAX) {
+        static_assert(LONG_MAX == 9223372036854775807LL);
+        error = "argument must be between 1048576 and 9223372036854775807 inclusive";
+        return false;
+    }
+    return true;
+}
+
 inline bool cfg_parse_unixsocketperm(const char* input, uint16_t& out) {
     if (!input) return false;
     char* end = nullptr;
@@ -425,7 +448,8 @@ struct Config {
     const char* conf_path = nullptr;
     // Boot-only writeback policy; consume reserved bytes, preserving all prior offsets.
     int32_t wb_policy = wb_rule::default_policy();
-    uint8_t layout_reserved[76]{};
+    uint64_t client_query_buffer_limit = 1024ull * 1024 * 1024;
+    uint8_t layout_reserved[64]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -938,6 +962,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.databases = value;
         }
+        else if (!std::strcmp(a, "--client-query-buffer-limit")) {
+            const char* input = next(nullptr);
+            const char* error = "argument must be a memory value";
+            if (!input || !cfg_parse_query_buffer_limit(input, std::strlen(input),
+                                                        cfg.client_query_buffer_limit, error)) {
+                std::fprintf(stderr, "--client-query-buffer-limit: %s\n", error);
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--proto-max-bulk-len")) {
             uint64_t value = 0;
             if (!cfg_parse_memory(next(nullptr), value) || value < kProtoMinBulkLen ||
@@ -1109,7 +1142,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --auto-aof-rewrite-percentage N --auto-aof-rewrite-min-size BYTES\n"
                         "    --aof-use-rdb-preamble yes --aof-timestamp-enabled yes|no\n"
                         "    --aof-load-truncated yes|no (boot-only recovery policy)\n"
-                        "  compatibility: --databases N --proto-max-bulk-len BYTES\n"
+                        "  compatibility: --databases N --proto-max-bulk-len BYTES --client-query-buffer-limit BYTES\n"
                         "  security: --requirepass PASSWORD --protected-mode 0|1|yes|no\n"
                         "            --enable-debug-command no|yes|local --aclfile PATH\n"
                         "            --user NAME RULE... --acl-pubsub-default allchannels|resetchannels\n"

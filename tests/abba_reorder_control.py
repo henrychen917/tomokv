@@ -32,8 +32,9 @@ def identity(path):
 
 
 def read_bound(binding):
+    from abba_standing_null import bound_bytes
     path = Path(binding["path"])
-    raw = path.read_bytes()
+    raw = bound_bytes(binding)
     require(path.is_absolute() and digest(raw) == binding["sha256"],
             f"read-local control artifact changed: {path}")
     return json.loads(raw)

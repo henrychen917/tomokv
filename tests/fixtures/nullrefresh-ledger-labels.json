@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "dcd124650c70135bcf65ae88d13bb931f134798f69ccd6e2425646a380c57622",
+  "source_sha256": "0c193426ea1545ee277a1a5eda315abba2a12b4b7c4a058c8c92038da0b0dd2f",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -39,6 +39,8 @@
     "storage field-index-failure regression",
     "storage hash-bytes regression",
     "storage deadline-sidecar regression",
+    "flushfix flush witnesses",
+    "flushfix headers witnesses",
     "multidb serverless owners",
     "multidb global namespace boundary",
     "atomic survivors unit build",
@@ -69,6 +71,11 @@
     "netcmd receive regression",
     "netcmd config regression",
     "netcmd hexpire-oom regression",
+    "NET1 serverless bounds + scan + reclamation",
+    "NET1 inline + query cap (1s, uring)",
+    "NET1 inline + query cap (1s, epoll)",
+    "NET1 inline + query cap (2s, uring)",
+    "NET1 inline + query cap (2s, epoll)",
     "generated Redis 7.4 ACL categories",
     "reject --mode (flag deleted)",
     "reject --spread",
@@ -503,6 +510,27 @@
       "when": "2026-10-03 21:18",
       "added": [
         "splitlocal template forwarding + old-argument controls"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:52",
+      "added": [
+        "NET1 inline + query cap (1s, epoll)",
+        "NET1 inline + query cap (1s, uring)",
+        "NET1 inline + query cap (2s, epoll)",
+        "NET1 inline + query cap (2s, uring)",
+        "NET1 serverless bounds + scan + reclamation"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 22:05",
+      "added": [
+        "flushfix flush witnesses",
+        "flushfix headers witnesses"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
