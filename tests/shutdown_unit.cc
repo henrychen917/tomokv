@@ -15,6 +15,10 @@ static void require(bool ok, const char* assertion) {
         std::exit(1);
     }
 }
+extern "C" SnapshotManager::StartResult real_snapshot_start(
+    SnapshotManager*, Server&, ThreadCtx&, Ring&, bool, std::string&, AofManager*,
+    const char*, const char*, bool)
+    asm("__real__ZN4tomo15SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b");
 extern "C" SnapshotManager::StartResult snapshot_stub(
     SnapshotManager*, Server& server, ThreadCtx&, Ring&, bool blocking, std::string& error,
     AofManager*, const char*, const char*, bool shutdown)
@@ -71,6 +75,17 @@ struct Fixture {
 
 namespace tomo {
 struct CoreConcurrencyTest {
+    static void finalize(Server& server) {
+        auto& snapshot = server.snapshot();
+        snapshot.server_ = &server;
+        snapshot.phase_.store(SnapshotManager::Phase::Capture);
+        server.set_shutdown_snapshot_active(true);
+        require(snapshot.complete_file_success(), "final snapshot completion succeeds");
+        require(server.shutting_down() && snapshot.phase() == SnapshotManager::Phase::Idle,
+                "successful finalization publishes stop before releasing epoch");
+        for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+            require(server.thread(tid).stop_flag(), "successful finalization stops every owner");
+    }
     template<bool Fused>
     static void shutdown_hold(Server& server) {
         auto loop = std::make_unique<ExLoopT<Fused>>();
@@ -82,6 +97,11 @@ struct CoreConcurrencyTest {
         server.set_shutdown_snapshot_active(true);
         loop->snapshot_control_pass();
         require(server.shutdown_snapshot_holds() == 1, "held owner prevents admission of another snapshot");
+        Ring unopened;
+        std::string error;
+        require(real_snapshot_start(&server.snapshot(), server, owner, unopened, true, error,
+                                    nullptr, nullptr, nullptr, false) == SnapshotManager::StartResult::Busy,
+                "new snapshot refuses held previous epoch before touching a ring");
         require(loop->snapshot_owner_state_ == State::ShutdownHeld && loop->snapshot_blocks_tasks(),
                 "post-cut tasks held until final fsync");
         require(loop->snapshot_control_pass() == 0 && loop->snapshot_blocks_tasks(),
@@ -136,5 +156,6 @@ int main() {
     f->reset();
     CoreConcurrencyTest::shutdown_hold<false>(f->server);
     CoreConcurrencyTest::shutdown_hold<true>(f->server);
+    CoreConcurrencyTest::finalize(f->server);
     std::puts("shutdown policy, signal handoff, failure and owner hold: PASS");
 }

@@ -43,7 +43,8 @@ def controls(args):
     for defect, assertion in (
             ('command', 'default SHUTDOWN saves before stop'),
             ('signal', 'signal leaves owners alive for final save'),
-            ('hold', 'held owner prevents admission of another snapshot')):
+            ('hold', 'held owner prevents admission of another snapshot'),
+            ('completion', 'successful finalization publishes stop before releasing epoch')):
         directory = ROOT / 'build' / ('climonfix-control-' + defect)
         directory.mkdir(exist_ok=True)
         shutil.copytree(ROOT / 'src', directory / 'src', dirs_exist_ok=True)
@@ -54,6 +55,12 @@ def controls(args):
             old_save(directory / 'src/cmd/server_tail.cc')
             obj.remove(build / 'src/cmd/server_tail.o')
             source = 'src/cmd/server_tail.cc'
+            obj.insert(0, build / 'tests/shutdown_unit.o')
+        elif defect == 'completion':
+            replace(directory / 'src/snapshot/snapshot.cc',
+                    '    if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();\n', '')
+            obj.remove(build / 'src/snapshot/snapshot.o')
+            source = 'src/snapshot/snapshot.cc'
             obj.insert(0, build / 'tests/shutdown_unit.o')
         elif defect == 'signal':
             old_signal(directory / 'src/core/server.h')
@@ -83,9 +90,9 @@ control.o: ''' + source + ''' $(wildcard src/*/*.h)
 
 def pad(args):
     directory = ROOT / 'build/climonfix-pad-src'
-    directory.mkdir(exist_ok=False)
+    directory.mkdir(exist_ok=True)
     for name in ('src', 'third_party'):
-        shutil.copytree(ROOT / name, directory / name)
+        shutil.copytree(ROOT / name, directory / name, dirs_exist_ok=True)
     shutil.copyfile(ROOT / 'Makefile', directory / 'Makefile')
     # PRE membership/forwarding semantics with the candidate's two-word message and Server layout.
     replace(directory / 'src/core/climon_mask.h', 'return io >> 6;', 'return (io & 63) >> 6;')
@@ -128,9 +135,30 @@ def pad(args):
     print((output / 'kind.json').read_text())
 
 
+def armed(args):
+    sys.path.insert(0, str(ROOT / 'tools'))
+    from lbstall_artifacts import Elf
+    rows = []
+    for variant in ('src', 'db0/src'):
+        before = Elf(ROOT / 'build/climonfix-pre' / variant / 'cmd/climon.o')
+        after = Elf(args.build_root.resolve() / variant / 'cmd/climon.o')
+        def functions(elf):
+            return {s['name']: s for s in elf.symbols
+                    if '17climon_armed_gate' in s['name'] and not s['name'].endswith('.cold')}
+        old, new = functions(before), functions(after)
+        assert old.keys() == new.keys() and len(old) == 1
+        for name in old:
+            rows.append(dict(variant=variant, name=name, pre_size=old[name]['size'],
+                             post_size=new[name]['size'],
+                             identical=before.canonical(old[name]) == after.canonical(new[name])))
+    assert all(row['identical'] for row in rows), rows
+    (ROOT / 'build/climonfix-armed-audit.json').write_text(json.dumps(rows, indent=2) + '\n')
+    print(json.dumps(rows, indent=2))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('controls', 'pad'))
+    parser.add_argument('action', choices=('controls', 'pad', 'armed'))
     parser.add_argument('--cores', default='112-127')
     parser.add_argument('--build-root', type=Path, default=ROOT / 'build/climonfix-post')
     args = parser.parse_args()

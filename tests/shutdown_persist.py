@@ -94,8 +94,6 @@ def restart_case(args, name, action, expected_save, initial_save=None, config_sa
                 'snapshot did not capture the witness before shutdown')
         stop(conn, process, action)
     after = snapshot.read_bytes() if snapshot.exists() else None
-    require((after is not None and after != before) if expected_save else after == before,
-            f'{name}: shutdown snapshot choice')
     with boot(args, directory, 'restart', '') as (conn, process):
         got = conn.must('GET', 'sv2:new')
         require(got == (b'durable-value' if expected_save else None),
@@ -103,6 +101,8 @@ def restart_case(args, name, action, expected_save, initial_save=None, config_sa
         if baseline:
             require(conn.must('GET', 'sv2:baseline') == b'old', 'NOSAVE preserves prior snapshot')
         stop(conn, process, ['NOSAVE'])
+    require((after is not None and after != before) if expected_save else after == before,
+            f'{name}: shutdown snapshot choice')
     print(f'{args.mode} {name}: PASS (restart, save={expected_save}, '
           f'snapshot={hashlib.sha256(after).hexdigest() if after else "absent"})', flush=True)
 

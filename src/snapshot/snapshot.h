@@ -95,6 +95,7 @@ public:
     const std::string& dbfilename() const { return dbfilename_; }
 
 private:
+    friend struct CoreConcurrencyTest; // serverless finalization/owner-hold witness
     using ChunkChan = Channel<SnapshotChunk*, 64>;
     bool write_header_normal();
     bool write_frame_normal(const SnapshotChunk& chunk);
