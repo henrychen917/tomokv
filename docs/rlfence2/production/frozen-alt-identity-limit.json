@@ -1,0 +1,5 @@
+{
+  "assertion": "AssertionError(('h05 layout moved', '_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv'))",
+  "exact_h05_identity": false,
+  "reason": "Required origin/cpp merge contains changed parser/TLS sources; the frozen comparison is not a same-source build."
+}

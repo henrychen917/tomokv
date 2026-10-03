@@ -1,0 +1,13 @@
+{
+  "same_binary_passed": true,
+  "controls": {
+    "moved-symbol": {
+      "rejected": true,
+      "assertion": "identity function address/size table moved"
+    },
+    "one-byte": {
+      "rejected": true,
+      "assertion": "identity executable bytes/layout changed"
+    }
+  }
+}

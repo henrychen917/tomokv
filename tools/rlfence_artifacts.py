@@ -69,7 +69,7 @@ def tables(elf, out, label):
                 text_bytes=elf.sections[elf.names.index('.text')][5])
 
 
-def identity(reference, candidate, out):
+def identity(reference, candidate, out, require_equal=False):
     """Literal comparison, including every defined function and duplicate name.
 
     A newer mainline can legitimately differ from frozen ALT. Record those
@@ -144,6 +144,9 @@ def identity(reference, candidate, out):
         caveat='Literal bytes; no displacement masking. Duplicate names paired by address order. '
                'Static backward branches are not a profile. DWARF/build ID excluded from executable identity.'))
     print(f'Executable/address identity: {exact}; {len(differences)} differing function entries; see {out}')
+    if require_equal:
+        assert a['function_table_sha256'] == b['function_table_sha256'], 'identity function address/size table moved'
+        assert all(row['equal'] for row in executable), 'identity executable bytes/layout changed'
 
 
 def post_plan(source):
@@ -461,6 +464,7 @@ if __name__ == '__main__':
     s.add_argument('pre', type=Path); s.add_argument('post', type=Path); s.add_argument('out', type=Path)
     s = sub.add_parser('identity')
     s.add_argument('reference', type=Path); s.add_argument('candidate', type=Path); s.add_argument('out', type=Path)
+    s.add_argument('--require-equal', action='store_true')
     s = sub.add_parser('prepare-alt')
     s.add_argument('source', type=Path)
     s = sub.add_parser('h05-proof')
@@ -477,7 +481,7 @@ if __name__ == '__main__':
     elif args.action == 'audit':
         audit(args.pre,args.post,args.out)
     elif args.action == 'identity':
-        identity(args.reference,args.candidate,args.out)
+        identity(args.reference,args.candidate,args.out,args.require_equal)
     elif args.action == 'prepare-alt':
         prepare_alt(args.source)
     elif args.action == 'h05-proof':
