@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units wb_rule_units wbland_units atomic_units netcmd_units boot_grammar wait_units readonly
+              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1301,6 +1301,17 @@ job_wbland_units(){
       bad "$label" "see $TMPDIR/wbland-$group.log and $RUN_DIR/jobs/production_units/build.log"
     fi
   done
+}
+
+job_splitlocal_units(){
+  local label="splitlocal template forwarding + old-argument controls"
+  row_begin "$label"
+  if unit_ready splitlocal-unit && taskset -c "$CORES" python3 tests/splitlocal_checks.py check \
+      --output "$TMPDIR/splitlocal-controls" >"$TMPDIR/splitlocal.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/splitlocal.log and $RUN_DIR/jobs/production_units/build.log"
+  fi
 }
 
 job_storage_units(){
@@ -2617,10 +2628,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2679,7 +2690,7 @@ job_dependencies(){
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
-    wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2747,6 +2758,8 @@ collect_job wb_rule_units
 # wbland: two rows before the quick exit; maintainer-owned EXPECT counts +2/+2.
 collect_job wbland_units
 
+# WB4/IO5 and IO1: one new row before the quick exit; EXPECT counts stay maintainer-owned.
+collect_job splitlocal_units
 
 collect_job storage_units
 

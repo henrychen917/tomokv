@@ -120,6 +120,11 @@ noreserve:
 
 # Server-less unit binaries: the config parser and the flip controller. `make unit` builds and
 # runs both (neither boots a server). tests/gate.sh's parser row is the same program.
+build/splitlocal-unit.cc: tests/splitlocal_checks.py tests/r7shadow_sync.py tools/reorder_sync.py src/core/io_loop.h src/core/reorder.cc src/core/genthread_pipeline.h
+	@mkdir -p build
+	python3 tests/splitlocal_checks.py emit $@
+build/splitlocal-unit: build/splitlocal-unit.cc Makefile
+	$(CXX) $(CXXFLAGS) $< -o $@
 build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
