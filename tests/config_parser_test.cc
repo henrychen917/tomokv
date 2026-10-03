@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <fstream>
 #include <initializer_list>
+#include <iterator>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -74,9 +76,68 @@ std::string rejection_text(std::initializer_list<const char*> values,
     return output;
 }
 
+// Exercise the operator's actual example, so a valid parser plus a stale example
+// cannot produce a green row. This resolves placement but creates no server or socket.
+void documented_example() {
+    std::ifstream document("docs/CONFIGURATION.md");
+    if (!document) fail("cannot read documented config example");
+    const std::string markdown((std::istreambuf_iterator<char>(document)), {});
+    const std::string marker = "```conf\n";
+    const size_t begin = markdown.find(marker);
+    if (begin == std::string::npos || markdown.find(marker, begin + marker.size()) != std::string::npos)
+        fail("expected exactly one documented config example");
+    const size_t end = markdown.find("\n```", begin + marker.size());
+    if (end == std::string::npos) fail("unterminated documented config example");
+    const std::string example = markdown.substr(begin + marker.size(), end - begin - marker.size());
+    char path[] = "/tmp/tomokv-docs-example.XXXXXX";
+    const int fd = ::mkstemp(path);
+    if (fd < 0) fail("mkstemp for documented config example failed");
+    std::FILE* file = ::fdopen(fd, "w");
+    if (!file) fail("fdopen for documented config example failed");
+    if (std::fwrite(example.data(), 1, example.size(), file) != example.size())
+        fail("writing documented config example failed");
+    if (std::fclose(file)) fail("closing documented config example failed");
+    std::vector<std::string> storage;
+    const bool loaded = tomo::load_conf_file(path, storage);
+    ::unlink(path);
+    if (!loaded) fail("documented config example did not tokenize");
+    std::vector<const char*> tokens;
+    for (const auto& token : storage) tokens.push_back(token.c_str());
+    tomo::Config config;
+    tomo::ConfigParseState state;
+    if (tomo::parse_config_args(tokens, config, state, 1, "docs-example") != tomo::kConfigParsed ||
+        tomo::parse_config_args({"--ratio", "6:2", "--dir", "/tmp"}, config, state, 2,
+                                "docs-example") != tomo::kConfigParsed ||
+        tomo::validate_config(config) != tomo::kConfigParsed)
+        fail("documented config example must parse and validate");
+    if (config.thread_mode != tomo::ThreadMode::Split || config.port != 6399 ||
+        config.shards != 16 || config.overlap || config.read_local || config.reorder ||
+        config.key_lb != 1 || config.client_lb != 1 || config.slowlog_log_slower_than != 10000 ||
+        tomo::cfg_save_schedule_string(config.save) != "3600 1 300 100 60 10000")
+        fail("documented config example posture differs");
+    cpu_set_t allowed;
+    if (sched_getaffinity(0, sizeof(allowed), &allowed)) fail("example affinity unavailable");
+    std::string cpus;
+    unsigned count = 0;
+    for (int cpu = 0; cpu < CPU_SETSIZE && count < 8; ++cpu) {
+        if (!CPU_ISSET(cpu, &allowed)) continue;
+        if (count++) cpus += ',';
+        cpus += std::to_string(cpu);
+    }
+    if (count != 8) fail("example needs eight permitted fixture CPUs");
+    tomo::Topology topology;
+    tomo::Placement placement;
+    if (!topology.declare(cpus.c_str()) ||
+        !placement.build_even(topology, config.even_ifid, config.even_ex) ||
+        !placement.assign_shard_homes(config.shards, config.shard_home))
+        fail("documented config example placement must resolve");
+    std::puts("PASS documented config example: parser, defaults, 6:2 placement, 16 shards");
+}
+
 }  // namespace
 
 int main() {
+    documented_example();
     boot_support_checks::run();
     char path[] = "/tmp/tomokv-config-parser.XXXXXX";
     const int fd = ::mkstemp(path);
