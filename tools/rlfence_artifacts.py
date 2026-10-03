@@ -341,6 +341,36 @@ def h05_proof(pre, alt, audit_file, out):
     print('PASS h05: exact PRE function addresses/sizes/loop heads and normalized instructions; GET handlers retained')
 
 
+def closure(source, out):
+    """Prove both source completion sites call each physical patched helper.
+
+    A retained out-of-line helper alone would not rule out a second, inlined
+    copy of the fence clear. Account for all two sites times four instantiations.
+    """
+    source_text = subprocess.check_output(['git', 'show', FROZEN_POST + ':src/core/ex_loop.h'], text=True, cwd=ROOT)
+    assert len(re.findall(r'^\s*complete_local_prefix\(', source_text, re.M)) == 2
+    uses = subprocess.check_output(['git', 'grep', '-n', 'complete_pending_read_local_mask',
+                                   FROZEN_POST, '--', 'src'], text=True, cwd=ROOT).splitlines()
+    assert len(uses) == 2 and sum('src/core/ex_loop.h:' in s for s in uses) == 1
+    elf = Elf(source); funcs = elf.functions()
+    pattern = re.compile(r'_ZN(4tomo|8tomo_db0)7ExLoopTILb1EE30drain_local_reads_bounded_implILb([01])EEEjj')
+    parents = {n for n in funcs if pattern.fullmatch(n)}
+    assert len(parents) == 4
+    rows = []
+    for parent in sorted(parents):
+        ns, fair = pattern.fullmatch(parent).groups()
+        helper = f'_ZZN{ns}7ExLoopTILb1EE30drain_local_reads_bounded_implILb{fair}EEEjjENKUljE2_clEj'
+        calls = [a for a, raw, _, _ in instructions(disassemble(source, parent))
+                 if len(raw) == 5 and raw[0] == 0xe8 and
+                 a + 5 + struct.unpack('<i', raw[1:])[0] == funcs[helper]['value']]
+        assert len(calls) == 2, ('completion site not covered by patched helper', parent, calls)
+        rows.append(dict(parent=parent, helper=helper, address=funcs[helper]['value'], calls=calls))
+    save(out, dict(binary_sha256=sha(elf.data), source_commit=FROZEN_POST,
+         ex_loop_sha256=sha(source_text.encode()), source_mask_uses=uses,
+         source_completion_calls=2, physical_helpers=4, covered_calls=8, rows=rows))
+    print('PASS closure: both completion sites x four instantiations call the patched helpers')
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest='action', required=True)
@@ -356,6 +386,8 @@ if __name__ == '__main__':
     s = sub.add_parser('h05-proof')
     s.add_argument('pre', type=Path); s.add_argument('alt', type=Path)
     s.add_argument('audit', type=Path); s.add_argument('out', type=Path)
+    s = sub.add_parser('closure')
+    s.add_argument('source', type=Path); s.add_argument('out', type=Path)
     args = p.parse_args()
     if args.action == 'pad':
         pad(args.source,args.output)
@@ -365,5 +397,7 @@ if __name__ == '__main__':
         audit(args.pre,args.post,args.out)
     elif args.action == 'prepare-alt':
         prepare_alt(args.source)
-    else:
+    elif args.action == 'h05-proof':
         h05_proof(args.pre,args.alt,args.audit,args.out)
+    else:
+        closure(args.source,args.out)
