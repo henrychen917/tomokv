@@ -13,8 +13,6 @@ changes = {
                    'lb_stage_.store(LbStage::Idle, std::memory_order_release);'),
     'stale-flip': ('flip_epoch() != plan.flip_epoch || ', ''),
     'stale-lb': ('lb_epoch() != plan.lb_epoch ||', 'false ||'),
-    'duplicate': ('    auto& plan = *lb_plan_;\n    if (flip_dispatch_paused()',
-                  '    auto& plan = *lb_plan_;\n    if (flip_dispatch_paused()'),
     'copy-on-io': ('lb_shard_moves_.swap(plan.shards);',
                    'std::vector<LbShardMove>(plan.shards).swap(lb_shard_moves_);'),
 }

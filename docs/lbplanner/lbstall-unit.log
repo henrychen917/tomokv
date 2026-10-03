@@ -1,0 +1,5 @@
+PASS LB busy client mode=1s destination_ack=1 arrivals=1 (first-tail refusal)
+PASS LB busy client mode=1s destination_ack=0 arrivals=1 (first-tail refusal)
+PASS LB busy client mode=2s destination_ack=1 arrivals=1 (first-tail refusal)
+PASS LB busy client mode=2s destination_ack=0 arrivals=1 (first-tail refusal)
+PASS core concurrency lbstall (state assertions fired)

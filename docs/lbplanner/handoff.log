@@ -1,0 +1,6 @@
+PASS production PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations
+PASS no-publish FAIL core concurrency: monitor must produce a finished plan; unarmed witness fails
+PASS stale-flip FAIL core concurrency: stale topology plan dropped without drain
+PASS stale-lb FAIL core concurrency: stale topology plan dropped without drain
+PASS duplicate FAIL core concurrency: finished plan consumed exactly once
+PASS copy-on-io FAIL core concurrency: IO handoff allocates and frees nothing

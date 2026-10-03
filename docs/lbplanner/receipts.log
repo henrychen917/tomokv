@@ -1,0 +1,3 @@
+PASS unchanged admission/search policy blocks, monitor boot wiring and hoisted cap
+PASS pinned IO pass: one shared stage load at 1/32/4096 connections; extra-load controls detected
+UNRESOLVED: mandatory PAD-A behaviour/layout twin is not built; no landing verdict

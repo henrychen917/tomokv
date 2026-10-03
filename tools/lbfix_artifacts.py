@@ -7,6 +7,7 @@ All mutations live under build/lbfix-controls; production sources remain untouch
 from pathlib import Path
 import json
 import shutil
+import sys
 
 from lbstall_artifacts import Elf
 
@@ -26,9 +27,9 @@ def mutate(name, source):
             source['weighted_lb.h'],
             'return std::max(2 * jitter, sampling_floor(owners));', 'return 2 * jitter;')
     elif name == 'no-hot':
-        source['server.h'] = replace_once(
-            source['server.h'], 'bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {',
-            'bool lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {\n'
+        source['lbplanner.cc'] = replace_once(
+            source['lbplanner.cc'], 'bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {',
+            'bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {\n'
             '        if (key_lb_signals_enabled()) return false; // negative control')
     elif name == 'fixed-budget':
         # Restore the rejected global budget in BOTH the floor and the sampler.
@@ -42,24 +43,24 @@ def mutate(name, source):
             source['server.h'], 'lb_policy_->observe_visits(visits, now, owners);',
             'lb_policy_->observe_visits(visits, now, 1); // negative control')
     elif name == 'eager-gather':
-        source['server.h'] = replace_once(
-            source['server.h'], '                lb_fold_signals(now_ms * 1000000);',
-            '                lb_fold_signals(now_ms * 1000000);\n'
-            '                std::vector<WeightedLbItem> eager;\n'
-            '                lb_gather_key_evidence(eager, now_ms, 0);')
+        source['lbplanner.cc'] = replace_once(
+            source['lbplanner.cc'], '            lb_fold_signals(now_ms * 1000000);',
+            '            lb_fold_signals(now_ms * 1000000);\n'
+            '            std::vector<WeightedLbItem> eager;\n'
+            '            lb_gather_key_evidence(eager, now_ms, 0);')
     elif name == 'no-reset':
-        source['server.h'] = replace_once(
-            source['server.h'],
-            '                    lb_bucket_hot_streak_ = 0;\n'
-            '                    std::vector<WeightedLbItem> shard_items;',
-            '                    std::vector<WeightedLbItem> shard_items;')
+        source['lbplanner.cc'] = replace_once(
+            source['lbplanner.cc'],
+            '                lb_bucket_hot_streak_ = 0;\n'
+            '                std::vector<WeightedLbItem> shard_items;',
+            '                std::vector<WeightedLbItem> shard_items;')
     elif name == 'step-no-floor':
-        text = source['server.h']
-        start = text.index('                        for (uint32_t step = 0;')
-        end = text.index('                            if (!demand_hot && !memory_hot)', start)
+        text = source['lbplanner.cc']
+        start = text.index('            for (uint32_t step = 0;')
+        end = text.index('            if (!demand_hot && !memory_hot)', start)
         body = text[start:end]
         assert body.count('band;') == 2
-        source['server.h'] = text[:start] + body.replace(
+        source['lbplanner.cc'] = text[:start] + body.replace(
             'band;', '2 * lb_policy_->key_jitter.jitter;') + text[end:]
     elif name == 'census-expiry':
         source['shard.h'] = replace_once(source['shard.h'],
@@ -100,22 +101,24 @@ def main():
         # All nested quoted includes must find this same mutated header tree. Release
         # libraries are linked after the unit TU, as in the existing core unit target.
         for path in (ROOT / 'src').rglob('*'):
-            if path.is_file() and path.suffix in ('.h', '.inc'):
+            if path.is_file() and (path.suffix in ('.h', '.inc') or path.name == 'lbplanner.cc'):
                 target = dest / path.relative_to(ROOT)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, target)
         source = {n: (dest / 'src/core' / n).read_text()
-                  for n in ('weighted_lb.h', 'server.h', 'shard.h')}
+                  for n in ('weighted_lb.h', 'server.h', 'shard.h', 'lbplanner.cc')}
         mutate(name, source)
         for filename, text in source.items():
             (dest / 'src/core' / filename).write_text(text)
         target = dest.relative_to(ROOT)
         make.extend([
             f'{target}/unit: tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) '
-            f'{target}/src/core/server.h {target}/src/core/weighted_lb.h {target}/src/core/shard.h',
+            f'{target}/src/core/server.h {target}/src/core/weighted_lb.h {target}/src/core/shard.h '
+            f'{target}/src/core/lbplanner.cc',
             '\t$(CXX) $(CXXFLAGS) $(JEFLAGS) -O1 -fsanitize=address,undefined '
             '-fno-omit-frame-pointer -DTOMO_CORE_CONCURRENCY_TEST '
-            f'-I{target} -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm', ''])
+            f'-I{target} -I. $< {target}/src/core/lbplanner.cc '
+            '$(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm', ''])
         manifest.append({'control': name, 'binary': f'{target}/unit', 'rows': rows,
                          'expected_exit': 1, 'actual_result': 'NOT RUN: mainline owns proof runs'})
 
@@ -130,6 +133,12 @@ def main():
         '\t$(CXX) $(LB_TSAN_FLAGS) -I. -c $< -o $@',
         'build/lbfix-tsan/unit: tests/core_concurrency_unit.cc $(LB_TSAN_OBJ)',
         '\t$(CXX) $(LB_TSAN_FLAGS) -I. $< $(LB_TSAN_OBJ) -o $@ $(LDLIBS) -lm', ''])
+
+    if '--controls-only' in sys.argv:
+        (BUILD / 'lbfix-artifacts.mk').write_text('\n'.join(make))
+        (BUILD / 'lbfix-controls.json').write_text(json.dumps(manifest, indent=2) + '\n')
+        print('Prepared outlined-planner controls and full TSan inputs; ran nothing.')
+        return
 
     pre, post = Elf(BUILD / 'lbfix-pre/tomokv'), Elf(BUILD / 'tomokv')
     pre_text = len(pre.section_data(pre.names.index('.text')))

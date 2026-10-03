@@ -1056,6 +1056,7 @@ struct CoreConcurrencyTest {
 };
 } // namespace tomo
 
+#ifndef TOMO_CORE_CONCURRENCY_EMBED
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
     T::require(argc == 2, "select one regression row");
@@ -1108,3 +1109,5 @@ int main(int argc, char** argv) {
     #endif
     std::printf("PASS core concurrency %s (state assertions fired)\n", argv[1]);
 }
+
+#endif // TOMO_CORE_CONCURRENCY_EMBED

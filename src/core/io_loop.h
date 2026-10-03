@@ -1899,6 +1899,7 @@ private:
         if (move.destination == self_->id() && !srv_->lb_acked(self_->id())) {
             if (!prepare_client_transfer_capacity(1)) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
@@ -1912,6 +1913,7 @@ private:
                 if (client->id() == move.id) { selected = client; break; }
             if (!selected || selected->ifid_thread() != self_->id()) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
@@ -1921,18 +1923,21 @@ private:
                 if (!srv_->lb_client_move_started(move.id, cached_now_ms_)) return 1;
                 const bool started = request_client_transfer(selected, move.destination, error);
                 if (!started) srv_->lb_client_move_cancelled(move.id);
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
             // Busy predicates may need more work than our drain budget allows. Decline this candidate
             // immediately; none of the lifetime, ROB, output, or protocol fences may be waived.
             if (srv_->lb_refuse_stalled(srv_->lb_epoch(), lb_stall_reason(error))) {
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
             if (selected->is_tls() || selected->multi_session() != nullptr ||
                 selected->blocked()) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }

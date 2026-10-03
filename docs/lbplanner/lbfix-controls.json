@@ -1,0 +1,114 @@
+[
+  {
+    "arm": "no-floor",
+    "row": "lbfix-floor",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: LB band never falls below the independently derived sampling floor\n"
+  },
+  {
+    "arm": "no-floor",
+    "row": "lbfix-stationary",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: stationary residual yields no move through and after stabilization\n"
+  },
+  {
+    "arm": "no-hot",
+    "row": "lbfix-hot",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=2: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "no-hot",
+    "row": "lbfix-hot-8",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=8: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "no-hot",
+    "row": "lbfix-hot-32",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=32: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "no-hot",
+    "row": "lbfix-hot-64",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=64: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "fixed-budget",
+    "row": "lbfix-clearable",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=16: FAIL core concurrency: 25% owner imbalance clears admission within nine ticks\n"
+  },
+  {
+    "arm": "fixed-budget",
+    "row": "lbfix-hot-32",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=32: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "fixed-budget",
+    "row": "lbfix-hot-64",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=64: FAIL core concurrency: induced hot shard fires within nine ticks after stationary warmup\n"
+  },
+  {
+    "arm": "fixed-budget",
+    "row": "lbfix-sampling",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=2: FAIL core concurrency: live owner count preserves per-owner sample resolution\n"
+  },
+  {
+    "arm": "fixed-sampling",
+    "row": "lbfix-sampling",
+    "expected_failure": true,
+    "status": 1,
+    "output": "LB owners=2: FAIL core concurrency: live owner count preserves per-owner sample resolution\n"
+  },
+  {
+    "arm": "eager-gather",
+    "row": "lbfix-gather",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: tick without admission performs no full-bucket gather or fold\n"
+  },
+  {
+    "arm": "no-reset",
+    "row": "lbfix-no-move",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: no-move plan consumes its admission streak\n"
+  },
+  {
+    "arm": "step-no-floor",
+    "row": "lbfix-step",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: per-step planner respects the same floored band as admission\n"
+  },
+  {
+    "arm": "census-expiry",
+    "row": "lbfix-read-only",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: accounting callback actually visited the expired object\n"
+  },
+  {
+    "arm": "fold-expiry",
+    "row": "lbfix-read-only",
+    "expected_failure": true,
+    "status": 1,
+    "output": "FAIL core concurrency: fold and census preserve objects, TTLs, bytes and owner sample counters\n"
+  }
+]

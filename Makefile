@@ -561,9 +561,12 @@ LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io
 build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc
 	python3 tools/lbplanner_controls.py $* $@
 build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc $(wildcard src/*/*.h) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/core -I. -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -iquote src/core -I. -c $< -o $@
 build/lbplanner-controls/%/unit: build/lbplanner-controls/%/lbplanner.o tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/lbplanner-units: build/lbplanner-unit $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/unit)
 	@touch $@
 .SECONDARY: $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/lbplanner.cc build/lbplanner-controls/$(arm)/lbplanner.o)
+
+build/lbplanner-trace: tools/lbplanner_trace.cc Makefile
+	$(CXX) $(CXXFLAGS) $< -o $@

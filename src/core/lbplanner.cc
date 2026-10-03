@@ -16,7 +16,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
         {
             std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
             if (lb_stage() != LbStage::Idle || flip_dispatch_paused() ||
-                snapshot_.in_progress() || loading()) {
+                !serves_clients(coordinator) || snapshot_.in_progress() || loading()) {
                 lb_transition_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
             }
@@ -311,7 +311,7 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
 
 void Server::monitor_controllers() {
     if (!lb_controller_enabled() && !flipctl_enabled()) return;
-    uint64_t next_lb_ms = 0;
+    uint64_t next_lb_ms = 0, next_flip_ms = 0;
     for (;;) {
         if (shutting_down().load(std::memory_order_relaxed)) break;
         // Also covers a worker's boot failure, before it could publish normal shutdown.
@@ -329,10 +329,15 @@ void Server::monitor_controllers() {
                 break;
             }
         }
-        if (flipctl_enabled()) (void)flipctl_tick(now_ns() / 1000000);
+        const uint64_t flip_now_ms = now_ns() / 1000000;
+        if (flipctl_enabled() && flip_now_ms >= next_flip_ms) {
+            (void)flipctl_tick(flip_now_ms);
+            next_flip_ms = now_ns() / 1000000 + flipctl_wait_ms();
+        }
         if (shutting_down().load(std::memory_order_relaxed)) break;
         const uint64_t finished_ms = now_ns() / 1000000;
-        uint32_t wait_ms = flipctl_enabled() ? flipctl_wait_ms() : lb_tick_ms();
+        uint32_t wait_ms = flipctl_enabled()
+            ? (next_flip_ms > finished_ms ? next_flip_ms - finished_ms : 0) : lb_tick_ms();
         if (lb_controller_enabled())
             wait_ms = std::min<uint64_t>(wait_ms, next_lb_ms > finished_ms ? next_lb_ms - finished_ms : 0);
         // Preserve multi-DB reclamation supervision at the existing worker-wait cadence.
