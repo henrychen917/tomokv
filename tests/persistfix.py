@@ -67,6 +67,15 @@ def wait_for(predicate, message, seconds=10):
         time.sleep(.005)
 
 
+def guard_port(port):
+    # The gate has reaped its previous server, but its accepted connections can
+    # still be in TIME_WAIT. Match listener restart semantics without REUSEPORT:
+    # a live listener must continue to refuse this bind.
+    with socket.socket() as guard:
+        guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        guard.bind(('127.0.0.1', port))
+
+
 class Run:
     def __init__(self, args):
         import tempfile
@@ -258,6 +267,5 @@ if __name__ == '__main__':
     p.add_argument('--artifacts', type=Path, default=Path('build/persistfix-live'))
     args = p.parse_args()
     assert args.count > 0
-    with socket.socket() as guard:
-        guard.bind(('127.0.0.1', args.port))  # refuse a port already owned by another server
+    guard_port(args.port)
     exercise(args)

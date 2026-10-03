@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1244,7 +1244,7 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
 }
 
-job_core_units(){
+job_persistfix_units(){
 # PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
 row_begin "AOF publication/shutdown witnesses + negative controls"
 if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
@@ -1253,6 +1253,9 @@ if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_c
 else
   bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
 fi
+}
+
+job_core_units(){
 # SURVIVING core concurrency regressions. Seven rows, all ABOVE the quick-tier exit.
 # Each selection asserts its hazardous state; ASAN/UBSAN and bounded interleaving hooks
 # make a broken mechanism fail. The fixture starts no server and opens no listener.
@@ -2204,6 +2207,8 @@ py tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512 \
 stop
 
 # Four rows per engine, eight total; this job is collected BEFORE the quick exit.
+# stop above reaps the gate-owned server before handing its allocated PORT to the
+# driver. The everysec boot below takes ownership back after all four runs exit.
 # Each script owns fresh data, both boots and its exact child PID. No existing data
 # or server is reused, including by the deliberately broken mainline control arms.
 for PERSIST_MODE in 2s 1s; do
@@ -2788,7 +2793,7 @@ job_dependencies(){
     core_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2848,6 +2853,8 @@ collect_job flip_unit
 collect_job filter_unit
 
 collect_job ring_unit
+
+collect_job persistfix_units
 
 collect_job core_units
 
