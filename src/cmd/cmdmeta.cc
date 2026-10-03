@@ -8,10 +8,12 @@
 #include "../net/resp.h"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <limits>
 #include <new>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace tomo {
@@ -55,6 +57,36 @@ struct CommandMetadata {
 namespace {
 
 #include "cmdmeta_generated.inc"
+
+// The generator already emits lexical order. Keep the assertion next to the
+// binary search so adding an unsorted row fails the build, not dispatch.
+static_assert([] {
+    for (size_t i = 1; i < std::size(kGeneratedMetadata); ++i)
+        if (std::string_view(kGeneratedMetadata[i - 1].name) >=
+            std::string_view(kGeneratedMetadata[i].name)) return false;
+    return true;
+}());
+
+struct MetadataIndexEntry { uint16_t length; uint16_t children; };
+constexpr auto kMetadataIndex = [] {
+    std::array<MetadataIndexEntry, std::size(kGeneratedMetadata)> index{};
+    for (size_t i = 0; i < index.size(); ++i) {
+        const std::string_view parent(kGeneratedMetadata[i].name);
+        index[i].length = parent.size();
+        for (size_t j = i + 1; j < index.size(); ++j) {
+            const std::string_view child(kGeneratedMetadata[j].name);
+            if (!child.starts_with(parent) || child.size() == parent.size() ||
+                child[parent.size()] != '|') break;
+            ++index[i].children;
+        }
+    }
+    return index;
+}();
+constexpr size_t kMaxMetadataName = [] {
+    size_t length = 0;
+    for (const auto& entry : kMetadataIndex) length = std::max(length, size_t(entry.length));
+    return length;
+}();
 
 std::vector<const CommandMetadata*> g_metadata_by_id;
 
@@ -176,10 +208,7 @@ void reply_key_spec(Op::Sink& sink, const GeneratedKeySpec& spec, bool resp3) {
 }
 
 uint32_t child_count(const CommandMetadata& parent) {
-    uint32_t count = 0;
-    for (const CommandMetadata& metadata : kGeneratedMetadata)
-        if (metadata_has_prefix(metadata, parent)) count++;
-    return count;
+    return kMetadataIndex[&parent - kGeneratedMetadata].children;
 }
 
 void reply_info_row(Op& op, const CommandMetadata& metadata) {
@@ -256,24 +285,48 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
 }
 
 const CommandMetadata* command_metadata_lookup(Slice name) {
-    for (const CommandMetadata& metadata : kGeneratedMetadata)
-        if (ascii_equal_icase(name, metadata.name)) return &metadata;
+    if (name.n > kMaxMetadataName) return nullptr;
+    size_t begin = 0, end = std::size(kGeneratedMetadata);
+    while (begin < end) {
+        const size_t mid = begin + (end - begin) / 2;
+        const auto& metadata = kGeneratedMetadata[mid];
+        const uint32_t length = kMetadataIndex[mid].length;
+        int comparison = 0;
+        for (uint32_t i = 0; i < std::min(name.n, length); ++i) {
+            unsigned char c = static_cast<unsigned char>(name.p[i]);
+            if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+            comparison = int(c) - static_cast<unsigned char>(metadata.name[i]);
+            if (comparison) break;
+        }
+        if (!comparison) comparison = int(name.n) - int(length);
+        if (comparison == 0) return &metadata;
+        if (comparison < 0) end = mid;
+        else begin = mid + 1;
+    }
     return nullptr;
 }
 
 const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argument) {
     if (command_argument >= op.argc()) return nullptr;
-    const CommandMetadata* parent = command_metadata_lookup(op.arg(command_argument));
+    const CommandMetadata* parent = command_argument == 0 && op.spec
+        ? command_metadata_for(*op.spec) : command_metadata_lookup(op.arg(command_argument));
+    // Ordinary key-bearing commands (including HSET/ZADD) have no subcommands.
+    // Their first key must never be copied or searched as a command name.
+    if (parent && !child_count(*parent)) return parent;
     if (command_argument + 1 < op.argc()) {
-        std::string qualified(op.arg(command_argument).p, op.arg(command_argument).n);
-        qualified.push_back('|');
-        qualified.append(op.arg(command_argument + 1).p, op.arg(command_argument + 1).n);
-        if (const CommandMetadata* subcommand = command_metadata_lookup(
-                Slice(qualified.data(), static_cast<uint32_t>(qualified.size()))))
-            return subcommand;
+        const Slice name = op.arg(command_argument), child = op.arg(command_argument + 1);
+        // Check each length before adding: input bulk lengths are untrusted.
+        if (name.n < kMaxMetadataName && child.n < kMaxMetadataName - name.n) {
+            char qualified[kMaxMetadataName];
+            std::memcpy(qualified, name.p, name.n);
+            qualified[name.n] = '|';
+            std::memcpy(qualified + name.n + 1, child.p, child.n);
+            if (const auto* subcommand = command_metadata_lookup(
+                    Slice(qualified, name.n + 1 + child.n))) return subcommand;
+        }
         // A known container with an unrecognised first argument is not the broad parent for key
         // extraction. Redis reports Invalid command specified for that full command.
-        if (parent && child_count(*parent)) return nullptr;
+        if (parent) return nullptr;
     }
     return parent;
 }
