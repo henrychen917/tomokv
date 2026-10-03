@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "6eeb3ea10df01a37788b386f2372a29951516e9d58ce7d079514807bf1489caa",
+  "source_sha256": "27ef3dfee1aed532ad39f372329da568e6caf1192e5367a968ebc5c991864a32",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -27,6 +27,14 @@
     "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
+    "R7 generated envelope parity",
+    "R7 production engagement (both database runtimes)",
+    "R7 FIFO twin off-path identity + negative controls",
+    "writeback policies 0/1: 22 standard fixtures",
+    "stationary balanced LB holds still (1s)",
+    "stationary balanced LB holds still (2s)",
+    "epoll directed correctness (1s)",
+    "epoll directed correctness (2s)",
     "splitlocal template forwarding + old-argument controls",
     "storage unlinked regression",
     "storage randomkey regression",
@@ -581,6 +589,21 @@
         "AOF always acknowledged-prefix recovery",
         "AOF always acknowledged-prefix recovery"
       ],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-04 03:35",
+      "added": [
+        "R7 FIFO twin off-path identity + negative controls",
+        "R7 generated envelope parity",
+        "R7 production engagement (both database runtimes)",
+        "epoll directed correctness (1s)",
+        "epoll directed correctness (2s)",
+        "stationary balanced LB holds still (1s)",
+        "stationary balanced LB holds still (2s)",
+        "writeback policies 0/1: 22 standard fixtures"
+      ],
+      "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
   ],
