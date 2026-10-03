@@ -1388,6 +1388,10 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_driver_identity_and_recovery_diagnostics(self):
+        import persistfix
+        self.assertTrue(persistfix.self_test())
+
     def test_driver_reuses_stopped_port_but_refuses_live_listener(self):
         import errno
         import socket
