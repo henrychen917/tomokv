@@ -260,6 +260,11 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
             error = "shutdown save has no IO owner";
             return SnapshotManager::StartResult::Failed;
         }
+        // Never wait here: this IO owner may be the writer that must advance the old BGSAVE.
+        if (snapshot_.in_progress()) {
+            error = "Background save already in progress";
+            return SnapshotManager::StartResult::Busy;
+        }
         const auto result = snapshot_.start(*this, *writer, *ring, true, error,
                                              nullptr, nullptr, nullptr, true);
         if (result != SnapshotManager::StartResult::Started) {
@@ -283,9 +288,15 @@ void Server::finish_shutdown() {
 
 uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
     std::string error;
-    const auto result = shutdown(ShutdownSave::Configured, &writer, &ring, error);
-    if (result == SnapshotManager::StartResult::Busy) return 0; // retry after snapshot/FLIP
+    auto result = shutdown(ShutdownSave::Configured, &writer, &ring, error);
+    if (result == SnapshotManager::StartResult::Busy) {
+        if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
+            return 0; // yield to the old snapshot/FLIP, then retry on the next cron beat
+        error = "shutdown timed out waiting for snapshot/placement; retry SHUTDOWN";
+        result = SnapshotManager::StartResult::Failed;
+    }
     live_save_armed_.fetch_and(uint8_t(~kSignalShutdown), std::memory_order_relaxed);
+    signal_shutdown_deadline_ns_.store(0, std::memory_order_relaxed);
     if (result == SnapshotManager::StartResult::Failed)
         std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
     return 1;

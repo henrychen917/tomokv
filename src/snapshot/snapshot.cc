@@ -188,7 +188,13 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
         // two IO owners could both observe the other's atomic state as idle and publish Preparing
         // and Planning concurrently.
-        std::lock_guard<std::mutex> transition_lock(server.shape_transition_mutex());
+        std::unique_lock<std::mutex> transition_lock(server.shape_transition_mutex(), std::defer_lock);
+        if (shutdown) {
+            if (!transition_lock.try_lock()) {
+                error = "placement transition admission is busy";
+                return StartResult::Busy;
+            }
+        } else transition_lock.lock();
         if (server.placement_transition_active()) {
             error = "placement transition is in progress";
             return StartResult::Busy;
@@ -228,6 +234,16 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     server.set_snapshot_atomic_barrier(true);
 
     const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
+    const uint64_t shutdown_deadline = shutdown ? now_ns() + Server::kShutdownSaveWaitNs : 0;
+    auto shutdown_expired = [&] {
+        if (!shutdown_deadline || now_ns() < shutdown_deadline) return false;
+        error = "shutdown snapshot coordination timed out; server remains running";
+        fail(next_epoch, error.c_str());
+        // Do not wait for cancellation on the saving IO owner's stack. Returning lets its
+        // normal loop advance the very CQEs/atomic continuations that may be blocking us.
+        // writer_pass retains the epoch/barrier until every owner has acknowledged cancellation.
+        return true;
+    };
     epoch_.store(next_epoch, std::memory_order_release);
     ready_owners_.store(0, std::memory_order_relaxed);
     frozen_owners_.store(0, std::memory_order_relaxed);
@@ -275,31 +291,43 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     }
 
     // The target CQE is the epoch broadcast.  Every executor observes it between operation batches.
+    uint32_t broadcast_owners = 0;
     for (uint32_t tid : server.placement().ex_threads()) {
         if (server.thread_mode() == ThreadMode::Fused && tid == writer.id()) {
             writer.begin_fused_snapshot(this);
+            ++broadcast_owners;
             continue;
         }
         Ring* target = server.thread(tid).ring();
         while (!target && !server.shutting_down().load(std::memory_order_relaxed)) {
+            if (shutdown_expired()) break;
             std::this_thread::yield();
             target = server.thread(tid).ring();
         }
         if (!target || !writer_ring.msg_to(*target, ur_tag(UrKind::SnapshotStart, this))) {
             set_error("could not broadcast snapshot epoch");
             phase_.store(Phase::Failed, std::memory_order_release);
+            // Unnotified owners owe no cancellation acknowledgement. Already-notified owners
+            // still leave this epoch through their normal control pass.
+            if (shutdown)
+                cancelled_owners_.fetch_add(executor_count_ - broadcast_owners, std::memory_order_relaxed);
             break;
         }
+        ++broadcast_owners;
     }
     writer_ring.submit_and_reap();
 
     while (phase() == Phase::Preparing &&
            ready_owners_.load(std::memory_order_acquire) != executor_count_) {
+        if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
         std::this_thread::yield();
     }
     if (phase() == Phase::Preparing) {
-        drain_atomic_groups(server, writer);
+        if (!drain_atomic_groups(server, writer, shutdown_deadline)) {
+            (void)shutdown_expired();
+            return StartResult::Failed;
+        }
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -308,6 +336,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     }
     while (phase() == Phase::Freeze &&
            frozen_owners_.load(std::memory_order_acquire) != executor_count_) {
+        if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
         std::this_thread::yield();
     }
@@ -325,6 +354,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     }
     while (phase() == Phase::Mark &&
            marked_owners_.load(std::memory_order_acquire) != executor_count_) {
+        if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
         std::this_thread::yield();
     }
@@ -337,6 +367,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     if (phase() != Phase::Mark) {
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+            if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             std::this_thread::yield();
         }
@@ -363,6 +394,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         fail(next_epoch, "could not write snapshot header");
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_) {
+            if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             std::this_thread::yield();
         }
@@ -378,6 +410,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     if (!is_blocking) return StartResult::Started;
 
     while (phase() == Phase::Capture) {
+        if (shutdown_expired()) return StartResult::Failed;
         writer.progress_fused_executor();
         writer_pass(writer, writer_ring, true);
         writer_ring.submit_and_reap();
@@ -389,6 +422,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         while (cancelled_owners_.load(std::memory_order_acquire) +
                    finished_owners_.load(std::memory_order_acquire) != executor_count_ ||
                io_inflight_ != 0) {
+            if (shutdown_expired()) return StartResult::Failed;
             writer.progress_fused_executor();
             writer_pass(writer, writer_ring, true);
             writer_ring.submit_and_reap();
@@ -421,17 +455,19 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
 //
 // cuts_waited_ is the non-vacuous part: a drain that never blocks is indistinguishable from a
 // missing one, so the battery asserts this counter advanced.
-void SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer) {
+bool SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer, uint64_t deadline_ns) {
     cuts_armed_.fetch_add(1, std::memory_order_relaxed);
     const uint64_t queued = server.atomic_apply_inflight();
-    if (!queued) return;
+    if (!queued) return true;
     cuts_waited_.fetch_add(1, std::memory_order_relaxed);
     drained_groups_.fetch_add(queued, std::memory_order_relaxed);
     while (server.atomic_apply_inflight() != 0 &&
            !server.shutting_down().load(std::memory_order_relaxed)) {
+        if (deadline_ns && now_ns() >= deadline_ns) return false;
         writer.progress_fused_executor();
         std::this_thread::yield();
     }
+    return true;
 }
 
 void SnapshotManager::owner_ready(uint64_t value) {
@@ -676,6 +712,12 @@ void SnapshotManager::on_io_complete(ThreadCtx&, Ring& ring, void* opaque, int r
     std::unique_ptr<SnapshotIoRequest> request(static_cast<SnapshotIoRequest*>(opaque));
     if (!request) return;
     if (request->epoch != epoch()) return;
+    // A shutdown deadline can return to the IO loop with writes still in flight. Reap them,
+    // but do not resubmit partial writes or advance a cancelled footer to rename/finalization.
+    if (phase() == Phase::Failed) {
+        if (io_inflight_) io_inflight_--;
+        return;
+    }
 
     auto finalization_failed = [&]() {
         set_error("could not finalize snapshot file");

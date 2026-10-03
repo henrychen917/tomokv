@@ -2041,11 +2041,17 @@ public:
     void set_shutdown_snapshot_active(bool active) {
         shutdown_snapshot_active_.store(active, std::memory_order_release);
     }
+    // Bound coordination, not filesystem IO: a failed/overdue save must leave the server alive.
+    static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
     // Signal-safe request. The existing one-second IO save cron owns all allocation and IO.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
     bool request_signal_shutdown() {
         if (loading()) return false; // retain the existing interrupted-boot teardown
-        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_relaxed);
+        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner
+        uint64_t unset = 0;
+        signal_shutdown_deadline_ns_.compare_exchange_strong(
+            unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
+        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_release);
         return true;
     }
     static constexpr uint8_t kSaveConfigured = 1, kSignalShutdown = 2;
@@ -2100,9 +2106,10 @@ public:
         end_live_config_update(version);
     }
     uint32_t save_cron_pass(ThreadCtx& writer, Ring& ring) {
-        if (!save_cron_writer(writer.id()) || snapshot_.in_progress()) return 0;
-        if (live_save_armed_.load(std::memory_order_relaxed) & kSignalShutdown)
+        if (!save_cron_writer(writer.id())) return 0;
+        if (live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown)
             return shutdown_from_cron(writer, ring);
+        if (snapshot_.in_progress()) return 0;
         save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
         const uint64_t changes = save_changes_since_last_save();
         const std::time_t now_time = std::time(nullptr);
@@ -3784,6 +3791,7 @@ private:
     std::atomic<bool> shutdown_snapshot_active_{false};
     std::atomic<uint32_t> shutdown_snapshot_holds_{0};
     std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
+    std::atomic<uint64_t> signal_shutdown_deadline_ns_{0};
 };
 
 }  // namespace tomo

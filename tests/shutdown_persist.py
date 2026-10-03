@@ -14,16 +14,23 @@ from _lib import Conn, RespError
 from _gate_process import info, require
 
 
+def boot_argv(args, directory, save=None):
+    argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
+            '--port', str(args.port), '--dir', str(directory), '--shards', '16',
+            '--thread-mode', args.mode, '--net-io', args.net_io,
+            '--appendonly', 'no']
+    if args.mode == '2s':
+        argv += ['--ratio', args.ratio]
+    if save is not None:
+        argv += ['--save', save]
+    return argv
+
+
 @contextlib.contextmanager
 def boot(args, directory, label, save=None):
     # The caller creates a fresh case directory, then reuses ONLY that directory for recovery.
     log_path = directory / (label + '.log')
-    argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
-            '--port', str(args.port), '--dir', str(directory), '--shards', '16',
-            '--ratio', args.ratio, '--thread-mode', args.mode, '--net-io', args.net_io,
-            '--appendonly', 'no']
-    if save is not None:
-        argv += ['--save', save]
+    argv = boot_argv(args, directory, save)
     (directory / (label + '.argv.json')).write_text(json.dumps(argv) + '\n')
     with log_path.open('w') as log:
         process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)

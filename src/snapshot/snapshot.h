@@ -108,7 +108,7 @@ private:
     bool finish_file_metadata(Ring* ring);
     bool complete_file_success();
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
-    void drain_atomic_groups(Server& server, ThreadCtx& writer);
+    bool drain_atomic_groups(Server& server, ThreadCtx& writer, uint64_t deadline_ns = 0);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);

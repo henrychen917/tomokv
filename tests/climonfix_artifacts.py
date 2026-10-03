@@ -24,9 +24,11 @@ def old_save(path):
 
 
 def old_signal(path):
-    replace(path, '''        if (loading()) return false; // retain the existing interrupted-boot teardown
-        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_relaxed);
-        return true;''', '        return false; // throwaway PRE signal behavior')
+    data = path.read_text()
+    begin = data.index('    bool request_signal_shutdown() {')
+    end = data.index('\n    }', begin)
+    path.write_text(data[:begin] + '''    bool request_signal_shutdown() {
+        return false; // throwaway PRE signal behavior''' + data[end:])
 
 
 def make(args, directory, *targets):
@@ -44,7 +46,11 @@ def controls(args):
             ('command', 'default SHUTDOWN saves before stop'),
             ('signal', 'signal leaves owners alive for final save'),
             ('hold', 'held owner prevents admission of another snapshot'),
-            ('completion', 'successful finalization publishes stop before releasing epoch')):
+            ('completion', 'successful finalization publishes stop before releasing epoch'),
+            ('no-save-signal', 'no-save signal stops without waiting for IO cron'),
+            ('busy-owner', 'saving owner refuses recursive shutdown during BGSAVE'),
+            ('busy-bound', 'busy shutdown retry is bounded and preserves the running snapshot'),
+            ('owner-bound', 'shutdown snapshot yields on stalled saving owner')):
         directory = ROOT / 'build' / ('climonfix-control-' + defect)
         directory.mkdir(exist_ok=True)
         shutil.copytree(ROOT / 'src', directory / 'src', dirs_exist_ok=True)
@@ -56,14 +62,36 @@ def controls(args):
             obj.remove(build / 'src/cmd/server_tail.o')
             source = 'src/cmd/server_tail.cc'
             obj.insert(0, build / 'tests/shutdown_unit.o')
-        elif defect == 'completion':
-            replace(directory / 'src/snapshot/snapshot.cc',
-                    '    if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();\n', '')
+        elif defect in ('completion', 'owner-bound'):
+            target = directory / 'src/snapshot/snapshot.cc'
+            if defect == 'completion':
+                replace(target, '    if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();\n', '')
+            else:
+                replace(target, '        if (!shutdown_deadline || now_ns() < shutdown_deadline) return false;',
+                        '        return false; // throwaway unbounded shutdown wait')
             obj.remove(build / 'src/snapshot/snapshot.o')
             source = 'src/snapshot/snapshot.cc'
             obj.insert(0, build / 'tests/shutdown_unit.o')
         elif defect == 'signal':
             old_signal(directory / 'src/core/server.h')
+        elif defect == 'no-save-signal':
+            replace(directory / 'src/core/server.h',
+                    '        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner\n', '')
+        elif defect in ('busy-owner', 'busy-bound'):
+            target = directory / 'src/cmd/server_tail.cc'
+            if defect == 'busy-owner':
+                replace(target, '''        if (snapshot_.in_progress()) {
+            error = "Background save already in progress";
+            return SnapshotManager::StartResult::Busy;
+        }
+''', '')
+            else:
+                replace(target, '''        if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
+            return 0;''', '''        if (true)
+            return 0;''')
+            obj.remove(build / 'src/cmd/server_tail.o')
+            source = 'src/cmd/server_tail.cc'
+            obj.insert(0, build / 'tests/shutdown_unit.o')
         else:
             replace(directory / 'src/core/ex_loop.h', '''            if (!snapshot_was_cancelled_ && srv_->shutdown_snapshot_active()) {
                 snapshot_owner_state_ = SnapshotOwnerState::ShutdownHeld;
@@ -74,13 +102,13 @@ def controls(args):
 ''', '')
         (directory / 'Makefile').write_text('''all: unit
 unit: control.o
-	g++ -pthread control.o ''' + ' '.join(map(str, obj)) + ''' -o $@ -ljemalloc -luring -lssl -lcrypto -lm -Wl,--wrap=''' + WRAP + '''
+	g++ -pthread control.o ''' + ' '.join(map(str, obj)) + ''' -o $@ -ljemalloc -luring -lssl -lcrypto -lm -Wl,--wrap=clock_gettime -Wl,--wrap=''' + WRAP + '''
 control.o: ''' + source + ''' $(wildcard src/*/*.h)
 	g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c $< -o $@
 ''')
         make(args, directory)
         result = subprocess.run(['taskset', '-c', args.cores, str(directory / 'unit')],
-                                capture_output=True, text=True)
+                                capture_output=True, text=True, timeout=30)
         (directory / 'run.log').write_text(result.stdout + result.stderr)
         assert result.returncode == 1 and assertion in result.stderr, (defect, result)
         print(defect + ': ' + result.stderr.strip())

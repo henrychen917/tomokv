@@ -3,11 +3,21 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 
 using namespace tomo;
 
 static unsigned saves;
+static bool real_save;
+static uint64_t test_clock_ns;
+extern "C" int __real_clock_gettime(clockid_t, timespec*);
+extern "C" int __wrap_clock_gettime(clockid_t id, timespec* value) {
+    if (id != CLOCK_MONOTONIC || !test_clock_ns) return __real_clock_gettime(id, value);
+    value->tv_sec = test_clock_ns / 1'000'000'000;
+    value->tv_nsec = test_clock_ns % 1'000'000'000;
+    return 0;
+}
 static SnapshotManager::StartResult next_result = SnapshotManager::StartResult::Started;
 static void require(bool ok, const char* assertion) {
     if (!ok) {
@@ -24,8 +34,12 @@ extern "C" SnapshotManager::StartResult snapshot_stub(
     AofManager*, const char*, const char*, bool shutdown)
     asm("__wrap__ZN4tomo15SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b");
 extern "C" SnapshotManager::StartResult snapshot_stub(
-    SnapshotManager*, Server& server, ThreadCtx&, Ring&, bool blocking, std::string& error,
-    AofManager*, const char*, const char*, bool shutdown) {
+    SnapshotManager* manager, Server& server, ThreadCtx& writer, Ring& ring,
+    bool blocking, std::string& error, AofManager* rewrite,
+    const char* directory, const char* filename, bool shutdown) {
+    if (real_save)
+        return real_snapshot_start(manager, server, writer, ring, blocking, error,
+                                   rewrite, directory, filename, shutdown);
     ++saves;
     require(blocking && shutdown, "final save is blocking and holds post-cut writes");
     require(!server.shutting_down(), "snapshot starts before global stop");
@@ -39,9 +53,10 @@ extern "C" SnapshotManager::StartResult snapshot_stub(
 struct Fixture {
     Server server;
     Ring ring; // never initialized: no io_uring, network, or owner loop
-    Fixture() {
+    Fixture(ThreadMode mode = ThreadMode::Split, const char* directory = ".") {
         Config cfg;
         cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.thread_mode = mode; cfg.dir = directory; cfg.net_io = NetIoEngine::Epoll;
         cfg.key_lb = cfg.client_lb = 0;
         require(server.prepare_boot(cfg) && server.init(cfg), "16-shard 6:2 fixture");
         command_bind_server(&server);
@@ -75,6 +90,128 @@ struct Fixture {
 
 namespace tomo {
 struct CoreConcurrencyTest {
+    static void busy_snapshot(Fixture& f) {
+        auto& server = f.server;
+        auto& snapshot = server.snapshot();
+        f.reset(); server.set_save_schedule(Config{}.save);
+        snapshot.phase_.store(SnapshotManager::Phase::Capture);
+        snapshot.writer_tid_.store(server.placement().ifid_threads().front());
+        require(f.command({"SHUTDOWN"}).starts_with("-ERR Errors trying to SHUTDOWN."),
+                "saving owner refuses recursive shutdown during BGSAVE");
+        require(saves == 0 && !server.shutting_down() && snapshot.in_progress(),
+                "busy shutdown preserves the in-flight BGSAVE");
+        test_clock_ns = 1;
+        f.signal(); f.cron();
+        require(saves == 0 && (server.live_save_armed_.load() & Server::kSignalShutdown),
+                "signal yields to the saving owner with BGSAVE still running");
+        test_clock_ns += Server::kShutdownSaveWaitNs;
+        f.cron();
+        require(!(server.live_save_armed_.load() & Server::kSignalShutdown) &&
+                !server.shutting_down() && snapshot.in_progress(),
+                "busy shutdown retry is bounded and preserves the running snapshot");
+        test_clock_ns = 0;
+        f.signal(); f.cron();
+        snapshot.phase_.store(SnapshotManager::Phase::Idle);
+        f.cron();
+        require(saves == 1 && server.shutting_down(),
+                "BGSAVE completion requires a fresh final save before stopping");
+    }
+
+    // No listeners or worker threads: drive the real per-owner snapshot state machines
+    // serially through their production progress hook and epoll mailboxes.
+    template<bool Fused>
+    static void saving_owner(SnapshotManager::Phase stall_phase, bool background = false) {
+        using Phase = SnapshotManager::Phase;
+        const bool stall = stall_phase != Phase::Idle;
+        char path[] = "build/shutdown-owner-XXXXXX";
+        require(::mkdtemp(path), "private snapshot directory");
+        auto f = std::make_unique<Fixture>(Fused ? ThreadMode::Fused : ThreadMode::Split, path);
+        auto& server = f->server;
+        auto& writer = server.thread(server.placement().ifid_threads().front());
+        g_ring_epoll_mode = true;
+        require(f->ring.init(64), "serverless writer mailbox");
+        struct Driver {
+            std::vector<std::unique_ptr<ExLoopT<Fused>>> owners;
+            SnapshotManager* snapshot;
+            Phase stall_phase;
+            unsigned stalled_passes = 0;
+            uint32_t progress() {
+                if (stall_phase != Phase::Idle && snapshot->phase() == stall_phase) {
+                    require(++stalled_passes <= 4,
+                            "shutdown snapshot yields on stalled saving owner");
+                    test_clock_ns += Server::kShutdownSaveWaitNs;
+                    return 0;
+                }
+                uint32_t work = 0;
+                for (auto& owner : owners) {
+                    owner->ring_.for_each_cqe([&](io_uring_cqe* event) { owner->on_cqe(event); });
+                    work += owner->snapshot_control_pass();
+                }
+                return work;
+            }
+        } driver{{}, &server.snapshot(), stall_phase};
+        for (auto tid : server.placement().ex_threads()) {
+            auto owner = std::make_unique<ExLoopT<Fused>>();
+            owner->srv_ = &server; owner->self_ = &server.thread(tid);
+            require(owner->ring_.init(64), "serverless executor mailbox");
+            server.thread(tid).set_ring(&owner->ring_);
+            driver.owners.push_back(std::move(owner));
+        }
+        writer.bind_fused_executor_hooks(&driver,
+            [](void* value) { return static_cast<Driver*>(value)->progress(); },
+            [](void* value, SnapshotManager* snapshot) {
+                // The fused writer is also the first executor in placement order.
+                static_cast<Driver*>(value)->owners.front()->begin_snapshot(snapshot);
+            });
+        if (background) {
+            std::string error;
+            require(real_snapshot_start(&server.snapshot(), server, writer, f->ring, false, error,
+                                        nullptr, nullptr, nullptr, false) == SnapshotManager::StartResult::Started,
+                    "real BGSAVE enters capture on the future shutdown owner");
+            require(server.snapshot().phase() == Phase::Capture,
+                    "BGSAVE window is open before shutdown request");
+            f->signal(); real_save = true; f->cron(); real_save = false;
+            require(server.snapshot().phase() == Phase::Capture && !server.shutting_down(),
+                    "shutdown yields without stealing the BGSAVE writer");
+            for (unsigned pass = 0; pass < 1024 && server.snapshot().in_progress(); ++pass) {
+                driver.progress(); server.snapshot().writer_pass(writer, f->ring, true);
+            }
+            require(!server.snapshot().in_progress() && !server.shutting_down(),
+                    "pre-request BGSAVE completion does not authorize shutdown");
+        }
+        test_clock_ns = 1; real_save = true;
+        std::string reply;
+        if (background) f->cron();
+        else reply = f->command({"SHUTDOWN"});
+        real_save = false; test_clock_ns = 0;
+        if (stall) {
+            require(driver.stalled_passes != 0 && reply.find("coordination timed out") != std::string::npos &&
+                    !server.shutting_down(), "stalled saving owner returns a bounded refusal");
+            require(server.snapshot().phase() == SnapshotManager::Phase::Failed,
+                    "timed-out epoch remains owned until cancellation is acknowledged");
+            driver.stall_phase = Phase::Idle;
+            for (unsigned pass = 0; pass < 128 && server.snapshot().in_progress(); ++pass) {
+                driver.progress(); server.snapshot().writer_pass(writer, f->ring, true);
+            }
+            require(!server.snapshot().in_progress() && !server.snapshot_atomic_barrier_.load(),
+                    "saving owner resumes and releases cancelled epoch and barrier");
+            real_save = true;
+            require(f->command({"SHUTDOWN"}).empty(), "shutdown retry completes after owner resumes");
+            real_save = false;
+        } else require(reply.empty(), "real snapshot shutdown succeeds on saving owner");
+        require(server.shutting_down(), "saving owner stops only after successful finalization");
+        std::string error;
+        const auto plan = snapshot_read_plan((std::string(path) + "/dump.tomo").c_str(), 16, error);
+        require(plan != nullptr,
+                "saving owner writes a loadable snapshot without changing its format");
+        if (background) require(plan->epoch == 2, "signal saves a fresh epoch after BGSAVE");
+        writer.bind_fused_executor_hooks(nullptr, nullptr, nullptr);
+        for (auto tid : server.placement().ex_threads()) server.thread(tid).set_ring(nullptr);
+        driver.owners.clear(); f.reset();
+        std::filesystem::remove_all(path);
+        std::printf("shutdown saving owner %s phase=%u %s: PASS\n", Fused ? "1s" : "2s",
+                    unsigned(stall_phase), background ? "BGSAVE/signal" : stall ? "timeout/retry" : "completion");
+    }
     static void finalize(Server& server) {
         auto& snapshot = server.snapshot();
         snapshot.server_ = &server;
@@ -140,6 +277,10 @@ int main() {
         f->reset(); f->server.set_save_schedule(Config{}.save);
         if (disable_first) f->server.set_save_schedule({});
         f->signal();
+        if (disable_first) {
+            require(f->server.shutting_down(), "no-save signal stops without waiting for IO cron");
+            continue;
+        }
         if (!disable_first) f->server.set_save_schedule({});
         f->cron();
         require(saves == 0 && f->server.shutting_down(), "CONFIG save cannot erase signal request");
@@ -154,8 +295,18 @@ int main() {
     f->signal(); f->cron();
     require(saves == 1 && !f->server.shutting_down(), "signal save failure leaves server alive");
     f->reset();
+    CoreConcurrencyTest::busy_snapshot(*f);
+    f->reset();
     CoreConcurrencyTest::shutdown_hold<false>(f->server);
     CoreConcurrencyTest::shutdown_hold<true>(f->server);
     CoreConcurrencyTest::finalize(f->server);
+    f.reset();
+    using Phase = SnapshotManager::Phase;
+    for (auto phase : {Phase::Idle, Phase::Preparing, Phase::Freeze, Phase::Mark, Phase::Capture}) {
+        CoreConcurrencyTest::saving_owner<false>(phase);
+        CoreConcurrencyTest::saving_owner<true>(phase);
+    }
+    CoreConcurrencyTest::saving_owner<false>(Phase::Idle, true);
+    CoreConcurrencyTest::saving_owner<true>(Phase::Idle, true);
     std::puts("shutdown policy, signal handoff, failure and owner hold: PASS");
 }
