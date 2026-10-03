@@ -63,7 +63,10 @@ def floors(control, cell_id):
         reference = [number(run[metric], "published reference", positive=True) for run in runs if run["arm"] == "A"]
         mean = sum(reference) / len(reference)
         unit = quantum(metric, runs)
-        quantum_pct = 100 * unit / mean
+        # Convert one representable metric step, not a rounded display percent.
+        # In binary floats .454 - .453 is slightly greater than literal .001.
+        # Use the same subtraction as paired(), entirely on published values.
+        quantum_pct = 100 * max(unit, abs((mean + unit) - mean), abs((mean - unit) - mean)) / mean
         result[metric] = dict(**values, quantum=unit, quantum_pct=quantum_pct,
             reference_mean=mean, threshold_pct=max(values["abs_delta"], values["spread"], quantum_pct))
     return result

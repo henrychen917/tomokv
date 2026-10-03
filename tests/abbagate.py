@@ -1762,6 +1762,7 @@ def print_cell(row):
 
 
 def parse_args():
+    from abba_standing_null import default_path
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--subset", choices=("smoke", "full"), default="full",
@@ -1796,7 +1797,7 @@ def parse_args():
     p.add_argument("--null-holdout", type=int, choices=(0, 1), default=0,
                    help="1 checks identical arms against fixed published floors and copies the null's block plan")
     p.add_argument("--null-result", type=Path, default=Path(os.getenv("GATE_ABBA_NULL", os.getenv(
-        "GATE_RECEIPT_NULL", ROOT / ".gate-history/receipts/baselines/full-null.json"))),
+        "GATE_RECEIPT_NULL", default_path(ROOT)))),
                    help="recent matched null required for comparison PASS; missing controls retain untrusted diagnostics")
     p.add_argument("--calibrate", action="store_true",
                    help="one-arm 10s search; PIN/EXEMPT/ceiling evidence only, never a performance verdict")
@@ -1946,7 +1947,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         control, control_error = None, None
         if not args.collect_null:
             try:
-                control = read_json(args.null_result)
+                from abba_standing_null import read_null
+                control = read_null(args.null_result)
             except (OSError, ValueError) as error:
                 control_error = f"standing null unavailable: {args.null_result}: {error}"
                 print("ABBA UNTRUSTED: " + control_error + "; all measurements still run", flush=True)
@@ -2201,7 +2203,8 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             # floor FAIL. Such a result is evidence, not an unreachable verifier.
             from abba_evidence import validate_holdout
             report["standing_null"] = match_null(report, control, now=time.time())
-            (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
+            from abba_standing_null import retain
+            retain(control, out / "null-control.json")
             result = validate_holdout(report, control, now=time.time())
             report["holdout_resolution"] = result
             report["verdict"] = result["verdict"]
@@ -2227,9 +2230,11 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                     if control_error:
                         raise ValueError(control_error)
                     report["standing_null"] = match_null(report, control, now=time.time())
+                    print(f"ABBA standing null TRUSTED: {report['standing_null']['sha256']}", flush=True)
                     # Retain the exact accepted control beside this comparison. Receipts use this
                     # frozen file, never a default path that another successful run may replace.
-                    (out / "null-control.json").write_text(json.dumps(control, indent=2) + "\n")
+                    from abba_standing_null import retain
+                    retain(control, out / "null-control.json")
                     if not args.only and report["statistical_verdict"] == "PASS":
                         report["comparison_trusted"] = True
                         report["verdict"] = "PASS"

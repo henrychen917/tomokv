@@ -464,6 +464,12 @@ def validate_holdout(comparison, control, *, now, historical=False):
 
 
 def match_null(comparison, control, *, now):
+    from abba_standing_null import artifact_scope
+    with artifact_scope(control):
+        return _match_null(comparison, control, now=now)
+
+
+def _match_null(comparison, control, *, now):
     require(comparison.get("run_kind") in ("comparison", "null-holdout"),
             "a null collection cannot replace a regression comparison")
     # Identify stale artifacts before replaying cached assessments against them.
@@ -474,7 +480,7 @@ def match_null(comparison, control, *, now):
             "null inventory differs; publish a null covering the current inventory")
     started, environment = validate_measurements(comparison, now=now)
     null_started, null_environment = validate_null(control, now=now)
-    if "promotion" in control:
+    if "promotion" in control or comparison.get("run_kind") == "null-holdout":
         from abbagate import Cell, assess, resolution_bounds
         validate_campaign_evidence(control)
         validate_campaign_evidence(comparison)
