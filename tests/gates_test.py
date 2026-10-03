@@ -868,7 +868,8 @@ class SchedulerWiring(unittest.TestCase):
         gate = (root / 'tests/gate.sh').read_text()
         quick = gate[gate.index('\nstart_workers\n'):gate.index('\n# One correctness row, before the quick exit.')]
         full = gate[gate.index('\ncollect_job asan_batteries\n'):gate.index('\n# Every worker has reaped')]
-        stub = '''start_workers(){ :; }
+        stub = '''GATE_PARTIAL=0
+start_workers(){ :; }
 collect_job(){
   case "$1" in
     differ-split) printf '%s\\n' differ-split-0 differ-split-1 differ-equivalence;;
@@ -934,6 +935,8 @@ collect_job(){
         order = [name for name in order if name != 'atomic_batteries'] + ['atomic_batteries']
         prelude = '''set -u
 PASS=0; FAIL=0; TIER=full; CORES=0; LOAD_CORES=0; PORT=19000; GATE_RATIO=6:2; ALL_BUILD_CORES=0
+GATE_PARTIAL=0
+source tests/gate_subset.sh
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; ROW_T=$(date +%s.%N)
 : > "$LEDGER"; : > "$TIMINGS"
 mkdir -p "$RUN_DIR/jobs" "$RUN_DIR/started" "$RUN_DIR/completed"
@@ -1507,7 +1510,7 @@ class CompleteTierDispatch(unittest.TestCase):
         import gateplan
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
-        start = gate[gate.index('start_workers(){'):gate.index('\ncollect_job(){')]
+        start = gate[gate.index('plan_jobs(){'):gate.index('\ncollect_job(){')]
         # Keep the real quick exit, collectors and ABBA background/wait dispatch. Replace only
         # the workload boundaries; a premature measurement, lost full job or wrong argv fails.
         coordinator = gate[gate.index('\nstart_workers\n'):
@@ -1521,6 +1524,8 @@ class CompleteTierDispatch(unittest.TestCase):
                      'differ-split', 'differ-armed', 'globcase'}
         stub = r'''
 GATE_SLOTS=0; PASS=0; FAIL=0; EXPECT_QUICK=419; GATE_STARTED=$SECONDS; JOINED=0
+GATE_PARTIAL=0
+source tests/gate_subset.sh
 TMPDIR="$RUN_DIR"; PORT=9999
 mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/tailgen"
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; : > "$LEDGER"; : > "$TIMINGS"
