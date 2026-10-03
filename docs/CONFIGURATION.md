@@ -77,6 +77,9 @@ pick bound is a wall-time latency guarantee; see `src/core/wb_rule.h:75` and
 
 ## Network and TLS
 
+Unterminated inline requests have Redis's fixed 64 KiB `PROTO_INLINE_MAX_SIZE` bound and close with `ERR Protocol error: too big inline request`. Redis 7.4 does not expose a `proto-max-inline` CONFIG option. TomoKV's receive cursors remain 32-bit even when `client-query-buffer-limit` is set above that representation limit.
+
+
 Defaults: `src/core/config.h:316`, `:395`; reference: `tomokv.conf:27`.
 All TLS fields are boot-only. A nonzero TLS port needs a certificate and key;
 client-auth yes/optional also needs a CA file or directory. Enabled TCP and TLS
@@ -134,6 +137,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Boot/GET | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict; `src/core/config.h:1013`, `tomokv.conf:287`. |
 | `databases` | R | Integer 1..256 | `1` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
 | `proto-max-bulk-len` | R | Memory, 1048576..4294901759 bytes | `512mb` (536870912) | Live | — | Request bulk-length bound, capped by TomoKV's Slice ABI; `src/core/config.h:140`, `:941`. |
+| `client-query-buffer-limit` | R | Memory syntax, 1048576..9223372036854775807; zero is rejected | `1gb` (1073741824) | Live | — | Bound on pending input plus queued MULTI arguments; overflow closes the connection without a reply, before AUTH too; `src/core/config.h:965`, `tomokv.conf:306`. |
 | `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap; `src/core/config.h:869`. |
 | `maxmemory-policy` | R | `noeviction`, `allkeys-lru`, `allkeys-lfu`, `allkeys-random`, `volatile-lru`, `volatile-lfu`, `volatile-random`, `volatile-ttl` | `noeviction` | Live | — | Eviction policy; `src/core/config.h:875`, `src/store/eviction.h:36`. |
 | `maxmemory-samples` | R | Integer 1..64 | `5` | Live | — | Eviction sample width; `src/core/config.h:882`. |

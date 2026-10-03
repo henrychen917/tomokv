@@ -489,3 +489,6 @@ SHUTDOWN_WRAP := -Wl,--wrap=_ZN4tomo15SnapshotManager5startERNS_6ServerERNS_9Thr
 SHUTDOWN_UNIT_OBJ = $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
 $(BUILD_ROOT)/shutdown-unit: $(BUILD_ROOT)/tests/shutdown_unit.o $(SHUTDOWN_UNIT_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(SHUTDOWN_WRAP)
+# NET1 bounds, linear scan, and actual deferred client reclamation; no server is started.
+build/netcap-unit: build/tests/netcap_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=free

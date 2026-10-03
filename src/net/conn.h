@@ -44,6 +44,7 @@
 #include <sys/socket.h>
 #include <sys/uio.h>
 #include "rob.h"
+#include "resp.h"
 #include "../base/slice.h"
 
 #ifdef TOMO_WEDGE_FORENSICS
@@ -61,9 +62,8 @@ void multi_session_destroy(MultiSession* session);
 // kRobWindow is defined by net/rob.h (included above), beside the ring that is sized from it.
 inline constexpr size_t   kRbufInitial  = 16 * 1024;
 inline constexpr size_t   kRbufSoftCap  = 1 * 1024 * 1024;  // stop BUFFERING BACKLOG past this
-// The soft cap bounds buffered backlog. One incomplete command can contain several individually
-// legal bulks and may grow to the 32-bit receive cursor's bound. Growth requires ROB quiescence,
-// and the buffer is shed after the command completes.
+// The soft cap bounds buffered backlog. The live query-buffer limit and the inline
+// protocol bound additionally constrain incomplete requests. Growth requires ROB quiescence.
 inline constexpr size_t   kRbufHardCap = UINT32_MAX;
 // Item 4: 512B inline, heap beyond. Two 16KB inline buffers made every connection carry 32KB of
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
@@ -308,7 +308,11 @@ public:
     uint32_t rlen() const { return rlen_; }
     uint32_t rpos() const { return rpos_; }
     size_t rcap() const { return rcap_; }
-    void     advance_parse(uint32_t n) { rpos_ += n; }
+    void     advance_parse(uint32_t n) { rpos_ += n; inline_scanned_ = 0; }
+    uint32_t& inline_scanned() { return inline_scanned_; }
+    bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
+        return queued > limit || rlen_ - rpos_ > limit - queued;
+    }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
     //
@@ -324,16 +328,21 @@ public:
     static constexpr size_t kMinRecv = 2048;
 
     char* read_space(size_t want, size_t& out_avail, bool may_grow,
-                     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024) {
+                     [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
+                     uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
         size_t avail = rcap_ - rlen_;
         // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
         // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
         // which is also what makes may_grow true). Backlog never grows past the soft cap.
-        // The parser enforces the limit PER BULK. A complete MSET can contain many legal bulks.
-        // The receive cursor's representation, not one argument's limit, bounds this buffer.
-        (void)proto_max_bulk_len;
-        const size_t hard_cap = kRbufHardCap;
-        const size_t cap = (rpos_ == 0) ? hard_cap : kRbufSoftCap;
+        // Offer one byte beyond the limit to distinguish equality (legal) from overflow.
+        // Parsed bytes still pinned by workers are not pending input. Queued MULTI argv is.
+        const uint64_t remaining = queued < query_limit ? query_limit - queued : 0;
+        size_t hard_cap = std::min<uint64_t>(kRbufHardCap, rpos_ + remaining + 1);
+        // epoll/TLS drain reads before parsing. Stop them at the inline frontier so a
+        // continuously readable peer cannot postpone the protocol error until the qbuf cap.
+        if (rpos_ < rlen_ && rbuf_[rpos_] != '*')
+            hard_cap = std::min<size_t>(hard_cap, uint64_t(rpos_) + kProtoInlineMaxSize + 1);
+        const size_t cap = (rpos_ == 0) ? hard_cap : std::min(hard_cap, kRbufSoftCap);
         if (avail < want && may_grow && rcap_ < cap) {
             size_t ncap = rcap_ * 2;
             while (ncap < rlen_ + want && ncap < cap) ncap *= 2;
@@ -341,7 +350,11 @@ public:
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
             if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
         }
-        if (avail < kMinRecv && rcap_ != hard_cap) { out_avail = 0; return nullptr; }
+        avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
+        if (!avail || (avail < kMinRecv && rlen_ + avail != hard_cap)) {
+            out_avail = 0;
+            return nullptr;
+        }
         out_avail = avail;
         return rbuf_ + rlen_;
     }
@@ -768,6 +781,7 @@ public:
     static constexpr size_t id_offset();
     static constexpr size_t obuf_bytes_offset();
     static constexpr size_t atomic_groups_io_offset();
+    static constexpr size_t inline_scanned_offset();
 
 #ifdef TOMO_WEDGE_FORENSICS
     // FORENSICS for the stranded-reply class: claims (worker won the CAS), defers (lost it),
@@ -830,6 +844,7 @@ private:
     uint32_t  atomic_groups_io_ = 0;    // 64..67
     Session   session_;                 // 68..71
     uint8_t   wb_deferrals_ = 0;         // 72: existing IO-only padding before ROB
+    uint32_t  inline_scanned_ = 0;       // 76..79: cursor relative to rpos_; existing padding
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;
@@ -892,6 +907,8 @@ constexpr size_t Client::ifid_thread_offset() { return offsetof(Client, ifid_thr
 constexpr size_t Client::id_offset() { return offsetof(Client, id_); }
 constexpr size_t Client::obuf_bytes_offset() { return offsetof(Client, obuf_bytes_); }
 constexpr size_t Client::atomic_groups_io_offset() { return offsetof(Client, atomic_groups_io_); }
+constexpr size_t Client::inline_scanned_offset() { return offsetof(Client, inline_scanned_); }
+static_assert(Client::inline_scanned_offset() == 76, "Inline cursor must consume IO-only padding");
 static_assert(Client::executor_line_offset() % 64 == 0, "executor-facing line must start a line");
 static_assert(Client::wb_slot_offset() / 64 == Client::executor_line_offset() / 64,
               "wb_slot_ left the executor-facing line");

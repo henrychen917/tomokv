@@ -149,6 +149,29 @@ def sampled_fixture(report):
     return report
 
 
+def holdout_fixture(comparison, control):
+    """Synthetic independent blocks with the published count; never executes a binary."""
+    from abba_holdout import plan, rejudge
+    extra = 0
+    for row in comparison['cells']:
+        row['holdout_repeats'] = []
+        for ordinal in range(1, plan(control)[row['cell']['id']]['planned_blocks']):
+            block = copy.deepcopy(row['rounds'][0])
+            block['sample_offset'] = ordinal * len(abba.ORDER)
+            for sequence, run in enumerate(block['runs'], 1 + block['sample_offset']):
+                run['artifacts'] = f"{row['cell']['id']}/n{block['instances']}-{sequence}-{run['arm']}"
+            row['holdout_repeats'].append(block)
+            extra += len(abba.ORDER) * comparison['window_seconds']
+    comparison['elapsed_seconds'] += extra
+    comparison['quiet_box']['finished_at'] += extra
+    comparison['quiet_box']['cpu_samples'] += int(extra)
+    comparison['quiet_box']['samples'] += int(extra)
+    comparison.pop('null_control', None)
+    rejudge(comparison, control)
+    comparison['standing_null'] = evidence.match_null(comparison, control, now=time.time())
+    return comparison
+
+
 def armed_workload(cell, run, proof=None):
     mode = dict(reorder_retired='0', reorder=str(cell.reorder), read_local=str(cell.read_local))
     end = dict(mode)
@@ -299,6 +322,7 @@ class PromotionControls(unittest.TestCase):
         comparison.pop('null_control')
         comparison['standing_null'] = evidence.match_null(comparison, promoted, now=time.time())
         receipt.validate_campaign(self.root, campaign, comparison, now=time.time())
+        holdout_fixture(comparison, promoted)
         self.assertEqual(evidence.validate_holdout(comparison, promoted, now=time.time())['verdict'], 'PASS')
 
     def test_read_local_raw_proof_replay_and_per_guard_removal(self):
@@ -536,6 +560,7 @@ class PromotionControls(unittest.TestCase):
                 comparison.update(run_kind='comparison', verdict='PASS', comparison_trusted=True)
                 comparison.pop('null_control')
                 comparison['standing_null'] = evidence.match_null(comparison, control, now=time.time())
+                holdout_fixture(comparison, control)
                 result = evidence.validate_holdout(comparison, control, now=time.time())
                 self.assertEqual(result['ceiling_only_cells'], {'m09': 'LOADGEN-BOUND'})
                 for state, mutate, reason in (
@@ -793,7 +818,8 @@ class PromotionControls(unittest.TestCase):
                 self.assertNotIn('h01', summary['pass_evidence_cells'], 'UNRESOLVED cell counted as PASS')
                 with self.assertRaisesRegex(ValueError, 'comparison reporting-only: .*UNRESOLVED=1 \\[h01\\]'):
                     evidence.validate_comparison(comparison, promoted, now=time.time())
-                self.assertEqual(evidence.validate_holdout(comparison, promoted, now=time.time())['verdict'], 'UNRESOLVED')
+                held = holdout_fixture(copy.deepcopy(comparison), promoted)
+                self.assertEqual(evidence.validate_holdout(held, promoted, now=time.time())['verdict'], 'PASS')
                 changed = copy.deepcopy(comparison)
                 changed.update(verdict='PASS', comparison_trusted=True)
                 with throwaway(evidence, 'validate_comparison', 'not summary["unresolved_cells"]', 'True'):
@@ -842,24 +868,26 @@ class PromotionControls(unittest.TestCase):
             self.report['cell_source']['text'], self.started + 17000, self.binary)
         comparison.update(run_kind='comparison', verdict='PASS', comparison_trusted=True)
         comparison.pop('null_control')
-        def assess():
-            for row in comparison['cells']:
-                row['assessment'] = abba.assess(abba.Cell(**row['cell']), row['rounds'],
-                                               abba.resolution_bounds(control, row['cell']['id']))
-            comparison['standing_null'] = evidence.match_null(comparison, control, now=time.time())
-        assess()
+        from abba_holdout import rejudge
+        holdout_fixture(comparison, control)
         result = evidence.validate_holdout(comparison, control, now=time.time())
         self.assertEqual(result['cycles_op_resolution'], 'UNPROVEN')
+        forged_comparison = {**comparison, 'comparison_trusted': True}
+        def no_comparison_certificate():
+            with self.assertRaisesRegex(ValueError, 'null holdout cannot certify a code comparison'):
+                evidence.validate_comparison(forged_comparison, control, now=time.time())
+        no_comparison_certificate()
+        with throwaway(evidence, 'validate_comparison', 'comparison.get("run_kind") == "comparison"', 'True'):
+            with self.assertRaises(AssertionError):
+                no_comparison_certificate()
         row = next(row for row in comparison['cells'] if not saturation_exempt(row['cell']))
         for run in row['rounds'][0]['runs']:
             if run['arm'] == 'B': run['rate'] = 100.1
-        assess()  # Favorable drift can pass a one-sided code comparison.
-        with self.assertRaisesRegex(ValueError, 'frozen two-sided resolution'):
-            evidence.validate_holdout(comparison, control, now=time.time())
-        with throwaway(evidence, 'validate_holdout', 'row["absolute_delta_pct"] <= bound["abs_delta"]', 'True'):
-            with self.assertRaises(AssertionError):
-                with self.assertRaisesRegex(ValueError, 'frozen two-sided resolution'):
-                    evidence.validate_holdout(comparison, control, now=time.time())
+        rejudge(comparison, control)
+        comparison['standing_null'] = evidence.match_null(comparison, control, now=time.time())
+        result = evidence.validate_holdout(comparison, control, now=time.time())
+        self.assertEqual(result['verdict'], 'FAIL', 'favorable drift outside the fixed floor must FAIL')
+        self.assertIn('holdout |pooled delta| exceeds published floor', result['failures'][0]['reasons'][0])
         forged = copy.deepcopy(control)
         forged['null_control']['resolution'][0]['metric'] = 'cycles/op'
         with self.assertRaisesRegex(ValueError, 'null control did not complete'):

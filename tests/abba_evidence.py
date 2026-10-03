@@ -114,11 +114,13 @@ def validate_quiet(quiet, environment, *, now, started, elapsed):
 def validate_measurements(report, *, now, expected_source=None, expected_cells=None, harness=None, candidate=None,
                           expected_instrument=None):
     require(isinstance(report, dict), "ABBA evidence must be a JSON object")
-    outcomes = ("PASS", "UNRESOLVED") if report.get("run_kind") == "comparison" else ("PASS",)
+    holdout = report.get("run_kind") == "null-holdout"
+    outcomes = (("PASS", "FAIL") if holdout else
+                ("PASS", "UNRESOLVED") if report.get("run_kind") == "comparison" else ("PASS",))
     require(report.get("schema") == 1 and report.get("statistical_verdict") in outcomes and
             report.get("verdict") in (*outcomes, "PARTIAL"), "ABBA measurements did not all pass")
     require(report.get("measurement_valid") is True, "ABBA measurement validity was not certified")
-    require(report.get("run_kind") in ("comparison", "null-control") and
+    require(report.get("run_kind") in ("comparison", "null-control", "null-holdout") and
             report.get("normal_gate_eligible", True) is True,
             "diagnostic background qualification cannot certify ABBA measurements")
     require(re.fullmatch(r"[0-9a-f]{64}", report.get("receipt_harness_sha256", "")), "missing ABBA harness digest")
@@ -176,6 +178,9 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
     qstart, qend = validate_quiet(report.get("quiet_box"), environment, now=now,
                                   started=started, elapsed=elapsed)
     windows = 0
+    if holdout:
+        from abba_holdout import validate_structure
+        validate_structure(report)
     for cell, row in zip(cells, rows):
         if "null_sampling_policy" in report:
             require(report.get("run_kind") == "null-control", "comparison cannot borrow null repeats")
@@ -184,11 +189,13 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
         else:
             require(not row.get("null_repeats") and "null_sampling_plan" not in row,
                     "null repeats lack a frozen sampling policy")
+        require(holdout or not row.get("holdout_repeats"), "comparison cannot borrow holdout repeats")
         require(row.get("verdict") in outcomes and row.get("instrument_valid", True) is True,
                 f"nonpassing ABBA cell: {cell['id']}")
         assessment = row.get("assessment", {})
         require(isinstance(assessment, dict), "invalid ABBA assessment")
-        require(assessment.get("verdict") == row["verdict"] and assessment.get("reasons") == [],
+        require(assessment.get("verdict") == row["verdict"] and
+                (holdout or assessment.get("reasons") == []),
                 f"unassessed/failed ABBA cell: {cell['id']}")
         exempt = saturation_exempt(cell)
         require(assessment.get("saturation_exempt") is exempt, "invalid saturation exemption")
@@ -202,7 +209,7 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
         # discrepancy is the instrument's resolution, and enforcing it here would make the null
         # unable to report the very thing it exists to report. Comparison runs store a threshold
         # already floored by the standing null, so the check stays exact for them.
-        if report.get("run_kind") != "null-control":
+        if report.get("run_kind") == "comparison":
             require(signed_number(assessment.get("loss_pct"), "loss") <=
                     number(assessment.get("threshold_pct"), "threshold"), "cell loss exceeds its threshold")
         judged_occupancy = []
@@ -211,7 +218,7 @@ def validate_measurements(report, *, now, expected_source=None, expected_cells=N
                 f"unreached ABBA cell: {cell['id']}")
         require(sum(block.get("instances") == assessment.get("instances") for block in rounds) == 1,
                 "assessment does not identify exactly one measured load block")
-        for block in rounds + row.get("null_repeats", []):
+        for block in rounds + row.get("null_repeats", []) + row.get("holdout_repeats", []):
             runs = block.get("runs", [])
             require(isinstance(runs, list) and all(isinstance(run, dict) for run in runs), "invalid ABBA runs")
             require([run.get("arm") for run in runs] == ORDER, "incomplete or reordered ABBA measurements")
@@ -380,7 +387,9 @@ def validate_campaign_evidence(report):
         else:
             require(not row.get("null_repeats") and "null_sampling_plan" not in row,
                     "null repeats lack a frozen sampling policy")
-        for block in row["rounds"] + row.get("null_repeats", []):
+        require(report.get("run_kind") == "null-holdout" or not row.get("holdout_repeats"),
+                "comparison cannot borrow holdout repeats")
+        for block in row["rounds"] + row.get("null_repeats", []) + row.get("holdout_repeats", []):
             key = (block["instances"], cell.conns)
             if key not in layouts:
                 layouts[key] = load_layout(report["environment"]["load_cpus"], *key)
@@ -436,54 +445,58 @@ def resolution_text(summary):
                       ("PASS evidence", "pass_evidence_cells")))
 
 
-def validate_holdout(comparison, control, *, now):
+def validate_holdout(comparison, control, *, now, historical=False):
     """Independent two-sided check against ONLY the already frozen null errors.
 
     This certifies observed rate/latency/tail resolution, never a prediction bound
     or cycles/op. The diagnostic PMU's wider window/central-command denominator
     cannot supply aligned cycles/op evidence for this instrument.
     """
-    from abbagate import resolution_bounds
-    summary = resolution_summary(comparison, control)
-    if summary["unresolved_cells"]:
-        matched = match_null(comparison, control, now=now)
-        require(comparison.get("standing_null") == matched and comparison.get("verdict") == "UNRESOLVED"
-                and comparison.get("comparison_trusted") is False,
-                "unresolved holdout must remain reporting-only")
-    else:
-        validate_comparison(comparison, control, now=now)
-    validate_campaign_evidence(comparison)
-    validate_null_integrity(control)
-    validate_null_integrity(comparison)
+    from abba_holdout import resolution
+    require(comparison.get("run_kind") == "null-holdout" and comparison.get("comparison_trusted") is False,
+            "holdout requires explicit identical-binary mode; never code-comparison certification")
+    matched = match_null(comparison, control, now=now)
+    require(comparison.get("standing_null") == matched, "holdout's matched null evidence differs")
     require(comparison["candidate"]["sha256"] == comparison["reference"]["sha256"] ==
             control["candidate"]["sha256"], "holdout requires the frozen byte-identical binary")
     require(comparison["coverage"] == control["coverage"], "holdout requires the complete frozen population")
-    for row in null_resolution(comparison):
-        bound = resolution_bounds(control, row["cell"])[row["metric"]]
-        require(row["absolute_delta_pct"] <= bound["abs_delta"] and
-                max(row["reference_spread_pct"], row["candidate_spread_pct"]) <= bound["spread"],
-                f"{row['cell']}/{row['metric']}: holdout exceeds frozen two-sided resolution")
-    return {"kind": "independent-null-holdout", "verdict": "UNRESOLVED" if summary["unresolved_cells"] else "PASS",
-            "resolution_summary": summary,
-            "control_sha256": digest(canonical(control)), "comparison_sha256": digest(canonical(comparison)),
-            "metrics": sorted({row["metric"] for row in null_resolution(control)}),
-            "ceiling_only_cells": {row["cell"]["id"]: row["cell"]["ceiling_status"]
-                                   for row in control["cells"] if row["cell"].get("ceiling_status")},
-            "cycles_op_resolution": "UNPROVEN", "full_gate_receipt": False}
+    return resolution(comparison, control, historical=historical)
 
 
 def match_null(comparison, control, *, now):
-    require(comparison.get("run_kind") == "comparison", "a null collection cannot replace a regression comparison")
+    from abba_standing_null import artifact_scope
+    with artifact_scope(control):
+        return _match_null(comparison, control, now=now)
+
+
+def match_null_identity(comparison, control):
+    """Reject a stale default before it can supply assessment floors."""
+    require(isinstance(control, dict), "standing null must be a JSON object")
+    require(comparison.get("instrument_fingerprint") == control.get("instrument_fingerprint"),
+            "null instrument differs; recollect with the current fingerprint (archived null remains historical)")
+    require(comparison["cell_source"]["sha256"] == control["cell_source"]["sha256"] and
+            comparison["cell_source"]["total_cells"] == control["cell_source"]["total_cells"],
+            "null inventory differs; publish a null covering the current inventory")
+
+
+def _match_null(comparison, control, *, now):
+    require(comparison.get("run_kind") in ("comparison", "null-holdout"),
+            "a null collection cannot replace a regression comparison")
+    match_null_identity(comparison, control)
     started, environment = validate_measurements(comparison, now=now)
     null_started, null_environment = validate_null(control, now=now)
-    if "promotion" in control:
+    if "promotion" in control or comparison.get("run_kind") == "null-holdout":
         from abbagate import Cell, assess, resolution_bounds
         validate_campaign_evidence(control)
         validate_campaign_evidence(comparison)
         validate_null_integrity(control)
         for row in comparison["cells"]:
-            require(row["assessment"] == assess(Cell(**row["cell"]), row["rounds"],
-                    resolution_bounds(control, row["cell"]["id"])),
+            if comparison.get("run_kind") == "null-holdout":
+                from abba_holdout import assess as assess_holdout
+                replay = assess_holdout(Cell(**row["cell"]), row, control)
+            else:
+                replay = assess(Cell(**row["cell"]), row["rounds"], resolution_bounds(control, row["cell"]["id"]))
+            require(row["assessment"] == replay,
                     f"{row['cell']['id']}: cached comparison assessment differs from raw replay")
     require(0 <= started - null_started <= NULL_MAX_AGE,
             "standing null is from the future or more than 24 hours old")
@@ -516,6 +529,7 @@ def validate_comparison(comparison, control, *, now):
     require(not summary["unresolved_cells"], "comparison reporting-only: " + resolution_text(summary))
     require(comparison.get("verdict") == "PASS" and comparison.get("comparison_trusted") is True and
             not comparison.get("only"), "comparison is partial or lacks standing-null certification")
+    require(comparison.get("run_kind") == "comparison", "a null holdout cannot certify a code comparison")
     matched = match_null(comparison, control, now=now)
     require(comparison.get("standing_null") == matched, "comparison's matched null evidence differs")
     return utc_seconds(comparison["started_utc"]), comparison["environment"]
