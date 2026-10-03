@@ -68,17 +68,23 @@ def artifacts(pre, post, directory):
                   scope='PRE completion publication with POST text/heap layouts; shutdown fix remains active',
                   caveat='PAD retains candidate call envelopes; it is a layout control, not a speed verdict',
                   layout=new_layout, patches=patches, all_other_bytes_equal=True,
-                  sections_and_symbols_equal=True, arms={})
+                  sections_and_symbols_equal=True, arms={}, wrappers={})
     for label, path, elf in (('PRE', pre, before), ('POST', post, after), ('PAD-A', pad, control)):
         report['arms'][label] = dict(path=str(path.resolve()), sha256=hashlib.sha256(elf.data).hexdigest(),
                                     text_bytes=elf.sections[elf.names.index('.text')][5])
         for policy in ('off', 'no', 'always'):
             wrapper = directory / f'{label}-{policy}'
             options = '--appendonly no' if policy == 'off' else f'--appendonly yes --appendfsync {policy}'
-            wrapper.write_text('#!/bin/bash\nset -e\nunset TOMO_AOF_ACK_WINDOW\nexec ' +
-                               shlex.quote(str(path.resolve())) + ' "$@" --shards 16 ' +
+            guard = ('expected=' + report['arms'][label]['sha256'] + '\nactual=$(sha256sum ' +
+                     shlex.quote(str(path.resolve())) + ')\n' +
+                     'test "${actual%% *}" = "$expected" || { echo "Frozen ELF digest mismatch" >&2; exit 2; }\n')
+            wrapper.write_text('#!/bin/bash\nset -e\nunset TOMO_AOF_ACK_WINDOW\n' + guard + 'exec ' +
+                               shlex.quote(str(path.resolve())) + ' "$@" ' +
                                options + ' --auto-aof-rewrite-percentage 0\n')
             wrapper.chmod(0o755)
+            report['wrappers'][wrapper.name] = dict(path=str(wrapper.resolve()),
+                sha256=hashlib.sha256(wrapper.read_bytes()).hexdigest(), underlying=label,
+                appended_args=options + ' --auto-aof-rewrite-percentage 0')
     (directory / 'artifacts.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 
